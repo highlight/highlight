@@ -411,18 +411,14 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 		}
 		stripePlan := pricing.FromPriceID(stripePriceID)
 		quota := pricing.TypeToQuota(stripePlan)
-		var monthToDateSessionCountSlice []int64
-		year, month, _ := time.Now().Date()
+		var monthToDateSessionCount int64
 		if err := r.DB.
 			Model(&model.DailySessionCount{}).
 			Where(&model.DailySessionCount{OrganizationID: organizationID}).
-			Where("date > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).
-			Pluck("count", &monthToDateSessionCountSlice).Error; err != nil {
+			Where("date > ?", time.Date(n.Year(), n.Month(), 1, 0, 0, 0, 0, time.UTC)).
+			Select("SUM(count) as monthToDateSessionCount").
+			Scan(&monthToDateSessionCount).Error; err != nil {
 			return nil, e.Wrap(err, "error getting month-to-date session count")
-		}
-		var monthToDateSessionCount int64
-		for _, count := range monthToDateSessionCountSlice {
-			monthToDateSessionCount += count
 		}
 		withinBillingQuota = int64(quota) > monthToDateSessionCount
 	}
@@ -467,22 +463,6 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 	}
 	if err := r.AppendProperties(session.ID, sessionProperties, PropertyType.SESSION); err != nil {
 		return nil, e.Wrap(err, "error adding set of properites to db")
-	}
-
-	// Update session count on dailydb
-	dailySession := &model.DailySessionCount{}
-	currentDate := time.Date(n.UTC().Year(), n.UTC().Month(), n.UTC().Day(), 0, 0, 0, 0, time.UTC)
-	if err := r.DB.Where(&model.DailySessionCount{
-		OrganizationID: organizationID,
-		Date:           &currentDate,
-	}).Attrs(&model.DailySessionCount{
-		Count: 0,
-	}).FirstOrCreate(&dailySession).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating new daily session")
-	}
-
-	if err := r.DB.Exec("UPDATE daily_session_counts SET count = count + 1 WHERE date = ? AND organization_id = ?", currentDate, organizationID).Error; err != nil {
-		return nil, e.Wrap(err, "Error incrementing session count in db")
 	}
 
 	return session, nil

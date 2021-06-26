@@ -107,15 +107,6 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 }
 
 func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
-	// Set the session as processed; if any is error thrown after this, the session gets ignored.
-	if err := w.Resolver.DB.Model(&model.Session{}).Where(
-		&model.Session{Model: model.Model{ID: s.ID}},
-	).Updates(
-		&model.Session{Processed: &model.T},
-	).Error; err != nil {
-		return errors.Wrap(err, "error updating session to processed status")
-	}
-
 	// load all events
 	events := []model.EventsObject{}
 	if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").Find(&events).Error; err != nil {
@@ -170,6 +161,24 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
+	}
+
+	// Update session count on dailydb
+	currentDate := time.Date(s.CreatedAt.UTC().Year(), s.CreatedAt.UTC().Month(), s.CreatedAt.UTC().Day(), 0, 0, 0, 0, time.UTC)
+	dailySession := &model.DailySessionCount{}
+	if err := w.Resolver.DB.
+		Where(&model.DailySessionCount{
+			OrganizationID: s.OrganizationID,
+			Date:           &currentDate,
+		}).Attrs(&model.DailySessionCount{Count: 0}).
+		FirstOrCreate(&dailySession).Error; err != nil {
+		return e.Wrap(err, "Error creating new daily session")
+	}
+
+	if err := w.Resolver.DB.
+		Where(&model.DailySessionCount{Model: model.Model{ID: dailySession.ID}}).
+		Updates(&model.DailySessionCount{Count: dailySession.Count + 1}).Error; err != nil {
+		return e.Wrap(err, "Error incrementing session count in db")
 	}
 
 	var g errgroup.Group
