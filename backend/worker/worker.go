@@ -164,7 +164,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	// Update session count on dailydb
-	currentDate := time.Date(s.CreatedAt.Year(), s.CreatedAt.Month(), 1, 0, 0, 0, 0, time.UTC)
+	currentDate := time.Date(s.CreatedAt.UTC().Year(), s.CreatedAt.UTC().Month(), s.CreatedAt.UTC().Day(), 0, 0, 0, 0, time.UTC)
 	dailySession := &model.DailySessionCount{}
 	if err := w.Resolver.DB.
 		Where(&model.DailySessionCount{
