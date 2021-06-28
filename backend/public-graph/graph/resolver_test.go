@@ -339,7 +339,7 @@ func TestEnhanceStackTrace(t *testing.T) {
 
 	storageClient, err := storage.NewStorageClient()
 	if err != nil {
-		log.Fatalf("error creating storage client: %v", err)
+		t.Fatalf("error creating storage client: %v", err)
 	}
 	r := Resolver{
 		DB:            DB,
