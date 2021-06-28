@@ -47,6 +47,8 @@
 }
 
 .noMetadataContainer {
+    grid-column-end: -1;
+    grid-column-start: 1;
     p {
         color: var(--color-gray-500);
         font-size: 12px;
