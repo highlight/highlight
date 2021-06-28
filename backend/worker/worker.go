@@ -127,8 +127,8 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	eventStringBytes := 0
 	for _, ee := range events {
 		eventStringBytes += len(ee.Events)
-		dd.StatsD.Histogram("worker.processSession.incrementalEventPayloadStringSize", float64(eventStringBytes), nil, 1) //nolint
 	}
+	dd.StatsD.Histogram("worker.processSession.eventPayloadStringSize", float64(eventStringBytes), nil, 1) //nolint
 
 	// Delete the session if there's no events.
 	if len(events) == 0 {
