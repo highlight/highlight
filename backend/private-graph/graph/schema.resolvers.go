@@ -1109,7 +1109,6 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 }
 
 func (r *queryResolver) ErrorGroup(ctx context.Context, id int) (*model.ErrorGroup, error) {
-	log.Info("yoyoyoyo")
 	return r.isAdminErrorGroupOwner(ctx, id)
 }
 

@@ -173,6 +173,7 @@ type ComplexityRoot struct {
 
 	ErrorTrace struct {
 		ColumnNumber func(childComplexity int) int
+		Error        func(childComplexity int) int
 		FileName     func(childComplexity int) int
 		FunctionName func(childComplexity int) int
 		LineNumber   func(childComplexity int) int
@@ -1052,6 +1053,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorTrace.ColumnNumber(childComplexity), true
+
+	case "ErrorTrace.error":
+		if e.complexity.ErrorTrace.Error == nil {
+			break
+		}
+
+		return e.complexity.ErrorTrace.Error(childComplexity), true
 
 	case "ErrorTrace.file_name":
 		if e.complexity.ErrorTrace.FileName == nil {
@@ -2805,6 +2813,7 @@ type ErrorTrace {
     line_number: Int
     function_name: String
     column_number: Int
+    error: String
 }
 
 type ReferrerTablePayload {
@@ -7508,6 +7517,38 @@ func (ec *executionContext) _ErrorTrace_column_number(ctx context.Context, field
 	res := resTmp.(*int)
 	fc.Result = res
 	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorTrace_error(ctx context.Context, field graphql.CollectedField, obj *model.ErrorTrace) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ErrorTrace",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Error, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Field_id(ctx context.Context, field graphql.CollectedField, obj *model1.Field) (ret graphql.Marshaler) {
@@ -15924,6 +15965,8 @@ func (ec *executionContext) _ErrorTrace(ctx context.Context, sel ast.SelectionSe
 			out.Values[i] = ec._ErrorTrace_function_name(ctx, field, obj)
 		case "column_number":
 			out.Values[i] = ec._ErrorTrace_column_number(ctx, field, obj)
+		case "error":
+			out.Values[i] = ec._ErrorTrace_error(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
