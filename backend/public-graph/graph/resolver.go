@@ -615,11 +615,11 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 			mappedStackFrame.FunctionName = stackTrace.FunctionName
 			mappedStackFrame.LineNumber = stackTrace.LineNumber
 			mappedStackFrame.ColumnNumber = stackTrace.ColumnNumber
-			errString := fmt.Sprintf("file does not contain source map url: %v", stackTraceFileName)
+			errString := fmt.Sprintf("file does not contain source map url: %v", stackTraceFileURL)
 			mappedStackFrame.Error = &errString
 
 			mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
-			log.Errorf("file does not contain source map url: %v", stackTraceFileName)
+			log.Errorf("file does not contain source map url: %v", stackTraceFileURL)
 			continue
 		}
 		sourceMapFileName = lastLine[sourceMapIndex+len("sourceMappingURL="):]
