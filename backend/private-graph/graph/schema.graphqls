@@ -148,6 +148,7 @@ type ErrorTrace {
     line_number: Int
     function_name: String
     column_number: Int
+    error: String
 }
 
 type ReferrerTablePayload {

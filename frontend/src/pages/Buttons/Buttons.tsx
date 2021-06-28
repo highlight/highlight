@@ -19,6 +19,22 @@ export const Buttons = () => {
                 <button
                     className={commonStyles.submitButton}
                     onClick={() => {
+                        console.error('boba');
+                    }}
+                >
+                    Console Error
+                </button>
+                <button
+                    className={commonStyles.submitButton}
+                    onClick={() => {
+                        H.error('Highlight H.error');
+                    }}
+                >
+                    H.error()
+                </button>
+                <button
+                    className={commonStyles.submitButton}
+                    onClick={() => {
                         CustomError();
                     }}
                 >

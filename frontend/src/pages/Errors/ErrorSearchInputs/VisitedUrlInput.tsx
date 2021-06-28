@@ -46,7 +46,7 @@ export const VisitedUrlInput = () => {
     };
 
     return (
-        <div className={inputStyles.commonInputWrapper}>
+        <div>
             <AsyncCreatableSelect
                 placeholder={'Visited URL'}
                 styles={SharedSelectStyleProps}

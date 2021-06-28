@@ -84,10 +84,7 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 		return errors.Wrap(err, "error updating session to storage enabled")
 	}
 
-	err = dd.StatsD.Histogram("worker.pushToObjectStorageAndWipe.payloadSize", float64(totalPayloadSize), nil, 1)
-	if err != nil {
-		log.Error(e.Wrap(err, "error submitting histogram for payload size"))
-	}
+	dd.StatsD.Histogram("worker.pushToObjectStorageAndWipe.payloadSize", float64(totalPayloadSize), nil, 1) //nolint
 
 	// Delete all the events_objects in the DB.
 	if len(events) > 0 {
@@ -110,25 +107,13 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 }
 
 func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
-	// Set the session as processed; if any is error thrown after this, the session gets ignored.
-	if err := w.Resolver.DB.Model(&model.Session{}).Where(
-		&model.Session{Model: model.Model{ID: s.ID}},
-	).Updates(
-		&model.Session{Processed: &model.T},
-	).Error; err != nil {
-		return errors.Wrap(err, "error updating session to processed status")
-	}
-
 	// load all events
 	events := []model.EventsObject{}
 	if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").Find(&events).Error; err != nil {
 		return errors.Wrap(err, "retrieving events")
 	}
 
-	err := dd.StatsD.Histogram("worker.processSession.numEventsRowsQueried", float64(len(events)), nil, 1)
-	if err != nil {
-		log.Error(e.Wrap(err, "error pushing numEventsRqosQueried histogram metric"))
-	}
+	dd.StatsD.Histogram("worker.processSession.numEventsRowsQueried", float64(len(events)), nil, 1) //nolint
 
 	// Delete the session if there's no events.
 	if len(events) == 0 {
@@ -176,6 +161,24 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
+	}
+
+	// Update session count on dailydb
+	currentDate := time.Date(s.CreatedAt.UTC().Year(), s.CreatedAt.UTC().Month(), s.CreatedAt.UTC().Day(), 0, 0, 0, 0, time.UTC)
+	dailySession := &model.DailySessionCount{}
+	if err := w.Resolver.DB.
+		Where(&model.DailySessionCount{
+			OrganizationID: s.OrganizationID,
+			Date:           &currentDate,
+		}).Attrs(&model.DailySessionCount{Count: 0}).
+		FirstOrCreate(&dailySession).Error; err != nil {
+		return e.Wrap(err, "Error creating new daily session")
+	}
+
+	if err := w.Resolver.DB.
+		Where(&model.DailySessionCount{Model: model.Model{ID: dailySession.ID}}).
+		Updates(&model.DailySessionCount{Count: dailySession.Count + 1}).Error; err != nil {
+		return e.Wrap(err, "Error incrementing session count in db")
 	}
 
 	var g errgroup.Group
@@ -366,10 +369,7 @@ func (w *Worker) Start() {
 			continue
 		}
 		// Sends a "count" metric to datadog so that we can see how many sessions are being queried.
-		err := dd.StatsD.Histogram("worker.sessionsQuery.sessionCount", float64(len(sessions)), nil, 1)
-		if err != nil {
-			log.Error(e.Wrap(err, "error sending session count metric to datadog"))
-		}
+		dd.StatsD.Histogram("worker.sessionsQuery.sessionCount", float64(len(sessions)), nil, 1) //nolint
 		sessionsSpan.Finish()
 		for _, session := range sessions {
 			span, ctx := tracer.StartSpanFromContext(ctx, "worker.processSession", tracer.ResourceName(strconv.Itoa(session.ID)))

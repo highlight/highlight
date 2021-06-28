@@ -54,7 +54,7 @@ const StreamElementPayload = ({ payload }: StreamElementProps) => {
                             ) ? (
                                 <a href={object[key]}>{object[key]}</a>
                             ) : (
-                                object[key] || (
+                                object[key]?.toString() || (
                                     <>
                                         undefined{' '}
                                         <InfoTooltip

@@ -95,7 +95,6 @@ const SessionLevelBar = () => {
                 </div>
             ) : (
                 <>
-                    <PanelDisplayControls />
                     <CurrentUrlBar url={currentUrl ?? ''} />
                     <SessionToken
                         icon={<LayoutIcon />}
@@ -103,30 +102,31 @@ const SessionLevelBar = () => {
                     >
                         {viewport?.height} x {viewport?.width}
                     </SessionToken>
-                    <span>
-                        <SessionToken
-                            icon={<LockIcon />}
-                            tooltipTitle={
-                                <>
-                                    {data?.session?.enable_strict_privacy
-                                        ? 'Text and images in this session are obfuscated.'
-                                        : 'This session is recording all content on the page.'}{' '}
-                                    <a
-                                        href="https://docs.highlight.run/docs/privacy#overview"
-                                        target="_blank"
-                                        rel="noreferrer"
-                                    >
-                                        Learn more about Strict Privacy Mode.
-                                    </a>
-                                </>
-                            }
-                        >
-                            {data?.session?.enable_strict_privacy
-                                ? 'Privacy on'
-                                : 'Privacy off'}
-                        </SessionToken>
+                    <SessionToken
+                        icon={<LockIcon />}
+                        tooltipTitle={
+                            <>
+                                {data?.session?.enable_strict_privacy
+                                    ? 'Text and images in this session are obfuscated.'
+                                    : 'This session is recording all content on the page.'}{' '}
+                                <a
+                                    href="https://docs.highlight.run/docs/privacy#overview"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
+                                    Learn more about Strict Privacy Mode.
+                                </a>
+                            </>
+                        }
+                    >
+                        {data?.session?.enable_strict_privacy
+                            ? 'Privacy on'
+                            : 'Privacy off'}
+                    </SessionToken>
+                    <div className={styles.endContainer}>
+                        <PanelDisplayControls />
                         <ShareButton className={styles.shareButton} />
-                    </span>
+                    </div>
                 </>
             )}
         </div>

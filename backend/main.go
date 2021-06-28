@@ -100,10 +100,15 @@ func main() {
 	}
 
 	shouldStartDatadog := (env == "prod" && os.Getenv("REACT_APP_ONPREM") != "true")
-	if err := dd.Start(shouldStartDatadog); err != nil {
-		log.Fatal(e.Wrap(err, "error starting dd clients"))
+	if shouldStartDatadog {
+		log.Info("Running dd client setup process...")
+		if err := dd.Start(); err != nil {
+			log.Fatal(e.Wrap(err, "error starting dd clients"))
+		} else {
+			defer dd.Stop()
+		}
 	} else {
-		defer dd.Stop(shouldStartDatadog)
+		log.Info("Excluding dd client setup process...")
 	}
 
 	db, err := model.SetupDB(os.Getenv("PSQL_DB"))

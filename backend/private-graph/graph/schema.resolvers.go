@@ -72,8 +72,16 @@ func (r *errorGroupResolver) Event(ctx context.Context, obj *model.ErrorGroup) (
 }
 
 func (r *errorGroupResolver) StackTrace(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorTrace, error) {
-	if obj.StackTrace == "" {
+	if (obj.MappedStackTrace == nil || *obj.MappedStackTrace == "") && obj.StackTrace == "" {
 		return nil, nil
+	}
+	var ret []*modelInputs.ErrorTrace
+	if obj.MappedStackTrace != nil && *obj.MappedStackTrace != "" {
+		if err := json.Unmarshal([]byte(*obj.MappedStackTrace), &ret); err != nil {
+			log.Error(e.Wrap(err, "error unmarshalling MappedStackTrace"))
+			return nil, nil
+		}
+		return ret, nil
 	}
 	var stackTrace []*struct {
 		FileName     *string `json:"fileName"`
@@ -82,9 +90,9 @@ func (r *errorGroupResolver) StackTrace(ctx context.Context, obj *model.ErrorGro
 		ColumnNumber *int    `json:"columnNumber"`
 	}
 	if err := json.Unmarshal([]byte(obj.StackTrace), &stackTrace); err != nil {
+		log.Error(e.Wrap(err, "error unmarshalling StackTrace"))
 		return nil, nil
 	}
-	var ret []*modelInputs.ErrorTrace
 	for _, t := range stackTrace {
 		val := &modelInputs.ErrorTrace{
 			FileName:     t.FileName,
@@ -1037,10 +1045,10 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 	errorFieldQuerySpan.Finish()
 
 	errorGroups := []model.ErrorGroup{}
-	selectPreamble := `SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at, state`
+	selectPreamble := `SELECT id, organization_id, event, stack_trace, metadata_log, created_at, deleted_at, updated_at, state`
 	countPreamble := `SELECT COUNT(*)`
 
-	queryString := `FROM (SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at, state, array_agg(t.error_field_id) fieldIds
+	queryString := `FROM (SELECT id, organization_id, event, stack_trace, metadata_log, created_at, deleted_at, updated_at, state, array_agg(t.error_field_id) fieldIds
 	FROM error_groups e INNER JOIN error_group_fields t ON e.id=t.error_group_id GROUP BY e.id) AS rows `
 
 	queryString += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
@@ -1101,7 +1109,6 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 }
 
 func (r *queryResolver) ErrorGroup(ctx context.Context, id int) (*model.ErrorGroup, error) {
-	log.Info("yoyoyoyo")
 	return r.isAdminErrorGroupOwner(ctx, id)
 }
 

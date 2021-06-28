@@ -254,9 +254,16 @@ func TestEnhanceStackTrace(t *testing.T) {
 					ColumnNumber: util.MakeIntPointer(0),
 				},
 			},
-			expectedStackTrace: nil,
-			fetcher:            DiskFetcher{},
-			err:                e.New("file does not contain source map url"),
+			expectedStackTrace: []modelInput.ErrorTrace{
+				{
+					FileName:     util.MakeStringPointer("./test-files/lodash.js"),
+					LineNumber:   util.MakeIntPointer(0),
+					ColumnNumber: util.MakeIntPointer(0),
+					Error:        util.MakeStringPointer("file does not contain source map url: ./test-files/lodash.js"),
+				},
+			},
+			fetcher: DiskFetcher{},
+			err:     e.New(""),
 		},
 		"test source mapping invalid trace:file doesn't exist": {
 			stackFrameInput: []*publicModelInput.StackFrameInput{
@@ -271,10 +278,11 @@ func TestEnhanceStackTrace(t *testing.T) {
 					FileName:     util.MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js"),
 					LineNumber:   util.MakeIntPointer(0),
 					ColumnNumber: util.MakeIntPointer(0),
+					Error:        util.MakeStringPointer("status code not OK"),
 				},
 			},
 			fetcher: NetworkFetcher{},
-			err:     e.New("status code not OK"),
+			err:     e.New(""),
 		},
 		"test source mapping invalid trace:filename is not a url": {
 			stackFrameInput: []*publicModelInput.StackFrameInput{
@@ -289,10 +297,11 @@ func TestEnhanceStackTrace(t *testing.T) {
 					FileName:     util.MakeStringPointer("/file/local/domain.js"),
 					LineNumber:   util.MakeIntPointer(0),
 					ColumnNumber: util.MakeIntPointer(0),
+					Error:        util.MakeStringPointer(`error getting source file: Get "/file/local/domain.js": unsupported protocol scheme ""`),
 				},
 			},
 			fetcher: NetworkFetcher{},
-			err:     e.New(`error getting source file: Get "/file/local/domain.js": unsupported protocol scheme ""`),
+			err:     e.New(""),
 		},
 		"test source mapping invalid trace:trace is nil": {
 			stackFrameInput:    nil,
