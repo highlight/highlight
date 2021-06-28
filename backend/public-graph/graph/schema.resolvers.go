@@ -11,9 +11,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/event-parse"
+	"github.com/99designs/gqlgen/graphql"
+	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/model"
-
 	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	e "github.com/pkg/errors"
@@ -303,6 +303,26 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		return nil, e.Wrap(err, "error updating session payload time")
 	}
 	return &sessionID, nil
+}
+
+func (r *mutationResolver) UpdateRelease(ctx context.Context, apiKey string, commitHash string, sourceMapFiles []*graphql.Upload) (*int, error) {
+	var org model.Organization
+	if err := r.DB.Where(&model.Organization{Secret: &apiKey}).First(&org).Error; err != nil {
+		return nil, e.Wrap(err, "error querying org by secret in db")
+	}
+
+	if err := r.DB.Where(&model.Organization{Model: model.Model{ID: org.ID}}).Updates(&model.Organization{ReleaseVersion: &commitHash}).Error; err != nil {
+		return nil, e.Wrap(err, "error updating org release version")
+	}
+
+	for _, file := range sourceMapFiles {
+		_, err := r.StorageClient.PushSourceMapFileToS3(org.ID, commitHash, file.Filename, file.File)
+		if err != nil {
+			return nil, e.Wrap(err, "error pushing sourcemap file to s3")
+		}
+	}
+
+	return &org.ID, nil
 }
 
 func (r *queryResolver) Ignore(ctx context.Context, id int) (interface{}, error) {

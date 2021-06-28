@@ -146,6 +146,7 @@ type Organization struct {
 	StripePriceID    *string
 	BillingEmail     *string
 	Secret           *string `json:"-"`
+	ReleaseVersion   *string
 	Admins           []Admin `gorm:"many2many:organization_admins;"`
 	Fields           []Field
 	RecordingSetting RecordingSettings

@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"time"
 
@@ -219,13 +220,12 @@ func (s *StorageClient) sourceMapBucketKeyWithVersion(organizationId int, releas
 	return aws.String(fmt.Sprintf("%d/%s/%s", organizationId, releaseVersion, fileName))
 }
 
-func (s *StorageClient) PushSourceMapFileToS3(organizationId int, releaseVersion string, fileName string, fileBytes []byte) (*int64, error) {
+func (s *StorageClient) PushSourceMapFileToS3(organizationId int, releaseVersion string, fileName string, file io.Reader) (*int64, error) {
 	key := s.sourceMapBucketKeyWithVersion(organizationId, releaseVersion, fileName)
-	body := bytes.NewReader(fileBytes)
 	// expire file after 60 days
 	expireDate := time.Now().Add(2 * 30 * 24 * time.Hour)
 	_, err := s.S3Client.PutObject(context.TODO(), &s3.PutObjectInput{
-		Bucket: aws.String(S3SourceMapBucketName), Key: key, Body: body, Expires: &expireDate,
+		Bucket: aws.String(S3SourceMapBucketName), Key: key, Body: file, Expires: &expireDate,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "error 'put'ing sourcemap file in s3 bucket")
