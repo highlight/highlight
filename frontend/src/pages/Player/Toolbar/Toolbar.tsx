@@ -219,6 +219,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     const disableControls = state === ReplayerState.Loading || !canViewSession;
     // The play button should be disabled if the player has reached the end.
     const disablePlayButton = time >= (replayer?.getMetaData().totalTime ?? 0);
+    const leftSidebarWidth = 475;
 
     return (
         <ErrorModalContextProvider value={{ selectedError, setSelectedError }}>
@@ -271,7 +272,9 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                     ref={sliderWrapperRef}
                     onMouseMove={(e: React.MouseEvent<HTMLButtonElement>) =>
                         setSliderClientX(
-                            e.clientX - 64 - (showLeftPanelPreference ? 425 : 0)
+                            e.clientX -
+                                64 -
+                                (showLeftPanelPreference ? leftSidebarWidth : 0)
                         )
                     }
                     onMouseLeave={() => setSliderClientX(-1)}
@@ -279,7 +282,9 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                         const ratio =
                             (e.clientX -
                                 64 -
-                                (showLeftPanelPreference ? 425 : 0)) /
+                                (showLeftPanelPreference
+                                    ? leftSidebarWidth
+                                    : 0)) /
                             wrapperWidth;
                         setTime(getSliderTime(ratio));
                     }}
