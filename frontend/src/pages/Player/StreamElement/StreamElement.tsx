@@ -61,57 +61,7 @@ export const StreamElement = ({
             >
                 <div className={styles.headerRow}>
                     <div className={styles.iconWrapper}>
-                        {details.title === 'Click' ? (
-                            <PointerIcon
-                                className={classNames(styles.tiltedIcon)}
-                            />
-                        ) : details.title?.includes('Segment') ? (
-                            <SegmentIcon
-                                className={classNames(styles.defaultIcon)}
-                            />
-                        ) : details.title === 'Navigate' ? (
-                            <SvgLinkIcon
-                                className={classNames(styles.defaultIcon)}
-                            />
-                        ) : details.title === 'Track' ? (
-                            <SvgTargetIcon
-                                className={classNames(styles.defaultIcon)}
-                            />
-                        ) : details.title === 'Identify' ? (
-                            <SvgFaceIdIcon
-                                className={classNames(styles.defaultIcon)}
-                            />
-                        ) : details.title === 'Reload' ? (
-                            <ReloadIcon
-                                className={classNames(styles.defaultIcon)}
-                            />
-                        ) : details.title === 'Referrer' ? (
-                            <ReferrerIcon
-                                className={classNames(styles.defaultIcon)}
-                            />
-                        ) : details.title === 'Tab' ? (
-                            <TabIcon
-                                className={classNames(styles.defaultIcon)}
-                            />
-                        ) : details.title === 'Stop' ? (
-                            <FaRegStopCircle
-                                className={classNames(styles.defaultIcon)}
-                            />
-                        ) : details.title === 'Viewport' ? (
-                            <SvgMaximizeIcon
-                                className={classNames(styles.defaultIcon)}
-                            />
-                        ) : details.title === 'Focus' ? (
-                            <SvgCursorIcon
-                                className={classNames(styles.defaultIcon)}
-                            />
-                        ) : debug ? (
-                            <FaBug className={classNames(styles.defaultIcon)} />
-                        ) : (
-                            <HoverIcon
-                                className={classNames(styles.tiltedIcon)}
-                            />
-                        )}
+                        {getPlayerEventIcon(details.title || '')}
                     </div>
                 </div>
                 <div
@@ -232,3 +182,32 @@ export const getEventRenderDetails = (
 
     return details;
 };
+
+export const getPlayerEventIcon = (title: string, debug?: boolean) =>
+    title === 'Click' ? (
+        <PointerIcon className={classNames(styles.tiltedIcon)} />
+    ) : title?.includes('Segment') ? (
+        <SegmentIcon className={classNames(styles.defaultIcon)} />
+    ) : title === 'Navigate' ? (
+        <SvgLinkIcon className={classNames(styles.defaultIcon)} />
+    ) : title === 'Track' ? (
+        <SvgTargetIcon className={classNames(styles.defaultIcon)} />
+    ) : title === 'Identify' ? (
+        <SvgFaceIdIcon className={classNames(styles.defaultIcon)} />
+    ) : title === 'Reload' ? (
+        <ReloadIcon className={classNames(styles.defaultIcon)} />
+    ) : title === 'Referrer' ? (
+        <ReferrerIcon className={classNames(styles.defaultIcon)} />
+    ) : title === 'Tab' ? (
+        <TabIcon className={classNames(styles.defaultIcon)} />
+    ) : title === 'Stop' ? (
+        <FaRegStopCircle className={classNames(styles.defaultIcon)} />
+    ) : title === 'Viewport' ? (
+        <SvgMaximizeIcon className={classNames(styles.defaultIcon)} />
+    ) : title === 'Focus' ? (
+        <SvgCursorIcon className={classNames(styles.defaultIcon)} />
+    ) : debug ? (
+        <FaBug className={classNames(styles.defaultIcon)} />
+    ) : (
+        <HoverIcon className={classNames(styles.tiltedIcon)} />
+    );

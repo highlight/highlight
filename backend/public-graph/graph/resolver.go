@@ -411,18 +411,14 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 		}
 		stripePlan := pricing.FromPriceID(stripePriceID)
 		quota := pricing.TypeToQuota(stripePlan)
-		var monthToDateSessionCountSlice []int64
-		year, month, _ := time.Now().Date()
+		var monthToDateSessionCount int64
 		if err := r.DB.
 			Model(&model.DailySessionCount{}).
 			Where(&model.DailySessionCount{OrganizationID: organizationID}).
-			Where("date > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).
-			Pluck("count", &monthToDateSessionCountSlice).Error; err != nil {
+			Where("date > ?", time.Date(n.Year(), n.Month(), 1, 0, 0, 0, 0, time.UTC)).
+			Select("SUM(count) as monthToDateSessionCount").
+			Scan(&monthToDateSessionCount).Error; err != nil {
 			return nil, e.Wrap(err, "error getting month-to-date session count")
-		}
-		var monthToDateSessionCount int64
-		for _, count := range monthToDateSessionCountSlice {
-			monthToDateSessionCount += count
 		}
 		withinBillingQuota = int64(quota) > monthToDateSessionCount
 	}
@@ -467,22 +463,6 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 	}
 	if err := r.AppendProperties(session.ID, sessionProperties, PropertyType.SESSION); err != nil {
 		return nil, e.Wrap(err, "error adding set of properites to db")
-	}
-
-	// Update session count on dailydb
-	dailySession := &model.DailySessionCount{}
-	currentDate := time.Date(n.UTC().Year(), n.UTC().Month(), n.UTC().Day(), 0, 0, 0, 0, time.UTC)
-	if err := r.DB.Where(&model.DailySessionCount{
-		OrganizationID: organizationID,
-		Date:           &currentDate,
-	}).Attrs(&model.DailySessionCount{
-		Count: 0,
-	}).FirstOrCreate(&dailySession).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating new daily session")
-	}
-
-	if err := r.DB.Exec("UPDATE daily_session_counts SET count = count + 1 WHERE date = ? AND organization_id = ?", currentDate, organizationID).Error; err != nil {
-		return nil, e.Wrap(err, "Error incrementing session count in db")
 	}
 
 	return session, nil
@@ -566,6 +546,8 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput) ([]modelIn
 			mappedStackFrame.FunctionName = stackTrace.FunctionName
 			mappedStackFrame.LineNumber = stackTrace.LineNumber
 			mappedStackFrame.ColumnNumber = stackTrace.ColumnNumber
+			errString := err.Error()
+			mappedStackFrame.Error = &errString
 
 			mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
 			log.Error(e.Wrapf(err, "error fetching file: %v", stackTraceFileName))
@@ -578,6 +560,8 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput) ([]modelIn
 			mappedStackFrame.FunctionName = stackTrace.FunctionName
 			mappedStackFrame.LineNumber = stackTrace.LineNumber
 			mappedStackFrame.ColumnNumber = stackTrace.ColumnNumber
+			errString := "minified source file over 5mb"
+			mappedStackFrame.Error = &errString
 
 			mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
 			log.Errorf("file way too big: %v, size: %v", stackTraceFileName, len(bodyBytes))
@@ -586,7 +570,18 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput) ([]modelIn
 		bodyString := string(bodyBytes)
 		bodyLines := strings.Split(strings.ReplaceAll(bodyString, "\rn", "\n"), "\n")
 		if len(bodyLines) < 1 {
-			return nil, e.New("body lines empty")
+			// TODO: don't do this plz
+			var mappedStackFrame modelInputs.ErrorTrace
+			mappedStackFrame.FileName = stackTrace.FileName
+			mappedStackFrame.FunctionName = stackTrace.FunctionName
+			mappedStackFrame.LineNumber = stackTrace.LineNumber
+			mappedStackFrame.ColumnNumber = stackTrace.ColumnNumber
+			errString := fmt.Sprintf("body lines empty: %v", stackTraceFileName)
+			mappedStackFrame.Error = &errString
+
+			mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
+			log.Errorf("body lines empty: %v", stackTraceFileName)
+			continue
 		}
 		lastLine := bodyLines[len(bodyLines)-1]
 
@@ -594,7 +589,18 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput) ([]modelIn
 		var sourceMapFileName string
 		sourceMapIndex := strings.LastIndex(lastLine, "sourceMappingURL=")
 		if sourceMapIndex == -1 {
-			return nil, e.New("file does not contain source map url")
+			// TODO: don't do this plz
+			var mappedStackFrame modelInputs.ErrorTrace
+			mappedStackFrame.FileName = stackTrace.FileName
+			mappedStackFrame.FunctionName = stackTrace.FunctionName
+			mappedStackFrame.LineNumber = stackTrace.LineNumber
+			mappedStackFrame.ColumnNumber = stackTrace.ColumnNumber
+			errString := fmt.Sprintf("file does not contain source map url: %v", stackTraceFileName)
+			mappedStackFrame.Error = &errString
+
+			mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
+			log.Errorf("file does not contain source map url: %v", stackTraceFileName)
+			continue
 		}
 		sourceMapFileName = lastLine[sourceMapIndex+len("sourceMappingURL="):]
 
@@ -609,20 +615,52 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput) ([]modelIn
 		// fetch source map file
 		fileBytes, err = fetch.fetchFile(sourceMapURL)
 		if err != nil {
-			log.Error(e.Wrap(err, "error fetching source map file"))
+			// TODO: don't do this plz
+			var mappedStackFrame modelInputs.ErrorTrace
+			mappedStackFrame.FileName = stackTrace.FileName
+			mappedStackFrame.FunctionName = stackTrace.FunctionName
+			mappedStackFrame.LineNumber = stackTrace.LineNumber
+			mappedStackFrame.ColumnNumber = stackTrace.ColumnNumber
+			errString := err.Error()
+			mappedStackFrame.Error = &errString
+
+			mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
+			log.Error(e.Wrapf(err, "error fetching source map file: %v", sourceMapFileName))
 			continue
 		}
 
 		smap, err := sourcemap.Parse(sourceMapURL, fileBytes)
 		if err != nil {
-			return nil, e.Wrapf(err, "error parsing source map file -> %v", sourceMapURL)
+			// TODO: don't do this plz
+			var mappedStackFrame modelInputs.ErrorTrace
+			mappedStackFrame.FileName = stackTrace.FileName
+			mappedStackFrame.FunctionName = stackTrace.FunctionName
+			mappedStackFrame.LineNumber = stackTrace.LineNumber
+			mappedStackFrame.ColumnNumber = stackTrace.ColumnNumber
+			errString := err.Error()
+			mappedStackFrame.Error = &errString
+
+			mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
+			log.Error(e.Wrapf(err, "error parsing source map file -> %v", sourceMapURL))
+			continue
 		}
 
-		var mappedStackFrame modelInputs.ErrorTrace
 		sourceFileName, fn, line, col, ok := smap.Source(stackTraceLineNumber, stackTraceColumnNumber)
 		if !ok {
-			return nil, e.New("error extracting true error info from source map")
+			// TODO: don't do this plz
+			var mappedStackFrame modelInputs.ErrorTrace
+			mappedStackFrame.FileName = stackTrace.FileName
+			mappedStackFrame.FunctionName = stackTrace.FunctionName
+			mappedStackFrame.LineNumber = stackTrace.LineNumber
+			mappedStackFrame.ColumnNumber = stackTrace.ColumnNumber
+			errString := "error extracting true error info from source map"
+			mappedStackFrame.Error = &errString
+
+			mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
+			log.Error(e.New("error extracting true error info from source map"))
+			continue
 		}
+		var mappedStackFrame modelInputs.ErrorTrace
 		mappedStackFrame.FileName = &sourceFileName
 		mappedStackFrame.FunctionName = &fn
 		mappedStackFrame.LineNumber = &line

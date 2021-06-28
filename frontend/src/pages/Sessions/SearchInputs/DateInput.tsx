@@ -2,6 +2,7 @@ import { DatePicker } from 'antd';
 import moment from 'moment';
 import React from 'react';
 
+import SvgCalendarIcon from '../../../static/CalendarIcon';
 import { SessionPageSearchParams } from '../../Player/utils/utils';
 import { SearchParams, useSearchContext } from '../SearchContext/SearchContext';
 import { EmptySessionsSearchParams } from '../SessionsPage';
@@ -28,7 +29,7 @@ export const DateInput = () => {
     );
 
     return (
-        <div className={inputStyles.commonInputWrapper}>
+        <div>
             <RangePicker
                 value={
                     searchParams.date_range
@@ -38,6 +39,7 @@ export const DateInput = () => {
                           ]
                         : null
                 }
+                suffixIcon={<SvgCalendarIcon />}
                 className={inputStyles.datePicker}
                 onChange={(_date: any, dateStrings: [string, string]) => {
                     // Dates in local timezone.

@@ -6,6 +6,7 @@ import {
 import classNames from 'classnames';
 import React from 'react';
 
+import SvgChevronDownIcon from '../../static/ChevronDownIcon';
 import styles from './Select.module.scss';
 
 const { Option } = AntDesignSelect;
@@ -23,7 +24,6 @@ type Props = Pick<
     | 'dropdownRender'
     | 'defaultValue'
     | 'onSearch'
-    | 'suffixIcon'
 > & {
     options: {
         value: string;
@@ -31,17 +31,27 @@ type Props = Pick<
         disabled?: boolean;
         id: string;
     }[];
+    hasAccent?: boolean;
 };
 
-const Select = ({ options, className, ...props }: Props) => {
+const Select = ({ options, className, hasAccent = false, ...props }: Props) => {
     return (
         <AntDesignSelect
             {...props}
             disabled={props.loading}
-            className={classNames(className, styles.select)}
+            className={classNames(className, styles.select, {
+                [styles.selectHasValue]: hasAccent && !!props.value,
+            })}
             menuItemSelectedIcon={null}
             defaultActiveFirstOption={false}
             dropdownClassName={styles.dropdown}
+            suffixIcon={
+                <SvgChevronDownIcon
+                    className={classNames({
+                        [styles.suffixIconActive]: !!props.value,
+                    })}
+                />
+            }
         >
             {options.map(({ displayValue, value, disabled, id }) => (
                 <Option key={id} value={value} disabled={disabled}>

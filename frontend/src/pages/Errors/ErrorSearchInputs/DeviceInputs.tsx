@@ -40,7 +40,7 @@ export const OperatingSystemInput = () => {
     };
 
     return (
-        <div className={inputStyles.commonInputWrapper}>
+        <div>
             <AsyncSelect
                 placeholder={'Operating System'}
                 isClearable
@@ -98,7 +98,7 @@ export const BrowserInput = () => {
     };
 
     return (
-        <div className={inputStyles.commonInputWrapper}>
+        <div>
             <AsyncSelect
                 placeholder={'Browser'}
                 isClearable

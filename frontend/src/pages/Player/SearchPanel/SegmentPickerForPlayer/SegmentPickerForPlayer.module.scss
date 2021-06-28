@@ -1,8 +1,26 @@
 .segmentSelect {
-    width: 160px;
+    width: 150px;
 
-    :global(.ant-select-selector) {
+    > :global(.ant-select-selector) {
+        font-size: 12px !important;
         height: initial !important;
         padding: 0 var(--size-small) !important;
+    }
+}
+
+.segmentPickerSection {
+    column-gap: var(--size-xSmall);
+    display: flex;
+}
+
+.segmentButton {
+    color: var(--color-gray-500);
+    column-gap: var(--size-xSmall);
+    display: flex;
+    font-size: 12px;
+    height: 32px;
+
+    svg {
+        color: var(--color-purple);
     }
 }

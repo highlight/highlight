@@ -5,19 +5,17 @@ function SvgChevronDownIcon(props: React.SVGProps<SVGSVGElement>) {
         <svg
             width="1em"
             height="1em"
-            viewBox="0 0 18 18"
-            fill="currentColor"
-            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="4 4 16 16"
             {...props}
         >
-            <g clipPath="url(#chevron-down-icon_svg__clip0)">
-                <path d="M9 13.528c-.365 0-.675-.14-.984-.366l-7.79-7.34c-.31-.31-.31-.76 0-1.04.309-.31.759-.31 1.04 0L9 12.036l7.735-7.34c.309-.31.759-.31 1.04 0 .31.31.31.76 0 1.04l-7.79 7.341c-.31.394-.62.45-.985.45z" />
-            </g>
-            <defs>
-                <clipPath id="chevron-down-icon_svg__clip0">
-                    <path d="M0 0h18v18H0z" />
-                </clipPath>
-            </defs>
+            <path
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M15.25 10.75L12 14.25l-3.25-3.5"
+            />
         </svg>
     );
 }
