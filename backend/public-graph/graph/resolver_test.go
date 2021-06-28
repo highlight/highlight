@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	storage "github.com/highlight-run/highlight/backend/object-storage"
+
 	"github.com/go-test/deep"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -336,8 +338,13 @@ func TestEnhanceStackTrace(t *testing.T) {
 		},
 	}
 
+	storageClient, err := storage.NewStorageClient()
+	if err != nil {
+		log.Fatalf("error creating storage client: %v", err)
+	}
 	r := Resolver{
-		DB: DB,
+		DB:            DB,
+		StorageClient: storageClient,
 	}
 
 	// run tests
