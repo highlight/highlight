@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { Link, useParams } from 'react-router-dom';
 
-import { Field } from '../../../components/Field/Field';
 import InfoTooltip from '../../../components/InfoTooltip/InfoTooltip';
 import {
     useGetAdminQuery,
@@ -174,52 +173,67 @@ const MetadataPanel = () => {
                             <p className={styles.value}>
                                 {data?.session?.language}
                             </p>
-                        </div>
-                        {!(!parsedFields?.length || loading) ? (
-                            <div className={styles.tagDiv}>
-                                <div className={styles.tagWrapper}>
-                                    {parsedFields?.map((f, i) => (
-                                        <Field
-                                            key={i.toString()}
-                                            color={'normal'}
-                                            k={f.name}
-                                            v={f.value}
-                                        />
+
+                            {!(!parsedFields?.length || loading) ? (
+                                <>
+                                    {parsedFields?.map((f) => (
+                                        <React.Fragment
+                                            key={`${f.name}-${f.value}`}
+                                        >
+                                            <p className={styles.key}>
+                                                {f.name}
+                                            </p>
+                                            <p className={styles.value}>
+                                                {f.value}
+                                            </p>
+                                        </React.Fragment>
                                     ))}
+                                </>
+                            ) : (
+                                <div
+                                    className={classNames(
+                                        styles.noMetadataContainer,
+                                        styles.sectionContainer
+                                    )}
+                                >
+                                    <p>
+                                        Did you know that you can enrich
+                                        sessions with additional metadata?
+                                        They'll show up here. You can{' '}
+                                        <a
+                                            href="https://docs.highlight.run/docs/identifying-users"
+                                            target="_blank"
+                                            rel="noreferrer"
+                                        >
+                                            learn more here
+                                        </a>
+                                        .
+                                    </p>
                                 </div>
-                            </div>
-                        ) : (
-                            <div className={styles.noMetadataContainer}>
-                                <p>
-                                    Did you know that you can enrich sessions
-                                    with additional metadata? They'll show up
-                                    here. You can{' '}
-                                    <a
-                                        href="https://docs.highlight.run/docs/identifying-users"
-                                        target="_blank"
-                                        rel="noreferrer"
-                                    >
-                                        learn more here
-                                    </a>
-                                    .
-                                </p>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </section>
 
                     <section>
                         <h2>Device</h2>
-                        {data?.session?.fingerprint && (
-                            <Link
-                                to={`/${organization_id}/sessions?${new URLSearchParams(
-                                    {
-                                        [SessionPageSearchParams.deviceId]: data?.session.fingerprint.toString(),
-                                    }
-                                ).toString()}`}
-                            >
-                                Device#{data?.session?.fingerprint}
-                            </Link>
-                        )}
+                        <div className={styles.table}>
+                            {data?.session?.fingerprint && (
+                                <>
+                                    <p className={styles.key}>Device ID</p>
+                                    <p className={styles.value}>
+                                        <Link
+                                            to={`/${organization_id}/sessions?${new URLSearchParams(
+                                                {
+                                                    [SessionPageSearchParams.deviceId]: data?.session.fingerprint.toString(),
+                                                }
+                                            ).toString()}`}
+                                        >
+                                            #{data?.session?.fingerprint}
+                                        </Link>
+                                    </p>
+                                </>
+                            )}
+                        </div>
                     </section>
                 </>
             )}
