@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -17,7 +18,10 @@ import (
 	"strings"
 )
 
-var S3BucketName = os.Getenv("AWS_S3_BUCKET_NAME")
+var (
+	S3BucketName          = os.Getenv("AWS_S3_BUCKET_NAME")
+	S3SourceMapBucketName = os.Getenv("AWS_S3_SOURCE_MAP_BUCKET_NAME")
+)
 
 type PayloadType string
 
@@ -209,4 +213,44 @@ func (s *StorageClient) ReadMessagesFromS3(sessionId int, organizationId int) ([
 
 func (s *StorageClient) bucketKey(sessionId int, organizationId int, key PayloadType) *string {
 	return aws.String(fmt.Sprintf("%v/%v/%v", organizationId, sessionId, string(key)))
+}
+
+func (s *StorageClient) sourceMapBucketKeyWithVersion(organizationId int, releaseVersion string, fileName string) *string {
+	return aws.String(fmt.Sprintf("%d/%s/%s", organizationId, releaseVersion, fileName))
+}
+
+func (s *StorageClient) PushSourceMapFileToS3(organizationId int, releaseVersion string, fileName string, fileBytes []byte) (*int64, error) {
+	key := s.sourceMapBucketKeyWithVersion(organizationId, releaseVersion, fileName)
+	body := bytes.NewReader(fileBytes)
+	// expire file after 60 days
+	expireDate := time.Now().Add(2 * 30 * 24 * time.Hour)
+	_, err := s.S3Client.PutObject(context.TODO(), &s3.PutObjectInput{
+		Bucket: aws.String(S3SourceMapBucketName), Key: key, Body: body, Expires: &expireDate,
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "error 'put'ing sourcemap file in s3 bucket")
+	}
+	headObj := s3.HeadObjectInput{
+		Bucket: aws.String(S3SourceMapBucketName),
+		Key:    key,
+	}
+	result, err := s.S3Client.HeadObject(context.TODO(), &headObj)
+	if err != nil {
+		return nil, errors.New("error retrieving head object")
+	}
+	return &result.ContentLength, nil
+}
+
+func (s *StorageClient) ReadSourceMapFileFromS3(organizationId int, releaseVersion string, fileName string) ([]byte, error) {
+	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: aws.String(S3BucketName),
+		Key: s.sourceMapBucketKeyWithVersion(organizationId, releaseVersion, fileName)})
+	if err != nil {
+		return nil, errors.Wrap(err, "error getting object from s3")
+	}
+	buf := new(bytes.Buffer)
+	_, err = buf.ReadFrom(output.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "error reading from s3 buffer")
+	}
+	return buf.Bytes(), nil
 }
