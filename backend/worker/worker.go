@@ -31,7 +31,7 @@ type Worker struct {
 	S3Client *storage.StorageClient
 }
 
-func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Session, migrationState *string, events []model.EventsObject) error {
+func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Session, migrationState *string, events []model.EventsObject, payloadStringSize int) error {
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
@@ -50,6 +50,10 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	if res := w.Resolver.DB.Order("created_at desc").Where(&model.ResourcesObject{SessionID: s.ID}).Find(&resourcesObject); res.Error != nil {
 		return errors.Wrap(res.Error, "error reading from resources")
 	}
+	for _, ee := range resourcesObject {
+		payloadStringSize += len(ee.Resources)
+	}
+	dd.StatsD.Histogram("worker.processSession.payloadStringSize", float64(payloadStringSize), nil, 1) //nolint
 	resourcePayloadSize, err := w.S3Client.PushResourcesToS3(s.ID, s.OrganizationID, resourcesObject)
 	if err != nil {
 		return errors.Wrap(err, "error pushing network payload to s3")
@@ -59,6 +63,10 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	if res := w.Resolver.DB.Order("created_at desc").Where(&model.MessagesObject{SessionID: s.ID}).Find(&messagesObj); res.Error != nil {
 		return errors.Wrap(res.Error, "error reading from messages")
 	}
+	for _, mm := range messagesObj {
+		payloadStringSize += len(mm.Messages)
+	}
+	dd.StatsD.Histogram("worker.processSession.payloadStringSize", float64(payloadStringSize), nil, 1) //nolint
 	messagePayloadSize, err := w.S3Client.PushMessagesToS3(s.ID, s.OrganizationID, messagesObj)
 	if err != nil {
 		return errors.Wrap(err, "error pushing network payload to s3")
@@ -115,11 +123,11 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	dd.StatsD.Histogram("worker.processSession.numEventsRowsQueried", float64(len(events)), nil, 1) //nolint
 
-	eventStringBytes := 0
+	payloadStringBytes := 0
 	for _, ee := range events {
-		eventStringBytes += len(ee.Events)
+		payloadStringBytes += len(ee.Events)
 	}
-	dd.StatsD.Histogram("worker.processSession.eventPayloadStringSize", float64(eventStringBytes), nil, 1) //nolint
+	dd.StatsD.Histogram("worker.processSession.payloadStringSize", float64(payloadStringBytes), nil, 1) //nolint
 
 	// Delete the session if there's no events.
 	if len(events) == 0 {
@@ -347,7 +355,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// Upload to s3 and wipe from the db.
 	if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" {
 		state := "normal"
-		if err := w.pushToObjectStorageAndWipe(ctx, s, &state, events); err != nil {
+		if err := w.pushToObjectStorageAndWipe(ctx, s, &state, events, payloadStringBytes); err != nil {
 			log.Errorf("error pushing to object and wiping from db (%v): %v", s.ID, err)
 		}
 	}
