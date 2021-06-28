@@ -22,6 +22,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/model"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/pricing"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	model2 "github.com/highlight-run/highlight/backend/public-graph/graph/model"
@@ -33,7 +34,8 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	DB *gorm.DB
+	DB            *gorm.DB
+	StorageClient *storage.StorageClient
 }
 
 type Location struct {
