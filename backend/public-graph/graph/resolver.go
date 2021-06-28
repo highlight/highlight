@@ -549,10 +549,10 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 		stackTraceFileName = stackTraceFileURL[stackFileNameIndex:]
 
 		// try to get file from s3
-		bodyBytes, err := r.StorageClient.ReadSourceMapFileFromS3(organizationId, stackTraceFileName)
+		minifiedFileBytes, err := r.StorageClient.ReadSourceMapFileFromS3(organizationId, stackTraceFileName)
 		if err != nil {
 			// if not in s3, get from url and put in s3
-			bodyBytes, err = fetch.fetchFile(stackTraceFileURL)
+			minifiedFileBytes, err = fetch.fetchFile(stackTraceFileURL)
 			if err != nil {
 				// TODO: don't do this plz
 				// fallback if we can't get the source file at all
@@ -568,12 +568,12 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 				log.Error(e.Wrapf(err, "error fetching file: %v", stackTraceFileURL))
 				continue
 			}
-			_, err = r.StorageClient.PushSourceMapFileToS3(organizationId, stackTraceFileName, bodyBytes)
+			_, err = r.StorageClient.PushSourceMapFileToS3(organizationId, stackTraceFileName, minifiedFileBytes)
 			if err != nil {
 				log.Error(e.Wrapf(err, "error pushing file to s3: %v", stackTraceFileName))
 			}
 		}
-		if len(bodyBytes) > 5000000 {
+		if len(minifiedFileBytes) > 5000000 {
 			// TODO: don't do this plz
 			var mappedStackFrame modelInputs.ErrorTrace
 			mappedStackFrame.FileName = stackTrace.FileName
@@ -584,10 +584,10 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 			mappedStackFrame.Error = &errString
 
 			mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
-			log.Errorf("file way too big: %v, size: %v", stackTraceFileURL, len(bodyBytes))
+			log.Errorf("file way too big: %v, size: %v", stackTraceFileURL, len(minifiedFileBytes))
 			continue
 		}
-		bodyString := string(bodyBytes)
+		bodyString := string(minifiedFileBytes)
 		bodyLines := strings.Split(strings.ReplaceAll(bodyString, "\rn", "\n"), "\n")
 		if len(bodyLines) < 1 {
 			// TODO: don't do this plz
@@ -629,10 +629,10 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 
 		// fetch source map file
 		// try to get file from s3
-		fileBytes, err := r.StorageClient.ReadSourceMapFileFromS3(organizationId, sourceMapFileName)
+		sourceMapFileBytes, err := r.StorageClient.ReadSourceMapFileFromS3(organizationId, sourceMapFileName)
 		if err != nil {
 			// if not in s3, get from url and put in s3
-			fileBytes, err = fetch.fetchFile(sourceMapURL)
+			sourceMapFileBytes, err = fetch.fetchFile(sourceMapURL)
 			if err != nil {
 				// TODO: don't do this plz
 				// fallback if we can't get the source file at all
@@ -648,13 +648,13 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 				log.Error(e.Wrapf(err, "error fetching source map file: %v", sourceMapFileName))
 				continue
 			}
-			_, err = r.StorageClient.PushSourceMapFileToS3(organizationId, sourceMapFileName, fileBytes)
+			_, err = r.StorageClient.PushSourceMapFileToS3(organizationId, sourceMapFileName, sourceMapFileBytes)
 			if err != nil {
 				log.Error(e.Wrapf(err, "error pushing file to s3: %v", sourceMapFileName))
 			}
 		}
 
-		smap, err := sourcemap.Parse(sourceMapURL, fileBytes)
+		smap, err := sourcemap.Parse(sourceMapURL, sourceMapFileBytes)
 		if err != nil {
 			// TODO: don't do this plz
 			var mappedStackFrame modelInputs.ErrorTrace
