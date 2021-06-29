@@ -14,6 +14,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/model"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	modelInput "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	publicModelInput "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
@@ -336,15 +337,20 @@ func TestEnhanceStackTrace(t *testing.T) {
 		},
 	}
 
+	storageClient, err := storage.NewStorageClient()
+	if err != nil {
+		t.Fatalf("error creating storage client: %v", err)
+	}
 	r := Resolver{
-		DB: DB,
+		DB:            DB,
+		StorageClient: storageClient,
 	}
 
 	// run tests
 	for name, tc := range tests {
 		util.RunTestWithDBWipe(t, name, DB, func(t *testing.T) {
 			fetch = tc.fetcher
-			mappedStackTrace, err := r.EnhanceStackTrace(tc.stackFrameInput)
+			mappedStackTrace, err := r.EnhanceStackTrace(tc.stackFrameInput, 1)
 			if err != nil {
 				if err.Error() == tc.err.Error() {
 					return

@@ -5,8 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"os"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -14,8 +14,6 @@ import (
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/pkg/errors"
-
-	"strings"
 )
 
 var (
@@ -215,14 +213,19 @@ func (s *StorageClient) bucketKey(sessionId int, organizationId int, key Payload
 	return aws.String(fmt.Sprintf("%v/%v/%v", organizationId, sessionId, string(key)))
 }
 
-func (s *StorageClient) sourceMapBucketKeyWithVersion(organizationId int, fileName string) *string {
-	return aws.String(fmt.Sprintf("%d/%s", organizationId, fileName))
+func (s *StorageClient) sourceMapBucketKey(organizationId int, fileName string) *string {
+	key := fmt.Sprintf("%d/%s", organizationId, fileName)
+	if os.Getenv("ENVIRONMENT") == "dev" {
+		key = "dev/" + key
+	}
+	return aws.String(key)
 }
 
-func (s *StorageClient) PushSourceMapFileToS3(organizationId int, fileName string, file io.Reader) (*int64, error) {
-	key := s.sourceMapBucketKeyWithVersion(organizationId, fileName)
+func (s *StorageClient) PushSourceMapFileToS3(organizationId int, fileName string, fileBytes []byte) (*int64, error) {
+	key := s.sourceMapBucketKey(organizationId, fileName)
+	body := bytes.NewReader(fileBytes)
 	_, err := s.S3Client.PutObject(context.TODO(), &s3.PutObjectInput{
-		Bucket: aws.String(S3SourceMapBucketName), Key: key, Body: file,
+		Bucket: aws.String(S3SourceMapBucketName), Key: key, Body: body,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "error 'put'ing sourcemap file in s3 bucket")
@@ -240,7 +243,7 @@ func (s *StorageClient) PushSourceMapFileToS3(organizationId int, fileName strin
 
 func (s *StorageClient) ReadSourceMapFileFromS3(organizationId int, fileName string) ([]byte, error) {
 	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: aws.String(S3SourceMapBucketName),
-		Key: s.sourceMapBucketKeyWithVersion(organizationId, fileName)})
+		Key: s.sourceMapBucketKey(organizationId, fileName)})
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting object from s3")
 	}

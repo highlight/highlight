@@ -214,7 +214,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *
 	newFrameString := frameString
 	if organizationID == 1 {
 		// TODO: don't do this for every error
-		mappedStackTrace, err := r.EnhanceStackTrace(errorInput.StackTrace)
+		mappedStackTrace, err := r.EnhanceStackTrace(errorInput.StackTrace, organizationID)
 		if err != nil {
 			log.Error(e.Wrapf(err, "error group: %+v error object: %+v", errorGroup, errorObj))
 		} else {
@@ -529,7 +529,7 @@ func (n NetworkFetcher) fetchFile(href string) ([]byte, error) {
 * fetches the sourcemap from remote
 * maps the error info into slice
  */
-func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput) ([]modelInputs.ErrorTrace, error) {
+func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizationId int) ([]modelInputs.ErrorTrace, error) {
 	if input == nil {
 		return nil, e.New("stack trace input cannot be nil")
 	}
@@ -538,26 +538,44 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput) ([]modelIn
 		if stackTrace == nil || (stackTrace.FileName == nil || stackTrace.LineNumber == nil || stackTrace.ColumnNumber == nil) {
 			continue
 		}
-		stackTraceFileName := *stackTrace.FileName
+		stackTraceFileURL := *stackTrace.FileName
 		stackTraceLineNumber := *stackTrace.LineNumber
 		stackTraceColumnNumber := *stackTrace.ColumnNumber
 
-		bodyBytes, err := fetch.fetchFile(stackTraceFileName)
-		if err != nil {
-			// TODO: don't do this plz
-			var mappedStackFrame modelInputs.ErrorTrace
-			mappedStackFrame.FileName = stackTrace.FileName
-			mappedStackFrame.FunctionName = stackTrace.FunctionName
-			mappedStackFrame.LineNumber = stackTrace.LineNumber
-			mappedStackFrame.ColumnNumber = stackTrace.ColumnNumber
-			errString := err.Error()
-			mappedStackFrame.Error = &errString
-
-			mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
-			log.Error(e.Wrapf(err, "error fetching file: %v", stackTraceFileName))
-			continue
+		// get file name from URL
+		var stackTraceFileName string
+		stackFileNameIndex := strings.Index(stackTraceFileURL, path.Base(stackTraceFileURL))
+		if stackFileNameIndex == -1 {
+			return nil, e.New("source path doesn't contain file name")
 		}
-		if len(bodyBytes) > 5000000 {
+		stackTraceFileName = stackTraceFileURL[stackFileNameIndex:]
+
+		// try to get file from s3
+		minifiedFileBytes, err := r.StorageClient.ReadSourceMapFileFromS3(organizationId, stackTraceFileName)
+		if err != nil {
+			// if not in s3, get from url and put in s3
+			minifiedFileBytes, err = fetch.fetchFile(stackTraceFileURL)
+			if err != nil {
+				// TODO: don't do this plz
+				// fallback if we can't get the source file at all
+				var mappedStackFrame modelInputs.ErrorTrace
+				mappedStackFrame.FileName = stackTrace.FileName
+				mappedStackFrame.FunctionName = stackTrace.FunctionName
+				mappedStackFrame.LineNumber = stackTrace.LineNumber
+				mappedStackFrame.ColumnNumber = stackTrace.ColumnNumber
+				errString := err.Error()
+				mappedStackFrame.Error = &errString
+
+				mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
+				log.Error(e.Wrapf(err, "error fetching file: %v", stackTraceFileURL))
+				continue
+			}
+			_, err = r.StorageClient.PushSourceMapFileToS3(organizationId, stackTraceFileName, minifiedFileBytes)
+			if err != nil {
+				log.Error(e.Wrapf(err, "error pushing file to s3: %v", stackTraceFileName))
+			}
+		}
+		if len(minifiedFileBytes) > 5000000 {
 			// TODO: don't do this plz
 			var mappedStackFrame modelInputs.ErrorTrace
 			mappedStackFrame.FileName = stackTrace.FileName
@@ -568,10 +586,10 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput) ([]modelIn
 			mappedStackFrame.Error = &errString
 
 			mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
-			log.Errorf("file way too big: %v, size: %v", stackTraceFileName, len(bodyBytes))
+			log.Errorf("file way too big: %v, size: %v", stackTraceFileURL, len(minifiedFileBytes))
 			continue
 		}
-		bodyString := string(bodyBytes)
+		bodyString := string(minifiedFileBytes)
 		bodyLines := strings.Split(strings.ReplaceAll(bodyString, "\rn", "\n"), "\n")
 		if len(bodyLines) < 1 {
 			// TODO: don't do this plz
@@ -599,41 +617,46 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput) ([]modelIn
 			mappedStackFrame.FunctionName = stackTrace.FunctionName
 			mappedStackFrame.LineNumber = stackTrace.LineNumber
 			mappedStackFrame.ColumnNumber = stackTrace.ColumnNumber
-			errString := fmt.Sprintf("file does not contain source map url: %v", stackTraceFileName)
+			errString := fmt.Sprintf("file does not contain source map url: %v", stackTraceFileURL)
 			mappedStackFrame.Error = &errString
 
 			mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
-			log.Errorf("file does not contain source map url: %v", stackTraceFileName)
+			log.Errorf("file does not contain source map url: %v", stackTraceFileURL)
 			continue
 		}
 		sourceMapFileName = lastLine[sourceMapIndex+len("sourceMappingURL="):]
 
 		// construct sourcemap url from searched file
-		sourceFileNameIndex := strings.Index(stackTraceFileName, path.Base(stackTraceFileName))
-		if sourceFileNameIndex == -1 {
-			return nil, e.New("source path doesn't contain file name")
-		}
-		sourceMapURL := (stackTraceFileName)[:sourceFileNameIndex] + sourceMapFileName
+		sourceMapURL := (stackTraceFileURL)[:stackFileNameIndex] + sourceMapFileName
 
-		var fileBytes []byte
 		// fetch source map file
-		fileBytes, err = fetch.fetchFile(sourceMapURL)
+		// try to get file from s3
+		sourceMapFileBytes, err := r.StorageClient.ReadSourceMapFileFromS3(organizationId, sourceMapFileName)
 		if err != nil {
-			// TODO: don't do this plz
-			var mappedStackFrame modelInputs.ErrorTrace
-			mappedStackFrame.FileName = stackTrace.FileName
-			mappedStackFrame.FunctionName = stackTrace.FunctionName
-			mappedStackFrame.LineNumber = stackTrace.LineNumber
-			mappedStackFrame.ColumnNumber = stackTrace.ColumnNumber
-			errString := err.Error()
-			mappedStackFrame.Error = &errString
+			// if not in s3, get from url and put in s3
+			sourceMapFileBytes, err = fetch.fetchFile(sourceMapURL)
+			if err != nil {
+				// TODO: don't do this plz
+				// fallback if we can't get the source file at all
+				var mappedStackFrame modelInputs.ErrorTrace
+				mappedStackFrame.FileName = stackTrace.FileName
+				mappedStackFrame.FunctionName = stackTrace.FunctionName
+				mappedStackFrame.LineNumber = stackTrace.LineNumber
+				mappedStackFrame.ColumnNumber = stackTrace.ColumnNumber
+				errString := err.Error()
+				mappedStackFrame.Error = &errString
 
-			mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
-			log.Error(e.Wrapf(err, "error fetching source map file: %v", sourceMapFileName))
-			continue
+				mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
+				log.Error(e.Wrapf(err, "error fetching source map file: %v", sourceMapFileName))
+				continue
+			}
+			_, err = r.StorageClient.PushSourceMapFileToS3(organizationId, sourceMapFileName, sourceMapFileBytes)
+			if err != nil {
+				log.Error(e.Wrapf(err, "error pushing file to s3: %v", sourceMapFileName))
+			}
 		}
 
-		smap, err := sourcemap.Parse(sourceMapURL, fileBytes)
+		smap, err := sourcemap.Parse(sourceMapURL, sourceMapFileBytes)
 		if err != nil {
 			// TODO: don't do this plz
 			var mappedStackFrame modelInputs.ErrorTrace
