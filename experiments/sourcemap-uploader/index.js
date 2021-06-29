@@ -17,8 +17,8 @@ const s3 = new AWS.S3({
   secretAccessKey: "gu/8lcujPd3SEBa2FJHT9Pd4N/5Mm8LA6IbnWBw/",
 });
 
-var pjson = require('./package.json');
-console.log('Running version: ', pjson.version);
+var pjson = require("./package.json");
+console.log("Running version: ", pjson.version);
 
 yargs(hideBin(process.argv))
   .command(
@@ -76,7 +76,7 @@ async function getAllSourceMapFiles(paths) {
       }
 
       return new Promise((resolve) => {
-        glob("**/*.js.map", { cwd: realPath }, async (err, files) => {
+        glob("**/*.js?(.map)", { cwd: realPath }, async (err, files) => {
           for (const file of files) {
             map.push({
               path: join(realPath, file),
