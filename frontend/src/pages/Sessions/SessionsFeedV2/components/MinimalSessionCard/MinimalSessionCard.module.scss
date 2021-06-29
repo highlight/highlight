@@ -136,7 +136,7 @@
     display: flex;
     font-weight: 400;
     justify-content: space-between;
-    margin-bottom: 14px;
+    margin-bottom: var(--size-small);
     padding: var(--size-medium);
     position: relative;
     transition: box-shadow 0.1s ease-in;
