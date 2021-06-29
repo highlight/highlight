@@ -59,7 +59,9 @@ export const SearchSidebar = () => {
                         <div className={classNames(styles.subTitle)}>
                             Excluded Properties
                         </div>
-                        <UserPropertyInput include={false} />
+                        <div className={styles.inputContainer}>
+                            <UserPropertyInput include={false} />
+                        </div>
                         <div className={styles.checkboxContainer}>
                             <IdentifiedUsersSwitch />
                             <FirstTimeUsersSwitch />
@@ -82,15 +84,25 @@ export const SearchSidebar = () => {
                         title="Date Range"
                         searchParamsKey={['date_range']}
                     >
-                        <DateInput />
+                        <div className={styles.topPadding}>
+                            <DateInput />
+                        </div>
                     </SearchSection>
                     <SearchSection
                         title="Device Details"
                         searchParamsKey={['os', 'browser', 'device_id']}
                     >
-                        <OperatingSystemInput />
-                        <BrowserInput />
-                        <DeviceIdInput />
+                        <div className={styles.topPadding}>
+                            <div className={styles.inputContainer}>
+                                <OperatingSystemInput />
+                            </div>
+                            <div className={styles.inputContainer}>
+                                <BrowserInput />
+                            </div>
+                            <div className={styles.inputContainer}>
+                                <DeviceIdInput />
+                            </div>
+                        </div>
                     </SearchSection>
                     <SearchSection
                         title="Session Details"
@@ -100,9 +112,17 @@ export const SearchSidebar = () => {
                             'length_range',
                         ]}
                     >
-                        <VisitedUrlInput />
-                        <ReferrerInput />
-                        <LengthInput />
+                        <div className={styles.topPadding}>
+                            <div className={styles.inputContainer}>
+                                <VisitedUrlInput />
+                            </div>
+                            <div className={styles.inputContainer}>
+                                <ReferrerInput />
+                            </div>
+                            <div className={styles.inputContainer}>
+                                <LengthInput />
+                            </div>
+                        </div>
                     </SearchSection>
                 </div>
             </div>
