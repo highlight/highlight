@@ -17,12 +17,15 @@ const s3 = new AWS.S3({
   secretAccessKey: "gu/8lcujPd3SEBa2FJHT9Pd4N/5Mm8LA6IbnWBw/",
 });
 
+var pjson = require('./package.json');
+console.log('Running version: ', pjson.version);
+
 yargs(hideBin(process.argv))
   .command(
     "upload",
     "Upload Javascript sourcemaps to Highlight",
     () => {},
-    async ({ organizationId, apiKey, path, version }) => {
+    async ({ organizationId, apiKey, path }) => {
       console.info(`Starting to upload source maps from ${path}`);
 
       const fileList = await getAllSourceMapFiles([path]);
@@ -35,16 +38,9 @@ yargs(hideBin(process.argv))
         return;
       }
 
-      if (!version) {
-        version = uuidv4();
-        console.info(
-          `The version was not provided, Highlight will generate a hash for you: ${version}`
-        );
-      }
-
       await Promise.all(
         fileList.map(({ path, name }) =>
-          uploadFile(organizationId, apiKey, path, name, version)
+          uploadFile(organizationId, apiKey, path, name)
         )
       );
     }
@@ -55,26 +51,11 @@ yargs(hideBin(process.argv))
     describe: "The Highlight organization ID",
     default: "113",
   })
-  .option("apiKey", {
-    alias: "k",
-    type: "string",
-    describe: "The API Key for your Highlight workspace.",
-    //     demand:
-    //       "You must specify an API key, you can find this on https://highlight.run/settings. Use --apiKey",
-    default: "",
-  })
   .option("path", {
     alias: "p",
     type: "string",
     default: "/build/static/js",
     describe: "Sets the directory of where the sourcemaps are",
-  })
-  .option("version", {
-    alias: "v",
-    type: "string",
-    default: "",
-    describe:
-      "The version of this build. This is typically a semantic version or Git hash.",
   })
   .help("help").argv;
 
@@ -112,14 +93,14 @@ async function getAllSourceMapFiles(paths) {
   return map;
 }
 
-async function uploadFile(organizationId, apiKey, filePath, fileName, version) {
+async function uploadFile(organizationId, apiKey, filePath, fileName) {
   const query = `query UploadSourceMap($apiKey: String!, $file: Upload!) {
 			uploadSourceMap(apiKey: $apiKey, file: $file)
 	      }`;
   const fileContent = readFileSync(filePath);
 
   // Setting up S3 upload parameters
-  const bucketPath = `${organizationId}/${version}/${fileName}`;
+  const bucketPath = `${organizationId}/${fileName}`;
   const params = {
     Bucket: BUCKET_NAME,
     Key: bucketPath,
