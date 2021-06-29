@@ -20,7 +20,7 @@ jobs:
             - name: Confirm new version
               run: cd experiments/sourcemap-uploader && python3 compare.py
             - name: Publish
-              if: github.ref == 'refs/heads/master'
+              # if: github.ref == 'refs/heads/master'
               run: cd experiments/sourcemap-uploader && yarn publish --access public
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
