@@ -1,3 +1,4 @@
+export const actionsContainer: string;
 export const checkIcon: string;
 export const downIcon: string;
 export const dropdownHandler: string;
@@ -5,7 +6,6 @@ export const liveSessionsCount: string;
 export const liveSessionsCountInactive: string;
 export const liveSessionsSegment: string;
 export const modalSubTitle: string;
-export const modalWrapper: string;
 export const newSearchDiv: string;
 export const noSegmentsText: string;
 export const plusIcon: string;

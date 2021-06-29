@@ -15,13 +15,19 @@ import styles from './SegmentButtons.module.scss';
 interface Props {
     showModal: boolean;
     onHideModal: () => void;
+    /** Called after a segment is created. */
+    afterCreateHandler?: (segmentId: string, segmentValue: string) => void;
 }
 
 type Inputs = {
     name: string;
 };
 
-const CreateSegmentModal = ({ showModal, onHideModal }: Props) => {
+const CreateSegmentModal = ({
+    showModal,
+    onHideModal,
+    afterCreateHandler,
+}: Props) => {
     const [createSegment, { loading }] = useCreateSegmentMutation({
         refetchQueries: ['GetSegments'],
     });
@@ -42,23 +48,34 @@ const CreateSegmentModal = ({ showModal, onHideModal }: Props) => {
             },
         }).then((r) => {
             setExistingParams(searchParams);
-            history.push(
-                `/${organization_id}/sessions/segment/${r.data?.createSegment?.id}`
-            );
+            if (afterCreateHandler) {
+                afterCreateHandler(
+                    r.data?.createSegment?.id as string,
+                    r.data?.createSegment?.name as string
+                );
+            } else {
+                history.push(
+                    `/${organization_id}/sessions/segment/${r.data?.createSegment?.id}`
+                );
+            }
             onHideModal();
             reset();
-            message.success('Segment Saved!', 5);
+            message.success(
+                `Created '${r.data?.createSegment?.name}' segment`,
+                5
+            );
         });
     };
 
     return (
         <Modal
-            title="Create a segment"
+            title="Create a Segment"
             visible={showModal}
             onCancel={onHideModal}
             style={{ display: 'flex' }}
+            width={500}
         >
-            <ModalBody className={styles.modalWrapper}>
+            <ModalBody>
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <p className={styles.modalSubTitle}>
                         Enter the name of your segment and you'll be good to go!
@@ -68,6 +85,7 @@ const CreateSegmentModal = ({ showModal, onHideModal }: Props) => {
                         name="name"
                         ref={register({ required: true })}
                         placeholder={'Segment Name'}
+                        autoFocus
                     />
                     <div className={commonStyles.errorMessage}>
                         {errors.name &&
@@ -77,7 +95,7 @@ const CreateSegmentModal = ({ showModal, onHideModal }: Props) => {
                         trackingId="SaveSessionSegmentFromExistingSegment"
                         style={{
                             width: '100%',
-                            marginTop: 10,
+                            marginTop: 24,
                             justifyContent: 'center',
                         }}
                         type="primary"

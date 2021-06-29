@@ -1,4 +1,5 @@
-import { message } from 'antd';
+import { message, Select as AntDesignSelect } from 'antd';
+const { Option } = AntDesignSelect;
 import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -6,15 +7,17 @@ import TextTransition from 'react-text-transition';
 
 import Button from '../../../../components/Button/Button/Button';
 import Select from '../../../../components/Select/Select';
+import Tooltip from '../../../../components/Tooltip/Tooltip';
 import {
     useEditSegmentMutation,
     useGetSegmentsQuery,
 } from '../../../../graph/generated/hooks';
-import useHighlightAdminFlag from '../../../../hooks/useHighlightAdminFlag/useHighlightAdminFlag';
+import SvgCloseIcon from '../../../../static/CloseIcon';
 import SvgPlayIcon from '../../../../static/PlayIcon';
 import { gqlSanitize } from '../../../../util/gqlSanitize';
 import { useSearchContext } from '../../../Sessions/SearchContext/SearchContext';
 import CreateSegmentModal from '../../../Sessions/SearchSidebar/SegmentButtons/CreateSegmentModal';
+import DeleteSessionSegmentModal from '../../../Sessions/SearchSidebar/SegmentPicker/DeleteSessionSegmentModal/DeleteSessionSegmentModal';
 import { EmptySessionsSearchParams } from '../../../Sessions/SessionsPage';
 import styles from './SegmentPickerForPlayer.module.scss';
 
@@ -38,10 +41,13 @@ const SegmentPickerForPlayer = () => {
     >(undefined);
     const [paramsIsDifferent, setParamsIsDifferent] = useState(false);
     const [showCreateSegmentModal, setShowCreateSegmentModal] = useState(false);
+    const [segmentToDelete, setSegmentToDelete] = useState<{
+        name?: string;
+        id?: string;
+    } | null>(null);
     const [editSegment] = useEditSegmentMutation({
         refetchQueries: ['GetSegments'],
     });
-    const { isHighlightAdmin } = useHighlightAdminFlag();
 
     const currentSegment = data?.segments?.find(
         (s) => s?.id === selectedSegment?.id
@@ -76,6 +82,15 @@ const SegmentPickerForPlayer = () => {
     }, [searchParams, existingParams]);
 
     const showUpdateSegmentOption = paramsIsDifferent && segmentName;
+    const segmentOptions = (data?.segments || [])
+        .map((segment) => ({
+            displayValue: segment?.name || '',
+            value: segment?.name || '',
+            id: segment?.id || '',
+        }))
+        .sort((a, b) =>
+            a.displayValue.toLowerCase() > b.displayValue.toLowerCase() ? 1 : -1
+        );
 
     return (
         <section className={styles.segmentPickerSection}>
@@ -98,77 +113,121 @@ const SegmentPickerForPlayer = () => {
                 className={styles.segmentSelect}
                 placeholder="Choose Segment"
                 allowClear
-                options={(data?.segments || [])
-                    .map((segment) => ({
-                        displayValue: segment?.name || '',
-                        value: segment?.name || '',
-                        id: segment?.id || '',
-                    }))
-                    .sort((a, b) =>
-                        a.displayValue.toLowerCase() >
-                        b.displayValue.toLowerCase()
-                            ? 1
-                            : -1
-                    )}
                 loading={loading}
                 hasAccent
-            />
-
-            {isHighlightAdmin && (
-                <>
-                    <Button
-                        trackingId="CreateSessionSegment"
-                        onClick={() => {
-                            if (showUpdateSegmentOption && selectedSegment) {
-                                editSegment({
-                                    variables: {
-                                        organization_id,
-                                        id: selectedSegment.id,
-                                        params: searchParams,
-                                    },
-                                })
-                                    .then(() => {
-                                        message.success(
-                                            `Updated '${selectedSegment.value}'`,
-                                            5
-                                        );
-                                        setExistingParams(searchParams);
-                                    })
-                                    .catch(() => {
-                                        message.error(
-                                            'Error updating segment!',
-                                            5
-                                        );
-                                    });
-                            } else {
-                                setShowCreateSegmentModal(true);
-                            }
-                        }}
-                        type="ghost"
-                        small
-                        className={styles.segmentButton}
+                optionLabelProp="label"
+                notFoundContent={
+                    <p>
+                        You haven't created any segments yet. Segments allow you
+                        to quickly view sessions that match a search query.
+                    </p>
+                }
+            >
+                {segmentOptions.map((option) => (
+                    <Option
+                        value={option.value}
+                        label={option.displayValue}
+                        key={option.id}
+                        className={styles.segmentOption}
                     >
-                        <SvgPlayIcon />
-                        <span>
-                            <TextTransition
-                                text={
-                                    showUpdateSegmentOption
-                                        ? 'Update'
-                                        : 'Create'
-                                }
-                                inline
-                            />{' '}
-                            Segment
+                        <span className={styles.segmentOptionContainer}>
+                            <Tooltip
+                                title={option.displayValue}
+                                placement="topLeft"
+                            >
+                                {option.displayValue}
+                            </Tooltip>
+                            <Button
+                                trackingId="deleteSegmentFromPlayerSegmentPicker"
+                                type="ghost"
+                                iconButton
+                                aria-label={`Delete ${option.value} segment`}
+                                small
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSegmentToDelete({
+                                        id: option.id,
+                                        name: option.displayValue,
+                                    });
+                                }}
+                            >
+                                <SvgCloseIcon />
+                            </Button>
                         </span>
-                    </Button>
-                    <CreateSegmentModal
-                        showModal={showCreateSegmentModal}
-                        onHideModal={() => {
-                            setShowCreateSegmentModal(false);
-                        }}
-                    />
-                </>
-            )}
+                    </Option>
+                ))}
+            </Select>
+
+            <Button
+                trackingId="CreateSessionSegment"
+                onClick={() => {
+                    if (showUpdateSegmentOption && selectedSegment) {
+                        editSegment({
+                            variables: {
+                                organization_id,
+                                id: selectedSegment.id,
+                                params: searchParams,
+                            },
+                        })
+                            .then(() => {
+                                message.success(
+                                    `Updated '${selectedSegment.value}'`,
+                                    5
+                                );
+                                setExistingParams(searchParams);
+                            })
+                            .catch(() => {
+                                message.error('Error updating segment!', 5);
+                            });
+                    } else {
+                        setShowCreateSegmentModal(true);
+                    }
+                }}
+                type="ghost"
+                small
+                className={styles.segmentButton}
+            >
+                <SvgPlayIcon />
+                <span>
+                    <TextTransition
+                        text={showUpdateSegmentOption ? 'Update' : 'Create'}
+                        inline
+                    />{' '}
+                    Segment
+                </span>
+            </Button>
+            <CreateSegmentModal
+                showModal={showCreateSegmentModal}
+                onHideModal={() => {
+                    setShowCreateSegmentModal(false);
+                }}
+                afterCreateHandler={(segmentId, segmentName) => {
+                    if (data?.segments) {
+                        setSelectedSegment({
+                            id: segmentId,
+                            value: segmentName,
+                        });
+                        setSegmentName(segmentName);
+                    }
+                }}
+            />
+            <DeleteSessionSegmentModal
+                showModal={!!segmentToDelete}
+                hideModalHandler={() => {
+                    setSegmentToDelete(null);
+                }}
+                segmentToDelete={segmentToDelete}
+                afterDeleteHandler={() => {
+                    if (
+                        segmentToDelete &&
+                        segmentName === segmentToDelete.name
+                    ) {
+                        setSelectedSegment(undefined);
+                        setSegmentName(null);
+                        setSearchParams(EmptySessionsSearchParams);
+                    }
+                }}
+            />
         </section>
     );
 };

@@ -1,33 +1,25 @@
-import { message } from 'antd';
 import classNames from 'classnames';
 import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { Link, useHistory, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 
-import commonStyles from '../../../../Common.module.scss';
 import Button from '../../../../components/Button/Button/Button';
-import { CircularSpinner } from '../../../../components/Loading/Loading';
-import Modal from '../../../../components/Modal/Modal';
 import Tooltip from '../../../../components/Tooltip/Tooltip';
 import {
-    useDeleteSegmentMutation,
     useGetSegmentsQuery,
     useUnprocessedSessionsCountQuery,
 } from '../../../../graph/generated/hooks';
 import { ReactComponent as CheckIcon } from '../../../../static/check.svg';
 import { ReactComponent as TrashIcon } from '../../../../static/trash.svg';
 import { gqlSanitize } from '../../../../util/gqlSanitize';
-import {
-    SearchParams,
-    useSearchContext,
-} from '../../SearchContext/SearchContext';
+import { useSearchContext } from '../../SearchContext/SearchContext';
 import { EmptySessionsSearchParams } from '../../SessionsPage';
+import DeleteSessionSegmentModal from './DeleteSessionSegmentModal/DeleteSessionSegmentModal';
 import styles from './SegmentPicker.module.scss';
 
 export const LIVE_SEGMENT_ID = 'live';
 export const STARRED_SEGMENT_ID = 'starred';
-const NO_SEGMENT = 'none';
 
 export const SegmentPicker = () => {
     const {
@@ -45,7 +37,6 @@ export const SegmentPicker = () => {
     const { loading, data } = useGetSegmentsQuery({
         variables: { organization_id },
     });
-    const history = useHistory<SearchParams>();
     const {
         data: unprocessedSessionsCount,
         loading: unprocessedSessionsLoading,
@@ -55,26 +46,11 @@ export const SegmentPicker = () => {
     });
     const currentSegment = data?.segments?.find((s) => s?.id === segment_id);
 
-    const [deleteClicked, setDeleteClicked] = useState(false);
+    const [showDeleteSegmentModal, setShowDeleteSegmentModal] = useState(false);
     const [segmentToDelete, setSegmentToDelete] = useState<{
         name?: string;
         id?: string;
-    } | null>();
-    const [deleteSegment] = useDeleteSegmentMutation({
-        update(cache) {
-            cache.modify({
-                fields: {
-                    segments(existingSegments, { readField }) {
-                        return existingSegments.filter(
-                            (existingSegment: any) =>
-                                readField('id', existingSegment) !==
-                                segmentToDelete?.id
-                        );
-                    },
-                },
-            });
-        },
-    });
+    } | null>(null);
 
     useEffect(() => {
         if (data && segment_id) {
@@ -112,66 +88,13 @@ export const SegmentPicker = () => {
 
     return (
         <>
-            <Modal
-                title="Delete Segment"
-                visible={deleteClicked}
-                onCancel={() => setDeleteClicked(false)}
-                style={{ display: 'flex' }}
-            >
-                <div className={styles.modalWrapper}>
-                    <p className={styles.modalSubTitle}>
-                        {`This action is irreversible. Do you want to delete ${
-                            segmentToDelete?.name
-                                ? `'${segmentToDelete.name}'`
-                                : 'this segment'
-                        }?`}
-                    </p>
-                    <Button
-                        trackingId="DeleteSessionSegment"
-                        type="primary"
-                        className={commonStyles.submitButton}
-                        onClick={() => {
-                            deleteSegment({
-                                variables: {
-                                    segment_id:
-                                        segmentToDelete?.id || NO_SEGMENT,
-                                },
-                            })
-                                .then(() => {
-                                    message.success('Deleted Segment!', 5);
-                                    setDeleteClicked(false);
-                                    setSegmentToDelete({});
-                                    if (segment_id === segmentToDelete?.id) {
-                                        history.push(
-                                            `/${organization_id}/sessions`
-                                        );
-                                    }
-                                })
-                                .catch(() => {
-                                    message.error('Error deleting segment!', 5);
-                                });
-                        }}
-                    >
-                        {loading ? (
-                            <CircularSpinner
-                                style={{
-                                    fontSize: 18,
-                                    color: 'var(--text-primary-inverted)',
-                                }}
-                            />
-                        ) : (
-                            'Delete Segment'
-                        )}
-                    </Button>
-                    <Button
-                        trackingId="CancelDeleteSessionSegment"
-                        className={commonStyles.secondaryButton}
-                        onClick={() => setDeleteClicked(false)}
-                    >
-                        Cancel
-                    </Button>
-                </div>
-            </Modal>
+            <DeleteSessionSegmentModal
+                showModal={showDeleteSegmentModal}
+                hideModalHandler={() => {
+                    setShowDeleteSegmentModal(false);
+                }}
+                segmentToDelete={segmentToDelete}
+            />
             <div className={styles.segmentPickerMenu}>
                 {loading ? (
                     <div>
@@ -333,7 +256,7 @@ export const SegmentPicker = () => {
                                     type="text"
                                     className={styles.segmentAction}
                                     onClick={() => {
-                                        setDeleteClicked(true);
+                                        setShowDeleteSegmentModal(true);
                                         setSegmentToDelete(s);
                                     }}
                                 >

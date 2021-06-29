@@ -5,12 +5,17 @@ function SvgCloseIcon(props: React.SVGProps<SVGSVGElement>) {
         <svg
             width="1em"
             height="1em"
-            viewBox="0 0 64 64"
-            fill="current"
-            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="4 4 16 16"
             {...props}
         >
-            <path d="M35.4 32l19.9-19.9c1-1 1-2.4 0-3.4s-2.4-1-3.4 0L32 28.6 12 8.8c-.9-1-2.4-1-3.3 0-.9 1-1 2.4 0 3.4L28.6 32 8.7 51.9c-1 1-1 2.4 0 3.4.5.4 1 .7 1.7.7s1.2-.2 1.7-.7l20-19.9 20 19.8c.5.4 1.2.7 1.7.7s1.2-.2 1.7-.7c1-1 1-2.4 0-3.4L35.4 32z" />
+            <path
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M4.75 12A7.25 7.25 0 0112 4.75v0A7.25 7.25 0 0119.25 12v0A7.25 7.25 0 0112 19.25v0A7.25 7.25 0 014.75 12v0zM9.75 9.75l4.5 4.5M14.25 9.75l-4.5 4.5"
+            />
         </svg>
     );
 }

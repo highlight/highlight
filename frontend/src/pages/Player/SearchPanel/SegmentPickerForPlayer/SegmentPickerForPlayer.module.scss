@@ -24,3 +24,37 @@
         color: var(--color-purple);
     }
 }
+.segmentOption {
+    &:hover {
+        button {
+            opacity: 1;
+        }
+    }
+}
+
+.segmentOptionContainer {
+    --delete-segment-icon-size: var(--size-medium);
+    align-items: center;
+    display: flex !important;
+    justify-content: space-between;
+
+    span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    button {
+        background: var(--color-primary-background);
+        border: 0;
+        height: var(--delete-segment-icon-size);
+        opacity: 0;
+        padding: 0;
+        transition: opacity 0.2s ease-in-out;
+        width: var(--delete-segment-icon-size);
+    }
+    svg {
+        color: var(--color-gray-500);
+        height: var(--delete-segment-icon-size);
+        width: var(--delete-segment-icon-size);
+    }
+}
