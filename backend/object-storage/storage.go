@@ -215,7 +215,11 @@ func (s *StorageClient) bucketKey(sessionId int, organizationId int, key Payload
 }
 
 func (s *StorageClient) sourceMapBucketKey(organizationId int, fileName string) *string {
-	return aws.String(fmt.Sprintf("%d/%s", organizationId, fileName))
+	key := fmt.Sprintf("%d/%s", organizationId, fileName)
+	if os.Getenv("ENVIRONMENT") == "dev" {
+		key = "dev/" + key
+	}
+	return aws.String(key)
 }
 
 func (s *StorageClient) PushSourceMapFileToS3(organizationId int, fileName string, fileBytes []byte) (*int64, error) {
