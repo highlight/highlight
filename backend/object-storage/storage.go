@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -13,8 +14,6 @@ import (
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/pkg/errors"
-
-	"strings"
 )
 
 var (
@@ -243,7 +242,7 @@ func (s *StorageClient) PushSourceMapFileToS3(organizationId int, fileName strin
 }
 
 func (s *StorageClient) ReadSourceMapFileFromS3(organizationId int, fileName string) ([]byte, error) {
-	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: aws.String(S3SessionsPayloadBucketName),
+	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: aws.String(S3SourceMapBucketName),
 		Key: s.sourceMapBucketKey(organizationId, fileName)})
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting object from s3")
