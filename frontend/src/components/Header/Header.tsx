@@ -72,8 +72,7 @@ const FreePlanBanner = () => {
         return null;
     }
 
-    let bannerMessage = `You've used ${data?.billingDetails.meter}/
-                ${data?.billingDetails.plan.quota} of your free sessions.`;
+    let bannerMessage = `You've used ${data?.billingDetails.meter}/${data?.billingDetails.plan.quota} of your free sessions.`;
     if (data?.billingDetails.plan.type !== PlanType.Free) {
         return null;
     } else {

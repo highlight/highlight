@@ -192,8 +192,7 @@ const MetadataPanel = () => {
                             ) : (
                                 <div
                                     className={classNames(
-                                        styles.noMetadataContainer,
-                                        styles.sectionContainer
+                                        styles.noMetadataContainer
                                     )}
                                 >
                                     <p>
