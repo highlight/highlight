@@ -131,11 +131,10 @@ export const SessionFeed = () => {
                 <div ref={infiniteRef as RefObject<HTMLDivElement>}>
                     {loading && showLoadingSkeleton ? (
                         <Skeleton
-                            height={110}
+                            height={74}
                             count={3}
                             style={{
                                 borderRadius: 8,
-                                marginTop: 14,
                                 marginBottom: 14,
                             }}
                         />
