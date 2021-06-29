@@ -577,6 +577,9 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 			continue
 		}
 		stackTraceFilePath := u.Path
+		if stackTraceFilePath[0:1] == "/" {
+			stackTraceFilePath = stackTraceFileURL[1:]
+		}
 
 		// try to get file from s3
 		minifiedFileBytes, err := r.StorageClient.ReadSourceMapFileFromS3(organizationId, stackTraceFilePath)
