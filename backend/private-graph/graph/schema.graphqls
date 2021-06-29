@@ -373,6 +373,8 @@ type SessionAlert {
     UserProperties: [UserProperty]!
 }
 
+scalar Upload
+
 type Query {
     session(id: ID!): Session
     events(session_id: ID!): [Any]
@@ -563,4 +565,8 @@ type Mutation {
         environments: [String]!
         user_properties: [UserPropertyInput]!
     ): SessionAlert
+    updateSourceMaps(
+        api_key: String!
+        source_map_files: [Upload!]
+    ): ID
 }

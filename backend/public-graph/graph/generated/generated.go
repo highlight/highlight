@@ -45,12 +45,11 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Mutation struct {
-		AddSessionProperties   func(childComplexity int, sessionID int, propertiesObject interface{}) int
-		AddTrackProperties     func(childComplexity int, sessionID int, propertiesObject interface{}) int
-		IdentifySession        func(childComplexity int, sessionID int, userIdentifier string, userObject interface{}) int
-		InitializeSession      func(childComplexity int, organizationVerboseID string, enableStrictPrivacy bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string) int
-		PushPayload            func(childComplexity int, sessionID int, events model.ReplayEventsInput, messages string, resources string, errors []*model.ErrorObjectInput) int
-		UpdateSourceMapRelease func(childComplexity int, apiKey string, sourceMapFiles []*graphql.Upload) int
+		AddSessionProperties func(childComplexity int, sessionID int, propertiesObject interface{}) int
+		AddTrackProperties   func(childComplexity int, sessionID int, propertiesObject interface{}) int
+		IdentifySession      func(childComplexity int, sessionID int, userIdentifier string, userObject interface{}) int
+		InitializeSession    func(childComplexity int, organizationVerboseID string, enableStrictPrivacy bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string) int
+		PushPayload          func(childComplexity int, sessionID int, events model.ReplayEventsInput, messages string, resources string, errors []*model.ErrorObjectInput) int
 	}
 
 	Query struct {
@@ -70,7 +69,6 @@ type MutationResolver interface {
 	AddTrackProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error)
 	AddSessionProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error)
 	PushPayload(ctx context.Context, sessionID int, events model.ReplayEventsInput, messages string, resources string, errors []*model.ErrorObjectInput) (*int, error)
-	UpdateSourceMapRelease(ctx context.Context, apiKey string, sourceMapFiles []*graphql.Upload) (*int, error)
 }
 type QueryResolver interface {
 	Ignore(ctx context.Context, id int) (interface{}, error)
@@ -150,18 +148,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.PushPayload(childComplexity, args["session_id"].(int), args["events"].(model.ReplayEventsInput), args["messages"].(string), args["resources"].(string), args["errors"].([]*model.ErrorObjectInput)), true
-
-	case "Mutation.updateSourceMapRelease":
-		if e.complexity.Mutation.UpdateSourceMapRelease == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_updateSourceMapRelease_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.UpdateSourceMapRelease(childComplexity, args["api_key"].(string), args["source_map_files"].([]*graphql.Upload)), true
 
 	case "Query.ignore":
 		if e.complexity.Query.Ignore == nil {
@@ -299,8 +285,6 @@ input ReplayEventsInput {
     events: [Any]!
 }
 
-scalar Upload
-
 type Mutation {
     initializeSession(
         organization_verbose_id: String!
@@ -325,10 +309,6 @@ type Mutation {
         messages: String!
         resources: String!
         errors: [ErrorObjectInput]!
-    ): ID
-    updateSourceMapRelease(
-        api_key: String!
-        source_map_files: [Upload!]
     ): ID
 }
 
@@ -550,30 +530,6 @@ func (ec *executionContext) field_Mutation_pushPayload_args(ctx context.Context,
 		}
 	}
 	args["errors"] = arg4
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_updateSourceMapRelease_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["api_key"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("api_key"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["api_key"] = arg0
-	var arg1 []*graphql.Upload
-	if tmp, ok := rawArgs["source_map_files"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("source_map_files"))
-		arg1, err = ec.unmarshalOUpload2ᚕᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUploadᚄ(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["source_map_files"] = arg1
 	return args, nil
 }
 
@@ -827,45 +783,6 @@ func (ec *executionContext) _Mutation_pushPayload(ctx context.Context, field gra
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().PushPayload(rctx, args["session_id"].(int), args["events"].(model.ReplayEventsInput), args["messages"].(string), args["resources"].(string), args["errors"].([]*model.ErrorObjectInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOID2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_updateSourceMapRelease(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_updateSourceMapRelease_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateSourceMapRelease(rctx, args["api_key"].(string), args["source_map_files"].([]*graphql.Upload))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2394,8 +2311,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_addSessionProperties(ctx, field)
 		case "pushPayload":
 			out.Values[i] = ec._Mutation_pushPayload(ctx, field)
-		case "updateSourceMapRelease":
-			out.Values[i] = ec._Mutation_updateSourceMapRelease(ctx, field)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -2882,27 +2797,6 @@ func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel as
 	return res
 }
 
-func (ec *executionContext) unmarshalNUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, v interface{}) (*graphql.Upload, error) {
-	res, err := graphql.UnmarshalUpload(v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, sel ast.SelectionSet, v *graphql.Upload) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := graphql.MarshalUpload(*v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
-}
-
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
 	return ec.___Directive(ctx, sel, &v)
 }
@@ -3282,42 +3176,6 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	return graphql.MarshalString(*v)
-}
-
-func (ec *executionContext) unmarshalOUpload2ᚕᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUploadᚄ(ctx context.Context, v interface{}) ([]*graphql.Upload, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []interface{}
-	if v != nil {
-		if tmp1, ok := v.([]interface{}); ok {
-			vSlice = tmp1
-		} else {
-			vSlice = []interface{}{v}
-		}
-	}
-	var err error
-	res := make([]*graphql.Upload, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalOUpload2ᚕᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUploadᚄ(ctx context.Context, sel ast.SelectionSet, v []*graphql.Upload) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = ec.marshalNUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, sel, v[i])
-	}
-
-	return ret
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

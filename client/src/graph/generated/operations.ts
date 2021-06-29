@@ -18,7 +18,6 @@ export type Scalars = {
   Any: any;
   Time: any;
   Int64: any;
-  Upload: any;
 };
 
 
@@ -58,7 +57,6 @@ export type ReplayEventsInput = {
   events: Array<Maybe<Scalars['Any']>>;
 };
 
-
 export type Mutation = {
   __typename?: 'Mutation';
   initializeSession?: Maybe<Session>;
@@ -66,7 +64,6 @@ export type Mutation = {
   addTrackProperties?: Maybe<Scalars['ID']>;
   addSessionProperties?: Maybe<Scalars['ID']>;
   pushPayload?: Maybe<Scalars['ID']>;
-  updateRelease?: Maybe<Scalars['ID']>;
 };
 
 
@@ -107,13 +104,6 @@ export type MutationPushPayloadArgs = {
   messages: Scalars['String'];
   resources: Scalars['String'];
   errors: Array<Maybe<ErrorObjectInput>>;
-};
-
-
-export type MutationUpdateReleaseArgs = {
-  api_key: Scalars['String'];
-  commit_hash: Scalars['String'];
-  source_map_files?: Maybe<Array<Scalars['Upload']>>;
 };
 
 export type Query = {

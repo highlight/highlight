@@ -37,8 +37,6 @@ input ReplayEventsInput {
     events: [Any]!
 }
 
-scalar Upload
-
 type Mutation {
     initializeSession(
         organization_verbose_id: String!
@@ -63,10 +61,6 @@ type Mutation {
         messages: String!
         resources: String!
         errors: [ErrorObjectInput]!
-    ): ID
-    updateSourceMapRelease(
-        api_key: String!
-        source_map_files: [Upload!]
     ): ID
 }
 
