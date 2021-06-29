@@ -19,9 +19,8 @@ import { EmptySessionsSearchParams } from '../../../Sessions/SessionsPage';
 import styles from './SegmentPickerForPlayer.module.scss';
 
 const SegmentPickerForPlayer = () => {
-    const { organization_id, segment_id } = useParams<{
+    const { organization_id } = useParams<{
         organization_id: string;
-        segment_id?: string;
     }>();
     const {
         setSearchParams,
@@ -120,16 +119,19 @@ const SegmentPickerForPlayer = () => {
                     <Button
                         trackingId="CreateSessionSegment"
                         onClick={() => {
-                            if (showUpdateSegmentOption && segment_id) {
+                            if (showUpdateSegmentOption && selectedSegment) {
                                 editSegment({
                                     variables: {
                                         organization_id,
-                                        id: segment_id,
+                                        id: selectedSegment.id,
                                         params: searchParams,
                                     },
                                 })
                                     .then(() => {
-                                        message.success('Updated Segment!', 5);
+                                        message.success(
+                                            `Updated '${selectedSegment.value}'`,
+                                            5
+                                        );
                                         setExistingParams(searchParams);
                                     })
                                     .catch(() => {
