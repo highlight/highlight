@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
@@ -221,11 +222,10 @@ func (s *StorageClient) sourceMapBucketKey(organizationId int, fileName string) 
 	return aws.String(key)
 }
 
-func (s *StorageClient) PushSourceMapFileToS3(organizationId int, fileName string, fileBytes []byte) (*int64, error) {
+func (s *StorageClient) PushSourceMapFileReaderToS3(organizationId int, fileName string, file io.Reader) (*int64, error) {
 	key := s.sourceMapBucketKey(organizationId, fileName)
-	body := bytes.NewReader(fileBytes)
 	_, err := s.S3Client.PutObject(context.TODO(), &s3.PutObjectInput{
-		Bucket: aws.String(S3SourceMapBucketName), Key: key, Body: body,
+		Bucket: aws.String(S3SourceMapBucketName), Key: key, Body: file,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "error 'put'ing sourcemap file in s3 bucket")
@@ -239,6 +239,11 @@ func (s *StorageClient) PushSourceMapFileToS3(organizationId int, fileName strin
 		return nil, errors.New("error retrieving head object")
 	}
 	return &result.ContentLength, nil
+}
+
+func (s *StorageClient) PushSourceMapFileToS3(organizationId int, fileName string, fileBytes []byte) (*int64, error) {
+	body := bytes.NewReader(fileBytes)
+	return s.PushSourceMapFileReaderToS3(organizationId, fileName, body)
 }
 
 func (s *StorageClient) ReadSourceMapFileFromS3(organizationId int, fileName string) ([]byte, error) {

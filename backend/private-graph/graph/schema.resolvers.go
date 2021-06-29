@@ -970,7 +970,7 @@ func (r *mutationResolver) UpdateSourceMaps(ctx context.Context, apiKey string, 
 	}
 
 	for _, file := range sourceMapFiles {
-		_, err := r.StorageClient.PushSourceMapFileToS3(orgID, file.Filename, file.File)
+		_, err := r.StorageClient.PushSourceMapFileReaderToS3(orgID, file.Filename, file.File)
 		if err != nil {
 			return nil, e.Wrap(err, "error pushing sourcemap file to s3")
 		}
