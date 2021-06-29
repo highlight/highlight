@@ -24,8 +24,10 @@ type Props = Pick<
     | 'dropdownRender'
     | 'defaultValue'
     | 'onSearch'
+    | 'children'
+    | 'optionLabelProp'
 > & {
-    options: {
+    options?: {
         value: string;
         displayValue: string | React.ReactNode;
         disabled?: boolean;
@@ -34,7 +36,13 @@ type Props = Pick<
     hasAccent?: boolean;
 };
 
-const Select = ({ options, className, hasAccent = false, ...props }: Props) => {
+const Select = ({
+    options,
+    className,
+    hasAccent = false,
+    children,
+    ...props
+}: Props) => {
     return (
         <AntDesignSelect
             {...props}
@@ -53,11 +61,12 @@ const Select = ({ options, className, hasAccent = false, ...props }: Props) => {
                 />
             }
         >
-            {options.map(({ displayValue, value, disabled, id }) => (
+            {options?.map(({ displayValue, value, disabled, id }) => (
                 <Option key={id} value={value} disabled={disabled}>
                     {displayValue}
                 </Option>
             ))}
+            {children}
         </AntDesignSelect>
     );
 };

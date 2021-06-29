@@ -201,10 +201,17 @@
     opacity: 0.5;
 }
 
-.modalWrapper {
-    width: 60vh;
-}
-
 .modalSubTitle {
     margin-bottom: 20px;
+}
+
+.actionsContainer {
+    column-gap: var(--size-medium);
+    display: flex;
+    padding-top: var(--size-medium);
+
+    > button {
+        flex-grow: 1;
+        justify-content: center;
+    }
 }
