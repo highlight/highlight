@@ -305,24 +305,20 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	return &sessionID, nil
 }
 
-func (r *mutationResolver) UpdateRelease(ctx context.Context, apiKey string, commitHash string, sourceMapFiles []*graphql.Upload) (*int, error) {
-	var org model.Organization
-	if err := r.DB.Where(&model.Organization{Secret: &apiKey}).First(&org).Error; err != nil {
+func (r *mutationResolver) UpdateSourceMapRelease(ctx context.Context, apiKey string, sourceMapFiles []*graphql.Upload) (*int, error) {
+	var orgID int
+	if err := r.DB.Where(&model.Organization{Secret: &apiKey}).Select("id").Scan(&orgID).Error; err != nil {
 		return nil, e.Wrap(err, "error querying org by secret in db")
 	}
 
-	if err := r.DB.Where(&model.Organization{Model: model.Model{ID: org.ID}}).Updates(&model.Organization{ReleaseVersion: &commitHash}).Error; err != nil {
-		return nil, e.Wrap(err, "error updating org release version")
-	}
-
 	for _, file := range sourceMapFiles {
-		_, err := r.StorageClient.PushSourceMapFileToS3(org.ID, commitHash, file.Filename, file.File)
+		_, err := r.StorageClient.PushSourceMapFileToS3(orgID, file.Filename, file.File)
 		if err != nil {
 			return nil, e.Wrap(err, "error pushing sourcemap file to s3")
 		}
 	}
 
-	return &org.ID, nil
+	return &orgID, nil
 }
 
 func (r *queryResolver) Ignore(ctx context.Context, id int) (interface{}, error) {

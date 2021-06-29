@@ -64,9 +64,8 @@ type Mutation {
         resources: String!
         errors: [ErrorObjectInput]!
     ): ID
-    updateRelease(
+    updateSourceMapRelease(
         api_key: String!
-        commit_hash: String!
         source_map_files: [Upload!]
     ): ID
 }
