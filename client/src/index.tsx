@@ -187,17 +187,19 @@ export class Highlight {
         }
         this.sessionData.userIdentifier = user_identifier.toString();
         this.sessionData.userObject = user_object;
-        await this.graphqlSDK.identifySession({
-            session_id: this.sessionData.sessionID.toString(),
-            user_identifier: this.sessionData.userIdentifier,
-            user_object: user_object,
-        });
-        const sourceString = source === 'segment' ? source : 'default';
-        this.logger.log(
-            `Identify (${user_identifier}, source: ${sourceString}) w/ obj: ${stringify(
-                user_object
-            )} @ ${process.env.PUBLIC_GRAPH_URI}`
-        );
+        try {
+            await this.graphqlSDK.identifySession({
+                session_id: this.sessionData.sessionID.toString(),
+                user_identifier: this.sessionData.userIdentifier,
+                user_object: user_object,
+            });
+            const sourceString = source === 'segment' ? source : 'default';
+            this.logger.log(
+                `Identify (${user_identifier}, source: ${sourceString}) w/ obj: ${stringify(
+                    user_object
+                )} @ ${process.env.PUBLIC_GRAPH_URI}`
+            );
+        } catch (e) {}
     }
 
     async pushCustomError(message: string, payload?: string) {
@@ -219,17 +221,19 @@ export class Highlight {
     async addProperties(properties_obj = {}, typeArg?: PropertyType) {
         // Session properties are custom properties that the Highlight snippet adds (visited-url, referrer, etc.)
         if (typeArg?.type === 'session') {
-            await this.graphqlSDK.addSessionProperties({
-                session_id: this.sessionData.sessionID.toString(),
-                properties_object: properties_obj,
-            });
-            this.logger.log(
-                `AddSessionProperties to session (${
-                    this.sessionData.sessionID
-                }) w/ obj: ${JSON.stringify(properties_obj)} @ ${
-                    process.env.PUBLIC_GRAPH_URI
-                }`
-            );
+            try {
+                await this.graphqlSDK.addSessionProperties({
+                    session_id: this.sessionData.sessionID.toString(),
+                    properties_object: properties_obj,
+                });
+                this.logger.log(
+                    `AddSessionProperties to session (${
+                        this.sessionData.sessionID
+                    }) w/ obj: ${JSON.stringify(properties_obj)} @ ${
+                        process.env.PUBLIC_GRAPH_URI
+                    }`
+                );
+            } catch (e) {}
         }
         // Track properties are properties that users define; rn, either through segment or manually.
         else {
@@ -241,19 +245,21 @@ export class Highlight {
             } else {
                 addCustomEvent<string>('Track', stringify(properties_obj));
             }
-            await this.graphqlSDK.addTrackProperties({
-                session_id: this.sessionData.sessionID.toString(),
-                properties_object: properties_obj,
-            });
-            const sourceString =
-                typeArg?.source === 'segment' ? typeArg.source : 'default';
-            this.logger.log(
-                `AddTrackProperties to session (${
-                    this.sessionData.sessionID
-                }, source: ${sourceString}) w/ obj: ${stringify(
-                    properties_obj
-                )} @ ${process.env.PUBLIC_GRAPH_URI}`
-            );
+            try {
+                await this.graphqlSDK.addTrackProperties({
+                    session_id: this.sessionData.sessionID.toString(),
+                    properties_object: properties_obj,
+                });
+                const sourceString =
+                    typeArg?.source === 'segment' ? typeArg.source : 'default';
+                this.logger.log(
+                    `AddTrackProperties to session (${
+                        this.sessionData.sessionID
+                    }, source: ${sourceString}) w/ obj: ${stringify(
+                        properties_obj
+                    )} @ ${process.env.PUBLIC_GRAPH_URI}`
+                );
+            } catch (e) {}
         }
     }
     // TODO: (organization_id is only here because of old clients, we should figure out how to version stuff).
@@ -300,36 +306,39 @@ export class Highlight {
                 if ('getFingerprint' in client) {
                     fingerprint = client.getFingerprint();
                 }
-                const gr = await this.graphqlSDK.initializeSession({
-                    organization_verbose_id: this.organizationID,
-                    enable_strict_privacy: this.enableStrictPrivacy,
-                    clientVersion: packageJson['version'],
-                    firstloadVersion: this.firstloadVersion,
-                    clientConfig: JSON.stringify(this._optionsInternal),
-                    environment: this.environment,
-                    id: fingerprint.toString(),
-                    appVersion: this.appVersion,
-                });
-                this.sessionData.sessionID = parseInt(
-                    gr?.initializeSession?.id || '0'
-                );
-                const organization_id = gr?.initializeSession?.organization_id;
-                this.logger.log(
-                    `Loaded Highlight
+                try {
+                    const gr = await this.graphqlSDK.initializeSession({
+                        organization_verbose_id: this.organizationID,
+                        enable_strict_privacy: this.enableStrictPrivacy,
+                        clientVersion: packageJson['version'],
+                        firstloadVersion: this.firstloadVersion,
+                        clientConfig: JSON.stringify(this._optionsInternal),
+                        environment: this.environment,
+                        id: fingerprint.toString(),
+                        appVersion: this.appVersion,
+                    });
+                    this.sessionData.sessionID = parseInt(
+                        gr?.initializeSession?.id || '0'
+                    );
+                    const organization_id =
+                        gr?.initializeSession?.organization_id;
+                    this.logger.log(
+                        `Loaded Highlight
   Remote: ${process.env.PUBLIC_GRAPH_URI}
   Org ID: ${organization_id}
   Verbose Org ID: ${this.organizationID}
   SessionID: ${this.sessionData.sessionID}
   Session Data:
   `,
-                    gr.initializeSession
-                );
-                if (this.sessionData.userIdentifier) {
-                    this.identify(
-                        this.sessionData.userIdentifier,
-                        this.sessionData.userObject
+                        gr.initializeSession
                     );
-                }
+                    if (this.sessionData.userIdentifier) {
+                        this.identify(
+                            this.sessionData.userIdentifier,
+                            this.sessionData.userObject
+                        );
+                    }
+                } catch (e) {}
             }
             setTimeout(() => {
                 this._save();
@@ -502,26 +511,28 @@ export class Highlight {
             if (!this.sessionData.sessionID) {
                 return;
             }
-            const payload = this._getPayload();
-            await this.graphqlSDK.PushPayload(payload);
-            this.errors = [];
-            this.messages = [];
-            this.networkContents = [];
-            // Listeners are cleared when the user calls stop() manually.
-            if (this.listeners.length === 0) {
-                return;
-            }
-            if (
-                this.listeners &&
-                this.sessionData.sessionStartTime &&
-                Date.now() - this.sessionData.sessionStartTime >
-                    MAX_SESSION_LENGTH
-            ) {
-                this.sessionData.sessionStartTime = Date.now();
-                this.stopRecording();
-                this.initialize(this.organizationID);
-                return;
-            }
+            try {
+                const payload = this._getPayload();
+                await this.graphqlSDK.PushPayload(payload);
+                this.errors = [];
+                this.messages = [];
+                this.networkContents = [];
+                // Listeners are cleared when the user calls stop() manually.
+                if (this.listeners.length === 0) {
+                    return;
+                }
+                if (
+                    this.listeners &&
+                    this.sessionData.sessionStartTime &&
+                    Date.now() - this.sessionData.sessionStartTime >
+                        MAX_SESSION_LENGTH
+                ) {
+                    this.sessionData.sessionStartTime = Date.now();
+                    this.stopRecording();
+                    this.initialize(this.organizationID);
+                    return;
+                }
+            } catch (e) {}
         } catch (e) {
             HighlightWarning('_save', e);
         }
