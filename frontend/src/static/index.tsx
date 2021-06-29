@@ -73,3 +73,4 @@ export { default as UserPlusIcon } from './UserPlusIcon';
 export { default as VerifyCheckIcon } from './VerifyCheckIcon';
 export { default as Viewed } from './Viewed';
 export { default as WorkspaceIcon } from './WorkspaceIcon';
+export { default as XIcon } from './XIcon';
