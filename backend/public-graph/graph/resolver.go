@@ -212,7 +212,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *
 
 	var newMappedStackTraceString *string
 	newFrameString := frameString
-	if organizationID == 113 || organizationID == 198 {
+	if (organizationID == 1 && os.Getenv("ENVIRONMENT") == "dev") || organizationID 113 || organizationID == 198 {
 		// TODO: don't do this for every error
 		mappedStackTrace, err := r.EnhanceStackTrace(errorInput.StackTrace)
 		if err != nil {
