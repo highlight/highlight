@@ -1,5 +1,4 @@
 export const card: string;
-export const currentStreamElement: string;
 export const defaultIcon: string;
 export const directionIcon: string;
 export const eventContent: string;

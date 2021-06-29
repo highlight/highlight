@@ -23,17 +23,6 @@
 
 .card {
     cursor: pointer;
-    //     margin-top: var(--size-medium);
-}
-
-.currentStreamElement {
-    .goToButton {
-        color: var(--color-primary-background);
-
-        svg {
-            fill: var(--color-primary-background);
-        }
-    }
 }
 
 .eventTime {
