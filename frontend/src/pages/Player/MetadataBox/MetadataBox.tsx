@@ -76,8 +76,9 @@ export const MetadataBox = () => {
                         <Skeleton circle={true} height={36} width={36} />
                     ) : (
                         <Avatar
-                            style={{ width: 36 }}
+                            style={{ width: '36px', height: '36px' }}
                             seed={data?.session?.identifier ?? ''}
+                            shape="rounded"
                         />
                     )}
                 </div>
