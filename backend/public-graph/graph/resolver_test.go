@@ -48,20 +48,19 @@ func TestHandleErrorAndGroup(t *testing.T) {
 		"test two errors with same environment but different case": {
 			errorsToInsert: []model.ErrorObject{
 				{
-					// org id is 198 bc that's our testing org for source maps, it goes through all functionality in this func
-					OrganizationID: 198,
+					OrganizationID: 1,
 					Environment:    "dev",
 					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
 				},
 				{
-					OrganizationID: 198,
+					OrganizationID: 1,
 					Environment:    "dEv",
 					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
 				},
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
-					OrganizationID: 198,
+					OrganizationID: 1,
 					StackTrace:     nullStr,
 					Resolved:       &model.F,
 					State:          model.ErrorGroupStates.OPEN,
@@ -74,19 +73,19 @@ func TestHandleErrorAndGroup(t *testing.T) {
 		"test two errors with different environment": {
 			errorsToInsert: []model.ErrorObject{
 				{
-					OrganizationID: 198,
+					OrganizationID: 1,
 					Environment:    "dev",
 					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
 				},
 				{
-					OrganizationID: 198,
+					OrganizationID: 1,
 					Environment:    "prod",
 					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
 				},
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
-					OrganizationID: 198,
+					OrganizationID: 1,
 					StackTrace:     nullStr,
 					Resolved:       &model.F,
 					State:          model.ErrorGroupStates.OPEN,
@@ -99,18 +98,18 @@ func TestHandleErrorAndGroup(t *testing.T) {
 		"two errors, one with empty environment": {
 			errorsToInsert: []model.ErrorObject{
 				{
-					OrganizationID: 198,
+					OrganizationID: 1,
 					Environment:    "dev",
 					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
 				},
 				{
-					OrganizationID: 198,
+					OrganizationID: 1,
 					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
 				},
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
-					OrganizationID: 198,
+					OrganizationID: 1,
 					StackTrace:     nullStr,
 					Resolved:       &model.F,
 					State:          model.ErrorGroupStates.OPEN,
@@ -123,19 +122,19 @@ func TestHandleErrorAndGroup(t *testing.T) {
 		"test longer error stack first": {
 			errorsToInsert: []model.ErrorObject{
 				{
-					OrganizationID: 198,
+					OrganizationID: 1,
 					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
 					StackTrace:     &longTraceStr,
 				},
 				{
-					OrganizationID: 198,
+					OrganizationID: 1,
 					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
 					StackTrace:     &shortTraceStr,
 				},
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
-					OrganizationID:   198,
+					OrganizationID:   1,
 					StackTrace:       shortTraceStr,
 					Resolved:         &model.F,
 					State:            model.ErrorGroupStates.OPEN,
@@ -149,19 +148,19 @@ func TestHandleErrorAndGroup(t *testing.T) {
 		"test shorter error stack first": {
 			errorsToInsert: []model.ErrorObject{
 				{
-					OrganizationID: 198,
+					OrganizationID: 1,
 					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
 					StackTrace:     &shortTraceStr,
 				},
 				{
-					OrganizationID: 198,
+					OrganizationID: 1,
 					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
 					StackTrace:     &longTraceStr,
 				},
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
-					OrganizationID:   198,
+					OrganizationID:   1,
 					StackTrace:       longTraceStr,
 					Resolved:         &model.F,
 					MetadataLog:      &metaDataStr,
@@ -185,7 +184,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 						t.Fatal(e.Wrap(err, "error unmarshalling error stack trace frames"))
 					}
 				}
-				errorGroup, err := r.HandleErrorAndGroup(&errorObj, &publicModelInput.ErrorObjectInput{StackTrace: frames}, nil, 198)
+				errorGroup, err := r.HandleErrorAndGroup(&errorObj, &publicModelInput.ErrorObjectInput{StackTrace: frames}, nil, 1)
 				if err != nil {
 					t.Fatal(e.Wrap(err, "error handling error and group"))
 				}

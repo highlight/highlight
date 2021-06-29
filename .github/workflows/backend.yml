@@ -51,6 +51,7 @@ jobs:
           PSQL_USER: "postgres"
           PSQL_DB: "postgres"
           PSQL_PASSWORD: "postgres"
+          ENVIRONMENT: "test"
         steps:
             - name: Checkout
               uses: actions/checkout@v2
