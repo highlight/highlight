@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -19,8 +18,8 @@ import (
 )
 
 var (
-	S3BucketName          = os.Getenv("AWS_S3_BUCKET_NAME")
-	S3SourceMapBucketName = os.Getenv("AWS_S3_SOURCE_MAP_BUCKET_NAME")
+	S3SessionsPayloadBucketName = os.Getenv("AWS_S3_BUCKET_NAME")
+	S3SourceMapBucketName       = os.Getenv("AWS_S3_SOURCE_MAP_BUCKET_NAME")
 )
 
 type PayloadType string
@@ -70,13 +69,13 @@ func (s *StorageClient) PushSessionsToS3(sessionId int, organizationId int, even
 	key := s.bucketKey(sessionId, organizationId, SessionContents)
 	body := strings.NewReader(string(b))
 	_, err = s.S3Client.PutObject(context.TODO(), &s3.PutObjectInput{
-		Bucket: aws.String(S3BucketName), Key: key, Body: body,
+		Bucket: aws.String(S3SessionsPayloadBucketName), Key: key, Body: body,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "error 'put'ing in s3 bucket")
 	}
 	headObj := s3.HeadObjectInput{
-		Bucket: aws.String(S3BucketName),
+		Bucket: aws.String(S3SessionsPayloadBucketName),
 		Key:    key,
 	}
 	result, err := s.S3Client.HeadObject(context.TODO(), &headObj)
@@ -87,7 +86,7 @@ func (s *StorageClient) PushSessionsToS3(sessionId int, organizationId int, even
 }
 
 func (s *StorageClient) ReadSessionsFromS3(sessionId int, organizationId int) ([]interface{}, error) {
-	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: aws.String(S3BucketName),
+	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: aws.String(S3SessionsPayloadBucketName),
 		Key: s.bucketKey(sessionId, organizationId, SessionContents)})
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting object from s3")
@@ -122,13 +121,13 @@ func (s *StorageClient) PushResourcesToS3(sessionId int, organizationId int, rs 
 	key := s.bucketKey(sessionId, organizationId, NetworkResources)
 	body := strings.NewReader(string(b))
 	_, err = s.S3Client.PutObject(context.TODO(), &s3.PutObjectInput{
-		Bucket: aws.String(S3BucketName), Key: key, Body: body,
+		Bucket: aws.String(S3SessionsPayloadBucketName), Key: key, Body: body,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "error 'put'ing in s3 bucket")
 	}
 	headObj := s3.HeadObjectInput{
-		Bucket: aws.String(S3BucketName),
+		Bucket: aws.String(S3SessionsPayloadBucketName),
 		Key:    key,
 	}
 	result, err := s.S3Client.HeadObject(context.TODO(), &headObj)
@@ -140,7 +139,7 @@ func (s *StorageClient) PushResourcesToS3(sessionId int, organizationId int, rs 
 }
 
 func (s *StorageClient) ReadResourcesFromS3(sessionId int, organizationId int) ([]interface{}, error) {
-	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: aws.String(S3BucketName),
+	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: aws.String(S3SessionsPayloadBucketName),
 		Key: s.bucketKey(sessionId, organizationId, NetworkResources)})
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting object from s3")
@@ -175,13 +174,13 @@ func (s *StorageClient) PushMessagesToS3(sessionId int, organizationId int, mess
 	key := s.bucketKey(sessionId, organizationId, ConsoleMessages)
 	body := strings.NewReader(string(b))
 	_, err = s.S3Client.PutObject(context.TODO(), &s3.PutObjectInput{
-		Bucket: aws.String(S3BucketName), Key: key, Body: body,
+		Bucket: aws.String(S3SessionsPayloadBucketName), Key: key, Body: body,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "error 'put'ing in s3 bucket")
 	}
 	headObj := s3.HeadObjectInput{
-		Bucket: aws.String(S3BucketName),
+		Bucket: aws.String(S3SessionsPayloadBucketName),
 		Key:    key,
 	}
 	result, err := s.S3Client.HeadObject(context.TODO(), &headObj)
@@ -192,7 +191,7 @@ func (s *StorageClient) PushMessagesToS3(sessionId int, organizationId int, mess
 }
 
 func (s *StorageClient) ReadMessagesFromS3(sessionId int, organizationId int) ([]interface{}, error) {
-	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: aws.String(S3BucketName),
+	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: aws.String(S3SessionsPayloadBucketName),
 		Key: s.bucketKey(sessionId, organizationId, ConsoleMessages)})
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting object from s3")
@@ -222,10 +221,8 @@ func (s *StorageClient) sourceMapBucketKey(organizationId int, fileName string) 
 func (s *StorageClient) PushSourceMapFileToS3(organizationId int, fileName string, fileBytes []byte) (*int64, error) {
 	key := s.sourceMapBucketKey(organizationId, fileName)
 	body := bytes.NewReader(fileBytes)
-	// expire file after 60 days
-	expireDate := time.Now().Add(2 * 30 * 24 * time.Hour)
 	_, err := s.S3Client.PutObject(context.TODO(), &s3.PutObjectInput{
-		Bucket: aws.String(S3SourceMapBucketName), Key: key, Body: body, Expires: &expireDate,
+		Bucket: aws.String(S3SourceMapBucketName), Key: key, Body: body,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "error 'put'ing sourcemap file in s3 bucket")

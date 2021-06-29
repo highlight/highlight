@@ -420,7 +420,9 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 			Where("date > ?", time.Date(n.Year(), n.Month(), 1, 0, 0, 0, 0, time.UTC)).
 			Select("SUM(count) as monthToDateSessionCount").
 			Scan(&monthToDateSessionCount).Error; err != nil {
-			return nil, e.Wrap(err, "error getting month-to-date session count")
+			// The record doesn't exist for new organizations since the record gets created in the worker.
+			monthToDateSessionCount = 0
+			log.Warn(fmt.Sprintf("Couldn't find DailySessionCount for %d", organizationID))
 		}
 		withinBillingQuota = int64(quota) > monthToDateSessionCount
 	}

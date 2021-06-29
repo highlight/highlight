@@ -3,13 +3,17 @@
     padding: 0 var(--size-large);
 
     h2 {
+        border-bottom: 1px solid var(--color-gray-300);
         color: var(--text-primary);
         font-size: 12px;
         margin: 0;
-        margin-bottom: var(--size-xSmall) !important;
+        margin-bottom: var(--size-xxSmall) !important;
+        padding: var(--size-small);
     }
 
     section {
+        border: 1px solid var(--color-gray-300);
+        border-radius: var(--border-radius);
         margin-bottom: var(--size-xLarge);
 
         p,
@@ -21,21 +25,6 @@
         p {
             color: var(--color-gray-500);
         }
-    }
-
-    .tagDiv {
-        display: flex;
-        margin-top: var(--size-medium);
-        padding-right: 20px;
-        width: 100%;
-    }
-
-    .tagWrapper {
-        display: flex;
-        flex: 1;
-        flex-flow: row wrap;
-        height: 24px;
-        overflow: hidden;
     }
 
     .userDetailsSection {
@@ -58,6 +47,8 @@
 }
 
 .noMetadataContainer {
+    grid-column-end: -1;
+    grid-column-start: 1;
     p {
         color: var(--color-gray-500);
         font-size: 12px;
@@ -80,12 +71,16 @@
     display: grid;
     font-family: var(--header-font-family);
     grid-template-columns: 80px 1fr;
-    padding: 0;
+    padding: var(--size-small);
     row-gap: var(--size-xSmall);
 
     p {
         margin: 0 !important;
     }
+}
+
+.sectionContainer {
+    padding: var(--size-small);
 }
 
 .value {

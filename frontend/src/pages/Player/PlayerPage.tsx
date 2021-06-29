@@ -63,6 +63,10 @@ const Player = () => {
         'highlightMenuShowLeftPanel',
         false
     );
+    const [showRightPanelPreference] = useLocalStorage(
+        'highlightMenuShowRightPanel',
+        true
+    );
     const [commentModalPosition, setCommentModalPosition] = useState<
         Coordinates2D | undefined
     >(undefined);
@@ -235,9 +239,13 @@ const Player = () => {
                                     />
                                     {!isReplayerReady ? (
                                         <PlayerSkeleton
-                                            height={
+                                            showingLeftPanel={showLeftPanel}
+                                            showingRightPanel={
+                                                showRightPanelPreference
+                                            }
+                                            width={
                                                 playerWrapperRef.current
-                                                    ?.clientHeight
+                                                    ?.clientWidth
                                             }
                                         />
                                     ) : (
@@ -408,14 +416,35 @@ export const EventStream = () => {
     );
 };
 
-const PlayerSkeleton = ({ height }: { height: number | undefined }) => {
-    const adjusted = (height ?? 80) - 80;
+const PlayerSkeleton = ({
+    width,
+    showingLeftPanel,
+    showingRightPanel,
+}: {
+    width: number | undefined;
+    showingLeftPanel: boolean;
+    showingRightPanel: boolean;
+}) => {
+    let adjustedWidth = width ?? 80;
+
+    if (showingLeftPanel) {
+        adjustedWidth -= 475;
+    }
+    if (showingRightPanel) {
+        adjustedWidth -= 350;
+    }
+    adjustedWidth = Math.min(Math.max(300, adjustedWidth), 600);
+
     return (
         <SkeletonTheme
             color={'var(--text-primary-inverted)'}
             highlightColor={'#f5f5f5'}
         >
-            <Skeleton height={adjusted} width={adjusted} duration={1} />
+            <Skeleton
+                height={adjustedWidth * 0.8}
+                width={adjustedWidth}
+                duration={1}
+            />
         </SkeletonTheme>
     );
 };
