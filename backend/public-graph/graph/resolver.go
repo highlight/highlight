@@ -212,7 +212,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *
 
 	var newMappedStackTraceString *string
 	newFrameString := frameString
-	if a, ok := map[int]bool{1: true, 113: true, 198: true}[organizationID]; ok && a {
+	if organizationId == 113 || organizationId == 198 {
 		// TODO: don't do this for every error
 		mappedStackTrace, err := r.EnhanceStackTrace(errorInput.StackTrace)
 		if err != nil {
