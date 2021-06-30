@@ -556,7 +556,6 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 		start := time.Now()
 		mappedStackFrame, err := r.processStackFrame(organizationId, *stackFrame)
 		diff := time.Since(start).Milliseconds()
-		processHistogramTag := "success"
 		if err != nil {
 			log.Error(err)
 			mappedStackFrame = &modelInputs.ErrorTrace{
@@ -566,10 +565,10 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 				ColumnNumber: stackFrame.ColumnNumber,
 				Error:        util.MakeStringPointer(err.Error()),
 			}
-			processHistogramTag = "error"
 		}
-		if err := dd.StatsD.Histogram(fmt.Sprintf("%s.totalRunTime.%s", histogram.processStackTrace, processHistogramTag), float64(diff),
-			[]string{fmt.Sprintf("environment:%s", os.Getenv("Environment")), fmt.Sprintf("org_id:%d", organizationId)}, 1); err != nil {
+		if err := dd.StatsD.Histogram(fmt.Sprintf("%s.totalRunTime", histogram.processStackTrace), float64(diff),
+			[]string{fmt.Sprintf("environment:%s", os.Getenv("Environment")), fmt.Sprintf("success:%v", err == nil),
+				fmt.Sprintf("org_id:%d", organizationId)}, 1); err != nil {
 			log.Error(e.Wrap(err, "dd error tracking processStackFrame time histogram"))
 		}
 		if mappedStackFrame != nil {
