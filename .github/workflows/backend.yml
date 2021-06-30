@@ -58,4 +58,4 @@ jobs:
             - name: Setup Go
               uses: actions/setup-go@v2
             - name: Run tests
-              run: cd backend && go test ./... -v
+              run: cd backend && go test -p 1 ./... -v
