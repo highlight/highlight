@@ -237,7 +237,7 @@ const Player = () => {
                                         className={styles.rrwebPlayerDiv}
                                         id="player"
                                     />
-                                    {!isReplayerReady ? (
+                                    {!isReplayerReady && (
                                         <PlayerSkeleton
                                             showingLeftPanel={showLeftPanel}
                                             showingRightPanel={
@@ -248,8 +248,6 @@ const Player = () => {
                                                     ?.clientWidth
                                             }
                                         />
-                                    ) : (
-                                        <></>
                                     )}
                                 </div>
                                 <Toolbar
@@ -425,6 +423,7 @@ const PlayerSkeleton = ({
     showingLeftPanel: boolean;
     showingRightPanel: boolean;
 }) => {
+    const [openDevTools] = useLocalStorage('highlightMenuOpenDevTools', false);
     let adjustedWidth = width ?? 80;
 
     if (showingLeftPanel) {
@@ -441,7 +440,7 @@ const PlayerSkeleton = ({
             highlightColor={'#f5f5f5'}
         >
             <Skeleton
-                height={adjustedWidth * 0.8}
+                height={!openDevTools ? adjustedWidth * 0.8 : '200px'}
                 width={adjustedWidth}
                 duration={1}
             />
