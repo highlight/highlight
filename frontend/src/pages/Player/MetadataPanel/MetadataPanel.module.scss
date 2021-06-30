@@ -18,6 +18,8 @@
         border: 1px solid var(--color-gray-300);
         border-radius: var(--border-radius);
 
+        transition: box-shadow 0.1s ease-in;
+
         p,
         a {
             font-size: 12px;
@@ -26,6 +28,11 @@
 
         p {
             color: var(--color-gray-500);
+        }
+
+        &:hover {
+            border: 1px solid var(--color-purple);
+            box-shadow: 0 0 9px rgba(86, 41, 198, 0.25);
         }
     }
 
