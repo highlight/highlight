@@ -567,7 +567,7 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 			}
 		}
 		if err := dd.StatsD.Histogram(fmt.Sprintf("%s.totalRunTime", histogram.processStackTrace), float64(diff),
-			[]string{fmt.Sprintf("environment:%s", os.Getenv("Environment")), fmt.Sprintf("success:%v", err == nil),
+			[]string{fmt.Sprintf("environment:%s", os.Getenv("ENVIRONMENT")), fmt.Sprintf("success:%v", err == nil),
 				fmt.Sprintf("org_id:%d", organizationId)}, 1); err != nil {
 			log.Error(e.Wrap(err, "dd error tracking processStackFrame time histogram"))
 		}
@@ -617,7 +617,7 @@ func (r *Resolver) processStackFrame(organizationId int, stackTrace model2.Stack
 		}
 	}
 	if err := dd.StatsD.Histogram(histogram.processStackTrace+".minifiedFileSize", float64(len(minifiedFileBytes)),
-		[]string{fmt.Sprintf("environment:%s", os.Getenv("Environment")), fmt.Sprintf("org_id:%d", organizationId)}, 1); err != nil {
+		[]string{fmt.Sprintf("environment:%s", os.Getenv("ENVIRONMENT")), fmt.Sprintf("org_id:%d", organizationId)}, 1); err != nil {
 		log.Error(e.Wrap(err, "dd error tracking processStackFrame minified file size histogram"))
 	}
 	if len(minifiedFileBytes) > 5000000 {
@@ -661,7 +661,7 @@ func (r *Resolver) processStackFrame(organizationId int, stackTrace model2.Stack
 		}
 	}
 	if err := dd.StatsD.Histogram(histogram.processStackTrace+".sourceMapFileSize", float64(len(sourceMapFileBytes)),
-		[]string{fmt.Sprintf("environment:%s", os.Getenv("Environment")), fmt.Sprintf("org_id:%d", organizationId)}, 1); err != nil {
+		[]string{fmt.Sprintf("environment:%s", os.Getenv("ENVIRONMENT")), fmt.Sprintf("org_id:%d", organizationId)}, 1); err != nil {
 		log.Error(e.Wrap(err, "dd error tracking processStackFrame minified file size histogram"))
 	}
 
