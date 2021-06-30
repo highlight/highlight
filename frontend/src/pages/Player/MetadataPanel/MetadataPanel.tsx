@@ -169,9 +169,9 @@ const MetadataPanel = () => {
                     <section>
                         <h2>User</h2>
                         <div className={styles.table}>
-                            <p className={styles.key}>Locale</p>
+                            <p className={styles.key}>Identifer</p>
                             <p className={styles.value}>
-                                {data?.session?.language}
+                                {data?.session?.identifier}
                             </p>
 
                             {!(!parsedFields?.length || loading) ? (
@@ -210,6 +210,10 @@ const MetadataPanel = () => {
                                     </p>
                                 </div>
                             )}
+                            <p className={styles.key}>Locale</p>
+                            <p className={styles.value}>
+                                {data?.session?.language}
+                            </p>
                         </div>
                     </section>
 
