@@ -86,11 +86,9 @@ const histogramName = "public-graph"
 
 var histogram = struct {
 	publicGraph       string
-	enhanceStackTrace string
 	processStackTrace string
 }{
 	publicGraph:       histogramName,
-	enhanceStackTrace: histogramName + ".enhanceStackTrace",
 	processStackTrace: histogramName + ".processStackFrame",
 }
 
@@ -558,7 +556,7 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 		start := time.Now()
 		mappedStackFrame, err := r.processStackFrame(organizationId, *stackFrame)
 		diff := time.Since(start).Milliseconds()
-		processTimeHistogramName := histogram.enhanceStackTrace + ".processStackFrame"
+		processTimeHistogramName := histogram.processStackTrace + ".totalRunTime"
 		if err != nil {
 			log.Error(err)
 			mappedStackFrame = &modelInputs.ErrorTrace{
@@ -568,9 +566,9 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 				ColumnNumber: stackFrame.ColumnNumber,
 				Error:        util.MakeStringPointer(err.Error()),
 			}
-			processTimeHistogramName += ".ErrorTime"
+			processTimeHistogramName += ".error"
 		} else {
-			processTimeHistogramName += ".SuccessTime"
+			processTimeHistogramName += ".success"
 		}
 		if err := dd.StatsD.Histogram(processTimeHistogramName, float64(diff),
 			[]string{fmt.Sprintf("environment:%s", os.Getenv("Environment"))}, 1); err != nil {
