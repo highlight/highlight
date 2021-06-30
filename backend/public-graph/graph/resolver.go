@@ -568,7 +568,7 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 			mappedStackFrame.FunctionName = stackTrace.FunctionName
 			mappedStackFrame.LineNumber = stackTrace.LineNumber
 			mappedStackFrame.ColumnNumber = stackTrace.ColumnNumber
-			err := e.Errorf("source path doesn't contain file name: %v", stackTraceFileURL)
+			err := e.Wrapf(err, "error parsing url: %v", stackTraceFileURL)
 			errString := err.Error()
 			mappedStackFrame.Error = &errString
 
