@@ -557,7 +557,7 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 		}
 		start := time.Now()
 		mappedStackFrame, err := r.processStackFrame(organizationId, *stackFrame)
-		diff := time.Now().Sub(start).Milliseconds()
+		diff := time.Since(start).Milliseconds()
 		processTimeHistogramName := histogram.enhanceStackTrace + ".processStackFrame"
 		if err != nil {
 			log.Error(err)
