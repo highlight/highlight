@@ -568,8 +568,8 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 			}
 			processHistogramTag = "error"
 		}
-		if err := dd.StatsD.Histogram(fmt.Sprintf("%s.totalRunTime.%s", histogram.processStackTrace, processHistogramTag), float64(diff),
-			[]string{fmt.Sprintf("environment:%s", os.Getenv("Environment"))}, 1); err != nil {
+		if err := dd.StatsD.Histogram(fmt.Sprintf("%s.totalRunTime.%s", histogram.processStackTrace, processHistogramTag),
+			float64(diff), []string{fmt.Sprintf("environment:%s", os.Getenv("Environment"))}, 1); err != nil {
 			log.Error(e.Wrap(err, "dd error tracking processStackFrame time histogram"))
 		}
 		if mappedStackFrame != nil {
