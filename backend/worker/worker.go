@@ -159,7 +159,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// 1. Nothing happened in the session
 	// 2. A web crawler visited the page and produced no events
 	if length == 0 {
-		if err := w.Resolver.DB.Delete(&model.EventsObject{SessionID: s.ID}).Error; err != nil {
+		if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Delete(&model.EventsObject{}).Error; err != nil {
 			return errors.Wrap(err, "error trying to delete events_object for session of length 0ms")
 		}
 		if err := w.Resolver.DB.Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
