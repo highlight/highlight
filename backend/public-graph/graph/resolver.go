@@ -15,8 +15,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/util"
-
 	"github.com/go-sourcemap/sourcemap"
 	"github.com/mssola/user_agent"
 	e "github.com/pkg/errors"
@@ -28,6 +26,7 @@ import (
 	"github.com/highlight-run/highlight/backend/pricing"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	model2 "github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/util"
 )
 
 // This file will not be regenerated automatically.
