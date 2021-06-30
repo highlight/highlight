@@ -85,7 +85,8 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 	session := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session)
 	if err := res.Error; err != nil || errors.Is(err, gorm.ErrRecordNotFound) {
-		return e.Wrap(err, "error receiving session")
+		log.Error("Failed to append properties", err)
+		return nil
 	}
 
 	modelFields := []*model.Field{}
@@ -95,7 +96,7 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 
 	err := r.AppendFields(modelFields, session)
 	if err != nil {
-		return e.Wrap(err, "error appending fields")
+		log.Error("error appending fields", err)
 	}
 
 	return nil
@@ -107,7 +108,8 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 	exists := false
 	if session.FieldGroup != nil {
 		if err := json.Unmarshal([]byte(*session.FieldGroup), &newFieldGroup); err != nil {
-			return e.Wrap(err, "error decoding session field group")
+			log.Error("error decoding session field group", err)
+			return nil
 		}
 	}
 	for _, f := range fields {

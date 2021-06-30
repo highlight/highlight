@@ -53,9 +53,7 @@ export const StreamElement = ({
             primaryColor={getAnnotationColor(details.title as any)}
         >
             <div
-                className={classNames(styles.streamElement, {
-                    [styles.currentStreamElement]: isCurrent,
-                })}
+                className={classNames(styles.streamElement)}
                 key={e.identifier}
                 id={e.identifier}
             >

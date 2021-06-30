@@ -1,9 +1,10 @@
 .filtersContainer {
     align-items: center;
+    column-gap: var(--size-small);
     display: flex;
     flex-wrap: wrap;
-    gap: var(--size-xSmall);
     margin-bottom: var(--size-large);
+    row-gap: var(--size-small);
 }
 
 .searchPanel {
