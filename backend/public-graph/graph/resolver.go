@@ -26,6 +26,7 @@ import (
 	"github.com/highlight-run/highlight/backend/pricing"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	model2 "github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/util"
 )
 
 // This file will not be regenerated automatically.
@@ -548,16 +549,8 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 		// get file name index from URL
 		stackFileNameIndex := strings.Index(stackTraceFileURL, path.Base(stackTraceFileURL))
 		if stackFileNameIndex == -1 {
-			var mappedStackFrame modelInputs.ErrorTrace
-			mappedStackFrame.FileName = stackTrace.FileName
-			mappedStackFrame.FunctionName = stackTrace.FunctionName
-			mappedStackFrame.LineNumber = stackTrace.LineNumber
-			mappedStackFrame.ColumnNumber = stackTrace.ColumnNumber
 			err := e.Errorf("source path doesn't contain file name: %v", stackTraceFileURL)
-			errString := err.Error()
-			mappedStackFrame.Error = &errString
-
-			mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
+			mappedStackTrace = append(mappedStackTrace, util.CopyStackFrameInputToErrorTrace(stackTrace, err))
 			log.Error(err)
 			continue
 		}
@@ -565,16 +558,8 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 		// get path from url
 		u, err := url.Parse(stackTraceFileURL)
 		if err != nil {
-			var mappedStackFrame modelInputs.ErrorTrace
-			mappedStackFrame.FileName = stackTrace.FileName
-			mappedStackFrame.FunctionName = stackTrace.FunctionName
-			mappedStackFrame.LineNumber = stackTrace.LineNumber
-			mappedStackFrame.ColumnNumber = stackTrace.ColumnNumber
 			err := e.Wrapf(err, "error parsing url: %v", stackTraceFileURL)
-			errString := err.Error()
-			mappedStackFrame.Error = &errString
-
-			mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
+			mappedStackTrace = append(mappedStackTrace, util.CopyStackFrameInputToErrorTrace(stackTrace, err))
 			log.Error(err)
 			continue
 		}
@@ -589,18 +574,10 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 			// if not in s3, get from url and put in s3
 			minifiedFileBytes, err = fetch.fetchFile(stackTraceFileURL)
 			if err != nil {
-				// TODO: don't do this plz
 				// fallback if we can't get the source file at all
-				var mappedStackFrame modelInputs.ErrorTrace
-				mappedStackFrame.FileName = stackTrace.FileName
-				mappedStackFrame.FunctionName = stackTrace.FunctionName
-				mappedStackFrame.LineNumber = stackTrace.LineNumber
-				mappedStackFrame.ColumnNumber = stackTrace.ColumnNumber
-				errString := err.Error()
-				mappedStackFrame.Error = &errString
-
-				mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
-				log.Error(e.Wrapf(err, "error fetching file: %v", stackTraceFileURL))
+				err := e.Wrapf(err, "error fetching file: %v", stackTraceFileURL)
+				mappedStackTrace = append(mappedStackTrace, util.CopyStackFrameInputToErrorTrace(stackTrace, err))
+				log.Error(err)
 				continue
 			}
 			_, err = r.StorageClient.PushSourceMapFileToS3(organizationId, stackTraceFilePath, minifiedFileBytes)
@@ -609,33 +586,17 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 			}
 		}
 		if len(minifiedFileBytes) > 5000000 {
-			// TODO: don't do this plz
-			var mappedStackFrame modelInputs.ErrorTrace
-			mappedStackFrame.FileName = stackTrace.FileName
-			mappedStackFrame.FunctionName = stackTrace.FunctionName
-			mappedStackFrame.LineNumber = stackTrace.LineNumber
-			mappedStackFrame.ColumnNumber = stackTrace.ColumnNumber
-			errString := "minified source file over 5mb"
-			mappedStackFrame.Error = &errString
-
-			mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
-			log.Errorf("file way too big: %v, size: %v", stackTraceFileURL, len(minifiedFileBytes))
+			err := e.Errorf("minified source file over 5mb: %v, size: %v", stackTraceFileURL, len(minifiedFileBytes))
+			mappedStackTrace = append(mappedStackTrace, util.CopyStackFrameInputToErrorTrace(stackTrace, err))
+			log.Error(err)
 			continue
 		}
 		bodyString := string(minifiedFileBytes)
 		bodyLines := strings.Split(strings.ReplaceAll(bodyString, "\rn", "\n"), "\n")
 		if len(bodyLines) < 1 {
-			// TODO: don't do this plz
-			var mappedStackFrame modelInputs.ErrorTrace
-			mappedStackFrame.FileName = stackTrace.FileName
-			mappedStackFrame.FunctionName = stackTrace.FunctionName
-			mappedStackFrame.LineNumber = stackTrace.LineNumber
-			mappedStackFrame.ColumnNumber = stackTrace.ColumnNumber
-			errString := fmt.Sprintf("body lines empty: %v", stackTraceFilePath)
-			mappedStackFrame.Error = &errString
-
-			mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
-			log.Errorf("body lines empty: %v", stackTraceFilePath)
+			err := e.Errorf("body lines empty: %v", stackTraceFilePath)
+			mappedStackTrace = append(mappedStackTrace, util.CopyStackFrameInputToErrorTrace(stackTrace, err))
+			log.Error(err)
 			continue
 		}
 		lastLine := bodyLines[len(bodyLines)-1]
@@ -644,17 +605,9 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 		var sourceMapFileName string
 		sourceMapIndex := strings.LastIndex(lastLine, "sourceMappingURL=")
 		if sourceMapIndex == -1 {
-			// TODO: don't do this plz
-			var mappedStackFrame modelInputs.ErrorTrace
-			mappedStackFrame.FileName = stackTrace.FileName
-			mappedStackFrame.FunctionName = stackTrace.FunctionName
-			mappedStackFrame.LineNumber = stackTrace.LineNumber
-			mappedStackFrame.ColumnNumber = stackTrace.ColumnNumber
-			errString := fmt.Sprintf("file does not contain source map url: %v", stackTraceFileURL)
-			mappedStackFrame.Error = &errString
-
-			mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
-			log.Errorf("file does not contain source map url: %v", stackTraceFileURL)
+			err := e.Errorf("file does not contain source map url: %v", stackTraceFileURL)
+			mappedStackTrace = append(mappedStackTrace, util.CopyStackFrameInputToErrorTrace(stackTrace, err))
+			log.Error(err)
 			continue
 		}
 		sourceMapFileName = lastLine[sourceMapIndex+len("sourceMappingURL="):]
@@ -669,18 +622,10 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 			// if not in s3, get from url and put in s3
 			sourceMapFileBytes, err = fetch.fetchFile(sourceMapURL)
 			if err != nil {
-				// TODO: don't do this plz
 				// fallback if we can't get the source file at all
-				var mappedStackFrame modelInputs.ErrorTrace
-				mappedStackFrame.FileName = stackTrace.FileName
-				mappedStackFrame.FunctionName = stackTrace.FunctionName
-				mappedStackFrame.LineNumber = stackTrace.LineNumber
-				mappedStackFrame.ColumnNumber = stackTrace.ColumnNumber
-				errString := err.Error()
-				mappedStackFrame.Error = &errString
-
-				mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
-				log.Error(e.Wrapf(err, "error fetching source map file: %v", sourceMapFileName))
+				err := e.Wrapf(err, "error fetching source map file: %v", sourceMapFileName)
+				mappedStackTrace = append(mappedStackTrace, util.CopyStackFrameInputToErrorTrace(stackTrace, err))
+				log.Error(err)
 				continue
 			}
 			_, err = r.StorageClient.PushSourceMapFileToS3(organizationId, sourceMapFileName, sourceMapFileBytes)
@@ -691,40 +636,25 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 
 		smap, err := sourcemap.Parse(sourceMapURL, sourceMapFileBytes)
 		if err != nil {
-			// TODO: don't do this plz
-			var mappedStackFrame modelInputs.ErrorTrace
-			mappedStackFrame.FileName = stackTrace.FileName
-			mappedStackFrame.FunctionName = stackTrace.FunctionName
-			mappedStackFrame.LineNumber = stackTrace.LineNumber
-			mappedStackFrame.ColumnNumber = stackTrace.ColumnNumber
-			errString := err.Error()
-			mappedStackFrame.Error = &errString
-
-			mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
-			log.Error(e.Wrapf(err, "error parsing source map file -> %v", sourceMapURL))
+			err := e.Wrapf(err, "error parsing source map file -> %v", sourceMapURL)
+			mappedStackTrace = append(mappedStackTrace, util.CopyStackFrameInputToErrorTrace(stackTrace, err))
+			log.Error(err)
 			continue
 		}
 
 		sourceFileName, fn, line, col, ok := smap.Source(stackTraceLineNumber, stackTraceColumnNumber)
 		if !ok {
-			// TODO: don't do this plz
-			var mappedStackFrame modelInputs.ErrorTrace
-			mappedStackFrame.FileName = stackTrace.FileName
-			mappedStackFrame.FunctionName = stackTrace.FunctionName
-			mappedStackFrame.LineNumber = stackTrace.LineNumber
-			mappedStackFrame.ColumnNumber = stackTrace.ColumnNumber
-			errString := "error extracting true error info from source map"
-			mappedStackFrame.Error = &errString
-
-			mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
-			log.Error(e.New("error extracting true error info from source map"))
+			err := e.Errorf("error extracting true error info from source map: %v", sourceMapURL)
+			mappedStackTrace = append(mappedStackTrace, util.CopyStackFrameInputToErrorTrace(stackTrace, err))
+			log.Error(err)
 			continue
 		}
-		var mappedStackFrame modelInputs.ErrorTrace
-		mappedStackFrame.FileName = &sourceFileName
-		mappedStackFrame.FunctionName = &fn
-		mappedStackFrame.LineNumber = &line
-		mappedStackFrame.ColumnNumber = &col
+		mappedStackFrame := modelInputs.ErrorTrace{
+			FileName:     &sourceFileName,
+			LineNumber:   &line,
+			FunctionName: &fn,
+			ColumnNumber: &col,
+		}
 
 		mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
 	}
