@@ -1843,10 +1843,10 @@
     is-promise "4.0.0"
     tslib "~2.0.1"
 
-"@highlight-run/rrweb@^0.12.0":
-  version "0.12.0"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-0.12.0.tgz#3aef59823fd7d23fb2f114dd6d59e186f722afe1"
-  integrity sha512-LvxEQtMLYVRrGfPG5qH/NACkwbsE6nT7xiB+6DhhIw5tVIhkWowdtIFuJ8hd4pXINpOV49RvazlSd5j2vIONmQ==
+"@highlight-run/rrweb@^0.12.1":
+  version "0.12.1"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-0.12.1.tgz#675c2f55bdd768461533d2216e8a0d52a30811a4"
+  integrity sha512-m7rwKgwfIZXio5TFZVfz4GSRrSIsyZAdvTvbZpVIw4OYgXvDINkJBLZz+KK+vppyR43fM9ATOXgno5Gph8OZZw==
   dependencies:
     "@types/css-font-loading-module" "0.0.4"
     "@xstate/fsm" "^1.4.0"
