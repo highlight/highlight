@@ -1,21 +1,14 @@
 #!/usr/bin/env node
-const { join, basename } = require("path");
+const { join } = require("path");
 const { cwd } = require("process");
 const yargs = require("yargs/yargs");
 const { hideBin } = require("yargs/helpers");
 const { statSync, readFileSync } = require("fs");
 const glob = require("glob");
-const AWS = require("aws-sdk");
-const { v4: uuidv4 } = require("uuid");
+const fetch = require("node-fetch");
+var FormData = require('form-data');
+var fs = require('fs');
 
-const SERVER_URL = "http://localhost:5000";
-const BUCKET_NAME = "source-maps-test";
-
-// These secrets are for the "S3SourceMapUploaderTest" role.
-const s3 = new AWS.S3({
-  accessKeyId: "AKIASRAMI2JGSNAT247I",
-  secretAccessKey: "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",
-});
 
 var pjson = require("./package.json");
 console.log("Running version: ", pjson.version);
@@ -25,10 +18,10 @@ yargs(hideBin(process.argv))
     "upload",
     "Upload Javascript sourcemaps to Highlight",
     () => {},
-    async ({ organizationId, apiKey, path }) => {
+    async ({ apiKey, path }) => {
       console.info(`Starting to upload source maps from ${path}`);
 
-      const fileList = await getAllSourceMapFiles([path]);
+      const fileList = await getAllSourceMapFiles(cwd()+path, [path]);
 
       if (fileList.length === 0) {
         console.error(
@@ -38,11 +31,7 @@ yargs(hideBin(process.argv))
         return;
       }
 
-      await Promise.all(
-        fileList.map(({ path, name }) =>
-          uploadFile(organizationId, apiKey, path, name)
-        )
-      );
+      uploadFiles(apiKey, fileList);
     }
   )
   .option("organizationId", {
@@ -51,15 +40,20 @@ yargs(hideBin(process.argv))
     describe: "The Highlight organization ID",
     default: "113",
   })
+  .option("apiKey", {
+    alias: "k",
+    type: "string",
+    describe: "The Highlight API key",
+  })
   .option("path", {
     alias: "p",
     type: "string",
-    default: "/build/static/js",
+    default: "/build",
     describe: "Sets the directory of where the sourcemaps are",
   })
   .help("help").argv;
 
-async function getAllSourceMapFiles(paths) {
+async function getAllSourceMapFiles(basePath, paths) {
   const map = [];
 
   await Promise.all(
@@ -68,8 +62,7 @@ async function getAllSourceMapFiles(paths) {
 
       if (statSync(realPath).isFile()) {
         map.push({
-          path: realPath,
-          name: basename(realPath),
+          name: realPath,
         });
 
         return Promise.resolve();
@@ -78,9 +71,12 @@ async function getAllSourceMapFiles(paths) {
       return new Promise((resolve) => {
         glob("**/*.js?(.map)", { cwd: realPath }, async (err, files) => {
           for (const file of files) {
+            const thePath = join(realPath, file);
+            const relPath = "."+ thePath.substring(thePath.indexOf(basePath)+basePath.length)
+
             map.push({
-              path: join(realPath, file),
-              name: file,
+              name: relPath,
+              content: readFileSync(thePath),
             });
           }
 
@@ -89,47 +85,39 @@ async function getAllSourceMapFiles(paths) {
       });
     })
   );
-
   return map;
 }
 
-async function uploadFile(organizationId, apiKey, filePath, fileName) {
-  const query = `query UploadSourceMap($apiKey: String!, $file: Upload!) {
-			uploadSourceMap(apiKey: $apiKey, file: $file)
-	      }`;
-  const fileContent = readFileSync(filePath);
-
-  // Setting up S3 upload parameters
-  const bucketPath = `${organizationId}/${fileName}`;
-  const params = {
-    Bucket: BUCKET_NAME,
-    Key: bucketPath,
-    Body: fileContent,
+async function uploadFiles(apiKey, fileList) {
+  const query = `mutation($api_key: String!, $source_map_files: [Upload!]) { updateSourceMaps(api_key: $api_key, source_map_files: $source_map_files)}`;
+  let source_map_files_map = {};
+  let source_map_files_list = [];
+  for (let i = 0; i < fileList.length; i++) {
+    source_map_files_map[i] = [`variables.source_map_files.${i}`]
+    source_map_files_list.push(null);
+  }
+  const operation = {
+    query,
+    variables: {
+      api_key: apiKey,
+      source_map_files: source_map_files_list
+    }
   };
 
-  s3.upload(params, function (err, data) {
-    if (err) {
-      throw err;
-    }
-    console.log(`Uploaded ${fileName}`);
-  });
-
-  //   fetch("/graphql", {
-  //     method: "POST",
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //       Accept: "application/json",
-  //     },
-  //     body: JSON.stringify({
-  //       query,
-  //       variables: {
-  //         apiKey,
-  //         file,
-  //       },
-  //     }),
-  //   });
-}
-
-function getS3Path() {
-  return ``;
+  const body = new FormData();
+  body.append('operations', JSON.stringify(operation));
+  body.append('map', JSON.stringify(source_map_files_map));
+  for (let i = 0; i < fileList.length; i++) {
+    body.append(`${i}`, "@"+fileList[i].name);
+  }
+  
+  console.log(JSON.stringify(body))
+  fetch("http://localhost:8082/private", {
+    method: "POST",
+    headers: {
+      "Highlight-Demo": "true",
+    },
+    body: body,
+  })
+  .then(res => console.log(res));
 }
