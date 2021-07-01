@@ -24,6 +24,7 @@ type Session {
     postal: String!
     environment: String
     app_version: String
+    client_version: String
     language: String!
     identifier: String!
     created_at: Time
@@ -108,7 +109,7 @@ type ErrorObject {
     source: String
     line_number: Int
     column_number: Int
-    trace: [Any]
+    stack_trace: [Any]
     timestamp: Time
     payload: String
 }
@@ -124,7 +125,7 @@ type ErrorGroup {
     organization_id: Int!
     type: String!
     event: [String]!
-    trace: [ErrorTrace]!
+    stack_trace: [ErrorTrace]!
     metadata_log: [ErrorMetadata]!
     field_group: [ErrorField]
     state: ErrorState!
@@ -147,6 +148,7 @@ type ErrorTrace {
     line_number: Int
     function_name: String
     column_number: Int
+    error: String
 }
 
 type ReferrerTablePayload {
@@ -371,6 +373,8 @@ type SessionAlert {
     UserProperties: [UserProperty]!
 }
 
+scalar Upload
+
 type Query {
     session(id: ID!): Session
     events(session_id: ID!): [Any]
@@ -561,4 +565,8 @@ type Mutation {
         environments: [String]!
         user_properties: [UserPropertyInput]!
     ): SessionAlert
+    updateSourceMaps(
+        api_key: String!
+        source_map_files: [Upload!]
+    ): ID
 }

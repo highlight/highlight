@@ -2,7 +2,7 @@ import React from 'react';
 import ResizePanel from 'react-resize-panel-ts';
 
 import Tabs, { TabItem } from '../../../../components/Tabs/Tabs';
-import SvgCloseIcon from '../../../../static/CloseIcon';
+import SvgXIcon from '../../../../static/XIcon';
 import DOMInteractionsToggle from '../../DOMInteractionsToggle/DOMInteractionsToggle';
 import { useDevToolsContext } from '../DevToolsContext/DevToolsContext';
 import { ConsolePage } from './ConsolePage/ConsolePage';
@@ -53,7 +53,7 @@ export const DevToolsWindow = ({
                     tabBarExtraContent={
                         <>
                             <DOMInteractionsToggle />
-                            <SvgCloseIcon
+                            <SvgXIcon
                                 className={styles.closeStyle}
                                 onClick={() => setOpenDevTools(false)}
                             />

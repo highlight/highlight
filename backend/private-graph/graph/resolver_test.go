@@ -110,7 +110,7 @@ func TestHideViewedSessions(t *testing.T) {
 	}
 	// run tests
 	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
+		util.RunTestWithDBWipe(t, name, DB, func(t *testing.T) {
 			// inserting the data
 			if err := DB.Create(&tc.sessionsToInsert).Error; err != nil {
 				t.Fatal(e.Wrap(err, "error inserting sessions"))
@@ -125,12 +125,6 @@ func TestHideViewedSessions(t *testing.T) {
 			if err := DB.Create(&fieldsToInsert).Error; err != nil {
 				t.Fatal(e.Wrap(err, "error inserting sessions"))
 			}
-			defer func(db *gorm.DB) {
-				err := util.ClearTablesInDB(db)
-				if err != nil {
-					t.Fatal(e.Wrap(err, "error clearing database"))
-				}
-			}(DB)
 
 			// test logic
 			r := &queryResolver{Resolver: &Resolver{DB: DB}}

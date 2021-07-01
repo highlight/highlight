@@ -7,17 +7,28 @@ import (
 )
 
 type ErrorObjectInput struct {
-	Event        string        `json:"event"`
-	Type         string        `json:"type"`
-	URL          string        `json:"url"`
-	Source       string        `json:"source"`
-	LineNumber   int           `json:"lineNumber"`
-	ColumnNumber int           `json:"columnNumber"`
-	Trace        []interface{} `json:"trace"`
-	Timestamp    time.Time     `json:"timestamp"`
-	Payload      *string       `json:"payload"`
+	Event        string             `json:"event"`
+	Type         string             `json:"type"`
+	URL          string             `json:"url"`
+	Source       string             `json:"source"`
+	LineNumber   int                `json:"lineNumber"`
+	ColumnNumber int                `json:"columnNumber"`
+	StackTrace   []*StackFrameInput `json:"stackTrace"`
+	Timestamp    time.Time          `json:"timestamp"`
+	Payload      *string            `json:"payload"`
 }
 
 type ReplayEventsInput struct {
 	Events []interface{} `json:"events"`
+}
+
+type StackFrameInput struct {
+	FunctionName *string       `json:"functionName"`
+	Args         []interface{} `json:"args"`
+	FileName     *string       `json:"fileName"`
+	LineNumber   *int          `json:"lineNumber"`
+	ColumnNumber *int          `json:"columnNumber"`
+	IsEval       *bool         `json:"isEval"`
+	IsNative     *bool         `json:"isNative"`
+	Source       *string       `json:"source"`
 }

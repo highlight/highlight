@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"time"
 
-	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
@@ -38,20 +36,10 @@ type Resolver struct {
 	StorageClient *storage.StorageClient
 }
 
-// Prints time since 'time' and msg, fid.
-// return time.Now() to reset the clock.
-func profile(msg string, fid int, t time.Time) time.Time {
-	pp.Printf("%v => "+msg+" took: %s \n", fid, fmt.Sprintf("%s", time.Since(t)))
-	return time.Now()
-}
-
 func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
-	uid := fmt.Sprintf("%v", ctx.Value("uid"))
+	uid := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
 	// If the user is engineering@..., we whitelist.
-	if uid == WhitelistedUID {
-		return true
-	}
-	return false
+	return uid == WhitelistedUID
 }
 
 // These are authentication methods used to make sure that data is secured.
@@ -199,14 +187,6 @@ func (r *Resolver) isAdminSessionOwner(ctx context.Context, session_id int) (*mo
 		return nil, e.Wrap(err, "error validating admin in organization")
 	}
 	return session, nil
-}
-
-func toDuration(duration string) (time.Duration, error) {
-	d, err := strconv.ParseInt(duration, 10, 64)
-	if err != nil || d <= 0 {
-		return time.Duration(0), e.Wrap(err, "error parsing duration integer")
-	}
-	return time.Duration(int64(time.Millisecond) * d), nil
 }
 
 func (r *Resolver) UpdateSessionsVisibility(organizationID int, newPlan modelInputs.PlanType, originalPlan modelInputs.PlanType) {

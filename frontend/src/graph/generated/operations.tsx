@@ -477,6 +477,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'object_storage_enabled'
             | 'payload_size'
             | 'within_billing_quota'
+            | 'client_version'
         > & {
                 fields?: Types.Maybe<
                     Array<
@@ -769,7 +770,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
             Types.ErrorGroup,
             'id' | 'type' | 'organization_id' | 'event' | 'resolved' | 'state'
         > & {
-                trace: Array<
+                stack_trace: Array<
                     Types.Maybe<
                         { __typename?: 'ErrorTrace' } & Pick<
                             Types.ErrorTrace,
@@ -830,7 +831,7 @@ export type GetErrorGroupsQuery = { __typename?: 'Query' } & {
                         | 'state'
                         | 'environments'
                     > & {
-                            trace: Array<
+                            stack_trace: Array<
                                 Types.Maybe<
                                     { __typename?: 'ErrorTrace' } & Pick<
                                         Types.ErrorTrace,
@@ -883,7 +884,7 @@ export type ErrorFieldsFragment = { __typename?: 'ErrorObject' } & Pick<
     | 'source'
     | 'line_number'
     | 'column_number'
-    | 'trace'
+    | 'stack_trace'
     | 'timestamp'
     | 'payload'
 >;

@@ -6,19 +6,24 @@ import ReactJson from 'react-json-view';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
 import GoToButton from '../../../components/Button/GoToButton';
-import { ReactComponent as DownIcon } from '../../../static/chevron-down-icon.svg';
+import InfoTooltip from '../../../components/InfoTooltip/InfoTooltip';
+import SvgCursorIcon from '../../../static/CursorIcon';
+import SvgFaceIdIcon from '../../../static/FaceIdIcon';
 import { ReactComponent as HoverIcon } from '../../../static/hover.svg';
-import { ReactComponent as IdentifyIcon } from '../../../static/identify.svg';
-import { ReactComponent as NavigateIcon } from '../../../static/navigate.svg';
+import SvgLinkIcon from '../../../static/LinkIcon';
+import SvgMaximizeIcon from '../../../static/MaximizeIcon';
 import { ReactComponent as PointerIcon } from '../../../static/pointer-up.svg';
 import { ReactComponent as ReferrerIcon } from '../../../static/referrer.svg';
 import { ReactComponent as ReloadIcon } from '../../../static/reload.svg';
 import { ReactComponent as SegmentIcon } from '../../../static/segment.svg';
 import { ReactComponent as TabIcon } from '../../../static/tab.svg';
-import { ReactComponent as TrackIcon } from '../../../static/track.svg';
+import SvgTargetIcon from '../../../static/TargetIcon';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
 import { HighlightEvent } from '../HighlightEvent';
 import ReplayerContext from '../ReplayerContext';
+import RightPanelCard from '../RightPanelCard/RightPanelCard';
+import { EventTypeDescriptions } from '../Toolbar/TimelineAnnotationsSettings/TimelineAnnotationsSettings';
+import { getAnnotationColor } from '../Toolbar/Toolbar';
 import styles from './StreamElement.module.scss';
 import StreamElementPayload from './StreamElementPayload';
 
@@ -34,125 +39,27 @@ export const StreamElement = ({
     onGoToHandler: (event: string) => void;
 }) => {
     const [debug] = useQueryParam('debug', BooleanParam);
-    const [hover, setHover] = useState(false);
     const [selected, setSelected] = useState(false);
     const details = getEventRenderDetails(e);
     const { pause } = useContext(ReplayerContext);
     const timeSinceStart = e?.timestamp - start;
 
     return (
-        <div
-            className={styles.eventWrapper}
-            onMouseEnter={() => setHover(true)}
-            onMouseLeave={() => setHover(false)}
-            id={e.identifier}
+        <RightPanelCard
             key={e.identifier}
+            className={styles.card}
+            selected={isCurrent}
+            onClick={() => setSelected(!selected)}
+            primaryColor={getAnnotationColor(details.title as any)}
         >
             <div
-                className={classNames(styles.streamElement, {
-                    [styles.currentStreamElement]: isCurrent,
-                    [styles.selectedStreamElement]: selected,
-                })}
-                style={{
-                    backgroundColor:
-                        hover && !selected && !isCurrent
-                            ? 'var(--color-gray-100)'
-                            : isCurrent
-                            ? 'var(--color-purple)'
-                            : 'var(--color-primary-background)',
-                }}
+                className={classNames(styles.streamElement)}
                 key={e.identifier}
                 id={e.identifier}
-                onClick={() => setSelected(!selected)}
             >
                 <div className={styles.headerRow}>
                     <div className={styles.iconWrapper}>
-                        {selected ? (
-                            <DownIcon
-                                className={classNames(styles.directionIcon, {
-                                    [styles.selectedIcon]: selected,
-                                    [styles.currentIcon]: isCurrent,
-                                })}
-                            />
-                        ) : details.title === 'Click' ? (
-                            <PointerIcon
-                                className={classNames(styles.tiltedIcon, {
-                                    [styles.currentIcon]: isCurrent,
-                                })}
-                            />
-                        ) : details.title?.includes('Segment') ? (
-                            <SegmentIcon
-                                className={classNames(styles.defaultIcon, {
-                                    [styles.currentIcon]: isCurrent,
-                                })}
-                            />
-                        ) : details.title === 'Navigate' ? (
-                            <NavigateIcon
-                                className={classNames(styles.defaultIcon, {
-                                    [styles.currentIcon]: isCurrent,
-                                })}
-                            />
-                        ) : details.title === 'Track' ? (
-                            <TrackIcon
-                                className={classNames(styles.defaultIcon, {
-                                    [styles.currentIcon]: isCurrent,
-                                })}
-                            />
-                        ) : details.title === 'Identify' ? (
-                            <IdentifyIcon
-                                className={classNames(styles.defaultIcon, {
-                                    [styles.currentIcon]: isCurrent,
-                                })}
-                            />
-                        ) : details.title === 'Reload' ? (
-                            <ReloadIcon
-                                className={classNames(styles.defaultIcon, {
-                                    [styles.currentIcon]: isCurrent,
-                                })}
-                            />
-                        ) : details.title === 'Referrer' ? (
-                            <ReferrerIcon
-                                className={classNames(styles.defaultIcon, {
-                                    [styles.currentIcon]: isCurrent,
-                                })}
-                            />
-                        ) : details.title === 'Tab' ? (
-                            <TabIcon
-                                className={classNames(styles.defaultIcon, {
-                                    [styles.currentIcon]: isCurrent,
-                                })}
-                            />
-                        ) : details.title === 'Stop' ? (
-                            <FaRegStopCircle
-                                className={classNames(styles.defaultIcon, {
-                                    [styles.currentIcon]: isCurrent,
-                                })}
-                            />
-                        ) : debug ? (
-                            <FaBug
-                                className={classNames(styles.defaultIcon, {
-                                    [styles.currentIcon]: isCurrent,
-                                })}
-                            />
-                        ) : (
-                            <HoverIcon
-                                className={classNames(styles.tiltedIcon, {
-                                    [styles.currentIcon]: isCurrent,
-                                })}
-                            />
-                        )}
-                    </div>
-                    <div
-                        className={classNames(styles.eventText, {
-                            [styles.selectedEventText]: selected,
-                            [styles.currentEventText]: isCurrent,
-                        })}
-                    >
-                        {details.title
-                            ? details.title
-                            : debug
-                            ? EventType[e.type]
-                            : ''}
+                        {getPlayerEventIcon(details.title || '')}
                     </div>
                 </div>
                 <div
@@ -162,29 +69,25 @@ export const StreamElement = ({
                             : styles.eventContent
                     }
                 >
-                    {!selected && (
-                        <div
-                            className={
-                                selected
-                                    ? styles.codeBlockWrapperVerbose
-                                    : styles.codeBlockWrapper
-                            }
-                        >
-                            <span className={styles.codeBlock}>
-                                {/* Removes the starting and ending quotes */}
-                                {JSON.stringify(details.payload)?.replaceAll(
-                                    /^\"|\"$/g,
-                                    ''
-                                )}
-                            </span>
-                        </div>
-                    )}
+                    <p
+                        className={classNames(styles.eventText, {
+                            [styles.eventTextSelected]: selected,
+                        })}
+                    >
+                        {/* Removes the starting and ending quotes */}
+                        {JSON.stringify(details.displayValue)?.replaceAll(
+                            /^\"|\"$/g,
+                            ''
+                        )}
+                    </p>
                 </div>
-                {selected ? (
+                <div className={classNames(styles.eventTime)}>
+                    {MillisToMinutesAndSeconds(timeSinceStart)}
+                </div>
+                {selected && (
                     <>
                         {debug ? (
                             <div
-                                className={styles.codeBlockWrapperVerbose}
                                 onClick={(event) => {
                                     event.stopPropagation();
                                 }}
@@ -198,13 +101,26 @@ export const StreamElement = ({
                                 />
                             </div>
                         ) : (
-                            <StreamElementPayload
-                                payload={
-                                    typeof details.payload === 'object'
-                                        ? JSON.stringify(details.payload)
-                                        : details.payload
-                                }
-                            />
+                            <div className={styles.payloadContainer}>
+                                <h2 className={styles.payloadTitle}>
+                                    {details.title}{' '}
+                                    <InfoTooltip
+                                        title={
+                                            // @ts-ignore
+                                            EventTypeDescriptions[
+                                                (details.title as unknown) as string
+                                            ]
+                                        }
+                                    />
+                                </h2>
+                                <StreamElementPayload
+                                    payload={
+                                        typeof details.payload === 'object'
+                                            ? JSON.stringify(details.payload)
+                                            : details.payload
+                                    }
+                                />
+                            </div>
                         )}
                         <GoToButton
                             className={styles.goToButton}
@@ -216,39 +132,80 @@ export const StreamElement = ({
                                 pause(timeSinceStart);
                             }}
                         />
-                        <div
-                            className={classNames(
-                                styles.eventTime,
-                                styles.relativeTimeExpanded
-                            )}
-                        >
-                            {MillisToMinutesAndSeconds(timeSinceStart)}
-                        </div>
                     </>
-                ) : (
-                    <div className={styles.eventTime}>
-                        {MillisToMinutesAndSeconds(timeSinceStart)}
-                    </div>
                 )}
             </div>
-        </div>
+        </RightPanelCard>
     );
 };
 
 type EventRenderDetails = {
     title?: string;
     payload?: string;
+    displayValue: string;
 };
 
 export const getEventRenderDetails = (
     e: HighlightEvent
 ): EventRenderDetails => {
-    const details: EventRenderDetails = {};
+    const details: EventRenderDetails = {
+        displayValue: '',
+    };
     if (e.type === EventType.Custom) {
+        const payload = e.data.payload as any;
+
         details.title = e.data.tag;
-        const payload: any = e.data.payload;
-        details.payload = payload;
+        switch (e.data.tag) {
+            case 'Identify':
+                details.displayValue = JSON.parse(payload).user_identifier;
+                break;
+            case 'Track':
+                details.displayValue = e.identifier;
+                break;
+            case 'Viewport':
+                details.displayValue = `${payload.height} x ${payload.width}`;
+                break;
+            case 'Navigate':
+            case 'Click':
+            case 'Focus':
+            case 'Segment':
+                details.displayValue = payload;
+                break;
+            default:
+                details.displayValue = payload;
+                break;
+        }
+        details.payload = e.data.payload as string;
     }
 
     return details;
 };
+
+export const getPlayerEventIcon = (title: string, debug?: boolean) =>
+    title === 'Click' ? (
+        <PointerIcon className={classNames(styles.tiltedIcon)} />
+    ) : title?.includes('Segment') ? (
+        <SegmentIcon className={classNames(styles.defaultIcon)} />
+    ) : title === 'Navigate' ? (
+        <SvgLinkIcon className={classNames(styles.defaultIcon)} />
+    ) : title === 'Track' ? (
+        <SvgTargetIcon className={classNames(styles.defaultIcon)} />
+    ) : title === 'Identify' ? (
+        <SvgFaceIdIcon className={classNames(styles.defaultIcon)} />
+    ) : title === 'Reload' ? (
+        <ReloadIcon className={classNames(styles.defaultIcon)} />
+    ) : title === 'Referrer' ? (
+        <ReferrerIcon className={classNames(styles.defaultIcon)} />
+    ) : title === 'Tab' ? (
+        <TabIcon className={classNames(styles.defaultIcon)} />
+    ) : title === 'Stop' ? (
+        <FaRegStopCircle className={classNames(styles.defaultIcon)} />
+    ) : title === 'Viewport' ? (
+        <SvgMaximizeIcon className={classNames(styles.defaultIcon)} />
+    ) : title === 'Focus' ? (
+        <SvgCursorIcon className={classNames(styles.defaultIcon)} />
+    ) : debug ? (
+        <FaBug className={classNames(styles.defaultIcon)} />
+    ) : (
+        <HoverIcon className={classNames(styles.tiltedIcon)} />
+    );

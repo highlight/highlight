@@ -18,7 +18,7 @@ const LimitedSessionCard = () => {
     const upsell =
         (data?.billingDetails.meter ?? 0) /
             (data?.billingDetails.plan.quota ?? 1) >=
-        0.8;
+        1.0;
 
     if (!upsell) {
         return null;

@@ -1,6 +1,6 @@
 import { ErrorMessage } from '../../../frontend/src/util/shared-types';
 import stringify from 'json-stringify-safe';
-import StackTrace from 'stacktrace-js';
+import ErrorStackParser from 'error-stack-parser';
 
 export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
     const initialOnError = window.onerror;
@@ -12,19 +12,16 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
         error: Error | undefined
     ): void => {
         if (error) {
-            StackTrace.fromError(error).then((result) => {
-                callback({
-                    event: stringify(event),
-                    type: 'window.onerror',
-                    url: window.location.href,
-                    source: source ? source : '',
-                    lineNumber: result[0].lineNumber ? result[0].lineNumber : 0,
-                    columnNumber: result[0].columnNumber
-                        ? result[0].columnNumber
-                        : 0,
-                    trace: result,
-                    timestamp: new Date().toISOString(),
-                });
+            var res = ErrorStackParser.parse(error);
+            callback({
+                event: stringify(event),
+                type: 'window.onerror',
+                url: window.location.href,
+                source: source ? source : '',
+                lineNumber: res[0].lineNumber ? res[0].lineNumber : 0,
+                columnNumber: res[0].columnNumber ? res[0].columnNumber : 0,
+                stackTrace: res,
+                timestamp: new Date().toISOString(),
             });
         }
     };

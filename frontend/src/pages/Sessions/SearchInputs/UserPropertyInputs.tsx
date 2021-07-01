@@ -8,7 +8,7 @@ import AsyncCreatableSelect from 'react-select/async-creatable';
 import { PropertyOption } from '../../../components/Option/Option';
 import Tooltip from '../../../components/Tooltip/Tooltip';
 import { useGetUserSuggestionQuery } from '../../../graph/generated/hooks';
-import { ReactComponent as UserIcon } from '../../../static/user.svg';
+import SvgFaceIdIcon from '../../../static/FaceIdIcon';
 import { SessionPageSearchParams } from '../../Player/utils/utils';
 import {
     SearchParams,
@@ -93,9 +93,7 @@ export const UserPropertyInput = ({ include }: { include: boolean }) => {
     };
 
     return (
-        <div
-            className={`${inputStyles.commonInputWrapper} ${inputStyles.searchInput}`}
-        >
+        <div className={inputStyles.searchInput}>
             <AsyncCreatableSelect
                 isMulti
                 styles={{
@@ -111,7 +109,7 @@ export const UserPropertyInput = ({ include }: { include: boolean }) => {
                     }),
                 }}
                 cacheOptions
-                placeholder={'Select a property...'}
+                placeholder={'Select a user property...'}
                 isClearable={false}
                 defaultOptions
                 onChange={(options) => {
@@ -159,7 +157,7 @@ export const UserPropertyInput = ({ include }: { include: boolean }) => {
                 components={{
                     DropdownIndicator: () => (
                         <div className={inputStyles.iconWrapper}>
-                            <UserIcon fill="#808080" />
+                            <SvgFaceIdIcon />
                         </div>
                     ),
                     Option: (props) => <PropertyOption {...props} />,

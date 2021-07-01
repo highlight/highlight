@@ -9,38 +9,20 @@
     align-items: center;
     background-color: inherit;
     border-radius: 6px;
-    color: var(--text-primary);
     color: var(--color-gray-500);
+    column-gap: var(--size-small);
     cursor: pointer;
     display: grid;
     fill: var(--color-gray-500);
     font-family: var(--body-font-family);
-    grid-template-columns: 100px 1fr min-content;
+    font-size: 12px !important;
+    grid-template-columns: 22px 1fr min-content;
     height: 100%;
-    margin-bottom: 6px;
-    margin-top: 6px;
-    padding: 5px 10px;
     width: 100%;
 }
 
-.selectedStreamElement {
-    border: 1px solid var(--color-gray-300);
-    padding-top: 10px;
-}
-
-.currentStreamElement {
-    background-color: var(--color-purple);
-    border: 1px solid var(--color-purple);
-    color: var(--color-primary-background);
-    fill: var(--color-primary-background);
-
-    .goToButton {
-        color: var(--color-primary-background);
-
-        svg {
-            fill: var(--color-primary-background);
-        }
-    }
+.card {
+    cursor: pointer;
 }
 
 .eventTime {
@@ -48,12 +30,15 @@
     display: flex;
     font-size: 10px;
     height: 100%;
+    justify-content: flex-end;
     margin-left: 10px;
     padding: 5px;
     padding-right: 0;
 }
 
 .iconWrapper {
+    background: var(--primary-color);
+    border-radius: 50%;
     cursor: pointer;
     display: flex;
     flex-direction: column;
@@ -67,99 +52,58 @@
 }
 
 .directionIcon {
-    fill: inherit;
-    height: 14px;
+    color: var(--text-primary-inverted);
+    fill: var(--text-primary-inverted);
+    height: var(--size-small);
     transition: transform 0.3s;
-    width: 14px;
+    width: var(--size-small);
 }
 
 .defaultIcon {
-    fill: var(--color-gray-500);
-    height: var(--size-medium);
-    width: var(--size-medium);
+    color: var(--text-primary-inverted);
+    height: var(--size-small);
+    width: var(--size-small);
 }
 
 .tiltedIcon {
-    height: var(--size--medium);
+    color: var(--text-primary-inverted);
+    fill: var(--text-primary-inverted);
+    height: var(--size-small);
     transform: rotate(-20deg);
-    width: var(--size--medium);
+    width: var(--size-small);
+}
+
+.eventText {
+    color: var(--color-gray-500) !important;
+    margin: 0 !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.2s ease-in-out;
+    white-space: nowrap;
+
+    &.eventTextSelected {
+        color: var(--text-primary) !important;
+    }
 }
 
 .eventContent {
     align-items: center;
     display: flex;
     height: 100%;
-    justify-content: center;
     min-width: 100%;
 }
 
 .eventContentVerbose {
-    align-items: center;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    margin: 5px;
     min-width: 100%;
-}
-
-.eventText {
-    align-items: center;
-    color: var(--color-gray-500);
-    display: flex;
-    height: 100%;
-    margin-left: 10px;
-}
-
-.selectedEventText {
-    color: var(--text-primary);
-}
-
-.currentEventText {
-    color: var(--color-primary-background);
-}
-
-.codeBlockWrapper {
-    align-items: center;
-    background-color: var(--color-secondary-background);
-    border: 1px solid var(--color-gray-300);
-    border-radius: var(--size-xxSmall);
-    color: var(--color-gray-500);
-    font-family: 'Lucida Console', Monaco, Consolas, 'Courier New', Courier,
-        'Lucida Sans Typewriter', 'Lucida Typewriter', monospace !important;
-    height: 20px;
-    overflow: hidden;
-    padding: 0 var(--size-xxSmall);
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    width: 100%;
-}
-
-.codeBlockWrapperVerbose {
-    align-items: center;
-    background-color: var(--color-secondary-background);
-    border: 1px solid var(--color-gray-300);
-    border-radius: 8px;
-    color: var(--color-gray-500);
-    font-size: 12px;
-    grid-column: 1 / 5;
-    line-height: 20px;
-    margin-bottom: 8px;
-    margin-top: 10px;
-    min-height: 30px;
-    padding: 3px 8px;
-    width: 100%;
-    word-wrap: break-word;
-}
-
-.codeBlock {
-    font-family: 'Lucida Console', Monaco, Consolas, 'Courier New', Courier,
-        'Lucida Sans Typewriter', 'Lucida Typewriter', monospace !important;
-    font-size: 10px;
 }
 
 .goToButton {
     color: var(--color-gray-500);
-    grid-column-start: 1;
+    grid-column-start: 3;
+    grid-row-start: 3;
 
     &:hover {
         color: var(--text-primary);
@@ -171,8 +115,13 @@
     }
 }
 
-.relativeTimeExpanded {
-    grid-column-start: -1;
+.payloadContainer {
+    border-top: 1px solid var(--color-gray-300);
+    grid-column-end: -1;
+    grid-column-start: 1;
+    margin: 0 -18px;
+    margin-top: var(--size-xSmall);
+    padding: var(--size-small) 18px;
 }
 
 .selectedIcon {
@@ -180,11 +129,12 @@
     transform: rotate(180deg);
 }
 
-.currentIcon {
-    fill: var(--color-primary-background);
-}
-
 .headerRow {
     align-items: center;
     display: flex;
+}
+
+.payloadTitle {
+    font-size: 12px !important;
+    margin-bottom: var(--size-xSmall) !important;
 }

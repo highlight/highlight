@@ -119,8 +119,8 @@ type ComplexityRoot struct {
 		MetadataLog    func(childComplexity int) int
 		OrganizationID func(childComplexity int) int
 		Resolved       func(childComplexity int) int
+		StackTrace     func(childComplexity int) int
 		State          func(childComplexity int) int
-		Trace          func(childComplexity int) int
 		Type           func(childComplexity int) int
 	}
 
@@ -144,8 +144,8 @@ type ComplexityRoot struct {
 		Payload        func(childComplexity int) int
 		SessionID      func(childComplexity int) int
 		Source         func(childComplexity int) int
+		StackTrace     func(childComplexity int) int
 		Timestamp      func(childComplexity int) int
-		Trace          func(childComplexity int) int
 		Type           func(childComplexity int) int
 		URL            func(childComplexity int) int
 	}
@@ -173,6 +173,7 @@ type ComplexityRoot struct {
 
 	ErrorTrace struct {
 		ColumnNumber func(childComplexity int) int
+		Error        func(childComplexity int) int
 		FileName     func(childComplexity int) int
 		FunctionName func(childComplexity int) int
 		LineNumber   func(childComplexity int) int
@@ -216,6 +217,7 @@ type ComplexityRoot struct {
 		UpdateErrorAlert               func(childComplexity int, organizationID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
 		UpdateErrorGroupState          func(childComplexity int, id int, state string) int
 		UpdateNewUserAlert             func(childComplexity int, organizationID int, sessionAlertID int, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
+		UpdateSourceMaps               func(childComplexity int, apiKey string, sourceMapFiles []*graphql.Upload) int
 		UpdateTrackPropertiesAlert     func(childComplexity int, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, trackProperties []*model.TrackPropertyInput) int
 		UpdateUserPropertiesAlert      func(childComplexity int, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, userProperties []*model.UserPropertyInput) int
 	}
@@ -336,6 +338,7 @@ type ComplexityRoot struct {
 		BrowserName          func(childComplexity int) int
 		BrowserVersion       func(childComplexity int) int
 		City                 func(childComplexity int) int
+		ClientVersion        func(childComplexity int) int
 		CreatedAt            func(childComplexity int) int
 		EnableStrictPrivacy  func(childComplexity int) int
 		Environment          func(childComplexity int) int
@@ -424,7 +427,7 @@ type ErrorCommentResolver interface {
 }
 type ErrorGroupResolver interface {
 	Event(ctx context.Context, obj *model1.ErrorGroup) ([]*string, error)
-	Trace(ctx context.Context, obj *model1.ErrorGroup) ([]*model.ErrorTrace, error)
+	StackTrace(ctx context.Context, obj *model1.ErrorGroup) ([]*model.ErrorTrace, error)
 	MetadataLog(ctx context.Context, obj *model1.ErrorGroup) ([]*model.ErrorMetadata, error)
 	FieldGroup(ctx context.Context, obj *model1.ErrorGroup) ([]*model1.ErrorField, error)
 	State(ctx context.Context, obj *model1.ErrorGroup) (model.ErrorState, error)
@@ -432,7 +435,7 @@ type ErrorGroupResolver interface {
 type ErrorObjectResolver interface {
 	Event(ctx context.Context, obj *model1.ErrorObject) ([]*string, error)
 
-	Trace(ctx context.Context, obj *model1.ErrorObject) ([]interface{}, error)
+	StackTrace(ctx context.Context, obj *model1.ErrorObject) ([]interface{}, error)
 }
 type ErrorSegmentResolver interface {
 	Params(ctx context.Context, obj *model1.ErrorSegment) (*model1.ErrorSearchParams, error)
@@ -465,6 +468,7 @@ type MutationResolver interface {
 	UpdateNewUserAlert(ctx context.Context, organizationID int, sessionAlertID int, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.SessionAlert, error)
 	UpdateTrackPropertiesAlert(ctx context.Context, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, trackProperties []*model.TrackPropertyInput) (*model1.SessionAlert, error)
 	UpdateUserPropertiesAlert(ctx context.Context, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, userProperties []*model.UserPropertyInput) (*model1.SessionAlert, error)
+	UpdateSourceMaps(ctx context.Context, apiKey string, sourceMapFiles []*graphql.Upload) (*int, error)
 }
 type QueryResolver interface {
 	Session(ctx context.Context, id int) (*model1.Session, error)
@@ -800,19 +804,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorGroup.Resolved(childComplexity), true
 
+	case "ErrorGroup.stack_trace":
+		if e.complexity.ErrorGroup.StackTrace == nil {
+			break
+		}
+
+		return e.complexity.ErrorGroup.StackTrace(childComplexity), true
+
 	case "ErrorGroup.state":
 		if e.complexity.ErrorGroup.State == nil {
 			break
 		}
 
 		return e.complexity.ErrorGroup.State(childComplexity), true
-
-	case "ErrorGroup.trace":
-		if e.complexity.ErrorGroup.Trace == nil {
-			break
-		}
-
-		return e.complexity.ErrorGroup.Trace(childComplexity), true
 
 	case "ErrorGroup.type":
 		if e.complexity.ErrorGroup.Type == nil {
@@ -933,19 +937,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorObject.Source(childComplexity), true
 
+	case "ErrorObject.stack_trace":
+		if e.complexity.ErrorObject.StackTrace == nil {
+			break
+		}
+
+		return e.complexity.ErrorObject.StackTrace(childComplexity), true
+
 	case "ErrorObject.timestamp":
 		if e.complexity.ErrorObject.Timestamp == nil {
 			break
 		}
 
 		return e.complexity.ErrorObject.Timestamp(childComplexity), true
-
-	case "ErrorObject.trace":
-		if e.complexity.ErrorObject.Trace == nil {
-			break
-		}
-
-		return e.complexity.ErrorObject.Trace(childComplexity), true
 
 	case "ErrorObject.type":
 		if e.complexity.ErrorObject.Type == nil {
@@ -1051,6 +1055,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorTrace.ColumnNumber(childComplexity), true
+
+	case "ErrorTrace.error":
+		if e.complexity.ErrorTrace.Error == nil {
+			break
+		}
+
+		return e.complexity.ErrorTrace.Error(childComplexity), true
 
 	case "ErrorTrace.file_name":
 		if e.complexity.ErrorTrace.FileName == nil {
@@ -1414,6 +1425,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateNewUserAlert(childComplexity, args["organization_id"].(int), args["session_alert_id"].(int), args["count_threshold"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["environments"].([]*string)), true
+
+	case "Mutation.updateSourceMaps":
+		if e.complexity.Mutation.UpdateSourceMaps == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateSourceMaps_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateSourceMaps(childComplexity, args["api_key"].(string), args["source_map_files"].([]*graphql.Upload)), true
 
 	case "Mutation.updateTrackPropertiesAlert":
 		if e.complexity.Mutation.UpdateTrackPropertiesAlert == nil {
@@ -2219,6 +2242,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.City(childComplexity), true
 
+	case "Session.client_version":
+		if e.complexity.Session.ClientVersion == nil {
+			break
+		}
+
+		return e.complexity.Session.ClientVersion(childComplexity), true
+
 	case "Session.created_at":
 		if e.complexity.Session.CreatedAt == nil {
 			break
@@ -2673,6 +2703,7 @@ type Session {
     postal: String!
     environment: String
     app_version: String
+    client_version: String
     language: String!
     identifier: String!
     created_at: Time
@@ -2757,7 +2788,7 @@ type ErrorObject {
     source: String
     line_number: Int
     column_number: Int
-    trace: [Any]
+    stack_trace: [Any]
     timestamp: Time
     payload: String
 }
@@ -2773,7 +2804,7 @@ type ErrorGroup {
     organization_id: Int!
     type: String!
     event: [String]!
-    trace: [ErrorTrace]!
+    stack_trace: [ErrorTrace]!
     metadata_log: [ErrorMetadata]!
     field_group: [ErrorField]
     state: ErrorState!
@@ -2796,6 +2827,7 @@ type ErrorTrace {
     line_number: Int
     function_name: String
     column_number: Int
+    error: String
 }
 
 type ReferrerTablePayload {
@@ -3020,6 +3052,8 @@ type SessionAlert {
     UserProperties: [UserProperty]!
 }
 
+scalar Upload
+
 type Query {
     session(id: ID!): Session
     events(session_id: ID!): [Any]
@@ -3210,6 +3244,10 @@ type Mutation {
         environments: [String]!
         user_properties: [UserPropertyInput]!
     ): SessionAlert
+    updateSourceMaps(
+        api_key: String!
+        source_map_files: [Upload!]
+    ): ID
 }
 `, BuiltIn: false},
 }
@@ -4032,6 +4070,30 @@ func (ec *executionContext) field_Mutation_updateNewUserAlert_args(ctx context.C
 		}
 	}
 	args["environments"] = arg4
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateSourceMaps_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["api_key"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("api_key"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["api_key"] = arg0
+	var arg1 []*graphql.Upload
+	if tmp, ok := rawArgs["source_map_files"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("source_map_files"))
+		arg1, err = ec.unmarshalOUpload2ᚕᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUploadᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["source_map_files"] = arg1
 	return args, nil
 }
 
@@ -6100,7 +6162,7 @@ func (ec *executionContext) _ErrorGroup_event(ctx context.Context, field graphql
 	return ec.marshalNString2ᚕᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ErrorGroup_trace(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
+func (ec *executionContext) _ErrorGroup_stack_trace(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6118,7 +6180,7 @@ func (ec *executionContext) _ErrorGroup_trace(ctx context.Context, field graphql
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ErrorGroup().Trace(rctx, obj)
+		return ec.resolvers.ErrorGroup().StackTrace(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6875,7 +6937,7 @@ func (ec *executionContext) _ErrorObject_column_number(ctx context.Context, fiel
 	return ec.marshalOInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ErrorObject_trace(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
+func (ec *executionContext) _ErrorObject_stack_trace(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6893,7 +6955,7 @@ func (ec *executionContext) _ErrorObject_trace(ctx context.Context, field graphq
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ErrorObject().Trace(rctx, obj)
+		return ec.resolvers.ErrorObject().StackTrace(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7499,6 +7561,38 @@ func (ec *executionContext) _ErrorTrace_column_number(ctx context.Context, field
 	res := resTmp.(*int)
 	fc.Result = res
 	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorTrace_error(ctx context.Context, field graphql.CollectedField, obj *model.ErrorTrace) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ErrorTrace",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Error, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Field_id(ctx context.Context, field graphql.CollectedField, obj *model1.Field) (ret graphql.Marshaler) {
@@ -8756,6 +8850,45 @@ func (ec *executionContext) _Mutation_updateUserPropertiesAlert(ctx context.Cont
 	res := resTmp.(*model1.SessionAlert)
 	fc.Result = res
 	return ec.marshalOSessionAlert2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionAlert(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateSourceMaps(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateSourceMaps_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateSourceMaps(rctx, args["api_key"].(string), args["source_map_files"].([]*graphql.Upload))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOID2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _NewUsersCount_count(ctx context.Context, field graphql.CollectedField, obj *model.NewUsersCount) (ret graphql.Marshaler) {
@@ -12141,6 +12274,38 @@ func (ec *executionContext) _Session_app_version(ctx context.Context, field grap
 	res := resTmp.(*string)
 	fc.Result = res
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Session_client_version(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClientVersion, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Session_language(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
@@ -15547,7 +15712,7 @@ func (ec *executionContext) _ErrorGroup(ctx context.Context, sel ast.SelectionSe
 				}
 				return res
 			})
-		case "trace":
+		case "stack_trace":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -15555,7 +15720,7 @@ func (ec *executionContext) _ErrorGroup(ctx context.Context, sel ast.SelectionSe
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._ErrorGroup_trace(ctx, field, obj)
+				res = ec._ErrorGroup_stack_trace(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -15721,7 +15886,7 @@ func (ec *executionContext) _ErrorObject(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = ec._ErrorObject_line_number(ctx, field, obj)
 		case "column_number":
 			out.Values[i] = ec._ErrorObject_column_number(ctx, field, obj)
-		case "trace":
+		case "stack_trace":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -15729,7 +15894,7 @@ func (ec *executionContext) _ErrorObject(ctx context.Context, sel ast.SelectionS
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._ErrorObject_trace(ctx, field, obj)
+				res = ec._ErrorObject_stack_trace(ctx, field, obj)
 				return res
 			})
 		case "timestamp":
@@ -15883,6 +16048,8 @@ func (ec *executionContext) _ErrorTrace(ctx context.Context, sel ast.SelectionSe
 			out.Values[i] = ec._ErrorTrace_function_name(ctx, field, obj)
 		case "column_number":
 			out.Values[i] = ec._ErrorTrace_column_number(ctx, field, obj)
+		case "error":
+			out.Values[i] = ec._ErrorTrace_error(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -16031,6 +16198,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_updateTrackPropertiesAlert(ctx, field)
 		case "updateUserPropertiesAlert":
 			out.Values[i] = ec._Mutation_updateUserPropertiesAlert(ctx, field)
+		case "updateSourceMaps":
+			out.Values[i] = ec._Mutation_updateSourceMaps(ctx, field)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -16954,6 +17123,8 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Session_environment(ctx, field, obj)
 		case "app_version":
 			out.Values[i] = ec._Session_app_version(ctx, field, obj)
+		case "client_version":
+			out.Values[i] = ec._Session_client_version(ctx, field, obj)
 		case "language":
 			out.Values[i] = ec._Session_language(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -18440,6 +18611,27 @@ func (ec *executionContext) unmarshalNTrackPropertyInput2ᚕᚖgithubᚗcomᚋhi
 	return res, nil
 }
 
+func (ec *executionContext) unmarshalNUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, v interface{}) (*graphql.Upload, error) {
+	res, err := graphql.UnmarshalUpload(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, sel ast.SelectionSet, v *graphql.Upload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := graphql.MarshalUpload(*v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
 func (ec *executionContext) marshalNUserProperty2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐUserProperty(ctx context.Context, sel ast.SelectionSet, v []*model1.UserProperty) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -19476,6 +19668,42 @@ func (ec *executionContext) unmarshalOTrackPropertyInput2ᚖgithubᚗcomᚋhighl
 	}
 	res, err := ec.unmarshalInputTrackPropertyInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOUpload2ᚕᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUploadᚄ(ctx context.Context, v interface{}) ([]*graphql.Upload, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*graphql.Upload, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOUpload2ᚕᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUploadᚄ(ctx context.Context, sel ast.SelectionSet, v []*graphql.Upload) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, sel, v[i])
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalOUserFingerprintCount2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserFingerprintCount(ctx context.Context, sel ast.SelectionSet, v *model.UserFingerprintCount) graphql.Marshaler {

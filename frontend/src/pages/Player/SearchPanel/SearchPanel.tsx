@@ -1,36 +1,20 @@
 import React from 'react';
 
-import useHighlightAdminFlag from '../../../hooks/useHighlightAdminFlag/useHighlightAdminFlag';
-import {
-    LiveSessionsSwitch,
-    ViewedSessionsSwitch,
-} from '../../Sessions/SearchInputs/SessionInputs';
-import {
-    FirstTimeUsersSwitch,
-    IdentifiedUsersSwitch,
-} from '../../Sessions/SearchInputs/UserPropertyInputs';
-import { SessionFeed } from '../../Sessions/SessionsFeed/SessionsFeed';
+import SessionSearch from '../../Sessions/SessionsFeedV2/components/SessionSearch/SessionSearch';
+import { SessionFeed } from '../../Sessions/SessionsFeedV2/SessionsFeed';
 import styles from './SearchPanel.module.scss';
 import SegmentPickerForPlayer from './SegmentPickerForPlayer/SegmentPickerForPlayer';
+import SessionSearchFilters from './SessionSearchFilters/SessionSearchFilters';
 
 const SearchPanel = () => {
-    const { isHighlightAdmin } = useHighlightAdminFlag();
-
     return (
         <div className={styles.searchPanel}>
             <div className={styles.filtersContainer}>
+                <SessionSearch />
                 <SegmentPickerForPlayer />
-                {isHighlightAdmin && (
-                    <>
-                        <ViewedSessionsSwitch />
-                        <LiveSessionsSwitch />
-                        <IdentifiedUsersSwitch />
-                        <FirstTimeUsersSwitch />{' '}
-                    </>
-                )}
+                <SessionSearchFilters />
             </div>
-
-            <SessionFeed minimal />
+            <SessionFeed />
         </div>
     );
 };

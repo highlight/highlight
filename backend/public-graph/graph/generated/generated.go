@@ -258,6 +258,17 @@ type Session {
     organization_id: ID!
 }
 
+input StackFrameInput {
+    functionName: String
+    args: [Any]
+    fileName: String
+    lineNumber: Int
+    columnNumber: Int
+    isEval: Boolean
+    isNative: Boolean
+    source: String
+}
+
 input ErrorObjectInput {
     event: String!
     type: String!
@@ -265,7 +276,7 @@ input ErrorObjectInput {
     source: String!
     lineNumber: Int!
     columnNumber: Int!
-    trace: [Any]!
+    stackTrace: [StackFrameInput]!
     timestamp: Time!
     payload: String
 }
@@ -2141,11 +2152,11 @@ func (ec *executionContext) unmarshalInputErrorObjectInput(ctx context.Context, 
 			if err != nil {
 				return it, err
 			}
-		case "trace":
+		case "stackTrace":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("trace"))
-			it.Trace, err = ec.unmarshalNAny2ᚕinterface(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stackTrace"))
+			it.StackTrace, err = ec.unmarshalNStackFrameInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐStackFrameInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2182,6 +2193,82 @@ func (ec *executionContext) unmarshalInputReplayEventsInput(ctx context.Context,
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("events"))
 			it.Events, err = ec.unmarshalNAny2ᚕinterface(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputStackFrameInput(ctx context.Context, obj interface{}) (model.StackFrameInput, error) {
+	var it model.StackFrameInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "functionName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("functionName"))
+			it.FunctionName, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "args":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("args"))
+			it.Args, err = ec.unmarshalOAny2ᚕinterface(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "fileName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fileName"))
+			it.FileName, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "lineNumber":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lineNumber"))
+			it.LineNumber, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "columnNumber":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("columnNumber"))
+			it.ColumnNumber, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "isEval":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isEval"))
+			it.IsEval, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "isNative":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isNative"))
+			it.IsNative, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "source":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("source"))
+			it.Source, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2659,6 +2746,27 @@ func (ec *executionContext) unmarshalNReplayEventsInput2githubᚗcomᚋhighlight
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNStackFrameInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐStackFrameInput(ctx context.Context, v interface{}) ([]*model.StackFrameInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*model.StackFrameInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOStackFrameInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐStackFrameInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -2933,6 +3041,42 @@ func (ec *executionContext) marshalOAny2interface(ctx context.Context, sel ast.S
 	return graphql.MarshalAny(v)
 }
 
+func (ec *executionContext) unmarshalOAny2ᚕinterface(ctx context.Context, v interface{}) ([]interface{}, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]interface{}, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOAny2interface(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOAny2ᚕinterface(ctx context.Context, sel ast.SelectionSet, v []interface{}) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalOAny2interface(ctx, sel, v[i])
+	}
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -2980,11 +3124,34 @@ func (ec *executionContext) marshalOID2ᚖint(ctx context.Context, sel ast.Selec
 	return graphql.MarshalIntID(*v)
 }
 
+func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalInt(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.SelectionSet, v *int) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalInt(*v)
+}
+
 func (ec *executionContext) marshalOSession2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSession(ctx context.Context, sel ast.SelectionSet, v *model1.Session) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Session(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOStackFrameInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐStackFrameInput(ctx context.Context, v interface{}) (*model.StackFrameInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputStackFrameInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {

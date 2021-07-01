@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -71,21 +72,29 @@ func (r *errorGroupResolver) Event(ctx context.Context, obj *model.ErrorGroup) (
 	return util.JsonStringToStringArray(obj.Event), nil
 }
 
-func (r *errorGroupResolver) Trace(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorTrace, error) {
-	if obj.Trace == "" {
+func (r *errorGroupResolver) StackTrace(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorTrace, error) {
+	if (obj.MappedStackTrace == nil || *obj.MappedStackTrace == "") && obj.StackTrace == "" {
 		return nil, nil
 	}
-	trace := []*struct {
+	var ret []*modelInputs.ErrorTrace
+	if obj.MappedStackTrace != nil && *obj.MappedStackTrace != "" {
+		if err := json.Unmarshal([]byte(*obj.MappedStackTrace), &ret); err != nil {
+			log.Error(e.Wrap(err, "error unmarshalling MappedStackTrace"))
+			return nil, nil
+		}
+		return ret, nil
+	}
+	var stackTrace []*struct {
 		FileName     *string `json:"fileName"`
 		LineNumber   *int    `json:"lineNumber"`
 		FunctionName *string `json:"functionName"`
 		ColumnNumber *int    `json:"columnNumber"`
-	}{}
-	if err := json.Unmarshal([]byte(obj.Trace), &trace); err != nil {
+	}
+	if err := json.Unmarshal([]byte(obj.StackTrace), &stackTrace); err != nil {
+		log.Error(e.Wrap(err, "error unmarshalling StackTrace"))
 		return nil, nil
 	}
-	ret := []*modelInputs.ErrorTrace{}
-	for _, t := range trace {
+	for _, t := range stackTrace {
 		val := &modelInputs.ErrorTrace{
 			FileName:     t.FileName,
 			LineNumber:   t.LineNumber,
@@ -148,10 +157,10 @@ func (r *errorObjectResolver) Event(ctx context.Context, obj *model.ErrorObject)
 	return util.JsonStringToStringArray(obj.Event), nil
 }
 
-func (r *errorObjectResolver) Trace(ctx context.Context, obj *model.ErrorObject) ([]interface{}, error) {
+func (r *errorObjectResolver) StackTrace(ctx context.Context, obj *model.ErrorObject) ([]interface{}, error) {
 	frames := []interface{}{}
-	if obj.Trace != nil {
-		if err := json.Unmarshal([]byte(*obj.Trace), &frames); err != nil {
+	if obj.StackTrace != nil {
+		if err := json.Unmarshal([]byte(*obj.StackTrace), &frames); err != nil {
 			return nil, fmt.Errorf("error decoding stack frame data: %v", err)
 		}
 	}
@@ -174,7 +183,6 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	if err != nil {
 		return nil, e.Wrap(err, "error getting admin")
 	}
-	trialEnd := time.Now().AddDate(0, 0, 14)
 
 	c := &stripe.Customer{}
 	if os.Getenv("REACT_APP_ONPREM") != "true" {
@@ -189,7 +197,6 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 		StripeCustomerID: &c.ID,
 		Name:             &name,
 		Admins:           []model.Admin{*admin},
-		TrialEndDate:     &trialEnd,
 		BillingEmail:     admin.Email,
 	}
 	if err := r.DB.Create(org).Error; err != nil {
@@ -298,6 +305,9 @@ func (r *mutationResolver) SendAdminInvite(ctx context.Context, organizationID i
 		return nil, e.Wrap(err, "error querying org")
 	}
 	admin, err := r.Query().Admin(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying admin")
+	}
 	var secret string
 	if org.Secret == nil {
 		uid := xid.New().String()
@@ -402,7 +412,7 @@ func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, o
 	}
 	msg := slack.WebhookMessage{Text: baseMessage}
 	if err := slack.PostWebhook(resp.IncomingWebhook.URL, &msg); err != nil {
-		e.Wrap(err, "failed to send hello alert slack message")
+		log.Error(e.Wrap(err, "failed to send hello alert slack message"))
 	}
 	return &model.T, nil
 }
@@ -953,6 +963,22 @@ func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, organi
 	return alert, nil
 }
 
+func (r *mutationResolver) UpdateSourceMaps(ctx context.Context, apiKey string, sourceMapFiles []*graphql.Upload) (*int, error) {
+	var orgID int
+	if err := r.DB.Where(&model.Organization{Secret: &apiKey}).Select("id").Scan(&orgID).Error; err != nil {
+		return nil, e.Wrap(err, "error querying org by secret in db")
+	}
+
+	for _, file := range sourceMapFiles {
+		_, err := r.StorageClient.PushSourceMapFileReaderToS3(orgID, file.Filename, file.File)
+		if err != nil {
+			return nil, e.Wrap(err, "error pushing sourcemap file to s3")
+		}
+	}
+
+	return &orgID, nil
+}
+
 func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, error) {
 	if _, err := r.isAdminSessionOwner(ctx, id); err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
@@ -982,7 +1008,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
-	if en := s.ObjectStorageEnabled; en != nil && *en == true {
+	if en := s.ObjectStorageEnabled; en != nil && *en {
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.objectStorageQuery"))
 		defer objectStorageSpan.Finish()
 		ret, err := r.StorageClient.ReadSessionsFromS3(sessionID, s.OrganizationID)
@@ -1036,10 +1062,10 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 	errorFieldQuerySpan.Finish()
 
 	errorGroups := []model.ErrorGroup{}
-	selectPreamble := `SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at, state`
+	selectPreamble := `SELECT id, organization_id, event, stack_trace, metadata_log, created_at, deleted_at, updated_at, state`
 	countPreamble := `SELECT COUNT(*)`
 
-	queryString := `FROM (SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at, state, array_agg(t.error_field_id) fieldIds
+	queryString := `FROM (SELECT id, organization_id, event, stack_trace, metadata_log, created_at, deleted_at, updated_at, state, array_agg(t.error_field_id) fieldIds
 	FROM error_groups e INNER JOIN error_group_fields t ON e.id=t.error_group_id GROUP BY e.id) AS rows `
 
 	queryString += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
@@ -1108,7 +1134,7 @@ func (r *queryResolver) Messages(ctx context.Context, sessionID int) ([]interfac
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
-	if en := s.ObjectStorageEnabled; en != nil && *en == true {
+	if en := s.ObjectStorageEnabled; en != nil && *en {
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.objectStorageQuery"))
 		defer objectStorageSpan.Finish()
 		ret, err := r.StorageClient.ReadMessagesFromS3(sessionID, s.OrganizationID)
@@ -1150,7 +1176,7 @@ func (r *queryResolver) Resources(ctx context.Context, sessionID int) ([]interfa
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
-	if en := s.ObjectStorageEnabled; en != nil && *en == true {
+	if en := s.ObjectStorageEnabled; en != nil && *en {
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.objectStorageQuery"))
 		defer objectStorageSpan.Finish()
 		ret, err := r.StorageClient.ReadResourcesFromS3(sessionID, s.OrganizationID)
@@ -1859,7 +1885,7 @@ func (r *queryResolver) Organization(ctx context.Context, id int) (*model.Organi
 }
 
 func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
-	uid := fmt.Sprintf("%v", ctx.Value("uid"))
+	uid := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
 	admin := &model.Admin{UID: &uid}
 	res := r.DB.Where(&model.Admin{UID: &uid}).First(&admin)
 	if err := res.Error; err != nil {

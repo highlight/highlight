@@ -8,17 +8,26 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"net/url"
+	"os"
+	"path"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/go-sourcemap/sourcemap"
+	dd "github.com/highlight-run/highlight/backend/datadog"
 	"github.com/mssola/user_agent"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/model"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/pricing"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	model2 "github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/util"
 )
 
 // This file will not be regenerated automatically.
@@ -27,7 +36,8 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	DB *gorm.DB
+	DB            *gorm.DB
+	StorageClient *storage.StorageClient
 }
 
 type Location struct {
@@ -72,12 +82,23 @@ type FieldData struct {
 	Value string
 }
 
+const histogramName = "public-graph"
+
+var histogram = struct {
+	publicGraph       string
+	processStackTrace string
+}{
+	publicGraph:       histogramName,
+	processStackTrace: histogramName + ".processStackFrame",
+}
+
 //Change to AppendProperties(sessionId,properties,type)
 func (r *Resolver) AppendProperties(sessionID int, properties map[string]string, propType Property) error {
 	session := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session)
 	if err := res.Error; err != nil || errors.Is(err, gorm.ErrRecordNotFound) {
-		return e.Wrap(err, "error receiving session")
+		log.Error("Failed to append properties", err)
+		return nil
 	}
 
 	modelFields := []*model.Field{}
@@ -87,7 +108,7 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 
 	err := r.AppendFields(modelFields, session)
 	if err != nil {
-		return e.Wrap(err, "error appending fields")
+		log.Error("error appending fields", err)
 	}
 
 	return nil
@@ -99,7 +120,8 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 	exists := false
 	if session.FieldGroup != nil {
 		if err := json.Unmarshal([]byte(*session.FieldGroup), &newFieldGroup); err != nil {
-			return e.Wrap(err, "error decoding session field group")
+			log.Error("error decoding session field group", err)
+			return nil
 		}
 	}
 	for _, f := range fields {
@@ -147,7 +169,8 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 	return nil
 }
 
-func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []interface{}, fields []*model.ErrorField) (*model.ErrorGroup, error) {
+func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *model2.ErrorObjectInput, fields []*model.ErrorField, organizationID int) (*model.ErrorGroup, error) {
+	frames := errorInput.StackTrace
 	firstFrameBytes, err := json.Marshal(frames)
 	if err != nil {
 		return nil, e.Wrap(err, "Error marshalling first frame")
@@ -166,7 +189,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []int
 		newErrorGroup := &model.ErrorGroup{
 			OrganizationID: errorObj.OrganizationID,
 			Event:          errorObj.Event,
-			Trace:          frameString,
+			StackTrace:     frameString,
 			Type:           errorObj.Type,
 			Resolved:       &model.F,
 		}
@@ -201,9 +224,22 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []int
 	}
 	logString := string(logBytes)
 
+	var newMappedStackTraceString *string
 	newFrameString := frameString
-	if len(frameString) < len(errorGroup.Trace) {
-		newFrameString = errorGroup.Trace
+	if os.Getenv("ENVIRONMENT") == "dev" || os.Getenv("ENVIRONMENT") == "test" ||
+		organizationID == 1 || organizationID == 113 || organizationID == 198 {
+		// TODO: don't do this for every error
+		mappedStackTrace, err := r.EnhanceStackTrace(errorInput.StackTrace, organizationID)
+		if err != nil {
+			log.Error(e.Wrapf(err, "error group: %+v error object: %+v", errorGroup, errorObj))
+		} else {
+			mappedStackTraceBytes, err := json.Marshal(mappedStackTrace)
+			if err != nil {
+				return nil, e.Wrap(err, "error marshalling mapped stack trace")
+			}
+			mappedStackTraceString := string(mappedStackTraceBytes)
+			newMappedStackTraceString = &mappedStackTraceString
+		}
 	}
 
 	environmentsMap := make(map[string]int)
@@ -226,7 +262,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []int
 	}
 	environmentsString := string(environmentsBytes)
 
-	if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{MetadataLog: &logString, Trace: newFrameString, Environments: environmentsString}).Error; err != nil {
+	if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{MetadataLog: &logString, StackTrace: newFrameString, MappedStackTrace: newMappedStackTraceString, Environments: environmentsString}).Error; err != nil {
 		return nil, e.Wrap(err, "Error updating error group metadata log or environments")
 	}
 
@@ -358,7 +394,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 		Longitude: 0.0,
 		State:     "",
 	}
-	ip, ok := ctx.Value("ip").(string)
+	ip, ok := ctx.Value(model.ContextKeys.IP).(string)
 	if ok {
 		fetchedLocation, err := GetLocationFromIP(ip)
 		if err != nil || fetchedLocation == nil {
@@ -370,12 +406,12 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 
 	// Parse the user-agent string
 	var deviceDetails DeviceDetails
-	if userAgentString, ok := ctx.Value("userAgent").(string); ok {
+	if userAgentString, ok := ctx.Value(model.ContextKeys.UserAgent).(string); ok {
 		deviceDetails = GetDeviceDetails(userAgentString)
 	}
 
 	// Get the language from the request header
-	acceptLanguageString := ctx.Value("acceptLanguage").(string)
+	acceptLanguageString := ctx.Value(model.ContextKeys.AcceptLanguage).(string)
 	n := time.Now()
 	userId := 5000 + rand.Intn(5000)
 	var fingerprintInt int = 0
@@ -384,26 +420,27 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 	}
 
 	// determine if session is within billing quota
-	stripePriceID := ""
-	if organization.StripePriceID != nil {
-		stripePriceID = *organization.StripePriceID
+	withinBillingQuota := true
+	if organization.TrialEndDate == nil || organization.TrialEndDate.Before(time.Now()) {
+		stripePriceID := ""
+		if organization.StripePriceID != nil {
+			stripePriceID = *organization.StripePriceID
+		}
+		stripePlan := pricing.FromPriceID(stripePriceID)
+		quota := pricing.TypeToQuota(stripePlan)
+		var monthToDateSessionCount int64
+		if err := r.DB.
+			Model(&model.DailySessionCount{}).
+			Where(&model.DailySessionCount{OrganizationID: organizationID}).
+			Where("date > ?", time.Date(n.Year(), n.Month(), 1, 0, 0, 0, 0, time.UTC)).
+			Select("SUM(count) as monthToDateSessionCount").
+			Scan(&monthToDateSessionCount).Error; err != nil {
+			// The record doesn't exist for new organizations since the record gets created in the worker.
+			monthToDateSessionCount = 0
+			log.Warn(fmt.Sprintf("Couldn't find DailySessionCount for %d", organizationID))
+		}
+		withinBillingQuota = int64(quota) > monthToDateSessionCount
 	}
-	stripePlan := pricing.FromPriceID(stripePriceID)
-	quota := pricing.TypeToQuota(stripePlan)
-	var monthToDateSessionCountSlice []int64
-	year, month, _ := time.Now().Date()
-	if err := r.DB.
-		Model(&model.DailySessionCount{}).
-		Where(&model.DailySessionCount{OrganizationID: organizationID}).
-		Where("date > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).
-		Pluck("count", &monthToDateSessionCountSlice).Error; err != nil {
-		return nil, e.Wrap(err, "error getting month-to-date session count")
-	}
-	var monthToDateSessionCount int64
-	for _, count := range monthToDateSessionCountSlice {
-		monthToDateSessionCount += count
-	}
-	withinBillingQuota := int64(quota) > monthToDateSessionCount
 
 	session := &model.Session{
 		UserID:              userId,
@@ -447,21 +484,203 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 		return nil, e.Wrap(err, "error adding set of properites to db")
 	}
 
-	// Update session count on dailydb
-	dailySession := &model.DailySessionCount{}
-	currentDate := time.Date(n.UTC().Year(), n.UTC().Month(), n.UTC().Day(), 0, 0, 0, 0, time.UTC)
-	if err := r.DB.Where(&model.DailySessionCount{
-		OrganizationID: organizationID,
-		Date:           &currentDate,
-	}).Attrs(&model.DailySessionCount{
-		Count: 0,
-	}).FirstOrCreate(&dailySession).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating new daily session")
-	}
-
-	if err := r.DB.Exec("UPDATE daily_session_counts SET count = count + 1 WHERE date = ? AND organization_id = ?", currentDate, organizationID).Error; err != nil {
-		return nil, e.Wrap(err, "Error incrementing session count in db")
-	}
-
 	return session, nil
+}
+
+type fetcher interface {
+	fetchFile(string) ([]byte, error)
+}
+
+func init() {
+	if os.Getenv("ENVIRONMENT") == "dev" {
+		fetch = DiskFetcher{}
+	} else {
+		fetch = NetworkFetcher{}
+	}
+}
+
+var fetch fetcher
+
+type DiskFetcher struct{}
+
+func (n DiskFetcher) fetchFile(href string) ([]byte, error) {
+	inputBytes, err := ioutil.ReadFile(href)
+	if err != nil {
+		return nil, e.Wrap(err, "error fetching file from disk")
+	}
+	return inputBytes, nil
+}
+
+type NetworkFetcher struct{}
+
+func (n NetworkFetcher) fetchFile(href string) ([]byte, error) {
+	// check if source is a URL
+	_, err := url.ParseRequestURI(href)
+	if err != nil {
+		return nil, err
+	}
+	// get minified file
+	res, err := http.Get(href)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting source file")
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return nil, e.New("status code not OK")
+	}
+
+	// unpack file into slice
+	bodyBytes, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, e.Wrap(err, "error reading response body")
+	}
+
+	return bodyBytes, nil
+}
+
+/*
+* EnhanceStackTrace makes no DB changes
+* It loops through the stack trace, for each :
+* fetches the sourcemap from remote
+* maps the error info into slice
+ */
+func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizationId int) ([]modelInputs.ErrorTrace, error) {
+	if input == nil {
+		return nil, e.New("stack trace input cannot be nil")
+	}
+	var mappedStackTrace []modelInputs.ErrorTrace
+	for _, stackFrame := range input {
+		if stackFrame == nil || (stackFrame.FileName == nil || stackFrame.LineNumber == nil || stackFrame.ColumnNumber == nil) {
+			continue
+		}
+		start := time.Now()
+		mappedStackFrame, err := r.processStackFrame(organizationId, *stackFrame)
+		diff := time.Since(start).Milliseconds()
+		if err != nil {
+			log.Error(err)
+			mappedStackFrame = &modelInputs.ErrorTrace{
+				FileName:     stackFrame.FileName,
+				LineNumber:   stackFrame.LineNumber,
+				FunctionName: stackFrame.FunctionName,
+				ColumnNumber: stackFrame.ColumnNumber,
+				Error:        util.MakeStringPointer(err.Error()),
+			}
+		}
+		if err := dd.StatsD.Histogram(fmt.Sprintf("%s.totalRunTime", histogram.processStackTrace), float64(diff),
+			[]string{fmt.Sprintf("env:%s", os.Getenv("ENVIRONMENT")), fmt.Sprintf("success:%v", err == nil),
+				fmt.Sprintf("org_id:%d", organizationId)}, 1); err != nil {
+			log.Error(e.Wrap(err, "dd error tracking processStackFrame time histogram"))
+		}
+		if mappedStackFrame != nil {
+			mappedStackTrace = append(mappedStackTrace, *mappedStackFrame)
+		}
+	}
+	return mappedStackTrace, nil
+}
+
+func (r *Resolver) processStackFrame(organizationId int, stackTrace model2.StackFrameInput) (*modelInputs.ErrorTrace, error) {
+	stackTraceFileURL := *stackTrace.FileName
+	stackTraceLineNumber := *stackTrace.LineNumber
+	stackTraceColumnNumber := *stackTrace.ColumnNumber
+
+	// get file name index from URL
+	stackFileNameIndex := strings.Index(stackTraceFileURL, path.Base(stackTraceFileURL))
+	if stackFileNameIndex == -1 {
+		err := e.Errorf("source path doesn't contain file name: %v", stackTraceFileURL)
+		return nil, err
+	}
+
+	// get path from url
+	u, err := url.Parse(stackTraceFileURL)
+	if err != nil {
+		err := e.Wrapf(err, "error parsing url: %v", stackTraceFileURL)
+		return nil, err
+	}
+	stackTraceFilePath := u.Path
+	if stackTraceFilePath[0:1] == "/" {
+		stackTraceFilePath = stackTraceFileURL[1:]
+	}
+
+	// try to get file from s3
+	minifiedFileBytes, err := r.StorageClient.ReadSourceMapFileFromS3(organizationId, stackTraceFilePath)
+	if err != nil {
+		// if not in s3, get from url and put in s3
+		minifiedFileBytes, err = fetch.fetchFile(stackTraceFileURL)
+		if err != nil {
+			// fallback if we can't get the source file at all
+			err := e.Wrapf(err, "error fetching file: %v", stackTraceFileURL)
+			return nil, err
+		}
+		_, err = r.StorageClient.PushSourceMapFileToS3(organizationId, stackTraceFilePath, minifiedFileBytes)
+		if err != nil {
+			log.Error(e.Wrapf(err, "error pushing file to s3: %v", stackTraceFilePath))
+		}
+	}
+	if err := dd.StatsD.Histogram(histogram.processStackTrace+".minifiedFileSize", float64(len(minifiedFileBytes)),
+		[]string{fmt.Sprintf("env:%s", os.Getenv("ENVIRONMENT")), fmt.Sprintf("org_id:%d", organizationId)}, 1); err != nil {
+		log.Error(e.Wrap(err, "dd error tracking processStackFrame minified file size histogram"))
+	}
+	if len(minifiedFileBytes) > 5000000 {
+		err := e.Errorf("minified source file over 5mb: %v, size: %v", stackTraceFileURL, len(minifiedFileBytes))
+		return nil, err
+	}
+	bodyString := string(minifiedFileBytes)
+	bodyLines := strings.Split(strings.ReplaceAll(bodyString, "\rn", "\n"), "\n")
+	if len(bodyLines) < 1 {
+		err := e.Errorf("body lines empty: %v", stackTraceFilePath)
+		return nil, err
+	}
+	lastLine := bodyLines[len(bodyLines)-1]
+
+	// extract sourceMappingURL file name from slice
+	var sourceMapFileName string
+	sourceMapIndex := strings.LastIndex(lastLine, "sourceMappingURL=")
+	if sourceMapIndex == -1 {
+		err := e.Errorf("file does not contain source map url: %v", stackTraceFileURL)
+		return nil, err
+	}
+	sourceMapFileName = lastLine[sourceMapIndex+len("sourceMappingURL="):]
+
+	// construct sourcemap url from searched file
+	sourceMapURL := (stackTraceFileURL)[:stackFileNameIndex] + sourceMapFileName
+
+	// fetch source map file
+	// try to get file from s3
+	sourceMapFileBytes, err := r.StorageClient.ReadSourceMapFileFromS3(organizationId, sourceMapFileName)
+	if err != nil {
+		// if not in s3, get from url and put in s3
+		sourceMapFileBytes, err = fetch.fetchFile(sourceMapURL)
+		if err != nil {
+			// fallback if we can't get the source file at all
+			err := e.Wrapf(err, "error fetching source map file: %v", sourceMapFileName)
+			return nil, err
+		}
+		_, err = r.StorageClient.PushSourceMapFileToS3(organizationId, sourceMapFileName, sourceMapFileBytes)
+		if err != nil {
+			log.Error(e.Wrapf(err, "error pushing file to s3: %v", sourceMapFileName))
+		}
+	}
+	if err := dd.StatsD.Histogram(histogram.processStackTrace+".sourceMapFileSize", float64(len(sourceMapFileBytes)),
+		[]string{fmt.Sprintf("env:%s", os.Getenv("ENVIRONMENT")), fmt.Sprintf("org_id:%d", organizationId)}, 1); err != nil {
+		log.Error(e.Wrap(err, "dd error tracking processStackFrame minified file size histogram"))
+	}
+
+	smap, err := sourcemap.Parse(sourceMapURL, sourceMapFileBytes)
+	if err != nil {
+		err := e.Wrapf(err, "error parsing source map file -> %v", sourceMapURL)
+		return nil, err
+	}
+
+	sourceFileName, fn, line, col, ok := smap.Source(stackTraceLineNumber, stackTraceColumnNumber)
+	if !ok {
+		err := e.Errorf("error extracting true error info from source map: %v", sourceMapURL)
+		return nil, err
+	}
+	mappedStackFrame := &modelInputs.ErrorTrace{
+		FileName:     &sourceFileName,
+		LineNumber:   &line,
+		FunctionName: &fn,
+		ColumnNumber: &col,
+	}
+	return mappedStackFrame, nil
 }

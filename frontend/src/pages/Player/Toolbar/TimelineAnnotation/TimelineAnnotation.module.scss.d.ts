@@ -1,3 +1,5 @@
 export const annotation: string;
 export const grow: string;
+export const iconContainer: string;
 export const selected: string;
+export const title: string;

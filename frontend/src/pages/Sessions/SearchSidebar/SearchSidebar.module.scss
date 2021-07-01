@@ -32,7 +32,11 @@
     display: flex;
     flex-direction: column;
     padding: 10px 5px var(--size-medium);
-    row-gap: var(--size-medium);
+    row-gap: var(--size-xSmall);
+
+    :global(.ant-checkbox-wrapper + .ant-checkbox-wrapper) {
+        margin-left: 0;
+    }
 }
 
 .titleSection {
@@ -117,4 +121,12 @@
     display: flex;
     flex-direction: column;
     row-gap: var(--size-xSmall);
+}
+
+.inputContainer {
+    padding-bottom: var(--size-small);
+}
+
+.topPadding {
+    padding-top: var(--size-xSmall);
 }

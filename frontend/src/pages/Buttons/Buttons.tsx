@@ -3,6 +3,7 @@ import React from 'react';
 
 import commonStyles from '../../Common.module.scss';
 import styles from './Buttons.module.scss';
+import { CustomError, DefaultError } from './ButtonsHelper';
 export const Buttons = () => {
     return (
         <div className={styles.buttonBody}>
@@ -10,7 +11,7 @@ export const Buttons = () => {
                 <button
                     className={commonStyles.submitButton}
                     onClick={() => {
-                        throw new Error('errors page');
+                        DefaultError();
                     }}
                 >
                     Throw an Error
@@ -18,7 +19,23 @@ export const Buttons = () => {
                 <button
                     className={commonStyles.submitButton}
                     onClick={() => {
-                        H.error('error is being thrown yo!');
+                        console.error('boba');
+                    }}
+                >
+                    Console Error
+                </button>
+                <button
+                    className={commonStyles.submitButton}
+                    onClick={() => {
+                        H.error('Highlight H.error');
+                    }}
+                >
+                    H.error()
+                </button>
+                <button
+                    className={commonStyles.submitButton}
+                    onClick={() => {
+                        CustomError();
                     }}
                 >
                     Throw a custom Error

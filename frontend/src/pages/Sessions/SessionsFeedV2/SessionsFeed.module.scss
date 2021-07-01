@@ -6,20 +6,61 @@
     height: 100%;
     justify-content: center;
     position: relative;
+    width: 100px;
 }
 
 .readMarkerContainer {
     align-items: center;
     display: flex;
     margin-left: 6px;
-    position: relative;
     width: 8px;
+}
+
+.emptyStateWrapper {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+}
+
+.emptySubTitle {
+    align-items: center;
+    color: var(--color-gray-500);
+    display: flex;
+    font-size: 16px;
+    font-weight: 200;
+    justify-content: center;
+    max-width: 400px;
+    text-align: center;
+}
+
+.emptyTitle {
+    font-size: 18px;
+    font-weight: 300;
+    margin-top: 30px;
+}
+
+.emptyStateIcon {
+    height: 30px;
+    width: 70000px;
+}
+
+.emptyStateSection {
+    align-items: center;
+    border: 1px solid var(--color-gray-300);
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    margin: 10px;
+    padding: 20px;
+    width: max-content;
 }
 
 .topText {
     color: var(--color-gray-500);
     font-size: 12px;
-    margin: 0 !important;
+    margin: 4px 0 !important;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -28,7 +69,7 @@
 .middleText {
     color: var(--text-primary);
     font-size: 14px;
-    margin: 0 !important;
+    margin: 8px 0 !important;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -37,7 +78,31 @@
 .bottomText {
     color: var(--text-primary);
     font-size: 12px;
-    margin: 0 !important;
+    margin: 4px 0 !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.playButton {
+    height: 45px;
+    margin-left: 15px;
+    margin-right: 30px;
+    width: 45px;
+}
+
+.loadingDiv {
+    align-items: flex-start;
+    display: flex;
+    height: 50px;
+    justify-content: flex-start;
+    margin-bottom: 100px;
+}
+
+.blueTitle {
+    color: var(--color-purple);
+    font-size: 15px;
+    font-weight: 400;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -47,6 +112,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    width: 160px;
 }
 
 .tagWrapper {
@@ -54,6 +120,12 @@
     flex-flow: row wrap;
     height: 28px;
     overflow: hidden;
+}
+
+.sessionTextWrapper {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
 }
 
 .hoverBorderRight {
@@ -80,6 +152,49 @@
 
 .hoverBorderOn {
     background-color: var(--color-purple);
+}
+
+.feedWrapper {
+    display: flex;
+    width: 100%;
+}
+
+.feedContent {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    height: 200px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    width: 100%;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+.fixedContent {
+    align-items: center;
+    display: flex;
+    padding-bottom: var(--size-small);
+    position: relative;
+}
+
+.userInputWrapper {
+    width: 100%;
+}
+
+.resultCount {
+    align-items: center;
+    background: linear-gradient(
+        to top,
+        rgba(255, 255, 255, 0),
+        rgba(255, 255, 255, 1) 30%
+    );
+    color: var(--color-gray-500);
+    font-family: var(--header-font-family);
+    justify-content: space-between;
+    width: 100%;
 }
 
 .sessionCardWrapper {
@@ -171,8 +286,6 @@
 
     &::before {
         background-color: var(--color-purple);
-        border-bottom-left-radius: var(--size-xSmall);
-        border-top-left-radius: var(--size-xSmall);
         content: '';
         height: 100%;
         left: 0;
@@ -192,21 +305,37 @@
 
 .sessionCardContentWrapper {
     align-items: center;
-    column-gap: var(--size-large);
     display: flex;
     flex-grow: 1;
-    padding: 0 var(--size-xLarge);
-    padding-right: 0;
+    flex-wrap: wrap;
 }
 
 .sessionTextSectionWrapper {
     display: flex;
-    flex-direction: column;
     flex-grow: 1;
+    flex-wrap: wrap;
     justify-content: space-between;
-    row-gap: var(--size-xxSmall);
 
     @media screen and (max-width: 1200px) {
         flex-direction: column;
     }
+}
+
+.regSubTitle {
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 200;
+    margin-top: 3px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.regTitle {
+    color: var(--text-primary);
+    font-size: 15px;
+    font-weight: 300;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }

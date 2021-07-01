@@ -11,8 +11,9 @@ import (
 	"os"
 	"time"
 
-	parse "github.com/highlight-run/highlight/backend/event-parse"
+	"github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/model"
+
 	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	e "github.com/pkg/errors"
@@ -28,7 +29,10 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 	if os.Getenv("ENVIRONMENT") != "dev" && err != nil {
 		msg := slack.WebhookMessage{Text: fmt.
 			Sprintf("Error in InitializeSession: %q\nOccurred for organization: %q", err, organizationVerboseID)}
-		slack.PostWebhook("https://hooks.slack.com/services/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", &msg)
+		err := slack.PostWebhook("https://hooks.slack.com/services/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", &msg)
+		if err != nil {
+			log.Error(e.Wrap(err, "failed to post webhook with error in InitializeSession"))
+		}
 	}
 
 	return session, err
@@ -214,9 +218,9 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	// put errors in db
 	putErrorsToDBSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.errors"))
 	for _, v := range errors {
-		traceBytes, err := json.Marshal(v.Trace)
+		traceBytes, err := json.Marshal(v.StackTrace)
 		if err != nil {
-			log.Errorf("Error marshaling trace: %v", v.Trace)
+			log.Errorf("Error marshaling trace: %v", v.StackTrace)
 			continue
 		}
 		traceString := string(traceBytes)
@@ -233,7 +237,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			ColumnNumber:   v.ColumnNumber,
 			OS:             sessionObj.OSName,
 			Browser:        sessionObj.BrowserName,
-			Trace:          &traceString,
+			StackTrace:     &traceString,
 			Timestamp:      v.Timestamp,
 			Payload:        v.Payload,
 		}
@@ -244,7 +248,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "os_name", Value: sessionObj.OSName})
 		metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "visited_url", Value: errorToInsert.URL})
 		metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "event", Value: errorToInsert.Event})
-		group, err := r.HandleErrorAndGroup(errorToInsert, v.Trace, metaFields)
+		group, err := r.HandleErrorAndGroup(errorToInsert, v, metaFields, organizationID)
 		if err != nil {
 			log.Errorf("Error updating error group: %v", errorToInsert)
 			continue

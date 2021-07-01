@@ -16,6 +16,7 @@ export type Scalars = {
     Any: any;
     Time: any;
     Int64: any;
+    Upload: any;
 };
 
 export type Field = {
@@ -40,6 +41,7 @@ export type Session = {
     postal: Scalars['String'];
     environment?: Maybe<Scalars['String']>;
     app_version?: Maybe<Scalars['String']>;
+    client_version?: Maybe<Scalars['String']>;
     language: Scalars['String'];
     identifier: Scalars['String'];
     created_at?: Maybe<Scalars['Time']>;
@@ -131,7 +133,7 @@ export type ErrorObject = {
     source?: Maybe<Scalars['String']>;
     line_number?: Maybe<Scalars['Int']>;
     column_number?: Maybe<Scalars['Int']>;
-    trace?: Maybe<Array<Maybe<Scalars['Any']>>>;
+    stack_trace?: Maybe<Array<Maybe<Scalars['Any']>>>;
     timestamp?: Maybe<Scalars['Time']>;
     payload?: Maybe<Scalars['String']>;
 };
@@ -149,7 +151,7 @@ export type ErrorGroup = {
     organization_id: Scalars['Int'];
     type: Scalars['String'];
     event: Array<Maybe<Scalars['String']>>;
-    trace: Array<Maybe<ErrorTrace>>;
+    stack_trace: Array<Maybe<ErrorTrace>>;
     metadata_log: Array<Maybe<ErrorMetadata>>;
     field_group?: Maybe<Array<Maybe<ErrorField>>>;
     state: ErrorState;
@@ -174,6 +176,7 @@ export type ErrorTrace = {
     line_number?: Maybe<Scalars['Int']>;
     function_name?: Maybe<Scalars['String']>;
     column_number?: Maybe<Scalars['Int']>;
+    error?: Maybe<Scalars['String']>;
 };
 
 export type ReferrerTablePayload = {
@@ -660,6 +663,7 @@ export type Mutation = {
     updateNewUserAlert?: Maybe<SessionAlert>;
     updateTrackPropertiesAlert?: Maybe<SessionAlert>;
     updateUserPropertiesAlert?: Maybe<SessionAlert>;
+    updateSourceMaps?: Maybe<Scalars['ID']>;
 };
 
 export type MutationCreateOrganizationArgs = {
@@ -825,4 +829,9 @@ export type MutationUpdateUserPropertiesAlertArgs = {
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;
     user_properties: Array<Maybe<UserPropertyInput>>;
+};
+
+export type MutationUpdateSourceMapsArgs = {
+    api_key: Scalars['String'];
+    source_map_files?: Maybe<Array<Scalars['Upload']>>;
 };

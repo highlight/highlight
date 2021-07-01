@@ -14,6 +14,8 @@ import (
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
+	dd "github.com/highlight-run/highlight/backend/datadog"
+
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
@@ -29,7 +31,7 @@ type Worker struct {
 	S3Client *storage.StorageClient
 }
 
-func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Session, migrationState *string) error {
+func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Session, migrationState *string, events []model.EventsObject, payloadStringSize int) error {
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
@@ -38,10 +40,6 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 		return errors.Wrap(err, "error updating session to processed status")
 	}
 	fmt.Printf("starting push for: %v \n", s.ID)
-	events := []model.EventsObject{}
-	if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").Find(&events).Error; err != nil {
-		return errors.Wrap(err, "retrieving events")
-	}
 	sessionPayloadSize, err := w.S3Client.PushSessionsToS3(s.ID, s.OrganizationID, events)
 	// If this is unsucessful, return early (we treat this session as if it is stored in psql).
 	if err != nil {
@@ -52,6 +50,10 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	if res := w.Resolver.DB.Order("created_at desc").Where(&model.ResourcesObject{SessionID: s.ID}).Find(&resourcesObject); res.Error != nil {
 		return errors.Wrap(res.Error, "error reading from resources")
 	}
+	for _, ee := range resourcesObject {
+		payloadStringSize += len(ee.Resources)
+	}
+	dd.StatsD.Histogram("worker.processSession.payloadStringSize", float64(payloadStringSize), nil, 1) //nolint
 	resourcePayloadSize, err := w.S3Client.PushResourcesToS3(s.ID, s.OrganizationID, resourcesObject)
 	if err != nil {
 		return errors.Wrap(err, "error pushing network payload to s3")
@@ -61,6 +63,10 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	if res := w.Resolver.DB.Order("created_at desc").Where(&model.MessagesObject{SessionID: s.ID}).Find(&messagesObj); res.Error != nil {
 		return errors.Wrap(res.Error, "error reading from messages")
 	}
+	for _, mm := range messagesObj {
+		payloadStringSize += len(mm.Messages)
+	}
+	dd.StatsD.Histogram("worker.processSession.payloadStringSize", float64(payloadStringSize), nil, 1) //nolint
 	messagePayloadSize, err := w.S3Client.PushMessagesToS3(s.ID, s.OrganizationID, messagesObj)
 	if err != nil {
 		return errors.Wrap(err, "error pushing network payload to s3")
@@ -85,6 +91,9 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to storage enabled")
 	}
+
+	dd.StatsD.Histogram("worker.pushToObjectStorageAndWipe.payloadSize", float64(totalPayloadSize), nil, 1) //nolint
+
 	// Delete all the events_objects in the DB.
 	if len(events) > 0 {
 		if err := w.Resolver.DB.Unscoped().Delete(&events).Error; err != nil {
@@ -106,20 +115,20 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 }
 
 func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
-	// Set the session as processed; if any is error thrown after this, the session gets ignored.
-	if err := w.Resolver.DB.Model(&model.Session{}).Where(
-		&model.Session{Model: model.Model{ID: s.ID}},
-	).Updates(
-		&model.Session{Processed: &model.T},
-	).Error; err != nil {
-		return errors.Wrap(err, "error updating session to processed status")
-	}
-
 	// load all events
 	events := []model.EventsObject{}
 	if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").Find(&events).Error; err != nil {
 		return errors.Wrap(err, "retrieving events")
 	}
+
+	dd.StatsD.Histogram("worker.processSession.numEventsRowsQueried", float64(len(events)), nil, 1) //nolint
+
+	payloadStringBytes := 0
+	for _, ee := range events {
+		payloadStringBytes += len(ee.Events)
+	}
+	dd.StatsD.Histogram("worker.processSession.payloadStringSize", float64(payloadStringBytes), nil, 1) //nolint
+
 	// Delete the session if there's no events.
 	if len(events) == 0 {
 		if err := w.Resolver.DB.Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
@@ -150,8 +159,11 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// 1. Nothing happened in the session
 	// 2. A web crawler visited the page and produced no events
 	if length == 0 {
+		if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Delete(&model.EventsObject{}).Error; err != nil {
+			return errors.Wrap(err, "error trying to delete events_object for session of length 0ms")
+		}
 		if err := w.Resolver.DB.Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
-			return errors.Wrap(err, "error trying to delete session with no events")
+			return errors.Wrap(err, "error trying to delete session of length 0ms")
 		}
 		return nil
 	}
@@ -166,6 +178,24 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
+	}
+
+	// Update session count on dailydb
+	currentDate := time.Date(s.CreatedAt.UTC().Year(), s.CreatedAt.UTC().Month(), s.CreatedAt.UTC().Day(), 0, 0, 0, 0, time.UTC)
+	dailySession := &model.DailySessionCount{}
+	if err := w.Resolver.DB.
+		Where(&model.DailySessionCount{
+			OrganizationID: s.OrganizationID,
+			Date:           &currentDate,
+		}).Attrs(&model.DailySessionCount{Count: 0}).
+		FirstOrCreate(&dailySession).Error; err != nil {
+		return e.Wrap(err, "Error creating new daily session")
+	}
+
+	if err := w.Resolver.DB.
+		Where(&model.DailySessionCount{Model: model.Model{ID: dailySession.ID}}).
+		Updates(&model.DailySessionCount{Count: dailySession.Count + 1}).Error; err != nil {
+		return e.Wrap(err, "Error incrementing session count in db")
 	}
 
 	var g errgroup.Group
@@ -328,7 +358,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// Upload to s3 and wipe from the db.
 	if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" {
 		state := "normal"
-		if err := w.pushToObjectStorageAndWipe(ctx, s, &state); err != nil {
+		if err := w.pushToObjectStorageAndWipe(ctx, s, &state, events, payloadStringBytes); err != nil {
 			log.Errorf("error pushing to object and wiping from db (%v): %v", s.ID, err)
 		}
 	}
@@ -355,6 +385,8 @@ func (w *Worker) Start() {
 			sessionsSpan.Finish()
 			continue
 		}
+		// Sends a "count" metric to datadog so that we can see how many sessions are being queried.
+		dd.StatsD.Histogram("worker.sessionsQuery.sessionCount", float64(len(sessions)), nil, 1) //nolint
 		sessionsSpan.Finish()
 		for _, session := range sessions {
 			span, ctx := tracer.StartSpanFromContext(ctx, "worker.processSession", tracer.ResourceName(strconv.Itoa(session.ID)))

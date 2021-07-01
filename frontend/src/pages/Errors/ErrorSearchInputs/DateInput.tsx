@@ -40,7 +40,7 @@ export const DateInput = () => {
     }, [history, dateFromSearchParams, setSearchParams]);
 
     return (
-        <div className={inputStyles.commonInputWrapper}>
+        <div>
             <RangePicker
                 value={
                     searchParams.date_range
