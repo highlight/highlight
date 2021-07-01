@@ -965,7 +965,7 @@ func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, organi
 
 func (r *mutationResolver) UpdateSourceMaps(ctx context.Context, apiKey string, sourceMapFiles []*graphql.Upload) (*int, error) {
 	var orgID int
-	if err := r.DB.Where(&model.Organization{Secret: &apiKey}).Select("id").Scan(&orgID).Error; err != nil {
+	if err := r.DB.Model(&model.Organization{}).Where(&model.Organization{Secret: &apiKey}).Select("id").Scan(&orgID).Error; err != nil {
 		return nil, e.Wrap(err, "error querying org by secret in db")
 	}
 
