@@ -217,6 +217,7 @@ type ComplexityRoot struct {
 		UpdateErrorAlert               func(childComplexity int, organizationID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
 		UpdateErrorGroupState          func(childComplexity int, id int, state string) int
 		UpdateNewUserAlert             func(childComplexity int, organizationID int, sessionAlertID int, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
+		UpdateShareable                func(childComplexity int, sessionID int, isShareable bool) int
 		UpdateSourceMaps               func(childComplexity int, apiKey string, sourceMapFiles []*graphql.Upload) int
 		UpdateTrackPropertiesAlert     func(childComplexity int, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, trackProperties []*model.TrackPropertyInput) int
 		UpdateUserPropertiesAlert      func(childComplexity int, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, userProperties []*model.UserPropertyInput) int
@@ -469,6 +470,7 @@ type MutationResolver interface {
 	UpdateTrackPropertiesAlert(ctx context.Context, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, trackProperties []*model.TrackPropertyInput) (*model1.SessionAlert, error)
 	UpdateUserPropertiesAlert(ctx context.Context, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, userProperties []*model.UserPropertyInput) (*model1.SessionAlert, error)
 	UpdateSourceMaps(ctx context.Context, apiKey string, sourceMapFiles []*graphql.Upload) (*int, error)
+	UpdateShareable(ctx context.Context, sessionID int, isShareable bool) (*string, error)
 }
 type QueryResolver interface {
 	Session(ctx context.Context, id int) (*model1.Session, error)
@@ -1425,6 +1427,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateNewUserAlert(childComplexity, args["organization_id"].(int), args["session_alert_id"].(int), args["count_threshold"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["environments"].([]*string)), true
+
+	case "Mutation.updateShareable":
+		if e.complexity.Mutation.UpdateShareable == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateShareable_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateShareable(childComplexity, args["session_id"].(int), args["is_shareable"].(bool)), true
 
 	case "Mutation.updateSourceMaps":
 		if e.complexity.Mutation.UpdateSourceMaps == nil {
@@ -3244,10 +3258,8 @@ type Mutation {
         environments: [String]!
         user_properties: [UserPropertyInput]!
     ): SessionAlert
-    updateSourceMaps(
-        api_key: String!
-        source_map_files: [Upload!]
-    ): ID
+    updateSourceMaps(api_key: String!, source_map_files: [Upload!]): ID
+    updateShareable(session_id: ID!, is_shareable: Boolean!): String
 }
 `, BuiltIn: false},
 }
@@ -4070,6 +4082,30 @@ func (ec *executionContext) field_Mutation_updateNewUserAlert_args(ctx context.C
 		}
 	}
 	args["environments"] = arg4
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateShareable_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["session_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["session_id"] = arg0
+	var arg1 bool
+	if tmp, ok := rawArgs["is_shareable"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("is_shareable"))
+		arg1, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["is_shareable"] = arg1
 	return args, nil
 }
 
@@ -8889,6 +8925,45 @@ func (ec *executionContext) _Mutation_updateSourceMaps(ctx context.Context, fiel
 	res := resTmp.(*int)
 	fc.Result = res
 	return ec.marshalOID2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateShareable(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateShareable_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateShareable(rctx, args["session_id"].(int), args["is_shareable"].(bool))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _NewUsersCount_count(ctx context.Context, field graphql.CollectedField, obj *model.NewUsersCount) (ret graphql.Marshaler) {
@@ -16200,6 +16275,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_updateUserPropertiesAlert(ctx, field)
 		case "updateSourceMaps":
 			out.Values[i] = ec._Mutation_updateSourceMaps(ctx, field)
+		case "updateShareable":
+			out.Values[i] = ec._Mutation_updateShareable(ctx, field)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

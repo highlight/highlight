@@ -41,6 +41,8 @@ type Session {
     object_storage_enabled: Boolean
     payload_size: Int64
     within_billing_quota: Boolean
+    shareable_secret: String
+    is_shareable: Boolean
 }
 
 type BillingDetails {
@@ -565,8 +567,6 @@ type Mutation {
         environments: [String]!
         user_properties: [UserPropertyInput]!
     ): SessionAlert
-    updateSourceMaps(
-        api_key: String!
-        source_map_files: [Upload!]
-    ): ID
+    updateSourceMaps(api_key: String!, source_map_files: [Upload!]): ID
+    updateShareable(session_id: ID!, is_shareable: Boolean!): String
 }

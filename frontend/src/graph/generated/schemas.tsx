@@ -58,6 +58,8 @@ export type Session = {
     object_storage_enabled?: Maybe<Scalars['Boolean']>;
     payload_size?: Maybe<Scalars['Int64']>;
     within_billing_quota?: Maybe<Scalars['Boolean']>;
+    shareable_secret?: Maybe<Scalars['String']>;
+    is_shareable?: Maybe<Scalars['Boolean']>;
 };
 
 export type BillingDetails = {
@@ -664,6 +666,7 @@ export type Mutation = {
     updateTrackPropertiesAlert?: Maybe<SessionAlert>;
     updateUserPropertiesAlert?: Maybe<SessionAlert>;
     updateSourceMaps?: Maybe<Scalars['ID']>;
+    updateShareable?: Maybe<Scalars['String']>;
 };
 
 export type MutationCreateOrganizationArgs = {
@@ -834,4 +837,9 @@ export type MutationUpdateUserPropertiesAlertArgs = {
 export type MutationUpdateSourceMapsArgs = {
     api_key: Scalars['String'];
     source_map_files?: Maybe<Array<Scalars['Upload']>>;
+};
+
+export type MutationUpdateShareableArgs = {
+    session_id: Scalars['ID'];
+    is_shareable: Scalars['Boolean'];
 };

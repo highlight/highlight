@@ -979,6 +979,26 @@ func (r *mutationResolver) UpdateSourceMaps(ctx context.Context, apiKey string, 
 	return &orgID, nil
 }
 
+func (r *mutationResolver) UpdateShareable(ctx context.Context, sessionID int, isShareable bool) (*string, error) {
+	session, err := r.isAdminSessionOwner(ctx, sessionID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not session owner")
+	}
+	shareableSecret := session.ShareableSecret
+	if shareableSecret == nil {
+		secret := xid.New().String()
+		shareableSecret = &secret
+	}
+	if err := r.DB.Model(session).Updates(&model.Session{
+		ShareableSecret: shareableSecret,
+		IsShareable:     &isShareable,
+	}).Error; err != nil {
+		return nil, e.Wrap(err, "error updating shareable link fields")
+	}
+
+	return shareableSecret, nil
+}
+
 func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, error) {
 	if _, err := r.isAdminSessionOwner(ctx, id); err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
