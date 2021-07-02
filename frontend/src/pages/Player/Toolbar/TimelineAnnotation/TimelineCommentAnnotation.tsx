@@ -1,7 +1,9 @@
+import { message } from 'antd';
 import React, { ReactElement, useContext, useState } from 'react';
 
 import { SessionComment } from '../../../../components/Comment/SessionComment/SessionComment';
 import Popover from '../../../../components/Popover/Popover';
+import { MillisToMinutesAndSeconds } from '../../../../util/time';
 import ReplayerContext, { ParsedSessionComment } from '../../ReplayerContext';
 import styles from '../Toolbar.module.scss';
 import TimelineAnnotation from './TimelineAnnotation';
@@ -34,6 +36,11 @@ function TimelineCommentAnnotation({ comment }: Props): ReactElement {
                 onClickHandler={() => {
                     if (replayer) {
                         pause(comment.timestamp);
+                        message.success(
+                            `Changed player time to where comment was created at ${MillisToMinutesAndSeconds(
+                                comment.timestamp
+                            )}.`
+                        );
                     }
                 }}
             />

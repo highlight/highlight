@@ -1,3 +1,4 @@
+import { message as AntDesignMessage } from 'antd';
 import _ from 'lodash';
 import React, {
     useCallback,
@@ -16,6 +17,7 @@ import GoToButton from '../../../../../components/Button/GoToButton';
 import { DemoContext } from '../../../../../DemoContext';
 import { useGetMessagesQuery } from '../../../../../graph/generated/hooks';
 import { ConsoleMessage } from '../../../../../util/shared-types';
+import { MillisToMinutesAndSeconds } from '../../../../../util/time';
 import ReplayerContext, { ReplayerState } from '../../../ReplayerContext';
 import devStyles from '../DevToolsWindow.module.scss';
 import { Option } from '../Option/Option';
@@ -200,6 +202,13 @@ export const ConsolePage = ({ time }: { time: number }) => {
                                                 message.time -
                                                     (replayer?.getMetaData()
                                                         .startTime ?? 0)
+                                            );
+                                            AntDesignMessage.success(
+                                                `Changed player time to when console message was created at ${MillisToMinutesAndSeconds(
+                                                    message.time -
+                                                        (replayer?.getMetaData()
+                                                            .startTime ?? 0)
+                                                )}.`
                                             );
                                         }}
                                     />

@@ -1,3 +1,4 @@
+import { message } from 'antd';
 import _ from 'lodash';
 import React, {
     useCallback,
@@ -15,9 +16,10 @@ import Tooltip from '../../../../../components/Tooltip/Tooltip';
 import { DemoContext } from '../../../../../DemoContext';
 import { useGetResourcesQuery } from '../../../../../graph/generated/hooks';
 import { formatNumber } from '../../../../../util/numbers';
+import { MillisToMinutesAndSeconds } from '../../../../../util/time';
 import ReplayerContext, { ReplayerState } from '../../../ReplayerContext';
 import devStyles from '../DevToolsWindow.module.scss';
-import { Option } from '../Option/Option';
+import { getNetworkResourcesDisplayName, Option } from '../Option/Option';
 import styles from './ResourcePage.module.scss';
 
 export const ResourcePage = ({
@@ -312,7 +314,9 @@ const ResourceRow = ({
                 }}
                 className={styles.networkRow}
             >
-                <div className={styles.typeSection}>{p.initiatorType}</div>
+                <div className={styles.typeSection}>
+                    {getNetworkResourcesDisplayName(p.initiatorType)}
+                </div>
                 <Tooltip title={p.name}>
                     <div className={styles.nameSection}>{p.name}</div>
                 </Tooltip>
@@ -349,6 +353,14 @@ const ResourceRow = ({
                     className={styles.goToButton}
                     onClick={() => {
                         pause(p.startTime);
+
+                        message.success(
+                            `Changed player time to when ${getNetworkResourcesDisplayName(
+                                p.initiatorType
+                            )} request started at ${MillisToMinutesAndSeconds(
+                                p.startTime
+                            )}.`
+                        );
                     }}
                 />
             </div>

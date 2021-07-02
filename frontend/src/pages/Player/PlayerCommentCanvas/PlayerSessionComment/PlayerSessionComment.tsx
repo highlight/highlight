@@ -1,3 +1,4 @@
+import { message } from 'antd';
 import classNames from 'classnames';
 import React, { useContext, useEffect, useState } from 'react';
 
@@ -9,6 +10,7 @@ import {
     SessionComment as SessionCommentType,
 } from '../../../../graph/generated/schemas';
 import CommentPinIcon from '../../../../static/comment-pin.png';
+import { MillisToMinutesAndSeconds } from '../../../../util/time';
 import ReplayerContext from '../../ReplayerContext';
 import commentButtonStyles from '../PlayerCommentCanvas.module.scss';
 import styles from './PlayerSessionComment.module.scss';
@@ -92,6 +94,11 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
                 <button
                     onClick={() => {
                         pause(comment.timestamp);
+                        message.success(
+                            `Changed player time to where comment was created at ${MillisToMinutesAndSeconds(
+                                comment.timestamp
+                            )}.`
+                        );
                     }}
                     className={classNames(
                         commentButtonStyles.commentIndicator,
