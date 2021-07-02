@@ -6,15 +6,8 @@ let firebaseConfig: any;
 let firebaseConfigString: string;
 
 if (process.env.REACT_APP_FIREBASE_CONFIG_OBJECT) {
-    console.log(
-        'Reading firebase config process.env.REACT_APP_FIREBASE_CONFIG_OBJECT'
-    );
-    console.log('Reading firebase config from env variable');
     firebaseConfigString = process.env.REACT_APP_FIREBASE_CONFIG_OBJECT ?? '';
 } else {
-    console.log(
-        'Reading firebase config window._highlightFirebaseConfigString'
-    );
     firebaseConfigString = window._highlightFirebaseConfigString;
 }
 
