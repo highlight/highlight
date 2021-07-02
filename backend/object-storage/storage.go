@@ -216,8 +216,11 @@ func (s *StorageClient) bucketKey(sessionId int, organizationId int, key Payload
 
 func (s *StorageClient) sourceMapBucketKey(organizationId int, version, fileName string) *string {
 	key := fmt.Sprintf("%d/%s/%s", organizationId, version, fileName)
-	if os.Getenv("ENVIRONMENT") == "dev" {
+	env := os.Getenv("ENVIRONMENT")
+	if env == "dev" {
 		key = "dev/" + key
+	} else if env == "test" {
+		key = "test/" + key
 	}
 	return aws.String(key)
 }
