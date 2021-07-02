@@ -330,9 +330,9 @@ const DailyChart = ({
                 <XAxis
                     dataKey="date"
                     interval="preserveStart"
-                    tickFormatter={(tickItem) =>
-                        moment(tickItem).format('D MMM')
-                    }
+                    tickFormatter={(tickItem) => {
+                        return moment(tickItem, 'DD MMM YYYY').format('D MMM');
+                    }}
                     tick={{ fontSize: '11px', fill: labelColor }}
                     tickLine={{ stroke: labelColor, visibility: 'hidden' }}
                     axisLine={{ stroke: gridColor }}
