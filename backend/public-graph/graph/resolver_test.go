@@ -247,13 +247,20 @@ func TestHandleErrorAndGroup(t *testing.T) {
 func TestEnhanceStackTrace(t *testing.T) {
 	// construct table of sub-tests to run
 	tests := map[string]struct {
-		stackFrameInput     []*publicModelInput.StackFrameInput
-		expectedErrorObject model.ErrorObject
-		expectedStackTrace  []modelInput.ErrorTrace
-		fetcher             fetcher
-		err                 error
+		stackFrameInput      []*publicModelInput.StackFrameInput
+		organizationToInsert model.Organization
+		expectedErrorObject  model.ErrorObject
+		expectedStackTrace   []modelInput.ErrorTrace
+		fetcher              fetcher
+		err                  error
 	}{
 		"test source mapping with proper stack trace": {
+			organizationToInsert: model.Organization{
+				Model: model.Model{
+					ID: 1,
+				},
+				Version: util.MakeStringPointer("1"),
+			},
 			stackFrameInput: []*publicModelInput.StackFrameInput{
 				{
 					FileName:     util.MakeStringPointer("./test-files/lodash.min.js"),
@@ -284,6 +291,12 @@ func TestEnhanceStackTrace(t *testing.T) {
 			err:     e.New(""),
 		},
 		"test source mapping invalid trace:no related source map": {
+			organizationToInsert: model.Organization{
+				Model: model.Model{
+					ID: 1,
+				},
+				Version: util.MakeStringPointer("1"),
+			},
 			stackFrameInput: []*publicModelInput.StackFrameInput{
 				{
 					FileName:     util.MakeStringPointer("./test-files/lodash.js"),
@@ -303,6 +316,12 @@ func TestEnhanceStackTrace(t *testing.T) {
 			err:     e.New(""),
 		},
 		"test source mapping invalid trace:file doesn't exist": {
+			organizationToInsert: model.Organization{
+				Model: model.Model{
+					ID: 1,
+				},
+				Version: util.MakeStringPointer("1"),
+			},
 			stackFrameInput: []*publicModelInput.StackFrameInput{
 				{
 					FileName:     util.MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js"),
@@ -322,6 +341,12 @@ func TestEnhanceStackTrace(t *testing.T) {
 			err:     e.New(""),
 		},
 		"test source mapping invalid trace:filename is not a url": {
+			organizationToInsert: model.Organization{
+				Model: model.Model{
+					ID: 1,
+				},
+				Version: util.MakeStringPointer("1"),
+			},
 			stackFrameInput: []*publicModelInput.StackFrameInput{
 				{
 					FileName:     util.MakeStringPointer("/file/local/domain.js"),
@@ -353,6 +378,12 @@ func TestEnhanceStackTrace(t *testing.T) {
 			err:                e.New(""),
 		},
 		"test tsx mapping": {
+			organizationToInsert: model.Organization{
+				Model: model.Model{
+					ID: 1,
+				},
+				Version: util.MakeStringPointer("1"),
+			},
 			stackFrameInput: []*publicModelInput.StackFrameInput{
 				{
 					FileName:     util.MakeStringPointer("./test-files/main.8344d167.chunk.js"),
@@ -385,6 +416,10 @@ func TestEnhanceStackTrace(t *testing.T) {
 	// run tests
 	for name, tc := range tests {
 		util.RunTestWithDBWipe(t, name, DB, func(t *testing.T) {
+			if err := r.DB.Create(&tc.organizationToInsert).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error creating organization"))
+			}
+
 			fetch = tc.fetcher
 			mappedStackTrace, err := r.EnhanceStackTrace(tc.stackFrameInput, 1)
 			if err != nil {
