@@ -6,9 +6,12 @@ const { hideBin } = require("yargs/helpers");
 const { statSync, readFileSync } = require("fs");
 const glob = require("glob");
 const fetch = require("node-fetch");
-var FormData = require('form-data');
-var fs = require('fs');
-
+var FormData = require("form-data");
+var fs = require("fs");
+const { ApolloClient } = require("apollo-client");
+const { gql } = require("graphql-tag");
+const { createUploadLink } = require("apollo-upload-client");
+const { InMemoryCache } = require("apollo-cache-inmemory");
 
 var pjson = require("./package.json");
 console.log("Running version: ", pjson.version);
@@ -21,7 +24,7 @@ yargs(hideBin(process.argv))
     async ({ apiKey, path }) => {
       console.info(`Starting to upload source maps from ${path}`);
 
-      const fileList = await getAllSourceMapFiles(cwd()+path, [path]);
+      const fileList = await getAllSourceMapFiles([path]);
 
       if (fileList.length === 0) {
         console.error(
@@ -53,7 +56,7 @@ yargs(hideBin(process.argv))
   })
   .help("help").argv;
 
-async function getAllSourceMapFiles(basePath, paths) {
+async function getAllSourceMapFiles(paths) {
   const map = [];
 
   await Promise.all(
@@ -72,11 +75,8 @@ async function getAllSourceMapFiles(basePath, paths) {
         glob("**/*.js?(.map)", { cwd: realPath }, async (err, files) => {
           for (const file of files) {
             const thePath = join(realPath, file);
-            const relPath = "."+ thePath.substring(thePath.indexOf(basePath)+basePath.length)
-
             map.push({
-              name: relPath,
-              content: readFileSync(thePath),
+              name: thePath,
             });
           }
 
@@ -89,35 +89,31 @@ async function getAllSourceMapFiles(basePath, paths) {
 }
 
 async function uploadFiles(apiKey, fileList) {
-  const query = `mutation($api_key: String!, $source_map_files: [Upload!]) { updateSourceMaps(api_key: $api_key, source_map_files: $source_map_files)}`;
-  let source_map_files_map = {};
+  const client = new ApolloClient({
+    fetch: fetch,
+    cache: new InMemoryCache(),
+    link: createUploadLink({
+      fetch: fetch,
+      uri: "http://localhost:8082/private",
+      headers: { "Highlight-Demo": true },
+    }),
+  });
+  const MUTATION = gql`
+    mutation ($source_map_files: [Upload!]) {
+      updateSourceMaps(api_key: $api_key, source_map_files: $source_map_files)
+    }
+  `;
   let source_map_files_list = [];
   for (let i = 0; i < fileList.length; i++) {
-    source_map_files_map[i] = [`variables.source_map_files.${i}`]
-    source_map_files_list.push(null);
-  }
-  const operation = {
-    query,
-    variables: {
-      api_key: apiKey,
-      source_map_files: source_map_files_list
-    }
-  };
+    const fileData = readFileSync(fileList[i].name);
 
-  const body = new FormData();
-  body.append('operations', JSON.stringify(operation));
-  body.append('map', JSON.stringify(source_map_files_map));
-  for (let i = 0; i < fileList.length; i++) {
-    body.append(`${i}`, "@"+fileList[i].name);
+    source_map_files_list.push(fileData);
   }
-  
-  console.log(JSON.stringify(body))
-  fetch("http://localhost:8082/private", {
-    method: "POST",
-    headers: {
-      "Highlight-Demo": "true",
-    },
-    body: body,
-  })
-  .then(res => console.log(res));
+  const VARIABLES = {
+    source_map_files: source_map_files_list,
+    api_key: apiKey,
+  };
+  client.mutate({ mutation: MUTATION, variables: VARIABLES }).catch((err) => {
+    console.log(err);
+  });
 }
