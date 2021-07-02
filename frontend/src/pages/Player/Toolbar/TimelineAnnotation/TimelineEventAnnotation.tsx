@@ -1,7 +1,9 @@
 import useLocalStorage from '@rehooks/local-storage';
+import { message } from 'antd';
 import React, { useContext, useState } from 'react';
 
 import Popover from '../../../../components/Popover/Popover';
+import { MillisToMinutesAndSeconds } from '../../../../util/time';
 import { EventsForTimeline } from '../../PlayerHook/utils';
 import ReplayerContext, { ParsedHighlightEvent } from '../../ReplayerContext';
 import {
@@ -78,8 +80,14 @@ const TimelineEventAnnotation = ({ event }: Props) => {
                 }
                 onClickHandler={() => {
                     if (replayer) {
-                        pause(
-                            event.timestamp - replayer.getMetaData().startTime
+                        const newTime =
+                            event.timestamp - replayer.getMetaData().startTime;
+
+                        pause(newTime);
+                        message.success(
+                            `Changed player time to where event was created at ${MillisToMinutesAndSeconds(
+                                newTime
+                            )}.`
                         );
                     }
                 }}

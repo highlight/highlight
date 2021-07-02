@@ -1,8 +1,10 @@
+import { message } from 'antd';
 import classNames from 'classnames';
 import React, { useContext } from 'react';
 
 import GoToButton from '../../../../../../../components/Button/GoToButton';
 import { ErrorObject } from '../../../../../../../graph/generated/schemas';
+import { MillisToMinutesAndSeconds } from '../../../../../../../util/time';
 import ReplayerContext from '../../../../../ReplayerContext';
 import styles from './ErrorCard.module.scss';
 
@@ -63,6 +65,12 @@ const ErrorCard = ({ error, state, setSelectedError }: Props) => {
                                     dateTimeErrorCreated.getTime() -
                                     dateTimeSessionStart.getTime();
                                 setTime(deltaMilliseconds);
+
+                                message.success(
+                                    `Changed player time to when error was thrown at ${MillisToMinutesAndSeconds(
+                                        deltaMilliseconds
+                                    )}.`
+                                );
                             }
                         }}
                         label="Goto"

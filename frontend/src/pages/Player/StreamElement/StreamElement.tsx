@@ -1,4 +1,5 @@
 import { EventType } from '@highlight-run/rrweb';
+import { message } from 'antd';
 import classNames from 'classnames/bind';
 import React, { useContext, useState } from 'react';
 import { FaBug, FaRegStopCircle } from 'react-icons/fa';
@@ -130,6 +131,14 @@ export const StreamElement = ({
                                 // Sets the current event as null. It will be reset as the player continues.
                                 onGoToHandler('');
                                 pause(timeSinceStart);
+
+                                message.success(
+                                    `Changed player time showing you ${
+                                        details.title
+                                    } at ${MillisToMinutesAndSeconds(
+                                        timeSinceStart
+                                    )}`
+                                );
                             }}
                         />
                     </>

@@ -1,8 +1,10 @@
+import { message } from 'antd';
 import React, { ReactElement, useContext, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
 import GoToButton from '../../../../components/Button/GoToButton';
 import Popover from '../../../../components/Popover/Popover';
+import { MillisToMinutesAndSeconds } from '../../../../util/time';
 import { getHeaderFromError } from '../../../Error/ErrorPage';
 import { PlayerSearchParameters } from '../../PlayerHook/utils';
 import ReplayerContext, { ParsedErrorObject } from '../../ReplayerContext';
@@ -56,9 +58,15 @@ function TimelineErrorAnnotation({ error }: Props): ReactElement {
                 colorKey="Errors"
                 onClickHandler={() => {
                     if (replayer) {
-                        pause(
+                        const newTime =
                             new Date(error.timestamp).getTime() -
-                                replayer.getMetaData().startTime
+                            replayer.getMetaData().startTime;
+
+                        pause(newTime);
+                        message.success(
+                            `Changed player time to where error was thrown at ${MillisToMinutesAndSeconds(
+                                newTime
+                            )}.`
                         );
                     }
                 }}

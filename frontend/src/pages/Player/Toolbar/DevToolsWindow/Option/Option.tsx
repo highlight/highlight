@@ -13,7 +13,7 @@ const DISPLAY_NAMES: { [key: string]: string } = {
     fetch: 'Fetch',
 } as const;
 
-const getDisplayName = (value: string): string => {
+export const getNetworkResourcesDisplayName = (value: string): string => {
     switch (true) {
         case value in DISPLAY_NAMES: {
             return DISPLAY_NAMES[value];
@@ -42,7 +42,7 @@ export const Option = ({
             })}
             onClick={onSelect}
         >
-            {getDisplayName(optionValue)}
+            {getNetworkResourcesDisplayName(optionValue)}
         </div>
     );
 };

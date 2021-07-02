@@ -12,6 +12,7 @@ import ReplayerContext, {
     ParsedSessionComment,
 } from '../../../pages/Player/ReplayerContext';
 import { onGetLinkWithTimestamp } from '../../../pages/Player/ShareButton/utils/utils';
+import { MillisToMinutesAndSeconds } from '../../../util/time';
 import { CommentHeader } from '../CommentHeader';
 
 interface Props {
@@ -75,6 +76,11 @@ const SessionCommentHeader = ({
                         }?${urlSearchParams.toString()}`
                     );
                     pause(comment.timestamp);
+                    message.success(
+                        `Changed player time to where comment was created at ${MillisToMinutesAndSeconds(
+                            comment.timestamp
+                        )}.`
+                    );
                 }}
             >
                 Goto
