@@ -217,7 +217,7 @@ type ComplexityRoot struct {
 		UpdateErrorAlert               func(childComplexity int, organizationID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
 		UpdateErrorGroupState          func(childComplexity int, id int, state string) int
 		UpdateNewUserAlert             func(childComplexity int, organizationID int, sessionAlertID int, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
-		UpdateSourceMaps               func(childComplexity int, apiKey string, sourceMapFiles []*graphql.Upload) int
+		UpdateSourceMapsAndVersion     func(childComplexity int, apiKey string, version string, sourceMapFiles []*graphql.Upload) int
 		UpdateTrackPropertiesAlert     func(childComplexity int, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, trackProperties []*model.TrackPropertyInput) int
 		UpdateUserPropertiesAlert      func(childComplexity int, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, userProperties []*model.UserPropertyInput) int
 	}
@@ -468,7 +468,7 @@ type MutationResolver interface {
 	UpdateNewUserAlert(ctx context.Context, organizationID int, sessionAlertID int, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.SessionAlert, error)
 	UpdateTrackPropertiesAlert(ctx context.Context, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, trackProperties []*model.TrackPropertyInput) (*model1.SessionAlert, error)
 	UpdateUserPropertiesAlert(ctx context.Context, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, userProperties []*model.UserPropertyInput) (*model1.SessionAlert, error)
-	UpdateSourceMaps(ctx context.Context, apiKey string, sourceMapFiles []*graphql.Upload) (*int, error)
+	UpdateSourceMapsAndVersion(ctx context.Context, apiKey string, version string, sourceMapFiles []*graphql.Upload) (*int, error)
 }
 type QueryResolver interface {
 	Session(ctx context.Context, id int) (*model1.Session, error)
@@ -1426,17 +1426,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateNewUserAlert(childComplexity, args["organization_id"].(int), args["session_alert_id"].(int), args["count_threshold"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["environments"].([]*string)), true
 
-	case "Mutation.updateSourceMaps":
-		if e.complexity.Mutation.UpdateSourceMaps == nil {
+	case "Mutation.updateSourceMapsAndVersion":
+		if e.complexity.Mutation.UpdateSourceMapsAndVersion == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_updateSourceMaps_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_updateSourceMapsAndVersion_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateSourceMaps(childComplexity, args["api_key"].(string), args["source_map_files"].([]*graphql.Upload)), true
+		return e.complexity.Mutation.UpdateSourceMapsAndVersion(childComplexity, args["api_key"].(string), args["version"].(string), args["source_map_files"].([]*graphql.Upload)), true
 
 	case "Mutation.updateTrackPropertiesAlert":
 		if e.complexity.Mutation.UpdateTrackPropertiesAlert == nil {
@@ -3244,8 +3244,9 @@ type Mutation {
         environments: [String]!
         user_properties: [UserPropertyInput]!
     ): SessionAlert
-    updateSourceMaps(
+    updateSourceMapsAndVersion(
         api_key: String!
+        version: String!
         source_map_files: [Upload!]
     ): ID
 }
@@ -4073,7 +4074,7 @@ func (ec *executionContext) field_Mutation_updateNewUserAlert_args(ctx context.C
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_updateSourceMaps_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_updateSourceMapsAndVersion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -4085,15 +4086,24 @@ func (ec *executionContext) field_Mutation_updateSourceMaps_args(ctx context.Con
 		}
 	}
 	args["api_key"] = arg0
-	var arg1 []*graphql.Upload
-	if tmp, ok := rawArgs["source_map_files"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("source_map_files"))
-		arg1, err = ec.unmarshalOUpload2ᚕᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUploadᚄ(ctx, tmp)
+	var arg1 string
+	if tmp, ok := rawArgs["version"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("version"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["source_map_files"] = arg1
+	args["version"] = arg1
+	var arg2 []*graphql.Upload
+	if tmp, ok := rawArgs["source_map_files"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("source_map_files"))
+		arg2, err = ec.unmarshalOUpload2ᚕᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUploadᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["source_map_files"] = arg2
 	return args, nil
 }
 
@@ -8852,7 +8862,7 @@ func (ec *executionContext) _Mutation_updateUserPropertiesAlert(ctx context.Cont
 	return ec.marshalOSessionAlert2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionAlert(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_updateSourceMaps(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_updateSourceMapsAndVersion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -8869,7 +8879,7 @@ func (ec *executionContext) _Mutation_updateSourceMaps(ctx context.Context, fiel
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_updateSourceMaps_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_updateSourceMapsAndVersion_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -8877,7 +8887,7 @@ func (ec *executionContext) _Mutation_updateSourceMaps(ctx context.Context, fiel
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateSourceMaps(rctx, args["api_key"].(string), args["source_map_files"].([]*graphql.Upload))
+		return ec.resolvers.Mutation().UpdateSourceMapsAndVersion(rctx, args["api_key"].(string), args["version"].(string), args["source_map_files"].([]*graphql.Upload))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16198,8 +16208,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_updateTrackPropertiesAlert(ctx, field)
 		case "updateUserPropertiesAlert":
 			out.Values[i] = ec._Mutation_updateUserPropertiesAlert(ctx, field)
-		case "updateSourceMaps":
-			out.Values[i] = ec._Mutation_updateSourceMaps(ctx, field)
+		case "updateSourceMapsAndVersion":
+			out.Values[i] = ec._Mutation_updateSourceMapsAndVersion(ctx, field)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

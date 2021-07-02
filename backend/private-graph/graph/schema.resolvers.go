@@ -963,14 +963,18 @@ func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, organi
 	return alert, nil
 }
 
-func (r *mutationResolver) UpdateSourceMaps(ctx context.Context, apiKey string, sourceMapFiles []*graphql.Upload) (*int, error) {
+func (r *mutationResolver) UpdateSourceMapsAndVersion(ctx context.Context, apiKey string, version string, sourceMapFiles []*graphql.Upload) (*int, error) {
+	if apiKey == "" || version == "" || len(sourceMapFiles) == 0 {
+		return nil, e.New("something is empty")
+	}
+
 	var orgID int
-	if err := r.DB.Model(&model.Organization{}).Where(&model.Organization{Secret: &apiKey}).Select("id").Scan(&orgID).Error; err != nil {
-		return nil, e.Wrap(err, "error querying org by secret in db")
+	if err := r.DB.Raw("UPDATE organizations SET version=? WHERE secret=? RETURNING id", version, apiKey).Scan(&orgID).Error; err != nil {
+		return nil, e.Wrap(err, "error updating version in org queried by secret in db")
 	}
 
 	for _, file := range sourceMapFiles {
-		_, err := r.StorageClient.PushSourceMapFileReaderToS3(orgID, file.Filename, file.File)
+		_, err := r.StorageClient.PushSourceMapFileReaderToS3(orgID, version, file.Filename, file.File)
 		if err != nil {
 			return nil, e.Wrap(err, "error pushing sourcemap file to s3")
 		}

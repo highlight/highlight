@@ -158,6 +158,8 @@ type Organization struct {
 	SlackChannels         *string
 	// Alerts
 	ErrorAlert *string
+	// Used for source maps
+	Version *string
 }
 
 type Alert struct {

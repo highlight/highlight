@@ -663,7 +663,7 @@ export type Mutation = {
     updateNewUserAlert?: Maybe<SessionAlert>;
     updateTrackPropertiesAlert?: Maybe<SessionAlert>;
     updateUserPropertiesAlert?: Maybe<SessionAlert>;
-    updateSourceMaps?: Maybe<Scalars['ID']>;
+    updateSourceMapsAndVersion?: Maybe<Scalars['ID']>;
 };
 
 export type MutationCreateOrganizationArgs = {
@@ -831,7 +831,8 @@ export type MutationUpdateUserPropertiesAlertArgs = {
     user_properties: Array<Maybe<UserPropertyInput>>;
 };
 
-export type MutationUpdateSourceMapsArgs = {
+export type MutationUpdateSourceMapsAndVersionArgs = {
     api_key: Scalars['String'];
+    version: Scalars['String'];
     source_map_files?: Maybe<Array<Scalars['Upload']>>;
 };
