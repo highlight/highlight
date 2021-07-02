@@ -603,7 +603,7 @@ func (r *Resolver) processStackFrame(organizationId int, stackTrace model2.Stack
 
 	// get version from org
 	var version *string
-	if err := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationId}}).Select("version").Scan(&version).Error; err != nil {
+	if err := r.DB.Model(&model.Organization{}).Where(&model.Organization{Model: model.Model{ID: organizationId}}).Select("version").Scan(&version).Error; err != nil {
 		return nil, e.Wrap(err, "error getting version from org")
 	}
 	if version == nil {
