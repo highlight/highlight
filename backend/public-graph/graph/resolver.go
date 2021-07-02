@@ -601,8 +601,17 @@ func (r *Resolver) processStackFrame(organizationId int, stackTrace model2.Stack
 		stackTraceFilePath = stackTraceFileURL[1:]
 	}
 
+	// get version from org
+	var version *string
+	if err := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationId}}).Select("version").Scan(&version).Error; err != nil {
+		return nil, e.Wrap(err, "error getting version from org")
+	}
+	if version == nil {
+		return nil, e.New("version nil on org")
+	}
+
 	// try to get file from s3
-	minifiedFileBytes, err := r.StorageClient.ReadSourceMapFileFromS3(organizationId, stackTraceFilePath)
+	minifiedFileBytes, err := r.StorageClient.ReadSourceMapFileFromS3(organizationId, *version, stackTraceFilePath)
 	if err != nil {
 		// if not in s3, get from url and put in s3
 		minifiedFileBytes, err = fetch.fetchFile(stackTraceFileURL)
@@ -611,7 +620,7 @@ func (r *Resolver) processStackFrame(organizationId int, stackTrace model2.Stack
 			err := e.Wrapf(err, "error fetching file: %v", stackTraceFileURL)
 			return nil, err
 		}
-		_, err = r.StorageClient.PushSourceMapFileToS3(organizationId, stackTraceFilePath, minifiedFileBytes)
+		_, err = r.StorageClient.PushSourceMapFileToS3(organizationId, *version, stackTraceFilePath, minifiedFileBytes)
 		if err != nil {
 			log.Error(e.Wrapf(err, "error pushing file to s3: %v", stackTraceFilePath))
 		}
@@ -646,7 +655,7 @@ func (r *Resolver) processStackFrame(organizationId int, stackTrace model2.Stack
 
 	// fetch source map file
 	// try to get file from s3
-	sourceMapFileBytes, err := r.StorageClient.ReadSourceMapFileFromS3(organizationId, sourceMapFileName)
+	sourceMapFileBytes, err := r.StorageClient.ReadSourceMapFileFromS3(organizationId, *version, sourceMapFileName)
 	if err != nil {
 		// if not in s3, get from url and put in s3
 		sourceMapFileBytes, err = fetch.fetchFile(sourceMapURL)
@@ -655,7 +664,7 @@ func (r *Resolver) processStackFrame(organizationId int, stackTrace model2.Stack
 			err := e.Wrapf(err, "error fetching source map file: %v", sourceMapFileName)
 			return nil, err
 		}
-		_, err = r.StorageClient.PushSourceMapFileToS3(organizationId, sourceMapFileName, sourceMapFileBytes)
+		_, err = r.StorageClient.PushSourceMapFileToS3(organizationId, *version, sourceMapFileName, sourceMapFileBytes)
 		if err != nil {
 			log.Error(e.Wrapf(err, "error pushing file to s3: %v", sourceMapFileName))
 		}
