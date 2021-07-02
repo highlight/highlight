@@ -1,0 +1,31 @@
+.popover {
+    margin-top: var(--size-xxSmall);
+    max-width: 320px;
+    min-width: 300px;
+}
+
+// .popoverTitle {
+//     align-items: baseline;
+//     border-bottom: 1px solid var(--color-gray-300);
+//     column-gap: var(--size-xSmall);
+//     display: flex;
+//     justify-content: space-between;
+//     margin: 0 calc(var(--size-medium) * -1);
+//     margin-bottom: var(--size-medium);
+//     padding: 0 var(--size-medium);
+//     padding-bottom: var(--size-small);
+
+//     h3 {
+//         font-size: 13px;
+//         font-weight: 400;
+//         margin-bottom: 0 !important;
+//     }
+// }
+
+.popoverContent {
+    display: flex;
+    flex-direction: column;
+    height: 280px;
+    margin: 0 auto;
+    width: 80%;
+}
