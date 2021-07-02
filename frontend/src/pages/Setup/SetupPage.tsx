@@ -282,16 +282,13 @@ ReactDOM.render(<App />, document.getElementById('root'));`}
                     />
                 ) : platform === PlatformType.Vue ? (
                     <CodeBlock
-                        text={`import Vue from 'vue';
+                        text={`import { createApp } from 'vue';
 import App from './App.vue';
 import { H } from 'highlight.run';
 
 ${getInitSnippet(orgVerboseId, true)}
-Vue.prototype.$H = H;
 
-new Vue({
-  render: h => h(App)
-}).$mount('#app');`}
+createApp(App).mount('#app');`}
                     />
                 ) : (
                     <CodeBlock
