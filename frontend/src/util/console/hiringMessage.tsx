@@ -1,5 +1,5 @@
 export const showHiringMessage = () => {
-    printMessage("We'd love to chat! 👉 https://careers.highlight.run");
+    printMessage("We'd love to chat! 👉 ");
 };
 
 function printMessage(displayText: string) {
@@ -12,8 +12,8 @@ function printMessage(displayText: string) {
                 /Google Inc/.test(navigator.vendor),
         ],
     };
-    const highlightPurple = '#5629c6';
-    const styles = `color: ${highlightPurple};font-size: 30px;padding-top: 12px;`;
+    const textColor = 'white';
+    const styles = `color: ${textColor}; text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black; font-size: 30px;padding-top: 12px;`;
     const message = {
         text: '%cWant to help build Highlight?',
         styles: [styles + '; font-weight: 900;'],
@@ -25,9 +25,10 @@ function printMessage(displayText: string) {
             ],
         },
         line: {
-            text: '%c\n' + displayText + '\n ',
+            text: '%c\n' + displayText + '%c https://careers.highlight.run\n ',
             styles: [
-                `color: ${highlightPurple}; font-style: italic; font-size: 1.5em; padding-bottom: 12px;`,
+                `color: ${textColor}; text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black; font-style: italic; font-size: 1.5em; padding-bottom: 12px;`,
+                '',
             ],
         },
     };
