@@ -14,7 +14,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/99designs/gqlgen/graphql"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -2051,29 +2050,3 @@ type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
 type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *mutationResolver) UpdateSourceMapsAndVersion(ctx context.Context, apiKey string, version string, sourceMapFiles []*graphql.Upload) (*int, error) {
-	if apiKey == "" || version == "" || len(sourceMapFiles) == 0 {
-		return nil, e.New("something is empty")
-	}
-
-	var orgID int
-	if err := r.DB.Raw("UPDATE organizations SET version=? WHERE secret=? RETURNING id", version, apiKey).Scan(&orgID).Error; err != nil {
-		return nil, e.Wrap(err, "error updating version in org queried by secret in db")
-	}
-
-	for _, file := range sourceMapFiles {
-		_, err := r.StorageClient.PushSourceMapFileReaderToS3(orgID, version, file.Filename, file.File)
-		if err != nil {
-			return nil, e.Wrap(err, "error pushing sourcemap file to s3")
-		}
-	}
-
-	return &orgID, nil
-}

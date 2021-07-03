@@ -223,9 +223,9 @@ func (s *StorageClient) sourceMapBucketKey(organizationId int, version *string, 
 		key = "test/"
 	}
 	if version != nil {
-		key = fmt.Sprintf("%d/%s/%s", organizationId, version, fileName)
+		key += fmt.Sprintf("%d/%s/%s", organizationId, *version, fileName)
 	} else {
-		key = fmt.Sprintf("%d/%s", organizationId, fileName)
+		key += fmt.Sprintf("%d/%s", organizationId, fileName)
 	}
 	return aws.String(key)
 }
