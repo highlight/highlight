@@ -6,9 +6,7 @@ const { hideBin } = require("yargs/helpers");
 const { statSync, readFileSync } = require("fs");
 const glob = require("glob");
 const AWS = require("aws-sdk");
-const { v4: uuidv4 } = require("uuid");
 
-const SERVER_URL = "http://localhost:5000";
 const BUCKET_NAME = "source-maps-test";
 
 // These secrets are for the "S3SourceMapUploaderTest" role.
@@ -25,7 +23,7 @@ yargs(hideBin(process.argv))
     "upload",
     "Upload Javascript sourcemaps to Highlight",
     () => {},
-    async ({ organizationId, apiKey, path }) => {
+    async ({ organizationId, apiKey, version, path }) => {
       console.info(`Starting to upload source maps from ${path}`);
 
       const fileList = await getAllSourceMapFiles([path]);
@@ -40,7 +38,7 @@ yargs(hideBin(process.argv))
 
       await Promise.all(
         fileList.map(({ path, name }) =>
-          uploadFile(organizationId, apiKey, path, name)
+          uploadFile(organizationId, apiKey, version, path, name)
         )
       );
     }
@@ -51,10 +49,15 @@ yargs(hideBin(process.argv))
     describe: "The Highlight organization ID",
     default: "113",
   })
+  .option("version", {
+    alias: "v",
+    type: "string",
+    describe: "The current version of your deploy",
+  })
   .option("path", {
     alias: "p",
     type: "string",
-    default: "/build/static/js",
+    default: "/build",
     describe: "Sets the directory of where the sourcemaps are",
   })
   .help("help").argv;
@@ -93,14 +96,11 @@ async function getAllSourceMapFiles(paths) {
   return map;
 }
 
-async function uploadFile(organizationId, apiKey, filePath, fileName) {
-  const query = `query UploadSourceMap($apiKey: String!, $file: Upload!) {
-			uploadSourceMap(apiKey: $apiKey, file: $file)
-	      }`;
+async function uploadFile(organizationId, apiKey, version, filePath, fileName) {
   const fileContent = readFileSync(filePath);
 
   // Setting up S3 upload parameters
-  const bucketPath = `${organizationId}/${fileName}`;
+  const bucketPath = `${organizationId}/${version}/${fileName}`;
   const params = {
     Bucket: BUCKET_NAME,
     Key: bucketPath,
@@ -113,23 +113,4 @@ async function uploadFile(organizationId, apiKey, filePath, fileName) {
     }
     console.log(`Uploaded ${fileName}`);
   });
-
-  //   fetch("/graphql", {
-  //     method: "POST",
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //       Accept: "application/json",
-  //     },
-  //     body: JSON.stringify({
-  //       query,
-  //       variables: {
-  //         apiKey,
-  //         file,
-  //       },
-  //     }),
-  //   });
-}
-
-function getS3Path() {
-  return ``;
 }
