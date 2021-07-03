@@ -100,7 +100,12 @@ async function uploadFile(organizationId, apiKey, version, filePath, fileName) {
   const fileContent = readFileSync(filePath);
 
   // Setting up S3 upload parameters
-  const bucketPath = `${organizationId}/${version}/${fileName}`;
+  var bucketPath;
+  if (version === null || version === undefined || version === "") {
+    bucketPath = `${organizationId}/${fileName}`;
+  } else {
+    bucketPath = `${organizationId}/${version}/${fileName}`;
+  }
   const params = {
     Bucket: BUCKET_NAME,
     Key: bucketPath,
