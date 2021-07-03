@@ -478,6 +478,8 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'payload_size'
             | 'within_billing_quota'
             | 'client_version'
+            | 'shareable_secret'
+            | 'is_shareable'
         > & {
                 fields?: Types.Maybe<
                     Array<

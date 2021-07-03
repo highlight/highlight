@@ -1508,6 +1508,8 @@ export const GetSessionDocument = gql`
             payload_size
             within_billing_quota
             client_version
+            shareable_secret
+            is_shareable
         }
     }
 `;
