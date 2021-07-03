@@ -663,7 +663,6 @@ export type Mutation = {
     updateNewUserAlert?: Maybe<SessionAlert>;
     updateTrackPropertiesAlert?: Maybe<SessionAlert>;
     updateUserPropertiesAlert?: Maybe<SessionAlert>;
-    updateSourceMapsAndVersion?: Maybe<Scalars['ID']>;
 };
 
 export type MutationCreateOrganizationArgs = {
@@ -829,10 +828,4 @@ export type MutationUpdateUserPropertiesAlertArgs = {
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;
     user_properties: Array<Maybe<UserPropertyInput>>;
-};
-
-export type MutationUpdateSourceMapsAndVersionArgs = {
-    api_key: Scalars['String'];
-    version: Scalars['String'];
-    source_map_files?: Maybe<Array<Scalars['Upload']>>;
 };

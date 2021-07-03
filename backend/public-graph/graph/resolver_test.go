@@ -42,17 +42,10 @@ func TestHandleErrorAndGroup(t *testing.T) {
 	longTraceStr := `[{"functionName":"is","args":null,"fileName":null,"lineNumber":null,"columnNumber":null,"isEval":null,"isNative":null,"source":null},{"functionName":"longer","args":null,"fileName":null,"lineNumber":null,"columnNumber":null,"isEval":null,"isNative":null,"source":null},{"functionName":"trace","args":null,"fileName":null,"lineNumber":null,"columnNumber":null,"isEval":null,"isNative":null,"source":null}]`
 	shortTraceStr := `[{"functionName":"a","args":null,"fileName":null,"lineNumber":null,"columnNumber":null,"isEval":null,"isNative":null,"source":null},{"functionName":"short","args":null,"fileName":null,"lineNumber":null,"columnNumber":null,"isEval":null,"isNative":null,"source":null}]`
 	tests := map[string]struct {
-		organizationToInsert model.Organization
-		errorsToInsert       []model.ErrorObject
-		expectedErrorGroups  []model.ErrorGroup
+		errorsToInsert      []model.ErrorObject
+		expectedErrorGroups []model.ErrorGroup
 	}{
 		"test two errors with same environment but different case": {
-			organizationToInsert: model.Organization{
-				Model: model.Model{
-					ID: 1,
-				},
-				Version: util.MakeStringPointer("1"),
-			},
 			errorsToInsert: []model.ErrorObject{
 				{
 					OrganizationID: 1,
@@ -78,12 +71,6 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			},
 		},
 		"test two errors with different environment": {
-			organizationToInsert: model.Organization{
-				Model: model.Model{
-					ID: 1,
-				},
-				Version: util.MakeStringPointer("1"),
-			},
 			errorsToInsert: []model.ErrorObject{
 				{
 					OrganizationID: 1,
@@ -109,12 +96,6 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			},
 		},
 		"two errors, one with empty environment": {
-			organizationToInsert: model.Organization{
-				Model: model.Model{
-					ID: 1,
-				},
-				Version: util.MakeStringPointer("1"),
-			},
 			errorsToInsert: []model.ErrorObject{
 				{
 					OrganizationID: 1,
@@ -139,12 +120,6 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			},
 		},
 		"test longer error stack first": {
-			organizationToInsert: model.Organization{
-				Model: model.Model{
-					ID: 1,
-				},
-				Version: util.MakeStringPointer("1"),
-			},
 			errorsToInsert: []model.ErrorObject{
 				{
 					OrganizationID: 1,
@@ -171,12 +146,6 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			},
 		},
 		"test shorter error stack first": {
-			organizationToInsert: model.Organization{
-				Model: model.Model{
-					ID: 1,
-				},
-				Version: util.MakeStringPointer("1"),
-			},
 			errorsToInsert: []model.ErrorObject{
 				{
 					OrganizationID: 1,
@@ -207,10 +176,6 @@ func TestHandleErrorAndGroup(t *testing.T) {
 	for name, tc := range tests {
 		util.RunTestWithDBWipe(t, name, DB, func(t *testing.T) {
 			r := &Resolver{DB: DB}
-
-			if err := r.DB.Create(&tc.organizationToInsert).Error; err != nil {
-				t.Fatal(e.Wrap(err, "error creating organization"))
-			}
 
 			receivedErrorGroups := make(map[string]model.ErrorGroup)
 			for _, errorObj := range tc.errorsToInsert {
@@ -247,20 +212,13 @@ func TestHandleErrorAndGroup(t *testing.T) {
 func TestEnhanceStackTrace(t *testing.T) {
 	// construct table of sub-tests to run
 	tests := map[string]struct {
-		stackFrameInput      []*publicModelInput.StackFrameInput
-		organizationToInsert model.Organization
-		expectedErrorObject  model.ErrorObject
-		expectedStackTrace   []modelInput.ErrorTrace
-		fetcher              fetcher
-		err                  error
+		stackFrameInput     []*publicModelInput.StackFrameInput
+		expectedErrorObject model.ErrorObject
+		expectedStackTrace  []modelInput.ErrorTrace
+		fetcher             fetcher
+		err                 error
 	}{
 		"test source mapping with proper stack trace": {
-			organizationToInsert: model.Organization{
-				Model: model.Model{
-					ID: 1,
-				},
-				Version: util.MakeStringPointer("1"),
-			},
 			stackFrameInput: []*publicModelInput.StackFrameInput{
 				{
 					FileName:     util.MakeStringPointer("./test-files/lodash.min.js"),
@@ -291,12 +249,6 @@ func TestEnhanceStackTrace(t *testing.T) {
 			err:     e.New(""),
 		},
 		"test source mapping invalid trace:no related source map": {
-			organizationToInsert: model.Organization{
-				Model: model.Model{
-					ID: 1,
-				},
-				Version: util.MakeStringPointer("1"),
-			},
 			stackFrameInput: []*publicModelInput.StackFrameInput{
 				{
 					FileName:     util.MakeStringPointer("./test-files/lodash.js"),
@@ -316,12 +268,6 @@ func TestEnhanceStackTrace(t *testing.T) {
 			err:     e.New(""),
 		},
 		"test source mapping invalid trace:file doesn't exist": {
-			organizationToInsert: model.Organization{
-				Model: model.Model{
-					ID: 1,
-				},
-				Version: util.MakeStringPointer("1"),
-			},
 			stackFrameInput: []*publicModelInput.StackFrameInput{
 				{
 					FileName:     util.MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js"),
@@ -341,12 +287,6 @@ func TestEnhanceStackTrace(t *testing.T) {
 			err:     e.New(""),
 		},
 		"test source mapping invalid trace:filename is not a url": {
-			organizationToInsert: model.Organization{
-				Model: model.Model{
-					ID: 1,
-				},
-				Version: util.MakeStringPointer("1"),
-			},
 			stackFrameInput: []*publicModelInput.StackFrameInput{
 				{
 					FileName:     util.MakeStringPointer("/file/local/domain.js"),
@@ -378,12 +318,6 @@ func TestEnhanceStackTrace(t *testing.T) {
 			err:                e.New(""),
 		},
 		"test tsx mapping": {
-			organizationToInsert: model.Organization{
-				Model: model.Model{
-					ID: 1,
-				},
-				Version: util.MakeStringPointer("1"),
-			},
 			stackFrameInput: []*publicModelInput.StackFrameInput{
 				{
 					FileName:     util.MakeStringPointer("./test-files/main.8344d167.chunk.js"),
@@ -416,12 +350,8 @@ func TestEnhanceStackTrace(t *testing.T) {
 	// run tests
 	for name, tc := range tests {
 		util.RunTestWithDBWipe(t, name, DB, func(t *testing.T) {
-			if err := r.DB.Create(&tc.organizationToInsert).Error; err != nil {
-				t.Fatal(e.Wrap(err, "error creating organization"))
-			}
-
 			fetch = tc.fetcher
-			mappedStackTrace, err := r.EnhanceStackTrace(tc.stackFrameInput, 1)
+			mappedStackTrace, err := r.EnhanceStackTrace(tc.stackFrameInput, 1, 1)
 			if err != nil {
 				if err.Error() == tc.err.Error() {
 					return
