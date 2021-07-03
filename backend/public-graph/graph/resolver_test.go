@@ -176,7 +176,6 @@ func TestHandleErrorAndGroup(t *testing.T) {
 	for name, tc := range tests {
 		util.RunTestWithDBWipe(t, name, DB, func(t *testing.T) {
 			r := &Resolver{DB: DB}
-
 			receivedErrorGroups := make(map[string]model.ErrorGroup)
 			for _, errorObj := range tc.errorsToInsert {
 				var frames []*publicModelInput.StackFrameInput
