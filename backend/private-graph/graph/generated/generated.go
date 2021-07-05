@@ -349,6 +349,7 @@ type ComplexityRoot struct {
 		FirstTime            func(childComplexity int) int
 		ID                   func(childComplexity int) int
 		Identifier           func(childComplexity int) int
+		IsShareable          func(childComplexity int) int
 		Language             func(childComplexity int) int
 		Length               func(childComplexity int) int
 		OSName               func(childComplexity int) int
@@ -357,6 +358,7 @@ type ComplexityRoot struct {
 		PayloadSize          func(childComplexity int) int
 		Postal               func(childComplexity int) int
 		Processed            func(childComplexity int) int
+		ShareableSecret      func(childComplexity int) int
 		Starred              func(childComplexity int) int
 		State                func(childComplexity int) int
 		UserID               func(childComplexity int) int
@@ -2326,6 +2328,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.Identifier(childComplexity), true
 
+	case "Session.is_shareable":
+		if e.complexity.Session.IsShareable == nil {
+			break
+		}
+
+		return e.complexity.Session.IsShareable(childComplexity), true
+
 	case "Session.language":
 		if e.complexity.Session.Language == nil {
 			break
@@ -2381,6 +2390,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Session.Processed(childComplexity), true
+
+	case "Session.shareable_secret":
+		if e.complexity.Session.ShareableSecret == nil {
+			break
+		}
+
+		return e.complexity.Session.ShareableSecret(childComplexity), true
 
 	case "Session.starred":
 		if e.complexity.Session.Starred == nil {
@@ -2734,6 +2750,8 @@ type Session {
     object_storage_enabled: Boolean
     payload_size: Int64
     within_billing_quota: Boolean
+    shareable_secret: String
+    is_shareable: Boolean
 }
 
 type BillingDetails {
@@ -12901,6 +12919,70 @@ func (ec *executionContext) _Session_within_billing_quota(ctx context.Context, f
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Session_shareable_secret(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ShareableSecret, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Session_is_shareable(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsShareable, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _SessionAlert_id(ctx context.Context, field graphql.CollectedField, obj *model1.SessionAlert) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -17249,6 +17331,10 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Session_payload_size(ctx, field, obj)
 		case "within_billing_quota":
 			out.Values[i] = ec._Session_within_billing_quota(ctx, field, obj)
+		case "shareable_secret":
+			out.Values[i] = ec._Session_shareable_secret(ctx, field, obj)
+		case "is_shareable":
+			out.Values[i] = ec._Session_is_shareable(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

@@ -12,7 +12,7 @@ import { useGetSessionQuery } from '../../../graph/generated/hooks';
 import ReplayerContext from '../ReplayerContext';
 import { ConsolePage } from '../Toolbar/DevToolsWindow/ConsolePage/ConsolePage';
 import styles from './ShareButton.module.scss';
-import { onGetLinkWithTimestamp } from './utils/utils';
+import { onGetLinkWithTimestamp, PlayerURL } from './utils/utils';
 
 const ShareButton = (props: ButtonProps) => {
     const { time } = useContext(ReplayerContext);
@@ -45,19 +45,34 @@ const ShareButton = (props: ButtonProps) => {
                             this session.
                         </p>
                         <CopyText
-                            text={onGetLinkWithTimestamp(time).toString()}
+                            text={PlayerURL.currentURL()
+                                .setTimestamp(time)
+                                .toString()}
                         />
                         <h3>Share externally</h3>
                         {loading ? (
                             <p>Loading...</p>
                         ) : (
-                            <Switch
-                                checked={!!data?.session?.is_shareable}
-                                onChange={() => {
-                                    console.log(data);
-                                }}
-                                label="Allow anyone with the shareable link to view this session."
-                            />
+                            <div>
+                                <Switch
+                                    checked={!!data?.session?.is_shareable}
+                                    onChange={() => {
+                                        console.log(data);
+                                    }}
+                                    label="Allow anyone with the shareable link to view this session."
+                                />
+                                {!!data?.session?.shareable_secret ? (
+                                    <CopyText
+                                        text={PlayerURL.currentURL()
+                                            .setShareableSecret(
+                                                data?.session
+                                                    ?.shareable_secret as string
+                                            )
+                                            .setTimestamp(time)
+                                            .toString()}
+                                    />
+                                ) : null}
+                            </div>
                         )}
                     </div>
                 </div>
