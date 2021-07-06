@@ -603,7 +603,7 @@ func (r *Resolver) processStackFrame(organizationId, sessionId int, stackTrace m
 
 	// get version from org
 	var version *string
-	if err := r.DB.Model(&model.Session{}).Where(&model.Session{Model: model.Model{ID: sessionId}}).Select("version").Scan(version).Error; err != nil {
+	if err := r.DB.Model(&model.Session{}).Where(&model.Session{Model: model.Model{ID: sessionId}}).Select("app_version").Scan(version).Error; err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, e.Wrap(err, "error getting version from org")
 		}
