@@ -219,8 +219,6 @@ func (s *StorageClient) sourceMapBucketKey(organizationId int, version *string, 
 	env := os.Getenv("ENVIRONMENT")
 	if env == "dev" {
 		key = "dev/"
-	} else if env == "test" {
-		key = "test/"
 	}
 	if version == nil {
 		unversioned := "unversioned"
