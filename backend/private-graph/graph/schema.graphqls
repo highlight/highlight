@@ -565,8 +565,4 @@ type Mutation {
         environments: [String]!
         user_properties: [UserPropertyInput]!
     ): SessionAlert
-    updateSourceMaps(
-        api_key: String!
-        source_map_files: [Upload!]
-    ): ID
 }

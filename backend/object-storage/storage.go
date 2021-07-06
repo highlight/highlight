@@ -214,16 +214,22 @@ func (s *StorageClient) bucketKey(sessionId int, organizationId int, key Payload
 	return aws.String(fmt.Sprintf("%v/%v/%v", organizationId, sessionId, string(key)))
 }
 
-func (s *StorageClient) sourceMapBucketKey(organizationId int, fileName string) *string {
-	key := fmt.Sprintf("%d/%s", organizationId, fileName)
-	if os.Getenv("ENVIRONMENT") == "dev" {
-		key = "dev/" + key
+func (s *StorageClient) sourceMapBucketKey(organizationId int, version *string, fileName string) *string {
+	var key string
+	env := os.Getenv("ENVIRONMENT")
+	if env == "dev" {
+		key = "dev/"
 	}
+	if version == nil {
+		unversioned := "unversioned"
+		version = &unversioned
+	}
+	key += fmt.Sprintf("%d/%s/%s", organizationId, *version, fileName)
 	return aws.String(key)
 }
 
-func (s *StorageClient) PushSourceMapFileReaderToS3(organizationId int, fileName string, file io.Reader) (*int64, error) {
-	key := s.sourceMapBucketKey(organizationId, fileName)
+func (s *StorageClient) PushSourceMapFileReaderToS3(organizationId int, version *string, fileName string, file io.Reader) (*int64, error) {
+	key := s.sourceMapBucketKey(organizationId, version, fileName)
 	_, err := s.S3Client.PutObject(context.TODO(), &s3.PutObjectInput{
 		Bucket: aws.String(S3SourceMapBucketName), Key: key, Body: file,
 	})
@@ -241,14 +247,14 @@ func (s *StorageClient) PushSourceMapFileReaderToS3(organizationId int, fileName
 	return &result.ContentLength, nil
 }
 
-func (s *StorageClient) PushSourceMapFileToS3(organizationId int, fileName string, fileBytes []byte) (*int64, error) {
+func (s *StorageClient) PushSourceMapFileToS3(organizationId int, version *string, fileName string, fileBytes []byte) (*int64, error) {
 	body := bytes.NewReader(fileBytes)
-	return s.PushSourceMapFileReaderToS3(organizationId, fileName, body)
+	return s.PushSourceMapFileReaderToS3(organizationId, version, fileName, body)
 }
 
-func (s *StorageClient) ReadSourceMapFileFromS3(organizationId int, fileName string) ([]byte, error) {
+func (s *StorageClient) ReadSourceMapFileFromS3(organizationId int, version *string, fileName string) ([]byte, error) {
 	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: aws.String(S3SourceMapBucketName),
-		Key: s.sourceMapBucketKey(organizationId, fileName)})
+		Key: s.sourceMapBucketKey(organizationId, version, fileName)})
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting object from s3")
 	}

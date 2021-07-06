@@ -14,7 +14,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/99designs/gqlgen/graphql"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -961,22 +960,6 @@ func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, organi
 		return nil, e.Wrap(err, "error updating org fields for user properties alert")
 	}
 	return alert, nil
-}
-
-func (r *mutationResolver) UpdateSourceMaps(ctx context.Context, apiKey string, sourceMapFiles []*graphql.Upload) (*int, error) {
-	var orgID int
-	if err := r.DB.Model(&model.Organization{}).Where(&model.Organization{Secret: &apiKey}).Select("id").Scan(&orgID).Error; err != nil {
-		return nil, e.Wrap(err, "error querying org by secret in db")
-	}
-
-	for _, file := range sourceMapFiles {
-		_, err := r.StorageClient.PushSourceMapFileReaderToS3(orgID, file.Filename, file.File)
-		if err != nil {
-			return nil, e.Wrap(err, "error pushing sourcemap file to s3")
-		}
-	}
-
-	return &orgID, nil
 }
 
 func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, error) {

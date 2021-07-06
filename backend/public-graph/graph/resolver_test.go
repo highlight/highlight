@@ -350,7 +350,7 @@ func TestEnhanceStackTrace(t *testing.T) {
 	for name, tc := range tests {
 		util.RunTestWithDBWipe(t, name, DB, func(t *testing.T) {
 			fetch = tc.fetcher
-			mappedStackTrace, err := r.EnhanceStackTrace(tc.stackFrameInput, 1)
+			mappedStackTrace, err := r.EnhanceStackTrace(tc.stackFrameInput, 1, 1)
 			if err != nil {
 				if err.Error() == tc.err.Error() {
 					return

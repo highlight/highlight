@@ -13,18 +13,15 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.1.4
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.4.0
 	github.com/go-chi/chi v3.3.2+incompatible
-	github.com/go-sourcemap/sourcemap v2.1.3+incompatible // indirect
+	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/go-test/deep v1.0.4
 	github.com/google/uuid v1.1.2 // indirect
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/sessions v1.2.1 // indirect
 	github.com/jackc/pgx/v4 v4.10.1
-	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect
-	github.com/k0kubun/pp v3.0.1+incompatible
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/kylelemons/godebug v1.1.0
 	github.com/lib/pq v1.6.0 // indirect
-	github.com/mattn/go-colorable v0.1.7 // indirect
 	github.com/mattn/go-sqlite3 v1.14.7 // indirect
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/mssola/user_agent v0.5.3
