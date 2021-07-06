@@ -222,11 +222,11 @@ func (s *StorageClient) sourceMapBucketKey(organizationId int, version *string, 
 	} else if env == "test" {
 		key = "test/"
 	}
-	if version != nil {
-		key += fmt.Sprintf("%d/%s/%s", organizationId, *version, fileName)
-	} else {
-		key += fmt.Sprintf("%d/%s", organizationId, fileName)
+	if version == nil {
+		unversioned := "unversioned"
+		version = &unversioned
 	}
+	key += fmt.Sprintf("%d/%s/%s", organizationId, *version, fileName)
 	return aws.String(key)
 }
 
