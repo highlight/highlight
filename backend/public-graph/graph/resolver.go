@@ -601,7 +601,7 @@ func (r *Resolver) processStackFrame(organizationId, sessionId int, stackTrace m
 		stackTraceFilePath = stackTraceFileURL[1:]
 	}
 
-	// get version from org
+	// get version from session
 	var version *string
 	if err := r.DB.Model(&model.Session{}).Where(&model.Session{Model: model.Model{ID: sessionId}}).Select("app_version").Scan(version).Error; err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
