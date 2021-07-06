@@ -23,7 +23,7 @@ yargs(hideBin(process.argv))
     "upload",
     "Upload Javascript sourcemaps to Highlight",
     () => {},
-    async ({ organizationId, apiKey, version, path }) => {
+    async ({ organizationId, apiKey, appVersion, path }) => {
       console.info(`Starting to upload source maps from ${path}`);
 
       const fileList = await getAllSourceMapFiles([path]);
@@ -38,7 +38,7 @@ yargs(hideBin(process.argv))
 
       await Promise.all(
         fileList.map(({ path, name }) =>
-          uploadFile(organizationId, apiKey, version, path, name)
+          uploadFile(organizationId, apiKey, appVersion, path, name)
         )
       );
     }
@@ -49,8 +49,8 @@ yargs(hideBin(process.argv))
     describe: "The Highlight organization ID",
     default: "113",
   })
-  .option("version", {
-    alias: "v",
+  .option("appVersion", {
+    alias: "av",
     type: "string",
     describe: "The current version of your deploy",
   })
@@ -100,7 +100,9 @@ async function uploadFile(organizationId, apiKey, version, filePath, fileName) {
   const fileContent = readFileSync(filePath);
 
   // Setting up S3 upload parameters
-  if (version === null || version === undefined || version === "") {
+  console.log("version: ", version)
+  console.log("id: ", organizationId)
+  if (version === null || version === undefined || version === "" || !version) {
     version = "unversioned";
   }
   const bucketPath = `${organizationId}/${version}/${fileName}`;
