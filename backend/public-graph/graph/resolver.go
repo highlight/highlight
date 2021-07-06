@@ -598,7 +598,7 @@ func (r *Resolver) processStackFrame(organizationId, sessionId int, stackTrace m
 	}
 	stackTraceFilePath := u.Path
 	if stackTraceFilePath[0:1] == "/" {
-		stackTraceFilePath = stackTraceFileURL[1:]
+		stackTraceFilePath = stackTraceFilePath[1:]
 	}
 
 	// get version from session
@@ -651,19 +651,29 @@ func (r *Resolver) processStackFrame(organizationId, sessionId int, stackTrace m
 
 	// construct sourcemap url from searched file
 	sourceMapURL := (stackTraceFileURL)[:stackFileNameIndex] + sourceMapFileName
+	// get path from url
+	u2, err := url.Parse(sourceMapURL)
+	if err != nil {
+		err := e.Wrapf(err, "error parsing url: %v", sourceMapURL)
+		return nil, err
+	}
+	sourceMapFilePath := u2.Path
+	if sourceMapFilePath[0:1] == "/" {
+		sourceMapFilePath = sourceMapFilePath[1:]
+	}
 
 	// fetch source map file
 	// try to get file from s3
-	sourceMapFileBytes, err := r.StorageClient.ReadSourceMapFileFromS3(organizationId, version, sourceMapFileName)
+	sourceMapFileBytes, err := r.StorageClient.ReadSourceMapFileFromS3(organizationId, version, sourceMapFilePath)
 	if err != nil {
 		// if not in s3, get from url and put in s3
 		sourceMapFileBytes, err = fetch.fetchFile(sourceMapURL)
 		if err != nil {
 			// fallback if we can't get the source file at all
-			err := e.Wrapf(err, "error fetching source map file: %v", sourceMapFileName)
+			err := e.Wrapf(err, "error fetching source map file: %v", sourceMapURL)
 			return nil, err
 		}
-		_, err = r.StorageClient.PushSourceMapFileToS3(organizationId, version, sourceMapFileName, sourceMapFileBytes)
+		_, err = r.StorageClient.PushSourceMapFileToS3(organizationId, version, sourceMapFilePath, sourceMapFileBytes)
 		if err != nil {
 			log.Error(e.Wrapf(err, "error pushing file to s3: %v", sourceMapFileName))
 		}

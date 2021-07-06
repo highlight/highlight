@@ -247,6 +247,36 @@ func TestEnhanceStackTrace(t *testing.T) {
 			fetcher: DiskFetcher{},
 			err:     e.New(""),
 		},
+		"test source mapping with proper stack trace with network fetcher": {
+			stackFrameInput: []*publicModelInput.StackFrameInput{
+				{
+					FileName:     util.MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"),
+					LineNumber:   util.MakeIntPointer(1),
+					ColumnNumber: util.MakeIntPointer(813),
+				},
+				{
+					FileName:     util.MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"),
+					LineNumber:   util.MakeIntPointer(1),
+					ColumnNumber: util.MakeIntPointer(799),
+				},
+			},
+			expectedStackTrace: []modelInput.ErrorTrace{
+				{
+					FileName:     util.MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.js"),
+					LineNumber:   util.MakeIntPointer(634),
+					ColumnNumber: util.MakeIntPointer(4),
+					FunctionName: util.MakeStringPointer(""),
+				},
+				{
+					FileName:     util.MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.js"),
+					LineNumber:   util.MakeIntPointer(633),
+					ColumnNumber: util.MakeIntPointer(11),
+					FunctionName: util.MakeStringPointer("arrayIncludesWith"),
+				},
+			},
+			fetcher: NetworkFetcher{},
+			err:     e.New(""),
+		},
 		"test source mapping invalid trace:no related source map": {
 			stackFrameInput: []*publicModelInput.StackFrameInput{
 				{
