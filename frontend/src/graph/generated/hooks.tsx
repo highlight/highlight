@@ -1421,6 +1421,53 @@ export type UpdateUserPropertiesAlertMutationOptions = Apollo.BaseMutationOption
     Types.UpdateUserPropertiesAlertMutation,
     Types.UpdateUserPropertiesAlertMutationVariables
 >;
+export const UpdateShareableDocument = gql`
+    mutation UpdateShareable($session_id: ID!, $is_shareable: Boolean!) {
+        updateShareable(session_id: $session_id, is_shareable: $is_shareable)
+    }
+`;
+export type UpdateShareableMutationFn = Apollo.MutationFunction<
+    Types.UpdateShareableMutation,
+    Types.UpdateShareableMutationVariables
+>;
+
+/**
+ * __useUpdateShareableMutation__
+ *
+ * To run a mutation, you first call `useUpdateShareableMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateShareableMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateShareableMutation, { data, loading, error }] = useUpdateShareableMutation({
+ *   variables: {
+ *      session_id: // value for 'session_id'
+ *      is_shareable: // value for 'is_shareable'
+ *   },
+ * });
+ */
+export function useUpdateShareableMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.UpdateShareableMutation,
+        Types.UpdateShareableMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.UpdateShareableMutation,
+        Types.UpdateShareableMutationVariables
+    >(UpdateShareableDocument, baseOptions);
+}
+export type UpdateShareableMutationHookResult = ReturnType<
+    typeof useUpdateShareableMutation
+>;
+export type UpdateShareableMutationResult = Apollo.MutationResult<Types.UpdateShareableMutation>;
+export type UpdateShareableMutationOptions = Apollo.BaseMutationOptions<
+    Types.UpdateShareableMutation,
+    Types.UpdateShareableMutationVariables
+>;
 export const GetSessionPayloadDocument = gql`
     query GetSessionPayload($session_id: ID!) {
         events(session_id: $session_id)

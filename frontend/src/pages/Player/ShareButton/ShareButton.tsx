@@ -8,28 +8,28 @@ import CopyText from '../../../components/CopyText/CopyText';
 import Popover from '../../../components/Popover/Popover';
 import Switch from '../../../components/Switch/Switch';
 import { DemoContext } from '../../../DemoContext';
-import { useGetSessionQuery } from '../../../graph/generated/hooks';
+import {
+    useGetSessionQuery,
+    useUpdateShareableMutation,
+} from '../../../graph/generated/hooks';
 import ReplayerContext from '../ReplayerContext';
-import { ConsolePage } from '../Toolbar/DevToolsWindow/ConsolePage/ConsolePage';
 import styles from './ShareButton.module.scss';
-import { onGetLinkWithTimestamp, PlayerURL } from './utils/utils';
+import { PlayerURL } from './utils/utils';
 
 const ShareButton = (props: ButtonProps) => {
     const { time } = useContext(ReplayerContext);
     const { demo } = useContext(DemoContext);
-    const { session_id } = useParams<{ session_id: string }>();
+    let { session_id } = useParams<{ session_id: string }>();
+    session_id = demo ? process.env.REACT_APP_DEMO_SESSION ?? '0' : session_id;
     const { loading, data } = useGetSessionQuery({
         variables: {
-            id: demo ? process.env.REACT_APP_DEMO_SESSION ?? '0' : session_id,
+            id: session_id,
         },
         context: { headers: { 'Highlight-Demo': demo } },
     });
-
-    // const onClickHandler = () => {
-    //     const url = onGetLinkWithTimestamp(time);
-    //     message.success('Copied link!');
-    //     navigator.clipboard.writeText(url.href);
-    // };
+    const [updateShareable] = useUpdateShareableMutation({
+        refetchQueries: ['GetSession'],
+    });
 
     return (
         <Popover
@@ -56,8 +56,16 @@ const ShareButton = (props: ButtonProps) => {
                             <div>
                                 <Switch
                                     checked={!!data?.session?.is_shareable}
-                                    onChange={() => {
-                                        console.log(data);
+                                    onChange={(checked: boolean) => {
+                                        H.track('Toggled shareable', {
+                                            is_shared: checked,
+                                        });
+                                        updateShareable({
+                                            variables: {
+                                                session_id: session_id,
+                                                is_shareable: checked,
+                                            },
+                                        });
                                     }}
                                     label="Allow anyone with the shareable link to view this session."
                                 />

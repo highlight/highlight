@@ -432,6 +432,16 @@ export type UpdateUserPropertiesAlertMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
+export type UpdateShareableMutationVariables = Types.Exact<{
+    session_id: Types.Scalars['ID'];
+    is_shareable: Types.Scalars['Boolean'];
+}>;
+
+export type UpdateShareableMutation = { __typename?: 'Mutation' } & Pick<
+    Types.Mutation,
+    'updateShareable'
+>;
+
 export type GetSessionPayloadQueryVariables = Types.Exact<{
     session_id: Types.Scalars['ID'];
 }>;

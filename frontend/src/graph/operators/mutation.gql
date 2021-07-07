@@ -337,3 +337,7 @@ mutation UpdateUserPropertiesAlert(
         CountThreshold
     }
 }
+
+mutation UpdateShareable($session_id: ID!, $is_shareable: Boolean!) {
+    updateShareable(session_id: $session_id, is_shareable: $is_shareable)
+}
