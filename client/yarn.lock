@@ -9616,6 +9616,11 @@ ws@^7.4.4:
   resolved "https://registry.yarnpkg.com/ws/-/ws-7.4.4.tgz#383bc9742cb202292c9077ceab6f6047b17f2d59"
   integrity sha512-Qm8k8ojNQIMx7S+Zp8u/uHOx7Qazv3Yv4q68MiWWWOJhiwG5W3x7iqmRtJo8xxrciZUY4vRxUTJCKuRnF28ZZw==
 
+xhook@^1.4.9:
+  version "1.4.9"
+  resolved "https://registry.yarnpkg.com/xhook/-/xhook-1.4.9.tgz#5ebca6c7f239003c311b746b889081a82e9d4e78"
+  integrity sha512-7uGTRzCO1nMNtzClV0LHSo13vKlr7J9JE6njIMWHDSoub6MLOmam2OgZJESTvGjZpW68gnD69vlRipB6cjM0dg==
+
 xml-name-validator@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/xml-name-validator/-/xml-name-validator-3.0.0.tgz#6ae73e06de4d8c6e47f9fb181f78d648ad457c6a"

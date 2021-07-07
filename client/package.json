@@ -58,6 +58,7 @@
         "json-stringify-safe": "^5.0.1",
         "stacktrace-js": "^2.0.2",
         "stream-http": "^3.2.0",
-        "util": "^0.12.4"
+        "util": "^0.12.4",
+        "xhook": "^1.4.9"
     }
 }
