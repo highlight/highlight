@@ -28,6 +28,12 @@ import { ClickListener } from './listeners/click-listener/click-listener';
 import { FocusListener } from './listeners/focus-listener/focus-listener';
 import packageJson from '../package.json';
 import 'clientjs';
+import {
+    createInterceptor,
+    IsomorphicRequest,
+    IsomorphicResponse,
+} from '@mswjs/interceptors';
+import nodeInterceptors from '@mswjs/interceptors/lib/presets/node';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -476,6 +482,31 @@ export class Highlight {
         } catch (e) {
             HighlightWarning('initializeSession', e);
         }
+
+        const interceptor = new (createInterceptor as any)({
+            modules: nodeInterceptors,
+        });
+
+        interceptor.apply();
+        interceptor.on('request', (request: IsomorphicRequest) => {
+            this.logger.log(
+                '=============request============\n\n%s\n\n========================',
+                JSON.stringify(request)
+            );
+        });
+        interceptor.on(
+            'response',
+            (req: IsomorphicRequest, res: IsomorphicResponse) => {
+                this.logger.log(
+                    '=============request============\n\n%s\n=============response============\n\n%s\n\n========================',
+                    JSON.stringify(req),
+                    JSON.stringify(res)
+                );
+            }
+        );
+        process.on('disconnect', () => {
+            interceptor.restore();
+        });
         window.addEventListener('beforeunload', () => {
             addCustomEvent('Page Unload', '');
             window.sessionStorage.setItem(

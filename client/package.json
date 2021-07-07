@@ -49,11 +49,15 @@
     "dependencies": {
         "@babel/plugin-transform-runtime": "^7.11.0",
         "@highlight-run/rrweb": "^0.12.1",
+        "@mswjs/interceptors": "^0.12.1",
         "clientjs": "^0.1.11",
         "error-stack-parser": "^2.0.6",
         "graphql": "^15.4.0",
         "graphql-request": "^3.4.0",
+        "https-browserify": "^1.0.0",
         "json-stringify-safe": "^5.0.1",
-        "stacktrace-js": "^2.0.2"
+        "stacktrace-js": "^2.0.2",
+        "stream-http": "^3.2.0",
+        "util": "^0.12.4"
     }
 }

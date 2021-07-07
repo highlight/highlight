@@ -30,6 +30,11 @@ module.exports = {
     resolve: {
         extensions: ['.js', '.ts', '.tsx'],
         modules: [path.resolve(__dirname, 'src'), 'node_modules'],
+        fallback: {
+            'http': require.resolve('stream-http'),
+            'https': require.resolve('https-browserify'),
+            'util': require.resolve('util/')
+        },
         // NOTE: Only enable for experimenting with a dev version of rrweb.
         // The second argument to path.resolve() should be the path to the dist folder in rrweb.
         // alias: {
