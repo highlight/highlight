@@ -100,8 +100,6 @@ async function uploadFile(organizationId, apiKey, version, filePath, fileName) {
   const fileContent = readFileSync(filePath);
 
   // Setting up S3 upload parameters
-  console.log("version: ", version)
-  console.log("id: ", organizationId)
   if (version === null || version === undefined || version === "" || !version) {
     version = "unversioned";
   }
