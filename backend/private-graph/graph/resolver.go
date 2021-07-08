@@ -192,6 +192,30 @@ func (r *Resolver) isAdminSessionOwner(ctx context.Context, session_id int) (*mo
 	return session, nil
 }
 
+func (r *Resolver) isAdminSegmentOwner(ctx context.Context, segment_id int) (*model.Segment, error) {
+	segment := &model.Segment{}
+	if err := r.DB.Where(&model.Segment{Model: model.Model{ID: segment_id}}).First(&segment).Error; err != nil {
+		return nil, e.Wrap(err, "error querying segment")
+	}
+	_, err := r.isAdminInOrganization(ctx, segment.OrganizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "error validating admin in organization")
+	}
+	return segment, nil
+}
+
+func (r *Resolver) isAdminErrorSegmentOwner(ctx context.Context, error_segment_id int) (*model.ErrorSegment, error) {
+	segment := &model.ErrorSegment{}
+	if err := r.DB.Where(&model.ErrorSegment{Model: model.Model{ID: error_segment_id}}).First(&segment).Error; err != nil {
+		return nil, e.Wrap(err, "error querying error segment")
+	}
+	_, err := r.isAdminInOrganization(ctx, segment.OrganizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "error validating admin in organization")
+	}
+	return segment, nil
+}
+
 func (r *Resolver) UpdateSessionsVisibility(organizationID int, newPlan modelInputs.PlanType, originalPlan modelInputs.PlanType) {
 	isPlanUpgrade := true
 	switch originalPlan {
