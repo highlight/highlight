@@ -12,9 +12,9 @@ import {
     useGetSessionQuery,
     useUpdateShareableMutation,
 } from '../../../graph/generated/hooks';
+import { PlayerURL } from '../PlayerURL';
 import ReplayerContext from '../ReplayerContext';
 import styles from './ShareButton.module.scss';
-import { PlayerURL } from './utils/utils';
 
 const ShareButton = (props: ButtonProps) => {
     const { time } = useContext(ReplayerContext);

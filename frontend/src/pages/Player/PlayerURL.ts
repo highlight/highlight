@@ -1,4 +1,4 @@
-import { PlayerSearchParameters } from '../../PlayerHook/utils';
+import { PlayerSearchParameters } from './PlayerHook/utils';
 
 export class PlayerURL extends URL {
     constructor(urlString: string) {
@@ -24,17 +24,15 @@ export class PlayerURL extends URL {
         );
         return this;
     }
+
+    getShareableSecret(): string | null {
+        return this.searchParams.get(PlayerSearchParameters.shareableSecret);
+    }
 }
 
 /**
  * Copies the current session URL with a search parameter "ts" with the player's current time in seconds.
  */
 export const onGetLinkWithTimestamp = (time: number) => {
-    const currentUrl = new URL(window.location.href);
-    currentUrl.searchParams.set(
-        PlayerSearchParameters.ts,
-        (time / 1000).toString()
-    );
-
-    return currentUrl;
+    return PlayerURL.currentURL().setTimestamp(time);
 };

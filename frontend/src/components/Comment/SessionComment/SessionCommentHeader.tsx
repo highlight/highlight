@@ -8,10 +8,10 @@ import {
     useGetSessionQuery,
 } from '../../../graph/generated/hooks';
 import { PlayerSearchParameters } from '../../../pages/Player/PlayerHook/utils';
+import { onGetLinkWithTimestamp } from '../../../pages/Player/PlayerURL';
 import ReplayerContext, {
     ParsedSessionComment,
 } from '../../../pages/Player/ReplayerContext';
-import { onGetLinkWithTimestamp } from '../../../pages/Player/ShareButton/utils/utils';
 import { CommentHeader } from '../CommentHeader';
 
 interface Props {
