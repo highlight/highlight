@@ -16,6 +16,7 @@ import DemoRouter from './DemoRouter';
 import About from './pages/About/About';
 import LoginForm from './pages/Login/Login';
 import * as serviceWorker from './serviceWorker';
+import { showHiringMessage } from './util/console/hiringMessage';
 import { client } from './util/graph';
 
 const dev = process.env.NODE_ENV === 'development' ? true : false;
@@ -61,6 +62,7 @@ window.Intercom('boot', {
     alignment: 'right',
     hide_default_launcher: true,
 });
+showHiringMessage();
 
 const App = () => {
     return (
