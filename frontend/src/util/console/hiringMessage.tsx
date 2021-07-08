@@ -1,5 +1,5 @@
 export const showHiringMessage = () => {
-    printMessage("We'd love to chat! 👉 ");
+    printMessage('Come work with us! 👉 ');
 };
 
 function printMessage(displayText: string) {
@@ -12,22 +12,31 @@ function printMessage(displayText: string) {
                 /Google Inc/.test(navigator.vendor),
         ],
     };
-    const textColor = 'white';
-    const styles = `color: ${textColor}; text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black; font-size: 30px;padding-top: 12px;`;
+    const textColor = 'inherit';
+    const styles = `color: ${textColor}; font-size: 20px;`;
+    const imageHeight = 179;
+    const imageWidth = 817;
+    const image = 'https://i.imgur.com/ojmH91U.png';
     const message = {
-        text: '%cWant to help build Highlight?',
-        styles: [styles + '; font-weight: 900;'],
+        text: '%cWant to help build next-gen developer tools?',
+        styles: [styles + '; font-weight: 900; margin-bottom: 12px;'],
         logo: {
             text: '%c %c',
             styles: [
-                '\n      font-size: 34px;\n     margin-right: 0px;\n      padding: 20px 20px 20px 20px;\n      background:\n        url("https://files.readme.io/e6aae4c-small-prod.png")\n        0 50% / 40px 40px\n        no-repeat;\n    ',
+                `font-size: 34px; margin-right: 0px; padding: ${
+                    imageHeight / 2
+                }px ${imageWidth / 2}px ${imageHeight / 2}px ${
+                    imageWidth / 2
+                }px; background: url("${image}") 0 50% / ${imageWidth / 2}px ${
+                    imageHeight / 2
+                }px no-repeat;`,
                 '',
             ],
         },
         line: {
             text: '%c\n' + displayText + '%c https://careers.highlight.run\n ',
             styles: [
-                `color: ${textColor}; text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black; font-style: italic; font-size: 1.5em; padding-bottom: 12px;`,
+                `color: ${textColor}; font-style: italic; font-size: 1.5em; padding-bottom: 12px;`,
                 '',
             ],
         },
