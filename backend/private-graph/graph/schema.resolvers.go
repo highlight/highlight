@@ -292,6 +292,10 @@ func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, id int, st
 }
 
 func (r *mutationResolver) DeleteOrganization(ctx context.Context, id int) (*bool, error) {
+	_, err := r.isAdminInOrganization(ctx, id)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in organization")
+	}
 	if err := r.DB.Delete(&model.Organization{Model: model.Model{ID: id}}).Error; err != nil {
 		return nil, e.Wrap(err, "error deleting organization")
 	}
@@ -464,6 +468,14 @@ func (r *mutationResolver) EditSegment(ctx context.Context, id int, organization
 }
 
 func (r *mutationResolver) DeleteSegment(ctx context.Context, segmentID int) (*bool, error) {
+	var orgID int
+	if err := r.DB.Table("segments").Select("organization_id").Where("id=?", segmentID).Scan(&orgID).Error; err != nil {
+		return nil, e.Wrap(err, "error querying segment")
+	}
+	_, err := r.isAdminInOrganization(ctx, orgID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in organization")
+	}
 	if err := r.DB.Delete(&model.Segment{Model: model.Model{ID: segmentID}}).Error; err != nil {
 		return nil, e.Wrap(err, "error deleting segment")
 	}
@@ -513,6 +525,14 @@ func (r *mutationResolver) EditErrorSegment(ctx context.Context, id int, organiz
 }
 
 func (r *mutationResolver) DeleteErrorSegment(ctx context.Context, segmentID int) (*bool, error) {
+	var orgID int
+	if err := r.DB.Table("error_segments").Select("organization_id").Where("id=?", segmentID).Scan(&orgID).Error; err != nil {
+		return nil, e.Wrap(err, "error querying error segment")
+	}
+	_, err := r.isAdminInOrganization(ctx, orgID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in organization")
+	}
 	if err := r.DB.Delete(&model.ErrorSegment{Model: model.Model{ID: segmentID}}).Error; err != nil {
 		return nil, e.Wrap(err, "error deleting segment")
 	}
@@ -707,6 +727,20 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 }
 
 func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*bool, error) {
+	admin, err := r.Query().Admin(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying admin")
+	}
+	if admin == nil {
+		return nil, e.New("admin is nil")
+	}
+	var queriedAdminID int
+	if err := r.DB.Table("session_comments").Select("admin_id").Where("id=?", id).Scan(&queriedAdminID).Error; err != nil {
+		return nil, e.Wrap(err, "error querying session comments")
+	}
+	if queriedAdminID != admin.ID {
+		return nil, e.New("requesting admin is not equal to queried admin on session comment")
+	}
 	if err := r.DB.Delete(&model.SessionComment{Model: model.Model{ID: id}}).Error; err != nil {
 		return nil, e.Wrap(err, "error session comment")
 	}
@@ -771,6 +805,20 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationI
 }
 
 func (r *mutationResolver) DeleteErrorComment(ctx context.Context, id int) (*bool, error) {
+	admin, err := r.Query().Admin(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying admin")
+	}
+	if admin == nil {
+		return nil, e.New("admin is nil")
+	}
+	var queriedAdminID int
+	if err := r.DB.Table("error_comments").Select("admin_id").Where("id=?", id).Scan(&queriedAdminID).Error; err != nil {
+		return nil, e.Wrap(err, "error querying error comments")
+	}
+	if queriedAdminID != admin.ID {
+		return nil, e.New("requesting admin is not equal to queried admin on error comment")
+	}
 	if err := r.DB.Delete(&model.ErrorComment{Model: model.Model{ID: id}}).Error; err != nil {
 		return nil, e.Wrap(err, "error deleting error_comment")
 	}
@@ -1405,6 +1453,9 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, organizationID
 }
 
 func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count int, lifecycle modelInputs.SessionLifecycle, starred bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin not found in org")
+	}
 	// Find fields based on the search params
 	//included fields
 	fieldCheck := true
