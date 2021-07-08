@@ -486,15 +486,16 @@ export class Highlight {
 
         const interceptor = new (createInterceptor as any)({
             modules: nodeInterceptors,
+            resolver() {},
         });
 
         interceptor.apply();
-        interceptor.on('request', (request: IsomorphicRequest) => {
-            this.logger.log(
-                '=============request============\n\n%s\n\n========================',
-                JSON.stringify(request)
-            );
-        });
+        //interceptor.on('request', (request: IsomorphicRequest) => {
+        //    this.logger.log(
+        //        '=============request============\n\n%s\n\n========================',
+        //        JSON.stringify(request)
+        //    );
+        //});
         interceptor.on(
             'response',
             (req: IsomorphicRequest, res: IsomorphicResponse) => {
