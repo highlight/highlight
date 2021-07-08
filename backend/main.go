@@ -35,7 +35,6 @@ var (
 	env                = os.Getenv("ENVIRONMENT")
 	frontendURL        = os.Getenv("FRONTEND_URI")
 	staticFrontendPath = os.Getenv("ONPREM_STATIC_FRONTEND_PATH")
-	landingURL         = os.Getenv("LANDING_PAGE_URI")
 	landingStagingURL  = os.Getenv("LANDING_PAGE_STAGING_URI")
 	sendgridKey        = os.Getenv("SENDGRID_API_KEY")
 	stripeApiKey       = os.Getenv("STRIPE_API_KEY")
@@ -65,7 +64,7 @@ func validateOrigin(request *http.Request, origin string) bool {
 	if runtimeParsed == util.PrivateGraph {
 		// From the highlight frontend, only the url is whitelisted.
 		isPreviewEnv := strings.HasPrefix(origin, "https://frontend-pr-") && strings.HasSuffix(origin, ".onrender.com")
-		if origin == frontendURL || origin == landingURL || origin == landingStagingURL || isPreviewEnv {
+		if origin == frontendURL || origin == "https://www.highlight.run" || origin == "https://highlight.run" || origin == landingStagingURL || isPreviewEnv {
 			return true
 		}
 	} else if runtimeParsed == util.PublicGraph || runtimeParsed == util.All {
