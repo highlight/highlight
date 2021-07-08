@@ -719,7 +719,11 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 }
 
 func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*bool, error) {
-	_, err := r.isAdminSessionOwner(ctx, id)
+	var sessionComment model.SessionComment
+	if err := r.DB.Where(model.SessionComment{Model: model.Model{ID: id}}).First(&sessionComment).Error; err != nil {
+		return nil, e.Wrap(err, "error querying session comment")
+	}
+	_, err := r.isAdminSessionOwner(ctx, sessionComment.SessionId)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not session owner")
 	}
