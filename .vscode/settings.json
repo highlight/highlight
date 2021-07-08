@@ -22,7 +22,8 @@
     "PSQL_HOST": "localhost",
 		"PSQL_PORT": "5432",
 		"PSQL_USER": "postgres",
-		"PSQL_PASSWORD": "postgres"
+		"PSQL_PASSWORD": "postgres",
+    "ENVIRONMENT": "test"
   },
   "css.validate": false,
   "less.validate": false,

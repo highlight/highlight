@@ -45,6 +45,9 @@ func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
 // These are authentication methods used to make sure that data is secured.
 // This'll probably get expensive at some point; they can probably be cached.
 func (r *Resolver) isAdminInOrganization(ctx context.Context, org_id int) (*model.Organization, error) {
+	if os.Getenv("ENVIRONMENT") == "test" {
+		return nil, nil
+	}
 	if r.isWhitelistedAccount(ctx) {
 		org := &model.Organization{}
 		if err := r.DB.Where(&model.Organization{Model: model.Model{ID: org_id}}).First(&org).Error; err != nil {
@@ -187,6 +190,30 @@ func (r *Resolver) isAdminSessionOwner(ctx context.Context, session_id int) (*mo
 		return nil, e.Wrap(err, "error validating admin in organization")
 	}
 	return session, nil
+}
+
+func (r *Resolver) isAdminSegmentOwner(ctx context.Context, segment_id int) (*model.Segment, error) {
+	segment := &model.Segment{}
+	if err := r.DB.Where(&model.Segment{Model: model.Model{ID: segment_id}}).First(&segment).Error; err != nil {
+		return nil, e.Wrap(err, "error querying segment")
+	}
+	_, err := r.isAdminInOrganization(ctx, segment.OrganizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "error validating admin in organization")
+	}
+	return segment, nil
+}
+
+func (r *Resolver) isAdminErrorSegmentOwner(ctx context.Context, error_segment_id int) (*model.ErrorSegment, error) {
+	segment := &model.ErrorSegment{}
+	if err := r.DB.Where(&model.ErrorSegment{Model: model.Model{ID: error_segment_id}}).First(&segment).Error; err != nil {
+		return nil, e.Wrap(err, "error querying error segment")
+	}
+	_, err := r.isAdminInOrganization(ctx, segment.OrganizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "error validating admin in organization")
+	}
+	return segment, nil
 }
 
 func (r *Resolver) UpdateSessionsVisibility(organizationID int, newPlan modelInputs.PlanType, originalPlan modelInputs.PlanType) {
