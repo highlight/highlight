@@ -33,8 +33,9 @@ import {
     IsomorphicRequest,
     IsomorphicResponse,
 } from '@mswjs/interceptors';
+import { interceptFetch } from '@mswjs/interceptors/lib/interceptors/fetch';
 import nodeInterceptors from '@mswjs/interceptors/lib/presets/node';
-const xhook = require('xhook');
+import browserInterceptors from '@mswjs/interceptors/lib/presets/browser';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -508,13 +509,6 @@ export class Highlight {
         );
         process.on('disconnect', () => {
             interceptor.restore();
-        });
-        xhook.after((request: any, response: any) => {
-            this.logger.log(
-                '=============xhook-request============\n\n%s\n\n=============xhook-response============\n\n%s\n\n========================',
-                JSON.stringify(request),
-                JSON.stringify(response)
-            );
         });
         window.addEventListener('beforeunload', () => {
             addCustomEvent('Page Unload', '');
