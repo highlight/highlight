@@ -468,13 +468,9 @@ func (r *mutationResolver) EditSegment(ctx context.Context, id int, organization
 }
 
 func (r *mutationResolver) DeleteSegment(ctx context.Context, segmentID int) (*bool, error) {
-	var orgID int
-	if err := r.DB.Table("segments").Select("organization_id").Where("id=?", segmentID).Scan(&orgID).Error; err != nil {
-		return nil, e.Wrap(err, "error querying segment")
-	}
-	_, err := r.isAdminInOrganization(ctx, orgID)
+	_, err := r.isAdminSegmentOwner(ctx, segmentID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin is not in organization")
+		return nil, e.Wrap(err, "admin is not segment owner")
 	}
 	if err := r.DB.Delete(&model.Segment{Model: model.Model{ID: segmentID}}).Error; err != nil {
 		return nil, e.Wrap(err, "error deleting segment")
@@ -525,13 +521,9 @@ func (r *mutationResolver) EditErrorSegment(ctx context.Context, id int, organiz
 }
 
 func (r *mutationResolver) DeleteErrorSegment(ctx context.Context, segmentID int) (*bool, error) {
-	var orgID int
-	if err := r.DB.Table("error_segments").Select("organization_id").Where("id=?", segmentID).Scan(&orgID).Error; err != nil {
-		return nil, e.Wrap(err, "error querying error segment")
-	}
-	_, err := r.isAdminInOrganization(ctx, orgID)
+	_, err := r.isAdminErrorSegmentOwner(ctx, segmentID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin is not in organization")
+		return nil, e.Wrap(err, "admin is not error segment owner")
 	}
 	if err := r.DB.Delete(&model.ErrorSegment{Model: model.Model{ID: segmentID}}).Error; err != nil {
 		return nil, e.Wrap(err, "error deleting segment")
@@ -727,19 +719,9 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 }
 
 func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*bool, error) {
-	admin, err := r.Query().Admin(ctx)
+	_, err := r.isAdminSessionOwner(ctx, id)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying admin")
-	}
-	if admin == nil {
-		return nil, e.New("admin is nil")
-	}
-	var queriedAdminID int
-	if err := r.DB.Table("session_comments").Select("admin_id").Where("id=?", id).Scan(&queriedAdminID).Error; err != nil {
-		return nil, e.Wrap(err, "error querying session comments")
-	}
-	if queriedAdminID != admin.ID {
-		return nil, e.New("requesting admin is not equal to queried admin on session comment")
+		return nil, e.Wrap(err, "admin is not session owner")
 	}
 	if err := r.DB.Delete(&model.SessionComment{Model: model.Model{ID: id}}).Error; err != nil {
 		return nil, e.Wrap(err, "error session comment")
@@ -805,19 +787,13 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationI
 }
 
 func (r *mutationResolver) DeleteErrorComment(ctx context.Context, id int) (*bool, error) {
-	admin, err := r.Query().Admin(ctx)
-	if err != nil {
-		return nil, e.Wrap(err, "error querying admin")
-	}
-	if admin == nil {
-		return nil, e.New("admin is nil")
-	}
-	var queriedAdminID int
-	if err := r.DB.Table("error_comments").Select("admin_id").Where("id=?", id).Scan(&queriedAdminID).Error; err != nil {
+	var errorGroupID int
+	if err := r.DB.Table("error_comments").Select("error_id").Where("id=?", id).Scan(&errorGroupID).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error comments")
 	}
-	if queriedAdminID != admin.ID {
-		return nil, e.New("requesting admin is not equal to queried admin on error comment")
+	_, err := r.isAdminErrorGroupOwner(ctx, errorGroupID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not error group owner")
 	}
 	if err := r.DB.Delete(&model.ErrorComment{Model: model.Model{ID: id}}).Error; err != nil {
 		return nil, e.Wrap(err, "error deleting error_comment")
