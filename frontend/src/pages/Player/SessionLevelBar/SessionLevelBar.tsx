@@ -8,6 +8,7 @@ import { DemoContext } from '../../../DemoContext';
 import { useGetSessionQuery } from '../../../graph/generated/hooks';
 import { ReactComponent as LayoutIcon } from '../../../static/layout.svg';
 import { ReactComponent as LockIcon } from '../../../static/lock.svg';
+import { getPlayerGraphQLContext } from '../PlayerGraphQL';
 import ReplayerContext, { ReplayerState } from '../ReplayerContext';
 import ShareButton from '../ShareButton/ShareButton';
 import { CurrentUrlBar } from './CurrentUrlBar/CurrentUrlBar';
@@ -32,7 +33,7 @@ const SessionLevelBar = () => {
         variables: {
             id: demo ? process.env.REACT_APP_DEMO_SESSION ?? '0' : session_id,
         },
-        context: { headers: { 'Highlight-Demo': demo } },
+        context: getPlayerGraphQLContext(demo),
     });
 
     // Subscribes to the Replayer for relevant events.

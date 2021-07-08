@@ -8,6 +8,7 @@ import {
     useGetAdminQuery,
     useGetSessionQuery,
 } from '../../../graph/generated/hooks';
+import { getPlayerGraphQLContext } from '../PlayerGraphQL';
 import { SessionPageSearchParams } from '../utils/utils';
 import styles from './MetadataPanel.module.scss';
 
@@ -27,7 +28,7 @@ const MetadataPanel = () => {
         variables: {
             id: session_id,
         },
-        context: { headers: { 'Highlight-Demo': false } },
+        context: getPlayerGraphQLContext(false),
     });
     const [parsedFields, setParsedFields] = useState<Field[]>([]);
 

@@ -12,6 +12,7 @@ import {
 } from '../../../graph/generated/hooks';
 import { ReactComponent as StarIcon } from '../../../static/star.svg';
 import { ReactComponent as FilledStarIcon } from '../../../static/star-filled.svg';
+import { getPlayerGraphQLContext } from '../PlayerGraphQL';
 import styles from './MetadataBox.module.scss';
 import { getMajorVersion } from './utils/utils';
 
@@ -23,7 +24,7 @@ export const MetadataBox = () => {
         variables: {
             id: demo ? process.env.REACT_APP_DEMO_SESSION ?? '0' : session_id,
         },
-        context: { headers: { 'Highlight-Demo': demo } },
+        context: getPlayerGraphQLContext(demo),
     });
     const [markSessionAsStarred] = useMarkSessionAsStarredMutation({
         update(cache) {

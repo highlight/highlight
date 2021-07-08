@@ -12,6 +12,7 @@ import {
     useGetSessionQuery,
     useUpdateShareableMutation,
 } from '../../../graph/generated/hooks';
+import { getPlayerGraphQLContext } from '../PlayerGraphQL';
 import { PlayerURL } from '../PlayerURL';
 import ReplayerContext from '../ReplayerContext';
 import styles from './ShareButton.module.scss';
@@ -25,7 +26,7 @@ const ShareButton = (props: ButtonProps) => {
         variables: {
             id: session_id,
         },
-        context: { headers: { 'Highlight-Demo': demo } },
+        context: getPlayerGraphQLContext(demo),
     });
     const [updateShareable] = useUpdateShareableMutation({
         refetchQueries: ['GetSession'],

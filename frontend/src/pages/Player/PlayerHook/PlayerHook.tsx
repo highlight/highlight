@@ -13,6 +13,7 @@ import {
 } from '../../../graph/generated/hooks';
 import { ErrorObject, SessionComment } from '../../../graph/generated/schemas';
 import { HighlightEvent } from '../HighlightEvent';
+import { getPlayerGraphQLContext } from '../PlayerGraphQL';
 import {
     ParsedSessionComment,
     ParsedSessionInterval,
@@ -73,7 +74,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         variables: {
             session_id: sessionId,
         },
-        context: { headers: { 'Highlight-Demo': demo } },
+        context: getPlayerGraphQLContext(demo),
         fetchPolicy: 'no-cache',
     });
 
@@ -81,7 +82,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         variables: {
             id: sessionId,
         },
-        context: { headers: { 'Highlight-Demo': false } },
+        context: getPlayerGraphQLContext(false),
         onCompleted: (data) => {
             if (data.session?.within_billing_quota) {
                 getSessionPayload();

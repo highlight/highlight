@@ -16,6 +16,7 @@ import GoToButton from '../../../../../components/Button/GoToButton';
 import { DemoContext } from '../../../../../DemoContext';
 import { useGetMessagesQuery } from '../../../../../graph/generated/hooks';
 import { ConsoleMessage } from '../../../../../util/shared-types';
+import { getPlayerGraphQLContext } from '../../../PlayerGraphQL';
 import ReplayerContext, { ReplayerState } from '../../../ReplayerContext';
 import devStyles from '../DevToolsWindow.module.scss';
 import { Option } from '../Option/Option';
@@ -45,7 +46,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
                 ? process.env.REACT_APP_DEMO_SESSION ?? ''
                 : session_id,
         },
-        context: { headers: { 'Highlight-Demo': demo } },
+        context: getPlayerGraphQLContext(demo),
         fetchPolicy: 'no-cache',
     });
     const virtuoso = useRef<VirtuosoHandle>(null);

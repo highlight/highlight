@@ -7,6 +7,7 @@ import {
     useDeleteSessionCommentMutation,
     useGetSessionQuery,
 } from '../../../graph/generated/hooks';
+import { getPlayerGraphQLContext } from '../../../pages/Player/PlayerGraphQL';
 import { PlayerSearchParameters } from '../../../pages/Player/PlayerHook/utils';
 import { onGetLinkWithTimestamp } from '../../../pages/Player/PlayerURL';
 import ReplayerContext, {
@@ -41,7 +42,7 @@ const SessionCommentHeader = ({
         variables: {
             id: session_id,
         },
-        context: { headers: { 'Highlight-Demo': false } },
+        context: getPlayerGraphQLContext(false),
     });
 
     const getCommentLink = () => {

@@ -15,6 +15,7 @@ import Tooltip from '../../../../../components/Tooltip/Tooltip';
 import { DemoContext } from '../../../../../DemoContext';
 import { useGetResourcesQuery } from '../../../../../graph/generated/hooks';
 import { formatNumber } from '../../../../../util/numbers';
+import { getPlayerGraphQLContext } from '../../../PlayerGraphQL';
 import ReplayerContext, { ReplayerState } from '../../../ReplayerContext';
 import devStyles from '../DevToolsWindow.module.scss';
 import { Option } from '../Option/Option';
@@ -50,7 +51,7 @@ export const ResourcePage = ({
                 ? process.env.REACT_APP_DEMO_SESSION ?? ''
                 : session_id,
         },
-        context: { headers: { 'Highlight-Demo': demo } },
+        context: getPlayerGraphQLContext(demo),
         fetchPolicy: 'no-cache',
     });
     const virtuoso = useRef<VirtuosoHandle>(null);
