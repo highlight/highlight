@@ -243,6 +243,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+		APIKeyToOrgID                 func(childComplexity int, apiKey string) int
 		Admin                         func(childComplexity int) int
 		AdminHasCreatedComment        func(childComplexity int, adminID int) int
 		Admins                        func(childComplexity int, organizationID int) int
@@ -512,6 +513,7 @@ type QueryResolver interface {
 	Segments(ctx context.Context, organizationID int) ([]*model1.Segment, error)
 	ErrorSegments(ctx context.Context, organizationID int) ([]*model1.ErrorSegment, error)
 	RecordingSettings(ctx context.Context, organizationID int) (*model1.RecordingSettings, error)
+	APIKeyToOrgID(ctx context.Context, apiKey string) (*int, error)
 }
 type SegmentResolver interface {
 	Params(ctx context.Context, obj *model1.Segment) (*model1.SearchParams, error)
@@ -1538,6 +1540,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Plan.Type(childComplexity), true
+
+	case "Query.api_key_to_org_id":
+		if e.complexity.Query.APIKeyToOrgID == nil {
+			break
+		}
+
+		args, err := ec.field_Query_api_key_to_org_id_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.APIKeyToOrgID(childComplexity, args["api_key"].(string)), true
 
 	case "Query.admin":
 		if e.complexity.Query.Admin == nil {
@@ -3134,6 +3148,7 @@ type Query {
     segments(organization_id: ID!): [Segment]
     error_segments(organization_id: ID!): [ErrorSegment]
     recording_settings(organization_id: ID!): RecordingSettings
+    api_key_to_org_id(api_key: String!): ID
 }
 
 type Mutation {
@@ -4241,6 +4256,21 @@ func (ec *executionContext) field_Query_admins_args(ctx context.Context, rawArgs
 		}
 	}
 	args["organization_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_api_key_to_org_id_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["api_key"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("api_key"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["api_key"] = arg0
 	return args, nil
 }
 
@@ -10862,6 +10892,45 @@ func (ec *executionContext) _Query_recording_settings(ctx context.Context, field
 	return ec.marshalORecordingSettings2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐRecordingSettings(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_api_key_to_org_id(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_api_key_to_org_id_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().APIKeyToOrgID(rctx, args["api_key"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOID2ᚖint(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -16811,6 +16880,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_recording_settings(ctx, field)
+				return res
+			})
+		case "api_key_to_org_id":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_api_key_to_org_id(ctx, field)
 				return res
 			})
 		case "__type":

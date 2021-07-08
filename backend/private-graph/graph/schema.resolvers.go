@@ -1960,6 +1960,14 @@ func (r *queryResolver) RecordingSettings(ctx context.Context, organizationID in
 	return recordingSettings, nil
 }
 
+func (r *queryResolver) APIKeyToOrgID(ctx context.Context, apiKey string) (*int, error) {
+	var orgId int
+	if err := r.DB.Table("organizations").Select("id").Where("secret=?", apiKey).Scan(&orgId).Error; err != nil {
+		return nil, e.Wrap(err, "error getting org id from api key")
+	}
+	return &orgId, nil
+}
+
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
 	params := &model.SearchParams{}
 	if obj.Params == nil {

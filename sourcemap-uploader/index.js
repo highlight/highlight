@@ -6,6 +6,13 @@ const { hideBin } = require("yargs/helpers");
 const { statSync, readFileSync } = require("fs");
 const glob = require("glob");
 const AWS = require("aws-sdk");
+const fetch = require("node-fetch");
+
+const VERIFY_API_KEY_QUERY = `
+  query ApiKeyToOrgID($api_key: String!) {
+    api_key_to_org_id(api_key: $api_key)
+  }
+`;
 
 const BUCKET_NAME = "source-maps-test";
 
@@ -23,7 +30,40 @@ yargs(hideBin(process.argv))
     "upload",
     "Upload Javascript sourcemaps to Highlight",
     () => {},
-    async ({ organizationId, apiKey, appVersion, path }) => {
+    async ({ apiKey, appVersion, path }) => {
+      if (!apiKey || apiKey === "") {
+        throw new Error("api key cannot be empty");
+      }
+
+      const variables = {
+        api_key: apiKey,
+      };
+
+      const res = await fetch("https://private.highlight.run", {
+        method: "post",
+        headers: {
+          "Content-Type": "application/json",
+          "Highlight-Demo": "true",
+        },
+        body: JSON.stringify({
+          query: VERIFY_API_KEY_QUERY,
+          variables: variables,
+        }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          return data;
+        })
+        .catch((e) => {
+          console.log(e);
+        });
+
+      if (!res || !res.data || !res.data.api_key_to_org_id) {
+        throw new Error("invalid api key");
+      }
+
+      organizationId = res.data.api_key_to_org_id;
+
       console.info(`Starting to upload source maps from ${path}`);
 
       const fileList = await getAllSourceMapFiles([path]);
@@ -38,16 +78,15 @@ yargs(hideBin(process.argv))
 
       await Promise.all(
         fileList.map(({ path, name }) =>
-          uploadFile(organizationId, apiKey, appVersion, path, name)
+          uploadFile(organizationId, appVersion, path, name)
         )
       );
     }
   )
-  .option("organizationId", {
-    alias: "id",
+  .option("apiKey", {
+    alias: "k",
     type: "string",
-    describe: "The Highlight organization ID",
-    default: "113",
+    describe: "The Highlight api key",
   })
   .option("appVersion", {
     alias: "av",
@@ -96,7 +135,7 @@ async function getAllSourceMapFiles(paths) {
   return map;
 }
 
-async function uploadFile(organizationId, apiKey, version, filePath, fileName) {
+async function uploadFile(organizationId, version, filePath, fileName) {
   const fileContent = readFileSync(filePath);
 
   // Setting up S3 upload parameters
