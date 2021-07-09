@@ -222,14 +222,17 @@ export class Highlight {
     async consumeCustomError(error: Error, message?: string, payload?: string) {
         const result = await StackTrace.get();
         const frames = result.slice(1);
-        var res = ErrorStackParser.parse(error);
+        var res: ErrorStackParser.StackFrame[] = [];
+        try {
+            var res = ErrorStackParser.parse(error);
+        } catch {}
         this.errors.push({
             event: message ? message + ':' + error.message : error.message,
             type: 'H.consumeError',
             url: window.location.href,
-            source: 'FIX THIS',
-            lineNumber: res[0].lineNumber ? res[0].lineNumber : 0,
-            columnNumber: res[0].columnNumber ? res[0].columnNumber : 0,
+            source: '',
+            lineNumber: res[0]?.lineNumber ? res[0]?.lineNumber : 0,
+            columnNumber: res[0]?.columnNumber ? res[0]?.columnNumber : 0,
             stackTrace: res,
             timestamp: new Date().toISOString(),
         });
