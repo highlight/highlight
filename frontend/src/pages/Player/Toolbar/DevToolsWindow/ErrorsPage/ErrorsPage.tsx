@@ -1,8 +1,9 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router-dom';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
+import Input from '../../../../../components/Input/Input';
 import ReplayerContext, { ReplayerState } from '../../../ReplayerContext';
 import { useErrorModalContext } from '../../ErrorModalContext/ErrorModalContext';
 import devStyles from '../DevToolsWindow.module.scss';
@@ -20,26 +21,29 @@ const ErrorsPage = () => {
     const [isInteractingWithErrors, setIsInteractingWithErrors] = useState(
         false
     );
+    const [filterSearchTerm, setFilterSearchTerm] = useState('');
     const history = useHistory<ErrorsPageHistoryState>();
-    const { errors, state, time, replayer } = useContext(ReplayerContext);
+    const { errors: allErrors, state, time, replayer } = useContext(
+        ReplayerContext
+    );
     const { setSelectedError } = useErrorModalContext();
 
     const loading = state === ReplayerState.Loading;
 
     /** Only errors recorded after this feature was released will have the timestamp. */
     const hasTimestamp =
-        !loading && errors?.every((error) => !!error.timestamp);
+        !loading && allErrors?.every((error) => !!error.timestamp);
 
     useEffect(() => {
         if (!isInteractingWithErrors && hasTimestamp && replayer) {
             const index = findLastActiveEventIndex(
                 time,
                 replayer.getMetaData().startTime,
-                errors
+                allErrors
             );
             setLastActiveErrorIndex(index);
         }
-    }, [errors, hasTimestamp, isInteractingWithErrors, replayer, time]);
+    }, [allErrors, hasTimestamp, isInteractingWithErrors, replayer, time]);
 
     useEffect(() => {
         if (virtuoso.current) {
@@ -57,8 +61,44 @@ const ErrorsPage = () => {
         }
     }, [history.location.state?.errorCardIndex, lastActiveErrorIndex, state]);
 
+    const errorsToRender = useMemo(() => {
+        if (filterSearchTerm === '') {
+            return allErrors;
+        }
+
+        return allErrors.filter((error) => {
+            const normalizedFilterSearchTerm = filterSearchTerm.toLocaleLowerCase();
+
+            return error.event.some(
+                (line) =>
+                    line
+                        ?.toLocaleLowerCase()
+                        .includes(normalizedFilterSearchTerm) ||
+                    error.source
+                        ?.toLocaleLowerCase()
+                        .includes(normalizedFilterSearchTerm)
+            );
+        });
+    }, [allErrors, filterSearchTerm]);
+
     return (
-        <>
+        <div className={styles.errorsPageWrapper}>
+            <div className={devStyles.topBar}>
+                <div className={devStyles.optionsWrapper}>
+                    <div className={styles.filterContainer}>
+                        <Input
+                            allowClear
+                            placeholder="Filter"
+                            value={filterSearchTerm}
+                            onChange={(event) => {
+                                setFilterSearchTerm(event.target.value);
+                            }}
+                            size="small"
+                            disabled={loading}
+                        />
+                    </div>
+                </div>
+            </div>
             <div className={styles.errorList}>
                 {loading ? (
                     <div className={styles.skeleton}>
@@ -67,9 +107,9 @@ const ErrorsPage = () => {
                             style={{ height: 25, marginBottom: 11 }}
                         />
                     </div>
-                ) : !errors.length ? (
+                ) : !allErrors.length ? (
                     <div className={devStyles.emptySection}>
-                        No errors for this section.
+                        There are no errors for this session.
                     </div>
                 ) : (
                     <Virtuoso
@@ -81,9 +121,10 @@ const ErrorsPage = () => {
                         }}
                         ref={virtuoso}
                         overscan={500}
-                        data={errors}
+                        data={errorsToRender}
                         itemContent={(index, error) => (
                             <ErrorCard
+                                searchQuery={filterSearchTerm}
                                 key={error?.id}
                                 error={error}
                                 state={
@@ -101,7 +142,7 @@ const ErrorsPage = () => {
                     />
                 )}
             </div>
-        </>
+        </div>
     );
 };
 
