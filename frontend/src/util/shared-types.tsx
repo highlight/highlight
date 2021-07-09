@@ -9,7 +9,12 @@ export type ConsoleMessage = {
 
 export type ErrorMessage = {
     event: string;
-    type: 'console.error' | 'window.onerror' | 'custom';
+    type:
+        | 'console.error'
+        | 'window.onerror'
+        | 'custom'
+        | 'H.consumeError'
+        | 'H.error';
     url: string;
     source: string;
     lineNumber: number;

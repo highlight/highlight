@@ -7,6 +7,7 @@ import { ConsoleListener } from './listeners/console-listener';
 import { ErrorListener } from './listeners/error-listener';
 import { PathListener } from './listeners/path-listener';
 import { GraphQLClient } from 'graphql-request';
+import ErrorStackParser from 'error-stack-parser';
 import {
     Sdk,
     getSdk,
@@ -207,7 +208,7 @@ export class Highlight {
         const frames = result.slice(1);
         this.errors.push({
             event: message,
-            type: 'custom',
+            type: 'H.error',
             url: window.location.href,
             source: frames[0].fileName ?? '',
             lineNumber: frames[0].lineNumber ?? 0,
@@ -215,6 +216,22 @@ export class Highlight {
             stackTrace: frames,
             timestamp: new Date().toISOString(),
             payload: payload,
+        });
+    }
+
+    async consumeCustomError(error: Error, message?: string, payload?: string) {
+        const result = await StackTrace.get();
+        const frames = result.slice(1);
+        var res = ErrorStackParser.parse(error);
+        this.errors.push({
+            event: message ? message + ':' + error.message : error.message,
+            type: 'H.consumeError',
+            url: window.location.href,
+            source: 'FIX THIS',
+            lineNumber: res[0].lineNumber ? res[0].lineNumber : 0,
+            columnNumber: res[0].columnNumber ? res[0].columnNumber : 0,
+            stackTrace: res,
+            timestamp: new Date().toISOString(),
         });
     }
 
