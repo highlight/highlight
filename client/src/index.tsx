@@ -228,7 +228,7 @@ export class Highlight {
         } catch {}
         this.errors.push({
             event: message ? message + ':' + error.message : error.message,
-            type: 'H.consumeError',
+            type: 'custom',
             url: window.location.href,
             source: '',
             lineNumber: res[0]?.lineNumber ? res[0]?.lineNumber : 0,
