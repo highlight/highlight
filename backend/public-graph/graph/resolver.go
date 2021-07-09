@@ -687,8 +687,10 @@ func (r *Resolver) isOrgWithinBillingQuota(organization *model.Organization, now
 	if organization.TrialEndDate != nil && organization.TrialEndDate.Before(now) {
 		return true
 	}
-	var withinBillingQuota bool
-	var quota int
+	var (
+		withinBillingQuota bool
+		quota              int
+	)
 	if organization.MonthlySessionLimit != nil && *organization.MonthlySessionLimit > 0 {
 		quota = *organization.MonthlySessionLimit
 	} else {
