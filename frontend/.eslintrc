@@ -43,6 +43,10 @@
       "error",
       {
         "paths": [
+	  {
+	     "name": "react-highlight-words",
+	     "message": "Please use TextHighlighter from /src/components/TextHighlighter instead."
+	  },
           {
             "name": "antd",
             "importNames": [
