@@ -11,9 +11,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/event-parse"
+	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/model"
-
 	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	e "github.com/pkg/errors"
@@ -117,7 +116,7 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 	return &sessionID, nil
 }
 
-func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput) (*int, error) {
+func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, requestDetails string, errors []*customModels.ErrorObjectInput) (*int, error) {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.querySession"))
 	querySessionSpan.SetTag("sessionID", sessionID)
 	querySessionSpan.SetTag("messagesLength", len(messages))
@@ -195,6 +194,20 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		}
 	}
 	unmarshalResourcesSpan.Finish()
+
+	// unmarshal network resources
+	unmarshalNetworkRequestsSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("go.unmarshal.networkRequests"))
+	networkResourcesMap := make(map[string][]model.RequestDetail)
+	if err := json.Unmarshal([]byte(requestDetails), &networkResourcesMap); err != nil {
+		return nil, fmt.Errorf("error decoding network resource data: %v", err)
+	}
+	if len(networkResourcesMap["networkResources"]) > 0 {
+		obj := &model.RequestDetailsObject{SessionID: sessionID, Resources: requestDetails}
+		if err := r.DB.Create(obj).Error; err != nil {
+			return nil, e.Wrap(err, "error creating network resource object")
+		}
+	}
+	unmarshalNetworkRequestsSpan.Finish()
 
 	// increment daily error table
 	if len(errors) > 0 {

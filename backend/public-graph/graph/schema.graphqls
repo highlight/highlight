@@ -60,6 +60,7 @@ type Mutation {
         events: ReplayEventsInput!
         messages: String!
         resources: String!
+        request_details: String!
         errors: [ErrorObjectInput]!
     ): ID
 }
