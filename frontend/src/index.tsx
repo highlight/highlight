@@ -64,31 +64,66 @@ window.Intercom('boot', {
 });
 showHiringMessage();
 
+type ErrorBoundaryProps = {
+    children: React.ReactNode;
+};
+class SimpleErrorBoundary extends React.Component<{
+    children: React.ReactNode;
+}> {
+    state = { hasError: false };
+    constructor(props: ErrorBoundaryProps) {
+        super(props);
+    }
+
+    static getDerivedStateFromError() {
+        return { hasError: true };
+    }
+
+    componentDidCatch(error: Error) {
+        H.consumeError(error, 'Error in Highlight custom boundary!', {
+            good: 'morning',
+        });
+    }
+
+    render() {
+        if (this.state.hasError) {
+            return <h1>Something went wrong.</h1>;
+        }
+        return this.props.children;
+    }
+}
+
 const App = () => {
     return (
-        <ApolloProvider client={client}>
-            <QueryParamProvider>
-                <SkeletonTheme color={'#F5F5F5'} highlightColor={'#FCFCFC'}>
-                    <Router>
-                        <Switch>
-                            <Route path="/about">
-                                <About />
-                            </Route>
-                            <Route path="/demo" exact>
-                                <DemoContext.Provider value={{ demo: true }}>
-                                    <DemoRouter />
-                                </DemoContext.Provider>
-                            </Route>
-                            <Route path="/">
-                                <DemoContext.Provider value={{ demo: false }}>
-                                    <LoginForm />
-                                </DemoContext.Provider>
-                            </Route>
-                        </Switch>
-                    </Router>
-                </SkeletonTheme>
-            </QueryParamProvider>
-        </ApolloProvider>
+        <SimpleErrorBoundary>
+            <ApolloProvider client={client}>
+                <QueryParamProvider>
+                    <SkeletonTheme color={'#F5F5F5'} highlightColor={'#FCFCFC'}>
+                        <Router>
+                            <Switch>
+                                <Route path="/about">
+                                    <About />
+                                </Route>
+                                <Route path="/demo" exact>
+                                    <DemoContext.Provider
+                                        value={{ demo: true }}
+                                    >
+                                        <DemoRouter />
+                                    </DemoContext.Provider>
+                                </Route>
+                                <Route path="/">
+                                    <DemoContext.Provider
+                                        value={{ demo: false }}
+                                    >
+                                        <LoginForm />
+                                    </DemoContext.Provider>
+                                </Route>
+                            </Switch>
+                        </Router>
+                    </SkeletonTheme>
+                </QueryParamProvider>
+            </ApolloProvider>
+        </SimpleErrorBoundary>
     );
 };
 
