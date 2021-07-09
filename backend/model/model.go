@@ -874,3 +874,29 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 	}
 	return nil
 }
+
+type isometricRequest struct {
+	ID      string            `json:"id"`
+	URL     string            `json:"url"`
+	Method  string            `json:"method"`
+	Headers map[string]string `json:"headers"`
+	Body    *string           `json:"body"`
+}
+
+type isometricResponse struct {
+	Status     int               `json:"status"`
+	StatusTest string            `json:"statusTest"`
+	Headers    map[string]string `json:"headers"`
+	Body       *string           `json:"body"`
+}
+
+type RequestDetail struct {
+	Request  isometricRequest  `json:"request"`
+	Response isometricResponse `json:"response"`
+}
+
+type RequestDetailsObject struct {
+	Model
+	SessionID int
+	Resources string
+}
