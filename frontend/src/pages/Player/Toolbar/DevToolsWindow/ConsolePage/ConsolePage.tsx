@@ -263,7 +263,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
                     </div>
                 ) : (
                     <div className={devStyles.emptySection}>
-                        No logs for this section.
+                        There are no console logs for this session.
                     </div>
                 )}
             </div>
