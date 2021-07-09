@@ -28,6 +28,7 @@ const (
 	SessionContents  PayloadType = "session-contents"
 	NetworkResources PayloadType = "network-resources"
 	ConsoleMessages  PayloadType = "console-messages"
+	RequestDetails   PayloadType = "requests-details"
 )
 
 type StorageClient struct {
@@ -156,6 +157,56 @@ func (s *StorageClient) ReadResourcesFromS3(sessionId int, organizationId int) (
 		return nil, fmt.Errorf("error decoding event data: %v", err)
 	}
 	return allResources.Resources, nil
+}
+
+func (s *StorageClient) PushDetailedNetworkResourcesToS3(sessionId int, organizationId int, rs []*model.RequestDetailsObject) (*int64, error) {
+	allNetworkResources := make(map[string][]model.RequestDetail)
+	for _, resourceObj := range rs {
+		subResources := make(map[string][]model.RequestDetail)
+		if err := json.Unmarshal([]byte(resourceObj.Resources), &subResources); err != nil {
+			return nil, errors.Wrap(err, "error decoding request details data")
+		}
+		allNetworkResources["request_details"] = append(subResources["request_details"], allNetworkResources["request_details"]...)
+	}
+	b, err := json.Marshal(allNetworkResources)
+	if err != nil {
+		return nil, errors.Wrap(err, "error marshaling request details object")
+	}
+	key := s.bucketKey(sessionId, organizationId, RequestDetails)
+	body := strings.NewReader(string(b))
+	_, err = s.S3Client.PutObject(context.TODO(), &s3.PutObjectInput{
+		Bucket: aws.String(S3SessionsPayloadBucketName), Key: key, Body: body,
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "error 'put'ing in s3 bucket")
+	}
+	headObj := s3.HeadObjectInput{
+		Bucket: aws.String(S3SessionsPayloadBucketName),
+		Key:    key,
+	}
+	result, err := s.S3Client.HeadObject(context.TODO(), &headObj)
+	if err != nil {
+		return nil, errors.New("error retrieving head object")
+	}
+	return &result.ContentLength, nil
+}
+
+func (s *StorageClient) ReadDetailedNetworkResourcesFromS3(sessionId int, organizationId int) ([]*model.RequestDetailsObject, error) {
+	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: aws.String(S3SessionsPayloadBucketName),
+		Key: s.bucketKey(sessionId, organizationId, RequestDetails)})
+	if err != nil {
+		return nil, errors.Wrap(err, "error getting object from s3")
+	}
+	buf := new(bytes.Buffer)
+	_, err = buf.ReadFrom(output.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "error reading from s3 buffer")
+	}
+	var allResources []*model.RequestDetailsObject
+	if err := json.Unmarshal(buf.Bytes(), &allResources); err != nil {
+		return nil, fmt.Errorf("error decoding request details data: %v", err)
+	}
+	return allResources, nil
 }
 
 func (s *StorageClient) PushMessagesToS3(sessionId int, organizationId int, messagesObj []*model.MessagesObject) (*int64, error) {

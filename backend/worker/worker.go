@@ -53,10 +53,22 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	for _, ee := range resourcesObject {
 		payloadStringSize += len(ee.Resources)
 	}
-	dd.StatsD.Histogram("worker.processSession.payloadStringSize", float64(payloadStringSize), nil, 1) //nolint
 	resourcePayloadSize, err := w.S3Client.PushResourcesToS3(s.ID, s.OrganizationID, resourcesObject)
 	if err != nil {
 		return errors.Wrap(err, "error pushing network payload to s3")
+	}
+
+	var requestDetailsObject []*model.RequestDetailsObject
+	if res := w.Resolver.DB.Order("created_at desc").Where(&model.RequestDetailsObject{SessionID: s.ID}).Find(&requestDetailsObject); res.Error != nil {
+		return errors.Wrap(res.Error, "error reading from request details")
+	}
+	for _, ee := range requestDetailsObject {
+		payloadStringSize += len(ee.Resources)
+	}
+	dd.StatsD.Histogram("worker.processSession.payloadStringSize", float64(payloadStringSize), nil, 1) //nolint
+	requestDetailsPayloadSize, err := w.S3Client.PushResourcesToS3(s.ID, s.OrganizationID, resourcesObject)
+	if err != nil {
+		return errors.Wrap(err, "error pushing request details to s3")
 	}
 
 	messagesObj := []*model.MessagesObject{}
@@ -78,6 +90,9 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	}
 	if resourcePayloadSize != nil {
 		totalPayloadSize += *resourcePayloadSize
+	}
+	if requestDetailsPayloadSize != nil {
+		totalPayloadSize += *requestDetailsPayloadSize
 	}
 	if messagePayloadSize != nil {
 		totalPayloadSize += *messagePayloadSize
@@ -103,6 +118,11 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	if len(resourcesObject) > 0 {
 		if err := w.Resolver.DB.Unscoped().Delete(&resourcesObject).Error; err != nil {
 			return errors.Wrapf(err, "error deleting all network resource records with length %v", len(resourcesObject))
+		}
+	}
+	if len(requestDetailsObject) > 0 {
+		if err := w.Resolver.DB.Unscoped().Delete(&requestDetailsObject).Error; err != nil {
+			return errors.Wrapf(err, "error deleting all request details records with length %v", len(resourcesObject))
 		}
 	}
 	if len(messagesObj) > 0 {
