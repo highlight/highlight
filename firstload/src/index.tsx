@@ -44,6 +44,11 @@ type HighlightPublicInterface = {
     identify: (identify: string, obj: any) => void;
     track: (event: string, obj: any) => void;
     error: (message: string, payload?: { [key: string]: string }) => void;
+    consumeError: (
+        error: Error,
+        message?: string,
+        payload?: { [key: string]: string }
+    ) => void;
     getSessionURL: () => Promise<string>;
     getSessionDetails: () => Promise<SessionDetails>;
     start: () => void;
@@ -98,6 +103,23 @@ export const H: HighlightPublicInterface = {
             });
         } catch (e) {
             HighlightWarning('init', e);
+        }
+    },
+    consumeError: (
+        error: Error,
+        message?: string,
+        payload?: { [key: string]: string }
+    ) => {
+        try {
+            H.onHighlightReady(() =>
+                highlight_obj.consumeCustomError(
+                    error,
+                    message,
+                    JSON.stringify(payload)
+                )
+            );
+        } catch (e) {
+            HighlightWarning('error', e);
         }
     },
     error: (message: string, payload?: { [key: string]: string }) => {
