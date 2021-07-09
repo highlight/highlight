@@ -127,3 +127,17 @@ $canvas-width: calc(
 .resourcePageWrapper {
     height: 100%;
 }
+
+.filterContainer {
+    align-items: center;
+    display: flex;
+    margin-left: auto;
+    padding-right: var(--size-large);
+}
+
+.noResultsMessage {
+    align-self: center;
+    color: var(--color-gray-500);
+    margin-bottom: auto !important;
+    margin-top: auto !important;
+}
