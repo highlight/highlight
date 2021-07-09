@@ -18,6 +18,7 @@ import LoginForm from './pages/Login/Login';
 import * as serviceWorker from './serviceWorker';
 import { showHiringMessage } from './util/console/hiringMessage';
 import { client } from './util/graph';
+import { SimpleErrorBoundary } from './util/simpleErrorBoundary';
 
 const dev = process.env.NODE_ENV === 'development' ? true : false;
 const options: HighlightOptions = {
@@ -63,35 +64,6 @@ window.Intercom('boot', {
     hide_default_launcher: true,
 });
 showHiringMessage();
-
-type ErrorBoundaryProps = {
-    children: React.ReactNode;
-};
-class SimpleErrorBoundary extends React.Component<{
-    children: React.ReactNode;
-}> {
-    state = { hasError: false };
-    constructor(props: ErrorBoundaryProps) {
-        super(props);
-    }
-
-    static getDerivedStateFromError() {
-        return { hasError: true };
-    }
-
-    componentDidCatch(error: Error) {
-        H.consumeError(error, 'Error in Highlight custom boundary!', {
-            good: 'morning',
-        });
-    }
-
-    render() {
-        if (this.state.hasError) {
-            return <h1>Something went wrong.</h1>;
-        }
-        return this.props.children;
-    }
-}
 
 const App = () => {
     return (
