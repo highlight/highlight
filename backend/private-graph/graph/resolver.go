@@ -182,6 +182,12 @@ func (r *Resolver) isAdminSessionOwner(ctx context.Context, session_id int) (*mo
 	if strconv.Itoa(session_id) == DemoSession {
 		return session, nil
 	}
+	log.Error("hello")
+
+	shareableSecret := ctx.Value(model.ContextKeys.ShareableSecret)
+	if shareableSecret != nil && shareableSecret != "" {
+		log.Error("secret", shareableSecret)
+	}
 	_, err := r.isAdminInOrganization(ctx, session.OrganizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "error validating admin in organization")

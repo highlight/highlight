@@ -9,6 +9,7 @@ import (
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
 	e "github.com/pkg/errors"
+	logg "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 
@@ -16,8 +17,9 @@ import (
 )
 
 var (
-	AuthClient *auth.Client
-	DemoHeader string = "Highlight-Demo"
+	AuthClient            *auth.Client
+	DemoHeader            string = "Highlight-Demo"
+	ShareableSecretHeader string = "Shareable-Secret"
 )
 
 func SetupAuthClient() {
@@ -53,6 +55,13 @@ func PrivateMiddleware(next http.Handler) http.Handler {
 			uid = t.UID
 		}
 		ctx := context.WithValue(r.Context(), model.ContextKeys.UID, uid)
+		// mystring := fmt.Sprintf("%v", r.Header)
+		// logg.Error(mystring)
+		var shareableSecret = r.Header.Get(ShareableSecretHeader)
+		logg.Error(shareableSecret)
+		if shareableSecret != "" {
+			ctx = context.WithValue(r.Context(), model.ContextKeys.ShareableSecret, shareableSecret)
+		}
 		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r)
 	})

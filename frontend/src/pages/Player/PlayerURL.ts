@@ -5,6 +5,7 @@ export class PlayerURL extends URL {
         super(urlString);
     }
 
+    // TODO: Do I need to clear the params?
     static currentURL(): PlayerURL {
         return new PlayerURL(window.location.href);
     }

@@ -68,15 +68,17 @@ var ErrorGroupStates = struct {
 type contextString string
 
 var ContextKeys = struct {
-	IP             contextString
-	UserAgent      contextString
-	AcceptLanguage contextString
-	UID            contextString
+	IP              contextString
+	UserAgent       contextString
+	AcceptLanguage  contextString
+	UID             contextString
+	ShareableSecret contextString
 }{
-	IP:             "ip",
-	UserAgent:      "userAgent",
-	AcceptLanguage: "acceptLanguage",
-	UID:            "uid",
+	IP:              "ip",
+	UserAgent:       "userAgent",
+	AcceptLanguage:  "acceptLanguage",
+	UID:             "uid",
+	ShareableSecret: "shareableSecret",
 }
 
 var Models = []interface{}{
