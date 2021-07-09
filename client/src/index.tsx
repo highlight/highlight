@@ -208,7 +208,7 @@ export class Highlight {
         const frames = result.slice(1);
         this.errors.push({
             event: message,
-            type: 'H.error',
+            type: 'custom',
             url: window.location.href,
             source: frames[0].fileName ?? '',
             lineNumber: frames[0].lineNumber ?? 0,
