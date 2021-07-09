@@ -103,3 +103,10 @@
     color: var(--text-primary);
     visibility: hidden;
 }
+
+.filterContainer {
+    align-items: center;
+    display: flex;
+    margin-left: auto;
+    padding-right: var(--size-large);
+}

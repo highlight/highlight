@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import Highlighter from 'react-highlight-words';
 import { useParams } from 'react-router-dom';
 import { components, OptionsType, OptionTypeBase } from 'react-select';
 import AsyncSelect from 'react-select/async';
 
 import InfoTooltip from '../../../../../components/InfoTooltip/InfoTooltip';
+import TextHighlighter from '../../../../../components/TextHighlighter/TextHighlighter';
 import { useGetSessionSearchResultsQuery } from '../../../../../graph/generated/hooks';
 import useSelectedSessionSearchFilters from '../../../../../persistedStorage/useSelectedSessionSearchFilters';
 import SvgSearchIcon from '../../../../../static/SearchIcon';
@@ -203,11 +203,8 @@ const SessionSearch = () => {
                                                 styles.optionLabelContainer
                                             }
                                         >
-                                            <Highlighter
+                                            <TextHighlighter
                                                 className={styles.nameLabel}
-                                                highlightClassName={
-                                                    styles.highlightedFuzzyMatch
-                                                }
                                                 searchWords={query.split(' ')}
                                                 autoEscape={true}
                                                 textToHighlight={name}
@@ -223,11 +220,8 @@ const SessionSearch = () => {
                                                     return text;
                                                 }}
                                             />
-                                            <Highlighter
+                                            <TextHighlighter
                                                 className={styles.keyLabel}
-                                                highlightClassName={
-                                                    styles.highlightedFuzzyMatch
-                                                }
                                                 searchWords={query.split(' ')}
                                                 autoEscape={true}
                                                 textToHighlight={valueType}
