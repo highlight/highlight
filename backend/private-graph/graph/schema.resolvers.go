@@ -1183,6 +1183,35 @@ func (r *queryResolver) Resources(ctx context.Context, sessionID int) ([]interfa
 	return allResources["resources"], nil
 }
 
+func (r *queryResolver) RequestDetails(ctx context.Context, sessionID int) ([]interface{}, error) {
+	s, err := r.isAdminSessionOwner(ctx, sessionID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not session owner")
+	}
+	if en := s.ObjectStorageEnabled; en != nil && *en {
+		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.objectStorageQuery"))
+		defer objectStorageSpan.Finish()
+		ret, err := r.StorageClient.ReadResourcesFromS3(sessionID, s.OrganizationID)
+		if err != nil {
+			return nil, e.Wrap(err, "error pulling resources from s3")
+		}
+		return ret, nil
+	}
+	resourcesObject := []*model.ResourcesObject{}
+	if res := r.DB.Order("created_at desc").Where(&model.ResourcesObject{SessionID: sessionID}).Find(&resourcesObject); res.Error != nil {
+		return nil, fmt.Errorf("error reading from resources: %v", res.Error)
+	}
+	allResources := make(map[string][]interface{})
+	for _, resourceObj := range resourcesObject {
+		subResources := make(map[string][]interface{})
+		if err := json.Unmarshal([]byte(resourceObj.Resources), &subResources); err != nil {
+			return nil, fmt.Errorf("error decoding resource data: %v", err)
+		}
+		allResources["resources"] = append(subResources["resources"], allResources["resources"]...)
+	}
+	return allResources["resources"], nil
+}
+
 func (r *queryResolver) SessionComments(ctx context.Context, sessionID int) ([]*model.SessionComment, error) {
 	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
 		return nil, e.Wrap(err, "admin not session owner")

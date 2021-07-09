@@ -430,6 +430,7 @@ export type Query = {
     messages?: Maybe<Array<Maybe<Scalars['Any']>>>;
     errors?: Maybe<Array<Maybe<ErrorObject>>>;
     resources?: Maybe<Array<Maybe<Scalars['Any']>>>;
+    request_details?: Maybe<Array<Maybe<Scalars['Any']>>>;
     session_comments: Array<Maybe<SessionComment>>;
     session_comments_for_admin: Array<Maybe<SessionComment>>;
     error_comments: Array<Maybe<ErrorComment>>;
@@ -493,6 +494,10 @@ export type QueryErrorsArgs = {
 };
 
 export type QueryResourcesArgs = {
+    session_id: Scalars['ID'];
+};
+
+export type QueryRequest_DetailsArgs = {
     session_id: Scalars['ID'];
 };
 

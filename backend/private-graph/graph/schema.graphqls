@@ -387,6 +387,7 @@ type Query {
     messages(session_id: ID!): [Any]
     errors(session_id: ID!): [ErrorObject]
     resources(session_id: ID!): [Any]
+    request_details(session_id: ID!): [Any]
     session_comments(session_id: ID!): [SessionComment]!
     session_comments_for_admin: [SessionComment]!
     error_comments(error_group_id: ID!): [ErrorComment]!

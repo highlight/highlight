@@ -271,6 +271,7 @@ type ComplexityRoot struct {
 		PropertySuggestion            func(childComplexity int, organizationID int, query string, typeArg string) int
 		RecordingSettings             func(childComplexity int, organizationID int) int
 		Referrers                     func(childComplexity int, organizationID int, lookBackPeriod int) int
+		RequestDetails                func(childComplexity int, sessionID int) int
 		Resources                     func(childComplexity int, sessionID int) int
 		Segments                      func(childComplexity int, organizationID int) int
 		Session                       func(childComplexity int, id int) int
@@ -476,6 +477,7 @@ type QueryResolver interface {
 	Messages(ctx context.Context, sessionID int) ([]interface{}, error)
 	Errors(ctx context.Context, sessionID int) ([]*model1.ErrorObject, error)
 	Resources(ctx context.Context, sessionID int) ([]interface{}, error)
+	RequestDetails(ctx context.Context, sessionID int) ([]interface{}, error)
 	SessionComments(ctx context.Context, sessionID int) ([]*model1.SessionComment, error)
 	SessionCommentsForAdmin(ctx context.Context) ([]*model1.SessionComment, error)
 	ErrorComments(ctx context.Context, errorGroupID int) ([]*model1.ErrorComment, error)
@@ -1858,6 +1860,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Referrers(childComplexity, args["organization_id"].(int), args["lookBackPeriod"].(int)), true
 
+	case "Query.request_details":
+		if e.complexity.Query.RequestDetails == nil {
+			break
+		}
+
+		args, err := ec.field_Query_request_details_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.RequestDetails(childComplexity, args["session_id"].(int)), true
+
 	case "Query.resources":
 		if e.complexity.Query.Resources == nil {
 			break
@@ -3052,6 +3066,7 @@ type Query {
     messages(session_id: ID!): [Any]
     errors(session_id: ID!): [ErrorObject]
     resources(session_id: ID!): [Any]
+    request_details(session_id: ID!): [Any]
     session_comments(session_id: ID!): [SessionComment]!
     session_comments_for_admin: [SessionComment]!
     error_comments(error_group_id: ID!): [ErrorComment]!
@@ -4685,6 +4700,21 @@ func (ec *executionContext) field_Query_referrers_args(ctx context.Context, rawA
 		}
 	}
 	args["lookBackPeriod"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_request_details_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["session_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["session_id"] = arg0
 	return args, nil
 }
 
@@ -9440,6 +9470,45 @@ func (ec *executionContext) _Query_resources(ctx context.Context, field graphql.
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().Resources(rctx, args["session_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]interface{})
+	fc.Result = res
+	return ec.marshalOAny2ᚕinterface(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_request_details(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_request_details_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().RequestDetails(rctx, args["session_id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16324,6 +16393,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_resources(ctx, field)
+				return res
+			})
+		case "request_details":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_request_details(ctx, field)
 				return res
 			})
 		case "session_comments":
