@@ -158,6 +158,8 @@ type Organization struct {
 	SlackChannels         *string
 	// Alerts
 	ErrorAlert *string
+	// Manual monthly session limit override
+	MonthlySessionLimit *int
 }
 
 type Alert struct {

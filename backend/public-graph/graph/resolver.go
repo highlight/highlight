@@ -420,27 +420,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 	}
 
 	// determine if session is within billing quota
-	withinBillingQuota := true
-	if organization.TrialEndDate == nil || organization.TrialEndDate.Before(time.Now()) {
-		stripePriceID := ""
-		if organization.StripePriceID != nil {
-			stripePriceID = *organization.StripePriceID
-		}
-		stripePlan := pricing.FromPriceID(stripePriceID)
-		quota := pricing.TypeToQuota(stripePlan)
-		var monthToDateSessionCount int64
-		if err := r.DB.
-			Model(&model.DailySessionCount{}).
-			Where(&model.DailySessionCount{OrganizationID: organizationID}).
-			Where("date > ?", time.Date(n.Year(), n.Month(), 1, 0, 0, 0, 0, time.UTC)).
-			Select("SUM(count) as monthToDateSessionCount").
-			Scan(&monthToDateSessionCount).Error; err != nil {
-			// The record doesn't exist for new organizations since the record gets created in the worker.
-			monthToDateSessionCount = 0
-			log.Warn(fmt.Sprintf("Couldn't find DailySessionCount for %d", organizationID))
-		}
-		withinBillingQuota = int64(quota) > monthToDateSessionCount
-	}
+	withinBillingQuota := r.isOrgWithinBillingQuota(organization, n)
 
 	session := &model.Session{
 		UserID:              userId,
@@ -701,4 +681,38 @@ func (r *Resolver) processStackFrame(organizationId, sessionId int, stackTrace m
 		ColumnNumber: &col,
 	}
 	return mappedStackFrame, nil
+}
+
+func (r *Resolver) isOrgWithinBillingQuota(organization *model.Organization, now time.Time) bool {
+	if organization.TrialEndDate != nil && organization.TrialEndDate.Before(now) {
+		return true
+	}
+	var (
+		withinBillingQuota bool
+		quota              int
+	)
+	if organization.MonthlySessionLimit != nil && *organization.MonthlySessionLimit > 0 {
+		quota = *organization.MonthlySessionLimit
+	} else {
+		stripePriceID := ""
+		if organization.StripePriceID != nil {
+			stripePriceID = *organization.StripePriceID
+		}
+		stripePlan := pricing.FromPriceID(stripePriceID)
+		quota = pricing.TypeToQuota(stripePlan)
+	}
+
+	var monthToDateSessionCount int64
+	if err := r.DB.
+		Model(&model.DailySessionCount{}).
+		Where(&model.DailySessionCount{OrganizationID: organization.ID}).
+		Where("date > ?", time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)).
+		Select("SUM(count) as monthToDateSessionCount").
+		Scan(&monthToDateSessionCount).Error; err != nil {
+		// The record doesn't exist for new organizations since the record gets created in the worker.
+		monthToDateSessionCount = 0
+		log.Warn(fmt.Sprintf("Couldn't find DailySessionCount for %d", organization.ID))
+	}
+	withinBillingQuota = int64(quota) > monthToDateSessionCount
+	return withinBillingQuota
 }
