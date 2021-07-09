@@ -235,6 +235,7 @@ export class Highlight {
             columnNumber: res[0]?.columnNumber ? res[0]?.columnNumber : 0,
             stackTrace: res,
             timestamp: new Date().toISOString(),
+            payload: payload,
         });
     }
 
