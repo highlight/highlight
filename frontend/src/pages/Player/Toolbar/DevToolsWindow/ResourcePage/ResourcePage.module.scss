@@ -30,7 +30,7 @@ $right-padding: 12px;
 }
 
 .networkTableWrapper {
-    height: calc(100% - 45px);
+    height: calc(100% - var(--player-toolbar-height));
     margin-left: 1px;
     position: relative;
 }
