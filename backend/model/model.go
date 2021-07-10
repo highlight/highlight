@@ -608,9 +608,9 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 	// postgres://username:password@host/dbName
 	var (
 		host     = os.Getenv("PSQL_HOST")
-		port     = os.Getenv("PSQL_HOST")
-		username = os.Getenv("PSQL_HOST")
-		password = os.Getenv("PSQL_HOST")
+		port     = os.Getenv("PSQL_PORT")
+		username = os.Getenv("PSQL_USER")
+		password = os.Getenv("PSQL_PASSWORD")
 	)
 	databaseURL, ok := os.LookupEnv("DATABASE_URL")
 	if ok {
