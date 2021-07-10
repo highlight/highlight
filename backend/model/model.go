@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -613,20 +614,13 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 	)
 	databaseURL, ok := os.LookupEnv("DATABASE_URL")
 	if ok {
-		dbNameIdx := strings.LastIndex(databaseURL, "/")
-		dbName = databaseURL[dbNameIdx+1:]
-		databaseURL = databaseURL[0:dbNameIdx]
-
-		hostIdx := strings.LastIndex(databaseURL, "@")
-		host = databaseURL[hostIdx+1:]
-		databaseURL = databaseURL[0:hostIdx]
-
-		passwordIdx := strings.LastIndex(databaseURL, ":")
-		password = databaseURL[passwordIdx+1:]
-		databaseURL = databaseURL[0:passwordIdx]
-
-		usernameIdx := strings.LastIndex(databaseURL, "/")
-		username = databaseURL[usernameIdx+1:]
+		re, _ := regexp.Compile(`(?m)^(?:postgres://)([^:]*)(?::)([^@]*)(?:@)([^:]*)(?::)([^/]*)(?:/)(.*)`)
+		matched := re.FindAllStringSubmatch(databaseURL, -1)
+		dbName = matched[0][5]
+		port = matched[0][4]
+		host = matched[0][3]
+		password = matched[0][2]
+		username = matched[0][1]
 	}
 	psqlConf := fmt.Sprintf(
 		"host=%s port=%s user=%s dbname=%s password=%s sslmode=disable",
