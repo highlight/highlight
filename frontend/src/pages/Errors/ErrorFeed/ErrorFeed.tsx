@@ -199,7 +199,7 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                                 style={{ width: '240px' }}
                             >
                                 <div className={styles.topText} dir="rtl">
-                                    {errorGroup?.stack_trace[0]?.file_name}
+                                    {errorGroup?.stack_trace[0]?.fileName}
                                 </div>
                                 <div
                                     className={classNames(
@@ -211,13 +211,13 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                                 </div>
                                 <div className={styles.tagWrapper}>
                                     {errorGroup?.stack_trace[0]
-                                        ?.function_name && (
+                                        ?.functionName && (
                                         <Field
                                             color={'normal'}
                                             k={'function'}
                                             v={
                                                 errorGroup.stack_trace[0]
-                                                    .function_name
+                                                    .functionName
                                             }
                                         />
                                     )}
@@ -226,7 +226,7 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                             <div className={styles.errorTextSection}>
                                 <div
                                     className={styles.topText}
-                                >{`Line ${errorGroup?.stack_trace[0]?.line_number}`}</div>
+                                >{`Line ${errorGroup?.stack_trace[0]?.lineNumber}`}</div>
                                 {errorGroup?.metadata_log[0] ? (
                                     <>
                                         <div className={styles.bottomText}>

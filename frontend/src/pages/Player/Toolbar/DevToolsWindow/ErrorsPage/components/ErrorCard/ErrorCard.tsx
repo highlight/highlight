@@ -39,7 +39,9 @@ const ErrorCard = ({ error, state, setSelectedError, searchQuery }: Props) => {
                             searchWords={[searchQuery]}
                             textToHighlight={error.source || ''}
                         />{' '}
-                        at line {error.line_number}:{error.column_number}
+                        at line{' '}
+                        {error.stack_trace && error.stack_trace[0].lineNumber}:
+                        {error.stack_trace && error.stack_trace[0].columnNumber}
                     </p>
                 </div>
                 <div>
