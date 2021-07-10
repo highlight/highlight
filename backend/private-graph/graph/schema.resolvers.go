@@ -76,31 +76,13 @@ func (r *errorGroupResolver) StackTrace(ctx context.Context, obj *model.ErrorGro
 		return nil, nil
 	}
 	var ret []*modelInputs.ErrorTrace
+	stackTraceString := obj.StackTrace
 	if obj.MappedStackTrace != nil && *obj.MappedStackTrace != "" {
-		if err := json.Unmarshal([]byte(*obj.MappedStackTrace), &ret); err != nil {
-			log.Error(e.Wrap(err, "error unmarshalling MappedStackTrace"))
-			return nil, nil
-		}
-		return ret, nil
+		stackTraceString = *obj.MappedStackTrace
 	}
-	var stackTrace []*struct {
-		FileName     *string `json:"fileName"`
-		LineNumber   *int    `json:"lineNumber"`
-		FunctionName *string `json:"functionName"`
-		ColumnNumber *int    `json:"columnNumber"`
-	}
-	if err := json.Unmarshal([]byte(obj.StackTrace), &stackTrace); err != nil {
-		log.Error(e.Wrap(err, "error unmarshalling StackTrace"))
+	if err := json.Unmarshal([]byte(stackTraceString), &ret); err != nil {
+		log.Error(e.Wrap(err, "error unmarshalling MappedStackTrace"))
 		return nil, nil
-	}
-	for _, t := range stackTrace {
-		val := &modelInputs.ErrorTrace{
-			FileName:     t.FileName,
-			LineNumber:   t.LineNumber,
-			FunctionName: t.FunctionName,
-			ColumnNumber: t.ColumnNumber,
-		}
-		ret = append(ret, val)
 	}
 	return ret, nil
 }
@@ -1109,7 +1091,6 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 		if err := r.DB.Raw(fmt.Sprintf("%s %s ORDER BY updated_at DESC LIMIT %d", selectPreamble, queryString, count)).Scan(&errorGroups).Error; err != nil {
 			return e.Wrap(err, "error reading from error groups")
 		}
-
 		errorGroupSpan.Finish()
 		return nil
 	})

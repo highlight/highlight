@@ -107,8 +107,8 @@ type ErrorObject {
     type: String!
     url: String!
     source: String
-    line_number: Int
-    column_number: Int
+    lineNumber: Int
+    columnNumber: Int
     stack_trace: [Any]
     timestamp: Time
     payload: String
@@ -144,10 +144,10 @@ type ErrorMetadata {
 }
 
 type ErrorTrace {
-    file_name: String
-    line_number: Int
-    function_name: String
-    column_number: Int
+    fileName: String
+    lineNumber: Int
+    functionName: String
+    columnNumber: Int
     error: String
 }
 

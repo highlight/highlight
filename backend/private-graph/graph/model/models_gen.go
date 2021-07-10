@@ -44,10 +44,10 @@ type ErrorSearchParamsInput struct {
 }
 
 type ErrorTrace struct {
-	FileName     *string `json:"file_name"`
-	LineNumber   *int    `json:"line_number"`
-	FunctionName *string `json:"function_name"`
-	ColumnNumber *int    `json:"column_number"`
+	FileName     *string `json:"fileName"`
+	LineNumber   *int    `json:"lineNumber"`
+	FunctionName *string `json:"functionName"`
+	ColumnNumber *int    `json:"columnNumber"`
 	Error        *string `json:"error"`
 }
 

@@ -131,8 +131,8 @@ export type ErrorObject = {
     type: Scalars['String'];
     url: Scalars['String'];
     source?: Maybe<Scalars['String']>;
-    line_number?: Maybe<Scalars['Int']>;
-    column_number?: Maybe<Scalars['Int']>;
+    lineNumber?: Maybe<Scalars['Int']>;
+    columnNumber?: Maybe<Scalars['Int']>;
     stack_trace?: Maybe<Array<Maybe<Scalars['Any']>>>;
     timestamp?: Maybe<Scalars['Time']>;
     payload?: Maybe<Scalars['String']>;
@@ -172,10 +172,10 @@ export type ErrorMetadata = {
 
 export type ErrorTrace = {
     __typename?: 'ErrorTrace';
-    file_name?: Maybe<Scalars['String']>;
-    line_number?: Maybe<Scalars['Int']>;
-    function_name?: Maybe<Scalars['String']>;
-    column_number?: Maybe<Scalars['Int']>;
+    fileName?: Maybe<Scalars['String']>;
+    lineNumber?: Maybe<Scalars['Int']>;
+    functionName?: Maybe<Scalars['String']>;
+    columnNumber?: Maybe<Scalars['Int']>;
     error?: Maybe<Scalars['String']>;
 };
 
