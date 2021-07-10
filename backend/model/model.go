@@ -605,7 +605,6 @@ type ErrorComment struct {
 }
 
 func SetupDB(dbName string) (*gorm.DB, error) {
-	// postgres://username:password@host/dbName
 	var (
 		host     = os.Getenv("PSQL_HOST")
 		port     = os.Getenv("PSQL_PORT")
