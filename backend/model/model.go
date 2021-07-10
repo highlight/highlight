@@ -604,13 +604,37 @@ type ErrorComment struct {
 }
 
 func SetupDB(dbName string) (*gorm.DB, error) {
+	// postgres://username:password@host/dbName
+	var (
+		host     = os.Getenv("PSQL_HOST")
+		port     = os.Getenv("PSQL_HOST")
+		username = os.Getenv("PSQL_HOST")
+		password = os.Getenv("PSQL_HOST")
+	)
+	databaseURL, ok := os.LookupEnv("DATABASE_URL")
+	if ok {
+		dbNameIdx := strings.LastIndex(databaseURL, "/")
+		dbName = databaseURL[dbNameIdx+1:]
+		databaseURL = databaseURL[0:dbNameIdx]
+
+		hostIdx := strings.LastIndex(databaseURL, "@")
+		host = databaseURL[hostIdx+1:]
+		databaseURL = databaseURL[0:hostIdx]
+
+		passwordIdx := strings.LastIndex(databaseURL, ":")
+		password = databaseURL[passwordIdx+1:]
+		databaseURL = databaseURL[0:passwordIdx]
+
+		usernameIdx := strings.LastIndex(databaseURL, "/")
+		username = databaseURL[usernameIdx+1:]
+	}
 	psqlConf := fmt.Sprintf(
 		"host=%s port=%s user=%s dbname=%s password=%s sslmode=disable",
-		os.Getenv("PSQL_HOST"),
-		os.Getenv("PSQL_PORT"),
-		os.Getenv("PSQL_USER"),
+		host,
+		port,
+		username,
 		dbName,
-		os.Getenv("PSQL_PASSWORD"))
+		password)
 
 	sqltrace.Register("pgx", &stdlib.Driver{}, sqltrace.WithServiceName("highlight"))
 
