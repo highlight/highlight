@@ -29,6 +29,7 @@ import { ClickListener } from './listeners/click-listener/click-listener';
 import { FocusListener } from './listeners/focus-listener/focus-listener';
 import packageJson from '../package.json';
 import 'clientjs';
+import { NetworkListener } from './listeners/network-listener/network-listener';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -55,6 +56,7 @@ export type HighlightClassOptions = {
     debug?: boolean | DebugOptions;
     backendUrl?: string;
     disableNetworkRecording?: boolean;
+    enableNetworkHeadersAndBodyRecording?: boolean;
     disableConsoleRecording?: boolean;
     enableSegmentIntegration?: boolean;
     enableStrictPrivacy?: boolean;
@@ -109,6 +111,7 @@ export class Highlight {
     state: 'NotRecording' | 'Recording';
     logger: Logger;
     disableNetworkRecording: boolean | undefined;
+    enableNetworkHeadersAndBodyRecording: boolean;
     disableConsoleRecording: boolean | undefined;
     enableSegmentIntegration: boolean | undefined;
     enableStrictPrivacy: boolean;
@@ -137,6 +140,8 @@ export class Highlight {
         this.ready = false;
         this.state = 'NotRecording';
         this.disableNetworkRecording = options.disableNetworkRecording;
+        this.enableNetworkHeadersAndBodyRecording =
+            options.enableNetworkHeadersAndBodyRecording || false;
         this.disableConsoleRecording = options.disableConsoleRecording;
         this.enableSegmentIntegration = options.enableSegmentIntegration;
         this.enableStrictPrivacy = options.enableStrictPrivacy || false;
@@ -474,6 +479,12 @@ export class Highlight {
                     }
                 })
             );
+            if (
+                !this.disableNetworkRecording &&
+                this.enableNetworkHeadersAndBodyRecording
+            ) {
+                this.listeners.push(NetworkListener());
+            }
             // Send the payload as the page closes. navigator.sendBeacon guarantees that a request will be made.
             window.addEventListener('beforeunload', () => {
                 const payload = this._getPayload();

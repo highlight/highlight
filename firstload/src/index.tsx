@@ -14,6 +14,12 @@ export type HighlightOptions = {
     backendUrl?: string;
     manualStart?: boolean;
     disableNetworkRecording?: boolean;
+    /**
+     * This enables recording XMLHttpRequest and Fetch headers and bodies.
+     * disableNetworkRecording needs to be false.
+     * Defaults to false.
+     */
+    enableNetworkHeadersAndBodyRecording?: boolean;
     disableConsoleRecording?: boolean;
     enableSegmentIntegration?: boolean;
     /**
@@ -98,6 +104,8 @@ export const H: HighlightPublicInterface = {
                     debug: options?.debug,
                     backendUrl: options?.backendUrl,
                     disableNetworkRecording: options?.disableNetworkRecording,
+                    enableNetworkHeadersAndBodyRecording:
+                        options?.enableNetworkHeadersAndBodyRecording,
                     disableConsoleRecording: options?.disableConsoleRecording,
                     enableSegmentIntegration: options?.enableSegmentIntegration,
                     enableStrictPrivacy: options?.enableStrictPrivacy || false,
