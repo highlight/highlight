@@ -555,6 +555,9 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 			mappedStackTrace = append(mappedStackTrace, *mappedStackFrame)
 		}
 	}
+	if len(mappedStackTrace) > 1 && (mappedStackTrace[0].FunctionName == nil || *mappedStackTrace[0].FunctionName == "") {
+		mappedStackTrace[0].FunctionName = mappedStackTrace[1].FunctionName
+	}
 	return mappedStackTrace, nil
 }
 

@@ -1,4 +1,5 @@
 export const canvasNetworkWrapper: string;
+export const filterContainer: string;
 export const goToButton: string;
 export const icon: string;
 export const nameSection: string;
@@ -10,6 +11,7 @@ export const networkTimestampGrid: string;
 export const networkTimingColumn: string;
 export const networkTimingHeader: string;
 export const networkTopBar: string;
+export const noResultsMessage: string;
 export const resourcePageWrapper: string;
 export const timingBar: string;
 export const timingBarEmptySection: string;

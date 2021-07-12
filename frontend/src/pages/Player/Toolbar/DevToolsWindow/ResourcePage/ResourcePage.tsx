@@ -4,6 +4,7 @@ import React, {
     useCallback,
     useContext,
     useEffect,
+    useMemo,
     useRef,
     useState,
 } from 'react';
@@ -12,6 +13,8 @@ import { useParams } from 'react-router-dom';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 import GoToButton from '../../../../../components/Button/GoToButton';
+import Input from '../../../../../components/Input/Input';
+import TextHighlighter from '../../../../../components/TextHighlighter/TextHighlighter';
 import Tooltip from '../../../../../components/Tooltip/Tooltip';
 import { DemoContext } from '../../../../../DemoContext';
 import { useGetResourcesQuery } from '../../../../../graph/generated/hooks';
@@ -34,13 +37,14 @@ export const ResourcePage = ({
     const { demo } = useContext(DemoContext);
     const [options, setOptions] = useState<Array<string>>([]);
     const [currentOption, setCurrentOption] = useState('All');
+    const [filterSearchTerm, setFilterSearchTerm] = useState('');
     const [currentResource, setCurrentResource] = useState(0);
     const [networkRange, setNetworkRange] = useState(0);
     const [
         isInteractingWithResources,
         setIsInteractingWithResources,
     ] = useState(false);
-    const [currentResources, setCurrentResources] = useState<
+    const [allResources, setAllResources] = useState<
         Array<PerformanceResourceTiming & { id: number }> | undefined
     >([]);
     const [parsedResources, setParsedResources] = useState<
@@ -75,7 +79,7 @@ export const ResourcePage = ({
 
     useEffect(() => {
         if (rawResources) {
-            setCurrentResources(
+            setAllResources(
                 parsedResources?.filter((r) => {
                     if (currentOption === 'All') {
                         return true;
@@ -97,15 +101,15 @@ export const ResourcePage = ({
     }, [rawResources]);
 
     useEffect(() => {
-        if (currentResources?.length) {
+        if (allResources?.length) {
             let msgIndex = 0;
             const relativeTime = time - startTime;
             let msgDiff: number = Math.abs(
-                relativeTime - currentResources[0].startTime
+                relativeTime - allResources[0].startTime
             );
-            for (let i = 0; i < currentResources.length; i++) {
+            for (let i = 0; i < allResources.length; i++) {
                 const currentDiff: number = Math.abs(
-                    relativeTime - currentResources[i].startTime
+                    relativeTime - allResources[i].startTime
                 );
                 if (currentDiff < msgDiff) {
                     msgIndex = i;
@@ -116,7 +120,7 @@ export const ResourcePage = ({
                 setCurrentResource(msgIndex);
             }
         }
-    }, [currentResources, startTime, time, currentResource]);
+    }, [allResources, startTime, time, currentResource]);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const scrollFunction = useCallback(
@@ -138,6 +142,26 @@ export const ResourcePage = ({
         }
     }, [currentResource, scrollFunction, isInteractingWithResources, state]);
 
+    const resourcesToRender = useMemo(() => {
+        if (!allResources) {
+            return [];
+        }
+
+        if (filterSearchTerm !== '') {
+            return allResources.filter((resource) => {
+                if (!resource.name) {
+                    return false;
+                }
+
+                return resource.name
+                    .toLocaleLowerCase()
+                    .includes(filterSearchTerm.toLocaleLowerCase());
+            });
+        }
+
+        return allResources;
+    }, [allResources, filterSearchTerm]);
+
     return (
         <div className={styles.resourcePageWrapper}>
             <div className={devStyles.topBar}>
@@ -152,6 +176,18 @@ export const ResourcePage = ({
                             />
                         );
                     })}
+                    <div className={styles.filterContainer}>
+                        <Input
+                            allowClear
+                            placeholder="Filter"
+                            value={filterSearchTerm}
+                            onChange={(event) => {
+                                setFilterSearchTerm(event.target.value);
+                            }}
+                            size="small"
+                            disabled={loading}
+                        />
+                    </div>
                 </div>
             </div>
             <div className={styles.networkTableWrapper}>
@@ -166,9 +202,11 @@ export const ResourcePage = ({
                     <>
                         <TimingCanvas networkRange={networkRange} />
                         <div className={styles.networkTopBar}>
-                            <div className={styles.networkColumn}>TYPE</div>
-                            <div className={styles.networkColumn}>NAME</div>
-                            <div className={styles.networkColumn}>Timing</div>
+                            <div className={styles.networkColumn}>Type</div>
+                            <div className={styles.networkColumn}>Name</div>
+                            <div className={styles.networkColumn}>
+                                Response Time
+                            </div>
                             <div className={styles.networkColumn}>Size</div>
                             <div className={styles.networkColumn}>
                                 <div className={styles.networkTimestampGrid}>
@@ -194,25 +232,33 @@ export const ResourcePage = ({
                             id="networkStreamWrapper"
                             className={styles.networkStreamWrapper}
                         >
-                            <Virtuoso
-                                onMouseEnter={() => {
-                                    setIsInteractingWithResources(true);
-                                }}
-                                onMouseLeave={() => {
-                                    setIsInteractingWithResources(false);
-                                }}
-                                ref={virtuoso}
-                                overscan={500}
-                                data={currentResources}
-                                itemContent={(index, resource) => (
-                                    <ResourceRow
-                                        key={index.toString()}
-                                        p={resource}
-                                        networkRange={networkRange}
-                                        currentResource={currentResource}
-                                    />
-                                )}
-                            />
+                            {resourcesToRender.length === 0 ? (
+                                <p className={styles.noResultsMessage}>
+                                    No network resources matching '
+                                    {filterSearchTerm}'
+                                </p>
+                            ) : (
+                                <Virtuoso
+                                    onMouseEnter={() => {
+                                        setIsInteractingWithResources(true);
+                                    }}
+                                    onMouseLeave={() => {
+                                        setIsInteractingWithResources(false);
+                                    }}
+                                    ref={virtuoso}
+                                    overscan={500}
+                                    data={resourcesToRender}
+                                    itemContent={(index, resource) => (
+                                        <ResourceRow
+                                            key={index.toString()}
+                                            p={resource}
+                                            networkRange={networkRange}
+                                            currentResource={currentResource}
+                                            searchTerm={filterSearchTerm}
+                                        />
+                                    )}
+                                />
+                            )}
                         </div>
                     </>
                 )}
@@ -290,10 +336,12 @@ const ResourceRow = ({
     p,
     networkRange,
     currentResource,
+    searchTerm,
 }: {
     p: PerformanceResourceTiming & { id: number };
     networkRange: number;
     currentResource: number;
+    searchTerm: string;
 }) => {
     const { pause } = useContext(ReplayerContext);
     const leftPaddingPercent = (p.startTime / networkRange) * 100;
@@ -318,7 +366,13 @@ const ResourceRow = ({
                     {getNetworkResourcesDisplayName(p.initiatorType)}
                 </div>
                 <Tooltip title={p.name}>
-                    <div className={styles.nameSection}>{p.name}</div>
+                    <div className={styles.nameSection}>
+                        <TextHighlighter
+                            searchWords={[searchTerm]}
+                            autoEscape={true}
+                            textToHighlight={p.name}
+                        />
+                    </div>
                 </Tooltip>
                 <div>{(p.responseEnd - p.startTime).toFixed(2)} ms</div>
                 <div>

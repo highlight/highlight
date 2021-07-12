@@ -3,6 +3,7 @@ import classNames from 'classnames';
 import React, { useContext } from 'react';
 
 import GoToButton from '../../../../../../../components/Button/GoToButton';
+import TextHighlighter from '../../../../../../../components/TextHighlighter/TextHighlighter';
 import { ErrorObject } from '../../../../../../../graph/generated/schemas';
 import { MillisToMinutesAndSeconds } from '../../../../../../../util/time';
 import ReplayerContext from '../../../../../ReplayerContext';
@@ -17,9 +18,10 @@ interface Props {
     error: ErrorObject;
     state: ErrorCardState;
     setSelectedError: () => void;
+    searchQuery: string;
 }
 
-const ErrorCard = ({ error, state, setSelectedError }: Props) => {
+const ErrorCard = ({ error, state, setSelectedError, searchQuery }: Props) => {
     const { replayer, setTime } = useContext(ReplayerContext);
 
     return (
@@ -33,13 +35,19 @@ const ErrorCard = ({ error, state, setSelectedError }: Props) => {
                 <div className={styles.header}>
                     <h4>{error.type}</h4>
                     <p>
-                        {error.source} at line {error.line_number}:
-                        {error.column_number}
+                        <TextHighlighter
+                            searchWords={[searchQuery]}
+                            textToHighlight={error.source || ''}
+                        />{' '}
+                        at line {error.line_number}:{error.column_number}
                     </p>
                 </div>
                 <div>
                     <p className={styles.description}>
-                        {getErrorDescription(error)}
+                        <TextHighlighter
+                            searchWords={[searchQuery]}
+                            textToHighlight={getErrorDescription(error)}
+                        />
                     </p>
                 </div>
             </div>
