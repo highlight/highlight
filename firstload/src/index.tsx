@@ -43,6 +43,9 @@ type HighlightPublicInterface = {
     init: (orgID: number | string, debug?: HighlightOptions) => void;
     identify: (identify: string, obj: any) => void;
     track: (event: string, obj: any) => void;
+    /**
+     * @deprecated with replacement by `consumeError` for an in-app stacktrace.
+     */
     error: (message: string, payload?: { [key: string]: string }) => void;
     consumeError: (
         error: Error,
