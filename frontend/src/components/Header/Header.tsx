@@ -72,31 +72,11 @@ const FreePlanBanner = () => {
         return null;
     }
 
-    let bannerMessage = `You've used ${data?.billingDetails.meter}/${data?.billingDetails.plan.quota} of your free sessions.`;
     if (data?.billingDetails.plan.type !== PlanType.Free) {
         return null;
-    } else {
-        if (data?.organization?.trial_end_date) {
-            // trial_end_date is set 2 weeks ahead of when the organization was created. We want to show the banner after the organization is 7 days old.
-            const remainingTrialPeriod =
-                (new Date(data?.organization.trial_end_date).getTime() -
-                    new Date().getTime()) /
-                (1000 * 60 * 60 * 24);
-
-            if (remainingTrialPeriod < 7) {
-                const roundedPeriod = Math.round(remainingTrialPeriod);
-                bannerMessage =
-                    remainingTrialPeriod > 0
-                        ? `You have ${roundedPeriod} day${
-                              roundedPeriod == 1 ? '' : 's'
-                          } left of your free trial.`
-                        : `Your trial period has expired!`;
-            } else {
-                return null;
-            }
-        }
     }
 
+    const bannerMessage = `You've used ${data?.billingDetails.meter}/${data?.billingDetails.plan.quota} of your free sessions.`;
     return (
         <div className={styles.trialWrapper}>
             <Banner className={styles.bannerSvg} />
