@@ -224,7 +224,7 @@ export class Highlight {
         const frames = result.slice(1);
         let res: ErrorStackParser.StackFrame[] = [];
         try {
-            var res = ErrorStackParser.parse(error);
+            res = ErrorStackParser.parse(error);
         } catch {}
         this.errors.push({
             event: message ? message + ':' + error.message : error.message,
