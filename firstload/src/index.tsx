@@ -47,6 +47,11 @@ type HighlightPublicInterface = {
      * @deprecated with replacement by `consumeError` for an in-app stacktrace.
      */
     error: (message: string, payload?: { [key: string]: string }) => void;
+    /**
+     * Calling this method will report an error in Highlight and map it to the current session being recorded.
+     * A common use case for `H.error` is calling it right outside of an error boundary.
+     * @see {@link https://docs.highlight.run/docs/error-handling} for more information.
+     */
     consumeError: (
         error: Error,
         message?: string,
