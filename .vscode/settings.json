@@ -58,4 +58,9 @@
   "openInGitHub.excludeCurrentRevision": false,
   "liveshare.allowGuestDebugControl": true,
   "liveshare.allowGuestTaskControl": true,
+  "files.exclude": {
+    "**/*.chunk.js": true,
+    "**/*.js.map": true,
+    "**/*.min.js": true
+  },
 }
