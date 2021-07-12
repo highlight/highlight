@@ -14,6 +14,8 @@ import { useParams } from 'react-router-dom';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 import GoToButton from '../../../../../components/Button/GoToButton';
+import Input from '../../../../../components/Input/Input';
+import TextHighlighter from '../../../../../components/TextHighlighter/TextHighlighter';
 import { DemoContext } from '../../../../../DemoContext';
 import { useGetMessagesQuery } from '../../../../../graph/generated/hooks';
 import { ConsoleMessage } from '../../../../../util/shared-types';
@@ -30,6 +32,7 @@ interface ParsedMessage extends ConsoleMessage {
 
 export const ConsolePage = ({ time }: { time: number }) => {
     const [currentMessage, setCurrentMessage] = useState(-1);
+    const [filterSearchTerm, setFilterSearchTerm] = useState('');
     const [options, setOptions] = useState<Array<string>>([]);
     const { demo } = useContext(DemoContext);
     const { pause, replayer, state } = useContext(ReplayerContext);
@@ -99,11 +102,36 @@ export const ConsolePage = ({ time }: { time: number }) => {
         return false;
     });
 
-    const messagesToRender = useMemo(
-        () =>
-            currentMessages?.filter((message) => message?.value?.length) || [],
-        [currentMessages]
-    );
+    const messagesToRender = useMemo(() => {
+        if (!currentMessages) {
+            return [];
+        }
+
+        if (filterSearchTerm !== '') {
+            return currentMessages.filter((message) => {
+                if (!message.value) {
+                    return false;
+                }
+
+                switch (typeof message.value) {
+                    case 'string':
+                        return message.value
+                            .toLocaleLowerCase()
+                            .includes(filterSearchTerm.toLocaleLowerCase());
+                    case 'object':
+                        return message.value.some((line: string) =>
+                            line
+                                .toLocaleLowerCase()
+                                .includes(filterSearchTerm.toLocaleLowerCase())
+                        );
+                    default:
+                        return false;
+                }
+            });
+        }
+
+        return currentMessages.filter((message) => message?.value?.length);
+    }, [currentMessages, filterSearchTerm]);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const scrollFunction = useCallback(
@@ -139,6 +167,18 @@ export const ConsolePage = ({ time }: { time: number }) => {
                             />
                         );
                     })}
+                    <div className={styles.filterContainer}>
+                        <Input
+                            allowClear
+                            placeholder="Filter"
+                            value={filterSearchTerm}
+                            onChange={(event) => {
+                                setFilterSearchTerm(event.target.value);
+                            }}
+                            size="small"
+                            disabled={loading}
+                        />
+                    </div>
                 </div>
             </div>
             <div className={styles.consoleStreamWrapper} id="logStreamWrapper">
@@ -149,7 +189,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
                             style={{ height: 25, marginBottom: 11 }}
                         />
                     </div>
-                ) : currentMessages?.length ? (
+                ) : messagesToRender?.length ? (
                     <Virtuoso
                         onMouseEnter={() => {
                             setIsInteractingWithMessages(true);
@@ -193,6 +233,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
                                     <div className={styles.messageText}>
                                         <ConsoleRender
                                             m={message.value ?? ''}
+                                            searchTerm={filterSearchTerm}
                                         />
                                     </div>
                                     <GoToButton
@@ -216,9 +257,13 @@ export const ConsolePage = ({ time }: { time: number }) => {
                             </div>
                         )}
                     />
+                ) : messagesToRender.length === 0 && filterSearchTerm !== '' ? (
+                    <div className={devStyles.emptySection}>
+                        No messages matching '{filterSearchTerm}'
+                    </div>
                 ) : (
                     <div className={devStyles.emptySection}>
-                        No logs for this section.
+                        There are no console logs for this session.
                     </div>
                 )}
             </div>
@@ -226,7 +271,13 @@ export const ConsolePage = ({ time }: { time: number }) => {
     );
 };
 
-const ConsoleRender = ({ m }: { m: Array<any> | string }) => {
+const ConsoleRender = ({
+    m,
+    searchTerm,
+}: {
+    m: Array<any> | string;
+    searchTerm: string;
+}) => {
     const input: Array<any> = typeof m === 'string' ? [m] : m;
     const result: Array<string | object> = [];
     // bundle strings together.
@@ -256,7 +307,13 @@ const ConsoleRender = ({ m }: { m: Array<any> | string }) => {
                         iconStyle="circle"
                     />
                 ) : typeof r === 'string' ? (
-                    <div className={styles.messageText}>{r}</div>
+                    <div className={styles.messageText}>
+                        <TextHighlighter
+                            searchWords={[searchTerm]}
+                            autoEscape={true}
+                            textToHighlight={r}
+                        />
+                    </div>
                 ) : (
                     <div className={styles.messageText}>
                         {JSON.stringify(r)}

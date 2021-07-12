@@ -1,7 +1,7 @@
 import React from 'react';
-import Highlighter from 'react-highlight-words';
 import { components, OptionProps } from 'react-select';
 
+import TextHighlighter from '../TextHighlighter/TextHighlighter';
 import styles from './Option.module.scss';
 
 const SearchMatch = ({
@@ -36,10 +36,9 @@ const SearchMatch = ({
             ? label.substring(0, foundIndex)
             : label.substring(foundIndex));
     return (
-        <Highlighter
+        <TextHighlighter
             className={className}
             searchWords={[selectProps.length < 2 ? '' : selectProps]}
-            highlightClassName={styles.highlighter}
             textToHighlight={parsedLabel}
         />
     );
