@@ -222,7 +222,7 @@ export class Highlight {
     async consumeCustomError(error: Error, message?: string, payload?: string) {
         const result = await StackTrace.get();
         const frames = result.slice(1);
-        var res: ErrorStackParser.StackFrame[] = [];
+        let res: ErrorStackParser.StackFrame[] = [];
         try {
             var res = ErrorStackParser.parse(error);
         } catch {}
