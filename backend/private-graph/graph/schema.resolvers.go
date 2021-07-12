@@ -1704,6 +1704,10 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 	var queriedSessionsOutOfQuota int64
 
 	g.Go(func() error {
+		if org.MonthlySessionLimit != nil {
+			meter = int64(*org.MonthlySessionLimit)
+			return nil
+		}
 		meter, err = pricing.GetOrgQuota(r.DB, organizationID)
 		if err != nil {
 			return e.Wrap(err, "error from get quota")
