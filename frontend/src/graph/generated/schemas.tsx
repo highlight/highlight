@@ -464,6 +464,7 @@ export type Query = {
     segments?: Maybe<Array<Maybe<Segment>>>;
     error_segments?: Maybe<Array<Maybe<ErrorSegment>>>;
     recording_settings?: Maybe<RecordingSettings>;
+    api_key_to_org_id?: Maybe<Scalars['ID']>;
 };
 
 export type QuerySessionArgs = {
@@ -632,6 +633,10 @@ export type QueryError_SegmentsArgs = {
 
 export type QueryRecording_SettingsArgs = {
     organization_id: Scalars['ID'];
+};
+
+export type QueryApi_Key_To_Org_IdArgs = {
+    api_key: Scalars['String'];
 };
 
 export type Mutation = {
