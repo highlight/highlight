@@ -1723,10 +1723,16 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 	if err := g.Wait(); err != nil {
 		return nil, e.Wrap(err, "error querying session data for billing details")
 	}
+
+	quota := pricing.TypeToQuota(planType)
+	// use monthly session limit if it exists
+	if org.MonthlySessionLimit != nil {
+		quota = *org.MonthlySessionLimit
+	}
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{
 			Type:  modelInputs.PlanType(planType.String()),
-			Quota: pricing.TypeToQuota(planType),
+			Quota: quota,
 		},
 		Meter:              meter,
 		SessionsOutOfQuota: queriedSessionsOutOfQuota,
