@@ -12,7 +12,8 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
         error: Error | undefined
     ): void => {
         if (error) {
-            var res: ErrorStackParser.StackFrame[] = [];
+            let res: ErrorStackParser.StackFrame[] = [];
+
             try {
                 res = ErrorStackParser.parse(error);
             } catch {} // @eslint-ignore
