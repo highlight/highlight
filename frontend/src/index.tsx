@@ -18,6 +18,7 @@ import LoginForm from './pages/Login/Login';
 import * as serviceWorker from './serviceWorker';
 import { showHiringMessage } from './util/console/hiringMessage';
 import { client } from './util/graph';
+import { SimpleErrorBoundary } from './util/simpleErrorBoundary';
 
 const dev = process.env.NODE_ENV === 'development' ? true : false;
 const options: HighlightOptions = {
@@ -66,29 +67,35 @@ showHiringMessage();
 
 const App = () => {
     return (
-        <ApolloProvider client={client}>
-            <QueryParamProvider>
-                <SkeletonTheme color={'#F5F5F5'} highlightColor={'#FCFCFC'}>
-                    <Router>
-                        <Switch>
-                            <Route path="/about">
-                                <About />
-                            </Route>
-                            <Route path="/demo" exact>
-                                <DemoContext.Provider value={{ demo: true }}>
-                                    <DemoRouter />
-                                </DemoContext.Provider>
-                            </Route>
-                            <Route path="/">
-                                <DemoContext.Provider value={{ demo: false }}>
-                                    <LoginForm />
-                                </DemoContext.Provider>
-                            </Route>
-                        </Switch>
-                    </Router>
-                </SkeletonTheme>
-            </QueryParamProvider>
-        </ApolloProvider>
+        <SimpleErrorBoundary>
+            <ApolloProvider client={client}>
+                <QueryParamProvider>
+                    <SkeletonTheme color={'#F5F5F5'} highlightColor={'#FCFCFC'}>
+                        <Router>
+                            <Switch>
+                                <Route path="/about">
+                                    <About />
+                                </Route>
+                                <Route path="/demo" exact>
+                                    <DemoContext.Provider
+                                        value={{ demo: true }}
+                                    >
+                                        <DemoRouter />
+                                    </DemoContext.Provider>
+                                </Route>
+                                <Route path="/">
+                                    <DemoContext.Provider
+                                        value={{ demo: false }}
+                                    >
+                                        <LoginForm />
+                                    </DemoContext.Provider>
+                                </Route>
+                            </Switch>
+                        </Router>
+                    </SkeletonTheme>
+                </QueryParamProvider>
+            </ApolloProvider>
+        </SimpleErrorBoundary>
     );
 };
 

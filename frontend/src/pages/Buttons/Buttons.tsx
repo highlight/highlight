@@ -1,10 +1,14 @@
 import { H } from 'highlight.run';
-import React from 'react';
+import React, { useState } from 'react';
 
 import commonStyles from '../../Common.module.scss';
 import styles from './Buttons.module.scss';
 import { CustomError, DefaultError } from './ButtonsHelper';
 export const Buttons = () => {
+    const [hasError, setHasError] = useState(false);
+    if (hasError) {
+        throw new Error('got an error');
+    }
     return (
         <div className={styles.buttonBody}>
             <div>
@@ -23,6 +27,14 @@ export const Buttons = () => {
                     }}
                 >
                     Console Error
+                </button>
+                <button
+                    className={commonStyles.submitButton}
+                    onClick={() => {
+                        setHasError(true);
+                    }}
+                >
+                    H.consumeError()
                 </button>
                 <button
                     className={commonStyles.submitButton}

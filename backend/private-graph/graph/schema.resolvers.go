@@ -1704,10 +1704,16 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 	if err := g.Wait(); err != nil {
 		return nil, e.Wrap(err, "error querying session data for billing details")
 	}
+
+	quota := pricing.TypeToQuota(planType)
+	// use monthly session limit if it exists
+	if org.MonthlySessionLimit != nil {
+		quota = *org.MonthlySessionLimit
+	}
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{
 			Type:  modelInputs.PlanType(planType.String()),
-			Quota: pricing.TypeToQuota(planType),
+			Quota: quota,
 		},
 		Meter:              meter,
 		SessionsOutOfQuota: queriedSessionsOutOfQuota,
@@ -1953,6 +1959,14 @@ func (r *queryResolver) RecordingSettings(ctx context.Context, organizationID in
 		recordingSettings = newRecordSettings
 	}
 	return recordingSettings, nil
+}
+
+func (r *queryResolver) APIKeyToOrgID(ctx context.Context, apiKey string) (*int, error) {
+	var orgId int
+	if err := r.DB.Table("organizations").Select("id").Where("secret=?", apiKey).Scan(&orgId).Error; err != nil {
+		return nil, e.Wrap(err, "error getting org id from api key")
+	}
+	return &orgId, nil
 }
 
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
