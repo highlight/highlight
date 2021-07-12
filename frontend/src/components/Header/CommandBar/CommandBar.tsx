@@ -4,7 +4,10 @@ import { RouteComponentProps } from 'react-router';
 import { useParams, withRouter } from 'react-router-dom';
 
 import { useGetOrganizationSuggestionLazyQuery } from '../../../graph/generated/hooks';
-import useHighlightAdminFlag from '../../../hooks/useHighlightAdminFlag/useHighlightAdminFlag';
+import {
+    AdminRole,
+    useAdminRole,
+} from '../../../hooks/useAdminRole/useAdminRole';
 import styles from './CommandBar.module.scss';
 import {
     CommandWithoutId,
@@ -39,7 +42,8 @@ const CommandPaletteComponent: React.FC<RouteComponentProps> = ({
         getOrganizations,
         { data },
     ] = useGetOrganizationSuggestionLazyQuery();
-    const { isHighlightAdmin } = useHighlightAdminFlag();
+    const { adminRole } = useAdminRole();
+    const isHighlightAdmin = adminRole == AdminRole.HIGHLIGHT_ADMIN;
     const { organization_id } = useParams<{
         organization_id: string;
     }>();
