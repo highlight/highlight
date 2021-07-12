@@ -5,6 +5,7 @@
     grid-template-areas: '. Left-Panel Center-Panel Right-Panel .';
     grid-template-columns: auto 300px minmax(200px, 700px) 300px auto;
     height: 100%;
+    padding-left: 100px;
     padding-top: 100px;
     width: 100%;
 }
