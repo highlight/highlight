@@ -2154,10 +2154,10 @@
   dependencies:
     "@hapi/hoek" "^8.3.0"
 
-"@highlight-run/rrweb@0.11.3":
-  version "0.11.3"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-0.11.3.tgz#4b674b0c5dc068cda149db254974c5d2f7f52673"
-  integrity sha512-3LBSKRUwLytlyfj2wJR2BeJiZQTXqM622FtQauO+PH7labea+VCB6dKCLJngLKU/L7WBmxH/7UyL0e6893vSiA==
+"@highlight-run/rrweb@0.12.3":
+  version "0.12.3"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-0.12.3.tgz#9d9a138a951e7a95394bab3e8e66887e342ab892"
+  integrity sha512-L7MxWzW/H0Hf0oJcvascUo0I7vc2vVYlTCwr/bmVA6XIO4kdSqalfX6ZUMND5FN+xr5IDKkTxCVgTB5BkjSt7w==
   dependencies:
     "@types/css-font-loading-module" "0.0.4"
     "@xstate/fsm" "^1.4.0"
@@ -7924,10 +7924,10 @@ highlight-words-core@^1.2.0:
   resolved "https://registry.yarnpkg.com/highlight-words-core/-/highlight-words-core-1.2.2.tgz#1eff6d7d9f0a22f155042a00791237791b1eeaaa"
   integrity sha512-BXUKIkUuh6cmmxzi5OIbUJxrG8OAk2MqoL1DtO3Wo9D2faJg2ph5ntyuQeLqaHJmzER6H5tllCDA9ZnNe9BVGg==
 
-highlight.run@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/highlight.run/-/highlight.run-2.0.0.tgz#eb30cc83f1d5b5f76fcafed488695acc7714582d"
-  integrity sha512-u5yhPUohLfXy9Vll9dbzdpTJ8sOAC4qjRd1q2A+LDvZaLqVIQleTCtpLOJS0BsnyB1elVLmRU1Xs44d+/GDrdg==
+highlight.run@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/highlight.run/-/highlight.run-2.1.0.tgz#c46728b1d4cbf2dab740d66745af4cf876e18bcf"
+  integrity sha512-POs5Z+9Beq4FHRJMOIp+g4BnEni1TnXq/6BwwPtl8tlvZ8caW+sMkEAAAh/rSFG5TbmonaYR7bSS6k2lSjt1Tg==
 
 history@^4.9.0:
   version "4.10.1"
