@@ -1058,7 +1058,7 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 	selectPreamble := `SELECT id, organization_id, event, stack_trace, metadata_log, created_at, deleted_at, updated_at, state`
 	countPreamble := `SELECT COUNT(*)`
 
-	queryString := `FROM (SELECT id, organization_id, event, stack_trace, metadata_log, created_at, deleted_at, updated_at, state, array_agg(t.error_field_id) fieldIds
+	queryString := `FROM (SELECT id, organization_id, event, COALESCE(mapped_stack_trace, stack_trace) as stack_trace, metadata_log, created_at, deleted_at, updated_at, state, array_agg(t.error_field_id) fieldIds
 	FROM error_groups e INNER JOIN error_group_fields t ON e.id=t.error_group_id GROUP BY e.id) AS rows `
 
 	queryString += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
