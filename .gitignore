@@ -16,3 +16,4 @@ yalc.lock
 **/.swp
 **/build
 **/coverage.out
+**/output.txt

@@ -76,31 +76,13 @@ func (r *errorGroupResolver) StackTrace(ctx context.Context, obj *model.ErrorGro
 		return nil, nil
 	}
 	var ret []*modelInputs.ErrorTrace
+	stackTraceString := obj.StackTrace
 	if obj.MappedStackTrace != nil && *obj.MappedStackTrace != "" {
-		if err := json.Unmarshal([]byte(*obj.MappedStackTrace), &ret); err != nil {
-			log.Error(e.Wrap(err, "error unmarshalling MappedStackTrace"))
-			return nil, nil
-		}
-		return ret, nil
+		stackTraceString = *obj.MappedStackTrace
 	}
-	var stackTrace []*struct {
-		FileName     *string `json:"fileName"`
-		LineNumber   *int    `json:"lineNumber"`
-		FunctionName *string `json:"functionName"`
-		ColumnNumber *int    `json:"columnNumber"`
-	}
-	if err := json.Unmarshal([]byte(obj.StackTrace), &stackTrace); err != nil {
-		log.Error(e.Wrap(err, "error unmarshalling StackTrace"))
+	if err := json.Unmarshal([]byte(stackTraceString), &ret); err != nil {
+		log.Error(e.Wrap(err, "error unmarshalling MappedStackTrace"))
 		return nil, nil
-	}
-	for _, t := range stackTrace {
-		val := &modelInputs.ErrorTrace{
-			FileName:     t.FileName,
-			LineNumber:   t.LineNumber,
-			FunctionName: t.FunctionName,
-			ColumnNumber: t.ColumnNumber,
-		}
-		ret = append(ret, val)
 	}
 	return ret, nil
 }
@@ -1076,7 +1058,7 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 	selectPreamble := `SELECT id, organization_id, event, stack_trace, metadata_log, created_at, deleted_at, updated_at, state`
 	countPreamble := `SELECT COUNT(*)`
 
-	queryString := `FROM (SELECT id, organization_id, event, stack_trace, metadata_log, created_at, deleted_at, updated_at, state, array_agg(t.error_field_id) fieldIds
+	queryString := `FROM (SELECT id, organization_id, event, COALESCE(mapped_stack_trace, stack_trace) as stack_trace, metadata_log, created_at, deleted_at, updated_at, state, array_agg(t.error_field_id) fieldIds
 	FROM error_groups e INNER JOIN error_group_fields t ON e.id=t.error_group_id GROUP BY e.id) AS rows `
 
 	queryString += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
@@ -1109,7 +1091,6 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 		if err := r.DB.Raw(fmt.Sprintf("%s %s ORDER BY updated_at DESC LIMIT %d", selectPreamble, queryString, count)).Scan(&errorGroups).Error; err != nil {
 			return e.Wrap(err, "error reading from error groups")
 		}
-
 		errorGroupSpan.Finish()
 		return nil
 	})
@@ -1723,10 +1704,16 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 	if err := g.Wait(); err != nil {
 		return nil, e.Wrap(err, "error querying session data for billing details")
 	}
+
+	quota := pricing.TypeToQuota(planType)
+	// use monthly session limit if it exists
+	if org.MonthlySessionLimit != nil {
+		quota = *org.MonthlySessionLimit
+	}
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{
 			Type:  modelInputs.PlanType(planType.String()),
-			Quota: pricing.TypeToQuota(planType),
+			Quota: quota,
 		},
 		Meter:              meter,
 		SessionsOutOfQuota: queriedSessionsOutOfQuota,
@@ -1972,6 +1959,14 @@ func (r *queryResolver) RecordingSettings(ctx context.Context, organizationID in
 		recordingSettings = newRecordSettings
 	}
 	return recordingSettings, nil
+}
+
+func (r *queryResolver) APIKeyToOrgID(ctx context.Context, apiKey string) (*int, error) {
+	var orgId int
+	if err := r.DB.Table("organizations").Select("id").Where("secret=?", apiKey).Scan(&orgId).Error; err != nil {
+		return nil, e.Wrap(err, "error getting org id from api key")
+	}
+	return &orgId, nil
 }
 
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {

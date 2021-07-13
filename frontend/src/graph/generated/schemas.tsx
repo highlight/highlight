@@ -131,8 +131,8 @@ export type ErrorObject = {
     type: Scalars['String'];
     url: Scalars['String'];
     source?: Maybe<Scalars['String']>;
-    line_number?: Maybe<Scalars['Int']>;
-    column_number?: Maybe<Scalars['Int']>;
+    lineNumber?: Maybe<Scalars['Int']>;
+    columnNumber?: Maybe<Scalars['Int']>;
     stack_trace?: Maybe<Array<Maybe<Scalars['Any']>>>;
     timestamp?: Maybe<Scalars['Time']>;
     payload?: Maybe<Scalars['String']>;
@@ -172,10 +172,10 @@ export type ErrorMetadata = {
 
 export type ErrorTrace = {
     __typename?: 'ErrorTrace';
-    file_name?: Maybe<Scalars['String']>;
-    line_number?: Maybe<Scalars['Int']>;
-    function_name?: Maybe<Scalars['String']>;
-    column_number?: Maybe<Scalars['Int']>;
+    fileName?: Maybe<Scalars['String']>;
+    lineNumber?: Maybe<Scalars['Int']>;
+    functionName?: Maybe<Scalars['String']>;
+    columnNumber?: Maybe<Scalars['Int']>;
     error?: Maybe<Scalars['String']>;
 };
 
@@ -464,6 +464,7 @@ export type Query = {
     segments?: Maybe<Array<Maybe<Segment>>>;
     error_segments?: Maybe<Array<Maybe<ErrorSegment>>>;
     recording_settings?: Maybe<RecordingSettings>;
+    api_key_to_org_id?: Maybe<Scalars['ID']>;
 };
 
 export type QuerySessionArgs = {
@@ -632,6 +633,10 @@ export type QueryError_SegmentsArgs = {
 
 export type QueryRecording_SettingsArgs = {
     organization_id: Scalars['ID'];
+};
+
+export type QueryApi_Key_To_Org_IdArgs = {
+    api_key: Scalars['String'];
 };
 
 export type Mutation = {

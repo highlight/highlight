@@ -107,8 +107,8 @@ type ErrorObject {
     type: String!
     url: String!
     source: String
-    line_number: Int
-    column_number: Int
+    lineNumber: Int
+    columnNumber: Int
     stack_trace: [Any]
     timestamp: Time
     payload: String
@@ -144,10 +144,10 @@ type ErrorMetadata {
 }
 
 type ErrorTrace {
-    file_name: String
-    line_number: Int
-    function_name: String
-    column_number: Int
+    fileName: String
+    lineNumber: Int
+    functionName: String
+    columnNumber: Int
     error: String
 }
 
@@ -455,6 +455,7 @@ type Query {
     segments(organization_id: ID!): [Segment]
     error_segments(organization_id: ID!): [ErrorSegment]
     recording_settings(organization_id: ID!): RecordingSettings
+    api_key_to_org_id(api_key: String!): ID
 }
 
 type Mutation {

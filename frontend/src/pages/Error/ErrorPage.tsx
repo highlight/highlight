@@ -80,7 +80,7 @@ const ErrorPage = () => {
                                     if (data?.error_group) {
                                         const traceLines = data.error_group.stack_trace.map(
                                             (stack_trace) => {
-                                                return `${stack_trace?.file_name} in ${stack_trace?.function_name} at line ${stack_trace?.line_number}:${stack_trace?.column_number}`;
+                                                return `${stack_trace?.fileName} in ${stack_trace?.functionName} at line ${stack_trace?.lineNumber}:${stack_trace?.columnNumber}`;
                                             }
                                         );
 

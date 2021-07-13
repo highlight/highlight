@@ -7,6 +7,7 @@ import { ConsoleListener } from './listeners/console-listener';
 import { ErrorListener } from './listeners/error-listener';
 import { PathListener } from './listeners/path-listener';
 import { GraphQLClient } from 'graphql-request';
+import ErrorStackParser from 'error-stack-parser';
 import {
     Sdk,
     getSdk,
@@ -213,6 +214,24 @@ export class Highlight {
             lineNumber: frames[0].lineNumber ?? 0,
             columnNumber: frames[0].columnNumber ?? 0,
             stackTrace: frames,
+            timestamp: new Date().toISOString(),
+            payload: payload,
+        });
+    }
+
+    async consumeCustomError(error: Error, message?: string, payload?: string) {
+        let res: ErrorStackParser.StackFrame[] = [];
+        try {
+            res = ErrorStackParser.parse(error);
+        } catch {}
+        this.errors.push({
+            event: message ? message + ':' + error.message : error.message,
+            type: 'custom',
+            url: window.location.href,
+            source: '',
+            lineNumber: res[0]?.lineNumber ? res[0]?.lineNumber : 0,
+            columnNumber: res[0]?.columnNumber ? res[0]?.columnNumber : 0,
+            stackTrace: res,
             timestamp: new Date().toISOString(),
             payload: payload,
         });

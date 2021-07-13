@@ -234,7 +234,10 @@ const Player = () => {
                                                 ? 'visible'
                                                 : 'hidden',
                                         }}
-                                        className={styles.rrwebPlayerDiv}
+                                        className={classNames(
+                                            styles.rrwebPlayerDiv,
+                                            'highlight-block'
+                                        )}
                                         id="player"
                                     />
                                     {!isReplayerReady && (

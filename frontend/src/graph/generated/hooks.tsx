@@ -10,8 +10,6 @@ export const ErrorFieldsFragmentDoc = gql`
         type
         url
         source
-        line_number
-        column_number
         stack_trace
         timestamp
         payload
@@ -2357,10 +2355,10 @@ export const GetErrorGroupDocument = gql`
             resolved
             state
             stack_trace {
-                file_name
-                line_number
-                function_name
-                column_number
+                fileName
+                lineNumber
+                functionName
+                columnNumber
             }
             metadata_log {
                 error_id
@@ -2446,10 +2444,10 @@ export const GetErrorGroupsDocument = gql`
                 state
                 environments
                 stack_trace {
-                    file_name
-                    line_number
-                    function_name
-                    column_number
+                    fileName
+                    lineNumber
+                    functionName
+                    columnNumber
                 }
                 metadata_log {
                     error_id

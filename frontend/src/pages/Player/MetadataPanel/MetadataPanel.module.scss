@@ -72,6 +72,7 @@
     font-style: normal;
     line-height: initial;
     margin-bottom: var(--size-xxSmall);
+    overflow-wrap: anywhere;
     text-transform: capitalize;
 }
 
@@ -97,4 +98,5 @@
     font-size: 12px !important;
     font-style: normal;
     line-height: initial;
+    overflow-wrap: anywhere;
 }
