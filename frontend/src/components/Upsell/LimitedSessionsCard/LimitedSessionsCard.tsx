@@ -20,13 +20,18 @@ const LimitedSessionCard = () => {
             (data?.billingDetails.plan.quota ?? 1) >=
         1.0;
 
-    if (!upsell) {
+    /** An organization is within a trial period by us setting an explicit trial end date on the organization. */
+    const organizationWithinTrialPeriod: boolean =
+        data?.organization?.trial_end_date &&
+        new Date(data.organization.trial_end_date) >= new Date();
+
+    if (!upsell || organizationWithinTrialPeriod) {
         return null;
     }
 
     return (
         <Card className={styles.container}>
-            <h2>You’ve reached your session quota for this month 😔</h2>
+            <h2>You've reached your session quota for this month 😔</h2>
             <p className={styles.description}>
                 There are{' '}
                 <b>{data?.billingDetails.sessionsOutOfQuota} sessions</b> that
