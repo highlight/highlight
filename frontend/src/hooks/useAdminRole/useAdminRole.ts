@@ -3,9 +3,9 @@ import { useEffect, useState } from 'react';
 import { useGetAdminQuery } from '../../graph/generated/hooks';
 
 export enum AdminRole {
-    HIGHLIGHT_ADMIN,
-    AUTH_ADMIN,
-    ANONYMOUS_ADMIN,
+    HIGHLIGHT_ADMIN, // A highlight staff member
+    AUTH_ADMIN, // Any authenticated user
+    ANONYMOUS_ADMIN, // An unauthenticated guest
 }
 
 /**
