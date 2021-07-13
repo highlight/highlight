@@ -613,13 +613,17 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 	)
 	databaseURL, ok := os.LookupEnv("DATABASE_URL")
 	if ok {
-		re, _ := regexp.Compile(`(?m)^(?:postgres://)([^:]*)(?::)([^@]*)(?:@)([^:]*)(?::)([^/]*)(?:/)(.*)`)
-		matched := re.FindAllStringSubmatch(databaseURL, -1)
-		username = matched[0][1]
-		password = matched[0][2]
-		host = matched[0][3]
-		port = matched[0][4]
-		dbName = matched[0][5]
+		re, err := regexp.Compile(`(?m)^(?:postgres://)([^:]*)(?::)([^@]*)(?:@)([^:]*)(?::)([^/]*)(?:/)(.*)`)
+		if err != nil {
+			log.Error(e.Wrap(err, "failed to compile regex"))
+		} else {
+			matched := re.FindAllStringSubmatch(databaseURL, -1)
+			username = matched[0][1]
+			password = matched[0][2]
+			host = matched[0][3]
+			port = matched[0][4]
+			dbName = matched[0][5]
+		}
 	}
 	psqlConf := fmt.Sprintf(
 		"host=%s port=%s user=%s dbname=%s password=%s sslmode=disable",
