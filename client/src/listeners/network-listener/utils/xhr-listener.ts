@@ -4,7 +4,6 @@ interface BrowserXHR extends XMLHttpRequest {
     _method: string;
     _url: string;
     _requestHeaders: Headers;
-    _startTime: string;
 }
 
 /**
@@ -24,7 +23,6 @@ export const XHRListener = () => {
         this._method = method;
         this._url = url;
         this._requestHeaders = {};
-        this._startTime = new Date().toISOString();
 
         // @ts-expect-error
         return originalOpen.apply(this, arguments);
@@ -42,14 +40,11 @@ export const XHRListener = () => {
         const requestModel: Request = {
             url: thisMonkeyPatch._url,
             verb: thisMonkeyPatch._method,
-            time: thisMonkeyPatch._startTime,
             headers: thisMonkeyPatch._requestHeaders,
             body: undefined,
         };
         // The load event for XMLHttpRequest is fired when a request completes successfully.
         this.addEventListener('load', async function () {
-            const endTime = new Date().toISOString();
-
             if (postData) {
                 if (typeof postData === 'string') {
                     requestModel['body'] = postData;
@@ -65,7 +60,6 @@ export const XHRListener = () => {
             const responseHeaders = this.getAllResponseHeaders();
             const responseModel: Response = {
                 status: this.status,
-                time: endTime,
                 headers: responseHeaders,
                 body: undefined,
             };
@@ -99,11 +93,8 @@ export const XHRListener = () => {
          * 3. The client is offline
          */
         this.addEventListener('error', async function () {
-            const endTime = new Date().toISOString();
-
             const responseModel: Response = {
                 status: this.status,
-                time: endTime,
                 headers: undefined,
                 body: undefined,
             };
