@@ -120,13 +120,6 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     useEffect(() => {
         if (admin_data) {
             if (autoPlayVideo && replayer) {
-                if (admin_data.admin?.email === 'lorilyn@impira.com') {
-                    H.track('PlayerAutoPlayOverride', {
-                        admin: 'lorilyn@impira.com',
-                    });
-                    setAutoPlayVideo(false);
-                    pause(time);
-                }
                 if (state === ReplayerState.LoadedAndUntouched) {
                     play(time);
                 } else if (state === ReplayerState.LoadedWithDeepLink) {
