@@ -1,4 +1,5 @@
 import classNames from 'classnames/bind';
+import moment from 'moment';
 import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
@@ -8,6 +9,7 @@ import { useGetBillingDetailsQuery } from '../../graph/generated/hooks';
 import { PlanType } from '../../graph/generated/schemas';
 import { ReactComponent as Banner } from '../../static/banner.svg';
 import { ReactComponent as Hamburger } from '../../static/hamburger.svg';
+import { isOrganizationWithinTrial } from '../../util/billing/billing';
 import { HighlightLogo } from '../HighlightLogo/HighlightLogo';
 import { SidebarState, useSidebarContext } from '../Sidebar/SidebarContext';
 import { CommandBar } from './CommandBar/CommandBar';
@@ -76,7 +78,13 @@ const FreePlanBanner = () => {
         return null;
     }
 
-    const bannerMessage = `You've used ${data?.billingDetails.meter}/${data?.billingDetails.plan.quota} of your free sessions.`;
+    let bannerMessage = `You've used ${data?.billingDetails.meter}/${data?.billingDetails.plan.quota} of your free sessions.`;
+    if (isOrganizationWithinTrial(data?.organization)) {
+        bannerMessage = `You have unlimited sessions until ${moment(
+            data?.organization?.trial_end_date
+        ).format('MM/DD/YY')}. `;
+    }
+
     return (
         <div className={styles.trialWrapper}>
             <Banner className={styles.bannerSvg} />

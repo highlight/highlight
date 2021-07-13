@@ -2,6 +2,7 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 
 import { useGetBillingDetailsQuery } from '../../../graph/generated/hooks';
+import { isOrganizationWithinTrial } from '../../../util/billing/billing';
 import ButtonLink from '../../Button/ButtonLink/ButtonLink';
 import Card from '../../Card/Card';
 import styles from './LimitedSessionsCard.module.scss';
@@ -21,9 +22,9 @@ const LimitedSessionCard = () => {
         1.0;
 
     /** An organization is within a trial period by us setting an explicit trial end date on the organization. */
-    const organizationWithinTrialPeriod: boolean =
-        data?.organization?.trial_end_date &&
-        new Date(data.organization.trial_end_date) >= new Date();
+    const organizationWithinTrialPeriod = isOrganizationWithinTrial(
+        data?.organization
+    );
 
     if (!upsell || organizationWithinTrialPeriod) {
         return null;
