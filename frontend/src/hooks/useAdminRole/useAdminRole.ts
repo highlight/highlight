@@ -11,7 +11,7 @@ export enum AdminRole {
 /**
  * Returns true if the current user is a '@highlight.run'. This should be used to gate features that should only be accessible to Highlight employees.
  */
-export const useAdminRole = () => {
+const useAdminRole = () => {
     const { data } = useGetAdminQuery({
         skip: false,
     });
@@ -27,5 +27,9 @@ export const useAdminRole = () => {
         }
     }, [data]);
 
-    return { adminRole };
+    const isHighlightAdmin = adminRole === AdminRole.HIGHLIGHT_ADMIN;
+
+    return { adminRole, isHighlightAdmin };
 };
+
+export default useAdminRole;

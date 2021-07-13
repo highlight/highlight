@@ -2,10 +2,7 @@ import useLocalStorage from '@rehooks/local-storage';
 import React, { useEffect } from 'react';
 import { RiMoonClearFill, RiSunLine } from 'react-icons/ri';
 
-import {
-    AdminRole,
-    useAdminRole,
-} from '../../../hooks/useAdminRole/useAdminRole';
+import useAdminRole from '../../../hooks/useAdminRole/useAdminRole';
 import Button from '../../Button/Button/Button';
 
 enum THEMES {
@@ -21,8 +18,7 @@ const ThemeToggle = () => {
             ? THEMES.Dark
             : THEMES.Light
     );
-    const { adminRole } = useAdminRole();
-    const isHighlightAdmin = adminRole == AdminRole.HIGHLIGHT_ADMIN;
+    const { isHighlightAdmin } = useAdminRole();
 
     useEffect(() => {
         if (isHighlightAdmin) {
