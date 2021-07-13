@@ -647,9 +647,13 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		log.Fatalf("Failed to connect to database with sqltrace: %v", err)
 	}
 
+	logLevel := logger.Silent
+	if os.Getenv("HIGHLIGHT_DEBUG_MODE") == "blame-GARAGE-spike-typic-neckline-santiago-tore-keep-becalm-preach-fiber-pomade-escheat-crone-tasmania" {
+		logLevel = logger.Info
+	}
 	DB, err = gormtrace.Open(postgres.New(postgres.Config{Conn: sqlDb}), &gorm.Config{
 		DisableForeignKeyConstraintWhenMigrating: true,
-		Logger:                                   logger.Default.LogMode(logger.Silent),
+		Logger:                                   logger.Default.LogMode(logLevel),
 	}, gormtrace.WithAnalytics(true))
 
 	if err != nil {
