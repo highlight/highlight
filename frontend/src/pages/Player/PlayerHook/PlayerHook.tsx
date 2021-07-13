@@ -45,6 +45,7 @@ export const usePlayer = (): ReplayerContextInterface => {
     const [sessionCommentIntervals, setSessionCommentIntervals] = useState<
         ParsedSessionComment[][]
     >([]);
+    const [timerId, setTimerId] = useState<number | null>(null);
     const [errors, setErrors] = useState<ErrorObject[]>([]);
     const [, setSelectedErrorId] = useState<string | undefined>(undefined);
     const [replayer, setReplayer] = useState<Replayer | undefined>(undefined);
@@ -272,20 +273,24 @@ export const usePlayer = (): ReplayerContextInterface => {
     // "Subscribes" the time with the Replayer when the Player is playing.
     useEffect(() => {
         if (state === ReplayerState.Playing) {
-            let timerId: number;
-
             const frameAction = () => {
                 if (replayer) {
                     setTime(replayer.getCurrentTime());
                 }
-                timerId = requestAnimationFrame(frameAction);
+                setTimerId(requestAnimationFrame(frameAction));
             };
 
-            timerId = requestAnimationFrame(frameAction);
-
-            return () => cancelAnimationFrame(timerId);
+            setTimerId(requestAnimationFrame(frameAction));
         }
     }, [state, replayer]);
+
+    useEffect(() => {
+        if (state !== ReplayerState.Playing && timerId) {
+            cancelAnimationFrame(timerId);
+            setTimerId(null);
+        }
+    }, [state, timerId]);
+    //     // "Subscribes" the time with the Replayer when the Player is playing.
 
     useEffect(() => {
         setLocalStorageTime(time);
