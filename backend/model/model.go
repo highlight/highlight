@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -604,13 +605,33 @@ type ErrorComment struct {
 }
 
 func SetupDB(dbName string) (*gorm.DB, error) {
+	var (
+		host     = os.Getenv("PSQL_HOST")
+		port     = os.Getenv("PSQL_PORT")
+		username = os.Getenv("PSQL_USER")
+		password = os.Getenv("PSQL_PASSWORD")
+	)
+	databaseURL, ok := os.LookupEnv("DATABASE_URL")
+	if ok {
+		re, err := regexp.Compile(`(?m)^(?:postgres://)([^:]*)(?::)([^@]*)(?:@)([^:]*)(?::)([^/]*)(?:/)(.*)`)
+		if err != nil {
+			log.Error(e.Wrap(err, "failed to compile regex"))
+		} else {
+			matched := re.FindAllStringSubmatch(databaseURL, -1)
+			username = matched[0][1]
+			password = matched[0][2]
+			host = matched[0][3]
+			port = matched[0][4]
+			dbName = matched[0][5]
+		}
+	}
 	psqlConf := fmt.Sprintf(
 		"host=%s port=%s user=%s dbname=%s password=%s sslmode=disable",
-		os.Getenv("PSQL_HOST"),
-		os.Getenv("PSQL_PORT"),
-		os.Getenv("PSQL_USER"),
+		host,
+		port,
+		username,
 		dbName,
-		os.Getenv("PSQL_PASSWORD"))
+		password)
 
 	sqltrace.Register("pgx", &stdlib.Driver{}, sqltrace.WithServiceName("highlight"))
 
