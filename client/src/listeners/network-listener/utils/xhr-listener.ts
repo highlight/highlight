@@ -36,11 +36,10 @@ export const XHRListener = () => {
     };
 
     XHR.send = function (this: BrowserXHR, postData) {
-        const thisMonkeyPatch = this as BrowserXHR;
         const requestModel: Request = {
-            url: thisMonkeyPatch._url,
-            verb: thisMonkeyPatch._method,
-            headers: thisMonkeyPatch._requestHeaders,
+            url: this._url,
+            verb: this._method,
+            headers: this._requestHeaders,
             body: undefined,
         };
         // The load event for XMLHttpRequest is fired when a request completes successfully.
