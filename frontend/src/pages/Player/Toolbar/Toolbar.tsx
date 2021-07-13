@@ -1,6 +1,5 @@
 import { useLocalStorage } from '@rehooks/local-storage';
 import classNames from 'classnames';
-import { H } from 'highlight.run';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import Draggable from 'react-draggable';
 import { FaPause } from 'react-icons/fa';
