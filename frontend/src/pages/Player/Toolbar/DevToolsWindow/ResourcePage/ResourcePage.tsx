@@ -202,11 +202,10 @@ export const ResourcePage = ({
                     <>
                         <TimingCanvas networkRange={networkRange} />
                         <div className={styles.networkTopBar}>
+                            <div className={styles.networkColumn}>Status</div>
                             <div className={styles.networkColumn}>Type</div>
                             <div className={styles.networkColumn}>Name</div>
-                            <div className={styles.networkColumn}>
-                                Response Time
-                            </div>
+                            <div className={styles.networkColumn}>Time</div>
                             <div className={styles.networkColumn}>Size</div>
                             <div className={styles.networkColumn}>
                                 <div className={styles.networkTimestampGrid}>
@@ -338,7 +337,10 @@ const ResourceRow = ({
     currentResource,
     searchTerm,
 }: {
-    p: PerformanceResourceTiming & { id: number };
+    p: PerformanceResourceTiming & {
+        id: number;
+        requestResponsePairs?: RequestResponsePair;
+    };
     networkRange: number;
     currentResource: number;
     searchTerm: string;
@@ -350,6 +352,7 @@ const ResourceRow = ({
         0.1
     );
     const rightPaddingPercent = 100 - actualPercent - leftPaddingPercent;
+
     return (
         <div key={p.id.toString()}>
             <div
@@ -363,17 +366,18 @@ const ResourceRow = ({
                 className={styles.networkRow}
             >
                 <div className={styles.typeSection}>
+                    {p.requestResponsePairs?.response.status || 200}
+                </div>
+                <div className={styles.typeSection}>
                     {getNetworkResourcesDisplayName(p.initiatorType)}
                 </div>
                 <Tooltip title={p.name}>
-                    <div className={styles.nameSection}>
-                        <TextHighlighter
+                    <TextHighlighter
                         className={styles.nameSection}
-                            searchWords={[searchTerm]}
-                            autoEscape={true}
-                            textToHighlight={p.name}
-                        />
-                    </div>
+                        searchWords={[searchTerm]}
+                        autoEscape={true}
+                        textToHighlight={p.name}
+                    />
                 </Tooltip>
                 <div className={styles.typeSection}>
                     {(p.responseEnd - p.startTime).toFixed(2)} ms
@@ -424,6 +428,24 @@ const ResourceRow = ({
         </div>
     );
 };
+export interface Request {
+    url: string;
+    verb: string;
+    headers: Headers;
+    body: any;
+}
+
+export interface Response {
+    status: number;
+    headers: any;
+    body: any;
+}
+
+export interface RequestResponsePair {
+    request: Request;
+    response: Response;
+}
+
 const formatSize = (bytes: number) => {
     if (bytes < 1024) {
         return `${roundOff(bytes)} B`;

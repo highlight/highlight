@@ -1,6 +1,6 @@
 @import 'src/components/Button/GoToButton/index.module.scss';
 
-$columns: 50px 50% 90px 90px 1fr $go-to-button-width;
+$columns: 50px 50px 50% 90px 90px 1fr $go-to-button-width;
 $right-padding: 12px;
 
 .networkRow {
@@ -42,7 +42,7 @@ $right-padding: 12px;
 
 // calc(total width - padding left - padding right - TYPE - NAME - TIMING - SIZE - GoToButton)
 $canvas-width: calc(
-    100% - 5px - 25px - 50px - 50% - 90px - 90px - #{$go-to-button-width}
+    100% - 5px - 25px - 50px - 50px - 50% - 90px - 90px - #{$go-to-button-width}
 );
 
 .canvasNetworkWrapper {
@@ -87,10 +87,10 @@ $canvas-width: calc(
     cursor: pointer;
 
     > span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 }
 
 .typeSection,
