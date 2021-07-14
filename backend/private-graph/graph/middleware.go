@@ -8,7 +8,6 @@ import (
 
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
-	e "github.com/pkg/errors"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 
@@ -46,11 +45,9 @@ func PrivateMiddleware(next http.Handler) http.Handler {
 		if r.Header.Get(DemoHeader) != "true" {
 			token := r.Header.Get("token")
 			t, err := AuthClient.VerifyIDToken(context.Background(), token)
-			if err != nil {
-				http.Error(w, e.Wrap(err, "invalid id token").Error(), http.StatusInternalServerError)
-				return
+			if err == nil {
+				uid = t.UID
 			}
-			uid = t.UID
 		}
 		ctx := context.WithValue(r.Context(), model.ContextKeys.UID, uid)
 		r = r.WithContext(ctx)

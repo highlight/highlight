@@ -3,6 +3,12 @@ import { H } from 'highlight.run';
 import React, { useEffect, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { useForm } from 'react-hook-form';
+import {
+    BrowserRouter as Router,
+    Route,
+    Switch,
+    useParams,
+} from 'react-router-dom';
 
 import commonStyles from '../../Common.module.scss';
 import Button from '../../components/Button/Button/Button';
@@ -15,6 +21,21 @@ import { auth, googleProvider } from '../../util/auth';
 import { Landing } from '../Landing/Landing';
 import { RequestAccessPage } from '../RequestAccess/RequestAccess';
 import styles from './Login.module.scss';
+
+export const GuestAdminRouter = () => {
+    const { session_id } = useParams<{
+        session_id: string;
+    }>();
+    window.analytics.identify(session_id, {
+        id: session_id,
+        name: 'Anonymous User',
+    });
+    H.identify(session_id, {
+        id: session_id,
+        name: 'Anonymous User',
+    });
+    return <AppRouter />;
+};
 
 export const AuthAdminRouter = () => {
     const { loading, error, data } = useGetAdminQuery();
@@ -119,125 +140,147 @@ const LoginForm = () => {
     }
 
     return (
-        <Landing>
-            <div className={styles.loginPage}>
-                <div className={styles.loginFormWrapper}>
-                    <form
-                        onSubmit={handleSubmit(onSubmit)}
-                        className={styles.loginForm}
-                    >
-                        <div className={styles.loginTitleWrapper}>
-                            <h2 className={styles.loginTitle}>
-                                Welcome {signIn && 'back'} to Highlight.
-                            </h2>
-                            <p className={styles.loginSubTitle}>
-                                {signIn ? (
-                                    <>
-                                        New here?{' '}
-                                        <span
-                                            onClick={changeState}
-                                            className={
-                                                styles.loginStateSwitcher
-                                            }
-                                        >
-                                            Create an account.
-                                        </span>
-                                    </>
-                                ) : (
-                                    <>
-                                        Already have an account?{' '}
-                                        <span
-                                            onClick={changeState}
-                                            className={
-                                                styles.loginStateSwitcher
-                                            }
-                                        >
-                                            Sign in.
-                                        </span>
-                                    </>
-                                )}
-                            </p>
+        <Router>
+            <Switch>
+                <Route path="/:organization_id/sessions/:session_id" exact>
+                    <GuestAdminRouter />
+                </Route>
+                <Route path="/">
+                    <Landing>
+                        <div className={styles.loginPage}>
+                            <div className={styles.loginFormWrapper}>
+                                <form
+                                    onSubmit={handleSubmit(onSubmit)}
+                                    className={styles.loginForm}
+                                >
+                                    <div className={styles.loginTitleWrapper}>
+                                        <h2 className={styles.loginTitle}>
+                                            Welcome {signIn && 'back'} to
+                                            Highlight.
+                                        </h2>
+                                        <p className={styles.loginSubTitle}>
+                                            {signIn ? (
+                                                <>
+                                                    New here?{' '}
+                                                    <span
+                                                        onClick={changeState}
+                                                        className={
+                                                            styles.loginStateSwitcher
+                                                        }
+                                                    >
+                                                        Create an account.
+                                                    </span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    Already have an account?{' '}
+                                                    <span
+                                                        onClick={changeState}
+                                                        className={
+                                                            styles.loginStateSwitcher
+                                                        }
+                                                    >
+                                                        Sign in.
+                                                    </span>
+                                                </>
+                                            )}
+                                        </p>
+                                    </div>
+                                    <input
+                                        placeholder={'Email'}
+                                        name="email"
+                                        ref={register({ required: true })}
+                                        className={commonStyles.input}
+                                    />
+                                    <div className={commonStyles.errorMessage}>
+                                        {errors.email && 'Enter an email yo!'}
+                                    </div>
+                                    <input
+                                        placeholder={'Password'}
+                                        type="password"
+                                        name="password"
+                                        ref={register({ required: true })}
+                                        className={commonStyles.input}
+                                    />
+                                    {!signIn && (
+                                        <>
+                                            <input
+                                                placeholder={'Confirm Password'}
+                                                type="password"
+                                                name="confirm-password"
+                                                ref={register({
+                                                    required: true,
+                                                    validate: (value) => {
+                                                        if (
+                                                            value !==
+                                                            watch('password')
+                                                        ) {
+                                                            setError(
+                                                                'password',
+                                                                {
+                                                                    type:
+                                                                        'mismatch',
+                                                                    message:
+                                                                        'Mismatched passwords',
+                                                                }
+                                                            );
+                                                            return "Passwords don't match.";
+                                                        }
+                                                    },
+                                                })}
+                                                className={commonStyles.input}
+                                            />
+                                        </>
+                                    )}
+                                    <div className={commonStyles.errorMessage}>
+                                        {errors.password &&
+                                            errors.password.message}
+                                    </div>
+                                    <Button
+                                        trackingId="LoginSignInUp"
+                                        className={commonStyles.submitButton}
+                                        type="primary"
+                                        htmlType="submit"
+                                    >
+                                        {signIn ? 'Sign In' : 'Sign Up'}
+                                    </Button>
+                                </form>
+                                <p className={styles.otherSigninText}>
+                                    or sign {signIn ? 'in' : 'up'} with
+                                </p>
+                                <Button
+                                    trackingId="LoginWithGoogle"
+                                    className={classNames(
+                                        commonStyles.secondaryButton,
+                                        styles.googleButton
+                                    )}
+                                    onClick={() => {
+                                        auth.signInWithRedirect(
+                                            googleProvider
+                                        ).catch((e) =>
+                                            setFirebaseError(JSON.stringify(e))
+                                        );
+                                    }}
+                                >
+                                    <GoogleLogo
+                                        className={styles.googleLogoStyle}
+                                    />
+                                    <span className={styles.googleText}>
+                                        Google Sign {signIn ? 'In' : 'Up'}
+                                    </span>
+                                </Button>
+                                <div className={commonStyles.errorMessage}>
+                                    {firebaseError}
+                                </div>
+                                <div className={commonStyles.errorMessage}>
+                                    {JSON.stringify(error)}
+                                </div>
+                            </div>
                         </div>
-                        <input
-                            placeholder={'Email'}
-                            name="email"
-                            ref={register({ required: true })}
-                            className={commonStyles.input}
-                        />
-                        <div className={commonStyles.errorMessage}>
-                            {errors.email && 'Enter an email yo!'}
-                        </div>
-                        <input
-                            placeholder={'Password'}
-                            type="password"
-                            name="password"
-                            ref={register({ required: true })}
-                            className={commonStyles.input}
-                        />
-                        {!signIn && (
-                            <>
-                                <input
-                                    placeholder={'Confirm Password'}
-                                    type="password"
-                                    name="confirm-password"
-                                    ref={register({
-                                        required: true,
-                                        validate: (value) => {
-                                            if (value !== watch('password')) {
-                                                setError('password', {
-                                                    type: 'mismatch',
-                                                    message:
-                                                        'Mismatched passwords',
-                                                });
-                                                return "Passwords don't match.";
-                                            }
-                                        },
-                                    })}
-                                    className={commonStyles.input}
-                                />
-                            </>
-                        )}
-                        <div className={commonStyles.errorMessage}>
-                            {errors.password && errors.password.message}
-                        </div>
-                        <Button
-                            trackingId="LoginSignInUp"
-                            className={commonStyles.submitButton}
-                            type="primary"
-                            htmlType="submit"
-                        >
-                            {signIn ? 'Sign In' : 'Sign Up'}
-                        </Button>
-                    </form>
-                    <p className={styles.otherSigninText}>
-                        or sign {signIn ? 'in' : 'up'} with
-                    </p>
-                    <Button
-                        trackingId="LoginWithGoogle"
-                        className={classNames(
-                            commonStyles.secondaryButton,
-                            styles.googleButton
-                        )}
-                        onClick={() => {
-                            auth.signInWithRedirect(googleProvider).catch((e) =>
-                                setFirebaseError(JSON.stringify(e))
-                            );
-                        }}
-                    >
-                        <GoogleLogo className={styles.googleLogoStyle} />
-                        <span className={styles.googleText}>
-                            Google Sign {signIn ? 'In' : 'Up'}
-                        </span>
-                    </Button>
-                    <div className={commonStyles.errorMessage}>
-                        {firebaseError}
-                    </div>
-                    <div className={commonStyles.errorMessage}>
-                        {JSON.stringify(error)}
-                    </div>
-                </div>
-            </div>
-        </Landing>
+                    </Landing>
+                </Route>
+            </Switch>
+        </Router>
     );
 };
 

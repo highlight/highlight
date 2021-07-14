@@ -973,6 +973,7 @@ func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, organi
 }
 
 func (r *mutationResolver) UpdateSessionIsPublic(ctx context.Context, sessionID int, isPublic bool) (*model.Session, error) {
+	// TODO: fine-grained permission control
 	session, err := r.isAdminSessionOwner(ctx, sessionID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")

@@ -1,5 +1,6 @@
 import useLocalStorage from '@rehooks/local-storage';
 import React, { useEffect, useState } from 'react';
+import { useAuthState } from 'react-firebase-hooks/auth';
 import { useHistory, useParams } from 'react-router-dom';
 
 import commonStyles from '../../Common.module.scss';
@@ -15,10 +16,12 @@ import {
     useGetOrganizationLazyQuery,
     useGetOrganizationsLazyQuery,
 } from '../../graph/generated/hooks';
+import { auth } from '../../util/auth';
 import { useIntegrated } from '../../util/integrated';
 import ApplicationRouter from './ApplicationRouter';
 
 export const OrgRouter = () => {
+    const [user] = useAuthState(auth);
     const { organization_id: organizationIdFromSearchParams } = useParams<{
         organization_id: string;
     }>();
@@ -81,12 +84,14 @@ export const OrgRouter = () => {
     // 1. If it does then handle routing normally.
     // 2. If it doesn't then find the user's default organization and set that as the current organization.
     useEffect(() => {
-        if (organization_id && !isNaN(parseInt(organization_id, 10))) {
-            getOrganizationQuery({ variables: { id: organization_id } });
-        } else {
-            getOrganizationsQuery();
+        if (user) {
+            if (organization_id && !isNaN(parseInt(organization_id, 10))) {
+                getOrganizationQuery({ variables: { id: organization_id } });
+            } else {
+                getOrganizationsQuery();
+            }
         }
-    }, [getOrganizationQuery, getOrganizationsQuery, organization_id]);
+    }, [getOrganizationQuery, getOrganizationsQuery, organization_id, user]);
 
     // Redirects the user to their default organization when the URL does not have an organization ID.
     // For example, this allows linking to https://app.highlight.run/sessions for https://app.highlight.run/1/sessions
@@ -118,7 +123,7 @@ export const OrgRouter = () => {
         >
             <Header />
             <div className={commonStyles.bodyWrapper}>
-                {error || !data?.organization ? (
+                {user && (error || !data?.organization) ? (
                     <ErrorState
                         message={`
                         Seems like you don’t have access to this page 😢. If you're
