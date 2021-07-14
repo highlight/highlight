@@ -11,6 +11,7 @@ import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import { RadioGroup } from '../../components/RadioGroup/RadioGroup';
 import { useGetOrganizationQuery } from '../../graph/generated/hooks';
+import { GetBaseURL } from '../../util/window';
 import { CodeBlock } from './CodeBlock/CodeBlock';
 import { IntegrationDetector } from './IntegrationDetector/IntegrationDetector';
 import styles from './SetupPage.module.scss';
@@ -188,11 +189,7 @@ const HtmlInstructions = ({ orgVerboseId }: { orgVerboseId: string }) => {
 ${codeStr}
 window.H.init('${orgVerboseId}${
                             process.env.REACT_APP_ONPREM === 'true' &&
-                            ', {backendUrl: "' +
-                                window.location.protocol +
-                                '//' +
-                                window.location.host +
-                                '/public"}'
+                            ', {backendUrl: "' + GetBaseURL() + '/public"}'
                         }')
 </script>`}
                     />
@@ -343,11 +340,7 @@ const getInitSnippet = (orgId: string, withOptions = false) =>
   environment: 'production',
   enableStrictPrivacy: false,${
       process.env.REACT_APP_ONPREM === 'true' &&
-      '\n  backendUrl: "' +
-          window.location.protocol +
-          '//' +
-          window.location.host +
-          '/public",'
+      '\n  backendUrl: "' + GetBaseURL() + '/public",'
   }
 });`
         : `H.init('${orgId}');`;
