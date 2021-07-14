@@ -5,6 +5,7 @@ import styles from './KeyValueTable.module.scss';
 
 interface Props {
     data: KeyValueTableRow[];
+    noDataMessage?: string | React.ReactNode;
 }
 
 export interface KeyValueTableRow {
@@ -14,31 +15,33 @@ export interface KeyValueTableRow {
     valueInfoTooltipMessage?: string | React.ReactNode;
 }
 
-const KeyValueTable = ({ data }: Props) => {
+const KeyValueTable = ({ data, noDataMessage = <p>No data</p> }: Props) => {
     return (
         <div className={styles.table}>
-            {data.map(
-                ({
-                    keyDisplayValue,
-                    valueDisplayValue,
-                    valueInfoTooltipMessage,
-                }) => (
-                    <React.Fragment
-                        key={`${keyDisplayValue}-${valueDisplayValue}-${valueInfoTooltipMessage}`}
-                    >
-                        <p className={styles.key}>{keyDisplayValue}</p>
-                        <p className={styles.value}>
-                            {valueDisplayValue}{' '}
-                            {valueInfoTooltipMessage && (
-                                <InfoTooltip
-                                    title={valueInfoTooltipMessage}
-                                    className={styles.infoTooltip}
-                                />
-                            )}
-                        </p>
-                    </React.Fragment>
-                )
-            )}
+            {data.length === 0
+                ? noDataMessage
+                : data.map(
+                      ({
+                          keyDisplayValue,
+                          valueDisplayValue,
+                          valueInfoTooltipMessage,
+                      }) => (
+                          <React.Fragment
+                              key={`${keyDisplayValue}-${valueDisplayValue}-${valueInfoTooltipMessage}`}
+                          >
+                              <p className={styles.key}>{keyDisplayValue}</p>
+                              <p className={styles.value}>
+                                  {valueDisplayValue}{' '}
+                                  {valueInfoTooltipMessage && (
+                                      <InfoTooltip
+                                          title={valueInfoTooltipMessage}
+                                          className={styles.infoTooltip}
+                                      />
+                                  )}
+                              </p>
+                          </React.Fragment>
+                      )
+                  )}
         </div>
     );
 };
