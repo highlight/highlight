@@ -21,7 +21,6 @@ import { print } from 'graphql';
 import {
     ConsoleMessage,
     ErrorMessage,
-    NetworkResourceContent,
 } from '../../frontend/src/util/shared-types';
 import { ViewportResizeListener } from './listeners/viewport-resize-listener';
 import { SegmentIntegrationListener } from './listeners/segment-integration-listener';
@@ -30,6 +29,11 @@ import { FocusListener } from './listeners/focus-listener/focus-listener';
 import packageJson from '../package.json';
 import 'clientjs';
 import { NetworkListener } from './listeners/network-listener/network-listener';
+import { RequestResponsePair } from './listeners/network-listener/utils/models';
+import {
+    highlightNetworkResourceFilter,
+    matchPerformanceTimingsWithRequestResponsePair,
+} from './listeners/network-listener/utils/utils';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -104,7 +108,7 @@ export class Highlight {
     events: eventWithTime[];
     errors: ErrorMessage[];
     messages: ConsoleMessage[];
-    networkContents: NetworkResourceContent[];
+    networkContents: RequestResponsePair[];
     sessionData: SessionData;
     /** @deprecated Use state instead. Ready should be removed when Highlight releases 2.0. */
     ready: boolean;
@@ -479,11 +483,18 @@ export class Highlight {
                     }
                 })
             );
+
+            // This is gated to only Highlight.
             if (
                 !this.disableNetworkRecording &&
-                this.enableNetworkHeadersAndBodyRecording
+                this.enableNetworkHeadersAndBodyRecording &&
+                this.organizationID === '1'
             ) {
-                this.listeners.push(NetworkListener());
+                this.listeners.push(
+                    NetworkListener((requestResponsePair) => {
+                        this.networkContents.push(requestResponsePair);
+                    })
+                );
             }
             // Send the payload as the page closes. navigator.sendBeacon guarantees that a request will be made.
             window.addEventListener('beforeunload', () => {
@@ -572,18 +583,30 @@ export class Highlight {
     }
 
     _getPayload(): PushPayloadMutationVariables {
-        var resources: Array<any> = [];
+        let resources: Array<any> = [];
         if (!this.disableNetworkRecording) {
             // get all resources that don't include 'api.highlight.run'
             resources = performance
                 .getEntriesByType('resource')
-                .filter(
-                    (r) =>
-                        !r.name.includes(
-                            process.env.PUBLIC_GRAPH_URI ??
-                                'https://api.highlight.run'
-                        ) || !r.name.includes('highlight.run')
+                .filter((r) => !highlightNetworkResourceFilter(r.name));
+
+            // Only filter out requests made to Highlight for customers.
+            if (this.organizationID !== '1') {
+                resources = resources.filter(
+                    (r) => !highlightNetworkResourceFilter(r.name)
                 );
+            }
+
+            // This feature is gated to only Highlight.
+            if (
+                this.organizationID === '1' &&
+                this.enableNetworkHeadersAndBodyRecording
+            ) {
+                resources = matchPerformanceTimingsWithRequestResponsePair(
+                    resources,
+                    this.networkContents
+                );
+            }
         }
 
         const resourcesString = stringify({ resources: resources });

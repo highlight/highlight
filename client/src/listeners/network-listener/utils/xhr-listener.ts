@@ -1,15 +1,18 @@
-import { Headers, Request, Response } from './models';
+import { Headers, Request, RequestResponsePair, Response } from './models';
 
 interface BrowserXHR extends XMLHttpRequest {
     _method: string;
     _url: string;
     _requestHeaders: Headers;
+    _responseSize?: number;
 }
 
 /**
  * Listens to all XMLHttpRequests made.
  */
-export const XHRListener = () => {
+export const XHRListener = (
+    callback: (requestResponsePair: RequestResponsePair) => void
+) => {
     const XHR = XMLHttpRequest.prototype;
 
     const originalOpen = XHR.open;
@@ -19,7 +22,7 @@ export const XHRListener = () => {
     /**
      * When a request gets initiated, store metadata for that specific request.
      */
-    XHR.open = function (this: BrowserXHR, method, url) {
+    XHR.open = function (this: BrowserXHR, method: string, url: string) {
         this._method = method;
         this._url = url;
         this._requestHeaders = {};
@@ -57,9 +60,24 @@ export const XHRListener = () => {
             }
 
             const responseHeaders = this.getAllResponseHeaders();
+            // Convert the header string into an array
+            // of individual headers
+            const normalizedResponseHeaders = responseHeaders
+                .trim()
+                .split(/[\r\n]+/);
+
+            // Create a map of header names to values
+            const headerMap: { [key: string]: any } = {};
+            normalizedResponseHeaders.forEach(function (line) {
+                const parts = line.split(': ');
+                const header = parts.shift() as string;
+                const value = parts.join(': ');
+                headerMap[header] = value;
+            });
+
             const responseModel: Response = {
                 status: this.status,
-                headers: responseHeaders,
+                headers: headerMap,
                 body: undefined,
             };
 
@@ -70,9 +88,13 @@ export const XHRListener = () => {
                 this.responseText
             ) {
                 responseModel['body'] = this.responseText;
+                // Each character is 8 bytes, total size is number of characters multiplied by 8.
+                responseModel['size'] = this.responseText.length * 8;
             } else if (this.responseType === 'blob') {
-                const response = await (this.response as Blob).text();
+                const blob = this.response as Blob;
+                const response = await blob.text();
                 responseModel['body'] = response;
+                responseModel['size'] = blob.size;
             }
 
             const event = {
@@ -80,7 +102,7 @@ export const XHRListener = () => {
                 response: responseModel,
             };
 
-            console.log(event);
+            callback(event);
         });
 
         /**
@@ -103,7 +125,7 @@ export const XHRListener = () => {
                 response: responseModel,
             };
 
-            console.log('error', event);
+            callback(event);
         });
 
         // @ts-expect-error
