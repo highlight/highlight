@@ -1,20 +1,43 @@
 @import 'src/components/Button/GoToButton/index.module.scss';
 
-$columns: 50px 50% 90px 90px 1fr $go-to-button-width;
+$columns: 50px 50px 50% 90px 90px 1fr $go-to-button-width;
 $right-padding: 12px;
 
 .networkRow {
     color: var(--color-gray-500);
+    cursor: pointer;
     display: grid;
     font-size: 13px;
     grid-template-columns: $columns;
-    padding-bottom: 8px;
+    padding-bottom: var(--size-xxSmall);
     padding-left: 25px;
     padding-right: $right-padding;
+    padding-top: var(--size-xxSmall);
     width: 100%;
+
+    &.current {
+        p,
+        div,
+        span {
+            color: var(--text-primary) !important;
+            font-weight: 500;
+        }
+    }
+
+    &.failedResource {
+        p,
+        div,
+        span {
+            color: var(--color-red) !important;
+        }
+    }
 
     &:hover .goToButton {
         visibility: visible;
+    }
+
+    &:hover {
+        background: var(--color-gray-100);
     }
 }
 
@@ -37,7 +60,7 @@ $right-padding: 12px;
 
 // calc(total width - padding left - padding right - TYPE - NAME - TIMING - SIZE - GoToButton)
 $canvas-width: calc(
-    100% - 5px - 25px - 50px - 50% - 90px - 90px - #{$go-to-button-width}
+    100% - 5px - 25px - 50px - 50px - 50% - 90px - 90px - #{$go-to-button-width}
 );
 
 .canvasNetworkWrapper {
@@ -78,14 +101,20 @@ $canvas-width: calc(
     font-weight: 400;
 }
 
-.typeSection {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
 .nameSection {
     cursor: pointer;
+
+    > span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+.typeSection,
+.nameSection {
+    align-items: center;
+    display: flex;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

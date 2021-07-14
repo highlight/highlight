@@ -1,4 +1,5 @@
 import { message } from 'antd';
+import classNames from 'classnames';
 import _ from 'lodash';
 import React, {
     useCallback,
@@ -23,6 +24,7 @@ import { MillisToMinutesAndSeconds } from '../../../../../util/time';
 import ReplayerContext, { ReplayerState } from '../../../ReplayerContext';
 import devStyles from '../DevToolsWindow.module.scss';
 import { getNetworkResourcesDisplayName, Option } from '../Option/Option';
+import ResourceDetailsModal from './components/ResourceDetailsModal/ResourceDetailsModal';
 import styles from './ResourcePage.module.scss';
 
 export const ResourcePage = ({
@@ -35,6 +37,9 @@ export const ResourcePage = ({
     const { state } = useContext(ReplayerContext);
     const { session_id } = useParams<{ session_id: string }>();
     const { demo } = useContext(DemoContext);
+    const [selectedNetworkResource, setSelectedNetworkResource] = useState<
+        undefined | NetworkResource
+    >(undefined);
     const [options, setOptions] = useState<Array<string>>([]);
     const [currentOption, setCurrentOption] = useState('All');
     const [filterSearchTerm, setFilterSearchTerm] = useState('');
@@ -45,7 +50,7 @@ export const ResourcePage = ({
         setIsInteractingWithResources,
     ] = useState(false);
     const [allResources, setAllResources] = useState<
-        Array<PerformanceResourceTiming & { id: number }> | undefined
+        Array<NetworkResource> | undefined
     >([]);
     const [parsedResources, setParsedResources] = useState<
         Array<PerformanceResourceTiming & { id: number }> | undefined
@@ -202,11 +207,10 @@ export const ResourcePage = ({
                     <>
                         <TimingCanvas networkRange={networkRange} />
                         <div className={styles.networkTopBar}>
+                            <div className={styles.networkColumn}>Status</div>
                             <div className={styles.networkColumn}>Type</div>
                             <div className={styles.networkColumn}>Name</div>
-                            <div className={styles.networkColumn}>
-                                Response Time
-                            </div>
+                            <div className={styles.networkColumn}>Time</div>
                             <div className={styles.networkColumn}>Size</div>
                             <div className={styles.networkColumn}>
                                 <div className={styles.networkTimestampGrid}>
@@ -251,10 +255,15 @@ export const ResourcePage = ({
                                     itemContent={(index, resource) => (
                                         <ResourceRow
                                             key={index.toString()}
-                                            p={resource}
+                                            resource={resource}
                                             networkRange={networkRange}
                                             currentResource={currentResource}
                                             searchTerm={filterSearchTerm}
+                                            onClickHandler={() => {
+                                                setSelectedNetworkResource(
+                                                    resource
+                                                );
+                                            }}
                                         />
                                     )}
                                 />
@@ -263,6 +272,12 @@ export const ResourcePage = ({
                     </>
                 )}
             </div>
+            <ResourceDetailsModal
+                selectedNetworkResource={selectedNetworkResource}
+                onCloseHandler={() => {
+                    setSelectedNetworkResource(undefined);
+                }}
+            />
         </div>
     );
 };
@@ -332,54 +347,71 @@ const TimingCanvas = ({ networkRange }: { networkRange: number }) => {
     );
 };
 
+export type NetworkResource = PerformanceResourceTiming & {
+    id: number;
+    requestResponsePairs?: RequestResponsePair;
+};
+
 const ResourceRow = ({
-    p,
+    resource,
     networkRange,
     currentResource,
     searchTerm,
+    onClickHandler,
 }: {
-    p: PerformanceResourceTiming & { id: number };
+    resource: NetworkResource;
     networkRange: number;
     currentResource: number;
     searchTerm: string;
+    onClickHandler: () => void;
 }) => {
     const { pause } = useContext(ReplayerContext);
-    const leftPaddingPercent = (p.startTime / networkRange) * 100;
+    const leftPaddingPercent = (resource.startTime / networkRange) * 100;
     const actualPercent = Math.max(
-        ((p.responseEnd - p.startTime) / networkRange) * 100,
+        ((resource.responseEnd - resource.startTime) / networkRange) * 100,
         0.1
     );
     const rightPaddingPercent = 100 - actualPercent - leftPaddingPercent;
+
     return (
-        <div key={p.id.toString()}>
+        <div key={resource.id.toString()} onClick={onClickHandler}>
             <div
-                style={{
-                    color:
-                        p.id === currentResource
-                            ? 'var(--text-primary)'
-                            : 'var(--color-gray-500)',
-                    fontWeight: p.id === currentResource ? 400 : 300,
-                }}
-                className={styles.networkRow}
+                className={classNames(styles.networkRow, {
+                    [styles.current]: resource.id === currentResource,
+                    [styles.failedResource]:
+                        resource.requestResponsePairs?.response.status === 0,
+                })}
             >
                 <div className={styles.typeSection}>
-                    {getNetworkResourcesDisplayName(p.initiatorType)}
+                    {resource.requestResponsePairs?.response.status ?? 200}
                 </div>
-                <Tooltip title={p.name}>
-                    <div className={styles.nameSection}>
-                        <TextHighlighter
-                            searchWords={[searchTerm]}
-                            autoEscape={true}
-                            textToHighlight={p.name}
-                        />
-                    </div>
+                <div className={styles.typeSection}>
+                    {getNetworkResourcesDisplayName(resource.initiatorType)}
+                </div>
+                <Tooltip title={resource.name}>
+                    <TextHighlighter
+                        className={styles.nameSection}
+                        searchWords={[searchTerm]}
+                        autoEscape={true}
+                        textToHighlight={resource.name}
+                    />
                 </Tooltip>
-                <div>{(p.responseEnd - p.startTime).toFixed(2)} ms</div>
-                <div>
-                    {p.transferSize === 0 ? (
+                <div className={styles.typeSection}>
+                    {resource.requestResponsePairs?.response.status === 0
+                        ? `-`
+                        : `${(
+                              resource.responseEnd - resource.startTime
+                          ).toFixed(2)} ms`}
+                </div>
+                <div className={styles.typeSection}>
+                    {resource.requestResponsePairs?.response.size ? (
+                        formatSize(resource.requestResponsePairs.response.size)
+                    ) : resource.requestResponsePairs?.response.status === 0 ? (
+                        '-'
+                    ) : resource.transferSize === 0 ? (
                         'Cached'
                     ) : (
-                        <>{p.transferSize} bytes</>
+                        <>{formatSize(resource.transferSize)}</>
                     )}
                 </div>
                 <div className={styles.timingBarWrapper}>
@@ -405,14 +437,15 @@ const ResourceRow = ({
                 </div>
                 <GoToButton
                     className={styles.goToButton}
-                    onClick={() => {
-                        pause(p.startTime);
+                    onClick={(e) => {
+                        pause(resource.startTime);
+                        e.stopPropagation();
 
                         message.success(
                             `Changed player time to when ${getNetworkResourcesDisplayName(
-                                p.initiatorType
+                                resource.initiatorType
                             )} request started at ${MillisToMinutesAndSeconds(
-                                p.startTime
+                                resource.startTime
                             )}.`
                         );
                     }}
@@ -420,4 +453,41 @@ const ResourceRow = ({
             </div>
         </div>
     );
+};
+export interface Request {
+    url: string;
+    verb: string;
+    headers: Headers;
+    body: any;
+}
+
+export interface Response {
+    status: number;
+    headers: any;
+    body: any;
+    /** Number of Bytes transferred over the network. */
+    size?: number;
+}
+
+export interface RequestResponsePair {
+    request: Request;
+    response: Response;
+}
+
+/**
+ * Formats bytes to the short form of KB and MB.
+ */
+export const formatSize = (bytes: number) => {
+    if (bytes < 1024) {
+        return `${roundOff(bytes)} B`;
+    }
+    if (bytes < 1024 ** 2) {
+        return `${roundOff(bytes / 1024)} KB`;
+    }
+    return `${roundOff(bytes / 1024 ** 2)} MB`;
+};
+
+const roundOff = (value: number, decimal = 1) => {
+    const base = 10 ** decimal;
+    return Math.round(value * base) / base;
 };

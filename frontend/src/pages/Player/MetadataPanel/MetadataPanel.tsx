@@ -1,13 +1,16 @@
-import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { Link, useParams } from 'react-router-dom';
 
-import InfoTooltip from '../../../components/InfoTooltip/InfoTooltip';
+import DataCard from '../../../components/DataCard/DataCard';
+import KeyValueTable, {
+    KeyValueTableRow,
+} from '../../../components/KeyValueTable/KeyValueTable';
 import {
     useGetAdminQuery,
     useGetSessionQuery,
 } from '../../../graph/generated/hooks';
+import { formatSize } from '../Toolbar/DevToolsWindow/ResourcePage/ResourcePage';
 import { SessionPageSearchParams } from '../utils/utils';
 import styles from './MetadataPanel.module.scss';
 
@@ -48,6 +51,124 @@ const MetadataPanel = () => {
         setParsedFields(fields);
     }, [data]);
 
+    const sessionData: KeyValueTableRow[] = [
+        {
+            keyDisplayValue: 'Environment',
+            valueDisplayValue: data?.session?.environment || 'Production',
+            valueInfoTooltipMessage: (
+                <>
+                    You can set the environment based on where the session is
+                    recorded.{' '}
+                    <a
+                        href="https://docs.highlight.run/reference#options"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        Learn more about environments.
+                    </a>
+                </>
+            ),
+            renderType: 'string',
+        },
+        {
+            keyDisplayValue: 'App Version',
+            valueDisplayValue:
+                data?.session?.app_version || 'App Version Not Set',
+            valueInfoTooltipMessage: (
+                <>
+                    This is the app version for your application. You can set
+                    the version to help categorize what version of the app a
+                    user was using.{' '}
+                    <a
+                        href="https://docs.highlight.run/reference#options"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        Learn more about setting the version.
+                    </a>
+                </>
+            ),
+            renderType: 'string',
+        },
+    ];
+
+    if (data?.session?.city) {
+        sessionData.push({
+            keyDisplayValue: 'Location',
+            valueDisplayValue: `${data?.session?.city}, ${data?.session?.state} ${data?.session?.postal}`,
+            renderType: 'string',
+        });
+    }
+
+    // Data exposed to Highlight employees.
+    if (a_data?.admin?.email.includes('highlight.run')) {
+        if (data?.session?.object_storage_enabled) {
+            sessionData.push({
+                keyDisplayValue: 'Session Size',
+                valueDisplayValue: `${formatSize(data.session.payload_size)}`,
+                renderType: 'string',
+            });
+        }
+        sessionData.push({
+            keyDisplayValue: 'Firstload Version',
+            valueDisplayValue: data?.session?.client_version || 'Unknown',
+            renderType: 'string',
+        });
+    }
+
+    const userData: KeyValueTableRow[] = [
+        {
+            keyDisplayValue: 'Identifer',
+            valueDisplayValue: data?.session?.identifier || 'Not Set',
+            valueInfoTooltipMessage: !data?.session?.identifier && (
+                <>
+                    Did you know that you can enrich sessions with additional
+                    metadata? They'll show up here. You can{' '}
+                    <a
+                        href="https://docs.highlight.run/docs/identifying-users"
+                        target="_blank"
+                        rel="noreferrer"
+                    >
+                        learn more here
+                    </a>
+                    .
+                </>
+            ),
+            renderType: 'string',
+        },
+        {
+            keyDisplayValue: 'Locale',
+            valueDisplayValue: data?.session?.language || 'Unknown',
+            renderType: 'string',
+        },
+    ];
+
+    parsedFields?.forEach((field) => {
+        userData.push({
+            keyDisplayValue: field.name,
+            valueDisplayValue: field.value,
+            renderType: 'string',
+        });
+    });
+
+    const deviceData: KeyValueTableRow[] = [];
+
+    if (data?.session?.fingerprint) {
+        deviceData.push({
+            keyDisplayValue: 'Device ID',
+            valueDisplayValue: (
+                <Link
+                    to={`/${organization_id}/sessions?${new URLSearchParams({
+                        [SessionPageSearchParams.deviceId]: data.session.fingerprint.toString(),
+                    }).toString()}`}
+                >
+                    #{data?.session?.fingerprint}
+                </Link>
+            ),
+            renderType: 'string',
+        });
+    }
+
     return (
         <div className={styles.metadataPanel}>
             {loading && !data?.session ? (
@@ -61,183 +182,16 @@ const MetadataPanel = () => {
                 />
             ) : (
                 <>
-                    <section>
-                        <h2>Session</h2>
-                        <div className={styles.table}>
-                            <p className={styles.key}>Environment</p>
-                            <p
-                                className={classNames(
-                                    styles.centerAlign,
-                                    styles.value
-                                )}
-                            >
-                                <span className={styles.sentenceCase}>
-                                    {data?.session?.environment || 'Production'}
-                                </span>
-                                <InfoTooltip
-                                    className={styles.infoTooltip}
-                                    title={
-                                        <>
-                                            You can set the environment based on
-                                            where the session is recorded.{' '}
-                                            <a
-                                                href="https://docs.highlight.run/reference#options"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                            >
-                                                Learn more about environments.
-                                            </a>
-                                        </>
-                                    }
-                                />
-                            </p>
+                    <DataCard title="Session">
+                        <KeyValueTable data={sessionData} />
+                    </DataCard>
+                    <DataCard title="User">
+                        <KeyValueTable data={userData} />
+                    </DataCard>
 
-                            <p className={styles.key}>App Version</p>
-                            <p
-                                className={classNames(
-                                    styles.centerAlign,
-                                    styles.value
-                                )}
-                            >
-                                <span className={styles.sentenceCase}>
-                                    {data?.session?.app_version ||
-                                        'App Version Not Set'}
-                                </span>
-                                <InfoTooltip
-                                    className={styles.infoTooltip}
-                                    title={
-                                        <>
-                                            This is the app version for your
-                                            application. You can set the version
-                                            to help categorize what version of
-                                            the app a user was using.{' '}
-                                            <a
-                                                href="https://docs.highlight.run/reference#options"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                            >
-                                                Learn more about setting the
-                                                version.
-                                            </a>
-                                        </>
-                                    }
-                                />
-                            </p>
-
-                            {data?.session?.city && (
-                                <>
-                                    <p className={styles.key}>Location</p>
-                                    <p
-                                        className={classNames(
-                                            styles.centerAlign,
-                                            styles.value
-                                        )}
-                                    >
-                                        {data?.session?.city},{' '}
-                                        {data?.session?.state}{' '}
-                                        {data?.session?.postal}
-                                    </p>
-                                </>
-                            )}
-
-                            {data?.session?.object_storage_enabled &&
-                                a_data?.admin?.email.includes(
-                                    'highlight.run'
-                                ) && (
-                                    <>
-                                        <p className={styles.key}>
-                                            Session Size
-                                        </p>
-                                        <p className={styles.value}>
-                                            {`${
-                                                data.session.payload_size /
-                                                1000000
-                                            }`}
-                                            mb
-                                        </p>
-
-                                        <p className={styles.key}>
-                                            Highlight Version
-                                        </p>
-                                        <p className={styles.value}>
-                                            {data.session.client_version}
-                                        </p>
-                                    </>
-                                )}
-                        </div>
-                    </section>
-                    <section>
-                        <h2>User</h2>
-                        <div className={styles.table}>
-                            <p className={styles.key}>Identifer</p>
-                            <p className={styles.value}>
-                                {data?.session?.identifier}
-                            </p>
-
-                            {!(!parsedFields?.length || loading) ? (
-                                <>
-                                    {parsedFields?.map((f) => (
-                                        <React.Fragment
-                                            key={`${f.name}-${f.value}`}
-                                        >
-                                            <p className={styles.key}>
-                                                {f.name}
-                                            </p>
-                                            <p className={styles.value}>
-                                                {f.value}
-                                            </p>
-                                        </React.Fragment>
-                                    ))}
-                                </>
-                            ) : (
-                                <div
-                                    className={classNames(
-                                        styles.noMetadataContainer
-                                    )}
-                                >
-                                    <p>
-                                        Did you know that you can enrich
-                                        sessions with additional metadata?
-                                        They'll show up here. You can{' '}
-                                        <a
-                                            href="https://docs.highlight.run/docs/identifying-users"
-                                            target="_blank"
-                                            rel="noreferrer"
-                                        >
-                                            learn more here
-                                        </a>
-                                        .
-                                    </p>
-                                </div>
-                            )}
-                            <p className={styles.key}>Locale</p>
-                            <p className={styles.value}>
-                                {data?.session?.language}
-                            </p>
-                        </div>
-                    </section>
-
-                    <section>
-                        <h2>Device</h2>
-                        <div className={styles.table}>
-                            {data?.session?.fingerprint && (
-                                <>
-                                    <p className={styles.key}>Device ID</p>
-                                    <p className={styles.value}>
-                                        <Link
-                                            to={`/${organization_id}/sessions?${new URLSearchParams(
-                                                {
-                                                    [SessionPageSearchParams.deviceId]: data?.session.fingerprint.toString(),
-                                                }
-                                            ).toString()}`}
-                                        >
-                                            #{data?.session?.fingerprint}
-                                        </Link>
-                                    </p>
-                                </>
-                            )}
-                        </div>
-                    </section>
+                    <DataCard title="Device">
+                        <KeyValueTable data={deviceData} />
+                    </DataCard>
                 </>
             )}
         </div>
