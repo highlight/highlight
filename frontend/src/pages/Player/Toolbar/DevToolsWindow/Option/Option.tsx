@@ -7,7 +7,7 @@ const DISPLAY_NAMES: { [key: string]: string } = {
     iframe: 'iFrame',
     other: 'Other',
     css: 'CSS',
-    xmlhttprequest: 'XMLHttpRequest',
+    xmlhttprequest: 'XHR',
     script: 'Script',
     link: 'Link',
     fetch: 'Fetch',
