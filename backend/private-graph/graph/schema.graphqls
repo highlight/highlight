@@ -41,6 +41,7 @@ type Session {
     object_storage_enabled: Boolean
     payload_size: Int64
     within_billing_quota: Boolean
+    is_public: Boolean
 }
 
 type BillingDetails {
@@ -566,4 +567,5 @@ type Mutation {
         environments: [String]!
         user_properties: [UserPropertyInput]!
     ): SessionAlert
+    updateSessionIsPublic(session_id: ID!, is_public: Boolean!): Session
 }

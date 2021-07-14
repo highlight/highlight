@@ -376,6 +376,8 @@ type Session struct {
 	ClientConfig *string `json:"client_config" sql:"type:jsonb"`
 	// Determines whether this session should be viewable. This enforces billing.
 	WithinBillingQuota *bool `json:"within_billing_quota" gorm:"index;default:true"` // index? probably.
+	// Used for shareable links. No authentication is needed if IsPublic is true
+	IsPublic *bool `json:"is_public" gorm:"default:false"`
 
 	ObjectStorageEnabled *bool   `json:"object_storage_enabled"`
 	PayloadSize          *int64  `json:"payload_size"`

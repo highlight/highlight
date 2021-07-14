@@ -972,6 +972,20 @@ func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, organi
 	return alert, nil
 }
 
+func (r *mutationResolver) UpdateSessionIsPublic(ctx context.Context, sessionID int, isPublic bool) (*model.Session, error) {
+	session, err := r.isAdminSessionOwner(ctx, sessionID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not session owner")
+	}
+	if err := r.DB.Model(session).Updates(&model.Session{
+		IsPublic: &isPublic,
+	}).Error; err != nil {
+		return nil, e.Wrap(err, "error updating session is_public")
+	}
+
+	return session, nil
+}
+
 func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, error) {
 	if _, err := r.isAdminSessionOwner(ctx, id); err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
