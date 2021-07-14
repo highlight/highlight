@@ -5,37 +5,6 @@
     padding: 0 var(--size-large);
     row-gap: var(--size-medium);
 
-    h2 {
-        border-bottom: 1px solid var(--color-gray-300);
-        color: var(--text-primary);
-        font-size: 12px;
-        margin: 0;
-        margin-bottom: var(--size-xxSmall) !important;
-        padding: var(--size-small);
-    }
-
-    section {
-        border: 1px solid var(--color-gray-300);
-        border-radius: var(--border-radius);
-
-        transition: box-shadow 0.1s ease-in;
-
-        p,
-        a {
-            font-size: 12px;
-            margin-top: 0 !important;
-        }
-
-        p {
-            color: var(--color-gray-500);
-        }
-
-        &:hover {
-            border: 1px solid var(--color-purple);
-            box-shadow: 0 0 9px rgba(86, 41, 198, 0.25);
-        }
-    }
-
     .userDetailsSection {
         padding-bottom: var(--size-medium);
     }

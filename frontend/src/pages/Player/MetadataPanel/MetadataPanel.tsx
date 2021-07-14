@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { Link, useParams } from 'react-router-dom';
 
+import DataCard from '../../../components/DataCard/DataCard';
 import InfoTooltip from '../../../components/InfoTooltip/InfoTooltip';
 import {
     useGetAdminQuery,
@@ -61,8 +62,7 @@ const MetadataPanel = () => {
                 />
             ) : (
                 <>
-                    <section>
-                        <h2>Session</h2>
+                    <DataCard title="Session">
                         <div className={styles.table}>
                             <p className={styles.key}>Environment</p>
                             <p
@@ -165,9 +165,8 @@ const MetadataPanel = () => {
                                     </>
                                 )}
                         </div>
-                    </section>
-                    <section>
-                        <h2>User</h2>
+                    </DataCard>
+                    <DataCard title="User">
                         <div className={styles.table}>
                             <p className={styles.key}>Identifer</p>
                             <p className={styles.value}>
@@ -215,10 +214,9 @@ const MetadataPanel = () => {
                                 {data?.session?.language}
                             </p>
                         </div>
-                    </section>
+                    </DataCard>
 
-                    <section>
-                        <h2>Device</h2>
+                    <DataCard title="Device">
                         <div className={styles.table}>
                             {data?.session?.fingerprint && (
                                 <>
@@ -237,7 +235,7 @@ const MetadataPanel = () => {
                                 </>
                             )}
                         </div>
-                    </section>
+                    </DataCard>
                 </>
             )}
         </div>
