@@ -33,7 +33,6 @@ query GetSession($id: ID!) {
         payload_size
         within_billing_quota
         client_version
-        is_public
     }
 }
 

@@ -7,7 +7,7 @@ const DISPLAY_NAMES: { [key: string]: string } = {
     iframe: 'iFrame',
     other: 'Other',
     css: 'CSS',
-    xmlhttprequest: 'XMLHttpRequest',
+    xmlhttprequest: 'XHR',
     script: 'Script',
     link: 'Link',
     fetch: 'Fetch',
@@ -19,7 +19,7 @@ export const getNetworkResourcesDisplayName = (value: string): string => {
             return DISPLAY_NAMES[value];
         }
         default:
-            return value.charAt(0).toUpperCase() + value.slice(1);
+            return value?.charAt(0).toUpperCase() + value?.slice(1);
     }
 };
 

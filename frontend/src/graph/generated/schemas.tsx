@@ -58,7 +58,6 @@ export type Session = {
     object_storage_enabled?: Maybe<Scalars['Boolean']>;
     payload_size?: Maybe<Scalars['Int64']>;
     within_billing_quota?: Maybe<Scalars['Boolean']>;
-    is_public?: Maybe<Scalars['Boolean']>;
 };
 
 export type BillingDetails = {
@@ -669,7 +668,6 @@ export type Mutation = {
     updateNewUserAlert?: Maybe<SessionAlert>;
     updateTrackPropertiesAlert?: Maybe<SessionAlert>;
     updateUserPropertiesAlert?: Maybe<SessionAlert>;
-    updateSessionIsPublic?: Maybe<Session>;
 };
 
 export type MutationCreateOrganizationArgs = {
@@ -835,9 +833,4 @@ export type MutationUpdateUserPropertiesAlertArgs = {
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;
     user_properties: Array<Maybe<UserPropertyInput>>;
-};
-
-export type MutationUpdateSessionIsPublicArgs = {
-    session_id: Scalars['ID'];
-    is_public: Scalars['Boolean'];
 };
