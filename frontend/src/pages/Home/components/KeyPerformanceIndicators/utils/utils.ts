@@ -17,7 +17,8 @@ export function parseTime(val: number) {
 export function formatShortTime(
     val: number,
     formats = ['d', 'h', 'm', 's'],
-    space = ''
+    space = '',
+    toFixedValue?: number
 ) {
     const { days, hours, minutes, seconds, ms } = parseTime(val);
     let t = '';
@@ -26,7 +27,8 @@ export function formatShortTime(
     if (hours > 0 && formats.indexOf('h') !== -1) t += `${hours}h${space}`;
     if (minutes > 0 && formats.indexOf('m') !== -1) t += `${minutes}m${space}`;
     if (seconds > 0 && formats.indexOf('s') !== -1) t += `${seconds}s${space}`;
-    if (ms > 0 && formats.indexOf('ms') !== -1) t += `${ms}ms`;
+    if (ms > 0 && formats.indexOf('ms') !== -1)
+        t += `${ms.toFixed(toFixedValue)}${space}ms`;
 
     if (!t) {
         return `0${formats[formats.length - 1]}`;
