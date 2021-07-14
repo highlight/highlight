@@ -8,13 +8,18 @@ $right-padding: 12px;
     display: grid;
     font-size: 13px;
     grid-template-columns: $columns;
-    padding-bottom: 8px;
+    padding-bottom: var(--size-xxSmall);
     padding-left: 25px;
     padding-right: $right-padding;
+    padding-top: var(--size-xxSmall);
     width: 100%;
 
     &:hover .goToButton {
         visibility: visible;
+    }
+
+    &:hover {
+        background: var(--color-gray-100);
     }
 }
 
@@ -78,14 +83,20 @@ $canvas-width: calc(
     font-weight: 400;
 }
 
-.typeSection {
+.nameSection {
+    cursor: pointer;
+
+    > span {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+}
 
+.typeSection,
 .nameSection {
-    cursor: pointer;
+    align-items: center;
+    display: flex;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

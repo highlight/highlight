@@ -368,14 +368,17 @@ const ResourceRow = ({
                 <Tooltip title={p.name}>
                     <div className={styles.nameSection}>
                         <TextHighlighter
+                        className={styles.nameSection}
                             searchWords={[searchTerm]}
                             autoEscape={true}
                             textToHighlight={p.name}
                         />
                     </div>
                 </Tooltip>
-                <div>{(p.responseEnd - p.startTime).toFixed(2)} ms</div>
-                <div>
+                <div className={styles.typeSection}>
+                    {(p.responseEnd - p.startTime).toFixed(2)} ms
+                </div>
+                <div className={styles.typeSection}>
                     {p.transferSize === 0 ? (
                         'Cached'
                     ) : (
