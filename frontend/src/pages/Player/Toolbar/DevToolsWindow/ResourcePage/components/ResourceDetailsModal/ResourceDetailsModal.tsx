@@ -6,6 +6,7 @@ import KeyValueTable, {
 } from '../../../../../../../components/KeyValueTable/KeyValueTable';
 import Modal from '../../../../../../../components/Modal/Modal';
 import Space from '../../../../../../../components/Space/Space';
+import useAdminRole from '../../../../../../../hooks/useAdminRole/useAdminRole';
 import { formatShortTime } from '../../../../../../Home/components/KeyPerformanceIndicators/utils/utils';
 import { getNetworkResourcesDisplayName } from '../../../Option/Option';
 import { formatSize, NetworkResource } from '../../ResourcePage';
@@ -20,6 +21,8 @@ const ResourceDetailsModal = ({
     selectedNetworkResource,
     onCloseHandler,
 }: Props) => {
+    const { isHighlightAdmin } = useAdminRole();
+
     const generalData: KeyValueTableRow[] = [
         {
             keyDisplayValue: 'Request URL',
@@ -139,7 +142,8 @@ const ResourceDetailsModal = ({
                         <KeyValueTable data={generalData} />
                     </DataCard>
 
-                    {selectedNetworkResource?.initiatorType === 'fetch' ||
+                    {(isHighlightAdmin &&
+                        selectedNetworkResource?.initiatorType === 'fetch') ||
                         (selectedNetworkResource?.initiatorType ===
                             'xmlhttprequest' && (
                             <>
