@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -604,13 +605,38 @@ type ErrorComment struct {
 }
 
 func SetupDB(dbName string) (*gorm.DB, error) {
+	var (
+		host     = os.Getenv("PSQL_HOST")
+		port     = os.Getenv("PSQL_PORT")
+		username = os.Getenv("PSQL_USER")
+		password = os.Getenv("PSQL_PASSWORD")
+		sslmode  = "disable"
+	)
+	databaseURL, ok := os.LookupEnv("DATABASE_URL")
+	if ok {
+		re, err := regexp.Compile(`(?m)^(?:postgres://)([^:]*)(?::)([^@]*)(?:@)([^:]*)(?::)([^/]*)(?:/)(.*)`)
+		if err != nil {
+			log.Error(e.Wrap(err, "failed to compile regex"))
+		} else {
+			matched := re.FindAllStringSubmatch(databaseURL, -1)
+			if len(matched) > 0 && len(matched[0]) > 5 {
+				username = matched[0][1]
+				password = matched[0][2]
+				host = matched[0][3]
+				port = matched[0][4]
+				dbName = matched[0][5]
+				sslmode = "require"
+			}
+		}
+	}
 	psqlConf := fmt.Sprintf(
-		"host=%s port=%s user=%s dbname=%s password=%s sslmode=disable",
-		os.Getenv("PSQL_HOST"),
-		os.Getenv("PSQL_PORT"),
-		os.Getenv("PSQL_USER"),
+		"host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
+		host,
+		port,
+		username,
 		dbName,
-		os.Getenv("PSQL_PASSWORD"))
+		password,
+		sslmode)
 
 	sqltrace.Register("pgx", &stdlib.Driver{}, sqltrace.WithServiceName("highlight"))
 
@@ -621,9 +647,13 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		log.Fatalf("Failed to connect to database with sqltrace: %v", err)
 	}
 
+	logLevel := logger.Silent
+	if os.Getenv("HIGHLIGHT_DEBUG_MODE") == "blame-GARAGE-spike-typic-neckline-santiago-tore-keep-becalm-preach-fiber-pomade-escheat-crone-tasmania" {
+		logLevel = logger.Info
+	}
 	DB, err = gormtrace.Open(postgres.New(postgres.Config{Conn: sqlDb}), &gorm.Config{
 		DisableForeignKeyConstraintWhenMigrating: true,
-		Logger:                                   logger.Default.LogMode(logger.Silent),
+		Logger:                                   logger.Default.LogMode(logLevel),
 	}, gormtrace.WithAnalytics(true))
 
 	if err != nil {

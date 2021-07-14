@@ -774,10 +774,10 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
                     Types.Maybe<
                         { __typename?: 'ErrorTrace' } & Pick<
                             Types.ErrorTrace,
-                            | 'file_name'
-                            | 'line_number'
-                            | 'function_name'
-                            | 'column_number'
+                            | 'fileName'
+                            | 'lineNumber'
+                            | 'functionName'
+                            | 'columnNumber'
                         >
                     >
                 >;
@@ -835,10 +835,10 @@ export type GetErrorGroupsQuery = { __typename?: 'Query' } & {
                                 Types.Maybe<
                                     { __typename?: 'ErrorTrace' } & Pick<
                                         Types.ErrorTrace,
-                                        | 'file_name'
-                                        | 'line_number'
-                                        | 'function_name'
-                                        | 'column_number'
+                                        | 'fileName'
+                                        | 'lineNumber'
+                                        | 'functionName'
+                                        | 'columnNumber'
                                     >
                                 >
                             >;
@@ -882,8 +882,6 @@ export type ErrorFieldsFragment = { __typename?: 'ErrorObject' } & Pick<
     | 'type'
     | 'url'
     | 'source'
-    | 'line_number'
-    | 'column_number'
     | 'stack_trace'
     | 'timestamp'
     | 'payload'

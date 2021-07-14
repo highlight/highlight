@@ -14,10 +14,10 @@ const StackTraceSection = ({ errorGroup }: Props) => {
             {errorGroup?.stack_trace.map((e, i) => (
                 <StackSection
                     key={i}
-                    fileName={e?.file_name ?? ''}
-                    functionName={e?.function_name ?? ''}
-                    lineNumber={e?.line_number ?? 0}
-                    columnNumber={e?.column_number ?? 0}
+                    fileName={e?.fileName ?? ''}
+                    functionName={e?.functionName ?? ''}
+                    lineNumber={e?.lineNumber ?? 0}
+                    columnNumber={e?.columnNumber ?? 0}
                 />
             ))}
         </>

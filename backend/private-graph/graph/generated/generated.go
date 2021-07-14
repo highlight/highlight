@@ -874,7 +874,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorMetadata.VisitedURL(childComplexity), true
 
-	case "ErrorObject.column_number":
+	case "ErrorObject.columnNumber":
 		if e.complexity.ErrorObject.ColumnNumber == nil {
 			break
 		}
@@ -902,7 +902,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorObject.ID(childComplexity), true
 
-	case "ErrorObject.line_number":
+	case "ErrorObject.lineNumber":
 		if e.complexity.ErrorObject.LineNumber == nil {
 			break
 		}
@@ -1049,7 +1049,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorSegment.Params(childComplexity), true
 
-	case "ErrorTrace.column_number":
+	case "ErrorTrace.columnNumber":
 		if e.complexity.ErrorTrace.ColumnNumber == nil {
 			break
 		}
@@ -1063,21 +1063,21 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorTrace.Error(childComplexity), true
 
-	case "ErrorTrace.file_name":
+	case "ErrorTrace.fileName":
 		if e.complexity.ErrorTrace.FileName == nil {
 			break
 		}
 
 		return e.complexity.ErrorTrace.FileName(childComplexity), true
 
-	case "ErrorTrace.function_name":
+	case "ErrorTrace.functionName":
 		if e.complexity.ErrorTrace.FunctionName == nil {
 			break
 		}
 
 		return e.complexity.ErrorTrace.FunctionName(childComplexity), true
 
-	case "ErrorTrace.line_number":
+	case "ErrorTrace.lineNumber":
 		if e.complexity.ErrorTrace.LineNumber == nil {
 			break
 		}
@@ -2786,8 +2786,8 @@ type ErrorObject {
     type: String!
     url: String!
     source: String
-    line_number: Int
-    column_number: Int
+    lineNumber: Int
+    columnNumber: Int
     stack_trace: [Any]
     timestamp: Time
     payload: String
@@ -2823,10 +2823,10 @@ type ErrorMetadata {
 }
 
 type ErrorTrace {
-    file_name: String
-    line_number: Int
-    function_name: String
-    column_number: Int
+    fileName: String
+    lineNumber: Int
+    functionName: String
+    columnNumber: Int
     error: String
 }
 
@@ -6861,7 +6861,7 @@ func (ec *executionContext) _ErrorObject_source(ctx context.Context, field graph
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ErrorObject_line_number(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
+func (ec *executionContext) _ErrorObject_lineNumber(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6893,7 +6893,7 @@ func (ec *executionContext) _ErrorObject_line_number(ctx context.Context, field 
 	return ec.marshalOInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ErrorObject_column_number(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
+func (ec *executionContext) _ErrorObject_columnNumber(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7423,7 +7423,7 @@ func (ec *executionContext) _ErrorSegment_organization_id(ctx context.Context, f
 	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ErrorTrace_file_name(ctx context.Context, field graphql.CollectedField, obj *model.ErrorTrace) (ret graphql.Marshaler) {
+func (ec *executionContext) _ErrorTrace_fileName(ctx context.Context, field graphql.CollectedField, obj *model.ErrorTrace) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7455,7 +7455,7 @@ func (ec *executionContext) _ErrorTrace_file_name(ctx context.Context, field gra
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ErrorTrace_line_number(ctx context.Context, field graphql.CollectedField, obj *model.ErrorTrace) (ret graphql.Marshaler) {
+func (ec *executionContext) _ErrorTrace_lineNumber(ctx context.Context, field graphql.CollectedField, obj *model.ErrorTrace) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7487,7 +7487,7 @@ func (ec *executionContext) _ErrorTrace_line_number(ctx context.Context, field g
 	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ErrorTrace_function_name(ctx context.Context, field graphql.CollectedField, obj *model.ErrorTrace) (ret graphql.Marshaler) {
+func (ec *executionContext) _ErrorTrace_functionName(ctx context.Context, field graphql.CollectedField, obj *model.ErrorTrace) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7519,7 +7519,7 @@ func (ec *executionContext) _ErrorTrace_function_name(ctx context.Context, field
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ErrorTrace_column_number(ctx context.Context, field graphql.CollectedField, obj *model.ErrorTrace) (ret graphql.Marshaler) {
+func (ec *executionContext) _ErrorTrace_columnNumber(ctx context.Context, field graphql.CollectedField, obj *model.ErrorTrace) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -15870,10 +15870,10 @@ func (ec *executionContext) _ErrorObject(ctx context.Context, sel ast.SelectionS
 			}
 		case "source":
 			out.Values[i] = ec._ErrorObject_source(ctx, field, obj)
-		case "line_number":
-			out.Values[i] = ec._ErrorObject_line_number(ctx, field, obj)
-		case "column_number":
-			out.Values[i] = ec._ErrorObject_column_number(ctx, field, obj)
+		case "lineNumber":
+			out.Values[i] = ec._ErrorObject_lineNumber(ctx, field, obj)
+		case "columnNumber":
+			out.Values[i] = ec._ErrorObject_columnNumber(ctx, field, obj)
 		case "stack_trace":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -16028,14 +16028,14 @@ func (ec *executionContext) _ErrorTrace(ctx context.Context, sel ast.SelectionSe
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ErrorTrace")
-		case "file_name":
-			out.Values[i] = ec._ErrorTrace_file_name(ctx, field, obj)
-		case "line_number":
-			out.Values[i] = ec._ErrorTrace_line_number(ctx, field, obj)
-		case "function_name":
-			out.Values[i] = ec._ErrorTrace_function_name(ctx, field, obj)
-		case "column_number":
-			out.Values[i] = ec._ErrorTrace_column_number(ctx, field, obj)
+		case "fileName":
+			out.Values[i] = ec._ErrorTrace_fileName(ctx, field, obj)
+		case "lineNumber":
+			out.Values[i] = ec._ErrorTrace_lineNumber(ctx, field, obj)
+		case "functionName":
+			out.Values[i] = ec._ErrorTrace_functionName(ctx, field, obj)
+		case "columnNumber":
+			out.Values[i] = ec._ErrorTrace_columnNumber(ctx, field, obj)
 		case "error":
 			out.Values[i] = ec._ErrorTrace_error(ctx, field, obj)
 		default:
