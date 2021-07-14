@@ -226,20 +226,16 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *
 
 	var newMappedStackTraceString *string
 	newFrameString := frameString
-	if os.Getenv("ENVIRONMENT") == "dev" || os.Getenv("ENVIRONMENT") == "test" ||
-		organizationID == 1 || organizationID == 113 || organizationID == 198 {
-		// TODO: don't do this for every error
-		mappedStackTrace, err := r.EnhanceStackTrace(errorInput.StackTrace, organizationID, errorObj.SessionID)
+	mappedStackTrace, err := r.EnhanceStackTrace(errorInput.StackTrace, organizationID, errorObj.SessionID)
+	if err != nil {
+		log.Error(e.Wrapf(err, "error group: %+v error object: %+v", errorGroup, errorObj))
+	} else {
+		mappedStackTraceBytes, err := json.Marshal(mappedStackTrace)
 		if err != nil {
-			log.Error(e.Wrapf(err, "error group: %+v error object: %+v", errorGroup, errorObj))
-		} else {
-			mappedStackTraceBytes, err := json.Marshal(mappedStackTrace)
-			if err != nil {
-				return nil, e.Wrap(err, "error marshalling mapped stack trace")
-			}
-			mappedStackTraceString := string(mappedStackTraceBytes)
-			newMappedStackTraceString = &mappedStackTraceString
+			return nil, e.Wrap(err, "error marshalling mapped stack trace")
 		}
+		mappedStackTraceString := string(mappedStackTraceBytes)
+		newMappedStackTraceString = &mappedStackTraceString
 	}
 
 	environmentsMap := make(map[string]int)
