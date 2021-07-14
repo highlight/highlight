@@ -1,0 +1,47 @@
+.space {
+    display: flex;
+    flex-direction: row;
+}
+
+.alignStart {
+    align-items: flex-start;
+}
+
+.alignEnd {
+    align-items: flex-end;
+}
+
+.alignCenter {
+    align-items: center;
+}
+
+.verticalDirection {
+    flex-direction: column;
+}
+
+.wrap {
+    flex-wrap: wrap;
+}
+
+.xxSmall {
+    gap: var(--size-xxSmall);
+}
+
+.xSmall {
+    gap: var(--size-xSmall);
+}
+.small {
+    gap: var(--size-small);
+}
+.medium {
+    gap: var(--size-medium);
+}
+.large {
+    gap: var(--size-large);
+}
+.xLarge {
+    gap: var(--size-xLarge);
+}
+.xxLarge {
+    gap: var(--size-xxLarge);
+}
