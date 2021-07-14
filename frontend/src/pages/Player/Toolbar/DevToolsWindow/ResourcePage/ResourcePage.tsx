@@ -379,7 +379,7 @@ const ResourceRow = ({
                     {p.transferSize === 0 ? (
                         'Cached'
                     ) : (
-                        <>{p.transferSize} bytes</>
+                        <>{formatSize(p.transferSize)}</>
                     )}
                 </div>
                 <div className={styles.timingBarWrapper}>
@@ -420,4 +420,18 @@ const ResourceRow = ({
             </div>
         </div>
     );
+};
+const formatSize = (bytes: number) => {
+    if (bytes < 1024) {
+        return `${roundOff(bytes)} B`;
+    }
+    if (bytes < 1024 ** 2) {
+        return `${roundOff(bytes / 1024)} KB`;
+    }
+    return `${roundOff(bytes / 1024 ** 2)} MB`;
+};
+
+const roundOff = (value: number, decimal = 1) => {
+    const base = 10 ** decimal;
+    return Math.round(value * base) / base;
 };
