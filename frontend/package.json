@@ -42,7 +42,7 @@
         "react-hotkeys-hook": "^3.3.1",
         "react-icons": "^3.11.0",
         "react-infinite-scroll-hook": "^3.0.0",
-        "react-json-view": "^1.21.1",
+        "react-json-view": "^1.21.3",
         "react-lines-ellipsis": "^0.14.1",
         "react-loading-skeleton": "^2.1.1",
         "react-mentions": "^4.1.1",

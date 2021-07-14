@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactJson from 'react-json-view';
 
 import InfoTooltip from '../InfoTooltip/InfoTooltip';
 import styles from './KeyValueTable.module.scss';
@@ -10,9 +11,10 @@ interface Props {
 
 export interface KeyValueTableRow {
     keyDisplayValue: string;
-    valueDisplayValue: string | React.ReactNode;
+    valueDisplayValue: string | React.ReactNode | object;
     /** Set this if the value needs an InfoTooltip. */
     valueInfoTooltipMessage?: string | React.ReactNode;
+    renderType: 'string' | 'json';
 }
 
 const KeyValueTable = ({ data, noDataMessage = <p>No data</p> }: Props) => {
@@ -25,17 +27,33 @@ const KeyValueTable = ({ data, noDataMessage = <p>No data</p> }: Props) => {
                           keyDisplayValue,
                           valueDisplayValue,
                           valueInfoTooltipMessage,
+                          renderType,
                       }) => (
                           <React.Fragment
                               key={`${keyDisplayValue}-${valueDisplayValue}-${valueInfoTooltipMessage}`}
                           >
                               <p className={styles.key}>{keyDisplayValue}</p>
                               <p className={styles.value}>
-                                  {valueDisplayValue}{' '}
-                                  {valueInfoTooltipMessage && (
-                                      <InfoTooltip
-                                          title={valueInfoTooltipMessage}
-                                          className={styles.infoTooltip}
+                                  {renderType === 'string' ? (
+                                      <>
+                                          {valueDisplayValue}{' '}
+                                          {valueInfoTooltipMessage && (
+                                              <InfoTooltip
+                                                  title={
+                                                      valueInfoTooltipMessage
+                                                  }
+                                                  className={styles.infoTooltip}
+                                              />
+                                          )}
+                                      </>
+                                  ) : (
+                                      <ReactJson
+                                          src={valueDisplayValue as object}
+                                          collapsed
+                                          displayDataTypes={false}
+                                          collapseStringsAfterLength={100}
+                                          quotesOnKeys={false}
+                                          name={null}
                                       />
                                   )}
                               </p>

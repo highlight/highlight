@@ -68,6 +68,7 @@ const MetadataPanel = () => {
                     </a>
                 </>
             ),
+            renderType: 'string',
         },
         {
             keyDisplayValue: 'App Version',
@@ -87,6 +88,7 @@ const MetadataPanel = () => {
                     </a>
                 </>
             ),
+            renderType: 'string',
         },
     ];
 
@@ -94,6 +96,7 @@ const MetadataPanel = () => {
         sessionData.push({
             keyDisplayValue: 'Location',
             valueDisplayValue: `${data?.session?.city}, ${data?.session?.state} ${data?.session?.postal}`,
+            renderType: 'string',
         });
     }
 
@@ -103,11 +106,13 @@ const MetadataPanel = () => {
             sessionData.push({
                 keyDisplayValue: 'Session Size',
                 valueDisplayValue: `${formatSize(data.session.payload_size)}`,
+                renderType: 'string',
             });
         }
         sessionData.push({
             keyDisplayValue: 'Firstload Version',
             valueDisplayValue: data?.session?.client_version || 'Unknown',
+            renderType: 'string',
         });
     }
 
@@ -129,10 +134,12 @@ const MetadataPanel = () => {
                     .
                 </>
             ),
+            renderType: 'string',
         },
         {
             keyDisplayValue: 'Locale',
             valueDisplayValue: data?.session?.language || 'Unknown',
+            renderType: 'string',
         },
     ];
 
@@ -140,6 +147,7 @@ const MetadataPanel = () => {
         userData.push({
             keyDisplayValue: field.name,
             valueDisplayValue: field.value,
+            renderType: 'string',
         });
     });
 
@@ -157,6 +165,7 @@ const MetadataPanel = () => {
                     #{data?.session?.fingerprint}
                 </Link>
             ),
+            renderType: 'string',
         });
     }
 

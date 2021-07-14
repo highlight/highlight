@@ -27,12 +27,14 @@ const ResourceDetailsModal = ({
         {
             keyDisplayValue: 'Request URL',
             valueDisplayValue: selectedNetworkResource?.name || 'Unknown',
+            renderType: 'string',
         },
         {
             keyDisplayValue: 'Method',
             valueDisplayValue:
                 selectedNetworkResource?.requestResponsePairs?.request.verb ||
                 'GET',
+            renderType: 'string',
         },
         {
             keyDisplayValue: 'Status',
@@ -43,6 +45,7 @@ const ResourceDetailsModal = ({
                 selectedNetworkResource?.requestResponsePairs?.response
                     .status === 0 &&
                 'This request was blocked on the client. The usually reason is a browser extension (like an ad blocker) blocked the request.',
+            renderType: 'string',
         },
         {
             keyDisplayValue: 'Time',
@@ -57,12 +60,14 @@ const ResourceDetailsModal = ({
                     ' ',
                     2
                 ),
+            renderType: 'string',
         },
         {
             keyDisplayValue: 'Type',
             valueDisplayValue: getNetworkResourcesDisplayName(
                 selectedNetworkResource?.initiatorType || ''
             ),
+            renderType: 'string',
         },
     ];
 
@@ -85,6 +90,7 @@ const ResourceDetailsModal = ({
                     keyDisplayValue: key,
                     // @ts-expect-error
                     valueDisplayValue: request.headers[key],
+                    renderType: 'string',
                 });
             });
         }
@@ -92,11 +98,20 @@ const ResourceDetailsModal = ({
         if (request.body) {
             const parsedRequestBody = JSON.parse(request.body);
 
-            // TODO: Render the parsedBody as a nested JSON viewer.
             Object.keys(parsedRequestBody).forEach((key) => {
+                const renderType =
+                    typeof parsedRequestBody[key] === 'object'
+                        ? 'json'
+                        : 'string';
                 requestPayloadData.push({
                     keyDisplayValue: key,
-                    valueDisplayValue: parsedRequestBody[key]?.toString(),
+                    valueDisplayValue:
+                        renderType === 'string'
+                            ? parsedRequestBody[key]?.toString()
+                            : JSON.parse(
+                                  JSON.stringify(parsedRequestBody[key])
+                              ),
+                    renderType,
                 });
             });
         }
@@ -106,6 +121,7 @@ const ResourceDetailsModal = ({
                 responseHeadersData.push({
                     keyDisplayValue: key,
                     valueDisplayValue: response.headers[key]?.toString(),
+                    renderType: 'string',
                 });
             });
         }
@@ -114,16 +130,25 @@ const ResourceDetailsModal = ({
             responsePayloadData.push({
                 keyDisplayValue: 'Size',
                 valueDisplayValue: formatSize(response.size),
+                renderType: 'string',
             });
         }
 
         if (response.body) {
             const parsedResponseBody = JSON.parse(response.body);
-            // TODO: Render the parsedBody as a nested JSON viewer.
             Object.keys(parsedResponseBody).forEach((key) => {
+                const renderType =
+                    typeof parsedResponseBody[key] === 'object'
+                        ? 'json'
+                        : 'string';
+
                 responsePayloadData.push({
                     keyDisplayValue: key,
-                    valueDisplayValue: parsedResponseBody[key]?.toString(),
+                    valueDisplayValue:
+                        renderType === 'string'
+                            ? parsedResponseBody[key]?.toString()
+                            : parsedResponseBody[key],
+                    renderType,
                 });
             });
         }
