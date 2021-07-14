@@ -72,8 +72,7 @@ const ShareButton = (props: ButtonProps) => {
                             <div>
                                 <Switch
                                     checked={!!data?.session?.is_public}
-                                    onChange={(checked: boolean, e) => {
-                                        e.preventDefault();
+                                    onChange={(checked: boolean) => {
                                         H.track('Toggled session isPublic', {
                                             is_public: checked,
                                         });
