@@ -1,0 +1,13 @@
+.popover {
+    margin-top: var(--size-xxSmall);
+    max-width: 320px;
+    min-width: 300px;
+}
+
+.popoverContent {
+    display: flex;
+    flex-direction: column;
+    height: 280px;
+    margin: 0 auto;
+    width: 80%;
+}
