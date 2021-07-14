@@ -197,7 +197,7 @@ const NoDataMessage = () => (
             <a
                 target="_blank"
                 rel="noreferrer"
-                href="https://docs.highlight.run/docs/xhr-fetch-recording"
+                href="https://docs.highlight.run/docs/recording-network-requests-and-responses"
             >
                 here
             </a>
