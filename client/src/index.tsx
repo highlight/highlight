@@ -541,7 +541,6 @@ export class Highlight {
                 console.error(e);
             }
             HighlightWarning('initializeSession', e);
-            }
         }
         window.addEventListener('beforeunload', () => {
             addCustomEvent('Page Unload', '');
@@ -599,7 +598,7 @@ export class Highlight {
                     this.initialize(this.organizationID);
                     return;
                 }
-        } catch (e) {
+            } catch (e) {
                 if (this._isOnLocalHost) {
                     console.error(e);
                 }
@@ -607,8 +606,8 @@ export class Highlight {
         } catch (e) {
             if (this._isOnLocalHost) {
                 console.error(e);
-            HighlightWarning('_save', e);
-        }
+                HighlightWarning('_save', e);
+            }
         }
         setTimeout(() => {
             this._save();
