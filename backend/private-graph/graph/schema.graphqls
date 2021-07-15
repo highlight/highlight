@@ -38,6 +38,7 @@ type Session {
     first_time: Boolean
     field_group: String
     enable_strict_privacy: Boolean
+    enable_recording_network_contents: Boolean
     object_storage_enabled: Boolean
     payload_size: Int64
     within_billing_quota: Boolean

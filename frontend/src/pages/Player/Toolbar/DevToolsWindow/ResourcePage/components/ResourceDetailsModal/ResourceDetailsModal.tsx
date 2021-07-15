@@ -15,11 +15,13 @@ import styles from './ResourceDetailsModal.module.scss';
 interface Props {
     selectedNetworkResource?: NetworkResource;
     onCloseHandler: () => void;
+    networkRecordingEnabledForSession: boolean;
 }
 
 const ResourceDetailsModal = ({
     selectedNetworkResource,
     onCloseHandler,
+    networkRecordingEnabledForSession,
 }: Props) => {
     const { isHighlightAdmin } = useAdminRole();
 
@@ -175,28 +177,44 @@ const ResourceDetailsModal = ({
                                 <DataCard title="Request Headers" fullWidth>
                                     <KeyValueTable
                                         data={requestHeadersData}
-                                        noDataMessage={<NoDataMessage />}
+                                        noDataMessage={
+                                            !networkRecordingEnabledForSession ? (
+                                                <NetworkRecordingEducationMessage />
+                                            ) : undefined
+                                        }
                                     />
                                 </DataCard>
 
                                 <DataCard title="Request Payload" fullWidth>
                                     <KeyValueTable
                                         data={requestPayloadData}
-                                        noDataMessage={<NoDataMessage />}
+                                        noDataMessage={
+                                            !networkRecordingEnabledForSession ? (
+                                                <NetworkRecordingEducationMessage />
+                                            ) : undefined
+                                        }
                                     />
                                 </DataCard>
 
                                 <DataCard title="Response Headers" fullWidth>
                                     <KeyValueTable
                                         data={responseHeadersData}
-                                        noDataMessage={<NoDataMessage />}
+                                        noDataMessage={
+                                            !networkRecordingEnabledForSession ? (
+                                                <NetworkRecordingEducationMessage />
+                                            ) : undefined
+                                        }
                                     />
                                 </DataCard>
 
                                 <DataCard title="Response Payload" fullWidth>
                                     <KeyValueTable
                                         data={responsePayloadData}
-                                        noDataMessage={<NoDataMessage />}
+                                        noDataMessage={
+                                            !networkRecordingEnabledForSession ? (
+                                                <NetworkRecordingEducationMessage />
+                                            ) : undefined
+                                        }
                                     />
                                 </DataCard>
                             </>
@@ -209,7 +227,7 @@ const ResourceDetailsModal = ({
 
 export default ResourceDetailsModal;
 
-const NoDataMessage = () => (
+const NetworkRecordingEducationMessage = () => (
     <div className={styles.noDataMessageContainer}>
         <p>
             <code>enableNetworkHeadersAndBodyRecording</code> is disabled. If

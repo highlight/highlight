@@ -334,36 +334,37 @@ type ComplexityRoot struct {
 	}
 
 	Session struct {
-		ActiveLength         func(childComplexity int) int
-		AppVersion           func(childComplexity int) int
-		BrowserName          func(childComplexity int) int
-		BrowserVersion       func(childComplexity int) int
-		City                 func(childComplexity int) int
-		ClientVersion        func(childComplexity int) int
-		CreatedAt            func(childComplexity int) int
-		EnableStrictPrivacy  func(childComplexity int) int
-		Environment          func(childComplexity int) int
-		FieldGroup           func(childComplexity int) int
-		Fields               func(childComplexity int) int
-		Fingerprint          func(childComplexity int) int
-		FirstTime            func(childComplexity int) int
-		ID                   func(childComplexity int) int
-		Identifier           func(childComplexity int) int
-		IsPublic             func(childComplexity int) int
-		Language             func(childComplexity int) int
-		Length               func(childComplexity int) int
-		OSName               func(childComplexity int) int
-		OSVersion            func(childComplexity int) int
-		ObjectStorageEnabled func(childComplexity int) int
-		PayloadSize          func(childComplexity int) int
-		Postal               func(childComplexity int) int
-		Processed            func(childComplexity int) int
-		Starred              func(childComplexity int) int
-		State                func(childComplexity int) int
-		UserID               func(childComplexity int) int
-		UserObject           func(childComplexity int) int
-		Viewed               func(childComplexity int) int
-		WithinBillingQuota   func(childComplexity int) int
+		ActiveLength                   func(childComplexity int) int
+		AppVersion                     func(childComplexity int) int
+		BrowserName                    func(childComplexity int) int
+		BrowserVersion                 func(childComplexity int) int
+		City                           func(childComplexity int) int
+		ClientVersion                  func(childComplexity int) int
+		CreatedAt                      func(childComplexity int) int
+		EnableRecordingNetworkContents func(childComplexity int) int
+		EnableStrictPrivacy            func(childComplexity int) int
+		Environment                    func(childComplexity int) int
+		FieldGroup                     func(childComplexity int) int
+		Fields                         func(childComplexity int) int
+		Fingerprint                    func(childComplexity int) int
+		FirstTime                      func(childComplexity int) int
+		ID                             func(childComplexity int) int
+		Identifier                     func(childComplexity int) int
+		IsPublic                       func(childComplexity int) int
+		Language                       func(childComplexity int) int
+		Length                         func(childComplexity int) int
+		OSName                         func(childComplexity int) int
+		OSVersion                      func(childComplexity int) int
+		ObjectStorageEnabled           func(childComplexity int) int
+		PayloadSize                    func(childComplexity int) int
+		Postal                         func(childComplexity int) int
+		Processed                      func(childComplexity int) int
+		Starred                        func(childComplexity int) int
+		State                          func(childComplexity int) int
+		UserID                         func(childComplexity int) int
+		UserObject                     func(childComplexity int) int
+		Viewed                         func(childComplexity int) int
+		WithinBillingQuota             func(childComplexity int) int
 	}
 
 	SessionAlert struct {
@@ -2271,6 +2272,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.CreatedAt(childComplexity), true
 
+	case "Session.enable_recording_network_contents":
+		if e.complexity.Session.EnableRecordingNetworkContents == nil {
+			break
+		}
+
+		return e.complexity.Session.EnableRecordingNetworkContents(childComplexity), true
+
 	case "Session.enable_strict_privacy":
 		if e.complexity.Session.EnableStrictPrivacy == nil {
 			break
@@ -2739,6 +2747,7 @@ type Session {
     first_time: Boolean
     field_group: String
     enable_strict_privacy: Boolean
+    enable_recording_network_contents: Boolean
     object_storage_enabled: Boolean
     payload_size: Int64
     within_billing_quota: Boolean
@@ -12805,6 +12814,38 @@ func (ec *executionContext) _Session_enable_strict_privacy(ctx context.Context, 
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Session_enable_recording_network_contents(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EnableRecordingNetworkContents, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Session_object_storage_enabled(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -17284,6 +17325,8 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Session_field_group(ctx, field, obj)
 		case "enable_strict_privacy":
 			out.Values[i] = ec._Session_enable_strict_privacy(ctx, field, obj)
+		case "enable_recording_network_contents":
+			out.Values[i] = ec._Session_enable_recording_network_contents(ctx, field, obj)
 		case "object_storage_enabled":
 			out.Values[i] = ec._Session_object_storage_enabled(ctx, field, obj)
 		case "payload_size":

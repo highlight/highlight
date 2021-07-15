@@ -18,7 +18,10 @@ import Input from '../../../../../components/Input/Input';
 import TextHighlighter from '../../../../../components/TextHighlighter/TextHighlighter';
 import Tooltip from '../../../../../components/Tooltip/Tooltip';
 import { DemoContext } from '../../../../../DemoContext';
-import { useGetResourcesQuery } from '../../../../../graph/generated/hooks';
+import {
+    useGetResourcesQuery,
+    useGetSessionQuery,
+} from '../../../../../graph/generated/hooks';
 import { formatNumber } from '../../../../../util/numbers';
 import { MillisToMinutesAndSeconds } from '../../../../../util/time';
 import ReplayerContext, { ReplayerState } from '../../../ReplayerContext';
@@ -37,6 +40,12 @@ export const ResourcePage = ({
     const { state } = useContext(ReplayerContext);
     const { session_id } = useParams<{ session_id: string }>();
     const { demo } = useContext(DemoContext);
+    const { data: sessionData } = useGetSessionQuery({
+        variables: {
+            id: session_id,
+        },
+        context: { headers: { 'Highlight-Demo': false } },
+    });
     const [selectedNetworkResource, setSelectedNetworkResource] = useState<
         undefined | NetworkResource
     >(undefined);
@@ -277,6 +286,10 @@ export const ResourcePage = ({
                 onCloseHandler={() => {
                     setSelectedNetworkResource(undefined);
                 }}
+                networkRecordingEnabledForSession={
+                    sessionData?.session?.enable_recording_network_contents ||
+                    false
+                }
             />
         </div>
     );

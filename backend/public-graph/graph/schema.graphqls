@@ -41,6 +41,7 @@ type Mutation {
     initializeSession(
         organization_verbose_id: String!
         enable_strict_privacy: Boolean!
+        enable_recording_network_contents: Boolean!
         clientVersion: String!
         firstloadVersion: String!
         clientConfig: String!
