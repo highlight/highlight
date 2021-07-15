@@ -117,7 +117,7 @@ export class Highlight {
     state: 'NotRecording' | 'Recording';
     logger: Logger;
     disableNetworkRecording: boolean | undefined;
-    enableNetworkHeadersAndBodyRecording: boolean;
+    enableRecordingNetworkContents: boolean;
     disableConsoleRecording: boolean | undefined;
     enableSegmentIntegration: boolean | undefined;
     enableStrictPrivacy: boolean;
@@ -147,7 +147,7 @@ export class Highlight {
         this.ready = false;
         this.state = 'NotRecording';
         this.disableNetworkRecording = options.disableNetworkRecording;
-        this.enableNetworkHeadersAndBodyRecording =
+        this.enableRecordingNetworkContents =
             options.enableNetworkHeadersAndBodyRecording || false;
         this.disableConsoleRecording = options.disableConsoleRecording;
         this.enableSegmentIntegration = options.enableSegmentIntegration;
@@ -360,6 +360,8 @@ export class Highlight {
                     const gr = await this.graphqlSDK.initializeSession({
                         organization_verbose_id: this.organizationID,
                         enable_strict_privacy: this.enableStrictPrivacy,
+                        enable_recording_network_contents: this
+                            .enableRecordingNetworkContents,
                         clientVersion: packageJson['version'],
                         firstloadVersion: this.firstloadVersion,
                         clientConfig: JSON.stringify(this._optionsInternal),
@@ -513,7 +515,7 @@ export class Highlight {
             // This is gated to only Highlight.
             if (
                 !this.disableNetworkRecording &&
-                this.enableNetworkHeadersAndBodyRecording &&
+                this.enableRecordingNetworkContents &&
                 this.isRunningOnHighlight
             ) {
                 this.listeners.push(
@@ -636,7 +638,7 @@ export class Highlight {
             // This feature is gated to only Highlight.
             if (
                 this.isRunningOnHighlight &&
-                this.enableNetworkHeadersAndBodyRecording
+                this.enableRecordingNetworkContents
             ) {
                 resources = matchPerformanceTimingsWithRequestResponsePair(
                     resources,

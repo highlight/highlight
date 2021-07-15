@@ -364,10 +364,11 @@ type Session struct {
 	FirstTime        *bool      `json:"first_time" gorm:"default:false"`
 	PayloadUpdatedAt *time.Time `json:"payload_updated_at"`
 	// Custom properties
-	Viewed              *bool   `json:"viewed"`
-	Starred             *bool   `json:"starred"`
-	FieldGroup          *string `json:"field_group"`
-	EnableStrictPrivacy *bool   `json:"enable_strict_privacy"`
+	Viewed                         *bool   `json:"viewed"`
+	Starred                        *bool   `json:"starred"`
+	FieldGroup                     *string `json:"field_group"`
+	EnableStrictPrivacy            *bool   `json:"enable_strict_privacy"`
+	EnableRecordingNetworkContents *bool   `json:"enable_recording_network_contents"`
 	// The version of Highlight's Client.
 	ClientVersion string `json:"client_version" gorm:"index"`
 	// The version of Highlight's Firstload.

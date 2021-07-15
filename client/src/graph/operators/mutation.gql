@@ -43,6 +43,7 @@ mutation addTrackProperties($session_id: ID!, $properties_object: Any) {
 mutation initializeSession(
     $organization_verbose_id: String!
     $enable_strict_privacy: Boolean!
+    $enable_recording_network_contents: Boolean!
     $clientVersion: String!
     $firstloadVersion: String!
     $clientConfig: String!
@@ -53,6 +54,7 @@ mutation initializeSession(
     initializeSession(
         organization_verbose_id: $organization_verbose_id
         enable_strict_privacy: $enable_strict_privacy
+        enable_recording_network_contents: $enable_recording_network_contents
         clientVersion: $clientVersion
         firstloadVersion: $firstloadVersion
         clientConfig: $clientConfig

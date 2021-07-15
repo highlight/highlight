@@ -24,6 +24,7 @@ query GetSession($id: ID!) {
         identifier
         starred
         enable_strict_privacy
+        enable_recording_network_contents
         fields {
             name
             value
@@ -179,6 +180,7 @@ query GetSessions(
             language
             length
             active_length
+            enable_recording_network_contents
             viewed
             starred
             processed
