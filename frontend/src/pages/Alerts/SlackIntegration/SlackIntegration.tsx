@@ -7,6 +7,7 @@ import { useParams } from 'react-router-dom';
 import { useAddSlackIntegrationToWorkspaceMutation } from '../../../graph/generated/hooks';
 import { Maybe } from '../../../graph/generated/schemas';
 import { ReactComponent as CheckIcon } from '../../../static/verify-check-icon.svg';
+import { GetBaseURL } from '../../../util/window';
 import integrationDetectorStyles from '../../Setup/IntegrationDetector/IntegrationDetector.module.scss';
 
 interface Props {
@@ -69,7 +70,7 @@ export const useSlack = (redirectPath: string, refetchQueries?: string[]) => {
     });
     const [loading, setLoading] = useState<boolean>(false);
 
-    const redirectUriOrigin = `${process.env.REACT_APP_FRONTEND_URI}/${organization_id}`;
+    const redirectUriOrigin = `${GetBaseURL()}/${organization_id}`;
     const slackUrl = `https://slack.com/oauth/v2/authorize?client_id=1354469824468.1868913469441&scope=incoming-webhook&redirect_uri=${redirectUriOrigin}/${redirectPath}`;
 
     useEffect(() => {
