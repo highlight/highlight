@@ -488,7 +488,7 @@ export class Highlight {
             if (
                 !this.disableNetworkRecording &&
                 this.enableNetworkHeadersAndBodyRecording &&
-                this.organizationID === '1'
+                this.organizationID === '1jdkoe52'
             ) {
                 this.listeners.push(
                     NetworkListener((requestResponsePair) => {
@@ -591,7 +591,7 @@ export class Highlight {
                 .filter((r) => !highlightNetworkResourceFilter(r.name));
 
             // Only filter out requests made to Highlight for customers.
-            if (this.organizationID !== '1') {
+            if (this.organizationID !== '1jdkoe52') {
                 resources = resources.filter(
                     (r) => !highlightNetworkResourceFilter(r.name)
                 );
@@ -599,7 +599,7 @@ export class Highlight {
 
             // This feature is gated to only Highlight.
             if (
-                this.organizationID === '1' &&
+                this.organizationID === '1jdkoe52' &&
                 this.enableNetworkHeadersAndBodyRecording
             ) {
                 resources = matchPerformanceTimingsWithRequestResponsePair(
