@@ -13,6 +13,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"gorm.io/gorm/clause"
 
 	dd "github.com/highlight-run/highlight/backend/datadog"
 
@@ -131,6 +132,9 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	// Delete the session if there's no events.
 	if len(events) == 0 {
+		if err := w.Resolver.DB.Select(clause.Associations).Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
+			return errors.Wrap(err, "error trying to delete associations for session with no events")
+		}
 		if err := w.Resolver.DB.Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
 			return errors.Wrap(err, "error trying to delete session with no events")
 		}
@@ -161,6 +165,9 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	if length == 0 {
 		if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Delete(&model.EventsObject{}).Error; err != nil {
 			return errors.Wrap(err, "error trying to delete events_object for session of length 0ms")
+		}
+		if err := w.Resolver.DB.Select(clause.Associations).Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
+			return errors.Wrap(err, "error trying to delete associations for session with length 0")
 		}
 		if err := w.Resolver.DB.Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
 			return errors.Wrap(err, "error trying to delete session of length 0ms")
