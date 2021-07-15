@@ -128,6 +128,7 @@ export class Highlight {
     _optionsInternal: HighlightClassOptionsInternal;
     _backendUrl: string;
     _recordingStartTime: number = 0;
+    _isOnLocalHost: boolean = false;
 
     static create(options: HighlightClassOptions): Highlight {
         return new Highlight(options);
@@ -168,6 +169,7 @@ export class Highlight {
         } else {
             this.organizationID = '';
         }
+        this._isOnLocalHost = window.location.hostname === 'localhost';
         this.firstloadVersion = options.firstloadVersion || 'unknown';
         this.sessionData = {
             sessionID: 0,
@@ -209,7 +211,11 @@ export class Highlight {
                     user_object
                 )} @ ${process.env.PUBLIC_GRAPH_URI}`
             );
-        } catch (e) {}
+        } catch (e) {
+            if (this._isOnLocalHost) {
+                console.error(e);
+            }
+        }
     }
 
     async pushCustomError(message: string, payload?: string) {
@@ -232,7 +238,11 @@ export class Highlight {
         let res: ErrorStackParser.StackFrame[] = [];
         try {
             res = ErrorStackParser.parse(error);
-        } catch {}
+        } catch (e) {
+            if (this._isOnLocalHost) {
+                console.error(e);
+            }
+        }
         this.errors.push({
             event: message ? message + ':' + error.message : error.message,
             type: 'custom',
@@ -261,7 +271,11 @@ export class Highlight {
                         process.env.PUBLIC_GRAPH_URI
                     }`
                 );
-            } catch (e) {}
+            } catch (e) {
+                if (this._isOnLocalHost) {
+                    console.error(e);
+                }
+            }
         }
         // Track properties are properties that users define; rn, either through segment or manually.
         else {
@@ -287,7 +301,11 @@ export class Highlight {
                         properties_obj
                     )} @ ${process.env.PUBLIC_GRAPH_URI}`
                 );
-            } catch (e) {}
+            } catch (e) {
+                if (this._isOnLocalHost) {
+                    console.error(e);
+                }
+            }
         }
     }
     // TODO: (organization_id is only here because of old clients, we should figure out how to version stuff).
@@ -366,7 +384,11 @@ export class Highlight {
                             this.sessionData.userObject
                         );
                     }
-                } catch (e) {}
+                } catch (e) {
+                    if (this._isOnLocalHost) {
+                        console.error(e);
+                    }
+                }
             }
             setTimeout(() => {
                 this._save();
@@ -515,7 +537,11 @@ export class Highlight {
             this.ready = true;
             this.state = 'Recording';
         } catch (e) {
+            if (this._isOnLocalHost) {
+                console.error(e);
+            }
             HighlightWarning('initializeSession', e);
+            }
         }
         window.addEventListener('beforeunload', () => {
             addCustomEvent('Page Unload', '');
@@ -573,9 +599,16 @@ export class Highlight {
                     this.initialize(this.organizationID);
                     return;
                 }
-            } catch (e) {}
         } catch (e) {
+                if (this._isOnLocalHost) {
+                    console.error(e);
+                }
+            }
+        } catch (e) {
+            if (this._isOnLocalHost) {
+                console.error(e);
             HighlightWarning('_save', e);
+        }
         }
         setTimeout(() => {
             this._save();
