@@ -103,6 +103,8 @@ const SEND_FREQUENCY = 1000 * 5;
 const MAX_SESSION_LENGTH = 4 * 60 * 60 * 1000;
 
 export class Highlight {
+    /** Determines if the client is running on a Highlight property (e.g. frontend). */
+    isRunningOnHighlight: boolean;
     organizationID: string;
     graphqlSDK: Sdk;
     events: eventWithTime[];
@@ -169,6 +171,8 @@ export class Highlight {
         } else {
             this.organizationID = '';
         }
+        this.isRunningOnHighlight =
+            this.organizationID === '1' || this.organizationID === '1jdkoe52';
         this._isOnLocalHost = window.location.hostname === 'localhost';
         this.firstloadVersion = options.firstloadVersion || 'unknown';
         this.sessionData = {
@@ -510,7 +514,7 @@ export class Highlight {
             if (
                 !this.disableNetworkRecording &&
                 this.enableNetworkHeadersAndBodyRecording &&
-                this.organizationID === '1jdkoe52'
+                this.isRunningOnHighlight
             ) {
                 this.listeners.push(
                     NetworkListener((requestResponsePair) => {
@@ -539,8 +543,8 @@ export class Highlight {
         } catch (e) {
             if (this._isOnLocalHost) {
                 console.error(e);
+                HighlightWarning('initializeSession', e);
             }
-            HighlightWarning('initializeSession', e);
         }
         window.addEventListener('beforeunload', () => {
             addCustomEvent('Page Unload', '');
@@ -623,7 +627,7 @@ export class Highlight {
                 .filter((r) => !highlightNetworkResourceFilter(r.name));
 
             // Only filter out requests made to Highlight for customers.
-            if (this.organizationID !== '1jdkoe52') {
+            if (!this.isRunningOnHighlight) {
                 resources = resources.filter(
                     (r) => !highlightNetworkResourceFilter(r.name)
                 );
@@ -631,7 +635,7 @@ export class Highlight {
 
             // This feature is gated to only Highlight.
             if (
-                this.organizationID === '1jdkoe52' &&
+                this.isRunningOnHighlight &&
                 this.enableNetworkHeadersAndBodyRecording
             ) {
                 resources = matchPerformanceTimingsWithRequestResponsePair(
