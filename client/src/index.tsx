@@ -103,6 +103,8 @@ const SEND_FREQUENCY = 1000 * 5;
 const MAX_SESSION_LENGTH = 4 * 60 * 60 * 1000;
 
 export class Highlight {
+    /** Determines if the client is running on a Highlight property (e.g. frontend). */
+    isRunningOnHighlight: boolean;
     organizationID: string;
     graphqlSDK: Sdk;
     events: eventWithTime[];
@@ -128,6 +130,7 @@ export class Highlight {
     _optionsInternal: HighlightClassOptionsInternal;
     _backendUrl: string;
     _recordingStartTime: number = 0;
+    _isOnLocalHost: boolean = false;
 
     static create(options: HighlightClassOptions): Highlight {
         return new Highlight(options);
@@ -168,6 +171,9 @@ export class Highlight {
         } else {
             this.organizationID = '';
         }
+        this.isRunningOnHighlight =
+            this.organizationID === '1' || this.organizationID === '1jdkoe52';
+        this._isOnLocalHost = window.location.hostname === 'localhost';
         this.firstloadVersion = options.firstloadVersion || 'unknown';
         this.sessionData = {
             sessionID: 0,
@@ -209,7 +215,11 @@ export class Highlight {
                     user_object
                 )} @ ${process.env.PUBLIC_GRAPH_URI}`
             );
-        } catch (e) {}
+        } catch (e) {
+            if (this._isOnLocalHost) {
+                console.error(e);
+            }
+        }
     }
 
     async pushCustomError(message: string, payload?: string) {
@@ -232,7 +242,11 @@ export class Highlight {
         let res: ErrorStackParser.StackFrame[] = [];
         try {
             res = ErrorStackParser.parse(error);
-        } catch {}
+        } catch (e) {
+            if (this._isOnLocalHost) {
+                console.error(e);
+            }
+        }
         this.errors.push({
             event: message ? message + ':' + error.message : error.message,
             type: 'custom',
@@ -261,7 +275,11 @@ export class Highlight {
                         process.env.PUBLIC_GRAPH_URI
                     }`
                 );
-            } catch (e) {}
+            } catch (e) {
+                if (this._isOnLocalHost) {
+                    console.error(e);
+                }
+            }
         }
         // Track properties are properties that users define; rn, either through segment or manually.
         else {
@@ -287,7 +305,11 @@ export class Highlight {
                         properties_obj
                     )} @ ${process.env.PUBLIC_GRAPH_URI}`
                 );
-            } catch (e) {}
+            } catch (e) {
+                if (this._isOnLocalHost) {
+                    console.error(e);
+                }
+            }
         }
     }
     // TODO: (organization_id is only here because of old clients, we should figure out how to version stuff).
@@ -366,7 +388,11 @@ export class Highlight {
                             this.sessionData.userObject
                         );
                     }
-                } catch (e) {}
+                } catch (e) {
+                    if (this._isOnLocalHost) {
+                        console.error(e);
+                    }
+                }
             }
             setTimeout(() => {
                 this._save();
@@ -488,7 +514,7 @@ export class Highlight {
             if (
                 !this.disableNetworkRecording &&
                 this.enableNetworkHeadersAndBodyRecording &&
-                this.organizationID === '1jdkoe52'
+                this.isRunningOnHighlight
             ) {
                 this.listeners.push(
                     NetworkListener((requestResponsePair) => {
@@ -515,7 +541,10 @@ export class Highlight {
             this.ready = true;
             this.state = 'Recording';
         } catch (e) {
-            HighlightWarning('initializeSession', e);
+            if (this._isOnLocalHost) {
+                console.error(e);
+                HighlightWarning('initializeSession', e);
+            }
         }
         window.addEventListener('beforeunload', () => {
             addCustomEvent('Page Unload', '');
@@ -573,9 +602,16 @@ export class Highlight {
                     this.initialize(this.organizationID);
                     return;
                 }
-            } catch (e) {}
+            } catch (e) {
+                if (this._isOnLocalHost) {
+                    console.error(e);
+                }
+            }
         } catch (e) {
-            HighlightWarning('_save', e);
+            if (this._isOnLocalHost) {
+                console.error(e);
+                HighlightWarning('_save', e);
+            }
         }
         setTimeout(() => {
             this._save();
@@ -591,7 +627,7 @@ export class Highlight {
                 .filter((r) => !highlightNetworkResourceFilter(r.name));
 
             // Only filter out requests made to Highlight for customers.
-            if (this.organizationID !== '1jdkoe52') {
+            if (!this.isRunningOnHighlight) {
                 resources = resources.filter(
                     (r) => !highlightNetworkResourceFilter(r.name)
                 );
@@ -599,7 +635,7 @@ export class Highlight {
 
             // This feature is gated to only Highlight.
             if (
-                this.organizationID === '1jdkoe52' &&
+                this.isRunningOnHighlight &&
                 this.enableNetworkHeadersAndBodyRecording
             ) {
                 resources = matchPerformanceTimingsWithRequestResponsePair(

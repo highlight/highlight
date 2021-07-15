@@ -30,8 +30,11 @@ export const matchPerformanceTimingsWithRequestResponsePair = (
     const startingIndex =
         groupedPerformanceTimings.xhr.length - requestResponsePairs.length;
     for (let i = startingIndex; i < groupedPerformanceTimings.xhr.length; i++) {
-        groupedPerformanceTimings.xhr[i].requestResponsePair =
-            requestResponsePairs[i];
+        // TODO: Fix this matching.
+        if (groupedPerformanceTimings.xhr[i]) {
+            groupedPerformanceTimings.xhr[i].requestResponsePair =
+                requestResponsePairs[i];
+        }
     }
 
     return [
