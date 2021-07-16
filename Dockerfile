@@ -11,6 +11,7 @@ FROM node:14-alpine as frontend-builder
 # all other env variables are provided in environment.yml.
 ARG REACT_APP_COMMIT_SHA
 ARG REACT_APP_ONPREM=true
+ARG ONPREM_STATIC_FRONTEND_PATH="./build"
 RUN mkdir /build-frontend
 WORKDIR /build-frontend
 COPY ./frontend/package.json ./frontend/yarn.lock ./
@@ -22,6 +23,10 @@ RUN CI=false yarn build
 FROM alpine
 ARG SENDGRID_API_KEY_ARG
 ENV SENDGRID_API_KEY=$SENDGRID_API_KEY_ARG
+ARG SLACK_CLIENT_ID_ARG
+ENV SLACK_CLIENT_ID=$SLACK_CLIENT_ID_ARG
+ARG SLACK_CLIENT_SECRET_ARG
+ENV SLACK_CLIENT_SECRET=$SLACK_CLIENT_SECRET_ARG
 WORKDIR /root/
 COPY --from=backend-builder /bin/backend /bin/backend
 RUN mkdir ./build
