@@ -4,7 +4,6 @@ import {
     Request as HighlightRequest,
     Response as HighlightResponse,
 } from './models';
-import { sanitizeRequest, sanitizeResponse } from './network-sanitizer';
 
 export const FetchListener = (callback: NetworkListenerCallback) => {
     const originalFetch = window.fetch;
@@ -88,8 +87,8 @@ const logRequest = (
 
         if (requestHandled) {
             const event: RequestResponsePair = {
-                request: sanitizeRequest(requestPayload),
-                response: sanitizeResponse(responsePayload),
+                request: requestPayload,
+                response: responsePayload,
             };
 
             callback(event);
