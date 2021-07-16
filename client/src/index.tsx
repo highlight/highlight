@@ -61,6 +61,7 @@ export type HighlightClassOptions = {
     backendUrl?: string;
     disableNetworkRecording?: boolean;
     enableNetworkHeadersAndBodyRecording?: boolean;
+    networkHeadersToRedact?: string[];
     disableConsoleRecording?: boolean;
     enableSegmentIntegration?: boolean;
     enableStrictPrivacy?: boolean;
@@ -112,6 +113,7 @@ export class Highlight {
     messages: ConsoleMessage[];
     xhrNetworkContents: RequestResponsePair[] = [];
     fetchNetworkContents: RequestResponsePair[] = [];
+    networkHeadersToRedact: string[] = [];
     sessionData: SessionData;
     /** @deprecated Use state instead. Ready should be removed when Highlight releases 2.0. */
     ready: boolean;
@@ -526,6 +528,7 @@ export class Highlight {
                         fetchCallback: (requestResponsePair) => {
                             this.fetchNetworkContents.push(requestResponsePair);
                         },
+                        headersToRedact: this.networkHeadersToRedact,
                     })
                 );
             }
