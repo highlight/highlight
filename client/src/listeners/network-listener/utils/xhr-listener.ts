@@ -1,5 +1,6 @@
 import { NetworkListenerCallback } from '../network-listener';
 import { Headers, Request, Response } from './models';
+import { sanitizeRequest, sanitizeResponse } from './network-sanitizer';
 
 interface BrowserXHR extends XMLHttpRequest {
     _method: string;
@@ -97,8 +98,8 @@ export const XHRListener = (callback: NetworkListenerCallback) => {
             }
 
             const event = {
-                request: requestModel,
-                response: responseModel,
+                request: sanitizeRequest(requestModel),
+                response: sanitizeResponse(responseModel),
             };
 
             callback(event);
@@ -120,8 +121,8 @@ export const XHRListener = (callback: NetworkListenerCallback) => {
             };
 
             const event = {
-                request: requestModel,
-                response: responseModel,
+                request: sanitizeRequest(requestModel),
+                response: sanitizeResponse(responseModel),
             };
 
             callback(event);
