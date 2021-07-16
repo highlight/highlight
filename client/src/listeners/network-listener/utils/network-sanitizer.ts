@@ -1,11 +1,14 @@
 import { Request, Response, Headers } from './models';
 
-export const sanitizeRequest = (request: Request): Request => {
+export const sanitizeRequest = (
+    request: Request,
+    headersToRedact: string[]
+): Request => {
     // GET requests don't have a body so no need to sanitize them.
     //     if (request.verb !== 'GET') {
     //         const newBody = sanitizeBody(request.body);
     //     }
-    const newHeaders = sanitizeHeaders(request.headers);
+    const newHeaders = sanitizeHeaders(headersToRedact, request.headers);
 
     return {
         ...request,
@@ -13,8 +16,11 @@ export const sanitizeRequest = (request: Request): Request => {
     };
 };
 
-export const sanitizeResponse = (response: Response): Response => {
-    const newHeaders = sanitizeHeaders(response.headers);
+export const sanitizeResponse = (
+    response: Response,
+    headersToRedact: string[]
+): Response => {
+    const newHeaders = sanitizeHeaders(headersToRedact, response.headers);
 
     return {
         ...response,
@@ -22,11 +28,15 @@ export const sanitizeResponse = (response: Response): Response => {
     };
 };
 
-const sanitizeHeaders = (headers?: Headers) => {
+const sanitizeHeaders = (headersToRedact: string[], headers?: Headers) => {
     const newHeaders = { ...headers };
 
     Object.keys(newHeaders)?.forEach((header: string) => {
-        if (SENSITIVE_HEADERS.includes(header?.toLowerCase())) {
+        if (
+            [...SENSITIVE_HEADERS, ...headersToRedact].includes(
+                header?.toLowerCase()
+            )
+        ) {
             newHeaders[header] = '[REDACTED]';
         }
     });
