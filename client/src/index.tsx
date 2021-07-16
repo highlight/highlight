@@ -528,6 +528,7 @@ export class Highlight {
                         fetchCallback: (requestResponsePair) => {
                             this.fetchNetworkContents.push(requestResponsePair);
                         },
+                        headersToRedact: this.networkHeadersToRedact,
                     })
                 );
             }
