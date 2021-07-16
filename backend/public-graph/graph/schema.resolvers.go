@@ -11,7 +11,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/event-parse"
+	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
@@ -52,7 +52,7 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 		userObj[k] = fmt.Sprintf("%v", v)
 	}
 	if err := r.AppendProperties(sessionID, userProperties, PropertyType.USER); err != nil {
-		return nil, e.Wrap(err, "error adding set of properites to db")
+		log.Error(e.Wrap(err, "error adding set of properites to db"))
 	}
 
 	session := &model.Session{}

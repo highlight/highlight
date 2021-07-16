@@ -96,9 +96,8 @@ var histogram = struct {
 func (r *Resolver) AppendProperties(sessionID int, properties map[string]string, propType Property) error {
 	session := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session)
-	if err := res.Error; err != nil || errors.Is(err, gorm.ErrRecordNotFound) {
-		log.Error("Failed to append properties", err)
-		return nil
+	if err := res.Error; err != nil {
+		return e.Wrap(err, "error getting session in append properties")
 	}
 
 	modelFields := []*model.Field{}
@@ -108,7 +107,7 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 
 	err := r.AppendFields(modelFields, session)
 	if err != nil {
-		log.Error("error appending fields", err)
+		return e.Wrap(err, "error appending fields")
 	}
 
 	return nil
@@ -120,8 +119,7 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 	exists := false
 	if session.FieldGroup != nil {
 		if err := json.Unmarshal([]byte(*session.FieldGroup), &newFieldGroup); err != nil {
-			log.Error("error decoding session field group", err)
-			return nil
+			return e.Wrap(err, "error decoding session field group")
 		}
 	}
 	for _, f := range fields {
@@ -458,7 +456,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 		"device_id":       strconv.Itoa(session.Fingerprint),
 	}
 	if err := r.AppendProperties(session.ID, sessionProperties, PropertyType.SESSION); err != nil {
-		return nil, e.Wrap(err, "error adding set of properites to db")
+		log.Error(e.Wrap(err, "error adding set of properties to db"))
 	}
 
 	return session, nil
