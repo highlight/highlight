@@ -87,9 +87,11 @@ const histogramName = "public-graph"
 var histogram = struct {
 	publicGraph       string
 	processStackTrace string
+	pushPayload       string
 }{
 	publicGraph:       histogramName,
 	processStackTrace: histogramName + ".processStackFrame",
+	pushPayload:       histogramName + ".pushPayload",
 }
 
 //Change to AppendProperties(sessionId,properties,type)
@@ -262,7 +264,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *
 		return nil, e.Wrap(err, "Error updating error group metadata log or environments")
 	}
 
-	err = r.AppendErrorFields(fields, errorGroup)
+	err = r.AppendErrorFields(fields, errorGroup, errorObj)
 	if err != nil {
 		return nil, e.Wrap(err, "error appending error fields")
 	}
@@ -270,15 +272,8 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *
 	return errorGroup, nil
 }
 
-func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *model.ErrorGroup) error {
+func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *model.ErrorGroup, errorObject *model.ErrorObject) error {
 	fieldsToAppend := []*model.ErrorField{}
-	var newFieldGroup []FieldData
-	exists := false
-	if errorGroup.FieldGroup != nil {
-		if err := json.Unmarshal([]byte(*errorGroup.FieldGroup), &newFieldGroup); err != nil {
-			return e.Wrap(err, "error decoding error group field group data")
-		}
-	}
 	for _, f := range fields {
 		field := &model.ErrorField{}
 		res := r.DB.Where(f).First(&field)
@@ -288,36 +283,14 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 				return e.Wrap(err, "error creating error field")
 			}
 			fieldsToAppend = append(fieldsToAppend, f)
-			newFieldGroup = append(newFieldGroup, FieldData{
-				Name:  f.Name,
-				Value: f.Value,
-			})
 		} else {
-			exists = false
-			for _, existing := range newFieldGroup {
-				if field.Name == existing.Name && field.Value == existing.Value {
-					exists = true
-				}
-			}
 			fieldsToAppend = append(fieldsToAppend, field)
-			if !exists {
-				newFieldGroup = append(newFieldGroup, FieldData{
-					Name:  field.Name,
-					Value: field.Value,
-				})
-			}
 		}
 	}
-	fieldBytes, err := json.Marshal(newFieldGroup)
-	if err != nil {
-		return e.Wrap(err, "Error marshalling error group field group")
-	}
-	fieldString := string(fieldBytes)
 
-	if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{FieldGroup: &fieldString}).Error; err != nil {
-		return e.Wrap(err, "Error updating error group field group")
+	if err := r.DB.Model(errorObject).Association("Fields").Append(fieldsToAppend); err != nil {
+		return e.Wrap(err, "error updating error fields")
 	}
-	// We append to this session in the join table regardless.
 	if err := r.DB.Model(errorGroup).Association("Fields").Append(fieldsToAppend); err != nil {
 		return e.Wrap(err, "error updating error fields")
 	}

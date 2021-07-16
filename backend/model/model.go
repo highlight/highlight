@@ -561,6 +561,7 @@ type ErrorObject struct {
 	Timestamp      time.Time `json:"timestamp"`
 	Payload        *string   `json:"payload"`
 	Environment    string
+	Fields         []*ErrorField `gorm:"many2many:error_object_fields;"`
 }
 
 type ErrorGroup struct {
@@ -582,9 +583,19 @@ type ErrorGroup struct {
 type ErrorField struct {
 	Model
 	OrganizationID int
-	Name           string
-	Value          string
-	ErrorGroups    []ErrorGroup `gorm:"many2many:error_group_fields;"`
+	Type           *string       `gorm:"index"` // meta, payload
+	Name           string        `gorm:"uniqueIndex:idx_name_value"`
+	Value          string        `gorm:"uniqueIndex:idx_name_value"`
+	ErrorGroups    []ErrorGroup  `gorm:"many2many:error_group_fields;"`
+	ErrorObjects   []ErrorObject `gorm:"many2many:error_object_fields;"`
+}
+
+var ErrorFieldType = struct {
+	META_DATA string
+	PAYLOAD   string
+}{
+	META_DATA: "META",
+	PAYLOAD:   "PAYLOAD",
 }
 
 type SessionComment struct {

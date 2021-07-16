@@ -11,7 +11,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/event-parse"
+	dd "github.com/highlight-run/highlight/backend/datadog"
+
+	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
@@ -224,6 +226,22 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		}
 		traceString := string(traceBytes)
 
+		var errorFields []*model.ErrorField
+		if v.Payload != nil && *v.Payload != "" {
+			dd.StatsD.Histogram(fmt.Sprintf("%s.errorPayloadSize", histogram.pushPayload), float64(len(*v.Payload)),
+				[]string{fmt.Sprintf("env:%s", os.Getenv("ENVIRONMENT")),
+					fmt.Sprintf("org_id:%d", organizationID)}, 1) //nolint
+
+			payloadMap := make(map[string]string)
+			if err := json.Unmarshal([]byte(*v.Payload), &payloadMap); err != nil {
+				log.Error(e.Wrap(err, "error unmarshalling error field payload"))
+			}
+
+			for name, value := range payloadMap {
+				errorFields = append(errorFields, &model.ErrorField{OrganizationID: organizationID, Type: &model.ErrorFieldType.PAYLOAD, Name: name, Value: value})
+			}
+		}
+
 		errorToInsert := &model.ErrorObject{
 			OrganizationID: organizationID,
 			SessionID:      sessionID,
@@ -238,16 +256,17 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			Browser:        sessionObj.BrowserName,
 			StackTrace:     &traceString,
 			Timestamp:      v.Timestamp,
-			Payload:        v.Payload,
+			Fields:         errorFields,
 		}
 
-		//create error fields array
-		metaFields := []*model.ErrorField{}
-		metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "browser", Value: sessionObj.BrowserName})
-		metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "os_name", Value: sessionObj.OSName})
-		metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "visited_url", Value: errorToInsert.URL})
-		metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "event", Value: errorToInsert.Event})
-		group, err := r.HandleErrorAndGroup(errorToInsert, v, metaFields, organizationID)
+		// append metadata to error fields slice for group
+		var errorGroupFields []*model.ErrorField
+		copy(errorGroupFields, errorFields)
+		errorGroupFields = append(errorGroupFields, &model.ErrorField{OrganizationID: organizationID, Type: &model.ErrorFieldType.META_DATA, Name: "browser", Value: sessionObj.BrowserName})
+		errorGroupFields = append(errorGroupFields, &model.ErrorField{OrganizationID: organizationID, Type: &model.ErrorFieldType.META_DATA, Name: "os_name", Value: sessionObj.OSName})
+		errorGroupFields = append(errorGroupFields, &model.ErrorField{OrganizationID: organizationID, Type: &model.ErrorFieldType.META_DATA, Name: "visited_url", Value: errorToInsert.URL})
+		errorGroupFields = append(errorGroupFields, &model.ErrorField{OrganizationID: organizationID, Type: &model.ErrorFieldType.META_DATA, Name: "event", Value: errorToInsert.Event})
+		group, err := r.HandleErrorAndGroup(errorToInsert, v, errorGroupFields, organizationID)
 		if err != nil {
 			log.Errorf("Error updating error group: %v", errorToInsert)
 			continue
