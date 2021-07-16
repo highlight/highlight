@@ -1,4 +1,5 @@
-import { Headers, Request, RequestResponsePair, Response } from './models';
+import { NetworkListenerCallback } from '../network-listener';
+import { Headers, Request, Response } from './models';
 
 interface BrowserXHR extends XMLHttpRequest {
     _method: string;
@@ -10,9 +11,7 @@ interface BrowserXHR extends XMLHttpRequest {
 /**
  * Listens to all XMLHttpRequests made.
  */
-export const XHRListener = (
-    callback: (requestResponsePair: RequestResponsePair) => void
-) => {
+export const XHRListener = (callback: NetworkListenerCallback) => {
     const XHR = XMLHttpRequest.prototype;
 
     const originalOpen = XHR.open;

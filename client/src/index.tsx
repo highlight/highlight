@@ -110,7 +110,8 @@ export class Highlight {
     events: eventWithTime[];
     errors: ErrorMessage[];
     messages: ConsoleMessage[];
-    networkContents: RequestResponsePair[];
+    xhrNetworkContents: RequestResponsePair[] = [];
+    fetchNetworkContents: RequestResponsePair[] = [];
     sessionData: SessionData;
     /** @deprecated Use state instead. Ready should be removed when Highlight releases 2.0. */
     ready: boolean;
@@ -185,7 +186,6 @@ export class Highlight {
         this.listeners = [];
         this.events = [];
         this.errors = [];
-        this.networkContents = [];
         this.messages = [];
     }
 
@@ -519,8 +519,13 @@ export class Highlight {
                 this.isRunningOnHighlight
             ) {
                 this.listeners.push(
-                    NetworkListener((requestResponsePair) => {
-                        this.networkContents.push(requestResponsePair);
+                    NetworkListener({
+                        xhrCallback: (requestResponsePair) => {
+                            this.xhrNetworkContents.push(requestResponsePair);
+                        },
+                        fetchCallback: (requestResponsePair) => {
+                            this.fetchNetworkContents.push(requestResponsePair);
+                        },
                     })
                 );
             }
@@ -586,9 +591,11 @@ export class Highlight {
             try {
                 const payload = this._getPayload();
                 await this.graphqlSDK.PushPayload(payload);
+                // TODO: Make sure we only delete things that have been sent.
                 this.errors = [];
                 this.messages = [];
-                this.networkContents = [];
+                this.xhrNetworkContents = [];
+                this.fetchNetworkContents = [];
                 // Listeners are cleared when the user calls stop() manually.
                 if (this.listeners.length === 0) {
                     return;
@@ -642,7 +649,13 @@ export class Highlight {
             ) {
                 resources = matchPerformanceTimingsWithRequestResponsePair(
                     resources,
-                    this.networkContents
+                    this.xhrNetworkContents,
+                    'xmlhttprequest'
+                );
+                resources = matchPerformanceTimingsWithRequestResponsePair(
+                    resources,
+                    this.fetchNetworkContents,
+                    'fetch'
                 );
             }
         }

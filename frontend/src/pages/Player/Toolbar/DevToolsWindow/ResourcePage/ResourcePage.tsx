@@ -392,7 +392,10 @@ const ResourceRow = ({
                 className={classNames(styles.networkRow, {
                     [styles.current]: resource.id === currentResource,
                     [styles.failedResource]:
-                        resource.requestResponsePairs?.response.status === 0,
+                        resource.requestResponsePairs?.response.status &&
+                        (resource.requestResponsePairs.response.status === 0 ||
+                            resource.requestResponsePairs.response.status >=
+                                400),
                 })}
             >
                 <div className={styles.typeSection}>
