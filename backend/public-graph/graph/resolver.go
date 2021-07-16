@@ -456,7 +456,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 		"device_id":       strconv.Itoa(session.Fingerprint),
 	}
 	if err := r.AppendProperties(session.ID, sessionProperties, PropertyType.SESSION); err != nil {
-		return nil, e.Wrap(err, "error adding set of properites to db")
+		log.Error(e.Wrap(err, "error adding set of properties to db"))
 	}
 
 	return session, nil
