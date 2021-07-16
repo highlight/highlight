@@ -61,6 +61,32 @@ export const Buttons = () => {
                     Stop Recording
                 </button>
             </div>
+
+            <div>
+                <button
+                    onClick={() => {
+                        fetch('https://pokeapi.co/api/v2/pokemon/ditto', {
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                        });
+                    }}
+                >
+                    GET fetch('https://pokeapi.co/api/v2/pokemon/ditto')
+                </button>
+                <button
+                    onClick={() => {
+                        fetch('https://pokeapi.co/api/v2/pokemon/ditto', {
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            method: 'POST',
+                        });
+                    }}
+                >
+                    POST fetch('https://pokeapi.co/api/v2/pokemon/ditto')
+                </button>
+            </div>
         </div>
     );
 };
