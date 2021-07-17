@@ -524,11 +524,12 @@ export class Highlight {
                     NetworkListener({
                         xhrCallback: (requestResponsePair) => {
                             if (
-                                !this.isRunningOnHighlight &&
+                                this.isRunningOnHighlight ||
                                 isHighlightNetworkResourceFilter(
                                     requestResponsePair.request.url
                                 )
                             ) {
+                                console.log(requestResponsePair);
                                 this.xhrNetworkContents.push(
                                     requestResponsePair
                                 );
@@ -536,11 +537,12 @@ export class Highlight {
                         },
                         fetchCallback: (requestResponsePair) => {
                             if (
-                                !this.isRunningOnHighlight &&
+                                this.isRunningOnHighlight ||
                                 isHighlightNetworkResourceFilter(
                                     requestResponsePair.request.url
                                 )
                             ) {
+                                console.log(requestResponsePair);
                                 this.fetchNetworkContents.push(
                                     requestResponsePair
                                 );
