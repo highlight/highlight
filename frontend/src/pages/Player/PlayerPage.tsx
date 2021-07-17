@@ -253,11 +253,7 @@ const Player = () => {
                                         />
                                     )}
                                 </div>
-                                <Toolbar
-                                    onResize={() =>
-                                        replayer && resizePlayer(replayer)
-                                    }
-                                />
+                                <Toolbar />
                             </div>
 
                             <RightPlayerPanel />

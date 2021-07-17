@@ -39,7 +39,7 @@ import TimelineEventAnnotation from './TimelineAnnotation/TimelineEventAnnotatio
 import TimelineAnnotationsSettings from './TimelineAnnotationsSettings/TimelineAnnotationsSettings';
 import styles from './Toolbar.module.scss';
 
-export const Toolbar = ({ onResize }: { onResize: () => void }) => {
+export const Toolbar = () => {
     const {
         replayer,
         setTime,
@@ -96,10 +96,6 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
         state === ReplayerState.LoadedAndUntouched ||
         state === ReplayerState.LoadedWithDeepLink ||
         state === ReplayerState.SessionRecordingStopped;
-
-    useEffect(() => {
-        onResize();
-    }, [openDevTools, onResize]);
 
     useEffect(() => {
         if (replayer) {
