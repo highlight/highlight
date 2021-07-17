@@ -678,6 +678,9 @@ export class Highlight {
                     this.fetchNetworkContents,
                     'fetch'
                 );
+                console.log(resources);
+                console.log(this.xhrNetworkContents);
+                console.log(this.fetchNetworkContents);
             }
         }
 
