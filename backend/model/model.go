@@ -577,7 +577,7 @@ type ErrorGroup struct {
 	Resolved         *bool  `json:"resolved"` // DEPRECATED, USE STATE INSTEAD
 	MetadataLog      *string
 	Fields           []*ErrorField `gorm:"many2many:error_group_fields;"`
-	FieldGroup       *string
+	FieldGroup       *string       // DEPRECATED, USE FIELDS INSTEAD
 	Environments     string
 }
 

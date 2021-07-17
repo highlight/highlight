@@ -155,7 +155,6 @@ export type ErrorGroup = {
     event: Array<Maybe<Scalars['String']>>;
     stack_trace: Array<Maybe<ErrorTrace>>;
     metadata_log: Array<Maybe<ErrorMetadata>>;
-    field_group?: Maybe<Array<Maybe<ErrorField>>>;
     state: ErrorState;
     resolved?: Maybe<Scalars['Boolean']>;
     environments?: Maybe<Scalars['String']>;
@@ -429,6 +428,7 @@ export type Query = {
     events?: Maybe<Array<Maybe<Scalars['Any']>>>;
     error_groups?: Maybe<ErrorResults>;
     error_group?: Maybe<ErrorGroup>;
+    error_group_fields?: Maybe<Array<Maybe<ErrorField>>>;
     messages?: Maybe<Array<Maybe<Scalars['Any']>>>;
     errors?: Maybe<Array<Maybe<ErrorObject>>>;
     resources?: Maybe<Array<Maybe<Scalars['Any']>>>;
@@ -484,6 +484,10 @@ export type QueryError_GroupsArgs = {
 };
 
 export type QueryError_GroupArgs = {
+    id: Scalars['ID'];
+};
+
+export type QueryError_Group_FieldsArgs = {
     id: Scalars['ID'];
 };
 

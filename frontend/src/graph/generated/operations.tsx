@@ -797,17 +797,17 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
                         >
                     >
                 >;
-                field_group?: Types.Maybe<
-                    Array<
-                        Types.Maybe<
-                            { __typename?: 'ErrorField' } & Pick<
-                                Types.ErrorField,
-                                'name' | 'value'
-                            >
-                        >
-                    >
-                >;
             }
+    >;
+    field_group?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'ErrorField' } & Pick<
+                    Types.ErrorField,
+                    'name' | 'value'
+                >
+            >
+        >
     >;
 };
 

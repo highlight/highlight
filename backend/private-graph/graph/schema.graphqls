@@ -129,7 +129,6 @@ type ErrorGroup {
     event: [String]!
     stack_trace: [ErrorTrace]!
     metadata_log: [ErrorMetadata]!
-    field_group: [ErrorField]
     state: ErrorState!
     resolved: Boolean
     environments: String
@@ -386,6 +385,7 @@ type Query {
         params: ErrorSearchParamsInput
     ): ErrorResults
     error_group(id: ID!): ErrorGroup
+    error_group_fields(id:ID!): [ErrorField]
     messages(session_id: ID!): [Any]
     errors(session_id: ID!): [ErrorObject]
     resources(session_id: ID!): [Any]

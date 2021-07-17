@@ -101,26 +101,6 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 	return filtered, nil
 }
 
-func (r *errorGroupResolver) FieldGroup(ctx context.Context, obj *model.ErrorGroup) ([]*model.ErrorField, error) {
-	if obj == nil || obj.FieldGroup == nil {
-		return nil, nil
-	}
-	var fields []*model.ErrorField
-	err := json.Unmarshal([]byte(*obj.FieldGroup), &fields)
-	if err != nil {
-		err := e.Wrap(err, "error converting field group to struct")
-		return nil, err
-	}
-	var parsedFields []*model.ErrorField
-	for _, f := range fields {
-		if f.Name == "event" {
-			continue
-		}
-		parsedFields = append(parsedFields, f)
-	}
-	return parsedFields, nil
-}
-
 func (r *errorGroupResolver) State(ctx context.Context, obj *model.ErrorGroup) (modelInputs.ErrorState, error) {
 	switch obj.State {
 	case model.ErrorGroupStates.OPEN:
@@ -1133,6 +1113,14 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 
 func (r *queryResolver) ErrorGroup(ctx context.Context, id int) (*model.ErrorGroup, error) {
 	return r.isAdminErrorGroupOwner(ctx, id)
+}
+
+func (r *queryResolver) ErrorGroupFields(ctx context.Context, id int) ([]*model.ErrorField, error) {
+	var errorFields []*model.ErrorField
+	if err := r.DB.Model(&model.ErrorGroup{Model: model.Model{ID: id}}).Association("Fields").Find(&errorFields); err != nil {
+		return nil, e.Wrap(err, "error fetching error fields from error group")
+	}
+	return errorFields, nil
 }
 
 func (r *queryResolver) Messages(ctx context.Context, sessionID int) ([]interface{}, error) {
