@@ -271,25 +271,23 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *
 }
 
 func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *model.ErrorGroup, errorObject *model.ErrorObject) error {
-	fieldsToAppend := []*model.ErrorField{}
+	var objectFieldsToAppend []*model.ErrorField
+	var groupFieldsToAppend []*model.ErrorField
 	for _, f := range fields {
 		field := &model.ErrorField{}
-		res := r.DB.Where(f).First(&field)
-		// If the field doesn't exist, we create it.
-		if err := res.Error; err != nil || errors.Is(err, gorm.ErrRecordNotFound) {
-			if err := r.DB.Create(f).Error; err != nil {
-				return e.Wrap(err, "error creating error field")
-			}
-			fieldsToAppend = append(fieldsToAppend, f)
-		} else {
-			fieldsToAppend = append(fieldsToAppend, field)
+		if err := r.DB.Where(f).FirstOrCreate(&field).Error; err != nil {
+			log.Error("error appending error field")
+		}
+		objectFieldsToAppend = append(objectFieldsToAppend, field)
+		if field.Type == nil || *field.Type != model.ErrorFieldType.PAYLOAD {
+			groupFieldsToAppend = append(groupFieldsToAppend, field)
 		}
 	}
 
-	if err := r.DB.Model(errorObject).Association("Fields").Append(fieldsToAppend); err != nil {
+	if err := r.DB.Model(errorObject).Association("Fields").Append(objectFieldsToAppend); err != nil {
 		return e.Wrap(err, "error updating error fields")
 	}
-	if err := r.DB.Model(errorGroup).Association("Fields").Append(fieldsToAppend); err != nil {
+	if err := r.DB.Model(errorGroup).Association("Fields").Append(groupFieldsToAppend); err != nil {
 		return e.Wrap(err, "error updating error fields")
 	}
 	return nil
@@ -517,7 +515,7 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 		if err := dd.StatsD.Histogram(fmt.Sprintf("%s.totalRunTime", histogram.processStackTrace), float64(diff),
 			[]string{fmt.Sprintf("env:%s", os.Getenv("ENVIRONMENT")), fmt.Sprintf("success:%v", err == nil),
 				fmt.Sprintf("org_id:%d", organizationId)}, 1); err != nil {
-			log.Error(e.Wrap(err, "dd error tracking processStackFrame time histogram"))
+			//log.Error(e.Wrap(err, "dd error tracking processStackFrame time histogram"))
 		}
 		if mappedStackFrame != nil {
 			mappedStackTrace = append(mappedStackTrace, *mappedStackFrame)
@@ -577,7 +575,7 @@ func (r *Resolver) processStackFrame(organizationId, sessionId int, stackTrace m
 	}
 	if err := dd.StatsD.Histogram(histogram.processStackTrace+".minifiedFileSize", float64(len(minifiedFileBytes)),
 		[]string{fmt.Sprintf("env:%s", os.Getenv("ENVIRONMENT")), fmt.Sprintf("org_id:%d", organizationId)}, 1); err != nil {
-		log.Error(e.Wrap(err, "dd error tracking processStackFrame minified file size histogram"))
+		//log.Error(e.Wrap(err, "dd error tracking processStackFrame minified file size histogram"))
 	}
 	if len(minifiedFileBytes) > 5000000 {
 		err := e.Errorf("minified source file over 5mb: %v, size: %v", stackTraceFileURL, len(minifiedFileBytes))
@@ -631,7 +629,7 @@ func (r *Resolver) processStackFrame(organizationId, sessionId int, stackTrace m
 	}
 	if err := dd.StatsD.Histogram(histogram.processStackTrace+".sourceMapFileSize", float64(len(sourceMapFileBytes)),
 		[]string{fmt.Sprintf("env:%s", os.Getenv("ENVIRONMENT")), fmt.Sprintf("org_id:%d", organizationId)}, 1); err != nil {
-		log.Error(e.Wrap(err, "dd error tracking processStackFrame minified file size histogram"))
+		//log.Error(e.Wrap(err, "dd error tracking processStackFrame minified file size histogram"))
 	}
 
 	smap, err := sourcemap.Parse(sourceMapURL, sourceMapFileBytes)

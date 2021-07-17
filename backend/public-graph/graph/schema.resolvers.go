@@ -256,17 +256,14 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			Browser:        sessionObj.BrowserName,
 			StackTrace:     &traceString,
 			Timestamp:      v.Timestamp,
-			Fields:         errorFields,
 		}
 
 		// append metadata to error fields slice for group
-		var errorGroupFields []*model.ErrorField
-		copy(errorGroupFields, errorFields)
-		errorGroupFields = append(errorGroupFields, &model.ErrorField{OrganizationID: organizationID, Type: &model.ErrorFieldType.META_DATA, Name: "browser", Value: sessionObj.BrowserName})
-		errorGroupFields = append(errorGroupFields, &model.ErrorField{OrganizationID: organizationID, Type: &model.ErrorFieldType.META_DATA, Name: "os_name", Value: sessionObj.OSName})
-		errorGroupFields = append(errorGroupFields, &model.ErrorField{OrganizationID: organizationID, Type: &model.ErrorFieldType.META_DATA, Name: "visited_url", Value: errorToInsert.URL})
-		errorGroupFields = append(errorGroupFields, &model.ErrorField{OrganizationID: organizationID, Type: &model.ErrorFieldType.META_DATA, Name: "event", Value: errorToInsert.Event})
-		group, err := r.HandleErrorAndGroup(errorToInsert, v, errorGroupFields, organizationID)
+		errorFields = append(errorFields, &model.ErrorField{OrganizationID: organizationID, Type: &model.ErrorFieldType.META_DATA, Name: "browser", Value: sessionObj.BrowserName})
+		errorFields = append(errorFields, &model.ErrorField{OrganizationID: organizationID, Type: &model.ErrorFieldType.META_DATA, Name: "os_name", Value: sessionObj.OSName})
+		errorFields = append(errorFields, &model.ErrorField{OrganizationID: organizationID, Type: &model.ErrorFieldType.META_DATA, Name: "visited_url", Value: errorToInsert.URL})
+		errorFields = append(errorFields, &model.ErrorField{OrganizationID: organizationID, Type: &model.ErrorFieldType.META_DATA, Name: "event", Value: errorToInsert.Event})
+		group, err := r.HandleErrorAndGroup(errorToInsert, v, errorFields, organizationID)
 		if err != nil {
 			log.Errorf("Error updating error group: %v", errorToInsert)
 			continue
