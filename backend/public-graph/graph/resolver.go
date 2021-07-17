@@ -512,11 +512,11 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 				Error:        util.MakeStringPointer(err.Error()),
 			}
 		}
-		if err := dd.StatsD.Histogram(fmt.Sprintf("%s.totalRunTime", histogram.processStackTrace), float64(diff),
+
+		dd.StatsD.Histogram(fmt.Sprintf("%s.totalRunTime", histogram.processStackTrace), float64(diff),
 			[]string{fmt.Sprintf("env:%s", os.Getenv("ENVIRONMENT")), fmt.Sprintf("success:%v", err == nil),
-				fmt.Sprintf("org_id:%d", organizationId)}, 1); err != nil {
-			//log.Error(e.Wrap(err, "dd error tracking processStackFrame time histogram"))
-		}
+				fmt.Sprintf("org_id:%d", organizationId)}, 1) //nolint
+
 		if mappedStackFrame != nil {
 			mappedStackTrace = append(mappedStackTrace, *mappedStackFrame)
 		}
@@ -573,10 +573,10 @@ func (r *Resolver) processStackFrame(organizationId, sessionId int, stackTrace m
 			log.Error(e.Wrapf(err, "error pushing file to s3: %v", stackTraceFilePath))
 		}
 	}
-	if err := dd.StatsD.Histogram(histogram.processStackTrace+".minifiedFileSize", float64(len(minifiedFileBytes)),
-		[]string{fmt.Sprintf("env:%s", os.Getenv("ENVIRONMENT")), fmt.Sprintf("org_id:%d", organizationId)}, 1); err != nil {
-		//log.Error(e.Wrap(err, "dd error tracking processStackFrame minified file size histogram"))
-	}
+
+	dd.StatsD.Histogram(histogram.processStackTrace+".minifiedFileSize", float64(len(minifiedFileBytes)),
+		[]string{fmt.Sprintf("env:%s", os.Getenv("ENVIRONMENT")), fmt.Sprintf("org_id:%d", organizationId)}, 1) //nolint
+
 	if len(minifiedFileBytes) > 5000000 {
 		err := e.Errorf("minified source file over 5mb: %v, size: %v", stackTraceFileURL, len(minifiedFileBytes))
 		return nil, err
@@ -627,10 +627,9 @@ func (r *Resolver) processStackFrame(organizationId, sessionId int, stackTrace m
 			log.Error(e.Wrapf(err, "error pushing file to s3: %v", sourceMapFileName))
 		}
 	}
-	if err := dd.StatsD.Histogram(histogram.processStackTrace+".sourceMapFileSize", float64(len(sourceMapFileBytes)),
-		[]string{fmt.Sprintf("env:%s", os.Getenv("ENVIRONMENT")), fmt.Sprintf("org_id:%d", organizationId)}, 1); err != nil {
-		//log.Error(e.Wrap(err, "dd error tracking processStackFrame minified file size histogram"))
-	}
+
+	dd.StatsD.Histogram(histogram.processStackTrace+".sourceMapFileSize", float64(len(sourceMapFileBytes)),
+		[]string{fmt.Sprintf("env:%s", os.Getenv("ENVIRONMENT")), fmt.Sprintf("org_id:%d", organizationId)}, 1) //nolint
 
 	smap, err := sourcemap.Parse(sourceMapURL, sourceMapFileBytes)
 	if err != nil {
