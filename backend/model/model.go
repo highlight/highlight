@@ -584,8 +584,8 @@ type ErrorField struct {
 	Model
 	OrganizationID int
 	Type           *string       `gorm:"index"` // meta, payload
-	Name           string        `gorm:"uniqueIndex:idx_name_value"`
-	Value          string        `gorm:"uniqueIndex:idx_name_value"`
+	Name           string        `gorm:"index"`
+	Value          string        `gorm:"index"`
 	ErrorGroups    []ErrorGroup  `gorm:"many2many:error_group_fields;"`
 	ErrorObjects   []ErrorObject `gorm:"many2many:error_object_fields;"`
 }
