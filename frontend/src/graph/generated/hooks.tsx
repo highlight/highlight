@@ -1497,6 +1497,7 @@ export const GetSessionDocument = gql`
             identifier
             starred
             enable_strict_privacy
+            enable_recording_network_contents
             fields {
                 name
                 value
@@ -2041,6 +2042,7 @@ export const GetSessionsDocument = gql`
                 language
                 length
                 active_length
+                enable_recording_network_contents
                 viewed
                 starred
                 processed

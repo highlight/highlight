@@ -15,13 +15,16 @@ import styles from './ResourceDetailsModal.module.scss';
 interface Props {
     selectedNetworkResource?: NetworkResource;
     onCloseHandler: () => void;
+    networkRecordingEnabledForSession: boolean;
 }
 
 const ResourceDetailsModal = ({
     selectedNetworkResource,
     onCloseHandler,
+    networkRecordingEnabledForSession,
 }: Props) => {
     const { isHighlightAdmin } = useAdminRole();
+    console.log({ selectedNetworkResource });
 
     const generalData: KeyValueTableRow[] = [
         {
@@ -135,23 +138,33 @@ const ResourceDetailsModal = ({
         }
 
         if (response.body) {
-            const parsedResponseBody = JSON.parse(response.body);
-            Object.keys(parsedResponseBody).forEach((key) => {
-                const renderType =
-                    typeof parsedResponseBody[key] === 'object'
-                        ? 'json'
-                        : 'string';
+            try {
+                const parsedResponseBody = JSON.parse(response.body);
+                Object.keys(parsedResponseBody).forEach((key) => {
+                    const renderType =
+                        typeof parsedResponseBody[key] === 'object'
+                            ? 'json'
+                            : 'string';
 
-                responsePayloadData.push({
-                    keyDisplayValue: key,
-                    valueDisplayValue:
-                        renderType === 'string'
-                            ? parsedResponseBody[key]?.toString()
-                            : parsedResponseBody[key],
-                    renderType,
+                    responsePayloadData.push({
+                        keyDisplayValue: key,
+                        valueDisplayValue:
+                            renderType === 'string'
+                                ? parsedResponseBody[key]?.toString()
+                                : parsedResponseBody[key],
+                        renderType,
+                    });
                 });
-            });
+            } catch (e) {
+                responsePayloadData.push({
+                    keyDisplayValue: 'boba',
+                    valueDisplayValue: response.body,
+                    renderType: 'string',
+                });
+            }
         }
+        console.log(responsePayloadData);
+        // TODO: add recording boolean to session.
     }
 
     return (
@@ -167,40 +180,56 @@ const ResourceDetailsModal = ({
                         <KeyValueTable data={generalData} />
                     </DataCard>
 
-                    {(isHighlightAdmin &&
+                    {((isHighlightAdmin &&
                         selectedNetworkResource?.initiatorType === 'fetch') ||
-                        (selectedNetworkResource?.initiatorType ===
-                            'xmlhttprequest' && (
-                            <>
-                                <DataCard title="Request Headers" fullWidth>
-                                    <KeyValueTable
-                                        data={requestHeadersData}
-                                        noDataMessage={<NoDataMessage />}
-                                    />
-                                </DataCard>
+                        selectedNetworkResource?.initiatorType ===
+                            'xmlhttprequest') && (
+                        <>
+                            <DataCard title="Request Headers" fullWidth>
+                                <KeyValueTable
+                                    data={requestHeadersData}
+                                    noDataMessage={
+                                        !networkRecordingEnabledForSession ? (
+                                            <NetworkRecordingEducationMessage />
+                                        ) : undefined
+                                    }
+                                />
+                            </DataCard>
 
-                                <DataCard title="Request Payload" fullWidth>
-                                    <KeyValueTable
-                                        data={requestPayloadData}
-                                        noDataMessage={<NoDataMessage />}
-                                    />
-                                </DataCard>
+                            <DataCard title="Request Payload" fullWidth>
+                                <KeyValueTable
+                                    data={requestPayloadData}
+                                    noDataMessage={
+                                        !networkRecordingEnabledForSession ? (
+                                            <NetworkRecordingEducationMessage />
+                                        ) : undefined
+                                    }
+                                />
+                            </DataCard>
 
-                                <DataCard title="Response Headers" fullWidth>
-                                    <KeyValueTable
-                                        data={responseHeadersData}
-                                        noDataMessage={<NoDataMessage />}
-                                    />
-                                </DataCard>
+                            <DataCard title="Response Headers" fullWidth>
+                                <KeyValueTable
+                                    data={responseHeadersData}
+                                    noDataMessage={
+                                        !networkRecordingEnabledForSession ? (
+                                            <NetworkRecordingEducationMessage />
+                                        ) : undefined
+                                    }
+                                />
+                            </DataCard>
 
-                                <DataCard title="Response Payload" fullWidth>
-                                    <KeyValueTable
-                                        data={responsePayloadData}
-                                        noDataMessage={<NoDataMessage />}
-                                    />
-                                </DataCard>
-                            </>
-                        ))}
+                            <DataCard title="Response Payload" fullWidth>
+                                <KeyValueTable
+                                    data={responsePayloadData}
+                                    noDataMessage={
+                                        !networkRecordingEnabledForSession ? (
+                                            <NetworkRecordingEducationMessage />
+                                        ) : undefined
+                                    }
+                                />
+                            </DataCard>
+                        </>
+                    )}
                 </Space>
             </section>
         </Modal>
@@ -209,7 +238,7 @@ const ResourceDetailsModal = ({
 
 export default ResourceDetailsModal;
 
-const NoDataMessage = () => (
+const NetworkRecordingEducationMessage = () => (
     <div className={styles.noDataMessageContainer}>
         <p>
             <code>enableNetworkHeadersAndBodyRecording</code> is disabled. If

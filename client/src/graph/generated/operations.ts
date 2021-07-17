@@ -70,6 +70,7 @@ export type Mutation = {
 export type MutationInitializeSessionArgs = {
   organization_verbose_id: Scalars['String'];
   enable_strict_privacy: Scalars['Boolean'];
+  enable_recording_network_contents: Scalars['Boolean'];
   clientVersion: Scalars['String'];
   firstloadVersion: Scalars['String'];
   clientConfig: Scalars['String'];
@@ -167,6 +168,7 @@ export type AddTrackPropertiesMutation = (
 export type InitializeSessionMutationVariables = Types.Exact<{
   organization_verbose_id: Types.Scalars['String'];
   enable_strict_privacy: Types.Scalars['Boolean'];
+  enable_recording_network_contents: Types.Scalars['Boolean'];
   clientVersion: Types.Scalars['String'];
   firstloadVersion: Types.Scalars['String'];
   clientConfig: Types.Scalars['String'];
@@ -232,10 +234,11 @@ export const AddTrackPropertiesDocument = gql`
 }
     `;
 export const InitializeSessionDocument = gql`
-    mutation initializeSession($organization_verbose_id: String!, $enable_strict_privacy: Boolean!, $clientVersion: String!, $firstloadVersion: String!, $clientConfig: String!, $environment: String!, $id: String!, $appVersion: String) {
+    mutation initializeSession($organization_verbose_id: String!, $enable_strict_privacy: Boolean!, $enable_recording_network_contents: Boolean!, $clientVersion: String!, $firstloadVersion: String!, $clientConfig: String!, $environment: String!, $id: String!, $appVersion: String) {
   initializeSession(
     organization_verbose_id: $organization_verbose_id
     enable_strict_privacy: $enable_strict_privacy
+    enable_recording_network_contents: $enable_recording_network_contents
     clientVersion: $clientVersion
     firstloadVersion: $firstloadVersion
     clientConfig: $clientConfig

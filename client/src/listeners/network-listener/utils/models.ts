@@ -5,7 +5,7 @@ export interface Headers {
 export interface Request {
     url: string;
     verb: string;
-    headers: Headers;
+    headers?: Headers;
     body: any;
 }
 

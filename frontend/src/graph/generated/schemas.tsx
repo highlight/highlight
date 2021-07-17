@@ -55,6 +55,7 @@ export type Session = {
     first_time?: Maybe<Scalars['Boolean']>;
     field_group?: Maybe<Scalars['String']>;
     enable_strict_privacy?: Maybe<Scalars['Boolean']>;
+    enable_recording_network_contents?: Maybe<Scalars['Boolean']>;
     object_storage_enabled?: Maybe<Scalars['Boolean']>;
     payload_size?: Maybe<Scalars['Int64']>;
     within_billing_quota?: Maybe<Scalars['Boolean']>;

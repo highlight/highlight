@@ -31,7 +31,7 @@ import 'clientjs';
 import { NetworkListener } from './listeners/network-listener/network-listener';
 import { RequestResponsePair } from './listeners/network-listener/utils/models';
 import {
-    highlightNetworkResourceFilter,
+    isHighlightNetworkResourceFilter,
     matchPerformanceTimingsWithRequestResponsePair,
 } from './listeners/network-listener/utils/utils';
 
@@ -61,6 +61,7 @@ export type HighlightClassOptions = {
     backendUrl?: string;
     disableNetworkRecording?: boolean;
     enableNetworkHeadersAndBodyRecording?: boolean;
+    networkHeadersToRedact?: string[];
     disableConsoleRecording?: boolean;
     enableSegmentIntegration?: boolean;
     enableStrictPrivacy?: boolean;
@@ -110,14 +111,16 @@ export class Highlight {
     events: eventWithTime[];
     errors: ErrorMessage[];
     messages: ConsoleMessage[];
-    networkContents: RequestResponsePair[];
+    xhrNetworkContents: RequestResponsePair[] = [];
+    fetchNetworkContents: RequestResponsePair[] = [];
+    networkHeadersToRedact: string[] = [];
     sessionData: SessionData;
     /** @deprecated Use state instead. Ready should be removed when Highlight releases 2.0. */
     ready: boolean;
     state: 'NotRecording' | 'Recording';
     logger: Logger;
     disableNetworkRecording: boolean | undefined;
-    enableNetworkHeadersAndBodyRecording: boolean;
+    enableRecordingNetworkContents: boolean;
     disableConsoleRecording: boolean | undefined;
     enableSegmentIntegration: boolean | undefined;
     enableStrictPrivacy: boolean;
@@ -147,7 +150,7 @@ export class Highlight {
         this.ready = false;
         this.state = 'NotRecording';
         this.disableNetworkRecording = options.disableNetworkRecording;
-        this.enableNetworkHeadersAndBodyRecording =
+        this.enableRecordingNetworkContents =
             options.enableNetworkHeadersAndBodyRecording || false;
         this.disableConsoleRecording = options.disableConsoleRecording;
         this.enableSegmentIntegration = options.enableSegmentIntegration;
@@ -185,7 +188,6 @@ export class Highlight {
         this.listeners = [];
         this.events = [];
         this.errors = [];
-        this.networkContents = [];
         this.messages = [];
     }
 
@@ -360,6 +362,8 @@ export class Highlight {
                     const gr = await this.graphqlSDK.initializeSession({
                         organization_verbose_id: this.organizationID,
                         enable_strict_privacy: this.enableStrictPrivacy,
+                        enable_recording_network_contents: this
+                            .enableRecordingNetworkContents,
                         clientVersion: packageJson['version'],
                         firstloadVersion: this.firstloadVersion,
                         clientConfig: JSON.stringify(this._optionsInternal),
@@ -513,12 +517,38 @@ export class Highlight {
             // This is gated to only Highlight.
             if (
                 !this.disableNetworkRecording &&
-                this.enableNetworkHeadersAndBodyRecording &&
+                this.enableRecordingNetworkContents &&
                 this.isRunningOnHighlight
             ) {
                 this.listeners.push(
-                    NetworkListener((requestResponsePair) => {
-                        this.networkContents.push(requestResponsePair);
+                    NetworkListener({
+                        xhrCallback: (requestResponsePair) => {
+                            if (
+                                this.isRunningOnHighlight ||
+                                isHighlightNetworkResourceFilter(
+                                    requestResponsePair.request.url
+                                )
+                            ) {
+                                console.log(requestResponsePair);
+                                this.xhrNetworkContents.push(
+                                    requestResponsePair
+                                );
+                            }
+                        },
+                        fetchCallback: (requestResponsePair) => {
+                            if (
+                                this.isRunningOnHighlight ||
+                                isHighlightNetworkResourceFilter(
+                                    requestResponsePair.request.url
+                                )
+                            ) {
+                                console.log(requestResponsePair);
+                                this.fetchNetworkContents.push(
+                                    requestResponsePair
+                                );
+                            }
+                        },
+                        headersToRedact: this.networkHeadersToRedact,
                     })
                 );
             }
@@ -584,9 +614,11 @@ export class Highlight {
             try {
                 const payload = this._getPayload();
                 await this.graphqlSDK.PushPayload(payload);
+                // TODO: Make sure we only delete things that have been sent.
                 this.errors = [];
                 this.messages = [];
-                this.networkContents = [];
+                this.xhrNetworkContents = [];
+                this.fetchNetworkContents = [];
                 // Listeners are cleared when the user calls stop() manually.
                 if (this.listeners.length === 0) {
                     return;
@@ -622,26 +654,33 @@ export class Highlight {
         let resources: Array<any> = [];
         if (!this.disableNetworkRecording) {
             // get all resources that don't include 'api.highlight.run'
-            resources = performance
-                .getEntriesByType('resource')
-                .filter((r) => !highlightNetworkResourceFilter(r.name));
+            resources = performance.getEntriesByType('resource');
 
             // Only filter out requests made to Highlight for customers.
             if (!this.isRunningOnHighlight) {
                 resources = resources.filter(
-                    (r) => !highlightNetworkResourceFilter(r.name)
+                    (r) => !isHighlightNetworkResourceFilter(r.name)
                 );
             }
 
             // This feature is gated to only Highlight.
             if (
                 this.isRunningOnHighlight &&
-                this.enableNetworkHeadersAndBodyRecording
+                this.enableRecordingNetworkContents
             ) {
                 resources = matchPerformanceTimingsWithRequestResponsePair(
                     resources,
-                    this.networkContents
+                    this.xhrNetworkContents,
+                    'xmlhttprequest'
                 );
+                resources = matchPerformanceTimingsWithRequestResponsePair(
+                    resources,
+                    this.fetchNetworkContents,
+                    'fetch'
+                );
+                console.log(resources);
+                console.log(this.xhrNetworkContents);
+                console.log(this.fetchNetworkContents);
             }
         }
 
