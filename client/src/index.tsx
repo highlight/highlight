@@ -31,7 +31,7 @@ import 'clientjs';
 import { NetworkListener } from './listeners/network-listener/network-listener';
 import { RequestResponsePair } from './listeners/network-listener/utils/models';
 import {
-    highlightNetworkResourceFilter,
+    isHighlightNetworkResourceFilter,
     matchPerformanceTimingsWithRequestResponsePair,
 } from './listeners/network-listener/utils/utils';
 
@@ -523,10 +523,28 @@ export class Highlight {
                 this.listeners.push(
                     NetworkListener({
                         xhrCallback: (requestResponsePair) => {
-                            this.xhrNetworkContents.push(requestResponsePair);
+                            if (
+                                !this.isRunningOnHighlight &&
+                                isHighlightNetworkResourceFilter(
+                                    requestResponsePair.request.url
+                                )
+                            ) {
+                                this.xhrNetworkContents.push(
+                                    requestResponsePair
+                                );
+                            }
                         },
                         fetchCallback: (requestResponsePair) => {
-                            this.fetchNetworkContents.push(requestResponsePair);
+                            if (
+                                !this.isRunningOnHighlight &&
+                                isHighlightNetworkResourceFilter(
+                                    requestResponsePair.request.url
+                                )
+                            ) {
+                                this.fetchNetworkContents.push(
+                                    requestResponsePair
+                                );
+                            }
                         },
                         headersToRedact: this.networkHeadersToRedact,
                     })
@@ -634,14 +652,12 @@ export class Highlight {
         let resources: Array<any> = [];
         if (!this.disableNetworkRecording) {
             // get all resources that don't include 'api.highlight.run'
-            resources = performance
-                .getEntriesByType('resource')
-                .filter((r) => !highlightNetworkResourceFilter(r.name));
+            resources = performance.getEntriesByType('resource');
 
             // Only filter out requests made to Highlight for customers.
             if (!this.isRunningOnHighlight) {
                 resources = resources.filter(
-                    (r) => !highlightNetworkResourceFilter(r.name)
+                    (r) => !isHighlightNetworkResourceFilter(r.name)
                 );
             }
 
