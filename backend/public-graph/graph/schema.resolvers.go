@@ -228,9 +228,9 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 
 		var errorFields []*model.ErrorField
 		if v.Payload != nil && *v.Payload != "" {
-			dd.StatsD.Histogram(fmt.Sprintf("%s.errorPayloadSize", histogram.pushPayload), float64(len(*v.Payload)),
+			dd.StatsD.Histogram(fmt.Sprintf("%s.errorPayloadSize", histogram.pushPayload), float64(len(*v.Payload)), //nolint
 				[]string{fmt.Sprintf("env:%s", os.Getenv("ENVIRONMENT")),
-					fmt.Sprintf("org_id:%d", organizationID)}, 1) //nolint
+					fmt.Sprintf("org_id:%d", organizationID)}, 1)
 
 			payloadMap := make(map[string]string)
 			if err := json.Unmarshal([]byte(*v.Payload), &payloadMap); err != nil {
