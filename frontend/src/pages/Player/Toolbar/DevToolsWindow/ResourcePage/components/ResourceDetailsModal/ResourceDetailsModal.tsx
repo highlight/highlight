@@ -7,7 +7,7 @@ import KeyValueTable, {
 import Modal from '../../../../../../../components/Modal/Modal';
 import Space from '../../../../../../../components/Space/Space';
 import useAdminRole from '../../../../../../../hooks/useAdminRole/useAdminRole';
-import { formatShortTime } from '../../../../../../Home/components/KeyPerformanceIndicators/utils/utils';
+import { formatTime } from '../../../../../../Home/components/KeyPerformanceIndicators/utils/utils';
 import { getNetworkResourcesDisplayName } from '../../../Option/Option';
 import { formatSize, NetworkResource } from '../../ResourcePage';
 import styles from './ResourceDetailsModal.module.scss';
@@ -55,13 +55,9 @@ const ResourceDetailsModal = ({
             valueDisplayValue:
                 selectedNetworkResource?.responseEnd &&
                 selectedNetworkResource?.startTime &&
-                formatShortTime(
-                    (selectedNetworkResource.responseEnd -
-                        selectedNetworkResource.startTime) /
-                        1000,
-                    ['ms'],
-                    ' ',
-                    2
+                formatTime(
+                    selectedNetworkResource.responseEnd -
+                        selectedNetworkResource.startTime
                 ),
             renderType: 'string',
         },

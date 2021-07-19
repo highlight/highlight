@@ -24,6 +24,7 @@ import {
 } from '../../../../../graph/generated/hooks';
 import { formatNumber } from '../../../../../util/numbers';
 import { MillisToMinutesAndSeconds } from '../../../../../util/time';
+import { formatTime } from '../../../../Home/components/KeyPerformanceIndicators/utils/utils';
 import ReplayerContext, { ReplayerState } from '../../../ReplayerContext';
 import devStyles from '../DevToolsWindow.module.scss';
 import { getNetworkResourcesDisplayName, Option } from '../Option/Option';
@@ -412,14 +413,24 @@ const ResourceRow = ({
                         textToHighlight={resource.name}
                     />
                 </Tooltip>
-                <div className={styles.typeSection}>
+                <div
+                    className={classNames(
+                        styles.typeSection,
+                        styles.rightAlign
+                    )}
+                >
                     {resource.requestResponsePairs?.response.status === 0
                         ? `-`
-                        : `${(
+                        : `${formatTime(
                               resource.responseEnd - resource.startTime
-                          ).toFixed(2)} ms`}
+                          )}`}
                 </div>
-                <div className={styles.typeSection}>
+                <div
+                    className={classNames(
+                        styles.typeSection,
+                        styles.rightAlign
+                    )}
+                >
                     {resource.requestResponsePairs?.response.size ? (
                         formatSize(resource.requestResponsePairs.response.size)
                     ) : resource.requestResponsePairs?.response.status === 0 ? (
