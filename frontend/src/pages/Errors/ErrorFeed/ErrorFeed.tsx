@@ -145,9 +145,9 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
         Array(6).fill(0)
     );
 
-    //useEffect(() => {
-    //    setErrorDates(frequencyTimeData(errorGroup, 6));
-    //}, [errorGroup]);
+    useEffect(() => {
+        setErrorDates(frequencyTimeData(errorGroup, 6));
+    }, [errorGroup]);
 
     return (
         <div

@@ -273,10 +273,7 @@ export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
     }, [dateRangeLength]);
 
     useEffect(() => {
-        const errorDatesCopy = frequencyTimeData(
-            errorGroup?.metadata_log,
-            dateRangeLength
-        );
+        const errorDatesCopy = frequencyTimeData(errorGroup, dateRangeLength);
         const errorData = errorDatesCopy.map((val, idx) => ({
             date: moment()
                 .startOf('day')
