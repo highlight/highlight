@@ -512,8 +512,7 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 				Error:        util.MakeStringPointer(err.Error()),
 			}
 		}
-
-		dd.StatsD.Histogram(fmt.Sprintf("%s.totalRunTime", histogram.processStackTrace), float64(diff), //nolint
+		if err := dd.StatsD.Histogram(fmt.Sprintf("%s.totalRunTime", histogram.processStackTrace), float64(diff),
 			[]string{fmt.Sprintf("env:%s", os.Getenv("ENVIRONMENT")), fmt.Sprintf("success:%v", err == nil),
 				fmt.Sprintf("org_id:%d", organizationId)}, 1); err != nil {
 			log.Error(e.Wrap(err, "dd error tracking processStackFrame time histogram"))
@@ -628,7 +627,6 @@ func (r *Resolver) processStackFrame(organizationId, sessionId int, stackTrace m
 			log.Error(e.Wrapf(err, "error pushing file to s3: %v", sourceMapFileName))
 		}
 	}
-
 	if err := dd.StatsD.Histogram(histogram.processStackTrace+".sourceMapFileSize", float64(len(sourceMapFileBytes)),
 		[]string{fmt.Sprintf("env:%s", os.Getenv("ENVIRONMENT")), fmt.Sprintf("org_id:%d", organizationId)}, 1); err != nil {
 		log.Error(e.Wrap(err, "dd error tracking processStackFrame minified file size histogram"))
