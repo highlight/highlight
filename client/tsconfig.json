@@ -1,10 +1,11 @@
 {
 	"compilerOptions": {
-		"target": "es5",
+		"target": "es2017",
 		"lib": [
 			"dom",
 			"dom.iterable",
-			"esnext"
+			"esnext",
+			"webworker"
 		],
 		"allowJs": true,
 		"skipLibCheck": true,
@@ -17,7 +18,8 @@
 		"moduleResolution": "node",
 		"resolveJsonModule": true,
 		"isolatedModules": true,
-		"jsx": "react"
+		"jsx": "react",
+		"importHelpers": true
 	},
 	"include": [
 		"src"

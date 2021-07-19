@@ -34,6 +34,7 @@ import {
     isHighlightNetworkResourceFilter,
     matchPerformanceTimingsWithRequestResponsePair,
 } from './listeners/network-listener/utils/utils';
+import { workerBlobFunction, workerBlobUrl } from './worker/PushPayloadWorker';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -128,6 +129,7 @@ export class Highlight {
     listeners: listenerHandler[];
     firstloadVersion: string;
     environment: string;
+    pushPayloadWorker: Worker;
     /** The end-user's app version. This isn't Highlight's version. */
     appVersion: string | undefined;
     _optionsInternal: HighlightClassOptionsInternal;
@@ -163,6 +165,12 @@ export class Highlight {
         const client = new GraphQLClient(`${this._backendUrl}`, {
             headers: {},
         });
+
+        this.pushPayloadWorker = new Worker(workerBlobUrl);
+        this.pushPayloadWorker.onmessage = (e) => {
+            console.log('listener', e);
+        };
+
         this.graphqlSDK = getSdk(client);
         this.environment = options.environment || 'production';
         this.appVersion = options.appVersion;
@@ -645,9 +653,9 @@ export class Highlight {
                 HighlightWarning('_save', e);
             }
         }
-        setTimeout(() => {
-            this._save();
-        }, SEND_FREQUENCY);
+        // setTimeout(() => {
+        //     this._save();
+        // }, SEND_FREQUENCY);
     }
 
     _getPayload(): PushPayloadMutationVariables {
@@ -684,7 +692,19 @@ export class Highlight {
             }
         }
 
-        const resourcesString = stringify({ resources: resources });
+        this.pushPayloadWorker.postMessage({
+            type: 'PushPayload',
+            data: {
+                networkResources: resources,
+                consoleMessages: this.messages,
+            },
+        });
+
+        const resourcesString = JSON.stringify({ resources: resources });
+
+        const messages = [...this.messages];
+        this.messages = this.messages.slice(messages.length);
+
         const messagesString = stringify({ messages: this.messages });
         this.logger.log(
             `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources, ${this.errors.length} errors \nTo: ${process.env.PUBLIC_GRAPH_URI}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionData.sessionID}`
