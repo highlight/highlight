@@ -127,13 +127,10 @@ const ErrorPage = () => {
                         </h3>
                     )}
                     <div className={styles.fieldWrapper}>
-                        <ErrorFrequencyGraph
-                            errorGroup={data?.error_group}
-                            metadataLog={data?.metadata_log}
-                        />
+                        <ErrorFrequencyGraph errorGroup={data?.error_group} />
                     </div>
-                    {data?.error_group && data?.metadata_log && (
-                        <ErrorSessionsTable metadataLog={data.metadata_log} />
+                    {data?.error_group && (
+                        <ErrorSessionsTable errorGroup={data.error_group} />
                     )}
                 </div>
                 <div className={styles.errorPageRight}>
@@ -243,7 +240,6 @@ const ErrorPage = () => {
 
 type FrequencyGraphProps = {
     errorGroup?: Maybe<ErrorGroup>;
-    metadataLog: Maybe<Array<Maybe<ErrorMetadata>>> | undefined;
 };
 
 type ErrorFrequency = {
@@ -263,7 +259,6 @@ const timeFilter = [
 
 export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
     errorGroup,
-    metadataLog,
 }) => {
     const [errorDates, setErrorDates] = useState<Array<ErrorFrequency>>(
         Array(LookbackPeriod).fill(0)
@@ -278,7 +273,10 @@ export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
     }, [dateRangeLength]);
 
     useEffect(() => {
-        const errorDatesCopy = frequencyTimeData(metadataLog, dateRangeLength);
+        const errorDatesCopy = frequencyTimeData(
+            errorGroup?.metadata_log,
+            dateRangeLength
+        );
         const errorData = errorDatesCopy.map((val, idx) => ({
             date: moment()
                 .startOf('day')

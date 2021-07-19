@@ -46,7 +46,6 @@ const ErrorModal = ({ error }: Props) => {
 
                             <ErrorFrequencyGraph
                                 errorGroup={data.error_group}
-                                metadataLog={data.metadata_log}
                             />
                         </>
                     )}
