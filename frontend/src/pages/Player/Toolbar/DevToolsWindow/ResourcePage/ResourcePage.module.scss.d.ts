@@ -15,6 +15,7 @@ export const networkTimingHeader: string;
 export const networkTopBar: string;
 export const noResultsMessage: string;
 export const resourcePageWrapper: string;
+export const rightAlign: string;
 export const timingBar: string;
 export const timingBarEmptySection: string;
 export const timingBarWrapper: string;
