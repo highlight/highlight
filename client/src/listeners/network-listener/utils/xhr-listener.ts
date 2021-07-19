@@ -30,14 +30,18 @@ export const XHRListener = (callback: NetworkListenerCallback) => {
         return originalOpen.apply(this, arguments);
     };
 
-    XHR.setRequestHeader = function (this: BrowserXHR, header, value) {
+    XHR.setRequestHeader = function (
+        this: BrowserXHR,
+        header: string,
+        value: string
+    ) {
         this._requestHeaders[header] = value;
 
         // @ts-expect-error
         return originalSetRequestHeader.apply(this, arguments);
     };
 
-    XHR.send = function (this: BrowserXHR, postData) {
+    XHR.send = function (this: BrowserXHR, postData: any) {
         const requestModel: Request = {
             url: this._url,
             verb: this._method,

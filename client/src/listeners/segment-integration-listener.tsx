@@ -1,7 +1,7 @@
 export const SegmentIntegrationListener = (callback: (obj: any) => void) => {
     callback(window.location.href);
     var send = XMLHttpRequest.prototype.send;
-    XMLHttpRequest.prototype.send = function (data) {
+    XMLHttpRequest.prototype.send = function (data: any) {
         setTimeout(() => {
             var obj: any;
             try {
