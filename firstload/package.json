@@ -5,12 +5,18 @@
         "build": "webpack --mode=production --config=./webpack.config.js",
         "dev": "doppler run -- webpack-dev-server --progress --colors --watch",
         "lint": "prettier --check --write 'src/**/*.{ts,tsx,scss}'",
-        "analyze": "webpack --mode=production --config=./webpack.config.js --json --profile > dist/firstload/src/stats.json && yarn webpack-bundle-analyzer dist/firstload/src/stats.json"
+        "analyze": "webpack --mode=production --config=./webpack.config.js --json --profile > dist/firstload/src/stats.json && yarn webpack-bundle-analyzer dist/firstload/src/stats.json",
+        "test": "jest"
     },
     "main": "dist/firstload/src/index.js",
     "types": "dist/firstload/src/index.d.ts",
     "devDependencies": {
+        "@babel/preset-env": "^7.14.7",
+        "@babel/preset-typescript": "^7.14.5",
         "@types/chrome": "^0.0.144",
+        "@types/jest": "^26.0.24",
+        "jest": "^27.0.6",
+        "jest-fail-on-console": "^2.0.4",
         "prettier": "^2.2.1",
         "ts-loader": "^8.0.4",
         "typescript": "^4.0.3",
@@ -19,5 +25,8 @@
         "webpack-cli": "^3.3.12",
         "webpack-dev-server": "^3.11.0"
     },
-    "dependencies": {}
+    "dependencies": {},
+    "setupFiles": [
+        "./tests/jest.overrides.js"
+    ]
 }
