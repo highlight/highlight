@@ -19,7 +19,7 @@ const ErrorSessionsTable = ({ errorGroup }: Props) => {
     }>();
     const [errorActivityCount, setErrorActivityCount] = useState(20);
     const uniqueSessionsCount = new Set(
-        errorGroup?.metadata_log?.map((logEntry) => logEntry?.session_id)
+        errorGroup?.metadata_log.map((logEntry) => logEntry?.session_id)
     ).size;
 
     return (
