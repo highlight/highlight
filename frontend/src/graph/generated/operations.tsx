@@ -886,8 +886,18 @@ export type ErrorFieldsFragment = { __typename?: 'ErrorObject' } & Pick<
     | 'source'
     | 'stack_trace'
     | 'timestamp'
-    | 'payload'
->;
+> & {
+        fields?: Types.Maybe<
+            Array<
+                Types.Maybe<
+                    { __typename?: 'ErrorField' } & Pick<
+                        Types.ErrorField,
+                        'name' | 'value'
+                    >
+                >
+            >
+        >;
+    };
 
 export type GetFieldSuggestionQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];

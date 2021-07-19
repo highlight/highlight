@@ -137,7 +137,7 @@ export type ErrorObject = {
     columnNumber?: Maybe<Scalars['Int']>;
     stack_trace?: Maybe<Array<Maybe<Scalars['Any']>>>;
     timestamp?: Maybe<Scalars['Time']>;
-    payload?: Maybe<Scalars['String']>;
+    fields?: Maybe<Array<Maybe<ErrorField>>>;
 };
 
 export type ErrorField = {

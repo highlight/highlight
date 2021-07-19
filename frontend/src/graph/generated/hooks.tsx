@@ -12,7 +12,10 @@ export const ErrorFieldsFragmentDoc = gql`
         source
         stack_trace
         timestamp
-        payload
+        fields {
+            name
+            value
+        }
     }
 `;
 export const MarkSessionAsViewedDocument = gql`

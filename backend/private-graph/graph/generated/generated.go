@@ -137,10 +137,10 @@ type ComplexityRoot struct {
 		ColumnNumber   func(childComplexity int) int
 		ErrorGroupID   func(childComplexity int) int
 		Event          func(childComplexity int) int
+		Fields         func(childComplexity int) int
 		ID             func(childComplexity int) int
 		LineNumber     func(childComplexity int) int
 		OrganizationID func(childComplexity int) int
-		Payload        func(childComplexity int) int
 		SessionID      func(childComplexity int) int
 		Source         func(childComplexity int) int
 		StackTrace     func(childComplexity int) int
@@ -892,6 +892,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorObject.Event(childComplexity), true
 
+	case "ErrorObject.fields":
+		if e.complexity.ErrorObject.Fields == nil {
+			break
+		}
+
+		return e.complexity.ErrorObject.Fields(childComplexity), true
+
 	case "ErrorObject.id":
 		if e.complexity.ErrorObject.ID == nil {
 			break
@@ -912,13 +919,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorObject.OrganizationID(childComplexity), true
-
-	case "ErrorObject.payload":
-		if e.complexity.ErrorObject.Payload == nil {
-			break
-		}
-
-		return e.complexity.ErrorObject.Payload(childComplexity), true
 
 	case "ErrorObject.session_id":
 		if e.complexity.ErrorObject.SessionID == nil {
@@ -2827,7 +2827,7 @@ type ErrorObject {
     columnNumber: Int
     stack_trace: [Any]
     timestamp: Time
-    payload: String
+    fields: [ErrorField]
 }
 
 type ErrorField {
@@ -7034,7 +7034,7 @@ func (ec *executionContext) _ErrorObject_timestamp(ctx context.Context, field gr
 	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ErrorObject_payload(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
+func (ec *executionContext) _ErrorObject_fields(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7052,7 +7052,7 @@ func (ec *executionContext) _ErrorObject_payload(ctx context.Context, field grap
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Payload, nil
+		return obj.Fields, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7061,9 +7061,9 @@ func (ec *executionContext) _ErrorObject_payload(ctx context.Context, field grap
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.([]*model1.ErrorField)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOErrorField2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorField(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorResults_error_groups(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorResults) (ret graphql.Marshaler) {
@@ -16063,8 +16063,8 @@ func (ec *executionContext) _ErrorObject(ctx context.Context, sel ast.SelectionS
 			})
 		case "timestamp":
 			out.Values[i] = ec._ErrorObject_timestamp(ctx, field, obj)
-		case "payload":
-			out.Values[i] = ec._ErrorObject_payload(ctx, field, obj)
+		case "fields":
+			out.Values[i] = ec._ErrorObject_fields(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

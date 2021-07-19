@@ -318,7 +318,10 @@ fragment errorFields on ErrorObject {
     source
     stack_trace
     timestamp
-    payload
+    fields {
+        name
+        value
+    }
 }
 
 query GetFieldSuggestion(

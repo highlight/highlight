@@ -113,7 +113,7 @@ type ErrorObject {
     columnNumber: Int
     stack_trace: [Any]
     timestamp: Time
-    payload: String
+    fields: [ErrorField]
 }
 
 type ErrorField {
