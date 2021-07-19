@@ -2154,6 +2154,9 @@
   dependencies:
     "@hapi/hoek" "^8.3.0"
 
+"@highlight-run/react@file:.yalc/@highlight-run/react":
+  version "0.0.1"
+
 "@highlight-run/rrweb@0.12.3":
   version "0.12.3"
   resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-0.12.3.tgz#9d9a138a951e7a95394bab3e8e66887e342ab892"

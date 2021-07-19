@@ -1,0 +1,27 @@
+{
+    "name": "highlight-react",
+    "version": "0.0.1",
+    "scripts": {
+        "build": "webpack --mode=production --config=./webpack.config.js",
+        "dev": "doppler run -- webpack-dev-server --progress --colors --watch",
+        "lint": "prettier --check --write 'src/**/*.{ts,tsx,scss}'",
+        "analyze": "webpack --mode=production --config=./webpack.config.js --json --profile > dist/firstload/src/stats.json && yarn webpack-bundle-analyzer dist/firstload/src/stats.json"
+    },
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "devDependencies": {
+        "@types/chrome": "^0.0.144",
+        "@types/react": "^17.0.14",
+        "prettier": "^2.2.1",
+        "ts-loader": "^8.0.4",
+        "typescript": "^4.0.3",
+        "webpack": "^4.44.1",
+        "webpack-bundle-analyzer": "^4.4.2",
+        "webpack-cli": "^3.3.12",
+        "webpack-dev-server": "^3.11.0"
+    },
+    "dependencies": {
+        "highlight.run": "^2.2.0",
+        "react": "^17.0.2"
+    }
+}
