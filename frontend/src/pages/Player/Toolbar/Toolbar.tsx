@@ -37,6 +37,7 @@ import TimelineCommentAnnotation from './TimelineAnnotation/TimelineCommentAnnot
 import TimelineErrorAnnotation from './TimelineAnnotation/TimelineErrorAnnotation';
 import TimelineEventAnnotation from './TimelineAnnotation/TimelineEventAnnotation';
 import TimelineAnnotationsSettings from './TimelineAnnotationsSettings/TimelineAnnotationsSettings';
+import TimelineIndicators from './TimelineIndicators/TimelineIndicators';
 import styles from './Toolbar.module.scss';
 
 export const Toolbar = () => {
@@ -219,6 +220,7 @@ export const Toolbar = () => {
                     setSelectedTab: setSelectedDevToolsTab,
                 }}
             >
+                <TimelineIndicators />
                 <DevToolsWindow
                     time={(replayer?.getMetaData().startTime ?? 0) + time}
                     startTime={replayer?.getMetaData().startTime ?? 0}
