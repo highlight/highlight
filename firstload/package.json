@@ -6,7 +6,7 @@
         "dev": "doppler run -- webpack-dev-server --progress --colors --watch",
         "lint": "prettier --check --write 'src/**/*.{ts,tsx,scss}'",
         "analyze": "webpack --mode=production --config=./webpack.config.js --json --profile > dist/firstload/src/stats.json && yarn webpack-bundle-analyzer dist/firstload/src/stats.json",
-        "test": "jest"
+        "test": "jest --detectOpenHandles"
     },
     "main": "dist/firstload/src/index.js",
     "types": "dist/firstload/src/index.d.ts",

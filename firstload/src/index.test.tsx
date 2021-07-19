@@ -4,7 +4,12 @@ describe('should work outside of the browser in unit test', () => {
     let highlight: HighlightPublicInterface;
 
     beforeEach(() => {
+        jest.useFakeTimers();
         highlight = H;
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
     });
 
     it('should handle init', () => {
