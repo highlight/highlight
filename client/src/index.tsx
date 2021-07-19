@@ -100,7 +100,7 @@ const FIRST_SEND_FREQUENCY = 1000 * 1;
  * The amount of time between sending the client-side payload to Highlight backend client.
  * In milliseconds.
  */
-let SEND_FREQUENCY = 1000 * 5;
+const SEND_FREQUENCY = 1000 * 5;
 
 /**
  * Maximum length of a session
