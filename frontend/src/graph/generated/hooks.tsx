@@ -2454,11 +2454,7 @@ export const GetErrorGroupsDocument = gql`
                 metadata_log {
                     error_id
                     session_id
-                    environment
                     timestamp
-                    os
-                    browser
-                    visited_url
                 }
             }
             totalCount

@@ -201,27 +201,6 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *
 		return nil, e.Wrap(err, "Error performing error insert for error")
 	}
 
-	var newMetadataLog []ErrorMetaData
-	if errorGroup.MetadataLog != nil {
-		if err := json.Unmarshal([]byte(*errorGroup.MetadataLog), &newMetadataLog); err != nil {
-			return nil, e.Wrap(err, "error decoding time log data")
-		}
-	}
-	newMetadataLog = append(newMetadataLog, ErrorMetaData{
-		Timestamp:  errorObj.CreatedAt,
-		ErrorID:    errorObj.ID,
-		SessionID:  errorObj.SessionID,
-		OS:         errorObj.OS,
-		Browser:    errorObj.Browser,
-		VisitedURL: errorObj.URL,
-	})
-
-	logBytes, err := json.Marshal(newMetadataLog)
-	if err != nil {
-		return nil, e.Wrap(err, "Error marshalling metadata log")
-	}
-	logString := string(logBytes)
-
 	var newMappedStackTraceString *string
 	newFrameString := frameString
 	mappedStackTrace, err := r.EnhanceStackTrace(errorInput.StackTrace, organizationID, errorObj.SessionID)
@@ -256,7 +235,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *
 	}
 	environmentsString := string(environmentsBytes)
 
-	if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{MetadataLog: &logString, StackTrace: newFrameString, MappedStackTrace: newMappedStackTraceString, Environments: environmentsString}).Error; err != nil {
+	if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{StackTrace: newFrameString, MappedStackTrace: newMappedStackTraceString, Environments: environmentsString}).Error; err != nil {
 		return nil, e.Wrap(err, "Error updating error group metadata log or environments")
 	}
 
