@@ -1,9 +1,9 @@
 import classNames from 'classnames';
 import { H } from 'highlight.run';
-import React, { useEffect, useState } from 'react';
-import { useAuthState } from 'react-firebase-hooks/auth';
+import React, { useContext, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
+import { AuthContext } from '../../AuthContext';
 import commonStyles from '../../Common.module.scss';
 import Button from '../../components/Button/Button/Button';
 import { ErrorState } from '../../components/ErrorState/ErrorState';
@@ -68,8 +68,8 @@ const LoginForm = () => {
         setError,
     } = useForm<Inputs>();
     const [signIn, setSignIn] = useState<boolean>(true);
+    const { isAuthLoading, isLoggedIn } = useContext(AuthContext);
     const [firebaseError, setFirebaseError] = useState('');
-    const [user, loading, error] = useAuthState(auth);
 
     const onSubmit = (data: Inputs) => {
         if (signIn) {
@@ -99,11 +99,11 @@ const LoginForm = () => {
         reset();
     };
 
-    if (loading) {
+    if (isAuthLoading) {
         return <LoadingPage />;
     }
 
-    if (user) {
+    if (isLoggedIn) {
         return <AuthAdminRouter />;
     }
 
@@ -231,9 +231,6 @@ const LoginForm = () => {
                     </Button>
                     <div className={commonStyles.errorMessage}>
                         {firebaseError}
-                    </div>
-                    <div className={commonStyles.errorMessage}>
-                        {JSON.stringify(error)}
                     </div>
                 </div>
             </div>
