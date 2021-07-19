@@ -13,7 +13,6 @@ import { AppRouter } from '../../routers/AppRouter/AppRouter';
 import { ReactComponent as GoogleLogo } from '../../static/google.svg';
 import { auth, googleProvider } from '../../util/auth';
 import { Landing } from '../Landing/Landing';
-import { RequestAccessPage } from '../RequestAccess/RequestAccess';
 import styles from './Login.module.scss';
 
 export const AuthAdminRouter = () => {
@@ -58,7 +57,6 @@ type Inputs = {
 };
 
 const LoginForm = () => {
-    const url = window.location.hostname;
     const {
         watch,
         register,
