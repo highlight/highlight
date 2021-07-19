@@ -22,11 +22,7 @@ import InfoTooltip from '../../components/InfoTooltip/InfoTooltip';
 import { RechartTooltip } from '../../components/recharts/RechartTooltip/RechartTooltip';
 import Tooltip from '../../components/Tooltip/Tooltip';
 import { useGetErrorGroupQuery } from '../../graph/generated/hooks';
-import {
-    ErrorGroup,
-    ErrorMetadata,
-    Maybe,
-} from '../../graph/generated/schemas';
+import { ErrorGroup, Maybe } from '../../graph/generated/schemas';
 import SvgDownloadIcon from '../../static/DownloadIcon';
 import { frequencyTimeData } from '../../util/errorCalculations';
 import ErrorComments from './components/ErrorComments/ErrorComments';
