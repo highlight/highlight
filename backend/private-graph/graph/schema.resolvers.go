@@ -87,20 +87,6 @@ func (r *errorGroupResolver) StackTrace(ctx context.Context, obj *model.ErrorGro
 	return ret, nil
 }
 
-func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorMetadata, error) {
-	ret := []*modelInputs.ErrorMetadata{}
-	if err := json.Unmarshal([]byte(*obj.MetadataLog), &ret); err != nil {
-		return nil, e.Wrap(err, "error unmarshaling error metadata")
-	}
-	filtered := []*modelInputs.ErrorMetadata{}
-	for _, log := range ret {
-		if log.ErrorID != 0 && log.SessionID != 0 && !log.Timestamp.IsZero() {
-			filtered = append(filtered, log)
-		}
-	}
-	return filtered, nil
-}
-
 func (r *errorGroupResolver) FieldGroup(ctx context.Context, obj *model.ErrorGroup) ([]*model.ErrorField, error) {
 	if obj == nil || obj.FieldGroup == nil {
 		return nil, nil
@@ -1680,6 +1666,15 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		TotalCount: queriedSessionsCount,
 	}
 	return sessionList, nil
+}
+
+func (r *queryResolver) ErrorGroupMetadataLogs(ctx context.Context, errorGroupID int) ([]*modelInputs.ErrorMetadata, error) {
+	var metadataLogs []*modelInputs.ErrorMetadata
+	if err := r.DB.Model(&model.ErrorObject{}).Where(&model.ErrorObject{ErrorGroupID: errorGroupID}).
+		Select("session_id, id AS error_id, timestamp, os, browser, url").Scan(&metadataLogs).Error; err != nil {
+		return nil, err
+	}
+	return metadataLogs, nil
 }
 
 func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) (*modelInputs.BillingDetails, error) {

@@ -145,9 +145,9 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
         Array(6).fill(0)
     );
 
-    useEffect(() => {
-        setErrorDates(frequencyTimeData(errorGroup, 6));
-    }, [errorGroup]);
+    //useEffect(() => {
+    //    setErrorDates(frequencyTimeData(errorGroup, 6));
+    //}, [errorGroup]);
 
     return (
         <div
@@ -227,7 +227,7 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                                 <div
                                     className={styles.topText}
                                 >{`Line ${errorGroup?.stack_trace[0]?.lineNumber}`}</div>
-                                {errorGroup?.metadata_log[0] ? (
+                                {/*errorGroup?.metadata_log[0] ? (
                                     <>
                                         <div className={styles.bottomText}>
                                             {`Since ${new Date(
@@ -241,7 +241,7 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                                     </>
                                 ) : (
                                     <></>
-                                )}
+                                )*/}
                             </div>
                             <div className={styles.readMarkerContainer}>
                                 <Tooltip

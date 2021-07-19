@@ -783,20 +783,6 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
                         >
                     >
                 >;
-                metadata_log: Array<
-                    Types.Maybe<
-                        { __typename?: 'ErrorMetadata' } & Pick<
-                            Types.ErrorMetadata,
-                            | 'error_id'
-                            | 'session_id'
-                            | 'environment'
-                            | 'timestamp'
-                            | 'os'
-                            | 'browser'
-                            | 'visited_url'
-                        >
-                    >
-                >;
                 field_group?: Types.Maybe<
                     Array<
                         Types.Maybe<
@@ -808,6 +794,20 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
                     >
                 >;
             }
+    >;
+    metadata_log: Array<
+        Types.Maybe<
+            { __typename?: 'ErrorMetadata' } & Pick<
+                Types.ErrorMetadata,
+                | 'error_id'
+                | 'session_id'
+                | 'environment'
+                | 'timestamp'
+                | 'os'
+                | 'browser'
+                | 'visited_url'
+            >
+        >
     >;
 };
 
@@ -841,14 +841,6 @@ export type GetErrorGroupsQuery = { __typename?: 'Query' } & {
                                         | 'lineNumber'
                                         | 'functionName'
                                         | 'columnNumber'
-                                    >
-                                >
-                            >;
-                            metadata_log: Array<
-                                Types.Maybe<
-                                    { __typename?: 'ErrorMetadata' } & Pick<
-                                        Types.ErrorMetadata,
-                                        'error_id' | 'session_id' | 'timestamp'
                                     >
                                 >
                             >;

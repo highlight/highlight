@@ -239,7 +239,7 @@ query GetBillingDetails($organization_id: ID!) {
 }
 
 query GetErrorGroup($id: ID!) {
-    error_group(id: $id) {
+    error_group: error_group(id: $id) {
         id
         type
         organization_id
@@ -252,19 +252,19 @@ query GetErrorGroup($id: ID!) {
             functionName
             columnNumber
         }
-        metadata_log {
-            error_id
-            session_id
-            environment
-            timestamp
-            os
-            browser
-            visited_url
-        }
         field_group {
             name
             value
         }
+    }
+    metadata_log: errorGroupMetadataLogs(error_group_id: $id) {
+        error_id
+        session_id
+        environment
+        timestamp
+        os
+        browser
+        visited_url
     }
 }
 
@@ -290,11 +290,6 @@ query GetErrorGroups(
                 lineNumber
                 functionName
                 columnNumber
-            }
-            metadata_log {
-                error_id
-                session_id
-                timestamp
             }
         }
         totalCount

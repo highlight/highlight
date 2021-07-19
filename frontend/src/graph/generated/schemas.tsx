@@ -154,7 +154,6 @@ export type ErrorGroup = {
     type: Scalars['String'];
     event: Array<Maybe<Scalars['String']>>;
     stack_trace: Array<Maybe<ErrorTrace>>;
-    metadata_log: Array<Maybe<ErrorMetadata>>;
     field_group?: Maybe<Array<Maybe<ErrorField>>>;
     state: ErrorState;
     resolved?: Maybe<Scalars['Boolean']>;
@@ -449,6 +448,7 @@ export type Query = {
     averageSessionLength?: Maybe<AverageSessionLength>;
     userFingerprintCount?: Maybe<UserFingerprintCount>;
     sessions: SessionResults;
+    errorGroupMetadataLogs: Array<Maybe<ErrorMetadata>>;
     billingDetails: BillingDetails;
     field_suggestion?: Maybe<Array<Maybe<Field>>>;
     property_suggestion?: Maybe<Array<Maybe<Field>>>;
@@ -568,6 +568,10 @@ export type QuerySessionsArgs = {
     lifecycle: SessionLifecycle;
     starred: Scalars['Boolean'];
     params?: Maybe<SearchParamsInput>;
+};
+
+export type QueryErrorGroupMetadataLogsArgs = {
+    error_group_id: Scalars['ID'];
 };
 
 export type QueryBillingDetailsArgs = {

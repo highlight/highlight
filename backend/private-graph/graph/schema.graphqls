@@ -128,7 +128,6 @@ type ErrorGroup {
     type: String!
     event: [String]!
     stack_trace: [ErrorTrace]!
-    metadata_log: [ErrorMetadata]!
     field_group: [ErrorField]
     state: ErrorState!
     resolved: Boolean
@@ -427,6 +426,9 @@ type Query {
         starred: Boolean!
         params: SearchParamsInput
     ): SessionResults!
+    errorGroupMetadataLogs(
+        error_group_id: ID!
+    ): [ErrorMetadata]!
     billingDetails(organization_id: ID!): BillingDetails!
     # gets all the organizations of a user
     field_suggestion(

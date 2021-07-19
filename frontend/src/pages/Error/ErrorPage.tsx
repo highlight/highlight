@@ -22,7 +22,11 @@ import InfoTooltip from '../../components/InfoTooltip/InfoTooltip';
 import { RechartTooltip } from '../../components/recharts/RechartTooltip/RechartTooltip';
 import Tooltip from '../../components/Tooltip/Tooltip';
 import { useGetErrorGroupQuery } from '../../graph/generated/hooks';
-import { ErrorGroup, Maybe } from '../../graph/generated/schemas';
+import {
+    ErrorGroup,
+    ErrorMetadata,
+    Maybe,
+} from '../../graph/generated/schemas';
 import SvgDownloadIcon from '../../static/DownloadIcon';
 import { frequencyTimeData } from '../../util/errorCalculations';
 import ErrorComments from './components/ErrorComments/ErrorComments';
@@ -123,10 +127,13 @@ const ErrorPage = () => {
                         </h3>
                     )}
                     <div className={styles.fieldWrapper}>
-                        <ErrorFrequencyGraph errorGroup={data?.error_group} />
+                        <ErrorFrequencyGraph
+                            errorGroup={data?.error_group}
+                            metadataLog={data?.metadata_log}
+                        />
                     </div>
-                    {data?.error_group && (
-                        <ErrorSessionsTable errorGroup={data.error_group} />
+                    {data?.error_group && data?.metadata_log && (
+                        <ErrorSessionsTable metadataLog={data.metadata_log} />
                     )}
                 </div>
                 <div className={styles.errorPageRight}>
@@ -236,6 +243,7 @@ const ErrorPage = () => {
 
 type FrequencyGraphProps = {
     errorGroup?: Maybe<ErrorGroup>;
+    metadataLog: Maybe<Array<Maybe<ErrorMetadata>>> | undefined;
 };
 
 type ErrorFrequency = {
@@ -255,6 +263,7 @@ const timeFilter = [
 
 export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
     errorGroup,
+    metadataLog,
 }) => {
     const [errorDates, setErrorDates] = useState<Array<ErrorFrequency>>(
         Array(LookbackPeriod).fill(0)
@@ -269,7 +278,7 @@ export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
     }, [dateRangeLength]);
 
     useEffect(() => {
-        const errorDatesCopy = frequencyTimeData(errorGroup, dateRangeLength);
+        const errorDatesCopy = frequencyTimeData(metadataLog, dateRangeLength);
         const errorData = errorDatesCopy.map((val, idx) => ({
             date: moment()
                 .startOf('day')

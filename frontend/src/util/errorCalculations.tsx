@@ -1,16 +1,16 @@
 import moment from 'moment';
 
-import { ErrorGroup, Maybe } from '../graph/generated/schemas';
+import { ErrorMetadata, Maybe } from '../graph/generated/schemas';
 
 /* Calculate metadata_log frequency over past n days */
 export function frequencyTimeData(
-    errorGroup: Maybe<ErrorGroup> | undefined,
+    metadataLog: Maybe<Array<Maybe<ErrorMetadata>>> | undefined,
     n: number
 ): Array<number> {
-    if (!errorGroup) return [];
+    if (!metadataLog) return [];
     const today = moment();
     const errorDatesCopy = Array(n).fill(0);
-    for (const error of errorGroup?.metadata_log ?? []) {
+    for (const error of metadataLog ?? []) {
         const errorDate = moment(error?.timestamp);
         const insertIndex =
             errorDatesCopy.length - 1 - today.diff(errorDate, 'days');

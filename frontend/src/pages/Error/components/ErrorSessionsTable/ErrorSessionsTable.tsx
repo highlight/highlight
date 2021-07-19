@@ -5,27 +5,27 @@ import { Link, useParams } from 'react-router-dom';
 
 import commonStyles from '../../../../Common.module.scss';
 import Button from '../../../../components/Button/Button/Button';
-import { ErrorGroup, Maybe } from '../../../../graph/generated/schemas';
+import { ErrorMetadata, Maybe } from '../../../../graph/generated/schemas';
 import { PlayerSearchParameters } from '../../../Player/PlayerHook/utils';
 import styles from '../../ErrorPage.module.scss';
 
 interface Props {
-    errorGroup: Maybe<ErrorGroup> | undefined;
+    metadataLog: Maybe<Array<Maybe<ErrorMetadata>>> | undefined;
 }
 
-const ErrorSessionsTable = ({ errorGroup }: Props) => {
+const ErrorSessionsTable = ({ metadataLog }: Props) => {
     const { organization_id } = useParams<{
         organization_id: string;
     }>();
     const [errorActivityCount, setErrorActivityCount] = useState(20);
     const uniqueSessionsCount = new Set(
-        errorGroup?.metadata_log.map((logEntry) => logEntry?.session_id)
+        metadataLog?.map((logEntry) => logEntry?.session_id)
     ).size;
 
     return (
         <>
             <h3>
-                Impacted Sessions ({errorGroup?.metadata_log.length} errors in{' '}
+                Impacted Sessions ({metadataLog?.length} errors in{' '}
                 {uniqueSessionsCount} sessions)
             </h3>
             <div
@@ -51,10 +51,10 @@ const ErrorSessionsTable = ({ errorGroup }: Props) => {
                             </div>
                         </div>
                         <div className={styles.errorLogWrapper}>
-                            {errorGroup?.metadata_log
-                                .slice(
+                            {metadataLog
+                                ?.slice(
                                     Math.max(
-                                        errorGroup?.metadata_log.length -
+                                        metadataLog?.length -
                                             errorActivityCount,
                                         0
                                     )
@@ -101,9 +101,8 @@ const ErrorSessionsTable = ({ errorGroup }: Props) => {
                                         </div>
                                     </Link>
                                 ))}
-                            {errorGroup?.metadata_log.length &&
-                                errorActivityCount <
-                                    errorGroup?.metadata_log.length && (
+                            {metadataLog?.length &&
+                                errorActivityCount < metadataLog?.length && (
                                     <Button
                                         trackingId="ShowMoreErrorsOnSessionTable"
                                         onClick={() =>
