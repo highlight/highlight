@@ -107,17 +107,6 @@ const LoginForm = () => {
         return <AuthAdminRouter />;
     }
 
-    if (
-        url.toLowerCase() === 'highlight.run' ||
-        window.location.pathname.toLowerCase().includes('request')
-    ) {
-        return (
-            <Landing>
-                <RequestAccessPage />
-            </Landing>
-        );
-    }
-
     return (
         <Landing>
             <div className={styles.loginPage}>
