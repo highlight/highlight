@@ -105,7 +105,7 @@ func (s *StorageClient) ReadSessionsFromS3(sessionId int, organizationId int) ([
 	return allEvents.Events, nil
 }
 
-func (s *StorageClient) PushResourcesToS3(sessionId int, organizationId int, rs []*model.ResourcesObject) (*int64, error) {
+func (s *StorageClient) PushResourcesToS3(sessionId int, organizationId int, rs []model.ResourcesObject) (*int64, error) {
 	allResources := make(map[string][]interface{})
 	for _, resourceObj := range rs {
 		subResources := make(map[string][]interface{})
@@ -158,7 +158,7 @@ func (s *StorageClient) ReadResourcesFromS3(sessionId int, organizationId int) (
 	return allResources.Resources, nil
 }
 
-func (s *StorageClient) PushMessagesToS3(sessionId int, organizationId int, messagesObj []*model.MessagesObject) (*int64, error) {
+func (s *StorageClient) PushMessagesToS3(sessionId int, organizationId int, messagesObj []model.MessagesObject) (*int64, error) {
 	allEvents := make(map[string][]interface{})
 	for _, messageObj := range messagesObj {
 		subMessage := make(map[string][]interface{})

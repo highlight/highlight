@@ -32,7 +32,9 @@ type Worker struct {
 	S3Client *storage.StorageClient
 }
 
-func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Session, migrationState *string, events []model.EventsObject, payloadStringSize int) error {
+const ObjectDelimiter = "\n¬\n"
+
+func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Session, migrationState *string, payload *sessionPayload, payloadStringSize int) error {
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
@@ -41,34 +43,20 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 		return errors.Wrap(err, "error updating session to processed status")
 	}
 	fmt.Printf("starting push for: %v \n", s.ID)
+	events, resources, messages := payload.Events, payload.Resources, payload.Messages
 	sessionPayloadSize, err := w.S3Client.PushSessionsToS3(s.ID, s.OrganizationID, events)
 	// If this is unsucessful, return early (we treat this session as if it is stored in psql).
 	if err != nil {
 		return errors.Wrap(err, "error pushing session payload to s3")
 	}
 
-	resourcesObject := []*model.ResourcesObject{}
-	if res := w.Resolver.DB.Order("created_at desc").Where(&model.ResourcesObject{SessionID: s.ID}).Find(&resourcesObject); res.Error != nil {
-		return errors.Wrap(res.Error, "error reading from resources")
-	}
-	for _, ee := range resourcesObject {
-		payloadStringSize += len(ee.Resources)
-	}
-	dd.StatsD.Histogram("worker.processSession.payloadStringSize", float64(payloadStringSize), nil, 1) //nolint
-	resourcePayloadSize, err := w.S3Client.PushResourcesToS3(s.ID, s.OrganizationID, resourcesObject)
+	resourcePayloadSize, err := w.S3Client.PushResourcesToS3(s.ID, s.OrganizationID, resources)
 	if err != nil {
 		return errors.Wrap(err, "error pushing network payload to s3")
 	}
 
-	messagesObj := []*model.MessagesObject{}
-	if res := w.Resolver.DB.Order("created_at desc").Where(&model.MessagesObject{SessionID: s.ID}).Find(&messagesObj); res.Error != nil {
-		return errors.Wrap(res.Error, "error reading from messages")
-	}
-	for _, mm := range messagesObj {
-		payloadStringSize += len(mm.Messages)
-	}
 	dd.StatsD.Histogram("worker.processSession.payloadStringSize", float64(payloadStringSize), nil, 1) //nolint
-	messagePayloadSize, err := w.S3Client.PushMessagesToS3(s.ID, s.OrganizationID, messagesObj)
+	messagePayloadSize, err := w.S3Client.PushMessagesToS3(s.ID, s.OrganizationID, messages)
 	if err != nil {
 		return errors.Wrap(err, "error pushing network payload to s3")
 	}
@@ -101,31 +89,110 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 			return errors.Wrapf(err, "error deleting all event records with length: %v", len(events))
 		}
 	}
-	if len(resourcesObject) > 0 {
-		if err := w.Resolver.DB.Unscoped().Delete(&resourcesObject).Error; err != nil {
-			return errors.Wrapf(err, "error deleting all network resource records with length %v", len(resourcesObject))
+	if len(resources) > 0 {
+		if err := w.Resolver.DB.Unscoped().Delete(&resources).Error; err != nil {
+			return errors.Wrapf(err, "error deleting all network resource records with length %v", len(resources))
 		}
 	}
-	if len(messagesObj) > 0 {
-		if err := w.Resolver.DB.Unscoped().Delete(&messagesObj).Error; err != nil {
-			return errors.Wrapf(err, "error deleting all messages with length %v", len(messagesObj))
+	if len(messages) > 0 {
+		if err := w.Resolver.DB.Unscoped().Delete(&messages).Error; err != nil {
+			return errors.Wrapf(err, "error deleting all messages with length %v", len(messages))
 		}
 	}
 	fmt.Println("parsed: ", s.ID)
 	return nil
 }
 
-func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
-	// load all events
+type sessionPayload struct {
+	Events    []model.EventsObject
+	Resources []model.ResourcesObject
+	Messages  []model.MessagesObject
+}
+type SessionPayloadFiles struct {
+	EventsFile    *os.File
+	ResourcesFile *os.File
+	MessagesFile  *os.File
+}
+
+func (w *Worker) populateSessionPayload(ctx context.Context, s *model.Session, files *SessionPayloadFiles) (error, *sessionPayload) {
+	// TODO: get rid of `sessionPayload` in place of only writing to the file.
+	objects := &sessionPayload{}
 	events := []model.EventsObject{}
-	if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").Find(&events).Error; err != nil {
-		return errors.Wrap(err, "retrieving events")
+	eventRows, err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").Rows()
+	if err != nil {
+		return errors.Wrap(err, "error retrieving events objects"), nil
+	}
+	eventObject := model.EventsObject{}
+	for eventRows.Next() {
+		eventObject := model.EventsObject{}
+		err := w.Resolver.DB.ScanRows(eventRows, &eventObject)
+		if err != nil {
+			return errors.Wrap(err, "error scanning event row"), nil
+		}
+		eventBytes, err := json.Marshal(eventObject)
+		if err != nil {
+			return errors.Wrap(err, "error marshaling event row"), nil
+		}
+		if _, err := files.EventsFile.WriteString(string(eventBytes) + ObjectDelimiter); err != nil {
+			return errors.Wrap(err, "error writing event row"), nil
+		}
+	}
+	objects.Events = events
+	resourcesObject := []model.ResourcesObject{}
+	if res := w.Resolver.DB.Order("created_at desc").Where(&model.ResourcesObject{SessionID: s.ID}).Find(&resourcesObject); res.Error != nil {
+		return nil, errors.Wrap(res.Error, "error retrieveing resource objects")
+	}
+	objects.Resources = resourcesObject
+	messagesObj := []model.MessagesObject{}
+	if res := w.Resolver.DB.Order("created_at desc").Where(&model.MessagesObject{SessionID: s.ID}).Find(&messagesObj); res.Error != nil {
+		return nil, errors.Wrap(res.Error, "error retrieveing messages objects")
+	}
+	objects.Messages = messagesObj
+	return objects, nil
+}
+
+// processSession tasks
+//	- Mark session as processed (don't re-process if something goes wrong below)
+//	- QuerySessionPayload (events, messages, resources) -> writes data to a file(s)
+// 	- Do necessary processing on events, messages, resources (session active length, total length, etc..)
+// 	- Cleanup file(s)
+// 	- if (Write to S3) == successful:
+// 		- mark session.StoredInS3 = true
+// 		- delete resources in the DB
+
+func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
+	sessionIdString := strconv.FormatInt(int64(s.ID), 10)
+	eventsFile, err := os.Create(sessionIdString + ".events.txt")
+	if err != nil {
+		return errors.Wrap(err, "error creating events file")
+	}
+	defer eventsFile.Close()
+	resourcesFile, err := os.Create(sessionIdString + ".resources.txt")
+	if err != nil {
+		return errors.Wrap(err, "error creating resources file")
+	}
+	defer resourcesFile.Close()
+	messagesFile, err := os.Create(sessionIdString + ".messages.txt")
+	if err != nil {
+		return errors.Wrap(err, "error creating messages file")
+	}
+	defer messagesFile.Close()
+	payloadFiles := &SessionPayloadFiles{
+		EventsFile:    eventsFile,
+		ResourcesFile: resourcesFile,
+		MessagesFile:  messagesFile,
 	}
 
+	payload, err := w.populateSessionPayload(ctx, s, payloadFiles)
+	if err != nil {
+		return errors.Wrap(err, "error querying for all session objects")
+	}
+
+	events := payload.Events
 	dd.StatsD.Histogram("worker.processSession.numEventsRowsQueried", float64(len(events)), nil, 1) //nolint
 
 	payloadStringBytes := 0
-	for _, ee := range events {
+	for _, ee := range payload.Events {
 		payloadStringBytes += len(ee.Events)
 	}
 	dd.StatsD.Histogram("worker.processSession.payloadStringSize", float64(payloadStringBytes), nil, 1) //nolint
