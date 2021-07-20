@@ -20,8 +20,6 @@ COPY ./.prettierrc ./
 RUN CI=false yarn build
 
 FROM alpine
-RUN --mount=type=secret,id=SENDGRID_API_KEY \
-  export SENDGRID_API_KEY=$(cat /run/secrets/SENDGRID_API_KEY)
 ENV ONPREM_STATIC_FRONTEND_PATH="./build"
 ENV ENABLE_OBJECT_STORAGE=true
 WORKDIR /root/
@@ -29,4 +27,5 @@ COPY --from=backend-builder /bin/backend /bin/backend
 RUN mkdir ./build
 COPY --from=frontend-builder /build-frontend/build ./build
 
-CMD ["/bin/backend"]
+CMD ["--mount=type=secret,id=SENDGRID_API_KEY", "export", 
+  "SENDGRID_API_KEY=$(cat /run/secrets/SENDGRID_API_KEY)", "&&", "/bin/backend"]
