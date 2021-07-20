@@ -1,8 +1,12 @@
 import { Replayer } from '@highlight-run/rrweb';
 import { SessionInterval } from '@highlight-run/rrweb/dist/types';
-import { createContext } from 'react';
 
-import { ErrorObject, SessionComment } from '../../../graph/generated/schemas';
+import {
+    ErrorObject,
+    SessionComment,
+    SessionResults,
+} from '../../../graph/generated/schemas';
+import { createContext } from '../../../util/context/context';
 import { HighlightEvent } from '../HighlightEvent';
 
 export enum ReplayerState {
@@ -15,7 +19,17 @@ export enum ReplayerState {
     Paused,
     /** Caused when the end-user calls H.stop() manually to stop recording. */
     SessionRecordingStopped,
+    /** Playback of the session has reached the end. */
+    SessionEnded,
 }
+
+export const ReplayerPausedStates = [
+    ReplayerState.Paused,
+    ReplayerState.LoadedWithDeepLink,
+    ReplayerState.LoadedAndUntouched,
+    ReplayerState.SessionRecordingStopped,
+    ReplayerState.SessionEnded,
+];
 
 interface BaseParsedEvent {
     /**
@@ -57,27 +71,13 @@ export interface ReplayerContextInterface {
     eventsForTimelineIndicator: Array<ParsedHighlightEvent>;
     /** Whether this session can be viewed. A session is not viewable if it is locked behind billing. */
     canViewSession: boolean;
+    /** The sessions that are relevant to the current search filters. */
+    sessionResults: SessionResults;
+    setSessionResults: React.Dispatch<React.SetStateAction<SessionResults>>;
+    isPlayerReady: boolean;
 }
 
-/* eslint-disable */
-export const defaultValue: ReplayerContextInterface = {
-    state: ReplayerState.Loading,
-    replayer: undefined,
-    scale: 1,
-    setScale: (_) => {},
-    time: 0,
-    setTime: (_) => {},
-    play: (_) => {},
-    pause: (_) => {},
-    events: [],
-    errors: [],
-    sessionIntervals: [],
-    sessionComments: [],
-    eventsForTimelineIndicator: [],
-    canViewSession: true,
-};
-/* eslint-enable */
-
-const ReplayerContext = createContext<ReplayerContextInterface>(defaultValue);
-
-export default ReplayerContext;
+export const [
+    useReplayerContext,
+    ReplayerContextProvider,
+] = createContext<ReplayerContextInterface>('ReplayerContext');

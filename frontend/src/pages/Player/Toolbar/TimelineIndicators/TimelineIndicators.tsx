@@ -1,9 +1,8 @@
-import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
-import React, { useContext } from 'react';
+import React from 'react';
 
-import { EventsForTimeline } from '../../PlayerHook/utils';
-import ReplayerContext, { ReplayerState } from '../../ReplayerContext';
+import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration';
+import { ReplayerState, useReplayerContext } from '../../ReplayerContext';
 import { useDevToolsContext } from '../DevToolsContext/DevToolsContext';
 import TimelineCommentAnnotation from '../TimelineAnnotation/TimelineCommentAnnotation';
 import TimelineErrorAnnotation from '../TimelineAnnotation/TimelineErrorAnnotation';
@@ -17,16 +16,12 @@ const TimelineIndicators = () => {
         errors,
         sessionComments,
         eventsForTimelineIndicator,
-    } = useContext(ReplayerContext);
-    const [
-        selectedEventTypes,
-    ] = useLocalStorage('highlightTimelineAnnotationTypes', [
-        ...EventsForTimeline,
-    ]);
+    } = useReplayerContext();
+    const { selectedTimelineAnnotationTypes } = usePlayerConfiguration();
     const { openDevTools } = useDevToolsContext();
 
     if (
-        selectedEventTypes.length === 0 ||
+        selectedTimelineAnnotationTypes.length === 0 ||
         state === ReplayerState.Loading ||
         !replayer
     ) {
@@ -46,7 +41,7 @@ const TimelineIndicators = () => {
                 [styles.withDevtoolsOpen]: openDevTools,
             })}
         >
-            {selectedEventTypes.includes('Errors') &&
+            {selectedTimelineAnnotationTypes.includes('Errors') &&
                 errorsWithTimestamps.map((error) => {
                     const relativeTimestamp =
                         new Date(error.timestamp).getTime() - sessionStartTime;
@@ -67,7 +62,7 @@ const TimelineIndicators = () => {
                         />
                     );
                 })}
-            {selectedEventTypes.includes('Comments') &&
+            {selectedTimelineAnnotationTypes.includes('Comments') &&
                 sessionComments.map((comment) => {
                     return (
                         <TimelineCommentAnnotation

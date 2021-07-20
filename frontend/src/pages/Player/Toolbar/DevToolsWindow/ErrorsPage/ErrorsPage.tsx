@@ -1,10 +1,10 @@
-import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router-dom';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 import Input from '../../../../../components/Input/Input';
-import ReplayerContext, { ReplayerState } from '../../../ReplayerContext';
+import { ReplayerState, useReplayerContext } from '../../../ReplayerContext';
 import { useErrorModalContext } from '../../ErrorModalContext/ErrorModalContext';
 import devStyles from '../DevToolsWindow.module.scss';
 import ErrorCard, { ErrorCardState } from './components/ErrorCard/ErrorCard';
@@ -23,9 +23,7 @@ const ErrorsPage = () => {
     );
     const [filterSearchTerm, setFilterSearchTerm] = useState('');
     const history = useHistory<ErrorsPageHistoryState>();
-    const { errors: allErrors, state, time, replayer } = useContext(
-        ReplayerContext
-    );
+    const { errors: allErrors, state, time, replayer } = useReplayerContext();
     const { setSelectedError } = useErrorModalContext();
 
     const loading = state === ReplayerState.Loading;

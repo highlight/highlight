@@ -25,7 +25,7 @@ import {
 import { formatNumber } from '../../../../../util/numbers';
 import { MillisToMinutesAndSeconds } from '../../../../../util/time';
 import { formatTime } from '../../../../Home/components/KeyPerformanceIndicators/utils/utils';
-import ReplayerContext, { ReplayerState } from '../../../ReplayerContext';
+import { ReplayerState, useReplayerContext } from '../../../ReplayerContext';
 import devStyles from '../DevToolsWindow.module.scss';
 import { getNetworkResourcesDisplayName, Option } from '../Option/Option';
 import ResourceDetailsModal from './components/ResourceDetailsModal/ResourceDetailsModal';
@@ -38,7 +38,7 @@ export const ResourcePage = ({
     time: number;
     startTime: number;
 }) => {
-    const { state } = useContext(ReplayerContext);
+    const { state } = useReplayerContext();
     const { session_id } = useParams<{ session_id: string }>();
     const { demo } = useContext(DemoContext);
     const { data: sessionData } = useGetSessionQuery({
@@ -379,7 +379,7 @@ const ResourceRow = ({
     searchTerm: string;
     onClickHandler: () => void;
 }) => {
-    const { pause } = useContext(ReplayerContext);
+    const { pause } = useReplayerContext();
     const leftPaddingPercent = (resource.startTime / networkRange) * 100;
     const actualPercent = Math.max(
         ((resource.responseEnd - resource.startTime) / networkRange) * 100,

@@ -1,4 +1,3 @@
-import useLocalStorage from '@rehooks/local-storage';
 import { H } from 'highlight.run';
 import React, { useEffect } from 'react';
 import { BiMinus } from 'react-icons/bi';
@@ -7,12 +6,12 @@ import { BsPlus } from 'react-icons/bs';
 import Button from '../../../../components/Button/Button/Button';
 import Tooltip from '../../../../components/Tooltip/Tooltip';
 import { useGetAdminQuery } from '../../../../graph/generated/hooks';
+import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration';
 import styles from './SpeedControl.module.scss';
 
 const MIN_SPEED = 0.5;
 const MAX_SPEED = 8.0;
 const SPEED_INCREMENT = 0.5;
-const DEFAULT_SPEED = 2.0;
 
 interface Props {
     disabled: boolean;
@@ -20,13 +19,10 @@ interface Props {
 
 const SpeedControl = ({ disabled }: Props) => {
     const { data: admin_data } = useGetAdminQuery({ skip: false });
-    const [speed, setSpeed] = useLocalStorage(
-        'highlightMenuSpeed',
-        DEFAULT_SPEED
-    );
+    const { playerSpeed, setPlayerSpeed } = usePlayerConfiguration();
 
     const onHandleSpeedChange = (type: 'DECREMENT' | 'INCREMENT') => {
-        let newSpeed = speed;
+        let newSpeed = playerSpeed;
 
         if (type === 'DECREMENT') {
             newSpeed = Math.max(MIN_SPEED, newSpeed - SPEED_INCREMENT);
@@ -34,15 +30,15 @@ const SpeedControl = ({ disabled }: Props) => {
             newSpeed = Math.min(MAX_SPEED, newSpeed + SPEED_INCREMENT);
         }
 
-        setSpeed(newSpeed);
+        setPlayerSpeed(newSpeed);
     };
 
     useEffect(() => {
         if (admin_data?.admin?.email === 'lorilyn@impira.com') {
             H.track('PlayerSpeedOverride', { admin: 'lorilyn@impira.com' });
-            setSpeed(1.0);
+            setPlayerSpeed(1.0);
         }
-    }, [admin_data?.admin?.email, setSpeed]);
+    }, [admin_data?.admin?.email, setPlayerSpeed]);
 
     return (
         <div className={styles.speedControlContainer}>
@@ -52,7 +48,7 @@ const SpeedControl = ({ disabled }: Props) => {
                 onClick={() => {
                     onHandleSpeedChange('DECREMENT');
                 }}
-                disabled={disabled || speed === MIN_SPEED}
+                disabled={disabled || playerSpeed === MIN_SPEED}
             >
                 <BiMinus />
             </Button>
@@ -60,7 +56,9 @@ const SpeedControl = ({ disabled }: Props) => {
                 title="Control the playback speed of the session player."
                 arrowPointAtCenter
             >
-                <span className={styles.speedText}>{speed.toFixed(1)}x</span>
+                <span className={styles.speedText}>
+                    {playerSpeed.toFixed(1)}x
+                </span>
             </Tooltip>
             <Button
                 trackingId="IncreasePlayerSpeed"
@@ -68,7 +66,7 @@ const SpeedControl = ({ disabled }: Props) => {
                 onClick={() => {
                     onHandleSpeedChange('INCREMENT');
                 }}
-                disabled={disabled || speed === MAX_SPEED}
+                disabled={disabled || playerSpeed === MAX_SPEED}
             >
                 <BsPlus />
             </Button>

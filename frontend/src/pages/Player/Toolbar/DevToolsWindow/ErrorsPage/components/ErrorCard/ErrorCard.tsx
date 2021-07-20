@@ -1,12 +1,12 @@
 import { message } from 'antd';
 import classNames from 'classnames';
-import React, { useContext } from 'react';
+import React from 'react';
 
 import GoToButton from '../../../../../../../components/Button/GoToButton';
 import TextHighlighter from '../../../../../../../components/TextHighlighter/TextHighlighter';
 import { ErrorObject } from '../../../../../../../graph/generated/schemas';
 import { MillisToMinutesAndSeconds } from '../../../../../../../util/time';
-import ReplayerContext from '../../../../../ReplayerContext';
+import { useReplayerContext } from '../../../../../ReplayerContext';
 import styles from './ErrorCard.module.scss';
 
 export enum ErrorCardState {
@@ -22,7 +22,7 @@ interface Props {
 }
 
 const ErrorCard = ({ error, state, setSelectedError, searchQuery }: Props) => {
-    const { replayer, setTime } = useContext(ReplayerContext);
+    const { replayer, setTime } = useReplayerContext();
 
     return (
         <div

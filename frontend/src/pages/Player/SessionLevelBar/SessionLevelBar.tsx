@@ -8,7 +8,7 @@ import { DemoContext } from '../../../DemoContext';
 import { useGetSessionQuery } from '../../../graph/generated/hooks';
 import { ReactComponent as LayoutIcon } from '../../../static/layout.svg';
 import { ReactComponent as LockIcon } from '../../../static/lock.svg';
-import ReplayerContext, { ReplayerState } from '../ReplayerContext';
+import { ReplayerState, useReplayerContext } from '../ReplayerContext';
 import ShareButton from '../ShareButton/ShareButton';
 import { CurrentUrlBar } from './CurrentUrlBar/CurrentUrlBar';
 import PanelDisplayControls from './PanelDisplayControls/PanelDisplayControls';
@@ -22,7 +22,7 @@ interface Viewport {
 }
 
 const SessionLevelBar = () => {
-    const { replayer, state, events } = useContext(ReplayerContext);
+    const { replayer, state, events } = useReplayerContext();
     const [currentUrl, setCurrentUrl] = useState<string | undefined>(undefined);
     const [viewport, setViewport] = useState<Viewport | null>(null);
     const { session_id } = useParams<{ session_id: string }>();

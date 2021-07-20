@@ -1,5 +1,5 @@
 import { message } from 'antd';
-import React, { ReactElement, useContext, useState } from 'react';
+import React, { ReactElement, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
 import GoToButton from '../../../../components/Button/GoToButton';
@@ -7,7 +7,7 @@ import Popover from '../../../../components/Popover/Popover';
 import { MillisToMinutesAndSeconds } from '../../../../util/time';
 import { getHeaderFromError } from '../../../Error/ErrorPage';
 import { PlayerSearchParameters } from '../../PlayerHook/utils';
-import ReplayerContext, { ParsedErrorObject } from '../../ReplayerContext';
+import { ParsedErrorObject, useReplayerContext } from '../../ReplayerContext';
 import { useErrorModalContext } from '../ErrorModalContext/ErrorModalContext';
 import styles from '../Toolbar.module.scss';
 import TimelineAnnotation from './TimelineAnnotation';
@@ -22,7 +22,7 @@ function TimelineErrorAnnotation({ error }: Props): ReactElement {
         PlayerSearchParameters.errorId
     );
     const { setSelectedError } = useErrorModalContext();
-    const { pause, replayer } = useContext(ReplayerContext);
+    const { pause, replayer } = useReplayerContext();
 
     const [isTooltipOpen, setIsTooltipOpen] = useState(false);
 
