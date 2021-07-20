@@ -3,6 +3,7 @@ import {
     playerMetaData,
     SessionInterval,
 } from '@highlight-run/rrweb/dist/types';
+import useLocalStorage from '@rehooks/local-storage';
 import { useCallback, useState } from 'react';
 import { useLocation } from 'react-router';
 
@@ -115,6 +116,12 @@ export const useSetPlayerTimestampFromSearchParam = (
 ) => {
     const location = useLocation();
     const [hasSearchParam, setHasSearchParam] = useState(false);
+    const [
+        selectedEventTypes,
+        setSelectedEventTypes,
+    ] = useLocalStorage('highlightTimelineAnnotationTypes', [
+        ...EventsForTimeline,
+    ]);
 
     const setPlayerTimestamp = useCallback(
         (
@@ -159,12 +166,26 @@ export const useSetPlayerTimestampFromSearchParam = (
                         setTime(newTime);
                         replayer?.pause(newTime);
                         setSelectedErrorId(errorId);
+
+                        // Show errors on the timeline indicators if deep linked.
+                        if (!selectedEventTypes.includes('Errors')) {
+                            setSelectedEventTypes([
+                                ...selectedEventTypes,
+                                'Errors',
+                            ]);
+                        }
                     }
                 }
                 setHasSearchParam(true);
             }
         },
-        [location.search, replayer, setTime]
+        [
+            location.search,
+            replayer,
+            selectedEventTypes,
+            setSelectedEventTypes,
+            setTime,
+        ]
     );
 
     return {
