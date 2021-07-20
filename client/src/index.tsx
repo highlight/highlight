@@ -518,41 +518,20 @@ export class Highlight {
                 })
             );
 
-            // This is gated to only Highlight.
             if (
                 !this.disableNetworkRecording &&
-                this.enableRecordingNetworkContents &&
-                this.isRunningOnHighlight
+                this.enableRecordingNetworkContents
             ) {
                 this.listeners.push(
                     NetworkListener({
                         xhrCallback: (requestResponsePair) => {
-                            if (
-                                this.isRunningOnHighlight ||
-                                isHighlightNetworkResourceFilter(
-                                    requestResponsePair.request.url
-                                )
-                            ) {
-                                console.log(requestResponsePair);
-                                this.xhrNetworkContents.push(
-                                    requestResponsePair
-                                );
-                            }
+                            this.xhrNetworkContents.push(requestResponsePair);
                         },
                         fetchCallback: (requestResponsePair) => {
-                            if (
-                                this.isRunningOnHighlight ||
-                                isHighlightNetworkResourceFilter(
-                                    requestResponsePair.request.url
-                                )
-                            ) {
-                                console.log(requestResponsePair);
-                                this.fetchNetworkContents.push(
-                                    requestResponsePair
-                                );
-                            }
+                            this.fetchNetworkContents.push(requestResponsePair);
                         },
                         headersToRedact: this.networkHeadersToRedact,
+                        backendUrl: this._backendUrl,
                     })
                 );
             }
@@ -655,18 +634,12 @@ export class Highlight {
             // get all resources that don't include 'api.highlight.run'
             resources = performance.getEntriesByType('resource');
 
-            // Only filter out requests made to Highlight for customers.
-            if (!this.isRunningOnHighlight) {
-                resources = resources.filter(
-                    (r) => !isHighlightNetworkResourceFilter(r.name)
-                );
-            }
+            resources = resources.filter(
+                (r) =>
+                    !isHighlightNetworkResourceFilter(r.name, this._backendUrl)
+            );
 
-            // This feature is gated to only Highlight.
-            if (
-                this.isRunningOnHighlight &&
-                this.enableRecordingNetworkContents
-            ) {
+            if (this.enableRecordingNetworkContents) {
                 resources = matchPerformanceTimingsWithRequestResponsePair(
                     resources,
                     this.xhrNetworkContents,
@@ -677,9 +650,6 @@ export class Highlight {
                     this.fetchNetworkContents,
                     'fetch'
                 );
-                console.log(resources);
-                console.log(this.xhrNetworkContents);
-                console.log(this.fetchNetworkContents);
                 this.xhrNetworkContents = [];
                 this.fetchNetworkContents = [];
             }

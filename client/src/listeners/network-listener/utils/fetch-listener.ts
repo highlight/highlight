@@ -4,8 +4,12 @@ import {
     Request as HighlightRequest,
     Response as HighlightResponse,
 } from './models';
+import { isHighlightNetworkResourceFilter } from './utils';
 
-export const FetchListener = (callback: NetworkListenerCallback) => {
+export const FetchListener = (
+    callback: NetworkListenerCallback,
+    backendUrl: string
+) => {
     const originalFetch = window.fetch;
 
     window.fetch = function (input, init) {
@@ -19,7 +23,10 @@ export const FetchListener = (callback: NetworkListenerCallback) => {
         let responsePromise: Promise<Response>;
 
         responsePromise = originalFetch.call(this, input, init);
-        logRequest(responsePromise, request, callback);
+
+        if (!isHighlightNetworkResourceFilter(url, backendUrl)) {
+            logRequest(responsePromise, request, callback);
+        }
 
         return responsePromise;
     };
