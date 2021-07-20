@@ -5,7 +5,7 @@ WORKDIR /build-backend
 COPY ./backend .
 RUN go mod download
 RUN --mount=type=secret,id=SENDGRID_API_KEY \
-  export SENDGRID_API_KEY=$() && GOOS=linux GOARCH=amd64 \
+  export SENDGRID_API_KEY=$(cat /run/secrets/SENDGRID_API_KEY) && GOOS=linux GOARCH=amd64 \
   go build -ldflags="-w -s -X main.SENDGRID_API_KEY=$SENDGRID_API_KEY" -o /bin/backend
 
 FROM node:14-alpine as frontend-builder
