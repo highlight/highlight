@@ -10,7 +10,7 @@ FROM node:14-alpine as frontend-builder
 # These two 'args' need to be here because they're injected at build time
 # all other env variables are provided in environment.yml.
 ARG REACT_APP_COMMIT_SHA
-ARG REACT_APP_ONPREM=true
+ENV REACT_APP_ONPREM=true
 RUN mkdir /build-frontend
 WORKDIR /build-frontend
 COPY ./frontend/package.json ./frontend/yarn.lock ./
