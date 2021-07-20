@@ -20,7 +20,6 @@ import {
 } from '../../../util/time';
 import { EventsForTimeline, EventsForTimelineKeys } from '../PlayerHook/utils';
 import ReplayerContext, {
-    ParsedSessionComment,
     ParsedSessionInterval,
     ReplayerState,
 } from '../ReplayerContext';
@@ -33,10 +32,8 @@ import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
 import ErrorModal from './DevToolsWindow/ErrorsPage/components/ErrorModal/ErrorModal';
 import { ErrorModalContextProvider } from './ErrorModalContext/ErrorModalContext';
 import SpeedControl from './SpeedControl/SpeedControl';
-import TimelineCommentAnnotation from './TimelineAnnotation/TimelineCommentAnnotation';
-import TimelineErrorAnnotation from './TimelineAnnotation/TimelineErrorAnnotation';
-import TimelineEventAnnotation from './TimelineAnnotation/TimelineEventAnnotation';
 import TimelineAnnotationsSettings from './TimelineAnnotationsSettings/TimelineAnnotationsSettings';
+import TimelineIndicators from './TimelineIndicators/TimelineIndicators';
 import styles from './Toolbar.module.scss';
 
 export const Toolbar = () => {
@@ -48,7 +45,6 @@ export const Toolbar = () => {
         play,
         pause,
         sessionIntervals,
-        sessionCommentIntervals,
         canViewSession,
     } = useContext(ReplayerContext);
     usePlayerHotKeys();
@@ -86,9 +82,6 @@ export const Toolbar = () => {
         'highlightSelectedDevtoolTabs',
         DevToolTabs.Errors
     );
-    const [] = useLocalStorage('highlightTimelineAnnotationTypes', [
-        ...EventsForTimeline,
-    ]);
 
     const [lastCanvasPreview, setLastCanvasPreview] = useState(0);
     const isPaused =
@@ -219,6 +212,7 @@ export const Toolbar = () => {
                     setSelectedTab: setSelectedDevToolsTab,
                 }}
             >
+                <TimelineIndicators />
                 <DevToolsWindow
                     time={(replayer?.getMetaData().startTime ?? 0) + time}
                     startTime={replayer?.getMetaData().startTime ?? 0}
@@ -247,7 +241,6 @@ export const Toolbar = () => {
                         <SessionSegment
                             key={ind}
                             interval={e}
-                            comments={sessionCommentIntervals[ind]}
                             sliderClientX={sliderClientX}
                             wrapperWidth={wrapperWidth}
                             getSliderTime={getSliderTime}
@@ -491,24 +484,16 @@ export const Toolbar = () => {
 
 const SessionSegment = ({
     interval,
-    comments,
     sliderClientX,
     wrapperWidth,
     getSliderTime,
 }: {
     interval: ParsedSessionInterval;
-    comments: ParsedSessionComment[];
     sliderClientX: number;
     wrapperWidth: number;
     getSliderTime: (sliderTime: number) => number;
 }) => {
     const { time } = useContext(ReplayerContext);
-    const [openDevTools] = useLocalStorage('highlightMenuOpenDevTools', false);
-    const [
-        selectedTimelineAnnotationTypes,
-    ] = useLocalStorage('highlightTimelineAnnotationTypes', [
-        ...EventsForTimeline,
-    ]);
     const playedColor = interval.active
         ? 'var(--color-purple)'
         : 'var(--color-gray-500)';
@@ -533,64 +518,6 @@ const SessionSegment = ({
                 }%`,
             }}
         >
-            {!openDevTools && (
-                <>
-                    <div
-                        className={styles.annotationsContainer}
-                        style={{
-                            width: `${
-                                (interval.endPercent - interval.startPercent) *
-                                100
-                            }%`,
-                        }}
-                    >
-                        {interval.sessionEvents?.map((event) => (
-                            <TimelineEventAnnotation
-                                event={event}
-                                key={event.identifier}
-                            />
-                        ))}
-                    </div>
-                    {selectedTimelineAnnotationTypes.includes('Errors') && (
-                        <div
-                            className={styles.annotationsContainer}
-                            style={{
-                                width: `${
-                                    (interval.endPercent -
-                                        interval.startPercent) *
-                                    100
-                                }%`,
-                            }}
-                        >
-                            {interval.errors.map((error) => (
-                                <TimelineErrorAnnotation
-                                    key={error.id}
-                                    error={error}
-                                />
-                            ))}
-                        </div>
-                    )}
-                    {selectedTimelineAnnotationTypes.includes('Comments') && (
-                        <div
-                            className={styles.annotationsContainer}
-                            style={{
-                                width: `${
-                                    (interval.endPercent -
-                                        interval.startPercent) *
-                                    100
-                                }%`,
-                            }}
-                        >
-                            {comments?.map((comment) => (
-                                <TimelineCommentAnnotation
-                                    key={comment.id}
-                                    comment={comment}
-                                />
-                            ))}
-                        </div>
-                    )}
-                </>
-            )}
             <div
                 className={styles.sliderPopover}
                 style={{

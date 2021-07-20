@@ -38,6 +38,12 @@ const PlayerCommentCanvas = ({
             session_id: session_id,
         },
     });
+    const [
+        selectedEventTypes,
+        setSelectedEventTypes,
+    ] = useLocalStorage('highlightTimelineAnnotationTypes', [
+        ...EventsForTimeline,
+    ]);
     const [deepLinkedCommentId, setDeepLinkedCommentId] = useState(
         new URLSearchParams(location.search).get(
             PlayerSearchParameters.commentId
@@ -66,7 +72,14 @@ const PlayerCommentCanvas = ({
         const commentId = new URLSearchParams(location.search).get(
             PlayerSearchParameters.commentId
         );
-        setDeepLinkedCommentId(commentId);
+
+        if (commentId) {
+            setDeepLinkedCommentId(commentId);
+            // Show comments on the timeline indicators if deep linked.
+            if (!selectedEventTypes.includes('Comments')) {
+                setSelectedEventTypes([...selectedEventTypes, 'Comments']);
+            }
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [location.search]);
 

@@ -45,7 +45,7 @@ const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, msg);
 };
 
-type HighlightPublicInterface = {
+export interface HighlightPublicInterface {
     init: (orgID: number | string, debug?: HighlightOptions) => void;
     identify: (identify: string, obj: any) => void;
     track: (event: string, obj: any) => void;
@@ -70,7 +70,7 @@ type HighlightPublicInterface = {
     stop: () => void;
     onHighlightReady: (func: () => void) => void;
     options: HighlightOptions | undefined;
-};
+}
 
 interface HighlightWindow extends Window {
     Highlight: new (options?: HighlightClassOptions) => Highlight;
@@ -88,6 +88,15 @@ export const H: HighlightPublicInterface = {
     init: (orgID: number | string, options?: HighlightOptions) => {
         try {
             H.options = options;
+
+            // Don't run init when called outside of the browser.
+            if (
+                typeof window === 'undefined' ||
+                typeof document === 'undefined'
+            ) {
+                return;
+            }
+
             script = document.createElement('script');
             var scriptSrc = options?.scriptUrl
                 ? options.scriptUrl

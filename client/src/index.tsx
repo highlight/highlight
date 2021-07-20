@@ -93,6 +93,10 @@ type SessionData = {
 };
 
 /**
+ *  The amount of time to wait until sending the first payload.
+ */
+const FIRST_SEND_FREQUENCY = 1000 * 1;
+/**
  * The amount of time between sending the client-side payload to Highlight backend client.
  * In milliseconds.
  */
@@ -400,7 +404,7 @@ export class Highlight {
             }
             setTimeout(() => {
                 this._save();
-            }, SEND_FREQUENCY);
+            }, FIRST_SEND_FREQUENCY);
             const emit = (event: eventWithTime) => {
                 this.events.push(event);
             };
@@ -614,11 +618,6 @@ export class Highlight {
             try {
                 const payload = this._getPayload();
                 await this.graphqlSDK.PushPayload(payload);
-                // TODO: Make sure we only delete things that have been sent.
-                this.errors = [];
-                this.messages = [];
-                this.xhrNetworkContents = [];
-                this.fetchNetworkContents = [];
                 // Listeners are cleared when the user calls stop() manually.
                 if (this.listeners.length === 0) {
                     return;
@@ -681,10 +680,16 @@ export class Highlight {
                 console.log(resources);
                 console.log(this.xhrNetworkContents);
                 console.log(this.fetchNetworkContents);
+                this.xhrNetworkContents = [];
+                this.fetchNetworkContents = [];
             }
         }
 
-        const resourcesString = stringify({ resources: resources });
+        const resourcesString = JSON.stringify({ resources: resources });
+
+        const messages = [...this.messages];
+        this.messages = this.messages.slice(messages.length);
+
         const messagesString = stringify({ messages: this.messages });
         this.logger.log(
             `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources, ${this.errors.length} errors \nTo: ${process.env.PUBLIC_GRAPH_URI}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionData.sessionID}`
@@ -703,12 +708,15 @@ export class Highlight {
         const events = [...this.events];
         this.events = this.events.slice(events.length);
 
+        const errors = [...this.errors];
+        this.errors = this.errors.slice(errors.length);
+
         return {
             session_id: this.sessionData.sessionID.toString(),
             events: { events },
             messages: messagesString,
             resources: resourcesString,
-            errors: this.errors,
+            errors,
         };
     }
 }

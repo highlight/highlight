@@ -14,15 +14,15 @@ import {
 import { ErrorObject, SessionComment } from '../../../graph/generated/schemas';
 import { HighlightEvent } from '../HighlightEvent';
 import {
+    ParsedHighlightEvent,
     ParsedSessionComment,
     ParsedSessionInterval,
     ReplayerContextInterface,
     ReplayerState,
 } from '../ReplayerContext';
 import {
-    addErrorsToSessionIntervals,
-    addEventsToSessionIntervals,
     getCommentsInSessionIntervals,
+    getEventsForTimelineIndicator,
     getSessionIntervals,
     useSetPlayerTimestampFromSearchParam,
 } from './utils';
@@ -42,9 +42,13 @@ export const usePlayer = (): ReplayerContextInterface => {
     const [download] = useQueryParam('download', BooleanParam);
     const [scale, setScale] = useState(1);
     const [events, setEvents] = useState<Array<HighlightEvent>>([]);
-    const [sessionCommentIntervals, setSessionCommentIntervals] = useState<
-        ParsedSessionComment[][]
+    const [sessionComments, setSessionComments] = useState<
+        ParsedSessionComment[]
     >([]);
+    const [
+        eventsForTimelineIndicator,
+        setEventsForTimelineIndicator,
+    ] = useState<ParsedHighlightEvent[]>([]);
     const [timerId, setTimerId] = useState<number | null>(null);
     const [errors, setErrors] = useState<ErrorObject[]>([]);
     const [, setSelectedErrorId] = useState<string | undefined>(undefined);
@@ -109,7 +113,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             setErrors([]);
             setEvents([]);
             setScale(1);
-            setSessionCommentIntervals([]);
+            setSessionComments([]);
             setReplayer(undefined);
             setSelectedErrorId(undefined);
             setTime(0);
@@ -204,13 +208,10 @@ export const usePlayer = (): ReplayerContextInterface => {
                         '[Highlight] Session Metadata:',
                         replayer.getMetaData()
                     );
-                    setSessionIntervals(
-                        addEventsToSessionIntervals(
-                            addErrorsToSessionIntervals(
-                                sessionIntervals,
-                                errors,
-                                replayer.getMetaData().startTime
-                            ),
+                    setSessionIntervals(sessionIntervals);
+                    setEventsForTimelineIndicator(
+                        getEventsForTimelineIndicator(
+                            sessionIntervals,
                             events,
                             replayer.getMetaData().startTime
                         )
@@ -255,12 +256,12 @@ export const usePlayer = (): ReplayerContextInterface => {
             sessionIntervals.length > 0 &&
             !sessionCommentsLoading
         ) {
-            setSessionCommentIntervals(
+            setSessionComments(
                 getCommentsInSessionIntervals(
                     sessionIntervals,
                     sessionCommentsData.session_comments as SessionComment[],
                     replayer.getMetaData().startTime
-                )
+                ).flat()
             );
         }
     }, [
@@ -344,8 +345,9 @@ export const usePlayer = (): ReplayerContextInterface => {
         play,
         pause,
         errors,
-        sessionCommentIntervals,
+        sessionComments,
         canViewSession,
+        eventsForTimelineIndicator,
     };
 };
 
