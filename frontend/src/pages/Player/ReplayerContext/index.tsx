@@ -53,7 +53,8 @@ export interface ReplayerContextInterface {
     events: Array<HighlightEvent>;
     errors: ErrorObject[];
     sessionIntervals: Array<ParsedSessionInterval>;
-    sessionCommentIntervals: SessionComment[][];
+    sessionComments: SessionComment[];
+    eventsForTimelineIndicator: Array<ParsedHighlightEvent>;
     /** Whether this session can be viewed. A session is not viewable if it is locked behind billing. */
     canViewSession: boolean;
 }
@@ -71,7 +72,8 @@ export const defaultValue: ReplayerContextInterface = {
     events: [],
     errors: [],
     sessionIntervals: [],
-    sessionCommentIntervals: [[]],
+    sessionComments: [],
+    eventsForTimelineIndicator: [],
     canViewSession: true,
 };
 /* eslint-enable */

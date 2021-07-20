@@ -284,17 +284,6 @@
     width: 20px;
 }
 
-.annotationsContainer {
-    align-items: center;
-    box-sizing: content-box;
-    display: flex;
-    height: 10px;
-    padding: 8px 0;
-    position: absolute;
-    top: calc(var(--size-large) * -1);
-    width: 100%;
-}
-
 .popoverHeader {
     overflow: hidden;
     text-overflow: ellipsis;
