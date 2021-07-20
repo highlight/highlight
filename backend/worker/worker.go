@@ -126,6 +126,7 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session) (*int
 		return nil, errors.Wrap(err, "error creating events file")
 	}
 	defer eventsFile.Close()
+
 	eventRows, err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").Rows()
 	if err != nil {
 		return nil, errors.Wrap(err, "error retrieving events objects")
@@ -229,6 +230,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		log.Errorf(errors.Wrap(err, "error scanning session payload").Error())
 	} else {
 		dd.StatsD.Histogram("worker.processSession.scannedSessionPayload", float64(*size), nil, 1) //nolint
+		log.Printf("payload size for session '%v' is '%v'", s.ID, *size)
 	}
 
 	// load all events
