@@ -41,6 +41,8 @@ var (
 	runtime            = flag.String("runtime", "all", "the runtime of the backend; either 1) dev (all runtimes) 2) worker 3) public-graph 4) private-graph")
 )
 
+var SENDGRID_API_KEY string // we inject this value at build time for on-prem
+
 var runtimeParsed util.Runtime
 
 func init() {
@@ -88,7 +90,12 @@ func main() {
 	}
 
 	if sendgridKey == "" {
-		log.Warn("sendgrid api key is missing")
+		if SENDGRID_API_KEY == "" {
+			log.Warn("sendgrid api key is missing")
+		} else {
+			log.Info("using sendgrid api key injected from build target!")
+			sendgridKey = SENDGRID_API_KEY
+		}
 	} else {
 		log.Info("sendgrid api key is present!")
 	}
