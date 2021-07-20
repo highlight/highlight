@@ -29,6 +29,11 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
+var (
+	SLACK_CLIENT_ID     string
+	SLACK_CLIENT_SECRET string
+)
+
 func (r *errorAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.ErrorAlert) ([]*modelInputs.SanitizedSlackChannel, error) {
 	return obj.GetChannelsToNotify()
 }
@@ -354,11 +359,17 @@ func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, o
 	}
 	redirect := os.Getenv("FRONTEND_URI")
 	redirect += "/" + strconv.Itoa(organizationID) + "/" + redirectPath
+	if temp, ok := os.LookupEnv("SLACK_CLIENT_ID"); ok && temp != "" {
+		SLACK_CLIENT_ID = temp
+	}
+	if temp, ok := os.LookupEnv("SLACK_CLIENT_SECRET"); ok && temp != "" {
+		SLACK_CLIENT_SECRET = temp
+	}
 	resp, err := slack.
 		GetOAuthV2Response(
 			&http.Client{},
-			os.Getenv("SLACK_CLIENT_ID"),
-			os.Getenv("SLACK_CLIENT_SECRET"),
+			SLACK_CLIENT_ID,
+			SLACK_CLIENT_SECRET,
 			code,
 			redirect,
 		)
