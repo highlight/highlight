@@ -12,6 +12,7 @@ FROM node:14-alpine as frontend-builder
 ARG REACT_APP_COMMIT_SHA
 ARG REACT_APP_ONPREM=true
 ARG ONPREM_STATIC_FRONTEND_PATH="./build"
+ARG ENABLE_OBJECT_STORAGE=true
 RUN mkdir /build-frontend
 WORKDIR /build-frontend
 COPY ./frontend/package.json ./frontend/yarn.lock ./
