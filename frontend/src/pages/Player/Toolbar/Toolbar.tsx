@@ -21,6 +21,7 @@ import {
 import { EventsForTimeline, EventsForTimelineKeys } from '../PlayerHook/utils';
 import {
     ParsedSessionInterval,
+    ReplayerPausedStates,
     ReplayerState,
     useReplayerContext,
 } from '../ReplayerContext';
@@ -85,11 +86,7 @@ export const Toolbar = () => {
     );
 
     const [lastCanvasPreview, setLastCanvasPreview] = useState(0);
-    const isPaused =
-        state === ReplayerState.Paused ||
-        state === ReplayerState.LoadedAndUntouched ||
-        state === ReplayerState.LoadedWithDeepLink ||
-        state === ReplayerState.SessionRecordingStopped;
+    const isPaused = ReplayerPausedStates.includes(state);
 
     useEffect(() => {
         if (replayer) {

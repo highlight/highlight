@@ -19,7 +19,17 @@ export enum ReplayerState {
     Paused,
     /** Caused when the end-user calls H.stop() manually to stop recording. */
     SessionRecordingStopped,
+    /** Playback of the session has reached the end. */
+    SessionEnded,
 }
+
+export const ReplayerPausedStates = [
+    ReplayerState.Paused,
+    ReplayerState.LoadedWithDeepLink,
+    ReplayerState.LoadedAndUntouched,
+    ReplayerState.SessionRecordingStopped,
+    ReplayerState.SessionEnded,
+];
 
 interface BaseParsedEvent {
     /**
