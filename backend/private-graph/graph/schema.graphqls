@@ -122,6 +122,12 @@ type ErrorField {
     value: String!
 }
 
+input FieldInput {
+    id: ID
+    name: String!
+    value: String!
+}
+
 type ErrorGroup {
     id: ID!
     organization_id: Int!
@@ -218,6 +224,7 @@ input ErrorSearchParamsInput {
     visited_url: String
     hide_resolved: Boolean
     event: String
+    payload_fields: [FieldInput]
 }
 
 type ErrorSearchParams {

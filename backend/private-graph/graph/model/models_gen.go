@@ -35,12 +35,13 @@ type ErrorMetadata struct {
 }
 
 type ErrorSearchParamsInput struct {
-	DateRange    *DateRangeInput `json:"date_range"`
-	Os           *string         `json:"os"`
-	Browser      *string         `json:"browser"`
-	VisitedURL   *string         `json:"visited_url"`
-	HideResolved *bool           `json:"hide_resolved"`
-	Event        *string         `json:"event"`
+	DateRange     *DateRangeInput `json:"date_range"`
+	Os            *string         `json:"os"`
+	Browser       *string         `json:"browser"`
+	VisitedURL    *string         `json:"visited_url"`
+	HideResolved  *bool           `json:"hide_resolved"`
+	Event         *string         `json:"event"`
+	PayloadFields []*FieldInput   `json:"payload_fields"`
 }
 
 type ErrorTrace struct {
@@ -49,6 +50,12 @@ type ErrorTrace struct {
 	FunctionName *string `json:"functionName"`
 	ColumnNumber *int    `json:"columnNumber"`
 	Error        *string `json:"error"`
+}
+
+type FieldInput struct {
+	ID    *int   `json:"id"`
+	Name  string `json:"name"`
+	Value string `json:"value"`
 }
 
 type LengthRangeInput struct {

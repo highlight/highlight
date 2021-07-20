@@ -147,6 +147,12 @@ export type ErrorField = {
     value: Scalars['String'];
 };
 
+export type FieldInput = {
+    id?: Maybe<Scalars['ID']>;
+    name: Scalars['String'];
+    value: Scalars['String'];
+};
+
 export type ErrorGroup = {
     __typename?: 'ErrorGroup';
     id: Scalars['ID'];
@@ -250,6 +256,7 @@ export type ErrorSearchParamsInput = {
     visited_url?: Maybe<Scalars['String']>;
     hide_resolved?: Maybe<Scalars['Boolean']>;
     event?: Maybe<Scalars['String']>;
+    payload_fields?: Maybe<Array<Maybe<FieldInput>>>;
 };
 
 export type ErrorSearchParams = {
