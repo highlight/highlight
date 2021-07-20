@@ -174,7 +174,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                 root: playerMountingRoot,
             });
             r.on(ReplayerEvents.Finish, () => {
-                setState(ReplayerState.Paused);
+                setState(ReplayerState.SessionEnded);
             });
             r.on('event-cast', (e: any) => {
                 const event = e as HighlightEvent;
