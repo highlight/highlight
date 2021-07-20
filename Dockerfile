@@ -4,7 +4,9 @@ RUN mkdir /build-backend
 WORKDIR /build-backend
 COPY ./backend .
 RUN go mod download
-RUN GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /bin/backend
+RUN --mount=type=secret,id=SENDGRID_API_KEY \
+  export SENDGRID_API_KEY=$() && GOOS=linux GOARCH=amd64 \
+  go build -ldflags="-w -s -X main.SENDGRID_API_KEY=$SENDGRID_API_KEY" -o /bin/backend
 
 FROM node:14-alpine as frontend-builder
 # These two 'args' need to be here because they're injected at build time
@@ -22,8 +24,6 @@ RUN CI=false yarn build
 FROM alpine
 ENV ONPREM_STATIC_FRONTEND_PATH="./build"
 ENV ENABLE_OBJECT_STORAGE=true
-ARG SENDGRID_API_KEY_ARG
-ENV SENDGRID_API_KEY=$SENDGRID_API_KEY_ARG
 ARG SLACK_CLIENT_ID_ARG
 ENV SLACK_CLIENT_ID=$SLACK_CLIENT_ID_ARG
 ARG SLACK_CLIENT_SECRET_ARG
