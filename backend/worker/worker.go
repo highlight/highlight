@@ -395,12 +395,16 @@ func (w *Worker) Start() {
 		// Sends a "count" metric to datadog so that we can see how many sessions are being queried.
 		dd.StatsD.Histogram("worker.sessionsQuery.sessionCount", float64(len(sessions)), nil, 1) //nolint
 		sessionsSpan.Finish()
-		sessionIds := []int{}
+		type SessionLog struct {
+			SessionID      int
+			OrganizationID int
+		}
+		sessionIds := []SessionLog{}
 		for _, session := range sessions {
-			sessionIds = append(sessionIds, session.ID)
+			sessionIds = append(sessionIds, SessionLog{SessionID: session.ID, OrganizationID: session.OrganizationID})
 		}
 		if len(sessionIds) > 0 {
-			log.Printf("sessions that will be processed: [%v] \n", sessionIds)
+			log.Printf("sessions that will be processed: %v \n", sessionIds)
 		}
 
 		for _, session := range sessions {
