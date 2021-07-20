@@ -11,7 +11,11 @@ import {
     useGetSessionPayloadLazyQuery,
     useGetSessionQuery,
 } from '../../../graph/generated/hooks';
-import { ErrorObject, SessionComment } from '../../../graph/generated/schemas';
+import {
+    ErrorObject,
+    SessionComment,
+    SessionResults,
+} from '../../../graph/generated/schemas';
 import { HighlightEvent } from '../HighlightEvent';
 import {
     ParsedHighlightEvent,
@@ -49,6 +53,10 @@ export const usePlayer = (): ReplayerContextInterface => {
         eventsForTimelineIndicator,
         setEventsForTimelineIndicator,
     ] = useState<ParsedHighlightEvent[]>([]);
+    const [sessionResults, setSessionResults] = useState<SessionResults>({
+        sessions: [],
+        totalCount: -1,
+    });
     const [timerId, setTimerId] = useState<number | null>(null);
     const [errors, setErrors] = useState<ErrorObject[]>([]);
     const [, setSelectedErrorId] = useState<string | undefined>(undefined);
@@ -348,6 +356,8 @@ export const usePlayer = (): ReplayerContextInterface => {
         sessionComments,
         canViewSession,
         eventsForTimelineIndicator,
+        sessionResults,
+        setSessionResults,
     };
 };
 

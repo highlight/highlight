@@ -1,7 +1,11 @@
 import { Replayer } from '@highlight-run/rrweb';
 import { SessionInterval } from '@highlight-run/rrweb/dist/types';
 
-import { ErrorObject, SessionComment } from '../../../graph/generated/schemas';
+import {
+    ErrorObject,
+    SessionComment,
+    SessionResults,
+} from '../../../graph/generated/schemas';
 import { createContext } from '../../../util/context/context';
 import { HighlightEvent } from '../HighlightEvent';
 
@@ -57,6 +61,9 @@ export interface ReplayerContextInterface {
     eventsForTimelineIndicator: Array<ParsedHighlightEvent>;
     /** Whether this session can be viewed. A session is not viewable if it is locked behind billing. */
     canViewSession: boolean;
+    /** The sessions that are relevant to the current search filters. */
+    sessionResults: SessionResults;
+    setSessionResults: React.Dispatch<React.SetStateAction<SessionResults>>;
 }
 
 export const [
