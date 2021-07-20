@@ -1,8 +1,8 @@
 import { Replayer } from '@highlight-run/rrweb';
 import { SessionInterval } from '@highlight-run/rrweb/dist/types';
-import { createContext } from 'react';
 
 import { ErrorObject, SessionComment } from '../../../graph/generated/schemas';
+import { createContext } from '../../../util/context/context';
 import { HighlightEvent } from '../HighlightEvent';
 
 export enum ReplayerState {
@@ -59,25 +59,7 @@ export interface ReplayerContextInterface {
     canViewSession: boolean;
 }
 
-/* eslint-disable */
-export const defaultValue: ReplayerContextInterface = {
-    state: ReplayerState.Loading,
-    replayer: undefined,
-    scale: 1,
-    setScale: (_) => {},
-    time: 0,
-    setTime: (_) => {},
-    play: (_) => {},
-    pause: (_) => {},
-    events: [],
-    errors: [],
-    sessionIntervals: [],
-    sessionComments: [],
-    eventsForTimelineIndicator: [],
-    canViewSession: true,
-};
-/* eslint-enable */
-
-const ReplayerContext = createContext<ReplayerContextInterface>(defaultValue);
-
-export default ReplayerContext;
+export const [
+    useReplayerContext,
+    ReplayerContextProvider,
+] = createContext<ReplayerContextInterface>('ReplayerContext');

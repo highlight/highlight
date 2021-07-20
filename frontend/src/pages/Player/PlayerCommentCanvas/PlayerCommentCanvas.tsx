@@ -1,13 +1,13 @@
 import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { useGetSessionCommentsQuery } from '../../../graph/generated/hooks';
 import CommentPinIcon from '../../../static/comment-pin.png';
 import { EventsForTimeline, PlayerSearchParameters } from '../PlayerHook/utils';
 import playerStyles from '../PlayerPage.module.scss';
-import ReplayerContext from '../ReplayerContext';
+import { useReplayerContext } from '../ReplayerContext';
 import styles from './PlayerCommentCanvas.module.scss';
 import PlayerSessionComment from './PlayerSessionComment/PlayerSessionComment';
 
@@ -54,7 +54,7 @@ const PlayerCommentCanvas = ({
     ] = useLocalStorage('highlightTimelineAnnotationTypes', [
         ...EventsForTimeline,
     ]);
-    const { pause, replayer } = useContext(ReplayerContext);
+    const { pause, replayer } = useReplayerContext();
     const buttonRef = useRef<HTMLButtonElement>(null);
     const [indicatorLocation, setIndicatorLocation] = useState<
         Coordinates2D | undefined

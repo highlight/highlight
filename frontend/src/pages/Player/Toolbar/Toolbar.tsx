@@ -1,6 +1,6 @@
 import { useLocalStorage } from '@rehooks/local-storage';
 import classNames from 'classnames';
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Draggable from 'react-draggable';
 import { FaPause } from 'react-icons/fa';
 import Skeleton from 'react-loading-skeleton';
@@ -19,9 +19,10 @@ import {
     MillisToMinutesAndSecondsVerbose,
 } from '../../../util/time';
 import { EventsForTimeline, EventsForTimelineKeys } from '../PlayerHook/utils';
-import ReplayerContext, {
+import {
     ParsedSessionInterval,
     ReplayerState,
+    useReplayerContext,
 } from '../ReplayerContext';
 import { getNewTimeWithSkip, usePlayerHotKeys } from '../utils/hooks';
 import {
@@ -46,7 +47,7 @@ export const Toolbar = () => {
         pause,
         sessionIntervals,
         canViewSession,
-    } = useContext(ReplayerContext);
+    } = useReplayerContext();
     usePlayerHotKeys();
     const { data: admin_data } = useGetAdminQuery({ skip: false });
     const max = replayer?.getMetaData().totalTime ?? 0;
@@ -493,7 +494,7 @@ const SessionSegment = ({
     wrapperWidth: number;
     getSliderTime: (sliderTime: number) => number;
 }) => {
-    const { time } = useContext(ReplayerContext);
+    const { time } = useReplayerContext();
     const playedColor = interval.active
         ? 'var(--color-purple)'
         : 'var(--color-gray-500)';

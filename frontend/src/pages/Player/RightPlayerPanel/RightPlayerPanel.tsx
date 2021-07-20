@@ -1,12 +1,12 @@
 import useLocalStorage from '@rehooks/local-storage';
-import React, { useContext } from 'react';
+import React from 'react';
 
 import Tabs from '../../../components/Tabs/Tabs';
 import CommentStream from '../CommentStream/CommentStream';
 import { MetadataBox } from '../MetadataBox/MetadataBox';
 import MetadataPanel from '../MetadataPanel/MetadataPanel';
 import { EventStream } from '../PlayerPage';
-import ReplayerContext from '../ReplayerContext';
+import { useReplayerContext } from '../ReplayerContext';
 import styles from './RightPlayerPanel.module.scss';
 
 const RightPlayerPanel = () => {
@@ -14,7 +14,7 @@ const RightPlayerPanel = () => {
         'highlightMenuShowRightPanel',
         true
     );
-    const { canViewSession } = useContext(ReplayerContext);
+    const { canViewSession } = useReplayerContext();
 
     const showRightPanel = showRightPanelPreference && canViewSession;
 

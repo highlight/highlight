@@ -1,12 +1,12 @@
 import { ButtonProps, message } from 'antd';
-import React, { useContext } from 'react';
+import React from 'react';
 
 import Button from '../../../components/Button/Button/Button';
-import ReplayerContext from '../ReplayerContext';
+import { useReplayerContext } from '../ReplayerContext';
 import { onGetLinkWithTimestamp } from './utils/utils';
 
 const ShareButton = (props: ButtonProps) => {
-    const { time } = useContext(ReplayerContext);
+    const { time } = useReplayerContext();
 
     const onClickHandler = () => {
         const url = onGetLinkWithTimestamp(time);

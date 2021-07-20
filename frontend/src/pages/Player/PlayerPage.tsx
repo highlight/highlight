@@ -8,14 +8,12 @@ import _ from 'lodash';
 import Lottie from 'lottie-react';
 import React, {
     useCallback,
-    useContext,
     useEffect,
     useMemo,
     useRef,
     useState,
 } from 'react';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
-// @ts-ignore
 import useResizeAware from 'react-resize-aware';
 import { useParams } from 'react-router-dom';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
@@ -33,7 +31,11 @@ import PlayerCommentCanvas, {
 } from './PlayerCommentCanvas/PlayerCommentCanvas';
 import { usePlayer } from './PlayerHook/PlayerHook';
 import styles from './PlayerPage.module.scss';
-import ReplayerContext, { ReplayerState } from './ReplayerContext';
+import {
+    ReplayerContextProvider,
+    ReplayerState,
+    useReplayerContext,
+} from './ReplayerContext';
 import RightPlayerPanel from './RightPlayerPanel/RightPlayerPanel';
 import SearchPanel from './SearchPanel/SearchPanel';
 import SessionLevelBar from './SessionLevelBar/SessionLevelBar';
@@ -137,7 +139,7 @@ const Player = () => {
     const showLeftPanel = showLeftPanelPreference && canViewSession;
 
     return (
-        <ReplayerContext.Provider value={player}>
+        <ReplayerContextProvider value={player}>
             <div
                 className={classNames(styles.playerBody, {
                     [styles.withLeftPanel]: showLeftPanel,
@@ -290,13 +292,13 @@ const Player = () => {
                     </div>
                 </Modal>
             </div>
-        </ReplayerContext.Provider>
+        </ReplayerContextProvider>
     );
 };
 
 export const EventStream = () => {
     const [debug] = useQueryParam('debug', BooleanParam);
-    const { replayer, time, events, state } = useContext(ReplayerContext);
+    const { replayer, time, events, state } = useReplayerContext();
     const [currEvent, setCurrEvent] = useState('');
     const [
         isInteractingWithStreamEvents,

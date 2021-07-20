@@ -1,9 +1,9 @@
 import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
-import React, { useContext } from 'react';
+import React from 'react';
 
 import { EventsForTimeline } from '../../PlayerHook/utils';
-import ReplayerContext, { ReplayerState } from '../../ReplayerContext';
+import { ReplayerState, useReplayerContext } from '../../ReplayerContext';
 import { useDevToolsContext } from '../DevToolsContext/DevToolsContext';
 import TimelineCommentAnnotation from '../TimelineAnnotation/TimelineCommentAnnotation';
 import TimelineErrorAnnotation from '../TimelineAnnotation/TimelineErrorAnnotation';
@@ -17,7 +17,7 @@ const TimelineIndicators = () => {
         errors,
         sessionComments,
         eventsForTimelineIndicator,
-    } = useContext(ReplayerContext);
+    } = useReplayerContext();
     const [
         selectedEventTypes,
     ] = useLocalStorage('highlightTimelineAnnotationTypes', [
