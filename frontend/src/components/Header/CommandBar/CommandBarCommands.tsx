@@ -1,9 +1,8 @@
-import useLocalStorage from '@rehooks/local-storage';
 import { message } from 'antd';
 import { History } from 'history';
 import { Command } from 'react-command-palette';
 
-import { EventsForTimeline } from '../../../pages/Player/PlayerHook/utils';
+import usePlayerConfiguration from '../../../pages/Player/PlayerHook/utils/usePlayerConfiguration';
 import { onGetLinkWithTimestamp } from '../../../pages/Player/ShareButton/utils/utils';
 import { DevToolTabs } from '../../../pages/Player/Toolbar/DevToolsContext/DevToolsContext';
 
@@ -30,35 +29,21 @@ export const getNavigationCommands = (
 export const usePlayerCommands = (
     isHighlightUser: boolean
 ): CommandWithoutId[] => {
-    const [
-        showRightPanelPreference,
-        setShowRightPanelPreference,
-    ] = useLocalStorage('highlightMenuShowRightPanel', true);
-    const [openDevTools, setOpenDevTools] = useLocalStorage(
-        'highlightMenuOpenDevTools',
-        false
-    );
-    const [autoPlayVideo, setAutoPlayVideo] = useLocalStorage(
-        'highlightMenuAutoPlayVideo',
-        false
-    );
-    const [selectedDevToolsTab, setSelectedDevToolsTab] = useLocalStorage(
-        'highlightSelectedDevtoolTabs',
-        DevToolTabs.Errors
-    );
-    const [
+    const {
+        autoPlayVideo,
+        playerTime,
+        selectedDevToolsTab,
         selectedTimelineAnnotationTypes,
-        setSelectedTimelineAnnotationTypes,
-    ] = useLocalStorage('highlightTimelineAnnotationTypes', [
-        ...EventsForTimeline,
-    ]);
-    const [
         selectedTimelineAnnotationTypesUserPersisted,
+        setAutoPlayVideo,
+        setSelectedDevToolsTab,
+        setSelectedTimelineAnnotationTypes,
         setSelectedTimelineAnnotationTypesUserPersisted,
-    ] = useLocalStorage('highlightTimelineAnnotationTypesUserPersisted', [
-        ...EventsForTimeline,
-    ]);
-    const [time] = useLocalStorage('playerTime', 0);
+        setShowDevTools,
+        setShowRightPanel,
+        showDevTools,
+        showRightPanel,
+    } = usePlayerConfiguration();
 
     const PLAYER_COMMANDS = [
         {
@@ -99,22 +84,22 @@ export const usePlayerCommands = (
         },
         {
             command: () => {
-                setOpenDevTools(!openDevTools);
+                setShowDevTools(!showDevTools);
             },
-            name: `${openDevTools ? 'Hide' : 'Show'} DevTools`,
+            name: `${showDevTools ? 'Hide' : 'Show'} DevTools`,
         },
         {
             command: () => {
-                setShowRightPanelPreference(!showRightPanelPreference);
+                setShowRightPanel(!showRightPanel);
             },
-            name: `${showRightPanelPreference ? 'Hide' : 'Show'} right panel`,
+            name: `${showRightPanel ? 'Hide' : 'Show'} right panel`,
         },
         {
             command: () => {
                 if (selectedDevToolsTab === DevToolTabs.Errors) {
-                    setOpenDevTools(false);
+                    setShowDevTools(false);
                 } else {
-                    setOpenDevTools(true);
+                    setShowDevTools(true);
                     setSelectedDevToolsTab(DevToolTabs.Errors);
                 }
             },
@@ -123,9 +108,9 @@ export const usePlayerCommands = (
         {
             command: () => {
                 if (selectedDevToolsTab === DevToolTabs.Network) {
-                    setOpenDevTools(false);
+                    setShowDevTools(false);
                 } else {
-                    setOpenDevTools(true);
+                    setShowDevTools(true);
                     setSelectedDevToolsTab(DevToolTabs.Network);
                 }
             },
@@ -134,9 +119,9 @@ export const usePlayerCommands = (
         {
             command: () => {
                 if (selectedDevToolsTab === DevToolTabs.Console) {
-                    setOpenDevTools(false);
+                    setShowDevTools(false);
                 } else {
-                    setOpenDevTools(true);
+                    setShowDevTools(true);
                     setSelectedDevToolsTab(DevToolTabs.Console);
                 }
             },
@@ -158,7 +143,7 @@ export const usePlayerCommands = (
         },
         {
             command: () => {
-                const url = onGetLinkWithTimestamp(time);
+                const url = onGetLinkWithTimestamp(playerTime);
                 message.success('Copied link!');
                 navigator.clipboard.writeText(url.href);
             },
@@ -170,7 +155,7 @@ export const usePlayerCommands = (
     const HIGHLIGHT_COMMANDS = [
         {
             command: () => {
-                setShowRightPanelPreference(true);
+                setShowRightPanel(true);
                 document.location.search = 'debug=1';
             },
             name: `Enable events debugging`,

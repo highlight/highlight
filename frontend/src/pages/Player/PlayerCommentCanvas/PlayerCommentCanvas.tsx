@@ -1,11 +1,11 @@
-import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { useGetSessionCommentsQuery } from '../../../graph/generated/hooks';
 import CommentPinIcon from '../../../static/comment-pin.png';
-import { EventsForTimeline, PlayerSearchParameters } from '../PlayerHook/utils';
+import { PlayerSearchParameters } from '../PlayerHook/utils';
+import usePlayerConfiguration from '../PlayerHook/utils/usePlayerConfiguration';
 import playerStyles from '../PlayerPage.module.scss';
 import { useReplayerContext } from '../ReplayerContext';
 import styles from './PlayerCommentCanvas.module.scss';
@@ -38,31 +38,21 @@ const PlayerCommentCanvas = ({
             session_id: session_id,
         },
     });
-    const [
-        selectedEventTypes,
-        setSelectedEventTypes,
-    ] = useLocalStorage('highlightTimelineAnnotationTypes', [
-        ...EventsForTimeline,
-    ]);
+    const {
+        selectedTimelineAnnotationTypes,
+        setSelectedTimelineAnnotationTypes,
+        enableInspectElement,
+    } = usePlayerConfiguration();
     const [deepLinkedCommentId, setDeepLinkedCommentId] = useState(
         new URLSearchParams(location.search).get(
             PlayerSearchParameters.commentId
         )
     );
-    const [
-        enabledTimelineAnnotation,
-    ] = useLocalStorage('highlightTimelineAnnotationTypes', [
-        ...EventsForTimeline,
-    ]);
     const { pause, replayer } = useReplayerContext();
     const buttonRef = useRef<HTMLButtonElement>(null);
     const [indicatorLocation, setIndicatorLocation] = useState<
         Coordinates2D | undefined
     >(undefined);
-    const [enableDOMInteractions] = useLocalStorage(
-        'highlightMenuEnableDOMInteractions',
-        false
-    );
     const playerBoundingClientRectWidth = replayer?.wrapper?.getBoundingClientRect()
         .width;
     const playerBoundingClientRectHeight = replayer?.wrapper?.getBoundingClientRect()
@@ -76,8 +66,11 @@ const PlayerCommentCanvas = ({
         if (commentId) {
             setDeepLinkedCommentId(commentId);
             // Show comments on the timeline indicators if deep linked.
-            if (!selectedEventTypes.includes('Comments')) {
-                setSelectedEventTypes([...selectedEventTypes, 'Comments']);
+            if (!selectedTimelineAnnotationTypes.includes('Comments')) {
+                setSelectedTimelineAnnotationTypes([
+                    ...selectedTimelineAnnotationTypes,
+                    'Comments',
+                ]);
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -103,9 +96,11 @@ const PlayerCommentCanvas = ({
         }
     }, [modalPosition, setCommentPosition]);
 
-    const showCommentsOverlaid = enabledTimelineAnnotation.includes('Comments');
+    const showCommentsOverlaid = selectedTimelineAnnotationTypes.includes(
+        'Comments'
+    );
 
-    if (enableDOMInteractions) {
+    if (enableInspectElement) {
         return null;
     }
 

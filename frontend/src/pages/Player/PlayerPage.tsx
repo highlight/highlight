@@ -2,7 +2,6 @@ import 'rc-slider/assets/index.css';
 
 import { EventType, Replayer } from '@highlight-run/rrweb';
 import { eventWithTime } from '@highlight-run/rrweb/dist/types';
-import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
 import _ from 'lodash';
 import Lottie from 'lottie-react';
@@ -30,6 +29,7 @@ import PlayerCommentCanvas, {
     Coordinates2D,
 } from './PlayerCommentCanvas/PlayerCommentCanvas';
 import { usePlayer } from './PlayerHook/PlayerHook';
+import usePlayerConfiguration from './PlayerHook/utils/usePlayerConfiguration';
 import styles from './PlayerPage.module.scss';
 import {
     ReplayerContextProvider,
@@ -61,14 +61,10 @@ const Player = () => {
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     const newCommentModalRef = useRef<HTMLDivElement>(null);
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
-    const [showLeftPanelPreference] = useLocalStorage(
-        'highlightMenuShowLeftPanel',
-        false
-    );
-    const [showRightPanelPreference] = useLocalStorage(
-        'highlightMenuShowRightPanel',
-        true
-    );
+    const {
+        showLeftPanel: showLeftPanelPreference,
+        showRightPanel,
+    } = usePlayerConfiguration();
     const [commentModalPosition, setCommentModalPosition] = useState<
         Coordinates2D | undefined
     >(undefined);
@@ -245,9 +241,7 @@ const Player = () => {
                                     {!isReplayerReady && (
                                         <PlayerSkeleton
                                             showingLeftPanel={showLeftPanel}
-                                            showingRightPanel={
-                                                showRightPanelPreference
-                                            }
+                                            showingRightPanel={showRightPanel}
                                             width={
                                                 playerWrapperRef.current
                                                     ?.clientWidth
@@ -424,7 +418,7 @@ const PlayerSkeleton = ({
     showingLeftPanel: boolean;
     showingRightPanel: boolean;
 }) => {
-    const [openDevTools] = useLocalStorage('highlightMenuOpenDevTools', false);
+    const { showDevTools } = usePlayerConfiguration();
     let adjustedWidth = width ?? 80;
 
     if (showingLeftPanel) {
@@ -441,7 +435,7 @@ const PlayerSkeleton = ({
             highlightColor={'#f5f5f5'}
         >
             <Skeleton
-                height={!openDevTools ? adjustedWidth * 0.8 : '200px'}
+                height={!showDevTools ? adjustedWidth * 0.8 : '200px'}
                 width={adjustedWidth}
                 duration={1}
             />

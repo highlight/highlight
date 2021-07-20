@@ -1,6 +1,5 @@
 import { Replayer, ReplayerEvents } from '@highlight-run/rrweb';
 import { customEvent } from '@highlight-run/rrweb/dist/types';
-import useLocalStorage from '@rehooks/local-storage';
 import { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { BooleanParam, useQueryParam } from 'use-query-params';
@@ -30,6 +29,7 @@ import {
     getSessionIntervals,
     useSetPlayerTimestampFromSearchParam,
 } from './utils';
+import usePlayerConfiguration from './utils/usePlayerConfiguration';
 
 const urlSearchParams = new URLSearchParams(window.location.search);
 /**
@@ -65,7 +65,9 @@ export const usePlayer = (): ReplayerContextInterface => {
     const [canViewSession, setCanViewSession] = useState(true);
     const [time, setTime] = useState<number>(0);
     /** localStorageTime acts like a message broker to share the current player time for components that are outside of the context tree. */
-    const [, setLocalStorageTime] = useLocalStorage('playerTime', time);
+    const {
+        setPlayerTime: setPlayerTimeToPersistance,
+    } = usePlayerConfiguration();
     const [sessionEndTime, setSessionEndTime] = useState<number>(0);
     const [sessionIntervals, setSessionIntervals] = useState<
         Array<ParsedSessionInterval>
@@ -125,12 +127,12 @@ export const usePlayer = (): ReplayerContextInterface => {
             setReplayer(undefined);
             setSelectedErrorId(undefined);
             setTime(0);
-            setLocalStorageTime(0);
+            setPlayerTimeToPersistance(0);
             setSessionEndTime(0);
             setSessionIntervals([]);
             setCanViewSession(true);
         }
-    }, [loading, setLocalStorageTime]);
+    }, [loading, setPlayerTimeToPersistance]);
 
     // Downloads the events data only if the URL search parameter '?download=1' is present.
     useEffect(() => {
@@ -188,7 +190,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             }
             setReplayer(r);
         }
-    }, [eventsData, setLocalStorageTime]);
+    }, [eventsData, setPlayerTimeToPersistance]);
 
     // Loads the remaining events into Replayer.
     useEffect(() => {
@@ -302,8 +304,14 @@ export const usePlayer = (): ReplayerContextInterface => {
     //     // "Subscribes" the time with the Replayer when the Player is playing.
 
     useEffect(() => {
-        setLocalStorageTime(time);
-    }, [setLocalStorageTime, time]);
+        setPlayerTimeToPersistance(time);
+    }, [setPlayerTimeToPersistance, time]);
+
+    useEffect(() => {
+        if (state === ReplayerState.SessionEnded) {
+            console.log('boba');
+        }
+    }, [state]);
 
     const play = (newTime?: number) => {
         // Don't play the session if the player is already at the end of the session.
