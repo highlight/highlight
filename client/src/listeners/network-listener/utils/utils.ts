@@ -78,8 +78,12 @@ export const matchPerformanceTimingsWithRequestResponsePair = (
  * Returns true if the name is a Highlight network resource.
  * This is used to filter out Highlight requests/responses from showing up on end application's network resources.
  */
-export const isHighlightNetworkResourceFilter = (name: string) =>
+export const isHighlightNetworkResourceFilter = (
+    name: string,
+    backendUrl: string
+) =>
     name
         .toLocaleLowerCase()
         .includes(process.env.PUBLIC_GRAPH_URI ?? 'highlight.run') ||
-    name.toLocaleLowerCase().includes('highlight.run');
+    name.toLocaleLowerCase().includes('highlight.run') ||
+    name.toLocaleLowerCase().includes(backendUrl);
