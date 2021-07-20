@@ -1,23 +1,23 @@
 import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
-import React from 'react';
+import React, { useContext } from 'react';
 
 import { EventsForTimeline } from '../../PlayerHook/utils';
-import {
-    ParsedErrorObject,
-    ParsedHighlightEvent,
-    ParsedSessionComment,
-} from '../../ReplayerContext';
+import ReplayerContext, { ReplayerState } from '../../ReplayerContext';
 import { useDevToolsContext } from '../DevToolsContext/DevToolsContext';
+import TimelineCommentAnnotation from '../TimelineAnnotation/TimelineCommentAnnotation';
+import TimelineErrorAnnotation from '../TimelineAnnotation/TimelineErrorAnnotation';
+import TimelineEventAnnotation from '../TimelineAnnotation/TimelineEventAnnotation';
 import styles from './TimelineIndicators.module.scss';
 
-interface Props {
-    events?: ParsedHighlightEvent[];
-    errors?: ParsedErrorObject[];
-    comments?: ParsedSessionComment[];
-}
-
-const TimelineIndicators = (props: Props) => {
+const TimelineIndicators = () => {
+    const {
+        state,
+        replayer,
+        errors,
+        sessionComments,
+        eventsForTimelineIndicator,
+    } = useContext(ReplayerContext);
     const [
         selectedEventTypes,
     ] = useLocalStorage('highlightTimelineAnnotationTypes', [
@@ -25,9 +25,20 @@ const TimelineIndicators = (props: Props) => {
     ]);
     const { openDevTools } = useDevToolsContext();
 
-    if (selectedEventTypes.length === 0) {
+    if (
+        selectedEventTypes.length === 0 ||
+        state === ReplayerState.Loading ||
+        !replayer
+    ) {
         return null;
     }
+    const sessionStartTime = new Date(
+        replayer.getMetaData().startTime
+    ).getTime();
+    const sessionTotalTime = replayer.getMetaData().totalTime;
+    const errorsWithTimestamps = errors
+        .filter((error) => !!error.timestamp)
+        .sort((a, b) => b.timestamp - a.timestamp);
 
     return (
         <aside
@@ -35,7 +46,44 @@ const TimelineIndicators = (props: Props) => {
                 [styles.withDevtoolsOpen]: openDevTools,
             })}
         >
-            <div>Hello</div>
+            {selectedEventTypes.includes('Errors') &&
+                errorsWithTimestamps.map((error) => {
+                    const relativeTimestamp =
+                        new Date(error.timestamp).getTime() - sessionStartTime;
+                    const percentage =
+                        (relativeTimestamp / sessionTotalTime) * 100;
+
+                    if (percentage > 100) {
+                        return null;
+                    }
+
+                    return (
+                        <TimelineErrorAnnotation
+                            key={error.id}
+                            error={{
+                                ...error,
+                                relativeIntervalPercentage: percentage,
+                            }}
+                        />
+                    );
+                })}
+            {selectedEventTypes.includes('Comments') &&
+                sessionComments.map((comment) => {
+                    return (
+                        <TimelineCommentAnnotation
+                            comment={comment}
+                            key={comment.id}
+                        />
+                    );
+                })}
+            {eventsForTimelineIndicator.map((event, index) => {
+                return (
+                    <TimelineEventAnnotation
+                        event={event}
+                        key={`${event.timestamp}-${index}`}
+                    />
+                );
+            })}
         </aside>
     );
 };

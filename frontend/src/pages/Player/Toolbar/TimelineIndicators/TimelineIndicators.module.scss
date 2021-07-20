@@ -3,9 +3,12 @@
     background: var(--color-primary-background);
     border: 1px solid var(--color-gray-300);
     border-radius: var(--border-radius);
+    display: flex;
+    height: 28px;
     margin: 0 auto;
     margin-bottom: var(--size-small);
     padding: var(--size-xSmall) 0;
+    position: relative;
     width: calc(100% - var(--size-large));
 
     &.withDevtoolsOpen {

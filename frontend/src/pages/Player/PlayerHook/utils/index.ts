@@ -178,30 +178,6 @@ export const useSetPlayerTimestampFromSearchParam = (
     };
 };
 
-/**
- * Adds error events based on the interval that the error was thrown.
- */
-export const addErrorsToSessionIntervals = (
-    sessionIntervals: ParsedSessionInterval[],
-    errors: ErrorObject[],
-    sessionStartTime: number
-): ParsedSessionInterval[] => {
-    const errorsWithTimestamps = errors
-        .filter((error) => !!error.timestamp)
-        .sort((a, b) => b.timestamp - a.timestamp);
-
-    const groupedErrors = assignEventToSessionInterval(
-        sessionIntervals,
-        errorsWithTimestamps,
-        sessionStartTime
-    );
-
-    return sessionIntervals.map((sessionInterval, index) => ({
-        ...sessionInterval,
-        errors: groupedErrors[index] as ParsedErrorObject[],
-    }));
-};
-
 /** These are the type of custom events that will show up as annotations on the timeline. */
 export const CustomEventsForTimeline = [
     'Click',
@@ -224,13 +200,13 @@ export const EventsForTimeline = [
 export type EventsForTimelineKeys = typeof EventsForTimeline;
 
 /**
- * Adds error events based on the interval that the error was thrown.
+ * Gets events for the timeline indicator based on the type of event.
  */
-export const addEventsToSessionIntervals = (
+export const getEventsForTimelineIndicator = (
     sessionIntervals: ParsedSessionInterval[],
     events: HighlightEvent[],
     sessionStartTime: number
-): ParsedSessionInterval[] => {
+): ParsedHighlightEvent[] => {
     const eventsToAddToTimeline = events.filter((event) => {
         if (event.type === 5) {
             const data = event.data as any;
@@ -243,12 +219,9 @@ export const addEventsToSessionIntervals = (
         sessionIntervals,
         eventsToAddToTimeline,
         sessionStartTime
-    );
+    ).flat();
 
-    return sessionIntervals.map((sessionInterval, index) => ({
-        ...sessionInterval,
-        sessionEvents: groupedEvents[index] as ParsedHighlightEvent[],
-    }));
+    return groupedEvents as ParsedHighlightEvent[];
 };
 
 /**
