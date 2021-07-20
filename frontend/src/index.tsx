@@ -12,7 +12,7 @@ import { QueryParamProvider } from 'use-query-params';
 
 import packageJson from '../package.json';
 import {
-    AuthContext,
+    AuthContextProvider,
     AuthRole,
     isAuthLoading,
     isHighlightAdmin,
@@ -82,7 +82,7 @@ const App = () => {
             <ApolloProvider client={client}>
                 <QueryParamProvider>
                     <SkeletonTheme color={'#F5F5F5'} highlightColor={'#FCFCFC'}>
-                        <AuthProvider />
+                        <AuthenticationRouter />
                     </SkeletonTheme>
                 </QueryParamProvider>
             </ApolloProvider>
@@ -90,7 +90,7 @@ const App = () => {
     );
 };
 
-const AuthProvider = () => {
+const AuthenticationRouter = () => {
     const [
         getAdminQuery,
         { error: adminError, data: adminData },
@@ -108,7 +108,7 @@ const AuthProvider = () => {
                 }
             },
             (error) => {
-                console.log('Firebase auth error: ', JSON.stringify(error));
+                H.consumeError(new Error(JSON.stringify(error)));
                 setAuthRole(AuthRole.UNAUTHENTICATED);
             }
         );
@@ -131,7 +131,7 @@ const AuthProvider = () => {
     }, [adminError, adminData]);
 
     return (
-        <AuthContext.Provider
+        <AuthContextProvider
             value={{
                 role: authRole,
                 admin: isLoggedIn(authRole)
@@ -159,7 +159,7 @@ const AuthProvider = () => {
                     </Route>
                 </Switch>
             </Router>
-        </AuthContext.Provider>
+        </AuthContextProvider>
     );
 };
 

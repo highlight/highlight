@@ -1,6 +1,5 @@
-import React from 'react';
-
 import { Admin } from './graph/generated/schemas';
+import { createContext } from './util/context/context';
 
 export enum AuthRole {
     AUTHENTICATED_HIGHLIGHT, // A highlight staff member
@@ -14,23 +13,19 @@ export const isAuthLoading = (role: AuthRole) => {
 };
 
 export const isLoggedIn = (role: AuthRole) => {
-    return AuthRole[role].startsWith('AUTHENTICATED');
+    return [AuthRole.AUTHENTICATED_HIGHLIGHT, AuthRole.AUTHENTICATED].includes(
+        role
+    );
 };
 
 export const isHighlightAdmin = (role: AuthRole) => {
     return role == AuthRole.AUTHENTICATED_HIGHLIGHT;
 };
 
-export const AuthContext = React.createContext<{
+export const [useAuthContext, AuthContextProvider] = createContext<{
     role: AuthRole;
     admin?: Admin;
     isAuthLoading: boolean;
     isLoggedIn: boolean;
     isHighlightAdmin: boolean;
-}>({
-    role: AuthRole.LOADING,
-    admin: undefined,
-    isAuthLoading: true,
-    isLoggedIn: false,
-    isHighlightAdmin: false,
-});
+}>('AuthContext');

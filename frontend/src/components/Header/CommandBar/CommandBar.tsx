@@ -3,7 +3,7 @@ import CommandPalette, { Command } from 'react-command-palette';
 import { RouteComponentProps } from 'react-router';
 import { useParams, withRouter } from 'react-router-dom';
 
-import { AuthContext } from '../../../AuthContext';
+import { useAuthContext } from '../../../AuthContext';
 import { useGetOrganizationSuggestionLazyQuery } from '../../../graph/generated/hooks';
 import styles from './CommandBar.module.scss';
 import {
@@ -39,7 +39,7 @@ const CommandPaletteComponent: React.FC<RouteComponentProps> = ({
         getOrganizations,
         { data },
     ] = useGetOrganizationSuggestionLazyQuery();
-    const { isHighlightAdmin } = useContext(AuthContext);
+    const { isHighlightAdmin } = useAuthContext();
     const { organization_id } = useParams<{
         organization_id: string;
     }>();

@@ -1,9 +1,9 @@
 import classNames from 'classnames';
 import { H } from 'highlight.run';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
-import { AuthContext } from '../../AuthContext';
+import { useAuthContext } from '../../AuthContext';
 import commonStyles from '../../Common.module.scss';
 import Button from '../../components/Button/Button/Button';
 import { ErrorState } from '../../components/ErrorState/ErrorState';
@@ -68,7 +68,7 @@ const LoginForm = () => {
         setError,
     } = useForm<Inputs>();
     const [signIn, setSignIn] = useState<boolean>(true);
-    const { isAuthLoading, isLoggedIn } = useContext(AuthContext);
+    const { isAuthLoading, isLoggedIn } = useAuthContext();
     const [firebaseError, setFirebaseError] = useState('');
 
     const onSubmit = (data: Inputs) => {

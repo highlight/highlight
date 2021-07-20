@@ -1,8 +1,8 @@
 import useLocalStorage from '@rehooks/local-storage';
-import React, { useContext, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { RiMoonClearFill, RiSunLine } from 'react-icons/ri';
 
-import { AuthContext } from '../../../AuthContext';
+import { useAuthContext } from '../../../AuthContext';
 import Button from '../../Button/Button/Button';
 
 enum THEMES {
@@ -18,7 +18,7 @@ const ThemeToggle = () => {
             ? THEMES.Dark
             : THEMES.Light
     );
-    const { isHighlightAdmin } = useContext(AuthContext);
+    const { isHighlightAdmin } = useAuthContext();
 
     useEffect(() => {
         if (isHighlightAdmin) {

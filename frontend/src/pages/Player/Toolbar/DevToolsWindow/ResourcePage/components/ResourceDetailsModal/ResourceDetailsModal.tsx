@@ -1,6 +1,6 @@
-import React, { useContext } from 'react';
+import React from 'react';
 
-import { AuthContext } from '../../../../../../../AuthContext';
+import { useAuthContext } from '../../../../../../../AuthContext';
 import DataCard from '../../../../../../../components/DataCard/DataCard';
 import KeyValueTable, {
     KeyValueTableRow,
@@ -23,7 +23,7 @@ const ResourceDetailsModal = ({
     onCloseHandler,
     networkRecordingEnabledForSession,
 }: Props) => {
-    const { isHighlightAdmin } = useContext(AuthContext);
+    const { isHighlightAdmin } = useAuthContext();
     console.log({ selectedNetworkResource });
 
     const generalData: KeyValueTableRow[] = [
