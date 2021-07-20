@@ -45,6 +45,7 @@ export const Toolbar = () => {
         pause,
         sessionIntervals,
         canViewSession,
+        isPlayerReady,
     } = useReplayerContext();
     usePlayerHotKeys();
     const {
@@ -90,7 +91,7 @@ export const Toolbar = () => {
     // Automatically start the player if the user has set the preference.
     useEffect(() => {
         if (admin_data) {
-            if (autoPlayVideo && replayer) {
+            if (autoPlayVideo && replayer && isPlayerReady) {
                 if (state === ReplayerState.LoadedAndUntouched) {
                     play(time);
                 } else if (state === ReplayerState.LoadedWithDeepLink) {
@@ -101,6 +102,7 @@ export const Toolbar = () => {
     }, [
         admin_data,
         autoPlayVideo,
+        isPlayerReady,
         pause,
         play,
         replayer,

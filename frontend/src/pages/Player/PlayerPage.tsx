@@ -57,6 +57,7 @@ const Player = () => {
         replayer,
         time,
         canViewSession,
+        isPlayerReady,
     } = player;
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     const newCommentModalRef = useRef<HTMLDivElement>(null);
@@ -126,11 +127,6 @@ const Player = () => {
         replayer && resizePlayer(replayer);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sizes, replayer]);
-
-    const isReplayerReady =
-        replayerState !== ReplayerState.Loading &&
-        replayerScale !== 1 &&
-        canViewSession;
 
     const showLeftPanel = showLeftPanelPreference && canViewSession;
 
@@ -214,12 +210,12 @@ const Player = () => {
                                             </ElevatedCard>
                                         </div>
                                     )}
-                                    {isReplayerReady && (
+                                    {isPlayerReady && (
                                         <PlayerCommentCanvas
                                             setModalPosition={
                                                 setCommentModalPosition
                                             }
-                                            isReplayerReady={isReplayerReady}
+                                            isReplayerReady={isPlayerReady}
                                             modalPosition={commentModalPosition}
                                             setCommentPosition={
                                                 setCommentPosition
@@ -228,7 +224,7 @@ const Player = () => {
                                     )}
                                     <div
                                         style={{
-                                            visibility: isReplayerReady
+                                            visibility: isPlayerReady
                                                 ? 'visible'
                                                 : 'hidden',
                                         }}
@@ -238,7 +234,7 @@ const Player = () => {
                                         )}
                                         id="player"
                                     />
-                                    {!isReplayerReady && (
+                                    {!isPlayerReady && (
                                         <PlayerSkeleton
                                             showingLeftPanel={showLeftPanel}
                                             showingRightPanel={showRightPanel}

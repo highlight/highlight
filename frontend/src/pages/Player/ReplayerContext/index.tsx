@@ -74,6 +74,7 @@ export interface ReplayerContextInterface {
     /** The sessions that are relevant to the current search filters. */
     sessionResults: SessionResults;
     setSessionResults: React.Dispatch<React.SetStateAction<SessionResults>>;
+    isPlayerReady: boolean;
 }
 
 export const [

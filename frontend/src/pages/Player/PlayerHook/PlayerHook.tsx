@@ -1,7 +1,8 @@
 import { Replayer, ReplayerEvents } from '@highlight-run/rrweb';
 import { customEvent } from '@highlight-run/rrweb/dist/types';
-import { useContext, useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { message } from 'antd';
+import { useCallback, useContext, useEffect, useState } from 'react';
+import { useHistory, useParams } from 'react-router-dom';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
 import { DemoContext } from '../../../DemoContext';
@@ -41,7 +42,11 @@ const EVENTS_CHUNK_SIZE = parseInt(
 );
 
 export const usePlayer = (): ReplayerContextInterface => {
-    const { session_id } = useParams<{ session_id: string }>();
+    const { session_id, organization_id } = useParams<{
+        session_id: string;
+        organization_id: string;
+    }>();
+    const history = useHistory();
 
     const [download] = useQueryParam('download', BooleanParam);
     const [scale, setScale] = useState(1);
@@ -67,6 +72,8 @@ export const usePlayer = (): ReplayerContextInterface => {
     /** localStorageTime acts like a message broker to share the current player time for components that are outside of the context tree. */
     const {
         setPlayerTime: setPlayerTimeToPersistance,
+        autoPlayVideo,
+        showLeftPanel,
     } = usePlayerConfiguration();
     const [sessionEndTime, setSessionEndTime] = useState<number>(0);
     const [sessionIntervals, setSessionIntervals] = useState<
@@ -116,23 +123,27 @@ export const usePlayer = (): ReplayerContextInterface => {
         pollInterval: 5000,
     });
 
+    const resetPlayer = useCallback(() => {
+        setState(ReplayerState.Loading);
+        setErrors([]);
+        setEvents([]);
+        setScale(1);
+        setSessionComments([]);
+        setReplayer(undefined);
+        setSelectedErrorId(undefined);
+        setTime(0);
+        setPlayerTimeToPersistance(0);
+        setSessionEndTime(0);
+        setSessionIntervals([]);
+        setCanViewSession(true);
+    }, [setPlayerTimeToPersistance]);
+
     // Reset all state when loading events.
     useEffect(() => {
         if (loading) {
-            setState(ReplayerState.Loading);
-            setErrors([]);
-            setEvents([]);
-            setScale(1);
-            setSessionComments([]);
-            setReplayer(undefined);
-            setSelectedErrorId(undefined);
-            setTime(0);
-            setPlayerTimeToPersistance(0);
-            setSessionEndTime(0);
-            setSessionIntervals([]);
-            setCanViewSession(true);
+            resetPlayer();
         }
-    }, [loading, setPlayerTimeToPersistance]);
+    }, [loading, resetPlayer, setPlayerTimeToPersistance]);
 
     // Downloads the events data only if the URL search parameter '?download=1' is present.
     useEffect(() => {
@@ -307,11 +318,47 @@ export const usePlayer = (): ReplayerContextInterface => {
         setPlayerTimeToPersistance(time);
     }, [setPlayerTimeToPersistance, time]);
 
+    // Finds the next session in the session feed to play if autoplay is enabled.
     useEffect(() => {
-        if (state === ReplayerState.SessionEnded) {
-            console.log('boba');
+        if (
+            state === ReplayerState.SessionEnded &&
+            showLeftPanel &&
+            autoPlayVideo &&
+            sessionResults.sessions.length > 0
+        ) {
+            let currentSessionIndex = sessionResults.sessions.findIndex(
+                (session) => session.id === session_id
+            );
+
+            // This happens if the current session was removed from the session feed.
+            if (currentSessionIndex === -1) {
+                currentSessionIndex = 0;
+            }
+
+            const nextSessionIndex = currentSessionIndex + 1;
+
+            // Don't go beyond the last session.
+            if (nextSessionIndex >= sessionResults.sessions.length) {
+                message.success('No more sessions to view.');
+                return;
+            }
+
+            history.push(
+                `/${organization_id}/sessions/${sessionResults.sessions[nextSessionIndex].id}`
+            );
+            resetPlayer();
+            message.success('Playing the next session.');
         }
-    }, [state]);
+    }, [
+        autoPlayVideo,
+        history,
+        organization_id,
+        resetPlayer,
+        sessionResults.sessions,
+        session_id,
+        showLeftPanel,
+        state,
+    ]);
 
     const play = (newTime?: number) => {
         // Don't play the session if the player is already at the end of the session.
@@ -366,6 +413,8 @@ export const usePlayer = (): ReplayerContextInterface => {
         eventsForTimelineIndicator,
         sessionResults,
         setSessionResults,
+        isPlayerReady:
+            state !== ReplayerState.Loading && scale !== 1 && canViewSession,
     };
 };
 
