@@ -1,12 +1,12 @@
 import React from 'react';
 
+import { useAuthContext } from '../../../../../../../AuthContext';
 import DataCard from '../../../../../../../components/DataCard/DataCard';
 import KeyValueTable, {
     KeyValueTableRow,
 } from '../../../../../../../components/KeyValueTable/KeyValueTable';
 import Modal from '../../../../../../../components/Modal/Modal';
 import Space from '../../../../../../../components/Space/Space';
-import useAdminRole from '../../../../../../../hooks/useAdminRole/useAdminRole';
 import { formatTime } from '../../../../../../Home/components/KeyPerformanceIndicators/utils/utils';
 import { getNetworkResourcesDisplayName } from '../../../Option/Option';
 import { formatSize, NetworkResource } from '../../ResourcePage';
@@ -23,7 +23,7 @@ const ResourceDetailsModal = ({
     onCloseHandler,
     networkRecordingEnabledForSession,
 }: Props) => {
-    const { isHighlightAdmin } = useAdminRole();
+    const { isHighlightAdmin } = useAuthContext();
     console.log({ selectedNetworkResource });
 
     const generalData: KeyValueTableRow[] = [
