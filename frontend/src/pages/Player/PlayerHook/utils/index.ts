@@ -12,7 +12,6 @@ import {
 } from '../../../../graph/generated/schemas';
 import { HighlightEvent } from '../../HighlightEvent';
 import {
-    ParsedErrorObject,
     ParsedEvent,
     ParsedHighlightEvent,
     ParsedSessionComment,

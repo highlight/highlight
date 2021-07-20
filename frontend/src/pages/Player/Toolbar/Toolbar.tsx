@@ -494,7 +494,6 @@ const SessionSegment = ({
     getSliderTime: (sliderTime: number) => number;
 }) => {
     const { time } = useContext(ReplayerContext);
-    const [openDevTools] = useLocalStorage('highlightMenuOpenDevTools', false);
     const playedColor = interval.active
         ? 'var(--color-purple)'
         : 'var(--color-gray-500)';
