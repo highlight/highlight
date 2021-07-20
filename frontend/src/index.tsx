@@ -26,7 +26,7 @@ const options: HighlightOptions = {
     manualStart: true,
     enableStrictPrivacy: Math.floor(Math.random() * 2) === 0,
     version: packageJson['version'],
-    enableNetworkHeadersAndBodyRecording: true,
+    enableNetworkHeadersAndBodyRecording: false,
     disableConsoleRecording: true,
 };
 const favicon = document.querySelector("link[rel~='icon']") as any;
