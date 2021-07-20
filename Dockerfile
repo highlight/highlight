@@ -11,8 +11,6 @@ FROM node:14-alpine as frontend-builder
 # all other env variables are provided in environment.yml.
 ARG REACT_APP_COMMIT_SHA
 ARG REACT_APP_ONPREM=true
-ARG ONPREM_STATIC_FRONTEND_PATH="./build"
-ARG ENABLE_OBJECT_STORAGE=true
 RUN mkdir /build-frontend
 WORKDIR /build-frontend
 COPY ./frontend/package.json ./frontend/yarn.lock ./
@@ -22,6 +20,8 @@ COPY ./.prettierrc ./
 RUN CI=false yarn build
 
 FROM alpine
+ENV ONPREM_STATIC_FRONTEND_PATH="./build"
+ENV ENABLE_OBJECT_STORAGE=true
 ARG SENDGRID_API_KEY_ARG
 ENV SENDGRID_API_KEY=$SENDGRID_API_KEY_ARG
 ARG SLACK_CLIENT_ID_ARG
