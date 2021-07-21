@@ -19,8 +19,8 @@ export type HighlightOptions = {
      */
     scriptUrl?: string;
     /**
-     * Specifies where to the Highlight session data.
-     * You should not have to set this unless you are running an on-premises instance.
+     * Specifies where to send Highlight session data.
+     * You should not have to set this unless you are running an on-premise instance.
      */
     backendUrl?: string;
     /**
