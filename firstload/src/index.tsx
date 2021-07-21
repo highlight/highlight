@@ -2,6 +2,7 @@ import {
     DebugOptions,
     Highlight,
     HighlightClassOptions,
+    NetworkRecordingOptions,
 } from '../../client/src/index';
 import packageJson from '../package.json';
 import { listenToChromeExtensionMessage } from './browserExtension/extensionListener';
@@ -14,8 +15,8 @@ export type HighlightOptions = {
      */
     debug?: boolean | DebugOptions;
     /**
-     * Specifies where to fetch the Highlight runtime.
-     * You should not have to set this unless you are running an on-premises instance.
+     * Do not use this.
+     * @private
      */
     scriptUrl?: string;
     /**
@@ -33,23 +34,13 @@ export type HighlightOptions = {
      * This disables recording network requests.
      * The data includes the URLs, the size of the request, and how long the request took.
      * @default false
+     * @deprecated Use `networkRecording` instead.
      */
     disableNetworkRecording?: boolean;
     /**
-     * This enables recording XMLHttpRequest and Fetch headers and bodies.
-     * disableNetworkRecording needs to be false.
-     * @default fasle
+     * Specifies how and what Highlight records from network requests and responses.
      */
-    enableNetworkHeadersAndBodyRecording?: boolean;
-    /**
-     * Request and response headers where the value is not recorded.
-     * The header value is replaced with '[REDACTED]'.
-     * These headers are case-insensitive.
-     * This needs to be used with enableNetworkHeadersAndBodyRecording.
-     * @example
-     * networkHeadersToRedact: ['Secret-Header', 'Plain-Text-Password']
-     */
-    networkHeadersToRedact?: string[];
+    networkRecording?: boolean | NetworkRecordingOptions;
     /**
      * This disables Highlight from recording console messages.
      * @default false
@@ -148,9 +139,7 @@ export const H: HighlightPublicInterface = {
                     debug: options?.debug,
                     backendUrl: options?.backendUrl,
                     disableNetworkRecording: options?.disableNetworkRecording,
-                    enableNetworkHeadersAndBodyRecording:
-                        options?.enableNetworkHeadersAndBodyRecording,
-                    networkHeadersToRedact: options?.networkHeadersToRedact,
+                    networkRecording: options?.networkRecording,
                     disableConsoleRecording: options?.disableConsoleRecording,
                     enableSegmentIntegration: options?.enableSegmentIntegration,
                     enableStrictPrivacy: options?.enableStrictPrivacy || false,

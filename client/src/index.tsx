@@ -55,13 +55,36 @@ export type DebugOptions = {
     domRecording?: boolean;
 };
 
+export type NetworkRecordingOptions = {
+    /**
+     * Enables recording of network requests.
+     * The data includes the URLs, the size of the request, and how long the request took.
+     * @default true
+     */
+    enabled?: boolean;
+    /**
+     * This enables recording XMLHttpRequest and Fetch headers and bodies.
+     * @default false
+     */
+    recordHeadersAndBody?: boolean;
+    /**
+     * Request and response headers where the value is not recorded.
+     * The header value is replaced with '[REDACTED]'.
+     * These headers are case-insensitive.
+     * This needs to be used with enableNetworkHeadersAndBodyRecording.
+     * @example
+     * networkHeadersToRedact: ['Secret-Header', 'Plain-Text-Password']
+     */
+    networkHeadersToRedact?: string[];
+};
+
 export type HighlightClassOptions = {
     organizationID: number | string;
     debug?: boolean | DebugOptions;
     backendUrl?: string;
     disableNetworkRecording?: boolean;
     enableNetworkHeadersAndBodyRecording?: boolean;
-    networkHeadersToRedact?: string[];
+    networkRecording?: boolean | NetworkRecordingOptions;
     disableConsoleRecording?: boolean;
     enableSegmentIntegration?: boolean;
     enableStrictPrivacy?: boolean;
@@ -151,15 +174,28 @@ export class Highlight {
         } else {
             this.debugOptions = options?.debug ?? {};
         }
+
+        // Old versions of `firstload` use `disableNetworkRecording`. We fork here to ensure backwards compatibility.
+        if (options?.disableNetworkRecording !== undefined) {
+            this.disableNetworkRecording = options?.disableNetworkRecording;
+            this.enableRecordingNetworkContents = false;
+            this.networkHeadersToRedact = [];
+        } else if (typeof options?.networkRecording === 'boolean') {
+            this.disableNetworkRecording = !options.networkRecording;
+            this.enableRecordingNetworkContents = false;
+            this.networkHeadersToRedact = [];
+        } else {
+            this.disableNetworkRecording = !options.networkRecording?.enabled;
+            this.enableRecordingNetworkContents =
+                options.networkRecording?.recordHeadersAndBody || false;
+            this.networkHeadersToRedact =
+                options.networkRecording?.networkHeadersToRedact?.map(
+                    (header) => header.toLowerCase()
+                ) || [];
+        }
+
         this.ready = false;
         this.state = 'NotRecording';
-        this.disableNetworkRecording = options.disableNetworkRecording;
-        this.enableRecordingNetworkContents =
-            options.enableNetworkHeadersAndBodyRecording || false;
-        this.networkHeadersToRedact =
-            options.networkHeadersToRedact?.map((header) =>
-                header.toLowerCase()
-            ) || [];
         this.disableConsoleRecording = options.disableConsoleRecording;
         this.enableSegmentIntegration = options.enableSegmentIntegration;
         this.enableStrictPrivacy = options.enableStrictPrivacy || false;
