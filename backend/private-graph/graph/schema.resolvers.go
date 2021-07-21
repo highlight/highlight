@@ -351,6 +351,13 @@ func (r *mutationResolver) DeleteAdminFromOrganization(ctx context.Context, orga
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
+	admin, err := r.Query().Admin(ctx)
+	if err != nil {
+		return nil, e.New("error querying admin while deleting admin from organization")
+	}
+	if admin.ID == adminID {
+		return nil, e.New("Admin tried deleting themselves from the organization")
+	}
 
 	if err := r.DB.Model(&model.Organization{Model: model.Model{ID: organizationID}}).Association("Admins").Delete(model.Admin{Model: model.Model{ID: adminID}}); err != nil {
 		return nil, e.Wrap(err, "error deleting admin from organization")

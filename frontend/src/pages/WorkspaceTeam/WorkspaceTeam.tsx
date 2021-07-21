@@ -5,6 +5,7 @@ import React, { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router-dom';
 
+import { useAuthContext } from '../../AuthContext';
 import commonStyles from '../../Common.module.scss';
 import { AdminAvatar } from '../../components/Avatar/Avatar';
 import Button from '../../components/Button/Button/Button';
@@ -37,6 +38,7 @@ const WorkspaceTeam = () => {
     const { data, error, loading } = useGetAdminsQuery({
         variables: { organization_id },
     });
+    const { admin } = useAuthContext();
     const [
         deleteAdminFromOrganization,
     ] = useDeleteAdminFromOrganizationMutation({
@@ -202,6 +204,8 @@ const WorkspaceTeam = () => {
                                         }
                                         iconButton
                                         trackingId="RemoveTeamMember"
+                                        // An Admin should not be able to delete themselves from an organization.
+                                        disabled={a?.id === admin?.id}
                                     >
                                         <SvgTrash />
                                     </Button>
