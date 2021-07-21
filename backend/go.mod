@@ -19,6 +19,7 @@ require (
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/sessions v1.2.1 // indirect
 	github.com/jackc/pgx/v4 v4.10.1
+	github.com/k0kubun/pp v3.0.1+incompatible
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/kylelemons/godebug v1.1.0
 	github.com/lib/pq v1.6.0 // indirect
