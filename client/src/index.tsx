@@ -71,7 +71,7 @@ export type NetworkRecordingOptions = {
      * Request and response headers where the value is not recorded.
      * The header value is replaced with '[REDACTED]'.
      * These headers are case-insensitive.
-     * This needs to be used with enableNetworkHeadersAndBodyRecording.
+     * `recordHeadersAndBody` needs to be enabled.
      * @example
      * networkHeadersToRedact: ['Secret-Header', 'Plain-Text-Password']
      */
@@ -83,7 +83,6 @@ export type HighlightClassOptions = {
     debug?: boolean | DebugOptions;
     backendUrl?: string;
     disableNetworkRecording?: boolean;
-    enableNetworkHeadersAndBodyRecording?: boolean;
     networkRecording?: boolean | NetworkRecordingOptions;
     disableConsoleRecording?: boolean;
     enableSegmentIntegration?: boolean;

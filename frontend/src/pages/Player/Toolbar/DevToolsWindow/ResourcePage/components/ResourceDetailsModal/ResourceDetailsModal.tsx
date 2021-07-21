@@ -237,9 +237,9 @@ export default ResourceDetailsModal;
 const NetworkRecordingEducationMessage = () => (
     <div className={styles.noDataMessageContainer}>
         <p>
-            <code>enableNetworkHeadersAndBodyRecording</code> is disabled. If
-            you would like to see XHR/Fetch headers and bodies you will need to
-            enable <code>enableNetworkHeadersAndBodyRecording</code>.
+            <code>recordHeadersAndBody</code> is disabled. If you would like to
+            see XHR/Fetch headers and bodies you will need to enable{' '}
+            <code>recordHeadersAndBody</code>.
         </p>
         <p>
             You can learn more about this and about the security/privacy
