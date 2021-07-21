@@ -24,7 +24,6 @@ const ResourceDetailsModal = ({
     networkRecordingEnabledForSession,
 }: Props) => {
     const { isHighlightAdmin } = useAuthContext();
-    console.log({ selectedNetworkResource });
 
     const generalData: KeyValueTableRow[] = [
         {
@@ -159,8 +158,6 @@ const ResourceDetailsModal = ({
                 });
             }
         }
-        console.log(responsePayloadData);
-        // TODO: add recording boolean to session.
     }
 
     return (
