@@ -118,7 +118,7 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 
 func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session) (*int64, error) {
 	var totalPayloadSize int64 = 0
-	sessionIdString := strconv.FormatInt(int64(s.ID), 10)
+	sessionIdString := "./tmp/" + strconv.FormatInt(int64(s.ID), 10)
 
 	// events file
 	eventsFile, err := os.Create(sessionIdString + ".events.txt")
@@ -126,8 +126,8 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session) (*int
 		return nil, errors.Wrap(err, "error creating events file")
 	}
 	defer eventsFile.Close()
-
-	eventRows, err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").Rows()
+	defer os.Remove(eventsFile.Name())
+	eventRows, err := w.Resolver.DB.Model(&model.EventsObject{}).Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").Rows()
 	if err != nil {
 		return nil, errors.Wrap(err, "error retrieving events objects")
 	}
@@ -150,7 +150,7 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session) (*int
 	}
 	eventInfo, err := eventsFile.Stat()
 	if err != nil {
-		return nil, errors.Wrap(err, "error fetting event file info")
+		return nil, errors.Wrap(err, "error getting event file info")
 	}
 	totalPayloadSize += eventInfo.Size()
 
@@ -160,7 +160,8 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session) (*int
 		return nil, errors.Wrap(err, "error creating resources file")
 	}
 	defer resourcesFile.Close()
-	resourcesRows, err := w.Resolver.DB.Where(&model.ResourcesObject{SessionID: s.ID}).Order("created_at asc").Rows()
+	defer os.Remove(resourcesFile.Name())
+	resourcesRows, err := w.Resolver.DB.Model(&model.ResourcesObject{}).Where(&model.ResourcesObject{SessionID: s.ID}).Order("created_at asc").Rows()
 	if err != nil {
 		return nil, errors.Wrap(err, "error retrieving resources objects")
 	}
@@ -183,7 +184,7 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session) (*int
 	}
 	resourceInfo, err := resourcesFile.Stat()
 	if err != nil {
-		return nil, errors.Wrap(err, "error fetting event file info")
+		return nil, errors.Wrap(err, "error getting resource file info")
 	}
 	totalPayloadSize += resourceInfo.Size()
 
@@ -193,9 +194,10 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session) (*int
 		return nil, errors.Wrap(err, "error creating messages file")
 	}
 	defer messagesFile.Close()
-	messageRows, err := w.Resolver.DB.Where(&model.MessagesObject{SessionID: s.ID}).Order("created_at asc").Rows()
+	defer os.Remove(messagesFile.Name())
+	messageRows, err := w.Resolver.DB.Model(&model.MessagesObject{}).Where(&model.MessagesObject{SessionID: s.ID}).Order("created_at asc").Rows()
 	if err != nil {
-		return nil, errors.Wrap(err, "error retrieving resources objects")
+		return nil, errors.Wrap(err, "error retrieving messages objects")
 	}
 	writer := csv.NewWriter(messagesFile)
 	defer writer.Flush()
@@ -217,7 +219,7 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session) (*int
 
 	messagesInfo, err := messagesFile.Stat()
 	if err != nil {
-		return nil, errors.Wrap(err, "error fetting event file info")
+		return nil, errors.Wrap(err, "error getting message file info")
 	}
 	totalPayloadSize += messagesInfo.Size()
 
@@ -230,7 +232,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		log.Errorf(errors.Wrap(err, "error scanning session payload").Error())
 	} else {
 		dd.StatsD.Histogram("worker.processSession.scannedSessionPayload", float64(*size), nil, 1) //nolint
-		log.Printf("payload size for session '%v' is '%v'", s.ID, *size)
+		log.Printf("payload size for session '%v' is '%v'\n", s.ID, *size)
 	}
 
 	// load all events
