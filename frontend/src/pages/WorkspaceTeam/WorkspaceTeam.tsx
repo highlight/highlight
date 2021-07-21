@@ -5,6 +5,7 @@ import React, { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router-dom';
 
+import { useAuthContext } from '../../AuthContext';
 import commonStyles from '../../Common.module.scss';
 import { AdminAvatar } from '../../components/Avatar/Avatar';
 import Button from '../../components/Button/Button/Button';
@@ -12,11 +13,14 @@ import CopyText from '../../components/CopyText/CopyText';
 import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import { CircularSpinner } from '../../components/Loading/Loading';
+import PopConfirm from '../../components/PopConfirm/PopConfirm';
 import {
+    useDeleteAdminFromOrganizationMutation,
     useGetAdminsQuery,
     useGetOrganizationQuery,
     useSendAdminInviteMutation,
 } from '../../graph/generated/hooks';
+import SvgTrash from '../../static/Trash';
 import { getOrganizationInvitationLink } from './utils';
 import styles from './WorkspaceTeam.module.scss';
 
@@ -33,6 +37,29 @@ const WorkspaceTeam = () => {
     });
     const { data, error, loading } = useGetAdminsQuery({
         variables: { organization_id },
+    });
+    const { admin } = useAuthContext();
+    const [
+        deleteAdminFromOrganization,
+    ] = useDeleteAdminFromOrganizationMutation({
+        update(cache, { data }) {
+            cache.modify({
+                fields: {
+                    admins(existingAdmins, { readField }) {
+                        if (data?.deleteAdminFromOrganization !== undefined) {
+                            message.success('Removed member');
+                            return existingAdmins.filter(
+                                (admin: any) =>
+                                    data.deleteAdminFromOrganization !==
+                                    readField('id', admin)
+                            );
+                        }
+                        message.success('Failed to remove member');
+                        return existingAdmins;
+                    },
+                },
+            });
+        },
     });
     const [, setHasStartedOnboarding] = useLocalStorage(
         `highlight-started-onboarding-${organization_id}`,
@@ -152,6 +179,37 @@ const WorkspaceTeam = () => {
                                         {a?.email}
                                     </div>
                                 </div>
+                                <PopConfirm
+                                    title={`Remove ${
+                                        a?.name || a?.email
+                                    } from ${
+                                        orgData?.organization?.name
+                                    }? They will no longer have access to Highlight. You can invite them again if they need access.`}
+                                    okText={`Remove ${a?.name || a?.email}`}
+                                    cancelText="Cancel"
+                                    onConfirm={() => {
+                                        if (a?.id) {
+                                            deleteAdminFromOrganization({
+                                                variables: {
+                                                    admin_id: a?.id,
+                                                    organization_id,
+                                                },
+                                            });
+                                        }
+                                    }}
+                                >
+                                    <Button
+                                        className={
+                                            styles.removeTeamMemberButton
+                                        }
+                                        iconButton
+                                        trackingId="RemoveTeamMember"
+                                        // An Admin should not be able to delete themselves from an organization.
+                                        disabled={a?.id === admin?.id}
+                                    >
+                                        <SvgTrash />
+                                    </Button>
+                                </PopConfirm>
                             </div>
                         );
                     })

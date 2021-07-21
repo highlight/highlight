@@ -94,6 +94,13 @@
           {
             "name": "antd",
             "importNames": [
+              "Popconfirm"
+            ],
+            "message": "Please use PopConfirm from /src/components/PopConfirm instead."
+          },
+          {
+            "name": "antd",
+            "importNames": [
               "Select"
             ],
             "message": "Please use Select from /src/components/Select instead."

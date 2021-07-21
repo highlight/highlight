@@ -4,6 +4,12 @@
     height: auto;
     padding-bottom: 8px;
     padding-top: 8px;
+
+    &:global(.ant-btn[disabled]) {
+        background: var(--color-gray-300) !important;
+        border-color: var(--color-gray-400) !important;
+        fill: var(--color-gray-500) !important;
+    }
 }
 
 .iconButton {
