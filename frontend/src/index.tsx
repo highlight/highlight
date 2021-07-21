@@ -35,8 +35,11 @@ const options: HighlightOptions = {
     manualStart: true,
     enableStrictPrivacy: Math.floor(Math.random() * 2) === 0,
     version: packageJson['version'],
-    enableNetworkHeadersAndBodyRecording: true,
     disableConsoleRecording: true,
+    networkRecording: {
+        enabled: true,
+        recordHeadersAndBody: true,
+    },
 };
 const favicon = document.querySelector("link[rel~='icon']") as any;
 if (dev) {
