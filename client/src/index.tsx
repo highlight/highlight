@@ -557,23 +557,23 @@ export class Highlight {
                 })
             );
 
-            if (
-                !this.disableNetworkRecording &&
-                this.enableRecordingNetworkContents
-            ) {
-                this.listeners.push(
-                    NetworkListener({
-                        xhrCallback: (requestResponsePair) => {
-                            this.xhrNetworkContents.push(requestResponsePair);
-                        },
-                        fetchCallback: (requestResponsePair) => {
-                            this.fetchNetworkContents.push(requestResponsePair);
-                        },
-                        headersToRedact: this.networkHeadersToRedact,
-                        backendUrl: this._backendUrl,
-                    })
-                );
-            }
+            //     if (
+            //         !this.disableNetworkRecording &&
+            //         this.enableRecordingNetworkContents
+            //     ) {
+            //         this.listeners.push(
+            //             NetworkListener({
+            //                 xhrCallback: (requestResponsePair) => {
+            //                     this.xhrNetworkContents.push(requestResponsePair);
+            //                 },
+            //                 fetchCallback: (requestResponsePair) => {
+            //                     this.fetchNetworkContents.push(requestResponsePair);
+            //                 },
+            //                 headersToRedact: this.networkHeadersToRedact,
+            //                 backendUrl: this._backendUrl,
+            //             })
+            //         );
+            //     }
             // Send the payload as the page closes. navigator.sendBeacon guarantees that a request will be made.
             window.addEventListener('beforeunload', () => {
                 const payload = this._getPayload();
@@ -690,7 +690,9 @@ export class Highlight {
                     'fetch'
                 );
                 this.xhrNetworkContents = [];
+                // window.xhrNetworkContents = [];
                 this.fetchNetworkContents = [];
+                // window.fetchNetworkContents = [];
             }
         }
 
@@ -740,3 +742,9 @@ declare global {
         defaultDebug: any;
     }
 }
+
+interface HighlightWindow extends Window {
+    xhrNetworkContents: RequestResponsePair[];
+    fetchNetworkContents: RequestResponsePair[];
+}
+declare var window: HighlightWindow;

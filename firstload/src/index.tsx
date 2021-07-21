@@ -4,6 +4,8 @@ import {
     HighlightClassOptions,
     NetworkRecordingOptions,
 } from '../../client/src/index';
+import { NetworkListener } from '../../client/src/listeners/network-listener/network-listener';
+import { RequestResponsePair } from '../../client/src/listeners/network-listener/utils/models';
 import packageJson from '../package.json';
 import { listenToChromeExtensionMessage } from './browserExtension/extensionListener';
 import { SessionDetails } from './types/types';
@@ -102,6 +104,8 @@ export interface HighlightPublicInterface {
 interface HighlightWindow extends Window {
     Highlight: new (options?: HighlightClassOptions) => Highlight;
     H: HighlightPublicInterface;
+    xhrNetworkContents: RequestResponsePair[];
+    fetchNetworkContents: RequestResponsePair[];
 }
 
 const HIGHLIGHT_URL = 'app.highlight.run';
@@ -115,6 +119,27 @@ export const H: HighlightPublicInterface = {
     init: (orgID: number | string, options?: HighlightOptions) => {
         try {
             H.options = options;
+
+            //     window.xhrNetworkContents = [];
+            //     window.fetchNetworkContents = [];
+            //     let headersToRedact: string[] = [];
+            //     if (typeof options?.networkRecording !== 'boolean') {
+            //         headersToRedact =
+            //             options?.networkRecording?.networkHeadersToRedact?.map(
+            //                 (header) => header.toLowerCase()
+            //             ) || [];
+            //     }
+            //     NetworkListener({
+            //         backendUrl:
+            //             options?.backendUrl || 'https://public.highlight.run',
+            //         fetchCallback: (r) => {
+            //             window.fetchNetworkContents.push(r);
+            //         },
+            //         xhrCallback: (r) => {
+            //             window.xhrNetworkContents.push(r);
+            //         },
+            //         headersToRedact,
+            //     });
 
             // Don't run init when called outside of the browser.
             if (
@@ -295,3 +320,17 @@ if (typeof window !== 'undefined') {
 }
 
 listenToChromeExtensionMessage();
+
+window.xhrNetworkContents = [];
+window.fetchNetworkContents = [];
+let headersToRedact: string[] = [];
+NetworkListener({
+    backendUrl: 'https://public.highlight.run',
+    fetchCallback: (r) => {
+        window.fetchNetworkContents.push(r);
+    },
+    xhrCallback: (r) => {
+        window.xhrNetworkContents.push(r);
+    },
+    headersToRedact,
+});

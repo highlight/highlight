@@ -78,6 +78,15 @@ const logRequest = (
             try {
                 text = await response.clone().text();
             } catch (e) {
+                // const reader = response.body?.getReader();
+                // let td = new TextDecoder();
+                // if (reader) {
+                //     let codedArr = await reader.read();
+                //     let textBasedResult = td.decode(codedArr.value);
+                //     console.log(textBasedResult);
+                // }
+                // const data = await response.arrayBuffer();
+                // console.log(data);
                 text = `Unable to clone response: ${e as string}`;
             }
 
