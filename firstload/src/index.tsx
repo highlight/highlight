@@ -8,16 +8,37 @@ import { listenToChromeExtensionMessage } from './browserExtension/extensionList
 import { SessionDetails } from './types/types';
 
 export type HighlightOptions = {
-    // a 'true' value defaults to only loggin api interactions.
+    /**
+     * Do not use this.
+     * @private
+     */
     debug?: boolean | DebugOptions;
+    /**
+     * Specifies where to fetch the Highlight runtime.
+     * You should not have to set this unless you are running an on-premises instance.
+     */
     scriptUrl?: string;
+    /**
+     * Specifies where to the Highlight session data.
+     * You should not have to set this unless you are running an on-premises instance.
+     */
     backendUrl?: string;
+    /**
+     * Specifies if Highlight should not automatically start recording when the app starts.
+     * This should be used with `H.start()` and `H.stop()` if you want to control when Highlight records.
+     * @default false
+     */
     manualStart?: boolean;
+    /**
+     * This disables recording network requests.
+     * The data includes the URLs, the size of the request, and how long the request took.
+     * @default false
+     */
     disableNetworkRecording?: boolean;
     /**
      * This enables recording XMLHttpRequest and Fetch headers and bodies.
      * disableNetworkRecording needs to be false.
-     * Defaults to false.
+     * @default fasle
      */
     enableNetworkHeadersAndBodyRecording?: boolean;
     /**
@@ -29,11 +50,16 @@ export type HighlightOptions = {
      * networkHeadersToRedact: ['Secret-Header', 'Plain-Text-Password']
      */
     networkHeadersToRedact?: string[];
+    /**
+     * This disables Highlight from recording console messages.
+     * @default false
+     */
     disableConsoleRecording?: boolean;
     enableSegmentIntegration?: boolean;
     /**
      * The environment your application is running in.
      * This is useful to distinguish whether your session was recorded on localhost or in production.
+     * @default 'production'
      */
     environment?: 'development' | 'staging' | 'production' | string;
     /**
