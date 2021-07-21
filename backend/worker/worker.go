@@ -118,7 +118,10 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 
 func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session) (*int64, error) {
 	var totalPayloadSize int64 = 0
-	sessionIdString := "./tmp/" + strconv.FormatInt(int64(s.ID), 10)
+	sessionIdString := strconv.FormatInt(int64(s.ID), 10)
+	if os.Getenv("ENVIRONMENT") == "dev" {
+		sessionIdString = "./tmp/" + sessionIdString
+	}
 
 	// events file
 	eventsFile, err := os.Create(sessionIdString + ".events.txt")
@@ -234,7 +237,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		dd.StatsD.Histogram("worker.processSession.scannedSessionPayload", float64(*size), nil, 1) //nolint
 		log.Printf("payload size for session '%v' is '%v'\n", s.ID, *size)
 	}
-
 	// load all events
 	events := []model.EventsObject{}
 	if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").Find(&events).Error; err != nil {
