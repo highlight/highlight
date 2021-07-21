@@ -1472,6 +1472,56 @@ export type UpdateUserPropertiesAlertMutationOptions = Apollo.BaseMutationOption
     Types.UpdateUserPropertiesAlertMutation,
     Types.UpdateUserPropertiesAlertMutationVariables
 >;
+export const UpdateSessionIsPublicDocument = gql`
+    mutation UpdateSessionIsPublic($session_id: ID!, $is_public: Boolean!) {
+        updateSessionIsPublic(session_id: $session_id, is_public: $is_public) {
+            id
+            is_public
+        }
+    }
+`;
+export type UpdateSessionIsPublicMutationFn = Apollo.MutationFunction<
+    Types.UpdateSessionIsPublicMutation,
+    Types.UpdateSessionIsPublicMutationVariables
+>;
+
+/**
+ * __useUpdateSessionIsPublicMutation__
+ *
+ * To run a mutation, you first call `useUpdateSessionIsPublicMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateSessionIsPublicMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateSessionIsPublicMutation, { data, loading, error }] = useUpdateSessionIsPublicMutation({
+ *   variables: {
+ *      session_id: // value for 'session_id'
+ *      is_public: // value for 'is_public'
+ *   },
+ * });
+ */
+export function useUpdateSessionIsPublicMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.UpdateSessionIsPublicMutation,
+        Types.UpdateSessionIsPublicMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.UpdateSessionIsPublicMutation,
+        Types.UpdateSessionIsPublicMutationVariables
+    >(UpdateSessionIsPublicDocument, baseOptions);
+}
+export type UpdateSessionIsPublicMutationHookResult = ReturnType<
+    typeof useUpdateSessionIsPublicMutation
+>;
+export type UpdateSessionIsPublicMutationResult = Apollo.MutationResult<Types.UpdateSessionIsPublicMutation>;
+export type UpdateSessionIsPublicMutationOptions = Apollo.BaseMutationOptions<
+    Types.UpdateSessionIsPublicMutation,
+    Types.UpdateSessionIsPublicMutationVariables
+>;
 export const GetSessionPayloadDocument = gql`
     query GetSessionPayload($session_id: ID!) {
         events(session_id: $session_id)
@@ -1560,6 +1610,7 @@ export const GetSessionDocument = gql`
             payload_size
             within_billing_quota
             client_version
+            is_public
         }
     }
 `;
