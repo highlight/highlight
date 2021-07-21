@@ -156,6 +156,10 @@ export class Highlight {
         this.disableNetworkRecording = options.disableNetworkRecording;
         this.enableRecordingNetworkContents =
             options.enableNetworkHeadersAndBodyRecording || false;
+        this.networkHeadersToRedact =
+            options.networkHeadersToRedact?.map((header) =>
+                header.toLowerCase()
+            ) || [];
         this.disableConsoleRecording = options.disableConsoleRecording;
         this.enableSegmentIntegration = options.enableSegmentIntegration;
         this.enableStrictPrivacy = options.enableStrictPrivacy || false;

@@ -20,6 +20,15 @@ export type HighlightOptions = {
      * Defaults to false.
      */
     enableNetworkHeadersAndBodyRecording?: boolean;
+    /**
+     * Request and response headers where the value is not recorded.
+     * The header value is replaced with '[REDACTED]'.
+     * These headers are case-insensitive.
+     * This needs to be used with enableNetworkHeadersAndBodyRecording.
+     * @example
+     * networkHeadersToRedact: ['Secret-Header', 'Plain-Text-Password']
+     */
+    networkHeadersToRedact?: string[];
     disableConsoleRecording?: boolean;
     enableSegmentIntegration?: boolean;
     /**
@@ -115,6 +124,7 @@ export const H: HighlightPublicInterface = {
                     disableNetworkRecording: options?.disableNetworkRecording,
                     enableNetworkHeadersAndBodyRecording:
                         options?.enableNetworkHeadersAndBodyRecording,
+                    networkHeadersToRedact: options?.networkHeadersToRedact,
                     disableConsoleRecording: options?.disableConsoleRecording,
                     enableSegmentIntegration: options?.enableSegmentIntegration,
                     enableStrictPrivacy: options?.enableStrictPrivacy || false,
