@@ -43,7 +43,7 @@ export const enterprisePlan: BillingPlan = {
     advertisedFeatures: [
         'Everything in Basic/Startup',
         'User ACLS/Permissioning',
-        'On premise deployments',
+        'On-premise deployments',
         'SSO/SAML',
     ],
 };

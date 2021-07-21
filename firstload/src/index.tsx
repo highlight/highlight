@@ -42,23 +42,24 @@ export type HighlightOptions = {
      */
     networkRecording?: boolean | NetworkRecordingOptions;
     /**
-     * This disables Highlight from recording console messages.
+     * Specifies whether Highlight will record console messages.
      * @default false
      */
     disableConsoleRecording?: boolean;
     enableSegmentIntegration?: boolean;
     /**
-     * The environment your application is running in.
+     * Specifies the environment your application is running in.
      * This is useful to distinguish whether your session was recorded on localhost or in production.
      * @default 'production'
      */
     environment?: 'development' | 'staging' | 'production' | string;
     /**
-     * The version of your application.
+     * Specifies the version of your application.
      * This is commonly a Git hash or a semantic version.
      */
     version?: string;
     /**
+     * Specifies whether Highlight should redact data during recording.
      * Enabling this will disable recording of text data on the page. This is useful if you do not want to record personally identifiable information and don't want to manually annotate your code with the class name "highlight-block".
      * @example
      * // Text will be randomized. Instead of seeing "Hello World" in a recording, you will see "1fds1 j59a0".
