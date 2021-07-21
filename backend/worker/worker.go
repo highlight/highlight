@@ -118,7 +118,7 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 
 func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session) (*int64, error) {
 	var totalPayloadSize int64 = 0
-	sessionIdString := "./tmp/" + strconv.FormatInt(int64(s.ID), 10)
+	sessionIdString := "/tmp/" + strconv.FormatInt(int64(s.ID), 10)
 
 	// events file
 	eventsFile, err := os.Create(sessionIdString + ".events.txt")
