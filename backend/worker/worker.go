@@ -232,7 +232,9 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		log.Errorf(errors.Wrap(err, "error scanning session payload").Error())
 	} else if size != nil {
 		dd.StatsD.Histogram("worker.processSession.scannedSessionPayload", float64(*size), nil, 1) //nolint
-		if *size > 1000000000 {
+		if *size > (1000 * 1000 * 1000) {
+			// ^^ so you don't have to count the number of zeros in 1b.
+			// your welcome.
 			log.Printf("payload > 1gb for session '%v' is '%v'\n", s.ID, *size)
 		}
 	}
