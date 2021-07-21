@@ -1281,7 +1281,7 @@ func (r *queryResolver) Admins(ctx context.Context, organizationID int) ([]*mode
 	}
 	admins := []*model.Admin{}
 	err := r.DB.Model(
-		&model.Organization{Model: model.Model{ID: organizationID}}).Association("Admins").Find(&admins)
+		&model.Organization{Model: model.Model{ID: organizationID}}).Order("created_at asc").Association("Admins").Find(&admins)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting associated admins")
 	}
