@@ -90,6 +90,27 @@ const MetadataPanel = () => {
             ),
             renderType: 'string',
         },
+        {
+            keyDisplayValue: 'Record Network Requests',
+            valueDisplayValue: data?.session?.enable_recording_network_contents
+                ? 'Enabled'
+                : 'Disabled',
+            renderType: 'string',
+            valueInfoTooltipMessage: (
+                <>
+                    This specifies whether Highlight records the status codes,
+                    headers, and bodies for XML/Fetch requests made in your app.{' '}
+                    <a
+                        href="https://docs.highlight.run/docs/recording-network-requests-and-responses"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        Learn more about recording network requests and
+                        responses.
+                    </a>
+                </>
+            ),
+        },
     ];
 
     if (data?.session?.city) {

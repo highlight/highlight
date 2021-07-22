@@ -1,12 +1,12 @@
 import React from 'react';
 
+import { useAuthContext } from '../../../../../../../AuthContext';
 import DataCard from '../../../../../../../components/DataCard/DataCard';
 import KeyValueTable, {
     KeyValueTableRow,
 } from '../../../../../../../components/KeyValueTable/KeyValueTable';
 import Modal from '../../../../../../../components/Modal/Modal';
 import Space from '../../../../../../../components/Space/Space';
-import useAdminRole from '../../../../../../../hooks/useAdminRole/useAdminRole';
 import { formatTime } from '../../../../../../Home/components/KeyPerformanceIndicators/utils/utils';
 import { getNetworkResourcesDisplayName } from '../../../Option/Option';
 import { formatSize, NetworkResource } from '../../ResourcePage';
@@ -23,8 +23,7 @@ const ResourceDetailsModal = ({
     onCloseHandler,
     networkRecordingEnabledForSession,
 }: Props) => {
-    const { isHighlightAdmin } = useAdminRole();
-    console.log({ selectedNetworkResource });
+    const { isHighlightAdmin } = useAuthContext();
 
     const generalData: KeyValueTableRow[] = [
         {
@@ -159,8 +158,6 @@ const ResourceDetailsModal = ({
                 });
             }
         }
-        console.log(responsePayloadData);
-        // TODO: add recording boolean to session.
     }
 
     return (
@@ -237,9 +234,9 @@ export default ResourceDetailsModal;
 const NetworkRecordingEducationMessage = () => (
     <div className={styles.noDataMessageContainer}>
         <p>
-            <code>enableNetworkHeadersAndBodyRecording</code> is disabled. If
-            you would like to see XHR/Fetch headers and bodies you will need to
-            enable <code>enableNetworkHeadersAndBodyRecording</code>.
+            <code>recordHeadersAndBody</code> is disabled. If you would like to
+            see XHR/Fetch headers and bodies you will need to enable{' '}
+            <code>recordHeadersAndBody</code>.
         </p>
         <p>
             You can learn more about this and about the security/privacy

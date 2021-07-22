@@ -40,6 +40,13 @@ mutation AddAdminToOrganization($organization_id: ID!, $invite_id: String!) {
     )
 }
 
+mutation DeleteAdminFromOrganization($organization_id: ID!, $admin_id: ID!) {
+    deleteAdminFromOrganization(
+        organization_id: $organization_id
+        admin_id: $admin_id
+    )
+}
+
 mutation AddSlackIntegrationToWorkspace(
     $organization_id: ID!
     $code: String!

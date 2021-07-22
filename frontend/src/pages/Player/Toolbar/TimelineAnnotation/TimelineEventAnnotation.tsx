@@ -1,11 +1,14 @@
-import useLocalStorage from '@rehooks/local-storage';
 import { message } from 'antd';
-import React, { useContext, useState } from 'react';
+import React, { useState } from 'react';
 
 import Popover from '../../../../components/Popover/Popover';
 import { MillisToMinutesAndSeconds } from '../../../../util/time';
 import { EventsForTimeline } from '../../PlayerHook/utils';
-import ReplayerContext, { ParsedHighlightEvent } from '../../ReplayerContext';
+import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration';
+import {
+    ParsedHighlightEvent,
+    useReplayerContext,
+} from '../../ReplayerContext';
 import {
     getEventRenderDetails,
     getPlayerEventIcon,
@@ -21,14 +24,10 @@ interface Props {
 }
 
 const TimelineEventAnnotation = ({ event }: Props) => {
-    const { pause, replayer } = useContext(ReplayerContext);
+    const { pause, replayer } = useReplayerContext();
     const details = getEventRenderDetails(event);
     const [isTooltipOpen, setIsTooltipOpen] = useState(false);
-    const [
-        selectedTimelineAnnotationTypes,
-    ] = useLocalStorage('highlightTimelineAnnotationTypes', [
-        ...EventsForTimeline,
-    ]);
+    const { selectedTimelineAnnotationTypes } = usePlayerConfiguration();
 
     if (
         !selectedTimelineAnnotationTypes.includes(details.title || ('' as any))

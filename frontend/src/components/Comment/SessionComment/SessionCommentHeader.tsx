@@ -1,6 +1,6 @@
 import { Menu, message } from 'antd';
 import { H } from 'highlight.run';
-import React, { PropsWithChildren, useContext } from 'react';
+import React, { PropsWithChildren } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
 
 import {
@@ -8,8 +8,9 @@ import {
     useGetSessionQuery,
 } from '../../../graph/generated/hooks';
 import { PlayerSearchParameters } from '../../../pages/Player/PlayerHook/utils';
-import ReplayerContext, {
+import {
     ParsedSessionComment,
+    useReplayerContext,
 } from '../../../pages/Player/ReplayerContext';
 import { onGetLinkWithTimestamp } from '../../../pages/Player/ShareButton/utils/utils';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
@@ -33,7 +34,7 @@ const SessionCommentHeader = ({
     footer,
 }: PropsWithChildren<Props>) => {
     const { session_id } = useParams<{ session_id: string }>();
-    const { pause } = useContext(ReplayerContext);
+    const { pause } = useReplayerContext();
     const [deleteSessionComment] = useDeleteSessionCommentMutation({
         refetchQueries: ['GetSessionComments'],
     });

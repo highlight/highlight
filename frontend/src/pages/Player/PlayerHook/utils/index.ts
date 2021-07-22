@@ -3,7 +3,6 @@ import {
     playerMetaData,
     SessionInterval,
 } from '@highlight-run/rrweb/dist/types';
-import useLocalStorage from '@rehooks/local-storage';
 import { useCallback, useState } from 'react';
 import { useLocation } from 'react-router';
 
@@ -18,6 +17,7 @@ import {
     ParsedSessionComment,
     ParsedSessionInterval,
 } from '../../ReplayerContext';
+import usePlayerConfiguration from './usePlayerConfiguration';
 
 const INACTIVE_THRESHOLD = 0.02;
 
@@ -116,12 +116,10 @@ export const useSetPlayerTimestampFromSearchParam = (
 ) => {
     const location = useLocation();
     const [hasSearchParam, setHasSearchParam] = useState(false);
-    const [
-        selectedEventTypes,
-        setSelectedEventTypes,
-    ] = useLocalStorage('highlightTimelineAnnotationTypes', [
-        ...EventsForTimeline,
-    ]);
+    const {
+        selectedTimelineAnnotationTypes,
+        setSelectedTimelineAnnotationTypes,
+    } = usePlayerConfiguration();
 
     const setPlayerTimestamp = useCallback(
         (
@@ -168,9 +166,11 @@ export const useSetPlayerTimestampFromSearchParam = (
                         setSelectedErrorId(errorId);
 
                         // Show errors on the timeline indicators if deep linked.
-                        if (!selectedEventTypes.includes('Errors')) {
-                            setSelectedEventTypes([
-                                ...selectedEventTypes,
+                        if (
+                            !selectedTimelineAnnotationTypes.includes('Errors')
+                        ) {
+                            setSelectedTimelineAnnotationTypes([
+                                ...selectedTimelineAnnotationTypes,
                                 'Errors',
                             ]);
                         }
@@ -182,8 +182,8 @@ export const useSetPlayerTimestampFromSearchParam = (
         [
             location.search,
             replayer,
-            selectedEventTypes,
-            setSelectedEventTypes,
+            selectedTimelineAnnotationTypes,
+            setSelectedTimelineAnnotationTypes,
             setTime,
         ]
     );

@@ -1,6 +1,6 @@
 import { message } from 'antd';
 import classNames from 'classnames';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { SessionCommentCard } from '../../../../components/Comment/SessionComment/SessionComment';
 import TransparentPopover from '../../../../components/Popover/TransparentPopover';
@@ -11,7 +11,7 @@ import {
 } from '../../../../graph/generated/schemas';
 import CommentPinIcon from '../../../../static/comment-pin.png';
 import { MillisToMinutesAndSeconds } from '../../../../util/time';
-import ReplayerContext from '../../ReplayerContext';
+import { useReplayerContext } from '../../ReplayerContext';
 import commentButtonStyles from '../PlayerCommentCanvas.module.scss';
 import styles from './PlayerSessionComment.module.scss';
 
@@ -41,7 +41,7 @@ interface Props {
  * A comment that is rendered onto the Player relative to where the comment was made.
  */
 const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
-    const { pause } = useContext(ReplayerContext);
+    const { pause } = useReplayerContext();
     const [visible, setVisible] = useState(deepLinkedCommentId === comment?.id);
 
     useEffect(() => {

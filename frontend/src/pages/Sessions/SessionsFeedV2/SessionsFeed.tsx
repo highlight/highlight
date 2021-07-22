@@ -7,11 +7,9 @@ import TextTransition from 'react-text-transition';
 import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
 import LimitedSessionCard from '../../../components/Upsell/LimitedSessionsCard/LimitedSessionsCard';
 import { useGetSessionsQuery } from '../../../graph/generated/hooks';
-import {
-    SessionLifecycle,
-    SessionResults,
-} from '../../../graph/generated/schemas';
+import { SessionLifecycle } from '../../../graph/generated/schemas';
 import { formatNumberWithDelimiters } from '../../../util/numbers';
+import { useReplayerContext } from '../../Player/ReplayerContext';
 import { useSearchContext } from '../SearchContext/SearchContext';
 import {
     LIVE_SEGMENT_ID,
@@ -23,6 +21,7 @@ import styles from './SessionsFeed.module.scss';
 const SESSIONS_FEED_POLL_INTERVAL = 5000;
 
 export const SessionFeed = () => {
+    const { setSessionResults, sessionResults } = useReplayerContext();
     const { organization_id, segment_id, session_id } = useParams<{
         organization_id: string;
         segment_id: string;
@@ -32,18 +31,9 @@ export const SessionFeed = () => {
 
     // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
     const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
-    const [data, setData] = useState<SessionResults>({
-        sessions: [],
-        totalCount: -1,
-    });
     const { searchParams, hideLiveSessions } = useSearchContext();
 
-    const {
-        loading,
-        fetchMore,
-        data: sessionData,
-        called,
-    } = useGetSessionsQuery({
+    const { loading, fetchMore, called } = useGetSessionsQuery({
         variables: {
             params: searchParams,
             count: count + 10,
@@ -59,7 +49,7 @@ export const SessionFeed = () => {
         pollInterval: SESSIONS_FEED_POLL_INTERVAL,
         onCompleted: (response) => {
             if (response.sessions) {
-                setData(response.sessions);
+                setSessionResults(response.sessions);
             }
             setShowLoadingSkeleton(false);
         },
@@ -69,16 +59,10 @@ export const SessionFeed = () => {
         setShowLoadingSkeleton(true);
     }, [searchParams]);
 
-    useEffect(() => {
-        if (sessionData?.sessions) {
-            setData(sessionData.sessions);
-        }
-    }, [sessionData]);
-
     const infiniteRef = useInfiniteScroll({
         checkInterval: 1200, // frequency to check (1.2s)
         loading,
-        hasNextPage: data.sessions.length < data.totalCount,
+        hasNextPage: sessionResults.sessions.length < sessionResults.totalCount,
         scrollContainer: 'parent',
         onLoadMore: () => {
             setCount((previousCount) => previousCount + 10);
@@ -100,26 +84,28 @@ export const SessionFeed = () => {
 
     const filteredSessions = useMemo(() => {
         if (loading) {
-            return data.sessions;
+            return sessionResults.sessions;
         }
         if (searchParams.hide_viewed) {
-            return data.sessions.filter((session) => !session?.viewed);
+            return sessionResults.sessions.filter(
+                (session) => !session?.viewed
+            );
         }
-        return data.sessions;
-    }, [data.sessions, loading, searchParams.hide_viewed]);
+        return sessionResults.sessions;
+    }, [loading, searchParams.hide_viewed, sessionResults.sessions]);
 
     return (
         <>
             <div className={styles.fixedContent}>
                 <div className={styles.resultCount}>
-                    {data.totalCount === -1 ? (
+                    {sessionResults.totalCount === -1 ? (
                         <Skeleton width="100px" />
                     ) : (
                         <>
                             <TextTransition
                                 inline
                                 text={`${formatNumberWithDelimiters(
-                                    data.totalCount
+                                    sessionResults.totalCount
                                 )}`}
                             />{' '}
                             sessions
@@ -140,7 +126,9 @@ export const SessionFeed = () => {
                         />
                     ) : (
                         <>
-                            {!data.sessions.length && called && !loading ? (
+                            {!sessionResults.sessions.length &&
+                            called &&
+                            !loading ? (
                                 <SearchEmptyState item={'sessions'} />
                             ) : (
                                 <>
@@ -154,7 +142,8 @@ export const SessionFeed = () => {
                                     ))}
                                 </>
                             )}
-                            {data.sessions.length < data.totalCount && (
+                            {sessionResults.sessions.length <
+                                sessionResults.totalCount && (
                                 <Skeleton
                                     height={74}
                                     style={{

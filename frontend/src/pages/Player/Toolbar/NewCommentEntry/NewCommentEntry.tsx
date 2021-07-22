@@ -1,7 +1,6 @@
-import useLocalStorage from '@rehooks/local-storage';
 import { Form, message } from 'antd';
 import { H } from 'highlight.run';
-import React, { useContext, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { OnChangeHandlerFunc } from 'react-mentions';
 import { useParams } from 'react-router-dom';
 
@@ -18,8 +17,8 @@ import {
 import { SanitizedAdminInput } from '../../../../graph/generated/schemas';
 import { MillisToMinutesAndSeconds } from '../../../../util/time';
 import { Coordinates2D } from '../../PlayerCommentCanvas/PlayerCommentCanvas';
-import { EventsForTimeline } from '../../PlayerHook/utils';
-import ReplayerContext from '../../ReplayerContext';
+import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration';
+import { useReplayerContext } from '../../ReplayerContext';
 import CommentTextBody from './CommentTextBody/CommentTextBody';
 import styles from './NewCommentEntry.module.scss';
 // import html2canvas from 'html2canvas';
@@ -37,7 +36,7 @@ export const NewCommentEntry = ({
     commentPosition,
     parentRef,
 }: Props) => {
-    const { time } = useContext(ReplayerContext);
+    const { time } = useReplayerContext();
     const [createComment] = useCreateSessionCommentMutation();
     const { data: admin_data } = useGetAdminQuery({ skip: false });
     const { session_id, organization_id } = useParams<{
@@ -52,12 +51,10 @@ export const NewCommentEntry = ({
     const [commentTextForEmail, setCommentTextForEmail] = useState('');
     const [isCreatingComment, setIsCreatingComment] = useState(false);
     const [form] = Form.useForm<{ commentText: string }>();
-    const [
+    const {
         selectedTimelineAnnotationTypes,
         setSelectedTimelineAnnotationTypes,
-    ] = useLocalStorage('highlightTimelineAnnotationTypes', [
-        ...EventsForTimeline,
-    ]);
+    } = usePlayerConfiguration();
     const { data } = useGetAdminsQuery({
         variables: { organization_id },
     });

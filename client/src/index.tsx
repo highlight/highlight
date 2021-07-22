@@ -55,13 +55,35 @@ export type DebugOptions = {
     domRecording?: boolean;
 };
 
+export type NetworkRecordingOptions = {
+    /**
+     * Enables recording of network requests.
+     * The data includes the URLs, the size of the request, and how long the request took.
+     * @default true
+     */
+    enabled?: boolean;
+    /**
+     * This enables recording XMLHttpRequest and Fetch headers and bodies.
+     * @default false
+     */
+    recordHeadersAndBody?: boolean;
+    /**
+     * Request and response headers where the value is not recorded.
+     * The header value is replaced with '[REDACTED]'.
+     * These headers are case-insensitive.
+     * `recordHeadersAndBody` needs to be enabled.
+     * @example
+     * networkHeadersToRedact: ['Secret-Header', 'Plain-Text-Password']
+     */
+    networkHeadersToRedact?: string[];
+};
+
 export type HighlightClassOptions = {
     organizationID: number | string;
     debug?: boolean | DebugOptions;
     backendUrl?: string;
     disableNetworkRecording?: boolean;
-    enableNetworkHeadersAndBodyRecording?: boolean;
-    networkHeadersToRedact?: string[];
+    networkRecording?: boolean | NetworkRecordingOptions;
     disableConsoleRecording?: boolean;
     enableSegmentIntegration?: boolean;
     enableStrictPrivacy?: boolean;
@@ -151,11 +173,28 @@ export class Highlight {
         } else {
             this.debugOptions = options?.debug ?? {};
         }
+
+        // Old versions of `firstload` use `disableNetworkRecording`. We fork here to ensure backwards compatibility.
+        if (options?.disableNetworkRecording !== undefined) {
+            this.disableNetworkRecording = options?.disableNetworkRecording;
+            this.enableRecordingNetworkContents = false;
+            this.networkHeadersToRedact = [];
+        } else if (typeof options?.networkRecording === 'boolean') {
+            this.disableNetworkRecording = !options.networkRecording;
+            this.enableRecordingNetworkContents = false;
+            this.networkHeadersToRedact = [];
+        } else {
+            this.disableNetworkRecording = !options.networkRecording?.enabled;
+            this.enableRecordingNetworkContents =
+                options.networkRecording?.recordHeadersAndBody || false;
+            this.networkHeadersToRedact =
+                options.networkRecording?.networkHeadersToRedact?.map(
+                    (header) => header.toLowerCase()
+                ) || [];
+        }
+
         this.ready = false;
         this.state = 'NotRecording';
-        this.disableNetworkRecording = options.disableNetworkRecording;
-        this.enableRecordingNetworkContents =
-            options.enableNetworkHeadersAndBodyRecording || false;
         this.disableConsoleRecording = options.disableConsoleRecording;
         this.enableSegmentIntegration = options.enableSegmentIntegration;
         this.enableStrictPrivacy = options.enableStrictPrivacy || false;
@@ -518,41 +557,20 @@ export class Highlight {
                 })
             );
 
-            // This is gated to only Highlight.
             if (
                 !this.disableNetworkRecording &&
-                this.enableRecordingNetworkContents &&
-                this.isRunningOnHighlight
+                this.enableRecordingNetworkContents
             ) {
                 this.listeners.push(
                     NetworkListener({
                         xhrCallback: (requestResponsePair) => {
-                            if (
-                                this.isRunningOnHighlight ||
-                                isHighlightNetworkResourceFilter(
-                                    requestResponsePair.request.url
-                                )
-                            ) {
-                                console.log(requestResponsePair);
-                                this.xhrNetworkContents.push(
-                                    requestResponsePair
-                                );
-                            }
+                            this.xhrNetworkContents.push(requestResponsePair);
                         },
                         fetchCallback: (requestResponsePair) => {
-                            if (
-                                this.isRunningOnHighlight ||
-                                isHighlightNetworkResourceFilter(
-                                    requestResponsePair.request.url
-                                )
-                            ) {
-                                console.log(requestResponsePair);
-                                this.fetchNetworkContents.push(
-                                    requestResponsePair
-                                );
-                            }
+                            this.fetchNetworkContents.push(requestResponsePair);
                         },
                         headersToRedact: this.networkHeadersToRedact,
+                        backendUrl: this._backendUrl,
                     })
                 );
             }
@@ -655,18 +673,12 @@ export class Highlight {
             // get all resources that don't include 'api.highlight.run'
             resources = performance.getEntriesByType('resource');
 
-            // Only filter out requests made to Highlight for customers.
-            if (!this.isRunningOnHighlight) {
-                resources = resources.filter(
-                    (r) => !isHighlightNetworkResourceFilter(r.name)
-                );
-            }
+            resources = resources.filter(
+                (r) =>
+                    !isHighlightNetworkResourceFilter(r.name, this._backendUrl)
+            );
 
-            // This feature is gated to only Highlight.
-            if (
-                this.isRunningOnHighlight &&
-                this.enableRecordingNetworkContents
-            ) {
+            if (this.enableRecordingNetworkContents) {
                 resources = matchPerformanceTimingsWithRequestResponsePair(
                     resources,
                     this.xhrNetworkContents,
@@ -677,9 +689,6 @@ export class Highlight {
                     this.fetchNetworkContents,
                     'fetch'
                 );
-                console.log(resources);
-                console.log(this.xhrNetworkContents);
-                console.log(this.fetchNetworkContents);
                 this.xhrNetworkContents = [];
                 this.fetchNetworkContents = [];
             }

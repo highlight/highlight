@@ -1,6 +1,5 @@
-import { useLocalStorage } from '@rehooks/local-storage';
 import classNames from 'classnames';
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Draggable from 'react-draggable';
 import { FaPause } from 'react-icons/fa';
 import Skeleton from 'react-loading-skeleton';
@@ -19,15 +18,15 @@ import {
     MillisToMinutesAndSecondsVerbose,
 } from '../../../util/time';
 import { EventsForTimeline, EventsForTimelineKeys } from '../PlayerHook/utils';
-import ReplayerContext, {
+import usePlayerConfiguration from '../PlayerHook/utils/usePlayerConfiguration';
+import {
     ParsedSessionInterval,
+    ReplayerPausedStates,
     ReplayerState,
+    useReplayerContext,
 } from '../ReplayerContext';
 import { getNewTimeWithSkip, usePlayerHotKeys } from '../utils/hooks';
-import {
-    DevToolsContextProvider,
-    DevToolTabs,
-} from './DevToolsContext/DevToolsContext';
+import { DevToolsContextProvider } from './DevToolsContext/DevToolsContext';
 import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
 import ErrorModal from './DevToolsWindow/ErrorsPage/components/ErrorModal/ErrorModal';
 import { ErrorModalContextProvider } from './ErrorModalContext/ErrorModalContext';
@@ -46,68 +45,53 @@ export const Toolbar = () => {
         pause,
         sessionIntervals,
         canViewSession,
-    } = useContext(ReplayerContext);
+        isPlayerReady,
+    } = useReplayerContext();
     usePlayerHotKeys();
+    const {
+        playerSpeed,
+        skipInactive,
+        setSkipInactive,
+        showLeftPanel,
+        showDevTools,
+        setShowDevTools,
+        autoPlayVideo,
+        setAutoPlayVideo,
+        enableInspectElement,
+        selectedDevToolsTab,
+        setSelectedDevToolsTab,
+    } = usePlayerConfiguration();
     const { data: admin_data } = useGetAdminQuery({ skip: false });
     const max = replayer?.getMetaData().totalTime ?? 0;
     const sliderWrapperRef = useRef<HTMLButtonElement>(null);
-    const [showLeftPanelPreference] = useLocalStorage(
-        'highlightMenuShowLeftPanel',
-        false
-    );
     const [selectedError, setSelectedError] = useState<ErrorObject | undefined>(
         undefined
     );
     const wrapperWidth =
         sliderWrapperRef.current?.getBoundingClientRect().width ?? 1;
     const [sliderClientX, setSliderClientX] = useState<number>(-1);
-    const [speed] = useLocalStorage('highlightMenuSpeed', 2);
-    const [skipInactive, setSkipInactive] = useLocalStorage(
-        'highlightMenuSkipInactive',
-        true
-    );
-    const [openDevTools, setOpenDevTools] = useLocalStorage(
-        'highlightMenuOpenDevTools',
-        false
-    );
-    const [autoPlayVideo, setAutoPlayVideo] = useLocalStorage(
-        'highlightMenuAutoPlayVideo',
-        false
-    );
-    const [enableDOMInteractions] = useLocalStorage(
-        'highlightMenuEnableDOMInteractions',
-        false
-    );
-    const [selectedDevToolsTab, setSelectedDevToolsTab] = useLocalStorage(
-        'highlightSelectedDevtoolTabs',
-        DevToolTabs.Errors
-    );
 
     const [lastCanvasPreview, setLastCanvasPreview] = useState(0);
-    const isPaused =
-        state === ReplayerState.Paused ||
-        state === ReplayerState.LoadedAndUntouched ||
-        state === ReplayerState.LoadedWithDeepLink ||
-        state === ReplayerState.SessionRecordingStopped;
+    const isPaused = ReplayerPausedStates.includes(state);
 
     useEffect(() => {
         if (replayer) {
-            if (enableDOMInteractions) {
+            if (enableInspectElement) {
                 replayer.enableInteract();
             } else {
                 replayer.disableInteract();
             }
         }
-    }, [enableDOMInteractions, replayer]);
+    }, [enableInspectElement, replayer]);
 
     useEffect(() => {
-        replayer?.setConfig({ skipInactive, speed });
-    }, [replayer, skipInactive, speed]);
+        replayer?.setConfig({ skipInactive, speed: playerSpeed });
+    }, [replayer, skipInactive, playerSpeed]);
 
     // Automatically start the player if the user has set the preference.
     useEffect(() => {
         if (admin_data) {
-            if (autoPlayVideo && replayer) {
+            if (autoPlayVideo && replayer && isPlayerReady) {
                 if (state === ReplayerState.LoadedAndUntouched) {
                     play(time);
                 } else if (state === ReplayerState.LoadedWithDeepLink) {
@@ -118,6 +102,7 @@ export const Toolbar = () => {
     }, [
         admin_data,
         autoPlayVideo,
+        isPlayerReady,
         pause,
         play,
         replayer,
@@ -206,8 +191,8 @@ export const Toolbar = () => {
         <ErrorModalContextProvider value={{ selectedError, setSelectedError }}>
             <DevToolsContextProvider
                 value={{
-                    openDevTools,
-                    setOpenDevTools,
+                    openDevTools: showDevTools,
+                    setOpenDevTools: setShowDevTools,
                     selectedTab: selectedDevToolsTab,
                     setSelectedTab: setSelectedDevToolsTab,
                 }}
@@ -255,7 +240,7 @@ export const Toolbar = () => {
                         setSliderClientX(
                             e.clientX -
                                 64 -
-                                (showLeftPanelPreference ? leftSidebarWidth : 0)
+                                (showLeftPanel ? leftSidebarWidth : 0)
                         )
                     }
                     onMouseLeave={() => setSliderClientX(-1)}
@@ -263,9 +248,7 @@ export const Toolbar = () => {
                         const ratio =
                             (e.clientX -
                                 64 -
-                                (showLeftPanelPreference
-                                    ? leftSidebarWidth
-                                    : 0)) /
+                                (showLeftPanel ? leftSidebarWidth : 0)) /
                             wrapperWidth;
                         setTime(getSliderTime(ratio));
                     }}
@@ -465,13 +448,13 @@ export const Toolbar = () => {
                             type="text"
                             className={styles.devToolsButton}
                             onClick={() => {
-                                setOpenDevTools(!openDevTools);
+                                setShowDevTools(!showDevTools);
                             }}
                             disabled={disableControls}
                         >
                             <SvgDevtoolsIcon
                                 className={classNames(styles.devToolsIcon, {
-                                    [styles.devToolsActive]: openDevTools,
+                                    [styles.devToolsActive]: showDevTools,
                                 })}
                             />
                         </Button>
@@ -493,7 +476,7 @@ const SessionSegment = ({
     wrapperWidth: number;
     getSliderTime: (sliderTime: number) => number;
 }) => {
-    const { time } = useContext(ReplayerContext);
+    const { time } = useReplayerContext();
     const playedColor = interval.active
         ? 'var(--color-purple)'
         : 'var(--color-gray-500)';

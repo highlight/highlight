@@ -61,6 +61,15 @@ export type AddAdminToOrganizationMutation = { __typename?: 'Mutation' } & Pick<
     'addAdminToOrganization'
 >;
 
+export type DeleteAdminFromOrganizationMutationVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    admin_id: Types.Scalars['ID'];
+}>;
+
+export type DeleteAdminFromOrganizationMutation = {
+    __typename?: 'Mutation';
+} & Pick<Types.Mutation, 'deleteAdminFromOrganization'>;
+
 export type AddSlackIntegrationToWorkspaceMutationVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     code: Types.Scalars['String'];

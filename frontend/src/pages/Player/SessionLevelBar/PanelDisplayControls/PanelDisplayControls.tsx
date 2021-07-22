@@ -1,4 +1,3 @@
-import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
 import React from 'react';
 
@@ -6,33 +5,30 @@ import Button from '../../../../components/Button/Button/Button';
 import Tooltip from '../../../../components/Tooltip/Tooltip';
 import SvgPanelBottomIcon from '../../../../static/PanelBottomIcon';
 import SvgPanelRightIcon from '../../../../static/PanelRightIcon';
+import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration';
 import styles from './PanelDisplayControls.module.scss';
 
 const PanelDisplayControls = () => {
-    const [openDevTools, setOpenDevTools] = useLocalStorage(
-        'highlightMenuOpenDevTools',
-        false
-    );
-    const [
-        showRightPanelPreference,
-        setShowRightPanelPreference,
-    ] = useLocalStorage('highlightMenuShowRightPanel', true);
-    const [
-        showLeftPanelPreference,
-        setShowLeftPanelPreference,
-    ] = useLocalStorage('highlightMenuShowLeftPanel', false);
+    const {
+        showLeftPanel,
+        setShowLeftPanel,
+        showDevTools,
+        setShowDevTools,
+        showRightPanel,
+        setShowRightPanel,
+    } = usePlayerConfiguration();
 
     return (
         <div className={styles.buttonContainer}>
             <PanelButton
                 tooltipText="Activate the Sessions panel to search for sessions."
                 onClick={() => {
-                    setShowLeftPanelPreference(!showLeftPanelPreference);
+                    setShowLeftPanel(!showLeftPanel);
                 }}
             >
                 <SvgPanelRightIcon
                     className={classNames([
-                        { [styles.active]: showLeftPanelPreference },
+                        { [styles.active]: showLeftPanel },
                         styles.leftPanelIcon,
                     ])}
                 />
@@ -40,22 +36,22 @@ const PanelDisplayControls = () => {
             <PanelButton
                 tooltipText="Activate the DevTools to see console logs, errors, and network requests."
                 onClick={() => {
-                    setOpenDevTools(!openDevTools);
+                    setShowDevTools(!showDevTools);
                 }}
             >
                 <SvgPanelBottomIcon
-                    className={classNames([{ [styles.active]: openDevTools }])}
+                    className={classNames([{ [styles.active]: showDevTools }])}
                 />
             </PanelButton>
             <PanelButton
                 tooltipText="Activate the Inspect panel to view session event details and user metadata."
                 onClick={() => {
-                    setShowRightPanelPreference(!showRightPanelPreference);
+                    setShowRightPanel(!showRightPanel);
                 }}
             >
                 <SvgPanelRightIcon
                     className={classNames([
-                        { [styles.active]: showRightPanelPreference },
+                        { [styles.active]: showRightPanel },
                     ])}
                 />
             </PanelButton>

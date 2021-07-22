@@ -11,23 +11,25 @@ interface NetworkListenerArguments {
     xhrCallback: NetworkListenerCallback;
     fetchCallback: NetworkListenerCallback;
     headersToRedact: string[];
+    backendUrl: string;
 }
 
 export const NetworkListener = ({
     xhrCallback,
     fetchCallback,
     headersToRedact,
+    backendUrl,
 }: NetworkListenerArguments) => {
     const removeXHRListener = XHRListener((requestResponsePair) => {
         xhrCallback(
             sanitizeRequestResponsePair(requestResponsePair, headersToRedact)
         );
-    });
+    }, backendUrl);
     const removeFetchListener = FetchListener((requestResponsePair) => {
         fetchCallback(
             sanitizeRequestResponsePair(requestResponsePair, headersToRedact)
         );
-    });
+    }, backendUrl);
 
     return () => {
         removeXHRListener();

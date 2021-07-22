@@ -4,18 +4,27 @@ import '@highlight-run/rrweb/dist/index.css';
 
 import { ApolloProvider } from '@apollo/client';
 import { H, HighlightOptions } from 'highlight.run';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { SkeletonTheme } from 'react-loading-skeleton';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import { QueryParamProvider } from 'use-query-params';
 
 import packageJson from '../package.json';
+import {
+    AuthContextProvider,
+    AuthRole,
+    isAuthLoading,
+    isHighlightAdmin,
+    isLoggedIn,
+} from './AuthContext';
 import { DemoContext } from './DemoContext';
 import DemoRouter from './DemoRouter';
+import { useGetAdminLazyQuery } from './graph/generated/hooks';
 import About from './pages/About/About';
 import LoginForm from './pages/Login/Login';
 import * as serviceWorker from './serviceWorker';
+import { auth } from './util/auth';
 import { showHiringMessage } from './util/console/hiringMessage';
 import { client } from './util/graph';
 import { SimpleErrorBoundary } from './util/simpleErrorBoundary';
@@ -26,8 +35,11 @@ const options: HighlightOptions = {
     manualStart: true,
     enableStrictPrivacy: Math.floor(Math.random() * 2) === 0,
     version: packageJson['version'],
-    enableNetworkHeadersAndBodyRecording: false,
     disableConsoleRecording: true,
+    networkRecording: {
+        enabled: true,
+        recordHeadersAndBody: true,
+    },
 };
 const favicon = document.querySelector("link[rel~='icon']") as any;
 if (dev) {
@@ -73,31 +85,84 @@ const App = () => {
             <ApolloProvider client={client}>
                 <QueryParamProvider>
                     <SkeletonTheme color={'#F5F5F5'} highlightColor={'#FCFCFC'}>
-                        <Router>
-                            <Switch>
-                                <Route path="/about">
-                                    <About />
-                                </Route>
-                                <Route path="/demo" exact>
-                                    <DemoContext.Provider
-                                        value={{ demo: true }}
-                                    >
-                                        <DemoRouter />
-                                    </DemoContext.Provider>
-                                </Route>
-                                <Route path="/">
-                                    <DemoContext.Provider
-                                        value={{ demo: false }}
-                                    >
-                                        <LoginForm />
-                                    </DemoContext.Provider>
-                                </Route>
-                            </Switch>
-                        </Router>
+                        <AuthenticationRouter />
                     </SkeletonTheme>
                 </QueryParamProvider>
             </ApolloProvider>
         </SimpleErrorBoundary>
+    );
+};
+
+const AuthenticationRouter = () => {
+    const [
+        getAdminQuery,
+        { error: adminError, data: adminData },
+    ] = useGetAdminLazyQuery();
+
+    const [authRole, setAuthRole] = useState<AuthRole>(AuthRole.LOADING);
+
+    useEffect(() => {
+        const unsubscribeFirebase = auth.onAuthStateChanged(
+            (user) => {
+                if (user) {
+                    getAdminQuery();
+                } else {
+                    setAuthRole(AuthRole.UNAUTHENTICATED);
+                }
+            },
+            (error) => {
+                H.consumeError(new Error(JSON.stringify(error)));
+                setAuthRole(AuthRole.UNAUTHENTICATED);
+            }
+        );
+
+        return () => {
+            unsubscribeFirebase();
+        };
+    }, [getAdminQuery, adminData]);
+
+    useEffect(() => {
+        if (adminData) {
+            if (adminData.admin?.email.includes('@highlight.run')) {
+                setAuthRole(AuthRole.AUTHENTICATED_HIGHLIGHT);
+            } else if (adminData.admin) {
+                setAuthRole(AuthRole.AUTHENTICATED);
+            }
+        } else if (adminError) {
+            setAuthRole(AuthRole.UNAUTHENTICATED);
+        }
+    }, [adminError, adminData]);
+
+    return (
+        <AuthContextProvider
+            value={{
+                role: authRole,
+                admin: isLoggedIn(authRole)
+                    ? adminData?.admin ?? undefined
+                    : undefined,
+                isAuthLoading: isAuthLoading(authRole),
+                isLoggedIn: isLoggedIn(authRole),
+                isHighlightAdmin: isHighlightAdmin(authRole),
+            }}
+        >
+            <Router>
+                <Switch>
+                    <Route path="/about">
+                        <About />
+                    </Route>
+                    <Route path="/demo" exact>
+                        <DemoContext.Provider value={{ demo: true }}>
+                            <DemoRouter />
+                        </DemoContext.Provider>
+                    </Route>
+                    <Route path="/">
+                        <DemoContext.Provider value={{ demo: false }}>
+                            <LoginForm />
+                        </DemoContext.Provider>
+                    </Route>
+                </Switch>
+            </Router>
+        </AuthContextProvider>
     );
 };
 

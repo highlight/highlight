@@ -1,4 +1,3 @@
-import useLocalStorage from '@rehooks/local-storage';
 import { Checkbox, CheckboxOptionType } from 'antd';
 import React from 'react';
 
@@ -9,6 +8,7 @@ import {
     EventsForTimeline,
     EventsForTimelineKeys,
 } from '../../PlayerHook/utils';
+import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration';
 import { getAnnotationColor } from '../Toolbar';
 import styles from './TimelineAnnotationsSettings.module.scss';
 
@@ -51,15 +51,13 @@ interface Props {
 }
 
 const TimelineAnnotationsSettings = ({ disabled }: Props) => {
-    const [
-        selectedEventTypes,
-        setSelectedEventTypes,
-    ] = useLocalStorage('highlightTimelineAnnotationTypes', [
-        ...EventsForTimeline,
-    ]);
+    const {
+        selectedTimelineAnnotationTypes,
+        setSelectedTimelineAnnotationTypes,
+    } = usePlayerConfiguration();
 
     const onSelectChangeHandler = (value: any) => {
-        setSelectedEventTypes(value);
+        setSelectedTimelineAnnotationTypes(value);
     };
 
     const checkboxOptions: CheckboxOptionType[] = EventsForTimeline.map(
@@ -100,7 +98,7 @@ const TimelineAnnotationsSettings = ({ disabled }: Props) => {
                         annotations.
                     </p>
                     <Checkbox.Group
-                        defaultValue={selectedEventTypes}
+                        defaultValue={selectedTimelineAnnotationTypes}
                         onChange={onSelectChangeHandler}
                         className={styles.checkboxGroup}
                     >
@@ -122,7 +120,7 @@ const TimelineAnnotationsSettings = ({ disabled }: Props) => {
                 disabled={disabled}
             >
                 <div className={styles.eventTypesContainer}>
-                    {selectedEventTypes.map((eventType) => (
+                    {selectedTimelineAnnotationTypes.map((eventType) => (
                         <div
                             key={eventType}
                             className={styles.eventType}
@@ -134,7 +132,7 @@ const TimelineAnnotationsSettings = ({ disabled }: Props) => {
                         ></div>
                     ))}
                     <span className={styles.label}>
-                        {selectedEventTypes.length} types...
+                        {selectedTimelineAnnotationTypes.length} types...
                     </span>
                 </div>
             </Button>
