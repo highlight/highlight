@@ -94,24 +94,32 @@ const ResourceDetailsModal = ({
         }
 
         if (request.body) {
-            const parsedRequestBody = JSON.parse(request.body);
+            try {
+                const parsedRequestBody = JSON.parse(request.body);
 
-            Object.keys(parsedRequestBody).forEach((key) => {
-                const renderType =
-                    typeof parsedRequestBody[key] === 'object'
-                        ? 'json'
-                        : 'string';
-                requestPayloadData.push({
-                    keyDisplayValue: key,
-                    valueDisplayValue:
-                        renderType === 'string'
-                            ? parsedRequestBody[key]?.toString()
-                            : JSON.parse(
-                                  JSON.stringify(parsedRequestBody[key])
-                              ),
-                    renderType,
+                Object.keys(parsedRequestBody).forEach((key) => {
+                    const renderType =
+                        typeof parsedRequestBody[key] === 'object'
+                            ? 'json'
+                            : 'string';
+                    requestPayloadData.push({
+                        keyDisplayValue: key,
+                        valueDisplayValue:
+                            renderType === 'string'
+                                ? parsedRequestBody[key]?.toString()
+                                : JSON.parse(
+                                      JSON.stringify(parsedRequestBody[key])
+                                  ),
+                        renderType,
+                    });
                 });
-            });
+            } catch {
+                requestPayloadData.push({
+                    keyDisplayValue: 'body',
+                    valueDisplayValue: request.body,
+                    renderType: 'string',
+                });
+            }
         }
 
         if (response.headers) {
