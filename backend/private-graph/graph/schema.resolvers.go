@@ -1163,13 +1163,8 @@ func (r *queryResolver) Errors(ctx context.Context, sessionID int) ([]*model.Err
 	eventsQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.errorObjectsQuery"))
 	defer eventsQuerySpan.Finish()
 	errorsObj := []*model.ErrorObject{}
-	if res := r.DB.Order("created_at asc").Where(&model.ErrorObject{SessionID: sessionID}).Find(&errorsObj); res.Error != nil {
+	if res := r.DB.Order("created_at asc").Where(&model.ErrorObject{SessionID: sessionID}).Preload("Fields").Find(&errorsObj); res.Error != nil {
 		return nil, fmt.Errorf("error reading from errors: %v", res.Error)
-	}
-	for _, obj := range errorsObj {
-		if err := r.DB.Model(obj).Association("Fields").Find(&obj.Fields); err != nil {
-			return nil, e.Wrap(err, "error getting fields for error object")
-		}
 	}
 	return errorsObj, nil
 }
