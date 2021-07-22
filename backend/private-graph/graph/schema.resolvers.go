@@ -378,11 +378,11 @@ func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, o
 	}
 	redirect := os.Getenv("FRONTEND_URI")
 	redirect += "/" + strconv.Itoa(organizationID) + "/" + redirectPath
-	if temp, ok := os.LookupEnv("SLACK_CLIENT_ID"); ok && temp != "" {
-		SLACK_CLIENT_ID = temp
+	if tempSlackClientID, ok := os.LookupEnv("SLACK_CLIENT_ID"); ok && tempSlackClientID != "" {
+		SLACK_CLIENT_ID = tempSlackClientID
 	}
-	if temp, ok := os.LookupEnv("SLACK_CLIENT_SECRET"); ok && temp != "" {
-		SLACK_CLIENT_SECRET = temp
+	if tempSlackClientSecret, ok := os.LookupEnv("SLACK_CLIENT_SECRET"); ok && tempSlackClientSecret != "" {
+		SLACK_CLIENT_SECRET = tempSlackClientSecret
 	}
 	resp, err := slack.
 		GetOAuthV2Response(
