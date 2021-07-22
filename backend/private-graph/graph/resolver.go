@@ -166,7 +166,7 @@ func ErrorInputToParams(params *modelInputs.ErrorSearchParamsInput) *model.Error
 
 func (r *Resolver) isAdminErrorGroupOwner(ctx context.Context, errorGroupID int) (*model.ErrorGroup, error) {
 	errorGroup := &model.ErrorGroup{}
-	if err := r.DB.Model(&model.ErrorGroup{Model: model.Model{ID: errorGroupID}}).First(&errorGroup).Error; err != nil {
+	if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: errorGroupID}}).First(&errorGroup).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session")
 	}
 	_, err := r.isAdminInOrganization(ctx, errorGroup.OrganizationID)
