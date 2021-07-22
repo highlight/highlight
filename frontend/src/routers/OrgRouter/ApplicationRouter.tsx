@@ -68,7 +68,6 @@ const ApplicationRouter = ({ integrated }: Props) => {
         );
 
         if (!segmentName && areAnySearchParamsSet) {
-            // TODO: Only set the params that are different compared to the default values.
             setSearchParamsToUrlParams({
                 ...searchParams,
             });
