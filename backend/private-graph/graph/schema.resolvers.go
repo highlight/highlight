@@ -1028,35 +1028,38 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 	errorFieldIds := []int{}
-	errorFieldQuery := r.DB.Model(&model.ErrorField{})
+	errorFieldQuery := r.DB.Model(&model.ErrorField{}).Where(&model.ErrorField{OrganizationID: organizationID})
+	errorFieldQueryCondition := r.DB
 
 	if params.Browser != nil {
-		errorFieldQuery = errorFieldQuery.Or("name = ? AND value = ? AND type = ?", "browser", params.Browser, model.ErrorFieldType.META_DATA)
+		errorFieldQueryCondition = errorFieldQueryCondition.Or("name = ? AND value = ? AND type = ?", "browser", params.Browser, model.ErrorFieldType.META_DATA)
 	}
 
 	if params.Os != nil {
-		errorFieldQuery = errorFieldQuery.Or("name = ? AND value = ? AND type = ?", "os_name", params.Os, model.ErrorFieldType.META_DATA)
+		errorFieldQueryCondition = errorFieldQueryCondition.Or("name = ? AND value = ? AND type = ?", "os_name", params.Os, model.ErrorFieldType.META_DATA)
 	}
 
 	if params.VisitedURL != nil {
-		errorFieldQuery = errorFieldQuery.Or("name = ? AND value = ? AND type = ?", "visited_url", params.VisitedURL, model.ErrorFieldType.META_DATA)
+		errorFieldQueryCondition = errorFieldQueryCondition.Or("name = ? AND value = ? AND type = ?", "visited_url", params.VisitedURL, model.ErrorFieldType.META_DATA)
 	}
 
 	if params.PayloadFields != nil {
 		for _, prop := range params.PayloadFields {
 			if prop.ID == nil || *prop.ID == 0 {
-				errorFieldQuery = errorFieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, model.ErrorFieldType.PAYLOAD)
+				errorFieldQueryCondition = errorFieldQueryCondition.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, model.ErrorFieldType.PAYLOAD)
 			} else {
 				errorFieldIds = append(errorFieldIds, *prop.ID)
 			}
 		}
-		errorFieldQuery = errorFieldQuery.Or("name = ? AND value = ? AND type = ?", "visited_url", params.VisitedURL, model.ErrorFieldType.META_DATA)
+		errorFieldQueryCondition = errorFieldQueryCondition.Or("name = ? AND value = ? AND type = ?", "visited_url", params.VisitedURL, model.ErrorFieldType.META_DATA)
 	}
 
 	errorFieldQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.errorFieldIds"))
-	if err := errorFieldQuery.Pluck("id", &errorFieldIds).Error; err != nil {
+	var tempErrorFieldIds []int
+	if err := errorFieldQuery.Where(errorFieldQueryCondition).Pluck("id", &tempErrorFieldIds).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error fields")
 	}
+	errorFieldIds = append(errorFieldIds, tempErrorFieldIds...)
 	errorFieldQuerySpan.Finish()
 
 	errorGroups := []model.ErrorGroup{}
@@ -1105,7 +1108,6 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 		if err := r.DB.Raw(fmt.Sprintf("%s %s", countPreamble, queryString)).Scan(&queriedErrorGroupsCount).Error; err != nil {
 			return e.Wrap(err, "error counting error groups")
 		}
-
 		errorGroupCountSpan.Finish()
 		return nil
 	})
@@ -1124,14 +1126,6 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 
 func (r *queryResolver) ErrorGroup(ctx context.Context, id int) (*model.ErrorGroup, error) {
 	return r.isAdminErrorGroupOwner(ctx, id)
-}
-
-func (r *queryResolver) ErrorGroupFields(ctx context.Context, id int) ([]*model.ErrorField, error) {
-	var errorFields []*model.ErrorField
-	if err := r.DB.Model(&model.ErrorGroup{Model: model.Model{ID: id}}).Association("Fields").Find(&errorFields); err != nil {
-		return nil, e.Wrap(err, "error fetching error fields from error group")
-	}
-	return errorFields, nil
 }
 
 func (r *queryResolver) Messages(ctx context.Context, sessionID int) ([]interface{}, error) {
@@ -2094,3 +2088,17 @@ type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
 type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *queryResolver) ErrorGroupFields(ctx context.Context, id int) ([]*model.ErrorField, error) {
+	var errorFields []*model.ErrorField
+	if err := r.DB.Model(&model.ErrorGroup{Model: model.Model{ID: id}}).Association("Fields").Find(&errorFields); err != nil {
+		return nil, e.Wrap(err, "error fetching error fields from error group")
+	}
+	return errorFields, nil
+}

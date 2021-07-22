@@ -797,17 +797,17 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
                         >
                     >
                 >;
+                fields?: Types.Maybe<
+                    Array<
+                        Types.Maybe<
+                            { __typename?: 'ErrorField' } & Pick<
+                                Types.ErrorField,
+                                'name' | 'value'
+                            >
+                        >
+                    >
+                >;
             }
-    >;
-    field_group?: Types.Maybe<
-        Array<
-            Types.Maybe<
-                { __typename?: 'ErrorField' } & Pick<
-                    Types.ErrorField,
-                    'name' | 'value'
-                >
-            >
-        >
     >;
 };
 
@@ -849,6 +849,16 @@ export type GetErrorGroupsQuery = { __typename?: 'Query' } & {
                                     { __typename?: 'ErrorMetadata' } & Pick<
                                         Types.ErrorMetadata,
                                         'error_id' | 'session_id' | 'timestamp'
+                                    >
+                                >
+                            >;
+                            fields?: Types.Maybe<
+                                Array<
+                                    Types.Maybe<
+                                        { __typename?: 'ErrorField' } & Pick<
+                                            Types.ErrorField,
+                                            'name' | 'value'
+                                        >
                                     >
                                 >
                             >;

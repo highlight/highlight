@@ -239,7 +239,7 @@ query GetBillingDetails($organization_id: ID!) {
 }
 
 query GetErrorGroup($id: ID!) {
-    error_group: error_group(id: $id) {
+    error_group(id: $id) {
         id
         type
         organization_id
@@ -261,10 +261,10 @@ query GetErrorGroup($id: ID!) {
             browser
             visited_url
         }
-    }
-    field_group: error_group_fields(id: $id) {
-        name
-        value
+        fields {
+            name
+            value
+        }
     }
 }
 
@@ -295,6 +295,10 @@ query GetErrorGroups(
                 error_id
                 session_id
                 timestamp
+            }
+            fields {
+                name
+                value
             }
         }
         totalCount

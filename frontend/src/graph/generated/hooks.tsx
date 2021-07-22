@@ -2352,7 +2352,7 @@ export type GetBillingDetailsQueryResult = Apollo.QueryResult<
 >;
 export const GetErrorGroupDocument = gql`
     query GetErrorGroup($id: ID!) {
-        error_group: error_group(id: $id) {
+        error_group(id: $id) {
             id
             type
             organization_id
@@ -2374,10 +2374,10 @@ export const GetErrorGroupDocument = gql`
                 browser
                 visited_url
             }
-        }
-        field_group: error_group_fields(id: $id) {
-            name
-            value
+            fields {
+                name
+                value
+            }
         }
     }
 `;
@@ -2458,6 +2458,10 @@ export const GetErrorGroupsDocument = gql`
                     error_id
                     session_id
                     timestamp
+                }
+                fields {
+                    name
+                    value
                 }
             }
             totalCount

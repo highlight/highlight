@@ -189,7 +189,7 @@ const ErrorPage = () => {
                                 />
                             ) : (
                                 <>
-                                    {data?.field_group?.map(
+                                    {data?.error_group?.fields?.map(
                                         (e, i) =>
                                             e?.name != 'visited_url' && (
                                                 <Field
