@@ -267,7 +267,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	if err != nil {
 		log.Errorf(errors.Wrap(err, "error scanning session payload").Error())
 	}
-	defer payloadReader.Close()
+	payloadReader.Close()
 
 	// load all events
 	events := []model.EventsObject{}
