@@ -116,7 +116,38 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	return nil
 }
 
-func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session) (*int64, error) {
+type ObjectReader struct {
+	reader *csv.Reader
+	file   *os.File
+}
+
+func NewObjectReader(file *os.File) *ObjectReader {
+	p := &ObjectReader{file: file}
+	return p
+}
+
+func (p *ObjectReader) Close() {
+	p.file.Close()
+	os.Remove(p.file.Name())
+}
+
+func (p *ObjectReader) Read() *csv.Reader {
+	return csv.NewReader(p.file)
+}
+
+type PayloadReader struct {
+	EventsReader    *ObjectReader
+	ResourcesReader *ObjectReader
+	MessagesReader  *ObjectReader
+}
+
+func (p *PayloadReader) Close() {
+	p.EventsReader.Close()
+	p.ResourcesReader.Close()
+	p.MessagesReader.Close()
+}
+
+func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session) (*PayloadReader, error) {
 	var totalPayloadSize int64 = 0
 	sessionIdString := "/tmp/" + strconv.FormatInt(int64(s.ID), 10)
 
@@ -125,14 +156,11 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session) (*int
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating events file")
 	}
-	defer eventsFile.Close()
-	defer os.Remove(eventsFile.Name())
 	eventRows, err := w.Resolver.DB.Model(&model.EventsObject{}).Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").Rows()
 	if err != nil {
 		return nil, errors.Wrap(err, "error retrieving events objects")
 	}
 	eventsWriter := csv.NewWriter(eventsFile)
-	defer eventsWriter.Flush()
 	for eventRows.Next() {
 		eventObject := model.EventsObject{}
 		err := w.Resolver.DB.ScanRows(eventRows, &eventObject)
@@ -147,6 +175,7 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session) (*int
 		if err := eventsWriter.Write([]string{string(eventBytes)}); err != nil {
 			return nil, errors.Wrap(err, "error writing event row")
 		}
+		eventsWriter.Flush()
 	}
 	eventInfo, err := eventsFile.Stat()
 	if err != nil {
@@ -159,14 +188,11 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session) (*int
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating resources file")
 	}
-	defer resourcesFile.Close()
-	defer os.Remove(resourcesFile.Name())
 	resourcesRows, err := w.Resolver.DB.Model(&model.ResourcesObject{}).Where(&model.ResourcesObject{SessionID: s.ID}).Order("created_at asc").Rows()
 	if err != nil {
 		return nil, errors.Wrap(err, "error retrieving resources objects")
 	}
 	resourceWriter := csv.NewWriter(resourcesFile)
-	defer resourceWriter.Flush()
 	for resourcesRows.Next() {
 		resourcesObject := model.ResourcesObject{}
 		err := w.Resolver.DB.ScanRows(resourcesRows, &resourcesObject)
@@ -181,6 +207,7 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session) (*int
 		if err := resourceWriter.Write([]string{string(resourceBytes)}); err != nil {
 			return nil, errors.Wrap(err, "error writing resource row")
 		}
+		resourceWriter.Flush()
 	}
 	resourceInfo, err := resourcesFile.Stat()
 	if err != nil {
@@ -199,8 +226,7 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session) (*int
 	if err != nil {
 		return nil, errors.Wrap(err, "error retrieving messages objects")
 	}
-	writer := csv.NewWriter(messagesFile)
-	defer writer.Flush()
+	messagesWriter := csv.NewWriter(messagesFile)
 	for messageRows.Next() {
 		messageObject := model.MessagesObject{}
 		err := w.Resolver.DB.ScanRows(resourcesRows, &messageObject)
@@ -212,9 +238,10 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session) (*int
 			return nil, errors.Wrap(err, "error marshaling message row")
 		}
 		// TODO: need to handle new lines in the csv.
-		if err := writer.Write([]string{string(messageBytes)}); err != nil {
+		if err := messagesWriter.Write([]string{string(messageBytes)}); err != nil {
 			return nil, errors.Wrap(err, "error writing message row")
 		}
+		messagesWriter.Flush()
 	}
 
 	messagesInfo, err := messagesFile.Stat()
@@ -223,17 +250,24 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session) (*int
 	}
 	totalPayloadSize += messagesInfo.Size()
 
-	return &totalPayloadSize, nil
+	// Assign readers
+	reader := PayloadReader{}
+	reader.EventsReader = NewObjectReader(eventsFile)
+	reader.ResourcesReader = NewObjectReader(resourcesFile)
+	reader.MessagesReader = NewObjectReader(messagesFile)
+
+	dd.StatsD.Histogram("worker.processSession.scannedSessionPayload", float64(totalPayloadSize), nil, 1) //nolint
+	log.Printf("payload size for session '%v' is '%v'\n", s.ID, totalPayloadSize)
+
+	return &reader, nil
 }
 
 func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
-	size, err := w.scanSessionPayload(ctx, s)
+	payloadReader, err := w.scanSessionPayload(ctx, s)
 	if err != nil {
 		log.Errorf(errors.Wrap(err, "error scanning session payload").Error())
-	} else {
-		dd.StatsD.Histogram("worker.processSession.scannedSessionPayload", float64(*size), nil, 1) //nolint
-		log.Printf("payload size for session '%v' is '%v'\n", s.ID, *size)
 	}
+	defer payloadReader.Close()
 
 	// load all events
 	events := []model.EventsObject{}
