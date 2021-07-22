@@ -1032,15 +1032,15 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 	errorFieldQueryCondition := r.DB
 
 	if params.Browser != nil {
-		errorFieldQueryCondition = errorFieldQueryCondition.Or("name = ? AND value = ? AND type = ?", "browser", params.Browser, model.ErrorFieldType.META_DATA)
+		errorFieldQueryCondition = errorFieldQueryCondition.Or("name = ? AND value = ? AND type = ?", "browser", *params.Browser, model.ErrorFieldType.META_DATA)
 	}
 
 	if params.Os != nil {
-		errorFieldQueryCondition = errorFieldQueryCondition.Or("name = ? AND value = ? AND type = ?", "os_name", params.Os, model.ErrorFieldType.META_DATA)
+		errorFieldQueryCondition = errorFieldQueryCondition.Or("name = ? AND value = ? AND type = ?", "os_name", *params.Os, model.ErrorFieldType.META_DATA)
 	}
 
 	if params.VisitedURL != nil {
-		errorFieldQueryCondition = errorFieldQueryCondition.Or("name = ? AND value = ? AND type = ?", "visited_url", params.VisitedURL, model.ErrorFieldType.META_DATA)
+		errorFieldQueryCondition = errorFieldQueryCondition.Or("name = ? AND value = ? AND type = ?", "visited_url", *params.VisitedURL, model.ErrorFieldType.META_DATA)
 	}
 
 	if params.PayloadFields != nil {
@@ -1051,7 +1051,6 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 				errorFieldIds = append(errorFieldIds, *prop.ID)
 			}
 		}
-		errorFieldQueryCondition = errorFieldQueryCondition.Or("name = ? AND value = ? AND type = ?", "visited_url", params.VisitedURL, model.ErrorFieldType.META_DATA)
 	}
 
 	errorFieldQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.errorFieldIds"))
