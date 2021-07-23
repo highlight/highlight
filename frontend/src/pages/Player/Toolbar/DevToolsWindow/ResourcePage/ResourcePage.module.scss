@@ -169,6 +169,7 @@ $canvas-width: calc(
     color: var(--color-gray-500);
     margin-bottom: auto !important;
     margin-top: auto !important;
+    max-width: 600px;
 }
 
 .rightAlign {
