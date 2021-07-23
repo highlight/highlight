@@ -8,12 +8,12 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/k0kubun/pp"
 	"github.com/pkg/errors"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-	"gorm.io/gorm/clause"
 
 	dd "github.com/highlight-run/highlight/backend/datadog"
 	"github.com/highlight-run/highlight/backend/payload"
@@ -116,23 +116,8 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	return nil
 }
 
-func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session) (*payload.PayloadManager, error) {
+func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session, eventsFile *os.File, resourcesFile *os.File, messagesFile *os.File) (*payload.PayloadManager, error) {
 	var totalPayloadSize int64 = 0
-	sessionIdString := "/tmp/" + strconv.FormatInt(int64(s.ID), 10)
-
-	// Create files and manager.
-	eventsFile, err := os.Create(sessionIdString + ".events.txt")
-	if err != nil {
-		return nil, errors.Wrap(err, "error creating events file")
-	}
-	resourcesFile, err := os.Create(sessionIdString + ".resources.txt")
-	if err != nil {
-		return nil, errors.Wrap(err, "error creating resources file")
-	}
-	messagesFile, err := os.Create(sessionIdString + ".messages.txt")
-	if err != nil {
-		return nil, errors.Wrap(err, "error creating messages file")
-	}
 	manager := payload.NewPayloadManager(eventsFile, resourcesFile, messagesFile)
 
 	// Fetch/write events.
@@ -140,6 +125,7 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session) (*pay
 	if err != nil {
 		return nil, errors.Wrap(err, "error retrieving events objects")
 	}
+	var numberOfRows int64 = 0
 	eventsWriter := manager.Events.Writer()
 	for eventRows.Next() {
 		eventObject := model.EventsObject{}
@@ -150,7 +136,9 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session) (*pay
 		if err := eventsWriter.Write(&eventObject); err != nil {
 			return nil, errors.Wrap(err, "error writing event row")
 		}
+		numberOfRows += 1
 	}
+	manager.Events.Length = numberOfRows
 
 	// Fetch/write resources.
 	resourcesRows, err := w.Resolver.DB.Model(&model.ResourcesObject{}).Where(&model.ResourcesObject{SessionID: s.ID}).Order("created_at asc").Rows()
@@ -158,6 +146,7 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session) (*pay
 		return nil, errors.Wrap(err, "error retrieving resources objects")
 	}
 	resourceWriter := manager.Resources.Writer()
+	numberOfRows = 0
 	for resourcesRows.Next() {
 		resourcesObject := model.ResourcesObject{}
 		err := w.Resolver.DB.ScanRows(resourcesRows, &resourcesObject)
@@ -167,13 +156,17 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session) (*pay
 		if err := resourceWriter.Write(&resourcesObject); err != nil {
 			return nil, errors.Wrap(err, "error writing resource row")
 		}
+		numberOfRows += 1
 	}
+	manager.Resources.Length = numberOfRows
 
 	// Fetch/write messages.
 	messageRows, err := w.Resolver.DB.Model(&model.MessagesObject{}).Where(&model.MessagesObject{SessionID: s.ID}).Order("created_at asc").Rows()
 	if err != nil {
 		return nil, errors.Wrap(err, "error retrieving messages objects")
 	}
+
+	numberOfRows = 0
 	messagesWriter := manager.Messages.Writer()
 	for messageRows.Next() {
 		messageObject := model.MessagesObject{}
@@ -183,7 +176,9 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session) (*pay
 		if err := messagesWriter.Write(&messageObject); err != nil {
 			return nil, errors.Wrap(err, "error writing messages object")
 		}
+		numberOfRows += 1
 	}
+	manager.Messages.Length = numberOfRows
 
 	// Measure payload sizes.
 	eventInfo, err := eventsFile.Stat()
@@ -210,79 +205,175 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session) (*pay
 	return manager, nil
 }
 
-func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
-	payloadReader, err := w.scanSessionPayload(ctx, s)
+func CreateFile(name string) (func(), *os.File, error) {
+	file, err := os.Create(name)
 	if err != nil {
-		log.Errorf(errors.Wrap(err, "error scanning session payload").Error())
+		return nil, nil, errors.Wrap(err, "error creating file")
 	}
-	payloadReader.Close()
+	return func() {
+		// file.Close()
+		// os.Remove(file.Name())
+	}, file, nil
+}
+
+func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
+
+	sessionIdString := "/tmp/" + strconv.FormatInt(int64(s.ID), 10)
+
+	// Create files.
+	eventsClose, eventsFile, err := CreateFile(sessionIdString + ".events.txt")
+	if err != nil {
+		return errors.Wrap(err, "error creating events file")
+	}
+	defer eventsClose()
+	resourcesClose, _, err := CreateFile(sessionIdString + ".resources.txt")
+	if err != nil {
+		return errors.Wrap(err, "error creating events file")
+	}
+	defer resourcesClose()
+	messagesClose, _, err := CreateFile(sessionIdString + ".messages.txt")
+	if err != nil {
+		return errors.Wrap(err, "error creating events file")
+	}
+	defer messagesClose()
+
+	// payloadManager, err := w.scanSessionPayload(ctx, s, eventsFile, resourcesFile, messagesFile)
+	// if err != nil {
+	// 	log.Errorf(errors.Wrap(err, "error scanning session payload").Error())
+	// }
+
+	// Keep reading events until there are none.
 
 	// load all events
-	events := []model.EventsObject{}
-	if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").Find(&events).Error; err != nil {
-		return errors.Wrap(err, "retrieving events")
-	}
+	// events := []model.EventsObject{}
+	// if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").Find(&events).Error; err != nil {
+	// 	return errors.Wrap(err, "retrieving events")
+	// }
 
-	dd.StatsD.Histogram("worker.processSession.numEventsRowsQueried", float64(len(events)), nil, 1) //nolint
+	// dd.StatsD.Histogram("worker.processSession.numEventsRowsQueried", float64(len(events)), nil, 1) //nolint
 
-	payloadStringBytes := 0
-	for _, ee := range events {
-		payloadStringBytes += len(ee.Events)
-	}
-	dd.StatsD.Histogram("worker.processSession.payloadStringSize", float64(payloadStringBytes), nil, 1) //nolint
+	// payloadStringBytes := 0
+	// for _, ee := range events {
+	// 	payloadStringBytes += len(ee.Events)
+	// }
+	// dd.StatsD.Histogram("worker.processSession.payloadStringSize", float64(payloadStringBytes), nil, 1) //nolint
 
 	// Delete the session if there's no events.
-	if len(events) == 0 {
-		if err := w.Resolver.DB.Select(clause.Associations).Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
-			return errors.Wrap(err, "error trying to delete associations for session with no events")
-		}
-		if err := w.Resolver.DB.Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
-			return errors.Wrap(err, "error trying to delete session with no events")
-		}
-		return nil
-	}
+	// if payloadManager.Events.Length == 0 {
+	// 	pp.Println("deleting...")
+	// 	if err := w.Resolver.DB.Select(clause.Associations).Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
+	// 		return errors.Wrap(err, "error trying to delete associations for session with no events")
+	// 	}
+	// 	if err := w.Resolver.DB.Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
+	// 		return errors.Wrap(err, "error trying to delete session with no events")
+	// 	}
+	// 	return nil
+	// }
 
-	firstEventsParsed, err := parse.EventsFromString(events[0].Events)
+	// var totalSessionTime int64 = 0
+	// var activeSessionTime int64 = 0
+
+	// eventsReader := payloadManager.Events.Reader()
+	firstEvents := ""
+	lastEvents := ""
+
+	pp.Println(eventsFile.Name())
+	// b, _ := ioutil.ReadFile(eventsFile.Name())
+	// pp.Printf("length of full file: %v\n", len(string(b)))
+
+	// scanner := bufio.NewScanner(eventsFile)
+	// // optionally, resize scanner's capacity for lines over 64K, see next example
+	// for scanner.Scan() {
+	// 	fmt.Printf("scan: %v\n", len(scanner.Text()))
+	// }
+	// reader := bufio.NewReader(eventsFile)
+
+	// for {
+	// 	line, p, err := reader.ReadLine()
+	// 	pp.Println("loop")
+	// 	if err == io.EOF {
+	// 		pp.Println("breaking")
+	// 		pp.Printf("length: %v \n", len(line))
+	// 		break
+	// 	} else if err != nil {
+	// 		pp.Println("actual error")
+	// 	}
+	// 	pp.Printf("bufio length: %v \n", len(line))
+	// 	pp.Printf("bufio prefix: %v \n", p)
+	// }
+
+	p := payload.NewPayloadReadWriter(eventsFile)
+	re := p.Reader()
+	se, err := re.Next()
+	pp.Printf("s: %v\n", se)
+	pp.Printf("err: %v\n", err)
+
+	// [[e1, e2, e3], [e4, e5], [e6, e7]]
+	// pp.Printf("length: %v \n", payloadManager.Events.Length)
+	// count := 0
+	// time.Sleep(4 * time.Second)
+	// for {
+	// 	count += 1
+	// 	pp.Println(count)
+	// 	str, err := eventsReader.Next()
+	// 	if firstEvents == "" {
+	// 		firstEvents = str
+	// 	}
+
+	// 	pp.Printf("len: %v \n", len(str))
+	// 	if str != "" {
+	// 		lastEvents = str
+	// 	}
+	// 	if err == io.EOF {
+	// 		pp.Println("eof")
+	// 		break
+	// 	} else if err != nil {
+	// 		return e.Wrap(err, "error reading")
+	// 	}
+	// }
+	pp.Println(firstEvents)
+
+	firstEventsParsed, err := parse.EventsFromString(firstEvents)
 	if err != nil {
 		return errors.Wrap(err, "error parsing first set of events")
 	}
-	lastEventsParsed, err := parse.EventsFromString(events[len(events)-1].Events)
+	lastEventsParsed, err := parse.EventsFromString(lastEvents)
 	if err != nil {
 		return errors.Wrap(err, "error parsing last set of events")
 	}
 
 	// Calculate total session length and write the length to the session.
-	diff := CalculateSessionLength(firstEventsParsed, lastEventsParsed)
-	length := diff.Milliseconds()
-	activeLength, err := getActiveDuration(events)
-	if err != nil {
-		return errors.Wrap(err, "error parsing active length")
-	}
-	activeLengthSec := activeLength.Milliseconds()
+	sessionTotalLength := CalculateSessionLength(firstEventsParsed, lastEventsParsed)
+	sessionTotalLengthInMilliseconds := sessionTotalLength.Milliseconds()
+	// activeLength, err := getActiveDuration(events)
+	// if err != nil {
+	// 	return errors.Wrap(err, "error parsing active length")
+	// }
+	// activeLengthSec := activeLength.Milliseconds()
 
 	// Delete the session if the length of the session is 0.
 	// 1. Nothing happened in the session
 	// 2. A web crawler visited the page and produced no events
-	if length == 0 {
-		if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Delete(&model.EventsObject{}).Error; err != nil {
-			return errors.Wrap(err, "error trying to delete events_object for session of length 0ms")
-		}
-		if err := w.Resolver.DB.Select(clause.Associations).Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
-			return errors.Wrap(err, "error trying to delete associations for session with length 0")
-		}
-		if err := w.Resolver.DB.Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
-			return errors.Wrap(err, "error trying to delete session of length 0ms")
-		}
-		return nil
-	}
+	// if length == 0 {
+	// 	if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Delete(&model.EventsObject{}).Error; err != nil {
+	// 		return errors.Wrap(err, "error trying to delete events_object for session of length 0ms")
+	// 	}
+	// 	if err := w.Resolver.DB.Select(clause.Associations).Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
+	// 		return errors.Wrap(err, "error trying to delete associations for session with length 0")
+	// 	}
+	// 	if err := w.Resolver.DB.Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
+	// 		return errors.Wrap(err, "error trying to delete session of length 0ms")
+	// 	}
+	// 	return nil
+	// }
 
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
 		model.Session{
 			Processed:    &model.T,
-			Length:       length,
-			ActiveLength: activeLengthSec,
+			Length:       sessionTotalLengthInMilliseconds,
+			ActiveLength: 0,
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
@@ -464,12 +555,12 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	// Upload to s3 and wipe from the db.
-	if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" {
-		state := "normal"
-		if err := w.pushToObjectStorageAndWipe(ctx, s, &state, events, payloadStringBytes); err != nil {
-			log.Errorf("error pushing to object and wiping from db (%v): %v", s.ID, err)
-		}
-	}
+	// if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" {
+	// 	state := "normal"
+	// 	if err := w.pushToObjectStorageAndWipe(ctx, s, &state, events, payloadStringBytes); err != nil {
+	// 		log.Errorf("error pushing to object and wiping from db (%v): %v", s.ID, err)
+	// 	}
+	// }
 	return nil
 }
 

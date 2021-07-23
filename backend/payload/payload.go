@@ -2,27 +2,25 @@ package payload
 
 import (
 	"bufio"
+	"io"
 	"os"
 	"strings"
 
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/k0kubun/pp"
 	"github.com/pkg/errors"
 )
 
 var Delimiter = "\n\n\n"
 
 type PayloadReadWriter struct {
-	file *os.File
+	file   *os.File
+	Length int64
 }
 
 func NewPayloadReadWriter(file *os.File) *PayloadReadWriter {
 	p := &PayloadReadWriter{file: file}
 	return p
-}
-
-func (p *PayloadReadWriter) Close() {
-	p.file.Close()
-	os.Remove(p.file.Name())
 }
 
 func (p *PayloadReadWriter) Reader() *ObjectReader {
@@ -41,14 +39,20 @@ func NewObjectReader(file *os.File) *ObjectReader {
 	return &ObjectReader{reader: bufio.NewReader(file)}
 }
 
+// {resources: []}
+// {events: []}
+// {messages: []}
 func (o *ObjectReader) Next() (s string, e error) {
 	line := ""
 	// Keep reading until the end of the line has the delimitter.
 	for {
 		str := ""
-		str, err := o.reader.ReadString(Delimiter[len(Delimiter)-1])
-		if err != nil {
-			return
+		str, err := o.reader.ReadString('\n')
+		if err == io.EOF {
+			pp.Printf("the str: '%v'\n", str)
+			return "", io.EOF
+		} else if err != nil {
+			return "", errors.Wrap(err, "error with bufio readstring")
 		}
 		line = line + str
 		if strings.HasSuffix(line, Delimiter) {
@@ -89,10 +93,4 @@ func NewPayloadManager(eventsFile *os.File, resourcesFile *os.File, messagesFile
 	reader.Resources = NewPayloadReadWriter(resourcesFile)
 	reader.Messages = NewPayloadReadWriter(messagesFile)
 	return reader
-}
-
-func (p *PayloadManager) Close() {
-	p.Events.Close()
-	p.Resources.Close()
-	p.Messages.Close()
 }
