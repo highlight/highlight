@@ -44,7 +44,7 @@ func PrivateMiddleware(next http.Handler) http.Handler {
 		// If we're on a demo domain, we have some special logic.
 		var uid string
 		token := r.Header.Get("token")
-		if (token != "") {
+		if token != "" {
 			token := r.Header.Get("token")
 			t, err := AuthClient.VerifyIDToken(context.Background(), token)
 			if err != nil {
