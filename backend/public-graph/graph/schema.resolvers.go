@@ -200,12 +200,19 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	var filteredErrors []*customModels.ErrorObjectInput
 	for _, errorObject := range errors {
 		if errorObject.Event == "[{}]" {
-			objBytes, _ := json.Marshal(errorObject)
+			var objString string
+			objBytes, err := json.Marshal(errorObject)
+			if err != nil {
+				log.Error(e.Wrap(err, "error marshalling error object when filtering"))
+				objString = ""
+			} else {
+				objString = string(objBytes)
+			}
 			log.Warn("caught empty error, continuing...",
 				log.WithFields(log.Fields{
 					"org_id":       organizationID,
 					"session_id":   sessionID,
-					"error_object": string(objBytes),
+					"error_object": objString,
 				}))
 		} else {
 			filteredErrors = append(filteredErrors, errorObject)
