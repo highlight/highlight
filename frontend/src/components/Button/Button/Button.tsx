@@ -28,7 +28,7 @@ const Button = ({
                 if (props.onClick) {
                     props.onClick(e);
                 }
-                H.track(`Button-${trackingId}`, {});
+                H.track(`Button-${trackingId}`);
             }}
             className={classNames(props.className, styles.buttonBase, {
                 [styles.iconButton]: iconButton,

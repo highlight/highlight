@@ -23,7 +23,7 @@ const ButtonLink: React.FC<Props> = ({
             to={to}
             className={classNames(styles.link, className)}
             onClick={() => {
-                H.track(`Link-${trackingId}`, {});
+                H.track(`Link-${trackingId}`);
             }}
         >
             {children}

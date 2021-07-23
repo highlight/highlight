@@ -92,7 +92,7 @@ const ShareButton = (props: ButtonProps) => {
             }
             onVisibleChange={(visible) => {
                 if (visible) {
-                    H.track('Clicked share popover', {});
+                    H.track('Clicked share popover');
                 }
             }}
             trigger="click"

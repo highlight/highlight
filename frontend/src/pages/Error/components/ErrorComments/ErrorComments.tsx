@@ -45,7 +45,7 @@ const ErrorComments = () => {
     >([]);
 
     const onFinish = async () => {
-        H.track('Create Error Comment', {});
+        H.track('Create Error Comment');
         setIsCreatingComment(true);
         try {
             await createComment({
