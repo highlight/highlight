@@ -1,9 +1,9 @@
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React, { useEffect, useState } from 'react';
-import { useAuthState } from 'react-firebase-hooks/auth';
 import { useForm } from 'react-hook-form';
 
+import { useAuthContext } from '../../AuthContext';
 import commonStyles from '../../Common.module.scss';
 import Button from '../../components/Button/Button/Button';
 import { ErrorState } from '../../components/ErrorState/ErrorState';
@@ -13,7 +13,6 @@ import { AppRouter } from '../../routers/AppRouter/AppRouter';
 import { ReactComponent as GoogleLogo } from '../../static/google.svg';
 import { auth, googleProvider } from '../../util/auth';
 import { Landing } from '../Landing/Landing';
-import { RequestAccessPage } from '../RequestAccess/RequestAccess';
 import styles from './Login.module.scss';
 
 export const AuthAdminRouter = () => {
@@ -58,7 +57,6 @@ type Inputs = {
 };
 
 const LoginForm = () => {
-    const url = window.location.hostname;
     const {
         watch,
         register,
@@ -68,8 +66,8 @@ const LoginForm = () => {
         setError,
     } = useForm<Inputs>();
     const [signIn, setSignIn] = useState<boolean>(true);
+    const { isAuthLoading, isLoggedIn } = useAuthContext();
     const [firebaseError, setFirebaseError] = useState('');
-    const [user, loading, error] = useAuthState(auth);
 
     const onSubmit = (data: Inputs) => {
         if (signIn) {
@@ -99,23 +97,12 @@ const LoginForm = () => {
         reset();
     };
 
-    if (loading) {
+    if (isAuthLoading) {
         return <LoadingPage />;
     }
 
-    if (user) {
+    if (isLoggedIn) {
         return <AuthAdminRouter />;
-    }
-
-    if (
-        url.toLowerCase() === 'highlight.run' ||
-        window.location.pathname.toLowerCase().includes('request')
-    ) {
-        return (
-            <Landing>
-                <RequestAccessPage />
-            </Landing>
-        );
     }
 
     return (
@@ -231,9 +218,6 @@ const LoginForm = () => {
                     </Button>
                     <div className={commonStyles.errorMessage}>
                         {firebaseError}
-                    </div>
-                    <div className={commonStyles.errorMessage}>
-                        {JSON.stringify(error)}
                     </div>
                 </div>
             </div>

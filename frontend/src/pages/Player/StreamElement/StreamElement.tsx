@@ -1,7 +1,7 @@
 import { EventType } from '@highlight-run/rrweb';
 import { message } from 'antd';
 import classNames from 'classnames/bind';
-import React, { useContext, useState } from 'react';
+import React, { useState } from 'react';
 import { FaBug, FaRegStopCircle } from 'react-icons/fa';
 import ReactJson from 'react-json-view';
 import { BooleanParam, useQueryParam } from 'use-query-params';
@@ -21,7 +21,7 @@ import { ReactComponent as TabIcon } from '../../../static/tab.svg';
 import SvgTargetIcon from '../../../static/TargetIcon';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
 import { HighlightEvent } from '../HighlightEvent';
-import ReplayerContext from '../ReplayerContext';
+import { useReplayerContext } from '../ReplayerContext';
 import RightPanelCard from '../RightPanelCard/RightPanelCard';
 import { EventTypeDescriptions } from '../Toolbar/TimelineAnnotationsSettings/TimelineAnnotationsSettings';
 import { getAnnotationColor } from '../Toolbar/Toolbar';
@@ -42,7 +42,7 @@ export const StreamElement = ({
     const [debug] = useQueryParam('debug', BooleanParam);
     const [selected, setSelected] = useState(false);
     const details = getEventRenderDetails(e);
-    const { pause } = useContext(ReplayerContext);
+    const { pause } = useReplayerContext();
     const timeSinceStart = e?.timestamp - start;
 
     return (

@@ -1,8 +1,7 @@
 import { H } from 'highlight.run';
-import { useContext } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 
-import ReplayerContext, { ReplayerState } from '../ReplayerContext';
+import { ReplayerState, useReplayerContext } from '../ReplayerContext';
 
 /**
  * The time to skip along the timeline. Used to skip X time back or forwards.
@@ -32,7 +31,7 @@ export const getNewTimeWithSkip = ({
 };
 
 export const usePlayerHotKeys = () => {
-    const { state, play, pause, time, replayer } = useContext(ReplayerContext);
+    const { state, play, pause, time, replayer } = useReplayerContext();
 
     useHotkeys(
         'space',

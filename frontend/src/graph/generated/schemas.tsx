@@ -659,6 +659,7 @@ export type Mutation = {
     deleteOrganization?: Maybe<Scalars['Boolean']>;
     sendAdminInvite?: Maybe<Scalars['String']>;
     addAdminToOrganization?: Maybe<Scalars['ID']>;
+    deleteAdminFromOrganization?: Maybe<Scalars['ID']>;
     addSlackIntegrationToWorkspace?: Maybe<Scalars['Boolean']>;
     createSegment?: Maybe<Segment>;
     emailSignup: Scalars['String'];
@@ -723,6 +724,11 @@ export type MutationSendAdminInviteArgs = {
 export type MutationAddAdminToOrganizationArgs = {
     organization_id: Scalars['ID'];
     invite_id: Scalars['String'];
+};
+
+export type MutationDeleteAdminFromOrganizationArgs = {
+    organization_id: Scalars['ID'];
+    admin_id: Scalars['ID'];
 };
 
 export type MutationAddSlackIntegrationToWorkspaceArgs = {

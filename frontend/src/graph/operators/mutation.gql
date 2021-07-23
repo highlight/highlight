@@ -40,6 +40,13 @@ mutation AddAdminToOrganization($organization_id: ID!, $invite_id: String!) {
     )
 }
 
+mutation DeleteAdminFromOrganization($organization_id: ID!, $admin_id: ID!) {
+    deleteAdminFromOrganization(
+        organization_id: $organization_id
+        admin_id: $admin_id
+    )
+}
+
 mutation AddSlackIntegrationToWorkspace(
     $organization_id: ID!
     $code: String!
@@ -335,5 +342,12 @@ mutation UpdateUserPropertiesAlert(
         }
         ExcludedEnvironments
         CountThreshold
+    }
+}
+
+mutation UpdateSessionIsPublic($session_id: ID!, $is_public: Boolean!) {
+    updateSessionIsPublic(session_id: $session_id, is_public: $is_public) {
+        id
+        is_public
     }
 }

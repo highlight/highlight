@@ -1,13 +1,13 @@
 import React from 'react';
 
+import { useAuthContext } from '../../../../../../../AuthContext';
 import DataCard from '../../../../../../../components/DataCard/DataCard';
 import KeyValueTable, {
     KeyValueTableRow,
 } from '../../../../../../../components/KeyValueTable/KeyValueTable';
 import Modal from '../../../../../../../components/Modal/Modal';
 import Space from '../../../../../../../components/Space/Space';
-import useAdminRole from '../../../../../../../hooks/useAdminRole/useAdminRole';
-import { formatShortTime } from '../../../../../../Home/components/KeyPerformanceIndicators/utils/utils';
+import { formatTime } from '../../../../../../Home/components/KeyPerformanceIndicators/utils/utils';
 import { getNetworkResourcesDisplayName } from '../../../Option/Option';
 import { formatSize, NetworkResource } from '../../ResourcePage';
 import styles from './ResourceDetailsModal.module.scss';
@@ -23,8 +23,7 @@ const ResourceDetailsModal = ({
     onCloseHandler,
     networkRecordingEnabledForSession,
 }: Props) => {
-    const { isHighlightAdmin } = useAdminRole();
-    console.log({ selectedNetworkResource });
+    const { isHighlightAdmin } = useAuthContext();
 
     const generalData: KeyValueTableRow[] = [
         {
@@ -55,13 +54,9 @@ const ResourceDetailsModal = ({
             valueDisplayValue:
                 selectedNetworkResource?.responseEnd &&
                 selectedNetworkResource?.startTime &&
-                formatShortTime(
-                    (selectedNetworkResource.responseEnd -
-                        selectedNetworkResource.startTime) /
-                        1000,
-                    ['ms'],
-                    ' ',
-                    2
+                formatTime(
+                    selectedNetworkResource.responseEnd -
+                        selectedNetworkResource.startTime
                 ),
             renderType: 'string',
         },
@@ -99,24 +94,32 @@ const ResourceDetailsModal = ({
         }
 
         if (request.body) {
-            const parsedRequestBody = JSON.parse(request.body);
+            try {
+                const parsedRequestBody = JSON.parse(request.body);
 
-            Object.keys(parsedRequestBody).forEach((key) => {
-                const renderType =
-                    typeof parsedRequestBody[key] === 'object'
-                        ? 'json'
-                        : 'string';
-                requestPayloadData.push({
-                    keyDisplayValue: key,
-                    valueDisplayValue:
-                        renderType === 'string'
-                            ? parsedRequestBody[key]?.toString()
-                            : JSON.parse(
-                                  JSON.stringify(parsedRequestBody[key])
-                              ),
-                    renderType,
+                Object.keys(parsedRequestBody).forEach((key) => {
+                    const renderType =
+                        typeof parsedRequestBody[key] === 'object'
+                            ? 'json'
+                            : 'string';
+                    requestPayloadData.push({
+                        keyDisplayValue: key,
+                        valueDisplayValue:
+                            renderType === 'string'
+                                ? parsedRequestBody[key]?.toString()
+                                : JSON.parse(
+                                      JSON.stringify(parsedRequestBody[key])
+                                  ),
+                        renderType,
+                    });
                 });
-            });
+            } catch {
+                requestPayloadData.push({
+                    keyDisplayValue: 'body',
+                    valueDisplayValue: request.body,
+                    renderType: 'string',
+                });
+            }
         }
 
         if (response.headers) {
@@ -163,8 +166,6 @@ const ResourceDetailsModal = ({
                 });
             }
         }
-        console.log(responsePayloadData);
-        // TODO: add recording boolean to session.
     }
 
     return (
@@ -241,9 +242,9 @@ export default ResourceDetailsModal;
 const NetworkRecordingEducationMessage = () => (
     <div className={styles.noDataMessageContainer}>
         <p>
-            <code>enableNetworkHeadersAndBodyRecording</code> is disabled. If
-            you would like to see XHR/Fetch headers and bodies you will need to
-            enable <code>enableNetworkHeadersAndBodyRecording</code>.
+            <code>recordHeadersAndBody</code> is disabled. If you would like to
+            see XHR/Fetch headers and bodies you will need to enable{' '}
+            <code>recordHeadersAndBody</code>.
         </p>
         <p>
             You can learn more about this and about the security/privacy

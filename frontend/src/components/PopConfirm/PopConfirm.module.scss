@@ -1,0 +1,21 @@
+.popConfirmContainer {
+    :global(.ant-popover-message-title) {
+        max-width: 300px;
+        padding-left: 0 !important;
+    }
+
+    :global(.ant-popover-inner-content) {
+        padding-bottom: var(--size-medium) !important;
+    }
+
+    :global(.ant-btn) {
+        height: unset !important;
+        padding-bottom: 8px !important;
+        padding-top: 8px !important;
+    }
+
+    :global(.ant-popover-inner) {
+        border: 1px solid var(--color-gray-300);
+        border-radius: var(--border-radius);
+    }
+}

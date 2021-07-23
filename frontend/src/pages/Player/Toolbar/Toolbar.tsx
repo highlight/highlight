@@ -1,6 +1,5 @@
-import { useLocalStorage } from '@rehooks/local-storage';
 import classNames from 'classnames';
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Draggable from 'react-draggable';
 import { FaPause } from 'react-icons/fa';
 import Skeleton from 'react-loading-skeleton';
@@ -19,24 +18,21 @@ import {
     MillisToMinutesAndSecondsVerbose,
 } from '../../../util/time';
 import { EventsForTimeline, EventsForTimelineKeys } from '../PlayerHook/utils';
-import ReplayerContext, {
-    ParsedSessionComment,
+import usePlayerConfiguration from '../PlayerHook/utils/usePlayerConfiguration';
+import {
     ParsedSessionInterval,
+    ReplayerPausedStates,
     ReplayerState,
+    useReplayerContext,
 } from '../ReplayerContext';
 import { getNewTimeWithSkip, usePlayerHotKeys } from '../utils/hooks';
-import {
-    DevToolsContextProvider,
-    DevToolTabs,
-} from './DevToolsContext/DevToolsContext';
+import { DevToolsContextProvider } from './DevToolsContext/DevToolsContext';
 import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
 import ErrorModal from './DevToolsWindow/ErrorsPage/components/ErrorModal/ErrorModal';
 import { ErrorModalContextProvider } from './ErrorModalContext/ErrorModalContext';
 import SpeedControl from './SpeedControl/SpeedControl';
-import TimelineCommentAnnotation from './TimelineAnnotation/TimelineCommentAnnotation';
-import TimelineErrorAnnotation from './TimelineAnnotation/TimelineErrorAnnotation';
-import TimelineEventAnnotation from './TimelineAnnotation/TimelineEventAnnotation';
 import TimelineAnnotationsSettings from './TimelineAnnotationsSettings/TimelineAnnotationsSettings';
+import TimelineIndicators from './TimelineIndicators/TimelineIndicators';
 import styles from './Toolbar.module.scss';
 
 export const Toolbar = () => {
@@ -48,73 +44,54 @@ export const Toolbar = () => {
         play,
         pause,
         sessionIntervals,
-        sessionCommentIntervals,
         canViewSession,
-    } = useContext(ReplayerContext);
+        isPlayerReady,
+    } = useReplayerContext();
     usePlayerHotKeys();
+    const {
+        playerSpeed,
+        skipInactive,
+        setSkipInactive,
+        showLeftPanel,
+        showDevTools,
+        setShowDevTools,
+        autoPlayVideo,
+        setAutoPlayVideo,
+        enableInspectElement,
+        selectedDevToolsTab,
+        setSelectedDevToolsTab,
+    } = usePlayerConfiguration();
     const { data: admin_data } = useGetAdminQuery({ skip: false });
     const max = replayer?.getMetaData().totalTime ?? 0;
     const sliderWrapperRef = useRef<HTMLButtonElement>(null);
-    const [showLeftPanelPreference] = useLocalStorage(
-        'highlightMenuShowLeftPanel',
-        false
-    );
     const [selectedError, setSelectedError] = useState<ErrorObject | undefined>(
         undefined
     );
     const wrapperWidth =
         sliderWrapperRef.current?.getBoundingClientRect().width ?? 1;
     const [sliderClientX, setSliderClientX] = useState<number>(-1);
-    const [speed] = useLocalStorage('highlightMenuSpeed', 2);
-    const [skipInactive, setSkipInactive] = useLocalStorage(
-        'highlightMenuSkipInactive',
-        true
-    );
-    const [openDevTools, setOpenDevTools] = useLocalStorage(
-        'highlightMenuOpenDevTools',
-        false
-    );
-    const [autoPlayVideo, setAutoPlayVideo] = useLocalStorage(
-        'highlightMenuAutoPlayVideo',
-        false
-    );
-    const [enableDOMInteractions] = useLocalStorage(
-        'highlightMenuEnableDOMInteractions',
-        false
-    );
-    const [selectedDevToolsTab, setSelectedDevToolsTab] = useLocalStorage(
-        'highlightSelectedDevtoolTabs',
-        DevToolTabs.Errors
-    );
-    const [] = useLocalStorage('highlightTimelineAnnotationTypes', [
-        ...EventsForTimeline,
-    ]);
 
     const [lastCanvasPreview, setLastCanvasPreview] = useState(0);
-    const isPaused =
-        state === ReplayerState.Paused ||
-        state === ReplayerState.LoadedAndUntouched ||
-        state === ReplayerState.LoadedWithDeepLink ||
-        state === ReplayerState.SessionRecordingStopped;
+    const isPaused = ReplayerPausedStates.includes(state);
 
     useEffect(() => {
         if (replayer) {
-            if (enableDOMInteractions) {
+            if (enableInspectElement) {
                 replayer.enableInteract();
             } else {
                 replayer.disableInteract();
             }
         }
-    }, [enableDOMInteractions, replayer]);
+    }, [enableInspectElement, replayer]);
 
     useEffect(() => {
-        replayer?.setConfig({ skipInactive, speed });
-    }, [replayer, skipInactive, speed]);
+        replayer?.setConfig({ skipInactive, speed: playerSpeed });
+    }, [replayer, skipInactive, playerSpeed]);
 
     // Automatically start the player if the user has set the preference.
     useEffect(() => {
         if (admin_data) {
-            if (autoPlayVideo && replayer) {
+            if (autoPlayVideo && replayer && isPlayerReady) {
                 if (state === ReplayerState.LoadedAndUntouched) {
                     play(time);
                 } else if (state === ReplayerState.LoadedWithDeepLink) {
@@ -125,6 +102,7 @@ export const Toolbar = () => {
     }, [
         admin_data,
         autoPlayVideo,
+        isPlayerReady,
         pause,
         play,
         replayer,
@@ -213,12 +191,13 @@ export const Toolbar = () => {
         <ErrorModalContextProvider value={{ selectedError, setSelectedError }}>
             <DevToolsContextProvider
                 value={{
-                    openDevTools,
-                    setOpenDevTools,
+                    openDevTools: showDevTools,
+                    setOpenDevTools: setShowDevTools,
                     selectedTab: selectedDevToolsTab,
                     setSelectedTab: setSelectedDevToolsTab,
                 }}
             >
+                <TimelineIndicators />
                 <DevToolsWindow
                     time={(replayer?.getMetaData().startTime ?? 0) + time}
                     startTime={replayer?.getMetaData().startTime ?? 0}
@@ -247,7 +226,6 @@ export const Toolbar = () => {
                         <SessionSegment
                             key={ind}
                             interval={e}
-                            comments={sessionCommentIntervals[ind]}
                             sliderClientX={sliderClientX}
                             wrapperWidth={wrapperWidth}
                             getSliderTime={getSliderTime}
@@ -262,7 +240,7 @@ export const Toolbar = () => {
                         setSliderClientX(
                             e.clientX -
                                 64 -
-                                (showLeftPanelPreference ? leftSidebarWidth : 0)
+                                (showLeftPanel ? leftSidebarWidth : 0)
                         )
                     }
                     onMouseLeave={() => setSliderClientX(-1)}
@@ -270,9 +248,7 @@ export const Toolbar = () => {
                         const ratio =
                             (e.clientX -
                                 64 -
-                                (showLeftPanelPreference
-                                    ? leftSidebarWidth
-                                    : 0)) /
+                                (showLeftPanel ? leftSidebarWidth : 0)) /
                             wrapperWidth;
                         setTime(getSliderTime(ratio));
                     }}
@@ -472,13 +448,13 @@ export const Toolbar = () => {
                             type="text"
                             className={styles.devToolsButton}
                             onClick={() => {
-                                setOpenDevTools(!openDevTools);
+                                setShowDevTools(!showDevTools);
                             }}
                             disabled={disableControls}
                         >
                             <SvgDevtoolsIcon
                                 className={classNames(styles.devToolsIcon, {
-                                    [styles.devToolsActive]: openDevTools,
+                                    [styles.devToolsActive]: showDevTools,
                                 })}
                             />
                         </Button>
@@ -491,24 +467,16 @@ export const Toolbar = () => {
 
 const SessionSegment = ({
     interval,
-    comments,
     sliderClientX,
     wrapperWidth,
     getSliderTime,
 }: {
     interval: ParsedSessionInterval;
-    comments: ParsedSessionComment[];
     sliderClientX: number;
     wrapperWidth: number;
     getSliderTime: (sliderTime: number) => number;
 }) => {
-    const { time } = useContext(ReplayerContext);
-    const [openDevTools] = useLocalStorage('highlightMenuOpenDevTools', false);
-    const [
-        selectedTimelineAnnotationTypes,
-    ] = useLocalStorage('highlightTimelineAnnotationTypes', [
-        ...EventsForTimeline,
-    ]);
+    const { time } = useReplayerContext();
     const playedColor = interval.active
         ? 'var(--color-purple)'
         : 'var(--color-gray-500)';
@@ -533,64 +501,6 @@ const SessionSegment = ({
                 }%`,
             }}
         >
-            {!openDevTools && (
-                <>
-                    <div
-                        className={styles.annotationsContainer}
-                        style={{
-                            width: `${
-                                (interval.endPercent - interval.startPercent) *
-                                100
-                            }%`,
-                        }}
-                    >
-                        {interval.sessionEvents?.map((event) => (
-                            <TimelineEventAnnotation
-                                event={event}
-                                key={event.identifier}
-                            />
-                        ))}
-                    </div>
-                    {selectedTimelineAnnotationTypes.includes('Errors') && (
-                        <div
-                            className={styles.annotationsContainer}
-                            style={{
-                                width: `${
-                                    (interval.endPercent -
-                                        interval.startPercent) *
-                                    100
-                                }%`,
-                            }}
-                        >
-                            {interval.errors.map((error) => (
-                                <TimelineErrorAnnotation
-                                    key={error.id}
-                                    error={error}
-                                />
-                            ))}
-                        </div>
-                    )}
-                    {selectedTimelineAnnotationTypes.includes('Comments') && (
-                        <div
-                            className={styles.annotationsContainer}
-                            style={{
-                                width: `${
-                                    (interval.endPercent -
-                                        interval.startPercent) *
-                                    100
-                                }%`,
-                            }}
-                        >
-                            {comments?.map((comment) => (
-                                <TimelineCommentAnnotation
-                                    key={comment.id}
-                                    comment={comment}
-                                />
-                            ))}
-                        </div>
-                    )}
-                </>
-            )}
             <div
                 className={styles.sliderPopover}
                 style={{

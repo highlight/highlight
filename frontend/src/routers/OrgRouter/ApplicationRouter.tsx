@@ -1,5 +1,12 @@
-import React, { useState } from 'react';
+import _ from 'lodash';
+import React, { useEffect, useState } from 'react';
 import { Redirect, Route, Switch, useParams } from 'react-router-dom';
+import {
+    BooleanParam,
+    JsonParam,
+    StringParam,
+    useQueryParams,
+} from 'use-query-params';
 
 import AlertsPage from '../../pages/Alerts/Alerts';
 import BillingPage from '../../pages/Billing/Billing';
@@ -29,10 +36,53 @@ const ApplicationRouter = ({ integrated }: Props) => {
     const [searchParams, setSearchParams] = useState<SearchParams>(
         EmptySessionsSearchParams
     );
+    const [
+        searchParamsToUrlParams,
+        setSearchParamsToUrlParams,
+    ] = useQueryParams({
+        user_properties: JsonParam,
+        identified: BooleanParam,
+        browser: StringParam,
+        date_range: JsonParam,
+        excluded_properties: JsonParam,
+        hide_viewed: BooleanParam,
+        length_range: JsonParam,
+        os: StringParam,
+        referrer: StringParam,
+        track_properties: JsonParam,
+        excluded_track_properties: JsonParam,
+        visited_url: StringParam,
+        first_time: BooleanParam,
+        device_id: StringParam,
+    });
+
     const [existingParams, setExistingParams] = useState<SearchParams>(
         EmptySessionsSearchParams
     );
     const [hideLiveSessions, setHideLiveSessions] = useState<boolean>(false);
+
+    useEffect(() => {
+        const areAnySearchParamsSet = !_.isEqual(
+            EmptySessionsSearchParams,
+            searchParams
+        );
+
+        if (!segmentName && areAnySearchParamsSet) {
+            setSearchParamsToUrlParams({
+                ...searchParams,
+            });
+        } else {
+            setSearchParamsToUrlParams(InitialSearchParamsForUrl);
+        }
+    }, [setSearchParamsToUrlParams, searchParams, segmentName]);
+
+    useEffect(() => {
+        if (!_.isEqual(InitialSearchParamsForUrl, searchParamsToUrlParams)) {
+            setSearchParams(searchParamsToUrlParams as SearchParams);
+        }
+        // We only want to run this on mount (i.e. when the page first loads).
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <SearchContextProvider
@@ -103,3 +153,20 @@ const ApplicationRouter = ({ integrated }: Props) => {
 };
 
 export default ApplicationRouter;
+
+const InitialSearchParamsForUrl = {
+    browser: undefined,
+    date_range: undefined,
+    device_id: undefined,
+    excluded_properties: undefined,
+    excluded_track_properties: undefined,
+    first_time: undefined,
+    hide_viewed: undefined,
+    identified: undefined,
+    length_range: undefined,
+    os: undefined,
+    referrer: undefined,
+    track_properties: undefined,
+    user_properties: undefined,
+    visited_url: undefined,
+};

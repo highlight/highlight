@@ -2,6 +2,7 @@ package worker
 
 import (
 	"context"
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -115,7 +116,125 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	return nil
 }
 
+func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session) (*int64, error) {
+	var totalPayloadSize int64 = 0
+	sessionIdString := "/tmp/" + strconv.FormatInt(int64(s.ID), 10)
+
+	// events file
+	eventsFile, err := os.Create(sessionIdString + ".events.txt")
+	if err != nil {
+		return nil, errors.Wrap(err, "error creating events file")
+	}
+	defer eventsFile.Close()
+	defer os.Remove(eventsFile.Name())
+	eventRows, err := w.Resolver.DB.Model(&model.EventsObject{}).Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").Rows()
+	if err != nil {
+		return nil, errors.Wrap(err, "error retrieving events objects")
+	}
+	eventsWriter := csv.NewWriter(eventsFile)
+	defer eventsWriter.Flush()
+	for eventRows.Next() {
+		eventObject := model.EventsObject{}
+		err := w.Resolver.DB.ScanRows(eventRows, &eventObject)
+		if err != nil {
+			return nil, errors.Wrap(err, "error scanning event row")
+		}
+		eventBytes, err := json.Marshal(eventObject)
+		if err != nil {
+			return nil, errors.Wrap(err, "error marshaling event row")
+		}
+		// TODO: need to handle new lines in the csv.
+		if err := eventsWriter.Write([]string{string(eventBytes)}); err != nil {
+			return nil, errors.Wrap(err, "error writing event row")
+		}
+	}
+	eventInfo, err := eventsFile.Stat()
+	if err != nil {
+		return nil, errors.Wrap(err, "error getting event file info")
+	}
+	totalPayloadSize += eventInfo.Size()
+
+	// resources file
+	resourcesFile, err := os.Create(sessionIdString + ".resources.txt")
+	if err != nil {
+		return nil, errors.Wrap(err, "error creating resources file")
+	}
+	defer resourcesFile.Close()
+	defer os.Remove(resourcesFile.Name())
+	resourcesRows, err := w.Resolver.DB.Model(&model.ResourcesObject{}).Where(&model.ResourcesObject{SessionID: s.ID}).Order("created_at asc").Rows()
+	if err != nil {
+		return nil, errors.Wrap(err, "error retrieving resources objects")
+	}
+	resourceWriter := csv.NewWriter(resourcesFile)
+	defer resourceWriter.Flush()
+	for resourcesRows.Next() {
+		resourcesObject := model.ResourcesObject{}
+		err := w.Resolver.DB.ScanRows(resourcesRows, &resourcesObject)
+		if err != nil {
+			return nil, errors.Wrap(err, "error scanning resource row")
+		}
+		resourceBytes, err := json.Marshal(resourcesObject)
+		if err != nil {
+			return nil, errors.Wrap(err, "error marshaling resource row")
+		}
+		// TODO: need to handle new lines in the csv.
+		if err := resourceWriter.Write([]string{string(resourceBytes)}); err != nil {
+			return nil, errors.Wrap(err, "error writing resource row")
+		}
+	}
+	resourceInfo, err := resourcesFile.Stat()
+	if err != nil {
+		return nil, errors.Wrap(err, "error getting resource file info")
+	}
+	totalPayloadSize += resourceInfo.Size()
+
+	// messages file
+	messagesFile, err := os.Create(sessionIdString + ".messages.txt")
+	if err != nil {
+		return nil, errors.Wrap(err, "error creating messages file")
+	}
+	defer messagesFile.Close()
+	defer os.Remove(messagesFile.Name())
+	messageRows, err := w.Resolver.DB.Model(&model.MessagesObject{}).Where(&model.MessagesObject{SessionID: s.ID}).Order("created_at asc").Rows()
+	if err != nil {
+		return nil, errors.Wrap(err, "error retrieving messages objects")
+	}
+	writer := csv.NewWriter(messagesFile)
+	defer writer.Flush()
+	for messageRows.Next() {
+		messageObject := model.MessagesObject{}
+		err := w.Resolver.DB.ScanRows(resourcesRows, &messageObject)
+		if err != nil {
+			return nil, errors.Wrap(err, "error scanning message row")
+		}
+		messageBytes, err := json.Marshal(messageObject)
+		if err != nil {
+			return nil, errors.Wrap(err, "error marshaling message row")
+		}
+		// TODO: need to handle new lines in the csv.
+		if err := writer.Write([]string{string(messageBytes)}); err != nil {
+			return nil, errors.Wrap(err, "error writing message row")
+		}
+	}
+
+	messagesInfo, err := messagesFile.Stat()
+	if err != nil {
+		return nil, errors.Wrap(err, "error getting message file info")
+	}
+	totalPayloadSize += messagesInfo.Size()
+
+	return &totalPayloadSize, nil
+}
+
 func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
+	size, err := w.scanSessionPayload(ctx, s)
+	if err != nil {
+		log.Errorf(errors.Wrap(err, "error scanning session payload").Error())
+	} else {
+		dd.StatsD.Histogram("worker.processSession.scannedSessionPayload", float64(*size), nil, 1) //nolint
+		log.Printf("payload size for session '%v' is '%v'\n", s.ID, *size)
+	}
+
 	// load all events
 	events := []model.EventsObject{}
 	if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").Find(&events).Error; err != nil {
@@ -395,6 +514,18 @@ func (w *Worker) Start() {
 		// Sends a "count" metric to datadog so that we can see how many sessions are being queried.
 		dd.StatsD.Histogram("worker.sessionsQuery.sessionCount", float64(len(sessions)), nil, 1) //nolint
 		sessionsSpan.Finish()
+		type SessionLog struct {
+			SessionID      int
+			OrganizationID int
+		}
+		sessionIds := []SessionLog{}
+		for _, session := range sessions {
+			sessionIds = append(sessionIds, SessionLog{SessionID: session.ID, OrganizationID: session.OrganizationID})
+		}
+		if len(sessionIds) > 0 {
+			log.Printf("sessions that will be processed: %v \n", sessionIds)
+		}
+
 		for _, session := range sessions {
 			span, ctx := tracer.StartSpanFromContext(ctx, "worker.processSession", tracer.ResourceName(strconv.Itoa(session.ID)))
 			if err := w.processSession(ctx, session); err != nil {

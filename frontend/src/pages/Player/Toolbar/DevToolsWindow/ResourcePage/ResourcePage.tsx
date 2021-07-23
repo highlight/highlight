@@ -24,7 +24,8 @@ import {
 } from '../../../../../graph/generated/hooks';
 import { formatNumber } from '../../../../../util/numbers';
 import { MillisToMinutesAndSeconds } from '../../../../../util/time';
-import ReplayerContext, { ReplayerState } from '../../../ReplayerContext';
+import { formatTime } from '../../../../Home/components/KeyPerformanceIndicators/utils/utils';
+import { ReplayerState, useReplayerContext } from '../../../ReplayerContext';
 import devStyles from '../DevToolsWindow.module.scss';
 import { getNetworkResourcesDisplayName, Option } from '../Option/Option';
 import ResourceDetailsModal from './components/ResourceDetailsModal/ResourceDetailsModal';
@@ -37,7 +38,7 @@ export const ResourcePage = ({
     time: number;
     startTime: number;
 }) => {
-    const { state } = useContext(ReplayerContext);
+    const { state } = useReplayerContext();
     const { session_id } = useParams<{ session_id: string }>();
     const { demo } = useContext(DemoContext);
     const { data: sessionData } = useGetSessionQuery({
@@ -245,12 +246,7 @@ export const ResourcePage = ({
                             id="networkStreamWrapper"
                             className={styles.networkStreamWrapper}
                         >
-                            {resourcesToRender.length === 0 ? (
-                                <p className={styles.noResultsMessage}>
-                                    No network resources matching '
-                                    {filterSearchTerm}'
-                                </p>
-                            ) : (
+                            {resourcesToRender.length > 0 ? (
                                 <Virtuoso
                                     onMouseEnter={() => {
                                         setIsInteractingWithResources(true);
@@ -276,6 +272,30 @@ export const ResourcePage = ({
                                         />
                                     )}
                                 />
+                            ) : resourcesToRender.length === 0 &&
+                              filterSearchTerm !== '' ? (
+                                <p className={styles.noResultsMessage}>
+                                    No network resources matching '
+                                    {filterSearchTerm}'
+                                </p>
+                            ) : (
+                                <>
+                                    <p className={styles.noResultsMessage}>
+                                        There are no network recordings for this
+                                        session. If you expected to see data
+                                        here, please make sure{' '}
+                                        <code>networkRecording</code> is set to{' '}
+                                        <code>true</code>. You can{' '}
+                                        <a
+                                            href="https://docs.highlight.run/reference#options"
+                                            target="_blank"
+                                            rel="noreferrer"
+                                        >
+                                            learn more here
+                                        </a>
+                                        .
+                                    </p>
+                                </>
                             )}
                         </div>
                     </>
@@ -378,7 +398,7 @@ const ResourceRow = ({
     searchTerm: string;
     onClickHandler: () => void;
 }) => {
-    const { pause } = useContext(ReplayerContext);
+    const { pause } = useReplayerContext();
     const leftPaddingPercent = (resource.startTime / networkRange) * 100;
     const actualPercent = Math.max(
         ((resource.responseEnd - resource.startTime) / networkRange) * 100,
@@ -412,14 +432,24 @@ const ResourceRow = ({
                         textToHighlight={resource.name}
                     />
                 </Tooltip>
-                <div className={styles.typeSection}>
+                <div
+                    className={classNames(
+                        styles.typeSection,
+                        styles.rightAlign
+                    )}
+                >
                     {resource.requestResponsePairs?.response.status === 0
                         ? `-`
-                        : `${(
+                        : `${formatTime(
                               resource.responseEnd - resource.startTime
-                          ).toFixed(2)} ms`}
+                          )}`}
                 </div>
-                <div className={styles.typeSection}>
+                <div
+                    className={classNames(
+                        styles.typeSection,
+                        styles.rightAlign
+                    )}
+                >
                     {resource.requestResponsePairs?.response.size ? (
                         formatSize(resource.requestResponsePairs.response.size)
                     ) : resource.requestResponsePairs?.response.status === 0 ? (

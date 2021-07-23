@@ -2,20 +2,17 @@ import 'rc-slider/assets/index.css';
 
 import { EventType, Replayer } from '@highlight-run/rrweb';
 import { eventWithTime } from '@highlight-run/rrweb/dist/types';
-import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
 import _ from 'lodash';
 import Lottie from 'lottie-react';
 import React, {
     useCallback,
-    useContext,
     useEffect,
     useMemo,
     useRef,
     useState,
 } from 'react';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
-// @ts-ignore
 import useResizeAware from 'react-resize-aware';
 import { useParams } from 'react-router-dom';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
@@ -32,8 +29,13 @@ import PlayerCommentCanvas, {
     Coordinates2D,
 } from './PlayerCommentCanvas/PlayerCommentCanvas';
 import { usePlayer } from './PlayerHook/PlayerHook';
+import usePlayerConfiguration from './PlayerHook/utils/usePlayerConfiguration';
 import styles from './PlayerPage.module.scss';
-import ReplayerContext, { ReplayerState } from './ReplayerContext';
+import {
+    ReplayerContextProvider,
+    ReplayerState,
+    useReplayerContext,
+} from './ReplayerContext';
 import RightPlayerPanel from './RightPlayerPanel/RightPlayerPanel';
 import SearchPanel from './SearchPanel/SearchPanel';
 import SessionLevelBar from './SessionLevelBar/SessionLevelBar';
@@ -55,18 +57,15 @@ const Player = () => {
         replayer,
         time,
         canViewSession,
+        isPlayerReady,
     } = player;
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     const newCommentModalRef = useRef<HTMLDivElement>(null);
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
-    const [showLeftPanelPreference] = useLocalStorage(
-        'highlightMenuShowLeftPanel',
-        false
-    );
-    const [showRightPanelPreference] = useLocalStorage(
-        'highlightMenuShowRightPanel',
-        true
-    );
+    const {
+        showLeftPanel: showLeftPanelPreference,
+        showRightPanel,
+    } = usePlayerConfiguration();
     const [commentModalPosition, setCommentModalPosition] = useState<
         Coordinates2D | undefined
     >(undefined);
@@ -129,15 +128,10 @@ const Player = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sizes, replayer]);
 
-    const isReplayerReady =
-        replayerState !== ReplayerState.Loading &&
-        replayerScale !== 1 &&
-        canViewSession;
-
     const showLeftPanel = showLeftPanelPreference && canViewSession;
 
     return (
-        <ReplayerContext.Provider value={player}>
+        <ReplayerContextProvider value={player}>
             <div
                 className={classNames(styles.playerBody, {
                     [styles.withLeftPanel]: showLeftPanel,
@@ -216,12 +210,12 @@ const Player = () => {
                                             </ElevatedCard>
                                         </div>
                                     )}
-                                    {isReplayerReady && (
+                                    {isPlayerReady && (
                                         <PlayerCommentCanvas
                                             setModalPosition={
                                                 setCommentModalPosition
                                             }
-                                            isReplayerReady={isReplayerReady}
+                                            isReplayerReady={isPlayerReady}
                                             modalPosition={commentModalPosition}
                                             setCommentPosition={
                                                 setCommentPosition
@@ -230,7 +224,7 @@ const Player = () => {
                                     )}
                                     <div
                                         style={{
-                                            visibility: isReplayerReady
+                                            visibility: isPlayerReady
                                                 ? 'visible'
                                                 : 'hidden',
                                         }}
@@ -240,12 +234,10 @@ const Player = () => {
                                         )}
                                         id="player"
                                     />
-                                    {!isReplayerReady && (
+                                    {!isPlayerReady && (
                                         <PlayerSkeleton
                                             showingLeftPanel={showLeftPanel}
-                                            showingRightPanel={
-                                                showRightPanelPreference
-                                            }
+                                            showingRightPanel={showRightPanel}
                                             width={
                                                 playerWrapperRef.current
                                                     ?.clientWidth
@@ -290,13 +282,13 @@ const Player = () => {
                     </div>
                 </Modal>
             </div>
-        </ReplayerContext.Provider>
+        </ReplayerContextProvider>
     );
 };
 
 export const EventStream = () => {
     const [debug] = useQueryParam('debug', BooleanParam);
-    const { replayer, time, events, state } = useContext(ReplayerContext);
+    const { replayer, time, events, state } = useReplayerContext();
     const [currEvent, setCurrEvent] = useState('');
     const [
         isInteractingWithStreamEvents,
@@ -422,7 +414,7 @@ const PlayerSkeleton = ({
     showingLeftPanel: boolean;
     showingRightPanel: boolean;
 }) => {
-    const [openDevTools] = useLocalStorage('highlightMenuOpenDevTools', false);
+    const { showDevTools } = usePlayerConfiguration();
     let adjustedWidth = width ?? 80;
 
     if (showingLeftPanel) {
@@ -439,7 +431,7 @@ const PlayerSkeleton = ({
             highlightColor={'#f5f5f5'}
         >
             <Skeleton
-                height={!openDevTools ? adjustedWidth * 0.8 : '200px'}
+                height={!showDevTools ? adjustedWidth * 0.8 : '200px'}
                 width={adjustedWidth}
                 duration={1}
             />

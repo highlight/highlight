@@ -1,15 +1,15 @@
-import useLocalStorage from '@rehooks/local-storage';
 import { Switch } from 'antd';
 import React from 'react';
 
 import Tooltip from '../../../components/Tooltip/Tooltip';
+import usePlayerConfiguration from '../PlayerHook/utils/usePlayerConfiguration';
 import styles from './DOMInteractionsToggle.module.scss';
 
 const DOMInteractionsToggle = () => {
-    const [enableDOMInteractions, setEnableDOMInteractions] = useLocalStorage(
-        'highlightMenuEnableDOMInteractions',
-        false
-    );
+    const {
+        enableInspectElement,
+        setEnableInspectElement,
+    } = usePlayerConfiguration();
 
     return (
         <Tooltip
@@ -17,9 +17,9 @@ const DOMInteractionsToggle = () => {
         >
             <div className={styles.container}>
                 <Switch
-                    checked={enableDOMInteractions}
+                    checked={enableInspectElement}
                     onChange={() => {
-                        setEnableDOMInteractions(!enableDOMInteractions);
+                        setEnableInspectElement(!enableInspectElement);
                     }}
                 />{' '}
                 Inspect Element

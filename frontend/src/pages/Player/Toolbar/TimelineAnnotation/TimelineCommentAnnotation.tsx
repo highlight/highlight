@@ -1,10 +1,13 @@
 import { message } from 'antd';
-import React, { ReactElement, useContext, useState } from 'react';
+import React, { ReactElement, useState } from 'react';
 
 import { SessionComment } from '../../../../components/Comment/SessionComment/SessionComment';
 import Popover from '../../../../components/Popover/Popover';
 import { MillisToMinutesAndSeconds } from '../../../../util/time';
-import ReplayerContext, { ParsedSessionComment } from '../../ReplayerContext';
+import {
+    ParsedSessionComment,
+    useReplayerContext,
+} from '../../ReplayerContext';
 import styles from '../Toolbar.module.scss';
 import TimelineAnnotation from './TimelineAnnotation';
 
@@ -13,7 +16,7 @@ interface Props {
 }
 
 function TimelineCommentAnnotation({ comment }: Props): ReactElement {
-    const { pause, replayer } = useContext(ReplayerContext);
+    const { pause, replayer } = useReplayerContext();
 
     const [isTooltipOpen, setIsTooltipOpen] = useState(false);
 

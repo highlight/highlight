@@ -20,7 +20,7 @@ import { DemoContext } from '../../../../../DemoContext';
 import { useGetMessagesQuery } from '../../../../../graph/generated/hooks';
 import { ConsoleMessage } from '../../../../../util/shared-types';
 import { MillisToMinutesAndSeconds } from '../../../../../util/time';
-import ReplayerContext, { ReplayerState } from '../../../ReplayerContext';
+import { ReplayerState, useReplayerContext } from '../../../ReplayerContext';
 import devStyles from '../DevToolsWindow.module.scss';
 import { Option } from '../Option/Option';
 import styles from './ConsolePage.module.scss';
@@ -35,7 +35,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
     const [filterSearchTerm, setFilterSearchTerm] = useState('');
     const [options, setOptions] = useState<Array<string>>([]);
     const { demo } = useContext(DemoContext);
-    const { pause, replayer, state } = useContext(ReplayerContext);
+    const { pause, replayer, state } = useReplayerContext();
     const [parsedMessages, setParsedMessages] = useState<
         undefined | Array<ParsedMessage>
     >([]);

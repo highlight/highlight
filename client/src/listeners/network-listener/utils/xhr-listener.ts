@@ -1,5 +1,6 @@
 import { NetworkListenerCallback } from '../network-listener';
 import { Headers, Request, Response } from './models';
+import { isHighlightNetworkResourceFilter } from './utils';
 
 interface BrowserXHR extends XMLHttpRequest {
     _method: string;
@@ -11,7 +12,10 @@ interface BrowserXHR extends XMLHttpRequest {
 /**
  * Listens to all XMLHttpRequests made.
  */
-export const XHRListener = (callback: NetworkListenerCallback) => {
+export const XHRListener = (
+    callback: NetworkListenerCallback,
+    backendUrl: string
+) => {
     const XHR = XMLHttpRequest.prototype;
 
     const originalOpen = XHR.open;
@@ -30,14 +34,18 @@ export const XHRListener = (callback: NetworkListenerCallback) => {
         return originalOpen.apply(this, arguments);
     };
 
-    XHR.setRequestHeader = function (this: BrowserXHR, header, value) {
+    XHR.setRequestHeader = function (
+        this: BrowserXHR,
+        header: string,
+        value: string
+    ) {
         this._requestHeaders[header] = value;
 
         // @ts-expect-error
         return originalSetRequestHeader.apply(this, arguments);
     };
 
-    XHR.send = function (this: BrowserXHR, postData) {
+    XHR.send = function (this: BrowserXHR, postData: any) {
         const requestModel: Request = {
             url: this._url,
             verb: this._method,
@@ -46,6 +54,11 @@ export const XHRListener = (callback: NetworkListenerCallback) => {
         };
         // The load event for XMLHttpRequest is fired when a request completes successfully.
         this.addEventListener('load', async function () {
+            if (
+                isHighlightNetworkResourceFilter(requestModel.url, backendUrl)
+            ) {
+                return;
+            }
             if (postData) {
                 if (typeof postData === 'string') {
                     requestModel['body'] = postData;

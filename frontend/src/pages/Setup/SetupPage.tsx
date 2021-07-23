@@ -188,8 +188,11 @@ const HtmlInstructions = ({ orgVerboseId }: { orgVerboseId: string }) => {
                         text={`<script>
 ${codeStr}
 window.H.init('${orgVerboseId}${
-                            process.env.REACT_APP_ONPREM === 'true' &&
-                            ', {backendUrl: "' + GetBaseURL() + '/public"}'
+                            process.env.REACT_APP_ONPREM === 'true'
+                                ? ', {backendUrl: "' +
+                                  GetBaseURL() +
+                                  '/public"}'
+                                : ''
                         }')
 </script>`}
                     />
@@ -339,8 +342,9 @@ const getInitSnippet = (orgId: string, withOptions = false) =>
         ? `H.init('${orgId}', {
   environment: 'production',
   enableStrictPrivacy: false,${
-      process.env.REACT_APP_ONPREM === 'true' &&
-      '\n  backendUrl: "' + GetBaseURL() + '/public",'
+      process.env.REACT_APP_ONPREM === 'true'
+          ? '\n  backendUrl: "' + GetBaseURL() + '/public",'
+          : ''
   }
 });`
         : `H.init('${orgId}');`;

@@ -61,6 +61,15 @@ export type AddAdminToOrganizationMutation = { __typename?: 'Mutation' } & Pick<
     'addAdminToOrganization'
 >;
 
+export type DeleteAdminFromOrganizationMutationVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    admin_id: Types.Scalars['ID'];
+}>;
+
+export type DeleteAdminFromOrganizationMutation = {
+    __typename?: 'Mutation';
+} & Pick<Types.Mutation, 'deleteAdminFromOrganization'>;
+
 export type AddSlackIntegrationToWorkspaceMutationVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     code: Types.Scalars['String'];
@@ -432,6 +441,17 @@ export type UpdateUserPropertiesAlertMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
+export type UpdateSessionIsPublicMutationVariables = Types.Exact<{
+    session_id: Types.Scalars['ID'];
+    is_public: Types.Scalars['Boolean'];
+}>;
+
+export type UpdateSessionIsPublicMutation = { __typename?: 'Mutation' } & {
+    updateSessionIsPublic?: Types.Maybe<
+        { __typename?: 'Session' } & Pick<Types.Session, 'id' | 'is_public'>
+    >;
+};
+
 export type GetSessionPayloadQueryVariables = Types.Exact<{
     session_id: Types.Scalars['ID'];
 }>;
@@ -479,6 +499,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'payload_size'
             | 'within_billing_quota'
             | 'client_version'
+            | 'is_public'
         > & {
                 fields?: Types.Maybe<
                     Array<

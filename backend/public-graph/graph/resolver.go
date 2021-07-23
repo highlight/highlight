@@ -653,7 +653,7 @@ func (r *Resolver) processStackFrame(organizationId, sessionId int, stackTrace m
 }
 
 func (r *Resolver) isOrgWithinBillingQuota(organization *model.Organization, now time.Time) bool {
-	if organization.TrialEndDate != nil && organization.TrialEndDate.Before(now) {
+	if organization.TrialEndDate != nil && organization.TrialEndDate.After(now) {
 		return true
 	}
 	var (

@@ -8,7 +8,8 @@
     "plugin:react-hooks/recommended"
   ],
   "plugins": [
-    "simple-import-sort"
+    "simple-import-sort",
+    "unused-imports"
   ],
   "env": {
     "commonjs": true,
@@ -38,6 +39,7 @@
     "react/display-name": "off",
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/no-unused-vars": "warn",
+    "unused-imports/no-unused-imports-ts": "error",
     "@typescript-eslint/no-non-null-assertion": "off",
     "no-restricted-imports": [
       "error",
@@ -88,6 +90,13 @@
               "Switch"
             ],
             "message": "Please use Switch from /src/components/Switch instead."
+          },
+          {
+            "name": "antd",
+            "importNames": [
+              "Popconfirm"
+            ],
+            "message": "Please use PopConfirm from /src/components/PopConfirm instead."
           },
           {
             "name": "antd",

@@ -2,37 +2,64 @@ import {
     DebugOptions,
     Highlight,
     HighlightClassOptions,
+    NetworkRecordingOptions,
 } from '../../client/src/index';
 import packageJson from '../package.json';
 import { listenToChromeExtensionMessage } from './browserExtension/extensionListener';
 import { SessionDetails } from './types/types';
 
 export type HighlightOptions = {
-    // a 'true' value defaults to only loggin api interactions.
+    /**
+     * Do not use this.
+     * @private
+     */
     debug?: boolean | DebugOptions;
+    /**
+     * Do not use this.
+     * @private
+     */
     scriptUrl?: string;
+    /**
+     * Specifies where to send Highlight session data.
+     * You should not have to set this unless you are running an on-premise instance.
+     */
     backendUrl?: string;
+    /**
+     * Specifies if Highlight should not automatically start recording when the app starts.
+     * This should be used with `H.start()` and `H.stop()` if you want to control when Highlight records.
+     * @default false
+     */
     manualStart?: boolean;
+    /**
+     * This disables recording network requests.
+     * The data includes the URLs, the size of the request, and how long the request took.
+     * @default false
+     * @deprecated Use `networkRecording` instead.
+     */
     disableNetworkRecording?: boolean;
     /**
-     * This enables recording XMLHttpRequest and Fetch headers and bodies.
-     * disableNetworkRecording needs to be false.
-     * Defaults to false.
+     * Specifies how and what Highlight records from network requests and responses.
      */
-    enableNetworkHeadersAndBodyRecording?: boolean;
+    networkRecording?: boolean | NetworkRecordingOptions;
+    /**
+     * Specifies whether Highlight will record console messages.
+     * @default false
+     */
     disableConsoleRecording?: boolean;
     enableSegmentIntegration?: boolean;
     /**
-     * The environment your application is running in.
+     * Specifies the environment your application is running in.
      * This is useful to distinguish whether your session was recorded on localhost or in production.
+     * @default 'production'
      */
     environment?: 'development' | 'staging' | 'production' | string;
     /**
-     * The version of your application.
+     * Specifies the version of your application.
      * This is commonly a Git hash or a semantic version.
      */
     version?: string;
     /**
+     * Specifies whether Highlight should redact data during recording.
      * Enabling this will disable recording of text data on the page. This is useful if you do not want to record personally identifiable information and don't want to manually annotate your code with the class name "highlight-block".
      * @example
      * // Text will be randomized. Instead of seeing "Hello World" in a recording, you will see "1fds1 j59a0".
@@ -45,7 +72,7 @@ const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, msg);
 };
 
-type HighlightPublicInterface = {
+export interface HighlightPublicInterface {
     init: (orgID: number | string, debug?: HighlightOptions) => void;
     identify: (identify: string, obj: any) => void;
     track: (event: string, obj: any) => void;
@@ -70,7 +97,7 @@ type HighlightPublicInterface = {
     stop: () => void;
     onHighlightReady: (func: () => void) => void;
     options: HighlightOptions | undefined;
-};
+}
 
 interface HighlightWindow extends Window {
     Highlight: new (options?: HighlightClassOptions) => Highlight;
@@ -88,6 +115,15 @@ export const H: HighlightPublicInterface = {
     init: (orgID: number | string, options?: HighlightOptions) => {
         try {
             H.options = options;
+
+            // Don't run init when called outside of the browser.
+            if (
+                typeof window === 'undefined' ||
+                typeof document === 'undefined'
+            ) {
+                return;
+            }
+
             script = document.createElement('script');
             var scriptSrc = options?.scriptUrl
                 ? options.scriptUrl
@@ -104,8 +140,7 @@ export const H: HighlightPublicInterface = {
                     debug: options?.debug,
                     backendUrl: options?.backendUrl,
                     disableNetworkRecording: options?.disableNetworkRecording,
-                    enableNetworkHeadersAndBodyRecording:
-                        options?.enableNetworkHeadersAndBodyRecording,
+                    networkRecording: options?.networkRecording,
                     disableConsoleRecording: options?.disableConsoleRecording,
                     enableSegmentIntegration: options?.enableSegmentIntegration,
                     enableStrictPrivacy: options?.enableStrictPrivacy || false,
