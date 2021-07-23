@@ -195,10 +195,10 @@ func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_id int) (*m
 
 func (r *Resolver) canAdminViewSession(ctx context.Context, session_id int) (*model.Session, error) {
 	session, isOwner, err := r._doesAdminOwnSession(ctx, session_id)
-	if (err == nil && isOwner) {
+	if err == nil && isOwner {
 		return session, nil
 	}
-	if (session != nil && *session.IsPublic) {
+	if session != nil && *session.IsPublic {
 		return session, nil
 	}
 	return nil, err
@@ -206,7 +206,7 @@ func (r *Resolver) canAdminViewSession(ctx context.Context, session_id int) (*mo
 
 func (r *Resolver) canAdminModifySession(ctx context.Context, session_id int) (*model.Session, error) {
 	session, isOwner, err := r._doesAdminOwnSession(ctx, session_id)
-	if (err == nil && isOwner) {
+	if err == nil && isOwner {
 		return session, nil
 	}
 	return nil, err
