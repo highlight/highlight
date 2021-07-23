@@ -101,7 +101,7 @@ const Changelog = (props: HTMLProps<HTMLDivElement>) => {
                     if (visible) {
                         setHasNewUpdates(false);
                         setLastReadId(data[0].id);
-                        H.track('Viewed changelog', {});
+                        H.track('Viewed changelog');
                     }
                 }}
                 content={

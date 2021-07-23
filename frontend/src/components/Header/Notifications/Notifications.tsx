@@ -100,7 +100,7 @@ const Notifications = () => {
             }
             onVisibleChange={(visible) => {
                 if (visible) {
-                    H.track('Viewed notifications', {});
+                    H.track('Viewed notifications');
                 }
             }}
             title={
