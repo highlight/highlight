@@ -208,12 +208,11 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			} else {
 				objString = string(objBytes)
 			}
-			log.Warn("caught empty error, continuing...",
-				log.WithFields(log.Fields{
-					"org_id":       organizationID,
-					"session_id":   sessionID,
-					"error_object": objString,
-				}))
+			log.WithFields(log.Fields{
+				"org_id":       organizationID,
+				"session_id":   sessionID,
+				"error_object": objString,
+			}).Warn("caught empty error, continuing...")
 		} else {
 			filteredErrors = append(filteredErrors, errorObject)
 		}

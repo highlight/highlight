@@ -175,15 +175,13 @@ func main() {
 			privateServer.Use(util.NewTracer(util.PrivateGraph))
 			privateServer.SetErrorPresenter(func(ctx context.Context, e error) *gqlerror.Error {
 				err := graphql.DefaultErrorPresenter(ctx, e)
-				log.Error("private server graphql request failed",
-					log.WithFields(log.Fields{
-						"message":    err.Message,
-						"path":       err.Path,
-						"locations":  err.Locations,
-						"extensions": err.Extensions,
-						"rule":       err.Rule,
-					}),
-				)
+				log.WithFields(log.Fields{
+					"message":    err.Message,
+					"path":       err.Path,
+					"locations":  err.Locations,
+					"extensions": err.Extensions,
+					"rule":       err.Rule,
+				}).Error("private server graphql request failed")
 				return err
 			})
 			r.Handle("/", privateServer)
@@ -206,15 +204,13 @@ func main() {
 			clientServer.Use(util.NewTracer(util.PublicGraph))
 			clientServer.SetErrorPresenter(func(ctx context.Context, e error) *gqlerror.Error {
 				err := graphql.DefaultErrorPresenter(ctx, e)
-				log.Error("client server graphql request failed",
-					log.WithFields(log.Fields{
-						"message":    err.Message,
-						"path":       err.Path,
-						"locations":  err.Locations,
-						"extensions": err.Extensions,
-						"rule":       err.Rule,
-					}),
-				)
+				log.WithFields(log.Fields{
+					"message":    err.Message,
+					"path":       err.Path,
+					"locations":  err.Locations,
+					"extensions": err.Extensions,
+					"rule":       err.Rule,
+				}).Error("client server graphql request failed")
 				return err
 			})
 			r.Handle("/", clientServer)
