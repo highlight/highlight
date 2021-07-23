@@ -196,6 +196,23 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	}
 	unmarshalResourcesSpan.Finish()
 
+	// filter out empty errors
+	var filteredErrors []*customModels.ErrorObjectInput
+	for _, errorObject := range errors {
+		if errorObject.Event == "[{}]" {
+			objBytes, _ := json.Marshal(errorObject)
+			log.Warn("caught empty error, continuing...",
+				log.WithFields(log.Fields{
+					"org_id":       organizationID,
+					"session_id":   sessionID,
+					"error_object": string(objBytes),
+				}))
+		} else {
+			filteredErrors = append(filteredErrors, errorObject)
+		}
+	}
+	errors = filteredErrors
+
 	// increment daily error table
 	if len(errors) > 0 {
 		n := time.Now()
@@ -218,14 +235,6 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	// put errors in db
 	putErrorsToDBSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.errors"))
 	for _, v := range errors {
-		if v.Event == "[{}]" {
-			log.Warn("caught empty error, continuing...",
-				log.WithFields(log.Fields{
-					"org_id":     organizationID,
-					"session_id": sessionID,
-				}))
-			continue
-		}
 		traceBytes, err := json.Marshal(v.StackTrace)
 		if err != nil {
 			log.Errorf("Error marshaling trace: %v", v.StackTrace)
