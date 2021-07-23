@@ -246,12 +246,7 @@ export const ResourcePage = ({
                             id="networkStreamWrapper"
                             className={styles.networkStreamWrapper}
                         >
-                            {resourcesToRender.length === 0 ? (
-                                <p className={styles.noResultsMessage}>
-                                    No network resources matching '
-                                    {filterSearchTerm}'
-                                </p>
-                            ) : (
+                            {resourcesToRender.length > 0 ? (
                                 <Virtuoso
                                     onMouseEnter={() => {
                                         setIsInteractingWithResources(true);
@@ -277,6 +272,30 @@ export const ResourcePage = ({
                                         />
                                     )}
                                 />
+                            ) : resourcesToRender.length === 0 &&
+                              filterSearchTerm !== '' ? (
+                                <p className={styles.noResultsMessage}>
+                                    No network resources matching '
+                                    {filterSearchTerm}'
+                                </p>
+                            ) : (
+                                <>
+                                    <p className={styles.noResultsMessage}>
+                                        There are no network recordings for this
+                                        session. If you expected to see data
+                                        here, please make sure{' '}
+                                        <code>networkRecording</code> is set to{' '}
+                                        <code>true</code>. You can{' '}
+                                        <a
+                                            href="https://docs.highlight.run/reference#options"
+                                            target="_blank"
+                                            rel="noreferrer"
+                                        >
+                                            learn more here
+                                        </a>
+                                        .
+                                    </p>
+                                </>
                             )}
                         </div>
                     </>
