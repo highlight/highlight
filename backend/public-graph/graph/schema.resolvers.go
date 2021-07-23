@@ -218,6 +218,14 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	// put errors in db
 	putErrorsToDBSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.errors"))
 	for _, v := range errors {
+		if v.Event == "[{}]" {
+			log.Warn("caught empty error, continuing...",
+				log.WithFields(log.Fields{
+					"org_id":     organizationID,
+					"session_id": sessionID,
+				}))
+			continue
+		}
 		traceBytes, err := json.Marshal(v.StackTrace)
 		if err != nil {
 			log.Errorf("Error marshaling trace: %v", v.StackTrace)
