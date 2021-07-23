@@ -196,6 +196,30 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	}
 	unmarshalResourcesSpan.Finish()
 
+	// filter out empty errors
+	var filteredErrors []*customModels.ErrorObjectInput
+	for _, errorObject := range errors {
+		if errorObject.Event == "[{}]" {
+			var objString string
+			objBytes, err := json.Marshal(errorObject)
+			if err != nil {
+				log.Error(e.Wrap(err, "error marshalling error object when filtering"))
+				objString = ""
+			} else {
+				objString = string(objBytes)
+			}
+			log.Warn("caught empty error, continuing...",
+				log.WithFields(log.Fields{
+					"org_id":       organizationID,
+					"session_id":   sessionID,
+					"error_object": objString,
+				}))
+		} else {
+			filteredErrors = append(filteredErrors, errorObject)
+		}
+	}
+	errors = filteredErrors
+
 	// increment daily error table
 	if len(errors) > 0 {
 		n := time.Now()
