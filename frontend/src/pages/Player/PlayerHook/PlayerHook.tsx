@@ -185,6 +185,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             }
             const r = new Replayer(newEvents.slice(0, EVENTS_CHUNK_SIZE), {
                 root: playerMountingRoot,
+                triggerFocus: false,
             });
             r.on(ReplayerEvents.Finish, () => {
                 setState(ReplayerState.SessionEnded);

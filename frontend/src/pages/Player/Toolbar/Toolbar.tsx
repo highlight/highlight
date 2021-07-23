@@ -25,7 +25,7 @@ import {
     ReplayerState,
     useReplayerContext,
 } from '../ReplayerContext';
-import { getNewTimeWithSkip, usePlayerHotKeys } from '../utils/hooks';
+import { getNewTimeWithSkip, usePlayerHotKeys } from '../utils/PlayerHooks';
 import { DevToolsContextProvider } from './DevToolsContext/DevToolsContext';
 import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
 import ErrorModal from './DevToolsWindow/ErrorsPage/components/ErrorModal/ErrorModal';
