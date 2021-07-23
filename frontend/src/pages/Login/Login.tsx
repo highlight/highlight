@@ -1,14 +1,12 @@
 import classNames from 'classnames';
 import { H } from 'highlight.run';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { useAuthContext } from '../../AuthContext';
 import commonStyles from '../../Common.module.scss';
 import Button from '../../components/Button/Button/Button';
-import { ErrorState } from '../../components/ErrorState/ErrorState';
 import { LoadingPage } from '../../components/Loading/Loading';
-import { useGetAdminQuery } from '../../graph/generated/hooks';
 import { AppRouter } from '../../routers/AppRouter/AppRouter';
 import { ReactComponent as GoogleLogo } from '../../static/google.svg';
 import { auth, googleProvider } from '../../util/auth';
@@ -16,38 +14,24 @@ import { Landing } from '../Landing/Landing';
 import styles from './Login.module.scss';
 
 export const AuthAdminRouter = () => {
-    const { loading, error, data } = useGetAdminQuery();
+    const { isAuthLoading, admin } = useAuthContext();
 
-    const admin = data?.admin;
-    useEffect(() => {
-        if (admin) {
-            const { email, id, name } = admin;
-            window.analytics.identify(email, {
-                id,
-                name,
-            });
-            H.identify(email, {
-                id,
-                name,
-            });
-        }
-    }, [admin]);
-    if (error) {
-        return (
-            <ErrorState
-                message={`
-        Seems like you we had issue with your login 😢.
-        Feel free to log out and try again, or otherwise,
-        get in contact with us!
-        `}
-                errorString={'AuthAdminRouter error: ' + JSON.stringify(error)}
-            />
-        );
-    }
-
-    if (loading) {
+    if (isAuthLoading) {
         return <LoadingPage />;
     }
+
+    if (admin) {
+        const { email, id, name } = admin;
+        window.analytics.identify(email, {
+            id,
+            name,
+        });
+        H.identify(email, {
+            id,
+            name,
+        });
+    }
+
     return <AppRouter />;
 };
 

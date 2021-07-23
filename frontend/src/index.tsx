@@ -22,7 +22,7 @@ import { DemoContext } from './DemoContext';
 import DemoRouter from './DemoRouter';
 import { useGetAdminLazyQuery } from './graph/generated/hooks';
 import About from './pages/About/About';
-import LoginForm from './pages/Login/Login';
+import LoginForm, { AuthAdminRouter } from './pages/Login/Login';
 import * as serviceWorker from './serviceWorker';
 import { auth } from './util/auth';
 import { showHiringMessage } from './util/console/hiringMessage';
@@ -153,6 +153,15 @@ const AuthenticationRouter = () => {
                     <Route path="/demo" exact>
                         <DemoContext.Provider value={{ demo: true }}>
                             <DemoRouter />
+                        </DemoContext.Provider>
+                    </Route>
+                    <Route
+                        path="/:organization_id(\d+)/sessions/:session_id(\d+)"
+                        exact
+                    >
+                        {/* Allow guests to access this route without being asked to log in */}
+                        <DemoContext.Provider value={{ demo: false }}>
+                            <AuthAdminRouter />
                         </DemoContext.Provider>
                     </Route>
                     <Route path="/">
