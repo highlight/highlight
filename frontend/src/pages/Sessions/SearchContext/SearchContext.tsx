@@ -24,6 +24,8 @@ export type SearchParams = {
     device_id?: string;
     /** Whether this session is the user's first session. */
     first_time?: boolean;
+    /** Whether to show sessions that have not been processed yet. */
+    show_live_sessions?: boolean;
 };
 
 interface SearchContext {
@@ -35,8 +37,6 @@ interface SearchContext {
     setExistingParams: React.Dispatch<React.SetStateAction<SearchParams>>;
     segmentName: string | null;
     setSegmentName: React.Dispatch<React.SetStateAction<string | null>>;
-    hideLiveSessions: boolean;
-    setHideLiveSessions: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export const [
