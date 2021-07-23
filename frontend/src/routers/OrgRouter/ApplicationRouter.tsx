@@ -54,12 +54,12 @@ const ApplicationRouter = ({ integrated }: Props) => {
         visited_url: StringParam,
         first_time: BooleanParam,
         device_id: StringParam,
+        show_live_sessions: BooleanParam,
     });
 
     const [existingParams, setExistingParams] = useState<SearchParams>(
         EmptySessionsSearchParams
     );
-    const [hideLiveSessions, setHideLiveSessions] = useState<boolean>(false);
 
     useEffect(() => {
         const areAnySearchParamsSet = !_.isEqual(
@@ -93,8 +93,6 @@ const ApplicationRouter = ({ integrated }: Props) => {
                 setExistingParams,
                 segmentName,
                 setSegmentName,
-                hideLiveSessions,
-                setHideLiveSessions,
             }}
         >
             <Switch>
@@ -169,4 +167,5 @@ const InitialSearchParamsForUrl = {
     track_properties: undefined,
     user_properties: undefined,
     visited_url: undefined,
+    show_live_sessions: undefined,
 };
