@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"html/template"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/go-chi/chi"
 	"github.com/gorilla/handlers"
 	dd "github.com/highlight-run/highlight/backend/datadog"
@@ -18,6 +20,7 @@ import (
 	"github.com/rs/cors"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/stripe/stripe-go/client"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
@@ -170,6 +173,19 @@ func main() {
 				}),
 			)
 			privateServer.Use(util.NewTracer(util.PrivateGraph))
+			privateServer.SetErrorPresenter(func(ctx context.Context, e error) *gqlerror.Error {
+				err := graphql.DefaultErrorPresenter(ctx, e)
+				log.Error("private server graphql request failed",
+					log.WithFields(log.Fields{
+						"message":    err.Message,
+						"path":       err.Path,
+						"locations":  err.Locations,
+						"extensions": err.Extensions,
+						"rule":       err.Rule,
+					}),
+				)
+				return err
+			})
 			r.Handle("/", privateServer)
 		})
 	}
@@ -188,6 +204,19 @@ func main() {
 					},
 				}))
 			clientServer.Use(util.NewTracer(util.PublicGraph))
+			clientServer.SetErrorPresenter(func(ctx context.Context, e error) *gqlerror.Error {
+				err := graphql.DefaultErrorPresenter(ctx, e)
+				log.Error("client server graphql request failed",
+					log.WithFields(log.Fields{
+						"message":    err.Message,
+						"path":       err.Path,
+						"locations":  err.Locations,
+						"extensions": err.Extensions,
+						"rule":       err.Rule,
+					}),
+				)
+				return err
+			})
 			r.Handle("/", clientServer)
 		})
 	}
