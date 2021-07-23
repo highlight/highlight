@@ -5,10 +5,10 @@ public-gen:
 private-gen:
 		(cd ./private-graph; go run github.com/99designs/gqlgen)
 private-test:
-		(cd ./private-graph/graph; LOG_LEVEL=debug PSQL_HOST=localhost PSQL_PORT=5432 PSQL_USER=postgres PSQL_PASSWORD=postgres go test ./... -v)
+		(cd ./private-graph/graph; LOG_LEVEL=debug PSQL_HOST=localhost PSQL_PORT=5432 PSQL_USER=postgres PSQL_PASSWORD=postgres ENVIRONMENT=test go test ./... -v)
 public-test:
-		(cd ./public-graph/graph; LOG_LEVEL=debug PSQL_HOST=localhost PSQL_PORT=5432 PSQL_USER=postgres PSQL_PASSWORD=postgres go test ./... -v)
+		(cd ./public-graph/graph; LOG_LEVEL=debug PSQL_HOST=localhost PSQL_PORT=5432 PSQL_USER=postgres PSQL_PASSWORD=postgres ENVIRONMENT=test go test ./... -v)
 model-test:
-		(cd ./model; LOG_LEVEL=debug PSQL_HOST=localhost PSQL_PORT=5432 PSQL_USER=postgres PSQL_PASSWORD=postgres go test ./... -v)
+		(cd ./model; LOG_LEVEL=debug PSQL_HOST=localhost PSQL_PORT=5432 PSQL_USER=postgres PSQL_PASSWORD=postgres ENVIRONMENT=test go test ./... -v)
 test-and-coverage:
-		(LOG_LEVEL=debug PSQL_HOST=localhost PSQL_PORT=5432 PSQL_USER=postgres PSQL_PASSWORD=postgres go test -p 1 -covermode=atomic -coverprofile=coverage.out ./... -v)
+		(LOG_LEVEL=debug PSQL_HOST=localhost PSQL_PORT=5432 PSQL_USER=postgres PSQL_PASSWORD=postgres ENVIRONMENT=test go test -p 1 -covermode=atomic -coverprofile=coverage.out ./... -v)
