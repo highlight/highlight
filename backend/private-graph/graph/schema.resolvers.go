@@ -1083,13 +1083,15 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 		}
 	}
 
-	errorFieldQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.errorFieldIds"))
-	var tempErrorFieldIds []int
-	if err := errorFieldQuery.Where(errorFieldQueryCondition).Pluck("id", &tempErrorFieldIds).Error; err != nil {
-		return nil, e.Wrap(err, "error querying error fields")
+	if params.Browser != nil || params.Os != nil || params.VisitedURL != nil || (params.PayloadFields != nil && len(params.PayloadFields) < len(errorFieldIds)) {
+		errorFieldQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.errorFieldIds"))
+		var tempErrorFieldIds []int
+		if err := errorFieldQuery.Where(errorFieldQueryCondition).Pluck("id", &tempErrorFieldIds).Error; err != nil {
+			return nil, e.Wrap(err, "error querying error fields")
+		}
+		errorFieldIds = append(errorFieldIds, tempErrorFieldIds...)
+		errorFieldQuerySpan.Finish()
 	}
-	errorFieldIds = append(errorFieldIds, tempErrorFieldIds...)
-	errorFieldQuerySpan.Finish()
 
 	errorGroups := []model.ErrorGroup{}
 	selectPreamble := `SELECT id, organization_id, event, stack_trace, metadata_log, created_at, deleted_at, updated_at, state`
