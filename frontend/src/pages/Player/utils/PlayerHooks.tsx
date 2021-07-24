@@ -36,7 +36,7 @@ export const usePlayerHotKeys = () => {
     useHotkeys(
         'space',
         () => {
-            H.track('PlayerPausePlayKeyboardShortcut', {});
+            H.track('PlayerPausePlayKeyboardShortcut');
             switch (state) {
                 case ReplayerState.Playing:
                     pause(time);
@@ -57,7 +57,7 @@ export const usePlayerHotKeys = () => {
     useHotkeys(
         'left',
         () => {
-            H.track('PlayerSkipBackwardsKeyboardShortcut', {});
+            H.track('PlayerSkipBackwardsKeyboardShortcut');
             const newTime = getNewTimeWithSkip({
                 time,
                 direction: 'backwards',
@@ -83,7 +83,7 @@ export const usePlayerHotKeys = () => {
     useHotkeys(
         'right',
         () => {
-            H.track('PlayerSkipForwardsKeyboardShortcut', {});
+            H.track('PlayerSkipForwardsKeyboardShortcut');
             const totalTime = replayer?.getMetaData().totalTime;
             const newTime = getNewTimeWithSkip({
                 time,

@@ -18,11 +18,12 @@ import {
     isHighlightAdmin,
     isLoggedIn,
 } from './AuthContext';
+import { ErrorState } from './components/ErrorState/ErrorState';
 import { DemoContext } from './DemoContext';
 import DemoRouter from './DemoRouter';
 import { useGetAdminLazyQuery } from './graph/generated/hooks';
 import About from './pages/About/About';
-import LoginForm from './pages/Login/Login';
+import LoginForm, { AuthAdminRouter } from './pages/Login/Login';
 import * as serviceWorker from './serviceWorker';
 import { auth } from './util/auth';
 import { showHiringMessage } from './util/console/hiringMessage';
@@ -133,6 +134,21 @@ const AuthenticationRouter = () => {
         }
     }, [adminError, adminData]);
 
+    if (adminError) {
+        return (
+            <ErrorState
+                message={`
+Seems like you we had issue with your login 😢.
+Feel free to log out and try again, or otherwise,
+get in contact with us!
+`}
+                errorString={
+                    JSON.stringify(adminError)
+                }
+            />
+        );
+    }
+
     return (
         <AuthContextProvider
             value={{
@@ -153,6 +169,15 @@ const AuthenticationRouter = () => {
                     <Route path="/demo" exact>
                         <DemoContext.Provider value={{ demo: true }}>
                             <DemoRouter />
+                        </DemoContext.Provider>
+                    </Route>
+                    <Route
+                        path="/:organization_id(\d+)/sessions/:session_id(\d+)"
+                        exact
+                    >
+                        {/* Allow guests to access this route without being asked to log in */}
+                        <DemoContext.Provider value={{ demo: false }}>
+                            <AuthAdminRouter />
                         </DemoContext.Provider>
                     </Route>
                     <Route path="/">

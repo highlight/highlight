@@ -74,8 +74,20 @@ const HighlightWarning = (context: string, msg: any) => {
 
 export interface HighlightPublicInterface {
     init: (orgID: number | string, debug?: HighlightOptions) => void;
-    identify: (identify: string, obj: any) => void;
-    track: (event: string, obj: any) => void;
+    /**
+     * Calling this will assign an identifier to the session.
+     * @example identify('teresa@acme.com', { accountAge: 3, cohort: 8 })
+     * @param identifier Is commonly set as an email or UUID.
+     * @param metadata Additional details you want to associate to the user.
+     */
+    identify: (identifier: string, metadata?: Metadata) => void;
+    /**
+     * Call this to record when you want to track a specific event happening in your application.
+     * @example track('startedCheckoutProcess', { cartSize: 10, value: 85 })
+     * @param event The name of the event.
+     * @param metadata Additional details you want to associate to the event.
+     */
+    track: (event: string, metadata?: Metadata) => void;
     /**
      * @deprecated with replacement by `consumeError` for an in-app stacktrace.
      */
@@ -97,6 +109,10 @@ export interface HighlightPublicInterface {
     stop: () => void;
     onHighlightReady: (func: () => void) => void;
     options: HighlightOptions | undefined;
+}
+
+interface Metadata {
+    [key: string]: string | boolean | number;
 }
 
 interface HighlightWindow extends Window {
@@ -182,10 +198,10 @@ export const H: HighlightPublicInterface = {
             HighlightWarning('error', e);
         }
     },
-    track: (event: string, obj: any) => {
+    track: (event: string, metadata: Metadata = {}) => {
         try {
             H.onHighlightReady(() =>
-                highlight_obj.addProperties({ ...obj, event: event })
+                highlight_obj.addProperties({ ...metadata, event: event })
             );
         } catch (e) {
             HighlightWarning('track', e);
@@ -222,9 +238,11 @@ export const H: HighlightPublicInterface = {
             HighlightWarning('stop', e);
         }
     },
-    identify: (identifier: string, obj: any) => {
+    identify: (identifier: string, metadata: Metadata = {}) => {
         try {
-            H.onHighlightReady(() => highlight_obj.identify(identifier, obj));
+            H.onHighlightReady(() =>
+                highlight_obj.identify(identifier, metadata)
+            );
         } catch (e) {
             HighlightWarning('identify', e);
         }

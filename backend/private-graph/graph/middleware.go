@@ -8,11 +8,11 @@ import (
 
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
-	e "github.com/pkg/errors"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 
 	"github.com/highlight-run/highlight/backend/model"
+	e "github.com/pkg/errors"
 )
 
 var (
@@ -43,7 +43,8 @@ func PrivateMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// If we're on a demo domain, we have some special logic.
 		var uid string
-		if r.Header.Get(DemoHeader) != "true" {
+		token := r.Header.Get("token")
+		if token != "" {
 			token := r.Header.Get("token")
 			t, err := AuthClient.VerifyIDToken(context.Background(), token)
 			if err != nil {

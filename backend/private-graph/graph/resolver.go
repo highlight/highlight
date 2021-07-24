@@ -185,6 +185,11 @@ func (r *Resolver) isAdminSessionOwner(ctx context.Context, session_id int) (*mo
 	if strconv.Itoa(session_id) == DemoSession {
 		return session, nil
 	}
+	// TODO: fine-grained permission control
+	if *session.IsPublic {
+		return session, nil
+	}
+
 	_, err := r.isAdminInOrganization(ctx, session.OrganizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "error validating admin in organization")
