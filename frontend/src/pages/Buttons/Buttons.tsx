@@ -2,16 +2,28 @@ import { H } from 'highlight.run';
 import React, { useState } from 'react';
 
 import commonStyles from '../../Common.module.scss';
+import { useSendEmailSignupMutation } from '../../graph/generated/hooks';
 import styles from './Buttons.module.scss';
 import { CustomError, DefaultError } from './ButtonsHelper';
 export const Buttons = () => {
     const [hasError, setHasError] = useState(false);
+    const [sendEmail, { data, loading, error }] = useSendEmailSignupMutation({
+        context: { headers: { 'Highlight-Demo': false } },
+    });
     if (hasError) {
         throw new Error('got an error');
     }
     return (
         <div className={styles.buttonBody}>
             <div>
+                <button
+                    className={commonStyles.submitButton}
+                    onClick={() => {
+                        sendEmail({ variables: { email: 'hello@hello.com' } });
+                    }}
+                >
+                    {loading ? 'loading...' : 'Send an email'}
+                </button>
                 <button
                     className={commonStyles.submitButton}
                     onClick={() => {
