@@ -143,7 +143,7 @@ Feel free to log out and try again, or otherwise,
 get in contact with us!
 `}
                 errorString={
-                    'Error fetching admin: ' + JSON.stringify(adminError)
+                    JSON.stringify(adminError)
                 }
             />
         );
