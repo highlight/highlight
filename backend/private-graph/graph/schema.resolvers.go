@@ -488,8 +488,8 @@ func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (strin
 	sequenceRequest := &SequenceRequest{
 		ApiKey:                      apiKey,
 		ContactIDs:                  []string{response.Contact.ID},
-		EmailerCampaignID:           "60fb134ce97fa1014c1cc141",
-		SendEmailFromEmailAccountID: "6053cd5ef93cca00e498990f",
+		EmailerCampaignID:           "60fb134ce97fa1014c1cc141", // Represents the sequence ID for "Landing Page Signups"
+		SendEmailFromEmailAccountID: "6053cd5ef93cca00e498990f", // Respresents the ID for Jay's email account (jay@highlight.run)
 	}
 	sequenceResponse := &SequenceResponse{}
 	url := fmt.Sprintf("https://api.apollo.io/v1/emailer_campaigns/%v/add_contact_ids", sequenceRequest.EmailerCampaignID)
