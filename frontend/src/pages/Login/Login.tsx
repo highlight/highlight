@@ -6,9 +6,7 @@ import { useForm } from 'react-hook-form';
 import { useAuthContext } from '../../AuthContext';
 import commonStyles from '../../Common.module.scss';
 import Button from '../../components/Button/Button/Button';
-import { ErrorState } from '../../components/ErrorState/ErrorState';
 import { LoadingPage } from '../../components/Loading/Loading';
-import { useGetAdminQuery } from '../../graph/generated/hooks';
 import { AppRouter } from '../../routers/AppRouter/AppRouter';
 import { ReactComponent as GoogleLogo } from '../../static/google.svg';
 import { auth, googleProvider } from '../../util/auth';
@@ -16,9 +14,7 @@ import { Landing } from '../Landing/Landing';
 import styles from './Login.module.scss';
 
 export const AuthAdminRouter = () => {
-    const { loading, error, data } = useGetAdminQuery();
-
-    const admin = data?.admin;
+    const { isAuthLoading, admin } = useAuthContext();
     useEffect(() => {
         if (admin) {
             const { email, id, name } = admin;
@@ -32,22 +28,11 @@ export const AuthAdminRouter = () => {
             });
         }
     }, [admin]);
-    if (error) {
-        return (
-            <ErrorState
-                message={`
-        Seems like you we had issue with your login 😢.
-        Feel free to log out and try again, or otherwise,
-        get in contact with us!
-        `}
-                errorString={'AuthAdminRouter error: ' + JSON.stringify(error)}
-            />
-        );
-    }
 
-    if (loading) {
+    if (isAuthLoading) {
         return <LoadingPage />;
     }
+
     return <AppRouter />;
 };
 

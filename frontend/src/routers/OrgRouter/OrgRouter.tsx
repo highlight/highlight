@@ -2,6 +2,7 @@ import useLocalStorage from '@rehooks/local-storage';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
+import { useAuthContext } from '../../AuthContext';
 import commonStyles from '../../Common.module.scss';
 import { ErrorState } from '../../components/ErrorState/ErrorState';
 import { Header } from '../../components/Header/Header';
@@ -16,12 +17,14 @@ import { useIntegrated } from '../../util/integrated';
 import ApplicationRouter from './ApplicationRouter';
 
 export const OrgRouter = () => {
+    const { isLoggedIn } = useAuthContext();
     const { organization_id } = useParams<{
         organization_id: string;
     }>();
 
     const { loading, error, data } = useGetOrganizationQuery({
         variables: { id: organization_id },
+        skip: !isLoggedIn, // Higher level routers decide when guests are allowed to hit this router
     });
 
     const { integrated, loading: integratedLoading } = useIntegrated();
@@ -75,7 +78,8 @@ export const OrgRouter = () => {
         >
             <Header />
             <div className={commonStyles.bodyWrapper}>
-                {error || !data?.organization ? (
+                {/* Edge case: shareable links will still direct to this error page if you are logged in on a different org */}
+                {isLoggedIn && (error || !data?.organization) ? (
                     <ErrorState
                         message={`
                         Seems like you don’t have access to this page 😢. If you're
