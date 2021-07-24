@@ -4,7 +4,6 @@ package graph
 // will be copied through when generating and any unknown code will be moved to the end.
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -471,7 +470,7 @@ func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (strin
 	}
 	request := &ContactsRequest{ApiKey: apiKey, Email: email}
 	response := &ContactsResponse{}
-	err := ApolloPostRequest("https://api.apollo.io/v1/contacts", "POST", request, response)
+	err := util.RestRequest("https://api.apollo.io/v1/contacts", "POST", request, response)
 	if err != nil {
 		log.Errorf("error sending contacts request: %v", err)
 		return email, nil
@@ -494,48 +493,13 @@ func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (strin
 	}
 	sequenceResponse := &SequenceResponse{}
 	url := fmt.Sprintf("https://api.apollo.io/v1/emailer_campaigns/%v/add_contact_ids", sequenceRequest.EmailerCampaignID)
-	err = ApolloPostRequest(url, "POST", sequenceRequest, sequenceResponse)
+	err = util.RestRequest(url, "POST", sequenceRequest, sequenceResponse)
 	if err != nil {
 		log.Errorf("error sending contacts request: %v", err)
 		return email, nil
 	}
 	return email, nil
 }
-
-func ApolloPostRequest(url string, method string, request interface{}, response interface{}) error {
-	var bufb []byte
-	if request != nil {
-		var err error
-		bufb, err = json.Marshal(request)
-		if err != nil {
-			return e.Wrap(err, "error marshaling request")
-		}
-	}
-	client := http.Client{}
-	req, err := http.NewRequest(method, url, bytes.NewBuffer(bufb))
-	if err != nil {
-		return e.Wrap(err, "error building request")
-	}
-	req.Header = http.Header{
-		"Content-Type":  []string{"application/json"},
-		"Cache-Control": []string{"no-cache"},
-	}
-	res, err := client.Do(req)
-	if err != nil {
-		return e.Wrap(err, "error executing request")
-	}
-
-	b, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return e.Wrap(err, "error reading contacts body")
-	}
-	err = json.Unmarshal(b, response)
-	if err != nil {
-		return e.Wrap(err, "error unmarshaling contacts response")
-	}
-	return nil
-}
-
 func (r *mutationResolver) EditSegment(ctx context.Context, id int, organizationID int, params modelInputs.SearchParamsInput) (*bool, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
