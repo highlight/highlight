@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import { H } from 'highlight.run';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { useAuthContext } from '../../AuthContext';
@@ -15,21 +15,22 @@ import styles from './Login.module.scss';
 
 export const AuthAdminRouter = () => {
     const { isAuthLoading, admin } = useAuthContext();
+    useEffect(() => {
+        if (admin) {
+            const { email, id, name } = admin;
+            window.analytics.identify(email, {
+                id,
+                name,
+            });
+            H.identify(email, {
+                id,
+                name,
+            });
+        }
+    }, [admin]);
 
     if (isAuthLoading) {
         return <LoadingPage />;
-    }
-
-    if (admin) {
-        const { email, id, name } = admin;
-        window.analytics.identify(email, {
-            id,
-            name,
-        });
-        H.identify(email, {
-            id,
-            name,
-        });
     }
 
     return <AppRouter />;

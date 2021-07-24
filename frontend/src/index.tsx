@@ -18,6 +18,7 @@ import {
     isHighlightAdmin,
     isLoggedIn,
 } from './AuthContext';
+import { ErrorState } from './components/ErrorState/ErrorState';
 import { DemoContext } from './DemoContext';
 import DemoRouter from './DemoRouter';
 import { useGetAdminLazyQuery } from './graph/generated/hooks';
@@ -132,6 +133,21 @@ const AuthenticationRouter = () => {
             setAuthRole(AuthRole.UNAUTHENTICATED);
         }
     }, [adminError, adminData]);
+
+    if (adminError) {
+        return (
+            <ErrorState
+                message={`
+Seems like you we had issue with your login 😢.
+Feel free to log out and try again, or otherwise,
+get in contact with us!
+`}
+                errorString={
+                    'Error fetching admin: ' + JSON.stringify(adminError)
+                }
+            />
+        );
+    }
 
     return (
         <AuthContextProvider
