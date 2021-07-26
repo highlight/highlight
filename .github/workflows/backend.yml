@@ -9,13 +9,33 @@ on:
             - '.github/workflows/backend.yml'
             - '!backend/migrations'
 jobs:
-    build:
+    changes:
+        runs-on: ubuntu-latest
+        # Set job outputs to values from filter step
+        outputs:
+            private-graph: ${{ steps.filter.outputs.private-graph }}
+            public-graph: ${{ steps.filter.outputs.public-graph }}
+        steps:
+        # For pull requests it's not necessary to checkout the code
+            - uses: dorny/paths-filter@v2
+              id: filter
+              with:
+                  filters: |
+                      private-graph:
+                        - 'backend/private-graph/graph/schema.graphqls'
+                      public-graph:
+                        - 'backend/public-graph/graph/schema.graphqls'
+    code-setup:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
               uses: actions/checkout@v2
             - name: Setup Go
               uses: actions/setup-go@v2
+    code-quality-check:
+        needs: code-setup
+        runs-on: ubuntu-latest
+        steps:
             - name: Format
               uses: Jerome1337/gofmt-action@v1.0.4
               with:
@@ -27,9 +47,31 @@ jobs:
                   args: --config ./.golangci.yml
                   working-directory: backend
                   version: latest
+    make-check:
+        needs: [changes, code-setup]
+        if: ${{ needs.changes.outputs.private-graph == 'true' }} || ${{ needs.changes.outputs.public-graph == 'true'}}
+        runs-on: ubuntu-latest
+        steps:
+            - name: copy backend
+              run: |
+                mkdir tmp
+                cp -r backend/ tmp/
+            - name: Make private graph
+              if: ${{ needs.changes.outputs.private-graph == 'true' }}
+              run: |
+                make private-gen 
+            - name: Make public graph
+              if: ${{ needs.changes.outputs.public-graph == 'true' }}
+              run: |
+                make public-gen 
+    build:
+        needs: code-quality-check
+        runs-on: ubuntu-latest
+        steps:
             - name: Build binary
               run: cd backend && go build .
     test:
+        needs: code-quality-check
         runs-on: ubuntu-latest
         services:
           postgres:
@@ -53,9 +95,5 @@ jobs:
           PSQL_PASSWORD: "postgres"
           ENVIRONMENT: "test"
         steps:
-            - name: Checkout
-              uses: actions/checkout@v2
-            - name: Setup Go
-              uses: actions/setup-go@v2
             - name: Run tests
               run: cd backend && go test -p 1 ./... -v
