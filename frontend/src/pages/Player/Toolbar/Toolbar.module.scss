@@ -109,6 +109,7 @@
 .toolbarLeftSection {
     display: flex;
     flex-direction: row;
+    margin-left: var(--size-medium);
 
     > * {
         margin-top: 2px;
@@ -123,6 +124,7 @@
     height: 100%;
     justify-content: center;
     margin-left: auto;
+    padding-right: var(--size-medium);
 
     > * {
         height: 100%;
@@ -145,7 +147,6 @@
     display: flex;
     height: 100%;
     justify-content: center;
-    margin-left: 18px;
 }
 
 .undoSection {
