@@ -142,9 +142,7 @@ Seems like you we had issue with your login 😢.
 Feel free to log out and try again, or otherwise,
 get in contact with us!
 `}
-                errorString={
-                    JSON.stringify(adminError)
-                }
+                errorString={JSON.stringify(adminError)}
             />
         );
     }

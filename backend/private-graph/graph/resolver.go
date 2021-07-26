@@ -36,6 +36,10 @@ type Resolver struct {
 	StorageClient *storage.StorageClient
 }
 
+func (r *Resolver) getCurrentAdmin(ctx context.Context) (*model.Admin, error) {
+	return r.Query().Admin(ctx)
+}
+
 func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
 	uid := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
 	// If the user is engineering@..., we whitelist.
@@ -176,25 +180,40 @@ func (r *Resolver) isAdminErrorGroupOwner(ctx context.Context, errorGroupID int)
 	return errorGroup, nil
 }
 
-func (r *Resolver) isAdminSessionOwner(ctx context.Context, session_id int) (*model.Session, error) {
-	session := &model.Session{}
-	if err := r.DB.Where(&model.Session{Model: model.Model{ID: session_id}}).First(&session).Error; err != nil {
-		return nil, e.Wrap(err, "error querying session")
+func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_id int) (session *model.Session, ownsSession bool, err error) {
+	session = &model.Session{}
+	if err = r.DB.Where(&model.Session{Model: model.Model{ID: session_id}}).First(&session).Error; err != nil {
+		return nil, false, e.Wrap(err, "error querying session")
 	}
 	// This returns true if its the Whitelisted Session.
 	if strconv.Itoa(session_id) == DemoSession {
-		return session, nil
-	}
-	// TODO: fine-grained permission control
-	if *session.IsPublic {
-		return session, nil
+		return session, true, nil
 	}
 
-	_, err := r.isAdminInOrganization(ctx, session.OrganizationID)
+	_, err = r.isAdminInOrganization(ctx, session.OrganizationID)
 	if err != nil {
-		return nil, e.Wrap(err, "error validating admin in organization")
+		return session, false, e.Wrap(err, "error validating admin in organization")
 	}
-	return session, nil
+	return session, true, nil
+}
+
+func (r *Resolver) canAdminViewSession(ctx context.Context, session_id int) (*model.Session, error) {
+	session, isOwner, err := r._doesAdminOwnSession(ctx, session_id)
+	if err == nil && isOwner {
+		return session, nil
+	}
+	if session != nil && *session.IsPublic {
+		return session, nil
+	}
+	return nil, err
+}
+
+func (r *Resolver) canAdminModifySession(ctx context.Context, session_id int) (*model.Session, error) {
+	session, isOwner, err := r._doesAdminOwnSession(ctx, session_id)
+	if err == nil && isOwner {
+		return session, nil
+	}
+	return nil, err
 }
 
 func (r *Resolver) isAdminSegmentOwner(ctx context.Context, segment_id int) (*model.Segment, error) {

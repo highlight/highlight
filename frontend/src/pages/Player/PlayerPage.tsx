@@ -18,6 +18,7 @@ import { useParams } from 'react-router-dom';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
+import { useAuthContext } from '../../AuthContext';
 import ButtonLink from '../../components/Button/ButtonLink/ButtonLink';
 import ElevatedCard from '../../components/ElevatedCard/ElevatedCard';
 import FullBleedCard from '../../components/FullBleedCard/FullBleedCard';
@@ -44,6 +45,7 @@ import { NewCommentEntry } from './Toolbar/NewCommentEntry/NewCommentEntry';
 import { Toolbar } from './Toolbar/Toolbar';
 
 const Player = () => {
+    const { isLoggedIn } = useAuthContext();
     const { session_id, organization_id } = useParams<{
         session_id: string;
         organization_id: string;
@@ -74,12 +76,12 @@ const Player = () => {
     >(undefined);
 
     useEffect(() => {
-        if (session_id) {
+        if (session_id && isLoggedIn) {
             markSessionAsViewed({
                 variables: { id: session_id, viewed: true },
             });
         }
-    }, [session_id, markSessionAsViewed]);
+    }, [session_id, isLoggedIn, markSessionAsViewed]);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const resizePlayer = (replayer: Replayer): boolean => {
