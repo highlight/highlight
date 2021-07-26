@@ -160,7 +160,7 @@ func (r *errorSegmentResolver) Params(ctx context.Context, obj *model.ErrorSegme
 }
 
 func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) (*model.Organization, error) {
-	admin, err := r.Query().Admin(ctx)
+	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting admin")
 	}
@@ -274,7 +274,7 @@ func (r *mutationResolver) SendAdminInvite(ctx context.Context, organizationID i
 	if err != nil {
 		return nil, e.Wrap(err, "error querying org")
 	}
-	admin, err := r.Query().Admin(ctx)
+	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying admin")
 	}
@@ -322,7 +322,7 @@ func (r *mutationResolver) AddAdminToOrganization(ctx context.Context, organizat
 	if org.Secret == nil || (org.Secret != nil && *org.Secret != inviteID) {
 		return nil, e.New("invalid invite id")
 	}
-	admin, err := r.Query().Admin(ctx)
+	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.New("error querying admin")
 	}
@@ -336,7 +336,7 @@ func (r *mutationResolver) DeleteAdminFromOrganization(ctx context.Context, orga
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
-	admin, err := r.Query().Admin(ctx)
+	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.New("error querying admin while deleting admin from organization")
 	}
@@ -646,7 +646,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 
 func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model.SessionComment, error) {
 	// TODO: Remove organizationID and adminID args as they can be spoofed by the client and don't have to match the sessionID/authToken
-	admin, err := r.Query().Admin(ctx)
+	admin, err := r.getCurrentAdmin(ctx)
 	if admin == nil || err != nil {
 		return nil, e.Wrap(err, "Unable to retrieve admin info")
 	}
@@ -738,7 +738,7 @@ func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*b
 
 func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationID int, adminID int, errorGroupID int, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, errorURL string, authorName string) (*model.ErrorComment, error) {
 	// TODO: Remove organizationID and adminID args as they can be spoofed by the client and don't have to match the sessionID/authToken
-	admin, err := r.Query().Admin(ctx)
+	admin, err := r.getCurrentAdmin(ctx)
 	if admin == nil || err != nil {
 		return nil, e.Wrap(err, "Unable to retrieve admin info")
 	}
@@ -1246,7 +1246,7 @@ func (r *queryResolver) SessionComments(ctx context.Context, sessionID int) ([]*
 }
 
 func (r *queryResolver) SessionCommentsForAdmin(ctx context.Context) ([]*model.SessionComment, error) {
-	admin, err := r.Query().Admin(ctx)
+	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.Wrap(err, "error retrieving user")
 	}
@@ -1271,7 +1271,7 @@ func (r *queryResolver) ErrorComments(ctx context.Context, errorGroupID int) ([]
 }
 
 func (r *queryResolver) ErrorCommentsForAdmin(ctx context.Context) ([]*model.ErrorComment, error) {
-	admin, err := r.Query().Admin(ctx)
+	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.Wrap(err, "error retrieving user")
 	}
@@ -1812,7 +1812,7 @@ func (r *queryResolver) ErrorFieldSuggestion(ctx context.Context, organizationID
 }
 
 func (r *queryResolver) Organizations(ctx context.Context) ([]*model.Organization, error) {
-	admin, err := r.Query().Admin(ctx)
+	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.Wrap(err, "error retrieiving user")
 	}

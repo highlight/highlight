@@ -36,6 +36,10 @@ type Resolver struct {
 	StorageClient *storage.StorageClient
 }
 
+func (r *Resolver) getCurrentAdmin(ctx context.Context) (*model.Admin, error) {
+	return r.Query().Admin(ctx)
+}
+
 func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
 	uid := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
 	// If the user is engineering@..., we whitelist.
@@ -176,9 +180,9 @@ func (r *Resolver) isAdminErrorGroupOwner(ctx context.Context, errorGroupID int)
 	return errorGroup, nil
 }
 
-func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_id int) (*model.Session, bool, error) {
-	session := &model.Session{}
-	if err := r.DB.Where(&model.Session{Model: model.Model{ID: session_id}}).First(&session).Error; err != nil {
+func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_id int) (session *model.Session, ownsSession bool, err error) {
+	session = &model.Session{}
+	if err = r.DB.Where(&model.Session{Model: model.Model{ID: session_id}}).First(&session).Error; err != nil {
 		return nil, false, e.Wrap(err, "error querying session")
 	}
 	// This returns true if its the Whitelisted Session.
@@ -186,7 +190,7 @@ func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_id int) (*m
 		return session, true, nil
 	}
 
-	_, err := r.isAdminInOrganization(ctx, session.OrganizationID)
+	_, err = r.isAdminInOrganization(ctx, session.OrganizationID)
 	if err != nil {
 		return session, false, e.Wrap(err, "error validating admin in organization")
 	}
