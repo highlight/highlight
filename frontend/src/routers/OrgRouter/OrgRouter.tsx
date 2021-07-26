@@ -92,8 +92,10 @@ export const OrgRouter = () => {
                     />
                 ) : (
                     <>
-                        <Sidebar />
-                        {!hasFinishedOnboarding && <OnboardingBubble />}
+                        {isLoggedIn && <Sidebar />}
+                        {isLoggedIn && !hasFinishedOnboarding && (
+                            <OnboardingBubble />
+                        )}
                         <ApplicationRouter integrated={integrated} />
                     </>
                 )}

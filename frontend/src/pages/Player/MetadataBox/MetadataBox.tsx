@@ -3,6 +3,7 @@ import React, { useContext } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useParams } from 'react-router-dom';
 
+import { useAuthContext } from '../../../AuthContext';
 import { Avatar } from '../../../components/Avatar/Avatar';
 import UserIdentifier from '../../../components/UserIdentifier/UserIdentifier';
 import { DemoContext } from '../../../DemoContext';
@@ -16,6 +17,7 @@ import styles from './MetadataBox.module.scss';
 import { getMajorVersion } from './utils/utils';
 
 export const MetadataBox = () => {
+    const { isLoggedIn } = useAuthContext();
     const { session_id } = useParams<{ session_id: string }>();
     const { demo } = useContext(DemoContext);
 
@@ -45,32 +47,37 @@ export const MetadataBox = () => {
     return (
         <div className={styles.locationBox}>
             <>
-                <div
-                    className={styles.starIconWrapper}
-                    onClick={() => {
-                        markSessionAsStarred({
-                            variables: {
-                                id: session_id,
-                                starred: !data?.session?.starred,
-                            },
-                        })
-                            .then(() => {
-                                message.success('Updated session status!', 3);
+                {isLoggedIn && (
+                    <div
+                        className={styles.starIconWrapper}
+                        onClick={() => {
+                            markSessionAsStarred({
+                                variables: {
+                                    id: session_id,
+                                    starred: !data?.session?.starred,
+                                },
                             })
-                            .catch(() => {
-                                message.error(
-                                    'Error updating session status!',
-                                    3
-                                );
-                            });
-                    }}
-                >
-                    {data?.session?.starred ? (
-                        <FilledStarIcon className={styles.starredIcon} />
-                    ) : (
-                        <StarIcon className={styles.unstarredIcon} />
-                    )}
-                </div>
+                                .then(() => {
+                                    message.success(
+                                        'Updated session status!',
+                                        3
+                                    );
+                                })
+                                .catch(() => {
+                                    message.error(
+                                        'Error updating session status!',
+                                        3
+                                    );
+                                });
+                        }}
+                    >
+                        {data?.session?.starred ? (
+                            <FilledStarIcon className={styles.starredIcon} />
+                        ) : (
+                            <StarIcon className={styles.unstarredIcon} />
+                        )}
+                    </div>
+                )}
                 <div className={styles.userAvatarWrapper}>
                     {loading ? (
                         <Skeleton circle={true} height={36} width={36} />

@@ -20,7 +20,7 @@ import { onGetLinkWithTimestamp } from './utils/utils';
 const ShareButton = (props: ButtonProps) => {
     const { time } = useReplayerContext();
     const { demo } = useContext(DemoContext);
-    const { isHighlightAdmin } = useAuthContext();
+    const { isHighlightAdmin, isLoggedIn } = useAuthContext();
     let { session_id } = useParams<{ session_id: string }>();
     session_id = demo ? process.env.REACT_APP_DEMO_SESSION ?? '0' : session_id;
     const { loading, data } = useGetSessionQuery({
@@ -65,27 +65,34 @@ const ShareButton = (props: ButtonProps) => {
                         <CopyText
                             text={onGetLinkWithTimestamp(time).toString()}
                         />
-                        <h3>Share externally</h3>
-                        {loading ? (
-                            <p>Loading...</p>
-                        ) : (
-                            <div>
-                                <Switch
-                                    checked={!!data?.session?.is_public}
-                                    onChange={(checked: boolean) => {
-                                        H.track('Toggled session isPublic', {
-                                            is_public: checked,
-                                        });
-                                        updateSessionIsPublic({
-                                            variables: {
-                                                session_id: session_id,
-                                                is_public: checked,
-                                            },
-                                        });
-                                    }}
-                                    label="Allow anyone with the shareable link to view this session."
-                                />
-                            </div>
+                        {isLoggedIn && (
+                            <>
+                                <h3>Share externally</h3>
+                                {loading ? (
+                                    <p>Loading...</p>
+                                ) : (
+                                    <div>
+                                        <Switch
+                                            checked={!!data?.session?.is_public}
+                                            onChange={(checked: boolean) => {
+                                                H.track(
+                                                    'Toggled session isPublic',
+                                                    {
+                                                        is_public: checked,
+                                                    }
+                                                );
+                                                updateSessionIsPublic({
+                                                    variables: {
+                                                        session_id: session_id,
+                                                        is_public: checked,
+                                                    },
+                                                });
+                                            }}
+                                            label="Allow anyone with the shareable link to view this session."
+                                        />
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
                 </div>
