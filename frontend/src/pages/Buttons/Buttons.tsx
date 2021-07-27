@@ -19,7 +19,9 @@ export const Buttons = () => {
                 <button
                     className={commonStyles.submitButton}
                     onClick={() => {
-                        sendEmail({ variables: { email: 'hello@hello.com' } });
+                        sendEmail({
+                            variables: { email: 'jaykhatrimail@gmail.com' },
+                        });
                     }}
                 >
                     {loading ? 'loading...' : 'Send an email'}
