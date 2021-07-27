@@ -170,6 +170,7 @@ func main() {
 				}),
 			)
 			privateServer.Use(util.NewTracer(util.PrivateGraph))
+			privateServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PrivateGraph)))
 			r.Handle("/", privateServer)
 		})
 	}
@@ -188,6 +189,7 @@ func main() {
 					},
 				}))
 			clientServer.Use(util.NewTracer(util.PublicGraph))
+			clientServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PublicGraph)))
 			r.Handle("/", clientServer)
 		})
 	}

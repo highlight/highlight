@@ -892,9 +892,8 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 				}
 			}
 			if slackWebhookURL == "" {
-				log.Error(
-					log.WithFields(log.Fields{"org_id": organization.ID}),
-					"requested channel has no matching slackWebhookURL")
+				log.WithFields(log.Fields{"org_id": organization.ID}).
+					Error("requested channel has no matching slackWebhookURL")
 				continue
 			}
 			msg.Channel = *channel.WebhookChannel
@@ -904,10 +903,8 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 					&msg,
 				)
 				if err != nil {
-					log.Error(
-						log.WithFields(log.Fields{"org_id": organization.ID, "slack_webhook_url": slackWebhookURL, "message": fmt.Sprintf("%+v", msg)}),
-						e.Wrap(err, "error sending slack msg"),
-					)
+					log.WithFields(log.Fields{"org_id": organization.ID, "slack_webhook_url": slackWebhookURL, "message": fmt.Sprintf("%+v", msg)}).
+						Error(e.Wrap(err, "error sending slack msg"))
 				}
 			}()
 		}
