@@ -1,4 +1,3 @@
-export const autoPlayButton: string;
 export const button: string;
 export const buttonContainer: string;
 export const commentAuthor: string;
@@ -23,8 +22,6 @@ export const popoverHeader: string;
 export const redoSection: string;
 export const segmentHover: string;
 export const skipButtonStyle: string;
-export const skipInactiveButton: string;
-export const skipInactiveButtonActive: string;
 export const skipInactivity: string;
 export const sliderMargin: string;
 export const sliderPopover: string;
