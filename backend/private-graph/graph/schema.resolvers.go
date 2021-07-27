@@ -465,7 +465,24 @@ func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (strin
 		log.Errorf("error marshaling: %v", err)
 	}
 
-	model.DB.Create(&model.EmailSignup{Email: email, ApolloData: contactString})
+	contactStringShort := ""
+	shortContactMap := make(map[string]string)
+	for key, val := range matchResponse.Person {
+		if valString, ok := val.(string); ok {
+			shortContactMap[key] = valString
+		}
+	}
+	contactBytesShort, err := json.MarshalIndent(shortContactMap, "", "  ")
+	if err == nil {
+		contactStringShort = string(contactBytesShort)
+	} else {
+		log.Errorf("error marshaling short: %v", err)
+	}
+	model.DB.Create(&model.EmailSignup{
+		Email:               email,
+		ApolloData:          contactString,
+		ApolloDataShortened: contactStringShort,
+	})
 
 	type ContactsRequest struct {
 		ApiKey string `json:"api_key"`

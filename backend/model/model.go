@@ -317,8 +317,9 @@ type Admin struct {
 
 type EmailSignup struct {
 	Model
-	Email      string `gorm:"unique_index"`
-	ApolloData string
+	Email               string `gorm:"unique_index"`
+	ApolloData          string
+	ApolloDataShortened string
 }
 
 type User struct {
