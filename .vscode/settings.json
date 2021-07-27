@@ -66,4 +66,7 @@
 		"backend/private-graph/graph/generated/*": true,
 		"backend/public-graph/graph/generated/*": true
 	},
+	"cSpell.words": [
+		"interactable"
+	],
 }
