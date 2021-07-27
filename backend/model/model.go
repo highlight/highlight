@@ -669,11 +669,11 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 	); err != nil {
 		return nil, e.Wrap(err, "Error migrating db")
 	}
-	// sqlDB, err := DB.DB()
-	// if err != nil {
-	// 	return nil, e.Wrap(err, "error retrieving underlying sql db")
-	// }
-	// sqlDB.SetMaxOpenConns(15)
+	sqlDB, err := DB.DB()
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieving underlying sql db")
+	}
+	sqlDB.SetMaxOpenConns(15)
 	return DB, nil
 }
 
