@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"os"
 	"strconv"
 	"time"
@@ -511,6 +512,11 @@ func (w *Worker) Start() {
 			sessionsSpan.Finish()
 			continue
 		}
+		// TODO: remove eventually this it's gross
+		rand.Seed(time.Now().UnixNano())
+		rand.Shuffle(len(sessions), func(i, j int) {
+			sessions[i], sessions[j] = sessions[j], sessions[i]
+		})
 		// Sends a "count" metric to datadog so that we can see how many sessions are being queried.
 		dd.StatsD.Histogram("worker.sessionsQuery.sessionCount", float64(len(sessions)), nil, 1) //nolint
 		sessionsSpan.Finish()
