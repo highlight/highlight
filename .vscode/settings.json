@@ -67,6 +67,7 @@
 		"backend/public-graph/graph/generated/*": true
 	},
 	"cSpell.words": [
+		"Blocklist",
 		"interactable"
 	],
 }
