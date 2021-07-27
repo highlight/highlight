@@ -52,6 +52,10 @@ const usePlayerConfiguration = () => {
         'highlightMenuSkipInactive',
         true
     );
+    const [showPlayerMouseTail, setShowPlayerMouseTail] = useLocalStorage(
+        'highlightShowPlayerMouseTail',
+        true
+    );
 
     return {
         showLeftPanel,
@@ -76,6 +80,8 @@ const usePlayerConfiguration = () => {
         setPlayerSpeed,
         skipInactive,
         setSkipInactive,
+        showPlayerMouseTail,
+        setShowPlayerMouseTail,
     };
 };
 

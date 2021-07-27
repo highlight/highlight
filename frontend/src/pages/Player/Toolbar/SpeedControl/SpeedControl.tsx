@@ -48,6 +48,7 @@ const SpeedControl = ({ disabled }: Props) => {
                 onClick={() => {
                     onHandleSpeedChange('DECREMENT');
                 }}
+                type="primary"
                 disabled={disabled || playerSpeed === MIN_SPEED}
             >
                 <BiMinus />
@@ -63,6 +64,7 @@ const SpeedControl = ({ disabled }: Props) => {
             <Button
                 trackingId="IncreasePlayerSpeed"
                 className={styles.speedButton}
+                type="primary"
                 onClick={() => {
                     onHandleSpeedChange('INCREMENT');
                 }}
