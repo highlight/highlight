@@ -2,7 +2,6 @@ package model
 
 import (
 	"context"
-	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
@@ -14,14 +13,11 @@ import (
 	"time"
 
 	"github.com/go-test/deep"
-	"github.com/jackc/pgx/v4/stdlib"
 	"github.com/mitchellh/mapstructure"
 	"github.com/rs/xid"
 	"github.com/slack-go/slack"
 	"github.com/speps/go-hashids"
 
-	sqltrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/database/sql"
-	gormtrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/gorm.io/gorm.v1"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -643,23 +639,16 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		password,
 		sslmode)
 
-	sqltrace.Register("pgx", &stdlib.Driver{}, sqltrace.WithServiceName("highlight"))
-
 	var err error
-	var sqlDb *sql.DB
-	sqlDb, err = sqltrace.Open("pgx", psqlConf)
-	if err != nil {
-		log.Fatalf("Failed to connect to database with sqltrace: %v", err)
-	}
 
 	logLevel := logger.Silent
 	if os.Getenv("HIGHLIGHT_DEBUG_MODE") == "blame-GARAGE-spike-typic-neckline-santiago-tore-keep-becalm-preach-fiber-pomade-escheat-crone-tasmania" {
 		logLevel = logger.Info
 	}
-	DB, err = gormtrace.Open(postgres.New(postgres.Config{Conn: sqlDb}), &gorm.Config{
+	DB, err = gorm.Open(postgres.Open(psqlConf), &gorm.Config{
 		DisableForeignKeyConstraintWhenMigrating: true,
 		Logger:                                   logger.Default.LogMode(logLevel),
-	}, gormtrace.WithAnalytics(true))
+	})
 
 	if err != nil {
 		return nil, e.Wrap(err, "Failed to connect to database")
