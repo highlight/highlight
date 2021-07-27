@@ -471,7 +471,6 @@ func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (strin
 	err := util.RestRequest("https://api.apollo.io/v1/people/match", "POST", matchRequest, matchResponse)
 	if err != nil {
 		log.Errorf("error sending match request: %v", err)
-		// return email, nil
 	}
 
 	contactString := ""
