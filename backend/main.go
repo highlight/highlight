@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"html/template"
 	"net/http"
@@ -19,7 +18,6 @@ import (
 	"github.com/rs/cors"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/stripe/stripe-go/client"
-	"github.com/vektah/gqlparser/v2/gqlerror"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
@@ -172,13 +170,7 @@ func main() {
 				}),
 			)
 			privateServer.Use(util.NewTracer(util.PrivateGraph))
-			privateServer.SetErrorPresenter(func(ctx context.Context, e error) *gqlerror.Error {
-				log.WithFields(log.Fields{
-					"error": e,
-				}).Error("private server graphql request failed")
-				err := gqlerror.Errorf(e.Error())
-				return err
-			})
+			privateServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PrivateGraph)))
 			r.Handle("/", privateServer)
 		})
 	}
@@ -197,13 +189,7 @@ func main() {
 					},
 				}))
 			clientServer.Use(util.NewTracer(util.PublicGraph))
-			clientServer.SetErrorPresenter(func(ctx context.Context, e error) *gqlerror.Error {
-				log.WithFields(log.Fields{
-					"error": e,
-				}).Error("client server graphql request failed")
-				err := gqlerror.Errorf(e.Error())
-				return err
-			})
+			clientServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PublicGraph)))
 			r.Handle("/", clientServer)
 		})
 	}
