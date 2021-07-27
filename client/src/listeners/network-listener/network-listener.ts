@@ -12,6 +12,7 @@ interface NetworkListenerArguments {
     fetchCallback: NetworkListenerCallback;
     headersToRedact: string[];
     backendUrl: string;
+    urlBlocklist: string[];
 }
 
 export const NetworkListener = ({
@@ -19,17 +20,32 @@ export const NetworkListener = ({
     fetchCallback,
     headersToRedact,
     backendUrl,
+    urlBlocklist,
 }: NetworkListenerArguments) => {
-    const removeXHRListener = XHRListener((requestResponsePair) => {
-        xhrCallback(
-            sanitizeRequestResponsePair(requestResponsePair, headersToRedact)
-        );
-    }, backendUrl);
-    const removeFetchListener = FetchListener((requestResponsePair) => {
-        fetchCallback(
-            sanitizeRequestResponsePair(requestResponsePair, headersToRedact)
-        );
-    }, backendUrl);
+    const removeXHRListener = XHRListener(
+        (requestResponsePair) => {
+            xhrCallback(
+                sanitizeRequestResponsePair(
+                    requestResponsePair,
+                    headersToRedact
+                )
+            );
+        },
+        backendUrl,
+        urlBlocklist
+    );
+    const removeFetchListener = FetchListener(
+        (requestResponsePair) => {
+            fetchCallback(
+                sanitizeRequestResponsePair(
+                    requestResponsePair,
+                    headersToRedact
+                )
+            );
+        },
+        backendUrl,
+        urlBlocklist
+    );
 
     return () => {
         removeXHRListener();

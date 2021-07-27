@@ -46,3 +46,9 @@ const sanitizeHeaders = (headersToRedact: string[], headers?: Headers) => {
 
 /** These are known headers that are secrets. */
 const SENSITIVE_HEADERS = ['authorization', 'cookie', 'proxy-authorization'];
+
+/** Known URLs that contains secrets. */
+export const DEFAULT_URL_BLOCKLIST = [
+    'https://www.googleapis.com/identitytoolkit',
+    'https://securetoken.googleapis.com',
+];
