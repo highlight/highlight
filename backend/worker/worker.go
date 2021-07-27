@@ -55,7 +55,7 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	for _, ee := range resourcesObject {
 		payloadStringSize += len(ee.Resources)
 	}
-	dd.StatsD.Histogram("worker.processSession.payloadStringSize", float64(payloadStringSize), nil, 1) //nolint
+	dd.StatsD.Histogram("worker.processSession.payloadStringSize", float64(payloadStringSize), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
 	resourcePayloadSize, err := w.S3Client.PushResourcesToS3(s.ID, s.OrganizationID, resourcesObject)
 	if err != nil {
 		return errors.Wrap(err, "error pushing network payload to s3")
@@ -68,7 +68,7 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	for _, mm := range messagesObj {
 		payloadStringSize += len(mm.Messages)
 	}
-	dd.StatsD.Histogram("worker.processSession.payloadStringSize", float64(payloadStringSize), nil, 1) //nolint
+	dd.StatsD.Histogram("worker.processSession.payloadStringSize", float64(payloadStringSize), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
 	messagePayloadSize, err := w.S3Client.PushMessagesToS3(s.ID, s.OrganizationID, messagesObj)
 	if err != nil {
 		return errors.Wrap(err, "error pushing network payload to s3")
@@ -94,7 +94,7 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 		return errors.Wrap(err, "error updating session to storage enabled")
 	}
 
-	dd.StatsD.Histogram("worker.pushToObjectStorageAndWipe.payloadSize", float64(totalPayloadSize), nil, 1) //nolint
+	dd.StatsD.Histogram("worker.pushToObjectStorageAndWipe.payloadSize", float64(totalPayloadSize), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
 
 	// Delete all the events_objects in the DB.
 	if len(events) > 0 {
@@ -231,7 +231,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	if err != nil {
 		log.Errorf(errors.Wrap(err, "error scanning session payload").Error())
 	} else {
-		dd.StatsD.Histogram("worker.processSession.scannedSessionPayload", float64(*size), nil, 1) //nolint
+		dd.StatsD.Histogram("worker.processSession.scannedSessionPayload", float64(*size), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
 		log.Printf("payload size for session '%v' is '%v'\n", s.ID, *size)
 	}
 
@@ -241,13 +241,13 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return errors.Wrap(err, "retrieving events")
 	}
 
-	dd.StatsD.Histogram("worker.processSession.numEventsRowsQueried", float64(len(events)), nil, 1) //nolint
+	dd.StatsD.Histogram("worker.processSession.numEventsRowsQueried", float64(len(events)), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
 
 	payloadStringBytes := 0
 	for _, ee := range events {
 		payloadStringBytes += len(ee.Events)
 	}
-	dd.StatsD.Histogram("worker.processSession.payloadStringSize", float64(payloadStringBytes), nil, 1) //nolint
+	dd.StatsD.Histogram("worker.processSession.payloadStringSize", float64(payloadStringBytes), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
 
 	// Delete the session if there's no events.
 	if len(events) == 0 {
