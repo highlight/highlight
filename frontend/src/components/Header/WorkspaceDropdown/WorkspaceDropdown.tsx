@@ -1,8 +1,7 @@
 import { Dropdown } from 'antd';
-import React, { useContext, useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
-import { DemoContext } from '../../../DemoContext';
 import {
     useGetOrganizationQuery,
     useGetOrganizationsQuery,
@@ -39,9 +38,8 @@ export const MiniWorkspaceIcon = () => {
 
 export const WorkspaceDropdown = () => {
     const [visible, setVisible] = useState(false);
-    const { demo } = useContext(DemoContext);
     const { organization_id } = useParams<{ organization_id: string }>();
-    const { data } = useGetOrganizationsQuery({ skip: demo });
+    const { data } = useGetOrganizationsQuery();
     const { data: currentOrg } = useGetOrganizationQuery({
         variables: { id: organization_id },
     });
@@ -84,7 +82,7 @@ export const WorkspaceDropdown = () => {
     return (
         <Dropdown
             placement={'bottomLeft'}
-            overlay={demo ? <></> : menu}
+            overlay={menu}
             onVisibleChange={(v) => setVisible(v)}
         >
             <div
@@ -104,7 +102,7 @@ export const WorkspaceDropdown = () => {
                             'H'}
                     </div>
                     <h4 className={styles.orgNameText}>
-                        {demo ? 'Highlight' : currentOrg?.organization?.name}
+                        {currentOrg?.organization?.name}
                     </h4>
                 </div>
                 <DownIcon

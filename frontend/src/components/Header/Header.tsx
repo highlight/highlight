@@ -1,11 +1,10 @@
 import classNames from 'classnames/bind';
 import moment from 'moment';
-import React, { useContext } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
 
 import { useAuthContext } from '../../AuthContext';
-import { DemoContext } from '../../DemoContext';
 import { useGetBillingDetailsQuery } from '../../graph/generated/hooks';
 import { PlanType } from '../../graph/generated/schemas';
 import { ReactComponent as Banner } from '../../static/banner.svg';
@@ -22,7 +21,6 @@ import { UserDropdown } from './UserDropdown/UserDropdown';
 
 export const Header = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const { demo } = useContext(DemoContext);
     const { state, toggleSidebar } = useSidebarContext();
     const { isLoggedIn } = useAuthContext();
 
@@ -51,7 +49,7 @@ export const Header = () => {
                         )}
                         <Link
                             className={styles.homeLink}
-                            to={demo ? '/' : `/${organization_id}/home`}
+                            to={`/${organization_id}/home`}
                         >
                             <HighlightLogo />
                         </Link>

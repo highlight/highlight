@@ -1,12 +1,11 @@
 import { message } from 'antd';
-import React, { useContext } from 'react';
+import React from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useParams } from 'react-router-dom';
 
 import { useAuthContext } from '../../../AuthContext';
 import { Avatar } from '../../../components/Avatar/Avatar';
 import UserIdentifier from '../../../components/UserIdentifier/UserIdentifier';
-import { DemoContext } from '../../../DemoContext';
 import {
     useGetSessionQuery,
     useMarkSessionAsStarredMutation,
@@ -19,13 +18,11 @@ import { getMajorVersion } from './utils/utils';
 export const MetadataBox = () => {
     const { isLoggedIn } = useAuthContext();
     const { session_id } = useParams<{ session_id: string }>();
-    const { demo } = useContext(DemoContext);
 
     const { loading, data } = useGetSessionQuery({
         variables: {
-            id: demo ? process.env.REACT_APP_DEMO_SESSION ?? '0' : session_id,
+            id: session_id,
         },
-        context: { headers: { 'Highlight-Demo': demo } },
     });
     const [markSessionAsStarred] = useMarkSessionAsStarredMutation({
         update(cache) {

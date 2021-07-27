@@ -17,7 +17,6 @@ import (
 
 var (
 	AuthClient *auth.Client
-	DemoHeader string = "Highlight-Demo"
 )
 
 func SetupAuthClient() {
@@ -41,7 +40,6 @@ func SetupAuthClient() {
 
 func PrivateMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// If we're on a demo domain, we have some special logic.
 		var uid string
 		token := r.Header.Get("token")
 		if token != "" {

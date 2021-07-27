@@ -43,7 +43,6 @@ const SessionCommentHeader = ({
         variables: {
             id: session_id,
         },
-        context: { headers: { 'Highlight-Demo': false } },
     });
 
     const getCommentLink = () => {

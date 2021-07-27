@@ -1,11 +1,10 @@
 import { Replayer, ReplayerEvents } from '@highlight-run/rrweb';
 import { customEvent } from '@highlight-run/rrweb/dist/types';
 import { message } from 'antd';
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
-import { DemoContext } from '../../../DemoContext';
 import {
     useGetSessionCommentsQuery,
     useGetSessionPayloadLazyQuery,
@@ -84,10 +83,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         hasSearchParam,
     } = useSetPlayerTimestampFromSearchParam(setTime, replayer);
 
-    const { demo } = useContext(DemoContext);
-    const sessionId = demo
-        ? process.env.REACT_APP_DEMO_SESSION ?? ''
-        : session_id ?? '';
+    const sessionId = session_id ?? '';
     const [
         getSessionPayload,
         { loading, data: eventsData },
@@ -95,7 +91,6 @@ export const usePlayer = (): ReplayerContextInterface => {
         variables: {
             session_id: sessionId,
         },
-        context: { headers: { 'Highlight-Demo': demo } },
         fetchPolicy: 'no-cache',
     });
 
@@ -103,7 +98,6 @@ export const usePlayer = (): ReplayerContextInterface => {
         variables: {
             id: sessionId,
         },
-        context: { headers: { 'Highlight-Demo': false } },
         onCompleted: (data) => {
             if (data.session?.within_billing_quota) {
                 getSessionPayload();

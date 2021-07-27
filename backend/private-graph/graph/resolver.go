@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strconv"
 
 	e "github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
@@ -23,7 +22,6 @@ import (
 
 var (
 	WhitelistedUID                        = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
-	DemoSession                           = os.Getenv("DEMO_SESSION")
 	SendAdminInviteEmailTemplateID        = "d-bca4f9a932ef418a923cbd2d90d2790b"
 	SendGridSessionCommentEmailTemplateID = "d-6de8f2ba10164000a2b83d9db8e3b2e3"
 	SendGridErrorCommentEmailTemplateId   = "d-7929ce90c6514282a57fdaf7af408704"
@@ -184,10 +182,6 @@ func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_id int) (se
 	session = &model.Session{}
 	if err = r.DB.Where(&model.Session{Model: model.Model{ID: session_id}}).First(&session).Error; err != nil {
 		return nil, false, e.Wrap(err, "error querying session")
-	}
-	// This returns true if its the Whitelisted Session.
-	if strconv.Itoa(session_id) == DemoSession {
-		return session, true, nil
 	}
 
 	_, err = r.isAdminInOrganization(ctx, session.OrganizationID)
