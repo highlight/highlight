@@ -7,11 +7,12 @@ import (
 	"strings"
 
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/k0kubun/pp"
 	"github.com/pkg/errors"
 )
 
 var Delimiter = "\n\n\n"
+
+const maxCapacity = 16 * 1024 * 1024
 
 type PayloadReadWriter struct {
 	file   *os.File
@@ -36,30 +37,42 @@ type ObjectReader struct {
 }
 
 func NewObjectReader(file *os.File) *ObjectReader {
-	return &ObjectReader{reader: bufio.NewReader(file)}
+	reader := &ObjectReader{reader: bufio.NewReader(file)}
+	//buf := make([]byte, maxCapacity)
+	//reader.reader.Buffer(buf, maxCapacity)
+	return reader
+	//return &ObjectReader{reader: bufio.NewReader(file)}
 }
 
 // {resources: []}
 // {events: []}
 // {messages: []}
-func (o *ObjectReader) Next() (s string, e error) {
-	line := ""
+func (o *ObjectReader) Next() (linePtr *string, e error) {
 	// Keep reading until the end of the line has the delimitter.
+	line := ""
+	linePtr = &line
 	for {
-		str := ""
-		str, err := o.reader.ReadString('\n')
-		if err == io.EOF {
-			pp.Printf("the str: '%v'\n", str)
-			return "", io.EOF
-		} else if err != nil {
-			return "", errors.Wrap(err, "error with bufio readstring")
+		strBytes, isPrefix, err := o.reader.ReadLine()
+		str := string(strBytes)
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				line += str
+				e = err
+				break
+			}
+			return nil, errors.Wrap(err, "error reading line from bufio reader")
 		}
-		line = line + str
-		if strings.HasSuffix(line, Delimiter) {
-			ret := line[:len(line)-len(Delimiter)]
-			return ret, nil
+		if strings.HasSuffix(str, Delimiter) {
+			str = str[:len(str)-len(Delimiter)]
+			line += str
+			break
+		}
+		line += str
+		if !isPrefix {
+			line += "\n"
 		}
 	}
+	return linePtr, e
 }
 
 type ObjectWriter struct {

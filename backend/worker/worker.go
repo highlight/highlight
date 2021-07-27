@@ -4,11 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"time"
 
 	"github.com/k0kubun/pp"
+	"gorm.io/gorm/clause"
+
 	"github.com/pkg/errors"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -211,8 +214,17 @@ func CreateFile(name string) (func(), *os.File, error) {
 		return nil, nil, errors.Wrap(err, "error creating file")
 	}
 	return func() {
-		// file.Close()
-		// os.Remove(file.Name())
+		//log.Info("closing file")
+		//err := file.Close()
+		//if err != nil {
+		//	log.Error("failed to close file")
+		//	return
+		//}
+		//err = os.Remove(file.Name())
+		//if err != nil {
+		//	log.Error("failed to remove file")
+		//	return
+		//}
 	}, file, nil
 }
 
@@ -226,146 +238,107 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return errors.Wrap(err, "error creating events file")
 	}
 	defer eventsClose()
-	resourcesClose, _, err := CreateFile(sessionIdString + ".resources.txt")
+	resourcesClose, resourcesFile, err := CreateFile(sessionIdString + ".resources.txt")
 	if err != nil {
 		return errors.Wrap(err, "error creating events file")
 	}
 	defer resourcesClose()
-	messagesClose, _, err := CreateFile(sessionIdString + ".messages.txt")
+	messagesClose, messagesFile, err := CreateFile(sessionIdString + ".messages.txt")
 	if err != nil {
 		return errors.Wrap(err, "error creating events file")
 	}
 	defer messagesClose()
 
-	// payloadManager, err := w.scanSessionPayload(ctx, s, eventsFile, resourcesFile, messagesFile)
-	// if err != nil {
-	// 	log.Errorf(errors.Wrap(err, "error scanning session payload").Error())
-	// }
+	payloadManager, err := w.scanSessionPayload(ctx, s, eventsFile, resourcesFile, messagesFile)
+	if err != nil {
+		log.Errorf(errors.Wrap(err, "error scanning session payload").Error())
+	}
 
-	// Keep reading events until there are none.
+	//Delete the session if there's no events.
+	if payloadManager.Events.Length == 0 {
+		pp.Println("deleting...")
+		if err := w.Resolver.DB.Select(clause.Associations).Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
+			return errors.Wrap(err, "error trying to delete associations for session with no events")
+		}
+		if err := w.Resolver.DB.Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
+			return errors.Wrap(err, "error trying to delete session with no events")
+		}
+		return nil
+	}
 
-	// load all events
-	// events := []model.EventsObject{}
-	// if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").Find(&events).Error; err != nil {
-	// 	return errors.Wrap(err, "retrieving events")
-	// }
+	log.Infof("events file name: %s", eventsFile.Name())
 
-	// dd.StatsD.Histogram("worker.processSession.numEventsRowsQueried", float64(len(events)), nil, 1) //nolint
-
-	// payloadStringBytes := 0
-	// for _, ee := range events {
-	// 	payloadStringBytes += len(ee.Events)
-	// }
-	// dd.StatsD.Histogram("worker.processSession.payloadStringSize", float64(payloadStringBytes), nil, 1) //nolint
-
-	// Delete the session if there's no events.
-	// if payloadManager.Events.Length == 0 {
-	// 	pp.Println("deleting...")
-	// 	if err := w.Resolver.DB.Select(clause.Associations).Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
-	// 		return errors.Wrap(err, "error trying to delete associations for session with no events")
-	// 	}
-	// 	if err := w.Resolver.DB.Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
-	// 		return errors.Wrap(err, "error trying to delete session with no events")
-	// 	}
-	// 	return nil
-	// }
-
-	// var totalSessionTime int64 = 0
-	// var activeSessionTime int64 = 0
-
-	// eventsReader := payloadManager.Events.Reader()
-	firstEvents := ""
-	lastEvents := ""
-
-	pp.Println(eventsFile.Name())
-	// b, _ := ioutil.ReadFile(eventsFile.Name())
-	// pp.Printf("length of full file: %v\n", len(string(b)))
-
-	// scanner := bufio.NewScanner(eventsFile)
-	// // optionally, resize scanner's capacity for lines over 64K, see next example
-	// for scanner.Scan() {
-	// 	fmt.Printf("scan: %v\n", len(scanner.Text()))
-	// }
-	// reader := bufio.NewReader(eventsFile)
-
-	// for {
-	// 	line, p, err := reader.ReadLine()
-	// 	pp.Println("loop")
-	// 	if err == io.EOF {
-	// 		pp.Println("breaking")
-	// 		pp.Printf("length: %v \n", len(line))
-	// 		break
-	// 	} else if err != nil {
-	// 		pp.Println("actual error")
-	// 	}
-	// 	pp.Printf("bufio length: %v \n", len(line))
-	// 	pp.Printf("bufio prefix: %v \n", p)
-	// }
-
+	// need to reset file pointer to beginning of file for reading
+	for _, file := range []*os.File{eventsFile, resourcesFile, messagesFile} {
+		_, err = file.Seek(0, io.SeekStart)
+		if err != nil {
+			log.WithField("file_name", file.Name()).Errorf("error seeking to beginning of file: %v", err)
+		}
+	}
+	activeDuration := time.Duration(0)
+	var (
+		firstEventTimestamp time.Time
+		lastEventTimestamp  time.Time
+	)
 	p := payload.NewPayloadReadWriter(eventsFile)
 	re := p.Reader()
-	se, err := re.Next()
-	pp.Printf("s: %v\n", se)
-	pp.Printf("err: %v\n", err)
-
-	// [[e1, e2, e3], [e4, e5], [e6, e7]]
-	// pp.Printf("length: %v \n", payloadManager.Events.Length)
-	// count := 0
-	// time.Sleep(4 * time.Second)
-	// for {
-	// 	count += 1
-	// 	pp.Println(count)
-	// 	str, err := eventsReader.Next()
-	// 	if firstEvents == "" {
-	// 		firstEvents = str
-	// 	}
-
-	// 	pp.Printf("len: %v \n", len(str))
-	// 	if str != "" {
-	// 		lastEvents = str
-	// 	}
-	// 	if err == io.EOF {
-	// 		pp.Println("eof")
-	// 		break
-	// 	} else if err != nil {
-	// 		return e.Wrap(err, "error reading")
-	// 	}
-	// }
-	pp.Println(firstEvents)
-
-	firstEventsParsed, err := parse.EventsFromString(firstEvents)
-	if err != nil {
-		return errors.Wrap(err, "error parsing first set of events")
+	for {
+		se, err := re.Next()
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				log.Info("reached the end of file")
+				if se != nil {
+					// calculate session length
+					var eventsObject model.EventsObject
+					err := json.Unmarshal([]byte(*se), &eventsObject)
+					if err != nil {
+						return err
+					}
+					duration, err := getActiveDuration(eventsObject, &firstEventTimestamp, &lastEventTimestamp)
+					if err != nil {
+						return err
+					}
+					activeDuration += *duration
+				}
+			} else {
+				log.Errorf("error reading next line: %v", err)
+			}
+			break
+		} else if se != nil {
+			log.Infof("session read from file: %s", *se)
+			var eventsObject model.EventsObject
+			err := json.Unmarshal([]byte(*se), &eventsObject)
+			if err != nil {
+				return err
+			}
+			duration, err := getActiveDuration(eventsObject, &firstEventTimestamp, &lastEventTimestamp)
+			if err != nil {
+				return err
+			}
+			activeDuration += *duration
+		}
 	}
-	lastEventsParsed, err := parse.EventsFromString(lastEvents)
-	if err != nil {
-		return errors.Wrap(err, "error parsing last set of events")
-	}
+	// dd.StatsD.Histogram("worker.processSession.payloadStringSize", float64(payloadStringBytes), nil, 1) //nolint
 
 	// Calculate total session length and write the length to the session.
-	sessionTotalLength := CalculateSessionLength(firstEventsParsed, lastEventsParsed)
+	sessionTotalLength := CalculateSessionLength(firstEventTimestamp, lastEventTimestamp)
 	sessionTotalLengthInMilliseconds := sessionTotalLength.Milliseconds()
-	// activeLength, err := getActiveDuration(events)
-	// if err != nil {
-	// 	return errors.Wrap(err, "error parsing active length")
-	// }
-	// activeLengthSec := activeLength.Milliseconds()
 
 	// Delete the session if the length of the session is 0.
 	// 1. Nothing happened in the session
 	// 2. A web crawler visited the page and produced no events
-	// if length == 0 {
-	// 	if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Delete(&model.EventsObject{}).Error; err != nil {
-	// 		return errors.Wrap(err, "error trying to delete events_object for session of length 0ms")
-	// 	}
-	// 	if err := w.Resolver.DB.Select(clause.Associations).Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
-	// 		return errors.Wrap(err, "error trying to delete associations for session with length 0")
-	// 	}
-	// 	if err := w.Resolver.DB.Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
-	// 		return errors.Wrap(err, "error trying to delete session of length 0ms")
-	// 	}
-	// 	return nil
-	// }
+	//if activeDuration == 0 {
+	//	if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Delete(&model.EventsObject{}).Error; err != nil {
+	//		return errors.Wrap(err, "error trying to delete events_object for session of length 0ms")
+	//	}
+	//	if err := w.Resolver.DB.Select(clause.Associations).Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
+	//		return errors.Wrap(err, "error trying to delete associations for session with length 0")
+	//	}
+	//	if err := w.Resolver.DB.Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
+	//		return errors.Wrap(err, "error trying to delete session of length 0ms")
+	//	}
+	//	return nil
+	//}
 
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
@@ -373,7 +346,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		model.Session{
 			Processed:    &model.T,
 			Length:       sessionTotalLengthInMilliseconds,
-			ActiveLength: 0,
+			ActiveLength: activeDuration.Milliseconds(),
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
@@ -614,55 +587,36 @@ func (w *Worker) Start() {
 }
 
 // CalculateSessionLength gets the session length given two sets of ReplayEvents.
-func CalculateSessionLength(first *parse.ReplayEvents, last *parse.ReplayEvents) time.Duration {
-	d := time.Duration(0)
-	fe := first.Events
-	le := last.Events
-	if len(fe) <= 0 {
+func CalculateSessionLength(first time.Time, last time.Time) (d time.Duration) {
+	if first.IsZero() {
 		return d
 	}
-	start := first.Events[0].Timestamp
-	end := time.Time{}
-	if len(le) <= 0 {
-		end = first.Events[len(first.Events)-1].Timestamp
-	} else {
-		end = last.Events[len(last.Events)-1].Timestamp
-	}
-	d = end.Sub(start)
+	d = last.Sub(first)
 	return d
 }
 
-func getActiveDuration(events []model.EventsObject) (*time.Duration, error) {
-	d := time.Duration(0)
-	// unnests the events from EventObjects
-	allEvents := []*parse.ReplayEvent{}
-	for _, eventObj := range events {
-		subEvents, err := parse.EventsFromString(eventObj.Events)
-		if err != nil {
-			return nil, err
-		}
-		allEvents = append(allEvents, subEvents.Events...)
+func getActiveDuration(event model.EventsObject, firstEventTimestamp *time.Time, lastEventTimestamp *time.Time) (*time.Duration, error) {
+	activeDuration := time.Duration(0)
+	// unnests the events from EventObject
+	allEvents, err := parse.EventsFromString(event.Events)
+	if err != nil {
+		return nil, err
 	}
+
 	// Iterate through all events and sum up time between interactions
-	prevUserEvent := &parse.ReplayEvent{}
-	for _, eventObj := range allEvents {
+	for _, eventObj := range allEvents.Events {
 		if eventObj.Type == 3 {
-			aux := struct {
-				Source float64 `json:"source"`
-			}{}
-			if err := json.Unmarshal([]byte(eventObj.Data), &aux); err != nil {
-				return nil, err
+			if firstEventTimestamp.IsZero() {
+				firstEventTimestamp = &eventObj.Timestamp
 			}
-			if aux.Source > 0 && aux.Source <= 5 {
-				if prevUserEvent != (&parse.ReplayEvent{}) {
-					diff := eventObj.Timestamp.Sub(prevUserEvent.Timestamp)
-					if diff.Seconds() <= MIN_INACTIVE_DURATION {
-						d += eventObj.Timestamp.Sub(prevUserEvent.Timestamp)
-					}
+			if !lastEventTimestamp.IsZero() {
+				diff := eventObj.Timestamp.Sub(*lastEventTimestamp)
+				if diff.Seconds() <= MIN_INACTIVE_DURATION {
+					activeDuration += eventObj.Timestamp.Sub(*lastEventTimestamp)
 				}
-				prevUserEvent = eventObj
 			}
+			lastEventTimestamp = &eventObj.Timestamp
 		}
 	}
-	return &d, nil
+	return &activeDuration, nil
 }
