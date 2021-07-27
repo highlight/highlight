@@ -1,6 +1,6 @@
 .toggleButtonBase {
     align-items: center;
-    //     border-color: var(--color-gray-300);
+    border-color: var(--color-gray-300);
     color: var(--color-gray-500);
     column-gap: var(--size-xSmall);
     display: flex;
@@ -15,7 +15,7 @@
 
     &.toggled {
         background: var(--color-purple-200) !important;
-        // border: 1px solid var(--color-purple) !important;
+        border: 1px solid var(--color-purple) !important;
         color: var(--text-primary);
     }
 
