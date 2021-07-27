@@ -42,7 +42,7 @@ export const SegmentPicker = () => {
         loading: unprocessedSessionsLoading,
     } = useUnprocessedSessionsCountQuery({
         variables: { organization_id },
-        pollInterval: 5000,
+        // pollInterval: 5000,
     });
     const currentSegment = data?.segments?.find((s) => s?.id === segment_id);
 

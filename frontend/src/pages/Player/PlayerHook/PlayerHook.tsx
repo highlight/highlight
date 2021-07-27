@@ -121,7 +121,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         variables: {
             session_id: sessionId,
         },
-        pollInterval: 5000,
+        // pollInterval: 1000 ,
     });
 
     const resetPlayer = useCallback(() => {
