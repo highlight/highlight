@@ -184,7 +184,12 @@ export class Highlight {
             this.enableRecordingNetworkContents = false;
             this.networkHeadersToRedact = [];
         } else {
-            this.disableNetworkRecording = !options.networkRecording?.enabled;
+            if (options.networkRecording?.enabled !== undefined) {
+                this.disableNetworkRecording = !options.networkRecording
+                    .enabled;
+            } else {
+                this.disableNetworkRecording = false;
+            }
             this.enableRecordingNetworkContents =
                 options.networkRecording?.recordHeadersAndBody || false;
             this.networkHeadersToRedact =

@@ -50,7 +50,7 @@ export const SessionFeed = () => {
                     : SessionLifecycle.All,
             starred: segment_id === STARRED_SEGMENT_ID,
         },
-        pollInterval: SESSIONS_FEED_POLL_INTERVAL,
+        // pollInterval: SESSIONS_FEED_POLL_INTERVAL,
         onCompleted: (response) => {
             if (response.sessions) {
                 setSessionResults(response.sessions);

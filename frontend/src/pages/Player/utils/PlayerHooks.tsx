@@ -33,10 +33,29 @@ export const getNewTimeWithSkip = ({
 export const usePlayerHotKeys = () => {
     const { state, play, pause, time, replayer } = useReplayerContext();
 
+    /**
+     * This function needs to be called before each hot key.
+     * This moves the window's focus from any interactable elements to the window.
+     * Without this, undefined behavior will occur.
+     * Example: If the user clicks a button, then presses space, space will trigger the default action on the button and also the space hotkey.
+     */
+    const moveFocusToDocument = () => {
+        window.focus();
+
+        if (
+            document.activeElement &&
+            document.activeElement instanceof HTMLElement
+        ) {
+            document.activeElement.blur();
+        }
+    };
+
     useHotkeys(
         'space',
         () => {
             H.track('PlayerPausePlayKeyboardShortcut');
+            moveFocusToDocument();
+
             switch (state) {
                 case ReplayerState.Playing:
                     pause(time);
@@ -58,6 +77,8 @@ export const usePlayerHotKeys = () => {
         'left',
         () => {
             H.track('PlayerSkipBackwardsKeyboardShortcut');
+            moveFocusToDocument();
+
             const newTime = getNewTimeWithSkip({
                 time,
                 direction: 'backwards',
@@ -84,6 +105,8 @@ export const usePlayerHotKeys = () => {
         'right',
         () => {
             H.track('PlayerSkipForwardsKeyboardShortcut');
+            moveFocusToDocument();
+
             const totalTime = replayer?.getMetaData().totalTime;
             const newTime = getNewTimeWithSkip({
                 time,

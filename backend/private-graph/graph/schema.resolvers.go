@@ -440,10 +440,93 @@ func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int
 }
 
 func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (string, error) {
-	model.DB.Create(&model.EmailSignup{Email: email})
+	apiKey := os.Getenv("APOLLO_IO_API_KEY")
+
+	type MatchRequest struct {
+		ApiKey string `json:"api_key"`
+		Email  string `json:"email"`
+	}
+	type MatchResponse struct {
+		Person map[string]interface{} `json:"person"`
+	}
+
+	matchRequest := &MatchRequest{ApiKey: apiKey, Email: email}
+	matchResponse := &MatchResponse{}
+	err := util.RestRequest("https://api.apollo.io/v1/people/match", "POST", matchRequest, matchResponse)
+	if err != nil {
+		log.Errorf("error sending match request: %v", err)
+	}
+
+	contactString := ""
+	contactBytes, err := json.MarshalIndent(matchResponse.Person, "", "  ")
+	if err == nil {
+		contactString = string(contactBytes)
+	} else {
+		log.Errorf("error marshaling: %v", err)
+	}
+
+	contactStringShort := ""
+	shortContactMap := make(map[string]string)
+	for key, val := range matchResponse.Person {
+		if valString, ok := val.(string); ok {
+			shortContactMap[key] = valString
+		}
+	}
+	contactBytesShort, err := json.MarshalIndent(shortContactMap, "", "  ")
+	if err == nil {
+		contactStringShort = string(contactBytesShort)
+	} else {
+		log.Errorf("error marshaling short: %v", err)
+	}
+	model.DB.Create(&model.EmailSignup{
+		Email:               email,
+		ApolloData:          contactString,
+		ApolloDataShortened: contactStringShort,
+	})
+
+	type ContactsRequest struct {
+		ApiKey string `json:"api_key"`
+		Email  string `json:"email"`
+	}
+	type Contact struct {
+		ID string `json:"id"`
+	}
+	type ContactsResponse struct {
+		Contact Contact `json:"contact"`
+	}
+	contactsRequest := &ContactsRequest{ApiKey: apiKey, Email: email}
+	contactsResponse := &ContactsResponse{}
+	err = util.RestRequest("https://api.apollo.io/v1/contacts", "POST", contactsRequest, contactsResponse)
+	if err != nil {
+		log.Errorf("error sending contacts request: %v", err)
+		return email, nil
+	}
+
+	type SequenceRequest struct {
+		ApiKey                      string   `json:"api_key"`
+		ContactIDs                  []string `json:"contact_ids"`
+		EmailerCampaignID           string   `json:"emailer_campaign_id"`
+		SendEmailFromEmailAccountID string   `json:"send_email_from_email_account_id"`
+	}
+	type SequenceResponse struct {
+		Contacts json.RawMessage `json:"contacts"`
+	}
+	sequenceRequest := &SequenceRequest{
+		ApiKey:                      apiKey,
+		ContactIDs:                  []string{contactsResponse.Contact.ID},
+		EmailerCampaignID:           "60fb134ce97fa1014c1cc141", // Represents the sequence ID for "Landing Page Signups"
+		SendEmailFromEmailAccountID: "6053cd5ef93cca00e498990f", // Respresents the ID for Jay's email account (jay@highlight.run)
+	}
+	sequenceResponse := &SequenceResponse{}
+	url := fmt.Sprintf("https://api.apollo.io/v1/emailer_campaigns/%v/add_contact_ids", sequenceRequest.EmailerCampaignID)
+	err = util.RestRequest(url, "POST", sequenceRequest, sequenceResponse)
+	if err != nil {
+		log.Errorf("error sending contacts request: %v", err)
+		return email, nil
+	}
+
 	return email, nil
 }
-
 func (r *mutationResolver) EditSegment(ctx context.Context, id int, organizationID int, params modelInputs.SearchParamsInput) (*bool, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
@@ -1578,7 +1661,13 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	fieldsSpan.Finish()
 
 	sessionsQueryPreamble := "SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed"
-	joinClause := "FROM (SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, within_billing_quota, array_agg(t.field_id) fieldIds FROM sessions s INNER JOIN session_fields t ON s.id=t.session_id GROUP BY s.id) AS rows"
+	fieldsInnerJoinStatement := "INNER JOIN session_fields t ON s.id=t.session_id"
+	fieldsSelectStatement := ", array_agg(t.field_id) fieldIds"
+	if len(fieldIds) == 0 && len(visitedIds) == 0 && len(referrerIds) == 0 && len(notFieldIds) == 0 && len(notTrackFieldIds) == 0 {
+		fieldsInnerJoinStatement = ""
+		fieldsSelectStatement = ""
+	}
+	joinClause := fmt.Sprintf("FROM (SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, within_billing_quota %s FROM sessions s %s GROUP BY s.id) AS rows", fieldsSelectStatement, fieldsInnerJoinStatement)
 	whereClause := ` `
 
 	whereClause += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)

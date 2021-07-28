@@ -5,7 +5,7 @@ import { useState } from 'react';
 
 import Button from '../../../../components/Button/Button/Button';
 import Popover from '../../../../components/Popover/Popover';
-import SvgPlayIcon from '../../../../static/PlayIcon';
+import SvgFilterIcon from '../../../../static/FilterIcon';
 import { useSearchContext } from '../../../Sessions/SearchContext/SearchContext';
 import { DateInput } from '../../../Sessions/SearchInputs/DateInput';
 import {
@@ -128,7 +128,7 @@ const SessionSearchFilters = () => {
                 small
                 trackingId="sessionPlayerSearchFilters"
             >
-                <SvgPlayIcon />
+                <SvgFilterIcon />
                 <span>Filters ({filtersSetCount})</span>
             </Button>
         </Popover>
