@@ -68,12 +68,16 @@ export const OrgRouter = () => {
     if (integratedLoading || loading) {
         return null;
     }
+    const staticSidebarState = isLoggedIn
+        ? SidebarState.Expanded
+        : SidebarState.Collapsed;
     return (
         <SidebarContextProvider
             value={{
                 setState: setSidebarState,
                 state: sidebarState,
                 toggleSidebar,
+                staticSidebarState,
             }}
         >
             <Header />
@@ -92,8 +96,12 @@ export const OrgRouter = () => {
                     />
                 ) : (
                     <>
-                        <Sidebar />
-                        {!hasFinishedOnboarding && <OnboardingBubble />}
+                        {staticSidebarState == SidebarState.Expanded && (
+                            <Sidebar />
+                        )}
+                        {isLoggedIn && !hasFinishedOnboarding && (
+                            <OnboardingBubble />
+                        )}
                         <ApplicationRouter integrated={integrated} />
                     </>
                 )}

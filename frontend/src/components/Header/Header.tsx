@@ -1,10 +1,10 @@
 import classNames from 'classnames/bind';
 import moment from 'moment';
-import React, { useContext } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
 
-import { DemoContext } from '../../DemoContext';
+import { useAuthContext } from '../../AuthContext';
 import { useGetBillingDetailsQuery } from '../../graph/generated/hooks';
 import { PlanType } from '../../graph/generated/schemas';
 import { ReactComponent as Banner } from '../../static/banner.svg';
@@ -21,8 +21,8 @@ import { UserDropdown } from './UserDropdown/UserDropdown';
 
 export const Header = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const { demo } = useContext(DemoContext);
     const { state, toggleSidebar } = useSidebarContext();
+    const { isLoggedIn } = useAuthContext();
 
     return (
         <>
@@ -35,28 +35,30 @@ export const Header = () => {
                 )}
                 <div className={styles.headerContent}>
                     <div className={styles.logoWrapper}>
-                        <Hamburger
-                            className={styles.hamburger}
-                            onClick={toggleSidebar}
-                            style={{
-                                transform:
-                                    state === SidebarState.Expanded
-                                        ? 'rotate(-180deg)'
-                                        : 'rotate(0deg)',
-                            }}
-                        />
+                        {isLoggedIn && (
+                            <Hamburger
+                                className={styles.hamburger}
+                                onClick={toggleSidebar}
+                                style={{
+                                    transform:
+                                        state === SidebarState.Expanded
+                                            ? 'rotate(-180deg)'
+                                            : 'rotate(0deg)',
+                                }}
+                            />
+                        )}
                         <Link
                             className={styles.homeLink}
-                            to={demo ? '/' : `/${organization_id}/home`}
+                            to={`/${organization_id}/home`}
                         >
                             <HighlightLogo />
                         </Link>
                     </div>
                     <div className={styles.rightHeader}>
                         <ThemeToggle />
-                        <Notifications />
+                        {isLoggedIn && <Notifications />}
                         <HelpMenu />
-                        <UserDropdown />
+                        {isLoggedIn && <UserDropdown />}
                     </div>
                 </div>
             </div>

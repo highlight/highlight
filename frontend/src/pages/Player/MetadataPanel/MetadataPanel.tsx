@@ -30,7 +30,6 @@ const MetadataPanel = () => {
         variables: {
             id: session_id,
         },
-        context: { headers: { 'Highlight-Demo': false } },
     });
     const [parsedFields, setParsedFields] = useState<Field[]>([]);
 

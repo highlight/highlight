@@ -1,6 +1,6 @@
 import { ButtonProps, message } from 'antd';
 import { H } from 'highlight.run';
-import React, { useContext } from 'react';
+import React from 'react';
 import { useParams } from 'react-router-dom';
 
 import { useAuthContext } from '../../../AuthContext';
@@ -8,7 +8,6 @@ import Button from '../../../components/Button/Button/Button';
 import CopyText from '../../../components/CopyText/CopyText';
 import Popover from '../../../components/Popover/Popover';
 import Switch from '../../../components/Switch/Switch';
-import { DemoContext } from '../../../DemoContext';
 import {
     useGetSessionQuery,
     useUpdateSessionIsPublicMutation,
@@ -19,15 +18,12 @@ import { onGetLinkWithTimestamp } from './utils/utils';
 
 const ShareButton = (props: ButtonProps) => {
     const { time } = useReplayerContext();
-    const { demo } = useContext(DemoContext);
-    const { isHighlightAdmin } = useAuthContext();
-    let { session_id } = useParams<{ session_id: string }>();
-    session_id = demo ? process.env.REACT_APP_DEMO_SESSION ?? '0' : session_id;
+    const { isHighlightAdmin, isLoggedIn } = useAuthContext();
+    const { session_id } = useParams<{ session_id: string }>();
     const { loading, data } = useGetSessionQuery({
         variables: {
             id: session_id,
         },
-        context: { headers: { 'Highlight-Demo': demo } },
     });
     const [updateSessionIsPublic] = useUpdateSessionIsPublicMutation({
         update(cache) {
@@ -65,27 +61,34 @@ const ShareButton = (props: ButtonProps) => {
                         <CopyText
                             text={onGetLinkWithTimestamp(time).toString()}
                         />
-                        <h3>Share externally</h3>
-                        {loading ? (
-                            <p>Loading...</p>
-                        ) : (
-                            <div>
-                                <Switch
-                                    checked={!!data?.session?.is_public}
-                                    onChange={(checked: boolean) => {
-                                        H.track('Toggled session isPublic', {
-                                            is_public: checked,
-                                        });
-                                        updateSessionIsPublic({
-                                            variables: {
-                                                session_id: session_id,
-                                                is_public: checked,
-                                            },
-                                        });
-                                    }}
-                                    label="Allow anyone with the shareable link to view this session."
-                                />
-                            </div>
+                        {isLoggedIn && (
+                            <>
+                                <h3>Share externally</h3>
+                                {loading ? (
+                                    <p>Loading...</p>
+                                ) : (
+                                    <div>
+                                        <Switch
+                                            checked={!!data?.session?.is_public}
+                                            onChange={(checked: boolean) => {
+                                                H.track(
+                                                    'Toggled session isPublic',
+                                                    {
+                                                        is_public: checked,
+                                                    }
+                                                );
+                                                updateSessionIsPublic({
+                                                    variables: {
+                                                        session_id: session_id,
+                                                        is_public: checked,
+                                                    },
+                                                });
+                                            }}
+                                            label="Allow anyone with the shareable link to view this session."
+                                        />
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
                 </div>
