@@ -8,8 +8,6 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/sirupsen/logrus"
-
 	"github.com/pkg/errors"
 )
 
@@ -80,11 +78,10 @@ func (r *ReplayEvent) UnmarshalJSON(b []byte) error {
 
 // EventsFromString parses a json string in the form {events: [ev1, ev2, ...]}.
 func EventsFromString(eventsString string) (*ReplayEvents, error) {
-	log.Infof("the events: %+v", eventsString)
 	events := &ReplayEvents{}
 	err := json.Unmarshal([]byte(eventsString), &events)
 	if err != nil {
-		return nil, fmt.Errorf("error parsing events into ReplayEvents for string '%v': %v", eventsString, err)
+		return nil, fmt.Errorf("error parsing events into ReplayEvents for string '%v': %w", eventsString, err)
 	}
 	return events, nil
 }
