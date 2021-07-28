@@ -1,5 +1,5 @@
 import { NetworkListenerCallback } from '../network-listener';
-import { Headers, Request, Response } from './models';
+import { Headers, Request, RequestResponsePair, Response } from './models';
 import { isHighlightNetworkResourceFilter } from './utils';
 
 interface BrowserXHR extends XMLHttpRequest {
@@ -120,9 +120,10 @@ export const XHRListener = (
                 }
             }
 
-            const event = {
+            const event: RequestResponsePair = {
                 request: requestModel,
                 response: responseModel,
+                urlBlocked: !shouldRecordHeaderAndBody,
             };
 
             callback(event);
@@ -143,9 +144,10 @@ export const XHRListener = (
                 body: undefined,
             };
 
-            const event = {
+            const event: RequestResponsePair = {
                 request: requestModel,
                 response: responseModel,
+                urlBlocked: false,
             };
 
             callback(event);

@@ -54,11 +54,12 @@ export const NetworkListener = ({
 };
 
 const sanitizeRequestResponsePair = (
-    { request, response }: RequestResponsePair,
+    { request, response, ...rest }: RequestResponsePair,
     headersToRedact: string[]
 ): RequestResponsePair => {
     return {
         request: sanitizeRequest(request, headersToRedact),
         response: sanitizeResponse(response, headersToRedact),
+        ...rest,
     };
 };

@@ -115,6 +115,7 @@ const logRequest = (
             const event: RequestResponsePair = {
                 request: requestPayload,
                 response: responsePayload,
+                urlBlocked: !shouldRecordHeaderAndBody,
             };
 
             callback(event);

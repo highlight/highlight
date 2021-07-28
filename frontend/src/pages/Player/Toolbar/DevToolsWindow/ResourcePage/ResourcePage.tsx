@@ -454,6 +454,8 @@ const ResourceRow = ({
                         formatSize(resource.requestResponsePairs.response.size)
                     ) : resource.requestResponsePairs?.response.status === 0 ? (
                         '-'
+                    ) : resource.requestResponsePairs?.urlBlocked ? (
+                        '-'
                     ) : resource.transferSize === 0 ? (
                         'Cached'
                     ) : (
@@ -518,6 +520,8 @@ export interface Response {
 export interface RequestResponsePair {
     request: Request;
     response: Response;
+    /** Whether this URL matched a `urlToBlock` so the contents should not be recorded. */
+    urlBlocked: boolean;
 }
 
 /**
