@@ -84,20 +84,19 @@ export const usePlayer = (): ReplayerContextInterface => {
         hasSearchParam,
     } = useSetPlayerTimestampFromSearchParam(setTime, replayer);
 
-    const sessionId = session_id ?? '';
     const [
         getSessionPayload,
         { loading, data: eventsData },
     ] = useGetSessionPayloadLazyQuery({
         variables: {
-            session_id: sessionId,
+            session_id,
         },
         fetchPolicy: 'no-cache',
     });
 
     useGetSessionQuery({
         variables: {
-            id: sessionId,
+            id: session_id,
         },
         onCompleted: (data) => {
             if (data.session?.within_billing_quota) {
@@ -113,7 +112,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         loading: sessionCommentsLoading,
     } = useGetSessionCommentsQuery({
         variables: {
-            session_id: sessionId,
+            session_id,
         },
         // pollInterval: 1000 ,
     });
