@@ -34,7 +34,6 @@ const options: HighlightOptions = {
     manualStart: true,
     enableStrictPrivacy: Math.floor(Math.random() * 2) === 0,
     version: packageJson['version'],
-    disableConsoleRecording: true,
     networkRecording: {
         enabled: true,
         recordHeadersAndBody: true,

@@ -73,6 +73,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         setPlayerTime: setPlayerTimeToPersistance,
         autoPlayVideo,
         showLeftPanel,
+        showPlayerMouseTail,
     } = usePlayerConfiguration();
     const [sessionEndTime, setSessionEndTime] = useState<number>(0);
     const [sessionIntervals, setSessionIntervals] = useState<
@@ -114,7 +115,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         variables: {
             session_id: sessionId,
         },
-        pollInterval: 5000,
+        // pollInterval: 1000 ,
     });
 
     const resetPlayer = useCallback(() => {
@@ -180,6 +181,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             const r = new Replayer(newEvents.slice(0, EVENTS_CHUNK_SIZE), {
                 root: playerMountingRoot,
                 triggerFocus: false,
+                mouseTail: showPlayerMouseTail,
             });
             r.on(ReplayerEvents.Finish, () => {
                 setState(ReplayerState.SessionEnded);
@@ -196,7 +198,14 @@ export const usePlayer = (): ReplayerContextInterface => {
             }
             setReplayer(r);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [eventsData, setPlayerTimeToPersistance]);
+
+    useEffect(() => {
+        if (replayer) {
+            replayer.setConfig({ mouseTail: showPlayerMouseTail });
+        }
+    }, [replayer, showPlayerMouseTail]);
 
     // Loads the remaining events into Replayer.
     useEffect(() => {

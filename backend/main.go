@@ -26,7 +26,6 @@ import (
 	public "github.com/highlight-run/highlight/backend/public-graph/graph"
 	publicgen "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	log "github.com/sirupsen/logrus"
-	chitrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/go-chi/chi"
 
 	_ "gorm.io/gorm"
 )
@@ -143,7 +142,6 @@ func main() {
 	r.Use(func(h http.Handler) http.Handler {
 		return handlers.LoggingHandler(os.Stdout, h)
 	})
-	r.Use(chitrace.Middleware())
 	r.Use(cors.New(cors.Options{
 		AllowOriginRequestFunc: validateOrigin,
 		AllowCredentials:       true,
@@ -170,6 +168,8 @@ func main() {
 				}),
 			)
 			privateServer.Use(util.NewTracer(util.PrivateGraph))
+			privateServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PrivateGraph)))
+			privateServer.SetRecoverFunc(util.GraphQLRecoverFunc())
 			r.Handle("/", privateServer)
 		})
 	}
@@ -188,6 +188,8 @@ func main() {
 					},
 				}))
 			clientServer.Use(util.NewTracer(util.PublicGraph))
+			clientServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PublicGraph)))
+			clientServer.SetRecoverFunc(util.GraphQLRecoverFunc())
 			r.Handle("/", clientServer)
 		})
 	}

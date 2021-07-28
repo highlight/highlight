@@ -4,19 +4,22 @@ import Draggable from 'react-draggable';
 import { FaPause } from 'react-icons/fa';
 import Skeleton from 'react-loading-skeleton';
 
-import Button from '../../../components/Button/Button/Button';
 import Modal from '../../../components/Modal/Modal';
 import {
     SidebarState,
     useSidebarContext,
 } from '../../../components/Sidebar/SidebarContext';
+import ToggleButton from '../../../components/ToggleButton/ToggleButton';
 import Tooltip from '../../../components/Tooltip/Tooltip';
 import { useGetAdminQuery } from '../../../graph/generated/hooks';
 import { ErrorObject } from '../../../graph/generated/schemas';
+import SvgCursorIcon from '../../../static/CursorIcon';
 import SvgDevtoolsIcon from '../../../static/DevtoolsIcon';
 import SvgPlayIcon from '../../../static/PlayIcon';
 import SvgRedoIcon from '../../../static/RedoIcon';
+import SvgSkipForwardIcon from '../../../static/SkipForwardIcon';
 import SvgUndoIcon from '../../../static/UndoIcon';
+import SvgVideoIcon from '../../../static/VideoIcon';
 import {
     MillisToMinutesAndSeconds,
     MillisToMinutesAndSecondsVerbose,
@@ -57,6 +60,7 @@ export const Toolbar = () => {
         skipInactive,
         setSkipInactive,
         showLeftPanel,
+        showRightPanel,
         showDevTools,
         setShowDevTools,
         autoPlayVideo,
@@ -64,6 +68,8 @@ export const Toolbar = () => {
         enableInspectElement,
         selectedDevToolsTab,
         setSelectedDevToolsTab,
+        showPlayerMouseTail,
+        setShowPlayerMouseTail,
     } = usePlayerConfiguration();
     const { staticSidebarState } = useSidebarContext();
     const { data: admin_data } = useGetAdminQuery({ skip: false });
@@ -410,37 +416,59 @@ export const Toolbar = () => {
                         title="Automatically starts the video when you open a session."
                         arrowPointAtCenter
                     >
-                        <Button
+                        <ToggleButton
                             trackingId="PlayerAutoPlaySetting"
                             type="text"
-                            className={classNames(styles.autoPlayButton)}
                             onClick={() => {
                                 setAutoPlayVideo(!autoPlayVideo);
                             }}
+                            toggled={autoPlayVideo}
                             disabled={disableControls}
+                            prefixIcon={<SvgVideoIcon />}
+                            hideTextLabel={showLeftPanel && showRightPanel}
                         >
-                            {autoPlayVideo ? 'Autoplay on' : 'Autoplay off'}
-                        </Button>
+                            {autoPlayVideo ? 'Autoplaying' : 'Autoplay'}
+                        </ToggleButton>
                     </Tooltip>
                     <Tooltip
                         title="Skip the playback of the inactive portions of the session."
                         arrowPointAtCenter
                     >
-                        <Button
+                        <ToggleButton
                             trackingId="PlayerSkipInactive"
                             type="text"
-                            className={classNames(styles.skipInactiveButton, {
-                                [styles.skipInactiveButtonActive]: skipInactive,
-                            })}
                             onClick={() => {
                                 setSkipInactive(!skipInactive);
                             }}
                             disabled={disableControls}
+                            toggled={skipInactive}
+                            prefixIcon={<SvgSkipForwardIcon />}
+                            hideTextLabel={showLeftPanel && showRightPanel}
                         >
                             {skipInactive
                                 ? 'Skipping inactive'
                                 : 'Skip inactive'}
-                        </Button>
+                        </ToggleButton>
+                    </Tooltip>
+                    <Tooltip
+                        title="Show a trail of where the mouse has been. This is useful to keep track of how the mouse has moved."
+                        arrowPointAtCenter
+                    >
+                        <ToggleButton
+                            trackingId="PlayerSkipInactive"
+                            type="text"
+                            onClick={() => {
+                                setShowPlayerMouseTail(!showPlayerMouseTail);
+                            }}
+                            disabled={disableControls}
+                            toggled={showPlayerMouseTail}
+                            prefixIcon={<SvgCursorIcon />}
+                            hideTextLabel={showLeftPanel && showRightPanel}
+                        >
+                            {showPlayerMouseTail
+                                ? 'Showing Mouse Trail'
+                                : 'Hiding Mouse Trail'}
+                        </ToggleButton>
                     </Tooltip>
                     <SpeedControl disabled={disableControls} />
                     <Tooltip
@@ -448,7 +476,7 @@ export const Toolbar = () => {
                         placement="topLeft"
                         arrowPointAtCenter
                     >
-                        <Button
+                        <ToggleButton
                             trackingId="PlayerDevTools"
                             type="text"
                             className={styles.devToolsButton}
@@ -456,13 +484,14 @@ export const Toolbar = () => {
                                 setShowDevTools(!showDevTools);
                             }}
                             disabled={disableControls}
+                            toggled={showDevTools}
                         >
                             <SvgDevtoolsIcon
                                 className={classNames(styles.devToolsIcon, {
                                     [styles.devToolsActive]: showDevTools,
                                 })}
                             />
-                        </Button>
+                        </ToggleButton>
                     </Tooltip>
                 </div>
             </div>
