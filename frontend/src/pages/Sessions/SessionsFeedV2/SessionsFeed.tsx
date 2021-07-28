@@ -72,7 +72,7 @@ export const SessionFeed = () => {
             setCount((previousCount) => previousCount + 10);
             fetchMore({
                 variables: {
-                    params: searchParams,
+                    params: searchParamsExceptForShowLiveSessions,
                     count,
                     organization_id,
                     processed:
