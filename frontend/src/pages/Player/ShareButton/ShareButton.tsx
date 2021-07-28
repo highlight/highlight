@@ -1,29 +1,98 @@
-import { ButtonProps, message } from 'antd';
+import { ButtonProps, message, Modal } from 'antd';
 import { H } from 'highlight.run';
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { useAuthContext } from '../../../AuthContext';
 import Button from '../../../components/Button/Button/Button';
 import CopyText from '../../../components/CopyText/CopyText';
-import Popover from '../../../components/Popover/Popover';
+import ModalBody from '../../../components/ModalBody/ModalBody';
 import Switch from '../../../components/Switch/Switch';
 import {
+    useGetOrganizationQuery,
     useGetSessionQuery,
     useUpdateSessionIsPublicMutation,
 } from '../../../graph/generated/hooks';
 import { useReplayerContext } from '../ReplayerContext';
 import styles from './ShareButton.module.scss';
-import { onGetLinkWithTimestamp } from './utils/utils';
+import { onGetLink, onGetLinkWithTimestamp } from './utils/utils';
 
 const ShareButton = (props: ButtonProps) => {
     const { time } = useReplayerContext();
     const { isHighlightAdmin, isLoggedIn } = useAuthContext();
-    const { session_id } = useParams<{ session_id: string }>();
+    const [showModal, setShowModal] = useState(false);
+    const [shareTimestamp, setShareTimestamp] = useState(false);
+
+    if (!isHighlightAdmin) {
+        return OldShareButton(props, time);
+    }
+
+    return (
+        <>
+            <Button
+                type="primary"
+                {...props}
+                trackingId="ShareSession"
+                onClick={() => {
+                    H.track('Clicked share button');
+                    setShowModal(true);
+                }}
+            >
+                Share
+            </Button>
+            <Modal
+                visible={showModal}
+                onCancel={() => {
+                    setShowModal(false);
+                }}
+                destroyOnClose
+                style={{ display: 'flex' }}
+                width={500}
+                footer={null}
+            >
+                <ModalBody>
+                    <div className={styles.popover}>
+                        <div className={styles.popoverContent}>
+                            <h3>Session Sharing</h3>
+                            <CopyText
+                                text={
+                                    shareTimestamp
+                                        ? onGetLinkWithTimestamp(
+                                              time
+                                          ).toString()
+                                        : onGetLink().toString()
+                                }
+                            />
+                            {isLoggedIn && <ExternalSharingOptions />}
+                            <hr></hr>
+                            <h3>Sharing Parameters</h3>
+                            <Switch
+                                checked={shareTimestamp}
+                                onChange={(checked: boolean) => {
+                                    setShareTimestamp(checked);
+                                }}
+                                label="Include current timestamp"
+                            />
+                        </div>
+                    </div>
+                </ModalBody>
+            </Modal>
+        </>
+    );
+};
+
+const ExternalSharingOptions = () => {
+    const { organization_id, session_id } = useParams<{
+        organization_id: string;
+        session_id: string;
+    }>();
     const { loading, data } = useGetSessionQuery({
         variables: {
             id: session_id,
         },
+    });
+    const { data: currentOrg } = useGetOrganizationQuery({
+        variables: { id: organization_id },
     });
     const [updateSessionIsPublic] = useUpdateSessionIsPublicMutation({
         update(cache) {
@@ -40,70 +109,38 @@ const ShareButton = (props: ButtonProps) => {
             });
         },
     });
-
-    if (!isHighlightAdmin) {
-        return OldShareButton(props, time);
-    }
-
     return (
-        <Popover
-            hasBorder
-            placement="bottomLeft"
-            isList
-            content={
-                <div className={styles.popover}>
-                    <div className={styles.popoverContent}>
-                        <h3>Share internally</h3>
-                        <p>
-                            All members of your organization are able to view
-                            this session.
-                        </p>
-                        <CopyText
-                            text={onGetLinkWithTimestamp(time).toString()}
-                        />
-                        {isLoggedIn && (
-                            <>
-                                <h3>Share externally</h3>
-                                {loading ? (
-                                    <p>Loading...</p>
-                                ) : (
-                                    <div>
-                                        <Switch
-                                            checked={!!data?.session?.is_public}
-                                            onChange={(checked: boolean) => {
-                                                H.track(
-                                                    'Toggled session isPublic',
-                                                    {
-                                                        is_public: checked,
-                                                    }
-                                                );
-                                                updateSessionIsPublic({
-                                                    variables: {
-                                                        session_id: session_id,
-                                                        is_public: checked,
-                                                    },
-                                                });
-                                            }}
-                                            label="Allow anyone with the shareable link to view this session."
-                                        />
-                                    </div>
-                                )}
-                            </>
-                        )}
-                    </div>
+        <>
+            {loading ? (
+                <p>Loading...</p>
+            ) : (
+                <div>
+                    <Switch
+                        checked={!!data?.session?.is_public}
+                        onChange={(checked: boolean) => {
+                            H.track('Toggled session isPublic', {
+                                is_public: checked,
+                            });
+                            updateSessionIsPublic({
+                                variables: {
+                                    session_id: session_id,
+                                    is_public: checked,
+                                },
+                            });
+                        }}
+                        label="Allow anyone with the link to view this session."
+                    />
+                    <p>
+                        {!!data?.session?.is_public
+                            ? 'Anyone with the link will be able to view and comment on this session.'
+                            : `This session is only accessible within ${
+                                  currentOrg?.organization?.name ??
+                                  'your organization'
+                              }.`}
+                    </p>
                 </div>
-            }
-            onVisibleChange={(visible) => {
-                if (visible) {
-                    H.track('Clicked share popover');
-                }
-            }}
-            trigger="click"
-        >
-            <Button type="primary" {...props} trackingId="ShareSession">
-                Share
-            </Button>
-        </Popover>
+            )}
+        </>
     );
 };
 
