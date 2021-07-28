@@ -78,7 +78,31 @@ const ResourceDetailsModal = ({
         const {
             request,
             response,
+            urlBlocked,
         } = selectedNetworkResource.requestResponsePairs;
+
+        if (urlBlocked) {
+            generalData.push({
+                keyDisplayValue: 'Recording Blocked',
+                valueDisplayValue: (
+                    <>
+                        <span>
+                            The headers and body of this request was blocked.
+                            The URL matched one a URL that is known to contain
+                            secrets/passwords. You can{' '}
+                            <a
+                                href="https://docs.highlight.run/docs/recording-network-requests-and-responses#overview"
+                                target="_blank"
+                                rel="noreferrer"
+                            >
+                                learn more here.
+                            </a>
+                        </span>
+                    </>
+                ),
+                renderType: 'string',
+            });
+        }
 
         if (request.headers) {
             const requestHeaderKeys = Object.keys(request.headers);
@@ -184,53 +208,55 @@ const ResourceDetailsModal = ({
                     {((isHighlightAdmin &&
                         selectedNetworkResource?.initiatorType === 'fetch') ||
                         selectedNetworkResource?.initiatorType ===
-                            'xmlhttprequest') && (
-                        <>
-                            <DataCard title="Request Headers" fullWidth>
-                                <KeyValueTable
-                                    data={requestHeadersData}
-                                    noDataMessage={
-                                        !networkRecordingEnabledForSession ? (
-                                            <NetworkRecordingEducationMessage />
-                                        ) : undefined
-                                    }
-                                />
-                            </DataCard>
+                            'xmlhttprequest') &&
+                        !selectedNetworkResource.requestResponsePairs
+                            ?.urlBlocked && (
+                            <>
+                                <DataCard title="Request Headers" fullWidth>
+                                    <KeyValueTable
+                                        data={requestHeadersData}
+                                        noDataMessage={
+                                            !networkRecordingEnabledForSession ? (
+                                                <NetworkRecordingEducationMessage />
+                                            ) : undefined
+                                        }
+                                    />
+                                </DataCard>
 
-                            <DataCard title="Request Payload" fullWidth>
-                                <KeyValueTable
-                                    data={requestPayloadData}
-                                    noDataMessage={
-                                        !networkRecordingEnabledForSession ? (
-                                            <NetworkRecordingEducationMessage />
-                                        ) : undefined
-                                    }
-                                />
-                            </DataCard>
+                                <DataCard title="Request Payload" fullWidth>
+                                    <KeyValueTable
+                                        data={requestPayloadData}
+                                        noDataMessage={
+                                            !networkRecordingEnabledForSession ? (
+                                                <NetworkRecordingEducationMessage />
+                                            ) : undefined
+                                        }
+                                    />
+                                </DataCard>
 
-                            <DataCard title="Response Headers" fullWidth>
-                                <KeyValueTable
-                                    data={responseHeadersData}
-                                    noDataMessage={
-                                        !networkRecordingEnabledForSession ? (
-                                            <NetworkRecordingEducationMessage />
-                                        ) : undefined
-                                    }
-                                />
-                            </DataCard>
+                                <DataCard title="Response Headers" fullWidth>
+                                    <KeyValueTable
+                                        data={responseHeadersData}
+                                        noDataMessage={
+                                            !networkRecordingEnabledForSession ? (
+                                                <NetworkRecordingEducationMessage />
+                                            ) : undefined
+                                        }
+                                    />
+                                </DataCard>
 
-                            <DataCard title="Response Payload" fullWidth>
-                                <KeyValueTable
-                                    data={responsePayloadData}
-                                    noDataMessage={
-                                        !networkRecordingEnabledForSession ? (
-                                            <NetworkRecordingEducationMessage />
-                                        ) : undefined
-                                    }
-                                />
-                            </DataCard>
-                        </>
-                    )}
+                                <DataCard title="Response Payload" fullWidth>
+                                    <KeyValueTable
+                                        data={responsePayloadData}
+                                        noDataMessage={
+                                            !networkRecordingEnabledForSession ? (
+                                                <NetworkRecordingEducationMessage />
+                                            ) : undefined
+                                        }
+                                    />
+                                </DataCard>
+                            </>
+                        )}
                 </Space>
             </section>
         </Modal>
