@@ -31,8 +31,8 @@ export const XHRListener = (
         this._method = method;
         this._url = url;
         this._requestHeaders = {};
-        this._shouldRecordHeaderAndBody = !urlBlocklist.includes(
-            url.toLowerCase()
+        this._shouldRecordHeaderAndBody = !urlBlocklist.some((blockedUrl) =>
+            url.toLowerCase().includes(blockedUrl)
         );
 
         // @ts-expect-error
