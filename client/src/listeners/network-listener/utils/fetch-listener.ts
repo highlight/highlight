@@ -21,8 +21,8 @@ export const FetchListener = (
             url,
             verb: method,
         };
-        const shouldRecordHeaderAndBody = !urlBlocklist.includes(
-            url.toLowerCase()
+        const shouldRecordHeaderAndBody = !urlBlocklist.some((blockedUrl) =>
+            url.toLowerCase().includes(blockedUrl)
         );
 
         if (shouldRecordHeaderAndBody) {
