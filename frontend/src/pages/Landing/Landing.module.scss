@@ -98,21 +98,6 @@
     text-align: center;
 }
 
-.demoVideoButton {
-    background-color: var(--color-primary-background);
-    border: 0;
-    color: var(--color-gray-500);
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: 300;
-    margin: 10px;
-    transition: 0.3s color;
-}
-
-.demoVideoButton:hover {
-    color: var(--color-purple);
-}
-
 .navLink {
     color: var(--color-gray-500);
     font-family: var(--header-font-family);

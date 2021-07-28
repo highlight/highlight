@@ -19,8 +19,6 @@ import {
     isLoggedIn,
 } from './AuthContext';
 import { ErrorState } from './components/ErrorState/ErrorState';
-import { DemoContext } from './DemoContext';
-import DemoRouter from './DemoRouter';
 import { useGetAdminLazyQuery } from './graph/generated/hooks';
 import About from './pages/About/About';
 import LoginForm, { AuthAdminRouter } from './pages/Login/Login';
@@ -163,24 +161,15 @@ get in contact with us!
                     <Route path="/about">
                         <About />
                     </Route>
-                    <Route path="/demo" exact>
-                        <DemoContext.Provider value={{ demo: true }}>
-                            <DemoRouter />
-                        </DemoContext.Provider>
-                    </Route>
                     <Route
                         path="/:organization_id(\d+)/sessions/:session_id(\d+)"
                         exact
                     >
                         {/* Allow guests to access this route without being asked to log in */}
-                        <DemoContext.Provider value={{ demo: false }}>
-                            <AuthAdminRouter />
-                        </DemoContext.Provider>
+                        <AuthAdminRouter />
                     </Route>
                     <Route path="/">
-                        <DemoContext.Provider value={{ demo: false }}>
-                            <LoginForm />
-                        </DemoContext.Provider>
+                        <LoginForm />
                     </Route>
                 </Switch>
             </Router>

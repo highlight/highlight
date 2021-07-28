@@ -14,9 +14,7 @@ type Inputs = {
 
 export const RequestAccessPage = () => {
     const { register, handleSubmit, errors } = useForm<Inputs>();
-    const [sendEmailSignup, { loading }] = useSendEmailSignupMutation({
-        context: { headers: { 'Highlight-Demo': true } },
-    });
+    const [sendEmailSignup, { loading }] = useSendEmailSignupMutation();
 
     const onSubmit = async (data: Inputs) => {
         try {
