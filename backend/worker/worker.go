@@ -35,7 +35,7 @@ type Worker struct {
 	S3Client *storage.StorageClient
 }
 
-func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Session, migrationState *string, events []model.EventsObject, payloadStringSize int) error {
+func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Session, migrationState *string, eventsFile *os.File) error {
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
@@ -44,12 +44,13 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 		return errors.Wrap(err, "error updating session to processed status")
 	}
 	fmt.Printf("starting push for: %v \n", s.ID)
-	sessionPayloadSize, err := w.S3Client.PushSessionsToS3(s.ID, s.OrganizationID, events)
+	sessionPayloadSize, err := w.S3Client.PushFileToS3(ctx, s.ID, s.OrganizationID, eventsFile, storage.S3SessionsPayloadBucketName, storage.SessionContents)
 	// If this is unsucessful, return early (we treat this session as if it is stored in psql).
 	if err != nil {
 		return errors.Wrap(err, "error pushing session payload to s3")
 	}
 
+	var payloadStringSize int
 	resourcesObject := []*model.ResourcesObject{}
 	if res := w.Resolver.DB.Order("created_at desc").Where(&model.ResourcesObject{SessionID: s.ID}).Find(&resourcesObject); res.Error != nil {
 		return errors.Wrap(res.Error, "error reading from resources")
@@ -99,10 +100,8 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	dd.StatsD.Histogram("worker.pushToObjectStorageAndWipe.payloadSize", float64(totalPayloadSize), nil, 1) //nolint
 
 	// Delete all the events_objects in the DB.
-	if len(events) > 0 {
-		if err := w.Resolver.DB.Unscoped().Delete(&events).Error; err != nil {
-			return errors.Wrapf(err, "error deleting all event records with length: %v", len(events))
-		}
+	if err := w.Resolver.DB.Unscoped().Where(&model.EventsObject{SessionID: s.ID}).Delete(&model.EventsObject{}).Error; err != nil {
+		return errors.Wrapf(err, "error deleting all event records")
 	}
 	if len(resourcesObject) > 0 {
 		if err := w.Resolver.DB.Unscoped().Delete(&resourcesObject).Error; err != nil {
@@ -521,12 +520,12 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	// Upload to s3 and wipe from the db.
-	// if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" {
-	// 	state := "normal"
-	// 	if err := w.pushToObjectStorageAndWipe(ctx, s, &state, events, payloadStringBytes); err != nil {
-	// 		log.Errorf("error pushing to object and wiping from db (%v): %v", s.ID, err)
-	// 	}
-	// }
+	if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" {
+		state := "normal"
+		if err := w.pushToObjectStorageAndWipe(ctx, s, &state, eventsFile); err != nil {
+			log.Errorf("error pushing to object and wiping from db (%v): %v", s.ID, err)
+		}
+	}
 	return nil
 }
 

@@ -12,7 +12,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/pkg/errors"
 )
@@ -48,31 +47,13 @@ func NewStorageClient() (*StorageClient, error) {
 		S3Client: client,
 	}, nil
 }
-func (s *StorageClient) PushSessionsToS3(sessionId int, organizationId int, events []model.EventsObject) (*int64, error) {
-	re := &parse.ReplayEvents{
-		Events: []*parse.ReplayEvent{},
-	}
-	for _, event := range events {
-		parsed, err := parse.EventsFromString(event.Events)
-		if err != nil {
-			continue
-		}
-		re.Events = append(re.Events, parsed.Events...)
-	}
-	if len(re.Events) == 0 {
-		return nil, errors.New("empty set of events")
-	}
-	b, err := json.Marshal(re)
+
+func (s *StorageClient) PushFileToS3(ctx context.Context, sessionId, organizationId int, file *os.File, bucket string, payloadType PayloadType) (*int64, error) {
+	key := s.bucketKey(sessionId, organizationId, payloadType)
+	_, err := s.S3Client.PutObject(ctx, &s3.PutObjectInput{Bucket: &bucket,
+		Key: key, Body: file})
 	if err != nil {
-		return nil, errors.Wrap(err, "error marshaling ReplayEvents object")
-	}
-	key := s.bucketKey(sessionId, organizationId, SessionContents)
-	body := strings.NewReader(string(b))
-	_, err = s.S3Client.PutObject(context.TODO(), &s3.PutObjectInput{
-		Bucket: aws.String(S3SessionsPayloadBucketName), Key: key, Body: body,
-	})
-	if err != nil {
-		return nil, errors.Wrap(err, "error 'put'ing in s3 bucket")
+		return nil, err
 	}
 	headObj := s3.HeadObjectInput{
 		Bucket: aws.String(S3SessionsPayloadBucketName),

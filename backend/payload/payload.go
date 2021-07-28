@@ -12,8 +12,6 @@ import (
 
 var Delimiter = "\n\n\n"
 
-const maxCapacity = 16 * 1024 * 1024
-
 type PayloadReadWriter struct {
 	file   *os.File
 	Length int64
@@ -37,11 +35,7 @@ type ObjectReader struct {
 }
 
 func NewObjectReader(file *os.File) *ObjectReader {
-	reader := &ObjectReader{reader: bufio.NewReader(file)}
-	//buf := make([]byte, maxCapacity)
-	//reader.reader.Buffer(buf, maxCapacity)
-	return reader
-	//return &ObjectReader{reader: bufio.NewReader(file)}
+	return &ObjectReader{reader: bufio.NewReader(file)}
 }
 
 // {resources: []}
