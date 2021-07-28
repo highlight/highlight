@@ -54,12 +54,12 @@ const ApplicationRouter = ({ integrated }: Props) => {
         visited_url: StringParam,
         first_time: BooleanParam,
         device_id: StringParam,
+        show_live_sessions: BooleanParam,
     });
 
     const [existingParams, setExistingParams] = useState<SearchParams>(
         EmptySessionsSearchParams
     );
-    const [hideLiveSessions, setHideLiveSessions] = useState<boolean>(false);
 
     useEffect(() => {
         const areAnySearchParamsSet = !_.isEqual(
@@ -68,8 +68,28 @@ const ApplicationRouter = ({ integrated }: Props) => {
         );
 
         if (!segmentName && areAnySearchParamsSet) {
+            // `undefined` values will not be persisted to the URL.
+            // Because of that, we only want to change the values from `undefined`
+            // to the actual value when the value is different to the empty state.
+            const searchParamsToReflectInUrl = { ...InitialSearchParamsForUrl };
+            Object.keys(searchParams).forEach((key) => {
+                // @ts-expect-error
+                const currentSearchParam = searchParams[key];
+                // @ts-expect-error
+                const emptySearchParam = EmptySessionsSearchParams[key];
+                if (Array.isArray(currentSearchParam)) {
+                    if (currentSearchParam.length !== emptySearchParam.length) {
+                        // @ts-expect-error
+                        searchParamsToReflectInUrl[key] = currentSearchParam;
+                    }
+                } else if (currentSearchParam !== emptySearchParam) {
+                    // @ts-expect-error
+                    searchParamsToReflectInUrl[key] = currentSearchParam;
+                }
+            });
+
             setSearchParamsToUrlParams({
-                ...searchParams,
+                ...searchParamsToReflectInUrl,
             });
         } else {
             setSearchParamsToUrlParams(InitialSearchParamsForUrl);
@@ -93,8 +113,6 @@ const ApplicationRouter = ({ integrated }: Props) => {
                 setExistingParams,
                 segmentName,
                 setSegmentName,
-                hideLiveSessions,
-                setHideLiveSessions,
             }}
         >
             <Switch>
@@ -169,4 +187,5 @@ const InitialSearchParamsForUrl = {
     track_properties: undefined,
     user_properties: undefined,
     visited_url: undefined,
+    show_live_sessions: undefined,
 };

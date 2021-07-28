@@ -31,22 +31,26 @@ export const SessionFeed = () => {
 
     // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
     const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
-    const { searchParams, hideLiveSessions } = useSearchContext();
+    const { searchParams } = useSearchContext();
+    const {
+        show_live_sessions,
+        ...searchParamsExceptForShowLiveSessions
+    } = searchParams;
 
     const { loading, fetchMore, called } = useGetSessionsQuery({
         variables: {
-            params: searchParams,
+            params: searchParamsExceptForShowLiveSessions,
             count: count + 10,
             organization_id,
             lifecycle:
                 segment_id === LIVE_SEGMENT_ID
                     ? SessionLifecycle.Live
-                    : hideLiveSessions
+                    : !show_live_sessions
                     ? SessionLifecycle.Completed
                     : SessionLifecycle.All,
             starred: segment_id === STARRED_SEGMENT_ID,
         },
-        pollInterval: SESSIONS_FEED_POLL_INTERVAL,
+        // pollInterval: SESSIONS_FEED_POLL_INTERVAL,
         onCompleted: (response) => {
             if (response.sessions) {
                 setSessionResults(response.sessions);
@@ -74,7 +78,7 @@ export const SessionFeed = () => {
                     processed:
                         segment_id === LIVE_SEGMENT_ID
                             ? SessionLifecycle.Live
-                            : hideLiveSessions
+                            : !searchParams.show_live_sessions
                             ? SessionLifecycle.Completed
                             : SessionLifecycle.All,
                 },

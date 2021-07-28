@@ -3,7 +3,6 @@ export const browserHeader: string;
 export const loadingWrapper: string;
 export const playButtonStyle: string;
 export const playerPageBody: string;
-export const playSection: string;
 export const progressBar: string;
 export const rrwebPlayerDiv: string;
 export const rrwebPlayerSection: string;

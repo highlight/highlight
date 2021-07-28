@@ -3,24 +3,27 @@ import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React from 'react';
 
-import styles from './Button.module.scss';
+import styles from './ToggleButton.module.scss';
 
 type Props = ButtonProps & {
     /** The ID used for identifying that this button was clicked for analytics. */
     trackingId: string;
-    /** Does this button only have an icon? */
-    iconButton?: boolean;
-    /** Reduces the padding. */
-    small?: boolean;
+    /** Whether the toggle is enabled. */
+    toggled: boolean;
+    /** A prefix icon. */
+    prefixIcon?: React.ReactNode;
+    /** Renders only the icon if true. */
+    hideTextLabel?: boolean;
 };
 
-const Button = ({
+const ToggleButton: React.FC<Props> = ({
     children,
     trackingId,
-    iconButton,
-    small = false,
+    toggled,
+    prefixIcon,
+    hideTextLabel,
     ...props
-}: React.PropsWithChildren<Props>) => {
+}) => {
     return (
         <AntDesignButton
             {...props}
@@ -28,16 +31,17 @@ const Button = ({
                 if (props.onClick) {
                     props.onClick(e);
                 }
-                H.track(`Button-${trackingId}`);
+                H.track(`ToggleButton-${trackingId}`);
             }}
-            className={classNames(props.className, styles.buttonBase, {
-                [styles.iconButton]: iconButton,
-                [styles.small]: small,
+            className={classNames(styles.toggleButtonBase, {
+                [styles.toggled]: toggled,
             })}
         >
-            {children}
+            {prefixIcon}
+
+            {!hideTextLabel && children}
         </AntDesignButton>
     );
 };
 
-export default Button;
+export default ToggleButton;

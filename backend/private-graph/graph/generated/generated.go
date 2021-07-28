@@ -211,7 +211,6 @@ type ComplexityRoot struct {
 		EditRecordingSettings          func(childComplexity int, organizationID int, details *string) int
 		EditSegment                    func(childComplexity int, id int, organizationID int, params model.SearchParamsInput) int
 		EmailSignup                    func(childComplexity int, email string) int
-		MarkErrorGroupAsResolved       func(childComplexity int, id int, resolved *bool) int
 		MarkSessionAsStarred           func(childComplexity int, id int, starred *bool) int
 		MarkSessionAsViewed            func(childComplexity int, id int, viewed *bool) int
 		SendAdminInvite                func(childComplexity int, organizationID int, email string, baseURL string) int
@@ -448,7 +447,6 @@ type MutationResolver interface {
 	EditOrganization(ctx context.Context, id int, name *string, billingEmail *string) (*model1.Organization, error)
 	MarkSessionAsViewed(ctx context.Context, id int, viewed *bool) (*model1.Session, error)
 	MarkSessionAsStarred(ctx context.Context, id int, starred *bool) (*model1.Session, error)
-	MarkErrorGroupAsResolved(ctx context.Context, id int, resolved *bool) (*model1.ErrorGroup, error)
 	UpdateErrorGroupState(ctx context.Context, id int, state string) (*model1.ErrorGroup, error)
 	DeleteOrganization(ctx context.Context, id int) (*bool, error)
 	SendAdminInvite(ctx context.Context, organizationID int, email string, baseURL string) (*string, error)
@@ -1358,18 +1356,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.EmailSignup(childComplexity, args["email"].(string)), true
-
-	case "Mutation.markErrorGroupAsResolved":
-		if e.complexity.Mutation.MarkErrorGroupAsResolved == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_markErrorGroupAsResolved_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.MarkErrorGroupAsResolved(childComplexity, args["id"].(int), args["resolved"].(*bool)), true
 
 	case "Mutation.markSessionAsStarred":
 		if e.complexity.Mutation.MarkSessionAsStarred == nil {
@@ -3194,7 +3180,6 @@ type Mutation {
     editOrganization(id: ID!, name: String, billing_email: String): Organization
     markSessionAsViewed(id: ID!, viewed: Boolean): Session
     markSessionAsStarred(id: ID!, starred: Boolean): Session
-    markErrorGroupAsResolved(id: ID!, resolved: Boolean): ErrorGroup
     updateErrorGroupState(id: ID!, state: String!): ErrorGroup
     deleteOrganization(id: ID!): Boolean
     sendAdminInvite(
@@ -3905,30 +3890,6 @@ func (ec *executionContext) field_Mutation_emailSignup_args(ctx context.Context,
 		}
 	}
 	args["email"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_markErrorGroupAsResolved_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	var arg1 *bool
-	if tmp, ok := rawArgs["resolved"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resolved"))
-		arg1, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["resolved"] = arg1
 	return args, nil
 }
 
@@ -8040,45 +8001,6 @@ func (ec *executionContext) _Mutation_markSessionAsStarred(ctx context.Context, 
 	res := resTmp.(*model1.Session)
 	fc.Result = res
 	return ec.marshalOSession2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSession(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_markErrorGroupAsResolved(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_markErrorGroupAsResolved_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().MarkErrorGroupAsResolved(rctx, args["id"].(int), args["resolved"].(*bool))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model1.ErrorGroup)
-	fc.Result = res
-	return ec.marshalOErrorGroup2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorGroup(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_updateErrorGroupState(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -16416,8 +16338,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_markSessionAsViewed(ctx, field)
 		case "markSessionAsStarred":
 			out.Values[i] = ec._Mutation_markSessionAsStarred(ctx, field)
-		case "markErrorGroupAsResolved":
-			out.Values[i] = ec._Mutation_markErrorGroupAsResolved(ctx, field)
 		case "updateErrorGroupState":
 			out.Values[i] = ec._Mutation_updateErrorGroupState(ctx, field)
 		case "deleteOrganization":

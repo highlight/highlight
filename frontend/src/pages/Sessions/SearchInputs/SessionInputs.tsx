@@ -10,6 +10,7 @@ import SvgLinkIcon from '../../../static/LinkIcon';
 import SvgReferrer from '../../../static/Referrer';
 import { SessionPageSearchParams } from '../../Player/utils/utils';
 import { useSearchContext } from '../SearchContext/SearchContext';
+import { LIVE_SEGMENT_ID } from '../SearchSidebar/SegmentPicker/SegmentPicker';
 import { EmptySessionsSearchParams } from '../SessionsPage';
 import useWatchSessionPageSearchParams from './hooks/useWatchSessionPageSearchParams';
 import inputStyles from './InputStyles.module.scss';
@@ -175,17 +176,30 @@ export const ViewedSessionsSwitch = () => {
 };
 
 export const LiveSessionsSwitch = () => {
-    const { hideLiveSessions, setHideLiveSessions } = useSearchContext();
+    const { searchParams, setSearchParams } = useSearchContext();
+    const { segment_id } = useParams<{
+        segment_id: string;
+    }>();
+
+    const isOnLiveSegment = segment_id === LIVE_SEGMENT_ID;
 
     return (
         <Checkbox
-            checked={hideLiveSessions}
-            onChange={(params) => {
-                setHideLiveSessions(params.target.checked);
+            disabled={isOnLiveSegment}
+            checked={isOnLiveSegment ? true : searchParams.show_live_sessions}
+            onChange={(e) => {
+                setSearchParams((params) => ({
+                    ...params,
+                    show_live_sessions: e.target.checked,
+                }));
             }}
-            className={hideLiveSessions ? '' : inputStyles.checkboxUnselected}
+            className={
+                searchParams.show_live_sessions
+                    ? ''
+                    : inputStyles.checkboxUnselected
+            }
         >
-            Hide live sessions
+            Show live sessions
         </Checkbox>
     );
 };

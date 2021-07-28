@@ -472,7 +472,6 @@ type Mutation {
     editOrganization(id: ID!, name: String, billing_email: String): Organization
     markSessionAsViewed(id: ID!, viewed: Boolean): Session
     markSessionAsStarred(id: ID!, starred: Boolean): Session
-    markErrorGroupAsResolved(id: ID!, resolved: Boolean): ErrorGroup
     updateErrorGroupState(id: ID!, state: String!): ErrorGroup
     deleteOrganization(id: ID!): Boolean
     sendAdminInvite(

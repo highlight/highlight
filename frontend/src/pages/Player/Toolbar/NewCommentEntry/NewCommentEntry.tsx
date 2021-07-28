@@ -63,7 +63,7 @@ export const NewCommentEntry = ({
     >([]);
 
     const onFinish = async () => {
-        H.track('Create Comment', {});
+        H.track('Create Comment');
         setIsCreatingComment(true);
         // const canvas = await html2canvas(
         //     (document.querySelector(

@@ -159,7 +159,7 @@ const OnboardingBubble = () => {
                 trigger={['click']}
                 onVisibleChange={(visible) => {
                     if (visible) {
-                        H.track('Viewed onboarding bubble', {});
+                        H.track('Viewed onboarding bubble');
                     }
                 }}
                 popoverClassName={styles.popover}
