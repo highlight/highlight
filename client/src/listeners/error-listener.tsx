@@ -17,24 +17,16 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
             try {
                 res = ErrorStackParser.parse(error);
             } catch {} // @eslint-ignore
-            if (
-                !res[0]?.source
-                    ?.toLowerCase()
-                    .includes('https://static.highlight.run/index.js')
-            ) {
-                callback({
-                    event: stringify(event),
-                    type: 'window.onerror',
-                    url: window.location.href,
-                    source: source ? source : '',
-                    lineNumber: res[0]?.lineNumber ? res[0]?.lineNumber : 0,
-                    columnNumber: res[0]?.columnNumber
-                        ? res[0]?.columnNumber
-                        : 0,
-                    stackTrace: res,
-                    timestamp: new Date().toISOString(),
-                });
-            }
+            callback({
+                event: stringify(event),
+                type: 'window.onerror',
+                url: window.location.href,
+                source: source ? source : '',
+                lineNumber: res[0]?.lineNumber ? res[0]?.lineNumber : 0,
+                columnNumber: res[0]?.columnNumber ? res[0]?.columnNumber : 0,
+                stackTrace: res,
+                timestamp: new Date().toISOString(),
+            });
         }
     };
     return () => {
