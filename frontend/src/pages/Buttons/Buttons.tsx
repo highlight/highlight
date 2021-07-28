@@ -7,9 +7,7 @@ import styles from './Buttons.module.scss';
 import { CustomError, DefaultError } from './ButtonsHelper';
 export const Buttons = () => {
     const [hasError, setHasError] = useState(false);
-    const [sendEmail, { data, loading, error }] = useSendEmailSignupMutation({
-        context: { headers: { 'Highlight-Demo': false } },
-    });
+    const [sendEmail, { loading }] = useSendEmailSignupMutation();
     if (hasError) {
         throw new Error('got an error');
     }
