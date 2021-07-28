@@ -1667,7 +1667,6 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		fieldsInnerJoinStatement = ""
 		fieldsSelectStatement = ""
 	}
-	// TODO: Remove join if there are no trackFields
 	joinClause := fmt.Sprintf("FROM (SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, within_billing_quota %s FROM sessions s %s GROUP BY s.id) AS rows", fieldsSelectStatement, fieldsInnerJoinStatement)
 	whereClause := ` `
 
@@ -1771,7 +1770,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		whereClause += whereClauseSuffix
 		sessionsSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.sessionsQuery"))
 
-		if err := r.DB.Debug().Raw(fmt.Sprintf("%s %s %s ORDER BY created_at DESC LIMIT %d", sessionsQueryPreamble, joinClause, whereClause, count)).Scan(&queriedSessions).Error; err != nil {
+		if err := r.DB.Raw(fmt.Sprintf("%s %s %s ORDER BY created_at DESC LIMIT %d", sessionsQueryPreamble, joinClause, whereClause, count)).Scan(&queriedSessions).Error; err != nil {
 			return e.Wrap(err, "error querying filtered sessions")
 		}
 		sessionsSpan.Finish()
@@ -1780,7 +1779,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 
 	g.Go(func() error {
 		sessionCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.sessionsCountQuery"))
-		if err := r.DB.Debug().Raw(fmt.Sprintf("SELECT count(*) %s %s %s", joinClause, whereClause, whereClauseSuffix)).Scan(&queriedSessionsCount).Error; err != nil {
+		if err := r.DB.Raw(fmt.Sprintf("SELECT count(*) %s %s %s", joinClause, whereClause, whereClauseSuffix)).Scan(&queriedSessionsCount).Error; err != nil {
 			return e.Wrap(err, "error querying filtered sessions count")
 		}
 		sessionCountSpan.Finish()
