@@ -16,15 +16,23 @@ func TestPayloadReader(t *testing.T) {
 	r := NewPayloadReadWriter(f)
 	reader := r.Reader()
 	s, err := reader.Next()
-	log.Println("one", len(s))
+	if s != nil {
+		log.Println("one", len(*s))
+	}
 	log.Printf("err: %v\n", err)
 	s, err = reader.Next()
-	log.Println("two", len(s))
+	if s != nil {
+		log.Println("two", len(*s))
+	}
 	log.Printf("err: %v\n", err)
 	s, err = reader.Next()
-	log.Println("three", len(s))
+	if s != nil {
+		log.Println("three", len(*s))
+	}
 	log.Printf("err: %v\n", err)
 	s, err = reader.Next()
-	log.Println("four", len(s))
+	if s != nil {
+		log.Println("four", len(*s))
+	}
 	log.Printf("err: %v\n", err)
 }

@@ -93,7 +93,7 @@ func TestCalculateSessionLength(t *testing.T) {
 		},
 	}
 	for i, tt := range tables {
-		got := CalculateSessionLength(tt.firstEvents, tt.lastEvents)
+		got := CalculateSessionLength(tt.firstEvents.Events[0].Timestamp, tt.lastEvents.Events[len(tt.lastEvents.Events)-1].Timestamp)
 		if diff := deep.Equal(tt.wantDifference, got); diff != nil {
 			t.Errorf("[%v]: %v", i, diff)
 		}
@@ -218,8 +218,15 @@ func TestGetActiveDuration(t *testing.T) {
 		},
 	}
 	for i, tt := range tables {
-		got, _ := getActiveDuration(tt.events)
-		if diff := deep.Equal(&tt.wantActiveDuration, got); diff != nil {
+		activeDuration := time.Duration(0)
+		var firstTimestamp time.Time
+		var lastTimestamp time.Time
+		for _, errrr := range tt.events {
+			tempD, _ := getActiveDuration(errrr, &firstTimestamp, &lastTimestamp)
+			activeDuration += *tempD
+		}
+
+		if diff := deep.Equal(&tt.wantActiveDuration, activeDuration); diff != nil {
 			t.Errorf("[%v]: %v", i, diff)
 		}
 	}
