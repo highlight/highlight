@@ -169,6 +169,7 @@ func main() {
 			)
 			privateServer.Use(util.NewTracer(util.PrivateGraph))
 			privateServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PrivateGraph)))
+			privateServer.SetRecoverFunc(util.GraphQLRecoverFunc())
 			r.Handle("/", privateServer)
 		})
 	}
@@ -188,6 +189,7 @@ func main() {
 				}))
 			clientServer.Use(util.NewTracer(util.PublicGraph))
 			clientServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PublicGraph)))
+			clientServer.SetRecoverFunc(util.GraphQLRecoverFunc())
 			r.Handle("/", clientServer)
 		})
 	}
