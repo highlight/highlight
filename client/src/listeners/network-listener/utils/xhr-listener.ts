@@ -34,7 +34,6 @@ export const XHRListener = (
         this._shouldRecordHeaderAndBody = !urlBlocklist.some((blockedUrl) =>
             url.toLowerCase().includes(blockedUrl)
         );
-        console.log(this._shouldRecordHeaderAndBody, url, urlBlocklist);
 
         // @ts-expect-error
         return originalOpen.apply(this, arguments);
