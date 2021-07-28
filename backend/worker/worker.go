@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/k0kubun/pp"
 	"gorm.io/gorm/clause"
 
 	"github.com/pkg/errors"
@@ -214,17 +213,16 @@ func CreateFile(name string) (func(), *os.File, error) {
 		return nil, nil, errors.Wrap(err, "error creating file")
 	}
 	return func() {
-		//log.Info("closing file")
-		//err := file.Close()
-		//if err != nil {
-		//	log.Error("failed to close file")
-		//	return
-		//}
-		//err = os.Remove(file.Name())
-		//if err != nil {
-		//	log.Error("failed to remove file")
-		//	return
-		//}
+		err := file.Close()
+		if err != nil {
+			log.Error(e.Wrap(err, "failed to close file"))
+			return
+		}
+		err = os.Remove(file.Name())
+		if err != nil {
+			log.Error(e.Wrap(err, "failed to remove file"))
+			return
+		}
 	}, file, nil
 }
 
@@ -256,7 +254,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	//Delete the session if there's no events.
 	if payloadManager.Events.Length == 0 {
-		pp.Println("deleting...")
 		if err := w.Resolver.DB.Select(clause.Associations).Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
 			return errors.Wrap(err, "error trying to delete associations for session with no events")
 		}
@@ -265,8 +262,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 		return nil
 	}
-
-	log.Infof("events file name: %s", eventsFile.Name())
 
 	// need to reset file pointer to beginning of file for reading
 	for _, file := range []*os.File{eventsFile, resourcesFile, messagesFile} {
@@ -286,7 +281,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		se, err := re.Next()
 		if err != nil {
 			if errors.Is(err, io.EOF) {
-				log.Info("reached the end of file")
 				if se != nil {
 					// calculate session length
 					var eventsObject model.EventsObject
@@ -305,7 +299,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			}
 			break
 		} else if se != nil {
-			log.Infof("session read from file: %s", *se)
 			var eventsObject model.EventsObject
 			err := json.Unmarshal([]byte(*se), &eventsObject)
 			if err != nil {
