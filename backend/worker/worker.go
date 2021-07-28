@@ -276,38 +276,30 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	)
 	p := payload.NewPayloadReadWriter(eventsFile)
 	re := p.Reader()
-	for {
+	hasNext := true
+	for hasNext {
 		se, err := re.Next()
 		if err != nil {
-			if errors.Is(err, io.EOF) {
-				if se != nil {
-					// calculate session length
-					var eventsObject model.EventsObject
-					err := json.Unmarshal([]byte(*se), &eventsObject)
-					if err != nil {
-						return err
-					}
-					duration, err := getActiveDuration(eventsObject, &firstEventTimestamp, &lastEventTimestamp)
-					if err != nil {
-						return err
-					}
-					activeDuration += *duration
-				}
-			} else {
-				log.Errorf("error reading next line: %v", err)
+			if !errors.Is(err, io.EOF) {
+				return e.Wrap(err, "error reading next line")
 			}
-			break
-		} else if se != nil {
+			hasNext = false
+		}
+		if se != nil {
 			var eventsObject model.EventsObject
 			err := json.Unmarshal([]byte(*se), &eventsObject)
 			if err != nil {
 				return err
 			}
-			duration, err := getActiveDuration(eventsObject, &firstEventTimestamp, &lastEventTimestamp)
+			var tempDuration time.Duration
+			tempDuration, lastEventTimestamp, err = getActiveDuration(&eventsObject, lastEventTimestamp)
 			if err != nil {
 				return err
 			}
-			activeDuration += *duration
+			activeDuration += tempDuration
+			if firstEventTimestamp.IsZero() {
+				firstEventTimestamp = lastEventTimestamp
+			}
 		}
 	}
 	// dd.StatsD.Histogram("worker.processSession.payloadStringSize", float64(payloadStringBytes), nil, 1) //nolint
@@ -587,28 +579,25 @@ func CalculateSessionLength(first time.Time, last time.Time) (d time.Duration) {
 	return d
 }
 
-func getActiveDuration(event model.EventsObject, firstEventTimestamp *time.Time, lastEventTimestamp *time.Time) (*time.Duration, error) {
+func getActiveDuration(event *model.EventsObject, lastEventTimestamp time.Time) (time.Duration, time.Time, error) {
 	activeDuration := time.Duration(0)
-	// unnests the events from EventObject
+	// parses the events from EventObject
 	allEvents, err := parse.EventsFromString(event.Events)
 	if err != nil {
-		return nil, err
+		return time.Duration(0), lastEventTimestamp, err
 	}
 
 	// Iterate through all events and sum up time between interactions
 	for _, eventObj := range allEvents.Events {
 		if eventObj.Type == 3 {
-			if firstEventTimestamp.IsZero() {
-				firstEventTimestamp = &eventObj.Timestamp
-			}
 			if !lastEventTimestamp.IsZero() {
-				diff := eventObj.Timestamp.Sub(*lastEventTimestamp)
+				diff := eventObj.Timestamp.Sub(lastEventTimestamp)
 				if diff.Seconds() <= MIN_INACTIVE_DURATION {
-					activeDuration += eventObj.Timestamp.Sub(*lastEventTimestamp)
+					activeDuration += diff
 				}
 			}
-			lastEventTimestamp = &eventObj.Timestamp
+			lastEventTimestamp = eventObj.Timestamp
 		}
 	}
-	return &activeDuration, nil
+	return activeDuration, lastEventTimestamp, nil
 }
