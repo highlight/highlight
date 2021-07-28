@@ -1,6 +1,7 @@
 import classNames from 'classnames';
 import React from 'react';
 
+import { useAuthContext } from '../../../../AuthContext';
 import Button from '../../../../components/Button/Button/Button';
 import Tooltip from '../../../../components/Tooltip/Tooltip';
 import SvgPanelBottomIcon from '../../../../static/PanelBottomIcon';
@@ -17,22 +18,28 @@ const PanelDisplayControls = () => {
         showRightPanel,
         setShowRightPanel,
     } = usePlayerConfiguration();
+    const { isLoggedIn } = useAuthContext();
+    if (!isLoggedIn && showLeftPanel) {
+        setShowLeftPanel(false);
+    }
 
     return (
         <div className={styles.buttonContainer}>
-            <PanelButton
-                tooltipText="Activate the Sessions panel to search for sessions."
-                onClick={() => {
-                    setShowLeftPanel(!showLeftPanel);
-                }}
-            >
-                <SvgPanelRightIcon
-                    className={classNames([
-                        { [styles.active]: showLeftPanel },
-                        styles.leftPanelIcon,
-                    ])}
-                />
-            </PanelButton>
+            {isLoggedIn && (
+                <PanelButton
+                    tooltipText="Activate the Sessions panel to search for sessions."
+                    onClick={() => {
+                        setShowLeftPanel(!showLeftPanel);
+                    }}
+                >
+                    <SvgPanelRightIcon
+                        className={classNames([
+                            { [styles.active]: showLeftPanel },
+                            styles.leftPanelIcon,
+                        ])}
+                    />
+                </PanelButton>
+            )}
             <PanelButton
                 tooltipText="Activate the DevTools to see console logs, errors, and network requests."
                 onClick={() => {

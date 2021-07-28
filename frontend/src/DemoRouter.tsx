@@ -53,6 +53,7 @@ const DemoRouter = () => {
                     state: sidebarState,
                     setState: setSidebarState,
                     toggleSidebar,
+                    staticSidebarState: SidebarState.Expanded,
                 }}
             >
                 <Header />

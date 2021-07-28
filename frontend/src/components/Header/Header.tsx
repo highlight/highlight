@@ -4,6 +4,7 @@ import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
 
+import { useAuthContext } from '../../AuthContext';
 import { DemoContext } from '../../DemoContext';
 import { useGetBillingDetailsQuery } from '../../graph/generated/hooks';
 import { PlanType } from '../../graph/generated/schemas';
@@ -23,6 +24,7 @@ export const Header = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { demo } = useContext(DemoContext);
     const { state, toggleSidebar } = useSidebarContext();
+    const { isLoggedIn } = useAuthContext();
 
     return (
         <>
@@ -35,16 +37,18 @@ export const Header = () => {
                 )}
                 <div className={styles.headerContent}>
                     <div className={styles.logoWrapper}>
-                        <Hamburger
-                            className={styles.hamburger}
-                            onClick={toggleSidebar}
-                            style={{
-                                transform:
-                                    state === SidebarState.Expanded
-                                        ? 'rotate(-180deg)'
-                                        : 'rotate(0deg)',
-                            }}
-                        />
+                        {isLoggedIn && (
+                            <Hamburger
+                                className={styles.hamburger}
+                                onClick={toggleSidebar}
+                                style={{
+                                    transform:
+                                        state === SidebarState.Expanded
+                                            ? 'rotate(-180deg)'
+                                            : 'rotate(0deg)',
+                                }}
+                            />
+                        )}
                         <Link
                             className={styles.homeLink}
                             to={demo ? '/' : `/${organization_id}/home`}
@@ -54,9 +58,9 @@ export const Header = () => {
                     </div>
                     <div className={styles.rightHeader}>
                         <ThemeToggle />
-                        <Notifications />
+                        {isLoggedIn && <Notifications />}
                         <HelpMenu />
-                        <UserDropdown />
+                        {isLoggedIn && <UserDropdown />}
                     </div>
                 </div>
             </div>
