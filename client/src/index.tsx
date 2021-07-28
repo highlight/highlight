@@ -270,23 +270,17 @@ export class Highlight {
     async pushCustomError(message: string, payload?: string) {
         const result = await StackTrace.get();
         const frames = result.slice(1);
-        if (
-            !frames[0]?.source
-                ?.toLowerCase()
-                .includes('https://static.highlight.run/index.js')
-        ) {
-            this.errors.push({
-                event: message,
-                type: 'custom',
-                url: window.location.href,
-                source: frames[0].fileName ?? '',
-                lineNumber: frames[0].lineNumber ?? 0,
-                columnNumber: frames[0].columnNumber ?? 0,
-                stackTrace: frames,
-                timestamp: new Date().toISOString(),
-                payload: payload,
-            });
-        }
+        this.errors.push({
+            event: message,
+            type: 'custom',
+            url: window.location.href,
+            source: frames[0].fileName ?? '',
+            lineNumber: frames[0].lineNumber ?? 0,
+            columnNumber: frames[0].columnNumber ?? 0,
+            stackTrace: frames,
+            timestamp: new Date().toISOString(),
+            payload: payload,
+        });
     }
 
     async consumeCustomError(error: Error, message?: string, payload?: string) {
@@ -298,23 +292,17 @@ export class Highlight {
                 console.error(e);
             }
         }
-        if (
-            !res[0]?.source
-                ?.toLowerCase()
-                .includes('https://static.highlight.run/index.js')
-        ) {
-            this.errors.push({
-                event: message ? message + ':' + error.message : error.message,
-                type: 'custom',
-                url: window.location.href,
-                source: '',
-                lineNumber: res[0]?.lineNumber ? res[0]?.lineNumber : 0,
-                columnNumber: res[0]?.columnNumber ? res[0]?.columnNumber : 0,
-                stackTrace: res,
-                timestamp: new Date().toISOString(),
-                payload: payload,
-            });
-        }
+        this.errors.push({
+            event: message ? message + ':' + error.message : error.message,
+            type: 'custom',
+            url: window.location.href,
+            source: '',
+            lineNumber: res[0]?.lineNumber ? res[0]?.lineNumber : 0,
+            columnNumber: res[0]?.columnNumber ? res[0]?.columnNumber : 0,
+            stackTrace: res,
+            timestamp: new Date().toISOString(),
+            payload: payload,
+        });
     }
 
     async addProperties(properties_obj = {}, typeArg?: PropertyType) {
@@ -525,16 +513,7 @@ export class Highlight {
             if (!this.disableConsoleRecording) {
                 this.listeners.push(
                     ConsoleListener((c: ConsoleMessage) => {
-                        if (
-                            c.type == 'Error' &&
-                            c.value &&
-                            c.trace &&
-                            !c.trace[0].source
-                                ?.toLowerCase()
-                                .includes(
-                                    'https://static.highlight.run/index.js'
-                                )
-                        )
+                        if (c.type == 'Error' && c.value && c.trace)
                             highlightThis.errors.push({
                                 event: stringify(c.value),
                                 type: 'console.error',

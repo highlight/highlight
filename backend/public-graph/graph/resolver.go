@@ -169,6 +169,9 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 
 func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *model2.ErrorObjectInput, fields []*model.ErrorField, organizationID int) (*model.ErrorGroup, error) {
 	frames := errorInput.StackTrace
+	if frames != nil && frames[0] != nil && frames[0].Source != nil && strings.Contains(*frames[0].Source, "https://static.highlight.run/index.js") {
+		errorObj.OrganizationID = 1
+	}
 	firstFrameBytes, err := json.Marshal(frames)
 	if err != nil {
 		return nil, e.Wrap(err, "Error marshalling first frame")
