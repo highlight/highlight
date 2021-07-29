@@ -6,24 +6,18 @@ import { useParams } from 'react-router-dom';
 import { useAuthContext } from '../../../AuthContext';
 import { Avatar } from '../../../components/Avatar/Avatar';
 import UserIdentifier from '../../../components/UserIdentifier/UserIdentifier';
-import {
-    useGetSessionQuery,
-    useMarkSessionAsStarredMutation,
-} from '../../../graph/generated/hooks';
+import { useMarkSessionAsStarredMutation } from '../../../graph/generated/hooks';
 import { ReactComponent as StarIcon } from '../../../static/star.svg';
 import { ReactComponent as FilledStarIcon } from '../../../static/star-filled.svg';
+import { useReplayerContext } from '../ReplayerContext';
 import styles from './MetadataBox.module.scss';
 import { getMajorVersion } from './utils/utils';
 
 export const MetadataBox = () => {
     const { isLoggedIn } = useAuthContext();
     const { session_id } = useParams<{ session_id: string }>();
+    const { session } = useReplayerContext();
 
-    const { loading, data } = useGetSessionQuery({
-        variables: {
-            id: session_id,
-        },
-    });
     const [markSessionAsStarred] = useMarkSessionAsStarredMutation({
         update(cache) {
             cache.modify({
@@ -39,7 +33,7 @@ export const MetadataBox = () => {
             });
         },
     });
-    const created = new Date(data?.session?.created_at ?? 0);
+    const created = new Date(session?.created_at ?? 0);
 
     return (
         <div className={styles.locationBox}>
@@ -51,7 +45,7 @@ export const MetadataBox = () => {
                             markSessionAsStarred({
                                 variables: {
                                     id: session_id,
-                                    starred: !data?.session?.starred,
+                                    starred: !session?.starred,
                                 },
                             })
                                 .then(() => {
@@ -68,7 +62,7 @@ export const MetadataBox = () => {
                                 });
                         }}
                     >
-                        {data?.session?.starred ? (
+                        {session?.starred ? (
                             <FilledStarIcon className={styles.starredIcon} />
                         ) : (
                             <StarIcon className={styles.unstarredIcon} />
@@ -76,18 +70,18 @@ export const MetadataBox = () => {
                     </div>
                 )}
                 <div className={styles.userAvatarWrapper}>
-                    {loading ? (
+                    {!session ? (
                         <Skeleton circle={true} height={36} width={36} />
                     ) : (
                         <Avatar
                             style={{ width: '36px', height: '36px' }}
-                            seed={data?.session?.identifier ?? ''}
+                            seed={session?.identifier ?? ''}
                             shape="rounded"
                         />
                     )}
                 </div>
                 <div className={styles.headerWrapper}>
-                    {loading ? (
+                    {!session ? (
                         <Skeleton
                             count={2}
                             style={{ height: 20, marginBottom: 5 }}
@@ -95,7 +89,7 @@ export const MetadataBox = () => {
                     ) : (
                         <>
                             <h4 className={styles.userIdHeader}>
-                                <UserIdentifier session={data?.session} />
+                                <UserIdentifier session={session} />
                             </h4>
                             <p className={styles.userIdSubHeader}>
                                 {created.toLocaleString('en-us', {
@@ -114,19 +108,19 @@ export const MetadataBox = () => {
                                 })}
                             </p>
                             <p className={styles.userIdSubHeader}>
-                                {data?.session?.browser_name && (
+                                {session?.browser_name && (
                                     <>
                                         <span>
-                                            {data?.session.browser_name}{' '}
+                                            {session.browser_name}{' '}
                                             {getMajorVersion(
-                                                data?.session.browser_version
+                                                session.browser_version
                                             )}
                                         </span>
                                         <span> • </span>
                                         <span>
-                                            {data?.session.os_name}{' '}
+                                            {session.os_name}{' '}
                                             {getMajorVersion(
-                                                data?.session.os_version
+                                                session.os_version
                                             )}
                                         </span>
                                     </>

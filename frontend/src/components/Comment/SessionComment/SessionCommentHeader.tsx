@@ -1,12 +1,9 @@
 import { Menu, message } from 'antd';
 import { H } from 'highlight.run';
 import React, { PropsWithChildren } from 'react';
-import { useHistory, useParams } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 
-import {
-    useDeleteSessionCommentMutation,
-    useGetSessionQuery,
-} from '../../../graph/generated/hooks';
+import { useDeleteSessionCommentMutation } from '../../../graph/generated/hooks';
 import { PlayerSearchParameters } from '../../../pages/Player/PlayerHook/utils';
 import {
     ParsedSessionComment,
@@ -33,17 +30,11 @@ const SessionCommentHeader = ({
     menuItems,
     footer,
 }: PropsWithChildren<Props>) => {
-    const { session_id } = useParams<{ session_id: string }>();
-    const { pause } = useReplayerContext();
+    const { pause, session } = useReplayerContext();
     const [deleteSessionComment] = useDeleteSessionCommentMutation({
         refetchQueries: ['GetSessionComments'],
     });
     const history = useHistory();
-    const { data } = useGetSessionQuery({
-        variables: {
-            id: session_id,
-        },
-    });
 
     const getCommentLink = () => {
         const url = onGetLinkWithTimestamp(comment.timestamp);
@@ -96,14 +87,14 @@ const SessionCommentHeader = ({
             >
                 Delete comment
             </Menu.Item>
-            {data && (
+            {session && (
                 <Menu.Item
                     onClick={() => {
                         H.track('Create Linear issue');
                         const url = getCommentLink();
                         window.open(
                             `http://linear.app/new?title=Highlight session comment for ${
-                                data.session?.identifier
+                                session?.identifier
                             }&description=${comment.text.replaceAll(
                                 '@',
                                 ''

@@ -16,10 +16,7 @@ import GoToButton from '../../../../../components/Button/GoToButton';
 import Input from '../../../../../components/Input/Input';
 import TextHighlighter from '../../../../../components/TextHighlighter/TextHighlighter';
 import Tooltip from '../../../../../components/Tooltip/Tooltip';
-import {
-    useGetResourcesQuery,
-    useGetSessionQuery,
-} from '../../../../../graph/generated/hooks';
+import { useGetResourcesQuery } from '../../../../../graph/generated/hooks';
 import { formatNumber } from '../../../../../util/numbers';
 import { MillisToMinutesAndSeconds } from '../../../../../util/time';
 import { formatTime } from '../../../../Home/components/KeyPerformanceIndicators/utils/utils';
@@ -36,13 +33,8 @@ export const ResourcePage = ({
     time: number;
     startTime: number;
 }) => {
-    const { state } = useReplayerContext();
+    const { state, session } = useReplayerContext();
     const { session_id } = useParams<{ session_id: string }>();
-    const { data: sessionData } = useGetSessionQuery({
-        variables: {
-            id: session_id,
-        },
-    });
     const [selectedNetworkResource, setSelectedNetworkResource] = useState<
         undefined | NetworkResource
     >(undefined);
@@ -300,8 +292,7 @@ export const ResourcePage = ({
                     setSelectedNetworkResource(undefined);
                 }}
                 networkRecordingEnabledForSession={
-                    sessionData?.session?.enable_recording_network_contents ||
-                    false
+                    session?.enable_recording_network_contents || false
                 }
             />
         </div>

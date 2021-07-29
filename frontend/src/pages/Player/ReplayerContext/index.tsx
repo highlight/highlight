@@ -3,6 +3,7 @@ import { SessionInterval } from '@highlight-run/rrweb/dist/types';
 
 import {
     ErrorObject,
+    Session,
     SessionComment,
     SessionResults,
 } from '../../../graph/generated/schemas';
@@ -73,6 +74,8 @@ export interface ReplayerContextInterface {
     canViewSession: boolean;
     /** The sessions that are relevant to the current search filters. */
     sessionResults: SessionResults;
+    /** The active session if any. */
+    session: Session | undefined;
     setSessionResults: React.Dispatch<React.SetStateAction<SessionResults>>;
     isPlayerReady: boolean;
 }

@@ -6,12 +6,14 @@ import { useHistory, useParams } from 'react-router-dom';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
 import {
-    useGetSessionCommentsQuery,
+    useGetSessionCommentsLazyQuery,
+    useGetSessionLazyQuery,
     useGetSessionPayloadLazyQuery,
     useGetSessionQuery,
 } from '../../../graph/generated/hooks';
 import {
     ErrorObject,
+    Session,
     SessionComment,
     SessionResults,
 } from '../../../graph/generated/schemas';
@@ -47,6 +49,7 @@ export const usePlayer = (): ReplayerContextInterface => {
     }>();
     const history = useHistory();
 
+    const {} = useGetSessionQuery();
     const [download] = useQueryParam('download', BooleanParam);
     const [scale, setScale] = useState(1);
     const [events, setEvents] = useState<Array<HighlightEvent>>([]);
@@ -68,6 +71,7 @@ export const usePlayer = (): ReplayerContextInterface => {
     const [state, setState] = useState<ReplayerState>(ReplayerState.Loading);
     const [canViewSession, setCanViewSession] = useState(true);
     const [time, setTime] = useState<number>(0);
+    const [session, setSession] = useState<undefined | Session>(undefined);
     /** localStorageTime acts like a message broker to share the current player time for components that are outside of the context tree. */
     const {
         setPlayerTime: setPlayerTimeToPersistance,
@@ -85,7 +89,7 @@ export const usePlayer = (): ReplayerContextInterface => {
     } = useSetPlayerTimestampFromSearchParam(setTime, replayer);
 
     const [
-        getSessionPayload,
+        getSessionPayloadQuery,
         { loading, data: eventsData },
     ] = useGetSessionPayloadLazyQuery({
         variables: {
@@ -94,28 +98,39 @@ export const usePlayer = (): ReplayerContextInterface => {
         fetchPolicy: 'no-cache',
     });
 
-    useGetSessionQuery({
+    const [getSessionQuery, { data: sessionData }] = useGetSessionLazyQuery({
         variables: {
             id: session_id,
         },
         onCompleted: (data) => {
             if (data.session?.within_billing_quota) {
-                getSessionPayload();
+                getSessionPayloadQuery();
                 setCanViewSession(true);
             } else {
                 setCanViewSession(false);
             }
         },
     });
-    const {
-        data: sessionCommentsData,
-        loading: sessionCommentsLoading,
-    } = useGetSessionCommentsQuery({
+    const [
+        getSessionCommentsQuery,
+        { data: sessionCommentsData, loading: sessionCommentsLoading },
+    ] = useGetSessionCommentsLazyQuery({
         variables: {
             session_id,
         },
         pollInterval: 1000 * 10,
     });
+
+    useEffect(() => {
+        if (session_id) {
+            getSessionQuery();
+            getSessionCommentsQuery();
+        }
+    }, [getSessionCommentsQuery, getSessionQuery, session_id]);
+
+    useEffect(() => {
+        setSession(sessionData?.session as Session | undefined);
+    }, [sessionData?.session]);
 
     const resetPlayer = useCallback(() => {
         setState(ReplayerState.Loading);
@@ -418,6 +433,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         setSessionResults,
         isPlayerReady:
             state !== ReplayerState.Loading && scale !== 1 && canViewSession,
+        session,
     };
 };
 

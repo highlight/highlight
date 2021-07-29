@@ -8,23 +8,16 @@ import Button from '../../../components/Button/Button/Button';
 import CopyText from '../../../components/CopyText/CopyText';
 import Popover from '../../../components/Popover/Popover';
 import Switch from '../../../components/Switch/Switch';
-import {
-    useGetSessionQuery,
-    useUpdateSessionIsPublicMutation,
-} from '../../../graph/generated/hooks';
+import { useUpdateSessionIsPublicMutation } from '../../../graph/generated/hooks';
 import { useReplayerContext } from '../ReplayerContext';
 import styles from './ShareButton.module.scss';
 import { onGetLinkWithTimestamp } from './utils/utils';
 
 const ShareButton = (props: ButtonProps) => {
-    const { time } = useReplayerContext();
+    const { time, session } = useReplayerContext();
     const { isHighlightAdmin, isLoggedIn } = useAuthContext();
     const { session_id } = useParams<{ session_id: string }>();
-    const { loading, data } = useGetSessionQuery({
-        variables: {
-            id: session_id,
-        },
-    });
+
     const [updateSessionIsPublic] = useUpdateSessionIsPublicMutation({
         update(cache) {
             cache.modify({
@@ -64,12 +57,12 @@ const ShareButton = (props: ButtonProps) => {
                         {isLoggedIn && (
                             <>
                                 <h3>Share externally</h3>
-                                {loading ? (
+                                {!session ? (
                                     <p>Loading...</p>
                                 ) : (
                                     <div>
                                         <Switch
-                                            checked={!!data?.session?.is_public}
+                                            checked={!!session?.is_public}
                                             onChange={(checked: boolean) => {
                                                 H.track(
                                                     'Toggled session isPublic',
