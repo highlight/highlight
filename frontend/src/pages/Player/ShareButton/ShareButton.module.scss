@@ -1,13 +1,10 @@
-.popover {
-    margin-top: var(--size-xxSmall);
-    max-width: 320px;
-    min-width: 300px;
+.copyText {
+    margin-bottom: var(--size-small);
 }
 
-.popoverContent {
-    display: flex;
-    flex-direction: column;
-    height: 280px;
-    margin: 0 auto;
-    width: 80%;
+.divider {
+    border: 0;
+    border-top: 1px solid var(--color-gray-300);
+    margin-bottom: var(--size-medium);
+    margin-top: var(--size-medium);
 }

@@ -3,16 +3,15 @@
     background-color: var(--color-gray-100);
     border-radius: var(--border-radius);
     display: flex;
-    padding: var(--size-xxSmall) var(--size-small);
-
-    .icon {
-        color: var(--color-gray-500);
+    .copyButton {
         margin-left: auto;
     }
 
     .link {
-        max-width: calc(100% - 50px);
+        margin-left: var(--size-small);
+        margin-right: var(--size-small);
         overflow: hidden;
         text-overflow: ellipsis;
+        white-space: nowrap;
     }
 }

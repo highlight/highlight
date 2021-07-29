@@ -1,4 +1,4 @@
-import { ButtonProps, message, Modal } from 'antd';
+import { ButtonProps, message } from 'antd';
 import { H } from 'highlight.run';
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -6,6 +6,7 @@ import { useParams } from 'react-router-dom';
 import { useAuthContext } from '../../../AuthContext';
 import Button from '../../../components/Button/Button/Button';
 import CopyText from '../../../components/CopyText/CopyText';
+import Modal from '../../../components/Modal/Modal';
 import ModalBody from '../../../components/ModalBody/ModalBody';
 import Switch from '../../../components/Switch/Switch';
 import {
@@ -46,15 +47,15 @@ const ShareButton = (props: ButtonProps) => {
                     setShowModal(false);
                 }}
                 destroyOnClose
-                style={{ display: 'flex' }}
+                centered
                 width={500}
-                footer={null}
             >
                 <ModalBody>
-                    <div className={styles.popover}>
-                        <div className={styles.popoverContent}>
+                    <div>
+                        <div>
                             <h3>Session Sharing</h3>
                             <CopyText
+                                className={styles.copyText}
                                 text={
                                     shareTimestamp
                                         ? onGetLinkWithTimestamp(
@@ -64,7 +65,7 @@ const ShareButton = (props: ButtonProps) => {
                                 }
                             />
                             {isLoggedIn && <ExternalSharingOptions />}
-                            <hr></hr>
+                            <hr className={styles.divider} />
                             <h3>Sharing Parameters</h3>
                             <Switch
                                 checked={shareTimestamp}
@@ -95,13 +96,14 @@ const ExternalSharingOptions = () => {
         variables: { id: organization_id },
     });
     const [updateSessionIsPublic] = useUpdateSessionIsPublicMutation({
-        update(cache) {
+        update(cache, { data }) {
+            const is_public = data?.updateSessionIsPublic?.is_public === true;
             cache.modify({
                 fields: {
                     session(existingSession) {
                         const updatedSession = {
                             ...existingSession,
-                            is_public: !existingSession.is_public,
+                            is_public,
                         };
                         return updatedSession;
                     },
@@ -111,9 +113,7 @@ const ExternalSharingOptions = () => {
     });
     return (
         <>
-            {loading ? (
-                <p>Loading...</p>
-            ) : (
+            {loading ? null : (
                 <div>
                     <Switch
                         checked={!!data?.session?.is_public}
