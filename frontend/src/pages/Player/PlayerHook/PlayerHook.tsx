@@ -135,20 +135,23 @@ export const usePlayer = (): ReplayerContextInterface => {
         setSession(sessionData?.session as Session | undefined);
     }, [sessionData?.session]);
 
-    const resetPlayer = useCallback(() => {
-        setState(ReplayerState.Empty);
-        setErrors([]);
-        setEvents([]);
-        setScale(1);
-        setSessionComments([]);
-        setReplayer(undefined);
-        setSelectedErrorId(undefined);
-        setTime(0);
-        setPlayerTimeToPersistance(0);
-        setSessionEndTime(0);
-        setSessionIntervals([]);
-        setCanViewSession(true);
-    }, [setPlayerTimeToPersistance]);
+    const resetPlayer = useCallback(
+        (nextState?: ReplayerState) => {
+            setState(nextState || ReplayerState.Empty);
+            setErrors([]);
+            setEvents([]);
+            setScale(1);
+            setSessionComments([]);
+            setReplayer(undefined);
+            setSelectedErrorId(undefined);
+            setTime(0);
+            setPlayerTimeToPersistance(0);
+            setSessionEndTime(0);
+            setSessionIntervals([]);
+            setCanViewSession(true);
+        },
+        [setPlayerTimeToPersistance]
+    );
 
     // Reset all state when loading events.
     useEffect(() => {
@@ -367,7 +370,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             history.push(
                 `/${organization_id}/sessions/${sessionResults.sessions[nextSessionIndex].id}`
             );
-            resetPlayer();
+            resetPlayer(ReplayerState.Loading);
             message.success('Playing the next session.');
         }
     }, [
