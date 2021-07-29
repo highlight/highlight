@@ -8,24 +8,39 @@ import { isHighlightNetworkResourceFilter } from './utils';
 
 export const FetchListener = (
     callback: NetworkListenerCallback,
-    backendUrl: string
+    backendUrl: string,
+    urlBlocklist: string[]
 ) => {
     const originalFetch = window.fetch;
 
     window.fetch = function (input, init) {
         const { method, url } = getRequestProperties(input, init);
         const request: HighlightRequest = {
-            headers: init?.headers as any,
-            body: init?.body,
+            headers: {},
+            body: undefined,
             url,
             verb: method,
         };
+        const shouldRecordHeaderAndBody = !urlBlocklist.some((blockedUrl) =>
+            url.toLowerCase().includes(blockedUrl)
+        );
+
+        if (shouldRecordHeaderAndBody) {
+            request.headers = init?.headers as any;
+            request.body = init?.body;
+        }
+
         let responsePromise: Promise<Response>;
 
         responsePromise = originalFetch.call(this, input, init);
 
         if (!isHighlightNetworkResourceFilter(url, backendUrl)) {
-            logRequest(responsePromise, request, callback);
+            logRequest(
+                responsePromise,
+                request,
+                callback,
+                shouldRecordHeaderAndBody
+            );
         }
 
         return responsePromise;
@@ -53,7 +68,8 @@ const getRequestProperties = (input: RequestInfo, init?: RequestInit) => {
 const logRequest = (
     responsePromise: Promise<Response>,
     requestPayload: HighlightRequest,
-    callback: NetworkListenerCallback
+    callback: NetworkListenerCallback,
+    shouldRecordHeaderAndBody: boolean
 ) => {
     const onPromiseResolveHandler = async (response: Response | Error) => {
         let responsePayload: HighlightResponse = {
@@ -74,20 +90,23 @@ const logRequest = (
 
             requestHandled = true;
         } else if ('status' in response) {
-            let text: string;
-            try {
-                text = await response.clone().text();
-            } catch (e) {
-                text = `Unable to clone response: ${e as string}`;
-            }
-
             responsePayload = {
                 ...responsePayload,
-                body: text,
-                headers: response.headers,
                 status: response.status,
-                size: text.length * 8,
             };
+
+            if (shouldRecordHeaderAndBody) {
+                let text: string;
+                try {
+                    text = await response.clone().text();
+                } catch (e) {
+                    text = `Unable to clone response: ${e as string}`;
+                }
+
+                responsePayload.body = text;
+                responsePayload.headers = response.headers;
+                responsePayload.size = text.length * 8;
+            }
 
             requestHandled = true;
         }
@@ -96,6 +115,7 @@ const logRequest = (
             const event: RequestResponsePair = {
                 request: requestPayload,
                 response: responsePayload,
+                urlBlocked: !shouldRecordHeaderAndBody,
             };
 
             callback(event);

@@ -20,4 +20,6 @@ export interface Response {
 export interface RequestResponsePair {
     request: Request;
     response: Response;
+    /** Whether this URL matched a `urlToBlock` so the contents should not be recorded. */
+    urlBlocked: boolean;
 }

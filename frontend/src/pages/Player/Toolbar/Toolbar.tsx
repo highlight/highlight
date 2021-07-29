@@ -5,6 +5,10 @@ import { FaPause } from 'react-icons/fa';
 import Skeleton from 'react-loading-skeleton';
 
 import Modal from '../../../components/Modal/Modal';
+import {
+    SidebarState,
+    useSidebarContext,
+} from '../../../components/Sidebar/SidebarContext';
 import ToggleButton from '../../../components/ToggleButton/ToggleButton';
 import Tooltip from '../../../components/Tooltip/Tooltip';
 import { useGetAdminQuery } from '../../../graph/generated/hooks';
@@ -67,6 +71,7 @@ export const Toolbar = () => {
         showPlayerMouseTail,
         setShowPlayerMouseTail,
     } = usePlayerConfiguration();
+    const { staticSidebarState } = useSidebarContext();
     const { data: admin_data } = useGetAdminQuery({ skip: false });
     const max = replayer?.getMetaData().totalTime ?? 0;
     const sliderWrapperRef = useRef<HTMLButtonElement>(null);
@@ -191,7 +196,9 @@ export const Toolbar = () => {
     const disableControls = state === ReplayerState.Loading || !canViewSession;
     // The play button should be disabled if the player has reached the end.
     const disablePlayButton = time >= (replayer?.getMetaData().totalTime ?? 0);
-    const leftSidebarWidth = 475;
+    const leftSidebarWidth = showLeftPanel ? 475 : 0;
+    const staticSidebarWidth =
+        staticSidebarState == SidebarState.Expanded ? 64 : 0;
 
     return (
         <ErrorModalContextProvider value={{ selectedError, setSelectedError }}>
@@ -244,17 +251,15 @@ export const Toolbar = () => {
                     ref={sliderWrapperRef}
                     onMouseMove={(e: React.MouseEvent<HTMLButtonElement>) =>
                         setSliderClientX(
-                            e.clientX -
-                                64 -
-                                (showLeftPanel ? leftSidebarWidth : 0)
+                            e.clientX - staticSidebarWidth - leftSidebarWidth
                         )
                     }
                     onMouseLeave={() => setSliderClientX(-1)}
                     onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                         const ratio =
                             (e.clientX -
-                                64 -
-                                (showLeftPanel ? leftSidebarWidth : 0)) /
+                                staticSidebarWidth -
+                                leftSidebarWidth) /
                             wrapperWidth;
                         setTime(getSliderTime(ratio));
                     }}

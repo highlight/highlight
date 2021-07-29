@@ -145,7 +145,7 @@ func main() {
 	r.Use(cors.New(cors.Options{
 		AllowOriginRequestFunc: validateOrigin,
 		AllowCredentials:       true,
-		AllowedHeaders:         []string{"Highlight-Demo", "Content-Type", "Token", "Sentry-Trace"},
+		AllowedHeaders:         []string{"Content-Type", "Token", "Sentry-Trace"},
 	}).Handler)
 	r.MethodFunc(http.MethodGet, "/health", health)
 
@@ -169,6 +169,7 @@ func main() {
 			)
 			privateServer.Use(util.NewTracer(util.PrivateGraph))
 			privateServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PrivateGraph)))
+			privateServer.SetRecoverFunc(util.GraphQLRecoverFunc())
 			r.Handle("/", privateServer)
 		})
 	}
@@ -188,6 +189,7 @@ func main() {
 				}))
 			clientServer.Use(util.NewTracer(util.PublicGraph))
 			clientServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PublicGraph)))
+			clientServer.SetRecoverFunc(util.GraphQLRecoverFunc())
 			r.Handle("/", clientServer)
 		})
 	}

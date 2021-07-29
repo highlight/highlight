@@ -37,7 +37,7 @@ import FirstTimeDecorations from './components/FirstTimeDecorations/FirstTimeDec
 import SessionSearch from './components/SessionSearch/SessionSearch';
 import styles from './SessionsFeed.module.scss';
 
-const SESSIONS_FEED_POLL_INTERVAL = 5000;
+const SESSIONS_FEED_POLL_INTERVAL = 1000 * 10;
 
 export const SessionFeed = () => {
     const { organization_id, segment_id, session_id } = useParams<{
@@ -77,7 +77,7 @@ export const SessionFeed = () => {
                     : SessionLifecycle.All,
             starred: segment_id === STARRED_SEGMENT_ID,
         },
-        // pollInterval: SESSIONS_FEED_POLL_INTERVAL,
+        pollInterval: SESSIONS_FEED_POLL_INTERVAL,
         onCompleted: (response) => {
             if (response.sessions) {
                 setData(response.sessions);
@@ -105,7 +105,7 @@ export const SessionFeed = () => {
             setCount((previousCount) => previousCount + 10);
             fetchMore({
                 variables: {
-                    params: searchParams,
+                    params: searchParamsExceptForShowLiveSessions,
                     count,
                     organization_id,
                     processed:

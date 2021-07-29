@@ -1,8 +1,7 @@
 import { Dropdown, Skeleton } from 'antd';
-import React, { useContext } from 'react';
+import React from 'react';
 import { FiLogOut } from 'react-icons/fi';
 
-import { DemoContext } from '../../../DemoContext';
 import { useGetAdminQuery } from '../../../graph/generated/hooks';
 import { auth } from '../../../util/auth';
 import { client } from '../../../util/graph';
@@ -10,12 +9,11 @@ import { AdminAvatar } from '../../Avatar/Avatar';
 import styles from './UserDropdown.module.scss';
 
 export const UserDropdown = () => {
-    const { demo } = useContext(DemoContext);
     const {
         loading: a_loading,
         error: a_error,
         data: a_data,
-    } = useGetAdminQuery({ skip: demo });
+    } = useGetAdminQuery();
 
     const menu = (
         <div className={styles.dropdownMenu}>
@@ -68,7 +66,7 @@ export const UserDropdown = () => {
     );
     return (
         <Dropdown
-            overlay={demo ? <></> : menu}
+            overlay={menu}
             placement={'bottomRight'}
             onVisibleChange={() => {
                 window.analytics.track('User Icon Hover', {

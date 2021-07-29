@@ -2,9 +2,11 @@ import useLocalStorage from '@rehooks/local-storage';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
+import { useAuthContext } from '../AuthContext';
 import { useIsIntegratedLazyQuery } from '../graph/generated/hooks';
 
 export const useIntegrated = (): { integrated: boolean; loading: boolean } => {
+    const { isLoggedIn, isAuthLoading } = useAuthContext();
     const { organization_id } = useParams<{ organization_id: string }>();
     const [query, { data, loading }] = useIsIntegratedLazyQuery({
         variables: { organization_id: organization_id.toString() },
@@ -21,6 +23,7 @@ export const useIntegrated = (): { integrated: boolean; loading: boolean } => {
     const integratedRaw = data?.isIntegrated;
 
     useEffect(() => {
+        if (!isLoggedIn) return;
         if (!localStorageIntegrated) {
             query();
             const timer = setInterval(() => {
@@ -37,7 +40,7 @@ export const useIntegrated = (): { integrated: boolean; loading: boolean } => {
             setLoadingState(false);
             setIntegrated(localStorageIntegrated);
         }
-    }, [integrated, localStorageIntegrated, query]);
+    }, [integrated, localStorageIntegrated, query, isLoggedIn]);
 
     useEffect(() => {
         if (integratedRaw !== undefined) {
@@ -51,6 +54,11 @@ export const useIntegrated = (): { integrated: boolean; loading: boolean } => {
             setLoadingState(false);
         }
     }, [loading]);
+
+    // Assume that app is integrated if viewing session as guest and not loading
+    if (!isLoggedIn) {
+        return { integrated: !isAuthLoading, loading: isAuthLoading };
+    }
 
     return { integrated: integrated || false, loading: loadingState };
 };
