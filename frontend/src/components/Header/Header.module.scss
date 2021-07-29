@@ -29,6 +29,8 @@
 .headerContent {
     display: flex;
     flex-grow: 1;
+    padding-left: 20px;
+    padding-right: 20px;
 }
 
 .searchWrapper {
@@ -106,11 +108,9 @@
 .logoWrapper {
     align-items: center;
     color: var(--text-primary);
-    cursor: pointer;
     display: flex;
     height: 100%;
     justify-content: center;
-    margin-left: 20px;
     z-index: 10;
 }
 

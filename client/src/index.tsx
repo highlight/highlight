@@ -34,6 +34,7 @@ import {
     isHighlightNetworkResourceFilter,
     matchPerformanceTimingsWithRequestResponsePair,
 } from './listeners/network-listener/utils/utils';
+import { DEFAULT_URL_BLOCKLIST } from './listeners/network-listener/utils/network-sanitizer';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -76,6 +77,12 @@ export type NetworkRecordingOptions = {
      * networkHeadersToRedact: ['Secret-Header', 'Plain-Text-Password']
      */
     networkHeadersToRedact?: string[];
+    /**
+     * URLs to not record headers and bodies for.
+     * To disable recording headers and bodies for all URLs, set `recordHeadersAndBody` to `false`.
+     * @default ['https://www.googleapis.com/identitytoolkit', 'https://securetoken.googleapis.com']
+     */
+    urlBlocklist?: string[];
 };
 
 export type HighlightClassOptions = {
@@ -140,6 +147,7 @@ export class Highlight {
     xhrNetworkContents: RequestResponsePair[] = [];
     fetchNetworkContents: RequestResponsePair[] = [];
     networkHeadersToRedact: string[] = [];
+    urlBlocklist: string[] = [];
     sessionData: SessionData;
     /** @deprecated Use state instead. Ready should be removed when Highlight releases 2.0. */
     ready: boolean;
@@ -179,18 +187,33 @@ export class Highlight {
             this.disableNetworkRecording = options?.disableNetworkRecording;
             this.enableRecordingNetworkContents = false;
             this.networkHeadersToRedact = [];
+            this.urlBlocklist = [];
         } else if (typeof options?.networkRecording === 'boolean') {
             this.disableNetworkRecording = !options.networkRecording;
             this.enableRecordingNetworkContents = false;
             this.networkHeadersToRedact = [];
+            this.urlBlocklist = [];
         } else {
-            this.disableNetworkRecording = !options.networkRecording?.enabled;
+            if (options.networkRecording?.enabled !== undefined) {
+                this.disableNetworkRecording = !options.networkRecording
+                    .enabled;
+            } else {
+                this.disableNetworkRecording = false;
+            }
             this.enableRecordingNetworkContents =
                 options.networkRecording?.recordHeadersAndBody || false;
             this.networkHeadersToRedact =
                 options.networkRecording?.networkHeadersToRedact?.map(
                     (header) => header.toLowerCase()
                 ) || [];
+            this.urlBlocklist =
+                options.networkRecording?.urlBlocklist?.map((url) =>
+                    url.toLowerCase()
+                ) || [];
+            this.urlBlocklist = [
+                ...this.urlBlocklist,
+                ...DEFAULT_URL_BLOCKLIST,
+            ];
         }
 
         this.ready = false;
@@ -571,6 +594,7 @@ export class Highlight {
                         },
                         headersToRedact: this.networkHeadersToRedact,
                         backendUrl: this._backendUrl,
+                        urlBlocklist: this.urlBlocklist,
                     })
                 );
             }

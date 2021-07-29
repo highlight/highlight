@@ -21,6 +21,10 @@
     font-size: 12px;
     height: 32px;
 
+    &.createOrUpdateButton {
+        width: 141px;
+    }
+
     svg {
         color: var(--color-purple);
     }

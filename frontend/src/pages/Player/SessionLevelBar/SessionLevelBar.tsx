@@ -1,10 +1,9 @@
 import { ReplayerEvents } from '@highlight-run/rrweb';
 import { customEvent } from '@highlight-run/rrweb/dist/types';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useParams } from 'react-router-dom';
 
-import { DemoContext } from '../../../DemoContext';
 import { useGetSessionQuery } from '../../../graph/generated/hooks';
 import { ReactComponent as LayoutIcon } from '../../../static/layout.svg';
 import { ReactComponent as LockIcon } from '../../../static/lock.svg';
@@ -26,13 +25,11 @@ const SessionLevelBar = () => {
     const [currentUrl, setCurrentUrl] = useState<string | undefined>(undefined);
     const [viewport, setViewport] = useState<Viewport | null>(null);
     const { session_id } = useParams<{ session_id: string }>();
-    const { demo } = useContext(DemoContext);
 
     const { loading: sessionQueryLoading, data } = useGetSessionQuery({
         variables: {
-            id: demo ? process.env.REACT_APP_DEMO_SESSION ?? '0' : session_id,
+            id: session_id,
         },
-        context: { headers: { 'Highlight-Demo': demo } },
     });
 
     // Subscribes to the Replayer for relevant events.

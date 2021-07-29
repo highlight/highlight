@@ -1,7 +1,8 @@
 import useLocalStorage from '@rehooks/local-storage';
 import React, { useEffect, useState } from 'react';
-import { useHistory, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
+import { useAuthContext } from '../../AuthContext';
 import commonStyles from '../../Common.module.scss';
 import { ErrorState } from '../../components/ErrorState/ErrorState';
 import { Header } from '../../components/Header/Header';
@@ -11,33 +12,20 @@ import {
     SidebarContextProvider,
     SidebarState,
 } from '../../components/Sidebar/SidebarContext';
-import {
-    useGetOrganizationLazyQuery,
-    useGetOrganizationsLazyQuery,
-} from '../../graph/generated/hooks';
+import { useGetOrganizationQuery } from '../../graph/generated/hooks';
 import { useIntegrated } from '../../util/integrated';
 import ApplicationRouter from './ApplicationRouter';
 
 export const OrgRouter = () => {
-    const { organization_id: organizationIdFromSearchParams } = useParams<{
+    const { isLoggedIn } = useAuthContext();
+    const { organization_id } = useParams<{
         organization_id: string;
     }>();
-    const [organization_id, setOrganizationId] = useState(
-        !isNaN(parseInt(organizationIdFromSearchParams, 10))
-            ? organizationIdFromSearchParams
-            : undefined
-    );
-    const history = useHistory();
 
-    const [
-        getOrganizationQuery,
-        { loading, error, data },
-    ] = useGetOrganizationLazyQuery();
-
-    const [
-        getOrganizationsQuery,
-        { loading: o_loading, data: o_data },
-    ] = useGetOrganizationsLazyQuery();
+    const { loading, error, data } = useGetOrganizationQuery({
+        variables: { id: organization_id },
+        skip: !isLoggedIn, // Higher level routers decide when guests are allowed to hit this router
+    });
 
     const { integrated, loading: integratedLoading } = useIntegrated();
     const [sidebarState, setSidebarState] = useState<SidebarState>(
@@ -77,48 +65,25 @@ export const OrgRouter = () => {
         };
     }, []);
 
-    // Checks if the URL has an organization ID.
-    // 1. If it does then handle routing normally.
-    // 2. If it doesn't then find the user's default organization and set that as the current organization.
-    useEffect(() => {
-        if (organization_id && !isNaN(parseInt(organization_id, 10))) {
-            getOrganizationQuery({ variables: { id: organization_id } });
-        } else {
-            getOrganizationsQuery();
-        }
-    }, [getOrganizationQuery, getOrganizationsQuery, organization_id]);
-
-    // Redirects the user to their default organization when the URL does not have an organization ID.
-    // For example, this allows linking to https://app.highlight.run/sessions for https://app.highlight.run/1/sessions
-    useEffect(() => {
-        if (
-            !o_loading &&
-            !!o_data?.organizations?.length &&
-            o_data.organizations.length > 0
-        ) {
-            const defaultOrganizationIdForUser = o_data.organizations[0]!.id;
-            setOrganizationId(defaultOrganizationIdForUser);
-
-            history.replace(
-                `/${defaultOrganizationIdForUser}${history.location.pathname}`
-            );
-        }
-    }, [history, o_data?.organizations, o_loading]);
-
     if (integratedLoading || loading) {
         return null;
     }
+    const staticSidebarState = isLoggedIn
+        ? SidebarState.Expanded
+        : SidebarState.Collapsed;
     return (
         <SidebarContextProvider
             value={{
                 setState: setSidebarState,
                 state: sidebarState,
                 toggleSidebar,
+                staticSidebarState,
             }}
         >
             <Header />
             <div className={commonStyles.bodyWrapper}>
-                {error || !data?.organization ? (
+                {/* Edge case: shareable links will still direct to this error page if you are logged in on a different org */}
+                {isLoggedIn && (error || !data?.organization) ? (
                     <ErrorState
                         message={`
                         Seems like you don’t have access to this page 😢. If you're
@@ -131,8 +96,12 @@ export const OrgRouter = () => {
                     />
                 ) : (
                     <>
-                        <Sidebar />
-                        {!hasFinishedOnboarding && <OnboardingBubble />}
+                        {staticSidebarState == SidebarState.Expanded && (
+                            <Sidebar />
+                        )}
+                        {isLoggedIn && !hasFinishedOnboarding && (
+                            <OnboardingBubble />
+                        )}
                         <ApplicationRouter integrated={integrated} />
                     </>
                 )}

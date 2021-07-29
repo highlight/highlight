@@ -344,3 +344,10 @@ mutation UpdateUserPropertiesAlert(
         CountThreshold
     }
 }
+
+mutation UpdateSessionIsPublic($session_id: ID!, $is_public: Boolean!) {
+    updateSessionIsPublic(session_id: $session_id, is_public: $is_public) {
+        id
+        is_public
+    }
+}

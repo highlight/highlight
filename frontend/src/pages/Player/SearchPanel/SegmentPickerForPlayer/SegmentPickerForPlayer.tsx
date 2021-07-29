@@ -1,5 +1,6 @@
 import useLocalStorage from '@rehooks/local-storage';
 import { message, Select as AntDesignSelect } from 'antd';
+import classNames from 'classnames';
 const { Option } = AntDesignSelect;
 import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
@@ -14,7 +15,8 @@ import {
     useGetSegmentsQuery,
 } from '../../../../graph/generated/hooks';
 import SvgCloseIcon from '../../../../static/CloseIcon';
-import SvgPlayIcon from '../../../../static/PlayIcon';
+import SvgEditIcon from '../../../../static/EditIcon';
+import SvgPlusIcon from '../../../../static/PlusIcon';
 import { gqlSanitize } from '../../../../util/gqlSanitize';
 import { useSearchContext } from '../../../Sessions/SearchContext/SearchContext';
 import CreateSegmentModal from '../../../Sessions/SearchSidebar/SegmentButtons/CreateSegmentModal';
@@ -186,9 +188,12 @@ const SegmentPickerForPlayer = () => {
                 }}
                 type="ghost"
                 small
-                className={styles.segmentButton}
+                className={classNames(
+                    styles.segmentButton,
+                    styles.createOrUpdateButton
+                )}
             >
-                <SvgPlayIcon />
+                {showUpdateSegmentOption ? <SvgEditIcon /> : <SvgPlusIcon />}
                 <span>
                     <TextTransition
                         text={showUpdateSegmentOption ? 'Update' : 'Create'}

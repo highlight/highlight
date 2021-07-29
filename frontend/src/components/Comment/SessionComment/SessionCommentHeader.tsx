@@ -43,7 +43,6 @@ const SessionCommentHeader = ({
         variables: {
             id: session_id,
         },
-        context: { headers: { 'Highlight-Demo': false } },
     });
 
     const getCommentLink = () => {
@@ -100,7 +99,7 @@ const SessionCommentHeader = ({
             {data && (
                 <Menu.Item
                     onClick={() => {
-                        H.track('Create Linear issue', {});
+                        H.track('Create Linear issue');
                         const url = getCommentLink();
                         window.open(
                             `http://linear.app/new?title=Highlight session comment for ${

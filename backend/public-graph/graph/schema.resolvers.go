@@ -129,10 +129,12 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	if res.Error != nil {
 		return nil, fmt.Errorf("error reading from session: %v", res.Error)
 	}
+	querySessionSpan.SetTag("org_id", sessionObj.OrganizationID)
 	querySessionSpan.Finish()
 
 	organizationID := sessionObj.OrganizationID
-	parseEventsSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("go.parseEvents"))
+	parseEventsSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
+		tracer.ResourceName("go.parseEvents"), tracer.Tag("org_id", organizationID))
 	if evs := events.Events; len(evs) > 0 {
 		// TODO: this isn't very performant, as marshaling the whole event obj to a string is expensive;
 		// should fix at some point.
@@ -169,7 +171,8 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	parseEventsSpan.Finish()
 
 	// unmarshal messages
-	unmarshalMessagesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("go.unmarshal.messages"))
+	unmarshalMessagesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
+		tracer.ResourceName("go.unmarshal.messages"), tracer.Tag("org_id", organizationID))
 	messagesParsed := make(map[string][]interface{})
 	if err := json.Unmarshal([]byte(messages), &messagesParsed); err != nil {
 		return nil, fmt.Errorf("error decoding message data: %v", err)
@@ -183,7 +186,8 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	unmarshalMessagesSpan.Finish()
 
 	// unmarshal resources
-	unmarshalResourcesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("go.unmarshal.resources"))
+	unmarshalResourcesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
+		tracer.ResourceName("go.unmarshal.resources"), tracer.Tag("org_id", organizationID))
 	resourcesParsed := make(map[string][]interface{})
 	if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
 		return nil, fmt.Errorf("error decoding resource data: %v", err)
@@ -195,6 +199,29 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		}
 	}
 	unmarshalResourcesSpan.Finish()
+
+	// filter out empty errors
+	var filteredErrors []*customModels.ErrorObjectInput
+	for _, errorObject := range errors {
+		if errorObject.Event == "[{}]" {
+			var objString string
+			objBytes, err := json.Marshal(errorObject)
+			if err != nil {
+				log.Error(e.Wrap(err, "error marshalling error object when filtering"))
+				objString = ""
+			} else {
+				objString = string(objBytes)
+			}
+			log.WithFields(log.Fields{
+				"org_id":       organizationID,
+				"session_id":   sessionID,
+				"error_object": objString,
+			}).Warn("caught empty error, continuing...")
+		} else {
+			filteredErrors = append(filteredErrors, errorObject)
+		}
+	}
+	errors = filteredErrors
 
 	// increment daily error table
 	if len(errors) > 0 {
@@ -216,7 +243,8 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	}
 
 	// put errors in db
-	putErrorsToDBSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.errors"))
+	putErrorsToDBSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
+		tracer.ResourceName("db.errors"), tracer.Tag("org_id", organizationID))
 	for _, v := range errors {
 		traceBytes, err := json.Marshal(v.StackTrace)
 		if err != nil {

@@ -161,7 +161,7 @@ export const DeviceIdInput = () => {
         current: ValueType<{ label: string; value: string }, false>
     ) => {
         setSearchParams((params) => ({ ...params, device_id: current?.value }));
-        H.track('DeviceIDFilter', {});
+        H.track('DeviceIDFilter');
     };
 
     useWatchSessionPageSearchParams(

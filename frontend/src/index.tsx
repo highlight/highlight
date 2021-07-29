@@ -18,11 +18,10 @@ import {
     isHighlightAdmin,
     isLoggedIn,
 } from './AuthContext';
-import { DemoContext } from './DemoContext';
-import DemoRouter from './DemoRouter';
+import { ErrorState } from './components/ErrorState/ErrorState';
 import { useGetAdminLazyQuery } from './graph/generated/hooks';
 import About from './pages/About/About';
-import LoginForm from './pages/Login/Login';
+import LoginForm, { AuthAdminRouter } from './pages/Login/Login';
 import * as serviceWorker from './serviceWorker';
 import { auth } from './util/auth';
 import { showHiringMessage } from './util/console/hiringMessage';
@@ -35,8 +34,10 @@ const options: HighlightOptions = {
     manualStart: true,
     enableStrictPrivacy: Math.floor(Math.random() * 2) === 0,
     version: packageJson['version'],
-    enableNetworkHeadersAndBodyRecording: true,
-    disableConsoleRecording: true,
+    networkRecording: {
+        enabled: true,
+        recordHeadersAndBody: true,
+    },
 };
 const favicon = document.querySelector("link[rel~='icon']") as any;
 if (dev) {
@@ -130,6 +131,19 @@ const AuthenticationRouter = () => {
         }
     }, [adminError, adminData]);
 
+    if (adminError) {
+        return (
+            <ErrorState
+                message={`
+Seems like you we had issue with your login 😢.
+Feel free to log out and try again, or otherwise,
+get in contact with us!
+`}
+                errorString={JSON.stringify(adminError)}
+            />
+        );
+    }
+
     return (
         <AuthContextProvider
             value={{
@@ -147,15 +161,15 @@ const AuthenticationRouter = () => {
                     <Route path="/about">
                         <About />
                     </Route>
-                    <Route path="/demo" exact>
-                        <DemoContext.Provider value={{ demo: true }}>
-                            <DemoRouter />
-                        </DemoContext.Provider>
+                    <Route
+                        path="/:organization_id(\d+)/sessions/:session_id(\d+)"
+                        exact
+                    >
+                        {/* Allow guests to access this route without being asked to log in */}
+                        <AuthAdminRouter />
                     </Route>
                     <Route path="/">
-                        <DemoContext.Provider value={{ demo: false }}>
-                            <LoginForm />
-                        </DemoContext.Provider>
+                        <LoginForm />
                     </Route>
                 </Switch>
             </Router>

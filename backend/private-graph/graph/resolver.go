@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strconv"
 
 	e "github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
@@ -23,7 +22,6 @@ import (
 
 var (
 	WhitelistedUID                        = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
-	DemoSession                           = os.Getenv("DEMO_SESSION")
 	SendAdminInviteEmailTemplateID        = "d-bca4f9a932ef418a923cbd2d90d2790b"
 	SendGridSessionCommentEmailTemplateID = "d-6de8f2ba10164000a2b83d9db8e3b2e3"
 	SendGridErrorCommentEmailTemplateId   = "d-7929ce90c6514282a57fdaf7af408704"
@@ -34,6 +32,10 @@ type Resolver struct {
 	MailClient    *sendgrid.Client
 	StripeClient  *client.API
 	StorageClient *storage.StorageClient
+}
+
+func (r *Resolver) getCurrentAdmin(ctx context.Context) (*model.Admin, error) {
+	return r.Query().Admin(ctx)
 }
 
 func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
@@ -176,20 +178,36 @@ func (r *Resolver) isAdminErrorGroupOwner(ctx context.Context, errorGroupID int)
 	return errorGroup, nil
 }
 
-func (r *Resolver) isAdminSessionOwner(ctx context.Context, session_id int) (*model.Session, error) {
-	session := &model.Session{}
-	if err := r.DB.Where(&model.Session{Model: model.Model{ID: session_id}}).First(&session).Error; err != nil {
-		return nil, e.Wrap(err, "error querying session")
+func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_id int) (session *model.Session, ownsSession bool, err error) {
+	session = &model.Session{}
+	if err = r.DB.Where(&model.Session{Model: model.Model{ID: session_id}}).First(&session).Error; err != nil {
+		return nil, false, e.Wrap(err, "error querying session")
 	}
-	// This returns true if its the Whitelisted Session.
-	if strconv.Itoa(session_id) == DemoSession {
+
+	_, err = r.isAdminInOrganization(ctx, session.OrganizationID)
+	if err != nil {
+		return session, false, e.Wrap(err, "error validating admin in organization")
+	}
+	return session, true, nil
+}
+
+func (r *Resolver) canAdminViewSession(ctx context.Context, session_id int) (*model.Session, error) {
+	session, isOwner, err := r._doesAdminOwnSession(ctx, session_id)
+	if err == nil && isOwner {
 		return session, nil
 	}
-	_, err := r.isAdminInOrganization(ctx, session.OrganizationID)
-	if err != nil {
-		return nil, e.Wrap(err, "error validating admin in organization")
+	if session != nil && *session.IsPublic {
+		return session, nil
 	}
-	return session, nil
+	return nil, err
+}
+
+func (r *Resolver) canAdminModifySession(ctx context.Context, session_id int) (*model.Session, error) {
+	session, isOwner, err := r._doesAdminOwnSession(ctx, session_id)
+	if err == nil && isOwner {
+		return session, nil
+	}
+	return nil, err
 }
 
 func (r *Resolver) isAdminSegmentOwner(ctx context.Context, segment_id int) (*model.Segment, error) {

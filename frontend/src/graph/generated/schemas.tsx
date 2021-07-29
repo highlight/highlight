@@ -647,7 +647,6 @@ export type Mutation = {
     editOrganization?: Maybe<Organization>;
     markSessionAsViewed?: Maybe<Session>;
     markSessionAsStarred?: Maybe<Session>;
-    markErrorGroupAsResolved?: Maybe<ErrorGroup>;
     updateErrorGroupState?: Maybe<ErrorGroup>;
     deleteOrganization?: Maybe<Scalars['Boolean']>;
     sendAdminInvite?: Maybe<Scalars['String']>;
@@ -692,11 +691,6 @@ export type MutationMarkSessionAsViewedArgs = {
 export type MutationMarkSessionAsStarredArgs = {
     id: Scalars['ID'];
     starred?: Maybe<Scalars['Boolean']>;
-};
-
-export type MutationMarkErrorGroupAsResolvedArgs = {
-    id: Scalars['ID'];
-    resolved?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationUpdateErrorGroupStateArgs = {

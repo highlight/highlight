@@ -30,5 +30,7 @@ jobs:
             REACT_APP_COMMIT_SHA=${{ steps.vars.outputs.sha_short }}
           secrets: |
             SENDGRID_API_KEY=${{ secrets.SENDGRID_API_KEY }}
+            SLACK_CLIENT_ID=${{ secrets.SLACK_CLIENT_ID }}
+            SLACK_CLIENT_SECRET=${{ secrets.SLACK_CLIENT_SECRET }}
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}

@@ -37,7 +37,7 @@ import FirstTimeDecorations from './components/FirstTimeDecorations/FirstTimeDec
 import SessionSearch from './components/SessionSearch/SessionSearch';
 import styles from './SessionsFeed.module.scss';
 
-const SESSIONS_FEED_POLL_INTERVAL = 5000;
+const SESSIONS_FEED_POLL_INTERVAL = 1000 * 10;
 
 export const SessionFeed = () => {
     const { organization_id, segment_id, session_id } = useParams<{
@@ -53,7 +53,11 @@ export const SessionFeed = () => {
         sessions: [],
         totalCount: -1,
     });
-    const { searchParams, hideLiveSessions } = useSearchContext();
+    const { searchParams } = useSearchContext();
+    const {
+        show_live_sessions,
+        ...searchParamsExceptForShowLiveSessions
+    } = searchParams;
 
     const {
         loading,
@@ -62,13 +66,13 @@ export const SessionFeed = () => {
         called,
     } = useGetSessionsQuery({
         variables: {
-            params: searchParams,
+            params: searchParamsExceptForShowLiveSessions,
             count: count + 10,
             organization_id,
             lifecycle:
                 segment_id === LIVE_SEGMENT_ID
                     ? SessionLifecycle.Live
-                    : hideLiveSessions
+                    : !show_live_sessions
                     ? SessionLifecycle.Completed
                     : SessionLifecycle.All,
             starred: segment_id === STARRED_SEGMENT_ID,
@@ -101,13 +105,13 @@ export const SessionFeed = () => {
             setCount((previousCount) => previousCount + 10);
             fetchMore({
                 variables: {
-                    params: searchParams,
+                    params: searchParamsExceptForShowLiveSessions,
                     count,
                     organization_id,
                     processed:
                         segment_id === LIVE_SEGMENT_ID
                             ? SessionLifecycle.Live
-                            : hideLiveSessions
+                            : !searchParams.show_live_sessions
                             ? SessionLifecycle.Completed
                             : SessionLifecycle.All,
                 },

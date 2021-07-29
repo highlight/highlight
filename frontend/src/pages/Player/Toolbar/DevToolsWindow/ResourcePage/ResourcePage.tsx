@@ -3,7 +3,6 @@ import classNames from 'classnames';
 import _ from 'lodash';
 import React, {
     useCallback,
-    useContext,
     useEffect,
     useMemo,
     useRef,
@@ -17,7 +16,6 @@ import GoToButton from '../../../../../components/Button/GoToButton';
 import Input from '../../../../../components/Input/Input';
 import TextHighlighter from '../../../../../components/TextHighlighter/TextHighlighter';
 import Tooltip from '../../../../../components/Tooltip/Tooltip';
-import { DemoContext } from '../../../../../DemoContext';
 import {
     useGetResourcesQuery,
     useGetSessionQuery,
@@ -40,12 +38,10 @@ export const ResourcePage = ({
 }) => {
     const { state } = useReplayerContext();
     const { session_id } = useParams<{ session_id: string }>();
-    const { demo } = useContext(DemoContext);
     const { data: sessionData } = useGetSessionQuery({
         variables: {
             id: session_id,
         },
-        context: { headers: { 'Highlight-Demo': false } },
     });
     const [selectedNetworkResource, setSelectedNetworkResource] = useState<
         undefined | NetworkResource
@@ -67,11 +63,8 @@ export const ResourcePage = ({
     >(undefined);
     const { data, loading } = useGetResourcesQuery({
         variables: {
-            session_id: demo
-                ? process.env.REACT_APP_DEMO_SESSION ?? ''
-                : session_id,
+            session_id,
         },
-        context: { headers: { 'Highlight-Demo': demo } },
         fetchPolicy: 'no-cache',
     });
     const virtuoso = useRef<VirtuosoHandle>(null);
@@ -246,12 +239,7 @@ export const ResourcePage = ({
                             id="networkStreamWrapper"
                             className={styles.networkStreamWrapper}
                         >
-                            {resourcesToRender.length === 0 ? (
-                                <p className={styles.noResultsMessage}>
-                                    No network resources matching '
-                                    {filterSearchTerm}'
-                                </p>
-                            ) : (
+                            {resourcesToRender.length > 0 ? (
                                 <Virtuoso
                                     onMouseEnter={() => {
                                         setIsInteractingWithResources(true);
@@ -277,6 +265,30 @@ export const ResourcePage = ({
                                         />
                                     )}
                                 />
+                            ) : resourcesToRender.length === 0 &&
+                              filterSearchTerm !== '' ? (
+                                <p className={styles.noResultsMessage}>
+                                    No network resources matching '
+                                    {filterSearchTerm}'
+                                </p>
+                            ) : (
+                                <>
+                                    <p className={styles.noResultsMessage}>
+                                        There are no network recordings for this
+                                        session. If you expected to see data
+                                        here, please make sure{' '}
+                                        <code>networkRecording</code> is set to{' '}
+                                        <code>true</code>. You can{' '}
+                                        <a
+                                            href="https://docs.highlight.run/reference#options"
+                                            target="_blank"
+                                            rel="noreferrer"
+                                        >
+                                            learn more here
+                                        </a>
+                                        .
+                                    </p>
+                                </>
                             )}
                         </div>
                     </>
@@ -435,6 +447,8 @@ const ResourceRow = ({
                         formatSize(resource.requestResponsePairs.response.size)
                     ) : resource.requestResponsePairs?.response.status === 0 ? (
                         '-'
+                    ) : resource.requestResponsePairs?.urlBlocked ? (
+                        '-'
                     ) : resource.transferSize === 0 ? (
                         'Cached'
                     ) : (
@@ -499,6 +513,8 @@ export interface Response {
 export interface RequestResponsePair {
     request: Request;
     response: Response;
+    /** Whether this URL matched a `urlToBlock` so the contents should not be recorded. */
+    urlBlocked: boolean;
 }
 
 /**

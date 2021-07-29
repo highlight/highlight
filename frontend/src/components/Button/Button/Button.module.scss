@@ -5,30 +5,30 @@
     padding-bottom: 8px;
     padding-top: 8px;
 
-    &:global(.ant-btn[disabled]) {
-        background: var(--color-gray-300) !important;
-        border-color: var(--color-gray-400) !important;
-        fill: var(--color-gray-500) !important;
-    }
-}
+    &.iconButton {
+        align-items: center;
+        border-radius: 50%;
+        color: var(--text-primary);
+        display: flex;
+        height: var(--size-xLarge);
+        justify-content: center;
+        padding: 0;
+        width: var(--size-xLarge);
 
-.iconButton {
-    align-items: center;
-    border-radius: 50%;
-    color: var(--text-primary);
-    display: flex;
-    height: var(--size-xLarge);
-    justify-content: center;
-    padding: 0;
-    width: var(--size-xLarge);
+        &:global(.ant-btn[disabled]) {
+            background: var(--color-gray-300) !important;
+            border-color: var(--color-gray-400) !important;
+            fill: var(--color-gray-500) !important;
+        }
 
-    &:hover {
-        background-color: var(--color-gray-200);
-    }
+        &:hover {
+            background-color: var(--color-gray-200);
+        }
 
-    svg {
-        height: calc(var(--size-icon));
-        width: calc(var(--size-icon));
+        svg {
+            height: calc(var(--size-icon));
+            width: calc(var(--size-icon));
+        }
     }
 }
 
