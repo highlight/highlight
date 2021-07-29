@@ -46,7 +46,7 @@ func (o *ObjectReader) Next() (linePtr *string, e error) {
 	line := ""
 	linePtr = &line
 	for {
-		strBytes, isPrefix, err := o.reader.ReadLine()
+		strBytes, err := o.reader.ReadBytes('\n')
 		str := string(strBytes)
 		if err != nil {
 			if errors.Is(err, io.EOF) {
@@ -56,14 +56,9 @@ func (o *ObjectReader) Next() (linePtr *string, e error) {
 			}
 			return nil, errors.Wrap(err, "error reading line from bufio reader")
 		}
-		if strings.HasSuffix(str, Delimiter) {
-			str = str[:len(str)-len(Delimiter)]
-			line += str
-			break
-		}
 		line += str
-		if !isPrefix {
-			line += "\n"
+		if strings.HasSuffix(line, Delimiter) {
+			break
 		}
 	}
 	return linePtr, e
