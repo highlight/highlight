@@ -98,7 +98,7 @@ export const ErrorFeed = () => {
             </div>
             <div className={styles.feedContent}>
                 <div ref={infiniteRef as RefObject<HTMLDivElement>}>
-                    {loading || showLoadingSkeleton ? (
+                    {loading && showLoadingSkeleton ? (
                         <Skeleton
                             height={110}
                             count={3}

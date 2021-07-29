@@ -38,38 +38,20 @@ export const ErrorSearchSidebar = () => {
                         title="Date Range"
                         searchParamsKey={['date_range']}
                     >
-                        <div className={styles.topPadding}>
-                            <DateInput />
-                        </div>
+                        <DateInput />
                     </SearchSection>
                     <SearchSection
                         title="Device Details"
                         searchParamsKey={['os', 'browser']}
                     >
-                        <div
-                            className={classNames(
-                                styles.inputContainer,
-                                styles.topPadding
-                            )}
-                        >
-                            <OperatingSystemInput />
-                        </div>
-                        <div>
-                            <BrowserInput />
-                        </div>
+                        <OperatingSystemInput />
+                        <BrowserInput />
                     </SearchSection>
                     <SearchSection
                         title="Event Details"
                         searchParamsKey={['visited_url']}
                     >
-                        <div
-                            className={classNames(
-                                styles.inputContainer,
-                                styles.topPadding
-                            )}
-                        >
-                            <EventInput />
-                        </div>
+                        <EventInput />
                         <VisitedUrlInput />
                     </SearchSection>
                 </div>
