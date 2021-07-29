@@ -122,6 +122,7 @@ export const usePlayer = (): ReplayerContextInterface => {
     useEffect(() => {
         if (session_id) {
             setState(ReplayerState.Loading);
+            setSession(undefined);
             getSessionQuery();
             getSessionCommentsQuery();
         } else {
@@ -135,6 +136,7 @@ export const usePlayer = (): ReplayerContextInterface => {
     }, [sessionData?.session]);
 
     const resetPlayer = useCallback(() => {
+        setState(ReplayerState.Empty);
         setErrors([]);
         setEvents([]);
         setScale(1);
@@ -146,13 +148,11 @@ export const usePlayer = (): ReplayerContextInterface => {
         setSessionEndTime(0);
         setSessionIntervals([]);
         setCanViewSession(true);
-        setSession(undefined);
     }, [setPlayerTimeToPersistance]);
 
     // Reset all state when loading events.
     useEffect(() => {
         if (loading) {
-            setState(ReplayerState.Loading);
             resetPlayer();
         }
     }, [loading, resetPlayer, setPlayerTimeToPersistance]);
