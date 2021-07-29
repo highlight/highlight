@@ -139,9 +139,6 @@ func main() {
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.
 	r.Use(handlers.CompressHandler)
-	r.Use(func(h http.Handler) http.Handler {
-		return handlers.LoggingHandler(os.Stdout, h)
-	})
 	r.Use(cors.New(cors.Options{
 		AllowOriginRequestFunc: validateOrigin,
 		AllowCredentials:       true,
