@@ -240,11 +240,8 @@ func TestGetActiveDuration(t *testing.T) {
 			)
 			for _, event := range tt.events {
 				var tempD time.Duration
-				tempD, lastTimestamp, _ = getActiveDuration(&event, lastTimestamp)
+				tempD, firstTimestamp, lastTimestamp, _ = getActiveDuration(&event, firstTimestamp, lastTimestamp)
 				activeDuration += tempD
-				if firstTimestamp.IsZero() {
-					firstTimestamp = lastTimestamp
-				}
 			}
 
 			if diff := deep.Equal(tt.wantActiveDuration, activeDuration); diff != nil {

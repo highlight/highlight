@@ -2,10 +2,9 @@ package worker
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"math/rand"
 	"io"
+	"math/rand"
 	"os"
 	"strconv"
 	"time"
@@ -286,21 +285,14 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			}
 			hasNext = false
 		}
-		if se != nil {
-			var eventsObject model.EventsObject
-			err := json.Unmarshal([]byte(*se), &eventsObject)
-			if err != nil {
-				return err
-			}
+		if se != nil && *se != "" {
+			eventsObject := model.EventsObject{Events: *se}
 			var tempDuration time.Duration
-			tempDuration, lastEventTimestamp, err = getActiveDuration(&eventsObject, lastEventTimestamp)
+			tempDuration, firstEventTimestamp, lastEventTimestamp, err = getActiveDuration(&eventsObject, firstEventTimestamp, lastEventTimestamp)
 			if err != nil {
-				return err
+				return e.Wrap(err, "error getting active duration")
 			}
 			activeDuration += tempDuration
-			if firstEventTimestamp.IsZero() {
-				firstEventTimestamp = lastEventTimestamp
-			}
 		}
 	}
 	// dd.StatsD.Histogram("worker.processSession.payloadStringSize", float64(payloadStringBytes), nil, 1) //nolint
@@ -308,22 +300,23 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// Calculate total session length and write the length to the session.
 	sessionTotalLength := CalculateSessionLength(firstEventTimestamp, lastEventTimestamp)
 	sessionTotalLengthInMilliseconds := sessionTotalLength.Milliseconds()
+	log.Infof("session length: %v, session length ms: %v, first ts: %v, last ts %v", sessionTotalLength, sessionTotalLengthInMilliseconds, firstEventTimestamp, lastEventTimestamp)
 
 	// Delete the session if the length of the session is 0.
 	// 1. Nothing happened in the session
 	// 2. A web crawler visited the page and produced no events
-	//if activeDuration == 0 {
-	//	if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Delete(&model.EventsObject{}).Error; err != nil {
-	//		return errors.Wrap(err, "error trying to delete events_object for session of length 0ms")
-	//	}
-	//	if err := w.Resolver.DB.Select(clause.Associations).Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
-	//		return errors.Wrap(err, "error trying to delete associations for session with length 0")
-	//	}
-	//	if err := w.Resolver.DB.Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
-	//		return errors.Wrap(err, "error trying to delete session of length 0ms")
-	//	}
-	//	return nil
-	//}
+	if activeDuration == 0 {
+		if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Delete(&model.EventsObject{}).Error; err != nil {
+			return errors.Wrap(err, "error trying to delete events_object for session of length 0ms")
+		}
+		if err := w.Resolver.DB.Select(clause.Associations).Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
+			return errors.Wrap(err, "error trying to delete associations for session with length 0")
+		}
+		if err := w.Resolver.DB.Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
+			return errors.Wrap(err, "error trying to delete session of length 0ms")
+		}
+		return nil
+	}
 
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
@@ -585,12 +578,12 @@ func CalculateSessionLength(first time.Time, last time.Time) (d time.Duration) {
 	return d
 }
 
-func getActiveDuration(event *model.EventsObject, lastEventTimestamp time.Time) (time.Duration, time.Time, error) {
+func getActiveDuration(event *model.EventsObject, firstEventTimestamp time.Time, lastEventTimestamp time.Time) (time.Duration, time.Time, time.Time, error) {
 	activeDuration := time.Duration(0)
 	// parses the events from EventObject
 	allEvents, err := parse.EventsFromString(event.Events)
 	if err != nil {
-		return time.Duration(0), lastEventTimestamp, err
+		return time.Duration(0), firstEventTimestamp, lastEventTimestamp, err
 	}
 
 	// Iterate through all events and sum up time between interactions
@@ -603,7 +596,10 @@ func getActiveDuration(event *model.EventsObject, lastEventTimestamp time.Time) 
 				}
 			}
 			lastEventTimestamp = eventObj.Timestamp
+			if firstEventTimestamp.IsZero() {
+				firstEventTimestamp = eventObj.Timestamp
+			}
 		}
 	}
-	return activeDuration, lastEventTimestamp, nil
+	return activeDuration, firstEventTimestamp, lastEventTimestamp, nil
 }
