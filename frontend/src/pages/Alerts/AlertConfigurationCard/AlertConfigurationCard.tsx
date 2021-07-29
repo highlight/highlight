@@ -241,16 +241,16 @@ export const AlertConfigurationCard = ({
     };
 
     const onTrackPropertiesChange = (_value: any, options: any) => {
-        const trackProperties = options.map(
-            ({ value: valueAndName }: { key: string; value: string }) => {
+        const trackProperties = options
+            .filter((option: any) => !!option)
+            .map(({ value: valueAndName }: { key: string; value: string }) => {
                 const [value, name, id] = valueAndName.split(':');
                 return {
                     id,
                     value,
                     name,
                 };
-            }
-        );
+            });
         form.setFieldsValue(trackProperties);
         setFormTouched(true);
     };
