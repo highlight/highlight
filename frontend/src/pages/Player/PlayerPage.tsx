@@ -61,6 +61,7 @@ const Player = () => {
         canViewSession,
         isPlayerReady,
     } = player;
+    const { setShowLeftPanel } = usePlayerConfiguration();
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     const newCommentModalRef = useRef<HTMLDivElement>(null);
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
@@ -82,6 +83,12 @@ const Player = () => {
             });
         }
     }, [session_id, isLoggedIn, markSessionAsViewed]);
+
+    useEffect(() => {
+        if (!session_id) {
+            setShowLeftPanel(true);
+        }
+    }, [session_id, setShowLeftPanel]);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const resizePlayer = (replayer: Replayer): boolean => {
