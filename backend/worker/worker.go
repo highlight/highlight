@@ -42,7 +42,6 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
 	}
-	fmt.Printf("starting push for: %v \n", s.ID)
 	sessionPayloadSize, err := w.S3Client.PushSessionsToS3(s.ID, s.OrganizationID, events)
 	// If this is unsucessful, return early (we treat this session as if it is stored in psql).
 	if err != nil {
@@ -113,7 +112,6 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 			return errors.Wrapf(err, "error deleting all messages with length %v", len(messagesObj))
 		}
 	}
-	fmt.Println("parsed: ", s.ID)
 	return nil
 }
 
@@ -233,7 +231,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		log.Errorf(errors.Wrap(err, "error scanning session payload").Error())
 	} else {
 		dd.StatsD.Histogram("worker.processSession.scannedSessionPayload", float64(*size), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
-		log.Printf("payload size for session '%v' is '%v'\n", s.ID, *size)
 	}
 
 	// load all events
