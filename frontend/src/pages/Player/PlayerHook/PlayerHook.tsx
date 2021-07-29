@@ -66,7 +66,7 @@ export const usePlayer = (): ReplayerContextInterface => {
     const [errors, setErrors] = useState<ErrorObject[]>([]);
     const [, setSelectedErrorId] = useState<string | undefined>(undefined);
     const [replayer, setReplayer] = useState<Replayer | undefined>(undefined);
-    const [state, setState] = useState<ReplayerState>(ReplayerState.Loading);
+    const [state, setState] = useState<ReplayerState>(ReplayerState.Empty);
     const [canViewSession, setCanViewSession] = useState(true);
     const [time, setTime] = useState<number>(0);
     const [session, setSession] = useState<undefined | Session>(undefined);
@@ -121,6 +121,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     useEffect(() => {
         if (session_id) {
+            setState(ReplayerState.Loading);
             getSessionQuery();
             getSessionCommentsQuery();
         }

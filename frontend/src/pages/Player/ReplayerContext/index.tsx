@@ -11,6 +11,8 @@ import { createContext } from '../../../util/context/context';
 import { HighlightEvent } from '../HighlightEvent';
 
 export enum ReplayerState {
+    /** There is no active session. */
+    Empty,
     Loading,
     /** Replayer is loaded but the user hasn't interacted with the player yet. */
     LoadedAndUntouched,
