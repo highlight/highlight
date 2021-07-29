@@ -9,7 +9,6 @@ import {
     useGetSessionCommentsLazyQuery,
     useGetSessionLazyQuery,
     useGetSessionPayloadLazyQuery,
-    useGetSessionQuery,
 } from '../../../graph/generated/hooks';
 import {
     ErrorObject,
@@ -49,7 +48,6 @@ export const usePlayer = (): ReplayerContextInterface => {
     }>();
     const history = useHistory();
 
-    const {} = useGetSessionQuery();
     const [download] = useQueryParam('download', BooleanParam);
     const [scale, setScale] = useState(1);
     const [events, setEvents] = useState<Array<HighlightEvent>>([]);
