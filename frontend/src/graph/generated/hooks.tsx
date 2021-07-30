@@ -894,7 +894,6 @@ export type DeleteSessionCommentMutationOptions = Apollo.BaseMutationOptions<
 export const CreateErrorCommentDocument = gql`
     mutation CreateErrorComment(
         $organization_id: ID!
-        $admin_id: ID!
         $error_group_id: ID!
         $text: String!
         $text_for_email: String!
@@ -904,7 +903,6 @@ export const CreateErrorCommentDocument = gql`
     ) {
         createErrorComment(
             organization_id: $organization_id
-            admin_id: $admin_id
             error_group_id: $error_group_id
             text: $text
             text_for_email: $text_for_email
@@ -943,7 +941,6 @@ export type CreateErrorCommentMutationFn = Apollo.MutationFunction<
  * const [createErrorCommentMutation, { data, loading, error }] = useCreateErrorCommentMutation({
  *   variables: {
  *      organization_id: // value for 'organization_id'
- *      admin_id: // value for 'admin_id'
  *      error_group_id: // value for 'error_group_id'
  *      text: // value for 'text'
  *      text_for_email: // value for 'text_for_email'

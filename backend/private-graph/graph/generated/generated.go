@@ -194,7 +194,7 @@ type ComplexityRoot struct {
 	Mutation struct {
 		AddAdminToOrganization         func(childComplexity int, organizationID int, inviteID string) int
 		AddSlackIntegrationToWorkspace func(childComplexity int, organizationID int, code string, redirectPath string) int
-		CreateErrorComment             func(childComplexity int, organizationID int, adminID int, errorGroupID int, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, errorURL string, authorName string) int
+		CreateErrorComment             func(childComplexity int, organizationID int, errorGroupID int, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, errorURL string, authorName string) int
 		CreateErrorSegment             func(childComplexity int, organizationID int, name string, params model.ErrorSearchParamsInput) int
 		CreateOrUpdateSubscription     func(childComplexity int, organizationID int, planType model.PlanType) int
 		CreateOrganization             func(childComplexity int, name string) int
@@ -465,7 +465,7 @@ type MutationResolver interface {
 	CreateOrUpdateSubscription(ctx context.Context, organizationID int, planType model.PlanType) (*string, error)
 	CreateSessionComment(ctx context.Context, organizationID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model1.SessionComment, error)
 	DeleteSessionComment(ctx context.Context, id int) (*bool, error)
-	CreateErrorComment(ctx context.Context, organizationID int, adminID int, errorGroupID int, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, errorURL string, authorName string) (*model1.ErrorComment, error)
+	CreateErrorComment(ctx context.Context, organizationID int, errorGroupID int, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, errorURL string, authorName string) (*model1.ErrorComment, error)
 	DeleteErrorComment(ctx context.Context, id int) (*bool, error)
 	UpdateErrorAlert(ctx context.Context, organizationID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.ErrorAlert, error)
 	UpdateNewUserAlert(ctx context.Context, organizationID int, sessionAlertID int, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.SessionAlert, error)
@@ -1164,7 +1164,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateErrorComment(childComplexity, args["organization_id"].(int), args["admin_id"].(int), args["error_group_id"].(int), args["text"].(string), args["text_for_email"].(string), args["tagged_admins"].([]*model.SanitizedAdminInput), args["error_url"].(string), args["author_name"].(string)), true
+		return e.complexity.Mutation.CreateErrorComment(childComplexity, args["organization_id"].(int), args["error_group_id"].(int), args["text"].(string), args["text_for_email"].(string), args["tagged_admins"].([]*model.SanitizedAdminInput), args["error_url"].(string), args["author_name"].(string)), true
 
 	case "Mutation.createErrorSegment":
 		if e.complexity.Mutation.CreateErrorSegment == nil {
@@ -3238,7 +3238,6 @@ type Mutation {
     deleteSessionComment(id: ID!): Boolean
     createErrorComment(
         organization_id: ID!
-        admin_id: ID!
         error_group_id: ID!
         text: String!
         text_for_email: String!
@@ -3356,68 +3355,59 @@ func (ec *executionContext) field_Mutation_createErrorComment_args(ctx context.C
 	}
 	args["organization_id"] = arg0
 	var arg1 int
-	if tmp, ok := rawArgs["admin_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("admin_id"))
+	if tmp, ok := rawArgs["error_group_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_group_id"))
 		arg1, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["admin_id"] = arg1
-	var arg2 int
-	if tmp, ok := rawArgs["error_group_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_group_id"))
-		arg2, err = ec.unmarshalNID2int(ctx, tmp)
+	args["error_group_id"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["text"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["error_group_id"] = arg2
+	args["text"] = arg2
 	var arg3 string
-	if tmp, ok := rawArgs["text"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text"))
+	if tmp, ok := rawArgs["text_for_email"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_for_email"))
 		arg3, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["text"] = arg3
-	var arg4 string
-	if tmp, ok := rawArgs["text_for_email"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_for_email"))
-		arg4, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["text_for_email"] = arg4
-	var arg5 []*model.SanitizedAdminInput
+	args["text_for_email"] = arg3
+	var arg4 []*model.SanitizedAdminInput
 	if tmp, ok := rawArgs["tagged_admins"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tagged_admins"))
-		arg5, err = ec.unmarshalNSanitizedAdminInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedAdminInput(ctx, tmp)
+		arg4, err = ec.unmarshalNSanitizedAdminInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedAdminInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["tagged_admins"] = arg5
-	var arg6 string
+	args["tagged_admins"] = arg4
+	var arg5 string
 	if tmp, ok := rawArgs["error_url"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_url"))
+		arg5, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["error_url"] = arg5
+	var arg6 string
+	if tmp, ok := rawArgs["author_name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("author_name"))
 		arg6, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["error_url"] = arg6
-	var arg7 string
-	if tmp, ok := rawArgs["author_name"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("author_name"))
-		arg7, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["author_name"] = arg7
+	args["author_name"] = arg6
 	return args, nil
 }
 
@@ -8678,7 +8668,7 @@ func (ec *executionContext) _Mutation_createErrorComment(ctx context.Context, fi
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateErrorComment(rctx, args["organization_id"].(int), args["admin_id"].(int), args["error_group_id"].(int), args["text"].(string), args["text_for_email"].(string), args["tagged_admins"].([]*model.SanitizedAdminInput), args["error_url"].(string), args["author_name"].(string))
+		return ec.resolvers.Mutation().CreateErrorComment(rctx, args["organization_id"].(int), args["error_group_id"].(int), args["text"].(string), args["text_for_email"].(string), args["tagged_admins"].([]*model.SanitizedAdminInput), args["error_url"].(string), args["author_name"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
