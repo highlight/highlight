@@ -89,6 +89,7 @@ func (s *StorageClient) PushSessionsToS3(sessionId int, organizationId int, even
 }
 
 func (s *StorageClient) PushFileToS3(ctx context.Context, sessionId, organizationId int, file *os.File, bucket string, payloadType PayloadType) (*int64, error) {
+	file.Seek(0, io.SeekStart)
 	key := s.bucketKey(sessionId, organizationId, payloadType)
 	_, err := s.S3Client.PutObject(ctx, &s3.PutObjectInput{Bucket: &bucket,
 		Key: key, Body: file})
@@ -117,16 +118,20 @@ func (s *StorageClient) ReadSessionsFromS3(sessionId int, organizationId int) ([
 	if err != nil {
 		return nil, errors.Wrap(err, "error reading from s3 buffer")
 	}
-	var allEvents []struct {
+	type events struct {
 		Events []interface{}
 	}
-	eventsStr := fmt.Sprintf("[%s]", strings.Replace(buf.String(), "\n\n\n", ",", -1))
-	if err := json.Unmarshal([]byte(eventsStr), &allEvents); err != nil {
-		return nil, fmt.Errorf("error decoding event data: %v", err)
-	}
+	eventsSlice := strings.Split(buf.String(), "\n\n\n")
 	var retEvents []interface{}
-	for _, evt := range allEvents {
-		retEvents = append(retEvents, evt.Events...)
+	for _, e := range eventsSlice {
+		if e == "" {
+			continue
+		}
+		var tempEvents events
+		if err := json.Unmarshal([]byte(e), &tempEvents); err != nil {
+			return nil, fmt.Errorf("error decoding event data: %v", err)
+		}
+		retEvents = append(retEvents, tempEvents.Events...)
 	}
 	return retEvents, nil
 }
@@ -195,18 +200,22 @@ func (s *StorageClient) ReadResourcesFromS3(sessionId int, organizationId int) (
 	if err != nil {
 		return nil, errors.Wrap(err, "error reading from s3 buffer")
 	}
-	var allResources []struct {
+	type resources struct {
 		Resources []interface{}
 	}
-	resourcesStr := fmt.Sprintf("[%s]", strings.Replace(buf.String(), "\n\n\n", ",", -1))
-	if err := json.Unmarshal([]byte(resourcesStr), &allResources); err != nil {
-		return nil, fmt.Errorf("error decoding resources data: %v", err)
+	resourcesSlice := strings.Split(buf.String(), "\n\n\n")
+	var retResources []interface{}
+	for _, e := range resourcesSlice {
+		if e == "" {
+			continue
+		}
+		var tempResources resources
+		if err := json.Unmarshal([]byte(e), &tempResources); err != nil {
+			return nil, fmt.Errorf("error decoding resource data: %v", err)
+		}
+		retResources = append(retResources, tempResources.Resources...)
 	}
-	var retMessages []interface{}
-	for _, evt := range allResources {
-		retMessages = append(retMessages, evt.Resources...)
-	}
-	return retMessages, nil
+	return retResources, nil
 }
 
 func (s *StorageClient) ReadResourcesFromS3Legacy(sessionId int, organizationId int) ([]interface{}, error) {
@@ -272,16 +281,20 @@ func (s *StorageClient) ReadMessagesFromS3(sessionId int, organizationId int) ([
 	if err != nil {
 		return nil, errors.Wrap(err, "error reading from s3 buffer")
 	}
-	var allMessages []struct {
+	type messages struct {
 		Messages []interface{}
 	}
-	messagesStr := fmt.Sprintf("[%s]", strings.Replace(buf.String(), "\n\n\n", ",", -1))
-	if err := json.Unmarshal([]byte(messagesStr), &allMessages); err != nil {
-		return nil, fmt.Errorf("error decoding messages data: %v", err)
-	}
+	messagesSlice := strings.Split(buf.String(), "\n\n\n")
 	var retMessages []interface{}
-	for _, evt := range allMessages {
-		retMessages = append(retMessages, evt.Messages...)
+	for _, e := range messagesSlice {
+		if e == "" {
+			continue
+		}
+		var tempResources messages
+		if err := json.Unmarshal([]byte(e), &tempResources); err != nil {
+			return nil, fmt.Errorf("error decoding message data: %v", err)
+		}
+		retMessages = append(retMessages, tempResources.Messages...)
 	}
 	return retMessages, nil
 }
@@ -307,6 +320,9 @@ func (s *StorageClient) ReadMessagesFromS3Legacy(sessionId int, organizationId i
 }
 
 func (s *StorageClient) bucketKey(sessionId int, organizationId int, key PayloadType) *string {
+	if os.Getenv("ENVIRONMENT") == "dev" {
+		return aws.String(fmt.Sprintf("dev/%v/%v/%v", organizationId, sessionId, string(key)))
+	}
 	return aws.String(fmt.Sprintf("%v/%v/%v", organizationId, sessionId, string(key)))
 }
 
