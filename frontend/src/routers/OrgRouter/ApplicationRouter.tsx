@@ -125,9 +125,15 @@ const ApplicationRouter = ({ integrated }: Props) => {
                 <Route path="/:organization_id/sessions/:session_id" exact>
                     <Player />
                 </Route>
-                <Route path="/:organization_id/sessions" exact>
-                    <SessionsPage integrated={integrated} />
-                </Route>
+                {organization_id !== '1' ? (
+                    <Route path="/:organization_id/sessions" exact>
+                        <SessionsPage integrated={integrated} />
+                    </Route>
+                ) : (
+                    <Route path="/:organization_id/sessions/:session_id?" exact>
+                        <Player />
+                    </Route>
+                )}
                 <Route path="/:organization_id/settings">
                     <WorkspaceSettings />
                 </Route>

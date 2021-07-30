@@ -33,6 +33,7 @@ const Button = ({
             className={classNames(props.className, styles.buttonBase, {
                 [styles.iconButton]: iconButton,
                 [styles.small]: small,
+                [styles.link]: props.type === 'link',
             })}
         >
             {children}

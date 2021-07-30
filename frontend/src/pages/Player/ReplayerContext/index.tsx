@@ -3,6 +3,7 @@ import { SessionInterval } from '@highlight-run/rrweb/dist/types';
 
 import {
     ErrorObject,
+    Session,
     SessionComment,
     SessionResults,
 } from '../../../graph/generated/schemas';
@@ -10,6 +11,8 @@ import { createContext } from '../../../util/context/context';
 import { HighlightEvent } from '../HighlightEvent';
 
 export enum ReplayerState {
+    /** There is no active session. */
+    Empty,
     Loading,
     /** Replayer is loaded but the user hasn't interacted with the player yet. */
     LoadedAndUntouched,
@@ -73,6 +76,8 @@ export interface ReplayerContextInterface {
     canViewSession: boolean;
     /** The sessions that are relevant to the current search filters. */
     sessionResults: SessionResults;
+    /** The active session if any. */
+    session: Session | undefined;
     setSessionResults: React.Dispatch<React.SetStateAction<SessionResults>>;
     isPlayerReady: boolean;
 }

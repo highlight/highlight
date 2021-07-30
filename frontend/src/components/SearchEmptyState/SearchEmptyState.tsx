@@ -1,3 +1,4 @@
+import classNames from 'classnames';
 import React from 'react';
 
 import { ReactComponent as EmptyState } from '../../static/empty-state.svg';
@@ -9,28 +10,28 @@ import {
 } from './SearchEmptyState.module.scss';
 import styles from './SearchEmptyState.module.scss';
 
-export const SearchEmptyState = ({ item }: { item: string }) => (
-    <div className={emptyStateWrapper}>
-        <div style={{ marginRight: 80 }} className={emptyStateSection}>
-            <EmptyState
-                height={30}
-                width={220}
-                preserveAspectRatio="xMinYMin"
-            />
-        </div>
-        <div style={{ marginLeft: 80 }} className={emptyStateSection}>
-            <EmptyState
-                height={30}
-                width={220}
-                preserveAspectRatio="xMinYMin"
-            />
-        </div>
-        <div style={{ marginRight: 80 }} className={emptyStateSection}>
-            <EmptyState
-                height={30}
-                width={220}
-                preserveAspectRatio="xMinYMin"
-            />
+export const SearchEmptyState = ({
+    item,
+    newFeed,
+}: {
+    item: string;
+    newFeed?: boolean;
+}) => (
+    <div
+        className={classNames({
+            [styles.newFeedStyles]: newFeed,
+        })}
+    >
+        <div className={emptyStateWrapper}>
+            <div style={{ marginRight: 80 }} className={emptyStateSection}>
+                <EmptyState preserveAspectRatio="xMinYMin" />
+            </div>
+            <div style={{ marginLeft: 80 }} className={emptyStateSection}>
+                <EmptyState preserveAspectRatio="xMinYMin" />
+            </div>
+            <div style={{ marginRight: 80 }} className={emptyStateSection}>
+                <EmptyState preserveAspectRatio="xMinYMin" />
+            </div>
         </div>
         <h3 className={emptyTitle}>Couldn't find any relevant {item} 😔</h3>
         <p className={emptySubTitle}>
@@ -44,7 +45,7 @@ export const SearchEmptyState = ({ item }: { item: string }) => (
                     })
                 }
             >
-                intercom
+                Intercom
             </span>
             .
         </p>

@@ -110,13 +110,11 @@
 }
 
 .playerCenterPanel {
-    background-color: var(--color-gray-200);
     display: flex;
     flex-direction: column;
     height: 100%;
 
     .playerContainer {
-        background-color: var(--color-gray-200);
         display: flex;
         flex-direction: column;
         flex-grow: 1;
@@ -125,7 +123,9 @@
 }
 
 .playerLeftPanel {
+    background-color: var(--color-primary-background);
     border-right: 1px solid var(--color-gray-300);
+    box-shadow: var(--box-shadow-3);
     height: 100%;
     padding: var(--size-large) var(--size-xLarge);
     padding-bottom: 0;
@@ -140,17 +140,6 @@
 }
 
 .rrwebPlayerSection {
-    --background-color: var(--color-gray-200);
-    --dot-color: var(--color-gray-300);
-    --dot-size: 2px;
-    --square-size: 50px;
-    background-image: radial-gradient(
-        var(--dot-color) var(--dot-size),
-        var(--background-color) var(--dot-size)
-    );
-    background-position: 0 0;
-    background-size: var(--square-size) var(--square-size);
-
     display: flex;
 
     flex: 2;
@@ -189,6 +178,17 @@
 
 .playerBody {
     --left-panel-width: 475px;
+
+    --background-color: var(--color-gray-200);
+    --dot-color: var(--color-gray-300);
+    --dot-size: 2px;
+    --square-size: 50px;
+    background-image: radial-gradient(
+        var(--dot-color) var(--dot-size),
+        var(--background-color) var(--dot-size)
+    );
+    background-position: 0 0;
+    background-size: var(--square-size) var(--square-size);
     display: grid;
     grid-template-columns: 1fr;
     height: 100%;

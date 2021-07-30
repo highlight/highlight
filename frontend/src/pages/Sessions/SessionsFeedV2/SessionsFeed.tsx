@@ -105,15 +105,17 @@ export const SessionFeed = () => {
                     {sessionResults.totalCount === -1 ? (
                         <Skeleton width="100px" />
                     ) : (
-                        <>
-                            <TextTransition
-                                inline
-                                text={`${formatNumberWithDelimiters(
-                                    sessionResults.totalCount
-                                )}`}
-                            />{' '}
-                            sessions
-                        </>
+                        sessionResults.totalCount > 0 && (
+                            <>
+                                <TextTransition
+                                    inline
+                                    text={`${formatNumberWithDelimiters(
+                                        sessionResults.totalCount
+                                    )}`}
+                                />{' '}
+                                sessions
+                            </>
+                        )
                     )}
                 </div>
             </div>
@@ -133,7 +135,7 @@ export const SessionFeed = () => {
                             {!sessionResults.sessions.length &&
                             called &&
                             !loading ? (
-                                <SearchEmptyState item={'sessions'} />
+                                <SearchEmptyState item={'sessions'} newFeed />
                             ) : (
                                 <>
                                     <LimitedSessionCard />
