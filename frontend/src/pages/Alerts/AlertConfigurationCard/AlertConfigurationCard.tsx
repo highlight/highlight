@@ -241,16 +241,16 @@ export const AlertConfigurationCard = ({
     };
 
     const onTrackPropertiesChange = (_value: any, options: any) => {
-        const trackProperties = options
-            .filter((option: any) => !!option)
-            .map(({ value: valueAndName }: { key: string; value: string }) => {
+        const trackProperties = options.map(
+            ({ value: valueAndName }: { key: string; value: string }) => {
                 const [value, name, id] = valueAndName.split(':');
                 return {
                     id,
                     value,
                     name,
                 };
-            });
+            }
+        );
         form.setFieldsValue(trackProperties);
         setFormTouched(true);
     };
@@ -415,10 +415,10 @@ export const AlertConfigurationCard = ({
                     <>
                         <section>
                             <h3>Threshold</h3>
-                            <p>
-                                {threshold <= 0 ? (
-                                    `Setting the threshold to ${threshold} means no alerts will be created.`
-                                ) : (
+                            {threshold <= 0 ? (
+                                <p>{`Setting the threshold to ${threshold} means no alerts will be created.`}</p>
+                            ) : (
+                                <>
                                     <span>
                                         An alert will be created if{' '}
                                         <b>
@@ -445,8 +445,8 @@ export const AlertConfigurationCard = ({
                                         </b>{' '}
                                         window.
                                     </span>
-                                )}
-                            </p>
+                                </>
+                            )}
                             <div className={styles.frequencyContainer}>
                                 <Form.Item name="threshold">
                                     <InputNumber

@@ -23,8 +23,10 @@
         margin-bottom: var(--size-xSmall) !important;
     }
 
-    p {
+    p,
+    section > span {
         color: var(--color-gray-500);
+        display: block;
         margin-bottom: var(--size-medium) !important;
         margin-top: 0 !important;
     }
