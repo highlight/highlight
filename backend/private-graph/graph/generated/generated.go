@@ -199,7 +199,7 @@ type ComplexityRoot struct {
 		CreateOrUpdateSubscription     func(childComplexity int, organizationID int, planType model.PlanType) int
 		CreateOrganization             func(childComplexity int, name string) int
 		CreateSegment                  func(childComplexity int, organizationID int, name string, params model.SearchParamsInput) int
-		CreateSessionComment           func(childComplexity int, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) int
+		CreateSessionComment           func(childComplexity int, organizationID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) int
 		DeleteAdminFromOrganization    func(childComplexity int, organizationID int, adminID int) int
 		DeleteErrorComment             func(childComplexity int, id int) int
 		DeleteErrorSegment             func(childComplexity int, segmentID int) int
@@ -463,7 +463,7 @@ type MutationResolver interface {
 	DeleteErrorSegment(ctx context.Context, segmentID int) (*bool, error)
 	EditRecordingSettings(ctx context.Context, organizationID int, details *string) (*model1.RecordingSettings, error)
 	CreateOrUpdateSubscription(ctx context.Context, organizationID int, planType model.PlanType) (*string, error)
-	CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model1.SessionComment, error)
+	CreateSessionComment(ctx context.Context, organizationID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model1.SessionComment, error)
 	DeleteSessionComment(ctx context.Context, id int) (*bool, error)
 	CreateErrorComment(ctx context.Context, organizationID int, adminID int, errorGroupID int, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, errorURL string, authorName string) (*model1.ErrorComment, error)
 	DeleteErrorComment(ctx context.Context, id int) (*bool, error)
@@ -1224,7 +1224,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateSessionComment(childComplexity, args["organization_id"].(int), args["admin_id"].(int), args["session_id"].(int), args["session_timestamp"].(int), args["text"].(string), args["text_for_email"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64), args["tagged_admins"].([]*model.SanitizedAdminInput), args["session_url"].(string), args["time"].(float64), args["author_name"].(string), args["session_image"].(*string)), true
+		return e.complexity.Mutation.CreateSessionComment(childComplexity, args["organization_id"].(int), args["session_id"].(int), args["session_timestamp"].(int), args["text"].(string), args["text_for_email"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64), args["tagged_admins"].([]*model.SanitizedAdminInput), args["session_url"].(string), args["time"].(float64), args["author_name"].(string), args["session_image"].(*string)), true
 
 	case "Mutation.deleteAdminFromOrganization":
 		if e.complexity.Mutation.DeleteAdminFromOrganization == nil {
@@ -3223,7 +3223,6 @@ type Mutation {
     ): String
     createSessionComment(
         organization_id: ID!
-        admin_id: ID!
         session_id: ID!
         session_timestamp: Int!
         text: String!
@@ -3540,113 +3539,104 @@ func (ec *executionContext) field_Mutation_createSessionComment_args(ctx context
 	}
 	args["organization_id"] = arg0
 	var arg1 int
-	if tmp, ok := rawArgs["admin_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("admin_id"))
+	if tmp, ok := rawArgs["session_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_id"))
 		arg1, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["admin_id"] = arg1
+	args["session_id"] = arg1
 	var arg2 int
-	if tmp, ok := rawArgs["session_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_id"))
-		arg2, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["session_id"] = arg2
-	var arg3 int
 	if tmp, ok := rawArgs["session_timestamp"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_timestamp"))
-		arg3, err = ec.unmarshalNInt2int(ctx, tmp)
+		arg2, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["session_timestamp"] = arg3
-	var arg4 string
+	args["session_timestamp"] = arg2
+	var arg3 string
 	if tmp, ok := rawArgs["text"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text"))
+		arg3, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["text"] = arg3
+	var arg4 string
+	if tmp, ok := rawArgs["text_for_email"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_for_email"))
 		arg4, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["text"] = arg4
-	var arg5 string
-	if tmp, ok := rawArgs["text_for_email"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_for_email"))
-		arg5, err = ec.unmarshalNString2string(ctx, tmp)
+	args["text_for_email"] = arg4
+	var arg5 float64
+	if tmp, ok := rawArgs["x_coordinate"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("x_coordinate"))
+		arg5, err = ec.unmarshalNFloat2float64(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["text_for_email"] = arg5
+	args["x_coordinate"] = arg5
 	var arg6 float64
-	if tmp, ok := rawArgs["x_coordinate"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("x_coordinate"))
+	if tmp, ok := rawArgs["y_coordinate"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("y_coordinate"))
 		arg6, err = ec.unmarshalNFloat2float64(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["x_coordinate"] = arg6
-	var arg7 float64
-	if tmp, ok := rawArgs["y_coordinate"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("y_coordinate"))
-		arg7, err = ec.unmarshalNFloat2float64(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["y_coordinate"] = arg7
-	var arg8 []*model.SanitizedAdminInput
+	args["y_coordinate"] = arg6
+	var arg7 []*model.SanitizedAdminInput
 	if tmp, ok := rawArgs["tagged_admins"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tagged_admins"))
-		arg8, err = ec.unmarshalNSanitizedAdminInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedAdminInput(ctx, tmp)
+		arg7, err = ec.unmarshalNSanitizedAdminInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedAdminInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["tagged_admins"] = arg8
-	var arg9 string
+	args["tagged_admins"] = arg7
+	var arg8 string
 	if tmp, ok := rawArgs["session_url"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_url"))
-		arg9, err = ec.unmarshalNString2string(ctx, tmp)
+		arg8, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["session_url"] = arg9
-	var arg10 float64
+	args["session_url"] = arg8
+	var arg9 float64
 	if tmp, ok := rawArgs["time"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("time"))
-		arg10, err = ec.unmarshalNFloat2float64(ctx, tmp)
+		arg9, err = ec.unmarshalNFloat2float64(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["time"] = arg10
-	var arg11 string
+	args["time"] = arg9
+	var arg10 string
 	if tmp, ok := rawArgs["author_name"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("author_name"))
-		arg11, err = ec.unmarshalNString2string(ctx, tmp)
+		arg10, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["author_name"] = arg11
-	var arg12 *string
+	args["author_name"] = arg10
+	var arg11 *string
 	if tmp, ok := rawArgs["session_image"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_image"))
-		arg12, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg11, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["session_image"] = arg12
+	args["session_image"] = arg11
 	return args, nil
 }
 
@@ -8610,7 +8600,7 @@ func (ec *executionContext) _Mutation_createSessionComment(ctx context.Context, 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateSessionComment(rctx, args["organization_id"].(int), args["admin_id"].(int), args["session_id"].(int), args["session_timestamp"].(int), args["text"].(string), args["text_for_email"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64), args["tagged_admins"].([]*model.SanitizedAdminInput), args["session_url"].(string), args["time"].(float64), args["author_name"].(string), args["session_image"].(*string))
+		return ec.resolvers.Mutation().CreateSessionComment(rctx, args["organization_id"].(int), args["session_id"].(int), args["session_timestamp"].(int), args["text"].(string), args["text_for_email"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64), args["tagged_admins"].([]*model.SanitizedAdminInput), args["session_url"].(string), args["time"].(float64), args["author_name"].(string), args["session_image"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

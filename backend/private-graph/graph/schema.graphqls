@@ -514,7 +514,6 @@ type Mutation {
     ): String
     createSessionComment(
         organization_id: ID!
-        admin_id: ID!
         session_id: ID!
         session_timestamp: Int!
         text: String!

@@ -188,7 +188,6 @@ export type CreateSegmentMutation = { __typename?: 'Mutation' } & {
 
 export type CreateSessionCommentMutationVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
-    admin_id: Types.Scalars['ID'];
     session_id: Types.Scalars['ID'];
     session_timestamp: Types.Scalars['Int'];
     text: Types.Scalars['String'];

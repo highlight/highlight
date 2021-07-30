@@ -528,6 +528,7 @@ func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (strin
 
 	return email, nil
 }
+
 func (r *mutationResolver) EditSegment(ctx context.Context, id int, organizationID int, params modelInputs.SearchParamsInput) (*bool, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
@@ -728,7 +729,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	return &stripeSession.ID, nil
 }
 
-func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model.SessionComment, error) {
+func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model.SessionComment, error) {
 	// TODO: Remove organizationID and adminID args as they can be spoofed by the client and don't have to match the sessionID/authToken
 	admin, err := r.getCurrentAdmin(ctx)
 	if admin == nil || err != nil {
