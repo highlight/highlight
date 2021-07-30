@@ -12,10 +12,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/pkg/errors"
-
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/pkg/errors"
 )
 
 var (
@@ -49,8 +48,6 @@ func NewStorageClient() (*StorageClient, error) {
 		S3Client: client,
 	}, nil
 }
-
-// TODO: remove this
 func (s *StorageClient) PushSessionsToS3(sessionId int, organizationId int, events []model.EventsObject) (*int64, error) {
 	re := &parse.ReplayEvents{
 		Events: []*parse.ReplayEvent{},
@@ -76,24 +73,6 @@ func (s *StorageClient) PushSessionsToS3(sessionId int, organizationId int, even
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "error 'put'ing in s3 bucket")
-	}
-	headObj := s3.HeadObjectInput{
-		Bucket: aws.String(S3SessionsPayloadBucketName),
-		Key:    key,
-	}
-	result, err := s.S3Client.HeadObject(context.TODO(), &headObj)
-	if err != nil {
-		return nil, errors.New("error retrieving head object")
-	}
-	return &result.ContentLength, nil
-}
-
-func (s *StorageClient) PushFileToS3(ctx context.Context, sessionId, organizationId int, file *os.File, bucket string, payloadType PayloadType) (*int64, error) {
-	key := s.bucketKey(sessionId, organizationId, payloadType)
-	_, err := s.S3Client.PutObject(ctx, &s3.PutObjectInput{Bucket: &bucket,
-		Key: key, Body: file})
-	if err != nil {
-		return nil, err
 	}
 	headObj := s3.HeadObjectInput{
 		Bucket: aws.String(S3SessionsPayloadBucketName),
