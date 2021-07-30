@@ -26,8 +26,6 @@ export enum SessionPageSearchParams {
     referrer = 'referrer',
     /** Automatically sets the date range for the current segment based on the value. */
     date = 'date',
-    /** Automatically sets the identifier for the current segment based on the value. */
-    identifier = 'identifier',
     /** Automatically sets the field id and identifier for the current segment based on the value. */
     identifierAndId = 'identifierAndId',
     /** Automatically sets the first time users for the current segment to true. */

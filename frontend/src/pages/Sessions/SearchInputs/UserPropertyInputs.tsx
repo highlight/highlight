@@ -42,34 +42,6 @@ export const UserPropertyInput = ({ include }: { include: boolean }) => {
         (value) => `Showing sessions for ${value}`
     );
 
-    useWatchSessionPageSearchParams(
-        SessionPageSearchParams.identifier,
-        () => {
-            return { ...EmptySessionsSearchParams };
-        },
-        (value) => `Showing sessions for ${value}`,
-        async (identifier) => {
-            const searchResults = await generateOptions(identifier);
-
-            if (searchResults.length > 0) {
-                return {
-                    ...EmptySessionsSearchParams,
-                    user_properties: [
-                        {
-                            name: 'identifer',
-                            value: identifier,
-                            // @ts-expect-error
-                            id: searchResults[0].id,
-                        },
-                    ],
-                };
-            }
-            return {
-                ...EmptySessionsSearchParams,
-            };
-        }
-    );
-
     const { refetch } = useGetUserSuggestionQuery({ skip: true });
 
     const generateOptions = async (

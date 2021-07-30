@@ -35,3 +35,12 @@
 .small {
     padding: var(--size-xxSmall) var(--size-small);
 }
+
+.link {
+    border: 0;
+    display: inline;
+    font-size: inherit;
+    line-height: inherit;
+    margin: 0;
+    padding: 0;
+}

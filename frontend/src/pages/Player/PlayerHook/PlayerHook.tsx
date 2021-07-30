@@ -119,22 +119,6 @@ export const usePlayer = (): ReplayerContextInterface => {
         pollInterval: 1000 * 10,
     });
 
-    useEffect(() => {
-        if (session_id) {
-            setState(ReplayerState.Loading);
-            setSession(undefined);
-            getSessionQuery();
-            getSessionCommentsQuery();
-        } else {
-            setState(ReplayerState.Empty);
-            resetPlayer();
-        }
-    }, [getSessionCommentsQuery, getSessionQuery, session_id]);
-
-    useEffect(() => {
-        setSession(sessionData?.session as Session | undefined);
-    }, [sessionData?.session]);
-
     const resetPlayer = useCallback(
         (nextState?: ReplayerState) => {
             setState(nextState || ReplayerState.Empty);
@@ -153,10 +137,25 @@ export const usePlayer = (): ReplayerContextInterface => {
         [setPlayerTimeToPersistance]
     );
 
+    useEffect(() => {
+        if (session_id) {
+            setState(ReplayerState.Loading);
+            setSession(undefined);
+            getSessionQuery();
+            getSessionCommentsQuery();
+        } else {
+            resetPlayer(ReplayerState.Empty);
+        }
+    }, [getSessionCommentsQuery, getSessionQuery, session_id, resetPlayer]);
+
+    useEffect(() => {
+        setSession(sessionData?.session as Session | undefined);
+    }, [sessionData?.session]);
+
     // Reset all state when loading events.
     useEffect(() => {
         if (loading) {
-            resetPlayer();
+            resetPlayer(ReplayerState.Loading);
         }
     }, [loading, resetPlayer, setPlayerTimeToPersistance]);
 
