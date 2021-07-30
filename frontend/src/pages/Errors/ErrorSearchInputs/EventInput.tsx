@@ -49,7 +49,7 @@ export const EventInput = () => {
     return (
         <div>
             <AsyncCreatableSelect
-                placeholder={'Search by the body of your error...'}
+                placeholder={'Search error...'}
                 styles={SharedSelectStyleProps}
                 cacheOptions
                 value={

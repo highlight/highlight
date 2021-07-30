@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -1177,19 +1178,27 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 		errorFieldQuery = errorFieldQuery.Where("name = ? AND value = ?", "visited_url", params.VisitedURL)
 	}
 
-	errorFieldQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-		tracer.ResourceName("db.errorFieldIds"), tracer.Tag("org_id", organizationID))
-	if err := errorFieldQuery.Pluck("id", &errorFieldIds).Error; err != nil {
-		return nil, e.Wrap(err, "error querying error fields")
+	fieldsSelectStatement := ", array_agg(t.error_field_id) fieldIds"
+	joinErrorGroupFieldsStatement := "INNER JOIN error_group_fields t ON e.id=t.error_group_id"
+
+	if params.Browser == nil && params.Os == nil && params.VisitedURL == nil {
+		fieldsSelectStatement = ""
+		joinErrorGroupFieldsStatement = ""
+	} else {
+		errorFieldQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.errorFieldIds"))
+		if err := errorFieldQuery.Pluck("id", &errorFieldIds).Error; err != nil {
+			return nil, e.Wrap(err, "error querying error fields")
+		}
+		errorFieldQuerySpan.Finish()
+
 	}
-	errorFieldQuerySpan.Finish()
 
 	errorGroups := []model.ErrorGroup{}
 	selectPreamble := `SELECT id, organization_id, event, stack_trace, metadata_log, created_at, deleted_at, updated_at, state`
 	countPreamble := `SELECT COUNT(*)`
 
-	queryString := `FROM (SELECT id, organization_id, event, COALESCE(mapped_stack_trace, stack_trace) as stack_trace, metadata_log, created_at, deleted_at, updated_at, state, array_agg(t.error_field_id) fieldIds
-	FROM error_groups e INNER JOIN error_group_fields t ON e.id=t.error_group_id GROUP BY e.id) AS rows `
+	queryString := fmt.Sprintf(`FROM (SELECT id, organization_id, event, COALESCE(mapped_stack_trace, stack_trace) as stack_trace, metadata_log, created_at, deleted_at, updated_at, state %s
+	FROM error_groups e %s GROUP BY e.id) AS rows `, fieldsSelectStatement, joinErrorGroupFieldsStatement)
 
 	queryString += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
 	queryString += "AND (deleted_at IS NULL) "
@@ -1679,7 +1688,8 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	sessionsQueryPreamble := "SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed"
 	fieldsInnerJoinStatement := "INNER JOIN session_fields t ON s.id=t.session_id"
 	fieldsSelectStatement := ", array_agg(t.field_id) fieldIds"
-	if len(fieldIds) == 0 && len(visitedIds) == 0 && len(referrerIds) == 0 && len(notFieldIds) == 0 && len(notTrackFieldIds) == 0 {
+	isUnfilteredQuery := len(fieldIds) == 0 && len(visitedIds) == 0 && len(referrerIds) == 0 && len(notFieldIds) == 0 && len(notTrackFieldIds) == 0
+	if isUnfilteredQuery {
 		fieldsInnerJoinStatement = ""
 		fieldsSelectStatement = ""
 	}
@@ -1775,6 +1785,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	queriedSessions := []model.Session{}
 	var queriedSessionsCount int64
 	whereClauseSuffix := "AND NOT ((processed = true AND ((active_length IS NOT NULL AND active_length < 1000) OR (active_length IS NULL AND length < 1000)))) "
+	logTags := []string{fmt.Sprintf("org_id:%d", organizationID), fmt.Sprintf("filtered:%t", !isUnfilteredQuery)}
 
 	g.Go(func() error {
 		if params.LengthRange != nil {
@@ -1786,9 +1797,16 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		whereClause += whereClauseSuffix
 		sessionsSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.sessionsQuery"), tracer.Tag("org_id", organizationID))
-
-		if err := r.DB.Raw(fmt.Sprintf("%s %s %s ORDER BY created_at DESC LIMIT %d", sessionsQueryPreamble, joinClause, whereClause, count)).Scan(&queriedSessions).Error; err != nil {
+		start := time.Now()
+		query := fmt.Sprintf("%s %s %s ORDER BY created_at DESC LIMIT %d", sessionsQueryPreamble, joinClause, whereClause, count)
+		if err := r.DB.Raw(query).Scan(&queriedSessions).Error; err != nil {
 			return e.Wrap(err, "error querying filtered sessions")
+		}
+		duration := time.Since(start)
+		hlog.Timing("db.sessionsQuery.duration", duration, logTags, 1)
+		hlog.Incr("db.sessionsQuery.count", logTags, 1)
+		if duration.Milliseconds() > 3000 {
+			log.Error(e.New(fmt.Sprintf("sessionsQuery took %dms: %s", duration.Milliseconds(), query)))
 		}
 		sessionsSpan.Finish()
 		return nil
@@ -1797,8 +1815,15 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	g.Go(func() error {
 		sessionCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.sessionsCountQuery"), tracer.Tag("org_id", organizationID))
-		if err := r.DB.Raw(fmt.Sprintf("SELECT count(*) %s %s %s", joinClause, whereClause, whereClauseSuffix)).Scan(&queriedSessionsCount).Error; err != nil {
+		start := time.Now()
+		query := fmt.Sprintf("SELECT count(*) %s %s %s", joinClause, whereClause, whereClauseSuffix)
+		if err := r.DB.Raw(query).Scan(&queriedSessionsCount).Error; err != nil {
 			return e.Wrap(err, "error querying filtered sessions count")
+		}
+		duration := time.Since(start)
+		hlog.Timing("db.sessionsCountQuery.duration", duration, logTags, 1)
+		if duration.Milliseconds() > 3000 {
+			log.Error(e.New(fmt.Sprintf("sessionsCountQuery took %dms: %s", duration.Milliseconds(), query)))
 		}
 		sessionCountSpan.Finish()
 		return nil
