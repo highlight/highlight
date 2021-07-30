@@ -54,7 +54,6 @@ const ErrorComments = () => {
                     error_group_id: error_id,
                     text: commentText.trim(),
                     text_for_email: commentTextForEmail.trim(),
-                    admin_id: admin_data?.admin?.id || 'Unknown',
                     error_url: `${window.location.origin}${window.location.pathname}`,
                     tagged_admins: mentionedAdmins,
                     author_name:

@@ -752,7 +752,6 @@ export type CreateSegmentMutationOptions = Apollo.BaseMutationOptions<
 export const CreateSessionCommentDocument = gql`
     mutation CreateSessionComment(
         $organization_id: ID!
-        $admin_id: ID!
         $session_id: ID!
         $session_timestamp: Int!
         $text: String!
@@ -767,7 +766,6 @@ export const CreateSessionCommentDocument = gql`
     ) {
         createSessionComment(
             organization_id: $organization_id
-            admin_id: $admin_id
             session_id: $session_id
             session_timestamp: $session_timestamp
             text: $text
@@ -814,7 +812,6 @@ export type CreateSessionCommentMutationFn = Apollo.MutationFunction<
  * const [createSessionCommentMutation, { data, loading, error }] = useCreateSessionCommentMutation({
  *   variables: {
  *      organization_id: // value for 'organization_id'
- *      admin_id: // value for 'admin_id'
  *      session_id: // value for 'session_id'
  *      session_timestamp: // value for 'session_timestamp'
  *      text: // value for 'text'
@@ -897,7 +894,6 @@ export type DeleteSessionCommentMutationOptions = Apollo.BaseMutationOptions<
 export const CreateErrorCommentDocument = gql`
     mutation CreateErrorComment(
         $organization_id: ID!
-        $admin_id: ID!
         $error_group_id: ID!
         $text: String!
         $text_for_email: String!
@@ -907,7 +903,6 @@ export const CreateErrorCommentDocument = gql`
     ) {
         createErrorComment(
             organization_id: $organization_id
-            admin_id: $admin_id
             error_group_id: $error_group_id
             text: $text
             text_for_email: $text_for_email
@@ -946,7 +941,6 @@ export type CreateErrorCommentMutationFn = Apollo.MutationFunction<
  * const [createErrorCommentMutation, { data, loading, error }] = useCreateErrorCommentMutation({
  *   variables: {
  *      organization_id: // value for 'organization_id'
- *      admin_id: // value for 'admin_id'
  *      error_group_id: // value for 'error_group_id'
  *      text: // value for 'text'
  *      text_for_email: // value for 'text_for_email'

@@ -772,7 +772,6 @@ export type MutationCreateOrUpdateSubscriptionArgs = {
 
 export type MutationCreateSessionCommentArgs = {
     organization_id: Scalars['ID'];
-    admin_id: Scalars['ID'];
     session_id: Scalars['ID'];
     session_timestamp: Scalars['Int'];
     text: Scalars['String'];
@@ -792,7 +791,6 @@ export type MutationDeleteSessionCommentArgs = {
 
 export type MutationCreateErrorCommentArgs = {
     organization_id: Scalars['ID'];
-    admin_id: Scalars['ID'];
     error_group_id: Scalars['ID'];
     text: Scalars['String'];
     text_for_email: Scalars['String'];
