@@ -1785,6 +1785,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	queriedSessions := []model.Session{}
 	var queriedSessionsCount int64
 	whereClauseSuffix := "AND NOT ((processed = true AND ((active_length IS NOT NULL AND active_length < 1000) OR (active_length IS NULL AND length < 1000)))) "
+	logTags := []string{fmt.Sprintf("org_id:%d", organizationID), fmt.Sprintf("filtered:%t", !isUnfilteredQuery)}
 
 	g.Go(func() error {
 		if params.LengthRange != nil {
@@ -1802,8 +1803,8 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 			return e.Wrap(err, "error querying filtered sessions")
 		}
 		duration := time.Since(start)
-		hlog.Timing("db.sessionsQuery.duration", duration, []string{fmt.Sprintf("org_id:%d", organizationID), fmt.Sprintf("filtered:%t", !isUnfilteredQuery)}, 1)
-		hlog.Incr("db.sessionsQuery.count", []string{fmt.Sprintf("org_id:%d", organizationID), fmt.Sprintf("filtered:%t", !isUnfilteredQuery)}, 1)
+		hlog.Timing("db.sessionsQuery.duration", duration, logTags, 1)
+		hlog.Incr("db.sessionsQuery.count", logTags, 1)
 		if (duration.Milliseconds() > 3000) {
 			log.Error(e.New(fmt.Sprintf("sessionsQuery took %dms: %s", duration.Milliseconds(), query)))
 		}
@@ -1820,7 +1821,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 			return e.Wrap(err, "error querying filtered sessions count")
 		}
 		duration := time.Since(start)
-		hlog.Timing("db.sessionsCountQuery.duration", duration, []string{fmt.Sprintf("org_id:%d", organizationID), fmt.Sprintf("filtered:%t", !isUnfilteredQuery)}, 1)
+		hlog.Timing("db.sessionsCountQuery.duration", duration, logTags, 1)
 		if (duration.Milliseconds() > 3000) {
 			log.Error(e.New(fmt.Sprintf("sessionsCountQuery took %dms: %s", duration.Milliseconds(), query)))
 		}
