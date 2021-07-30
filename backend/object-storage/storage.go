@@ -89,9 +89,12 @@ func (s *StorageClient) PushSessionsToS3(sessionId int, organizationId int, even
 }
 
 func (s *StorageClient) PushFileToS3(ctx context.Context, sessionId, organizationId int, file *os.File, bucket string, payloadType PayloadType) (*int64, error) {
-	file.Seek(0, io.SeekStart)
+	_, err := file.Seek(0, io.SeekStart)
+	if err != nil {
+		return nil, errors.Wrap(err, "error seeking to beginning of file")
+	}
 	key := s.bucketKey(sessionId, organizationId, payloadType)
-	_, err := s.S3Client.PutObject(ctx, &s3.PutObjectInput{Bucket: &bucket,
+	_, err = s.S3Client.PutObject(ctx, &s3.PutObjectInput{Bucket: &bucket,
 		Key: key, Body: file})
 	if err != nil {
 		return nil, err
