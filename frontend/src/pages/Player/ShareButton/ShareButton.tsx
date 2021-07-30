@@ -75,8 +75,7 @@ const ShareButton = (props: ButtonProps) => {
 };
 
 const ExternalSharingToggle = () => {
-    const { organization_id, session_id } = useParams<{
-        organization_id: string;
+    const { session_id } = useParams<{
         session_id: string;
     }>();
     const { loading, data } = useGetSessionQuery({
