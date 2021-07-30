@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	env 			= os.Getenv("ENVIRONMENT")
+	env             = os.Getenv("ENVIRONMENT")
 	shouldLogErrors = env != "dev" && env != "test"
 )
 
