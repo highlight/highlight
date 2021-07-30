@@ -64,9 +64,9 @@ const ShareButton = (props: ButtonProps) => {
                                         : onGetLink().toString()
                                 }
                             />
-                            {isLoggedIn && <ExternalSharingOptions />}
                             <hr className={styles.divider} />
                             <h3>Sharing Parameters</h3>
+                            {isLoggedIn && <ExternalSharingToggle />}
                             <Switch
                                 checked={shareTimestamp}
                                 onChange={(checked: boolean) => {
@@ -82,7 +82,7 @@ const ShareButton = (props: ButtonProps) => {
     );
 };
 
-const ExternalSharingOptions = () => {
+const ExternalSharingToggle = () => {
     const { organization_id, session_id } = useParams<{
         organization_id: string;
         session_id: string;
@@ -114,7 +114,7 @@ const ExternalSharingOptions = () => {
     return (
         <>
             {loading ? null : (
-                <div>
+                <div className={styles.externalSharingToggle}>
                     <Switch
                         checked={!!data?.session?.is_public}
                         onChange={(checked: boolean) => {
@@ -128,16 +128,8 @@ const ExternalSharingOptions = () => {
                                 },
                             });
                         }}
-                        label="Allow anyone with the link to view this session."
+                        label="Allow anyone with the link to access this session."
                     />
-                    <p>
-                        {!!data?.session?.is_public
-                            ? 'Anyone with the link will be able to view and comment on this session.'
-                            : `This session is only accessible within ${
-                                  currentOrg?.organization?.name ??
-                                  'your organization'
-                              }.`}
-                    </p>
                 </div>
             )}
         </>
