@@ -19,16 +19,14 @@ import (
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
-	dd "github.com/highlight-run/highlight/backend/datadog"
 	"github.com/highlight-run/highlight/backend/payload"
-
 	parse "github.com/highlight-run/highlight/backend/event-parse"
+	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	mgraph "github.com/highlight-run/highlight/backend/private-graph/graph"
 	"github.com/highlight-run/highlight/backend/util"
 )
-
 // Worker is a job runner that parses sessions
 const MIN_INACTIVE_DURATION = 10
 
@@ -60,7 +58,7 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	for _, ee := range resourcesObject {
 		payloadStringSize += len(ee.Resources)
 	}
-	dd.StatsD.Histogram("worker.processSession.payloadStringSize", float64(payloadStringSize), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
+	hlog.Histogram("worker.processSession.payloadStringSize", float64(payloadStringSize), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
 	resourcePayloadSize, err := w.S3Client.PushResourcesToS3(s.ID, s.OrganizationID, resourcesObject)
 	if err != nil {
 		return errors.Wrap(err, "error pushing network payload to s3")
@@ -73,7 +71,7 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	for _, mm := range messagesObj {
 		payloadStringSize += len(mm.Messages)
 	}
-	dd.StatsD.Histogram("worker.processSession.payloadStringSize", float64(payloadStringSize), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
+	hlog.Histogram("worker.processSession.payloadStringSize", float64(payloadStringSize), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
 	messagePayloadSize, err := w.S3Client.PushMessagesToS3(s.ID, s.OrganizationID, messagesObj)
 	if err != nil {
 		return errors.Wrap(err, "error pushing network payload to s3")
@@ -99,7 +97,7 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 		return errors.Wrap(err, "error updating session to storage enabled")
 	}
 
-	dd.StatsD.Histogram("worker.pushToObjectStorageAndWipe.payloadSize", float64(totalPayloadSize), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
+	hlog.Histogram("worker.pushToObjectStorageAndWipe.payloadSize", float64(totalPayloadSize), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
 
 	// Delete all the events_objects in the DB.
 	if err := w.Resolver.DB.Unscoped().Where(&model.EventsObject{SessionID: s.ID}).Delete(&model.EventsObject{}).Error; err != nil {
@@ -202,7 +200,7 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session, event
 	}
 	totalPayloadSize += messagesInfo.Size()
 
-	dd.StatsD.Histogram("worker.processSession.scannedSessionPayload", float64(totalPayloadSize), nil, 1) //nolint
+	hlog.Histogram("worker.processSession.scannedSessionPayload", float64(totalPayloadSize), nil, 1) //nolint
 	log.Printf("payload size for session '%v' is '%v'\n", s.ID, totalPayloadSize)
 
 	return manager, nil
@@ -297,7 +295,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			activeDuration += tempDuration
 		}
 	}
-	// dd.StatsD.Histogram("worker.processSession.payloadStringSize", float64(payloadStringBytes), nil, 1) //nolint
+	// hlog.Histogram("worker.processSession.payloadStringSize", float64(payloadStringBytes), nil, 1) //nolint
 
 	// Calculate total session length and write the length to the session.
 	sessionTotalLength := CalculateSessionLength(firstEventTimestamp, lastEventTimestamp)
@@ -405,8 +403,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			return e.Wrapf(err, "[org_id: %d] error fetching track properties alert", organizationID)
 		}
 
-		// check if session was produced from an excluded environment
-		excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
 		if err != nil {
 			return e.Wrapf(err, "[org_id: %d] error getting excluded environments from track properties alert", organizationID)
 		}
@@ -543,7 +539,7 @@ func (w *Worker) Start() {
 			sessions[i], sessions[j] = sessions[j], sessions[i]
 		})
 		// Sends a "count" metric to datadog so that we can see how many sessions are being queried.
-		dd.StatsD.Histogram("worker.sessionsQuery.sessionCount", float64(len(sessions)), nil, 1) //nolint
+		hlog.Histogram("worker.sessionsQuery.sessionCount", float64(len(sessions)), nil, 1) //nolint
 		sessionsSpan.Finish()
 		type SessionLog struct {
 			SessionID      int
@@ -625,7 +621,6 @@ func (w *Worker) pushToObjectStorageAndWipeLegacy(ctx context.Context, s *model.
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
 	}
-	fmt.Printf("starting push for: %v \n", s.ID)
 	sessionPayloadSize, err := w.S3Client.PushSessionsToS3(s.ID, s.OrganizationID, events)
 	// If this is unsucessful, return early (we treat this session as if it is stored in psql).
 	if err != nil {
@@ -639,7 +634,7 @@ func (w *Worker) pushToObjectStorageAndWipeLegacy(ctx context.Context, s *model.
 	for _, ee := range resourcesObject {
 		payloadStringSize += len(ee.Resources)
 	}
-	dd.StatsD.Histogram("worker.processSession.payloadStringSize", float64(payloadStringSize), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
+	hlog.Histogram("worker.processSession.payloadStringSize", float64(payloadStringSize), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
 	resourcePayloadSize, err := w.S3Client.PushResourcesToS3(s.ID, s.OrganizationID, resourcesObject)
 	if err != nil {
 		return errors.Wrap(err, "error pushing network payload to s3")
@@ -652,7 +647,7 @@ func (w *Worker) pushToObjectStorageAndWipeLegacy(ctx context.Context, s *model.
 	for _, mm := range messagesObj {
 		payloadStringSize += len(mm.Messages)
 	}
-	dd.StatsD.Histogram("worker.processSession.payloadStringSize", float64(payloadStringSize), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
+	hlog.Histogram("worker.processSession.payloadStringSize", float64(payloadStringSize), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
 	messagePayloadSize, err := w.S3Client.PushMessagesToS3(s.ID, s.OrganizationID, messagesObj)
 	if err != nil {
 		return errors.Wrap(err, "error pushing network payload to s3")
@@ -678,7 +673,7 @@ func (w *Worker) pushToObjectStorageAndWipeLegacy(ctx context.Context, s *model.
 		return errors.Wrap(err, "error updating session to storage enabled")
 	}
 
-	dd.StatsD.Histogram("worker.pushToObjectStorageAndWipe.payloadSize", float64(totalPayloadSize), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
+	hlog.Histogram("worker.pushToObjectStorageAndWipe.payloadSize", float64(totalPayloadSize), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
 
 	// Delete all the events_objects in the DB.
 	if len(events) > 0 {
@@ -696,7 +691,6 @@ func (w *Worker) pushToObjectStorageAndWipeLegacy(ctx context.Context, s *model.
 			return errors.Wrapf(err, "error deleting all messages with length %v", len(messagesObj))
 		}
 	}
-	fmt.Println("parsed: ", s.ID)
 	return nil
 }
 
@@ -817,8 +811,7 @@ func (w *Worker) processSessionLegacy(ctx context.Context, s *model.Session) err
 	if err != nil {
 		log.Errorf(errors.Wrap(err, "error scanning session payload").Error())
 	} else {
-		dd.StatsD.Histogram("worker.processSession.scannedSessionPayload", float64(*size), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
-		log.Printf("payload size for session '%v' is '%v'\n", s.ID, *size)
+		hlog.Histogram("worker.processSession.scannedSessionPayload", float64(*size), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
 	}
 
 	// load all events
@@ -827,13 +820,13 @@ func (w *Worker) processSessionLegacy(ctx context.Context, s *model.Session) err
 		return errors.Wrap(err, "retrieving events")
 	}
 
-	dd.StatsD.Histogram("worker.processSession.numEventsRowsQueried", float64(len(events)), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
+	hlog.Histogram("worker.processSession.numEventsRowsQueried", float64(len(events)), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
 
 	payloadStringBytes := 0
 	for _, ee := range events {
 		payloadStringBytes += len(ee.Events)
 	}
-	dd.StatsD.Histogram("worker.processSession.payloadStringSize", float64(payloadStringBytes), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
+	hlog.Histogram("worker.processSession.payloadStringSize", float64(payloadStringBytes), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
 
 	// Delete the session if there's no events.
 	if len(events) == 0 {
@@ -1077,7 +1070,62 @@ func (w *Worker) processSessionLegacy(ctx context.Context, s *model.Session) err
 	return nil
 }
 
+// Start begins the worker's tasks.
+func (w *Worker) Start() {
+	ctx := context.Background()
+	for {
+		time.Sleep(1 * time.Second)
+		workerSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.unit"))
+		workerSpan.SetTag("backend", util.Worker)
+		now := time.Now()
+		seconds := 30
+		if os.Getenv("ENVIRONMENT") == "dev" {
+			seconds = 8
+		}
+		someSecondsAgo := now.Add(time.Duration(-1*seconds) * time.Second)
+		sessions := []*model.Session{}
+		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName(now.String()))
+		if err := w.Resolver.DB.Where("(payload_updated_at < ? OR payload_updated_at IS NULL) AND (processed = ?)", someSecondsAgo, false).Find(&sessions).Error; err != nil {
+			log.Errorf("error querying unparsed, outdated sessions: %v", err)
+			sessionsSpan.Finish()
+			continue
+		}
+		// TODO: remove eventually this it's gross
+		rand.Seed(time.Now().UnixNano())
+		rand.Shuffle(len(sessions), func(i, j int) {
+			sessions[i], sessions[j] = sessions[j], sessions[i]
+		})
+		// Sends a "count" metric to datadog so that we can see how many sessions are being queried.
+		hlog.Histogram("worker.sessionsQuery.sessionCount", float64(len(sessions)), nil, 1) //nolint
+		sessionsSpan.Finish()
+		type SessionLog struct {
+			SessionID      int
+			OrganizationID int
+		}
+		sessionIds := []SessionLog{}
+		for _, session := range sessions {
+			sessionIds = append(sessionIds, SessionLog{SessionID: session.ID, OrganizationID: session.OrganizationID})
+		}
+		if len(sessionIds) > 0 {
+			log.Printf("sessions that will be processed: %v \n", sessionIds)
+		}
+
+		for _, session := range sessions {
+			span, ctx := tracer.StartSpanFromContext(ctx, "worker.processSession", tracer.ResourceName(strconv.Itoa(session.ID)))
+			if err := w.processSession(ctx, session); err != nil {
+				log.Errorf("error processing main session(%v): %v", session.ID, err)
+				tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID))
+				span.Finish()
+				continue
+			}
+			span.Finish()
+		}
+		workerSpan.Finish()
+	}
+}
+
 // TODO: remove this
+// CalculateSessionLength gets the session length given two sets of ReplayEvents.
 func CalculateSessionLengthLegacy(first *parse.ReplayEvents, last *parse.ReplayEvents) time.Duration {
 	d := time.Duration(0)
 	fe := first.Events

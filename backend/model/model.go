@@ -664,6 +664,8 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 	DB, err = gorm.Open(postgres.Open(psqlConf), &gorm.Config{
 		DisableForeignKeyConstraintWhenMigrating: true,
 		Logger:                                   logger.Default.LogMode(logLevel),
+		PrepareStmt:                              true,
+		SkipDefaultTransaction:                   true,
 	})
 
 	if err != nil {

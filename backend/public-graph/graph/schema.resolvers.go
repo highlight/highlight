@@ -127,7 +127,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	sessionObj := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&sessionObj)
 	if res.Error != nil {
-		return nil, fmt.Errorf("error reading from session: %v", res.Error)
+		return nil, fmt.Errorf("error reading from session %v: %v", sessionID, res.Error)
 	}
 	querySessionSpan.SetTag("org_id", sessionObj.OrganizationID)
 	querySessionSpan.Finish()
