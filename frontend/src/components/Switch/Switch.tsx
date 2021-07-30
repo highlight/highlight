@@ -5,7 +5,9 @@ import React from 'react';
 
 import styles from './Switch.module.scss';
 
-type Props = Pick<SwitchProps, 'checked' | 'onChange'> & { label: string };
+type Props = Pick<SwitchProps, 'checked' | 'onChange' | 'loading'> & {
+    label: string;
+};
 
 const Switch = ({ label, ...props }: Props) => {
     return (

@@ -1,18 +1,23 @@
 .container {
     align-items: center;
     background-color: var(--color-gray-100);
-    border-radius: var(--border-radius);
+    border: 1px solid rgb(223, 223, 223);
+    border-radius: var(--button-border-radius);
     display: flex;
-    padding: var(--size-xxSmall) var(--size-small);
-
-    .icon {
-        color: var(--color-gray-500);
+    height: 36px;
+    .copyButton {
+        border-radius: var(--button-border-radius);
+        border-bottom-left-radius: 0;
+        border-top-left-radius: 0;
+        height: 36px;
         margin-left: auto;
     }
 
     .link {
-        max-width: calc(100% - 50px);
+        margin-left: var(--size-small);
+        margin-right: var(--size-small);
         overflow: hidden;
         text-overflow: ellipsis;
+        white-space: nowrap;
     }
 }

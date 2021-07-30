@@ -1,5 +1,9 @@
 import { PlayerSearchParameters } from '../../PlayerHook/utils';
 
+export const onGetLink = () => {
+    return new URL(window.location.href);
+};
+
 /**
  * Copies the current session URL with a search parameter "ts" with the player's current time in seconds.
  */
