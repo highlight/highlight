@@ -36,7 +36,7 @@ type Worker struct {
 	S3Client *storage.StorageClient
 }
 
-func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Session, migrationState *string, eventsFile *os.File) error {
+func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Session, migrationState *string, eventsFile *os.File, resourcesFile *os.File, messagesFile *os.File) error {
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
@@ -51,29 +51,12 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 		return errors.Wrap(err, "error pushing session payload to s3")
 	}
 
-	var payloadStringSize int
-	resourcesObject := []*model.ResourcesObject{}
-	if res := w.Resolver.DB.Order("created_at desc").Where(&model.ResourcesObject{SessionID: s.ID}).Find(&resourcesObject); res.Error != nil {
-		return errors.Wrap(res.Error, "error reading from resources")
-	}
-	for _, ee := range resourcesObject {
-		payloadStringSize += len(ee.Resources)
-	}
-	hlog.Histogram("worker.processSession.payloadStringSize", float64(payloadStringSize), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
-	resourcePayloadSize, err := w.S3Client.PushResourcesToS3(s.ID, s.OrganizationID, resourcesObject)
+	resourcePayloadSize, err := w.S3Client.PushFileToS3(ctx, s.ID, s.OrganizationID, resourcesFile, storage.S3SessionsPayloadBucketName, storage.NetworkResources)
 	if err != nil {
 		return errors.Wrap(err, "error pushing network payload to s3")
 	}
 
-	messagesObj := []*model.MessagesObject{}
-	if res := w.Resolver.DB.Order("created_at desc").Where(&model.MessagesObject{SessionID: s.ID}).Find(&messagesObj); res.Error != nil {
-		return errors.Wrap(res.Error, "error reading from messages")
-	}
-	for _, mm := range messagesObj {
-		payloadStringSize += len(mm.Messages)
-	}
-	hlog.Histogram("worker.processSession.payloadStringSize", float64(payloadStringSize), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
-	messagePayloadSize, err := w.S3Client.PushMessagesToS3(s.ID, s.OrganizationID, messagesObj)
+	messagePayloadSize, err := w.S3Client.PushFileToS3(ctx, s.ID, s.OrganizationID, messagesFile, storage.S3SessionsPayloadBucketName, storage.ConsoleMessages)
 	if err != nil {
 		return errors.Wrap(err, "error pushing network payload to s3")
 	}
@@ -81,12 +64,15 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	var totalPayloadSize int64
 	if sessionPayloadSize != nil {
 		totalPayloadSize += *sessionPayloadSize
+		hlog.Histogram("worker.processSession.sessionPayloadSize", float64(*sessionPayloadSize), []string{fmt.Sprintf("session_id:%d", s.ID), fmt.Sprintf("org_id:%d", s.OrganizationID)}, 1) //nolint
 	}
 	if resourcePayloadSize != nil {
 		totalPayloadSize += *resourcePayloadSize
+		hlog.Histogram("worker.processSession.resourcePayloadSize", float64(*resourcePayloadSize), []string{fmt.Sprintf("session_id:%d", s.ID), fmt.Sprintf("org_id:%d", s.OrganizationID)}, 1) //nolint
 	}
 	if messagePayloadSize != nil {
 		totalPayloadSize += *messagePayloadSize
+		hlog.Histogram("worker.processSession.messagePayloadSize", float64(*messagePayloadSize), []string{fmt.Sprintf("session_id:%d", s.ID), fmt.Sprintf("org_id:%d", s.OrganizationID)}, 1) //nolint
 	}
 
 	// Mark this session as stored in S3.
@@ -104,17 +90,13 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	if err := w.Resolver.DB.Unscoped().Where(&model.EventsObject{SessionID: s.ID}).Delete(&model.EventsObject{}).Error; err != nil {
 		return errors.Wrapf(err, "error deleting all event records")
 	}
-	if len(resourcesObject) > 0 {
-		if err := w.Resolver.DB.Unscoped().Delete(&resourcesObject).Error; err != nil {
-			return errors.Wrapf(err, "error deleting all network resource records with length %v", len(resourcesObject))
-		}
+	if err := w.Resolver.DB.Unscoped().Where(&model.ResourcesObject{SessionID: s.ID}).Delete(&model.ResourcesObject{}).Error; err != nil {
+		return errors.Wrap(err, "error deleting all network resource records")
 	}
-	if len(messagesObj) > 0 {
-		if err := w.Resolver.DB.Unscoped().Delete(&messagesObj).Error; err != nil {
-			return errors.Wrapf(err, "error deleting all messages with length %v", len(messagesObj))
-		}
+	if err := w.Resolver.DB.Unscoped().Where(&model.MessagesObject{SessionID: s.ID}).Delete(&model.MessagesObject{}).Error; err != nil {
+		return errors.Wrap(err, "error deleting all messages")
 	}
-	fmt.Println("parsed: ", s.ID)
+	log.Info("parsed: ", s.ID)
 	return nil
 }
 
@@ -508,7 +490,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// Upload to s3 and wipe from the db.
 	if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" {
 		state := "normal"
-		if err := w.pushToObjectStorageAndWipe(ctx, s, &state, eventsFile); err != nil {
+		if err := w.pushToObjectStorageAndWipe(ctx, s, &state, eventsFile, resourcesFile, messagesFile); err != nil {
 			log.Errorf("error pushing to object and wiping from db (%v): %v", s.ID, err)
 		}
 	}

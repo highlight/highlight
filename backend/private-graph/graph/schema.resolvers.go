@@ -1134,6 +1134,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 		defer objectStorageSpan.Finish()
 		var ret []interface{}
 		if s.OrganizationID == 1 {
+			// TODO: un-gate
 			ret, err = r.StorageClient.ReadSessionsFromS3(sessionID, s.OrganizationID)
 			if err != nil {
 				return nil, err
@@ -1281,9 +1282,18 @@ func (r *queryResolver) Messages(ctx context.Context, sessionID int) ([]interfac
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("org_id", s.OrganizationID))
 		defer objectStorageSpan.Finish()
-		ret, err := r.StorageClient.ReadMessagesFromS3(sessionID, s.OrganizationID)
-		if err != nil {
-			return nil, e.Wrap(err, "error pulling messages from s3")
+		var ret []interface{}
+		if s.OrganizationID == 1 {
+			// TODO: un-gate
+			ret, err = r.StorageClient.ReadMessagesFromS3(sessionID, s.OrganizationID)
+			if err != nil {
+				return nil, e.Wrap(err, "error pulling messages from s3")
+			}
+		} else {
+			ret, err = r.StorageClient.ReadMessagesFromS3Legacy(sessionID, s.OrganizationID)
+			if err != nil {
+				return nil, e.Wrap(err, "error pulling messages from s3")
+			}
 		}
 		return ret, nil
 	}
@@ -1326,9 +1336,18 @@ func (r *queryResolver) Resources(ctx context.Context, sessionID int) ([]interfa
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("org_id", s.OrganizationID))
 		defer objectStorageSpan.Finish()
-		ret, err := r.StorageClient.ReadResourcesFromS3(sessionID, s.OrganizationID)
-		if err != nil {
-			return nil, e.Wrap(err, "error pulling resources from s3")
+		var ret []interface{}
+		// TODO: un-gate
+		if s.OrganizationID == 1 {
+			ret, err = r.StorageClient.ReadResourcesFromS3(sessionID, s.OrganizationID)
+			if err != nil {
+				return nil, e.Wrap(err, "error pulling resources from s3")
+			}
+		} else {
+			ret, err = r.StorageClient.ReadResourcesFromS3Legacy(sessionID, s.OrganizationID)
+			if err != nil {
+				return nil, e.Wrap(err, "error pulling resources from s3")
+			}
 		}
 		return ret, nil
 	}
