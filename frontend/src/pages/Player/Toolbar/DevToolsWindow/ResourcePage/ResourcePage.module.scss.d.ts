@@ -13,7 +13,7 @@ export const networkTimestampGrid: string;
 export const networkTimingColumn: string;
 export const networkTimingHeader: string;
 export const networkTopBar: string;
-export const noResultsMessage: string;
+export const noDataContainer: string;
 export const resourcePageWrapper: string;
 export const rightAlign: string;
 export const timingBar: string;
