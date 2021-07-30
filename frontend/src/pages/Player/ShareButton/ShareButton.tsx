@@ -10,7 +10,6 @@ import Modal from '../../../components/Modal/Modal';
 import ModalBody from '../../../components/ModalBody/ModalBody';
 import Switch from '../../../components/Switch/Switch';
 import {
-    useGetOrganizationQuery,
     useGetSessionQuery,
     useUpdateSessionIsPublicMutation,
 } from '../../../graph/generated/hooks';
@@ -49,33 +48,26 @@ const ShareButton = (props: ButtonProps) => {
                 destroyOnClose
                 centered
                 width={500}
+                title="Session Sharing"
             >
                 <ModalBody>
-                    <div>
-                        <div>
-                            <h3>Session Sharing</h3>
-                            <CopyText
-                                className={styles.copyText}
-                                text={
-                                    shareTimestamp
-                                        ? onGetLinkWithTimestamp(
-                                              time
-                                          ).toString()
-                                        : onGetLink().toString()
-                                }
-                            />
-                            <hr className={styles.divider} />
-                            <h3>Sharing Parameters</h3>
-                            {isLoggedIn && <ExternalSharingToggle />}
-                            <Switch
-                                checked={shareTimestamp}
-                                onChange={(checked: boolean) => {
-                                    setShareTimestamp(checked);
-                                }}
-                                label="Include current timestamp"
-                            />
-                        </div>
-                    </div>
+                    <CopyText
+                        text={
+                            shareTimestamp
+                                ? onGetLinkWithTimestamp(time).toString()
+                                : onGetLink().toString()
+                        }
+                    />
+                    <hr className={styles.divider} />
+                    <h3>Sharing Options</h3>
+                    {isLoggedIn && <ExternalSharingToggle />}
+                    <Switch
+                        checked={shareTimestamp}
+                        onChange={(checked: boolean) => {
+                            setShareTimestamp(checked);
+                        }}
+                        label="Include current timestamp"
+                    />
                 </ModalBody>
             </Modal>
         </>
@@ -91,9 +83,6 @@ const ExternalSharingToggle = () => {
         variables: {
             id: session_id,
         },
-    });
-    const { data: currentOrg } = useGetOrganizationQuery({
-        variables: { id: organization_id },
     });
     const [updateSessionIsPublic] = useUpdateSessionIsPublicMutation({
         update(cache, { data }) {
@@ -112,27 +101,24 @@ const ExternalSharingToggle = () => {
         },
     });
     return (
-        <>
-            {loading ? null : (
-                <div className={styles.externalSharingToggle}>
-                    <Switch
-                        checked={!!data?.session?.is_public}
-                        onChange={(checked: boolean) => {
-                            H.track('Toggled session isPublic', {
-                                is_public: checked,
-                            });
-                            updateSessionIsPublic({
-                                variables: {
-                                    session_id: session_id,
-                                    is_public: checked,
-                                },
-                            });
-                        }}
-                        label="Allow anyone with the link to access this session."
-                    />
-                </div>
-            )}
-        </>
+        <div className={styles.externalSharingToggle}>
+            <Switch
+                loading={loading}
+                checked={!!data?.session?.is_public}
+                onChange={(checked: boolean) => {
+                    H.track('Toggled session isPublic', {
+                        is_public: checked,
+                    });
+                    updateSessionIsPublic({
+                        variables: {
+                            session_id: session_id,
+                            is_public: checked,
+                        },
+                    });
+                }}
+                label="Allow anyone with the link to access this session."
+            />
+        </div>
     );
 };
 
