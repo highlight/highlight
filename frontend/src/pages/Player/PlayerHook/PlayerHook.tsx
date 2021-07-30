@@ -73,7 +73,7 @@ export const usePlayer = (): ReplayerContextInterface => {
     /** localStorageTime acts like a message broker to share the current player time for components that are outside of the context tree. */
     const {
         setPlayerTime: setPlayerTimeToPersistance,
-        autoPlayVideo,
+        autoPlaySessions,
         showLeftPanel,
         showPlayerMouseTail,
     } = usePlayerConfiguration();
@@ -346,7 +346,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         if (
             state === ReplayerState.SessionEnded &&
             showLeftPanel &&
-            autoPlayVideo &&
+            autoPlaySessions &&
             sessionResults.sessions.length > 0
         ) {
             let currentSessionIndex = sessionResults.sessions.findIndex(
@@ -373,7 +373,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             message.success('Playing the next session.');
         }
     }, [
-        autoPlayVideo,
+        autoPlaySessions,
         history,
         organization_id,
         resetPlayer,
