@@ -12,9 +12,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/pkg/errors"
+
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/pkg/errors"
 )
 
 var (
@@ -48,6 +49,8 @@ func NewStorageClient() (*StorageClient, error) {
 		S3Client: client,
 	}, nil
 }
+
+// TODO: remove this
 func (s *StorageClient) PushSessionsToS3(sessionId int, organizationId int, events []model.EventsObject) (*int64, error) {
 	re := &parse.ReplayEvents{
 		Events: []*parse.ReplayEvent{},
@@ -85,7 +88,50 @@ func (s *StorageClient) PushSessionsToS3(sessionId int, organizationId int, even
 	return &result.ContentLength, nil
 }
 
+func (s *StorageClient) PushFileToS3(ctx context.Context, sessionId, organizationId int, file *os.File, bucket string, payloadType PayloadType) (*int64, error) {
+	key := s.bucketKey(sessionId, organizationId, payloadType)
+	_, err := s.S3Client.PutObject(ctx, &s3.PutObjectInput{Bucket: &bucket,
+		Key: key, Body: file})
+	if err != nil {
+		return nil, err
+	}
+	headObj := s3.HeadObjectInput{
+		Bucket: aws.String(S3SessionsPayloadBucketName),
+		Key:    key,
+	}
+	result, err := s.S3Client.HeadObject(context.TODO(), &headObj)
+	if err != nil {
+		return nil, errors.New("error retrieving head object")
+	}
+	return &result.ContentLength, nil
+}
+
 func (s *StorageClient) ReadSessionsFromS3(sessionId int, organizationId int) ([]interface{}, error) {
+	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: aws.String(S3SessionsPayloadBucketName),
+		Key: s.bucketKey(sessionId, organizationId, SessionContents)})
+	if err != nil {
+		return nil, errors.Wrap(err, "error getting object from s3")
+	}
+	buf := new(bytes.Buffer)
+	_, err = buf.ReadFrom(output.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "error reading from s3 buffer")
+	}
+	var allEvents []struct {
+		Events []interface{}
+	}
+	eventsStr := fmt.Sprintf("[%s]", strings.Replace(buf.String(), "\n\n\n", ",", -1))
+	if err := json.Unmarshal([]byte(eventsStr), &allEvents); err != nil {
+		return nil, fmt.Errorf("error decoding event data: %v", err)
+	}
+	var retEvents []interface{}
+	for _, evt := range allEvents {
+		retEvents = append(retEvents, evt.Events...)
+	}
+	return retEvents, nil
+}
+
+func (s *StorageClient) ReadSessionsFromS3Legacy(sessionId int, organizationId int) ([]interface{}, error) {
 	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: aws.String(S3SessionsPayloadBucketName),
 		Key: s.bucketKey(sessionId, organizationId, SessionContents)})
 	if err != nil {
@@ -149,6 +195,31 @@ func (s *StorageClient) ReadResourcesFromS3(sessionId int, organizationId int) (
 	if err != nil {
 		return nil, errors.Wrap(err, "error reading from s3 buffer")
 	}
+	var allResources []struct {
+		Resources []interface{}
+	}
+	resourcesStr := fmt.Sprintf("[%s]", strings.Replace(buf.String(), "\n\n\n", ",", -1))
+	if err := json.Unmarshal([]byte(resourcesStr), &allResources); err != nil {
+		return nil, fmt.Errorf("error decoding resources data: %v", err)
+	}
+	var retMessages []interface{}
+	for _, evt := range allResources {
+		retMessages = append(retMessages, evt.Resources...)
+	}
+	return retMessages, nil
+}
+
+func (s *StorageClient) ReadResourcesFromS3Legacy(sessionId int, organizationId int) ([]interface{}, error) {
+	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: aws.String(S3SessionsPayloadBucketName),
+		Key: s.bucketKey(sessionId, organizationId, NetworkResources)})
+	if err != nil {
+		return nil, errors.Wrap(err, "error getting object from s3")
+	}
+	buf := new(bytes.Buffer)
+	_, err = buf.ReadFrom(output.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "error reading from s3 buffer")
+	}
 	var allResources struct {
 		Resources []interface{}
 	}
@@ -191,6 +262,31 @@ func (s *StorageClient) PushMessagesToS3(sessionId int, organizationId int, mess
 }
 
 func (s *StorageClient) ReadMessagesFromS3(sessionId int, organizationId int) ([]interface{}, error) {
+	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: aws.String(S3SessionsPayloadBucketName),
+		Key: s.bucketKey(sessionId, organizationId, ConsoleMessages)})
+	if err != nil {
+		return nil, errors.Wrap(err, "error getting object from s3")
+	}
+	buf := new(bytes.Buffer)
+	_, err = buf.ReadFrom(output.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "error reading from s3 buffer")
+	}
+	var allMessages []struct {
+		Messages []interface{}
+	}
+	messagesStr := fmt.Sprintf("[%s]", strings.Replace(buf.String(), "\n\n\n", ",", -1))
+	if err := json.Unmarshal([]byte(messagesStr), &allMessages); err != nil {
+		return nil, fmt.Errorf("error decoding messages data: %v", err)
+	}
+	var retMessages []interface{}
+	for _, evt := range allMessages {
+		retMessages = append(retMessages, evt.Messages...)
+	}
+	return retMessages, nil
+}
+
+func (s *StorageClient) ReadMessagesFromS3Legacy(sessionId int, organizationId int) ([]interface{}, error) {
 	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: aws.String(S3SessionsPayloadBucketName),
 		Key: s.bucketKey(sessionId, organizationId, ConsoleMessages)})
 	if err != nil {
