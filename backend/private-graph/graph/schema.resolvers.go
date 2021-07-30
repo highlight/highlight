@@ -528,6 +528,7 @@ func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (strin
 
 	return email, nil
 }
+
 func (r *mutationResolver) EditSegment(ctx context.Context, id int, organizationID int, params modelInputs.SearchParamsInput) (*bool, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
