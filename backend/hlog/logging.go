@@ -10,13 +10,13 @@ import (
 )
 
 var (
-	env = os.Getenv("ENVIRONMENT")
+	env 			= os.Getenv("ENVIRONMENT")
 	shouldLogErrors = env != "dev" && env != "test"
 )
 
 func _logIfError(name string, err error) {
 	if err != nil && shouldLogErrors {
-		log.Error(e.Wrap(err, "dd error tracking: " + name))
+		log.Error(e.Wrap(err, "dd error tracking: "+name))
 	}
 }
 
