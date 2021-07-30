@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -1687,7 +1688,8 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	sessionsQueryPreamble := "SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed"
 	fieldsInnerJoinStatement := "INNER JOIN session_fields t ON s.id=t.session_id"
 	fieldsSelectStatement := ", array_agg(t.field_id) fieldIds"
-	if len(fieldIds) == 0 && len(visitedIds) == 0 && len(referrerIds) == 0 && len(notFieldIds) == 0 && len(notTrackFieldIds) == 0 {
+	isUnfilteredQuery := len(fieldIds) == 0 && len(visitedIds) == 0 && len(referrerIds) == 0 && len(notFieldIds) == 0 && len(notTrackFieldIds) == 0
+	if isUnfilteredQuery {
 		fieldsInnerJoinStatement = ""
 		fieldsSelectStatement = ""
 	}
@@ -1794,9 +1796,16 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		whereClause += whereClauseSuffix
 		sessionsSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.sessionsQuery"), tracer.Tag("org_id", organizationID))
-
-		if err := r.DB.Raw(fmt.Sprintf("%s %s %s ORDER BY created_at DESC LIMIT %d", sessionsQueryPreamble, joinClause, whereClause, count)).Scan(&queriedSessions).Error; err != nil {
+		start := time.Now()
+		query := fmt.Sprintf("%s %s %s ORDER BY created_at DESC LIMIT %d", sessionsQueryPreamble, joinClause, whereClause, count)
+		if err := r.DB.Raw(query).Scan(&queriedSessions).Error; err != nil {
 			return e.Wrap(err, "error querying filtered sessions")
+		}
+		duration := time.Since(start)
+		hlog.Timing("db.sessionsQuery.duration", duration, []string{fmt.Sprintf("org_id:%d", organizationID), fmt.Sprintf("filtered:%t", !isUnfilteredQuery)}, 1)
+		hlog.Incr("db.sessionsQuery.count", []string{fmt.Sprintf("org_id:%d", organizationID), fmt.Sprintf("filtered:%t", !isUnfilteredQuery)}, 1)
+		if (duration.Milliseconds() > 3000) {
+			log.Error(e.New(fmt.Sprintf("sessionsQuery took %dms: %s", duration.Milliseconds(), query)))
 		}
 		sessionsSpan.Finish()
 		return nil
@@ -1805,8 +1814,15 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	g.Go(func() error {
 		sessionCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.sessionsCountQuery"), tracer.Tag("org_id", organizationID))
-		if err := r.DB.Raw(fmt.Sprintf("SELECT count(*) %s %s %s", joinClause, whereClause, whereClauseSuffix)).Scan(&queriedSessionsCount).Error; err != nil {
+		start := time.Now()
+		query := fmt.Sprintf("SELECT count(*) %s %s %s", joinClause, whereClause, whereClauseSuffix)
+		if err := r.DB.Raw(query).Scan(&queriedSessionsCount).Error; err != nil {
 			return e.Wrap(err, "error querying filtered sessions count")
+		}
+		duration := time.Since(start)
+		hlog.Timing("db.sessionsCountQuery.duration", duration, []string{fmt.Sprintf("org_id:%d", organizationID), fmt.Sprintf("filtered:%t", !isUnfilteredQuery)}, 1)
+		if (duration.Milliseconds() > 3000) {
+			log.Error(e.New(fmt.Sprintf("sessionsCountQuery took %dms: %s", duration.Milliseconds(), query)))
 		}
 		sessionCountSpan.Finish()
 		return nil
