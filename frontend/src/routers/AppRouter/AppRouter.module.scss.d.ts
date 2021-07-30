@@ -5,7 +5,6 @@ export const playButtonStyle: string;
 export const playerPageBody: string;
 export const progressBar: string;
 export const rrwebPlayerDiv: string;
-export const rrwebPlayerSection: string;
 export const rrwebPlayerWrapper: string;
 export const signinWrapper: string;
 export const timeSection: string;

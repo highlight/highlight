@@ -65,10 +65,10 @@
 		"backend/public-graph/graph/test-files/*": true,
 		"backend/private-graph/graph/generated/*": true,
 		"backend/public-graph/graph/generated/*": true,
-		"backend/go.mod": true,
 		"backend/go.sum": true,
 		"backend/event-parse/sample-events/*.json": true,
-		"**/*.scss.d.ts": true
+		"**/*.scss.d.ts": true,
+		"frontend/src/graph/generated/*": true
 	},
 	"cSpell.words": [
 		"Blocklist",

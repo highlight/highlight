@@ -9,10 +9,7 @@ import CopyText from '../../../components/CopyText/CopyText';
 import Modal from '../../../components/Modal/Modal';
 import ModalBody from '../../../components/ModalBody/ModalBody';
 import Switch from '../../../components/Switch/Switch';
-import {
-    useGetSessionQuery,
-    useUpdateSessionIsPublicMutation,
-} from '../../../graph/generated/hooks';
+import { useUpdateSessionIsPublicMutation } from '../../../graph/generated/hooks';
 import { useReplayerContext } from '../ReplayerContext';
 import styles from './ShareButton.module.scss';
 import { onGetLink, onGetLinkWithTimestamp } from './utils/utils';
@@ -75,14 +72,10 @@ const ShareButton = (props: ButtonProps) => {
 };
 
 const ExternalSharingToggle = () => {
+    const { session } = useReplayerContext();
     const { session_id } = useParams<{
         session_id: string;
     }>();
-    const { loading, data } = useGetSessionQuery({
-        variables: {
-            id: session_id,
-        },
-    });
     const [updateSessionIsPublic] = useUpdateSessionIsPublicMutation({
         update(cache, { data }) {
             const is_public = data?.updateSessionIsPublic?.is_public === true;
@@ -102,8 +95,8 @@ const ExternalSharingToggle = () => {
     return (
         <div className={styles.externalSharingToggle}>
             <Switch
-                loading={loading}
-                checked={!!data?.session?.is_public}
+                loading={!session}
+                checked={!!session?.is_public}
                 onChange={(checked: boolean) => {
                     H.track('Toggled session isPublic', {
                         is_public: checked,

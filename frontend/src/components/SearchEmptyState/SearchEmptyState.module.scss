@@ -15,6 +15,11 @@
     flex-direction: column;
     height: 100%;
     width: 100%;
+
+    svg {
+        height: 30px;
+        width: 220px;
+    }
 }
 
 .emptySubTitle {
@@ -36,4 +41,30 @@
     cursor: pointer;
     display: inline-block;
     line-height: 1;
+}
+
+.newFeedStyles {
+    .emptyStateWrapper {
+        svg {
+            height: 20px;
+            width: 120px;
+        }
+    }
+
+    .emptyStateSection {
+        padding: 10px;
+    }
+
+    .emptySubTitle {
+        font-size: var(--size-small) !important;
+        margin-top: var(--size-small) !important;
+    }
+
+    .emptyTitle {
+        font-size: 14px !important;
+        font-weight: 400 !important;
+        margin-bottom: 0 !important;
+        margin-top: var(--size-small) !important;
+        text-align: center;
+    }
 }

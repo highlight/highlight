@@ -6,12 +6,13 @@ import { useHistory, useParams } from 'react-router-dom';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
 import {
-    useGetSessionCommentsQuery,
+    useGetSessionCommentsLazyQuery,
+    useGetSessionLazyQuery,
     useGetSessionPayloadLazyQuery,
-    useGetSessionQuery,
 } from '../../../graph/generated/hooks';
 import {
     ErrorObject,
+    Session,
     SessionComment,
     SessionResults,
 } from '../../../graph/generated/schemas';
@@ -65,13 +66,14 @@ export const usePlayer = (): ReplayerContextInterface => {
     const [errors, setErrors] = useState<ErrorObject[]>([]);
     const [, setSelectedErrorId] = useState<string | undefined>(undefined);
     const [replayer, setReplayer] = useState<Replayer | undefined>(undefined);
-    const [state, setState] = useState<ReplayerState>(ReplayerState.Loading);
+    const [state, setState] = useState<ReplayerState>(ReplayerState.Empty);
     const [canViewSession, setCanViewSession] = useState(true);
     const [time, setTime] = useState<number>(0);
+    const [session, setSession] = useState<undefined | Session>(undefined);
     /** localStorageTime acts like a message broker to share the current player time for components that are outside of the context tree. */
     const {
         setPlayerTime: setPlayerTimeToPersistance,
-        autoPlayVideo,
+        autoPlaySessions,
         showLeftPanel,
         showPlayerMouseTail,
     } = usePlayerConfiguration();
@@ -85,7 +87,7 @@ export const usePlayer = (): ReplayerContextInterface => {
     } = useSetPlayerTimestampFromSearchParam(setTime, replayer);
 
     const [
-        getSessionPayload,
+        getSessionPayloadQuery,
         { loading, data: eventsData },
     ] = useGetSessionPayloadLazyQuery({
         variables: {
@@ -94,48 +96,66 @@ export const usePlayer = (): ReplayerContextInterface => {
         fetchPolicy: 'no-cache',
     });
 
-    useGetSessionQuery({
+    const [getSessionQuery, { data: sessionData }] = useGetSessionLazyQuery({
         variables: {
             id: session_id,
         },
         onCompleted: (data) => {
             if (data.session?.within_billing_quota) {
-                getSessionPayload();
+                getSessionPayloadQuery();
                 setCanViewSession(true);
             } else {
                 setCanViewSession(false);
             }
         },
     });
-    const {
-        data: sessionCommentsData,
-        loading: sessionCommentsLoading,
-    } = useGetSessionCommentsQuery({
+    const [
+        getSessionCommentsQuery,
+        { data: sessionCommentsData, loading: sessionCommentsLoading },
+    ] = useGetSessionCommentsLazyQuery({
         variables: {
             session_id,
         },
         pollInterval: 1000 * 10,
     });
 
-    const resetPlayer = useCallback(() => {
-        setState(ReplayerState.Loading);
-        setErrors([]);
-        setEvents([]);
-        setScale(1);
-        setSessionComments([]);
-        setReplayer(undefined);
-        setSelectedErrorId(undefined);
-        setTime(0);
-        setPlayerTimeToPersistance(0);
-        setSessionEndTime(0);
-        setSessionIntervals([]);
-        setCanViewSession(true);
-    }, [setPlayerTimeToPersistance]);
+    const resetPlayer = useCallback(
+        (nextState?: ReplayerState) => {
+            setState(nextState || ReplayerState.Empty);
+            setErrors([]);
+            setEvents([]);
+            setScale(1);
+            setSessionComments([]);
+            setReplayer(undefined);
+            setSelectedErrorId(undefined);
+            setTime(0);
+            setPlayerTimeToPersistance(0);
+            setSessionEndTime(0);
+            setSessionIntervals([]);
+            setCanViewSession(true);
+        },
+        [setPlayerTimeToPersistance]
+    );
+
+    useEffect(() => {
+        if (session_id) {
+            setState(ReplayerState.Loading);
+            setSession(undefined);
+            getSessionQuery();
+            getSessionCommentsQuery();
+        } else {
+            resetPlayer(ReplayerState.Empty);
+        }
+    }, [getSessionCommentsQuery, getSessionQuery, session_id, resetPlayer]);
+
+    useEffect(() => {
+        setSession(sessionData?.session as Session | undefined);
+    }, [sessionData?.session]);
 
     // Reset all state when loading events.
     useEffect(() => {
         if (loading) {
-            resetPlayer();
+            resetPlayer(ReplayerState.Loading);
         }
     }, [loading, resetPlayer, setPlayerTimeToPersistance]);
 
@@ -326,7 +346,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         if (
             state === ReplayerState.SessionEnded &&
             showLeftPanel &&
-            autoPlayVideo &&
+            autoPlaySessions &&
             sessionResults.sessions.length > 0
         ) {
             let currentSessionIndex = sessionResults.sessions.findIndex(
@@ -349,11 +369,11 @@ export const usePlayer = (): ReplayerContextInterface => {
             history.push(
                 `/${organization_id}/sessions/${sessionResults.sessions[nextSessionIndex].id}`
             );
-            resetPlayer();
+            resetPlayer(ReplayerState.Loading);
             message.success('Playing the next session.');
         }
     }, [
-        autoPlayVideo,
+        autoPlaySessions,
         history,
         organization_id,
         resetPlayer,
@@ -418,6 +438,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         setSessionResults,
         isPlayerReady:
             state !== ReplayerState.Loading && scale !== 1 && canViewSession,
+        session,
     };
 };
 
