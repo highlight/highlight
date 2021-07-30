@@ -14,7 +14,7 @@ var (
 	shouldLogErrors = env != "dev" && env != "test"
 )
 
-func _logIfError(name string, err error) {
+func logIfError(name string, err error) {
 	if err != nil && shouldLogErrors {
 		log.Error(e.Wrap(err, "dd error tracking: "+name))
 	}
