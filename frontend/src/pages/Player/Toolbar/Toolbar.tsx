@@ -64,6 +64,7 @@ export const Toolbar = () => {
         showDevTools,
         setShowDevTools,
         autoPlayVideo,
+        autoPlaySessions,
         setAutoPlayVideo,
         enableInspectElement,
         selectedDevToolsTab,
@@ -102,7 +103,11 @@ export const Toolbar = () => {
     // Automatically start the player if the user has set the preference.
     useEffect(() => {
         if (admin_data) {
-            if (autoPlayVideo && replayer && isPlayerReady) {
+            if (
+                (autoPlayVideo || autoPlaySessions) &&
+                replayer &&
+                isPlayerReady
+            ) {
                 if (state === ReplayerState.LoadedAndUntouched) {
                     play(time);
                 } else if (state === ReplayerState.LoadedWithDeepLink) {
@@ -113,6 +118,7 @@ export const Toolbar = () => {
     }, [
         admin_data,
         autoPlayVideo,
+        autoPlaySessions,
         isPlayerReady,
         pause,
         play,

@@ -20,6 +20,7 @@ export const readMarkerContainer: string;
 export const regSubTitle: string;
 export const regTitle: string;
 export const resultCount: string;
+export const resultCountValueContainer: string;
 export const selected: string;
 export const sessionCard: string;
 export const sessionCardAction: string;

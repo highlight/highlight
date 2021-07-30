@@ -23,6 +23,11 @@ const usePlayerConfiguration = () => {
         'highlightMenuAutoPlayVideo',
         false
     );
+    /** Whether to automatically play the next session when the current session is done. */
+    const [autoPlaySessions, setAutoPlaySessions] = useLocalStorage(
+        'highlightAutoPlaySessions',
+        false
+    );
     const [selectedDevToolsTab, setSelectedDevToolsTab] = useLocalStorage(
         'highlightSelectedDevtoolTabs',
         DevToolTabs.Errors
@@ -66,6 +71,8 @@ const usePlayerConfiguration = () => {
         setShowDevTools,
         autoPlayVideo,
         setAutoPlayVideo,
+        autoPlaySessions,
+        setAutoPlaySessions,
         selectedDevToolsTab,
         setSelectedDevToolsTab,
         selectedTimelineAnnotationTypes,

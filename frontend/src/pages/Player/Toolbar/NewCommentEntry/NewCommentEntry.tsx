@@ -83,7 +83,6 @@ export const NewCommentEntry = ({
                     session_timestamp: Math.floor(currentTime),
                     text: commentText.trim(),
                     text_for_email: commentTextForEmail.trim(),
-                    admin_id: admin_data?.admin?.id || 'Unknown',
                     x_coordinate: commentPosition?.x || 0,
                     y_coordinate: commentPosition?.y || 0,
                     session_url: `${window.location.origin}${window.location.pathname}`,

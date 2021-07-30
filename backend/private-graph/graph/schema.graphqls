@@ -514,7 +514,6 @@ type Mutation {
     ): String
     createSessionComment(
         organization_id: ID!
-        admin_id: ID!
         session_id: ID!
         session_timestamp: Int!
         text: String!
@@ -530,7 +529,6 @@ type Mutation {
     deleteSessionComment(id: ID!): Boolean
     createErrorComment(
         organization_id: ID!
-        admin_id: ID!
         error_group_id: ID!
         text: String!
         text_for_email: String!

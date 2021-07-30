@@ -729,7 +729,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	return &stripeSession.ID, nil
 }
 
-func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model.SessionComment, error) {
+func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model.SessionComment, error) {
 	// TODO: Remove organizationID and adminID args as they can be spoofed by the client and don't have to match the sessionID/authToken
 	admin, err := r.getCurrentAdmin(ctx)
 	if admin == nil || err != nil {
@@ -822,7 +822,7 @@ func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*b
 	return &model.T, nil
 }
 
-func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationID int, adminID int, errorGroupID int, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, errorURL string, authorName string) (*model.ErrorComment, error) {
+func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationID int, errorGroupID int, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, errorURL string, authorName string) (*model.ErrorComment, error) {
 	// TODO: Remove organizationID and adminID args as they can be spoofed by the client and don't have to match the sessionID/authToken
 	admin, err := r.getCurrentAdmin(ctx)
 	if admin == nil || err != nil {
@@ -1133,19 +1133,9 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("org_id", s.OrganizationID))
 		defer objectStorageSpan.Finish()
-		var ret []interface{}
-		if s.OrganizationID == 1 {
-			// TODO: un-gate
-			ret, err = r.StorageClient.ReadSessionsFromS3(sessionID, s.OrganizationID)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			ret, err = r.StorageClient.ReadSessionsFromS3Legacy(sessionID, s.OrganizationID)
-			if err != nil {
-				return nil, err
-			}
-
+		ret, err := r.StorageClient.ReadSessionsFromS3(sessionID, s.OrganizationID)
+		if err != nil {
+			return nil, err
 		}
 		return ret, nil
 	}
@@ -1283,18 +1273,9 @@ func (r *queryResolver) Messages(ctx context.Context, sessionID int) ([]interfac
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("org_id", s.OrganizationID))
 		defer objectStorageSpan.Finish()
-		var ret []interface{}
-		if s.OrganizationID == 1 {
-			// TODO: un-gate
-			ret, err = r.StorageClient.ReadMessagesFromS3(sessionID, s.OrganizationID)
-			if err != nil {
-				return nil, e.Wrap(err, "error pulling messages from s3")
-			}
-		} else {
-			ret, err = r.StorageClient.ReadMessagesFromS3Legacy(sessionID, s.OrganizationID)
-			if err != nil {
-				return nil, e.Wrap(err, "error pulling messages from s3")
-			}
+		ret, err := r.StorageClient.ReadMessagesFromS3(sessionID, s.OrganizationID)
+		if err != nil {
+			return nil, e.Wrap(err, "error pulling messages from s3")
 		}
 		return ret, nil
 	}
@@ -1337,18 +1318,9 @@ func (r *queryResolver) Resources(ctx context.Context, sessionID int) ([]interfa
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("org_id", s.OrganizationID))
 		defer objectStorageSpan.Finish()
-		var ret []interface{}
-		// TODO: un-gate
-		if s.OrganizationID == 1 {
-			ret, err = r.StorageClient.ReadResourcesFromS3(sessionID, s.OrganizationID)
-			if err != nil {
-				return nil, e.Wrap(err, "error pulling resources from s3")
-			}
-		} else {
-			ret, err = r.StorageClient.ReadResourcesFromS3Legacy(sessionID, s.OrganizationID)
-			if err != nil {
-				return nil, e.Wrap(err, "error pulling resources from s3")
-			}
+		ret, err := r.StorageClient.ReadResourcesFromS3(sessionID, s.OrganizationID)
+		if err != nil {
+			return nil, e.Wrap(err, "error pulling resources from s3")
 		}
 		return ret, nil
 	}
