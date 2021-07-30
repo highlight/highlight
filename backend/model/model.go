@@ -439,6 +439,10 @@ type ResourcesObject struct {
 	Resources string
 }
 
+func (r *ResourcesObject) Contents() string {
+	return r.Resources
+}
+
 type SearchParams struct {
 	UserProperties     []*UserProperty `json:"user_properties"`
 	ExcludedProperties []*UserProperty `json:"excluded_properties"`
@@ -510,16 +514,28 @@ type TrackProperty struct {
 	Value string `json:"value"`
 }
 
+type Object interface {
+	Contents() string
+}
+
 type MessagesObject struct {
 	Model
 	SessionID int
 	Messages  string
 }
 
+func (m *MessagesObject) Contents() string {
+	return m.Messages
+}
+
 type EventsObject struct {
 	Model
 	SessionID int
 	Events    string
+}
+
+func (m *EventsObject) Contents() string {
+	return m.Events
 }
 
 type ErrorResults struct {
