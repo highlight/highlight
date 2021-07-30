@@ -1,10 +1,12 @@
 import { Replayer, ReplayerEvents } from '@highlight-run/rrweb';
 import { customEvent } from '@highlight-run/rrweb/dist/types';
 import { message } from 'antd';
+import { H } from 'highlight.run';
 import { useCallback, useEffect, useState } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
+import { useAuthContext } from '../../../AuthContext';
 import {
     useGetSessionCommentsLazyQuery,
     useGetSessionLazyQuery,
@@ -42,6 +44,7 @@ const EVENTS_CHUNK_SIZE = parseInt(
 );
 
 export const usePlayer = (): ReplayerContextInterface => {
+    const { isLoggedIn } = useAuthContext();
     const { session_id, organization_id } = useParams<{
         session_id: string;
         organization_id: string;
@@ -106,6 +109,10 @@ export const usePlayer = (): ReplayerContextInterface => {
                 setCanViewSession(true);
             } else {
                 setCanViewSession(false);
+            }
+
+            if (data.session) {
+                H.track('Viewed session', { is_guest: !isLoggedIn });
             }
         },
     });
