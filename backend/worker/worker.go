@@ -19,14 +19,15 @@ import (
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
-	"github.com/highlight-run/highlight/backend/payload"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/payload"
 	mgraph "github.com/highlight-run/highlight/backend/private-graph/graph"
 	"github.com/highlight-run/highlight/backend/util"
 )
+
 // Worker is a job runner that parses sessions
 const MIN_INACTIVE_DURATION = 10
 
@@ -403,6 +404,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			return e.Wrapf(err, "[org_id: %d] error fetching track properties alert", organizationID)
 		}
 
+		excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
 		if err != nil {
 			return e.Wrapf(err, "[org_id: %d] error getting excluded environments from track properties alert", organizationID)
 		}
@@ -1068,60 +1070,6 @@ func (w *Worker) processSessionLegacy(ctx context.Context, s *model.Session) err
 		}
 	}
 	return nil
-}
-
-// Start begins the worker's tasks.
-func (w *Worker) Start() {
-	ctx := context.Background()
-	for {
-		time.Sleep(1 * time.Second)
-		workerSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.unit"))
-		workerSpan.SetTag("backend", util.Worker)
-		now := time.Now()
-		seconds := 30
-		if os.Getenv("ENVIRONMENT") == "dev" {
-			seconds = 8
-		}
-		someSecondsAgo := now.Add(time.Duration(-1*seconds) * time.Second)
-		sessions := []*model.Session{}
-		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName(now.String()))
-		if err := w.Resolver.DB.Where("(payload_updated_at < ? OR payload_updated_at IS NULL) AND (processed = ?)", someSecondsAgo, false).Find(&sessions).Error; err != nil {
-			log.Errorf("error querying unparsed, outdated sessions: %v", err)
-			sessionsSpan.Finish()
-			continue
-		}
-		// TODO: remove eventually this it's gross
-		rand.Seed(time.Now().UnixNano())
-		rand.Shuffle(len(sessions), func(i, j int) {
-			sessions[i], sessions[j] = sessions[j], sessions[i]
-		})
-		// Sends a "count" metric to datadog so that we can see how many sessions are being queried.
-		hlog.Histogram("worker.sessionsQuery.sessionCount", float64(len(sessions)), nil, 1) //nolint
-		sessionsSpan.Finish()
-		type SessionLog struct {
-			SessionID      int
-			OrganizationID int
-		}
-		sessionIds := []SessionLog{}
-		for _, session := range sessions {
-			sessionIds = append(sessionIds, SessionLog{SessionID: session.ID, OrganizationID: session.OrganizationID})
-		}
-		if len(sessionIds) > 0 {
-			log.Printf("sessions that will be processed: %v \n", sessionIds)
-		}
-
-		for _, session := range sessions {
-			span, ctx := tracer.StartSpanFromContext(ctx, "worker.processSession", tracer.ResourceName(strconv.Itoa(session.ID)))
-			if err := w.processSession(ctx, session); err != nil {
-				log.Errorf("error processing main session(%v): %v", session.ID, err)
-				tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID))
-				span.Finish()
-				continue
-			}
-			span.Finish()
-		}
-		workerSpan.Finish()
-	}
 }
 
 // TODO: remove this
