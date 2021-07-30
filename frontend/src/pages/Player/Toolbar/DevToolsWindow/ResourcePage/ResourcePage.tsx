@@ -259,18 +259,22 @@ export const ResourcePage = ({
                                 />
                             ) : resourcesToRender.length === 0 &&
                               filterSearchTerm !== '' ? (
-                                <p className={styles.noResultsMessage}>
-                                    No network resources matching '
-                                    {filterSearchTerm}'
-                                </p>
+                                <div className={styles.noDataContainer}>
+                                    <p>
+                                        No network resources matching '
+                                        {filterSearchTerm}'
+                                    </p>
+                                </div>
                             ) : (
-                                <>
-                                    <p className={styles.noResultsMessage}>
+                                <div className={styles.noDataContainer}>
+                                    <h3>
                                         There are no network recordings for this
-                                        session. If you expected to see data
-                                        here, please make sure{' '}
-                                        <code>networkRecording</code> is set to{' '}
-                                        <code>true</code>. You can{' '}
+                                        session.
+                                    </h3>
+                                    <p>
+                                        If you expected to see data here, please
+                                        make sure <code>networkRecording</code>{' '}
+                                        is set to <code>true</code>. You can{' '}
                                         <a
                                             href="https://docs.highlight.run/reference#options"
                                             target="_blank"
@@ -280,7 +284,7 @@ export const ResourcePage = ({
                                         </a>
                                         .
                                     </p>
-                                </>
+                                </div>
                             )}
                         </div>
                     </>
