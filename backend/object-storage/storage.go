@@ -117,6 +117,31 @@ func (s *StorageClient) ReadSessionsFromS3(sessionId int, organizationId int) ([
 	if err != nil {
 		return nil, errors.Wrap(err, "error reading from s3 buffer")
 	}
+	var allEvents []struct {
+		Events []interface{}
+	}
+	eventsStr := fmt.Sprintf("[%s]", strings.Replace(buf.String(), "\n\n\n", ",", -1))
+	if err := json.Unmarshal([]byte(eventsStr), &allEvents); err != nil {
+		return nil, fmt.Errorf("error decoding event data: %v", err)
+	}
+	var retEvents []interface{}
+	for _, evt := range allEvents {
+		retEvents = append(retEvents, evt.Events...)
+	}
+	return retEvents, nil
+}
+
+func (s *StorageClient) ReadSessionsFromS3Legacy(sessionId int, organizationId int) ([]interface{}, error) {
+	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: aws.String(S3SessionsPayloadBucketName),
+		Key: s.bucketKey(sessionId, organizationId, SessionContents)})
+	if err != nil {
+		return nil, errors.Wrap(err, "error getting object from s3")
+	}
+	buf := new(bytes.Buffer)
+	_, err = buf.ReadFrom(output.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "error reading from s3 buffer")
+	}
 	var allEvents struct {
 		Events []interface{}
 	}

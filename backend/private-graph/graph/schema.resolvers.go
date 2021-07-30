@@ -1132,9 +1132,18 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("org_id", s.OrganizationID))
 		defer objectStorageSpan.Finish()
-		ret, err := r.StorageClient.ReadSessionsFromS3(sessionID, s.OrganizationID)
-		if err != nil {
-			return nil, err
+		var ret []interface{}
+		if s.OrganizationID == 1 {
+			ret, err = r.StorageClient.ReadSessionsFromS3(sessionID, s.OrganizationID)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			ret, err = r.StorageClient.ReadSessionsFromS3Legacy(sessionID, s.OrganizationID)
+			if err != nil {
+				return nil, err
+			}
+
 		}
 		return ret, nil
 	}
