@@ -1805,7 +1805,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		duration := time.Since(start)
 		hlog.Timing("db.sessionsQuery.duration", duration, logTags, 1)
 		hlog.Incr("db.sessionsQuery.count", logTags, 1)
-		if (duration.Milliseconds() > 3000) {
+		if duration.Milliseconds() > 3000 {
 			log.Error(e.New(fmt.Sprintf("sessionsQuery took %dms: %s", duration.Milliseconds(), query)))
 		}
 		sessionsSpan.Finish()
@@ -1822,7 +1822,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		}
 		duration := time.Since(start)
 		hlog.Timing("db.sessionsCountQuery.duration", duration, logTags, 1)
-		if (duration.Milliseconds() > 3000) {
+		if duration.Milliseconds() > 3000 {
 			log.Error(e.New(fmt.Sprintf("sessionsCountQuery took %dms: %s", duration.Milliseconds(), query)))
 		}
 		sessionCountSpan.Finish()
