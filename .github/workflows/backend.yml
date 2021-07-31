@@ -17,6 +17,8 @@ jobs:
             public-graph: ${{ steps.filter.outputs.public-graph }}
         steps:
         # For pull requests it's not necessary to checkout the code
+            - name: Checkout
+              uses: actions/checkout@v2
             - uses: dorny/paths-filter@v2
               id: filter
               with:
