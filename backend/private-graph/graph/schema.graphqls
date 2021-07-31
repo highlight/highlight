@@ -444,7 +444,6 @@ type Query {
         name: String!
         query: String!
     ): [ErrorField]
-    happiness: Admin
     organizations: [Organization]
     error_alert(organization_id: ID!): ErrorAlert
     new_user_alert(organization_id: ID!): SessionAlert
@@ -571,3 +570,4 @@ type Mutation {
     ): SessionAlert
     updateSessionIsPublic(session_id: ID!, is_public: Boolean!): Session
 }
+# comment
