@@ -60,7 +60,7 @@ jobs:
             - name: copy backend
               run: |
                 mkdir tmp
-                cp -r backend/ tmp/
+                cp -a backend/. tmp/
             - name: Make private graph
               if: ${{ needs.changes.outputs.private-graph == 'true' }}
               run: |
