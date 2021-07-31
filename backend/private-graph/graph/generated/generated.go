@@ -3279,6 +3279,7 @@ type Mutation {
     ): SessionAlert
     updateSessionIsPublic(session_id: ID!, is_public: Boolean!): Session
 }
+# comment
 `, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
