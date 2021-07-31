@@ -52,7 +52,7 @@ jobs:
                   version: latest
     make-check:
         needs: [changes, code-setup]
-        if: ${{ needs.changes.outputs.private-graph == 'true' }} || ${{ needs.changes.outputs.public-graph == 'true'}}
+        if: needs.changes.outputs.private-graph == 'true' || needs.changes.outputs.public-graph == 'true'
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
