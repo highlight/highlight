@@ -16,7 +16,6 @@ jobs:
             private-graph: ${{ steps.filter.outputs.private-graph }}
             public-graph: ${{ steps.filter.outputs.public-graph }}
         steps:
-        # For pull requests it's not necessary to checkout the code
             - name: Checkout
               uses: actions/checkout@v2
             - uses: dorny/paths-filter@v2
@@ -62,18 +61,18 @@ jobs:
               run: |
                 mkdir tmp
                 cp -r backend/ tmp/
-                cd backend/
             - name: Make private graph
               if: ${{ needs.changes.outputs.private-graph == 'true' }}
               run: |
+                cd backend/
                 make private-gen 
             - name: Make public graph
               if: ${{ needs.changes.outputs.public-graph == 'true' }}
               run: |
+                cd backend/
                 make public-gen 
             - name: Diff Check
               run: |
-                cd ../
                 diff -rq backend/ tmp/
     build:
         needs: code-quality-check
