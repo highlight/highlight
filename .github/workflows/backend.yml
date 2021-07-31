@@ -74,7 +74,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Build binary
-              run: cd backend && go build .
+              run: cd backend/ && go build .
     test:
         needs: code-quality-check
         runs-on: ubuntu-latest
