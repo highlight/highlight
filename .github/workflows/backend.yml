@@ -38,6 +38,8 @@ jobs:
         needs: code-setup
         runs-on: ubuntu-latest
         steps:
+            - name: Checkout
+              uses: actions/checkout@v2
             - name: Format
               uses: Jerome1337/gofmt-action@v1.0.4
               with:
@@ -54,6 +56,8 @@ jobs:
         if: ${{ needs.changes.outputs.private-graph == 'true' }} || ${{ needs.changes.outputs.public-graph == 'true'}}
         runs-on: ubuntu-latest
         steps:
+            - name: Checkout
+              uses: actions/checkout@v2
             - name: copy backend
               run: |
                 mkdir tmp
@@ -75,6 +79,8 @@ jobs:
         needs: code-quality-check
         runs-on: ubuntu-latest
         steps:
+            - name: Checkout
+              uses: actions/checkout@v2
             - name: Build binary
               run: cd backend/ && go build .
     test:
@@ -102,5 +108,7 @@ jobs:
           PSQL_PASSWORD: "postgres"
           ENVIRONMENT: "test"
         steps:
+            - name: Checkout
+              uses: actions/checkout@v2
             - name: Run tests
               run: cd backend && go test -p 1 ./... -v
