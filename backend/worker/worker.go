@@ -231,7 +231,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	payloadManager, err := w.scanSessionPayload(ctx, s, eventsFile, resourcesFile, messagesFile)
 	if err != nil {
-		log.Errorf(errors.Wrap(err, "error scanning session payload").Error())
+		return errors.Wrap(err, "error scanning session payload")
 	}
 
 	//Delete the session if there's no events.
@@ -283,7 +283,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// Calculate total session length and write the length to the session.
 	sessionTotalLength := CalculateSessionLength(firstEventTimestamp, lastEventTimestamp)
 	sessionTotalLengthInMilliseconds := sessionTotalLength.Milliseconds()
-	log.Infof("session length: %v, session length ms: %v, first ts: %v, last ts %v", sessionTotalLength, sessionTotalLengthInMilliseconds, firstEventTimestamp, lastEventTimestamp)
 
 	// Delete the session if the length of the session is 0.
 	// 1. Nothing happened in the session
