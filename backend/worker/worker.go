@@ -208,7 +208,7 @@ func CreateFile(name string) (func(), *os.File, error) {
 
 func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
-	sessionIdString := "/tmp/" + strconv.FormatInt(int64(s.ID), 10)
+	sessionIdString := os.Getenv("SESSION_FILE_PATH_PREFIX") + strconv.FormatInt(int64(s.ID), 10)
 
 	// Create files.
 	eventsClose, eventsFile, err := CreateFile(sessionIdString + ".events.txt")
