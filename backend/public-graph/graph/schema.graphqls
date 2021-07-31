@@ -67,4 +67,5 @@ type Mutation {
 
 type Query {
     ignore(id: ID!): Any
+    allow(id: ID!): Any
 }
