@@ -393,8 +393,10 @@ type Query {
     resources(session_id: ID!): [Any]
     session_comments(session_id: ID!): [SessionComment]!
     session_comments_for_admin: [SessionComment]!
+    session_comments_for_organization(organization_id: ID!): [SessionComment]!
     error_comments(error_group_id: ID!): [ErrorComment]!
     error_comments_for_admin: [ErrorComment]!
+    error_comments_for_organization(organization_id: ID!): [ErrorComment]!
     admins(organization_id: ID!): [Admin]
     isIntegrated(organization_id: ID!): Boolean
     unprocessedSessionsCount(organization_id: ID!): Int64

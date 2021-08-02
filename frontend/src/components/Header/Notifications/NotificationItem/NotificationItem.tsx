@@ -67,14 +67,14 @@ const getIcon = (type: NotificationType) => {
 const getTitle = (notification: any): React.ReactNode => {
     const notificationAuthor =
         notification?.author.name || notification?.author.email;
-    let suffix = 'mentioned you';
+    let suffix = 'commented';
 
     switch (notification.type as NotificationType) {
         case NotificationType.ErrorComment:
-            suffix = 'mentioned you';
+            suffix = 'commented on an error';
             break;
         case NotificationType.SessionComment:
-            suffix = 'mentioned you';
+            suffix = 'commented on a session';
             break;
     }
 

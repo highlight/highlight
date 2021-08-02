@@ -6,16 +6,16 @@ export enum NotificationType {
 }
 
 export const processNotifications = ({
-    error_comments_for_admin,
-    session_comments_for_admin,
+    error_comments_for_organization,
+    session_comments_for_organization,
 }: GetNotificationsQuery) => {
-    const errorCommentNotifications = error_comments_for_admin.map(
+    const errorCommentNotifications = error_comments_for_organization.map(
         (errorComment) => ({
             ...errorComment,
             type: NotificationType.ErrorComment,
         })
     );
-    const sessionCommentNotifications = session_comments_for_admin.map(
+    const sessionCommentNotifications = session_comments_for_organization.map(
         (sessionComment) => ({
             ...sessionComment,
             type: NotificationType.SessionComment,

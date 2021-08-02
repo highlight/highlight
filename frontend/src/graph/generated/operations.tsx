@@ -559,20 +559,15 @@ export type GetSessionCommentsQuery = { __typename?: 'Query' } & {
 };
 
 export type GetNotificationsQueryVariables = Types.Exact<{
-    [key: string]: never;
+    organization_id: Types.Scalars['ID'];
 }>;
 
 export type GetNotificationsQuery = { __typename?: 'Query' } & {
-    session_comments_for_admin: Array<
+    session_comments_for_organization: Array<
         Types.Maybe<
             { __typename?: 'SessionComment' } & Pick<
                 Types.SessionComment,
-                | 'id'
-                | 'timestamp'
-                | 'updated_at'
-                | 'session_id'
-                | 'organization_id'
-                | 'text'
+                'id' | 'timestamp' | 'updated_at' | 'session_id' | 'text'
             > & {
                     author: { __typename?: 'SanitizedAdmin' } & Pick<
                         Types.SanitizedAdmin,
@@ -581,7 +576,7 @@ export type GetNotificationsQuery = { __typename?: 'Query' } & {
                 }
         >
     >;
-    error_comments_for_admin: Array<
+    error_comments_for_organization: Array<
         Types.Maybe<
             { __typename?: 'ErrorComment' } & Pick<
                 Types.ErrorComment,

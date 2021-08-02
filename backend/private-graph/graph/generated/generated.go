@@ -244,48 +244,50 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		APIKeyToOrgID                 func(childComplexity int, apiKey string) int
-		Admin                         func(childComplexity int) int
-		AdminHasCreatedComment        func(childComplexity int, adminID int) int
-		Admins                        func(childComplexity int, organizationID int) int
-		AverageSessionLength          func(childComplexity int, organizationID int, lookBackPeriod int) int
-		BillingDetails                func(childComplexity int, organizationID int) int
-		DailyErrorsCount              func(childComplexity int, organizationID int, dateRange model.DateRangeInput) int
-		DailySessionsCount            func(childComplexity int, organizationID int, dateRange model.DateRangeInput) int
-		EnvironmentSuggestion         func(childComplexity int, query string, organizationID int) int
-		ErrorAlert                    func(childComplexity int, organizationID int) int
-		ErrorComments                 func(childComplexity int, errorGroupID int) int
-		ErrorCommentsForAdmin         func(childComplexity int) int
-		ErrorFieldSuggestion          func(childComplexity int, organizationID int, name string, query string) int
-		ErrorGroup                    func(childComplexity int, id int) int
-		ErrorGroups                   func(childComplexity int, organizationID int, count int, params *model.ErrorSearchParamsInput) int
-		ErrorSegments                 func(childComplexity int, organizationID int) int
-		Errors                        func(childComplexity int, sessionID int) int
-		Events                        func(childComplexity int, sessionID int) int
-		FieldSuggestion               func(childComplexity int, organizationID int, name string, query string) int
-		IsIntegrated                  func(childComplexity int, organizationID int) int
-		Messages                      func(childComplexity int, sessionID int) int
-		NewUserAlert                  func(childComplexity int, organizationID int) int
-		NewUsersCount                 func(childComplexity int, organizationID int, lookBackPeriod int) int
-		Organization                  func(childComplexity int, id int) int
-		OrganizationHasViewedASession func(childComplexity int, organizationID int) int
-		OrganizationSuggestion        func(childComplexity int, query string) int
-		Organizations                 func(childComplexity int) int
-		PropertySuggestion            func(childComplexity int, organizationID int, query string, typeArg string) int
-		RecordingSettings             func(childComplexity int, organizationID int) int
-		Referrers                     func(childComplexity int, organizationID int, lookBackPeriod int) int
-		Resources                     func(childComplexity int, sessionID int) int
-		Segments                      func(childComplexity int, organizationID int) int
-		Session                       func(childComplexity int, id int) int
-		SessionComments               func(childComplexity int, sessionID int) int
-		SessionCommentsForAdmin       func(childComplexity int) int
-		Sessions                      func(childComplexity int, organizationID int, count int, lifecycle model.SessionLifecycle, starred bool, params *model.SearchParamsInput) int
-		SlackChannelSuggestion        func(childComplexity int, organizationID int) int
-		TopUsers                      func(childComplexity int, organizationID int, lookBackPeriod int) int
-		TrackPropertiesAlert          func(childComplexity int, organizationID int) int
-		UnprocessedSessionsCount      func(childComplexity int, organizationID int) int
-		UserFingerprintCount          func(childComplexity int, organizationID int, lookBackPeriod int) int
-		UserPropertiesAlert           func(childComplexity int, organizationID int) int
+		APIKeyToOrgID                  func(childComplexity int, apiKey string) int
+		Admin                          func(childComplexity int) int
+		AdminHasCreatedComment         func(childComplexity int, adminID int) int
+		Admins                         func(childComplexity int, organizationID int) int
+		AverageSessionLength           func(childComplexity int, organizationID int, lookBackPeriod int) int
+		BillingDetails                 func(childComplexity int, organizationID int) int
+		DailyErrorsCount               func(childComplexity int, organizationID int, dateRange model.DateRangeInput) int
+		DailySessionsCount             func(childComplexity int, organizationID int, dateRange model.DateRangeInput) int
+		EnvironmentSuggestion          func(childComplexity int, query string, organizationID int) int
+		ErrorAlert                     func(childComplexity int, organizationID int) int
+		ErrorComments                  func(childComplexity int, errorGroupID int) int
+		ErrorCommentsForAdmin          func(childComplexity int) int
+		ErrorCommentsForOrganization   func(childComplexity int, organizationID int) int
+		ErrorFieldSuggestion           func(childComplexity int, organizationID int, name string, query string) int
+		ErrorGroup                     func(childComplexity int, id int) int
+		ErrorGroups                    func(childComplexity int, organizationID int, count int, params *model.ErrorSearchParamsInput) int
+		ErrorSegments                  func(childComplexity int, organizationID int) int
+		Errors                         func(childComplexity int, sessionID int) int
+		Events                         func(childComplexity int, sessionID int) int
+		FieldSuggestion                func(childComplexity int, organizationID int, name string, query string) int
+		IsIntegrated                   func(childComplexity int, organizationID int) int
+		Messages                       func(childComplexity int, sessionID int) int
+		NewUserAlert                   func(childComplexity int, organizationID int) int
+		NewUsersCount                  func(childComplexity int, organizationID int, lookBackPeriod int) int
+		Organization                   func(childComplexity int, id int) int
+		OrganizationHasViewedASession  func(childComplexity int, organizationID int) int
+		OrganizationSuggestion         func(childComplexity int, query string) int
+		Organizations                  func(childComplexity int) int
+		PropertySuggestion             func(childComplexity int, organizationID int, query string, typeArg string) int
+		RecordingSettings              func(childComplexity int, organizationID int) int
+		Referrers                      func(childComplexity int, organizationID int, lookBackPeriod int) int
+		Resources                      func(childComplexity int, sessionID int) int
+		Segments                       func(childComplexity int, organizationID int) int
+		Session                        func(childComplexity int, id int) int
+		SessionComments                func(childComplexity int, sessionID int) int
+		SessionCommentsForAdmin        func(childComplexity int) int
+		SessionCommentsForOrganization func(childComplexity int, organizationID int) int
+		Sessions                       func(childComplexity int, organizationID int, count int, lifecycle model.SessionLifecycle, starred bool, params *model.SearchParamsInput) int
+		SlackChannelSuggestion         func(childComplexity int, organizationID int) int
+		TopUsers                       func(childComplexity int, organizationID int, lookBackPeriod int) int
+		TrackPropertiesAlert           func(childComplexity int, organizationID int) int
+		UnprocessedSessionsCount       func(childComplexity int, organizationID int) int
+		UserFingerprintCount           func(childComplexity int, organizationID int, lookBackPeriod int) int
+		UserPropertiesAlert            func(childComplexity int, organizationID int) int
 	}
 
 	RecordingSettings struct {
@@ -485,8 +487,10 @@ type QueryResolver interface {
 	Resources(ctx context.Context, sessionID int) ([]interface{}, error)
 	SessionComments(ctx context.Context, sessionID int) ([]*model1.SessionComment, error)
 	SessionCommentsForAdmin(ctx context.Context) ([]*model1.SessionComment, error)
+	SessionCommentsForOrganization(ctx context.Context, organizationID int) ([]*model1.SessionComment, error)
 	ErrorComments(ctx context.Context, errorGroupID int) ([]*model1.ErrorComment, error)
 	ErrorCommentsForAdmin(ctx context.Context) ([]*model1.ErrorComment, error)
+	ErrorCommentsForOrganization(ctx context.Context, organizationID int) ([]*model1.ErrorComment, error)
 	Admins(ctx context.Context, organizationID int) ([]*model1.Admin, error)
 	IsIntegrated(ctx context.Context, organizationID int) (*bool, error)
 	UnprocessedSessionsCount(ctx context.Context, organizationID int) (*int64, error)
@@ -1686,6 +1690,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.ErrorCommentsForAdmin(childComplexity), true
 
+	case "Query.error_comments_for_organization":
+		if e.complexity.Query.ErrorCommentsForOrganization == nil {
+			break
+		}
+
+		args, err := ec.field_Query_error_comments_for_organization_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ErrorCommentsForOrganization(childComplexity, args["organization_id"].(int)), true
+
 	case "Query.error_field_suggestion":
 		if e.complexity.Query.ErrorFieldSuggestion == nil {
 			break
@@ -1951,6 +1967,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.SessionCommentsForAdmin(childComplexity), true
+
+	case "Query.session_comments_for_organization":
+		if e.complexity.Query.SessionCommentsForOrganization == nil {
+			break
+		}
+
+		args, err := ec.field_Query_session_comments_for_organization_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SessionCommentsForOrganization(childComplexity, args["organization_id"].(int)), true
 
 	case "Query.sessions":
 		if e.complexity.Query.Sessions == nil {
@@ -3118,8 +3146,10 @@ type Query {
     resources(session_id: ID!): [Any]
     session_comments(session_id: ID!): [SessionComment]!
     session_comments_for_admin: [SessionComment]!
+    session_comments_for_organization(organization_id: ID!): [SessionComment]!
     error_comments(error_group_id: ID!): [ErrorComment]!
     error_comments_for_admin: [ErrorComment]!
+    error_comments_for_organization(organization_id: ID!): [ErrorComment]!
     admins(organization_id: ID!): [Admin]
     isIntegrated(organization_id: ID!): Boolean
     unprocessedSessionsCount(organization_id: ID!): Int64
@@ -4428,6 +4458,21 @@ func (ec *executionContext) field_Query_error_comments_args(ctx context.Context,
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_error_comments_for_organization_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organization_id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_error_field_suggestion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4830,6 +4875,21 @@ func (ec *executionContext) field_Query_session_comments_args(ctx context.Contex
 		}
 	}
 	args["session_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_session_comments_for_organization_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organization_id"] = arg0
 	return args, nil
 }
 
@@ -9689,6 +9749,48 @@ func (ec *executionContext) _Query_session_comments_for_admin(ctx context.Contex
 	return ec.marshalNSessionComment2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionComment(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_session_comments_for_organization(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_session_comments_for_organization_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SessionCommentsForOrganization(rctx, args["organization_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.SessionComment)
+	fc.Result = res
+	return ec.marshalNSessionComment2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionComment(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_error_comments(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -9750,6 +9852,48 @@ func (ec *executionContext) _Query_error_comments_for_admin(ctx context.Context,
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().ErrorCommentsForAdmin(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.ErrorComment)
+	fc.Result = res
+	return ec.marshalNErrorComment2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorComment(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_error_comments_for_organization(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_error_comments_for_organization_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ErrorCommentsForOrganization(rctx, args["organization_id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16658,6 +16802,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "session_comments_for_organization":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_session_comments_for_organization(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "error_comments":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -16681,6 +16839,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_error_comments_for_admin(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "error_comments_for_organization":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_error_comments_for_organization(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
