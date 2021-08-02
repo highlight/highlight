@@ -54,6 +54,7 @@ query GetSessionComments($session_id: ID!) {
         session_id
         created_at
         updated_at
+        organization_id
         text
         author {
             id
@@ -72,6 +73,7 @@ query GetNotifications {
         timestamp
         updated_at
         session_id
+        organization_id
         text
         author {
             id
@@ -83,6 +85,7 @@ query GetNotifications {
     error_comments_for_admin {
         id
         updated_at
+        organization_id
         text
         error_id
         author {
@@ -99,6 +102,7 @@ query GetSessionCommentsForAdmin {
         id
         timestamp
         created_at
+        organization_id
         updated_at
         text
         author {
@@ -116,6 +120,7 @@ query GetErrorComments($error_group_id: ID!) {
         created_at
         updated_at
         text
+        organization_id
         author {
             id
             name

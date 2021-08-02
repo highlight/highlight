@@ -730,7 +730,6 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 }
 
 func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model.SessionComment, error) {
-	// TODO: Remove organizationID and adminID args as they can be spoofed by the client and don't have to match the sessionID/authToken
 	admin, err := r.getCurrentAdmin(ctx)
 	if admin == nil || err != nil {
 		return nil, e.Wrap(err, "Unable to retrieve admin info")
@@ -751,13 +750,14 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 	}
 
 	sessionComment := &model.SessionComment{
-		Admins:      admins,
-		AdminId:     admin.Model.ID,
-		SessionId:   sessionID,
-		Timestamp:   sessionTimestamp,
-		Text:        text,
-		XCoordinate: xCoordinate,
-		YCoordinate: yCoordinate,
+		Admins:         admins,
+		OrganizationID: organizationID,
+		AdminId:        admin.Model.ID,
+		SessionId:      sessionID,
+		Timestamp:      sessionTimestamp,
+		Text:           text,
+		XCoordinate:    xCoordinate,
+		YCoordinate:    yCoordinate,
 	}
 	createSessionCommentSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
 		tracer.ResourceName("db.createSessionComment"), tracer.Tag("org_id", organizationID))
@@ -823,7 +823,6 @@ func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*b
 }
 
 func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationID int, errorGroupID int, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, errorURL string, authorName string) (*model.ErrorComment, error) {
-	// TODO: Remove organizationID and adminID args as they can be spoofed by the client and don't have to match the sessionID/authToken
 	admin, err := r.getCurrentAdmin(ctx)
 	if admin == nil || err != nil {
 		return nil, e.Wrap(err, "Unable to retrieve admin info")
@@ -843,10 +842,11 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationI
 	}
 
 	errorComment := &model.ErrorComment{
-		Admins:  admins,
-		AdminId: admin.Model.ID,
-		ErrorId: errorGroupID,
-		Text:    text,
+		Admins:         admins,
+		OrganizationID: organizationID,
+		AdminId:        admin.Model.ID,
+		ErrorId:        errorGroupID,
+		Text:           text,
 	}
 	createErrorCommentSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
 		tracer.ResourceName("db.createErrorComment"), tracer.Tag("org_id", organizationID))

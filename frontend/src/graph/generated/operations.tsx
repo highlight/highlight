@@ -544,6 +544,7 @@ export type GetSessionCommentsQuery = { __typename?: 'Query' } & {
                 | 'session_id'
                 | 'created_at'
                 | 'updated_at'
+                | 'organization_id'
                 | 'text'
                 | 'x_coordinate'
                 | 'y_coordinate'
@@ -566,7 +567,12 @@ export type GetNotificationsQuery = { __typename?: 'Query' } & {
         Types.Maybe<
             { __typename?: 'SessionComment' } & Pick<
                 Types.SessionComment,
-                'id' | 'timestamp' | 'updated_at' | 'session_id' | 'text'
+                | 'id'
+                | 'timestamp'
+                | 'updated_at'
+                | 'session_id'
+                | 'organization_id'
+                | 'text'
             > & {
                     author: { __typename?: 'SanitizedAdmin' } & Pick<
                         Types.SanitizedAdmin,
@@ -579,7 +585,7 @@ export type GetNotificationsQuery = { __typename?: 'Query' } & {
         Types.Maybe<
             { __typename?: 'ErrorComment' } & Pick<
                 Types.ErrorComment,
-                'id' | 'updated_at' | 'text' | 'error_id'
+                'id' | 'updated_at' | 'organization_id' | 'text' | 'error_id'
             > & {
                     author: { __typename?: 'SanitizedAdmin' } & Pick<
                         Types.SanitizedAdmin,
@@ -599,7 +605,12 @@ export type GetSessionCommentsForAdminQuery = { __typename?: 'Query' } & {
         Types.Maybe<
             { __typename?: 'SessionComment' } & Pick<
                 Types.SessionComment,
-                'id' | 'timestamp' | 'created_at' | 'updated_at' | 'text'
+                | 'id'
+                | 'timestamp'
+                | 'created_at'
+                | 'organization_id'
+                | 'updated_at'
+                | 'text'
             > & {
                     author: { __typename?: 'SanitizedAdmin' } & Pick<
                         Types.SanitizedAdmin,
@@ -619,7 +630,7 @@ export type GetErrorCommentsQuery = { __typename?: 'Query' } & {
         Types.Maybe<
             { __typename?: 'ErrorComment' } & Pick<
                 Types.ErrorComment,
-                'id' | 'created_at' | 'updated_at' | 'text'
+                'id' | 'created_at' | 'updated_at' | 'text' | 'organization_id'
             > & {
                     author: { __typename?: 'SanitizedAdmin' } & Pick<
                         Types.SanitizedAdmin,

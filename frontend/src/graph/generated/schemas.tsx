@@ -340,6 +340,7 @@ export type ErrorResults = {
 export type SessionComment = {
     __typename?: 'SessionComment';
     id: Scalars['ID'];
+    organization_id: Scalars['ID'];
     timestamp: Scalars['Int'];
     created_at: Scalars['Time'];
     updated_at: Scalars['Time'];
@@ -353,6 +354,7 @@ export type SessionComment = {
 export type ErrorComment = {
     __typename?: 'ErrorComment';
     id: Scalars['ID'];
+    organization_id: Scalars['ID'];
     created_at: Scalars['Time'];
     error_id: Scalars['Int'];
     updated_at: Scalars['Time'];

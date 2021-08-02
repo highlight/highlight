@@ -604,21 +604,23 @@ type ErrorField struct {
 
 type SessionComment struct {
 	Model
-	Admins      []Admin `gorm:"many2many:session_comment_admins;"`
-	AdminId     int
-	SessionId   int
-	Timestamp   int
-	Text        string
-	XCoordinate float64
-	YCoordinate float64
+	Admins         []Admin `gorm:"many2many:session_comment_admins;"`
+	OrganizationID int
+	AdminId        int
+	SessionId      int
+	Timestamp      int
+	Text           string
+	XCoordinate    float64
+	YCoordinate    float64
 }
 
 type ErrorComment struct {
 	Model
-	Admins  []Admin `gorm:"many2many:error_comment_admins;"`
-	AdminId int
-	ErrorId int
-	Text    string
+	Admins         []Admin `gorm:"many2many:error_comment_admins;"`
+	OrganizationID int
+	AdminId        int
+	ErrorId        int
+	Text           string
 }
 
 func SetupDB(dbName string) (*gorm.DB, error) {
