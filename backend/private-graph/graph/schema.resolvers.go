@@ -1392,6 +1392,19 @@ func (r *queryResolver) SessionCommentsForAdmin(ctx context.Context) ([]*model.S
 	return sessionComments, nil
 }
 
+func (r *queryResolver) SessionCommentsForOrganization(ctx context.Context, organizationID int) ([]*model.SessionComment, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin not found in org for session comments")
+	}
+
+	var sessionComments []*model.SessionComment
+	if err := r.DB.Where(model.SessionComment{OrganizationID: organizationID}).Find(&sessionComments).Error; err != nil {
+		return nil, e.Wrap(err, "error getting session comments for organization")
+	}
+
+	return sessionComments, nil
+}
+
 func (r *queryResolver) ErrorComments(ctx context.Context, errorGroupID int) ([]*model.ErrorComment, error) {
 	if _, err := r.isAdminErrorGroupOwner(ctx, errorGroupID); err != nil {
 		return nil, e.Wrap(err, "admin not error owner")
@@ -1412,6 +1425,19 @@ func (r *queryResolver) ErrorCommentsForAdmin(ctx context.Context) ([]*model.Err
 	var errorComments []*model.ErrorComment
 	if err := r.DB.Model(admin).Association("ErrorComments").Find(&errorComments); err != nil {
 		return nil, e.Wrap(err, "error getting error comments for admin")
+	}
+
+	return errorComments, nil
+}
+
+func (r *queryResolver) ErrorCommentsForOrganization(ctx context.Context, organizationID int) ([]*model.ErrorComment, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin not found in org for error comments")
+	}
+
+	var errorComments []*model.ErrorComment
+	if err := r.DB.Where(model.ErrorComment{OrganizationID: organizationID}).Find(&errorComments).Error; err != nil {
+		return nil, e.Wrap(err, "error getting error comments for organization")
 	}
 
 	return errorComments, nil

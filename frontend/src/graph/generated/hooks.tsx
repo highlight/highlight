@@ -1783,13 +1783,12 @@ export type GetSessionCommentsQueryResult = Apollo.QueryResult<
     Types.GetSessionCommentsQueryVariables
 >;
 export const GetNotificationsDocument = gql`
-    query GetNotifications {
-        session_comments_for_admin {
+    query GetNotifications($organization_id: ID!) {
+        session_comments_for_organization(organization_id: $organization_id) {
             id
             timestamp
             updated_at
             session_id
-            organization_id
             text
             author {
                 id
@@ -1798,7 +1797,7 @@ export const GetNotificationsDocument = gql`
                 photo_url
             }
         }
-        error_comments_for_admin {
+        error_comments_for_organization(organization_id: $organization_id) {
             id
             updated_at
             organization_id
@@ -1826,11 +1825,12 @@ export const GetNotificationsDocument = gql`
  * @example
  * const { data, loading, error } = useGetNotificationsQuery({
  *   variables: {
+ *      organization_id: // value for 'organization_id'
  *   },
  * });
  */
 export function useGetNotificationsQuery(
-    baseOptions?: Apollo.QueryHookOptions<
+    baseOptions: Apollo.QueryHookOptions<
         Types.GetNotificationsQuery,
         Types.GetNotificationsQueryVariables
     >

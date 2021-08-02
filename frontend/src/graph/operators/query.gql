@@ -67,13 +67,12 @@ query GetSessionComments($session_id: ID!) {
     }
 }
 
-query GetNotifications {
-    session_comments_for_admin {
+query GetNotifications($organization_id: ID!) {
+    session_comments_for_organization(organization_id: $organization_id) {
         id
         timestamp
         updated_at
         session_id
-        organization_id
         text
         author {
             id
@@ -82,7 +81,7 @@ query GetNotifications {
             photo_url
         }
     }
-    error_comments_for_admin {
+    error_comments_for_organization(organization_id: $organization_id) {
         id
         updated_at
         organization_id

@@ -436,8 +436,10 @@ export type Query = {
     resources?: Maybe<Array<Maybe<Scalars['Any']>>>;
     session_comments: Array<Maybe<SessionComment>>;
     session_comments_for_admin: Array<Maybe<SessionComment>>;
+    session_comments_for_organization: Array<Maybe<SessionComment>>;
     error_comments: Array<Maybe<ErrorComment>>;
     error_comments_for_admin: Array<Maybe<ErrorComment>>;
+    error_comments_for_organization: Array<Maybe<ErrorComment>>;
     admins?: Maybe<Array<Maybe<Admin>>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
     unprocessedSessionsCount?: Maybe<Scalars['Int64']>;
@@ -505,8 +507,16 @@ export type QuerySession_CommentsArgs = {
     session_id: Scalars['ID'];
 };
 
+export type QuerySession_Comments_For_OrganizationArgs = {
+    organization_id: Scalars['ID'];
+};
+
 export type QueryError_CommentsArgs = {
     error_group_id: Scalars['ID'];
+};
+
+export type QueryError_Comments_For_OrganizationArgs = {
+    organization_id: Scalars['ID'];
 };
 
 export type QueryAdminsArgs = {
