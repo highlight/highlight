@@ -182,7 +182,7 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session, event
 	totalPayloadSize += messagesInfo.Size()
 
 	hlog.Histogram("worker.processSession.scannedSessionPayload", float64(totalPayloadSize), nil, 1) //nolint
-	log.Printf("payload size for session '%v' is '%v'\n", s.ID, totalPayloadSize)
+	log.Infof("payload size for session '%v' is '%v'\n", s.ID, totalPayloadSize)
 
 	return manager, nil
 }
@@ -234,6 +234,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	//Delete the session if there's no events.
 	if payloadManager.Events.Length == 0 {
+		log.Infof("there are no events for session (%d)", s.ID)
 		if err := w.Resolver.DB.Select(clause.Associations).Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
 			return errors.Wrap(err, "error trying to delete associations for session with no events")
 		}
@@ -245,6 +246,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	// need to reset file pointer to beginning of file for reading
 	for _, file := range []*os.File{eventsFile, resourcesFile, messagesFile} {
+		log.Infof("resetting file pointer (%s) for session (%d)", file.Name(), s.ID)
 		_, err = file.Seek(0, io.SeekStart)
 		if err != nil {
 			log.WithField("file_name", file.Name()).Errorf("error seeking to beginning of file: %v", err)
@@ -259,6 +261,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	re := p.Reader()
 	hasNext := true
 	for hasNext {
+		log.Infof("in loop for session: %d", s.ID)
 		se, err := re.Next()
 		if err != nil {
 			if !errors.Is(err, io.EOF) {
@@ -269,6 +272,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		if se != nil && *se != "" {
 			eventsObject := model.EventsObject{Events: *se}
 			var tempDuration time.Duration
+			log.Infof("calculating active duration for session (%d)", s.ID)
 			tempDuration, firstEventTimestamp, lastEventTimestamp, err = getActiveDuration(&eventsObject, firstEventTimestamp, lastEventTimestamp)
 			if err != nil {
 				return e.Wrap(err, "error getting active duration")
@@ -279,6 +283,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// hlog.Histogram("worker.processSession.payloadStringSize", float64(payloadStringBytes), nil, 1) //nolint
 
 	// Calculate total session length and write the length to the session.
+	log.Infof("calculating session length for session (%d)", s.ID)
 	sessionTotalLength := CalculateSessionLength(firstEventTimestamp, lastEventTimestamp)
 	sessionTotalLengthInMilliseconds := sessionTotalLength.Milliseconds()
 
@@ -286,6 +291,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// 1. Nothing happened in the session
 	// 2. A web crawler visited the page and produced no events
 	if activeDuration == 0 {
+		log.Infof("active duration is 0 for session (%d)", s.ID)
 		if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Delete(&model.EventsObject{}).Error; err != nil {
 			return errors.Wrap(err, "error trying to delete events_object for session of length 0ms")
 		}
@@ -531,7 +537,7 @@ func (w *Worker) Start() {
 			sessionIds = append(sessionIds, SessionLog{SessionID: session.ID, OrganizationID: session.OrganizationID})
 		}
 		if len(sessionIds) > 0 {
-			log.Printf("sessions that will be processed: %v \n", sessionIds)
+			log.Infof("sessions that will be processed: %v", sessionIds)
 		}
 
 		for _, session := range sessions {
@@ -542,6 +548,7 @@ func (w *Worker) Start() {
 				span.Finish()
 				continue
 			}
+			log.Info("successfully processed session: %v", session.ID)
 			span.Finish()
 		}
 		workerSpan.Finish()
