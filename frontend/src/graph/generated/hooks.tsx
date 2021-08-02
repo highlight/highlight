@@ -1720,6 +1720,7 @@ export const GetSessionCommentsDocument = gql`
             session_id
             created_at
             updated_at
+            organization_id
             text
             author {
                 id
@@ -1788,6 +1789,7 @@ export const GetNotificationsDocument = gql`
             timestamp
             updated_at
             session_id
+            organization_id
             text
             author {
                 id
@@ -1799,6 +1801,7 @@ export const GetNotificationsDocument = gql`
         error_comments_for_admin {
             id
             updated_at
+            organization_id
             text
             error_id
             author {
@@ -1864,6 +1867,7 @@ export const GetSessionCommentsForAdminDocument = gql`
             id
             timestamp
             created_at
+            organization_id
             updated_at
             text
             author {
@@ -1930,6 +1934,7 @@ export const GetErrorCommentsDocument = gql`
             created_at
             updated_at
             text
+            organization_id
             author {
                 id
                 name

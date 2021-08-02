@@ -299,6 +299,7 @@ type ErrorResults {
 
 type SessionComment {
     id: ID!
+    organization_id: ID!
     timestamp: Int!
     created_at: Time!
     updated_at: Time!
@@ -311,6 +312,7 @@ type SessionComment {
 
 type ErrorComment {
     id: ID!
+    organization_id: ID!
     created_at: Time!
     error_id: Int!
     updated_at: Time!

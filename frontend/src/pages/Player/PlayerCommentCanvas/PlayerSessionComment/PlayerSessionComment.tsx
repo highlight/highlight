@@ -27,6 +27,7 @@ interface Props {
             | 'text'
             | 'x_coordinate'
             | 'y_coordinate'
+            | 'organization_id'
         > & {
                 author: { __typename?: 'SanitizedAdmin' } & Pick<
                     SanitizedAdmin,
