@@ -34,6 +34,7 @@ const Tabs = ({
 
     return (
         <AntDesignTabs
+            activeKey={activeTab}
             defaultActiveKey={activeTab}
             onChange={(activeKey) => {
                 setActiveTab(activeKey);
