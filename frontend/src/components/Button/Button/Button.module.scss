@@ -26,8 +26,18 @@
         }
 
         svg {
-            height: calc(var(--size-icon));
-            width: calc(var(--size-icon));
+            height: var(--size-icon);
+            width: var(--size-icon);
+        }
+    }
+
+    &.small {
+        height: var(--size-large);
+        width: var(--size-large);
+
+        svg {
+            height: var(--size-small);
+            width: var(--size-small);
         }
     }
 }
