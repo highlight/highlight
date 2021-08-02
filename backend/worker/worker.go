@@ -94,7 +94,7 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	if err := w.Resolver.DB.Unscoped().Where(&model.MessagesObject{SessionID: s.ID}).Delete(&model.MessagesObject{}).Error; err != nil {
 		return errors.Wrap(err, "error deleting all messages")
 	}
-	log.Info("parsed: ", s.ID)
+	log.Infof("parsed session (%d)", s.ID)
 	return nil
 }
 
@@ -548,7 +548,7 @@ func (w *Worker) Start() {
 				span.Finish()
 				continue
 			}
-			log.Info("successfully processed session: %v", session.ID)
+			log.Infof("successfully processed session: %v", session.ID)
 			span.Finish()
 		}
 		workerSpan.Finish()
