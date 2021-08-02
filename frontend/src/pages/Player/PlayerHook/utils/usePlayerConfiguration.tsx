@@ -1,6 +1,5 @@
 import useLocalStorage from '@rehooks/local-storage';
 
-import { DevToolTabs } from '../../Toolbar/DevToolsContext/DevToolsContext';
 import { EventsForTimeline } from '.';
 
 /**
@@ -27,10 +26,6 @@ const usePlayerConfiguration = () => {
     const [autoPlaySessions, setAutoPlaySessions] = useLocalStorage(
         'highlightAutoPlaySessions',
         false
-    );
-    const [selectedDevToolsTab, setSelectedDevToolsTab] = useLocalStorage(
-        'highlightSelectedDevtoolTabs',
-        DevToolTabs.Errors
     );
     const [
         selectedTimelineAnnotationTypes,
@@ -73,8 +68,6 @@ const usePlayerConfiguration = () => {
         setAutoPlayVideo,
         autoPlaySessions,
         setAutoPlaySessions,
-        selectedDevToolsTab,
-        setSelectedDevToolsTab,
         selectedTimelineAnnotationTypes,
         setSelectedTimelineAnnotationTypes,
         selectedTimelineAnnotationTypesUserPersisted,

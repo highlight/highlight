@@ -67,8 +67,6 @@ export const Toolbar = () => {
         autoPlaySessions,
         setAutoPlayVideo,
         enableInspectElement,
-        selectedDevToolsTab,
-        setSelectedDevToolsTab,
         showPlayerMouseTail,
         setShowPlayerMouseTail,
     } = usePlayerConfiguration();
@@ -212,8 +210,6 @@ export const Toolbar = () => {
                 value={{
                     openDevTools: showDevTools,
                     setOpenDevTools: setShowDevTools,
-                    selectedTab: selectedDevToolsTab,
-                    setSelectedTab: setSelectedDevToolsTab,
                 }}
             >
                 <TimelineIndicators />
