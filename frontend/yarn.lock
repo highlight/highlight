@@ -8471,6 +8471,11 @@ internmap@^1.0.0:
   resolved "https://registry.yarnpkg.com/internmap/-/internmap-1.0.1.tgz#0017cc8a3b99605f0302f2b198d272e015e5df95"
   integrity sha512-lDB5YccMydFBtasVtxnZ3MRBHuaoE8GKsppq+EchKL2U4nK/DmEpPHNH8MZe5HkMtpSiTSOZwfN0tzYjO/lJEw==
 
+intro.js-react@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/intro.js-react/-/intro.js-react-0.4.0.tgz#bcbc2b39b13b4393f6f9651bc6e8add8365253ce"
+  integrity sha512-cJq6E2FXBzFVkiw4v7cXiJjtVze+92yLCoJwBOXWOIn/2E9yze6wqtUtblw2CULUHnktyP/72Fe+vNOP3tpRgA==
+
 invariant@^2.2.4:
   version "2.2.4"
   resolved "https://registry.yarnpkg.com/invariant/-/invariant-2.2.4.tgz#610f3c92c9359ce1db616e538008d23ff35158e6"
