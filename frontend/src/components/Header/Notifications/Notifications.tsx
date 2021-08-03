@@ -36,7 +36,7 @@ const Notifications = () => {
                 setNotifications(processedNotifications);
             }
         },
-        pollInterval: 1000 * 30,
+        // pollInterval: 1000 * 30,
         variables: {
             organization_id,
         },
