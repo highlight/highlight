@@ -491,7 +491,7 @@ export const Toolbar = () => {
                                                 styles.speedControlContainer
                                             }
                                         >
-                                            Playback Speed
+                                            Playback speed
                                             <SpeedControl
                                                 disabled={disableControls}
                                             />
