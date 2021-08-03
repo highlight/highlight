@@ -15,6 +15,8 @@ export { default as CreditCardsIcon } from './CreditCardsIcon';
 export { default as CrossCircle } from './CrossCircle';
 export { default as CursorIcon } from './CursorIcon';
 export { default as DevtoolsIcon } from './DevtoolsIcon';
+export { default as DotsHorizontalIcon } from './DotsHorizontalIcon';
+export { default as DotsVerticalIcon } from './DotsVerticalIcon';
 export { default as Down } from './Down';
 export { default as DownloadIcon } from './DownloadIcon';
 export { default as EditIcon } from './EditIcon';
