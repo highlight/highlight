@@ -1,7 +1,5 @@
-import { Dropdown } from 'antd';
 import classNames from 'classnames';
 import React, { PropsWithChildren } from 'react';
-import { HiDotsHorizontal } from 'react-icons/hi';
 import { SuggestionDataItem } from 'react-mentions';
 
 import {
@@ -10,6 +8,7 @@ import {
 } from '../../graph/generated/operations';
 import { SanitizedAdminInput } from '../../graph/generated/schemas';
 import { AdminAvatar } from '../Avatar/Avatar';
+import DotsMenu from '../DotsMenu/DotsMenu';
 import RelativeTime from '../RelativeTime/RelativeTime';
 import styles from './CommentHeader.module.scss';
 
@@ -76,15 +75,7 @@ export const CommentHeader = ({
                     </span>
                 </div>
                 <span className={styles.endActions}>
-                    <Dropdown
-                        overlay={menu}
-                        placement="bottomLeft"
-                        trigger={['click']}
-                    >
-                        <button className={styles.ellipsisButton}>
-                            <HiDotsHorizontal />
-                        </button>
-                    </Dropdown>
+                    <DotsMenu menu={menu} trackingId="CommentsHeader" />
                 </span>
                 <div className={styles.childrenContainer}>{children}</div>
                 {footer && <div className={styles.footer}>{footer}</div>}
