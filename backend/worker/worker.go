@@ -541,7 +541,7 @@ func (w *Worker) Start() {
 		}
 
 		for _, session := range sessions {
-			span, ctx := tracer.StartSpanFromContext(ctx, "worker.processSession", tracer.ResourceName(strconv.Itoa(session.ID)))
+			span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"), tracer.Tag("session_id", strconv.Itoa(session.ID)))
 			if err := w.processSession(ctx, session); err != nil {
 				log.Errorf("error processing main session(%v): %v", session.ID, err)
 				tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID))
