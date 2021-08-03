@@ -152,7 +152,7 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session, event
 	messagesWriter := manager.Messages.Writer()
 	for messageRows.Next() {
 		messageObject := model.MessagesObject{}
-		if err := w.Resolver.DB.ScanRows(resourcesRows, &messageObject); err != nil {
+		if err := w.Resolver.DB.ScanRows(messageRows, &messageObject); err != nil {
 			return nil, errors.Wrap(err, "error scanning message row")
 		}
 		if err := messagesWriter.Write(&messageObject); err != nil {
@@ -542,6 +542,7 @@ func (w *Worker) Start() {
 
 		for _, session := range sessions {
 			span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"), tracer.Tag("session_id", strconv.Itoa(session.ID)))
+			log.Infof("beginning to process session: %v", session.ID)
 			if err := w.processSession(ctx, session); err != nil {
 				log.Errorf("error processing main session(%v): %v", session.ID, err)
 				tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID))
