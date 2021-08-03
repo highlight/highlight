@@ -357,6 +357,11 @@ export const AlertConfigurationCard = ({
                                 className={styles.channelSelect}
                                 options={channels}
                                 mode="multiple"
+                                filterOption={(searchValue, option) => {
+                                    return option?.children
+                                        .toLowerCase()
+                                        .includes(searchValue.toLowerCase());
+                                }}
                                 placeholder={`Select a channel(s) or person(s) to send ${name} to.`}
                                 onChange={onChannelsChange}
                                 notFoundContent={
