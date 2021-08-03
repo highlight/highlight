@@ -1,4 +1,5 @@
 import useLocalStorage from '@rehooks/local-storage';
+import { Menu } from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import Lottie from 'lottie-react';
@@ -10,6 +11,7 @@ import NotificationAnimation from '../../../lottie/waiting.json';
 import SvgBellIcon from '../../../static/BellIcon';
 import Button from '../../Button/Button/Button';
 import Dot from '../../Dot/Dot';
+import DotsMenu from '../../DotsMenu/DotsMenu';
 import Popover from '../../Popover/Popover';
 import PopoverListContent from '../../Popover/PopoverListContent';
 import styles from './Notification.module.scss';
@@ -107,6 +109,32 @@ const Notifications = () => {
             title={
                 <div className={styles.popoverTitle}>
                     <h3>Comments</h3>
+                    <DotsMenu
+                        trackingId="MarkAllNotificationsAsRead"
+                        menu={
+                            <Menu>
+                                <Menu.Item
+                                    onClick={() => {
+                                        setReadNotifications([
+                                            ...notifications.map(
+                                                (notification) =>
+                                                    notification.id.toString()
+                                            ),
+                                        ]);
+                                    }}
+                                >
+                                    Mark all as read
+                                </Menu.Item>
+                                <Menu.Item
+                                    onClick={() => {
+                                        setReadNotifications([]);
+                                    }}
+                                >
+                                    Mark all as unread
+                                </Menu.Item>
+                            </Menu>
+                        }
+                    />
                 </div>
             }
         >
