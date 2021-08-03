@@ -26,6 +26,7 @@ import {
 } from '../../../util/time';
 import { EventsForTimeline, EventsForTimelineKeys } from '../PlayerHook/utils';
 import usePlayerConfiguration from '../PlayerHook/utils/usePlayerConfiguration';
+import { PlayerPageProductTourSelectors } from '../PlayerPageProductTour/PlayerPageProductTour';
 import {
     ParsedSessionInterval,
     ReplayerPausedStates,
@@ -213,10 +214,12 @@ export const Toolbar = () => {
                 }}
             >
                 <TimelineIndicators />
-                <DevToolsWindow
-                    time={(replayer?.getMetaData().startTime ?? 0) + time}
-                    startTime={replayer?.getMetaData().startTime ?? 0}
-                />
+                <div id={PlayerPageProductTourSelectors.DevToolsPanel}>
+                    <DevToolsWindow
+                        time={(replayer?.getMetaData().startTime ?? 0) + time}
+                        startTime={replayer?.getMetaData().startTime ?? 0}
+                    />
+                </div>
             </DevToolsContextProvider>
             <Modal
                 visible={!!selectedError}
@@ -479,6 +482,7 @@ export const Toolbar = () => {
                         arrowPointAtCenter
                     >
                         <ToggleButton
+                            id={`${PlayerPageProductTourSelectors.DevToolsButton}`}
                             trackingId="PlayerDevTools"
                             type="text"
                             className={styles.devToolsButton}

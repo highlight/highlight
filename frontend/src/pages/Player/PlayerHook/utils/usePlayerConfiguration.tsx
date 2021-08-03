@@ -18,6 +18,9 @@ const usePlayerConfiguration = () => {
         'highlightMenuOpenDevTools',
         false
     );
+    const [selectedDevToolsTab, setSelectedDevToolsTab] = useLocalStorage<
+        'Errors' | 'Console' | 'Network'
+    >('tabs-DevTools-active-tab', 'Errors');
     const [autoPlayVideo, setAutoPlayVideo] = useLocalStorage(
         'highlightMenuAutoPlayVideo',
         false
@@ -64,6 +67,8 @@ const usePlayerConfiguration = () => {
         setShowRightPanel,
         showDevTools,
         setShowDevTools,
+        selectedDevToolsTab,
+        setSelectedDevToolsTab,
         autoPlayVideo,
         setAutoPlayVideo,
         autoPlaySessions,
