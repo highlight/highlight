@@ -10,4 +10,13 @@
     &.checked {
         color: var(--text-primary);
     }
+
+    &.spaceBetween {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    &.noMarginAroundSwitch {
+        margin: 0;
+    }
 }

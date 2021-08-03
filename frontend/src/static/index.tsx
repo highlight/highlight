@@ -62,6 +62,7 @@ export { default as Search } from './Search';
 export { default as SearchIcon } from './SearchIcon';
 export { default as Segment } from './Segment';
 export { default as SessionsIcon } from './SessionsIcon';
+export { default as SettingsIcon } from './SettingsIcon';
 export { default as SetupIcon } from './SetupIcon';
 export { default as ShieldWarningIcon } from './ShieldWarningIcon';
 export { default as SkipForwardIcon } from './SkipForwardIcon';
