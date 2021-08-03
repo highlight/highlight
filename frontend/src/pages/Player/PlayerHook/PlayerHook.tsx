@@ -411,6 +411,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             case ReplayerState.LoadedAndUntouched:
             case ReplayerState.LoadedWithDeepLink:
             case ReplayerState.SessionRecordingStopped:
+            case ReplayerState.SessionEnded:
                 pause(newTime);
                 return;
 
