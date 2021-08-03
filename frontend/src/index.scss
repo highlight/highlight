@@ -146,11 +146,6 @@ input {
     font-weight: 400 !important;
 }
 
-code {
-    margin: 0;
-    user-select: all;
-}
-
 .atom-overlay {
     color: blue;
     z-index: 1000;
@@ -264,6 +259,7 @@ code {
     border-radius: 4px;
     padding: 5px;
     line-height: 2;
+    margin: 0;
 }
 
 .ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input)
