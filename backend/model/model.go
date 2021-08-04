@@ -132,8 +132,6 @@ type Organization struct {
 	SlackWebhookChannel   *string
 	SlackWebhookChannelID *string
 	SlackChannels         *string
-	// Alerts
-	ErrorAlert *string
 	// Manual monthly session limit override
 	MonthlySessionLimit *int
 }
