@@ -2148,7 +2148,7 @@ func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*mode
 }
 
 func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (interface{}, error) {
-	return obj.UserObject, nil
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *sessionAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.SessionAlert) ([]*modelInputs.SanitizedSlackChannel, error) {

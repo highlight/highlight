@@ -317,7 +317,6 @@ type Session struct {
 	OSVersion      string `json:"os_version"`
 	BrowserName    string `json:"browser_name"`
 	BrowserVersion string `json:"browser_version"`
-	Status         string `json:"status"`
 	Language       string `json:"language"`
 	// Tells us if the session has been parsed by a worker.
 	Processed *bool `json:"processed"`
@@ -327,7 +326,6 @@ type Session struct {
 	Fields         []*Field `json:"fields" gorm:"many2many:session_fields;"`
 	Environment    string   `json:"environment"`
 	AppVersion     *string  `json:"app_version" gorm:"index"`
-	UserObject     JSONB    `json:"user_object" sql:"type:jsonb"`
 	UserProperties string   `json:"user_properties"`
 	// Whether this is the first session created by this user.
 	FirstTime        *bool      `json:"first_time" gorm:"default:false"`
