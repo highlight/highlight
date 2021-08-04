@@ -1669,15 +1669,15 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	notFieldIds := []int{}
 	notFieldQuery := r.DB.Model(&model.Field{})
 
-	// for _, prop := range params.ExcludedProperties {
-	// 	if prop.Name == "contains" {
-	// 		notFieldQuery = notFieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
-	// 	} else if prop.ID == nil || *prop.ID == 0 {
-	// 		notFieldQuery = notFieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user")
-	// 	} else {
-	// 		notFieldIds = append(notFieldIds, *prop.ID)
-	// 	}
-	// }
+	for _, prop := range params.ExcludedProperties {
+		if prop.Name == "contains" {
+			notFieldQuery = notFieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
+		} else if prop.ID == nil || *prop.ID == 0 {
+			notFieldQuery = notFieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user")
+		} else {
+			notFieldIds = append(notFieldIds, *prop.ID)
+		}
+	}
 
 	if len(params.ExcludedProperties) != len(notFieldIds) {
 		var tempNotFieldIds []int
