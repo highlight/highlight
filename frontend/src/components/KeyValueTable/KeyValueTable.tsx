@@ -46,7 +46,7 @@ const KeyValueTable = ({ data, noDataMessage = <p>No data</p> }: Props) => {
                                               />
                                           )}
                                       </>
-                                  ) : (
+                                  ) : !!valueDisplayValue ? (
                                       <ReactJson
                                           src={valueDisplayValue as object}
                                           collapsed
@@ -55,6 +55,8 @@ const KeyValueTable = ({ data, noDataMessage = <p>No data</p> }: Props) => {
                                           quotesOnKeys={false}
                                           name={null}
                                       />
+                                  ) : (
+                                      'undefined'
                                   )}
                               </p>
                           </React.Fragment>
