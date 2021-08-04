@@ -80,6 +80,13 @@ export interface ReplayerContextInterface {
     session: Session | undefined;
     setSessionResults: React.Dispatch<React.SetStateAction<SessionResults>>;
     isPlayerReady: boolean;
+    /**
+     * The percentage value of the current player time relative to the total duration.
+     * `playerProgress` is `null` if there is no active session.
+     * @example The session is 100 seconds long. The current time is 10 seconds. `playerProgress` is 0.1.
+     * @example The session is 100 seconds long. The current time is 50 seconds. `playerProgress` is 0.5.
+     */
+    playerProgress: number | null;
 }
 
 export const [
