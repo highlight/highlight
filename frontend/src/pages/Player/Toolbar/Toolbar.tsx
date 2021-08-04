@@ -62,7 +62,6 @@ export const Toolbar = () => {
         skipInactive,
         setSkipInactive,
         showLeftPanel,
-        showRightPanel,
         showDevTools,
         setShowDevTools,
         autoPlayVideo,
