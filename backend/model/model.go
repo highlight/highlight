@@ -123,9 +123,8 @@ type Organization struct {
 	StripeCustomerID *string
 	StripePriceID    *string
 	BillingEmail     *string
-	Secret           *string `json:"-"`
-	Admins           []Admin `gorm:"many2many:organization_admins;"`
-	Fields           []Field
+	Secret           *string    `json:"-"`
+	Admins           []Admin    `gorm:"many2many:organization_admins;"`
 	TrialEndDate     *time.Time `json:"trial_end_date"`
 	// Slack API Interaction.
 	SlackAccessToken      *string
