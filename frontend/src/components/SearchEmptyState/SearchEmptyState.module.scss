@@ -26,14 +26,16 @@
     align-items: center;
     color: var(--color-gray-500);
     display: flex;
-    display: inline-block;
+    display: block;
     justify-content: center;
+    margin: 0 auto !important;
     max-width: 450px;
     text-align: center;
 }
 
 .emptyTitle {
     margin-top: 30px !important;
+    text-align: center;
 }
 
 .intercomButton {
@@ -65,6 +67,5 @@
         font-weight: 400 !important;
         margin-bottom: 0 !important;
         margin-top: var(--size-small) !important;
-        text-align: center;
     }
 }
