@@ -70,6 +70,20 @@ export type DeleteAdminFromOrganizationMutation = {
     __typename?: 'Mutation';
 } & Pick<Types.Mutation, 'deleteAdminFromOrganization'>;
 
+export type AddDefaultSlackChannelsMutationVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    slack_channels:
+        | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
+        | Types.Maybe<Types.SanitizedSlackChannelInput>;
+    environments:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
+}>;
+
+export type AddDefaultSlackChannelsMutation = {
+    __typename?: 'Mutation';
+} & Pick<Types.Mutation, 'addDefaultSlackChannels'>;
+
 export type AddSlackIntegrationToWorkspaceMutationVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     code: Types.Scalars['String'];

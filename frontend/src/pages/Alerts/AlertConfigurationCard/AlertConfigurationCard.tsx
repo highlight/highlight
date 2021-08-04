@@ -9,6 +9,7 @@ import InfoTooltip from '../../../components/InfoTooltip/InfoTooltip';
 import InputNumber from '../../../components/InputNumber/InputNumber';
 import Select from '../../../components/Select/Select';
 import {
+    useAddDefaultSlackChannelsMutation,
     useGetTrackSuggestionQuery,
     useGetUserSuggestionQuery,
     useUpdateErrorAlertMutation,
@@ -57,6 +58,7 @@ export const AlertConfigurationCard = ({
     const [
         updateTrackPropertiesAlert,
     ] = useUpdateTrackPropertiesAlertMutation();
+    const [addDefaultSlackChannels] = useAddDefaultSlackChannelsMutation();
 
     const onSubmit = async () => {
         setLoading(true);
@@ -81,6 +83,26 @@ export const AlertConfigurationCard = ({
             };
 
             switch (type) {
+                case ALERT_TYPE.Default:
+                    await addDefaultSlackChannels({
+                        variables: {
+                            organization_id,
+                            environments: form.getFieldValue(
+                                'excludedEnvironments'
+                            ),
+                            slack_channels: form
+                                .getFieldValue('channels')
+                                .map((webhook_channel_id: string) => ({
+                                    webhook_channel_name: channelSuggestions.find(
+                                        (suggestion) =>
+                                            suggestion.webhook_channel_id ===
+                                            webhook_channel_id
+                                    ).webhook_channel,
+                                    webhook_channel_id,
+                                })),
+                        },
+                    });
+                    break;
                 case ALERT_TYPE.Error:
                     await updateErrorAlert({
                         ...requestBody,

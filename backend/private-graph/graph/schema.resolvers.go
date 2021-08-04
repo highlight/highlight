@@ -902,6 +902,7 @@ func (r *mutationResolver) DeleteErrorComment(ctx context.Context, id int) (*boo
 }
 
 func (r *mutationResolver) AddDefaultSlackChannels(ctx context.Context, organizationID int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*bool, error) {
+	// TODO: ask about specific flow for some stuff
 	_, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
@@ -913,23 +914,34 @@ func (r *mutationResolver) AddDefaultSlackChannels(ctx context.Context, organiza
 		sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
 	}
 
-	envBytes, err := json.Marshal(environments)
-	if err != nil {
-		return nil, e.Wrap(err, "error parsing environments")
-	}
-	envString := string(envBytes)
-
-	channelsBytes, err := json.Marshal(sanitizedChannels)
-	if err != nil {
-		return nil, e.Wrap(err, "error parsing channels")
-	}
-	channelsString := string(channelsBytes)
-
 	// error alert
 	errorAlert := &model.ErrorAlert{}
 	if err := r.DB.Where(&model.ErrorAlert{Alert: model.Alert{OrganizationID: organizationID}}).Find(&errorAlert).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error alert")
 	}
+	channels, err := errorAlert.GetChannelsToNotify()
+	if err != nil {
+		return nil, e.Wrap(err, "error getting channels to notify from session alert object")
+	}
+	channels = append(channels, sanitizedChannels...)
+	channelsBytes, err := json.Marshal(channels)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing channels")
+	}
+	channelsString := string(channelsBytes)
+
+	excludedEnvironments, err := errorAlert.GetExcludedEnvironments()
+	if err != nil {
+		return nil, e.Wrap(err, "error getting excluded from session alert object")
+	}
+	excludedEnvironments = append(excludedEnvironments, environments...)
+
+	envBytes, err := json.Marshal(excludedEnvironments)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing environments")
+	}
+	envString := string(envBytes)
+
 	errorAlert.ChannelsToNotify = &channelsString
 	errorAlert.ExcludedEnvironments = &envString
 	if err := r.DB.Model(&model.ErrorAlert{
@@ -940,20 +952,44 @@ func (r *mutationResolver) AddDefaultSlackChannels(ctx context.Context, organiza
 			ID: errorAlert.ID,
 		},
 	}).Updates(errorAlert).Error; err != nil {
-		return nil, e.Wrap(err, "error updating org fields")
+		return nil, e.Wrap(err, "error updating error alert fields")
 	}
 
 	// session alerts
-	var sessionAlerts []*model.SessionAlert
+	var sessionAlerts []model.SessionAlert
 	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Find(&sessionAlerts).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session alerts")
 	}
 	for _, alert := range sessionAlerts {
+		channels, err := alert.GetChannelsToNotify()
+		if err != nil {
+			return nil, e.Wrap(err, "error getting channels to notify from session alert object")
+		}
+		channels = append(channels, sanitizedChannels...)
+		channelsBytes, err := json.Marshal(channels)
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing channels")
+		}
+		channelsString := string(channelsBytes)
+
+		excludedEnvironments, err := alert.GetExcludedEnvironments()
+		if err != nil {
+			return nil, e.Wrap(err, "error getting excluded from session alert object")
+		}
+		excludedEnvironments = append(excludedEnvironments, environments...)
+
+		envBytes, err := json.Marshal(excludedEnvironments)
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing environments")
+		}
+		envString := string(envBytes)
+
 		alert.ChannelsToNotify = &channelsString
 		alert.ExcludedEnvironments = &envString
-	}
-	if err := r.DB.Model(&model.SessionAlert{}).Updates(&sessionAlerts).Error; err != nil {
-		return nil, e.Wrap(err, "error updating session alerts")
+		if err := r.DB.Where(&alert).
+			Updates(&alert).Error; err != nil {
+			return nil, e.Wrap(err, "error updating session alerts")
+		}
 	}
 	return &model.T, nil
 }

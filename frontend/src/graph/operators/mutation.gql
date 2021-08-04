@@ -47,6 +47,18 @@ mutation DeleteAdminFromOrganization($organization_id: ID!, $admin_id: ID!) {
     )
 }
 
+mutation AddDefaultSlackChannels(
+    $organization_id: ID!
+    $slack_channels: [SanitizedSlackChannelInput]!
+    $environments: [String]!
+) {
+    addDefaultSlackChannels(
+        organization_id: $organization_id
+        slack_channels: $slack_channels
+        environments: $environments
+    )
+}
+
 mutation AddSlackIntegrationToWorkspace(
     $organization_id: ID!
     $code: String!

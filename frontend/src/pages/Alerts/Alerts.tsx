@@ -14,9 +14,15 @@ export enum ALERT_TYPE {
     FirstTimeUser,
     UserProperties,
     TrackProperties,
+    Default,
 }
 
 const ALERT_CONFIGURATIONS = [
+    {
+        name: 'Default Slack Channels',
+        canControlThreshold: false,
+        type: ALERT_TYPE.Default,
+    },
     {
         name: 'Errors',
         canControlThreshold: true,

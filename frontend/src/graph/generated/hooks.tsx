@@ -370,6 +370,62 @@ export type DeleteAdminFromOrganizationMutationOptions = Apollo.BaseMutationOpti
     Types.DeleteAdminFromOrganizationMutation,
     Types.DeleteAdminFromOrganizationMutationVariables
 >;
+export const AddDefaultSlackChannelsDocument = gql`
+    mutation AddDefaultSlackChannels(
+        $organization_id: ID!
+        $slack_channels: [SanitizedSlackChannelInput]!
+        $environments: [String]!
+    ) {
+        addDefaultSlackChannels(
+            organization_id: $organization_id
+            slack_channels: $slack_channels
+            environments: $environments
+        )
+    }
+`;
+export type AddDefaultSlackChannelsMutationFn = Apollo.MutationFunction<
+    Types.AddDefaultSlackChannelsMutation,
+    Types.AddDefaultSlackChannelsMutationVariables
+>;
+
+/**
+ * __useAddDefaultSlackChannelsMutation__
+ *
+ * To run a mutation, you first call `useAddDefaultSlackChannelsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAddDefaultSlackChannelsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [addDefaultSlackChannelsMutation, { data, loading, error }] = useAddDefaultSlackChannelsMutation({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *      slack_channels: // value for 'slack_channels'
+ *      environments: // value for 'environments'
+ *   },
+ * });
+ */
+export function useAddDefaultSlackChannelsMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.AddDefaultSlackChannelsMutation,
+        Types.AddDefaultSlackChannelsMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.AddDefaultSlackChannelsMutation,
+        Types.AddDefaultSlackChannelsMutationVariables
+    >(AddDefaultSlackChannelsDocument, baseOptions);
+}
+export type AddDefaultSlackChannelsMutationHookResult = ReturnType<
+    typeof useAddDefaultSlackChannelsMutation
+>;
+export type AddDefaultSlackChannelsMutationResult = Apollo.MutationResult<Types.AddDefaultSlackChannelsMutation>;
+export type AddDefaultSlackChannelsMutationOptions = Apollo.BaseMutationOptions<
+    Types.AddDefaultSlackChannelsMutation,
+    Types.AddDefaultSlackChannelsMutationVariables
+>;
 export const AddSlackIntegrationToWorkspaceDocument = gql`
     mutation AddSlackIntegrationToWorkspace(
         $organization_id: ID!

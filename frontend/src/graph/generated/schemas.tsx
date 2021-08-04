@@ -678,6 +678,7 @@ export type Mutation = {
     deleteSessionComment?: Maybe<Scalars['Boolean']>;
     createErrorComment?: Maybe<ErrorComment>;
     deleteErrorComment?: Maybe<Scalars['Boolean']>;
+    addDefaultSlackChannels?: Maybe<Scalars['Boolean']>;
     updateErrorAlert?: Maybe<ErrorAlert>;
     updateNewUserAlert?: Maybe<SessionAlert>;
     updateTrackPropertiesAlert?: Maybe<SessionAlert>;
@@ -813,6 +814,12 @@ export type MutationCreateErrorCommentArgs = {
 
 export type MutationDeleteErrorCommentArgs = {
     id: Scalars['ID'];
+};
+
+export type MutationAddDefaultSlackChannelsArgs = {
+    organization_id: Scalars['ID'];
+    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+    environments: Array<Maybe<Scalars['String']>>;
 };
 
 export type MutationUpdateErrorAlertArgs = {
