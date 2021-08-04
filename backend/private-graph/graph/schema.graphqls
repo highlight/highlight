@@ -69,7 +69,7 @@ enum ErrorState {
     IGNORED
 }
 
-type Organization {
+type Company {
     id: ID!
     verbose_id: String!
     name: String!
@@ -442,15 +442,15 @@ type Query {
         name: String!
         query: String!
     ): [ErrorField]
-    organizations: [Organization]
+    organizations: [Company]
     error_alert(organization_id: ID!): ErrorAlert
     new_user_alert(organization_id: ID!): SessionAlert
     track_properties_alert(organization_id: ID!): SessionAlert
     user_properties_alert(organization_id: ID!): SessionAlert
-    organizationSuggestion(query: String!): [Organization]
+    organizationSuggestion(query: String!): [Company]
     environment_suggestion(query: String!, organization_id: ID!): [Field]
     slack_channel_suggestion(organization_id: ID!): [SanitizedSlackChannel]
-    organization(id: ID!): Organization
+    organization(id: ID!): Company
     admin: Admin
     segments(organization_id: ID!): [Segment]
     error_segments(organization_id: ID!): [ErrorSegment]
@@ -458,8 +458,8 @@ type Query {
 }
 
 type Mutation {
-    createOrganization(name: String!): Organization
-    editOrganization(id: ID!, name: String, billing_email: String): Organization
+    createOrganization(name: String!): Company
+    editOrganization(id: ID!, name: String, billing_email: String): Company
     markSessionAsViewed(id: ID!, viewed: Boolean): Session
     markSessionAsStarred(id: ID!, starred: Boolean): Session
     updateErrorGroupState(id: ID!, state: String!): ErrorGroup

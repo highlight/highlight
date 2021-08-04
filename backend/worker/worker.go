@@ -336,8 +336,8 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	var g errgroup.Group
 	organizationID := s.OrganizationID
-	org := &model.Organization{}
-	if err := w.Resolver.DB.Where(&model.Organization{Model: model.Model{ID: s.OrganizationID}}).First(&org).Error; err != nil {
+	org := &model.Company{}
+	if err := w.Resolver.DB.Where(&model.Company{Model: model.Model{ID: s.OrganizationID}}).First(&org).Error; err != nil {
 		return e.Wrap(err, "error querying org")
 	}
 

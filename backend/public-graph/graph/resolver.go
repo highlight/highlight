@@ -378,8 +378,8 @@ func GetDeviceDetails(userAgentString string) (deviceDetails DeviceDetails) {
 
 func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string) (*model.Session, error) {
 	organizationID := model.FromVerboseID(organizationVerboseID)
-	organization := &model.Organization{}
-	if err := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&organization).Error; err != nil {
+	organization := &model.Company{}
+	if err := r.DB.Where(&model.Company{Model: model.Model{ID: organizationID}}).First(&organization).Error; err != nil {
 		return nil, e.Wrap(err, "org doesn't exist")
 	}
 
@@ -677,7 +677,7 @@ func (r *Resolver) processStackFrame(organizationId, sessionId int, stackTrace m
 	return mappedStackFrame, nil
 }
 
-func (r *Resolver) isOrgWithinBillingQuota(organization *model.Organization, now time.Time) bool {
+func (r *Resolver) isOrgWithinBillingQuota(organization *model.Company, now time.Time) bool {
 	if organization.TrialEndDate != nil && organization.TrialEndDate.After(now) {
 		return true
 	}

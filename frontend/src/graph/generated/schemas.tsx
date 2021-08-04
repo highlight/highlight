@@ -88,8 +88,8 @@ export enum ErrorState {
     Ignored = 'IGNORED',
 }
 
-export type Organization = {
-    __typename?: 'Organization';
+export type Company = {
+    __typename?: 'Company';
     id: Scalars['ID'];
     verbose_id: Scalars['String'];
     name: Scalars['String'];
@@ -450,15 +450,15 @@ export type Query = {
     field_suggestion?: Maybe<Array<Maybe<Field>>>;
     property_suggestion?: Maybe<Array<Maybe<Field>>>;
     error_field_suggestion?: Maybe<Array<Maybe<ErrorField>>>;
-    organizations?: Maybe<Array<Maybe<Organization>>>;
+    organizations?: Maybe<Array<Maybe<Company>>>;
     error_alert?: Maybe<ErrorAlert>;
     new_user_alert?: Maybe<SessionAlert>;
     track_properties_alert?: Maybe<SessionAlert>;
     user_properties_alert?: Maybe<SessionAlert>;
-    organizationSuggestion?: Maybe<Array<Maybe<Organization>>>;
+    organizationSuggestion?: Maybe<Array<Maybe<Company>>>;
     environment_suggestion?: Maybe<Array<Maybe<Field>>>;
     slack_channel_suggestion?: Maybe<Array<Maybe<SanitizedSlackChannel>>>;
-    organization?: Maybe<Organization>;
+    organization?: Maybe<Company>;
     admin?: Maybe<Admin>;
     segments?: Maybe<Array<Maybe<Segment>>>;
     error_segments?: Maybe<Array<Maybe<ErrorSegment>>>;
@@ -643,8 +643,8 @@ export type QueryApi_Key_To_Org_IdArgs = {
 
 export type Mutation = {
     __typename?: 'Mutation';
-    createOrganization?: Maybe<Organization>;
-    editOrganization?: Maybe<Organization>;
+    createOrganization?: Maybe<Company>;
+    editOrganization?: Maybe<Company>;
     markSessionAsViewed?: Maybe<Session>;
     markSessionAsStarred?: Maybe<Session>;
     updateErrorGroupState?: Maybe<ErrorGroup>;

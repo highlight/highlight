@@ -86,10 +86,7 @@ export type CreateOrganizationMutationVariables = Types.Exact<{
 
 export type CreateOrganizationMutation = { __typename?: 'Mutation' } & {
     createOrganization?: Types.Maybe<
-        { __typename?: 'Organization' } & Pick<
-            Types.Organization,
-            'id' | 'name'
-        >
+        { __typename?: 'Company' } & Pick<Types.Company, 'id' | 'name'>
     >;
 };
 
@@ -101,8 +98,8 @@ export type EditOrganizationMutationVariables = Types.Exact<{
 
 export type EditOrganizationMutation = { __typename?: 'Mutation' } & {
     editOrganization?: Types.Maybe<
-        { __typename?: 'Organization' } & Pick<
-            Types.Organization,
+        { __typename?: 'Company' } & Pick<
+            Types.Company,
             'name' | 'billing_email'
         >
     >;
@@ -646,10 +643,7 @@ export type GetOnboardingStepsQuery = { __typename?: 'Query' } & Pick<
     'isIntegrated' | 'adminHasCreatedComment'
 > & {
         organization?: Types.Maybe<
-            { __typename?: 'Organization' } & Pick<
-                Types.Organization,
-                'slack_channels'
-            >
+            { __typename?: 'Company' } & Pick<Types.Company, 'slack_channels'>
         >;
         admins?: Types.Maybe<
             Array<
@@ -732,10 +726,7 @@ export type GetOrganizationsQuery = { __typename?: 'Query' } & {
     organizations?: Types.Maybe<
         Array<
             Types.Maybe<
-                { __typename?: 'Organization' } & Pick<
-                    Types.Organization,
-                    'id' | 'name'
-                >
+                { __typename?: 'Company' } & Pick<Types.Company, 'id' | 'name'>
             >
         >
     >;
@@ -758,8 +749,8 @@ export type GetOrganizationQueryVariables = Types.Exact<{
 
 export type GetOrganizationQuery = { __typename?: 'Query' } & {
     organization?: Types.Maybe<
-        { __typename?: 'Organization' } & Pick<
-            Types.Organization,
+        { __typename?: 'Company' } & Pick<
+            Types.Company,
             | 'id'
             | 'name'
             | 'verbose_id'
@@ -780,8 +771,8 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
         'meter' | 'sessionsOutOfQuota'
     > & { plan: { __typename?: 'Plan' } & Pick<Types.Plan, 'type' | 'quota'> };
     organization?: Types.Maybe<
-        { __typename?: 'Organization' } & Pick<
-            Types.Organization,
+        { __typename?: 'Company' } & Pick<
+            Types.Company,
             'id' | 'trial_end_date'
         >
     >;
@@ -938,10 +929,7 @@ export type GetOrganizationSuggestionQuery = { __typename?: 'Query' } & {
     organizationSuggestion?: Types.Maybe<
         Array<
             Types.Maybe<
-                { __typename?: 'Organization' } & Pick<
-                    Types.Organization,
-                    'id' | 'name'
-                >
+                { __typename?: 'Company' } & Pick<Types.Company, 'id' | 'name'>
             >
         >
     >;

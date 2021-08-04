@@ -135,6 +135,25 @@ type Organization struct {
 	MonthlySessionLimit *int
 }
 
+type Company struct {
+	Model
+	Name             *string
+	StripeCustomerID *string
+	StripePriceID    *string
+	BillingEmail     *string
+	Secret           *string    `json:"-"`
+	Admins           []Admin    `gorm:"many2many:company2_admins;"`
+	TrialEndDate     *time.Time `json:"trial_end_date"`
+	// Slack API Interaction.
+	SlackAccessToken      *string
+	SlackWebhookURL       *string
+	SlackWebhookChannel   *string
+	SlackWebhookChannelID *string
+	SlackChannels         *string
+	// Manual monthly session limit override
+	MonthlySessionLimit *int
+}
+
 type Alert struct {
 	OrganizationID       int
 	ExcludedEnvironments *string
@@ -223,7 +242,7 @@ type SlackChannel struct {
 	WebhookChannelID   string
 }
 
-func (u *Organization) IntegratedSlackChannels() ([]SlackChannel, error) {
+func (u *Company) IntegratedSlackChannels() ([]SlackChannel, error) {
 	parsedChannels := []SlackChannel{}
 	if u.SlackChannels != nil {
 		err := json.Unmarshal([]byte(*u.SlackChannels), &parsedChannels)
@@ -248,7 +267,7 @@ func (u *Organization) IntegratedSlackChannels() ([]SlackChannel, error) {
 	return parsedChannels, nil
 }
 
-func (u *Organization) VerboseID() string {
+func (u *Company) VerboseID() string {
 	str, err := HashID.Encode([]int{u.ID})
 	if err != nil {
 		log.Errorf("error generating hash id: %v", err)
@@ -270,7 +289,7 @@ func FromVerboseID(verboseId string) int {
 	return ints[0]
 }
 
-func (u *Organization) BeforeCreate(tx *gorm.DB) (err error) {
+func (u *Company) BeforeCreate(tx *gorm.DB) (err error) {
 	x := xid.New().String()
 	u.Secret = &x
 	return
@@ -282,7 +301,7 @@ type Admin struct {
 	Email           *string
 	PhotoURL        *string          `json:"photo_url"`
 	UID             *string          `gorm:"unique_index"`
-	Organizations   []Organization   `gorm:"many2many:organization_admins;"`
+	Organizations   []Company        `gorm:"many2many:company2_admins;"`
 	SessionComments []SessionComment `gorm:"many2many:session_comment_admins;"`
 	ErrorComments   []ErrorComment   `gorm:"many2many:error_comment_admins;"`
 }
@@ -648,6 +667,18 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 	); err != nil {
 		return nil, e.Wrap(err, "Error migrating db")
 	}
+
+	// Temporary code to move Organization Table to Company Table.
+	if !DB.Migrator().HasTable(&Company{}) {
+		if err := DB.Migrator().RenameTable(&Organization{}, &Company{}); err != nil {
+			return nil, e.Wrap(err, "Failed to rename organization table")
+		}
+
+	}
+	if err := DB.Migrator().RenameTable("organization_admins", "company_admins"); err != nil {
+		return nil, e.Wrap(err, "Failed to rename organization table")
+
+	}
 	sqlDB, err := DB.DB()
 	if err != nil {
 		return nil, e.Wrap(err, "error retrieving underlying sql db")
@@ -733,7 +764,7 @@ func (s *Session) GetUserProperties() (map[string]string, error) {
 	return userProperties, nil
 }
 
-func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, userIdentifier string, group *ErrorGroup, url *string, matchedFields []*Field, userProperties map[string]string, numErrors *int64) error {
+func (obj *Alert) SendSlackAlert(organization *Company, sessionId int, userIdentifier string, group *ErrorGroup, url *string, matchedFields []*Field, userProperties map[string]string, numErrors *int64) error {
 	if obj == nil {
 		return e.New("alert is nil")
 	}

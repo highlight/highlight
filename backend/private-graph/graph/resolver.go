@@ -46,13 +46,13 @@ func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
 
 // These are authentication methods used to make sure that data is secured.
 // This'll probably get expensive at some point; they can probably be cached.
-func (r *Resolver) isAdminInOrganization(ctx context.Context, org_id int) (*model.Organization, error) {
+func (r *Resolver) isAdminInOrganization(ctx context.Context, org_id int) (*model.Company, error) {
 	if os.Getenv("ENVIRONMENT") == "test" {
 		return nil, nil
 	}
 	if r.isWhitelistedAccount(ctx) {
-		org := &model.Organization{}
-		if err := r.DB.Where(&model.Organization{Model: model.Model{ID: org_id}}).First(&org).Error; err != nil {
+		org := &model.Company{}
+		if err := r.DB.Where(&model.Company{Model: model.Model{ID: org_id}}).First(&org).Error; err != nil {
 			return nil, e.Wrap(err, "error querying org")
 		}
 		return org, nil

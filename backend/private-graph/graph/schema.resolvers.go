@@ -160,7 +160,7 @@ func (r *errorSegmentResolver) Params(ctx context.Context, obj *model.ErrorSegme
 	return params, nil
 }
 
-func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) (*model.Organization, error) {
+func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) (*model.Company, error) {
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting admin")
@@ -175,7 +175,7 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 		}
 	}
 
-	org := &model.Organization{
+	org := &model.Company{
 		StripeCustomerID: &c.ID,
 		Name:             &name,
 		Admins:           []model.Admin{*admin},
@@ -199,12 +199,12 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	return org, nil
 }
 
-func (r *mutationResolver) EditOrganization(ctx context.Context, id int, name *string, billingEmail *string) (*model.Organization, error) {
+func (r *mutationResolver) EditOrganization(ctx context.Context, id int, name *string, billingEmail *string) (*model.Company, error) {
 	org, err := r.isAdminInOrganization(ctx, id)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying org")
 	}
-	if err := r.DB.Model(org).Updates(&model.Organization{
+	if err := r.DB.Model(org).Updates(&model.Company{
 		Name:         name,
 		BillingEmail: billingEmail,
 	}).Error; err != nil {
@@ -264,7 +264,7 @@ func (r *mutationResolver) DeleteOrganization(ctx context.Context, id int) (*boo
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
-	if err := r.DB.Delete(&model.Organization{Model: model.Model{ID: id}}).Error; err != nil {
+	if err := r.DB.Delete(&model.Company{Model: model.Model{ID: id}}).Error; err != nil {
 		return nil, e.Wrap(err, "error deleting organization")
 	}
 	return &model.T, nil
@@ -282,7 +282,7 @@ func (r *mutationResolver) SendAdminInvite(ctx context.Context, organizationID i
 	var secret string
 	if org.Secret == nil {
 		uid := xid.New().String()
-		if err := r.DB.Model(org).Updates(&model.Organization{Secret: &uid}).Error; err != nil {
+		if err := r.DB.Model(org).Updates(&model.Company{Secret: &uid}).Error; err != nil {
 			return nil, e.Wrap(err, "error updating uid in org secret")
 		}
 		secret = uid
@@ -316,8 +316,8 @@ func (r *mutationResolver) SendAdminInvite(ctx context.Context, organizationID i
 }
 
 func (r *mutationResolver) AddAdminToOrganization(ctx context.Context, organizationID int, inviteID string) (*int, error) {
-	org := &model.Organization{}
-	if err := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&org).Error; err != nil {
+	org := &model.Company{}
+	if err := r.DB.Where(&model.Company{Model: model.Model{ID: organizationID}}).First(&org).Error; err != nil {
 		return nil, e.Wrap(err, "error querying org")
 	}
 	if org.Secret == nil || (org.Secret != nil && *org.Secret != inviteID) {
@@ -345,7 +345,7 @@ func (r *mutationResolver) DeleteAdminFromOrganization(ctx context.Context, orga
 		return nil, e.New("Admin tried deleting themselves from the organization")
 	}
 
-	if err := r.DB.Model(&model.Organization{Model: model.Model{ID: organizationID}}).Association("Admins").Delete(model.Admin{Model: model.Model{ID: adminID}}); err != nil {
+	if err := r.DB.Model(&model.Company{Model: model.Model{ID: organizationID}}).Association("Admins").Delete(model.Admin{Model: model.Model{ID: adminID}}); err != nil {
 		return nil, e.Wrap(err, "error deleting admin from organization")
 	}
 
@@ -400,7 +400,7 @@ func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, o
 		return nil, e.Wrap(err, "error marshaling existing channels")
 	}
 	channelString := string(channelBytes)
-	if err := r.DB.Model(org).Updates(&model.Organization{
+	if err := r.DB.Model(org).Updates(&model.Company{
 		SlackChannels: &channelString,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error updating org fields")
@@ -625,7 +625,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		if err != nil {
 			return nil, e.Wrap(err, "error creating stripe customer")
 		}
-		if err := r.DB.Model(org).Updates(&model.Organization{
+		if err := r.DB.Model(org).Updates(&model.Company{
 			StripeCustomerID: &c.ID,
 		}).Error; err != nil {
 			return nil, e.Wrap(err, "error updating org fields")
@@ -657,8 +657,8 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		if err != nil {
 			return nil, e.Wrap(err, "couldn't update subscription")
 		}
-		organization := model.Organization{Model: model.Model{ID: organizationID}}
-		if err := r.DB.Model(&organization).Updates(model.Organization{StripePriceID: &plan}).Error; err != nil {
+		organization := model.Company{Model: model.Model{ID: organizationID}}
+		if err := r.DB.Model(&organization).Updates(model.Company{StripePriceID: &plan}).Error; err != nil {
 			return nil, e.Wrap(err, "error setting stripe_plan_id on organization")
 		}
 
@@ -699,8 +699,8 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		return nil, e.Wrap(err, "error creating CheckoutSession in stripe")
 	}
 
-	organization := model.Organization{Model: model.Model{ID: organizationID}}
-	if err := r.DB.Model(&organization).Updates(model.Organization{StripePriceID: &plan}).Error; err != nil {
+	organization := model.Company{Model: model.Model{ID: organizationID}}
+	if err := r.DB.Model(&organization).Updates(model.Company{StripePriceID: &plan}).Error; err != nil {
 		return nil, e.Wrap(err, "error setting stripe_plan_id on organization")
 	}
 	// mark sessions as within billing quota on plan upgrade
@@ -1403,7 +1403,7 @@ func (r *queryResolver) Admins(ctx context.Context, organizationID int) ([]*mode
 	}
 	admins := []*model.Admin{}
 	err := r.DB.Model(
-		&model.Organization{Model: model.Model{ID: organizationID}}).Order("created_at asc").Association("Admins").Find(&admins)
+		&model.Company{Model: model.Model{ID: organizationID}}).Order("created_at asc").Association("Admins").Find(&admins)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting associated admins")
 	}
@@ -1952,13 +1952,13 @@ func (r *queryResolver) ErrorFieldSuggestion(ctx context.Context, organizationID
 	return fields, nil
 }
 
-func (r *queryResolver) Organizations(ctx context.Context) ([]*model.Organization, error) {
+func (r *queryResolver) Organizations(ctx context.Context) ([]*model.Company, error) {
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.Wrap(err, "error retrieiving user")
 	}
-	orgs := []*model.Organization{}
-	if err := r.DB.Model(&admin).Association("Organizations").Find(&orgs); err != nil {
+	orgs := []*model.Company{}
+	if err := r.DB.Model(&admin).Association("Companies").Find(&orgs); err != nil {
 		return nil, e.Wrap(err, "error getting associated organizations")
 	}
 	return orgs, nil
@@ -2012,10 +2012,10 @@ func (r *queryResolver) UserPropertiesAlert(ctx context.Context, organizationID 
 	return &alert, nil
 }
 
-func (r *queryResolver) OrganizationSuggestion(ctx context.Context, query string) ([]*model.Organization, error) {
-	orgs := []*model.Organization{}
+func (r *queryResolver) OrganizationSuggestion(ctx context.Context, query string) ([]*model.Company, error) {
+	orgs := []*model.Company{}
 	if r.isWhitelistedAccount(ctx) {
-		if err := r.DB.Model(&model.Organization{}).Where("name ILIKE ?", "%"+query+"%").Find(&orgs).Error; err != nil {
+		if err := r.DB.Model(&model.Company{}).Where("name ILIKE ?", "%"+query+"%").Find(&orgs).Error; err != nil {
 			return nil, e.Wrap(err, "error getting associated organizations")
 		}
 	}
@@ -2059,7 +2059,7 @@ func (r *queryResolver) SlackChannelSuggestion(ctx context.Context, organization
 	return ret, nil
 }
 
-func (r *queryResolver) Organization(ctx context.Context, id int) (*model.Organization, error) {
+func (r *queryResolver) Organization(ctx context.Context, id int) (*model.Company, error) {
 	org, err := r.isAdminInOrganization(ctx, id)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying organization")
