@@ -18,7 +18,7 @@ import {
     useGetErrorCommentsQuery,
 } from '../../../../graph/generated/hooks';
 import { SanitizedAdminInput } from '../../../../graph/generated/schemas';
-import CommentTextBody from '../../../Player/Toolbar/NewCommentEntry/CommentTextBody/CommentTextBody';
+import CommentTextBody from '../../../Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody';
 import styles from '../../ErrorPage.module.scss';
 
 const ErrorComments = () => {

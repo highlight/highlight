@@ -20,7 +20,7 @@ import { Coordinates2D } from '../../PlayerCommentCanvas/PlayerCommentCanvas';
 import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration';
 import { useReplayerContext } from '../../ReplayerContext';
 import CommentTextBody from './CommentTextBody/CommentTextBody';
-import styles from './NewCommentEntry.module.scss';
+import styles from './NewCommentForm.module.scss';
 // import html2canvas from 'html2canvas';
 
 interface Props {
@@ -30,7 +30,7 @@ interface Props {
     parentRef?: React.RefObject<HTMLDivElement>;
 }
 
-export const NewCommentEntry = ({
+export const NewCommentForm = ({
     currentTime,
     onCloseHandler,
     commentPosition,
