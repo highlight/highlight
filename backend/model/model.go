@@ -86,7 +86,6 @@ var Models = []interface{}{
 	&Organization{},
 	&Segment{},
 	&Admin{},
-	&User{},
 	&Session{},
 	&DailySessionCount{},
 	&DailyErrorCount{},
@@ -293,11 +292,6 @@ type EmailSignup struct {
 	Email               string `gorm:"unique_index"`
 	ApolloData          string
 	ApolloDataShortened string
-}
-
-type User struct {
-	Model
-	OrganizationID int
 }
 
 type SessionResults struct {
