@@ -77,7 +77,6 @@ var ContextKeys = struct {
 }
 
 var Models = []interface{}{
-	&RecordingSettings{},
 	&MessagesObject{},
 	&EventsObject{},
 	&ErrorObject{},
@@ -118,24 +117,6 @@ type Model struct {
 	DeletedAt *time.Time `json:"deleted_at"`
 }
 
-type RecordingSettings struct {
-	Model
-	OrganizationID int     `json:"organization_id"`
-	Details        *string `json:"details"`
-}
-
-func (r *RecordingSettings) GetDetailsAsSlice() ([]string, error) {
-	var result []string
-	if r.Details == nil {
-		return result, nil
-	}
-	err := json.Unmarshal([]byte(*r.Details), &result)
-	if err != nil {
-		return nil, e.Wrap(err, "error parsing details json")
-	}
-	return result, nil
-}
-
 type Organization struct {
 	Model
 	Name             *string
@@ -145,7 +126,6 @@ type Organization struct {
 	Secret           *string `json:"-"`
 	Admins           []Admin `gorm:"many2many:organization_admins;"`
 	Fields           []Field
-	RecordingSetting RecordingSettings
 	TrialEndDate     *time.Time `json:"trial_end_date"`
 	// Slack API Interaction.
 	SlackAccessToken      *string

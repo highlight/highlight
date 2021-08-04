@@ -612,24 +612,6 @@ func (r *mutationResolver) DeleteErrorSegment(ctx context.Context, segmentID int
 	return &model.T, nil
 }
 
-func (r *mutationResolver) EditRecordingSettings(ctx context.Context, organizationID int, details *string) (*model.RecordingSettings, error) {
-	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
-		return nil, e.Wrap(err, "admin not found in org")
-	}
-	rec := &model.RecordingSettings{}
-	res := r.DB.Where(&model.RecordingSettings{Model: model.Model{ID: organizationID}}).First(&rec)
-	if err := res.Error; err != nil {
-		return nil, e.Wrap(err, "error querying record")
-	}
-	if err := r.DB.Model(rec).Updates(&model.RecordingSettings{
-		OrganizationID: organizationID,
-		Details:        details,
-	}).Error; err != nil {
-		return nil, e.Wrap(err, "error writing new recording settings")
-	}
-	return rec, nil
-}
-
 func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organizationID int, planType modelInputs.PlanType) (*string, error) {
 	org, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
@@ -2144,21 +2126,6 @@ func (r *queryResolver) ErrorSegments(ctx context.Context, organizationID int) (
 		log.Errorf("error querying segments from organization: %v", err)
 	}
 	return segments, nil
-}
-
-func (r *queryResolver) RecordingSettings(ctx context.Context, organizationID int) (*model.RecordingSettings, error) {
-	recordingSettings := &model.RecordingSettings{OrganizationID: organizationID}
-	if res := r.DB.Where(&model.RecordingSettings{OrganizationID: organizationID}).First(&recordingSettings); res.Error != nil {
-		newRecordSettings := &model.RecordingSettings{
-			OrganizationID: organizationID,
-			Details:        nil,
-		}
-		if err := r.DB.Create(newRecordSettings).Error; err != nil {
-			return nil, e.Wrap(err, "error creating new recording settings")
-		}
-		recordingSettings = newRecordSettings
-	}
-	return recordingSettings, nil
 }
 
 func (r *queryResolver) APIKeyToOrgID(ctx context.Context, apiKey string) (*int, error) {
