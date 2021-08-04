@@ -225,13 +225,11 @@ export const ConsolePage = ({ time }: { time: number }) => {
                                         />
                                     </div>
                                     <div className={styles.messageText}>
-                                        {message.value ? (
+                                        {message.value && (
                                             <ConsoleRender
                                                 m={message.value}
                                                 searchTerm={filterSearchTerm}
                                             />
-                                        ) : (
-                                            'Empty Console Message: console.log() was called with no arguments.'
                                         )}
                                     </div>
                                     <GoToButton
