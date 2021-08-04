@@ -440,6 +440,9 @@ export const usePlayer = (): ReplayerContextInterface => {
         isPlayerReady:
             state !== ReplayerState.Loading && scale !== 1 && canViewSession,
         session,
+        playerProgress: replayer
+            ? time / replayer.getMetaData().totalTime
+            : null,
     };
 };
 
