@@ -107,12 +107,9 @@ export const usePlayer = (): ReplayerContextInterface => {
             if (data.session?.within_billing_quota) {
                 getSessionPayloadQuery();
                 setCanViewSession(true);
+                H.track('Viewed session', { is_guest: !isLoggedIn });
             } else {
                 setCanViewSession(false);
-            }
-
-            if (data.session) {
-                H.track('Viewed session', { is_guest: !isLoggedIn });
             }
         },
     });
