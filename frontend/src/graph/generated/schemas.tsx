@@ -674,6 +674,7 @@ export type Mutation = {
     deleteErrorSegment?: Maybe<Scalars['Boolean']>;
     editRecordingSettings?: Maybe<RecordingSettings>;
     createOrUpdateSubscription?: Maybe<Scalars['String']>;
+    createOrUpdateSubscriptionOnOrg?: Maybe<Scalars['String']>;
     createSessionComment?: Maybe<SessionComment>;
     deleteSessionComment?: Maybe<Scalars['Boolean']>;
     createErrorComment?: Maybe<ErrorComment>;
@@ -780,6 +781,10 @@ export type MutationEditRecordingSettingsArgs = {
 export type MutationCreateOrUpdateSubscriptionArgs = {
     organization_id: Scalars['ID'];
     plan_type: PlanType;
+};
+
+export type MutationCreateOrUpdateSubscriptionOnOrgArgs = {
+    organization_id: Scalars['ID'];
 };
 
 export type MutationCreateSessionCommentArgs = {

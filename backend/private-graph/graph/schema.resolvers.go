@@ -675,19 +675,6 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		if err != nil {
 			return nil, e.Wrap(err, "couldn't update subscription")
 		}
-		organization := model.Organization{Model: model.Model{ID: organizationID}}
-		if err := r.DB.Model(&organization).Updates(model.Organization{StripePriceID: &plan}).Error; err != nil {
-			return nil, e.Wrap(err, "error setting stripe_plan_id on organization")
-		}
-
-		// mark sessions as within billing quota on plan upgrade
-		// this is done when the user is already signed up for some sort of billing plan
-		if c.Subscriptions.Data[0].Items.Data[0].Plan != nil {
-			go r.UpdateSessionsVisibility(organizationID, planType, pricing.FromPriceID(c.Subscriptions.Data[0].Items.Data[0].Plan.ID))
-		} else {
-			log.Error("error getting original plan data from stripe client")
-		}
-
 		ret := ""
 		return &ret, nil
 	}
@@ -717,8 +704,29 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		return nil, e.Wrap(err, "error creating CheckoutSession in stripe")
 	}
 
+	return &stripeSession.ID, nil
+}
+
+func (r *mutationResolver) CreateOrUpdateSubscriptionOnOrg(ctx context.Context, organizationID int, planType modelInputs.PlanType) (*string, error) {
+	org, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in organization")
+	}
+	params := &stripe.CustomerParams{}
+	params.AddExpand("subscriptions")
+	c, err := r.StripeClient.Customers.Get(*org.StripeCustomerID, params)
+	if err != nil {
+		return nil, e.Wrap(err, "couldn't retrieve stripe customer data")
+	}
+	// If there's a single subscription on the user and a single price item on the subscription
+	if len(c.Subscriptions.Data) != 1 || len(c.Subscriptions.Data[0].Items.Data) != 1 {
+		return nil, e.New("no stripe subscription for customer")
+	}
+
+	planTypeId := c.Subscriptions.Data[0].Items.Data[0].ID
+
 	organization := model.Organization{Model: model.Model{ID: organizationID}}
-	if err := r.DB.Model(&organization).Updates(model.Organization{StripePriceID: &plan}).Error; err != nil {
+	if err := r.DB.Model(&organization).Updates(model.Organization{StripePriceID: &planTypeId}).Error; err != nil {
 		return nil, e.Wrap(err, "error setting stripe_plan_id on organization")
 	}
 	// mark sessions as within billing quota on plan upgrade
@@ -726,7 +734,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	// here, the user doesn't already have a billing plan, so it's considered an upgrade unless the plan is free
 	go r.UpdateSessionsVisibility(organizationID, planType, modelInputs.PlanTypeFree)
 
-	return &stripeSession.ID, nil
+	return &planTypeId, nil
 }
 
 func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model.SessionComment, error) {

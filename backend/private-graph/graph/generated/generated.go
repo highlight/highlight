@@ -193,34 +193,35 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddAdminToOrganization         func(childComplexity int, organizationID int, inviteID string) int
-		AddSlackIntegrationToWorkspace func(childComplexity int, organizationID int, code string, redirectPath string) int
-		CreateErrorComment             func(childComplexity int, organizationID int, errorGroupID int, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, errorURL string, authorName string) int
-		CreateErrorSegment             func(childComplexity int, organizationID int, name string, params model.ErrorSearchParamsInput) int
-		CreateOrUpdateSubscription     func(childComplexity int, organizationID int, planType model.PlanType) int
-		CreateOrganization             func(childComplexity int, name string) int
-		CreateSegment                  func(childComplexity int, organizationID int, name string, params model.SearchParamsInput) int
-		CreateSessionComment           func(childComplexity int, organizationID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) int
-		DeleteAdminFromOrganization    func(childComplexity int, organizationID int, adminID int) int
-		DeleteErrorComment             func(childComplexity int, id int) int
-		DeleteErrorSegment             func(childComplexity int, segmentID int) int
-		DeleteOrganization             func(childComplexity int, id int) int
-		DeleteSegment                  func(childComplexity int, segmentID int) int
-		DeleteSessionComment           func(childComplexity int, id int) int
-		EditErrorSegment               func(childComplexity int, id int, organizationID int, params model.ErrorSearchParamsInput) int
-		EditOrganization               func(childComplexity int, id int, name *string, billingEmail *string) int
-		EditRecordingSettings          func(childComplexity int, organizationID int, details *string) int
-		EditSegment                    func(childComplexity int, id int, organizationID int, params model.SearchParamsInput) int
-		EmailSignup                    func(childComplexity int, email string) int
-		MarkSessionAsStarred           func(childComplexity int, id int, starred *bool) int
-		MarkSessionAsViewed            func(childComplexity int, id int, viewed *bool) int
-		SendAdminInvite                func(childComplexity int, organizationID int, email string, baseURL string) int
-		UpdateErrorAlert               func(childComplexity int, organizationID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
-		UpdateErrorGroupState          func(childComplexity int, id int, state string) int
-		UpdateNewUserAlert             func(childComplexity int, organizationID int, sessionAlertID int, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
-		UpdateSessionIsPublic          func(childComplexity int, sessionID int, isPublic bool) int
-		UpdateTrackPropertiesAlert     func(childComplexity int, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, trackProperties []*model.TrackPropertyInput) int
-		UpdateUserPropertiesAlert      func(childComplexity int, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, userProperties []*model.UserPropertyInput) int
+		AddAdminToOrganization          func(childComplexity int, organizationID int, inviteID string) int
+		AddSlackIntegrationToWorkspace  func(childComplexity int, organizationID int, code string, redirectPath string) int
+		CreateErrorComment              func(childComplexity int, organizationID int, errorGroupID int, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, errorURL string, authorName string) int
+		CreateErrorSegment              func(childComplexity int, organizationID int, name string, params model.ErrorSearchParamsInput) int
+		CreateOrUpdateSubscription      func(childComplexity int, organizationID int, planType model.PlanType) int
+		CreateOrUpdateSubscriptionOnOrg func(childComplexity int, organizationID int, planType model.PlanType) int
+		CreateOrganization              func(childComplexity int, name string) int
+		CreateSegment                   func(childComplexity int, organizationID int, name string, params model.SearchParamsInput) int
+		CreateSessionComment            func(childComplexity int, organizationID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) int
+		DeleteAdminFromOrganization     func(childComplexity int, organizationID int, adminID int) int
+		DeleteErrorComment              func(childComplexity int, id int) int
+		DeleteErrorSegment              func(childComplexity int, segmentID int) int
+		DeleteOrganization              func(childComplexity int, id int) int
+		DeleteSegment                   func(childComplexity int, segmentID int) int
+		DeleteSessionComment            func(childComplexity int, id int) int
+		EditErrorSegment                func(childComplexity int, id int, organizationID int, params model.ErrorSearchParamsInput) int
+		EditOrganization                func(childComplexity int, id int, name *string, billingEmail *string) int
+		EditRecordingSettings           func(childComplexity int, organizationID int, details *string) int
+		EditSegment                     func(childComplexity int, id int, organizationID int, params model.SearchParamsInput) int
+		EmailSignup                     func(childComplexity int, email string) int
+		MarkSessionAsStarred            func(childComplexity int, id int, starred *bool) int
+		MarkSessionAsViewed             func(childComplexity int, id int, viewed *bool) int
+		SendAdminInvite                 func(childComplexity int, organizationID int, email string, baseURL string) int
+		UpdateErrorAlert                func(childComplexity int, organizationID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
+		UpdateErrorGroupState           func(childComplexity int, id int, state string) int
+		UpdateNewUserAlert              func(childComplexity int, organizationID int, sessionAlertID int, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
+		UpdateSessionIsPublic           func(childComplexity int, sessionID int, isPublic bool) int
+		UpdateTrackPropertiesAlert      func(childComplexity int, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, trackProperties []*model.TrackPropertyInput) int
+		UpdateUserPropertiesAlert       func(childComplexity int, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, userProperties []*model.UserPropertyInput) int
 	}
 
 	NewUsersCount struct {
@@ -467,6 +468,7 @@ type MutationResolver interface {
 	DeleteErrorSegment(ctx context.Context, segmentID int) (*bool, error)
 	EditRecordingSettings(ctx context.Context, organizationID int, details *string) (*model1.RecordingSettings, error)
 	CreateOrUpdateSubscription(ctx context.Context, organizationID int, planType model.PlanType) (*string, error)
+	CreateOrUpdateSubscriptionOnOrg(ctx context.Context, organizationID int, planType model.PlanType) (*string, error)
 	CreateSessionComment(ctx context.Context, organizationID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model1.SessionComment, error)
 	DeleteSessionComment(ctx context.Context, id int) (*bool, error)
 	CreateErrorComment(ctx context.Context, organizationID int, errorGroupID int, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, errorURL string, authorName string) (*model1.ErrorComment, error)
@@ -1202,6 +1204,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateOrUpdateSubscription(childComplexity, args["organization_id"].(int), args["plan_type"].(model.PlanType)), true
+
+	case "Mutation.createOrUpdateSubscriptionOnOrg":
+		if e.complexity.Mutation.CreateOrUpdateSubscriptionOnOrg == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createOrUpdateSubscriptionOnOrg_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateOrUpdateSubscriptionOnOrg(childComplexity, args["organization_id"].(int), args["plan_type"].(model.PlanType)), true
 
 	case "Mutation.createOrganization":
 		if e.complexity.Mutation.CreateOrganization == nil {
@@ -3269,6 +3283,10 @@ type Mutation {
         organization_id: ID!
         plan_type: PlanType!
     ): String
+    createOrUpdateSubscriptionOnOrg(
+        organization_id: ID!
+        plan_type: PlanType!
+    ): String
     createSessionComment(
         organization_id: ID!
         session_id: ID!
@@ -3489,6 +3507,30 @@ func (ec *executionContext) field_Mutation_createErrorSegment_args(ctx context.C
 		}
 	}
 	args["params"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createOrUpdateSubscriptionOnOrg_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organization_id"] = arg0
+	var arg1 model.PlanType
+	if tmp, ok := rawArgs["plan_type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("plan_type"))
+		arg1, err = ec.unmarshalNPlanType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐPlanType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["plan_type"] = arg1
 	return args, nil
 }
 
@@ -8665,6 +8707,45 @@ func (ec *executionContext) _Mutation_createOrUpdateSubscription(ctx context.Con
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().CreateOrUpdateSubscription(rctx, args["organization_id"].(int), args["plan_type"].(model.PlanType))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_createOrUpdateSubscriptionOnOrg(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createOrUpdateSubscriptionOnOrg_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateOrUpdateSubscriptionOnOrg(rctx, args["organization_id"].(int), args["plan_type"].(model.PlanType))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16547,6 +16628,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_editRecordingSettings(ctx, field)
 		case "createOrUpdateSubscription":
 			out.Values[i] = ec._Mutation_createOrUpdateSubscription(ctx, field)
+		case "createOrUpdateSubscriptionOnOrg":
+			out.Values[i] = ec._Mutation_createOrUpdateSubscriptionOnOrg(ctx, field)
 		case "createSessionComment":
 			out.Values[i] = ec._Mutation_createSessionComment(ctx, field)
 		case "deleteSessionComment":
