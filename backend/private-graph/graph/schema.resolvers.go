@@ -901,6 +901,63 @@ func (r *mutationResolver) DeleteErrorComment(ctx context.Context, id int) (*boo
 	return &model.T, nil
 }
 
+func (r *mutationResolver) AddDefaultSlackChannels(ctx context.Context, organizationID int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*bool, error) {
+	_, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in organization")
+	}
+
+	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
+	// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
+	for _, ch := range slackChannels {
+		sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
+	}
+
+	envBytes, err := json.Marshal(environments)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing environments")
+	}
+	envString := string(envBytes)
+
+	channelsBytes, err := json.Marshal(sanitizedChannels)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing channels")
+	}
+	channelsString := string(channelsBytes)
+
+	// error alert
+	errorAlert := &model.ErrorAlert{}
+	if err := r.DB.Where(&model.ErrorAlert{Alert: model.Alert{OrganizationID: organizationID}}).Find(&errorAlert).Error; err != nil {
+		return nil, e.Wrap(err, "error querying error alert")
+	}
+	errorAlert.ChannelsToNotify = &channelsString
+	errorAlert.ExcludedEnvironments = &envString
+	if err := r.DB.Model(&model.ErrorAlert{
+		Alert: model.Alert{
+			OrganizationID: organizationID,
+		},
+		Model: model.Model{
+			ID: errorAlert.ID,
+		},
+	}).Updates(errorAlert).Error; err != nil {
+		return nil, e.Wrap(err, "error updating org fields")
+	}
+
+	// session alerts
+	var sessionAlerts []*model.SessionAlert
+	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Find(&sessionAlerts).Error; err != nil {
+		return nil, e.Wrap(err, "error querying session alerts")
+	}
+	for _, alert := range sessionAlerts {
+		alert.ChannelsToNotify = &channelsString
+		alert.ExcludedEnvironments = &envString
+	}
+	if err := r.DB.Model(&model.SessionAlert{}).Updates(&sessionAlerts).Error; err != nil {
+		return nil, e.Wrap(err, "error updating session alerts")
+	}
+	return &model.T, nil
+}
+
 func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.ErrorAlert, error) {
 	_, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
@@ -954,7 +1011,7 @@ func (r *mutationResolver) UpdateNewUserAlert(ctx context.Context, organizationI
 	}
 
 	alert := &model.SessionAlert{}
-	if err := r.DB.Where(&model.SessionAlert{Model: model.Model{ID: sessionAlertID}}).Where("type IS NULL OR type=?", model.AlertType.NEW_USER).Find(&alert).Error; err != nil {
+	if err := r.DB.Where(&model.SessionAlert{Model: model.Model{ID: sessionAlertID}}).Where("type=?", model.AlertType.NEW_USER).Find(&alert).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session alert")
 	}
 
@@ -2276,3 +2333,13 @@ type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
 type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *mutationResolver) UpdateDefaultSlackChannels(ctx context.Context, organizationID int, slackChannels []*modelInputs.SanitizedSlackChannelInput) (*int, error) {
+	panic(fmt.Errorf("not implemented"))
+}

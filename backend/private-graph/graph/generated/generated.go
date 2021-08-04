@@ -194,6 +194,7 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		AddAdminToOrganization         func(childComplexity int, organizationID int, inviteID string) int
+		AddDefaultSlackChannels        func(childComplexity int, organizationID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
 		AddSlackIntegrationToWorkspace func(childComplexity int, organizationID int, code string, redirectPath string) int
 		CreateErrorComment             func(childComplexity int, organizationID int, errorGroupID int, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, errorURL string, authorName string) int
 		CreateErrorSegment             func(childComplexity int, organizationID int, name string, params model.ErrorSearchParamsInput) int
@@ -471,6 +472,7 @@ type MutationResolver interface {
 	DeleteSessionComment(ctx context.Context, id int) (*bool, error)
 	CreateErrorComment(ctx context.Context, organizationID int, errorGroupID int, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, errorURL string, authorName string) (*model1.ErrorComment, error)
 	DeleteErrorComment(ctx context.Context, id int) (*bool, error)
+	AddDefaultSlackChannels(ctx context.Context, organizationID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*bool, error)
 	UpdateErrorAlert(ctx context.Context, organizationID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.ErrorAlert, error)
 	UpdateNewUserAlert(ctx context.Context, organizationID int, sessionAlertID int, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.SessionAlert, error)
 	UpdateTrackPropertiesAlert(ctx context.Context, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, trackProperties []*model.TrackPropertyInput) (*model1.SessionAlert, error)
@@ -1154,6 +1156,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AddAdminToOrganization(childComplexity, args["organization_id"].(int), args["invite_id"].(string)), true
+
+	case "Mutation.addDefaultSlackChannels":
+		if e.complexity.Mutation.AddDefaultSlackChannels == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addDefaultSlackChannels_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddDefaultSlackChannels(childComplexity, args["organization_id"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["environments"].([]*string)), true
 
 	case "Mutation.addSlackIntegrationToWorkspace":
 		if e.complexity.Mutation.AddSlackIntegrationToWorkspace == nil {
@@ -3294,6 +3308,11 @@ type Mutation {
         author_name: String!
     ): ErrorComment
     deleteErrorComment(id: ID!): Boolean
+    addDefaultSlackChannels(
+        organization_id: ID!
+        slack_channels: [SanitizedSlackChannelInput]!
+        environments: [String]!
+    ): Boolean
     updateErrorAlert(
         organization_id: ID!
         error_alert_id: ID!
@@ -3354,6 +3373,39 @@ func (ec *executionContext) field_Mutation_addAdminToOrganization_args(ctx conte
 		}
 	}
 	args["invite_id"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addDefaultSlackChannels_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organization_id"] = arg0
+	var arg1 []*model.SanitizedSlackChannelInput
+	if tmp, ok := rawArgs["slack_channels"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("slack_channels"))
+		arg1, err = ec.unmarshalNSanitizedSlackChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["slack_channels"] = arg1
+	var arg2 []*string
+	if tmp, ok := rawArgs["environments"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("environments"))
+		arg2, err = ec.unmarshalNString2ᚕᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["environments"] = arg2
 	return args, nil
 }
 
@@ -8821,6 +8873,45 @@ func (ec *executionContext) _Mutation_deleteErrorComment(ctx context.Context, fi
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().DeleteErrorComment(rctx, args["id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_addDefaultSlackChannels(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addDefaultSlackChannels_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddDefaultSlackChannels(rctx, args["organization_id"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["environments"].([]*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16555,6 +16646,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_createErrorComment(ctx, field)
 		case "deleteErrorComment":
 			out.Values[i] = ec._Mutation_deleteErrorComment(ctx, field)
+		case "addDefaultSlackChannels":
+			out.Values[i] = ec._Mutation_addDefaultSlackChannels(ctx, field)
 		case "updateErrorAlert":
 			out.Values[i] = ec._Mutation_updateErrorAlert(ctx, field)
 		case "updateNewUserAlert":

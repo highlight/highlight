@@ -541,6 +541,11 @@ type Mutation {
         author_name: String!
     ): ErrorComment
     deleteErrorComment(id: ID!): Boolean
+    addDefaultSlackChannels(
+        organization_id: ID!
+        slack_channels: [SanitizedSlackChannelInput]!
+        environments: [String]!
+    ): Boolean
     updateErrorAlert(
         organization_id: ID!
         error_alert_id: ID!
