@@ -88,13 +88,6 @@ export enum ErrorState {
     Ignored = 'IGNORED',
 }
 
-export type RecordingSettings = {
-    __typename?: 'RecordingSettings';
-    id: Scalars['ID'];
-    organization_id: Scalars['ID'];
-    details: Scalars['String'];
-};
-
 export type Organization = {
     __typename?: 'Organization';
     id: Scalars['ID'];
@@ -469,7 +462,6 @@ export type Query = {
     admin?: Maybe<Admin>;
     segments?: Maybe<Array<Maybe<Segment>>>;
     error_segments?: Maybe<Array<Maybe<ErrorSegment>>>;
-    recording_settings?: Maybe<RecordingSettings>;
     api_key_to_org_id?: Maybe<Scalars['ID']>;
 };
 
@@ -645,10 +637,6 @@ export type QueryError_SegmentsArgs = {
     organization_id: Scalars['ID'];
 };
 
-export type QueryRecording_SettingsArgs = {
-    organization_id: Scalars['ID'];
-};
-
 export type QueryApi_Key_To_Org_IdArgs = {
     api_key: Scalars['String'];
 };
@@ -672,7 +660,6 @@ export type Mutation = {
     createErrorSegment?: Maybe<ErrorSegment>;
     editErrorSegment?: Maybe<Scalars['Boolean']>;
     deleteErrorSegment?: Maybe<Scalars['Boolean']>;
-    editRecordingSettings?: Maybe<RecordingSettings>;
     createOrUpdateSubscription?: Maybe<Scalars['String']>;
     createSessionComment?: Maybe<SessionComment>;
     deleteSessionComment?: Maybe<Scalars['Boolean']>;
@@ -770,11 +757,6 @@ export type MutationEditErrorSegmentArgs = {
 
 export type MutationDeleteErrorSegmentArgs = {
     segment_id: Scalars['ID'];
-};
-
-export type MutationEditRecordingSettingsArgs = {
-    organization_id: Scalars['ID'];
-    details?: Maybe<Scalars['String']>;
 };
 
 export type MutationCreateOrUpdateSubscriptionArgs = {
