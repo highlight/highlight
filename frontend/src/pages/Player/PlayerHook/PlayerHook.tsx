@@ -120,7 +120,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         variables: {
             session_id,
         },
-        pollInterval: 1000 * 10,
+        // pollInterval: 1000 * 10,
     });
 
     const resetPlayer = useCallback(
@@ -415,6 +415,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             case ReplayerState.LoadedAndUntouched:
             case ReplayerState.LoadedWithDeepLink:
             case ReplayerState.SessionRecordingStopped:
+            case ReplayerState.SessionEnded:
                 pause(newTime);
                 return;
 
@@ -443,6 +444,9 @@ export const usePlayer = (): ReplayerContextInterface => {
         isPlayerReady:
             state !== ReplayerState.Loading && scale !== 1 && canViewSession,
         session,
+        playerProgress: replayer
+            ? time / replayer.getMetaData().totalTime
+            : null,
     };
 };
 

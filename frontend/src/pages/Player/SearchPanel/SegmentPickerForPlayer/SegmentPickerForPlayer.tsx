@@ -165,11 +165,16 @@ const SegmentPickerForPlayer = () => {
                 trackingId="CreateSessionSegment"
                 onClick={() => {
                     if (showUpdateSegmentOption && selectedSegment) {
+                        const {
+                            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                            show_live_sessions,
+                            ...restOfSearchParams
+                        } = searchParams;
                         editSegment({
                             variables: {
                                 organization_id,
                                 id: selectedSegment.id,
-                                params: searchParams,
+                                params: restOfSearchParams,
                             },
                         })
                             .then(() => {

@@ -81,7 +81,7 @@ func EventsFromString(eventsString string) (*ReplayEvents, error) {
 	events := &ReplayEvents{}
 	err := json.Unmarshal([]byte(eventsString), &events)
 	if err != nil {
-		return nil, fmt.Errorf("error parsing events into ReplayEvents: %v", err)
+		return nil, fmt.Errorf("error parsing events into ReplayEvents for string '%v': %w", eventsString, err)
 	}
 	return events, nil
 }

@@ -88,13 +88,6 @@ export enum ErrorState {
     Ignored = 'IGNORED',
 }
 
-export type RecordingSettings = {
-    __typename?: 'RecordingSettings';
-    id: Scalars['ID'];
-    organization_id: Scalars['ID'];
-    details: Scalars['String'];
-};
-
 export type Organization = {
     __typename?: 'Organization';
     id: Scalars['ID'];
@@ -340,6 +333,7 @@ export type ErrorResults = {
 export type SessionComment = {
     __typename?: 'SessionComment';
     id: Scalars['ID'];
+    organization_id: Scalars['ID'];
     timestamp: Scalars['Int'];
     created_at: Scalars['Time'];
     updated_at: Scalars['Time'];
@@ -353,6 +347,7 @@ export type SessionComment = {
 export type ErrorComment = {
     __typename?: 'ErrorComment';
     id: Scalars['ID'];
+    organization_id: Scalars['ID'];
     created_at: Scalars['Time'];
     error_id: Scalars['Int'];
     updated_at: Scalars['Time'];
@@ -434,8 +429,10 @@ export type Query = {
     resources?: Maybe<Array<Maybe<Scalars['Any']>>>;
     session_comments: Array<Maybe<SessionComment>>;
     session_comments_for_admin: Array<Maybe<SessionComment>>;
+    session_comments_for_organization: Array<Maybe<SessionComment>>;
     error_comments: Array<Maybe<ErrorComment>>;
     error_comments_for_admin: Array<Maybe<ErrorComment>>;
+    error_comments_for_organization: Array<Maybe<ErrorComment>>;
     admins?: Maybe<Array<Maybe<Admin>>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
     unprocessedSessionsCount?: Maybe<Scalars['Int64']>;
@@ -465,7 +462,6 @@ export type Query = {
     admin?: Maybe<Admin>;
     segments?: Maybe<Array<Maybe<Segment>>>;
     error_segments?: Maybe<Array<Maybe<ErrorSegment>>>;
-    recording_settings?: Maybe<RecordingSettings>;
     api_key_to_org_id?: Maybe<Scalars['ID']>;
 };
 
@@ -503,8 +499,16 @@ export type QuerySession_CommentsArgs = {
     session_id: Scalars['ID'];
 };
 
+export type QuerySession_Comments_For_OrganizationArgs = {
+    organization_id: Scalars['ID'];
+};
+
 export type QueryError_CommentsArgs = {
     error_group_id: Scalars['ID'];
+};
+
+export type QueryError_Comments_For_OrganizationArgs = {
+    organization_id: Scalars['ID'];
 };
 
 export type QueryAdminsArgs = {
@@ -633,10 +637,6 @@ export type QueryError_SegmentsArgs = {
     organization_id: Scalars['ID'];
 };
 
-export type QueryRecording_SettingsArgs = {
-    organization_id: Scalars['ID'];
-};
-
 export type QueryApi_Key_To_Org_IdArgs = {
     api_key: Scalars['String'];
 };
@@ -660,7 +660,6 @@ export type Mutation = {
     createErrorSegment?: Maybe<ErrorSegment>;
     editErrorSegment?: Maybe<Scalars['Boolean']>;
     deleteErrorSegment?: Maybe<Scalars['Boolean']>;
-    editRecordingSettings?: Maybe<RecordingSettings>;
     createOrUpdateSubscription?: Maybe<Scalars['String']>;
     createSessionComment?: Maybe<SessionComment>;
     deleteSessionComment?: Maybe<Scalars['Boolean']>;
@@ -758,11 +757,6 @@ export type MutationEditErrorSegmentArgs = {
 
 export type MutationDeleteErrorSegmentArgs = {
     segment_id: Scalars['ID'];
-};
-
-export type MutationEditRecordingSettingsArgs = {
-    organization_id: Scalars['ID'];
-    details?: Maybe<Scalars['String']>;
 };
 
 export type MutationCreateOrUpdateSubscriptionArgs = {

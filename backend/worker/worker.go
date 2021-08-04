@@ -2,25 +2,26 @@ package worker
 
 import (
 	"context"
-	"encoding/csv"
-	"encoding/json"
 	"fmt"
+	"io"
 	"math/rand"
 	"os"
 	"strconv"
 	"time"
+
+	"gorm.io/gorm/clause"
 
 	"github.com/pkg/errors"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-	"gorm.io/gorm/clause"
 
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/payload"
 	mgraph "github.com/highlight-run/highlight/backend/private-graph/graph"
 	"github.com/highlight-run/highlight/backend/util"
 )
@@ -33,7 +34,7 @@ type Worker struct {
 	S3Client *storage.StorageClient
 }
 
-func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Session, migrationState *string, events []model.EventsObject, payloadStringSize int) error {
+func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Session, migrationState *string, eventsFile *os.File, resourcesFile *os.File, messagesFile *os.File) error {
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
@@ -41,34 +42,19 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
 	}
-	sessionPayloadSize, err := w.S3Client.PushSessionsToS3(s.ID, s.OrganizationID, events)
+	fmt.Printf("starting push for: %v \n", s.ID)
+	sessionPayloadSize, err := w.S3Client.PushFileToS3(ctx, s.ID, s.OrganizationID, eventsFile, storage.S3SessionsPayloadBucketName, storage.SessionContents)
 	// If this is unsucessful, return early (we treat this session as if it is stored in psql).
 	if err != nil {
 		return errors.Wrap(err, "error pushing session payload to s3")
 	}
 
-	resourcesObject := []*model.ResourcesObject{}
-	if res := w.Resolver.DB.Order("created_at desc").Where(&model.ResourcesObject{SessionID: s.ID}).Find(&resourcesObject); res.Error != nil {
-		return errors.Wrap(res.Error, "error reading from resources")
-	}
-	for _, ee := range resourcesObject {
-		payloadStringSize += len(ee.Resources)
-	}
-	hlog.Histogram("worker.processSession.payloadStringSize", float64(payloadStringSize), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
-	resourcePayloadSize, err := w.S3Client.PushResourcesToS3(s.ID, s.OrganizationID, resourcesObject)
+	resourcePayloadSize, err := w.S3Client.PushFileToS3(ctx, s.ID, s.OrganizationID, resourcesFile, storage.S3SessionsPayloadBucketName, storage.NetworkResources)
 	if err != nil {
 		return errors.Wrap(err, "error pushing network payload to s3")
 	}
 
-	messagesObj := []*model.MessagesObject{}
-	if res := w.Resolver.DB.Order("created_at desc").Where(&model.MessagesObject{SessionID: s.ID}).Find(&messagesObj); res.Error != nil {
-		return errors.Wrap(res.Error, "error reading from messages")
-	}
-	for _, mm := range messagesObj {
-		payloadStringSize += len(mm.Messages)
-	}
-	hlog.Histogram("worker.processSession.payloadStringSize", float64(payloadStringSize), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
-	messagePayloadSize, err := w.S3Client.PushMessagesToS3(s.ID, s.OrganizationID, messagesObj)
+	messagePayloadSize, err := w.S3Client.PushFileToS3(ctx, s.ID, s.OrganizationID, messagesFile, storage.S3SessionsPayloadBucketName, storage.ConsoleMessages)
 	if err != nil {
 		return errors.Wrap(err, "error pushing network payload to s3")
 	}
@@ -76,12 +62,15 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	var totalPayloadSize int64
 	if sessionPayloadSize != nil {
 		totalPayloadSize += *sessionPayloadSize
+		hlog.Histogram("worker.processSession.sessionPayloadSize", float64(*sessionPayloadSize), []string{fmt.Sprintf("session_id:%d", s.ID), fmt.Sprintf("org_id:%d", s.OrganizationID)}, 1) //nolint
 	}
 	if resourcePayloadSize != nil {
 		totalPayloadSize += *resourcePayloadSize
+		hlog.Histogram("worker.processSession.resourcePayloadSize", float64(*resourcePayloadSize), []string{fmt.Sprintf("session_id:%d", s.ID), fmt.Sprintf("org_id:%d", s.OrganizationID)}, 1) //nolint
 	}
 	if messagePayloadSize != nil {
 		totalPayloadSize += *messagePayloadSize
+		hlog.Histogram("worker.processSession.messagePayloadSize", float64(*messagePayloadSize), []string{fmt.Sprintf("session_id:%d", s.ID), fmt.Sprintf("org_id:%d", s.OrganizationID)}, 1) //nolint
 	}
 
 	// Mark this session as stored in S3.
@@ -96,124 +85,95 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	hlog.Histogram("worker.pushToObjectStorageAndWipe.payloadSize", float64(totalPayloadSize), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
 
 	// Delete all the events_objects in the DB.
-	if len(events) > 0 {
-		if err := w.Resolver.DB.Unscoped().Delete(&events).Error; err != nil {
-			return errors.Wrapf(err, "error deleting all event records with length: %v", len(events))
-		}
+	if err := w.Resolver.DB.Unscoped().Where(&model.EventsObject{SessionID: s.ID}).Delete(&model.EventsObject{}).Error; err != nil {
+		return errors.Wrapf(err, "error deleting all event records")
 	}
-	if len(resourcesObject) > 0 {
-		if err := w.Resolver.DB.Unscoped().Delete(&resourcesObject).Error; err != nil {
-			return errors.Wrapf(err, "error deleting all network resource records with length %v", len(resourcesObject))
-		}
+	if err := w.Resolver.DB.Unscoped().Where(&model.ResourcesObject{SessionID: s.ID}).Delete(&model.ResourcesObject{}).Error; err != nil {
+		return errors.Wrap(err, "error deleting all network resource records")
 	}
-	if len(messagesObj) > 0 {
-		if err := w.Resolver.DB.Unscoped().Delete(&messagesObj).Error; err != nil {
-			return errors.Wrapf(err, "error deleting all messages with length %v", len(messagesObj))
-		}
+	if err := w.Resolver.DB.Unscoped().Where(&model.MessagesObject{SessionID: s.ID}).Delete(&model.MessagesObject{}).Error; err != nil {
+		return errors.Wrap(err, "error deleting all messages")
 	}
+	log.Infof("parsed session (%d)", s.ID)
 	return nil
 }
 
-func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session) (*int64, error) {
+func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session, eventsFile *os.File, resourcesFile *os.File, messagesFile *os.File) (*payload.PayloadManager, error) {
 	var totalPayloadSize int64 = 0
-	sessionIdString := "/tmp/" + strconv.FormatInt(int64(s.ID), 10)
+	manager := payload.NewPayloadManager(eventsFile, resourcesFile, messagesFile)
 
-	// events file
-	eventsFile, err := os.Create(sessionIdString + ".events.txt")
-	if err != nil {
-		return nil, errors.Wrap(err, "error creating events file")
-	}
-	defer eventsFile.Close()
-	defer os.Remove(eventsFile.Name())
+	// Fetch/write events.
 	eventRows, err := w.Resolver.DB.Model(&model.EventsObject{}).Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").Rows()
 	if err != nil {
 		return nil, errors.Wrap(err, "error retrieving events objects")
 	}
-	eventsWriter := csv.NewWriter(eventsFile)
-	defer eventsWriter.Flush()
+	var numberOfRows int64 = 0
+	eventsWriter := manager.Events.Writer()
 	for eventRows.Next() {
 		eventObject := model.EventsObject{}
 		err := w.Resolver.DB.ScanRows(eventRows, &eventObject)
 		if err != nil {
 			return nil, errors.Wrap(err, "error scanning event row")
 		}
-		eventBytes, err := json.Marshal(eventObject)
-		if err != nil {
-			return nil, errors.Wrap(err, "error marshaling event row")
-		}
-		// TODO: need to handle new lines in the csv.
-		if err := eventsWriter.Write([]string{string(eventBytes)}); err != nil {
+		if err := eventsWriter.Write(&eventObject); err != nil {
 			return nil, errors.Wrap(err, "error writing event row")
 		}
+		numberOfRows += 1
 	}
-	eventInfo, err := eventsFile.Stat()
-	if err != nil {
-		return nil, errors.Wrap(err, "error getting event file info")
-	}
-	totalPayloadSize += eventInfo.Size()
+	manager.Events.Length = numberOfRows
 
-	// resources file
-	resourcesFile, err := os.Create(sessionIdString + ".resources.txt")
-	if err != nil {
-		return nil, errors.Wrap(err, "error creating resources file")
-	}
-	defer resourcesFile.Close()
-	defer os.Remove(resourcesFile.Name())
+	// Fetch/write resources.
 	resourcesRows, err := w.Resolver.DB.Model(&model.ResourcesObject{}).Where(&model.ResourcesObject{SessionID: s.ID}).Order("created_at asc").Rows()
 	if err != nil {
 		return nil, errors.Wrap(err, "error retrieving resources objects")
 	}
-	resourceWriter := csv.NewWriter(resourcesFile)
-	defer resourceWriter.Flush()
+	resourceWriter := manager.Resources.Writer()
+	numberOfRows = 0
 	for resourcesRows.Next() {
 		resourcesObject := model.ResourcesObject{}
 		err := w.Resolver.DB.ScanRows(resourcesRows, &resourcesObject)
 		if err != nil {
 			return nil, errors.Wrap(err, "error scanning resource row")
 		}
-		resourceBytes, err := json.Marshal(resourcesObject)
-		if err != nil {
-			return nil, errors.Wrap(err, "error marshaling resource row")
-		}
-		// TODO: need to handle new lines in the csv.
-		if err := resourceWriter.Write([]string{string(resourceBytes)}); err != nil {
+		if err := resourceWriter.Write(&resourcesObject); err != nil {
 			return nil, errors.Wrap(err, "error writing resource row")
 		}
+		numberOfRows += 1
 	}
+	manager.Resources.Length = numberOfRows
+
+	// Fetch/write messages.
+	messageRows, err := w.Resolver.DB.Model(&model.MessagesObject{}).Where(&model.MessagesObject{SessionID: s.ID}).Order("created_at asc").Rows()
+	if err != nil {
+		return nil, errors.Wrap(err, "error retrieving messages objects")
+	}
+
+	numberOfRows = 0
+	messagesWriter := manager.Messages.Writer()
+	for messageRows.Next() {
+		messageObject := model.MessagesObject{}
+		if err := w.Resolver.DB.ScanRows(messageRows, &messageObject); err != nil {
+			return nil, errors.Wrap(err, "error scanning message row")
+		}
+		if err := messagesWriter.Write(&messageObject); err != nil {
+			return nil, errors.Wrap(err, "error writing messages object")
+		}
+		numberOfRows += 1
+	}
+	manager.Messages.Length = numberOfRows
+
+	// Measure payload sizes.
+	eventInfo, err := eventsFile.Stat()
+	if err != nil {
+		return nil, errors.Wrap(err, "error getting event file info")
+	}
+	totalPayloadSize += eventInfo.Size()
+
 	resourceInfo, err := resourcesFile.Stat()
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting resource file info")
 	}
 	totalPayloadSize += resourceInfo.Size()
-
-	// messages file
-	messagesFile, err := os.Create(sessionIdString + ".messages.txt")
-	if err != nil {
-		return nil, errors.Wrap(err, "error creating messages file")
-	}
-	defer messagesFile.Close()
-	defer os.Remove(messagesFile.Name())
-	messageRows, err := w.Resolver.DB.Model(&model.MessagesObject{}).Where(&model.MessagesObject{SessionID: s.ID}).Order("created_at asc").Rows()
-	if err != nil {
-		return nil, errors.Wrap(err, "error retrieving messages objects")
-	}
-	writer := csv.NewWriter(messagesFile)
-	defer writer.Flush()
-	for messageRows.Next() {
-		messageObject := model.MessagesObject{}
-		err := w.Resolver.DB.ScanRows(resourcesRows, &messageObject)
-		if err != nil {
-			return nil, errors.Wrap(err, "error scanning message row")
-		}
-		messageBytes, err := json.Marshal(messageObject)
-		if err != nil {
-			return nil, errors.Wrap(err, "error marshaling message row")
-		}
-		// TODO: need to handle new lines in the csv.
-		if err := writer.Write([]string{string(messageBytes)}); err != nil {
-			return nil, errors.Wrap(err, "error writing message row")
-		}
-	}
 
 	messagesInfo, err := messagesFile.Stat()
 	if err != nil {
@@ -221,33 +181,60 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session) (*int
 	}
 	totalPayloadSize += messagesInfo.Size()
 
-	return &totalPayloadSize, nil
+	hlog.Histogram("worker.processSession.scannedSessionPayload", float64(totalPayloadSize), nil, 1) //nolint
+	log.Infof("payload size for session '%v' is '%v'\n", s.ID, totalPayloadSize)
+
+	return manager, nil
+}
+
+func CreateFile(name string) (func(), *os.File, error) {
+	file, err := os.Create(name)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "error creating file")
+	}
+	return func() {
+		err := file.Close()
+		if err != nil {
+			log.Error(e.Wrap(err, "failed to close file"))
+			return
+		}
+		err = os.Remove(file.Name())
+		if err != nil {
+			log.Error(e.Wrap(err, "failed to remove file"))
+			return
+		}
+	}, file, nil
 }
 
 func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
-	size, err := w.scanSessionPayload(ctx, s)
+
+	sessionIdString := os.Getenv("SESSION_FILE_PATH_PREFIX") + strconv.FormatInt(int64(s.ID), 10)
+
+	// Create files.
+	eventsClose, eventsFile, err := CreateFile(sessionIdString + ".events.txt")
 	if err != nil {
-		log.Errorf(errors.Wrap(err, "error scanning session payload").Error())
-	} else {
-		hlog.Histogram("worker.processSession.scannedSessionPayload", float64(*size), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
+		return errors.Wrap(err, "error creating events file")
+	}
+	defer eventsClose()
+	resourcesClose, resourcesFile, err := CreateFile(sessionIdString + ".resources.txt")
+	if err != nil {
+		return errors.Wrap(err, "error creating events file")
+	}
+	defer resourcesClose()
+	messagesClose, messagesFile, err := CreateFile(sessionIdString + ".messages.txt")
+	if err != nil {
+		return errors.Wrap(err, "error creating events file")
+	}
+	defer messagesClose()
+
+	payloadManager, err := w.scanSessionPayload(ctx, s, eventsFile, resourcesFile, messagesFile)
+	if err != nil {
+		return errors.Wrap(err, "error scanning session payload")
 	}
 
-	// load all events
-	events := []model.EventsObject{}
-	if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").Find(&events).Error; err != nil {
-		return errors.Wrap(err, "retrieving events")
-	}
-
-	hlog.Histogram("worker.processSession.numEventsRowsQueried", float64(len(events)), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
-
-	payloadStringBytes := 0
-	for _, ee := range events {
-		payloadStringBytes += len(ee.Events)
-	}
-	hlog.Histogram("worker.processSession.payloadStringSize", float64(payloadStringBytes), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
-
-	// Delete the session if there's no events.
-	if len(events) == 0 {
+	//Delete the session if there's no events.
+	if payloadManager.Events.Length == 0 {
+		log.Infof("there are no events for session (%d)", s.ID)
 		if err := w.Resolver.DB.Select(clause.Associations).Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
 			return errors.Wrap(err, "error trying to delete associations for session with no events")
 		}
@@ -257,28 +244,54 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return nil
 	}
 
-	firstEventsParsed, err := parse.EventsFromString(events[0].Events)
-	if err != nil {
-		return errors.Wrap(err, "error parsing first set of events")
+	// need to reset file pointer to beginning of file for reading
+	for _, file := range []*os.File{eventsFile, resourcesFile, messagesFile} {
+		log.Infof("resetting file pointer (%s) for session (%d)", file.Name(), s.ID)
+		_, err = file.Seek(0, io.SeekStart)
+		if err != nil {
+			log.WithField("file_name", file.Name()).Errorf("error seeking to beginning of file: %v", err)
+		}
 	}
-	lastEventsParsed, err := parse.EventsFromString(events[len(events)-1].Events)
-	if err != nil {
-		return errors.Wrap(err, "error parsing last set of events")
+	activeDuration := time.Duration(0)
+	var (
+		firstEventTimestamp time.Time
+		lastEventTimestamp  time.Time
+	)
+	p := payload.NewPayloadReadWriter(eventsFile)
+	re := p.Reader()
+	hasNext := true
+	for hasNext {
+		log.Infof("in loop for session: %d", s.ID)
+		se, err := re.Next()
+		if err != nil {
+			if !errors.Is(err, io.EOF) {
+				return e.Wrap(err, "error reading next line")
+			}
+			hasNext = false
+		}
+		if se != nil && *se != "" {
+			eventsObject := model.EventsObject{Events: *se}
+			var tempDuration time.Duration
+			log.Infof("calculating active duration for session (%d)", s.ID)
+			tempDuration, firstEventTimestamp, lastEventTimestamp, err = getActiveDuration(&eventsObject, firstEventTimestamp, lastEventTimestamp)
+			if err != nil {
+				return e.Wrap(err, "error getting active duration")
+			}
+			activeDuration += tempDuration
+		}
 	}
+	// hlog.Histogram("worker.processSession.payloadStringSize", float64(payloadStringBytes), nil, 1) //nolint
 
 	// Calculate total session length and write the length to the session.
-	diff := CalculateSessionLength(firstEventsParsed, lastEventsParsed)
-	length := diff.Milliseconds()
-	activeLength, err := getActiveDuration(events)
-	if err != nil {
-		return errors.Wrap(err, "error parsing active length")
-	}
-	activeLengthSec := activeLength.Milliseconds()
+	log.Infof("calculating session length for session (%d)", s.ID)
+	sessionTotalLength := CalculateSessionLength(firstEventTimestamp, lastEventTimestamp)
+	sessionTotalLengthInMilliseconds := sessionTotalLength.Milliseconds()
 
 	// Delete the session if the length of the session is 0.
 	// 1. Nothing happened in the session
 	// 2. A web crawler visited the page and produced no events
-	if length == 0 {
+	if activeDuration == 0 {
+		log.Infof("active duration is 0 for session (%d)", s.ID)
 		if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Delete(&model.EventsObject{}).Error; err != nil {
 			return errors.Wrap(err, "error trying to delete events_object for session of length 0ms")
 		}
@@ -296,8 +309,8 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	).Updates(
 		model.Session{
 			Processed:    &model.T,
-			Length:       length,
-			ActiveLength: activeLengthSec,
+			Length:       sessionTotalLengthInMilliseconds,
+			ActiveLength: activeDuration.Milliseconds(),
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
@@ -376,7 +389,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			return e.Wrapf(err, "[org_id: %d] error fetching track properties alert", organizationID)
 		}
 
-		// check if session was produced from an excluded environment
 		excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
 		if err != nil {
 			return e.Wrapf(err, "[org_id: %d] error getting excluded environments from track properties alert", organizationID)
@@ -481,7 +493,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// Upload to s3 and wipe from the db.
 	if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" {
 		state := "normal"
-		if err := w.pushToObjectStorageAndWipe(ctx, s, &state, events, payloadStringBytes); err != nil {
+		if err := w.pushToObjectStorageAndWipe(ctx, s, &state, eventsFile, resourcesFile, messagesFile); err != nil {
 			log.Errorf("error pushing to object and wiping from db (%v): %v", s.ID, err)
 		}
 	}
@@ -525,17 +537,19 @@ func (w *Worker) Start() {
 			sessionIds = append(sessionIds, SessionLog{SessionID: session.ID, OrganizationID: session.OrganizationID})
 		}
 		if len(sessionIds) > 0 {
-			log.Printf("sessions that will be processed: %v \n", sessionIds)
+			log.Infof("sessions that will be processed: %v", sessionIds)
 		}
 
 		for _, session := range sessions {
-			span, ctx := tracer.StartSpanFromContext(ctx, "worker.processSession", tracer.ResourceName(strconv.Itoa(session.ID)))
+			span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"), tracer.Tag("session_id", strconv.Itoa(session.ID)))
+			log.Infof("beginning to process session: %v", session.ID)
 			if err := w.processSession(ctx, session); err != nil {
 				log.Errorf("error processing main session(%v): %v", session.ID, err)
 				tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID))
 				span.Finish()
 				continue
 			}
+			log.Infof("successfully processed session: %v", session.ID)
 			span.Finish()
 		}
 		workerSpan.Finish()
@@ -543,55 +557,36 @@ func (w *Worker) Start() {
 }
 
 // CalculateSessionLength gets the session length given two sets of ReplayEvents.
-func CalculateSessionLength(first *parse.ReplayEvents, last *parse.ReplayEvents) time.Duration {
-	d := time.Duration(0)
-	fe := first.Events
-	le := last.Events
-	if len(fe) <= 0 {
+func CalculateSessionLength(first time.Time, last time.Time) (d time.Duration) {
+	if first.IsZero() {
 		return d
 	}
-	start := first.Events[0].Timestamp
-	end := time.Time{}
-	if len(le) <= 0 {
-		end = first.Events[len(first.Events)-1].Timestamp
-	} else {
-		end = last.Events[len(last.Events)-1].Timestamp
-	}
-	d = end.Sub(start)
+	d = last.Sub(first)
 	return d
 }
 
-func getActiveDuration(events []model.EventsObject) (*time.Duration, error) {
-	d := time.Duration(0)
-	// unnests the events from EventObjects
-	allEvents := []*parse.ReplayEvent{}
-	for _, eventObj := range events {
-		subEvents, err := parse.EventsFromString(eventObj.Events)
-		if err != nil {
-			return nil, err
-		}
-		allEvents = append(allEvents, subEvents.Events...)
+func getActiveDuration(event *model.EventsObject, firstEventTimestamp time.Time, lastEventTimestamp time.Time) (time.Duration, time.Time, time.Time, error) {
+	activeDuration := time.Duration(0)
+	// parses the events from EventObject
+	allEvents, err := parse.EventsFromString(event.Events)
+	if err != nil {
+		return time.Duration(0), firstEventTimestamp, lastEventTimestamp, err
 	}
+
 	// Iterate through all events and sum up time between interactions
-	prevUserEvent := &parse.ReplayEvent{}
-	for _, eventObj := range allEvents {
+	for _, eventObj := range allEvents.Events {
 		if eventObj.Type == 3 {
-			aux := struct {
-				Source float64 `json:"source"`
-			}{}
-			if err := json.Unmarshal([]byte(eventObj.Data), &aux); err != nil {
-				return nil, err
-			}
-			if aux.Source > 0 && aux.Source <= 5 {
-				if prevUserEvent != (&parse.ReplayEvent{}) {
-					diff := eventObj.Timestamp.Sub(prevUserEvent.Timestamp)
-					if diff.Seconds() <= MIN_INACTIVE_DURATION {
-						d += eventObj.Timestamp.Sub(prevUserEvent.Timestamp)
-					}
+			if !lastEventTimestamp.IsZero() {
+				diff := eventObj.Timestamp.Sub(lastEventTimestamp)
+				if diff.Seconds() <= MIN_INACTIVE_DURATION {
+					activeDuration += diff
 				}
-				prevUserEvent = eventObj
+			}
+			lastEventTimestamp = eventObj.Timestamp
+			if firstEventTimestamp.IsZero() {
+				firstEventTimestamp = eventObj.Timestamp
 			}
 		}
 	}
-	return &d, nil
+	return activeDuration, firstEventTimestamp, lastEventTimestamp, nil
 }

@@ -357,10 +357,19 @@ export const AlertConfigurationCard = ({
                                 className={styles.channelSelect}
                                 options={channels}
                                 mode="multiple"
+                                filterOption={(searchValue, option) => {
+                                    return option?.children
+                                        .toLowerCase()
+                                        .includes(searchValue.toLowerCase());
+                                }}
                                 placeholder={`Select a channel(s) or person(s) to send ${name} to.`}
                                 onChange={onChannelsChange}
                                 notFoundContent={
-                                    <div>Slack is not configured yet.</div>
+                                    channelSuggestions?.length === 0 ? (
+                                        <div>Slack is not configured yet.</div>
+                                    ) : (
+                                        <div>No channels found.</div>
+                                    )
                                 }
                                 defaultValue={alert.ChannelsToNotify.map(
                                     (channel: any) => channel.webhook_channel_id

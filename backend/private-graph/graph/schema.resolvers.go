@@ -612,24 +612,6 @@ func (r *mutationResolver) DeleteErrorSegment(ctx context.Context, segmentID int
 	return &model.T, nil
 }
 
-func (r *mutationResolver) EditRecordingSettings(ctx context.Context, organizationID int, details *string) (*model.RecordingSettings, error) {
-	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
-		return nil, e.Wrap(err, "admin not found in org")
-	}
-	rec := &model.RecordingSettings{}
-	res := r.DB.Where(&model.RecordingSettings{Model: model.Model{ID: organizationID}}).First(&rec)
-	if err := res.Error; err != nil {
-		return nil, e.Wrap(err, "error querying record")
-	}
-	if err := r.DB.Model(rec).Updates(&model.RecordingSettings{
-		OrganizationID: organizationID,
-		Details:        details,
-	}).Error; err != nil {
-		return nil, e.Wrap(err, "error writing new recording settings")
-	}
-	return rec, nil
-}
-
 func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organizationID int, planType modelInputs.PlanType) (*string, error) {
 	org, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
@@ -730,7 +712,6 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 }
 
 func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model.SessionComment, error) {
-	// TODO: Remove organizationID and adminID args as they can be spoofed by the client and don't have to match the sessionID/authToken
 	admin, err := r.getCurrentAdmin(ctx)
 	if admin == nil || err != nil {
 		return nil, e.Wrap(err, "Unable to retrieve admin info")
@@ -751,13 +732,14 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 	}
 
 	sessionComment := &model.SessionComment{
-		Admins:      admins,
-		AdminId:     admin.Model.ID,
-		SessionId:   sessionID,
-		Timestamp:   sessionTimestamp,
-		Text:        text,
-		XCoordinate: xCoordinate,
-		YCoordinate: yCoordinate,
+		Admins:         admins,
+		OrganizationID: organizationID,
+		AdminId:        admin.Model.ID,
+		SessionId:      sessionID,
+		Timestamp:      sessionTimestamp,
+		Text:           text,
+		XCoordinate:    xCoordinate,
+		YCoordinate:    yCoordinate,
 	}
 	createSessionCommentSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
 		tracer.ResourceName("db.createSessionComment"), tracer.Tag("org_id", organizationID))
@@ -823,7 +805,6 @@ func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*b
 }
 
 func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationID int, errorGroupID int, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, errorURL string, authorName string) (*model.ErrorComment, error) {
-	// TODO: Remove organizationID and adminID args as they can be spoofed by the client and don't have to match the sessionID/authToken
 	admin, err := r.getCurrentAdmin(ctx)
 	if admin == nil || err != nil {
 		return nil, e.Wrap(err, "Unable to retrieve admin info")
@@ -843,10 +824,11 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationI
 	}
 
 	errorComment := &model.ErrorComment{
-		Admins:  admins,
-		AdminId: admin.Model.ID,
-		ErrorId: errorGroupID,
-		Text:    text,
+		Admins:         admins,
+		OrganizationID: organizationID,
+		AdminId:        admin.Model.ID,
+		ErrorId:        errorGroupID,
+		Text:           text,
 	}
 	createErrorCommentSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
 		tracer.ResourceName("db.createErrorComment"), tracer.Tag("org_id", organizationID))
@@ -1364,6 +1346,19 @@ func (r *queryResolver) SessionCommentsForAdmin(ctx context.Context) ([]*model.S
 	return sessionComments, nil
 }
 
+func (r *queryResolver) SessionCommentsForOrganization(ctx context.Context, organizationID int) ([]*model.SessionComment, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin not found in org for session comments")
+	}
+
+	var sessionComments []*model.SessionComment
+	if err := r.DB.Where(model.SessionComment{OrganizationID: organizationID}).Find(&sessionComments).Error; err != nil {
+		return nil, e.Wrap(err, "error getting session comments for organization")
+	}
+
+	return sessionComments, nil
+}
+
 func (r *queryResolver) ErrorComments(ctx context.Context, errorGroupID int) ([]*model.ErrorComment, error) {
 	if _, err := r.isAdminErrorGroupOwner(ctx, errorGroupID); err != nil {
 		return nil, e.Wrap(err, "admin not error owner")
@@ -1384,6 +1379,19 @@ func (r *queryResolver) ErrorCommentsForAdmin(ctx context.Context) ([]*model.Err
 	var errorComments []*model.ErrorComment
 	if err := r.DB.Model(admin).Association("ErrorComments").Find(&errorComments); err != nil {
 		return nil, e.Wrap(err, "error getting error comments for admin")
+	}
+
+	return errorComments, nil
+}
+
+func (r *queryResolver) ErrorCommentsForOrganization(ctx context.Context, organizationID int) ([]*model.ErrorComment, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin not found in org for error comments")
+	}
+
+	var errorComments []*model.ErrorComment
+	if err := r.DB.Where(model.ErrorComment{OrganizationID: organizationID}).Find(&errorComments).Error; err != nil {
+		return nil, e.Wrap(err, "error getting error comments for organization")
 	}
 
 	return errorComments, nil
@@ -1687,14 +1695,14 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	fieldsSpan.Finish()
 
 	sessionsQueryPreamble := "SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed"
-	fieldsInnerJoinStatement := "INNER JOIN session_fields t ON s.id=t.session_id"
-	fieldsSelectStatement := ", array_agg(t.field_id) fieldIds"
+	joinClause := "FROM sessions"
+
 	isUnfilteredQuery := len(fieldIds) == 0 && len(visitedIds) == 0 && len(referrerIds) == 0 && len(notFieldIds) == 0 && len(notTrackFieldIds) == 0
-	if isUnfilteredQuery {
-		fieldsInnerJoinStatement = ""
-		fieldsSelectStatement = ""
+	if !isUnfilteredQuery {
+		fieldsInnerJoinStatement := "INNER JOIN session_fields t ON s.id=t.session_id"
+		fieldsSelectStatement := ", array_agg(t.field_id) fieldIds"
+		joinClause = fmt.Sprintf("FROM (SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, within_billing_quota %s FROM sessions s %s GROUP BY s.id) AS rows", fieldsSelectStatement, fieldsInnerJoinStatement)
 	}
-	joinClause := fmt.Sprintf("FROM (SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, within_billing_quota %s FROM sessions s %s GROUP BY s.id) AS rows", fieldsSelectStatement, fieldsInnerJoinStatement)
 	whereClause := ` `
 
 	whereClause += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
@@ -2118,21 +2126,6 @@ func (r *queryResolver) ErrorSegments(ctx context.Context, organizationID int) (
 		log.Errorf("error querying segments from organization: %v", err)
 	}
 	return segments, nil
-}
-
-func (r *queryResolver) RecordingSettings(ctx context.Context, organizationID int) (*model.RecordingSettings, error) {
-	recordingSettings := &model.RecordingSettings{OrganizationID: organizationID}
-	if res := r.DB.Where(&model.RecordingSettings{OrganizationID: organizationID}).First(&recordingSettings); res.Error != nil {
-		newRecordSettings := &model.RecordingSettings{
-			OrganizationID: organizationID,
-			Details:        nil,
-		}
-		if err := r.DB.Create(newRecordSettings).Error; err != nil {
-			return nil, e.Wrap(err, "error creating new recording settings")
-		}
-		recordingSettings = newRecordSettings
-	}
-	return recordingSettings, nil
 }
 
 func (r *queryResolver) APIKeyToOrgID(ctx context.Context, apiKey string) (*int, error) {

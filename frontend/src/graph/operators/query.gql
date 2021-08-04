@@ -54,6 +54,7 @@ query GetSessionComments($session_id: ID!) {
         session_id
         created_at
         updated_at
+        organization_id
         text
         author {
             id
@@ -66,8 +67,8 @@ query GetSessionComments($session_id: ID!) {
     }
 }
 
-query GetNotifications {
-    session_comments_for_admin {
+query GetNotifications($organization_id: ID!) {
+    session_comments_for_organization(organization_id: $organization_id) {
         id
         timestamp
         updated_at
@@ -80,9 +81,10 @@ query GetNotifications {
             photo_url
         }
     }
-    error_comments_for_admin {
+    error_comments_for_organization(organization_id: $organization_id) {
         id
         updated_at
+        organization_id
         text
         error_id
         author {
@@ -99,6 +101,7 @@ query GetSessionCommentsForAdmin {
         id
         timestamp
         created_at
+        organization_id
         updated_at
         text
         author {
@@ -116,6 +119,7 @@ query GetErrorComments($error_group_id: ID!) {
         created_at
         updated_at
         text
+        organization_id
         author {
             id
             name

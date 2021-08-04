@@ -58,11 +58,16 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = () => {
                         trackingId="UpdateSessionSegment"
                         type="primary"
                         onClick={() => {
+                            const {
+                                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                                show_live_sessions,
+                                ...restOfSearchParams
+                            } = searchParams;
                             editSegment({
                                 variables: {
                                     organization_id,
                                     id: segment_id,
-                                    params: searchParams,
+                                    params: restOfSearchParams,
                                 },
                             })
                                 .then(() => {

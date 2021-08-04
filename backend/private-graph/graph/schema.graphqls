@@ -69,12 +69,6 @@ enum ErrorState {
     IGNORED
 }
 
-type RecordingSettings {
-    id: ID!
-    organization_id: ID!
-    details: String!
-}
-
 type Organization {
     id: ID!
     verbose_id: String!
@@ -299,6 +293,7 @@ type ErrorResults {
 
 type SessionComment {
     id: ID!
+    organization_id: ID!
     timestamp: Int!
     created_at: Time!
     updated_at: Time!
@@ -311,6 +306,7 @@ type SessionComment {
 
 type ErrorComment {
     id: ID!
+    organization_id: ID!
     created_at: Time!
     error_id: Int!
     updated_at: Time!
@@ -391,8 +387,10 @@ type Query {
     resources(session_id: ID!): [Any]
     session_comments(session_id: ID!): [SessionComment]!
     session_comments_for_admin: [SessionComment]!
+    session_comments_for_organization(organization_id: ID!): [SessionComment]!
     error_comments(error_group_id: ID!): [ErrorComment]!
     error_comments_for_admin: [ErrorComment]!
+    error_comments_for_organization(organization_id: ID!): [ErrorComment]!
     admins(organization_id: ID!): [Admin]
     isIntegrated(organization_id: ID!): Boolean
     unprocessedSessionsCount(organization_id: ID!): Int64
@@ -456,7 +454,6 @@ type Query {
     admin: Admin
     segments(organization_id: ID!): [Segment]
     error_segments(organization_id: ID!): [ErrorSegment]
-    recording_settings(organization_id: ID!): RecordingSettings
     api_key_to_org_id(api_key: String!): ID
 }
 
@@ -502,10 +499,6 @@ type Mutation {
         params: ErrorSearchParamsInput!
     ): Boolean
     deleteErrorSegment(segment_id: ID!): Boolean
-    editRecordingSettings(
-        organization_id: ID!
-        details: String
-    ): RecordingSettings
     # If this endpoint returns a checkout_id, we initiate a stripe checkout.
     # Otherwise, we simply update the subscription.
     createOrUpdateSubscription(

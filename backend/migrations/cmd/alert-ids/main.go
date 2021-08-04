@@ -39,7 +39,6 @@ func main() {
 	}
 	var sessionAlerts []model.SessionAlert
 	db.Model(model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{Type: &model.AlertType.USER_PROPERTIES}}).Or(&model.SessionAlert{Alert: model.Alert{Type: &model.AlertType.TRACK_PROPERTIES}}).Scan(&sessionAlerts)
-	log.Infof("%+v", sessionAlerts)
 	for _, alert := range sessionAlerts {
 		if alert.TrackProperties != nil {
 			trackProperties, err := GetPropertiesOld(&alert)

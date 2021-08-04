@@ -5,6 +5,7 @@
     margin-bottom: 0;
     max-height: 350px;
     overflow: auto;
+    overscroll-behavior: contain;
     padding: 0;
 
     &::-webkit-scrollbar {
@@ -31,7 +32,11 @@
 
         &:hover {
             --color-primary-background: var(--color-gray-200);
-            background: var(--color-gray-200);
+            background: var(--color-primary-background);
+
+            &.noHoverChange {
+                --color-primary-background: transparent;
+            }
         }
 
         p,
