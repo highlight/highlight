@@ -2,11 +2,8 @@ import classNames from 'classnames';
 import React, { PropsWithChildren } from 'react';
 import { SuggestionDataItem } from 'react-mentions';
 
-import {
-    GetAdminQuery,
-    GetAdminsQuery,
-} from '../../graph/generated/operations';
-import { SanitizedAdminInput } from '../../graph/generated/schemas';
+import { GetAdminsQuery } from '../../graph/generated/operations';
+import { Admin, SanitizedAdminInput } from '../../graph/generated/schemas';
 import { AdminAvatar } from '../Avatar/Avatar';
 import DotsMenu from '../DotsMenu/DotsMenu';
 import RelativeTime from '../RelativeTime/RelativeTime';
@@ -20,10 +17,10 @@ export interface AdminSuggestion extends SuggestionDataItem {
 
 export const parseAdminSuggestions = (
     data: GetAdminsQuery | undefined,
-    admin_data: GetAdminQuery | undefined,
+    admin: Admin | undefined,
     mentionedAdmins: SanitizedAdminInput[]
 ): AdminSuggestion[] => {
-    if (!data?.admins || !admin_data?.admin) {
+    if (!data?.admins || !admin) {
         return [];
     }
 
@@ -33,7 +30,7 @@ export const parseAdminSuggestions = (
             .filter(
                 (admin) =>
                     // 1. The admin that is creating the comment
-                    admin!.email !== admin_data.admin!.email &&
+                    admin!.email !== admin!.email &&
                     // 2. Admins that are already mentioned
                     !mentionedAdmins.some(
                         (mentionedAdmin) => mentionedAdmin.id === admin?.id

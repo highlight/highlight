@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { OnChangeHandlerFunc } from 'react-mentions';
 import { useParams } from 'react-router-dom';
 
+import { useAuthContext } from '../../../../AuthContext';
 import Button from '../../../../components/Button/Button/Button';
 import {
     AdminSuggestion,
@@ -11,7 +12,6 @@ import {
 } from '../../../../components/Comment/CommentHeader';
 import {
     useCreateSessionCommentMutation,
-    useGetAdminQuery,
     useGetAdminsQuery,
 } from '../../../../graph/generated/hooks';
 import { SanitizedAdminInput } from '../../../../graph/generated/schemas';
@@ -38,7 +38,7 @@ export const NewCommentForm = ({
 }: Props) => {
     const { time } = useReplayerContext();
     const [createComment] = useCreateSessionCommentMutation();
-    const { data: admin_data } = useGetAdminQuery({ skip: false });
+    const { admin } = useAuthContext();
     const { session_id, organization_id } = useParams<{
         session_id: string;
         organization_id: string;
@@ -88,10 +88,7 @@ export const NewCommentForm = ({
                     session_url: `${window.location.origin}${window.location.pathname}`,
                     tagged_admins: mentionedAdmins,
                     time: time / 1000,
-                    author_name:
-                        admin_data?.admin?.name ||
-                        admin_data?.admin?.email ||
-                        'Someone',
+                    author_name: admin?.name || admin?.email || 'Someone',
                     // session_image: canvas
                     //     .toDataURL()
                     //     .replace('data:image/png;base64,', ''),
@@ -131,8 +128,8 @@ export const NewCommentForm = ({
     };
 
     const adminSuggestions: AdminSuggestion[] = useMemo(
-        () => parseAdminSuggestions(data, admin_data, mentionedAdmins),
-        [admin_data, data, mentionedAdmins]
+        () => parseAdminSuggestions(data, admin, mentionedAdmins),
+        [admin, data, mentionedAdmins]
     );
 
     const onDisplayTransform = (_id: string, display: string): string => {
