@@ -10,7 +10,11 @@ const HeaderActions = () => {
 
     return (
         <div className={styles.headerActions}>
-            <div>{isLoggedIn && <Notifications />}</div>
+            {isLoggedIn && (
+                <div>
+                    <Notifications />
+                </div>
+            )}
             <div>
                 <HelpMenu />
             </div>
