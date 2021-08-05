@@ -123,7 +123,7 @@
 
 .orgNameText {
     align-items: center;
-    color: var(--text-primary-inverted);
+    color: var(--text-primary);
     display: flex;
     font-weight: 400 !important;
     margin-left: 10px !important;
@@ -140,7 +140,7 @@
 
 .dropdownHandler {
     align-items: center;
-    border: 1px solid var(--color-gray-700);
+    border: 1px solid var(--color-gray-300);
     border-radius: 8px;
     color: var(--text-primary);
     cursor: pointer;

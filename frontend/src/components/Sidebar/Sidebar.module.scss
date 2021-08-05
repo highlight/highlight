@@ -1,7 +1,8 @@
 .sideBar {
     --top-offset: 80px;
     align-items: center;
-    background-color: var(--color-primary-inverted-background);
+    background-color: var(--color-primary-background);
+    border-right: 1px solid var(--color-gray-300);
     box-shadow: var(--box-shadow-3);
     display: flex;
     flex-direction: column;
@@ -27,7 +28,7 @@
 }
 
 .settingsDivider {
-    background-color: var(--color-gray-800);
+    background-color: var(--color-gray-300);
     flex-shrink: 0;
     height: 2px;
     width: 90%;
@@ -102,18 +103,16 @@
 .miniSidebarIconWrapper {
     align-items: center;
     border-radius: 8px;
-    color: var(--color-gray-700) !important;
+    color: var(--color-gray-500) !important;
     display: flex;
-    fill: var(--color-gray-700) !important;
+    fill: var(--color-gray-500) !important;
     justify-content: center;
     padding: 8px;
     transition: 0.3s;
 }
 
 .miniSidebarIconWrapper:hover {
-    background-color: var(--color-gray-800);
-    color: var(--text-primary-inverted) !important;
-    fill: var(--text-primary-inverted) !important;
+    background-color: var(--color-gray-200);
 }
 
 .iconWrapper {
@@ -133,12 +132,12 @@
 }
 
 .selected {
-    background-color: var(--color-gray-800) !important;
-    color: var(--text-primary-inverted) !important;
-    fill: var(--text-primary-inverted) !important;
+    background-color: var(--color-gray-200) !important;
+    color: var(--text-primary) !important;
+    fill: var(--text-primary) !important;
 
     h3 {
-        color: var(--text-primary-inverted) !important;
+        color: var(--text-primary) !important;
     }
 }
 
@@ -154,10 +153,10 @@
 }
 
 .innerButton:hover {
-    background-color: var(--color-gray-800);
+    background-color: var(--color-gray-200);
 
     svg {
-        color: var(--text-primary-inverted);
+        color: var(--text-primary);
     }
 }
 
@@ -168,7 +167,7 @@
 
 .rowText {
     align-items: center;
-    color: var(--text-primary-inverted) !important;
+    color: var(--color-gray-500) !important;
     display: flex;
     font-size: 15px;
     font-weight: 400;
