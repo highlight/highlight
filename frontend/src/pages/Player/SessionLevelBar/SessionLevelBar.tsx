@@ -8,6 +8,7 @@ import { ReactComponent as LockIcon } from '../../../static/lock.svg';
 import { ReplayerState, useReplayerContext } from '../ReplayerContext';
 import ShareButton from '../ShareButton/ShareButton';
 import { CurrentUrlBar } from './CurrentUrlBar/CurrentUrlBar';
+import PanelDisplayControls from './PanelDisplayControls/PanelDisplayControls';
 import styles from './SessionLevelBar.module.scss';
 import SessionToken from './SessionToken/SessionToken';
 import { findFirstEventOfType } from './utils/utils';
@@ -111,6 +112,7 @@ const SessionLevelBar = () => {
                                 ? 'Privacy on'
                                 : 'Privacy off'}
                         </SessionToken>
+                        <PanelDisplayControls />
                     </>
                 )}
             </div>
