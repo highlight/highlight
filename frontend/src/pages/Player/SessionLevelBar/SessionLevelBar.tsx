@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 
 import { ReactComponent as LayoutIcon } from '../../../static/layout.svg';
-import { ReactComponent as LockIcon } from '../../../static/lock.svg';
 import { ReplayerState, useReplayerContext } from '../ReplayerContext';
 import ShareButton from '../ShareButton/ShareButton';
 import { CurrentUrlBar } from './CurrentUrlBar/CurrentUrlBar';
@@ -90,27 +89,6 @@ const SessionLevelBar = () => {
                             tooltipTitle="The user's current viewport size in pixels."
                         >
                             {viewport?.height} x {viewport?.width}
-                        </SessionToken>
-                        <SessionToken
-                            icon={<LockIcon />}
-                            tooltipTitle={
-                                <>
-                                    {session?.enable_strict_privacy
-                                        ? 'Text and images in this session are obfuscated.'
-                                        : 'This session is recording all content on the page.'}{' '}
-                                    <a
-                                        href="https://docs.highlight.run/docs/privacy#overview"
-                                        target="_blank"
-                                        rel="noreferrer"
-                                    >
-                                        Learn more about Strict Privacy Mode.
-                                    </a>
-                                </>
-                            }
-                        >
-                            {session?.enable_strict_privacy
-                                ? 'Privacy on'
-                                : 'Privacy off'}
                         </SessionToken>
                         <PanelDisplayControls />
                     </>
