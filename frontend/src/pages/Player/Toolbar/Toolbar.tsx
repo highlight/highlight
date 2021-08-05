@@ -418,7 +418,6 @@ export const Toolbar = () => {
                     </div>
                 </div>
                 <div className={styles.toolbarRightSection}>
-                    <TimelineAnnotationsSettings disabled={disableControls} />
                     <Tooltip
                         title="View the DevTools to see console logs, errors, and network requests."
                         placement="topLeft"
@@ -492,6 +491,17 @@ export const Toolbar = () => {
                                         >
                                             Playback speed
                                             <SpeedControl
+                                                disabled={disableControls}
+                                            />
+                                        </div>,
+                                        <div
+                                            key="timelineAnnotationSettings"
+                                            className={
+                                                styles.speedControlContainer
+                                            }
+                                        >
+                                            Annotations
+                                            <TimelineAnnotationsSettings
                                                 disabled={disableControls}
                                             />
                                         </div>,

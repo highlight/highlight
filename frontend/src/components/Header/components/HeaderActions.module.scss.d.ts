@@ -1,0 +1,1 @@
+export const headerActions: string;

@@ -8,3 +8,11 @@
     margin-bottom: var(--size-xSmall);
     margin-top: var(--size-medium);
 }
+
+.button {
+    column-gap: var(--size-small);
+    display: flex;
+    height: 34px;
+    justify-content: center;
+    width: 113px;
+}

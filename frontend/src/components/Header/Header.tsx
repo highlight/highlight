@@ -13,10 +13,8 @@ import { isOrganizationWithinTrial } from '../../util/billing/billing';
 import { HighlightLogo } from '../HighlightLogo/HighlightLogo';
 import { SidebarState, useSidebarContext } from '../Sidebar/SidebarContext';
 import { CommandBar } from './CommandBar/CommandBar';
+import HeaderActions from './components/HeaderActions';
 import styles from './Header.module.scss';
-import HelpMenu from './HelpMenu/HelpMenu';
-import Notifications from './Notifications/Notifications';
-import ThemeToggle from './ThemeToggle/ThemeToggle';
 import { UserDropdown } from './UserDropdown/UserDropdown';
 
 export const Header = () => {
@@ -55,9 +53,7 @@ export const Header = () => {
                         </Link>
                     </div>
                     <div className={styles.rightHeader}>
-                        <ThemeToggle />
-                        {isLoggedIn && <Notifications />}
-                        <HelpMenu />
+                        <HeaderActions />
                         {isLoggedIn && <UserDropdown />}
                     </div>
                 </div>
