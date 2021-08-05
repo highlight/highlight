@@ -713,8 +713,15 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 
 func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model.SessionComment, error) {
 	admin, err := r.getCurrentAdmin(ctx)
+	isGuestCreatingSession := false
 	if admin == nil || err != nil {
-		return nil, e.Wrap(err, "Unable to retrieve admin info")
+		isGuestCreatingSession = true
+		admin = &model.Admin{
+			// An Admin record was created manually with an ID of 0.
+			Model: model.Model{
+				ID: 0,
+			},
+		}
 	}
 
 	// All viewers can leave a comment, including guests
@@ -723,12 +730,14 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 	}
 
 	admins := []model.Admin{}
-	for _, a := range taggedAdmins {
-		admins = append(admins,
-			model.Admin{
-				Model: model.Model{ID: a.ID},
-			},
-		)
+	if !isGuestCreatingSession {
+		for _, a := range taggedAdmins {
+			admins = append(admins,
+				model.Admin{
+					Model: model.Model{ID: a.ID},
+				},
+			)
+		}
 	}
 
 	sessionComment := &model.SessionComment{
@@ -748,9 +757,10 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 	}
 	createSessionCommentSpan.Finish()
 
-	commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
-		tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(taggedAdmins)))
-	if len(taggedAdmins) > 0 {
+	if len(taggedAdmins) > 0 && !isGuestCreatingSession {
+		commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
+			tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(taggedAdmins)))
+
 		tos := []*mail.Email{}
 
 		for _, admin := range taggedAdmins {
@@ -784,8 +794,9 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 		if err != nil {
 			return nil, fmt.Errorf("error sending sendgrid email for comments mentions: %v", err)
 		}
+
+		commentMentionEmailSpan.Finish()
 	}
-	commentMentionEmailSpan.Finish()
 	return sessionComment, nil
 }
 
@@ -2169,7 +2180,7 @@ func (r *sessionAlertResolver) UserProperties(ctx context.Context, obj *model.Se
 
 func (r *sessionCommentResolver) Author(ctx context.Context, obj *model.SessionComment) (*modelInputs.SanitizedAdmin, error) {
 	admin := &model.Admin{}
-	if err := r.DB.Where(&model.Admin{Model: model.Model{ID: obj.AdminId}}).First(&admin).Error; err != nil {
+	if err := r.DB.Debug().Where(&model.Admin{Model: model.Model{ID: obj.AdminId}}).First(&admin).Error; err != nil {
 		return nil, e.Wrap(err, "Error finding admin for comment")
 	}
 

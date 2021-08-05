@@ -41,7 +41,7 @@ import RightPlayerPanel from './RightPlayerPanel/RightPlayerPanel';
 import SearchPanel from './SearchPanel/SearchPanel';
 import SessionLevelBar from './SessionLevelBar/SessionLevelBar';
 import { StreamElement } from './StreamElement/StreamElement';
-import { NewCommentEntry } from './Toolbar/NewCommentEntry/NewCommentEntry';
+import { NewCommentForm } from './Toolbar/NewCommentForm/NewCommentForm';
 import { Toolbar } from './Toolbar/Toolbar';
 
 const Player = () => {
@@ -294,7 +294,7 @@ const Player = () => {
                     )}
                 >
                     <div ref={newCommentModalRef}>
-                        <NewCommentEntry
+                        <NewCommentForm
                             currentTime={Math.floor(time)}
                             onCloseHandler={() => {
                                 setCommentModalPosition(undefined);
