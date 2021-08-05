@@ -33,7 +33,7 @@ func main() {
 			ColumnNumber *int    `json:"column_number"`
 		}
 		if err := json.Unmarshal([]byte(*errorGroups[i].MappedStackTrace), &oldStackTrace); err != nil {
-			log.Error(e.Wrapf(err, "error unmarshalling MappedStackTrace, id: %d", errorGroups[i].ID))
+			log.WithFields(log.Fields{"error_group_id": errorGroups[i].ID, "org_id": errorGroups[i].OrganizationID}).Error(e.Wrapf(err, "error unmarshalling MappedStackTrace"))
 			continue
 		}
 		var newStackTrace []*modelInputs.ErrorTrace
@@ -48,12 +48,12 @@ func main() {
 		}
 		newStackTraceBytes, err := json.Marshal(&newStackTrace)
 		if err != nil {
-			log.Error(e.Wrapf(err, "error marshalling MappedStackTrace, id: %d", errorGroups[i].ID))
+			log.WithFields(log.Fields{"error_group_id": errorGroups[i].ID, "org_id": errorGroups[i].OrganizationID}).Error(e.Wrapf(err, "error marshalling MappedStackTrace"))
 			continue
 		}
 		newStackTraceString := string(newStackTraceBytes)
 		if err := db.Debug().Where(&model.ErrorGroup{Model: model.Model{ID: errorGroups[i].ID}}).Updates(&model.ErrorGroup{MappedStackTrace: &newStackTraceString}).Error; err != nil {
-			log.Error(e.Wrapf(err, "error saving MappedStackTrace, id: %d", errorGroups[i].ID))
+			log.WithFields(log.Fields{"error_group_id": errorGroups[i].ID, "org_id": errorGroups[i].OrganizationID}).Error(e.Wrapf(err, "error saving MappedStackTrace"))
 			continue
 		}
 	}
