@@ -1,3 +1,4 @@
+export { default as AnnotationDotsIcon } from './AnnotationDotsIcon';
 export { default as ArrowRight } from './ArrowRight';
 export { default as Banner } from './Banner';
 export { default as BellIcon } from './BellIcon';

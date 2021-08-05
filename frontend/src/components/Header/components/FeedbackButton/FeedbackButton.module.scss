@@ -1,0 +1,9 @@
+.feedbackButton {
+    align-items: center;
+    background: var(--color-primary-inverted-background);
+    column-gap: var(--size-xSmall);
+    display: flex;
+    height: 32px;
+    padding-bottom: var(--size-xxSmall);
+    padding-top: var(--size-xxSmall);
+}
