@@ -45,10 +45,7 @@
 }
 
 .workspaceIconMiniWrapper {
-    border: 1px solid var(--color-gray-300);
-    border-radius: 8px;
     cursor: pointer;
-    padding: 6px;
 }
 
 .orgItem:hover {
@@ -81,7 +78,6 @@
     background-color: var(--color-primary-background);
     border: 1px solid var(--color-gray-300);
     border-radius: 5px;
-    box-shadow: 2px 2px 8px var(--color-gray-300);
     color: var(--text-primary);
     margin-top: 9px;
     min-width: 220px;
@@ -107,7 +103,7 @@
 }
 
 .icon {
-    color: var(--color-purple);
+    color: var(--color-gray-700);
     height: 16px;
     margin-left: auto;
     margin-right: 5px;
@@ -127,6 +123,7 @@
 
 .orgNameText {
     align-items: center;
+    color: var(--text-primary-inverted);
     display: flex;
     font-weight: 400 !important;
     margin-left: 10px !important;
@@ -143,7 +140,7 @@
 
 .dropdownHandler {
     align-items: center;
-    border: 1px solid var(--color-gray-300);
+    border: 1px solid var(--color-gray-700);
     border-radius: 8px;
     color: var(--text-primary);
     cursor: pointer;

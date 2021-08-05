@@ -1,9 +1,8 @@
 .sideBar {
     --top-offset: 80px;
     align-items: center;
-    background-color: var(--color-primary-background);
-    border-right: 1px solid var(--color-gray-300);
-    box-shadow: var(--box-shadow-2);
+    background-color: var(--color-primary-inverted-background);
+    box-shadow: var(--box-shadow-3);
     display: flex;
     flex-direction: column;
     height: calc(100% - 80px);
@@ -28,7 +27,7 @@
 }
 
 .settingsDivider {
-    background-color: var(--color-gray-300);
+    background-color: var(--color-gray-800);
     flex-shrink: 0;
     height: 2px;
     width: 90%;
@@ -103,16 +102,18 @@
 .miniSidebarIconWrapper {
     align-items: center;
     border-radius: 8px;
-    color: var(--color-gray-500);
+    color: var(--color-gray-700) !important;
     display: flex;
-    fill: var(--color-gray-500);
+    fill: var(--color-gray-700) !important;
     justify-content: center;
     padding: 8px;
     transition: 0.3s;
 }
 
 .miniSidebarIconWrapper:hover {
-    background-color: var(--color-gray-200);
+    background-color: var(--color-gray-800);
+    color: var(--text-primary-inverted) !important;
+    fill: var(--text-primary-inverted) !important;
 }
 
 .iconWrapper {
@@ -120,6 +121,10 @@
     display: flex;
     height: 100%;
     justify-content: center;
+
+    > svg {
+        transition: fill 0.2s ease-in-out;
+    }
 }
 
 .icon {
@@ -128,17 +133,13 @@
 }
 
 .selected {
-    background-color: var(--color-gray-200) !important;
-    color: var(--text-primary) !important;
-    fill: var(--text-primary) !important;
+    background-color: var(--color-gray-800) !important;
+    color: var(--text-primary-inverted) !important;
+    fill: var(--text-primary-inverted) !important;
 
     h3 {
-        color: var(--text-primary) !important;
+        color: var(--text-primary-inverted) !important;
     }
-}
-
-.rotated {
-    transform: rotate(30deg);
 }
 
 .innerButton {
@@ -146,7 +147,6 @@
     border-radius: 6px;
     color: var(--color-gray-500);
     display: flex;
-    fill: var(--color-gray-500);
     padding: 10px;
     padding: var(--size-xSmall) var(--size-small);
     transition: 0.3s background-color;
@@ -154,7 +154,11 @@
 }
 
 .innerButton:hover {
-    background-color: var(--color-gray-200);
+    background-color: var(--color-gray-800);
+
+    svg {
+        color: var(--text-primary-inverted);
+    }
 }
 
 .selectedDiv {
@@ -164,7 +168,7 @@
 
 .rowText {
     align-items: center;
-    color: var(--color-gray-500);
+    color: var(--text-primary-inverted) !important;
     display: flex;
     font-size: 15px;
     font-weight: 400;

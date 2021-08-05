@@ -1,15 +1,15 @@
 import classNames from 'classnames/bind';
 import React from 'react';
-import { HiOutlineSpeakerphone } from 'react-icons/hi';
 import { Link, useLocation, useParams } from 'react-router-dom';
 
-import SvgCreditCardsIcon from '../../static/CreditCardsIcon';
-import SvgErrorsIcon from '../../static/ErrorsIcon';
+import SvgAnnouncementIcon from '../../static/AnnouncementIcon';
+import SvgBriefcase2Icon from '../../static/Briefcase2Icon';
+import SvgBugIcon from '../../static/BugIcon';
+import SvgCreditCardIcon from '../../static/CreditCardIcon';
 import SvgHomeIcon from '../../static/HomeIcon';
+import SvgPlugIcon from '../../static/PlugIcon';
 import SvgSessionsIcon from '../../static/SessionsIcon';
-import SvgSetupIcon from '../../static/SetupIcon';
-import SvgTeamIcon from '../../static/TeamIcon';
-import SvgWorkspaceIcon from '../../static/WorkspaceIcon';
+import SvgUsersIcon from '../../static/UsersIcon';
 import Changelog from '../Changelog/Changelog';
 import {
     MiniWorkspaceIcon,
@@ -38,7 +38,7 @@ const LEAD_NAVIGATION_ITEMS: NavigationItem[] = [
         route: 'sessions',
     },
     {
-        Icon: SvgErrorsIcon,
+        Icon: SvgBugIcon,
         displayName: 'Errors',
         route: 'errors',
     },
@@ -46,32 +46,31 @@ const LEAD_NAVIGATION_ITEMS: NavigationItem[] = [
 
 const END_NAVIGATION_ITEMS: NavigationItem[] = [
     {
-        Icon: SvgSetupIcon,
+        Icon: SvgPlugIcon,
         displayName: 'Setup',
         route: 'setup',
-        className: styles.rotated,
     },
     {
-        Icon: SvgWorkspaceIcon,
+        Icon: SvgBriefcase2Icon,
         displayName: 'Workspace',
         route: 'settings',
     },
     {
-        Icon: SvgTeamIcon,
+        Icon: SvgUsersIcon,
         displayName: 'Team',
         route: 'team',
     },
     ...(process.env.REACT_APP_ONPREM !== 'true'
         ? [
               {
-                  Icon: SvgCreditCardsIcon,
+                  Icon: SvgCreditCardIcon,
                   displayName: 'Billing',
                   route: 'billing',
               },
           ]
         : []),
     {
-        Icon: HiOutlineSpeakerphone,
+        Icon: SvgAnnouncementIcon,
         displayName: 'Alerts',
         route: 'alerts',
     },

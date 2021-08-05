@@ -84,6 +84,7 @@ export const WorkspaceDropdown = () => {
             placement={'bottomLeft'}
             overlay={menu}
             onVisibleChange={(v) => setVisible(v)}
+            trigger={['click', 'hover']}
         >
             <div
                 className={styles.dropdownHandler}
