@@ -6,11 +6,13 @@ import React, { useEffect, useState } from 'react';
 import Confetti from 'react-confetti';
 import { useHistory } from 'react-router';
 import { useParams } from 'react-router-dom';
+import useSessionStorage from 'react-use/lib/useSessionStorage';
 
 import {
     useGetAdminQuery,
     useGetOnboardingStepsQuery,
 } from '../../graph/generated/hooks';
+import SvgClose from '../../static/Close';
 import { ReactComponent as CheckIcon } from '../../static/verify-check-icon.svg';
 import Button from '../Button/Button/Button';
 import PillButton from '../Button/PillButton/PillButton';
@@ -39,6 +41,10 @@ const OnboardingBubble = () => {
         `highlight-started-onboarding-${organization_id}`,
         false
     );
+    const [
+        temporarilyHideOnboardingBubble,
+        setTemporarilyHideOnboardingBubble,
+    ] = useSessionStorage('highlightTemporarilyHideOnboardingBubble', false);
     const [steps, setSteps] = useState<OnboardingStep[]>([]);
     const [rainConfetti, setRainConfetti] = useState(false);
     const [stepsNotFinishedCount, setStepsNotFinishedCount] = useState<number>(
@@ -147,7 +153,11 @@ const OnboardingBubble = () => {
         return <Confetti recycle={false} />;
     }
 
-    if (loading || stepsNotFinishedCount === -1) {
+    if (
+        loading ||
+        stepsNotFinishedCount === -1 ||
+        temporarilyHideOnboardingBubble
+    ) {
         return null;
     }
 
@@ -166,7 +176,7 @@ const OnboardingBubble = () => {
                 hasBorder
                 content={
                     <>
-                        <div className={styles.onboardingBubblePopover}>
+                        <div className={styles.onboardingBubblePopoverHeader}>
                             <div>
                                 <h2>Account setup</h2>
                                 <p>You're almost done setting up Highlight.</p>
@@ -179,6 +189,18 @@ const OnboardingBubble = () => {
                                     showInfo
                                 />
                             </div>
+                            <Button
+                                trackingId="hideOnboardingBubble"
+                                type="text"
+                                iconButton
+                                small
+                                className={styles.closeButton}
+                                onClick={() => {
+                                    setTemporarilyHideOnboardingBubble(true);
+                                }}
+                            >
+                                <SvgClose />
+                            </Button>
                         </div>
                         <ul className={styles.stepsContainer}>
                             {steps.map((step) => (

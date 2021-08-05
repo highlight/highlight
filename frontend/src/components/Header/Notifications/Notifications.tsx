@@ -1,15 +1,17 @@
 import useLocalStorage from '@rehooks/local-storage';
+import { Menu } from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import Lottie from 'lottie-react';
 import React, { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import { useGetNotificationsQuery } from '../../../graph/generated/hooks';
 import NotificationAnimation from '../../../lottie/waiting.json';
 import SvgBellIcon from '../../../static/BellIcon';
 import Button from '../../Button/Button/Button';
 import Dot from '../../Dot/Dot';
+import DotsMenu from '../../DotsMenu/DotsMenu';
 import Popover from '../../Popover/Popover';
 import PopoverListContent from '../../Popover/PopoverListContent';
 import styles from './Notification.module.scss';
@@ -34,7 +36,10 @@ const Notifications = () => {
                 setNotifications(processedNotifications);
             }
         },
-        pollInterval: 1000 * 30,
+        // pollInterval: 1000 * 30,
+        variables: {
+            organization_id,
+        },
     });
 
     useEffect(() => {
@@ -88,11 +93,9 @@ const Notifications = () => {
                                 className={styles.animation}
                             />
                             <p>
-                                You don’t have any mentions yet.{' '}
-                                <Link to={`/${organization_id}/team`}>
-                                    Invite your team
-                                </Link>{' '}
-                                to mention them in comments.
+                                Comments made in your organization will show up
+                                here. Get started by mentioning a team member on
+                                an error or a session.
                             </p>
                         </div>
                     )}
@@ -105,7 +108,33 @@ const Notifications = () => {
             }}
             title={
                 <div className={styles.popoverTitle}>
-                    <h3>Mentions</h3>
+                    <h3>Comments</h3>
+                    <DotsMenu
+                        trackingId="MarkAllNotificationsAsRead"
+                        menu={
+                            <Menu>
+                                <Menu.Item
+                                    onClick={() => {
+                                        setReadNotifications([
+                                            ...notifications.map(
+                                                (notification) =>
+                                                    notification.id.toString()
+                                            ),
+                                        ]);
+                                    }}
+                                >
+                                    Mark all as read
+                                </Menu.Item>
+                                <Menu.Item
+                                    onClick={() => {
+                                        setReadNotifications([]);
+                                    }}
+                                >
+                                    Mark all as unread
+                                </Menu.Item>
+                            </Menu>
+                        }
+                    />
                 </div>
             }
         >

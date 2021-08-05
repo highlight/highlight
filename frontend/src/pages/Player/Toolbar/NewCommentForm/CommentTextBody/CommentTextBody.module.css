@@ -1,0 +1,61 @@
+.mentions {
+    font-size: 14px !important;
+    line-height: initial;
+}
+
+.mentions--singleLine .mentions__control {
+    display: inline-block;
+    width: 130px;
+}
+.mentions--singleLine .mentions__highlighter {
+    border: 2px inset transparent;
+    padding: 1px;
+}
+.mentions--singleLine .mentions__input {
+    border: 2px inset;
+    padding: 1px;
+}
+
+.mentions--multiLine .mentions__control {
+    font-size: 14px !important;
+}
+
+.mentions--multiLine .mentions__highlighter {
+    border: 1px solid transparent;
+    font-weight: 300;
+    padding: 0;
+}
+
+.mentions--multiLine .mentions__input {
+    border: 1px solid transparent;
+    cursor: inherit;
+    font-weight: 300;
+    outline: 0;
+    padding: 0;
+}
+
+.mentions__suggestions__list {
+    background: var(--color-primary-background);
+    border-radius: 2px;
+    box-shadow: 0 3px 6px -4px rgb(0 0 0 / 12%), 0 6px 16px 0 rgb(0 0 0 / 8%),
+        0 9px 28px 8px rgb(0 0 0 / 5%);
+    padding: var(--size-xSmall) var(--size-small);
+    width: 300px;
+}
+
+.mentions__suggestions__item {
+    padding: var(--size-xSmall) 12px;
+}
+
+.mentions__suggestions__item--focused {
+    background: var(--color-blue-100);
+}
+
+.mentions__mention {
+    background-color: var(--color-primary-background);
+    color: var(--color-purple-400);
+    font-weight: 400 !important;
+    pointer-events: none;
+    position: relative;
+    z-index: 1;
+}

@@ -197,6 +197,11 @@
     width: 100%;
 }
 
+.resultCountValueContainer {
+    display: flex;
+    justify-content: space-between;
+}
+
 .sessionCardWrapper {
     position: relative;
 

@@ -76,13 +76,15 @@
     }
 
     .timestamp {
+        color: var(--color-gray-500);
         font-size: 12px !important;
+        font-weight: 200 !important;
         margin-bottom: var(--size-xxSmall) !important;
         margin-top: 0 !important;
     }
 
     .title {
-        font-weight: 400;
+        font-weight: 400 !important;
         margin-bottom: 0 !important;
     }
 

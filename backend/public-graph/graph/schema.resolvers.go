@@ -29,8 +29,8 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 	orgID := model.FromVerboseID(organizationVerboseID)
 	if os.Getenv("ENVIRONMENT") != "dev" && err != nil {
 		msg := slack.WebhookMessage{Text: fmt.
-			Sprintf("Error in InitializeSession: %q\nOccurred for organization: {%q, %q}", err, orgID, organizationVerboseID)}
-		err := slack.PostWebhook("https://hooks.slack.com/services/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", &msg)
+			Sprintf("Error in InitializeSession: %q\nOccurred for organization: {%d, %q}\nIs on-prem: %q", err, orgID, organizationVerboseID, os.Getenv("REACT_APP_ONPREM"))}
+		err := slack.PostWebhook(os.Getenv("SLACK_INITIALIZED_SESSION_FAILED_WEB_HOOK"), &msg)
 		if err != nil {
 			log.Error(e.Wrap(err, "failed to post webhook with error in InitializeSession"))
 		}
@@ -126,14 +126,17 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	querySessionSpan.SetTag("numberOfErrors", len(errors))
 	querySessionSpan.SetTag("numberOfEvents", len(events.Events))
 	sessionObj := &model.Session{}
-	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&sessionObj)
-	if res.Error != nil {
-		return nil, fmt.Errorf("error reading from session: %v", res.Error)
+	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&sessionObj).Error; err != nil {
+		retErr := e.Wrapf(err, "error reading from session %v", sessionID)
+		querySessionSpan.Finish(tracer.WithError(retErr))
+		return nil, retErr
 	}
+	querySessionSpan.SetTag("org_id", sessionObj.OrganizationID)
 	querySessionSpan.Finish()
 
 	organizationID := sessionObj.OrganizationID
-	parseEventsSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("go.parseEvents"))
+	parseEventsSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
+		tracer.ResourceName("go.parseEvents"), tracer.Tag("org_id", organizationID))
 	if evs := events.Events; len(evs) > 0 {
 		// TODO: this isn't very performant, as marshaling the whole event obj to a string is expensive;
 		// should fix at some point.
@@ -170,7 +173,8 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	parseEventsSpan.Finish()
 
 	// unmarshal messages
-	unmarshalMessagesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("go.unmarshal.messages"))
+	unmarshalMessagesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
+		tracer.ResourceName("go.unmarshal.messages"), tracer.Tag("org_id", organizationID))
 	messagesParsed := make(map[string][]interface{})
 	if err := json.Unmarshal([]byte(messages), &messagesParsed); err != nil {
 		return nil, fmt.Errorf("error decoding message data: %v", err)
@@ -184,7 +188,8 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	unmarshalMessagesSpan.Finish()
 
 	// unmarshal resources
-	unmarshalResourcesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("go.unmarshal.resources"))
+	unmarshalResourcesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
+		tracer.ResourceName("go.unmarshal.resources"), tracer.Tag("org_id", organizationID))
 	resourcesParsed := make(map[string][]interface{})
 	if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
 		return nil, fmt.Errorf("error decoding resource data: %v", err)
@@ -240,7 +245,8 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	}
 
 	// put errors in db
-	putErrorsToDBSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.errors"))
+	putErrorsToDBSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
+		tracer.ResourceName("db.errors"), tracer.Tag("org_id", organizationID))
 	for _, v := range errors {
 		traceBytes, err := json.Marshal(v.StackTrace)
 		if err != nil {

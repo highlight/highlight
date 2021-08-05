@@ -2,7 +2,6 @@ import { message as AntDesignMessage } from 'antd';
 import _ from 'lodash';
 import React, {
     useCallback,
-    useContext,
     useEffect,
     useMemo,
     useRef,
@@ -16,7 +15,6 @@ import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import GoToButton from '../../../../../components/Button/GoToButton';
 import Input from '../../../../../components/Input/Input';
 import TextHighlighter from '../../../../../components/TextHighlighter/TextHighlighter';
-import { DemoContext } from '../../../../../DemoContext';
 import { useGetMessagesQuery } from '../../../../../graph/generated/hooks';
 import { ConsoleMessage } from '../../../../../util/shared-types';
 import { MillisToMinutesAndSeconds } from '../../../../../util/time';
@@ -34,7 +32,6 @@ export const ConsolePage = ({ time }: { time: number }) => {
     const [currentMessage, setCurrentMessage] = useState(-1);
     const [filterSearchTerm, setFilterSearchTerm] = useState('');
     const [options, setOptions] = useState<Array<string>>([]);
-    const { demo } = useContext(DemoContext);
     const { pause, replayer, state } = useReplayerContext();
     const [parsedMessages, setParsedMessages] = useState<
         undefined | Array<ParsedMessage>
@@ -46,11 +43,8 @@ export const ConsolePage = ({ time }: { time: number }) => {
     const { session_id } = useParams<{ session_id: string }>();
     const { data, loading } = useGetMessagesQuery({
         variables: {
-            session_id: demo
-                ? process.env.REACT_APP_DEMO_SESSION ?? ''
-                : session_id,
+            session_id,
         },
-        context: { headers: { 'Highlight-Demo': demo } },
         fetchPolicy: 'no-cache',
     });
     const virtuoso = useRef<VirtuosoHandle>(null);
@@ -231,10 +225,12 @@ export const ConsolePage = ({ time }: { time: number }) => {
                                         />
                                     </div>
                                     <div className={styles.messageText}>
-                                        <ConsoleRender
-                                            m={message.value ?? ''}
-                                            searchTerm={filterSearchTerm}
-                                        />
+                                        {message.value && (
+                                            <ConsoleRender
+                                                m={message.value}
+                                                searchTerm={filterSearchTerm}
+                                            />
+                                        )}
                                     </div>
                                     <GoToButton
                                         className={styles.goToButton}

@@ -164,15 +164,29 @@ $canvas-width: calc(
     padding-right: var(--size-large);
 }
 
-.noResultsMessage {
-    align-self: center;
-    color: var(--color-gray-500);
-    margin-bottom: auto !important;
-    margin-top: auto !important;
-    max-width: 600px;
-}
-
 .rightAlign {
     justify-content: flex-end;
     padding-right: var(--size-xxSmall);
+}
+
+.noDataContainer {
+    align-self: center;
+    margin-bottom: auto !important;
+    margin-top: auto !important;
+    max-width: 450px;
+    text-align: center;
+
+    h3 {
+        color: var(--text-primary);
+        font-size: 14px;
+        font-weight: 400;
+        margin: 0;
+        margin-bottom: var(--size-xSmall);
+    }
+
+    p {
+        color: var(--color-gray-500);
+        font-size: 12px;
+        margin: 0;
+    }
 }

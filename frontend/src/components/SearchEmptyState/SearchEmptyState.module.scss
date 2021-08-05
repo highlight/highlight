@@ -15,20 +15,27 @@
     flex-direction: column;
     height: 100%;
     width: 100%;
+
+    svg {
+        height: 30px;
+        width: 220px;
+    }
 }
 
 .emptySubTitle {
     align-items: center;
     color: var(--color-gray-500);
     display: flex;
-    display: inline-block;
+    display: block;
     justify-content: center;
+    margin: 0 auto !important;
     max-width: 450px;
     text-align: center;
 }
 
 .emptyTitle {
     margin-top: 30px !important;
+    text-align: center;
 }
 
 .intercomButton {
@@ -36,4 +43,29 @@
     cursor: pointer;
     display: inline-block;
     line-height: 1;
+}
+
+.newFeedStyles {
+    .emptyStateWrapper {
+        svg {
+            height: 20px;
+            width: 120px;
+        }
+    }
+
+    .emptyStateSection {
+        padding: 10px;
+    }
+
+    .emptySubTitle {
+        font-size: var(--size-small) !important;
+        margin-top: var(--size-small) !important;
+    }
+
+    .emptyTitle {
+        font-size: 14px !important;
+        font-weight: 400 !important;
+        margin-bottom: 0 !important;
+        margin-top: var(--size-small) !important;
+    }
 }

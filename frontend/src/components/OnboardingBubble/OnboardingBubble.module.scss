@@ -41,14 +41,22 @@
     }
 }
 
-.onboardingBubblePopover {
+.onboardingBubblePopoverHeader {
     border-bottom: 1px solid var(--color-gray-300);
     margin-left: calc(var(--size-medium) * -1);
     margin-right: calc(var(--size-medium) * -1);
     padding-bottom: var(--size-xSmall);
     padding-left: var(--size-medium);
     padding-right: var(--size-medium);
+    position: relative;
     width: 270px;
+
+    .closeButton {
+        fill: var(--color-gray-500);
+        position: absolute;
+        right: var(--size-xSmall);
+        top: calc(var(--size-xxSmall) * -1);
+    }
 
     h2 {
         font-size: 14px;

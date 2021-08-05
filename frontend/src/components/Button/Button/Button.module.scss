@@ -26,12 +26,28 @@
         }
 
         svg {
-            height: calc(var(--size-icon));
-            width: calc(var(--size-icon));
+            height: var(--size-icon);
+            width: var(--size-icon);
+        }
+    }
+
+    &.small {
+        svg {
+            height: var(--size-small);
+            width: var(--size-small);
         }
     }
 }
 
 .small {
     padding: var(--size-xxSmall) var(--size-small);
+}
+
+.link {
+    border: 0;
+    display: inline;
+    font-size: inherit;
+    line-height: inherit;
+    margin: 0;
+    padding: 0;
 }

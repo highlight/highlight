@@ -67,6 +67,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
             searchParams
         );
 
+        // Handles the case where the user is loading the page from a link shared from another user that has search params in the URL.
         if (!segmentName && areAnySearchParamsSet) {
             // `undefined` values will not be persisted to the URL.
             // Because of that, we only want to change the values from `undefined`
@@ -91,8 +92,6 @@ const ApplicationRouter = ({ integrated }: Props) => {
             setSearchParamsToUrlParams({
                 ...searchParamsToReflectInUrl,
             });
-        } else {
-            setSearchParamsToUrlParams(InitialSearchParamsForUrl);
         }
     }, [setSearchParamsToUrlParams, searchParams, segmentName]);
 
@@ -125,9 +124,15 @@ const ApplicationRouter = ({ integrated }: Props) => {
                 <Route path="/:organization_id/sessions/:session_id" exact>
                     <Player />
                 </Route>
-                <Route path="/:organization_id/sessions" exact>
-                    <SessionsPage integrated={integrated} />
-                </Route>
+                {organization_id !== '1' ? (
+                    <Route path="/:organization_id/sessions" exact>
+                        <SessionsPage integrated={integrated} />
+                    </Route>
+                ) : (
+                    <Route path="/:organization_id/sessions/:session_id?" exact>
+                        <Player />
+                    </Route>
+                )}
                 <Route path="/:organization_id/settings">
                     <WorkspaceSettings />
                 </Route>

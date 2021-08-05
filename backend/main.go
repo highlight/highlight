@@ -139,13 +139,10 @@ func main() {
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.
 	r.Use(handlers.CompressHandler)
-	r.Use(func(h http.Handler) http.Handler {
-		return handlers.LoggingHandler(os.Stdout, h)
-	})
 	r.Use(cors.New(cors.Options{
 		AllowOriginRequestFunc: validateOrigin,
 		AllowCredentials:       true,
-		AllowedHeaders:         []string{"Highlight-Demo", "Content-Type", "Token", "Sentry-Trace"},
+		AllowedHeaders:         []string{"Content-Type", "Token", "Sentry-Trace"},
 	}).Handler)
 	r.MethodFunc(http.MethodGet, "/health", health)
 
@@ -169,6 +166,7 @@ func main() {
 			)
 			privateServer.Use(util.NewTracer(util.PrivateGraph))
 			privateServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PrivateGraph)))
+			privateServer.SetRecoverFunc(util.GraphQLRecoverFunc())
 			r.Handle("/", privateServer)
 		})
 	}
@@ -188,6 +186,7 @@ func main() {
 				}))
 			clientServer.Use(util.NewTracer(util.PublicGraph))
 			clientServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PublicGraph)))
+			clientServer.SetRecoverFunc(util.GraphQLRecoverFunc())
 			r.Handle("/", clientServer)
 		})
 	}

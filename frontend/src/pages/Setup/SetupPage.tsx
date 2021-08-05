@@ -4,6 +4,7 @@ import Skeleton from 'react-loading-skeleton';
 import { useParams } from 'react-router-dom';
 import useFetch from 'use-http';
 
+import { useAuthContext } from '../../AuthContext';
 import ButtonLink from '../../components/Button/ButtonLink/ButtonLink';
 import Collapsible from '../../components/Collapsible/Collapsible';
 import SvgSlackLogo from '../../components/icons/SlackLogo';
@@ -13,6 +14,7 @@ import { RadioGroup } from '../../components/RadioGroup/RadioGroup';
 import { useGetOrganizationQuery } from '../../graph/generated/hooks';
 import { GetBaseURL } from '../../util/window';
 import { CodeBlock } from './CodeBlock/CodeBlock';
+import { GatsbySetup } from './Gatsby/GatsbySetup';
 import { IntegrationDetector } from './IntegrationDetector/IntegrationDetector';
 import styles from './SetupPage.module.scss';
 
@@ -21,9 +23,11 @@ enum PlatformType {
     React = 'React',
     Vue = 'Vue.js',
     NextJs = 'Next.js',
+    Gatsby = 'Gatsby.js',
 }
 
 const SetupPage = ({ integrated }: { integrated: boolean }) => {
+    const { admin } = useAuthContext();
     const [platform, setPlatform] = useState(PlatformType.React);
     const { organization_id } = useParams<{ organization_id: string }>();
     const { data, loading } = useGetOrganizationQuery({
@@ -46,6 +50,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                     PlatformType.Vue,
                     PlatformType.Html,
                     PlatformType.NextJs,
+                    PlatformType.Gatsby,
                 ]}
                 onSelect={(p: PlatformType) => setPlatform(p)}
             />
@@ -61,6 +66,10 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                         <HtmlInstructions
                             orgVerboseId={data?.organization?.verbose_id}
                         />
+                    ) : platform === PlatformType.Gatsby ? (
+                        <GatsbySetup
+                            orgVerboseId={data?.organization?.verbose_id}
+                        />
                     ) : (
                         <JsAppInstructions
                             orgVerboseId={data?.organization?.verbose_id}
@@ -74,7 +83,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                             <code>
                                 {'H.identify(id: string, object: Object)'}
                             </code>{' '}
-                            method in your javascript app. Here's an example:
+                            method in your app. Here's an example:
                         </p>
                         <CodeBlock
                             onCopy={() => {
@@ -89,10 +98,14 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                             text={
                                 platform === PlatformType.NextJs
                                     ? `if (typeof window !== 'undefined') {
-    H.identify(\n\t'jay@gmail.com', \n\t{id: 'ajdf837dj', phone: '867-5309'}
+    H.identify(\n\t'${
+        admin?.email || 'eliza@gmail.com'
+    }', \n\t{id: 'ajdf837dj', phone: '867-5309'}
     )
 }`
-                                    : `H.identify(\n\t'jay@gmail.com', \n\t{id: 'ajdf837dj', phone: '867-5309'}\n)`
+                                    : `H.identify(\n\t'${
+                                          admin?.email || 'eliza@gmail.com'
+                                      }', \n\t{id: 'ajdf837dj', phone: '867-5309'}\n)`
                             }
                         />
                     </Section>
@@ -213,8 +226,7 @@ const JsAppInstructions = ({
         <>
             <Section title="Installing the SDK">
                 <p>
-                    Install the <code>{'highlight.run'}</code> package via your
-                    javascript package manager.
+                    Install the <code>{'highlight.run'}</code> package.
                 </p>
                 <CodeBlock text={`npm install highlight.run`} />
                 <p>or with Yarn:</p>
@@ -278,8 +290,6 @@ const JsAppInstructions = ({
                 {platform === PlatformType.React ? (
                     <CodeBlock
                         text={`import React from 'react';
-import ReactDOM from 'react-dom';
-import './index.scss';
 import App from './App';
 import { H } from 'highlight.run'
 
@@ -299,8 +309,7 @@ createApp(App).mount('#app');`}
                     />
                 ) : (
                     <CodeBlock
-                        text={`import '../styles/globals.css'
-import { H } from 'highlight.run';
+                        text={`import { H } from 'highlight.run';
 
 if (typeof window !== 'undefined') {
   ${getInitSnippet(orgVerboseId)}

@@ -1,5 +1,5 @@
 import { NetworkListenerCallback } from '../network-listener';
-import { Headers, Request, Response } from './models';
+import { Headers, Request, RequestResponsePair, Response } from './models';
 import { isHighlightNetworkResourceFilter } from './utils';
 
 interface BrowserXHR extends XMLHttpRequest {
@@ -7,6 +7,7 @@ interface BrowserXHR extends XMLHttpRequest {
     _url: string;
     _requestHeaders: Headers;
     _responseSize?: number;
+    _shouldRecordHeaderAndBody: boolean;
 }
 
 /**
@@ -14,7 +15,8 @@ interface BrowserXHR extends XMLHttpRequest {
  */
 export const XHRListener = (
     callback: NetworkListenerCallback,
-    backendUrl: string
+    backendUrl: string,
+    urlBlocklist: string[]
 ) => {
     const XHR = XMLHttpRequest.prototype;
 
@@ -29,6 +31,9 @@ export const XHRListener = (
         this._method = method;
         this._url = url;
         this._requestHeaders = {};
+        this._shouldRecordHeaderAndBody = !urlBlocklist.some((blockedUrl) =>
+            url.toLowerCase().includes(blockedUrl)
+        );
 
         // @ts-expect-error
         return originalOpen.apply(this, arguments);
@@ -46,12 +51,14 @@ export const XHRListener = (
     };
 
     XHR.send = function (this: BrowserXHR, postData: any) {
+        const shouldRecordHeaderAndBody = this._shouldRecordHeaderAndBody;
         const requestModel: Request = {
             url: this._url,
             verb: this._method,
-            headers: this._requestHeaders,
+            headers: shouldRecordHeaderAndBody ? this._requestHeaders : {},
             body: undefined,
         };
+
         // The load event for XMLHttpRequest is fired when a request completes successfully.
         this.addEventListener('load', async function () {
             if (
@@ -59,59 +66,64 @@ export const XHRListener = (
             ) {
                 return;
             }
-            if (postData) {
-                if (typeof postData === 'string') {
-                    requestModel['body'] = postData;
-                } else if (
-                    typeof postData === 'object' ||
-                    typeof postData === 'number' ||
-                    typeof postData === 'boolean'
-                ) {
-                    requestModel['body'] = postData.toString();
-                }
-            }
-
-            const responseHeaders = this.getAllResponseHeaders();
-            // Convert the header string into an array
-            // of individual headers
-            const normalizedResponseHeaders = responseHeaders
-                .trim()
-                .split(/[\r\n]+/);
-
-            // Create a map of header names to values
-            const headerMap: { [key: string]: any } = {};
-            normalizedResponseHeaders.forEach(function (line) {
-                const parts = line.split(': ');
-                const header = parts.shift() as string;
-                const value = parts.join(': ');
-                headerMap[header] = value;
-            });
 
             const responseModel: Response = {
                 status: this.status,
-                headers: headerMap,
+                headers: {},
                 body: undefined,
             };
 
-            if (
-                (this.responseType === '' ||
-                    this.responseType === 'text' ||
-                    this.responseType === 'json') &&
-                this.responseText
-            ) {
-                responseModel['body'] = this.responseText;
-                // Each character is 8 bytes, total size is number of characters multiplied by 8.
-                responseModel['size'] = this.responseText.length * 8;
-            } else if (this.responseType === 'blob') {
-                const blob = this.response as Blob;
-                const response = await blob.text();
-                responseModel['body'] = response;
-                responseModel['size'] = blob.size;
+            if (shouldRecordHeaderAndBody) {
+                if (postData) {
+                    if (typeof postData === 'string') {
+                        requestModel['body'] = postData;
+                    } else if (
+                        typeof postData === 'object' ||
+                        typeof postData === 'number' ||
+                        typeof postData === 'boolean'
+                    ) {
+                        requestModel['body'] = postData.toString();
+                    }
+                }
+
+                const responseHeaders = this.getAllResponseHeaders();
+                // Convert the header string into an array
+                // of individual headers
+                const normalizedResponseHeaders = responseHeaders
+                    .trim()
+                    .split(/[\r\n]+/);
+
+                // Create a map of header names to values
+                const headerMap: { [key: string]: any } = {};
+                normalizedResponseHeaders.forEach(function (line) {
+                    const parts = line.split(': ');
+                    const header = parts.shift() as string;
+                    const value = parts.join(': ');
+                    headerMap[header] = value;
+                });
+                responseModel.headers = headerMap;
+
+                if (
+                    (this.responseType === '' ||
+                        this.responseType === 'text' ||
+                        this.responseType === 'json') &&
+                    this.responseText
+                ) {
+                    responseModel['body'] = this.responseText;
+                    // Each character is 8 bytes, total size is number of characters multiplied by 8.
+                    responseModel['size'] = this.responseText.length * 8;
+                } else if (this.responseType === 'blob') {
+                    const blob = this.response as Blob;
+                    const response = await blob.text();
+                    responseModel['body'] = response;
+                    responseModel['size'] = blob.size;
+                }
             }
 
-            const event = {
+            const event: RequestResponsePair = {
                 request: requestModel,
                 response: responseModel,
+                urlBlocked: !shouldRecordHeaderAndBody,
             };
 
             callback(event);
@@ -132,9 +144,10 @@ export const XHRListener = (
                 body: undefined,
             };
 
-            const event = {
+            const event: RequestResponsePair = {
                 request: requestModel,
                 response: responseModel,
+                urlBlocked: false,
             };
 
             callback(event);

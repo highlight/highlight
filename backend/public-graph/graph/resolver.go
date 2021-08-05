@@ -16,12 +16,12 @@ import (
 	"time"
 
 	"github.com/go-sourcemap/sourcemap"
-	dd "github.com/highlight-run/highlight/backend/datadog"
 	"github.com/mssola/user_agent"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
+	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/pricing"
@@ -171,6 +171,9 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 
 func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *model2.ErrorObjectInput, fields []*model.ErrorField, organizationID int) (*model.ErrorGroup, error) {
 	frames := errorInput.StackTrace
+	if frames != nil && frames[0] != nil && frames[0].Source != nil && strings.Contains(*frames[0].Source, "https://static.highlight.run/index.js") {
+		errorObj.OrganizationID = 1
+	}
 	firstFrameBytes, err := json.Marshal(frames)
 	if err != nil {
 		return nil, e.Wrap(err, "Error marshalling first frame")
@@ -512,11 +515,9 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 				Error:        util.MakeStringPointer(err.Error()),
 			}
 		}
-		if err := dd.StatsD.Histogram(fmt.Sprintf("%s.totalRunTime", histogram.processStackTrace), float64(diff),
+		hlog.Histogram(fmt.Sprintf("%s.totalRunTime", histogram.processStackTrace), float64(diff),
 			[]string{fmt.Sprintf("env:%s", os.Getenv("ENVIRONMENT")), fmt.Sprintf("success:%v", err == nil),
-				fmt.Sprintf("org_id:%d", organizationId)}, 1); err != nil {
-			log.Error(e.Wrap(err, "dd error tracking processStackFrame time histogram"))
-		}
+				fmt.Sprintf("org_id:%d", organizationId)}, 1)
 		if mappedStackFrame != nil {
 			mappedStackTrace = append(mappedStackTrace, *mappedStackFrame)
 		}
@@ -573,10 +574,8 @@ func (r *Resolver) processStackFrame(organizationId, sessionId int, stackTrace m
 			log.Error(e.Wrapf(err, "error pushing file to s3: %v", stackTraceFilePath))
 		}
 	}
-	if err := dd.StatsD.Histogram(histogram.processStackTrace+".minifiedFileSize", float64(len(minifiedFileBytes)),
-		[]string{fmt.Sprintf("env:%s", os.Getenv("ENVIRONMENT")), fmt.Sprintf("org_id:%d", organizationId)}, 1); err != nil {
-		log.Error(e.Wrap(err, "dd error tracking processStackFrame minified file size histogram"))
-	}
+	hlog.Histogram(histogram.processStackTrace+".minifiedFileSize", float64(len(minifiedFileBytes)),
+		[]string{fmt.Sprintf("env:%s", os.Getenv("ENVIRONMENT")), fmt.Sprintf("org_id:%d", organizationId)}, 1)
 	if len(minifiedFileBytes) > 5000000 {
 		err := e.Errorf("minified source file over 5mb: %v, size: %v", stackTraceFileURL, len(minifiedFileBytes))
 		return nil, err
@@ -627,11 +626,8 @@ func (r *Resolver) processStackFrame(organizationId, sessionId int, stackTrace m
 			log.Error(e.Wrapf(err, "error pushing file to s3: %v", sourceMapFileName))
 		}
 	}
-	if err := dd.StatsD.Histogram(histogram.processStackTrace+".sourceMapFileSize", float64(len(sourceMapFileBytes)),
-		[]string{fmt.Sprintf("env:%s", os.Getenv("ENVIRONMENT")), fmt.Sprintf("org_id:%d", organizationId)}, 1); err != nil {
-		log.Error(e.Wrap(err, "dd error tracking processStackFrame minified file size histogram"))
-	}
-
+	hlog.Histogram(histogram.processStackTrace+".sourceMapFileSize", float64(len(sourceMapFileBytes)),
+		[]string{fmt.Sprintf("env:%s", os.Getenv("ENVIRONMENT")), fmt.Sprintf("org_id:%d", organizationId)}, 1)
 	smap, err := sourcemap.Parse(sourceMapURL, sourceMapFileBytes)
 	if err != nil {
 		err := e.Wrapf(err, "error parsing source map file -> %v", sourceMapURL)

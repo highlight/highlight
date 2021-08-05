@@ -1,2 +1,2 @@
-export const popover: string;
-export const popoverContent: string;
+export const divider: string;
+export const externalSharingToggle: string;

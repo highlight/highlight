@@ -5,10 +5,12 @@ import { useParams } from 'react-router-dom';
 import TextTransition from 'react-text-transition';
 
 import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
+import Switch from '../../../components/Switch/Switch';
 import LimitedSessionCard from '../../../components/Upsell/LimitedSessionsCard/LimitedSessionsCard';
 import { useGetSessionsQuery } from '../../../graph/generated/hooks';
 import { SessionLifecycle } from '../../../graph/generated/schemas';
 import { formatNumberWithDelimiters } from '../../../util/numbers';
+import usePlayerConfiguration from '../../Player/PlayerHook/utils/usePlayerConfiguration';
 import { useReplayerContext } from '../../Player/ReplayerContext';
 import { useSearchContext } from '../SearchContext/SearchContext';
 import {
@@ -18,7 +20,7 @@ import {
 import MinimalSessionCard from './components/MinimalSessionCard/MinimalSessionCard';
 import styles from './SessionsFeed.module.scss';
 
-const SESSIONS_FEED_POLL_INTERVAL = 5000;
+// const SESSIONS_FEED_POLL_INTERVAL = 1000 * 10;
 
 export const SessionFeed = () => {
     const { setSessionResults, sessionResults } = useReplayerContext();
@@ -28,6 +30,7 @@ export const SessionFeed = () => {
         session_id: string;
     }>();
     const [count, setCount] = useState(10);
+    const { autoPlaySessions, setAutoPlaySessions } = usePlayerConfiguration();
 
     // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
     const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
@@ -72,7 +75,7 @@ export const SessionFeed = () => {
             setCount((previousCount) => previousCount + 10);
             fetchMore({
                 variables: {
-                    params: searchParams,
+                    params: searchParamsExceptForShowLiveSessions,
                     count,
                     organization_id,
                     processed:
@@ -105,15 +108,26 @@ export const SessionFeed = () => {
                     {sessionResults.totalCount === -1 ? (
                         <Skeleton width="100px" />
                     ) : (
-                        <>
-                            <TextTransition
-                                inline
-                                text={`${formatNumberWithDelimiters(
-                                    sessionResults.totalCount
-                                )}`}
-                            />{' '}
-                            sessions
-                        </>
+                        sessionResults.totalCount > 0 && (
+                            <div className={styles.resultCountValueContainer}>
+                                <span>
+                                    <TextTransition
+                                        inline
+                                        text={`${formatNumberWithDelimiters(
+                                            sessionResults.totalCount
+                                        )}`}
+                                    />{' '}
+                                    sessions
+                                </span>
+                                <Switch
+                                    label="Autoplay"
+                                    checked={autoPlaySessions}
+                                    onChange={(checked) => {
+                                        setAutoPlaySessions(checked);
+                                    }}
+                                />
+                            </div>
+                        )
                     )}
                 </div>
             </div>
@@ -133,7 +147,7 @@ export const SessionFeed = () => {
                             {!sessionResults.sessions.length &&
                             called &&
                             !loading ? (
-                                <SearchEmptyState item={'sessions'} />
+                                <SearchEmptyState item={'sessions'} newFeed />
                             ) : (
                                 <>
                                     <LimitedSessionCard />

@@ -7,9 +7,15 @@ interface Props {
     listItems: React.ReactNode[];
     className?: string;
     small?: boolean;
+    noHoverChange?: boolean;
 }
 
-const PopoverListContent = ({ listItems, className, small = false }: Props) => {
+const PopoverListContent = ({
+    listItems,
+    className,
+    small = false,
+    noHoverChange,
+}: Props) => {
     return (
         <ul className={classNames(styles.list, className)}>
             {listItems.map((listItem, index) => (
@@ -17,6 +23,7 @@ const PopoverListContent = ({ listItems, className, small = false }: Props) => {
                     key={index}
                     className={classNames(styles.item, {
                         [styles.small]: small,
+                        [styles.noHoverChange]: noHoverChange,
                     })}
                 >
                     {listItem}

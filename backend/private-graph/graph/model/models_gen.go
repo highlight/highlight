@@ -131,6 +131,10 @@ type TrackPropertyInput struct {
 	Value string `json:"value"`
 }
 
+type User struct {
+	ID int `json:"id"`
+}
+
 type UserFingerprintCount struct {
 	Count int64 `json:"count"`
 }

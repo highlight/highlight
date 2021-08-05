@@ -188,7 +188,6 @@ export type CreateSegmentMutation = { __typename?: 'Mutation' } & {
 
 export type CreateSessionCommentMutationVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
-    admin_id: Types.Scalars['ID'];
     session_id: Types.Scalars['ID'];
     session_timestamp: Types.Scalars['Int'];
     text: Types.Scalars['String'];
@@ -235,7 +234,6 @@ export type DeleteSessionCommentMutation = { __typename?: 'Mutation' } & Pick<
 
 export type CreateErrorCommentMutationVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
-    admin_id: Types.Scalars['ID'];
     error_group_id: Types.Scalars['ID'];
     text: Types.Scalars['String'];
     text_for_email: Types.Scalars['String'];
@@ -546,6 +544,7 @@ export type GetSessionCommentsQuery = { __typename?: 'Query' } & {
                 | 'session_id'
                 | 'created_at'
                 | 'updated_at'
+                | 'organization_id'
                 | 'text'
                 | 'x_coordinate'
                 | 'y_coordinate'
@@ -560,11 +559,11 @@ export type GetSessionCommentsQuery = { __typename?: 'Query' } & {
 };
 
 export type GetNotificationsQueryVariables = Types.Exact<{
-    [key: string]: never;
+    organization_id: Types.Scalars['ID'];
 }>;
 
 export type GetNotificationsQuery = { __typename?: 'Query' } & {
-    session_comments_for_admin: Array<
+    session_comments_for_organization: Array<
         Types.Maybe<
             { __typename?: 'SessionComment' } & Pick<
                 Types.SessionComment,
@@ -577,11 +576,11 @@ export type GetNotificationsQuery = { __typename?: 'Query' } & {
                 }
         >
     >;
-    error_comments_for_admin: Array<
+    error_comments_for_organization: Array<
         Types.Maybe<
             { __typename?: 'ErrorComment' } & Pick<
                 Types.ErrorComment,
-                'id' | 'updated_at' | 'text' | 'error_id'
+                'id' | 'updated_at' | 'organization_id' | 'text' | 'error_id'
             > & {
                     author: { __typename?: 'SanitizedAdmin' } & Pick<
                         Types.SanitizedAdmin,
@@ -601,7 +600,12 @@ export type GetSessionCommentsForAdminQuery = { __typename?: 'Query' } & {
         Types.Maybe<
             { __typename?: 'SessionComment' } & Pick<
                 Types.SessionComment,
-                'id' | 'timestamp' | 'created_at' | 'updated_at' | 'text'
+                | 'id'
+                | 'timestamp'
+                | 'created_at'
+                | 'organization_id'
+                | 'updated_at'
+                | 'text'
             > & {
                     author: { __typename?: 'SanitizedAdmin' } & Pick<
                         Types.SanitizedAdmin,
@@ -621,7 +625,7 @@ export type GetErrorCommentsQuery = { __typename?: 'Query' } & {
         Types.Maybe<
             { __typename?: 'ErrorComment' } & Pick<
                 Types.ErrorComment,
-                'id' | 'created_at' | 'updated_at' | 'text'
+                'id' | 'created_at' | 'updated_at' | 'text' | 'organization_id'
             > & {
                     author: { __typename?: 'SanitizedAdmin' } & Pick<
                         Types.SanitizedAdmin,

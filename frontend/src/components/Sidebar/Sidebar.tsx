@@ -1,9 +1,8 @@
 import classNames from 'classnames/bind';
-import React, { useContext } from 'react';
+import React from 'react';
 import { HiOutlineSpeakerphone } from 'react-icons/hi';
 import { Link, useLocation, useParams } from 'react-router-dom';
 
-import { DemoContext } from '../../DemoContext';
 import SvgCreditCardsIcon from '../../static/CreditCardsIcon';
 import SvgErrorsIcon from '../../static/ErrorsIcon';
 import SvgHomeIcon from '../../static/HomeIcon';
@@ -203,12 +202,8 @@ const SidebarItem: React.FC<{
     const { organization_id } = useParams<{ organization_id: string }>();
     const { pathname } = useLocation();
     const page = pathname.split('/')[2] ?? '';
-    const { demo } = useContext(DemoContext);
     return (
-        <Link
-            className={styles.row}
-            to={demo ? '/' : `/${organization_id}/${route}`}
-        >
+        <Link className={styles.row} to={`/${organization_id}/${route}`}>
             <div
                 className={classNames([
                     styles.innerButton,
@@ -229,12 +224,8 @@ const MiniSidebarItem: React.FC<{
     const { organization_id } = useParams<{ organization_id: string }>();
     const { pathname } = useLocation();
     const page = pathname.split('/')[2] ?? '';
-    const { demo } = useContext(DemoContext);
     return (
-        <Link
-            className={styles.miniRow}
-            to={demo ? '/' : `/${organization_id}/${route}`}
-        >
+        <Link className={styles.miniRow} to={`/${organization_id}/${route}`}>
             <Tooltip title={text} placement="right" align={{ offset: [16, 0] }}>
                 <div
                     className={classNames([

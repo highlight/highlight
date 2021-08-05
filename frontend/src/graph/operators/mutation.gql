@@ -126,7 +126,6 @@ mutation CreateSegment(
 
 mutation CreateSessionComment(
     $organization_id: ID!
-    $admin_id: ID!
     $session_id: ID!
     $session_timestamp: Int!
     $text: String!
@@ -141,7 +140,6 @@ mutation CreateSessionComment(
 ) {
     createSessionComment(
         organization_id: $organization_id
-        admin_id: $admin_id
         session_id: $session_id
         session_timestamp: $session_timestamp
         text: $text
@@ -175,7 +173,6 @@ mutation DeleteSessionComment($id: ID!) {
 
 mutation CreateErrorComment(
     $organization_id: ID!
-    $admin_id: ID!
     $error_group_id: ID!
     $text: String!
     $text_for_email: String!
@@ -185,7 +182,6 @@ mutation CreateErrorComment(
 ) {
     createErrorComment(
         organization_id: $organization_id
-        admin_id: $admin_id
         error_group_id: $error_group_id
         text: $text
         text_for_email: $text_for_email

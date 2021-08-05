@@ -1,0 +1,18 @@
+.actionButtons {
+    display: flex;
+    gap: var(--size-xSmall);
+    justify-content: flex-end;
+}
+
+.actionButtonsContainer {
+    margin-bottom: 0;
+}
+
+.commentInputContainer {
+    padding: 0 var(--size-xSmall);
+}
+
+.intercomLink {
+    cursor: pointer;
+    text-decoration: underline;
+}

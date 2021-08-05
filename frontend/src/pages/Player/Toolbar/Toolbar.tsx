@@ -4,18 +4,24 @@ import Draggable from 'react-draggable';
 import { FaPause } from 'react-icons/fa';
 import Skeleton from 'react-loading-skeleton';
 
+import Button from '../../../components/Button/Button/Button';
 import Modal from '../../../components/Modal/Modal';
+import Popover from '../../../components/Popover/Popover';
+import PopoverListContent from '../../../components/Popover/PopoverListContent';
+import {
+    SidebarState,
+    useSidebarContext,
+} from '../../../components/Sidebar/SidebarContext';
+import Switch from '../../../components/Switch/Switch';
 import ToggleButton from '../../../components/ToggleButton/ToggleButton';
 import Tooltip from '../../../components/Tooltip/Tooltip';
 import { useGetAdminQuery } from '../../../graph/generated/hooks';
 import { ErrorObject } from '../../../graph/generated/schemas';
-import SvgCursorIcon from '../../../static/CursorIcon';
 import SvgDevtoolsIcon from '../../../static/DevtoolsIcon';
 import SvgPlayIcon from '../../../static/PlayIcon';
 import SvgRedoIcon from '../../../static/RedoIcon';
-import SvgSkipForwardIcon from '../../../static/SkipForwardIcon';
+import SvgSettingsIcon from '../../../static/SettingsIcon';
 import SvgUndoIcon from '../../../static/UndoIcon';
-import SvgVideoIcon from '../../../static/VideoIcon';
 import {
     MillisToMinutesAndSeconds,
     MillisToMinutesAndSecondsVerbose,
@@ -56,10 +62,10 @@ export const Toolbar = () => {
         skipInactive,
         setSkipInactive,
         showLeftPanel,
-        showRightPanel,
         showDevTools,
         setShowDevTools,
         autoPlayVideo,
+        autoPlaySessions,
         setAutoPlayVideo,
         enableInspectElement,
         selectedDevToolsTab,
@@ -67,6 +73,7 @@ export const Toolbar = () => {
         showPlayerMouseTail,
         setShowPlayerMouseTail,
     } = usePlayerConfiguration();
+    const { staticSidebarState } = useSidebarContext();
     const { data: admin_data } = useGetAdminQuery({ skip: false });
     const max = replayer?.getMetaData().totalTime ?? 0;
     const sliderWrapperRef = useRef<HTMLButtonElement>(null);
@@ -97,7 +104,11 @@ export const Toolbar = () => {
     // Automatically start the player if the user has set the preference.
     useEffect(() => {
         if (admin_data) {
-            if (autoPlayVideo && replayer && isPlayerReady) {
+            if (
+                (autoPlayVideo || autoPlaySessions) &&
+                replayer &&
+                isPlayerReady
+            ) {
                 if (state === ReplayerState.LoadedAndUntouched) {
                     play(time);
                 } else if (state === ReplayerState.LoadedWithDeepLink) {
@@ -108,6 +119,7 @@ export const Toolbar = () => {
     }, [
         admin_data,
         autoPlayVideo,
+        autoPlaySessions,
         isPlayerReady,
         pause,
         play,
@@ -191,7 +203,9 @@ export const Toolbar = () => {
     const disableControls = state === ReplayerState.Loading || !canViewSession;
     // The play button should be disabled if the player has reached the end.
     const disablePlayButton = time >= (replayer?.getMetaData().totalTime ?? 0);
-    const leftSidebarWidth = 475;
+    const leftSidebarWidth = showLeftPanel ? 475 : 0;
+    const staticSidebarWidth =
+        staticSidebarState == SidebarState.Expanded ? 64 : 0;
 
     return (
         <ErrorModalContextProvider value={{ selectedError, setSelectedError }}>
@@ -244,17 +258,15 @@ export const Toolbar = () => {
                     ref={sliderWrapperRef}
                     onMouseMove={(e: React.MouseEvent<HTMLButtonElement>) =>
                         setSliderClientX(
-                            e.clientX -
-                                64 -
-                                (showLeftPanel ? leftSidebarWidth : 0)
+                            e.clientX - staticSidebarWidth - leftSidebarWidth
                         )
                     }
                     onMouseLeave={() => setSliderClientX(-1)}
                     onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                         const ratio =
                             (e.clientX -
-                                64 -
-                                (showLeftPanel ? leftSidebarWidth : 0)) /
+                                staticSidebarWidth -
+                                leftSidebarWidth) /
                             wrapperWidth;
                         setTime(getSliderTime(ratio));
                     }}
@@ -408,65 +420,6 @@ export const Toolbar = () => {
                 <div className={styles.toolbarRightSection}>
                     <TimelineAnnotationsSettings disabled={disableControls} />
                     <Tooltip
-                        title="Automatically starts the video when you open a session."
-                        arrowPointAtCenter
-                    >
-                        <ToggleButton
-                            trackingId="PlayerAutoPlaySetting"
-                            type="text"
-                            onClick={() => {
-                                setAutoPlayVideo(!autoPlayVideo);
-                            }}
-                            toggled={autoPlayVideo}
-                            disabled={disableControls}
-                            prefixIcon={<SvgVideoIcon />}
-                            hideTextLabel={showLeftPanel && showRightPanel}
-                        >
-                            {autoPlayVideo ? 'Autoplaying' : 'Autoplay'}
-                        </ToggleButton>
-                    </Tooltip>
-                    <Tooltip
-                        title="Skip the playback of the inactive portions of the session."
-                        arrowPointAtCenter
-                    >
-                        <ToggleButton
-                            trackingId="PlayerSkipInactive"
-                            type="text"
-                            onClick={() => {
-                                setSkipInactive(!skipInactive);
-                            }}
-                            disabled={disableControls}
-                            toggled={skipInactive}
-                            prefixIcon={<SvgSkipForwardIcon />}
-                            hideTextLabel={showLeftPanel && showRightPanel}
-                        >
-                            {skipInactive
-                                ? 'Skipping inactive'
-                                : 'Skip inactive'}
-                        </ToggleButton>
-                    </Tooltip>
-                    <Tooltip
-                        title="Show a trail of where the mouse has been. This is useful to keep track of how the mouse has moved."
-                        arrowPointAtCenter
-                    >
-                        <ToggleButton
-                            trackingId="PlayerSkipInactive"
-                            type="text"
-                            onClick={() => {
-                                setShowPlayerMouseTail(!showPlayerMouseTail);
-                            }}
-                            disabled={disableControls}
-                            toggled={showPlayerMouseTail}
-                            prefixIcon={<SvgCursorIcon />}
-                            hideTextLabel={showLeftPanel && showRightPanel}
-                        >
-                            {showPlayerMouseTail
-                                ? 'Showing Mouse Trail'
-                                : 'Hiding Mouse Trail'}
-                        </ToggleButton>
-                    </Tooltip>
-                    <SpeedControl disabled={disableControls} />
-                    <Tooltip
                         title="View the DevTools to see console logs, errors, and network requests."
                         placement="topLeft"
                         arrowPointAtCenter
@@ -488,6 +441,72 @@ export const Toolbar = () => {
                             />
                         </ToggleButton>
                     </Tooltip>
+
+                    <Popover
+                        placement="topLeft"
+                        trigger={['click']}
+                        content={
+                            <>
+                                <PopoverListContent
+                                    className={styles.settingsPopover}
+                                    noHoverChange
+                                    listItems={[
+                                        <Switch
+                                            labelFirst
+                                            justifySpaceBetween
+                                            noMarginAroundSwitch
+                                            key="sessionAutoplay"
+                                            checked={autoPlayVideo}
+                                            label="Autoplay"
+                                            onChange={(checked) => {
+                                                setAutoPlayVideo(checked);
+                                            }}
+                                        />,
+                                        <Switch
+                                            labelFirst
+                                            justifySpaceBetween
+                                            noMarginAroundSwitch
+                                            key="skipInactive"
+                                            checked={skipInactive}
+                                            label="Skip inactive"
+                                            onChange={(checked) => {
+                                                setSkipInactive(checked);
+                                            }}
+                                        />,
+                                        <Switch
+                                            labelFirst
+                                            justifySpaceBetween
+                                            noMarginAroundSwitch
+                                            key="mouseTrail"
+                                            checked={showPlayerMouseTail}
+                                            label="Show mouse trail"
+                                            onChange={(checked) => {
+                                                setShowPlayerMouseTail(checked);
+                                            }}
+                                        />,
+                                        <div
+                                            key="speedControl"
+                                            className={
+                                                styles.speedControlContainer
+                                            }
+                                        >
+                                            Playback speed
+                                            <SpeedControl
+                                                disabled={disableControls}
+                                            />
+                                        </div>,
+                                    ]}
+                                />
+                            </>
+                        }
+                    >
+                        <Button
+                            trackingId="PlayerToolbarSettings"
+                            className={styles.settingsButton}
+                        >
+                            <SvgSettingsIcon className={styles.devToolsIcon} />
+                        </Button>
+                    </Popover>
                 </div>
             </div>
         </ErrorModalContextProvider>

@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import { PlayerSearchParameters } from '../../../../pages/Player/PlayerHook/utils';
-import CommentTextBody from '../../../../pages/Player/Toolbar/NewCommentEntry/CommentTextBody/CommentTextBody';
+import CommentTextBody from '../../../../pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody';
 import SvgErrorsIcon from '../../../../static/ErrorsIcon';
 import SvgMessageIcon from '../../../../static/MessageIcon';
 import { AdminAvatar } from '../../../Avatar/Avatar';
@@ -67,14 +67,14 @@ const getIcon = (type: NotificationType) => {
 const getTitle = (notification: any): React.ReactNode => {
     const notificationAuthor =
         notification?.author.name || notification?.author.email;
-    let suffix = 'mentioned you';
+    let suffix = 'commented';
 
     switch (notification.type as NotificationType) {
         case NotificationType.ErrorComment:
-            suffix = 'mentioned you';
+            suffix = 'commented on an error';
             break;
         case NotificationType.SessionComment:
-            suffix = 'mentioned you';
+            suffix = 'commented on a session';
             break;
     }
 

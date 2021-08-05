@@ -1,30 +1,23 @@
 import { message } from 'antd';
-import React, { useContext } from 'react';
+import React from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useParams } from 'react-router-dom';
 
+import { useAuthContext } from '../../../AuthContext';
 import { Avatar } from '../../../components/Avatar/Avatar';
 import UserIdentifier from '../../../components/UserIdentifier/UserIdentifier';
-import { DemoContext } from '../../../DemoContext';
-import {
-    useGetSessionQuery,
-    useMarkSessionAsStarredMutation,
-} from '../../../graph/generated/hooks';
+import { useMarkSessionAsStarredMutation } from '../../../graph/generated/hooks';
 import { ReactComponent as StarIcon } from '../../../static/star.svg';
 import { ReactComponent as FilledStarIcon } from '../../../static/star-filled.svg';
+import { useReplayerContext } from '../ReplayerContext';
 import styles from './MetadataBox.module.scss';
 import { getMajorVersion } from './utils/utils';
 
 export const MetadataBox = () => {
+    const { isLoggedIn } = useAuthContext();
     const { session_id } = useParams<{ session_id: string }>();
-    const { demo } = useContext(DemoContext);
+    const { session } = useReplayerContext();
 
-    const { loading, data } = useGetSessionQuery({
-        variables: {
-            id: demo ? process.env.REACT_APP_DEMO_SESSION ?? '0' : session_id,
-        },
-        context: { headers: { 'Highlight-Demo': demo } },
-    });
     const [markSessionAsStarred] = useMarkSessionAsStarredMutation({
         update(cache) {
             cache.modify({
@@ -40,50 +33,55 @@ export const MetadataBox = () => {
             });
         },
     });
-    const created = new Date(data?.session?.created_at ?? 0);
+    const created = new Date(session?.created_at ?? 0);
 
     return (
         <div className={styles.locationBox}>
             <>
-                <div
-                    className={styles.starIconWrapper}
-                    onClick={() => {
-                        markSessionAsStarred({
-                            variables: {
-                                id: session_id,
-                                starred: !data?.session?.starred,
-                            },
-                        })
-                            .then(() => {
-                                message.success('Updated session status!', 3);
+                {isLoggedIn && (
+                    <div
+                        className={styles.starIconWrapper}
+                        onClick={() => {
+                            markSessionAsStarred({
+                                variables: {
+                                    id: session_id,
+                                    starred: !session?.starred,
+                                },
                             })
-                            .catch(() => {
-                                message.error(
-                                    'Error updating session status!',
-                                    3
-                                );
-                            });
-                    }}
-                >
-                    {data?.session?.starred ? (
-                        <FilledStarIcon className={styles.starredIcon} />
-                    ) : (
-                        <StarIcon className={styles.unstarredIcon} />
-                    )}
-                </div>
+                                .then(() => {
+                                    message.success(
+                                        'Updated session status!',
+                                        3
+                                    );
+                                })
+                                .catch(() => {
+                                    message.error(
+                                        'Error updating session status!',
+                                        3
+                                    );
+                                });
+                        }}
+                    >
+                        {session?.starred ? (
+                            <FilledStarIcon className={styles.starredIcon} />
+                        ) : (
+                            <StarIcon className={styles.unstarredIcon} />
+                        )}
+                    </div>
+                )}
                 <div className={styles.userAvatarWrapper}>
-                    {loading ? (
+                    {!session ? (
                         <Skeleton circle={true} height={36} width={36} />
                     ) : (
                         <Avatar
                             style={{ width: '36px', height: '36px' }}
-                            seed={data?.session?.identifier ?? ''}
+                            seed={session?.identifier ?? ''}
                             shape="rounded"
                         />
                     )}
                 </div>
                 <div className={styles.headerWrapper}>
-                    {loading ? (
+                    {!session ? (
                         <Skeleton
                             count={2}
                             style={{ height: 20, marginBottom: 5 }}
@@ -91,7 +89,7 @@ export const MetadataBox = () => {
                     ) : (
                         <>
                             <h4 className={styles.userIdHeader}>
-                                <UserIdentifier session={data?.session} />
+                                <UserIdentifier session={session} />
                             </h4>
                             <p className={styles.userIdSubHeader}>
                                 {created.toLocaleString('en-us', {
@@ -110,19 +108,19 @@ export const MetadataBox = () => {
                                 })}
                             </p>
                             <p className={styles.userIdSubHeader}>
-                                {data?.session?.browser_name && (
+                                {session?.browser_name && (
                                     <>
                                         <span>
-                                            {data?.session.browser_name}{' '}
+                                            {session.browser_name}{' '}
                                             {getMajorVersion(
-                                                data?.session.browser_version
+                                                session.browser_version
                                             )}
                                         </span>
                                         <span> • </span>
                                         <span>
-                                            {data?.session.os_name}{' '}
+                                            {session.os_name}{' '}
                                             {getMajorVersion(
-                                                data?.session.os_version
+                                                session.os_version
                                             )}
                                         </span>
                                     </>

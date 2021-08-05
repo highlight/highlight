@@ -29,7 +29,6 @@
     display: inline-flex;
     height: 4px;
     outline: none;
-    padding: 0 0 0 1px;
 }
 
 .segmentHover {
@@ -220,19 +219,9 @@
     background-color: var(--color-gray-200);
 }
 
-.speedWrapper {
-    align-items: center;
-    background-color: var(--color-purple);
-    border-radius: 8px;
-    color: var(--color-primary-background);
-    cursor: pointer;
-    display: flex;
-    font-size: 14px;
-    font-weight: 200;
-    height: 30px;
-    justify-content: center;
-    margin: 10px;
-    width: 40px;
+.speedControlContainer {
+    display: flex !important;
+    justify-content: space-between;
 }
 
 .timeSection {
@@ -328,13 +317,20 @@
 .devToolsButton {
     align-items: center;
     display: flex;
+}
+.devToolsIcon {
+    color: var(--color-gray-500);
+    width: 20px;
 
-    .devToolsIcon {
-        color: var(--color-gray-500);
-        width: 20px;
-
-        &.devToolsActive {
-            color: var(--color-purple);
-        }
+    &.devToolsActive {
+        color: var(--color-purple);
     }
+}
+
+.settingsButton {
+    border-color: var(--color-gray-300);
+}
+
+.settingsPopover {
+    width: 250px;
 }

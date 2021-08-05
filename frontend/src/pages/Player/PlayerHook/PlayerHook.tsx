@@ -1,18 +1,20 @@
 import { Replayer, ReplayerEvents } from '@highlight-run/rrweb';
 import { customEvent } from '@highlight-run/rrweb/dist/types';
 import { message } from 'antd';
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { H } from 'highlight.run';
+import { useCallback, useEffect, useState } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
-import { DemoContext } from '../../../DemoContext';
+import { useAuthContext } from '../../../AuthContext';
 import {
-    useGetSessionCommentsQuery,
+    useGetSessionCommentsLazyQuery,
+    useGetSessionLazyQuery,
     useGetSessionPayloadLazyQuery,
-    useGetSessionQuery,
 } from '../../../graph/generated/hooks';
 import {
     ErrorObject,
+    Session,
     SessionComment,
     SessionResults,
 } from '../../../graph/generated/schemas';
@@ -42,6 +44,7 @@ const EVENTS_CHUNK_SIZE = parseInt(
 );
 
 export const usePlayer = (): ReplayerContextInterface => {
+    const { isLoggedIn } = useAuthContext();
     const { session_id, organization_id } = useParams<{
         session_id: string;
         organization_id: string;
@@ -66,13 +69,14 @@ export const usePlayer = (): ReplayerContextInterface => {
     const [errors, setErrors] = useState<ErrorObject[]>([]);
     const [, setSelectedErrorId] = useState<string | undefined>(undefined);
     const [replayer, setReplayer] = useState<Replayer | undefined>(undefined);
-    const [state, setState] = useState<ReplayerState>(ReplayerState.Loading);
+    const [state, setState] = useState<ReplayerState>(ReplayerState.Empty);
     const [canViewSession, setCanViewSession] = useState(true);
     const [time, setTime] = useState<number>(0);
+    const [session, setSession] = useState<undefined | Session>(undefined);
     /** localStorageTime acts like a message broker to share the current player time for components that are outside of the context tree. */
     const {
         setPlayerTime: setPlayerTimeToPersistance,
-        autoPlayVideo,
+        autoPlaySessions,
         showLeftPanel,
         showPlayerMouseTail,
     } = usePlayerConfiguration();
@@ -85,64 +89,77 @@ export const usePlayer = (): ReplayerContextInterface => {
         hasSearchParam,
     } = useSetPlayerTimestampFromSearchParam(setTime, replayer);
 
-    const { demo } = useContext(DemoContext);
-    const sessionId = demo
-        ? process.env.REACT_APP_DEMO_SESSION ?? ''
-        : session_id ?? '';
     const [
-        getSessionPayload,
+        getSessionPayloadQuery,
         { loading, data: eventsData },
     ] = useGetSessionPayloadLazyQuery({
         variables: {
-            session_id: sessionId,
+            session_id,
         },
-        context: { headers: { 'Highlight-Demo': demo } },
         fetchPolicy: 'no-cache',
     });
 
-    useGetSessionQuery({
+    const [getSessionQuery, { data: sessionData }] = useGetSessionLazyQuery({
         variables: {
-            id: sessionId,
+            id: session_id,
         },
-        context: { headers: { 'Highlight-Demo': false } },
         onCompleted: (data) => {
             if (data.session?.within_billing_quota) {
-                getSessionPayload();
+                getSessionPayloadQuery();
                 setCanViewSession(true);
+                H.track('Viewed session', { is_guest: !isLoggedIn });
             } else {
                 setCanViewSession(false);
             }
         },
     });
-    const {
-        data: sessionCommentsData,
-        loading: sessionCommentsLoading,
-    } = useGetSessionCommentsQuery({
+    const [
+        getSessionCommentsQuery,
+        { data: sessionCommentsData, loading: sessionCommentsLoading },
+    ] = useGetSessionCommentsLazyQuery({
         variables: {
-            session_id: sessionId,
+            session_id,
         },
-        // pollInterval: 1000 ,
+        // pollInterval: 1000 * 10,
     });
 
-    const resetPlayer = useCallback(() => {
-        setState(ReplayerState.Loading);
-        setErrors([]);
-        setEvents([]);
-        setScale(1);
-        setSessionComments([]);
-        setReplayer(undefined);
-        setSelectedErrorId(undefined);
-        setTime(0);
-        setPlayerTimeToPersistance(0);
-        setSessionEndTime(0);
-        setSessionIntervals([]);
-        setCanViewSession(true);
-    }, [setPlayerTimeToPersistance]);
+    const resetPlayer = useCallback(
+        (nextState?: ReplayerState) => {
+            setState(nextState || ReplayerState.Empty);
+            setErrors([]);
+            setEvents([]);
+            setScale(1);
+            setSessionComments([]);
+            setReplayer(undefined);
+            setSelectedErrorId(undefined);
+            setTime(0);
+            setPlayerTimeToPersistance(0);
+            setSessionEndTime(0);
+            setSessionIntervals([]);
+            setCanViewSession(true);
+        },
+        [setPlayerTimeToPersistance]
+    );
+
+    useEffect(() => {
+        if (session_id) {
+            setState(ReplayerState.Loading);
+            setSession(undefined);
+            getSessionQuery();
+            getSessionCommentsQuery();
+        } else {
+            resetPlayer(ReplayerState.Empty);
+        }
+    }, [getSessionCommentsQuery, getSessionQuery, session_id, resetPlayer]);
+
+    useEffect(() => {
+        setSession(sessionData?.session as Session | undefined);
+    }, [sessionData?.session]);
 
     // Reset all state when loading events.
     useEffect(() => {
         if (loading) {
-            resetPlayer();
+            resetPlayer(ReplayerState.Loading);
         }
     }, [loading, resetPlayer, setPlayerTimeToPersistance]);
 
@@ -333,7 +350,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         if (
             state === ReplayerState.SessionEnded &&
             showLeftPanel &&
-            autoPlayVideo &&
+            autoPlaySessions &&
             sessionResults.sessions.length > 0
         ) {
             let currentSessionIndex = sessionResults.sessions.findIndex(
@@ -356,11 +373,11 @@ export const usePlayer = (): ReplayerContextInterface => {
             history.push(
                 `/${organization_id}/sessions/${sessionResults.sessions[nextSessionIndex].id}`
             );
-            resetPlayer();
+            resetPlayer(ReplayerState.Loading);
             message.success('Playing the next session.');
         }
     }, [
-        autoPlayVideo,
+        autoPlaySessions,
         history,
         organization_id,
         resetPlayer,
@@ -398,6 +415,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             case ReplayerState.LoadedAndUntouched:
             case ReplayerState.LoadedWithDeepLink:
             case ReplayerState.SessionRecordingStopped:
+            case ReplayerState.SessionEnded:
                 pause(newTime);
                 return;
 
@@ -425,6 +443,10 @@ export const usePlayer = (): ReplayerContextInterface => {
         setSessionResults,
         isPlayerReady:
             state !== ReplayerState.Loading && scale !== 1 && canViewSession,
+        session,
+        playerProgress: replayer
+            ? time / replayer.getMetaData().totalTime
+            : null,
     };
 };
 

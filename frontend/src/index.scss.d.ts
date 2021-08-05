@@ -1,4 +1,5 @@
 export const antMessageNoticeContent: string;
+export const antModalContent: string;
 export const antSelect: string;
 export const antSelectCustomizeInput: string;
 export const antSelectDisabled: string;

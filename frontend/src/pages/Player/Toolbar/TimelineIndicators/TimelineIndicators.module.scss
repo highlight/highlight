@@ -25,3 +25,11 @@
         transform: translateY(0);
     }
 }
+
+.progressIndicator {
+    background: var(--color-purple);
+    height: 100%;
+    position: absolute;
+    top: 0;
+    width: 1px;
+}

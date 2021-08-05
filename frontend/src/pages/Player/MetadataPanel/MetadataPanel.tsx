@@ -2,14 +2,12 @@ import React, { useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { Link, useParams } from 'react-router-dom';
 
+import { useAuthContext } from '../../../AuthContext';
 import DataCard from '../../../components/DataCard/DataCard';
 import KeyValueTable, {
     KeyValueTableRow,
 } from '../../../components/KeyValueTable/KeyValueTable';
-import {
-    useGetAdminQuery,
-    useGetSessionQuery,
-} from '../../../graph/generated/hooks';
+import { useReplayerContext } from '../ReplayerContext';
 import { formatSize } from '../Toolbar/DevToolsWindow/ResourcePage/ResourcePage';
 import { SessionPageSearchParams } from '../utils/utils';
 import styles from './MetadataPanel.module.scss';
@@ -21,23 +19,16 @@ type Field = {
 };
 
 const MetadataPanel = () => {
-    const { session_id, organization_id } = useParams<{
-        session_id: string;
+    const { organization_id } = useParams<{
         organization_id: string;
     }>();
+    const { session } = useReplayerContext();
+    const { isHighlightAdmin } = useAuthContext();
 
-    const { loading, data } = useGetSessionQuery({
-        variables: {
-            id: session_id,
-        },
-        context: { headers: { 'Highlight-Demo': false } },
-    });
     const [parsedFields, setParsedFields] = useState<Field[]>([]);
 
-    const { data: a_data } = useGetAdminQuery({});
-
     useEffect(() => {
-        const fields = data?.session?.fields?.filter((f) => {
+        const fields = session?.fields?.filter((f) => {
             if (
                 f &&
                 f.type === 'user' &&
@@ -49,12 +40,12 @@ const MetadataPanel = () => {
             return false;
         }) as Field[];
         setParsedFields(fields);
-    }, [data]);
+    }, [session?.fields]);
 
     const sessionData: KeyValueTableRow[] = [
         {
             keyDisplayValue: 'Environment',
-            valueDisplayValue: data?.session?.environment || 'Production',
+            valueDisplayValue: session?.environment || 'Production',
             valueInfoTooltipMessage: (
                 <>
                     You can set the environment based on where the session is
@@ -72,8 +63,7 @@ const MetadataPanel = () => {
         },
         {
             keyDisplayValue: 'App Version',
-            valueDisplayValue:
-                data?.session?.app_version || 'App Version Not Set',
+            valueDisplayValue: session?.app_version || 'App Version Not Set',
             valueInfoTooltipMessage: (
                 <>
                     This is the app version for your application. You can set
@@ -92,7 +82,7 @@ const MetadataPanel = () => {
         },
         {
             keyDisplayValue: 'Record Network Requests',
-            valueDisplayValue: data?.session?.enable_recording_network_contents
+            valueDisplayValue: session?.enable_recording_network_contents
                 ? 'Enabled'
                 : 'Disabled',
             renderType: 'string',
@@ -113,26 +103,26 @@ const MetadataPanel = () => {
         },
     ];
 
-    if (data?.session?.city) {
+    if (session?.city) {
         sessionData.push({
             keyDisplayValue: 'Location',
-            valueDisplayValue: `${data?.session?.city}, ${data?.session?.state} ${data?.session?.postal}`,
+            valueDisplayValue: `${session?.city}, ${session?.state} ${session?.postal}`,
             renderType: 'string',
         });
     }
 
     // Data exposed to Highlight employees.
-    if (a_data?.admin?.email.includes('highlight.run')) {
-        if (data?.session?.object_storage_enabled) {
+    if (isHighlightAdmin) {
+        if (session?.object_storage_enabled) {
             sessionData.push({
                 keyDisplayValue: 'Session Size',
-                valueDisplayValue: `${formatSize(data.session.payload_size)}`,
+                valueDisplayValue: `${formatSize(session.payload_size)}`,
                 renderType: 'string',
             });
         }
         sessionData.push({
             keyDisplayValue: 'Firstload Version',
-            valueDisplayValue: data?.session?.client_version || 'Unknown',
+            valueDisplayValue: session?.client_version || 'Unknown',
             renderType: 'string',
         });
     }
@@ -140,8 +130,8 @@ const MetadataPanel = () => {
     const userData: KeyValueTableRow[] = [
         {
             keyDisplayValue: 'Identifer',
-            valueDisplayValue: data?.session?.identifier || 'Not Set',
-            valueInfoTooltipMessage: !data?.session?.identifier && (
+            valueDisplayValue: session?.identifier || 'Not Set',
+            valueInfoTooltipMessage: !session?.identifier && (
                 <>
                     Did you know that you can enrich sessions with additional
                     metadata? They'll show up here. You can{' '}
@@ -159,7 +149,7 @@ const MetadataPanel = () => {
         },
         {
             keyDisplayValue: 'Locale',
-            valueDisplayValue: data?.session?.language || 'Unknown',
+            valueDisplayValue: session?.language || 'Unknown',
             renderType: 'string',
         },
     ];
@@ -174,16 +164,16 @@ const MetadataPanel = () => {
 
     const deviceData: KeyValueTableRow[] = [];
 
-    if (data?.session?.fingerprint) {
+    if (session?.fingerprint) {
         deviceData.push({
             keyDisplayValue: 'Device ID',
             valueDisplayValue: (
                 <Link
                     to={`/${organization_id}/sessions?${new URLSearchParams({
-                        [SessionPageSearchParams.deviceId]: data.session.fingerprint.toString(),
+                        [SessionPageSearchParams.deviceId]: session.fingerprint.toString(),
                     }).toString()}`}
                 >
-                    #{data?.session?.fingerprint}
+                    #{session?.fingerprint}
                 </Link>
             ),
             renderType: 'string',
@@ -192,7 +182,7 @@ const MetadataPanel = () => {
 
     return (
         <div className={styles.metadataPanel}>
-            {loading && !data?.session ? (
+            {!session ? (
                 <Skeleton
                     count={4}
                     height={35}
