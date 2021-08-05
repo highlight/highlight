@@ -1,5 +1,7 @@
 .locationBox {
     background-color: var(--color-primary-background);
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--border-radius);
     box-sizing: border-box;
     column-gap: var(--size-small);
     display: flex;

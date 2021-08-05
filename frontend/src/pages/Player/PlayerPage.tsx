@@ -172,10 +172,10 @@ const Player = () => {
                 )}
                 {!!session || replayerState !== ReplayerState.Empty ? (
                     <div className={styles.playerCenterPanel}>
-                        <SessionLevelBar />
                         <div className={styles.playerContainer}>
                             <div className={styles.rrwebPlayerSection}>
                                 <div className={styles.playerCenterColumn}>
+                                    <SessionLevelBar />
                                     <div
                                         className={styles.rrwebPlayerWrapper}
                                         ref={playerWrapperRef}

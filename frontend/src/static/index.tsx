@@ -64,6 +64,7 @@ export { default as Segment } from './Segment';
 export { default as SessionsIcon } from './SessionsIcon';
 export { default as SettingsIcon } from './SettingsIcon';
 export { default as SetupIcon } from './SetupIcon';
+export { default as ShareIcon } from './ShareIcon';
 export { default as ShieldWarningIcon } from './ShieldWarningIcon';
 export { default as SkipForwardIcon } from './SkipForwardIcon';
 export { default as Star } from './Star';

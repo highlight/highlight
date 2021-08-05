@@ -29,6 +29,7 @@ const RightPlayerPanel = () => {
                     centered
                     id="PlayerRightPanel"
                     noPadding
+                    className={styles.tabs}
                     tabs={[
                         {
                             title: 'Events',

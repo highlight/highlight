@@ -8,7 +8,6 @@ import { ReactComponent as LockIcon } from '../../../static/lock.svg';
 import { ReplayerState, useReplayerContext } from '../ReplayerContext';
 import ShareButton from '../ShareButton/ShareButton';
 import { CurrentUrlBar } from './CurrentUrlBar/CurrentUrlBar';
-import PanelDisplayControls from './PanelDisplayControls/PanelDisplayControls';
 import styles from './SessionLevelBar.module.scss';
 import SessionToken from './SessionToken/SessionToken';
 import { findFirstEventOfType } from './utils/utils';
@@ -76,47 +75,46 @@ const SessionLevelBar = () => {
         !session;
 
     return (
-        <div className={styles.sessionLevelBarContainer}>
-            {isLoading ? (
-                <div className={styles.skeletonContainer}>
-                    <Skeleton count={1} width="100%" height="100%" />
-                </div>
-            ) : (
-                <>
-                    <CurrentUrlBar url={currentUrl ?? ''} />
-                    <SessionToken
-                        icon={<LayoutIcon />}
-                        tooltipTitle="The user's current viewport size in pixels."
-                    >
-                        {viewport?.height} x {viewport?.width}
-                    </SessionToken>
-                    <SessionToken
-                        icon={<LockIcon />}
-                        tooltipTitle={
-                            <>
-                                {session?.enable_strict_privacy
-                                    ? 'Text and images in this session are obfuscated.'
-                                    : 'This session is recording all content on the page.'}{' '}
-                                <a
-                                    href="https://docs.highlight.run/docs/privacy#overview"
-                                    target="_blank"
-                                    rel="noreferrer"
-                                >
-                                    Learn more about Strict Privacy Mode.
-                                </a>
-                            </>
-                        }
-                    >
-                        {session?.enable_strict_privacy
-                            ? 'Privacy on'
-                            : 'Privacy off'}
-                    </SessionToken>
-                    <div className={styles.endContainer}>
-                        <PanelDisplayControls />
-                        <ShareButton className={styles.shareButton} />
+        <div className={styles.container}>
+            <div className={styles.sessionLevelBarContainer}>
+                {isLoading ? (
+                    <div className={styles.skeletonContainer}>
+                        <Skeleton count={1} width="100%" height="100%" />
                     </div>
-                </>
-            )}
+                ) : (
+                    <>
+                        <CurrentUrlBar url={currentUrl ?? ''} />
+                        <SessionToken
+                            icon={<LayoutIcon />}
+                            tooltipTitle="The user's current viewport size in pixels."
+                        >
+                            {viewport?.height} x {viewport?.width}
+                        </SessionToken>
+                        <SessionToken
+                            icon={<LockIcon />}
+                            tooltipTitle={
+                                <>
+                                    {session?.enable_strict_privacy
+                                        ? 'Text and images in this session are obfuscated.'
+                                        : 'This session is recording all content on the page.'}{' '}
+                                    <a
+                                        href="https://docs.highlight.run/docs/privacy#overview"
+                                        target="_blank"
+                                        rel="noreferrer"
+                                    >
+                                        Learn more about Strict Privacy Mode.
+                                    </a>
+                                </>
+                            }
+                        >
+                            {session?.enable_strict_privacy
+                                ? 'Privacy on'
+                                : 'Privacy off'}
+                        </SessionToken>
+                    </>
+                )}
+            </div>
+            <ShareButton className={styles.shareButton} />
         </div>
     );
 };
