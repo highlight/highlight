@@ -38,7 +38,7 @@ export const NewCommentForm = ({
 }: Props) => {
     const { time } = useReplayerContext();
     const [createComment] = useCreateSessionCommentMutation();
-    const { admin } = useAuthContext();
+    const { admin, isLoggedIn } = useAuthContext();
     const { session_id, organization_id } = useParams<{
         session_id: string;
         organization_id: string;
@@ -55,7 +55,7 @@ export const NewCommentForm = ({
         selectedTimelineAnnotationTypes,
         setSelectedTimelineAnnotationTypes,
     } = usePlayerConfiguration();
-    const { data } = useGetAdminsQuery({
+    const { data: adminsInOrganization } = useGetAdminsQuery({
         variables: { organization_id },
     });
     const [mentionedAdmins, setMentionedAdmins] = useState<
@@ -128,8 +128,16 @@ export const NewCommentForm = ({
     };
 
     const adminSuggestions: AdminSuggestion[] = useMemo(
-        () => parseAdminSuggestions(data, admin, mentionedAdmins),
-        [admin, data, mentionedAdmins]
+        () =>
+            // Guests cannot @mention a admin.
+            isLoggedIn
+                ? parseAdminSuggestions(
+                      adminsInOrganization,
+                      admin,
+                      mentionedAdmins
+                  )
+                : [],
+        [admin, adminsInOrganization, isLoggedIn, mentionedAdmins]
     );
 
     const onDisplayTransform = (_id: string, display: string): string => {
@@ -146,7 +154,7 @@ export const NewCommentForm = ({
 
         setMentionedAdmins(
             mentions.map((mention) => {
-                const admin = data?.admins?.find((admin) => {
+                const admin = adminsInOrganization?.admins?.find((admin) => {
                     return admin?.id === mention.id;
                 });
                 return { id: mention.id, email: admin?.email || '' };
