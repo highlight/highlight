@@ -198,7 +198,7 @@ type ComplexityRoot struct {
 		CreateErrorComment              func(childComplexity int, organizationID int, errorGroupID int, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, errorURL string, authorName string) int
 		CreateErrorSegment              func(childComplexity int, organizationID int, name string, params model.ErrorSearchParamsInput) int
 		CreateOrUpdateSubscription      func(childComplexity int, organizationID int, planType model.PlanType) int
-		CreateOrUpdateSubscriptionOnOrg func(childComplexity int, organizationID int, planType model.PlanType) int
+		CreateOrUpdateSubscriptionOnOrg func(childComplexity int, organizationID int) int
 		CreateOrganization              func(childComplexity int, name string) int
 		CreateSegment                   func(childComplexity int, organizationID int, name string, params model.SearchParamsInput) int
 		CreateSessionComment            func(childComplexity int, organizationID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) int
@@ -468,7 +468,7 @@ type MutationResolver interface {
 	DeleteErrorSegment(ctx context.Context, segmentID int) (*bool, error)
 	EditRecordingSettings(ctx context.Context, organizationID int, details *string) (*model1.RecordingSettings, error)
 	CreateOrUpdateSubscription(ctx context.Context, organizationID int, planType model.PlanType) (*string, error)
-	CreateOrUpdateSubscriptionOnOrg(ctx context.Context, organizationID int, planType model.PlanType) (*string, error)
+	CreateOrUpdateSubscriptionOnOrg(ctx context.Context, organizationID int) (*string, error)
 	CreateSessionComment(ctx context.Context, organizationID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model1.SessionComment, error)
 	DeleteSessionComment(ctx context.Context, id int) (*bool, error)
 	CreateErrorComment(ctx context.Context, organizationID int, errorGroupID int, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, errorURL string, authorName string) (*model1.ErrorComment, error)
@@ -1215,7 +1215,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateOrUpdateSubscriptionOnOrg(childComplexity, args["organization_id"].(int), args["plan_type"].(model.PlanType)), true
+		return e.complexity.Mutation.CreateOrUpdateSubscriptionOnOrg(childComplexity, args["organization_id"].(int)), true
 
 	case "Mutation.createOrganization":
 		if e.complexity.Mutation.CreateOrganization == nil {
@@ -3285,7 +3285,6 @@ type Mutation {
     ): String
     createOrUpdateSubscriptionOnOrg(
         organization_id: ID!
-        plan_type: PlanType!
     ): String
     createSessionComment(
         organization_id: ID!
@@ -3522,15 +3521,6 @@ func (ec *executionContext) field_Mutation_createOrUpdateSubscriptionOnOrg_args(
 		}
 	}
 	args["organization_id"] = arg0
-	var arg1 model.PlanType
-	if tmp, ok := rawArgs["plan_type"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("plan_type"))
-		arg1, err = ec.unmarshalNPlanType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐPlanType(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["plan_type"] = arg1
 	return args, nil
 }
 
@@ -8745,7 +8735,7 @@ func (ec *executionContext) _Mutation_createOrUpdateSubscriptionOnOrg(ctx contex
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateOrUpdateSubscriptionOnOrg(rctx, args["organization_id"].(int), args["plan_type"].(model.PlanType))
+		return ec.resolvers.Mutation().CreateOrUpdateSubscriptionOnOrg(rctx, args["organization_id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

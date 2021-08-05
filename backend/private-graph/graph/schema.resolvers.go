@@ -707,7 +707,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	return &stripeSession.ID, nil
 }
 
-func (r *mutationResolver) CreateOrUpdateSubscriptionOnOrg(ctx context.Context, organizationID int, planType modelInputs.PlanType) (*string, error) {
+func (r *mutationResolver) CreateOrUpdateSubscriptionOnOrg(ctx context.Context, organizationID int) (*string, error) {
 	org, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
@@ -732,7 +732,7 @@ func (r *mutationResolver) CreateOrUpdateSubscriptionOnOrg(ctx context.Context, 
 	// mark sessions as within billing quota on plan upgrade
 	// this code is repeated as the first time, the user already has a billing plan and the function returns early.
 	// here, the user doesn't already have a billing plan, so it's considered an upgrade unless the plan is free
-	go r.UpdateSessionsVisibility(organizationID, planType, modelInputs.PlanTypeFree)
+	go r.UpdateSessionsVisibility(organizationID, pricing.FromPriceID(planTypeId), modelInputs.PlanTypeFree)
 
 	return &planTypeId, nil
 }
