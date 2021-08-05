@@ -2,6 +2,7 @@ import classNames from 'classnames';
 import React, { PropsWithChildren } from 'react';
 import { SuggestionDataItem } from 'react-mentions';
 
+import { useAuthContext } from '../../AuthContext';
 import { GetAdminsQuery } from '../../graph/generated/operations';
 import { Admin, SanitizedAdminInput } from '../../graph/generated/schemas';
 import { AdminAvatar } from '../Avatar/Avatar';
@@ -61,6 +62,8 @@ export const CommentHeader = ({
     menu: JSX.Element;
     footer?: React.ReactNode;
 }>) => {
+    const { isLoggedIn } = useAuthContext();
+
     return (
         <>
             <div className={classNames(styles.commentHeader)}>
@@ -75,7 +78,9 @@ export const CommentHeader = ({
                     </span>
                 </div>
                 <span className={styles.endActions}>
-                    <DotsMenu menu={menu} trackingId="CommentsHeader" />
+                    {isLoggedIn && (
+                        <DotsMenu menu={menu} trackingId="CommentsHeader" />
+                    )}
                 </span>
                 <div className={styles.childrenContainer}>{children}</div>
                 {footer && <div className={styles.footer}>{footer}</div>}
