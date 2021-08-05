@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
 import usePlayerConfiguration from '../PlayerHook/utils/usePlayerConfiguration';
+import tourStyles from './PlayerPageProductTour.module.scss';
 
 const PlayerPageProductTour = () => {
     const [startTour] = useQueryParam('demo', BooleanParam);
@@ -106,7 +107,10 @@ const PlayerPageProductTour = () => {
                 }}
                 enabled={enableTour}
                 steps={steps}
-                options={{ doneLabel: 'Start Debugging' }}
+                options={{
+                    doneLabel: 'Start Debugging',
+                    tooltipClass: tourStyles.tooltipClass,
+                }}
                 initialStep={0}
                 onExit={() => {
                     setEnableTour(false);
