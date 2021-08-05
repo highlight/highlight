@@ -94,7 +94,7 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	if err := w.Resolver.DB.Unscoped().Where(&model.MessagesObject{SessionID: s.ID}).Delete(&model.MessagesObject{}).Error; err != nil {
 		return errors.Wrap(err, "error deleting all messages")
 	}
-	log.Infof("parsed session (%d)", s.ID)
+	log.WithFields(log.Fields{"session_id": s.ID, "org_id": s.OrganizationID}).Infof("parsed session")
 	return nil
 }
 
@@ -234,7 +234,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	//Delete the session if there's no events.
 	if payloadManager.Events.Length == 0 {
-		log.Infof("there are no events for session (%d)", s.ID)
+		log.WithFields(log.Fields{"session_id": s.ID, "org_id": s.OrganizationID}).Warn("there are no events for session")
 		if err := w.Resolver.DB.Select(clause.Associations).Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
 			return errors.Wrap(err, "error trying to delete associations for session with no events")
 		}
@@ -246,7 +246,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	// need to reset file pointer to beginning of file for reading
 	for _, file := range []*os.File{eventsFile, resourcesFile, messagesFile} {
-		log.Infof("resetting file pointer (%s) for session (%d)", file.Name(), s.ID)
+		log.WithFields(log.Fields{"session_id": s.ID, "org_id": s.OrganizationID}).Infof("resetting file pointer (%s)", file.Name())
 		_, err = file.Seek(0, io.SeekStart)
 		if err != nil {
 			log.WithField("file_name", file.Name()).Errorf("error seeking to beginning of file: %v", err)
@@ -261,7 +261,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	re := p.Reader()
 	hasNext := true
 	for hasNext {
-		log.Infof("in loop for session: %d", s.ID)
 		se, err := re.Next()
 		if err != nil {
 			if !errors.Is(err, io.EOF) {
@@ -272,7 +271,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		if se != nil && *se != "" {
 			eventsObject := model.EventsObject{Events: *se}
 			var tempDuration time.Duration
-			log.Infof("calculating active duration for session (%d)", s.ID)
 			tempDuration, firstEventTimestamp, lastEventTimestamp, err = getActiveDuration(&eventsObject, firstEventTimestamp, lastEventTimestamp)
 			if err != nil {
 				return e.Wrap(err, "error getting active duration")
@@ -283,7 +281,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// hlog.Histogram("worker.processSession.payloadStringSize", float64(payloadStringBytes), nil, 1) //nolint
 
 	// Calculate total session length and write the length to the session.
-	log.Infof("calculating session length for session (%d)", s.ID)
 	sessionTotalLength := CalculateSessionLength(firstEventTimestamp, lastEventTimestamp)
 	sessionTotalLengthInMilliseconds := sessionTotalLength.Milliseconds()
 
@@ -291,7 +288,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// 1. Nothing happened in the session
 	// 2. A web crawler visited the page and produced no events
 	if activeDuration == 0 {
-		log.Infof("active duration is 0 for session (%d)", s.ID)
+		log.WithFields(log.Fields{"session_id": s.ID, "org_id": s.OrganizationID}).Warn("active duration is 0 for session, deleting...")
 		if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Delete(&model.EventsObject{}).Error; err != nil {
 			return errors.Wrap(err, "error trying to delete events_object for session of length 0ms")
 		}
@@ -487,14 +484,14 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	// Waits for all goroutines to finish, then returns the first non-nil error (if any).
 	if err := g.Wait(); err != nil {
-		log.Error(err)
+		log.WithFields(log.Fields{"session_id": s.ID, "org_id": s.OrganizationID}).Error(e.Wrap(err, "error sending slack alert"))
 	}
 
 	// Upload to s3 and wipe from the db.
 	if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" {
 		state := "normal"
 		if err := w.pushToObjectStorageAndWipe(ctx, s, &state, eventsFile, resourcesFile, messagesFile); err != nil {
-			log.Errorf("error pushing to object and wiping from db (%v): %v", s.ID, err)
+			log.WithFields(log.Fields{"session_id": s.ID, "org_id": s.OrganizationID}).Error(e.Wrap(err, "error pushing to object and wiping from db"))
 		}
 	}
 	return nil
@@ -542,14 +539,14 @@ func (w *Worker) Start() {
 
 		for _, session := range sessions {
 			span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"), tracer.Tag("session_id", strconv.Itoa(session.ID)))
-			log.Infof("beginning to process session: %v", session.ID)
+			log.WithField("session_id", session.ID).Info("beginning to process session")
 			if err := w.processSession(ctx, session); err != nil {
-				log.Errorf("error processing main session(%v): %v", session.ID, err)
+				log.WithField("session_id", session.ID).Error(e.Wrap(err, "error processing main session"))
 				tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID))
 				span.Finish()
 				continue
 			}
-			log.Infof("successfully processed session: %v", session.ID)
+			log.WithField("session_id", session.ID).Info("successfully processed session")
 			span.Finish()
 		}
 		workerSpan.Finish()
