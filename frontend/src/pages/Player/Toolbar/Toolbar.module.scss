@@ -131,6 +131,10 @@
         margin-right: var(--size-xxSmall);
         margin-top: var(--size-xxSmall);
     }
+
+    > *:last-child {
+        margin-right: 0;
+    }
 }
 
 .toolbarSection {

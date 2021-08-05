@@ -120,17 +120,20 @@ const TimelineAnnotationsSettings = ({ disabled }: Props) => {
                 disabled={disabled}
             >
                 <div className={styles.eventTypesContainer}>
-                    {selectedTimelineAnnotationTypes.map((eventType) => (
-                        <div
-                            key={eventType}
-                            className={styles.eventType}
-                            style={{
-                                backgroundColor: `var(${getAnnotationColor(
-                                    eventType
-                                )})`,
-                            }}
-                        ></div>
-                    ))}
+                    {selectedTimelineAnnotationTypes
+                        //     Show at most 3 dots
+                        .slice(0, 3)
+                        .map((eventType) => (
+                            <div
+                                key={eventType}
+                                className={styles.eventType}
+                                style={{
+                                    backgroundColor: `var(${getAnnotationColor(
+                                        eventType
+                                    )})`,
+                                }}
+                            ></div>
+                        ))}
                     <span className={styles.label}>
                         {selectedTimelineAnnotationTypes.length} types...
                     </span>
