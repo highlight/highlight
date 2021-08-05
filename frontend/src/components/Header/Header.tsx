@@ -13,6 +13,7 @@ import { isOrganizationWithinTrial } from '../../util/billing/billing';
 import { HighlightLogo } from '../HighlightLogo/HighlightLogo';
 import { SidebarState, useSidebarContext } from '../Sidebar/SidebarContext';
 import { CommandBar } from './CommandBar/CommandBar';
+import FeedbackButton from './components/FeedbackButton/FeedbackButton';
 import HeaderActions from './components/HeaderActions';
 import styles from './Header.module.scss';
 import { UserDropdown } from './UserDropdown/UserDropdown';
@@ -54,6 +55,7 @@ export const Header = () => {
                     </div>
                     <div className={styles.rightHeader}>
                         <HeaderActions />
+                        <FeedbackButton />
                         {isLoggedIn && <UserDropdown />}
                     </div>
                 </div>
