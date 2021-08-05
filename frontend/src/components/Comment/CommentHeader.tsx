@@ -16,11 +16,14 @@ export interface AdminSuggestion extends SuggestionDataItem {
 }
 
 export const parseAdminSuggestions = (
+    /** A list of all admins in the organization. */
     data: GetAdminsQuery | undefined,
-    admin: Admin | undefined,
+    /** The current logged in admin. */
+    currentAdmin: Admin | undefined,
+    /** A list of admins that have already been mentioned. */
     mentionedAdmins: SanitizedAdminInput[]
 ): AdminSuggestion[] => {
-    if (!data?.admins || !admin) {
+    if (!data?.admins || !currentAdmin) {
         return [];
     }
 
@@ -30,7 +33,7 @@ export const parseAdminSuggestions = (
             .filter(
                 (admin) =>
                     // 1. The admin that is creating the comment
-                    admin!.email !== admin!.email &&
+                    admin!.email !== currentAdmin!.email &&
                     // 2. Admins that are already mentioned
                     !mentionedAdmins.some(
                         (mentionedAdmin) => mentionedAdmin.id === admin?.id
