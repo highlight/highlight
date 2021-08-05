@@ -86,7 +86,6 @@ const BillingPage = () => {
         billingError,
         createOrUpdateSubscriptionOnOrg,
         organization_id,
-        data,
     ]);
 
     const createOnSelect = (newPlan: PlanType) => {
