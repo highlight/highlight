@@ -11,6 +11,7 @@ import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import Progress from '../../components/Progress/Progress';
 import {
     useCreateOrUpdateSubscriptionMutation,
+    useCreateOrUpdateSubscriptionOnOrgMutation,
     useGetBillingDetailsQuery,
 } from '../../graph/generated/hooks';
 import { PlanType } from '../../graph/generated/schemas';
@@ -59,10 +60,19 @@ const BillingPage = () => {
         { data },
     ] = useCreateOrUpdateSubscriptionMutation();
 
+    const [
+        createOrUpdateSubscriptionOnOrg,
+    ] = useCreateOrUpdateSubscriptionOnOrgMutation();
+
     useEffect(() => {
         const response = pathname.split('/')[3] ?? '';
         if (response === 'success') {
             message.success('Billing change applied!', 5);
+            createOrUpdateSubscriptionOnOrg({
+                variables: {
+                    organization_id: organization_id,
+                },
+            });
         }
         if (checkoutRedirectFailedMessage) {
             message.error(checkoutRedirectFailedMessage, 5);
@@ -70,7 +80,14 @@ const BillingPage = () => {
         if (billingError) {
             message.error(billingError.message, 5);
         }
-    }, [pathname, checkoutRedirectFailedMessage, billingError]);
+    }, [
+        pathname,
+        checkoutRedirectFailedMessage,
+        billingError,
+        createOrUpdateSubscriptionOnOrg,
+        organization_id,
+        data,
+    ]);
 
     const createOnSelect = (newPlan: PlanType) => {
         return async () => {

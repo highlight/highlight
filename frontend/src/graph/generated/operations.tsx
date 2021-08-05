@@ -31,6 +31,14 @@ export type CreateOrUpdateSubscriptionMutation = {
     __typename?: 'Mutation';
 } & Pick<Types.Mutation, 'createOrUpdateSubscription'>;
 
+export type CreateOrUpdateSubscriptionOnOrgMutationVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+}>;
+
+export type CreateOrUpdateSubscriptionOnOrgMutation = {
+    __typename?: 'Mutation';
+} & Pick<Types.Mutation, 'createOrUpdateSubscriptionOnOrg'>;
+
 export type UpdateErrorGroupStateMutationVariables = Types.Exact<{
     id: Types.Scalars['ID'];
     state: Types.Scalars['String'];

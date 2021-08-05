@@ -22,6 +22,10 @@ mutation CreateOrUpdateSubscription(
     )
 }
 
+mutation CreateOrUpdateSubscriptionOnOrg($organization_id: ID!) {
+    createOrUpdateSubscriptionOnOrg(organization_id: $organization_id)
+}
+
 mutation updateErrorGroupState($id: ID!, $state: String!) {
     updateErrorGroupState(id: $id, state: $state) {
         id
