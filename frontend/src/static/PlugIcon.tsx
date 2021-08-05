@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-function SvgPlayIcon(props: React.SVGProps<SVGSVGElement>) {
+function SvgPlugIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
         <svg
             width="1em"
@@ -14,10 +14,10 @@ function SvgPlayIcon(props: React.SVGProps<SVGSVGElement>) {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={1.5}
-                d="M18.25 12L5.75 5.75v12.5L18.25 12z"
+                d="M18.281 12.031L11.97 5.72a1 1 0 00-1.596.249L6.75 13 11 17.25l7.032-3.623a1 1 0 00.25-1.596zM4.75 19.25L8.5 15.5M13.75 7.25l2.5-2.5M16.75 10.25l2.5-2.5"
             />
         </svg>
     );
 }
 
-export default SvgPlayIcon;
+export default SvgPlugIcon;

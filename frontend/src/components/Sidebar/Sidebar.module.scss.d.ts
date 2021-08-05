@@ -12,7 +12,6 @@ export const link: string;
 export const miniRow: string;
 export const miniSidebarIconWrapper: string;
 export const open: string;
-export const rotated: string;
 export const row: string;
 export const rowText: string;
 export const selected: string;

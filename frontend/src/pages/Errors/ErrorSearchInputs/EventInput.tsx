@@ -6,7 +6,7 @@ import AsyncCreatableSelect from 'react-select/async-creatable';
 import { SearchMatchOption } from '../../../components/Option/Option';
 import Switch from '../../../components/Switch/Switch';
 import { useGetErrorFieldSuggestionQuery } from '../../../graph/generated/hooks';
-import { ReactComponent as ErrorsIcon } from '../../../static/errors-icon.svg';
+import SvgBugIcon from '../../../static/BugIcon';
 import inputStyles from '../../Sessions/SearchInputs/InputStyles.module.scss';
 import {
     ContainsLabel,
@@ -63,7 +63,7 @@ export const EventInput = () => {
                 components={{
                     DropdownIndicator: () => (
                         <div className={inputStyles.iconWrapper}>
-                            <ErrorsIcon fill="#808080" />
+                            <SvgBugIcon />
                         </div>
                     ),
                     Option: (props) => <SearchMatchOption {...props} />,

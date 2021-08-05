@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 
 import { PlayerSearchParameters } from '../../../../pages/Player/PlayerHook/utils';
 import CommentTextBody from '../../../../pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody';
-import SvgErrorsIcon from '../../../../static/ErrorsIcon';
+import SvgBugIcon from '../../../../static/BugIcon';
 import SvgMessageIcon from '../../../../static/MessageIcon';
 import { AdminAvatar } from '../../../Avatar/Avatar';
 import Dot from '../../../Dot/Dot';
@@ -58,7 +58,7 @@ export default CommentNotification;
 const getIcon = (type: NotificationType) => {
     switch (type) {
         case NotificationType.ErrorComment:
-            return <SvgErrorsIcon />;
+            return <SvgBugIcon />;
         case NotificationType.SessionComment:
             return <SvgMessageIcon />;
     }
