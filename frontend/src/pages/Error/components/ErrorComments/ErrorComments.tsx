@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { OnChangeHandlerFunc } from 'react-mentions';
 import { useParams } from 'react-router-dom';
 
+import { useAuthContext } from '../../../../AuthContext';
 import Button from '../../../../components/Button/Button/Button';
 import {
     AdminSuggestion,
@@ -13,12 +14,11 @@ import {
 import {
     useCreateErrorCommentMutation,
     useDeleteErrorCommentMutation,
-    useGetAdminQuery,
     useGetAdminsQuery,
     useGetErrorCommentsQuery,
 } from '../../../../graph/generated/hooks';
 import { SanitizedAdminInput } from '../../../../graph/generated/schemas';
-import CommentTextBody from '../../../Player/Toolbar/NewCommentEntry/CommentTextBody/CommentTextBody';
+import CommentTextBody from '../../../Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody';
 import styles from '../../ErrorPage.module.scss';
 
 const ErrorComments = () => {
@@ -31,7 +31,7 @@ const ErrorComments = () => {
             error_group_id: error_id,
         },
     });
-    const { data: admin_data } = useGetAdminQuery({ skip: false });
+    const { admin } = useAuthContext();
     const [createComment] = useCreateErrorCommentMutation();
     const [commentText, setCommentText] = useState('');
     const [commentTextForEmail, setCommentTextForEmail] = useState('');
@@ -56,10 +56,7 @@ const ErrorComments = () => {
                     text_for_email: commentTextForEmail.trim(),
                     error_url: `${window.location.origin}${window.location.pathname}`,
                     tagged_admins: mentionedAdmins,
-                    author_name:
-                        admin_data?.admin?.name ||
-                        admin_data?.admin?.email ||
-                        'Someone',
+                    author_name: admin?.name || admin?.email || 'Someone',
                 },
                 refetchQueries: ['GetErrorComments'],
             });
@@ -90,8 +87,8 @@ const ErrorComments = () => {
     };
 
     const adminSuggestions: AdminSuggestion[] = useMemo(
-        () => parseAdminSuggestions(data, admin_data, mentionedAdmins),
-        [admin_data, data, mentionedAdmins]
+        () => parseAdminSuggestions(data, admin, mentionedAdmins),
+        [admin, data, mentionedAdmins]
     );
 
     const onDisplayTransform = (_id: string, display: string): string => {

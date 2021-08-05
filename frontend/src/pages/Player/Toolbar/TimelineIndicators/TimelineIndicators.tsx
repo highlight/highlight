@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React from 'react';
+import React, { useRef } from 'react';
 
 import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration';
 import { ReplayerState, useReplayerContext } from '../../ReplayerContext';
@@ -16,9 +16,11 @@ const TimelineIndicators = () => {
         errors,
         sessionComments,
         eventsForTimelineIndicator,
+        playerProgress,
     } = useReplayerContext();
     const { selectedTimelineAnnotationTypes } = usePlayerConfiguration();
     const { openDevTools } = useDevToolsContext();
+    const refContainer = useRef<HTMLDivElement>(null);
 
     if (
         selectedTimelineAnnotationTypes.length === 0 ||
@@ -35,11 +37,17 @@ const TimelineIndicators = () => {
         .filter((error) => !!error.timestamp)
         .sort((a, b) => b.timestamp - a.timestamp);
 
+    const playerProgressIndicatorPosition =
+        !refContainer.current || !playerProgress
+            ? 0
+            : refContainer.current.clientWidth * playerProgress;
+
     return (
         <aside
             className={classNames(styles.container, {
                 [styles.withDevtoolsOpen]: openDevTools,
             })}
+            ref={refContainer}
         >
             {selectedTimelineAnnotationTypes.includes('Errors') &&
                 errorsWithTimestamps.map((error) => {
@@ -79,6 +87,14 @@ const TimelineIndicators = () => {
                     />
                 );
             })}
+            {playerProgress && playerProgress >= 0.01 ? (
+                <div
+                    className={styles.progressIndicator}
+                    style={{
+                        transform: `translateX(${playerProgressIndicatorPosition}px)`,
+                    }}
+                />
+            ) : null}
         </aside>
     );
 };

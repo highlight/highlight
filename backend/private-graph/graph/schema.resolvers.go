@@ -612,24 +612,6 @@ func (r *mutationResolver) DeleteErrorSegment(ctx context.Context, segmentID int
 	return &model.T, nil
 }
 
-func (r *mutationResolver) EditRecordingSettings(ctx context.Context, organizationID int, details *string) (*model.RecordingSettings, error) {
-	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
-		return nil, e.Wrap(err, "admin not found in org")
-	}
-	rec := &model.RecordingSettings{}
-	res := r.DB.Where(&model.RecordingSettings{Model: model.Model{ID: organizationID}}).First(&rec)
-	if err := res.Error; err != nil {
-		return nil, e.Wrap(err, "error querying record")
-	}
-	if err := r.DB.Model(rec).Updates(&model.RecordingSettings{
-		OrganizationID: organizationID,
-		Details:        details,
-	}).Error; err != nil {
-		return nil, e.Wrap(err, "error writing new recording settings")
-	}
-	return rec, nil
-}
-
 func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organizationID int, planType modelInputs.PlanType) (*string, error) {
 	org, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
@@ -739,8 +721,15 @@ func (r *mutationResolver) CreateOrUpdateSubscriptionOnOrg(ctx context.Context, 
 
 func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model.SessionComment, error) {
 	admin, err := r.getCurrentAdmin(ctx)
+	isGuestCreatingSession := false
 	if admin == nil || err != nil {
-		return nil, e.Wrap(err, "Unable to retrieve admin info")
+		isGuestCreatingSession = true
+		admin = &model.Admin{
+			// An Admin record was created manually with an ID of 0.
+			Model: model.Model{
+				ID: 0,
+			},
+		}
 	}
 
 	// All viewers can leave a comment, including guests
@@ -749,12 +738,14 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 	}
 
 	admins := []model.Admin{}
-	for _, a := range taggedAdmins {
-		admins = append(admins,
-			model.Admin{
-				Model: model.Model{ID: a.ID},
-			},
-		)
+	if !isGuestCreatingSession {
+		for _, a := range taggedAdmins {
+			admins = append(admins,
+				model.Admin{
+					Model: model.Model{ID: a.ID},
+				},
+			)
+		}
 	}
 
 	sessionComment := &model.SessionComment{
@@ -774,9 +765,10 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 	}
 	createSessionCommentSpan.Finish()
 
-	commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
-		tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(taggedAdmins)))
-	if len(taggedAdmins) > 0 {
+	if len(taggedAdmins) > 0 && !isGuestCreatingSession {
+		commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
+			tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(taggedAdmins)))
+
 		tos := []*mail.Email{}
 
 		for _, admin := range taggedAdmins {
@@ -810,8 +802,9 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 		if err != nil {
 			return nil, fmt.Errorf("error sending sendgrid email for comments mentions: %v", err)
 		}
+
+		commentMentionEmailSpan.Finish()
 	}
-	commentMentionEmailSpan.Finish()
 	return sessionComment, nil
 }
 
@@ -2154,21 +2147,6 @@ func (r *queryResolver) ErrorSegments(ctx context.Context, organizationID int) (
 	return segments, nil
 }
 
-func (r *queryResolver) RecordingSettings(ctx context.Context, organizationID int) (*model.RecordingSettings, error) {
-	recordingSettings := &model.RecordingSettings{OrganizationID: organizationID}
-	if res := r.DB.Where(&model.RecordingSettings{OrganizationID: organizationID}).First(&recordingSettings); res.Error != nil {
-		newRecordSettings := &model.RecordingSettings{
-			OrganizationID: organizationID,
-			Details:        nil,
-		}
-		if err := r.DB.Create(newRecordSettings).Error; err != nil {
-			return nil, e.Wrap(err, "error creating new recording settings")
-		}
-		recordingSettings = newRecordSettings
-	}
-	return recordingSettings, nil
-}
-
 func (r *queryResolver) APIKeyToOrgID(ctx context.Context, apiKey string) (*int, error) {
 	var orgId int
 	if err := r.DB.Table("organizations").Select("id").Where("secret=?", apiKey).Scan(&orgId).Error; err != nil {
@@ -2210,7 +2188,7 @@ func (r *sessionAlertResolver) UserProperties(ctx context.Context, obj *model.Se
 
 func (r *sessionCommentResolver) Author(ctx context.Context, obj *model.SessionComment) (*modelInputs.SanitizedAdmin, error) {
 	admin := &model.Admin{}
-	if err := r.DB.Where(&model.Admin{Model: model.Model{ID: obj.AdminId}}).First(&admin).Error; err != nil {
+	if err := r.DB.Debug().Where(&model.Admin{Model: model.Model{ID: obj.AdminId}}).First(&admin).Error; err != nil {
 		return nil, e.Wrap(err, "Error finding admin for comment")
 	}
 

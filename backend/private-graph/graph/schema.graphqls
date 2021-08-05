@@ -69,12 +69,6 @@ enum ErrorState {
     IGNORED
 }
 
-type RecordingSettings {
-    id: ID!
-    organization_id: ID!
-    details: String!
-}
-
 type Organization {
     id: ID!
     verbose_id: String!
@@ -460,7 +454,6 @@ type Query {
     admin: Admin
     segments(organization_id: ID!): [Segment]
     error_segments(organization_id: ID!): [ErrorSegment]
-    recording_settings(organization_id: ID!): RecordingSettings
     api_key_to_org_id(api_key: String!): ID
 }
 
@@ -506,10 +499,6 @@ type Mutation {
         params: ErrorSearchParamsInput!
     ): Boolean
     deleteErrorSegment(segment_id: ID!): Boolean
-    editRecordingSettings(
-        organization_id: ID!
-        details: String
-    ): RecordingSettings
     # If this endpoint returns a checkout_id, we initiate a stripe checkout.
     # Otherwise, we simply update the subscription.
     createOrUpdateSubscription(

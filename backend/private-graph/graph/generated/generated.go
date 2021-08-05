@@ -193,35 +193,33 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddAdminToOrganization          func(childComplexity int, organizationID int, inviteID string) int
-		AddSlackIntegrationToWorkspace  func(childComplexity int, organizationID int, code string, redirectPath string) int
-		CreateErrorComment              func(childComplexity int, organizationID int, errorGroupID int, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, errorURL string, authorName string) int
-		CreateErrorSegment              func(childComplexity int, organizationID int, name string, params model.ErrorSearchParamsInput) int
-		CreateOrUpdateSubscription      func(childComplexity int, organizationID int, planType model.PlanType) int
-		CreateOrUpdateSubscriptionOnOrg func(childComplexity int, organizationID int) int
-		CreateOrganization              func(childComplexity int, name string) int
-		CreateSegment                   func(childComplexity int, organizationID int, name string, params model.SearchParamsInput) int
-		CreateSessionComment            func(childComplexity int, organizationID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) int
-		DeleteAdminFromOrganization     func(childComplexity int, organizationID int, adminID int) int
-		DeleteErrorComment              func(childComplexity int, id int) int
-		DeleteErrorSegment              func(childComplexity int, segmentID int) int
-		DeleteOrganization              func(childComplexity int, id int) int
-		DeleteSegment                   func(childComplexity int, segmentID int) int
-		DeleteSessionComment            func(childComplexity int, id int) int
-		EditErrorSegment                func(childComplexity int, id int, organizationID int, params model.ErrorSearchParamsInput) int
-		EditOrganization                func(childComplexity int, id int, name *string, billingEmail *string) int
-		EditRecordingSettings           func(childComplexity int, organizationID int, details *string) int
-		EditSegment                     func(childComplexity int, id int, organizationID int, params model.SearchParamsInput) int
-		EmailSignup                     func(childComplexity int, email string) int
-		MarkSessionAsStarred            func(childComplexity int, id int, starred *bool) int
-		MarkSessionAsViewed             func(childComplexity int, id int, viewed *bool) int
-		SendAdminInvite                 func(childComplexity int, organizationID int, email string, baseURL string) int
-		UpdateErrorAlert                func(childComplexity int, organizationID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
-		UpdateErrorGroupState           func(childComplexity int, id int, state string) int
-		UpdateNewUserAlert              func(childComplexity int, organizationID int, sessionAlertID int, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
-		UpdateSessionIsPublic           func(childComplexity int, sessionID int, isPublic bool) int
-		UpdateTrackPropertiesAlert      func(childComplexity int, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, trackProperties []*model.TrackPropertyInput) int
-		UpdateUserPropertiesAlert       func(childComplexity int, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, userProperties []*model.UserPropertyInput) int
+		AddAdminToOrganization         func(childComplexity int, organizationID int, inviteID string) int
+		AddSlackIntegrationToWorkspace func(childComplexity int, organizationID int, code string, redirectPath string) int
+		CreateErrorComment             func(childComplexity int, organizationID int, errorGroupID int, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, errorURL string, authorName string) int
+		CreateErrorSegment             func(childComplexity int, organizationID int, name string, params model.ErrorSearchParamsInput) int
+		CreateOrUpdateSubscription     func(childComplexity int, organizationID int, planType model.PlanType) int
+		CreateOrganization             func(childComplexity int, name string) int
+		CreateSegment                  func(childComplexity int, organizationID int, name string, params model.SearchParamsInput) int
+		CreateSessionComment           func(childComplexity int, organizationID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) int
+		DeleteAdminFromOrganization    func(childComplexity int, organizationID int, adminID int) int
+		DeleteErrorComment             func(childComplexity int, id int) int
+		DeleteErrorSegment             func(childComplexity int, segmentID int) int
+		DeleteOrganization             func(childComplexity int, id int) int
+		DeleteSegment                  func(childComplexity int, segmentID int) int
+		DeleteSessionComment           func(childComplexity int, id int) int
+		EditErrorSegment               func(childComplexity int, id int, organizationID int, params model.ErrorSearchParamsInput) int
+		EditOrganization               func(childComplexity int, id int, name *string, billingEmail *string) int
+		EditSegment                    func(childComplexity int, id int, organizationID int, params model.SearchParamsInput) int
+		EmailSignup                    func(childComplexity int, email string) int
+		MarkSessionAsStarred           func(childComplexity int, id int, starred *bool) int
+		MarkSessionAsViewed            func(childComplexity int, id int, viewed *bool) int
+		SendAdminInvite                func(childComplexity int, organizationID int, email string, baseURL string) int
+		UpdateErrorAlert               func(childComplexity int, organizationID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
+		UpdateErrorGroupState          func(childComplexity int, id int, state string) int
+		UpdateNewUserAlert             func(childComplexity int, organizationID int, sessionAlertID int, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
+		UpdateSessionIsPublic          func(childComplexity int, sessionID int, isPublic bool) int
+		UpdateTrackPropertiesAlert     func(childComplexity int, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, trackProperties []*model.TrackPropertyInput) int
+		UpdateUserPropertiesAlert      func(childComplexity int, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, userProperties []*model.UserPropertyInput) int
 	}
 
 	NewUsersCount struct {
@@ -274,7 +272,6 @@ type ComplexityRoot struct {
 		OrganizationSuggestion         func(childComplexity int, query string) int
 		Organizations                  func(childComplexity int) int
 		PropertySuggestion             func(childComplexity int, organizationID int, query string, typeArg string) int
-		RecordingSettings              func(childComplexity int, organizationID int) int
 		Referrers                      func(childComplexity int, organizationID int, lookBackPeriod int) int
 		Resources                      func(childComplexity int, sessionID int) int
 		Segments                       func(childComplexity int, organizationID int) int
@@ -289,12 +286,6 @@ type ComplexityRoot struct {
 		UnprocessedSessionsCount       func(childComplexity int, organizationID int) int
 		UserFingerprintCount           func(childComplexity int, organizationID int, lookBackPeriod int) int
 		UserPropertiesAlert            func(childComplexity int, organizationID int) int
-	}
-
-	RecordingSettings struct {
-		Details        func(childComplexity int) int
-		ID             func(childComplexity int) int
-		OrganizationID func(childComplexity int) int
 	}
 
 	ReferrerTablePayload struct {
@@ -466,9 +457,7 @@ type MutationResolver interface {
 	CreateErrorSegment(ctx context.Context, organizationID int, name string, params model.ErrorSearchParamsInput) (*model1.ErrorSegment, error)
 	EditErrorSegment(ctx context.Context, id int, organizationID int, params model.ErrorSearchParamsInput) (*bool, error)
 	DeleteErrorSegment(ctx context.Context, segmentID int) (*bool, error)
-	EditRecordingSettings(ctx context.Context, organizationID int, details *string) (*model1.RecordingSettings, error)
 	CreateOrUpdateSubscription(ctx context.Context, organizationID int, planType model.PlanType) (*string, error)
-	CreateOrUpdateSubscriptionOnOrg(ctx context.Context, organizationID int) (*string, error)
 	CreateSessionComment(ctx context.Context, organizationID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model1.SessionComment, error)
 	DeleteSessionComment(ctx context.Context, id int) (*bool, error)
 	CreateErrorComment(ctx context.Context, organizationID int, errorGroupID int, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, errorURL string, authorName string) (*model1.ErrorComment, error)
@@ -522,7 +511,6 @@ type QueryResolver interface {
 	Admin(ctx context.Context) (*model1.Admin, error)
 	Segments(ctx context.Context, organizationID int) ([]*model1.Segment, error)
 	ErrorSegments(ctx context.Context, organizationID int) ([]*model1.ErrorSegment, error)
-	RecordingSettings(ctx context.Context, organizationID int) (*model1.RecordingSettings, error)
 	APIKeyToOrgID(ctx context.Context, apiKey string) (*int, error)
 }
 type SegmentResolver interface {
@@ -1205,18 +1193,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateOrUpdateSubscription(childComplexity, args["organization_id"].(int), args["plan_type"].(model.PlanType)), true
 
-	case "Mutation.createOrUpdateSubscriptionOnOrg":
-		if e.complexity.Mutation.CreateOrUpdateSubscriptionOnOrg == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_createOrUpdateSubscriptionOnOrg_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.CreateOrUpdateSubscriptionOnOrg(childComplexity, args["organization_id"].(int)), true
-
 	case "Mutation.createOrganization":
 		if e.complexity.Mutation.CreateOrganization == nil {
 			break
@@ -1348,18 +1324,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.EditOrganization(childComplexity, args["id"].(int), args["name"].(*string), args["billing_email"].(*string)), true
-
-	case "Mutation.editRecordingSettings":
-		if e.complexity.Mutation.EditRecordingSettings == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_editRecordingSettings_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.EditRecordingSettings(childComplexity, args["organization_id"].(int), args["details"].(*string)), true
 
 	case "Mutation.editSegment":
 		if e.complexity.Mutation.EditSegment == nil {
@@ -1903,18 +1867,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.PropertySuggestion(childComplexity, args["organization_id"].(int), args["query"].(string), args["type"].(string)), true
 
-	case "Query.recording_settings":
-		if e.complexity.Query.RecordingSettings == nil {
-			break
-		}
-
-		args, err := ec.field_Query_recording_settings_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.RecordingSettings(childComplexity, args["organization_id"].(int)), true
-
 	case "Query.referrers":
 		if e.complexity.Query.Referrers == nil {
 			break
@@ -2077,27 +2029,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.UserPropertiesAlert(childComplexity, args["organization_id"].(int)), true
-
-	case "RecordingSettings.details":
-		if e.complexity.RecordingSettings.Details == nil {
-			break
-		}
-
-		return e.complexity.RecordingSettings.Details(childComplexity), true
-
-	case "RecordingSettings.id":
-		if e.complexity.RecordingSettings.ID == nil {
-			break
-		}
-
-		return e.complexity.RecordingSettings.ID(childComplexity), true
-
-	case "RecordingSettings.organization_id":
-		if e.complexity.RecordingSettings.OrganizationID == nil {
-			break
-		}
-
-		return e.complexity.RecordingSettings.OrganizationID(childComplexity), true
 
 	case "ReferrerTablePayload.count":
 		if e.complexity.ReferrerTablePayload.Count == nil {
@@ -2836,12 +2767,6 @@ enum ErrorState {
     IGNORED
 }
 
-type RecordingSettings {
-    id: ID!
-    organization_id: ID!
-    details: String!
-}
-
 type Organization {
     id: ID!
     verbose_id: String!
@@ -3227,7 +3152,6 @@ type Query {
     admin: Admin
     segments(organization_id: ID!): [Segment]
     error_segments(organization_id: ID!): [ErrorSegment]
-    recording_settings(organization_id: ID!): RecordingSettings
     api_key_to_org_id(api_key: String!): ID
 }
 
@@ -3273,18 +3197,11 @@ type Mutation {
         params: ErrorSearchParamsInput!
     ): Boolean
     deleteErrorSegment(segment_id: ID!): Boolean
-    editRecordingSettings(
-        organization_id: ID!
-        details: String
-    ): RecordingSettings
     # If this endpoint returns a checkout_id, we initiate a stripe checkout.
     # Otherwise, we simply update the subscription.
     createOrUpdateSubscription(
         organization_id: ID!
         plan_type: PlanType!
-    ): String
-    createOrUpdateSubscriptionOnOrg(
-        organization_id: ID!
     ): String
     createSessionComment(
         organization_id: ID!
@@ -3506,21 +3423,6 @@ func (ec *executionContext) field_Mutation_createErrorSegment_args(ctx context.C
 		}
 	}
 	args["params"] = arg2
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_createOrUpdateSubscriptionOnOrg_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["organization_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["organization_id"] = arg0
 	return args, nil
 }
 
@@ -3872,30 +3774,6 @@ func (ec *executionContext) field_Mutation_editOrganization_args(ctx context.Con
 		}
 	}
 	args["billing_email"] = arg2
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_editRecordingSettings_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["organization_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["organization_id"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["details"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("details"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["details"] = arg1
 	return args, nil
 }
 
@@ -4808,21 +4686,6 @@ func (ec *executionContext) field_Query_property_suggestion_args(ctx context.Con
 		}
 	}
 	args["type"] = arg2
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_recording_settings_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["organization_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["organization_id"] = arg0
 	return args, nil
 }
 
@@ -8632,45 +8495,6 @@ func (ec *executionContext) _Mutation_deleteErrorSegment(ctx context.Context, fi
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_editRecordingSettings(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_editRecordingSettings_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditRecordingSettings(rctx, args["organization_id"].(int), args["details"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model1.RecordingSettings)
-	fc.Result = res
-	return ec.marshalORecordingSettings2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐRecordingSettings(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Mutation_createOrUpdateSubscription(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -8697,45 +8521,6 @@ func (ec *executionContext) _Mutation_createOrUpdateSubscription(ctx context.Con
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().CreateOrUpdateSubscription(rctx, args["organization_id"].(int), args["plan_type"].(model.PlanType))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_createOrUpdateSubscriptionOnOrg(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_createOrUpdateSubscriptionOnOrg_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateOrUpdateSubscriptionOnOrg(rctx, args["organization_id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11116,45 +10901,6 @@ func (ec *executionContext) _Query_error_segments(ctx context.Context, field gra
 	return ec.marshalOErrorSegment2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorSegment(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_recording_settings(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_recording_settings_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().RecordingSettings(rctx, args["organization_id"].(int))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model1.RecordingSettings)
-	fc.Result = res
-	return ec.marshalORecordingSettings2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐRecordingSettings(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Query_api_key_to_org_id(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -11263,111 +11009,6 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	res := resTmp.(*introspection.Schema)
 	fc.Result = res
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _RecordingSettings_id(ctx context.Context, field graphql.CollectedField, obj *model1.RecordingSettings) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "RecordingSettings",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNID2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _RecordingSettings_organization_id(ctx context.Context, field graphql.CollectedField, obj *model1.RecordingSettings) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "RecordingSettings",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.OrganizationID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNID2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _RecordingSettings_details(ctx context.Context, field graphql.CollectedField, obj *model1.RecordingSettings) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "RecordingSettings",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Details, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ReferrerTablePayload_host(ctx context.Context, field graphql.CollectedField, obj *model.ReferrerTablePayload) (ret graphql.Marshaler) {
@@ -14097,7 +13738,7 @@ func (ec *executionContext) _TrackProperty_value(ctx context.Context, field grap
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *model1.User) (ret graphql.Marshaler) {
+func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -16614,12 +16255,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_editErrorSegment(ctx, field)
 		case "deleteErrorSegment":
 			out.Values[i] = ec._Mutation_deleteErrorSegment(ctx, field)
-		case "editRecordingSettings":
-			out.Values[i] = ec._Mutation_editRecordingSettings(ctx, field)
 		case "createOrUpdateSubscription":
 			out.Values[i] = ec._Mutation_createOrUpdateSubscription(ctx, field)
-		case "createOrUpdateSubscriptionOnOrg":
-			out.Values[i] = ec._Mutation_createOrUpdateSubscriptionOnOrg(ctx, field)
 		case "createSessionComment":
 			out.Values[i] = ec._Mutation_createSessionComment(ctx, field)
 		case "deleteSessionComment":
@@ -17268,17 +16905,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_error_segments(ctx, field)
 				return res
 			})
-		case "recording_settings":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_recording_settings(ctx, field)
-				return res
-			})
 		case "api_key_to_org_id":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -17294,43 +16920,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
 			out.Values[i] = ec._Query___schema(ctx, field)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var recordingSettingsImplementors = []string{"RecordingSettings"}
-
-func (ec *executionContext) _RecordingSettings(ctx context.Context, sel ast.SelectionSet, obj *model1.RecordingSettings) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, recordingSettingsImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("RecordingSettings")
-		case "id":
-			out.Values[i] = ec._RecordingSettings_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "organization_id":
-			out.Values[i] = ec._RecordingSettings_organization_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "details":
-			out.Values[i] = ec._RecordingSettings_details(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -17946,7 +17535,7 @@ func (ec *executionContext) _TrackProperty(ctx context.Context, sel ast.Selectio
 
 var userImplementors = []string{"User"}
 
-func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj *model1.User) graphql.Marshaler {
+func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj *model.User) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, userImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -19910,13 +19499,6 @@ func (ec *executionContext) marshalOOrganization2ᚖgithubᚗcomᚋhighlightᚑr
 		return graphql.Null
 	}
 	return ec._Organization(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalORecordingSettings2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐRecordingSettings(ctx context.Context, sel ast.SelectionSet, v *model1.RecordingSettings) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._RecordingSettings(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOReferrerTablePayload2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐReferrerTablePayload(ctx context.Context, sel ast.SelectionSet, v *model.ReferrerTablePayload) graphql.Marshaler {
