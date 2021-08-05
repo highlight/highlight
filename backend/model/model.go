@@ -301,8 +301,10 @@ type SessionResults struct {
 
 type Session struct {
 	Model
-	UserID      int `json:"user_id"`
-	Fingerprint int `json:"fingerprint"`
+	// Unguessable, cryptographically random url-safe ID
+	LongID      string `json:"long_id" gorm:"uniqueIndex;not null;default:replace(replace(replace(encode(gen_random_bytes(33), 'base64'),'+','-'),'/','_'),'=','')"`
+	UserID      int    `json:"user_id"`
+	Fingerprint int    `json:"fingerprint"`
 	// User provided identifier (see IdentifySession)
 	Identifier     string `json:"identifier"`
 	OrganizationID int    `json:"organization_id"`
