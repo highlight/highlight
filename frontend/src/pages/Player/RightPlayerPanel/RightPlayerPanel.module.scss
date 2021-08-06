@@ -1,7 +1,7 @@
 .playerRightPanelContainer {
     box-sizing: content-box;
     flex-shrink: 0;
-    width: 350px;
+    width: var(--right-panel-width);
 }
 
 .playerRightPanelCollapsible {

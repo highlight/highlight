@@ -25,6 +25,7 @@ import FullBleedCard from '../../components/FullBleedCard/FullBleedCard';
 import Modal from '../../components/Modal/Modal';
 import { useMarkSessionAsViewedMutation } from '../../graph/generated/hooks';
 import WaitingAnimation from '../../lottie/waiting.json';
+import PanelToggleButton from './components/PanelToggleButton/PanelToggleButton';
 import { HighlightEvent } from './HighlightEvent';
 import PlayerCommentCanvas, {
     Coordinates2D,
@@ -62,14 +63,15 @@ const Player = () => {
         isPlayerReady,
         session,
     } = player;
-    const { setShowLeftPanel } = usePlayerConfiguration();
+    const {
+        setShowLeftPanel,
+        showLeftPanel: showLeftPanelPreference,
+        showRightPanel,
+        setShowRightPanel,
+    } = usePlayerConfiguration();
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     const newCommentModalRef = useRef<HTMLDivElement>(null);
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
-    const {
-        showLeftPanel: showLeftPanelPreference,
-        showRightPanel,
-    } = usePlayerConfiguration();
     const [commentModalPosition, setCommentModalPosition] = useState<
         Coordinates2D | undefined
     >(undefined);
@@ -170,11 +172,28 @@ const Player = () => {
                         </ButtonLink>
                     </FullBleedCard>
                 )}
-                {!!session || replayerState !== ReplayerState.Empty ? (
+                {(canViewSession && !!session) ||
+                replayerState !== ReplayerState.Empty ? (
                     <div className={styles.playerCenterPanel}>
                         <div className={styles.playerContainer}>
                             <div className={styles.rrwebPlayerSection}>
                                 <div className={styles.playerCenterColumn}>
+                                    <PanelToggleButton
+                                        className={classNames(
+                                            styles.panelToggleButton,
+                                            styles.panelToggleButtonLeft,
+                                            {
+                                                [styles.panelShown]: showLeftPanelPreference,
+                                            }
+                                        )}
+                                        direction="left"
+                                        isOpen={showLeftPanelPreference}
+                                        onClick={() => {
+                                            setShowLeftPanel(
+                                                !showLeftPanelPreference
+                                            );
+                                        }}
+                                    />
                                     <SessionLevelBar />
                                     <div
                                         className={styles.rrwebPlayerWrapper}
@@ -268,6 +287,20 @@ const Player = () => {
                                     <Toolbar />
                                 </div>
 
+                                <PanelToggleButton
+                                    className={classNames(
+                                        styles.panelToggleButton,
+                                        styles.panelToggleButtonRight,
+                                        {
+                                            [styles.panelShown]: showRightPanel,
+                                        }
+                                    )}
+                                    direction="right"
+                                    isOpen={showRightPanel}
+                                    onClick={() => {
+                                        setShowRightPanel(!showRightPanel);
+                                    }}
+                                />
                                 <RightPlayerPanel />
                             </div>
                         </div>
