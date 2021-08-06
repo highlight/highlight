@@ -200,7 +200,7 @@ export const Toolbar = () => {
     const disablePlayButton = time >= (replayer?.getMetaData().totalTime ?? 0);
     const leftSidebarWidth = showLeftPanel ? 475 : 0;
     /** 64 (sidebar width) + 12 (left padding for the toolbar)  */
-    const staticSidebarWidth = isLoggedIn ? 64 + 12 : 0;
+    const staticSidebarWidth = isLoggedIn ? 64 + 12 : 12;
 
     return (
         <ErrorModalContextProvider value={{ selectedError, setSelectedError }}>
