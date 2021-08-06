@@ -7,7 +7,6 @@ import SvgDimensionsIcon from '../../../static/DimensionsIcon';
 import { ReplayerState, useReplayerContext } from '../ReplayerContext';
 import ShareButton from '../ShareButton/ShareButton';
 import { CurrentUrlBar } from './CurrentUrlBar/CurrentUrlBar';
-import PanelDisplayControls from './PanelDisplayControls/PanelDisplayControls';
 import styles from './SessionLevelBar.module.scss';
 import SessionToken from './SessionToken/SessionToken';
 import { findFirstEventOfType } from './utils/utils';
@@ -90,7 +89,6 @@ const SessionLevelBar = () => {
                         >
                             {viewport?.height} x {viewport?.width}
                         </SessionToken>
-                        <PanelDisplayControls />
                     </>
                 )}
             </div>

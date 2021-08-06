@@ -5,7 +5,7 @@
     box-sizing: border-box;
     column-gap: var(--size-small);
     display: flex;
-    max-width: 350px;
+    max-width: var(--right-panel-width);
     padding: var(--size-medium) 22px;
     padding-bottom: var(--size-medium);
     position: relative;
@@ -21,7 +21,7 @@
     display: flex;
     flex-direction: row;
     padding: 10px 30px 0;
-    width: 350px;
+    width: var(--right-panel-width);
 }
 
 .avatarWrapper {
