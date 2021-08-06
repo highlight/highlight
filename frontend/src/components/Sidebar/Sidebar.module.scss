@@ -1,17 +1,16 @@
 .sideBar {
-    --top-offset: 80px;
     align-items: center;
     background-color: var(--color-primary-background);
     border-right: 1px solid var(--color-gray-300);
     box-shadow: var(--box-shadow-3);
     display: flex;
     flex-direction: column;
-    height: calc(100% - 80px);
+    height: 100%;
     margin-left: -280px;
     padding: var(--size-large) var(--size-medium);
     position: fixed;
     row-gap: 16px;
-    top: 80px;
+    top: 0;
     transition: margin-left 0.3s ease-in-out;
     width: 280px;
     z-index: 999;
@@ -20,7 +19,7 @@
 .staticSidebarWrapper {
     box-shadow: none;
     margin-left: 0;
-    width: 64px;
+    width: var(--sidebar-width);
 }
 
 .settingsDivider {

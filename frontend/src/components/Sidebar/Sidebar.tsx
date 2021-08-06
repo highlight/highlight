@@ -181,7 +181,6 @@ const StaticSidebar = () => {
                     <Changelog />
                 </div>
             </div>
-            <div style={{ paddingLeft: 62, height: '100%' }} />
         </>
     );
 };
