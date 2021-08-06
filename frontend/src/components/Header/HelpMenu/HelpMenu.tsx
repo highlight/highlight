@@ -39,12 +39,12 @@ const HelpMenu = () => {
         {
             icon: <SvgEditIcon />,
             displayName: 'Changelog',
-            link: 'https://changes.highlight.run',
+            link: 'https://feedback.highlight.run/changelog',
         },
         {
             icon: <FiTwitter />,
             displayName: 'Twitter',
-            link: 'https://changes.highlight.run',
+            link: 'https://twitter.com/highlightrun',
         },
     ];
 
