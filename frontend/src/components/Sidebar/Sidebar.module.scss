@@ -22,7 +22,7 @@
 }
 
 .settingsDivider {
-    background-color: var(--color-gray-300);
+    background-color: var(--color-gray-800);
     flex-shrink: 0;
     height: 2px;
     width: 90%;
@@ -38,11 +38,6 @@
     flex-direction: column;
     height: 100%;
     justify-content: flex-end;
-}
-
-.bottomLinkContainer {
-    display: flex;
-    flex-direction: column;
 }
 
 .bottomWrapper {
@@ -63,13 +58,6 @@
     > button {
         margin-bottom: 0;
     }
-}
-
-.bottomLink {
-    color: var(--color-gray-500);
-    font-size: 12px;
-    margin-top: 8px;
-    text-decoration: underline;
 }
 
 .link:hover {
@@ -97,16 +85,17 @@
 .miniSidebarIconWrapper {
     align-items: center;
     border-radius: 8px;
-    color: var(--color-gray-500) !important;
+    color: var(--color-gray-700) !important;
     display: flex;
-    fill: var(--color-gray-500) !important;
+    fill: var(--color-gray-700) !important;
     justify-content: center;
     padding: 8px;
     transition: 0.3s;
 }
 
 .miniSidebarIconWrapper:hover {
-    background-color: var(--color-gray-200);
+    background-color: var(--color-gray-800);
+    color: var(--text-primary-inverted) !important;
 }
 
 .iconWrapper {
@@ -126,48 +115,17 @@
 }
 
 .selected {
-    background-color: var(--color-gray-200) !important;
-    color: var(--text-primary) !important;
-    fill: var(--text-primary) !important;
+    background-color: var(--color-gray-800) !important;
+    color: var(--text-primary-inverted) !important;
 
     h3 {
         color: var(--text-primary) !important;
     }
 }
 
-.innerButton {
-    align-items: center;
-    border-radius: 6px;
-    color: var(--color-gray-500);
-    display: flex;
-    padding: 10px;
-    padding: var(--size-xSmall) var(--size-small);
-    transition: 0.3s background-color;
-    width: 100%;
-}
-
-.innerButton:hover {
-    background-color: var(--color-gray-200);
-
-    svg {
-        color: var(--text-primary);
-    }
-}
-
 .selectedDiv {
     height: 80%;
     position: absolute;
-}
-
-.rowText {
-    align-items: center;
-    color: var(--color-gray-500) !important;
-    display: flex;
-    font-size: 15px;
-    font-weight: 400;
-    line-height: 1;
-    margin: 0 !important;
-    margin-left: 15px !important;
 }
 
 .changelogContainer {
