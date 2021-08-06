@@ -75,6 +75,7 @@ export { default as ShareIcon } from './ShareIcon';
 export { default as ShieldWarningIcon } from './ShieldWarningIcon';
 export { default as SkipBackIcon } from './SkipBackIcon';
 export { default as SkipForwardIcon } from './SkipForwardIcon';
+export { default as SparklesIcon } from './SparklesIcon';
 export { default as Star } from './Star';
 export { default as StarFilled } from './StarFilled';
 export { default as Tab } from './Tab';
