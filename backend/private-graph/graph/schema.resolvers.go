@@ -612,7 +612,7 @@ func (r *mutationResolver) DeleteErrorSegment(ctx context.Context, segmentID int
 	return &model.T, nil
 }
 
-func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organizationID int, planType modelInputs.PlanType) (*string, error) {
+func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context, organizationID int, planType modelInputs.PlanType) (*string, error) {
 	org, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
@@ -689,7 +689,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	return &stripeSession.ID, nil
 }
 
-func (r *mutationResolver) CreateOrUpdateSubscriptionOnOrg(ctx context.Context, organizationID int) (*string, error) {
+func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, organizationID int) (*bool, error) {
 	org, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
@@ -705,7 +705,7 @@ func (r *mutationResolver) CreateOrUpdateSubscriptionOnOrg(ctx context.Context, 
 		return nil, e.New("no stripe subscription for customer")
 	}
 
-	planTypeId := c.Subscriptions.Data[0].Items.Data[0].ID
+	planTypeId := c.Subscriptions.Data[0].Plan.ID
 
 	organization := model.Organization{Model: model.Model{ID: organizationID}}
 	if err := r.DB.Model(&organization).Updates(model.Organization{StripePriceID: &planTypeId}).Error; err != nil {
@@ -716,7 +716,7 @@ func (r *mutationResolver) CreateOrUpdateSubscriptionOnOrg(ctx context.Context, 
 	// here, the user doesn't already have a billing plan, so it's considered an upgrade unless the plan is free
 	go r.UpdateSessionsVisibility(organizationID, pricing.FromPriceID(planTypeId), modelInputs.PlanTypeFree)
 
-	return &planTypeId, nil
+	return &model.T, nil
 }
 
 func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model.SessionComment, error) {

@@ -12,18 +12,18 @@ mutation MarkSessionAsStarred($id: ID!, $starred: Boolean!) {
     }
 }
 
-mutation CreateOrUpdateSubscription(
+mutation CreateOrUpdateStripeSubscription(
     $organization_id: ID!
     $plan_type: PlanType!
 ) {
-    createOrUpdateSubscription(
+    createOrUpdateStripeSubscription(
         organization_id: $organization_id
         plan_type: $plan_type
     )
 }
 
-mutation CreateOrUpdateSubscriptionOnOrg($organization_id: ID!) {
-    createOrUpdateSubscriptionOnOrg(organization_id: $organization_id)
+mutation UpdateBillingDetails($organization_id: ID!) {
+    updateBillingDetails(organization_id: $organization_id)
 }
 
 mutation updateErrorGroupState($id: ID!, $state: String!) {
