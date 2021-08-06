@@ -3,7 +3,7 @@ import { customEvent } from '@highlight-run/rrweb/dist/types';
 import React, { useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 
-import { ReactComponent as LayoutIcon } from '../../../static/layout.svg';
+import SvgDimensionsIcon from '../../../static/DimensionsIcon';
 import { ReplayerState, useReplayerContext } from '../ReplayerContext';
 import ShareButton from '../ShareButton/ShareButton';
 import { CurrentUrlBar } from './CurrentUrlBar/CurrentUrlBar';
@@ -85,7 +85,7 @@ const SessionLevelBar = () => {
                     <>
                         <CurrentUrlBar url={currentUrl ?? ''} />
                         <SessionToken
-                            icon={<LayoutIcon />}
+                            icon={<SvgDimensionsIcon />}
                             tooltipTitle="The user's current viewport size in pixels."
                         >
                             {viewport?.height} x {viewport?.width}
