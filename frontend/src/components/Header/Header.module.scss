@@ -139,3 +139,9 @@
     margin-left: auto;
     z-index: 200;
 }
+
+.applicationPickerContainer {
+    align-items: center;
+    display: flex;
+    margin-left: calc(-1 * var(--size-medium));
+}

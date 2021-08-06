@@ -18,7 +18,7 @@ export const MiniWorkspaceIcon = () => {
         variables: { id: organization_id },
     });
     return (
-        <div className={styles.workspaceIconMiniWrapper}>
+        <div>
             <div
                 className={styles.workspaceIcon}
                 style={{

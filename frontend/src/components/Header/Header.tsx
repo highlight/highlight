@@ -11,6 +11,7 @@ import { ReactComponent as Banner } from '../../static/banner.svg';
 import { isOrganizationWithinTrial } from '../../util/billing/billing';
 import { HighlightLogo } from '../HighlightLogo/HighlightLogo';
 import { CommandBar } from './CommandBar/CommandBar';
+import ApplicationPicker from './components/ApplicationPicker/ApplicationPicker';
 import FeedbackButton from './components/FeedbackButton/FeedbackButton';
 import HeaderActions from './components/HeaderActions';
 import styles from './Header.module.scss';
@@ -30,14 +31,20 @@ export const Header = () => {
                     <FreePlanBanner />
                 )}
                 <div className={styles.headerContent}>
-                    <div className={styles.logoWrapper}>
-                        <Link
-                            className={styles.homeLink}
-                            to={`/${organization_id}/home`}
-                        >
-                            <HighlightLogo />
-                        </Link>
-                    </div>
+                    {isLoggedIn ? (
+                        <div className={styles.applicationPickerContainer}>
+                            <ApplicationPicker />
+                        </div>
+                    ) : (
+                        <div className={styles.logoWrapper}>
+                            <Link
+                                className={styles.homeLink}
+                                to={`/${organization_id}/home`}
+                            >
+                                <HighlightLogo />
+                            </Link>
+                        </div>
+                    )}
                     <div className={styles.rightHeader}>
                         <HeaderActions />
                         <FeedbackButton />
