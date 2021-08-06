@@ -4,7 +4,6 @@
     column-gap: var(--size-xSmall);
     display: flex;
     line-height: normal;
-    margin: 6px; // The animation for toggling the switch takes up extra space
     transition: color 0.2s ease-in;
 
     &.checked {
