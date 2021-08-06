@@ -29,17 +29,18 @@
     width: 40px;
 
     &:hover .indicatorIcon {
-        background: var(--color-purple-400);
+        background-color: var(--color-purple);
     }
 
     &:active .indicatorIcon {
-        background: var(--color-purple);
+        background-color: var(--color-purple);
     }
 
     .indicatorIcon {
-        background: var(--color-purple-200);
+        background-color: var(--color-gray-700);
         border-radius: 50%;
         height: 14px;
+        transition: background-color 0.2s ease-in-out;
         width: 14px;
 
         &.active {

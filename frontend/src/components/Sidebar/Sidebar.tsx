@@ -11,10 +11,7 @@ import SvgPlugIcon from '../../static/PlugIcon';
 import SvgSessionsIcon from '../../static/SessionsIcon';
 import SvgUsersIcon from '../../static/UsersIcon';
 import Changelog from '../Changelog/Changelog';
-import {
-    MiniWorkspaceIcon,
-    WorkspaceDropdown,
-} from '../Header/WorkspaceDropdown/WorkspaceDropdown';
+import { MiniWorkspaceIcon } from '../Header/WorkspaceDropdown/WorkspaceDropdown';
 import Tooltip from '../Tooltip/Tooltip';
 import styles from './Sidebar.module.scss';
 
@@ -78,67 +75,6 @@ const END_NAVIGATION_ITEMS: NavigationItem[] = [
 export const Sidebar = () => {
     return (
         <>
-            <StaticSidebar />
-            <div className={classNames([styles.sideBar])}>
-                <div style={{ width: '100%' }}>
-                    <WorkspaceDropdown />
-                </div>
-                {LEAD_NAVIGATION_ITEMS.map(({ displayName, Icon, route }) => (
-                    <SidebarItem text={displayName} route={route} key={route}>
-                        <div className={styles.iconWrapper}>
-                            <Icon className={styles.icon} />
-                        </div>
-                    </SidebarItem>
-                ))}
-                <div className={styles.settingsDivider} />
-                {END_NAVIGATION_ITEMS.map(
-                    ({ displayName, Icon, route, className }) => (
-                        <SidebarItem
-                            text={displayName}
-                            route={route}
-                            key={route}
-                        >
-                            <div className={styles.iconWrapper}>
-                                <Icon
-                                    className={classNames(
-                                        styles.icon,
-                                        className
-                                    )}
-                                />
-                            </div>
-                        </SidebarItem>
-                    )
-                )}
-
-                <div className={styles.bottomWrapper}>
-                    <div className={styles.bottomSection}>
-                        <div className={styles.bottomContainer}>
-                            <div className={styles.bottomLinkContainer}>
-                                <Link
-                                    to={'/about/terms'}
-                                    className={styles.bottomLink}
-                                >
-                                    Terms of Service
-                                </Link>
-                                <Link
-                                    className={styles.bottomLink}
-                                    to={'/about/privacy'}
-                                >
-                                    Privacy Policy
-                                </Link>
-                            </div>
-                            <Changelog className={styles.changelogButton} />
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </>
-    );
-};
-
-const StaticSidebar = () => {
-    return (
-        <>
             <div
                 className={classNames(
                     styles.staticSidebarWrapper,
@@ -181,30 +117,7 @@ const StaticSidebar = () => {
                     <Changelog />
                 </div>
             </div>
-            <div style={{ paddingLeft: 62, height: '100%' }} />
         </>
-    );
-};
-
-const SidebarItem: React.FC<{
-    route: string;
-    text: string;
-}> = ({ route, text, children }) => {
-    const { organization_id } = useParams<{ organization_id: string }>();
-    const { pathname } = useLocation();
-    const page = pathname.split('/')[2] ?? '';
-    return (
-        <Link className={styles.row} to={`/${organization_id}/${route}`}>
-            <div
-                className={classNames([
-                    styles.innerButton,
-                    page.includes(route) && styles.selected,
-                ])}
-            >
-                {children}
-                <h3 className={styles.rowText}>{text}</h3>
-            </div>
-        </Link>
     );
 };
 

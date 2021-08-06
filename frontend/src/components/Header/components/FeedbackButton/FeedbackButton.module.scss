@@ -1,6 +1,7 @@
 .feedbackButton {
     align-items: center;
     background: var(--color-primary-inverted-background);
+    border-radius: var(--size-xSmall);
     column-gap: var(--size-xSmall);
     display: flex;
     height: 32px;

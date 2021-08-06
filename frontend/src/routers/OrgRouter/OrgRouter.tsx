@@ -41,6 +41,17 @@ export const OrgRouter = () => {
         };
     }, []);
 
+    useEffect(() => {
+        if (isLoggedIn) {
+            document.documentElement.style.setProperty(
+                '--sidebar-width',
+                '64px'
+            );
+        } else {
+            document.documentElement.style.setProperty('--sidebar-width', '0');
+        }
+    }, [isLoggedIn]);
+
     if (integratedLoading || loading) {
         return null;
     }
@@ -52,6 +63,7 @@ export const OrgRouter = () => {
             }}
         >
             <Header />
+            {isLoggedIn && <Sidebar />}
             <div className={commonStyles.bodyWrapper}>
                 {/* Edge case: shareable links will still direct to this error page if you are logged in on a different org */}
                 {isLoggedIn && (error || !data?.organization) ? (
@@ -67,7 +79,6 @@ export const OrgRouter = () => {
                     />
                 ) : (
                     <>
-                        {isLoggedIn && <Sidebar />}
                         {isLoggedIn && !hasFinishedOnboarding && (
                             <>
                                 <OnboardingBubble />

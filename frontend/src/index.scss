@@ -35,7 +35,7 @@
     --color-white: #fff;
 
     --color-primary-background: #fff;
-    --color-primary-inverted-background: black;
+    --color-primary-inverted-background: #111;
     --color-secondary-background: #f9f9f9;
     --color-background-overlay: rgba(0, 0, 0, 0.8);
     --text-primary-inverted: #fff;
@@ -67,6 +67,8 @@
 
     --button-border-radius: 5px;
     --border-radius: var(--size-xSmall);
+
+    --sidebar-width: 64px;
 }
 
 [data-theme='dark'] {
