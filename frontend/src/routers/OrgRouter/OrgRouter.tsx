@@ -1,5 +1,5 @@
 import useLocalStorage from '@rehooks/local-storage';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { useAuthContext } from '../../AuthContext';
@@ -8,10 +8,6 @@ import { ErrorState } from '../../components/ErrorState/ErrorState';
 import { Header } from '../../components/Header/Header';
 import OnboardingBubble from '../../components/OnboardingBubble/OnboardingBubble';
 import { Sidebar } from '../../components/Sidebar/Sidebar';
-import {
-    SidebarContextProvider,
-    SidebarState,
-} from '../../components/Sidebar/SidebarContext';
 import { useGetOrganizationQuery } from '../../graph/generated/hooks';
 import { useIntegrated } from '../../util/integrated';
 import ApplicationRouter from './ApplicationRouter';
@@ -28,31 +24,10 @@ export const OrgRouter = () => {
     });
 
     const { integrated, loading: integratedLoading } = useIntegrated();
-    const [sidebarState, setSidebarState] = useState<SidebarState>(
-        SidebarState.Collapsed
-    );
     const [hasFinishedOnboarding] = useLocalStorage(
         `highlight-finished-onboarding-${organization_id}`,
         false
     );
-
-    const toggleSidebar = () => {
-        let nextState;
-
-        switch (sidebarState) {
-            case SidebarState.Collapsed:
-                nextState = SidebarState.Expanded;
-                break;
-            case SidebarState.Expanded:
-                nextState = SidebarState.Collapsed;
-                break;
-            default:
-                nextState = SidebarState.Collapsed;
-                break;
-        }
-
-        setSidebarState(nextState);
-    };
 
     useEffect(() => {
         window.Intercom('update', {
@@ -68,18 +43,8 @@ export const OrgRouter = () => {
     if (integratedLoading || loading) {
         return null;
     }
-    const staticSidebarState = isLoggedIn
-        ? SidebarState.Expanded
-        : SidebarState.Collapsed;
     return (
-        <SidebarContextProvider
-            value={{
-                setState: setSidebarState,
-                state: sidebarState,
-                toggleSidebar,
-                staticSidebarState,
-            }}
-        >
+        <>
             <Header />
             <div className={commonStyles.bodyWrapper}>
                 {/* Edge case: shareable links will still direct to this error page if you are logged in on a different org */}
@@ -96,9 +61,7 @@ export const OrgRouter = () => {
                     />
                 ) : (
                     <>
-                        {staticSidebarState == SidebarState.Expanded && (
-                            <Sidebar />
-                        )}
+                        <Sidebar />
                         {isLoggedIn && !hasFinishedOnboarding && (
                             <OnboardingBubble />
                         )}
@@ -106,6 +69,6 @@ export const OrgRouter = () => {
                     </>
                 )}
             </div>
-        </SidebarContextProvider>
+        </>
     );
 };
