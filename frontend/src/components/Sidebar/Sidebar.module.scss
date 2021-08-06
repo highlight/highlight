@@ -28,30 +28,6 @@
     width: 90%;
 }
 
-.link {
-    cursor: pointer;
-    text-decoration: none;
-}
-
-.bottomSection {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    justify-content: flex-end;
-}
-
-.bottomWrapper {
-    flex-grow: 1;
-    height: 100%;
-    position: relative;
-    width: 100%;
-}
-
-.bottomContainer {
-    display: flex;
-    justify-content: space-between;
-}
-
 .changelogButton {
     margin-right: calc(var(--size-medium) * -1);
 
@@ -60,25 +36,11 @@
     }
 }
 
-.link:hover {
-    color: inherit;
-    text-decoration: none;
-}
-
 .miniRow {
     align-items: center;
     color: var(--text-primary) !important;
     display: flex;
     justify-content: center;
-    width: 100%;
-}
-
-.row {
-    align-items: center;
-    color: var(--text-primary) !important;
-    cursor: pointer;
-    font-size: 16px;
-    transition: 0.1s;
     width: 100%;
 }
 
@@ -98,17 +60,6 @@
     color: var(--text-primary-inverted) !important;
 }
 
-.iconWrapper {
-    align-items: center;
-    display: flex;
-    height: 100%;
-    justify-content: center;
-
-    > svg {
-        transition: fill 0.2s ease-in-out;
-    }
-}
-
 .icon {
     height: 18px;
     width: 18px;
@@ -121,11 +72,6 @@
     h3 {
         color: var(--text-primary) !important;
     }
-}
-
-.selectedDiv {
-    height: 80%;
-    position: absolute;
 }
 
 .changelogContainer {
