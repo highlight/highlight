@@ -217,7 +217,12 @@ const MiniSidebarItem: React.FC<{
     const page = pathname.split('/')[2] ?? '';
     return (
         <Link className={styles.miniRow} to={`/${organization_id}/${route}`}>
-            <Tooltip title={text} placement="right" align={{ offset: [16, 0] }}>
+            <Tooltip
+                title={text}
+                placement="right"
+                align={{ offset: [16, 0] }}
+                mouseEnterDelay={0}
+            >
                 <div
                     className={classNames([
                         styles.miniSidebarIconWrapper,
