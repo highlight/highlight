@@ -1969,7 +1969,7 @@ func (r *queryResolver) Organizations(ctx context.Context) ([]*model.Organizatio
 		return nil, e.Wrap(err, "error retrieiving user")
 	}
 	orgs := []*model.Organization{}
-	if err := r.DB.Model(&admin).Association("Organizations").Find(&orgs); err != nil {
+	if err := r.DB.Order("name asc").Model(&admin).Association("Organizations").Find(&orgs); err != nil {
 		return nil, e.Wrap(err, "error getting associated organizations")
 	}
 	return orgs, nil

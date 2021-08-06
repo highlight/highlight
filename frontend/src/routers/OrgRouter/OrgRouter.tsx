@@ -1,5 +1,5 @@
 import useLocalStorage from '@rehooks/local-storage';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { useAuthContext } from '../../AuthContext';
@@ -8,12 +8,9 @@ import { ErrorState } from '../../components/ErrorState/ErrorState';
 import { Header } from '../../components/Header/Header';
 import OnboardingBubble from '../../components/OnboardingBubble/OnboardingBubble';
 import { Sidebar } from '../../components/Sidebar/Sidebar';
-import {
-    SidebarContextProvider,
-    SidebarState,
-} from '../../components/Sidebar/SidebarContext';
-import { useGetOrganizationQuery } from '../../graph/generated/hooks';
+import { useGetApplicationsQuery } from '../../graph/generated/hooks';
 import { useIntegrated } from '../../util/integrated';
+import { ApplicationContextProvider } from './ApplicationContext';
 import ApplicationRouter from './ApplicationRouter';
 
 export const OrgRouter = () => {
@@ -22,37 +19,16 @@ export const OrgRouter = () => {
         organization_id: string;
     }>();
 
-    const { loading, error, data } = useGetOrganizationQuery({
+    const { data, loading, error } = useGetApplicationsQuery({
         variables: { id: organization_id },
         skip: !isLoggedIn, // Higher level routers decide when guests are allowed to hit this router
     });
 
     const { integrated, loading: integratedLoading } = useIntegrated();
-    const [sidebarState, setSidebarState] = useState<SidebarState>(
-        SidebarState.Collapsed
-    );
     const [hasFinishedOnboarding] = useLocalStorage(
         `highlight-finished-onboarding-${organization_id}`,
         false
     );
-
-    const toggleSidebar = () => {
-        let nextState;
-
-        switch (sidebarState) {
-            case SidebarState.Collapsed:
-                nextState = SidebarState.Expanded;
-                break;
-            case SidebarState.Expanded:
-                nextState = SidebarState.Collapsed;
-                break;
-            default:
-                nextState = SidebarState.Collapsed;
-                break;
-        }
-
-        setSidebarState(nextState);
-    };
 
     useEffect(() => {
         window.Intercom('update', {
@@ -68,16 +44,11 @@ export const OrgRouter = () => {
     if (integratedLoading || loading) {
         return null;
     }
-    const staticSidebarState = isLoggedIn
-        ? SidebarState.Expanded
-        : SidebarState.Collapsed;
     return (
-        <SidebarContextProvider
+        <ApplicationContextProvider
             value={{
-                setState: setSidebarState,
-                state: sidebarState,
-                toggleSidebar,
-                staticSidebarState,
+                currentApplication: data?.organization || undefined,
+                allApplications: data?.organizations || [],
             }}
         >
             <Header />
@@ -96,16 +67,16 @@ export const OrgRouter = () => {
                     />
                 ) : (
                     <>
-                        {staticSidebarState == SidebarState.Expanded && (
-                            <Sidebar />
-                        )}
+                        {isLoggedIn && <Sidebar />}
                         {isLoggedIn && !hasFinishedOnboarding && (
-                            <OnboardingBubble />
+                            <>
+                                <OnboardingBubble />
+                            </>
                         )}
                         <ApplicationRouter integrated={integrated} />
                     </>
                 )}
             </div>
-        </SidebarContextProvider>
+        </ApplicationContextProvider>
     );
 };

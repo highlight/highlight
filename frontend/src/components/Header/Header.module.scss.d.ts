@@ -1,3 +1,4 @@
+export const applicationPickerContainer: string;
 export const bannerSvg: string;
 export const commandPaletteOverlay: string;
 export const enterViewport: string;
