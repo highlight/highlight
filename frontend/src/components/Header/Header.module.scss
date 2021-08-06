@@ -6,7 +6,7 @@
     height: 80px;
     margin-left: var(--sidebar-width);
     position: fixed;
-    width: 100%;
+    width: calc(100% - var(--sidebar-width));
     z-index: 100;
 }
 
