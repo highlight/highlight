@@ -8,8 +8,9 @@ import { ErrorState } from '../../components/ErrorState/ErrorState';
 import { Header } from '../../components/Header/Header';
 import OnboardingBubble from '../../components/OnboardingBubble/OnboardingBubble';
 import { Sidebar } from '../../components/Sidebar/Sidebar';
-import { useGetOrganizationQuery } from '../../graph/generated/hooks';
+import { useGetApplicationsQuery } from '../../graph/generated/hooks';
 import { useIntegrated } from '../../util/integrated';
+import { ApplicationContextProvider } from './ApplicationContext';
 import ApplicationRouter from './ApplicationRouter';
 
 export const OrgRouter = () => {
@@ -18,7 +19,7 @@ export const OrgRouter = () => {
         organization_id: string;
     }>();
 
-    const { loading, error, data } = useGetOrganizationQuery({
+    const { data, loading, error } = useGetApplicationsQuery({
         variables: { id: organization_id },
         skip: !isLoggedIn, // Higher level routers decide when guests are allowed to hit this router
     });
@@ -44,7 +45,12 @@ export const OrgRouter = () => {
         return null;
     }
     return (
-        <>
+        <ApplicationContextProvider
+            value={{
+                currentApplication: data?.organization || undefined,
+                allApplications: data?.organizations || [],
+            }}
+        >
             <Header />
             <div className={commonStyles.bodyWrapper}>
                 {/* Edge case: shareable links will still direct to this error page if you are logged in on a different org */}
@@ -71,6 +77,6 @@ export const OrgRouter = () => {
                     </>
                 )}
             </div>
-        </>
+        </ApplicationContextProvider>
     );
 };

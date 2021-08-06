@@ -208,6 +208,22 @@ query GetOrganizations {
     }
 }
 
+# Gets the current application and all applications the admin has access to.
+query GetApplications($id: ID!) {
+    organizations {
+        id
+        name
+    }
+    organization(id: $id) {
+        id
+        name
+        verbose_id
+        billing_email
+        slack_webhook_channel
+        secret
+    }
+}
+
 query GetAdmin {
     admin {
         id
