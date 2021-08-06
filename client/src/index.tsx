@@ -149,8 +149,6 @@ export class Highlight {
     networkHeadersToRedact: string[] = [];
     urlBlocklist: string[] = [];
     sessionData: SessionData;
-    /** @deprecated Use state instead. Ready should be removed when Highlight releases 2.0. */
-    ready: boolean;
     state: 'NotRecording' | 'Recording';
     logger: Logger;
     disableNetworkRecording: boolean | undefined;
@@ -216,7 +214,6 @@ export class Highlight {
             ];
         }
 
-        this.ready = false;
         this.state = 'NotRecording';
         this.disableConsoleRecording = options.disableConsoleRecording;
         this.enableSegmentIntegration = options.enableSegmentIntegration;
@@ -614,7 +611,6 @@ export class Highlight {
                 );
                 navigator.sendBeacon(`${this._backendUrl}`, blob);
             });
-            this.ready = true;
             this.state = 'Recording';
         } catch (e) {
             if (this._isOnLocalHost) {
@@ -665,6 +661,7 @@ export class Highlight {
                     return;
                 }
                 if (
+                    this.state === 'Recording' &&
                     this.listeners &&
                     this.sessionData.sessionStartTime &&
                     Date.now() - this.sessionData.sessionStartTime >
@@ -672,7 +669,6 @@ export class Highlight {
                 ) {
                     this.sessionData.sessionStartTime = Date.now();
                     this.stopRecording();
-                    this.initialize(this.organizationID);
                     return;
                 }
             } catch (e) {
@@ -686,9 +682,11 @@ export class Highlight {
                 HighlightWarning('_save', e);
             }
         }
-        setTimeout(() => {
-            this._save();
-        }, SEND_FREQUENCY);
+        if (this.state === 'Recording') {
+            setTimeout(() => {
+                this._save();
+            }, SEND_FREQUENCY);
+        }
     }
 
     _getPayload(): PushPayloadMutationVariables {
