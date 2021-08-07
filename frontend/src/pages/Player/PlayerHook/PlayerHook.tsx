@@ -259,9 +259,9 @@ export const usePlayer = (): ReplayerContextInterface => {
                     setSessionIntervals(sessionIntervals);
                     setEventsForTimelineIndicator(
                         getEventsForTimelineIndicator(
-                            sessionIntervals,
                             events,
-                            replayer.getMetaData().startTime
+                            replayer.getMetaData().startTime,
+                            replayer.getMetaData().totalTime
                         )
                     );
                     setSessionEndTime(replayer.getMetaData().totalTime);
@@ -306,10 +306,10 @@ export const usePlayer = (): ReplayerContextInterface => {
         ) {
             setSessionComments(
                 getCommentsInSessionIntervals(
-                    sessionIntervals,
                     sessionCommentsData.session_comments as SessionComment[],
-                    replayer.getMetaData().startTime
-                ).flat()
+                    replayer.getMetaData().startTime,
+                    replayer.getMetaData().totalTime
+                )
             );
         }
     }, [
