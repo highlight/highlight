@@ -2180,7 +2180,7 @@ func (r *sessionAlertResolver) UserProperties(ctx context.Context, obj *model.Se
 
 func (r *sessionCommentResolver) Author(ctx context.Context, obj *model.SessionComment) (*modelInputs.SanitizedAdmin, error) {
 	admin := &model.Admin{}
-	if err := r.DB.Debug().Where(&model.Admin{Model: model.Model{ID: obj.AdminId}}).First(&admin).Error; err != nil {
+	if err := r.DB.Where(&model.Admin{Model: model.Model{ID: obj.AdminId}}).First(&admin).Error; err != nil {
 		return nil, e.Wrap(err, "Error finding admin for comment")
 	}
 
