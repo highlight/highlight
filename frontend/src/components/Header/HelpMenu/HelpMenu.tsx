@@ -6,15 +6,15 @@ import SvgBookIcon from '../../../static/BookIcon';
 import SvgEditIcon from '../../../static/EditIcon';
 import SvgHelpCircleIcon from '../../../static/HelpCircleIcon';
 import SvgMessageIcon from '../../../static/MessageIcon';
-import Button from '../../Button/Button/Button';
-import Popover from '../../Popover/Popover';
 import PopoverListContent from '../../Popover/PopoverListContent';
+import PopoverMenu, { PopoverMenuItem } from '../../PopoverMenu/PopoverMenu';
+import popoverMenuStyles from '../../PopoverMenu/PopoverMenu.module.scss';
 import styles from './HelpMenu.module.scss';
 
 const HelpMenu = () => {
     const { data } = useGetAdminQuery();
 
-    const leadMenuItems: HelpMenuItem[] = [
+    const leadMenuItems: PopoverMenuItem[] = [
         {
             icon: <SvgMessageIcon />,
             displayName: 'Send us a message',
@@ -30,7 +30,7 @@ const HelpMenu = () => {
         },
     ];
 
-    const endMenuItems: HelpMenuItem[] = [
+    const endMenuItems: PopoverMenuItem[] = [
         {
             icon: <SvgBookIcon />,
             displayName: 'Documentation',
@@ -49,17 +49,14 @@ const HelpMenu = () => {
     ];
 
     return (
-        <Popover
-            isList
-            hasBorder
-            placement="bottomRight"
+        <PopoverMenu
             content={
                 <>
                     <PopoverListContent
                         small
-                        className={styles.helpMenuList}
+                        className={popoverMenuStyles.popoverMenuList}
                         listItems={leadMenuItems.map((menuItem) => (
-                            <HelpMenuItem
+                            <PopoverMenuItem
                                 {...menuItem}
                                 key={menuItem.displayName}
                             />
@@ -68,9 +65,9 @@ const HelpMenu = () => {
                     <hr className={styles.divider} />
                     <PopoverListContent
                         small
-                        className={styles.helpMenuList}
+                        className={popoverMenuStyles.popoverMenuList}
                         listItems={endMenuItems.map((menuItem) => (
-                            <HelpMenuItem
+                            <PopoverMenuItem
                                 {...menuItem}
                                 key={menuItem.displayName}
                             />
@@ -78,51 +75,10 @@ const HelpMenu = () => {
                     />
                 </>
             }
-        >
-            <Button type="text" trackingId="HelpMenu" iconButton>
-                <SvgHelpCircleIcon />
-            </Button>
-        </Popover>
+            buttonTrackingId="HelpMenu"
+            buttonContents={<SvgHelpCircleIcon />}
+        ></PopoverMenu>
     );
 };
 
 export default HelpMenu;
-
-interface HelpMenuItem {
-    icon: React.ReactNode;
-    displayName: string;
-    link?: string;
-    action?: () => void;
-}
-
-const HelpMenuItem = ({ icon, displayName, action, link }: HelpMenuItem) => {
-    if (action && link) {
-        throw new Error(
-            'Cannot set both action and link. A HelpMenuItem can only have either action or link.'
-        );
-    }
-
-    if (action) {
-        return (
-            <Button
-                onClick={action}
-                trackingId={`HelpMenu-${displayName}`}
-                type="text"
-            >
-                {icon}
-                {displayName}
-            </Button>
-        );
-    }
-
-    if (link) {
-        return (
-            <a href={link} target="_blank" rel="noreferrer">
-                {icon}
-                {displayName}
-            </a>
-        );
-    }
-
-    return null;
-};

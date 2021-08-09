@@ -1,25 +1,3 @@
-.helpMenuList {
-    width: 200px;
-
-    &:first-of-type {
-        margin-top: -12px;
-    }
-    &:not(:first-of-type) {
-        margin-top: 0;
-    }
-
-    a {
-        color: var(--text-primary);
-    }
-
-    a,
-    button {
-        align-items: center;
-        column-gap: var(--size-xSmall);
-        display: flex !important;
-    }
-}
-
 .divider {
     border: 0;
     border-top: 1px solid var(--color-gray-300);
