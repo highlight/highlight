@@ -88,6 +88,11 @@ export enum ErrorState {
     Ignored = 'IGNORED',
 }
 
+export enum AlertScope {
+    Org = 'Org',
+    Personal = 'Personal',
+}
+
 export type Organization = {
     __typename?: 'Organization';
     id: Scalars['ID'];
@@ -393,6 +398,7 @@ export type ErrorAlert = {
     ExcludedEnvironments: Array<Maybe<Scalars['String']>>;
     CountThreshold: Scalars['Int'];
     ThresholdWindow?: Maybe<Scalars['Int']>;
+    AlertScope?: Maybe<AlertScope>;
 };
 
 export type TrackProperty = {
@@ -416,6 +422,7 @@ export type SessionAlert = {
     CountThreshold: Scalars['Int'];
     TrackProperties: Array<Maybe<TrackProperty>>;
     UserProperties: Array<Maybe<UserProperty>>;
+    AlertScope?: Maybe<AlertScope>;
 };
 
 export type Query = {
@@ -451,10 +458,10 @@ export type Query = {
     property_suggestion?: Maybe<Array<Maybe<Field>>>;
     error_field_suggestion?: Maybe<Array<Maybe<ErrorField>>>;
     organizations?: Maybe<Array<Maybe<Organization>>>;
-    error_alert?: Maybe<ErrorAlert>;
-    new_user_alert?: Maybe<SessionAlert>;
-    track_properties_alert?: Maybe<SessionAlert>;
-    user_properties_alert?: Maybe<SessionAlert>;
+    error_alert?: Maybe<Array<Maybe<ErrorAlert>>>;
+    new_user_alert?: Maybe<Array<Maybe<SessionAlert>>>;
+    track_properties_alert?: Maybe<Array<Maybe<SessionAlert>>>;
+    user_properties_alert?: Maybe<Array<Maybe<SessionAlert>>>;
     organizationSuggestion?: Maybe<Array<Maybe<Organization>>>;
     environment_suggestion?: Maybe<Array<Maybe<Field>>>;
     slack_channel_suggestion?: Maybe<Array<Maybe<SanitizedSlackChannel>>>;

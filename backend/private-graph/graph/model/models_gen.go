@@ -138,6 +138,47 @@ type UserPropertyInput struct {
 	Value string `json:"value"`
 }
 
+type AlertScope string
+
+const (
+	AlertScopeOrg      AlertScope = "Org"
+	AlertScopePersonal AlertScope = "Personal"
+)
+
+var AllAlertScope = []AlertScope{
+	AlertScopeOrg,
+	AlertScopePersonal,
+}
+
+func (e AlertScope) IsValid() bool {
+	switch e {
+	case AlertScopeOrg, AlertScopePersonal:
+		return true
+	}
+	return false
+}
+
+func (e AlertScope) String() string {
+	return string(e)
+}
+
+func (e *AlertScope) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AlertScope(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AlertScope", str)
+	}
+	return nil
+}
+
+func (e AlertScope) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type ErrorState string
 
 const (

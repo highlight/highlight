@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -13,6 +14,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
@@ -36,6 +39,10 @@ func (r *errorAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.Er
 
 func (r *errorAlertResolver) ExcludedEnvironments(ctx context.Context, obj *model.ErrorAlert) ([]*string, error) {
 	return obj.GetExcludedEnvironments()
+}
+
+func (r *errorAlertResolver) AlertScope(ctx context.Context, obj *model.ErrorAlert) (*modelInputs.AlertScope, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *errorCommentResolver) Author(ctx context.Context, obj *model.ErrorComment) (*modelInputs.SanitizedAdmin, error) {
@@ -184,16 +191,16 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	if err := r.DB.Create(org).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")
 	}
-	if err := r.DB.Create(&model.ErrorAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.ERROR}}).Error; err != nil {
+	if err := r.DB.Create(&model.ErrorAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Scope: modelInputs.AlertScopeOrg, Type: &model.AlertType.ERROR}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")
 	}
-	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.NEW_USER}}).Error; err != nil {
+	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Scope: modelInputs.AlertScopeOrg, Type: &model.AlertType.NEW_USER}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session alert for new org")
 	}
-	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.TRACK_PROPERTIES}}).Error; err != nil {
+	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Scope: modelInputs.AlertScopeOrg, Type: &model.AlertType.TRACK_PROPERTIES}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session alert for new org")
 	}
-	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.USER_PROPERTIES}}).Error; err != nil {
+	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Scope: modelInputs.AlertScopeOrg, Type: &model.AlertType.USER_PROPERTIES}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session alert for new org")
 	}
 	return org, nil
@@ -1975,52 +1982,107 @@ func (r *queryResolver) Organizations(ctx context.Context) ([]*model.Organizatio
 	return orgs, nil
 }
 
-func (r *queryResolver) ErrorAlert(ctx context.Context, organizationID int) (*model.ErrorAlert, error) {
+func (r *queryResolver) ErrorAlert(ctx context.Context, organizationID int) ([]*model.ErrorAlert, error) {
 	_, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying organization")
 	}
+	var alerts []*model.ErrorAlert
 	alert := model.ErrorAlert{}
-	if err := r.DB.Where(&model.ErrorAlert{Alert: model.Alert{OrganizationID: organizationID}}).First(&alert).Error; err != nil {
+	if err := r.DB.Where(&model.ErrorAlert{Alert: model.Alert{OrganizationID: organizationID, Scope: modelInputs.AlertScopeOrg}}).First(&alert).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error alerts")
 	}
-	return &alert, nil
+	alerts = append(alerts, &alert)
+
+	otherAlert := model.ErrorAlert{}
+	userUID := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
+	if err := r.DB.Where(&model.ErrorAlert{Alert: model.Alert{OrganizationID: organizationID, UserUID: &userUID, Scope: modelInputs.AlertScopePersonal}}).First(&otherAlert).Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, e.Wrap(err, "error querying error alerts")
+		}
+	} else {
+		alerts = append(alerts, &otherAlert)
+	}
+
+	return alerts, nil
 }
 
-func (r *queryResolver) NewUserAlert(ctx context.Context, organizationID int) (*model.SessionAlert, error) {
+func (r *queryResolver) NewUserAlert(ctx context.Context, organizationID int) ([]*model.SessionAlert, error) {
 	_, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying organization on new user alert")
 	}
+
+	var alerts []*model.SessionAlert
 	var alert model.SessionAlert
-	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type IS NULL OR type=?", model.AlertType.NEW_USER).First(&alert).Error; err != nil {
-		return nil, e.Wrap(err, "error querying  new user alert")
+	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID, Scope: modelInputs.AlertScopeOrg, Type: &model.AlertType.NEW_USER}}).First(&alert).Error; err != nil {
+		return nil, e.Wrap(err, "error querying new user alert")
 	}
-	return &alert, nil
+	alerts = append(alerts, &alert)
+
+	otherAlert := model.SessionAlert{}
+	userUID := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
+	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID, UserUID: &userUID, Scope: modelInputs.AlertScopePersonal, Type: &model.AlertType.NEW_USER}}).First(&otherAlert).Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, e.Wrap(err, "error querying personal new user alerts")
+		}
+	} else {
+		alerts = append(alerts, &otherAlert)
+	}
+
+	return alerts, nil
 }
 
-func (r *queryResolver) TrackPropertiesAlert(ctx context.Context, organizationID int) (*model.SessionAlert, error) {
+func (r *queryResolver) TrackPropertiesAlert(ctx context.Context, organizationID int) ([]*model.SessionAlert, error) {
 	_, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying organization")
 	}
+
+	var alerts []*model.SessionAlert
 	var alert model.SessionAlert
-	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID, Type: &model.AlertType.TRACK_PROPERTIES}}).First(&alert).Error; err != nil {
+	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID, Scope: modelInputs.AlertScopeOrg, Type: &model.AlertType.TRACK_PROPERTIES}}).First(&alert).Error; err != nil {
 		return nil, e.Wrap(err, "error querying track properties alert")
 	}
-	return &alert, nil
+	alerts = append(alerts, &alert)
+
+	otherAlert := model.SessionAlert{}
+	userUID := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
+	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID, UserUID: &userUID, Scope: modelInputs.AlertScopePersonal, Type: &model.AlertType.TRACK_PROPERTIES}}).First(&otherAlert).Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, e.Wrap(err, "error querying personal track properties alerts")
+		}
+	} else {
+		alerts = append(alerts, &otherAlert)
+	}
+
+	return alerts, nil
 }
 
-func (r *queryResolver) UserPropertiesAlert(ctx context.Context, organizationID int) (*model.SessionAlert, error) {
+func (r *queryResolver) UserPropertiesAlert(ctx context.Context, organizationID int) ([]*model.SessionAlert, error) {
 	_, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying organization")
 	}
+
+	var alerts []*model.SessionAlert
 	var alert model.SessionAlert
-	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type=?", model.AlertType.USER_PROPERTIES).First(&alert).Error; err != nil {
+	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID, Scope: modelInputs.AlertScopeOrg, Type: &model.AlertType.USER_PROPERTIES}}).First(&alert).Error; err != nil {
 		return nil, e.Wrap(err, "error querying user properties alert")
 	}
-	return &alert, nil
+	alerts = append(alerts, &alert)
+
+	otherAlert := model.SessionAlert{}
+	userUID := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
+	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID, UserUID: &userUID, Scope: modelInputs.AlertScopePersonal, Type: &model.AlertType.USER_PROPERTIES}}).First(&otherAlert).Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, e.Wrap(err, "error querying personal user properties alerts")
+		}
+	} else {
+		alerts = append(alerts, &otherAlert)
+	}
+
+	return alerts, nil
 }
 
 func (r *queryResolver) OrganizationSuggestion(ctx context.Context, query string) ([]*model.Organization, error) {
@@ -2176,6 +2238,10 @@ func (r *sessionAlertResolver) TrackProperties(ctx context.Context, obj *model.S
 
 func (r *sessionAlertResolver) UserProperties(ctx context.Context, obj *model.SessionAlert) ([]*model.UserProperty, error) {
 	return obj.GetUserProperties()
+}
+
+func (r *sessionAlertResolver) AlertScope(ctx context.Context, obj *model.SessionAlert) (*modelInputs.AlertScope, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *sessionCommentResolver) Author(ctx context.Context, obj *model.SessionComment) (*modelInputs.SanitizedAdmin, error) {

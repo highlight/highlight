@@ -69,6 +69,11 @@ enum ErrorState {
     IGNORED
 }
 
+enum AlertScope {
+    Org
+    Personal
+}
+
 type Organization {
     id: ID!
     verbose_id: String!
@@ -348,6 +353,7 @@ type ErrorAlert {
     ExcludedEnvironments: [String]!
     CountThreshold: Int!
     ThresholdWindow: Int
+    AlertScope: AlertScope
 }
 
 type TrackProperty {
@@ -369,6 +375,7 @@ type SessionAlert {
     CountThreshold: Int!
     TrackProperties: [TrackProperty]!
     UserProperties: [UserProperty]!
+    AlertScope: AlertScope
 }
 
 scalar Upload
@@ -443,10 +450,10 @@ type Query {
         query: String!
     ): [ErrorField]
     organizations: [Organization]
-    error_alert(organization_id: ID!): ErrorAlert
-    new_user_alert(organization_id: ID!): SessionAlert
-    track_properties_alert(organization_id: ID!): SessionAlert
-    user_properties_alert(organization_id: ID!): SessionAlert
+    error_alert(organization_id: ID!): [ErrorAlert]
+    new_user_alert(organization_id: ID!): [SessionAlert]
+    track_properties_alert(organization_id: ID!): [SessionAlert]
+    user_properties_alert(organization_id: ID!): [SessionAlert]
     organizationSuggestion(query: String!): [Organization]
     environment_suggestion(query: String!, organization_id: ID!): [Field]
     slack_channel_suggestion(organization_id: ID!): [SanitizedSlackChannel]

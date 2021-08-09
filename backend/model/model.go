@@ -137,11 +137,13 @@ type Organization struct {
 
 type Alert struct {
 	OrganizationID       int
+	UserUID              *string
 	ExcludedEnvironments *string
 	CountThreshold       int
 	ThresholdWindow      *int
 	ChannelsToNotify     *string
-	Type                 *string `gorm:"index"`
+	Type                 *string                `gorm:"index"`
+	Scope                modelInputs.AlertScope `gorm:"index"`
 }
 
 type ErrorAlert struct {
