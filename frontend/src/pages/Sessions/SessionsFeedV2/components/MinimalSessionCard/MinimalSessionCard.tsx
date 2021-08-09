@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import { Avatar } from '../../../../../components/Avatar/Avatar';
@@ -19,10 +19,19 @@ interface Props {
 }
 
 const MinimalSessionCard = ({ session, selected }: Props) => {
-    const { organization_id, segment_id } = useParams<{
+    const { organization_id, segment_id, session_id } = useParams<{
         organization_id: string;
         segment_id: string;
+        session_id: string;
     }>();
+
+    const [viewed, setViewed] = useState(session?.viewed || false);
+
+    useEffect(() => {
+        if (session_id === session?.id) {
+            setViewed(true);
+        }
+    }, [session?.id, session_id]);
 
     return (
         <div className={styles.sessionCardWrapper} key={session?.id}>
@@ -108,7 +117,7 @@ const MinimalSessionCard = ({ session, selected }: Props) => {
                             <div>
                                 <Tooltip
                                     title={
-                                        !session?.viewed
+                                        !viewed
                                             ? `This session hasn't been viewed.`
                                             : 'This session has been viewed.'
                                     }
@@ -117,7 +126,7 @@ const MinimalSessionCard = ({ session, selected }: Props) => {
                                         className={styles.cardAnnotation}
                                         style={
                                             {
-                                                '--primary-color': !session?.viewed
+                                                '--primary-color': !viewed
                                                     ? 'var(--color-blue-400)'
                                                     : 'var(--color-gray-300)',
                                             } as React.CSSProperties

@@ -741,6 +741,34 @@ export type GetOrganizationsQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetApplicationsQueryVariables = Types.Exact<{
+    id: Types.Scalars['ID'];
+}>;
+
+export type GetApplicationsQuery = { __typename?: 'Query' } & {
+    organizations?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Organization' } & Pick<
+                    Types.Organization,
+                    'id' | 'name'
+                >
+            >
+        >
+    >;
+    organization?: Types.Maybe<
+        { __typename?: 'Organization' } & Pick<
+            Types.Organization,
+            | 'id'
+            | 'name'
+            | 'verbose_id'
+            | 'billing_email'
+            | 'slack_webhook_channel'
+            | 'secret'
+        >
+    >;
+};
+
 export type GetAdminQueryVariables = Types.Exact<{ [key: string]: never }>;
 
 export type GetAdminQuery = { __typename?: 'Query' } & {

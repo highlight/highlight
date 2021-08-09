@@ -2268,6 +2268,71 @@ export type GetOrganizationsQueryResult = Apollo.QueryResult<
     Types.GetOrganizationsQuery,
     Types.GetOrganizationsQueryVariables
 >;
+export const GetApplicationsDocument = gql`
+    query GetApplications($id: ID!) {
+        organizations {
+            id
+            name
+        }
+        organization(id: $id) {
+            id
+            name
+            verbose_id
+            billing_email
+            slack_webhook_channel
+            secret
+        }
+    }
+`;
+
+/**
+ * __useGetApplicationsQuery__
+ *
+ * To run a query within a React component, call `useGetApplicationsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetApplicationsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetApplicationsQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetApplicationsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetApplicationsQuery,
+        Types.GetApplicationsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetApplicationsQuery,
+        Types.GetApplicationsQueryVariables
+    >(GetApplicationsDocument, baseOptions);
+}
+export function useGetApplicationsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetApplicationsQuery,
+        Types.GetApplicationsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetApplicationsQuery,
+        Types.GetApplicationsQueryVariables
+    >(GetApplicationsDocument, baseOptions);
+}
+export type GetApplicationsQueryHookResult = ReturnType<
+    typeof useGetApplicationsQuery
+>;
+export type GetApplicationsLazyQueryHookResult = ReturnType<
+    typeof useGetApplicationsLazyQuery
+>;
+export type GetApplicationsQueryResult = Apollo.QueryResult<
+    Types.GetApplicationsQuery,
+    Types.GetApplicationsQueryVariables
+>;
 export const GetAdminDocument = gql`
     query GetAdmin {
         admin {

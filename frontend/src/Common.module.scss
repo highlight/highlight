@@ -13,6 +13,7 @@
 .bodyWrapper {
     display: flex;
     height: 100%;
+    padding-left: var(--sidebar-width);
     width: 100%;
 }
 
