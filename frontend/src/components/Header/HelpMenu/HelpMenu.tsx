@@ -1,3 +1,4 @@
+import { H } from 'highlight.run';
 import React from 'react';
 import { FiTwitter } from 'react-icons/fi';
 
@@ -18,12 +19,15 @@ const HelpMenu = () => {
         {
             icon: <SvgMessageIcon />,
             displayName: 'Send us a message',
-            action: () => {
+            action: async () => {
+                const sessionId = await H.getSessionURL();
+
                 window.Intercom('boot', {
                     app_id: 'gm6369ty',
                     alignment: 'right',
                     hide_default_launcher: true,
                     email: data?.admin?.email,
+                    sessionId,
                 });
                 window.Intercom('showNewMessage');
             },
