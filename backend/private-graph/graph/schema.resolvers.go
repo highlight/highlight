@@ -21,6 +21,7 @@ import (
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
+	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -165,9 +166,6 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting admin")
-	}
-
-	if admin.Email != nil {
 	}
 
 	c := &stripe.Customer{}
@@ -2024,6 +2022,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	uid := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
 	admin := &model.Admin{UID: &uid}
 	res := r.DB.Where(&model.Admin{UID: &uid}).First(&admin)
+	pp.Println("admin")
 	if err := res.Error; err != nil {
 		firebaseUser, err := AuthClient.GetUser(context.Background(), uid)
 		if err != nil {
@@ -2048,6 +2047,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 				}
 			}
 		}()
+		pp.Println("got here!!")
 		admin = newAdmin
 	}
 	if admin.PhotoURL == nil || admin.Name == nil {
