@@ -35,6 +35,7 @@ const Button = ({
                 [styles.small]: small,
                 [styles.link]: props.type === 'link',
             })}
+            target={props.type === 'text' ? '_blank' : undefined}
         >
             {children}
         </AntDesignButton>
