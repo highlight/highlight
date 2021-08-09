@@ -33,6 +33,9 @@ interface Props {
 const ApplicationRouter = ({ integrated }: Props) => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const [segmentName, setSegmentName] = useState<string | null>(null);
+    const [showStarredSessions, setShowStarredSessions] = useState<boolean>(
+        false
+    );
     const [searchParams, setSearchParams] = useState<SearchParams>(
         EmptySessionsSearchParams
     );
@@ -112,6 +115,8 @@ const ApplicationRouter = ({ integrated }: Props) => {
                 setExistingParams,
                 segmentName,
                 setSegmentName,
+                showStarredSessions,
+                setShowStarredSessions,
             }}
         >
             <Switch>

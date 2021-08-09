@@ -13,10 +13,7 @@ import { formatNumberWithDelimiters } from '../../../util/numbers';
 import usePlayerConfiguration from '../../Player/PlayerHook/utils/usePlayerConfiguration';
 import { useReplayerContext } from '../../Player/ReplayerContext';
 import { useSearchContext } from '../SearchContext/SearchContext';
-import {
-    LIVE_SEGMENT_ID,
-    STARRED_SEGMENT_ID,
-} from '../SearchSidebar/SegmentPicker/SegmentPicker';
+import { LIVE_SEGMENT_ID } from '../SearchSidebar/SegmentPicker/SegmentPicker';
 import MinimalSessionCard from './components/MinimalSessionCard/MinimalSessionCard';
 import styles from './SessionsFeed.module.scss';
 
@@ -34,7 +31,7 @@ export const SessionFeed = () => {
 
     // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
     const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
-    const { searchParams } = useSearchContext();
+    const { searchParams, showStarredSessions } = useSearchContext();
     const {
         show_live_sessions,
         ...searchParamsExceptForShowLiveSessions
@@ -51,7 +48,7 @@ export const SessionFeed = () => {
                     : !show_live_sessions
                     ? SessionLifecycle.Completed
                     : SessionLifecycle.All,
-            starred: segment_id === STARRED_SEGMENT_ID,
+            starred: showStarredSessions,
         },
         // pollInterval: SESSIONS_FEED_POLL_INTERVAL,
         onCompleted: (response) => {
