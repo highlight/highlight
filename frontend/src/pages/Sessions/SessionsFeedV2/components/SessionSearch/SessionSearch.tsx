@@ -8,6 +8,7 @@ import TextHighlighter from '../../../../../components/TextHighlighter/TextHighl
 import { useGetSessionSearchResultsQuery } from '../../../../../graph/generated/hooks';
 import useSelectedSessionSearchFilters from '../../../../../persistedStorage/useSelectedSessionSearchFilters';
 import SvgSearchIcon from '../../../../../static/SearchIcon';
+import { usePlayerUIContext } from '../../../../Player/context/PlayerUIContext';
 import {
     UserProperty,
     useSearchContext,
@@ -24,6 +25,7 @@ const SessionSearch = () => {
         SessionSearchOption[]
     >([]);
     const { searchParams, setSearchParams } = useSearchContext();
+    const { setSearchBarRef } = usePlayerUIContext();
     const { selectedSearchFilters } = useSelectedSessionSearchFilters();
 
     const handleChange = (_selectedProperties: any) => {
@@ -148,12 +150,20 @@ const SessionSearch = () => {
 
     return (
         <AsyncSelect
+            ref={(ref) => {
+                if (ref) {
+                    setSearchBarRef(ref);
+                } else {
+                    setSearchBarRef(undefined);
+                }
+            }}
             isMulti
             loadOptions={generateOptions}
             isLoading={loading}
             isClearable={false}
             onChange={handleChange}
             className={styles.select}
+            openMenuOnFocus
             value={selectedProperties}
             placeholder="Enter a property, URL, user, etc..."
             noOptionsMessage={({ inputValue }) =>
@@ -326,7 +336,7 @@ type API_TYPES =
     | 'visitedUrls'
     | 'referrers';
 
-interface SessionSearchOption {
+export interface SessionSearchOption {
     valueType: string;
     name: string;
     id: string;
