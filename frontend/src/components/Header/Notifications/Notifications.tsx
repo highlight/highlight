@@ -56,8 +56,8 @@ const Notifications = () => {
     return (
         <Popover
             hasBorder
-            placement="bottomLeft"
             isList
+            trigger={['click']}
             content={
                 <div className={styles.popover}>
                     {notifications.length !== 0 ? (
