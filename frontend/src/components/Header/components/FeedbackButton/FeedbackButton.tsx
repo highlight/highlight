@@ -1,20 +1,53 @@
+import { H } from 'highlight.run';
 import React from 'react';
 
+import { useAuthContext } from '../../../../AuthContext';
 import SvgAnnotationDotsIcon from '../../../../static/AnnotationDotsIcon';
-import ButtonLink from '../../../Button/ButtonLink/ButtonLink';
+import SvgBugIcon from '../../../../static/BugIcon';
+import SvgPlusIcon from '../../../../static/PlusIcon';
+import Button from '../../../Button/Button/Button';
+import PopoverMenu from '../../../PopoverMenu/PopoverMenu';
 import styles from './FeedbackButton.module.scss';
 
 const FeedbackButton = () => {
+    const { admin } = useAuthContext();
+
     return (
-        <ButtonLink
-            className={styles.feedbackButton}
-            anchor
-            href={FEEDBACK_URL}
-            trackingId="feedbackButton"
-        >
-            <SvgAnnotationDotsIcon />
-            Got feedback?
-        </ButtonLink>
+        <PopoverMenu
+            menuItems={[
+                {
+                    displayName: 'Bug Report',
+                    icon: <SvgBugIcon />,
+                    action: async () => {
+                        const sessionId = await H.getSessionURL();
+
+                        window.Intercom('boot', {
+                            app_id: 'gm6369ty',
+                            alignment: 'right',
+                            hide_default_launcher: true,
+                            email: admin?.email,
+                            sessionId,
+                        });
+                        window.Intercom('showNewMessage');
+                    },
+                },
+                {
+                    displayName: 'Feature Request',
+                    icon: <SvgPlusIcon />,
+                    link: FEEDBACK_URL,
+                },
+            ]}
+            buttonTrackingId="feedbackButton"
+            buttonContentsOverride={
+                <Button
+                    className={styles.feedbackButton}
+                    trackingId="feedbackButton"
+                >
+                    <SvgAnnotationDotsIcon />
+                    Got feedback?
+                </Button>
+            }
+        ></PopoverMenu>
     );
 };
 
