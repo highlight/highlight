@@ -5,6 +5,7 @@ import React from 'react';
 import Button from '../../../../components/Button/Button/Button';
 import SvgChevronLeftIcon from '../../../../static/ChevronLeftIcon';
 import SvgChevronRightIcon from '../../../../static/ChevronRightIcon';
+import SvgSearchIcon from '../../../../static/SearchIcon';
 import styles from './PanelToggleButton.module.scss';
 
 type Props = ButtonProps & PanelToggleButtonProps;
@@ -43,7 +44,11 @@ export default PanelToggleButton;
 
 const getIcon = ({ direction, isOpen }: PanelToggleButtonProps) => {
     if (direction === 'left') {
-        return isOpen ? <SvgChevronLeftIcon /> : <SvgChevronRightIcon />;
+        return isOpen ? (
+            <SvgChevronLeftIcon />
+        ) : (
+            <SvgSearchIcon className={styles.searchIcon} />
+        );
     }
 
     return isOpen ? <SvgChevronRightIcon /> : <SvgChevronLeftIcon />;
