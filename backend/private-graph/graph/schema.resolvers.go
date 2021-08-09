@@ -2042,7 +2042,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 			if contact, err := apolloio.CreateContact(*newAdmin.Email); err != nil {
 				log.Errorf("error creating apollo contact: %v", err)
 			} else {
-				sequenceID := "6105bc9bf2a2dd0112bdd26b" // represents the "New Users" sequence.
+				sequenceID := "6105bc9bf2a2dd0112bdd26b" // represents the "New Authenticated Users" sequence.
 				if err := apolloio.AddToSequence(contact.ID, sequenceID); err != nil {
 					log.Errorf("error adding new contact to sequence: %v", err)
 				}
