@@ -35,10 +35,19 @@ export type UpdateBillingDetailsMutationVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
 }>;
 
-export type UpdateBillingDetailsMutation = { __typename?: 'Mutation' } & Pick<
-    Types.Mutation,
-    'updateBillingDetails'
->;
+export type UpdateBillingDetailsMutation = { __typename?: 'Mutation' } & {
+    updateBillingDetails?: Types.Maybe<
+        { __typename?: 'BillingDetails' } & Pick<
+            Types.BillingDetails,
+            'meter' | 'sessionsOutOfQuota'
+        > & {
+                plan: { __typename?: 'Plan' } & Pick<
+                    Types.Plan,
+                    'type' | 'quota'
+                >;
+            }
+    >;
+};
 
 export type UpdateErrorGroupStateMutationVariables = Types.Exact<{
     id: Types.Scalars['ID'];

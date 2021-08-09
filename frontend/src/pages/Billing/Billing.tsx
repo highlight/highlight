@@ -60,7 +60,10 @@ const BillingPage = () => {
         { data },
     ] = useCreateOrUpdateStripeSubscriptionMutation();
 
-    const [updateBillingDetails] = useUpdateBillingDetailsMutation();
+    const [
+        updateBillingDetails,
+        { data: updatedBillingData },
+    ] = useUpdateBillingDetailsMutation();
 
     useEffect(() => {
         const response = pathname.split('/')[3] ?? '';
@@ -98,7 +101,8 @@ const BillingPage = () => {
                 if (!r.data?.createOrUpdateStripeSubscription) {
                     updateBillingDetails({
                         variables: { organization_id },
-                    }).then(() => {
+                    }).then((res) => {
+                        res.data!.updateBillingDetails!.plan;
                         const previousPlan = billingData!.billingDetails!.plan
                             .type;
                         const upgradedPlan = didUpgradePlan(

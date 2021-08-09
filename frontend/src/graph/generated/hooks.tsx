@@ -170,7 +170,14 @@ export type CreateOrUpdateStripeSubscriptionMutationOptions = Apollo.BaseMutatio
 >;
 export const UpdateBillingDetailsDocument = gql`
     mutation UpdateBillingDetails($organization_id: ID!) {
-        updateBillingDetails(organization_id: $organization_id)
+        updateBillingDetails(organization_id: $organization_id) {
+            plan {
+                type
+                quota
+            }
+            meter
+            sessionsOutOfQuota
+        }
     }
 `;
 export type UpdateBillingDetailsMutationFn = Apollo.MutationFunction<
