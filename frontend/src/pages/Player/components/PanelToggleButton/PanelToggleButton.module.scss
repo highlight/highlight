@@ -9,3 +9,9 @@
     border-right: 0 !important;
     border-top-right-radius: 0 !important;
 }
+
+.searchIcon {
+    height: var(--size-medium) !important;
+    margin-left: calc(-1 * var(--size-xxSmall));
+    width: var(--size-medium) !important;
+}
