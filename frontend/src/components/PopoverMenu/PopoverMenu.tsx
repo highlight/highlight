@@ -12,14 +12,16 @@ interface Props {
     menuItems?: PopoverMenuItem[];
     buttonTrackingId: string;
     /** The child of the button that opens the popover. */
-    buttonContents: string | React.ReactNode;
+    buttonIcon?: React.ReactNode;
+    buttonContentsOverride?: React.ReactNode;
 }
 
 const PopoverMenu = ({
     content,
     menuItems,
     buttonTrackingId,
-    buttonContents,
+    buttonIcon: buttonContents,
+    buttonContentsOverride,
 }: Props) => {
     if (!content && !menuItems) {
         throw new Error('content or menuItems need to be defined.');
@@ -52,9 +54,11 @@ const PopoverMenu = ({
                 )
             }
         >
-            <Button type="text" trackingId={buttonTrackingId} iconButton>
-                {buttonContents}
-            </Button>
+            {buttonContentsOverride || (
+                <Button type="text" trackingId={buttonTrackingId} iconButton>
+                    {buttonContents}
+                </Button>
+            )}
         </Popover>
     );
 };

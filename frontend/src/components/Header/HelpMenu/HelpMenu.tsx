@@ -76,7 +76,7 @@ const HelpMenu = () => {
                 </>
             }
             buttonTrackingId="HelpMenu"
-            buttonContents={<SvgHelpCircleIcon />}
+            buttonIcon={<SvgHelpCircleIcon />}
         ></PopoverMenu>
     );
 };
