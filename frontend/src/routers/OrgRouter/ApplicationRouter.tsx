@@ -129,7 +129,9 @@ const ApplicationRouter = ({ integrated }: Props) => {
                 <Route path="/:organization_id/sessions/:session_id" exact>
                     <Player />
                 </Route>
-                {organization_id !== '1' ? (
+                {!ORGANIZATIONS_TO_DISABLE_OLD_SESSION_FEED.includes(
+                    organization_id
+                ) ? (
                     <Route path="/:organization_id/sessions" exact>
                         <SessionsPage integrated={integrated} />
                     </Route>
@@ -199,3 +201,11 @@ const InitialSearchParamsForUrl = {
     visited_url: undefined,
     show_live_sessions: undefined,
 };
+
+const ORGANIZATIONS_TO_DISABLE_OLD_SESSION_FEED = [
+    '1',
+    /* Porter */ '162',
+    /* Tributi */ '213',
+    /* Portal */ '79',
+    /* PortalDev */ '107',
+];
