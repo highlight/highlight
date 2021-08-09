@@ -457,17 +457,16 @@ func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (strin
 		ApolloDataShortened: *short,
 	})
 
-	contact, err := apolloio.CreateContact(email)
-	if err != nil {
-		log.Errorf("error creating apollo contact: %v", err)
-		return email, nil
-	}
-
-	sequenceID := "60fb134ce97fa1014c1cc141" // represents the "Landing Page Signups" sequence.
-	if err := apolloio.AddToSequence(contact.ID, sequenceID); err != nil {
-		log.Errorf("error adding to apollo sequence: %v", err)
-		return email, nil
-	}
+	go func() {
+		if contact, err := apolloio.CreateContact(email); err != nil {
+			log.Errorf("error creating apollo contact: %v", err)
+		} else {
+			sequenceID := "60fb134ce97fa1014c1cc141" // represents the "Landing Page Signups" sequence.
+			if err := apolloio.AddToSequence(contact.ID, sequenceID); err != nil {
+				log.Errorf("error adding to apollo sequence: %v", err)
+			}
+		}
+	}()
 
 	return email, nil
 }
@@ -2039,13 +2038,16 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		if err := r.DB.Create(newAdmin).Error; err != nil {
 			return nil, e.Wrap(err, "error creating new admin")
 		}
-		if contact, err := apolloio.CreateContact(*newAdmin.Email); err != nil {
-			log.Errorf("error creating apollo contact: %v", err)
-		} else {
-			if err := apolloio.AddToSequence(contact.ID, "6105bc9bf2a2dd0112bdd26b"); err != nil {
-				log.Errorf("error adding new contact to sequence: %v", err)
+		go func() {
+			if contact, err := apolloio.CreateContact(*newAdmin.Email); err != nil {
+				log.Errorf("error creating apollo contact: %v", err)
+			} else {
+				sequenceID := "6105bc9bf2a2dd0112bdd26b" // represents the "New Users" sequence.
+				if err := apolloio.AddToSequence(contact.ID, sequenceID); err != nil {
+					log.Errorf("error adding new contact to sequence: %v", err)
+				}
 			}
-		}
+		}()
 		admin = newAdmin
 	}
 	if admin.PhotoURL == nil || admin.Name == nil {
