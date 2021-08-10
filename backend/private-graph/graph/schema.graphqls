@@ -537,6 +537,9 @@ type Mutation {
         author_name: String!
     ): ErrorComment
     deleteErrorComment(id: ID!): Boolean
+    createPersonalAlerts(
+        organization_id: ID!
+    ): Boolean
     updateErrorAlert(
         organization_id: ID!
         error_alert_id: ID!
