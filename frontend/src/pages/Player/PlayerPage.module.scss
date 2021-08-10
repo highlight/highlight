@@ -259,10 +259,11 @@
 
 .panelToggleButtonLeft {
     right: calc((-1 * var(--size-xLarge) / 2) - var(--size-medium));
-    top: 50%;
+    top: 97px;
 
     &.panelShown {
         right: calc(-1 * (var(--size-xLarge) / 2));
+        top: 16px;
     }
 }
 
