@@ -341,3 +341,8 @@
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
+.sessionFeedActions {
+    column-gap: var(--size-small);
+    display: flex;
+}

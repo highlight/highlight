@@ -63,6 +63,10 @@ const usePlayerConfiguration = () => {
         'highlightShowPlayerMouseTail',
         true
     );
+    const [
+        showDetailedSessionView,
+        setShowDetailedSessionView,
+    ] = useLocalStorage('highlightShowDetailedSessionView', false);
 
     const { width } = useWindowSize();
 
@@ -99,6 +103,8 @@ const usePlayerConfiguration = () => {
         setSkipInactive,
         showPlayerMouseTail,
         setShowPlayerMouseTail,
+        showDetailedSessionView,
+        setShowDetailedSessionView,
     };
 };
 
