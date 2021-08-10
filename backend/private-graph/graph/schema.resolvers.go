@@ -762,9 +762,11 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 			tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(taggedAdmins)))
 
 		tos := []*mail.Email{}
+		var adminIds []int
 
 		for _, admin := range taggedAdmins {
 			tos = append(tos, &mail.Email{Address: admin.Email})
+			adminIds = append(adminIds, admin.ID)
 		}
 		m := mail.NewV3Mail()
 		from := mail.NewEmail("Highlight", "notifications@highlight.run")
@@ -796,6 +798,42 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 		}
 
 		commentMentionEmailSpan.Finish()
+
+		commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
+			tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(adminIds)))
+		var admins []*model.Admin
+		if err := r.DB.Find(&admins, adminIds).Where("slack_im_channel_id IS NOT NULL").Error; err != nil {
+			return nil, e.Wrap(err, "error fetching admins")
+		}
+
+		var blockSet slack.Blocks
+		blockSet.BlockSet = append(blockSet.BlockSet,
+			slack.NewHeaderBlock(
+				slack.NewTextBlockObject(slack.PlainTextType, "Highlight Activity Alert", false, true)))
+
+		message := "You were tagged in a session."
+		if admin.Name != nil {
+			message = fmt.Sprintf("%s tagged you in a session.", *admin.Name)
+		}
+		blockSet.BlockSet = append(blockSet.BlockSet,
+			slack.NewSectionBlock(
+				slack.NewTextBlockObject(slack.MarkdownType, message, true, false),
+				nil, slack.NewAccessory(slack.ButtonBlockElement{
+					Text: slack.NewTextBlockObject(slack.PlainTextType, "Visit Session", true, false),
+					URL:  viewLink,
+				}),
+			))
+
+		blockSet.BlockSet = append(blockSet.BlockSet, slack.NewDividerBlock())
+		for _, a := range admins {
+			if a.SlackIMChannelID != nil {
+				_, _, err := r.SlackClient.PostMessage(*a.SlackIMChannelID, slack.MsgOptionBlocks(blockSet.BlockSet...))
+				if err != nil {
+					return nil, err
+				}
+			}
+		}
+		commentMentionSlackSpan.Finish()
 	}
 	return sessionComment, nil
 }
