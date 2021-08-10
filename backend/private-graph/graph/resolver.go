@@ -6,11 +6,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/slack-go/slack"
-
 	e "github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
+	"github.com/slack-go/slack"
 	"github.com/stripe/stripe-go/client"
 	"gorm.io/gorm"
 
