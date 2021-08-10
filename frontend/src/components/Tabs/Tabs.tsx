@@ -36,7 +36,6 @@ const Tabs = ({
 
     return (
         <AntDesignTabs
-            activeKey={activeTab}
             defaultActiveKey={activeTab}
             onChange={(activeKey) => {
                 setActiveTab(activeKey);
@@ -48,12 +47,7 @@ const Tabs = ({
                     </div>
                 ) : null
             }
-<<<<<<< HEAD
-            className={styles.tabs}
-            id={tabsHtmlId}
-=======
             className={classNames(styles.tabs, className)}
->>>>>>> master
             {...props}
         >
             {tabs.map(({ panelContent, title }) => (

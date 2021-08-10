@@ -37,9 +37,6 @@ import PlayerCommentCanvas, {
 import { usePlayer } from './PlayerHook/PlayerHook';
 import usePlayerConfiguration from './PlayerHook/utils/usePlayerConfiguration';
 import styles from './PlayerPage.module.scss';
-const PlayerPageProductTour = React.lazy(
-    () => import('./PlayerPageProductTour/PlayerPageProductTour')
-);
 import {
     ReplayerContextProvider,
     ReplayerState,
