@@ -124,14 +124,6 @@ const ErrorComments = () => {
 
     return (
         <>
-            <div className={styles.commentsContainer}>
-                {errorCommentsData?.error_comments.map(
-                    (comment) =>
-                        comment && (
-                            <ErrorComment key={comment.id} comment={comment} />
-                        )
-                )}
-            </div>
             <Form
                 name="newComment"
                 onFinish={onFinish}
@@ -181,7 +173,7 @@ const ErrorComments = () => {
     );
 };
 
-const ErrorComment = ({ comment }: any) => (
+export const ErrorCommentCard = ({ comment }: any) => (
     <div className={styles.commentDiv}>
         <ErrorCommentHeader comment={comment}>
             <CommentTextBody commentText={comment.text} />

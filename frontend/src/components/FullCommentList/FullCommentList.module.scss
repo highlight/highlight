@@ -27,15 +27,15 @@
 
     h2 {
         color: var(--text-primary);
-        font-size: 14px;
-        font-weight: 400;
+        font-size: 14px !important;
+        font-weight: 400 !important;
         margin: 0;
         margin-bottom: var(--size-xSmall);
     }
 
     p {
         color: var(--color-gray-500);
-        font-size: 12px;
+        font-size: 12px !important;
         margin: 0;
     }
 }
