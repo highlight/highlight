@@ -48,6 +48,18 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+
+    &.detailed {
+        max-width: 250px;
+    }
+}
+
+.detailedSection {
+    display: grid;
+    gap: var(--size-xxSmall);
+    grid-template-columns: 1fr 1fr;
+    max-width: unset;
+    padding-top: var(--size-xSmall);
 }
 
 .tagWrapper {
@@ -177,6 +189,10 @@
     display: grid;
     grid-template-columns: 26px 1fr 0.5fr;
     width: 100%;
+
+    &.detailed {
+        grid-template-columns: 26px 1fr 0.25fr;
+    }
 }
 
 .sessionTextSectionWrapper {
@@ -189,6 +205,12 @@
     column-gap: var(--size-medium);
     display: flex;
     justify-content: flex-end;
+
+    &.detailed {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        row-gap: var(--size-medium);
+    }
 
     > div {
         height: 16px;
