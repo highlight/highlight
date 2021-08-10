@@ -75,7 +75,6 @@ const Player = () => {
         setShowLeftPanel,
         showLeftPanel: showLeftPanelPreference,
         showRightPanel,
-        setShowRightPanel,
     } = usePlayerConfiguration();
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     const newCommentModalRef = useRef<HTMLDivElement>(null);
