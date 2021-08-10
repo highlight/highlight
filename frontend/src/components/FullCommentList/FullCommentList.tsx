@@ -7,9 +7,15 @@ interface Props {
     loading: boolean;
     comments?: any[];
     commentRender: (comment: any) => React.ReactNode;
+    noCommentsMessage: string;
 }
 
-const FullCommentList = ({ loading, comments = [], commentRender }: Props) => {
+const FullCommentList = ({
+    loading,
+    comments = [],
+    commentRender,
+    noCommentsMessage,
+}: Props) => {
     const virtuoso = useRef<VirtuosoHandle>(null);
 
     return (
@@ -17,7 +23,7 @@ const FullCommentList = ({ loading, comments = [], commentRender }: Props) => {
             {!loading && comments.length === 0 ? (
                 <div className={styles.noCommentsContainer}>
                     <h2>There are no comments yet</h2>
-                    <p>Click anywhere on the session player to leave one</p>
+                    <p>{noCommentsMessage}</p>
                 </div>
             ) : (
                 <Virtuoso

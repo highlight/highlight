@@ -44,6 +44,7 @@ const SessionFullCommentList = () => {
                     }
                 />
             )}
+            noCommentsMessage="Click anywhere on the session player to leave one"
         />
     );
 };
