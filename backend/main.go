@@ -17,6 +17,7 @@ import (
 	e "github.com/pkg/errors"
 	"github.com/rs/cors"
 	"github.com/sendgrid/sendgrid-go"
+	"github.com/slack-go/slack"
 	"github.com/stripe/stripe-go/client"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
@@ -129,12 +130,15 @@ func main() {
 		log.Fatalf("error creating storage client: %v", err)
 	}
 
+	slackClient := slack.New(os.Getenv("SLACK_BOT_TOKEN"))
+
 	private.SetupAuthClient()
 	privateResolver := &private.Resolver{
 		DB:            db,
 		MailClient:    sendgrid.NewSendClient(sendgridKey),
 		StripeClient:  stripeClient,
 		StorageClient: storage,
+		SlackClient:   slackClient,
 	}
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.

@@ -530,6 +530,10 @@ type Mutation {
         author_name: String!
     ): ErrorComment
     deleteErrorComment(id: ID!): Boolean
+    openSlackConversation(
+        admin_id: ID!
+        user_slack_id: String!
+    ): Boolean
     updateErrorAlert(
         organization_id: ID!
         error_alert_id: ID!

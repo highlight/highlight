@@ -894,6 +894,17 @@ func (r *mutationResolver) DeleteErrorComment(ctx context.Context, id int) (*boo
 	return &model.T, nil
 }
 
+func (r *mutationResolver) OpenSlackConversation(ctx context.Context, adminID int, userSlackID string) (*bool, error) {
+	channel, _, _, err := r.SlackClient.OpenConversation(&slack.OpenConversationParameters{Users: []string{userSlackID}})
+	if err != nil {
+		return nil, e.Wrap(err, "error opening slack conversation")
+	}
+	if err := r.DB.Where(&model.Admin{Model: model.Model{ID: adminID}}).Updates(&model.Admin{SlackIMChannelID: &channel.ID}).Error; err != nil {
+		return nil, e.Wrap(err, "error updating slack conversation on admin table")
+	}
+	return &model.T, nil
+}
+
 func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.ErrorAlert, error) {
 	_, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
