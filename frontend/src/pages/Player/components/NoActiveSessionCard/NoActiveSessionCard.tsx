@@ -18,7 +18,7 @@ const NoActiveSessionCard = () => {
     return (
         <ElevatedCard
             className={styles.card}
-            title="Select a search result!"
+            title="Ready to see what's happening in your app?"
             actions={
                 <Button
                     trackingId="NoActiveSessionCardPerformASearch"
@@ -36,8 +36,8 @@ const NoActiveSessionCard = () => {
             }
         >
             <p>
-                You haven’t selected a search result yet. Head over the the left
-                panel and pick a session to get started.
+                View a recent session or find a specific user, event, or
+                segment.
             </p>
         </ElevatedCard>
     );
