@@ -1,4 +1,6 @@
 import useLocalStorage from '@rehooks/local-storage';
+import { useEffect } from 'react';
+import { useWindowSize } from 'react-use';
 
 import { DevToolTabs } from '../../Toolbar/DevToolsContext/DevToolsContext';
 import { EventsForTimeline } from '.';
@@ -61,6 +63,14 @@ const usePlayerConfiguration = () => {
         'highlightShowPlayerMouseTail',
         true
     );
+
+    const { width } = useWindowSize();
+
+    useEffect(() => {
+        if (width <= 1300) {
+            setShowRightPanel(false);
+        }
+    }, [setShowRightPanel, width]);
 
     return {
         showLeftPanel,

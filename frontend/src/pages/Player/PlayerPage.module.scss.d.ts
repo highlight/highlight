@@ -7,6 +7,7 @@ export const commentModal: string;
 export const eventStreamContainer: string;
 export const header: string;
 export const headerLink: string;
+export const hidden: string;
 export const loadingWrapper: string;
 export const manuallyStoppedMessageContainer: string;
 export const panelShown: string;

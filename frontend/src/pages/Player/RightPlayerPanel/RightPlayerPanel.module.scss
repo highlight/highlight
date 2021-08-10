@@ -1,7 +1,18 @@
 .playerRightPanelContainer {
     box-sizing: content-box;
     flex-shrink: 0;
+    position: relative;
+    right: 0;
+    transform: translateX(0);
+    transition: transform 0.2s ease-in-out;
     width: var(--right-panel-width);
+
+    &.hidden {
+        position: fixed;
+        transform: translateX(
+            calc(var(--right-panel-width) + var(--size-medium))
+        );
+    }
 }
 
 .playerRightPanelCollapsible {

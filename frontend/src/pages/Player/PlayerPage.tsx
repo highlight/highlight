@@ -75,7 +75,6 @@ const Player = () => {
         setShowLeftPanel,
         showLeftPanel: showLeftPanelPreference,
         showRightPanel,
-        setShowRightPanel,
     } = usePlayerConfiguration();
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     const newCommentModalRef = useRef<HTMLDivElement>(null);
@@ -158,11 +157,27 @@ const Player = () => {
                         [styles.withLeftPanel]: showLeftPanel,
                     })}
                 >
-                    {showLeftPanel && (
-                        <div className={styles.playerLeftPanel}>
-                            <SearchPanel />
-                        </div>
-                    )}
+                    <div
+                        className={classNames(styles.playerLeftPanel, {
+                            [styles.hidden]: !showLeftPanel,
+                        })}
+                    >
+                        <SearchPanel visible={showLeftPanel} />
+                        <PanelToggleButton
+                            className={classNames(
+                                styles.panelToggleButton,
+                                styles.panelToggleButtonLeft,
+                                {
+                                    [styles.panelShown]: showLeftPanelPreference,
+                                }
+                            )}
+                            direction="left"
+                            isOpen={showLeftPanelPreference}
+                            onClick={() => {
+                                setShowLeftPanel(!showLeftPanelPreference);
+                            }}
+                        />
+                    </div>
                     {!canViewSession && (
                         <FullBleedCard
                             title="Session quota reached 😔"
@@ -189,22 +204,6 @@ const Player = () => {
                             <div className={styles.playerContainer}>
                                 <div className={styles.rrwebPlayerSection}>
                                     <div className={styles.playerCenterColumn}>
-                                        <PanelToggleButton
-                                            className={classNames(
-                                                styles.panelToggleButton,
-                                                styles.panelToggleButtonLeft,
-                                                {
-                                                    [styles.panelShown]: showLeftPanelPreference,
-                                                }
-                                            )}
-                                            direction="left"
-                                            isOpen={showLeftPanelPreference}
-                                            onClick={() => {
-                                                setShowLeftPanel(
-                                                    !showLeftPanelPreference
-                                                );
-                                            }}
-                                        />
                                         <SessionLevelBar />
                                         <div
                                             className={
@@ -306,20 +305,6 @@ const Player = () => {
                                         <Toolbar />
                                     </div>
 
-                                    <PanelToggleButton
-                                        className={classNames(
-                                            styles.panelToggleButton,
-                                            styles.panelToggleButtonRight,
-                                            {
-                                                [styles.panelShown]: showRightPanel,
-                                            }
-                                        )}
-                                        direction="right"
-                                        isOpen={showRightPanel}
-                                        onClick={() => {
-                                            setShowRightPanel(!showRightPanel);
-                                        }}
-                                    />
                                     <RightPlayerPanel />
                                 </div>
                             </div>
