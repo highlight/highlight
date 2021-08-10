@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/pricing"
@@ -441,90 +442,28 @@ func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int
 }
 
 func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (string, error) {
-	apiKey := os.Getenv("APOLLO_IO_API_KEY")
-
-	type MatchRequest struct {
-		ApiKey string `json:"api_key"`
-		Email  string `json:"email"`
-	}
-	type MatchResponse struct {
-		Person map[string]interface{} `json:"person"`
-	}
-
-	matchRequest := &MatchRequest{ApiKey: apiKey, Email: email}
-	matchResponse := &MatchResponse{}
-	err := util.RestRequest("https://api.apollo.io/v1/people/match", "POST", matchRequest, matchResponse)
+	short, long, err := apolloio.Enrich(email)
 	if err != nil {
-		log.Errorf("error sending match request: %v", err)
+		log.Errorf("error enriching email: %v", err)
+		return email, nil
 	}
 
-	contactString := ""
-	contactBytes, err := json.MarshalIndent(matchResponse.Person, "", "  ")
-	if err == nil {
-		contactString = string(contactBytes)
-	} else {
-		log.Errorf("error marshaling: %v", err)
-	}
-
-	contactStringShort := ""
-	shortContactMap := make(map[string]string)
-	for key, val := range matchResponse.Person {
-		if valString, ok := val.(string); ok {
-			shortContactMap[key] = valString
-		}
-	}
-	contactBytesShort, err := json.MarshalIndent(shortContactMap, "", "  ")
-	if err == nil {
-		contactStringShort = string(contactBytesShort)
-	} else {
-		log.Errorf("error marshaling short: %v", err)
-	}
 	model.DB.Create(&model.EmailSignup{
 		Email:               email,
-		ApolloData:          contactString,
-		ApolloDataShortened: contactStringShort,
+		ApolloData:          *long,
+		ApolloDataShortened: *short,
 	})
 
-	type ContactsRequest struct {
-		ApiKey string `json:"api_key"`
-		Email  string `json:"email"`
-	}
-	type Contact struct {
-		ID string `json:"id"`
-	}
-	type ContactsResponse struct {
-		Contact Contact `json:"contact"`
-	}
-	contactsRequest := &ContactsRequest{ApiKey: apiKey, Email: email}
-	contactsResponse := &ContactsResponse{}
-	err = util.RestRequest("https://api.apollo.io/v1/contacts", "POST", contactsRequest, contactsResponse)
-	if err != nil {
-		log.Errorf("error sending contacts request: %v", err)
-		return email, nil
-	}
-
-	type SequenceRequest struct {
-		ApiKey                      string   `json:"api_key"`
-		ContactIDs                  []string `json:"contact_ids"`
-		EmailerCampaignID           string   `json:"emailer_campaign_id"`
-		SendEmailFromEmailAccountID string   `json:"send_email_from_email_account_id"`
-	}
-	type SequenceResponse struct {
-		Contacts json.RawMessage `json:"contacts"`
-	}
-	sequenceRequest := &SequenceRequest{
-		ApiKey:                      apiKey,
-		ContactIDs:                  []string{contactsResponse.Contact.ID},
-		EmailerCampaignID:           "60fb134ce97fa1014c1cc141", // Represents the sequence ID for "Landing Page Signups"
-		SendEmailFromEmailAccountID: "6053cd5ef93cca00e498990f", // Respresents the ID for Jay's email account (jay@highlight.run)
-	}
-	sequenceResponse := &SequenceResponse{}
-	url := fmt.Sprintf("https://api.apollo.io/v1/emailer_campaigns/%v/add_contact_ids", sequenceRequest.EmailerCampaignID)
-	err = util.RestRequest(url, "POST", sequenceRequest, sequenceResponse)
-	if err != nil {
-		log.Errorf("error sending contacts request: %v", err)
-		return email, nil
-	}
+	go func() {
+		if contact, err := apolloio.CreateContact(email); err != nil {
+			log.Errorf("error creating apollo contact: %v", err)
+		} else {
+			sequenceID := "60fb134ce97fa1014c1cc141" // represents the "Landing Page Signups" sequence.
+			if err := apolloio.AddToSequence(contact.ID, sequenceID); err != nil {
+				log.Errorf("error adding to apollo sequence: %v", err)
+			}
+		}
+	}()
 
 	return email, nil
 }
@@ -2096,6 +2035,16 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		if err := r.DB.Create(newAdmin).Error; err != nil {
 			return nil, e.Wrap(err, "error creating new admin")
 		}
+		go func() {
+			if contact, err := apolloio.CreateContact(*newAdmin.Email); err != nil {
+				log.Errorf("error creating apollo contact: %v", err)
+			} else {
+				sequenceID := "6105bc9bf2a2dd0112bdd26b" // represents the "New Authenticated Users" sequence.
+				if err := apolloio.AddToSequence(contact.ID, sequenceID); err != nil {
+					log.Errorf("error adding new contact to sequence: %v", err)
+				}
+			}
+		}()
 		admin = newAdmin
 	}
 	if admin.PhotoURL == nil || admin.Name == nil {
