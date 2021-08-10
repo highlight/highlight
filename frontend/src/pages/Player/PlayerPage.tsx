@@ -306,20 +306,6 @@ const Player = () => {
                                         <Toolbar />
                                     </div>
 
-                                    <PanelToggleButton
-                                        className={classNames(
-                                            styles.panelToggleButton,
-                                            styles.panelToggleButtonRight,
-                                            {
-                                                [styles.panelShown]: showRightPanel,
-                                            }
-                                        )}
-                                        direction="right"
-                                        isOpen={showRightPanel}
-                                        onClick={() => {
-                                            setShowRightPanel(!showRightPanel);
-                                        }}
-                                    />
                                     <RightPlayerPanel />
                                 </div>
                             </div>

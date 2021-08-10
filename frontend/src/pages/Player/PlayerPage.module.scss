@@ -253,9 +253,7 @@
 
 .panelToggleButton {
     position: absolute;
-    transform: translateY(
-        calc(var(--header-height) + var(--size-medium) + 158px)
-    );
+    transform: translateY(calc(112px + var(--size-medium) + 30px));
     z-index: 999;
 }
 
@@ -269,9 +267,9 @@
 }
 
 .panelToggleButtonRight {
-    right: 0;
+    left: calc((var(--size-xLarge) + var(--size-medium)) * -1);
 
     &.panelShown {
-        right: calc(var(--right-panel-width));
+        left: calc(-1 * var(--size-medium));
     }
 }
