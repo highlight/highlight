@@ -758,8 +758,6 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 	createSessionCommentSpan.Finish()
 
 	if len(taggedAdmins) > 0 && !isGuestCreatingSession {
-		commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
-			tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(taggedAdmins)))
 
 		tos := []*mail.Email{}
 		var adminIds []int
@@ -768,73 +766,90 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 			tos = append(tos, &mail.Email{Address: admin.Email})
 			adminIds = append(adminIds, admin.ID)
 		}
-		m := mail.NewV3Mail()
-		from := mail.NewEmail("Highlight", "notifications@highlight.run")
 		viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
-		m.SetFrom(from)
-		m.SetTemplateID(SendGridSessionCommentEmailTemplateID)
 
-		p := mail.NewPersonalization()
-		p.AddTos(tos...)
-		p.SetDynamicTemplateData("Author_Name", authorName)
-		p.SetDynamicTemplateData("Comment_Link", viewLink)
-		p.SetDynamicTemplateData("Comment_Body", textForEmail)
-		p.SetDynamicTemplateData("Session_Image", sessionImage)
+		var g errgroup.Group
 
-		if sessionImage != nil {
-			a := mail.NewAttachment()
-			a.SetContent(*sessionImage)
-			a.SetFilename("session-image.png")
-			a.SetContentID("sessionImage")
-			a.SetType("image/png")
-			m.AddAttachment(a)
-		}
+		g.Go(func() error {
+			commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
+				tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(taggedAdmins)))
+			defer commentMentionEmailSpan.Finish()
 
-		m.AddPersonalizations(p)
+			m := mail.NewV3Mail()
+			from := mail.NewEmail("Highlight", "notifications@highlight.run")
+			m.SetFrom(from)
+			m.SetTemplateID(SendGridSessionCommentEmailTemplateID)
 
-		_, err := r.MailClient.Send(m)
-		if err != nil {
-			return nil, fmt.Errorf("error sending sendgrid email for comments mentions: %v", err)
-		}
+			p := mail.NewPersonalization()
+			p.AddTos(tos...)
+			p.SetDynamicTemplateData("Author_Name", authorName)
+			p.SetDynamicTemplateData("Comment_Link", viewLink)
+			p.SetDynamicTemplateData("Comment_Body", textForEmail)
+			p.SetDynamicTemplateData("Session_Image", sessionImage)
 
-		commentMentionEmailSpan.Finish()
+			if sessionImage != nil {
+				a := mail.NewAttachment()
+				a.SetContent(*sessionImage)
+				a.SetFilename("session-image.png")
+				a.SetContentID("sessionImage")
+				a.SetType("image/png")
+				m.AddAttachment(a)
+			}
 
-		commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
-			tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(adminIds)))
-		var admins []*model.Admin
-		if err := r.DB.Find(&admins, adminIds).Where("slack_im_channel_id IS NOT NULL").Error; err != nil {
-			return nil, e.Wrap(err, "error fetching admins")
-		}
+			m.AddPersonalizations(p)
 
-		var blockSet slack.Blocks
-		blockSet.BlockSet = append(blockSet.BlockSet,
-			slack.NewHeaderBlock(
-				slack.NewTextBlockObject(slack.PlainTextType, "Highlight Activity Alert", false, true)))
+			_, err := r.MailClient.Send(m)
+			if err != nil {
+				return e.Wrap(err, "error sending sendgrid email for comments mentions")
+			}
+			return nil
+		})
 
-		message := "You were tagged in a session."
-		if admin.Name != nil {
-			message = fmt.Sprintf("%s tagged you in a session.", *admin.Name)
-		}
-		blockSet.BlockSet = append(blockSet.BlockSet,
-			slack.NewSectionBlock(
-				slack.NewTextBlockObject(slack.MarkdownType, message, true, false),
-				nil, slack.NewAccessory(slack.ButtonBlockElement{
-					Text: slack.NewTextBlockObject(slack.PlainTextType, "Visit Session", true, false),
-					URL:  viewLink,
-				}),
-			))
+		g.Go(func() error {
+			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
+				tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(adminIds)))
+			defer commentMentionSlackSpan.Finish()
 
-		blockSet.BlockSet = append(blockSet.BlockSet, slack.NewDividerBlock())
-		for _, a := range admins {
-			if a.SlackIMChannelID != nil {
-				_, _, err := r.SlackClient.PostMessage(*a.SlackIMChannelID, slack.MsgOptionBlocks(blockSet.BlockSet...))
-				if err != nil {
-					return nil, err
+			var admins []*model.Admin
+			if err := r.DB.Find(&admins, adminIds).Where("slack_im_channel_id IS NOT NULL").Error; err != nil {
+				return e.Wrap(err, "error fetching admins")
+			}
+
+			var blockSet slack.Blocks
+			blockSet.BlockSet = append(blockSet.BlockSet,
+				slack.NewHeaderBlock(
+					slack.NewTextBlockObject(slack.PlainTextType, "Highlight Activity Alert", false, true)))
+
+			message := "You were tagged in a session."
+			if admin.Name != nil {
+				message = fmt.Sprintf("%s tagged you in a session.", *admin.Name)
+			}
+			blockSet.BlockSet = append(blockSet.BlockSet,
+				slack.NewSectionBlock(
+					slack.NewTextBlockObject(slack.MarkdownType, message, true, false),
+					nil, slack.NewAccessory(slack.ButtonBlockElement{
+						Text: slack.NewTextBlockObject(slack.PlainTextType, "Visit Session", true, false),
+						URL:  viewLink,
+					}),
+				))
+
+			blockSet.BlockSet = append(blockSet.BlockSet, slack.NewDividerBlock())
+			for _, a := range admins {
+				if a.SlackIMChannelID != nil {
+					_, _, err := r.SlackClient.PostMessage(*a.SlackIMChannelID, slack.MsgOptionBlocks(blockSet.BlockSet...))
+					if err != nil {
+						return e.Wrap(err, "error posting slack message")
+					}
 				}
 			}
+			return nil
+		})
+		err := g.Wait()
+		if err != nil {
+			return nil, e.Wrap(err, "error notifying admins about being tagged in a comment")
 		}
-		commentMentionSlackSpan.Finish()
 	}
+
 	return sessionComment, nil
 }
 
