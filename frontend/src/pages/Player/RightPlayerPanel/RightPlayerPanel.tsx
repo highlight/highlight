@@ -5,7 +5,6 @@ import { MetadataBox } from '../MetadataBox/MetadataBox';
 import MetadataPanel from '../MetadataPanel/MetadataPanel';
 import usePlayerConfiguration from '../PlayerHook/utils/usePlayerConfiguration';
 import { EventStream } from '../PlayerPage';
-import { PlayerPageProductTourSelectors } from '../PlayerPageProductTour/PlayerPageProductTour';
 import { useReplayerContext } from '../ReplayerContext';
 import SessionFullCommentList from '../SessionFullCommentList/SessionFullCommentList';
 import styles from './RightPlayerPanel.module.scss';
@@ -27,7 +26,6 @@ const RightPlayerPanel = () => {
             <div className={styles.playerRightPanelCollapsible}>
                 <MetadataBox />
                 <Tabs
-                    tabsHtmlId={`${PlayerPageProductTourSelectors.PlayerRightPanel}`}
                     centered
                     id="PlayerRightPanel"
                     noPadding
