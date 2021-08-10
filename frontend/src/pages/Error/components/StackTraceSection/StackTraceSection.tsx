@@ -64,6 +64,6 @@ const truncateFileName = (fileName: string) => {
     const tokens = fileName.split('/');
 
     return `${'../'.repeat(
-        tokens.length - NUMBER_OF_LEVELS_TO_GO_UP
+        Math.max(tokens.length - NUMBER_OF_LEVELS_TO_GO_UP, 0)
     )}${tokens.splice(tokens.length - NUMBER_OF_LEVELS_TO_GO_UP).join('/')}`;
 };
