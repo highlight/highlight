@@ -180,10 +180,6 @@
     position: relative;
 }
 
-.userInputWrapper {
-    width: 100%;
-}
-
 .resultCount {
     align-items: center;
     background: linear-gradient(
@@ -198,6 +194,7 @@
 }
 
 .resultCountValueContainer {
+    align-items: flex-end;
     display: flex;
     justify-content: space-between;
 }
@@ -343,4 +340,9 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.sessionFeedActions {
+    column-gap: var(--size-small);
+    display: flex;
 }

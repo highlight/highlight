@@ -2,7 +2,7 @@ import React from 'react';
 import { Command } from 'react-command-palette';
 import { VscArrowRight, VscDeviceCameraVideo } from 'react-icons/vsc';
 
-import { ReactComponent as TeamIcon } from '../../../../static/team-icon.svg';
+import SvgUsersIcon from '../../../../static/UsersIcon';
 import styles from './CommandBarCommand.module.scss';
 
 type Props = Command & {
@@ -35,7 +35,7 @@ export default CommandBarCommand;
 
 const CATEGORY_ICON_MAPPING: { [key: string]: React.ReactNode } = {
     Navigation: <VscArrowRight />,
-    Organizations: <TeamIcon />,
+    Organizations: <SvgUsersIcon />,
     Player: <VscDeviceCameraVideo />,
 };
 

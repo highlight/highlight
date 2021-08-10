@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import React from 'react';
 
 import { ParsedSessionComment } from '../../../pages/Player/ReplayerContext';
-import CommentTextBody from '../../../pages/Player/Toolbar/NewCommentEntry/CommentTextBody/CommentTextBody';
+import CommentTextBody from '../../../pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody';
 import styles from './SessionComment.module.scss';
 import SessionCommentHeader, {
     CommentHeaderMenuItem,

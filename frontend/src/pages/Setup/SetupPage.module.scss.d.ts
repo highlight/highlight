@@ -7,7 +7,6 @@ export const integrationContainer: string;
 export const platformOption: string;
 export const radioGroupWrapper: string;
 export const sectionTitleWithIcon: string;
-export const snippetHeadingTwo: string;
 export const stepsContainer: string;
 export const subTitle: string;
 export const title: string;

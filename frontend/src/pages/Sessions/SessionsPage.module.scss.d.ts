@@ -35,4 +35,3 @@ export const sessionsSection: string;
 export const sessionTextSection: string;
 export const sessionTextWrapper: string;
 export const timesIcon: string;
-export const userInputWrapper: string;

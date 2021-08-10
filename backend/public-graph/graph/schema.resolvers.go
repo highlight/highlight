@@ -29,7 +29,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 	if os.Getenv("ENVIRONMENT") != "dev" && err != nil {
 		msg := slack.WebhookMessage{Text: fmt.
 			Sprintf("Error in InitializeSession: %q\nOccurred for organization: {%d, %q}\nIs on-prem: %q", err, orgID, organizationVerboseID, os.Getenv("REACT_APP_ONPREM"))}
-		err := slack.PostWebhook("https://hooks.slack.com/services/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", &msg)
+		err := slack.PostWebhook(os.Getenv("SLACK_INITIALIZED_SESSION_FAILED_WEB_HOOK"), &msg)
 		if err != nil {
 			log.Error(e.Wrap(err, "failed to post webhook with error in InitializeSession"))
 		}
@@ -125,9 +125,10 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	querySessionSpan.SetTag("numberOfErrors", len(errors))
 	querySessionSpan.SetTag("numberOfEvents", len(events.Events))
 	sessionObj := &model.Session{}
-	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&sessionObj)
-	if res.Error != nil {
-		return nil, fmt.Errorf("error reading from session %v: %v", sessionID, res.Error)
+	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&sessionObj).Error; err != nil {
+		retErr := e.Wrapf(err, "error reading from session %v", sessionID)
+		querySessionSpan.Finish(tracer.WithError(retErr))
+		return nil, retErr
 	}
 	querySessionSpan.SetTag("org_id", sessionObj.OrganizationID)
 	querySessionSpan.Finish()

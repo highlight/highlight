@@ -1,0 +1,21 @@
+.button {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    border-radius: var(--button-border-radius);
+    cursor: pointer;
+    display: flex;
+    height: var(--size-large);
+    justify-content: center;
+    outline: none;
+    padding: 0;
+    width: var(--size-large);
+
+    &:hover {
+        background: var(--color-gray-300);
+    }
+
+    &:active {
+        background: var(--color-gray-400);
+    }
+}

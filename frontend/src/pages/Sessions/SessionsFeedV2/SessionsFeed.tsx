@@ -13,14 +13,11 @@ import { formatNumberWithDelimiters } from '../../../util/numbers';
 import usePlayerConfiguration from '../../Player/PlayerHook/utils/usePlayerConfiguration';
 import { useReplayerContext } from '../../Player/ReplayerContext';
 import { useSearchContext } from '../SearchContext/SearchContext';
-import {
-    LIVE_SEGMENT_ID,
-    STARRED_SEGMENT_ID,
-} from '../SearchSidebar/SegmentPicker/SegmentPicker';
+import { LIVE_SEGMENT_ID } from '../SearchSidebar/SegmentPicker/SegmentPicker';
 import MinimalSessionCard from './components/MinimalSessionCard/MinimalSessionCard';
 import styles from './SessionsFeed.module.scss';
 
-const SESSIONS_FEED_POLL_INTERVAL = 1000 * 10;
+// const SESSIONS_FEED_POLL_INTERVAL = 1000 * 10;
 
 export const SessionFeed = () => {
     const { setSessionResults, sessionResults } = useReplayerContext();
@@ -30,11 +27,16 @@ export const SessionFeed = () => {
         session_id: string;
     }>();
     const [count, setCount] = useState(10);
-    const { autoPlaySessions, setAutoPlaySessions } = usePlayerConfiguration();
+    const {
+        autoPlaySessions,
+        setAutoPlaySessions,
+        setShowDetailedSessionView,
+        showDetailedSessionView,
+    } = usePlayerConfiguration();
 
     // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
     const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
-    const { searchParams } = useSearchContext();
+    const { searchParams, showStarredSessions } = useSearchContext();
     const {
         show_live_sessions,
         ...searchParamsExceptForShowLiveSessions
@@ -51,9 +53,9 @@ export const SessionFeed = () => {
                     : !show_live_sessions
                     ? SessionLifecycle.Completed
                     : SessionLifecycle.All,
-            starred: segment_id === STARRED_SEGMENT_ID,
+            starred: showStarredSessions,
         },
-        pollInterval: SESSIONS_FEED_POLL_INTERVAL,
+        // pollInterval: SESSIONS_FEED_POLL_INTERVAL,
         onCompleted: (response) => {
             if (response.sessions) {
                 setSessionResults(response.sessions);
@@ -119,13 +121,22 @@ export const SessionFeed = () => {
                                     />{' '}
                                     sessions
                                 </span>
-                                <Switch
-                                    label="Autoplay"
-                                    checked={autoPlaySessions}
-                                    onChange={(checked) => {
-                                        setAutoPlaySessions(checked);
-                                    }}
-                                />
+                                <div className={styles.sessionFeedActions}>
+                                    <Switch
+                                        label="Autoplay"
+                                        checked={autoPlaySessions}
+                                        onChange={(checked) => {
+                                            setAutoPlaySessions(checked);
+                                        }}
+                                    />
+                                    <Switch
+                                        label="Show Details"
+                                        checked={showDetailedSessionView}
+                                        onChange={(checked) => {
+                                            setShowDetailedSessionView(checked);
+                                        }}
+                                    />
+                                </div>
                             </div>
                         )
                     )}

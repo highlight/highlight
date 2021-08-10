@@ -1,0 +1,33 @@
+.feedbackButton {
+    align-items: center;
+    background: var(--color-primary-inverted-background);
+    border: 0;
+    border-radius: var(--size-xSmall);
+    color: var(--color-primary-background);
+    column-gap: var(--size-xSmall);
+    display: flex;
+    height: 32px;
+    padding-bottom: var(--size-xxSmall);
+    padding-top: var(--size-xxSmall);
+
+    &:hover,
+    &:active,
+    &:focus {
+        background: var(--color-primary-inverted-background);
+        border: 0;
+        color: var(--color-primary-background);
+    }
+}
+
+.feedbackButtonMenu {
+    a {
+        color: var(--text-primary);
+    }
+
+    a,
+    button {
+        align-items: center;
+        column-gap: var(--size-xSmall);
+        display: flex !important;
+    }
+}

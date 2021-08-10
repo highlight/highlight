@@ -69,15 +69,17 @@ var ContextKeys = struct {
 	UserAgent      contextString
 	AcceptLanguage contextString
 	UID            contextString
+	// The email for the current user. If the email is a @highlight.run, the email will need to be verified, otherwise `Email` will be an empty string.
+	Email contextString
 }{
 	IP:             "ip",
 	UserAgent:      "userAgent",
 	AcceptLanguage: "acceptLanguage",
 	UID:            "uid",
+	Email:          "email",
 }
 
 var Models = []interface{}{
-	&RecordingSettings{},
 	&MessagesObject{},
 	&EventsObject{},
 	&ErrorObject{},
@@ -87,7 +89,6 @@ var Models = []interface{}{
 	&Organization{},
 	&Segment{},
 	&Admin{},
-	&User{},
 	&Session{},
 	&DailySessionCount{},
 	&DailyErrorCount{},
@@ -118,34 +119,14 @@ type Model struct {
 	DeletedAt *time.Time `json:"deleted_at"`
 }
 
-type RecordingSettings struct {
-	Model
-	OrganizationID int     `json:"organization_id"`
-	Details        *string `json:"details"`
-}
-
-func (r *RecordingSettings) GetDetailsAsSlice() ([]string, error) {
-	var result []string
-	if r.Details == nil {
-		return result, nil
-	}
-	err := json.Unmarshal([]byte(*r.Details), &result)
-	if err != nil {
-		return nil, e.Wrap(err, "error parsing details json")
-	}
-	return result, nil
-}
-
 type Organization struct {
 	Model
 	Name             *string
 	StripeCustomerID *string
 	StripePriceID    *string
 	BillingEmail     *string
-	Secret           *string `json:"-"`
-	Admins           []Admin `gorm:"many2many:organization_admins;"`
-	Fields           []Field
-	RecordingSetting RecordingSettings
+	Secret           *string    `json:"-"`
+	Admins           []Admin    `gorm:"many2many:organization_admins;"`
 	TrialEndDate     *time.Time `json:"trial_end_date"`
 	// Slack API Interaction.
 	SlackAccessToken      *string
@@ -153,8 +134,6 @@ type Organization struct {
 	SlackWebhookChannel   *string
 	SlackWebhookChannelID *string
 	SlackChannels         *string
-	// Alerts
-	ErrorAlert *string
 	// Manual monthly session limit override
 	MonthlySessionLimit *int
 }
@@ -318,11 +297,6 @@ type EmailSignup struct {
 	ApolloDataShortened string
 }
 
-type User struct {
-	Model
-	OrganizationID int
-}
-
 type SessionResults struct {
 	Sessions   []Session
 	TotalCount int64
@@ -346,7 +320,6 @@ type Session struct {
 	OSVersion      string `json:"os_version"`
 	BrowserName    string `json:"browser_name"`
 	BrowserVersion string `json:"browser_version"`
-	Status         string `json:"status"`
 	Language       string `json:"language"`
 	// Tells us if the session has been parsed by a worker.
 	Processed *bool `json:"processed"`

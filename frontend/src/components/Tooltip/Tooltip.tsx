@@ -10,19 +10,28 @@ import styles from './Tooltip.module.scss';
 
 type TooltipProps = Pick<
     AntDesignTooltipProps,
-    'title' | 'placement' | 'align' | 'arrowPointAtCenter' | 'overlayStyle'
+    | 'title'
+    | 'placement'
+    | 'align'
+    | 'arrowPointAtCenter'
+    | 'overlayStyle'
+    | 'mouseEnterDelay'
 >;
 
 /**
  * A proxy for Ant Design's tooltip. This component should be used instead of directly using Ant Design's.
  */
-const Tooltip: React.FC<TooltipProps> = ({ children, ...props }) => {
+const Tooltip: React.FC<TooltipProps> = ({
+    children,
+    mouseEnterDelay = 1,
+    ...props
+}) => {
     return (
         <AntDesignTooltip
             {...props}
+            mouseEnterDelay={mouseEnterDelay}
             overlayClassName={styles.tooltipOverlay}
             title={props.title}
-            mouseEnterDelay={1}
             destroyTooltipOnHide
         >
             {children}

@@ -3,6 +3,8 @@ export const avatarWrapper: string;
 export const bottomText: string;
 export const cardAnnotation: string;
 export const cardAnnotationContainer: string;
+export const detailed: string;
+export const detailedSection: string;
 export const middleText: string;
 export const readMarkerContainer: string;
 export const selected: string;

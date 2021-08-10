@@ -1,25 +1,23 @@
 import classNames from 'classnames';
 import React, { useEffect, useRef, useState } from 'react';
 import Draggable from 'react-draggable';
-import { FaPause } from 'react-icons/fa';
 import Skeleton from 'react-loading-skeleton';
 
+import { useAuthContext } from '../../../AuthContext';
+import Button from '../../../components/Button/Button/Button';
 import Modal from '../../../components/Modal/Modal';
-import {
-    SidebarState,
-    useSidebarContext,
-} from '../../../components/Sidebar/SidebarContext';
+import Popover from '../../../components/Popover/Popover';
+import PopoverListContent from '../../../components/Popover/PopoverListContent';
+import Switch from '../../../components/Switch/Switch';
 import ToggleButton from '../../../components/ToggleButton/ToggleButton';
 import Tooltip from '../../../components/Tooltip/Tooltip';
-import { useGetAdminQuery } from '../../../graph/generated/hooks';
 import { ErrorObject } from '../../../graph/generated/schemas';
-import SvgCursorIcon from '../../../static/CursorIcon';
 import SvgDevtoolsIcon from '../../../static/DevtoolsIcon';
+import SvgPauseIcon from '../../../static/PauseIcon';
 import SvgPlayIcon from '../../../static/PlayIcon';
-import SvgRedoIcon from '../../../static/RedoIcon';
+import SvgSettingsIcon from '../../../static/SettingsIcon';
+import SvgSkipBackIcon from '../../../static/SkipBackIcon';
 import SvgSkipForwardIcon from '../../../static/SkipForwardIcon';
-import SvgUndoIcon from '../../../static/UndoIcon';
-import SvgVideoIcon from '../../../static/VideoIcon';
 import {
     MillisToMinutesAndSeconds,
     MillisToMinutesAndSecondsVerbose,
@@ -61,7 +59,6 @@ export const Toolbar = () => {
         skipInactive,
         setSkipInactive,
         showLeftPanel,
-        showRightPanel,
         showDevTools,
         setShowDevTools,
         autoPlayVideo,
@@ -71,8 +68,7 @@ export const Toolbar = () => {
         showPlayerMouseTail,
         setShowPlayerMouseTail,
     } = usePlayerConfiguration();
-    const { staticSidebarState } = useSidebarContext();
-    const { data: admin_data } = useGetAdminQuery({ skip: false });
+    const { isLoggedIn } = useAuthContext();
     const max = replayer?.getMetaData().totalTime ?? 0;
     const sliderWrapperRef = useRef<HTMLButtonElement>(null);
     const [selectedError, setSelectedError] = useState<ErrorObject | undefined>(
@@ -101,7 +97,7 @@ export const Toolbar = () => {
 
     // Automatically start the player if the user has set the preference.
     useEffect(() => {
-        if (admin_data) {
+        if (isLoggedIn) {
             if (
                 (autoPlayVideo || autoPlaySessions) &&
                 replayer &&
@@ -115,7 +111,7 @@ export const Toolbar = () => {
             }
         }
     }, [
-        admin_data,
+        isLoggedIn,
         autoPlayVideo,
         autoPlaySessions,
         isPlayerReady,
@@ -202,8 +198,8 @@ export const Toolbar = () => {
     // The play button should be disabled if the player has reached the end.
     const disablePlayButton = time >= (replayer?.getMetaData().totalTime ?? 0);
     const leftSidebarWidth = showLeftPanel ? 475 : 0;
-    const staticSidebarWidth =
-        staticSidebarState == SidebarState.Expanded ? 64 : 0;
+    /** 64 (sidebar width) + 12 (left padding for the toolbar)  */
+    const staticSidebarWidth = isLoggedIn ? 64 + 12 : 12;
 
     return (
         <ErrorModalContextProvider value={{ selectedError, setSelectedError }}>
@@ -322,7 +318,7 @@ export const Toolbar = () => {
                                         )}
                                     />
                                 ) : (
-                                    <FaPause
+                                    <SvgPauseIcon
                                         fill="inherit"
                                         className={classNames(
                                             styles.playButtonStyle,
@@ -357,7 +353,7 @@ export const Toolbar = () => {
                                     }
                                 }}
                             >
-                                <SvgUndoIcon
+                                <SvgSkipBackIcon
                                     fill="inherit"
                                     className={classNames(
                                         styles.skipButtonStyle,
@@ -394,7 +390,7 @@ export const Toolbar = () => {
                                     }
                                 }}
                             >
-                                <SvgRedoIcon
+                                <SvgSkipForwardIcon
                                     fill="inherit"
                                     className={classNames(
                                         styles.skipButtonStyle,
@@ -416,66 +412,6 @@ export const Toolbar = () => {
                     </div>
                 </div>
                 <div className={styles.toolbarRightSection}>
-                    <TimelineAnnotationsSettings disabled={disableControls} />
-                    <Tooltip
-                        title="Automatically starts the video when you open a session."
-                        arrowPointAtCenter
-                    >
-                        <ToggleButton
-                            trackingId="PlayerAutoPlaySetting"
-                            type="text"
-                            onClick={() => {
-                                setAutoPlayVideo(!autoPlayVideo);
-                            }}
-                            toggled={autoPlayVideo}
-                            disabled={disableControls}
-                            prefixIcon={<SvgVideoIcon />}
-                            hideTextLabel={showLeftPanel && showRightPanel}
-                        >
-                            {autoPlayVideo ? 'Autoplaying' : 'Autoplay'}
-                        </ToggleButton>
-                    </Tooltip>
-                    <Tooltip
-                        title="Skip the playback of the inactive portions of the session."
-                        arrowPointAtCenter
-                    >
-                        <ToggleButton
-                            trackingId="PlayerSkipInactive"
-                            type="text"
-                            onClick={() => {
-                                setSkipInactive(!skipInactive);
-                            }}
-                            disabled={disableControls}
-                            toggled={skipInactive}
-                            prefixIcon={<SvgSkipForwardIcon />}
-                            hideTextLabel={showLeftPanel && showRightPanel}
-                        >
-                            {skipInactive
-                                ? 'Skipping inactive'
-                                : 'Skip inactive'}
-                        </ToggleButton>
-                    </Tooltip>
-                    <Tooltip
-                        title="Show a trail of where the mouse has been. This is useful to keep track of how the mouse has moved."
-                        arrowPointAtCenter
-                    >
-                        <ToggleButton
-                            trackingId="PlayerSkipInactive"
-                            type="text"
-                            onClick={() => {
-                                setShowPlayerMouseTail(!showPlayerMouseTail);
-                            }}
-                            disabled={disableControls}
-                            toggled={showPlayerMouseTail}
-                            prefixIcon={<SvgCursorIcon />}
-                            hideTextLabel={showLeftPanel && showRightPanel}
-                        >
-                            {showPlayerMouseTail
-                                ? 'Showing Mouse Trail'
-                                : 'Hiding Mouse Trail'}
-                        </ToggleButton>
-                    </Tooltip>
-                    <SpeedControl disabled={disableControls} />
                     <Tooltip
                         title="View the DevTools to see console logs, errors, and network requests."
                         placement="topLeft"
@@ -499,6 +435,83 @@ export const Toolbar = () => {
                             />
                         </ToggleButton>
                     </Tooltip>
+
+                    <Popover
+                        placement="topLeft"
+                        trigger={['click']}
+                        content={
+                            <>
+                                <PopoverListContent
+                                    className={styles.settingsPopover}
+                                    noHoverChange
+                                    listItems={[
+                                        <Switch
+                                            labelFirst
+                                            justifySpaceBetween
+                                            noMarginAroundSwitch
+                                            key="sessionAutoplay"
+                                            checked={autoPlayVideo}
+                                            label="Autoplay"
+                                            onChange={(checked) => {
+                                                setAutoPlayVideo(checked);
+                                            }}
+                                        />,
+                                        <Switch
+                                            labelFirst
+                                            justifySpaceBetween
+                                            noMarginAroundSwitch
+                                            key="skipInactive"
+                                            checked={skipInactive}
+                                            label="Skip inactive"
+                                            onChange={(checked) => {
+                                                setSkipInactive(checked);
+                                            }}
+                                        />,
+                                        <Switch
+                                            labelFirst
+                                            justifySpaceBetween
+                                            noMarginAroundSwitch
+                                            key="mouseTrail"
+                                            checked={showPlayerMouseTail}
+                                            label="Show mouse trail"
+                                            onChange={(checked) => {
+                                                setShowPlayerMouseTail(checked);
+                                            }}
+                                        />,
+                                        <div
+                                            key="speedControl"
+                                            className={
+                                                styles.speedControlContainer
+                                            }
+                                        >
+                                            Playback speed
+                                            <SpeedControl
+                                                disabled={disableControls}
+                                            />
+                                        </div>,
+                                        <div
+                                            key="timelineAnnotationSettings"
+                                            className={
+                                                styles.speedControlContainer
+                                            }
+                                        >
+                                            Annotations
+                                            <TimelineAnnotationsSettings
+                                                disabled={disableControls}
+                                            />
+                                        </div>,
+                                    ]}
+                                />
+                            </>
+                        }
+                    >
+                        <Button
+                            trackingId="PlayerToolbarSettings"
+                            className={styles.settingsButton}
+                        >
+                            <SvgSettingsIcon className={styles.devToolsIcon} />
+                        </Button>
+                    </Popover>
                 </div>
             </div>
         </ErrorModalContextProvider>

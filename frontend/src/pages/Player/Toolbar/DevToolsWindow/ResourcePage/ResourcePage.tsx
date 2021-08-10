@@ -17,7 +17,6 @@ import Input from '../../../../../components/Input/Input';
 import TextHighlighter from '../../../../../components/TextHighlighter/TextHighlighter';
 import Tooltip from '../../../../../components/Tooltip/Tooltip';
 import { useGetResourcesQuery } from '../../../../../graph/generated/hooks';
-import { formatNumber } from '../../../../../util/numbers';
 import { MillisToMinutesAndSeconds } from '../../../../../util/time';
 import { formatTime } from '../../../../Home/components/KeyPerformanceIndicators/utils/utils';
 import { ReplayerState, useReplayerContext } from '../../../ReplayerContext';
@@ -200,7 +199,7 @@ export const ResourcePage = ({
                     </div>
                 ) : (
                     <>
-                        <TimingCanvas networkRange={networkRange} />
+                        <TimingCanvas />
                         <div className={styles.networkTopBar}>
                             <div className={styles.networkColumn}>Status</div>
                             <div className={styles.networkColumn}>Type</div>
@@ -208,23 +207,7 @@ export const ResourcePage = ({
                             <div className={styles.networkColumn}>Time</div>
                             <div className={styles.networkColumn}>Size</div>
                             <div className={styles.networkColumn}>
-                                <div className={styles.networkTimestampGrid}>
-                                    <div>
-                                        {Math.floor((0 / 5) * networkRange)}ms{' '}
-                                    </div>
-                                    <div>
-                                        {formatNumber(
-                                            Math.floor((2 / 5) * networkRange)
-                                        )}
-                                        ms{' '}
-                                    </div>
-                                    <div>
-                                        {formatNumber(
-                                            Math.floor((4 / 5) * networkRange)
-                                        )}
-                                        ms{' '}
-                                    </div>
-                                </div>
+                                Waterfall
                             </div>
                         </div>
                         <div
@@ -303,67 +286,13 @@ export const ResourcePage = ({
     );
 };
 
-const TimingCanvas = ({ networkRange }: { networkRange: number }) => {
-    const safeUpdateCanvas = useCallback(
-        (position: number) => {
-            const canvas = canvasRef.current;
-
-            if (!canvas) return;
-            canvas.height = canvas.clientHeight * 2;
-            canvas.width = canvas.clientWidth * 2;
-
-            const context = canvas?.getContext('2d');
-
-            if (!context) return;
-            context.clearRect(0, 0, canvas.width, canvas.height);
-
-            // The actual div width, and the width of the canvas are different. This balances it.
-            const realX = (position / canvas.offsetWidth) * canvas.width;
-
-            if (context) {
-                context.fillStyle = 'red';
-                context.fillRect(realX, 0, 2, canvas.height);
-
-                context.font = '24px Steradian';
-                context.fillStyle = 'var(--color-gray-500)';
-
-                const msValue = Math.max(
-                    0,
-                    Math.floor((realX / canvas.width) * networkRange)
-                );
-                context.fillText(msValue.toString() + 'ms', realX + 8, 90, 200);
-            }
-        },
-        [networkRange]
-    );
+const TimingCanvas = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-
-    const drawMouseHover = (
-        event: React.MouseEvent<HTMLCanvasElement, MouseEvent>
-    ) => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-
-        let x =
-            event.clientX -
-            64 +
-            document.body.scrollLeft +
-            document.documentElement.scrollLeft;
-
-        x -= canvas.offsetLeft;
-
-        safeUpdateCanvas(x);
-    };
-
-    useEffect(() => {
-        safeUpdateCanvas(0);
-    }, [safeUpdateCanvas]);
 
     return (
         <canvas
             ref={canvasRef}
             className={styles.canvasNetworkWrapper}
-            onMouseMove={(e) => drawMouseHover(e)}
         ></canvas>
     );
 };

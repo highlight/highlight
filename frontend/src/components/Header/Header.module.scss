@@ -3,9 +3,10 @@
     border-bottom: 1px solid var(--color-gray-300);
     display: flex;
     flex-direction: column;
-    height: 80px;
+    height: var(--header-height);
+    margin-left: var(--sidebar-width);
     position: fixed;
-    width: 100%;
+    width: calc(100% - var(--sidebar-width));
     z-index: 100;
 }
 
@@ -31,14 +32,6 @@
     flex-grow: 1;
     padding-left: 20px;
     padding-right: 20px;
-}
-
-.searchWrapper {
-    align-items: center;
-    display: flex;
-    height: 80px;
-    justify-content: center;
-    width: 100%;
 }
 
 .trialLink {
@@ -136,8 +129,12 @@
     align-items: center;
     column-gap: var(--size-medium);
     display: flex;
-    height: 100%;
-    justify-content: center;
     margin-left: auto;
     z-index: 200;
+}
+
+.applicationPickerContainer {
+    align-items: center;
+    display: flex;
+    margin-left: calc(-1 * var(--size-medium));
 }

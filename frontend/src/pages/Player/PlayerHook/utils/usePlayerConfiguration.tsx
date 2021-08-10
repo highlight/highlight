@@ -1,4 +1,6 @@
 import useLocalStorage from '@rehooks/local-storage';
+import { useEffect } from 'react';
+import { useWindowSize } from 'react-use';
 
 import { EventsForTimeline } from '.';
 
@@ -59,6 +61,18 @@ const usePlayerConfiguration = () => {
         'highlightShowPlayerMouseTail',
         true
     );
+    const [
+        showDetailedSessionView,
+        setShowDetailedSessionView,
+    ] = useLocalStorage('highlightShowDetailedSessionView', false);
+
+    const { width } = useWindowSize();
+
+    useEffect(() => {
+        if (width <= 1300) {
+            setShowRightPanel(false);
+        }
+    }, [setShowRightPanel, width]);
 
     return {
         showLeftPanel,
@@ -87,6 +101,8 @@ const usePlayerConfiguration = () => {
         setSkipInactive,
         showPlayerMouseTail,
         setShowPlayerMouseTail,
+        showDetailedSessionView,
+        setShowDetailedSessionView,
     };
 };
 

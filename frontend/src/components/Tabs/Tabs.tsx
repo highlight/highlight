@@ -20,6 +20,7 @@ type Props = Pick<TabsProps, 'animated' | 'tabBarExtraContent' | 'centered'> & {
     noPadding?: boolean;
     /** An HTML id to attach to the tabs. */
     tabsHtmlId?: string;
+    className?: string;
 };
 
 const Tabs = ({
@@ -28,6 +29,7 @@ const Tabs = ({
     noPadding = false,
     tabBarExtraContent,
     tabsHtmlId,
+    className,
     ...props
 }: Props) => {
     const [activeTab, setActiveTab] = useLocalStorage(
@@ -49,8 +51,8 @@ const Tabs = ({
                     </div>
                 ) : null
             }
-            className={styles.tabs}
             id={tabsHtmlId}
+            className={classNames(styles.tabs, className)}
             {...props}
         >
             {tabs.map(({ panelContent, title }) => (

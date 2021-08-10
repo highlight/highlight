@@ -1,5 +1,4 @@
 import classNames from 'classnames';
-import classnames from 'classnames';
 import moment from 'moment';
 import React, { useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
@@ -16,8 +15,8 @@ import {
 } from 'recharts';
 
 import Button from '../../components/Button/Button/Button';
+import Card from '../../components/Card/Card';
 import { StandardDropdown } from '../../components/Dropdown/StandardDropdown/StandardDropdown';
-import { Field } from '../../components/Field/Field';
 import InfoTooltip from '../../components/InfoTooltip/InfoTooltip';
 import { RechartTooltip } from '../../components/recharts/RechartTooltip/RechartTooltip';
 import Tooltip from '../../components/Tooltip/Tooltip';
@@ -25,9 +24,9 @@ import { useGetErrorGroupQuery } from '../../graph/generated/hooks';
 import { ErrorGroup, Maybe } from '../../graph/generated/schemas';
 import SvgDownloadIcon from '../../static/DownloadIcon';
 import { frequencyTimeData } from '../../util/errorCalculations';
-import ErrorComments from './components/ErrorComments/ErrorComments';
 import ErrorDescription from './components/ErrorDescription/ErrorDescription';
 import { parseErrorDescriptionList } from './components/ErrorDescription/utils/utils';
+import ErrorRightPanel from './components/ErrorRightPanel/ErrorRightPanel';
 import ErrorSessionsTable from './components/ErrorSessionsTable/ErrorSessionsTable';
 import ErrorTitle from './components/ErrorTitle/ErrorTitle';
 import StackTraceSection from './components/StackTraceSection/StackTraceSection';
@@ -129,8 +128,8 @@ const ErrorPage = () => {
                         <ErrorSessionsTable errorGroup={data.error_group} />
                     )}
                 </div>
-                <div className={styles.errorPageRight}>
-                    <div className={styles.errorPageRightContent}>
+                <div className={styles.errorPageRightContent}>
+                    <Card>
                         <h3 className={styles.tooltipTitle}>
                             {loading ? (
                                 <Skeleton count={1} style={{ width: 280 }} />
@@ -167,67 +166,15 @@ const ErrorPage = () => {
                                 }
                             />
                         </h3>
-                        <div className={styles.fieldWrapper}>
+                        <div>
                             {data?.error_group?.state && (
                                 <ErrorStateSelect
                                     state={data.error_group.state}
                                 />
                             )}
                         </div>
-                        <h3>
-                            {loading ? (
-                                <Skeleton count={1} style={{ width: 280 }} />
-                            ) : (
-                                'Context / Fields'
-                            )}
-                        </h3>
-                        <div className={styles.fieldWrapper}>
-                            {loading ? (
-                                <Skeleton
-                                    count={2}
-                                    style={{ height: 20, marginBottom: 10 }}
-                                />
-                            ) : (
-                                <>
-                                    {data?.error_group?.field_group?.map(
-                                        (e, i) =>
-                                            e?.name != 'visited_url' && (
-                                                <Field
-                                                    key={i}
-                                                    k={e?.name ?? ''}
-                                                    v={
-                                                        e?.value.toLowerCase() ??
-                                                        ''
-                                                    }
-                                                />
-                                            )
-                                    )}
-                                </>
-                            )}
-                        </div>
-                        <h3>
-                            {loading ? (
-                                <Skeleton count={1} style={{ width: 280 }} />
-                            ) : (
-                                'Comments'
-                            )}
-                        </h3>
-                        <div
-                            className={classnames(
-                                styles.fieldWrapper,
-                                styles.commentSection
-                            )}
-                        >
-                            {loading ? (
-                                <Skeleton
-                                    count={2}
-                                    style={{ height: 20, marginBottom: 10 }}
-                                />
-                            ) : (
-                                <ErrorComments />
-                            )}
-                        </div>
-                    </div>
+                    </Card>
+                    <ErrorRightPanel errorGroup={data} />
                 </div>
             </div>
         </div>
