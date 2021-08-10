@@ -1,13 +1,13 @@
 import React from 'react';
 
 import Tabs from '../../../components/Tabs/Tabs';
-import CommentStream from '../CommentStream/CommentStream';
 import { MetadataBox } from '../MetadataBox/MetadataBox';
 import MetadataPanel from '../MetadataPanel/MetadataPanel';
 import usePlayerConfiguration from '../PlayerHook/utils/usePlayerConfiguration';
 import { EventStream } from '../PlayerPage';
 import { PlayerPageProductTourSelectors } from '../PlayerPageProductTour/PlayerPageProductTour';
 import { useReplayerContext } from '../ReplayerContext';
+import SessionFullCommentList from '../SessionFullCommentList/SessionFullCommentList';
 import styles from './RightPlayerPanel.module.scss';
 
 const RightPlayerPanel = () => {
@@ -31,6 +31,7 @@ const RightPlayerPanel = () => {
                     centered
                     id="PlayerRightPanel"
                     noPadding
+                    className={styles.tabs}
                     tabs={[
                         {
                             title: 'Events',
@@ -40,7 +41,7 @@ const RightPlayerPanel = () => {
                             title: 'Comments',
                             panelContent: (
                                 <div className={styles.tabContentContainer}>
-                                    <CommentStream />
+                                    <SessionFullCommentList />
                                 </div>
                             ),
                         },

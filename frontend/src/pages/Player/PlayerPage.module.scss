@@ -113,6 +113,7 @@
     display: flex;
     flex-direction: column;
     height: 100%;
+    padding: var(--size-medium);
 
     .playerContainer {
         display: flex;
@@ -140,6 +141,7 @@
 }
 
 .rrwebPlayerSection {
+    column-gap: var(--size-medium);
     display: flex;
 
     flex: 2;
@@ -178,6 +180,7 @@
 
 .playerBody {
     --left-panel-width: 475px;
+    --right-panel-width: 350px;
 
     --background-color: var(--color-gray-200);
     --dot-color: var(--color-gray-300);
@@ -234,5 +237,30 @@
         &:last-of-type {
             padding-bottom: 50px;
         }
+    }
+}
+
+.panelToggleButton {
+    position: absolute;
+    top: calc(var(--header-height) + var(--size-medium) + 158px);
+    z-index: 999;
+}
+
+.panelToggleButtonLeft {
+    left: var(--sidebar-width);
+
+    &.panelShown {
+        left: calc(
+            var(--sidebar-width) + var(--left-panel-width) -
+                (var(--size-xLarge) / 2)
+        );
+    }
+}
+
+.panelToggleButtonRight {
+    right: 0;
+
+    &.panelShown {
+        right: calc(var(--right-panel-width));
     }
 }

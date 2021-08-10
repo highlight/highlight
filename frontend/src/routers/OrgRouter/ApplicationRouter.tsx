@@ -33,6 +33,9 @@ interface Props {
 const ApplicationRouter = ({ integrated }: Props) => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const [segmentName, setSegmentName] = useState<string | null>(null);
+    const [showStarredSessions, setShowStarredSessions] = useState<boolean>(
+        false
+    );
     const [searchParams, setSearchParams] = useState<SearchParams>(
         EmptySessionsSearchParams
     );
@@ -67,6 +70,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
             searchParams
         );
 
+        // Handles the case where the user is loading the page from a link shared from another user that has search params in the URL.
         if (!segmentName && areAnySearchParamsSet) {
             // `undefined` values will not be persisted to the URL.
             // Because of that, we only want to change the values from `undefined`
@@ -91,8 +95,6 @@ const ApplicationRouter = ({ integrated }: Props) => {
             setSearchParamsToUrlParams({
                 ...searchParamsToReflectInUrl,
             });
-        } else {
-            setSearchParamsToUrlParams(InitialSearchParamsForUrl);
         }
     }, [setSearchParamsToUrlParams, searchParams, segmentName]);
 
@@ -113,6 +115,8 @@ const ApplicationRouter = ({ integrated }: Props) => {
                 setExistingParams,
                 segmentName,
                 setSegmentName,
+                showStarredSessions,
+                setShowStarredSessions,
             }}
         >
             <Switch>
@@ -125,7 +129,9 @@ const ApplicationRouter = ({ integrated }: Props) => {
                 <Route path="/:organization_id/sessions/:session_id" exact>
                     <Player />
                 </Route>
-                {organization_id !== '1' ? (
+                {!ORGANIZATIONS_TO_DISABLE_OLD_SESSION_FEED.includes(
+                    organization_id
+                ) ? (
                     <Route path="/:organization_id/sessions" exact>
                         <SessionsPage integrated={integrated} />
                     </Route>
@@ -195,3 +201,11 @@ const InitialSearchParamsForUrl = {
     visited_url: undefined,
     show_live_sessions: undefined,
 };
+
+const ORGANIZATIONS_TO_DISABLE_OLD_SESSION_FEED = [
+    '1',
+    /* Porter */ '162',
+    /* Tributi */ '213',
+    /* Portal */ '79',
+    /* PortalDev */ '107',
+];

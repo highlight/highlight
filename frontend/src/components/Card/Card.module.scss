@@ -5,6 +5,10 @@
     padding: var(--size-large);
     width: 100%;
 
+    &.noPadding {
+        padding: 0;
+    }
+
     h2 {
         font-size: 22px !important;
         margin-bottom: var(--size-medium) !important;
@@ -17,7 +21,6 @@
 
     p {
         color: var(--color-gray-500);
-        margin-bottom: var(--size-medium) !important;
         margin-top: 0 !important;
     }
 

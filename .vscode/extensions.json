@@ -6,6 +6,7 @@
     "graphql.vscode-graphql",
     "sysoev.vscode-open-in-github",
     "stylelint.vscode-stylelint",
-    "sourcegraph.sourcegraph"
+    "sourcegraph.sourcegraph",
+    "eamodio.gitlens"
   ],
 }

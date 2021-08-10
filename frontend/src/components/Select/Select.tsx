@@ -26,6 +26,7 @@ type Props = Pick<
     | 'onSearch'
     | 'children'
     | 'optionLabelProp'
+    | 'filterOption'
 > & {
     options?: {
         value: string;

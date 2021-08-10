@@ -225,10 +225,12 @@ export const ConsolePage = ({ time }: { time: number }) => {
                                         />
                                     </div>
                                     <div className={styles.messageText}>
-                                        <ConsoleRender
-                                            m={message.value ?? ''}
-                                            searchTerm={filterSearchTerm}
-                                        />
+                                        {message.value && (
+                                            <ConsoleRender
+                                                m={message.value}
+                                                searchTerm={filterSearchTerm}
+                                            />
+                                        )}
                                     </div>
                                     <GoToButton
                                         className={styles.goToButton}

@@ -1,9 +1,11 @@
 .sessionLevelBarContainer {
     align-items: center;
     background: var(--color-primary-background);
-    border-bottom: 1px solid var(--color-gray-300);
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--border-radius);
     color: var(--color-gray-500);
     display: flex;
+    flex-grow: 1;
     height: 36px;
     margin: 0;
     overflow: hidden;
@@ -15,7 +17,7 @@
 
     > span {
         align-items: center;
-        column-gap: var(--size-medium);
+        column-gap: var(--size-xSmall);
         display: flex;
         height: 100%;
     }
@@ -25,12 +27,6 @@
     }
 }
 
-.endContainer {
-    display: flex;
-    justify-content: space-between;
-    width: 350px;
-}
-
 .skeletonContainer {
     width: 100%;
 }
@@ -38,6 +34,12 @@
 .shareButton {
     border-radius: var(--size-xxSmall);
     font-size: 12px;
-    height: var(--size-large);
+    height: 34px;
     padding: 0 var(--size-large);
+}
+
+.container {
+    align-items: center;
+    column-gap: var(--size-medium);
+    display: flex;
 }
