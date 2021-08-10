@@ -642,6 +642,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		PrepareStmt:                              true,
 		SkipDefaultTransaction:                   true,
 	})
+
 	if err != nil {
 		return nil, e.Wrap(err, "Failed to connect to database")
 	}
