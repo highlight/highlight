@@ -18,6 +18,7 @@ const PlayerPageProductTour = () => {
         setShowDevTools,
         setShowRightPanel,
         setSelectedDevToolsTab,
+        setShowLeftPanel,
     } = usePlayerConfiguration();
 
     const steps: Step[] = [
@@ -102,6 +103,7 @@ const PlayerPageProductTour = () => {
                     setShowDevTools(false);
                     setPlayerRightPanelActiveTab('Events');
                     setShowRightPanel(true);
+                    setShowLeftPanel(false);
                     setSelectedDevToolsTab('Errors');
                 }}
                 enabled={enableTour}
@@ -114,9 +116,11 @@ const PlayerPageProductTour = () => {
                 onBeforeChange={(nextStepIndex) => {
                     switch (nextStepIndex) {
                         case 2:
+                            setShowRightPanel(true);
                             setPlayerRightPanelActiveTab('Events');
                             break;
                         case 3:
+                            setShowRightPanel(true);
                             setPlayerRightPanelActiveTab('Metadata');
                             break;
                         case 5:

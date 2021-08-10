@@ -2,6 +2,7 @@ export const applicationPickerContainer: string;
 export const bannerSvg: string;
 export const commandPaletteOverlay: string;
 export const enterViewport: string;
+export const guest: string;
 export const hamburger: string;
 export const header: string;
 export const headerContent: string;
