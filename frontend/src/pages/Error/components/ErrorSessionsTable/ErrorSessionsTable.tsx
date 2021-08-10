@@ -28,10 +28,7 @@ const ErrorSessionsTable = ({ errorGroup }: Props) => {
                 Impacted Sessions ({errorGroup?.metadata_log.length} errors in{' '}
                 {uniqueSessionsCount} sessions)
             </h3>
-            <div
-                className={styles.fieldWrapper}
-                style={{ paddingBottom: '40px' }}
-            >
+            <div className={styles.fieldWrapper}>
                 <div className={styles.section}>
                     <div className={styles.collapsible}>
                         <div
