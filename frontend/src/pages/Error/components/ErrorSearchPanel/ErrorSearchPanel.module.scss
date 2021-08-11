@@ -1,4 +1,17 @@
 .errorSearchPanel {
     background: var(--color-primary-background);
+    display: flex;
+    flex-direction: column;
     height: 100%;
+    padding: var(--size-large) var(--size-xLarge);
+    padding-bottom: 0;
+}
+
+.filtersContainer {
+    align-items: center;
+    column-gap: var(--size-small);
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: var(--size-large);
+    row-gap: var(--size-small);
 }

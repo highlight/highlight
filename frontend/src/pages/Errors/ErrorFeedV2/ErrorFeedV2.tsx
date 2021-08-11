@@ -4,7 +4,6 @@ import useInfiniteScroll from 'react-infinite-scroll-hook';
 import Skeleton from 'react-loading-skeleton';
 import { Link, useParams } from 'react-router-dom';
 
-import { Field } from '../../../components/Field/Field';
 import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
 import Tooltip from '../../../components/Tooltip/Tooltip';
 import { useGetErrorGroupsQuery } from '../../../graph/generated/hooks';
@@ -117,8 +116,10 @@ export const ErrorFeedV2 = () => {
 };
 
 const ErrorCardV2 = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
-    const { organization_id } = useParams<{ organization_id: string }>();
-    const [hovered, setHovered] = useState(false);
+    const { organization_id, error_id } = useParams<{
+        organization_id: string;
+        error_id?: string;
+    }>();
     // Represents the last six days i.e. [5 days ago, 4 days ago, 3 days ago, etc..]
     const [errorDates, setErrorDates] = useState<Array<number>>(
         Array(6).fill(0)
@@ -129,123 +130,90 @@ const ErrorCardV2 = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
     }, [errorGroup]);
 
     return (
-        <div
-            className={styles.errorCardWrapper}
-            key={errorGroup?.id}
-            onMouseEnter={() => setHovered(true)}
-            onMouseLeave={() => setHovered(false)}
-        >
+        <div className={styles.errorCardWrapper} key={errorGroup?.id}>
             <Link to={`/${organization_id}/errors/${errorGroup?.id}`}>
-                <div className={styles.errorCard}>
-                    <div
-                        className={classNames(
-                            styles.hoverBorderLeft,
-                            hovered && styles.hoverBorderOn
-                        )}
-                    />
-                    <div className={styles.errorCardContentWrapper}>
-                        <div className={styles.avatarWrapper}>
-                            {errorDates.map((num, ind) => (
-                                <Tooltip
-                                    title={`${
-                                        5 - ind
-                                    } day(s) ago\n ${num} occurences`}
-                                    overlayStyle={{
-                                        whiteSpace: 'pre-line',
-                                    }}
-                                    key={ind}
-                                >
-                                    <div className={styles.errorBarDiv}>
-                                        <div
-                                            className={styles.errorBar}
-                                            style={{
-                                                height: `${
-                                                    (60 * num) /
-                                                    Math.max(...errorDates, 5)
-                                                }px`,
-                                            }}
-                                        />
-                                        <div
-                                            className={styles.errorBarBase}
-                                        ></div>
-                                    </div>
-                                </Tooltip>
-                            ))}
-                        </div>
-                        <div className={styles.errorTextSectionWrapper}>
-                            <div
-                                className={styles.errorTextSection}
-                                style={{ width: '240px' }}
+                <div
+                    className={classNames(styles.errorCard, {
+                        [styles.selected]: error_id === errorGroup?.id,
+                    })}
+                >
+                    <div className={styles.avatarWrapper}>
+                        {errorDates.map((num, ind) => (
+                            <Tooltip
+                                title={`${
+                                    5 - ind
+                                } day(s) ago\n ${num} occurences`}
+                                overlayStyle={{
+                                    whiteSpace: 'pre-line',
+                                }}
+                                key={ind}
                             >
-                                <div className={styles.topText} dir="rtl">
-                                    {errorGroup?.stack_trace[0]?.fileName}
+                                <div className={styles.errorBarDiv}>
+                                    <div
+                                        className={styles.errorBar}
+                                        style={{
+                                            height: `${
+                                                (60 * num) /
+                                                Math.max(...errorDates, 5)
+                                            }px`,
+                                        }}
+                                    />
+                                    <div className={styles.errorBarBase}></div>
                                 </div>
+                            </Tooltip>
+                        ))}
+                    </div>
+                    <div className={styles.errorTextSectionWrapper}>
+                        <div
+                            className={styles.errorTextSection}
+                            style={{ width: '240px' }}
+                        >
+                            <div className={styles.topText} dir="rtl">
+                                {errorGroup?.stack_trace[0]?.fileName}
+                            </div>
+                            <div
+                                className={classNames(
+                                    styles.middleText,
+                                    'highlight-block'
+                                )}
+                            >
+                                {parseErrorDescription(errorGroup?.event)}
+                            </div>
+                        </div>
+                        <div className={styles.errorTextSection}>
+                            {errorGroup?.metadata_log[0] ? (
+                                <>
+                                    <div className={styles.bottomText}>
+                                        {`Since ${new Date(
+                                            errorGroup.metadata_log[0].timestamp
+                                        ).toLocaleString('en-us', {
+                                            day: 'numeric',
+                                            month: 'long',
+                                            year: 'numeric',
+                                        })}`}
+                                    </div>
+                                </>
+                            ) : (
+                                <></>
+                            )}
+                        </div>
+                        <div className={styles.readMarkerContainer}>
+                            <Tooltip
+                                title={`This error is ${errorGroup?.state?.toLowerCase()}.`}
+                            >
                                 <div
                                     className={classNames(
-                                        styles.middleText,
-                                        'highlight-block'
+                                        styles.readMarker,
+                                        // @ts-ignore
+                                        styles[
+                                            errorGroup?.state.toLowerCase() ||
+                                                ErrorState.Open.toLowerCase()
+                                        ]
                                     )}
-                                >
-                                    {parseErrorDescription(errorGroup?.event)}
-                                </div>
-                                <div className={styles.tagWrapper}>
-                                    {errorGroup?.stack_trace[0]
-                                        ?.functionName && (
-                                        <Field
-                                            color={'normal'}
-                                            k={'function'}
-                                            v={
-                                                errorGroup.stack_trace[0]
-                                                    .functionName
-                                            }
-                                        />
-                                    )}
-                                </div>
-                            </div>
-                            <div className={styles.errorTextSection}>
-                                <div
-                                    className={styles.topText}
-                                >{`Line ${errorGroup?.stack_trace[0]?.lineNumber}`}</div>
-                                {errorGroup?.metadata_log[0] ? (
-                                    <>
-                                        <div className={styles.bottomText}>
-                                            {`Since ${new Date(
-                                                errorGroup.metadata_log[0].timestamp
-                                            ).toLocaleString('en-us', {
-                                                day: 'numeric',
-                                                month: 'long',
-                                                year: 'numeric',
-                                            })}`}
-                                        </div>
-                                    </>
-                                ) : (
-                                    <></>
-                                )}
-                            </div>
-                            <div className={styles.readMarkerContainer}>
-                                <Tooltip
-                                    title={`This error is ${errorGroup?.state?.toLowerCase()}.`}
-                                >
-                                    <div
-                                        className={classNames(
-                                            styles.readMarker,
-                                            // @ts-ignore
-                                            styles[
-                                                errorGroup?.state.toLowerCase() ||
-                                                    ErrorState.Open.toLowerCase()
-                                            ]
-                                        )}
-                                    />
-                                </Tooltip>
-                            </div>
+                                />
+                            </Tooltip>
                         </div>
                     </div>
-                    <div
-                        className={classNames(
-                            styles.hoverBorderRight,
-                            hovered && styles.hoverBorderOn
-                        )}
-                    />
                 </div>
             </Link>
         </div>
