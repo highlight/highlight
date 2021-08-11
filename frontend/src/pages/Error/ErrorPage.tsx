@@ -3,6 +3,7 @@ import moment from 'moment';
 import React, { useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useParams } from 'react-router';
+import { useLocalStorage } from 'react-use';
 import {
     Bar,
     BarChart,
@@ -24,6 +25,11 @@ import { useGetErrorGroupQuery } from '../../graph/generated/hooks';
 import { ErrorGroup, Maybe } from '../../graph/generated/schemas';
 import SvgDownloadIcon from '../../static/DownloadIcon';
 import { frequencyTimeData } from '../../util/errorCalculations';
+import {
+    ErrorSearchContextProvider,
+    ErrorSearchParams,
+} from '../Errors/ErrorSearchContext/ErrorSearchContext';
+import { EmptyErrorsSearchParams } from '../Errors/ErrorsPage';
 import ErrorDescription from './components/ErrorDescription/ErrorDescription';
 import { parseErrorDescriptionList } from './components/ErrorDescription/utils/utils';
 import ErrorRightPanel from './components/ErrorRightPanel/ErrorRightPanel';
@@ -40,141 +46,171 @@ const ErrorPage = () => {
     const { data, loading } = useGetErrorGroupQuery({
         variables: { id: error_id },
     });
+    const [segmentName, setSegmentName] = useState<string | null>(null);
+    const [cachedParams, setCachedParams] = useLocalStorage<ErrorSearchParams>(
+        `cachedErrorParams-${segmentName || 'no-selected-segment'}`,
+        {}
+    );
+    const [searchParams, setSearchParams] = useState<ErrorSearchParams>(
+        cachedParams || EmptyErrorsSearchParams
+    );
+    const [existingParams, setExistingParams] = useState<ErrorSearchParams>({});
+
+    useEffect(() => setCachedParams(searchParams), [
+        searchParams,
+        setCachedParams,
+    ]);
     return (
-        <div className={styles.errorPage}>
-            <div className={styles.errorPageLeftColumn}>
-                <ErrorSearchPanel />
-            </div>
-            <div className={styles.errorPageCenterColumn}>
-                <div className={styles.titleWrapper}>
-                    {loading ? (
-                        <Skeleton count={1} style={{ width: 300 }} />
-                    ) : (
-                        <ErrorTitle errorGroup={data?.error_group} />
-                    )}
+        <ErrorSearchContextProvider
+            value={{
+                searchParams,
+                setSearchParams,
+                existingParams,
+                setExistingParams,
+                segmentName,
+                setSegmentName,
+            }}
+        >
+            <div className={styles.errorPage}>
+                <div className={styles.errorPageLeftColumn}>
+                    <ErrorSearchPanel />
                 </div>
-                <div className={styles.eventText}>
-                    {loading ? (
-                        <Skeleton
-                            count={2}
-                            style={{ height: 20, marginBottom: 10 }}
-                        />
-                    ) : (
-                        <ErrorDescription errorGroup={data?.error_group} />
-                    )}
-                </div>
-                <h3 className={styles.titleWithAction}>
-                    {loading ? (
-                        <Skeleton
-                            duration={1}
-                            count={1}
-                            style={{ width: 300 }}
-                        />
-                    ) : (
-                        'Stack Trace'
-                    )}
-                    <Tooltip title="Download the stack trace">
-                        <Button
-                            trackingId="DownloadErrorStackTrace"
-                            iconButton
-                            type="text"
-                            onClick={() => {
-                                if (data?.error_group) {
-                                    const traceLines = data.error_group.stack_trace.map(
-                                        (stack_trace) => {
-                                            return `${stack_trace?.fileName} in ${stack_trace?.functionName} at line ${stack_trace?.lineNumber}:${stack_trace?.columnNumber}`;
-                                        }
-                                    );
-
-                                    const a = document.createElement('a');
-                                    const file = new Blob(
-                                        [
-                                            JSON.stringify(
-                                                traceLines,
-                                                undefined,
-                                                2
-                                            ),
-                                        ],
-                                        {
-                                            type: 'application/json',
-                                        }
-                                    );
-
-                                    a.href = URL.createObjectURL(file);
-                                    a.download = `stack-trace-for-error-${error_id}.json`;
-                                    a.click();
-
-                                    URL.revokeObjectURL(a.href);
-                                }
-                            }}
-                        >
-                            <SvgDownloadIcon />
-                        </Button>
-                    </Tooltip>
-                </h3>
-                <div className={styles.fieldWrapper}>
-                    <StackTraceSection errorGroup={data?.error_group} />
-                </div>
-                {loading && (
-                    <h3>
-                        <Skeleton
-                            duration={1}
-                            count={1}
-                            style={{ width: 300 }}
-                        />
-                    </h3>
-                )}
-                <div className={styles.fieldWrapper}>
-                    <ErrorFrequencyGraph errorGroup={data?.error_group} />
-                </div>
-                {data?.error_group && (
-                    <ErrorSessionsTable errorGroup={data.error_group} />
-                )}
-            </div>
-            <div className={styles.errorPageRightColumn}>
-                <Card>
-                    <h3 className={styles.tooltipTitle}>
+                <div className={styles.errorPageCenterColumn}>
+                    <div className={styles.titleWrapper}>
                         {loading ? (
-                            <Skeleton count={1} style={{ width: 280 }} />
+                            <Skeleton count={1} style={{ width: 300 }} />
                         ) : (
-                            'State'
-                        )}
-                        <InfoTooltip
-                            title={
-                                <>
-                                    <ul className={styles.tooltipList}>
-                                        <li>
-                                            <strong>Open</strong>: This error
-                                            has not been fixed. You will receive
-                                            alerts when this error is thrown.
-                                        </li>
-                                        <li>
-                                            <strong>Resolved</strong>: This
-                                            error has been fixed and you are not
-                                            expecting this error to be thrown
-                                            again. If this error gets thrown,
-                                            you will receive an alert.
-                                        </li>
-                                        <li>
-                                            <strong>Ignored</strong>: This is a
-                                            noisy/false positive error that
-                                            should be ignored. You will not
-                                            receive any alerts for this error.
-                                        </li>
-                                    </ul>
-                                </>
-                            }
-                        />
-                    </h3>
-                    <div>
-                        {data?.error_group?.state && (
-                            <ErrorStateSelect state={data.error_group.state} />
+                            <ErrorTitle errorGroup={data?.error_group} />
                         )}
                     </div>
-                </Card>
-                <ErrorRightPanel errorGroup={data} />
+                    <div className={styles.eventText}>
+                        {loading ? (
+                            <Skeleton
+                                count={2}
+                                style={{ height: 20, marginBottom: 10 }}
+                            />
+                        ) : (
+                            <ErrorDescription errorGroup={data?.error_group} />
+                        )}
+                    </div>
+                    <h3 className={styles.titleWithAction}>
+                        {loading ? (
+                            <Skeleton
+                                duration={1}
+                                count={1}
+                                style={{ width: 300 }}
+                            />
+                        ) : (
+                            'Stack Trace'
+                        )}
+                        <Tooltip title="Download the stack trace">
+                            <Button
+                                trackingId="DownloadErrorStackTrace"
+                                iconButton
+                                type="text"
+                                onClick={() => {
+                                    if (data?.error_group) {
+                                        const traceLines = data.error_group.stack_trace.map(
+                                            (stack_trace) => {
+                                                return `${stack_trace?.fileName} in ${stack_trace?.functionName} at line ${stack_trace?.lineNumber}:${stack_trace?.columnNumber}`;
+                                            }
+                                        );
+
+                                        const a = document.createElement('a');
+                                        const file = new Blob(
+                                            [
+                                                JSON.stringify(
+                                                    traceLines,
+                                                    undefined,
+                                                    2
+                                                ),
+                                            ],
+                                            {
+                                                type: 'application/json',
+                                            }
+                                        );
+
+                                        a.href = URL.createObjectURL(file);
+                                        a.download = `stack-trace-for-error-${error_id}.json`;
+                                        a.click();
+
+                                        URL.revokeObjectURL(a.href);
+                                    }
+                                }}
+                            >
+                                <SvgDownloadIcon />
+                            </Button>
+                        </Tooltip>
+                    </h3>
+                    <div className={styles.fieldWrapper}>
+                        <StackTraceSection errorGroup={data?.error_group} />
+                    </div>
+                    {loading && (
+                        <h3>
+                            <Skeleton
+                                duration={1}
+                                count={1}
+                                style={{ width: 300 }}
+                            />
+                        </h3>
+                    )}
+                    <div className={styles.fieldWrapper}>
+                        <ErrorFrequencyGraph errorGroup={data?.error_group} />
+                    </div>
+                    {data?.error_group && (
+                        <ErrorSessionsTable errorGroup={data.error_group} />
+                    )}
+                </div>
+                <div className={styles.errorPageRightColumn}>
+                    <Card>
+                        <h3 className={styles.tooltipTitle}>
+                            {loading ? (
+                                <Skeleton count={1} style={{ width: 280 }} />
+                            ) : (
+                                'State'
+                            )}
+                            <InfoTooltip
+                                title={
+                                    <>
+                                        <ul className={styles.tooltipList}>
+                                            <li>
+                                                <strong>Open</strong>: This
+                                                error has not been fixed. You
+                                                will receive alerts when this
+                                                error is thrown.
+                                            </li>
+                                            <li>
+                                                <strong>Resolved</strong>: This
+                                                error has been fixed and you are
+                                                not expecting this error to be
+                                                thrown again. If this error gets
+                                                thrown, you will receive an
+                                                alert.
+                                            </li>
+                                            <li>
+                                                <strong>Ignored</strong>: This
+                                                is a noisy/false positive error
+                                                that should be ignored. You will
+                                                not receive any alerts for this
+                                                error.
+                                            </li>
+                                        </ul>
+                                    </>
+                                }
+                            />
+                        </h3>
+                        <div>
+                            {data?.error_group?.state && (
+                                <ErrorStateSelect
+                                    state={data.error_group.state}
+                                />
+                            )}
+                        </div>
+                    </Card>
+                    <ErrorRightPanel errorGroup={data} />
+                </div>
             </div>
-        </div>
+        </ErrorSearchContextProvider>
     );
 };
 

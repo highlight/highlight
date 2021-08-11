@@ -1,10 +1,10 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Collapsible from 'react-collapsible';
 
 import { ReactComponent as DownIcon } from '../../../../static/chevron-down-icon.svg';
 import {
-    ErrorSearchContext,
     ErrorSearchParams,
+    useErrorSearchContext,
 } from '../../../Errors/ErrorSearchContext/ErrorSearchContext';
 import SearchCountBubble from '../SearchCountBubble/SearchCountBubble';
 import styles from './SearchSection.module.scss';
@@ -25,7 +25,7 @@ export const SearchSectionForErrors: React.FunctionComponent<SearchSectionProps>
     searchParamsKey = [],
 }) => {
     const [isOpen, setIsOpen] = useState<boolean>(open);
-    const { searchParams } = useContext(ErrorSearchContext);
+    const { searchParams } = useErrorSearchContext();
 
     const searchCount = useMemo(
         () =>

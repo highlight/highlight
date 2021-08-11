@@ -19,25 +19,9 @@ import { gqlSanitize } from '../../../util/gqlSanitize';
 import { formatNumberWithDelimiters } from '../../../util/numbers';
 import { parseErrorDescription } from '../../Error/components/ErrorDescription/utils/utils';
 import { useErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
-import { EventInput } from '../ErrorSearchInputs/EventInput';
-import styles from './ErrorFeed.module.scss';
+import styles from './ErrorFeedV2.module.scss';
 
-export type ErrorMetadata = {
-    browser: string;
-    os: string;
-    error_id: number;
-    session_id: number;
-    timestamp: string;
-};
-
-export type ErrorTrace = {
-    fileName?: string;
-    lineNumber?: number;
-    functionName?: string;
-    columnNumber?: number;
-};
-
-export const ErrorFeed = () => {
+export const ErrorFeedV2 = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const [count, setCount] = useState(10);
     const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
@@ -87,18 +71,13 @@ export const ErrorFeed = () => {
     return (
         <>
             <div className={styles.fixedContent}>
-                <div className={styles.mainUserInput}>
-                    <div className={styles.userInputWrapper}>
-                        <EventInput />
-                    </div>
-                </div>
                 <div
                     className={styles.resultCount}
                 >{`${formatNumberWithDelimiters(data.totalCount)} errors`}</div>
             </div>
             <div className={styles.feedContent}>
                 <div ref={infiniteRef as RefObject<HTMLDivElement>}>
-                    {loading || showLoadingSkeleton ? (
+                    {loading && showLoadingSkeleton ? (
                         <Skeleton
                             height={110}
                             count={3}
@@ -115,7 +94,7 @@ export const ErrorFeed = () => {
                             ) : (
                                 data.error_groups?.map(
                                     (u: Maybe<ErrorGroup>, ind: number) => (
-                                        <ErrorCard errorGroup={u} key={ind} />
+                                        <ErrorCardV2 errorGroup={u} key={ind} />
                                     )
                                 )
                             )}
@@ -137,7 +116,7 @@ export const ErrorFeed = () => {
     );
 };
 
-const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
+const ErrorCardV2 = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const [hovered, setHovered] = useState(false);
     // Represents the last six days i.e. [5 days ago, 4 days ago, 3 days ago, etc..]

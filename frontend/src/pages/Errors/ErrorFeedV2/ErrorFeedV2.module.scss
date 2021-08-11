@@ -1,0 +1,244 @@
+@import 'src/static/shared.scss';
+
+.avatarWrapper {
+    align-items: flex-end;
+    display: flex;
+    height: 60px;
+    justify-content: flex-end;
+    padding-right: 20px;
+    width: 120px;
+}
+
+.readMarkerContainer {
+    align-items: center;
+    display: flex;
+    margin-left: 6px;
+    width: 8px;
+}
+
+.readMarker {
+    border-radius: 10px;
+    height: 8px;
+    width: 8px;
+
+    &.resolved {
+        background-color: var(--color-green);
+    }
+
+    &.ignored {
+        background-color: var(--color-gray-500);
+    }
+
+    &.open {
+        background-color: var(--color-red);
+    }
+}
+
+.topText {
+    color: var(--color-gray-500);
+    font-size: 12px;
+    margin: 4px 0 !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.middleText {
+    color: var(--text-primary);
+    font-size: 14px;
+    margin: 4px 0 8px !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.bottomText {
+    color: var(--text-primary);
+    font-size: 12px;
+    margin: 4px 0 !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.errorTextSection {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 180px;
+}
+
+.tagWrapper {
+    display: flex;
+    flex-flow: row wrap;
+    height: 28px;
+    overflow: hidden;
+}
+
+.errorTextWrapper {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.hoverBorderRight {
+    background-color: transparent;
+    border-radius: 5px;
+    height: 60px;
+    position: absolute;
+    right: -3px;
+    transition: 0.3s;
+    transition: 0.3s;
+    width: 5px;
+}
+
+.hoverBorderLeft {
+    background-color: transparent;
+    border-radius: 5px;
+    height: 60px;
+    left: -3px;
+    position: absolute;
+    transition: 0.3s;
+    transition: 0.3s;
+    width: 5px;
+}
+
+.hoverBorderOn {
+    background-color: var(--color-purple);
+}
+
+.feedWrapper {
+    display: flex;
+    width: 100%;
+}
+
+.feedContent {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    height: 200px;
+    margin-top: -24px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding-top: 16px;
+    width: 100%;
+}
+
+.fixedContent {
+    position: relative;
+    z-index: 99;
+}
+
+.resultCount {
+    background: linear-gradient(
+        to top,
+        rgba(255, 255, 255, 0),
+        rgba(255, 255, 255, 1) 30%
+    );
+    color: var(--color-gray-500);
+    font-family: var(--header-font-family);
+    margin: 0 -3px;
+    padding: 8px 5px 16px;
+    width: 100%;
+    z-index: 10;
+}
+
+.errorCardWrapper {
+    position: relative;
+
+    &:hover {
+        .errorCardAction {
+            display: flex;
+        }
+    }
+}
+
+.errorCardAction {
+    align-items: center;
+    background-color: var(--color-primary-background);
+    border: 0;
+    border-radius: 5px;
+    bottom: 0;
+    display: none;
+    height: 30px;
+    margin: auto;
+    padding: 0 6px;
+    position: absolute;
+    right: 8px;
+    top: 0;
+    width: 30px;
+
+    &:hover {
+        background-color: var(--color-gray-300);
+        cursor: pointer;
+
+        .actionIcon {
+            color: var(--text-primary);
+            fill: var(--text-primary);
+            stroke: var(--text-primary);
+        }
+    }
+}
+
+.actionIcon {
+    color: var(--color-gray-500);
+    fill: var(--color-gray-500);
+    stroke: var(--color-gray-500);
+}
+
+.errorCard {
+    @include rounded-border;
+    align-items: center;
+    cursor: pointer;
+    display: flex;
+    font-weight: 400;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    padding: 18px;
+    position: relative;
+
+    &:not(:first-of-type) {
+        margin-top: 14px;
+    }
+}
+
+.errorCardContentWrapper {
+    align-items: center;
+    display: flex;
+    flex-grow: 1;
+    flex-wrap: wrap;
+}
+
+.errorTextSectionWrapper {
+    display: flex;
+    flex-grow: 1;
+    flex-wrap: wrap;
+    justify-content: space-between;
+
+    @media screen and (max-width: 1200px) {
+        flex-direction: column;
+    }
+}
+
+.errorBarDiv {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 0 1px;
+    width: 20px;
+}
+
+.errorBarBase {
+    background-color: var(--color-gray-200);
+    border-radius: 2px;
+    height: 2px;
+    margin-top: 2px;
+    width: 100%;
+}
+
+.errorBar {
+    background-color: var(--color-purple);
+    border-radius: 2px;
+    height: 0;
+    width: 100%;
+}

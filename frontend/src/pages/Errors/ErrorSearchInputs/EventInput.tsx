@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { useParams } from 'react-router-dom';
 import { OptionsType, OptionTypeBase, ValueType } from 'react-select';
 import AsyncCreatableSelect from 'react-select/async-creatable';
@@ -12,11 +12,11 @@ import {
     ContainsLabel,
     SharedSelectStyleProps,
 } from '../../Sessions/SearchInputs/SearchInputUtil';
-import { ErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
+import { useErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
 
 export const EventInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const { searchParams, setSearchParams } = useContext(ErrorSearchContext);
+    const { searchParams, setSearchParams } = useErrorSearchContext();
 
     const { refetch } = useGetErrorFieldSuggestionQuery({ skip: true });
 
@@ -81,7 +81,7 @@ export const EventInput = () => {
 };
 
 export const ResolvedErrorSwitch = () => {
-    const { searchParams, setSearchParams } = useContext(ErrorSearchContext);
+    const { searchParams, setSearchParams } = useErrorSearchContext();
 
     return (
         <Switch

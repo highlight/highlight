@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { useParams } from 'react-router-dom';
 import { OptionsType, OptionTypeBase, ValueType } from 'react-select';
 import AsyncSelect from 'react-select/async';
@@ -8,11 +8,11 @@ import { ReactComponent as BrowserIcon } from '../../../static/browser.svg';
 import { ReactComponent as OSIcon } from '../../../static/os.svg';
 import inputStyles from '../../Sessions/SearchInputs/InputStyles.module.scss';
 import { SharedSelectStyleProps } from '../../Sessions/SearchInputs/SearchInputUtil';
-import { ErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
+import { useErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
 
 export const OperatingSystemInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const { searchParams, setSearchParams } = useContext(ErrorSearchContext);
+    const { searchParams, setSearchParams } = useErrorSearchContext();
 
     const { refetch } = useGetErrorFieldSuggestionQuery({ skip: true });
 
@@ -69,7 +69,7 @@ export const OperatingSystemInput = () => {
 
 export const BrowserInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const { searchParams, setSearchParams } = useContext(ErrorSearchContext);
+    const { searchParams, setSearchParams } = useErrorSearchContext();
 
     const { refetch } = useGetErrorFieldSuggestionQuery({ skip: true });
 
