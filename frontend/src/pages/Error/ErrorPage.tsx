@@ -30,6 +30,7 @@ import {
     ErrorSearchParams,
 } from '../Errors/ErrorSearchContext/ErrorSearchContext';
 import { EmptyErrorsSearchParams } from '../Errors/ErrorsPage';
+import { IntegrationCard } from '../Sessions/IntegrationCard/IntegrationCard';
 import ErrorDescription from './components/ErrorDescription/ErrorDescription';
 import { parseErrorDescriptionList } from './components/ErrorDescription/utils/utils';
 import ErrorRightPanel from './components/ErrorRightPanel/ErrorRightPanel';
@@ -40,7 +41,7 @@ import StackTraceSection from './components/StackTraceSection/StackTraceSection'
 import styles from './ErrorPage.module.scss';
 import { ErrorStateSelect } from './ErrorStateSelect/ErrorStateSelect';
 
-const ErrorPage = () => {
+const ErrorPage = ({ integrated }: { integrated: boolean }) => {
     const { error_id } = useParams<{ error_id: string }>();
 
     const { data, loading } = useGetErrorGroupQuery({
@@ -60,6 +61,7 @@ const ErrorPage = () => {
         searchParams,
         setCachedParams,
     ]);
+
     return (
         <ErrorSearchContextProvider
             value={{
@@ -71,6 +73,7 @@ const ErrorPage = () => {
                 setSegmentName,
             }}
         >
+            {!integrated && <IntegrationCard />}
             <div className={styles.errorPage}>
                 <div className={styles.errorPageLeftColumn}>
                     <ErrorSearchPanel />
