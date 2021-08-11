@@ -85,6 +85,14 @@ export type NetworkRecordingOptions = {
     urlBlocklist?: string[];
 };
 
+export type IntegrationOptions = {
+    mixpanel?: MixpanelIntegrationOptions;
+};
+
+export interface MixpanelIntegrationOptions {
+    projectToken: string;
+}
+
 export type HighlightClassOptions = {
     organizationID: number | string;
     debug?: boolean | DebugOptions;

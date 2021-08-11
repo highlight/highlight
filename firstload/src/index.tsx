@@ -2,10 +2,12 @@ import {
     DebugOptions,
     Highlight,
     HighlightClassOptions,
+    IntegrationOptions,
     NetworkRecordingOptions,
 } from '../../client/src/index';
 import packageJson from '../package.json';
 import { listenToChromeExtensionMessage } from './browserExtension/extensionListener';
+import { MixpanelAPI, setupMixpanelIntegration } from './integrations/mixpanel';
 import { SessionDetails } from './types/types';
 
 export type HighlightOptions = {
@@ -66,6 +68,7 @@ export type HighlightOptions = {
      * @see {@link https://docs.highlight.run/docs/privacy} for more information.
      */
     enableStrictPrivacy?: boolean;
+    integrations?: IntegrationOptions;
 };
 
 const HighlightWarning = (context: string, msg: any) => {
@@ -118,6 +121,7 @@ interface Metadata {
 interface HighlightWindow extends Window {
     Highlight: new (options?: HighlightClassOptions) => Highlight;
     H: HighlightPublicInterface;
+    mixpanel?: MixpanelAPI;
 }
 
 const HIGHLIGHT_URL = 'app.highlight.run';
@@ -168,6 +172,10 @@ export const H: HighlightPublicInterface = {
                     highlight_obj.initialize(orgID);
                 }
             });
+
+            if (options?.integrations?.mixpanel?.projectToken) {
+                setupMixpanelIntegration(options.integrations.mixpanel);
+            }
         } catch (e) {
             HighlightWarning('init', e);
         }
@@ -203,6 +211,9 @@ export const H: HighlightPublicInterface = {
             H.onHighlightReady(() =>
                 highlight_obj.addProperties({ ...metadata, event: event })
             );
+            if (window.mixpanel?.track) {
+                window.mixpanel.track(event, metadata);
+            }
         } catch (e) {
             HighlightWarning('track', e);
         }
@@ -245,6 +256,9 @@ export const H: HighlightPublicInterface = {
             );
         } catch (e) {
             HighlightWarning('identify', e);
+        }
+        if (window.mixpanel?.identify) {
+            window.mixpanel.identify(identifier);
         }
     },
     getSessionURL: () => {
