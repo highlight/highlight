@@ -212,7 +212,15 @@ export const H: HighlightPublicInterface = {
                 highlight_obj.addProperties({ ...metadata, event: event })
             );
             if (window.mixpanel?.track) {
-                window.mixpanel.track(event, metadata);
+                const sessionID = highlight_obj?.sessionData.sessionID;
+                let highlightUrl;
+                if (sessionID) {
+                    highlightUrl = `https://${HIGHLIGHT_URL}/sessions/${sessionID}`;
+                }
+                window.mixpanel.track(event, {
+                    ...metadata,
+                    highlightSessionURL: highlightUrl,
+                });
             }
         } catch (e) {
             HighlightWarning('track', e);
