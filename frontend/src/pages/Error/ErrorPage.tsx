@@ -27,6 +27,7 @@ import { frequencyTimeData } from '../../util/errorCalculations';
 import ErrorDescription from './components/ErrorDescription/ErrorDescription';
 import { parseErrorDescriptionList } from './components/ErrorDescription/utils/utils';
 import ErrorRightPanel from './components/ErrorRightPanel/ErrorRightPanel';
+import ErrorSearchPanel from './components/ErrorSearchPanel/ErrorSearchPanel';
 import ErrorSessionsTable from './components/ErrorSessionsTable/ErrorSessionsTable';
 import ErrorTitle from './components/ErrorTitle/ErrorTitle';
 import StackTraceSection from './components/StackTraceSection/StackTraceSection';
@@ -41,7 +42,9 @@ const ErrorPage = () => {
     });
     return (
         <div className={styles.errorPage}>
-            <div className={styles.errorPageLeftColumn}></div>
+            <div className={styles.errorPageLeftColumn}>
+                <ErrorSearchPanel />
+            </div>
             <div className={styles.errorPageCenterColumn}>
                 <div className={styles.titleWrapper}>
                     {loading ? (

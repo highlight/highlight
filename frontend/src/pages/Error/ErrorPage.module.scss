@@ -2,9 +2,13 @@
 
 .errorPageCenterColumn {
     flex: 1;
+    height: calc(100vh - var(--top-padding));
+    overflow-y: auto;
 }
 
 .errorPageLeftColumn {
+    border-right: 1px solid var(--color-gray-300);
+    box-shadow: var(--box-shadow-3);
     margin-top: calc((-1 * var(--top-padding)) + var(--header-height));
     width: var(--left-panel-width);
 }
