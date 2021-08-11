@@ -38,6 +38,11 @@ const options: HighlightOptions = {
         enabled: true,
         recordHeadersAndBody: true,
     },
+    integrations: {
+        mixpanel: {
+            projectToken: 'e70039b6a5b93e7c86b8afb02b6d2300',
+        },
+    },
 };
 const favicon = document.querySelector("link[rel~='icon']") as any;
 if (dev) {

@@ -7976,10 +7976,10 @@ highlight-words-core@^1.2.0:
   resolved "https://registry.yarnpkg.com/highlight-words-core/-/highlight-words-core-1.2.2.tgz#1eff6d7d9f0a22f155042a00791237791b1eeaaa"
   integrity sha512-BXUKIkUuh6cmmxzi5OIbUJxrG8OAk2MqoL1DtO3Wo9D2faJg2ph5ntyuQeLqaHJmzER6H5tllCDA9ZnNe9BVGg==
 
-highlight.run@^2.3.1:
-  version "2.3.1"
-  resolved "https://registry.yarnpkg.com/highlight.run/-/highlight.run-2.3.1.tgz#5c80d3a32e2ba6b2f1b899c667d3f0a4d11a6081"
-  integrity sha512-IaDQHFnruyfjsYiykU6Y3LH6YUyFtJXkbVzEK3bI8t1reJ9mv23HfZdtFtVxpcxZZgnpbi7+KKhw0SHPw+JuJw==
+highlight.run@2.4.0:
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/highlight.run/-/highlight.run-2.4.0.tgz#776d4d52c67986d17283d96d319fe5c7919029d3"
+  integrity sha512-46kdasuyAe/hpEobscPRFVVuI7/6ws+4zDBzKKTOpplIMMj2uZzVUGQ7d/BAd+yh9l2viUHt5XkMeXWrh6W7Tg==
 
 history@^4.9.0:
   version "4.10.1"
