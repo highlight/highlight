@@ -31,7 +31,7 @@ const ErrorModal = ({ error }: Props) => {
                 <div>
                     {data && (
                         <>
-                            <div className={styles.errorTitleContainer}>
+                            <div className={styles.titleContainer}>
                                 <ErrorTitle errorGroup={data.error_group} />
                             </div>
 
