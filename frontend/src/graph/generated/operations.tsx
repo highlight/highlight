@@ -70,6 +70,17 @@ export type DeleteAdminFromOrganizationMutation = {
     __typename?: 'Mutation';
 } & Pick<Types.Mutation, 'deleteAdminFromOrganization'>;
 
+export type OpenSlackConversationMutationVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    code: Types.Scalars['String'];
+    redirect_path: Types.Scalars['String'];
+}>;
+
+export type OpenSlackConversationMutation = { __typename?: 'Mutation' } & Pick<
+    Types.Mutation,
+    'openSlackConversation'
+>;
+
 export type AddSlackIntegrationToWorkspaceMutationVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     code: Types.Scalars['String'];

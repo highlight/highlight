@@ -213,7 +213,7 @@ type ComplexityRoot struct {
 		EmailSignup                    func(childComplexity int, email string) int
 		MarkSessionAsStarred           func(childComplexity int, id int, starred *bool) int
 		MarkSessionAsViewed            func(childComplexity int, id int, viewed *bool) int
-		OpenSlackConversation          func(childComplexity int, adminID int, userSlackID string) int
+		OpenSlackConversation          func(childComplexity int, organizationID int, code string, redirectPath string) int
 		SendAdminInvite                func(childComplexity int, organizationID int, email string, baseURL string) int
 		UpdateErrorAlert               func(childComplexity int, organizationID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
 		UpdateErrorGroupState          func(childComplexity int, id int, state string) int
@@ -463,7 +463,7 @@ type MutationResolver interface {
 	DeleteSessionComment(ctx context.Context, id int) (*bool, error)
 	CreateErrorComment(ctx context.Context, organizationID int, errorGroupID int, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, errorURL string, authorName string) (*model1.ErrorComment, error)
 	DeleteErrorComment(ctx context.Context, id int) (*bool, error)
-	OpenSlackConversation(ctx context.Context, adminID int, userSlackID string) (*bool, error)
+	OpenSlackConversation(ctx context.Context, organizationID int, code string, redirectPath string) (*bool, error)
 	UpdateErrorAlert(ctx context.Context, organizationID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.ErrorAlert, error)
 	UpdateNewUserAlert(ctx context.Context, organizationID int, sessionAlertID int, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.SessionAlert, error)
 	UpdateTrackPropertiesAlert(ctx context.Context, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, trackProperties []*model.TrackPropertyInput) (*model1.SessionAlert, error)
@@ -1385,7 +1385,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.OpenSlackConversation(childComplexity, args["admin_id"].(int), args["user_slack_id"].(string)), true
+		return e.complexity.Mutation.OpenSlackConversation(childComplexity, args["organization_id"].(int), args["code"].(string), args["redirect_path"].(string)), true
 
 	case "Mutation.sendAdminInvite":
 		if e.complexity.Mutation.SendAdminInvite == nil {
@@ -3243,8 +3243,9 @@ type Mutation {
     ): ErrorComment
     deleteErrorComment(id: ID!): Boolean
     openSlackConversation(
-        admin_id: ID!
-        user_slack_id: String!
+        organization_id: ID!
+        code: String!
+        redirect_path: String!
     ): Boolean
     updateErrorAlert(
         organization_id: ID!
@@ -3895,23 +3896,32 @@ func (ec *executionContext) field_Mutation_openSlackConversation_args(ctx contex
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
-	if tmp, ok := rawArgs["admin_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("admin_id"))
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["admin_id"] = arg0
+	args["organization_id"] = arg0
 	var arg1 string
-	if tmp, ok := rawArgs["user_slack_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_slack_id"))
+	if tmp, ok := rawArgs["code"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("code"))
 		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["user_slack_id"] = arg1
+	args["code"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["redirect_path"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("redirect_path"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["redirect_path"] = arg2
 	return args, nil
 }
 
@@ -8757,7 +8767,7 @@ func (ec *executionContext) _Mutation_openSlackConversation(ctx context.Context,
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().OpenSlackConversation(rctx, args["admin_id"].(int), args["user_slack_id"].(string))
+		return ec.resolvers.Mutation().OpenSlackConversation(rctx, args["organization_id"].(int), args["code"].(string), args["redirect_path"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

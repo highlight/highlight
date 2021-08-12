@@ -729,6 +729,11 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 		return nil, e.Wrap(err, "admin cannot leave a comment")
 	}
 
+	var org model.Organization
+	if err := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&org).Error; err != nil {
+		return nil, e.Wrap(err, "error querying organization")
+	}
+
 	admins := []model.Admin{}
 	if !isGuestCreatingSession {
 		for _, a := range taggedAdmins {
@@ -815,28 +820,49 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 				return e.Wrap(err, "error fetching admins")
 			}
 
+			// return early if no admins w/ slack_im_channel_id
+			if len(admins) < 1 {
+				return nil
+			}
+
+			// this is needed for posting DMs
+			if org.SlackAccessToken == nil {
+				return e.New("slack access token is nil")
+			}
+
 			var blockSet slack.Blocks
-			blockSet.BlockSet = append(blockSet.BlockSet,
-				slack.NewHeaderBlock(
-					slack.NewTextBlockObject(slack.PlainTextType, "Highlight Activity Alert", false, true)))
+
+			blockSet.BlockSet = append(blockSet.BlockSet, slack.NewHeaderBlock(&slack.TextBlockObject{Type: slack.PlainTextType, Text: "Highlight Activity Alert"}))
 
 			message := "You were tagged in a session."
-			if admin.Name != nil {
+			if admin.Name != nil && *admin.Name != "" {
 				message = fmt.Sprintf("%s tagged you in a session.", *admin.Name)
 			}
+			button := slack.NewButtonBlockElement(
+				"",
+				"click",
+				slack.NewTextBlockObject(
+					slack.PlainTextType,
+					"Visit Session",
+					false,
+					false,
+				),
+			)
+			button.URL = viewLink
 			blockSet.BlockSet = append(blockSet.BlockSet,
 				slack.NewSectionBlock(
-					slack.NewTextBlockObject(slack.MarkdownType, message, true, false),
-					nil, slack.NewAccessory(slack.ButtonBlockElement{
-						Text: slack.NewTextBlockObject(slack.PlainTextType, "Visit Session", true, false),
-						URL:  viewLink,
-					}),
-				))
+					nil,
+					[]*slack.TextBlockObject{{Type: slack.PlainTextType, Text: message}}, slack.NewAccessory(button),
+				),
+			)
 
 			blockSet.BlockSet = append(blockSet.BlockSet, slack.NewDividerBlock())
+			slackClient := slack.New(*org.SlackAccessToken)
+			a, _ := json.Marshal(&blockSet.BlockSet)
+			log.Infof("blocks: %v", string(a))
 			for _, a := range admins {
 				if a.SlackIMChannelID != nil {
-					_, _, err := r.SlackClient.PostMessage(*a.SlackIMChannelID, slack.MsgOptionBlocks(blockSet.BlockSet...))
+					_, _, err := slackClient.PostMessage(*a.SlackIMChannelID, slack.MsgOptionBlocks(blockSet.BlockSet...))
 					if err != nil {
 						return e.Wrap(err, "error posting slack message")
 					}
@@ -947,13 +973,53 @@ func (r *mutationResolver) DeleteErrorComment(ctx context.Context, id int) (*boo
 	return &model.T, nil
 }
 
-func (r *mutationResolver) OpenSlackConversation(ctx context.Context, adminID int, userSlackID string) (*bool, error) {
-	channel, _, _, err := r.SlackClient.OpenConversation(&slack.OpenConversationParameters{Users: []string{userSlackID}})
+func (r *mutationResolver) OpenSlackConversation(ctx context.Context, organizationID int, code string, redirectPath string) (*bool, error) {
+	log.Info("here")
+	var (
+		SLACK_CLIENT_ID     string
+		SLACK_CLIENT_SECRET string
+	)
+	_, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in organization")
+	}
+	redirect := os.Getenv("FRONTEND_URI")
+	redirect += "/" + strconv.Itoa(organizationID) + "/" + redirectPath
+	if tempSlackClientID, ok := os.LookupEnv("SLACK_CLIENT_ID"); ok && tempSlackClientID != "" {
+		SLACK_CLIENT_ID = tempSlackClientID
+	}
+	if tempSlackClientSecret, ok := os.LookupEnv("SLACK_CLIENT_SECRET"); ok && tempSlackClientSecret != "" {
+		SLACK_CLIENT_SECRET = tempSlackClientSecret
+	}
+	resp, err := slack.
+		GetOAuthV2Response(
+			&http.Client{},
+			SLACK_CLIENT_ID,
+			SLACK_CLIENT_SECRET,
+			code,
+			redirect,
+		)
+	if err != nil {
+		log.Info("there")
+		return nil, e.Wrap(err, "error getting slack oauth response")
+	}
+
+	if err := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).Updates(&model.Organization{SlackAccessToken: &resp.AccessToken}).Error; err != nil {
+		return nil, e.Wrap(err, "error updating slack access token in org")
+	}
+
+	slackClient := slack.New(resp.AccessToken)
+	c, _, _, err := slackClient.OpenConversation(&slack.OpenConversationParameters{Users: []string{resp.AuthedUser.ID}})
 	if err != nil {
 		return nil, e.Wrap(err, "error opening slack conversation")
 	}
-	if err := r.DB.Where(&model.Admin{Model: model.Model{ID: adminID}}).Updates(&model.Admin{SlackIMChannelID: &channel.ID}).Error; err != nil {
+	adminUID := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
+	if err := r.DB.Where(&model.Admin{UID: &adminUID}).Updates(&model.Admin{SlackIMChannelID: &c.ID}).Error; err != nil {
 		return nil, e.Wrap(err, "error updating slack conversation on admin table")
+	}
+	_, _, err = slackClient.PostMessage(c.ID, slack.MsgOptionText("You will receive personal notifications when you're tagged in a session or error comment here!", false))
+	if err != nil {
+		return nil, e.Wrap(err, "error posting message to user")
 	}
 	return &model.T, nil
 }

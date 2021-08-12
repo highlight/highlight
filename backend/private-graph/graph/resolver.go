@@ -9,7 +9,6 @@ import (
 	e "github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
-	"github.com/slack-go/slack"
 	"github.com/stripe/stripe-go/client"
 	"gorm.io/gorm"
 
@@ -34,7 +33,6 @@ type Resolver struct {
 	MailClient    *sendgrid.Client
 	StripeClient  *client.API
 	StorageClient *storage.StorageClient
-	SlackClient   *slack.Client
 }
 
 func (r *Resolver) getCurrentAdmin(ctx context.Context) (*model.Admin, error) {

@@ -799,8 +799,9 @@ export type MutationDeleteErrorCommentArgs = {
 };
 
 export type MutationOpenSlackConversationArgs = {
-    admin_id: Scalars['ID'];
-    user_slack_id: Scalars['String'];
+    organization_id: Scalars['ID'];
+    code: Scalars['String'];
+    redirect_path: Scalars['String'];
 };
 
 export type MutationUpdateErrorAlertArgs = {
