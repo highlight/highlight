@@ -1803,7 +1803,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	hlog.Timing("endpoint.sessions", endpointDuration, logTags, 1)
 	hlog.Incr("endpoint.sessions", logTags, 1)
 	if endpointDuration.Milliseconds() > 5000 {
-		log.Error(e.New(fmt.Sprintf("endpoint.sessions took %dms: org_id: %d, count: %d, params: %+v", endpointDuration.Milliseconds(), organizationID, count, params)));
+		log.Error(e.New(fmt.Sprintf("endpoint.sessions took %dms: org_id: %d, count: %d, params: %+v", endpointDuration.Milliseconds(), organizationID, count, params)))
 	}
 	return sessionList, nil
 }
