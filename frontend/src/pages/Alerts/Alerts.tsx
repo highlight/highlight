@@ -2,12 +2,13 @@ import React from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useParams } from 'react-router-dom';
 
+import Button from '../../components/Button/Button/Button';
 import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import { useGetAlertsPagePayloadQuery } from '../../graph/generated/hooks';
 import { AlertConfigurationCard } from './AlertConfigurationCard/AlertConfigurationCard';
 import styles from './Alerts.module.scss';
-import { useSlack } from './SlackIntegration/SlackIntegration';
+import { useSlack, useSlackBot } from './SlackIntegration/SlackIntegration';
 
 export enum ALERT_TYPE {
     Error,
@@ -50,6 +51,7 @@ const AlertsPage = () => {
         variables: { organization_id: organization_id },
     });
     const { slackUrl } = useSlack('alerts', ['GetAlertsPagePayload']);
+    const { slackUrl: slackBotUrl } = useSlackBot('alerts');
 
     return (
         <LeadAlignLayout>
@@ -86,6 +88,12 @@ const AlertsPage = () => {
                                 }
                             />
                         ))} */}
+                        <Button
+                            trackingId="highlight-personal-alerts-enrollment"
+                            href={slackBotUrl}
+                        >
+                            Enroll In Personal Alerts{' '}
+                        </Button>
                         <AlertConfigurationCard
                             configuration={ALERT_CONFIGURATIONS[0]}
                             alert={data?.error_alert ? data?.error_alert : {}}

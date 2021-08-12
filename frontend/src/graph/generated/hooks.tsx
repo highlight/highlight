@@ -370,6 +370,62 @@ export type DeleteAdminFromOrganizationMutationOptions = Apollo.BaseMutationOpti
     Types.DeleteAdminFromOrganizationMutation,
     Types.DeleteAdminFromOrganizationMutationVariables
 >;
+export const OpenSlackConversationDocument = gql`
+    mutation OpenSlackConversation(
+        $organization_id: ID!
+        $code: String!
+        $redirect_path: String!
+    ) {
+        openSlackConversation(
+            organization_id: $organization_id
+            code: $code
+            redirect_path: $redirect_path
+        )
+    }
+`;
+export type OpenSlackConversationMutationFn = Apollo.MutationFunction<
+    Types.OpenSlackConversationMutation,
+    Types.OpenSlackConversationMutationVariables
+>;
+
+/**
+ * __useOpenSlackConversationMutation__
+ *
+ * To run a mutation, you first call `useOpenSlackConversationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useOpenSlackConversationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [openSlackConversationMutation, { data, loading, error }] = useOpenSlackConversationMutation({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *      code: // value for 'code'
+ *      redirect_path: // value for 'redirect_path'
+ *   },
+ * });
+ */
+export function useOpenSlackConversationMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.OpenSlackConversationMutation,
+        Types.OpenSlackConversationMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.OpenSlackConversationMutation,
+        Types.OpenSlackConversationMutationVariables
+    >(OpenSlackConversationDocument, baseOptions);
+}
+export type OpenSlackConversationMutationHookResult = ReturnType<
+    typeof useOpenSlackConversationMutation
+>;
+export type OpenSlackConversationMutationResult = Apollo.MutationResult<Types.OpenSlackConversationMutation>;
+export type OpenSlackConversationMutationOptions = Apollo.BaseMutationOptions<
+    Types.OpenSlackConversationMutation,
+    Types.OpenSlackConversationMutationVariables
+>;
 export const AddSlackIntegrationToWorkspaceDocument = gql`
     mutation AddSlackIntegrationToWorkspace(
         $organization_id: ID!
