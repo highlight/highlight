@@ -33,6 +33,7 @@ import {
     LIVE_SEGMENT_ID,
     STARRED_SEGMENT_ID,
 } from '../SearchSidebar/SegmentPicker/SegmentPicker';
+import { getIdentifiedUserProfileImage } from '../SessionsFeedV2/components/MinimalSessionCard/utils/utils';
 import FirstTimeDecorations from './components/FirstTimeDecorations/FirstTimeDecorations';
 import SessionSearch from './components/SessionSearch/SessionSearch';
 import styles from './SessionsFeed.module.scss';
@@ -217,6 +218,7 @@ const SessionCard = ({
         },
     });
     const containerRef = useRef<HTMLDivElement>(null);
+    const customAvatarImage = getIdentifiedUserProfileImage(session);
 
     return (
         <div
@@ -288,6 +290,7 @@ const SessionCard = ({
                                           ).toString()) ?? ''
                                 }
                                 style={{ height: 60, width: 60 }}
+                                customImage={customAvatarImage}
                             />
                         </div>
                         <div className={styles.sessionTextSectionWrapper}>

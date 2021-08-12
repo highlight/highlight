@@ -1645,7 +1645,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 
 	fieldsSpan.Finish()
 
-	sessionsQueryPreamble := "SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed"
+	sessionsQueryPreamble := "SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, field_group"
 	joinClause := "FROM sessions"
 
 	isUnfilteredQuery := len(fieldIds) == 0 && len(visitedIds) == 0 && len(referrerIds) == 0 && len(notFieldIds) == 0 && len(notTrackFieldIds) == 0
@@ -1800,8 +1800,8 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	}
 
 	endpointDuration := time.Since(endpointStart)
-	hlog.Timing("endpoint.sessions", endpointDuration, logTags, 1)
-	hlog.Incr("endpoint.sessions", logTags, 1)
+	hlog.Timing("gql.sessions.duration", endpointDuration, logTags, 1)
+	hlog.Incr("gql.sessions.count", logTags, 1)
 	if endpointDuration.Milliseconds() > 5000 {
 		log.Error(e.New(fmt.Sprintf("endpoint.sessions took %dms: org_id: %d, count: %d, params: %+v", endpointDuration.Milliseconds(), organizationID, count, params)))
 	}

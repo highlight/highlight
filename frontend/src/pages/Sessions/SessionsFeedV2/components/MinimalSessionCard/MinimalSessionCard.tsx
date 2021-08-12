@@ -13,6 +13,7 @@ import { MillisToMinutesAndSecondsVerbose } from '../../../../../util/time';
 import usePlayerConfiguration from '../../../../Player/PlayerHook/utils/usePlayerConfiguration';
 import { LIVE_SEGMENT_ID } from '../../../SearchSidebar/SegmentPicker/SegmentPicker';
 import styles from './MinimalSessionCard.module.scss';
+import { getIdentifiedUserProfileImage } from './utils/utils';
 
 interface Props {
     session: Maybe<Session>;
@@ -50,6 +51,8 @@ const MinimalSessionCard = ({
         }
     }, [session?.id, session_id]);
 
+    const customAvatarImage = getIdentifiedUserProfileImage(session);
+
     return (
         <div className={styles.sessionCardWrapper} key={session?.id}>
             <Link
@@ -82,6 +85,7 @@ const MinimalSessionCard = ({
                                               ).toString()) ?? ''
                                     }
                                     style={{ height: 25, width: 25 }}
+                                    customImage={customAvatarImage}
                                 />
                             </div>
                         )}
@@ -142,7 +146,12 @@ const MinimalSessionCard = ({
                                                 title={`${session?.city}, ${session?.state}`}
                                             >
                                                 <div className={styles.topText}>
-                                                    {`${session?.city}, ${session?.state}`}
+                                                    {`${
+                                                        session?.city &&
+                                                        session?.state
+                                                            ? `${session?.city}, ${session?.state}`
+                                                            : ''
+                                                    }`}
                                                 </div>
                                             </Tooltip>
                                         )}
