@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { useAuthContext } from '../../../AuthContext';
-import Button from '../../../components/Button/Button/Button';
+import ShareButton from '../../../components/Button/ShareButton/ShareButton';
 import CopyText from '../../../components/CopyText/CopyText';
 import Modal from '../../../components/Modal/Modal';
 import ModalBody from '../../../components/ModalBody/ModalBody';
@@ -12,34 +12,42 @@ import Switch from '../../../components/Switch/Switch';
 import { useUpdateSessionIsPublicMutation } from '../../../graph/generated/hooks';
 import SvgShareIcon from '../../../static/ShareIcon';
 import { useReplayerContext } from '../ReplayerContext';
-import styles from './ShareButton.module.scss';
+import styles from './SessionShareButton.module.scss';
 import { onGetLink, onGetLinkWithTimestamp } from './utils/utils';
 
-const ShareButton = (props: ButtonProps) => {
+const SessionShareButton = (props: ButtonProps) => {
     const { time } = useReplayerContext();
     const { isHighlightAdmin, isLoggedIn } = useAuthContext();
     const [showModal, setShowModal] = useState(false);
     const [shareTimestamp, setShareTimestamp] = useState(false);
 
     if (!isHighlightAdmin) {
-        return OldShareButton(props, time);
+        return (
+            <ShareButton
+                {...props}
+                trackingId="sessionShareButton"
+                onClick={() => {
+                    const url = onGetLinkWithTimestamp(time);
+                    message.success('Copied link!');
+                    navigator.clipboard.writeText(url.href);
+                }}
+            />
+        );
     }
 
     return (
         <>
-            <Button
-                type="primary"
+            <ShareButton
                 {...props}
-                trackingId="ShareSession"
+                trackingId="sessionShareButton"
                 onClick={() => {
                     H.track('Clicked share button');
                     setShowModal(true);
                 }}
-                className={styles.button}
             >
                 <SvgShareIcon />
                 Share
-            </Button>
+            </ShareButton>
             <Modal
                 visible={showModal}
                 onCancel={() => {
@@ -117,23 +125,4 @@ const ExternalSharingToggle = () => {
     );
 };
 
-const OldShareButton = (props: ButtonProps, time: number) => {
-    const onClickHandler = () => {
-        const url = onGetLinkWithTimestamp(time);
-        message.success('Copied link!');
-        navigator.clipboard.writeText(url.href);
-    };
-
-    return (
-        <Button
-            type="primary"
-            onClick={onClickHandler}
-            {...props}
-            trackingId="ShareSession"
-        >
-            Share
-        </Button>
-    );
-};
-
-export default ShareButton;
+export default SessionShareButton;
