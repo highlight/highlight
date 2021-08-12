@@ -87,10 +87,15 @@ export type NetworkRecordingOptions = {
 
 export type IntegrationOptions = {
     mixpanel?: MixpanelIntegrationOptions;
+    amplitude?: AmplitudeIntegrationOptions;
 };
 
 export interface MixpanelIntegrationOptions {
     projectToken: string;
+}
+
+export interface AmplitudeIntegrationOptions {
+    apiKey: string;
 }
 
 export type HighlightClassOptions = {

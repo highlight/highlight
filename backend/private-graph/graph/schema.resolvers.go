@@ -1521,6 +1521,7 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, organizationID
 }
 
 func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count int, lifecycle modelInputs.SessionLifecycle, starred bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
+	endpointStart := time.Now()
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
@@ -1796,6 +1797,13 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	sessionList := &model.SessionResults{
 		Sessions:   queriedSessions,
 		TotalCount: queriedSessionsCount,
+	}
+
+	endpointDuration := time.Since(endpointStart)
+	hlog.Timing("endpoint.sessions", endpointDuration, logTags, 1)
+	hlog.Incr("endpoint.sessions", logTags, 1)
+	if endpointDuration.Milliseconds() > 5000 {
+		log.Error(e.New(fmt.Sprintf("endpoint.sessions took %dms: org_id: %d, count: %d, params: %+v", endpointDuration.Milliseconds(), organizationID, count, params)))
 	}
 	return sessionList, nil
 }
