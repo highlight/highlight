@@ -107,7 +107,12 @@ const MinimalSessionCard = ({ session, selected }: Props) => {
                                             title={`${session?.city}, ${session?.state}`}
                                         >
                                             <div className={styles.topText}>
-                                                {`${session?.city}, ${session?.state}`}
+                                                {`${
+                                                    session?.city &&
+                                                    session?.state
+                                                        ? `${session?.city}, ${session?.state}`
+                                                        : ''
+                                                }`}
                                             </div>
                                         </Tooltip>
                                         <Tooltip
