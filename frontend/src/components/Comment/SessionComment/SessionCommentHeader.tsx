@@ -9,7 +9,7 @@ import {
     ParsedSessionComment,
     useReplayerContext,
 } from '../../../pages/Player/ReplayerContext';
-import { onGetLinkWithTimestamp } from '../../../pages/Player/ShareButton/utils/utils';
+import { onGetLinkWithTimestamp } from '../../../pages/Player/SessionShareButton/utils/utils';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
 import { CommentHeader } from '../CommentHeader';
 
