@@ -993,12 +993,12 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationI
 
 			var blockSet slack.Blocks
 
-			message := "You were tagged in a session."
+			message := "You were tagged in an error."
 			if admin.Email != nil && *admin.Email != "" {
-				message = fmt.Sprintf("%s tagged you in a session.", *admin.Email)
+				message = fmt.Sprintf("%s tagged you in an error.", *admin.Email)
 			}
 			if admin.Name != nil && *admin.Name != "" {
-				message = fmt.Sprintf("%s tagged you in a session.", *admin.Name)
+				message = fmt.Sprintf("%s tagged you in an error.", *admin.Name)
 			}
 			blockSet.BlockSet = append(blockSet.BlockSet, slack.NewHeaderBlock(&slack.TextBlockObject{Type: slack.PlainTextType, Text: message}))
 
