@@ -24,7 +24,6 @@ export const setupAmplitudeIntegration: Integration = ({
             if (!e.amplitude.runQueuedFunctions) {
                 console.log('[Amplitude] Error: could not load SDK');
             }
-            console.log(amplitude.getInstance(), 'init', apiKey);
             amplitude.getInstance().init(apiKey);
         };
         var i = t.getElementsByTagName('script')[0];
