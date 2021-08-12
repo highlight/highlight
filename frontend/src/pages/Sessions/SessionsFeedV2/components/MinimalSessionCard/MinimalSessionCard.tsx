@@ -20,6 +20,8 @@ interface Props {
     /** Whether MinimalSessionCard is rendered on an error page where we don't have the full session information. */
     errorVersion?: boolean;
     showDetailedViewOverride?: boolean;
+    /** URL Params to attach to the session URL. */
+    urlParams?: string;
 }
 
 const MinimalSessionCard = ({
@@ -27,6 +29,7 @@ const MinimalSessionCard = ({
     selected,
     errorVersion = false,
     showDetailedViewOverride = false,
+    urlParams,
 }: Props) => {
     const { organization_id, segment_id, session_id } = useParams<{
         organization_id: string;
@@ -49,7 +52,9 @@ const MinimalSessionCard = ({
 
     return (
         <div className={styles.sessionCardWrapper} key={session?.id}>
-            <Link to={`/${organization_id}/sessions/${session?.id}`}>
+            <Link
+                to={`/${organization_id}/sessions/${session?.id}${urlParams}`}
+            >
                 <div
                     className={classNames(styles.sessionCard, {
                         [styles.selected]: selected,
@@ -163,6 +168,15 @@ const MinimalSessionCard = ({
                                                 {`${session?.browser_name}`}
                                             </div>
                                         </Tooltip>
+                                        {errorVersion && (
+                                            <Tooltip
+                                                title={`${session?.environment}`}
+                                            >
+                                                <div className={styles.topText}>
+                                                    {`${session?.environment}`}
+                                                </div>
+                                            </Tooltip>
+                                        )}
                                     </>
                                 ) : (
                                     <Tooltip

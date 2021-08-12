@@ -3,6 +3,7 @@ import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 import { GetErrorGroupQuery } from '../../../../../../graph/generated/operations';
 import { Session } from '../../../../../../graph/generated/schemas';
+import { PlayerSearchParameters } from '../../../../../Player/PlayerHook/utils';
 import MinimalSessionCard from '../../../../../Sessions/SessionsFeedV2/components/MinimalSessionCard/MinimalSessionCard';
 
 interface Props {
@@ -21,7 +22,7 @@ const ErrorSessionList = ({ errorGroup }: Props) => {
             ref={virtuoso}
             overscan={500}
             data={errorGroup.error_group.metadata_log}
-            itemContent={(index, session: any) => (
+            itemContent={(index, session) => (
                 <MinimalSessionCard
                     session={
                         ({
@@ -30,12 +31,14 @@ const ErrorSessionList = ({ errorGroup }: Props) => {
                             identifier: session?.visited_url,
                             browser_name: session?.browser,
                             os_name: session?.os,
+                            environment: session?.environment || 'Production',
                         } as Partial<Session>) as Session
                     }
                     selected={false}
                     key={`${session?.session_id}-${index}`}
                     errorVersion
                     showDetailedViewOverride
+                    urlParams={`?${PlayerSearchParameters.errorId}=${session?.error_id}`}
                 />
             )}
         />
