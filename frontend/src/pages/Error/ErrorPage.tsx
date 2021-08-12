@@ -35,7 +35,6 @@ import ErrorDescription from './components/ErrorDescription/ErrorDescription';
 import { parseErrorDescriptionList } from './components/ErrorDescription/utils/utils';
 import ErrorRightPanel from './components/ErrorRightPanel/ErrorRightPanel';
 import ErrorSearchPanel from './components/ErrorSearchPanel/ErrorSearchPanel';
-import ErrorSessionsTable from './components/ErrorSessionsTable/ErrorSessionsTable';
 import ErrorTitle from './components/ErrorTitle/ErrorTitle';
 import StackTraceSection from './components/StackTraceSection/StackTraceSection';
 import styles from './ErrorPage.module.scss';
@@ -79,7 +78,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                     <ErrorSearchPanel />
                 </div>
                 <div className={styles.errorPageCenterColumn}>
-                    <div className={styles.titleWrapper}>
+                    <div className={styles.titleContainer}>
                         {loading ? (
                             <Skeleton count={1} style={{ width: 300 }} />
                         ) : (
@@ -160,9 +159,6 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                     <div className={styles.fieldWrapper}>
                         <ErrorFrequencyGraph errorGroup={data?.error_group} />
                     </div>
-                    {data?.error_group && (
-                        <ErrorSessionsTable errorGroup={data.error_group} />
-                    )}
                 </div>
                 <div className={styles.errorPageRightColumn}>
                     <Card>

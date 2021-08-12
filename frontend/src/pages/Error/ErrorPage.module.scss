@@ -64,11 +64,6 @@
     margin-bottom: 30px;
 }
 
-.titleWrapper {
-    align-items: center;
-    display: flex;
-}
-
 .fieldWrapper {
     margin-bottom: 30px;
 }
@@ -283,4 +278,8 @@
     align-items: center;
     column-gap: var(--size-xxSmall);
     display: flex;
+}
+
+.titleContainer {
+    margin-bottom: var(--size-large);
 }
