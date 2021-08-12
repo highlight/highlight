@@ -832,12 +832,15 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 
 			var blockSet slack.Blocks
 
-			blockSet.BlockSet = append(blockSet.BlockSet, slack.NewHeaderBlock(&slack.TextBlockObject{Type: slack.PlainTextType, Text: "Highlight Activity Alert"}))
-
 			message := "You were tagged in a session."
+			if admin.Email != nil && *admin.Email != "" {
+				message = fmt.Sprintf("%s tagged you in a session.", *admin.Email)
+			}
 			if admin.Name != nil && *admin.Name != "" {
 				message = fmt.Sprintf("%s tagged you in a session.", *admin.Name)
 			}
+			blockSet.BlockSet = append(blockSet.BlockSet, slack.NewHeaderBlock(&slack.TextBlockObject{Type: slack.PlainTextType, Text: message}))
+
 			button := slack.NewButtonBlockElement(
 				"",
 				"click",
@@ -852,7 +855,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 			blockSet.BlockSet = append(blockSet.BlockSet,
 				slack.NewSectionBlock(
 					nil,
-					[]*slack.TextBlockObject{{Type: slack.PlainTextType, Text: message}}, slack.NewAccessory(button),
+					[]*slack.TextBlockObject{{Type: slack.MarkdownType, Text: fmt.Sprintf("*The Comment:* %s", sessionComment.Text)}}, slack.NewAccessory(button),
 				),
 			)
 
