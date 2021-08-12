@@ -71,6 +71,7 @@ const BillingPage = () => {
             updateBillingDetails({ variables: { organization_id } }).then(
                 () => {
                     message.success('Billing change applied!', 5);
+                    refetch();
                 }
             );
         }
