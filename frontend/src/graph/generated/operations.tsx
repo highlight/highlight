@@ -493,6 +493,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'starred'
             | 'enable_strict_privacy'
             | 'enable_recording_network_contents'
+            | 'field_group'
             | 'object_storage_enabled'
             | 'payload_size'
             | 'within_billing_quota'
@@ -707,6 +708,7 @@ export type GetSessionsQuery = { __typename?: 'Query' } & {
                     | 'viewed'
                     | 'starred'
                     | 'processed'
+                    | 'field_group'
                     | 'first_time'
                 > & {
                         fields?: Types.Maybe<

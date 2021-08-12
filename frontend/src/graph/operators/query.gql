@@ -25,6 +25,7 @@ query GetSession($id: ID!) {
         starred
         enable_strict_privacy
         enable_recording_network_contents
+        field_group
         fields {
             name
             value
@@ -189,6 +190,7 @@ query GetSessions(
             viewed
             starred
             processed
+            field_group
             fields {
                 name
                 value

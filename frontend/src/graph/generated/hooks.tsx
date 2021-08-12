@@ -1595,6 +1595,7 @@ export const GetSessionDocument = gql`
             starred
             enable_strict_privacy
             enable_recording_network_contents
+            field_group
             fields {
                 name
                 value
@@ -2149,6 +2150,7 @@ export const GetSessionsDocument = gql`
                 viewed
                 starred
                 processed
+                field_group
                 fields {
                     name
                     value
