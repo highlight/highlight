@@ -7,6 +7,10 @@ import {
 } from '../../client/src/index';
 import packageJson from '../package.json';
 import { listenToChromeExtensionMessage } from './browserExtension/extensionListener';
+import {
+    AmplitudeAPI,
+    setupAmplitudeIntegration,
+} from './integrations/amplitude';
 import { MixpanelAPI, setupMixpanelIntegration } from './integrations/mixpanel';
 import { SessionDetails } from './types/types';
 
@@ -122,6 +126,7 @@ interface HighlightWindow extends Window {
     Highlight: new (options?: HighlightClassOptions) => Highlight;
     H: HighlightPublicInterface;
     mixpanel?: MixpanelAPI;
+    amplitude?: AmplitudeAPI;
 }
 
 const HIGHLIGHT_URL = 'app.highlight.run';
@@ -176,6 +181,10 @@ export const H: HighlightPublicInterface = {
             if (options?.integrations?.mixpanel?.projectToken) {
                 setupMixpanelIntegration(options.integrations.mixpanel);
             }
+
+            if (options?.integrations?.amplitude?.apiKey) {
+                setupAmplitudeIntegration(options.integrations.amplitude);
+            }
         } catch (e) {
             HighlightWarning('init', e);
         }
@@ -211,13 +220,21 @@ export const H: HighlightPublicInterface = {
             H.onHighlightReady(() =>
                 highlight_obj.addProperties({ ...metadata, event: event })
             );
+            const sessionID = highlight_obj?.sessionData.sessionID;
+            let highlightUrl;
+            if (sessionID) {
+                highlightUrl = `https://${HIGHLIGHT_URL}/sessions/${sessionID}`;
+            }
+
             if (window.mixpanel?.track) {
-                const sessionID = highlight_obj?.sessionData.sessionID;
-                let highlightUrl;
-                if (sessionID) {
-                    highlightUrl = `https://${HIGHLIGHT_URL}/sessions/${sessionID}`;
-                }
                 window.mixpanel.track(event, {
+                    ...metadata,
+                    highlightSessionURL: highlightUrl,
+                });
+            }
+
+            if (window.amplitude?.getInstance) {
+                window.amplitude.getInstance().logEvent(event, {
                     ...metadata,
                     highlightSessionURL: highlightUrl,
                 });
@@ -267,6 +284,24 @@ export const H: HighlightPublicInterface = {
         }
         if (window.mixpanel?.identify) {
             window.mixpanel.identify(identifier);
+        }
+        if (window.amplitude?.getInstance) {
+            window.amplitude.getInstance().setUserId(identifier);
+
+            if (Object.keys(metadata).length > 0) {
+                const amplitudeUserProperties = Object.keys(metadata).reduce(
+                    (acc, key) => {
+                        acc.set(key, metadata[key]);
+
+                        return acc;
+                    },
+                    new window.amplitude.Identify()
+                );
+
+                window.amplitude
+                    .getInstance()
+                    .identify(amplitudeUserProperties);
+            }
         }
     },
     getSessionURL: () => {
