@@ -42,7 +42,7 @@ export const OperatingSystemInput = () => {
     return (
         <div>
             <AsyncSelect
-                placeholder={'Operating System'}
+                placeholder={'Windows, Mac, Linux...'}
                 isClearable
                 cacheOptions
                 value={
@@ -100,7 +100,7 @@ export const BrowserInput = () => {
     return (
         <div>
             <AsyncSelect
-                placeholder={'Browser'}
+                placeholder={'Chrome, Firefox, Safari...'}
                 isClearable
                 cacheOptions
                 value={
