@@ -171,3 +171,14 @@
     margin-bottom: 20px;
     margin-top: 0 !important;
 }
+
+.actionsContainer {
+    column-gap: var(--size-medium);
+    display: flex;
+    padding-top: var(--size-medium);
+
+    > button {
+        flex-grow: 1;
+        justify-content: center;
+    }
+}

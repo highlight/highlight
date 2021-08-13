@@ -11,21 +11,20 @@ import Button from '../../../../components/Button/Button/Button';
 import Select from '../../../../components/Select/Select';
 import Tooltip from '../../../../components/Tooltip/Tooltip';
 import {
-    useEditSegmentMutation,
-    useGetSegmentsQuery,
+    useEditErrorSegmentMutation,
+    useGetErrorSegmentsQuery,
 } from '../../../../graph/generated/hooks';
 import SvgCloseIcon from '../../../../static/CloseIcon';
 import SvgEditIcon from '../../../../static/EditIcon';
 import SvgPlusIcon from '../../../../static/PlusIcon';
 import { gqlSanitize } from '../../../../util/gqlSanitize';
-import { useSearchContext } from '../../../Sessions/SearchContext/SearchContext';
-import CreateSegmentModal from '../../../Sessions/SearchSidebar/SegmentButtons/CreateSegmentModal';
-import DeleteSessionSegmentModal from '../../../Sessions/SearchSidebar/SegmentPicker/DeleteSessionSegmentModal/DeleteSessionSegmentModal';
-import { STARRED_SEGMENT_ID } from '../../../Sessions/SearchSidebar/SegmentPicker/SegmentPicker';
-import { EmptySessionsSearchParams } from '../../../Sessions/SessionsPage';
-import styles from './SegmentPickerForPlayer.module.scss';
+import { useErrorSearchContext } from '../../../Errors/ErrorSearchContext/ErrorSearchContext';
+import CreateErrorSegmentModal from '../../../Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal';
+import DeleteErrorSegmentModal from '../../../Errors/ErrorSegmentSidebar/SegmentPicker/DeleteErrorSegmentModal/DeleteErrorSegmentModal';
+import { EmptyErrorsSearchParams } from '../../../Errors/ErrorsPage';
+import styles from './SegmentPickerForErrors.module.scss';
 
-const SegmentPickerForPlayer = () => {
+const SegmentPickerForErrors = () => {
     const { organization_id } = useParams<{
         organization_id: string;
     }>();
@@ -36,25 +35,24 @@ const SegmentPickerForPlayer = () => {
         segmentName,
         searchParams,
         existingParams,
-        setShowStarredSessions,
-    } = useSearchContext();
-    const { loading, data } = useGetSegmentsQuery({
+    } = useErrorSearchContext();
+    const { loading, data } = useGetErrorSegmentsQuery({
         variables: { organization_id },
     });
     const [selectedSegment, setSelectedSegment] = useLocalStorage<
         { value: string; id: string } | undefined
-    >('highlightSegmentPickerForPlayerSelectedSegmentId', undefined);
+    >('highlightSegmentPickerForErrorsSelectedSegmentId', undefined);
     const [paramsIsDifferent, setParamsIsDifferent] = useState(false);
     const [showCreateSegmentModal, setShowCreateSegmentModal] = useState(false);
     const [segmentToDelete, setSegmentToDelete] = useState<{
         name?: string;
         id?: string;
     } | null>(null);
-    const [editSegment] = useEditSegmentMutation({
-        refetchQueries: ['GetSegments'],
+    const [editSegment] = useEditErrorSegmentMutation({
+        refetchQueries: ['GetErrorSegments'],
     });
 
-    const currentSegment = data?.segments?.find(
+    const currentSegment = data?.error_segments?.find(
         (s) => s?.id === selectedSegment?.id
     );
 
@@ -87,41 +85,20 @@ const SegmentPickerForPlayer = () => {
     }, [searchParams, existingParams]);
 
     const showUpdateSegmentOption = paramsIsDifferent && segmentName;
-    const segmentOptions = [
-        {
-            displayValue: 'Starred',
-            id: STARRED_SEGMENT_ID,
-            value: 'Starred',
-        },
-        ...(data?.segments || [])
-            .map((segment) => ({
-                displayValue: segment?.name || '',
-                value: segment?.name || '',
-                id: segment?.id || '',
-            }))
-            .sort((a, b) =>
-                a.displayValue.toLowerCase() > b.displayValue.toLowerCase()
-                    ? 1
-                    : -1
-            ),
-    ];
-
+    const segmentOptions = (data?.error_segments || [])
+        .map((segment) => ({
+            displayValue: segment?.name || '',
+            value: segment?.name || '',
+            id: segment?.id || '',
+        }))
+        .sort((a, b) =>
+            a.displayValue.toLowerCase() > b.displayValue.toLowerCase() ? 1 : -1
+        );
     return (
         <section className={styles.segmentPickerSection}>
             <Select
                 value={segmentName}
                 onChange={(value, option) => {
-                    if ((option as any)?.key === STARRED_SEGMENT_ID) {
-                        setShowStarredSessions(true);
-                        setExistingParams(EmptySessionsSearchParams);
-                        setSearchParams(EmptySessionsSearchParams);
-                        setSegmentName('Starred');
-                        setSelectedSegment({ value, id: STARRED_SEGMENT_ID });
-                        return;
-                    } else {
-                        setShowStarredSessions(false);
-                    }
-
                     let nextValue = undefined;
                     if (value && option) {
                         nextValue = {
@@ -129,8 +106,8 @@ const SegmentPickerForPlayer = () => {
                             id: (option as any).key,
                         };
                     } else {
-                        setExistingParams(EmptySessionsSearchParams);
-                        setSearchParams(EmptySessionsSearchParams);
+                        setExistingParams(EmptyErrorsSearchParams);
+                        setSearchParams(EmptyErrorsSearchParams);
                         setSegmentName(null);
                     }
                     setSelectedSegment(nextValue);
@@ -144,7 +121,7 @@ const SegmentPickerForPlayer = () => {
                 notFoundContent={
                     <p>
                         You haven't created any segments yet. Segments allow you
-                        to quickly view sessions that match a search query.
+                        to quickly view errors that match a search query.
                     </p>
                 }
             >
@@ -162,38 +139,32 @@ const SegmentPickerForPlayer = () => {
                             >
                                 {option.displayValue}
                             </Tooltip>
-                            {option.id !== STARRED_SEGMENT_ID && (
-                                <Button
-                                    trackingId="deleteSegmentFromPlayerSegmentPicker"
-                                    type="ghost"
-                                    iconButton
-                                    aria-label={`Delete ${option.value} segment`}
-                                    small
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setSegmentToDelete({
-                                            id: option.id,
-                                            name: option.displayValue,
-                                        });
-                                    }}
-                                >
-                                    <SvgCloseIcon />
-                                </Button>
-                            )}
+                            <Button
+                                trackingId="deleteSegmentFromErrorSegmentPicker"
+                                type="ghost"
+                                iconButton
+                                aria-label={`Delete ${option.value} segment`}
+                                small
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSegmentToDelete({
+                                        id: option.id,
+                                        name: option.displayValue,
+                                    });
+                                }}
+                            >
+                                <SvgCloseIcon />
+                            </Button>
                         </span>
                     </Option>
                 ))}
             </Select>
 
             <Button
-                trackingId="CreateSessionSegment"
+                trackingId="CreateErrorSegment"
                 onClick={() => {
                     if (showUpdateSegmentOption && selectedSegment) {
-                        const {
-                            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                            show_live_sessions,
-                            ...restOfSearchParams
-                        } = searchParams;
+                        const { ...restOfSearchParams } = searchParams;
                         editSegment({
                             variables: {
                                 organization_id,
@@ -231,13 +202,13 @@ const SegmentPickerForPlayer = () => {
                     Segment
                 </span>
             </Button>
-            <CreateSegmentModal
+            <CreateErrorSegmentModal
                 showModal={showCreateSegmentModal}
                 onHideModal={() => {
                     setShowCreateSegmentModal(false);
                 }}
                 afterCreateHandler={(segmentId, segmentName) => {
-                    if (data?.segments) {
+                    if (data?.error_segments) {
                         setSelectedSegment({
                             id: segmentId,
                             value: segmentName,
@@ -246,7 +217,7 @@ const SegmentPickerForPlayer = () => {
                     }
                 }}
             />
-            <DeleteSessionSegmentModal
+            <DeleteErrorSegmentModal
                 showModal={!!segmentToDelete}
                 hideModalHandler={() => {
                     setSegmentToDelete(null);
@@ -259,7 +230,7 @@ const SegmentPickerForPlayer = () => {
                     ) {
                         setSelectedSegment(undefined);
                         setSegmentName(null);
-                        setSearchParams(EmptySessionsSearchParams);
+                        setSearchParams(EmptyErrorsSearchParams);
                     }
                 }}
             />
@@ -267,4 +238,4 @@ const SegmentPickerForPlayer = () => {
     );
 };
 
-export default SegmentPickerForPlayer;
+export default SegmentPickerForErrors;
