@@ -1,3 +1,4 @@
+import { message } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 import classNames from 'classnames';
 import React, { useState } from 'react';
@@ -7,7 +8,8 @@ import { useHistory, useParams } from 'react-router-dom';
 import BarChartTable from '../../../../components/BarChartTable/BarChartTable';
 import { getPercentageDisplayValue } from '../../../../components/BarChartTable/utils/utils';
 import { useGetReferrersCountQuery } from '../../../../graph/generated/hooks';
-import { SessionPageSearchParams } from '../../../Player/utils/utils';
+import { useSearchContext } from '../../../Sessions/SearchContext/SearchContext';
+import { EmptySessionsSearchParams } from '../../../Sessions/SessionsPage';
 import homePageStyles from '../../HomePage.module.scss';
 import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext';
 import styles from './ReferrersTable.module.scss';
@@ -19,6 +21,7 @@ const ReferrersTable = () => {
     }>();
     const { dateRangeLength } = useHomePageFiltersContext();
     const history = useHistory();
+    const { setSearchParams } = useSearchContext();
 
     const { loading } = useGetReferrersCountQuery({
         variables: { organization_id, lookBackPeriod: dateRangeLength },
@@ -57,9 +60,14 @@ const ReferrersTable = () => {
                 columns={Columns}
                 data={tableData}
                 onClickHandler={(record) => {
-                    history.push(
-                        `/${organization_id}/sessions?${SessionPageSearchParams.referrer}=${record.host}`
+                    setSearchParams({
+                        ...EmptySessionsSearchParams,
+                        referrer: record.host,
+                    });
+                    message.success(
+                        `Showing sessions that were referred by ${record.host}`
                     );
+                    history.push(`/${organization_id}/sessions`);
                 }}
                 noDataTitle="No referrer data yet 😔"
                 noDataMessage="Doesn't look like your app has been referred to yet."

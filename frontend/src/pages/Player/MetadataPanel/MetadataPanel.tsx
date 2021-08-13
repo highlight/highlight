@@ -1,15 +1,17 @@
+import { message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { Link, useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 import { useAuthContext } from '../../../AuthContext';
 import DataCard from '../../../components/DataCard/DataCard';
 import KeyValueTable, {
     KeyValueTableRow,
 } from '../../../components/KeyValueTable/KeyValueTable';
+import { useSearchContext } from '../../Sessions/SearchContext/SearchContext';
+import { EmptySessionsSearchParams } from '../../Sessions/SessionsPage';
 import { useReplayerContext } from '../ReplayerContext';
 import { formatSize } from '../Toolbar/DevToolsWindow/ResourcePage/ResourcePage';
-import { SessionPageSearchParams } from '../utils/utils';
 import styles from './MetadataPanel.module.scss';
 
 type Field = {
@@ -19,10 +21,8 @@ type Field = {
 };
 
 const MetadataPanel = () => {
-    const { organization_id } = useParams<{
-        organization_id: string;
-    }>();
     const { session } = useReplayerContext();
+    const { setSearchParams } = useSearchContext();
     const { isHighlightAdmin } = useAuthContext();
 
     const [parsedFields, setParsedFields] = useState<Field[]>([]);
@@ -192,9 +192,16 @@ const MetadataPanel = () => {
             keyDisplayValue: 'Device ID',
             valueDisplayValue: (
                 <Link
-                    to={`/${organization_id}/sessions?${new URLSearchParams({
-                        [SessionPageSearchParams.deviceId]: session.fingerprint.toString(),
-                    }).toString()}`}
+                    to={window.location.pathname}
+                    onClick={() => {
+                        message.success(
+                            `Showing sessions created by device #${session.fingerprint}`
+                        );
+                        setSearchParams({
+                            ...EmptySessionsSearchParams,
+                            device_id: session.fingerprint?.toString(),
+                        });
+                    }}
                 >
                     #{session?.fingerprint}
                 </Link>

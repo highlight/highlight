@@ -3,30 +3,13 @@ import moment from 'moment';
 import React from 'react';
 
 import SvgCalendarIcon from '../../../static/CalendarIcon';
-import { SessionPageSearchParams } from '../../Player/utils/utils';
 import { SearchParams, useSearchContext } from '../SearchContext/SearchContext';
-import { EmptySessionsSearchParams } from '../SessionsPage';
-import useWatchSessionPageSearchParams from './hooks/useWatchSessionPageSearchParams';
 import inputStyles from './InputStyles.module.scss';
 
 const { RangePicker } = DatePicker;
 
 export const DateInput = () => {
     const { searchParams, setSearchParams } = useSearchContext();
-
-    useWatchSessionPageSearchParams(
-        SessionPageSearchParams.date,
-        (value) => {
-            const start_date = moment(value);
-            const end_date = moment(value);
-
-            return {
-                ...EmptySessionsSearchParams,
-                date_range: getDateRangeForDateInput(start_date, end_date),
-            };
-        },
-        (value) => `Showing sessions that were recorded on ${value}`
-    );
 
     return (
         <div>
