@@ -8,7 +8,8 @@ import BarChartTable from '../../../../components/BarChartTable/BarChartTable';
 import { getPercentageDisplayValue } from '../../../../components/BarChartTable/utils/utils';
 import Tooltip from '../../../../components/Tooltip/Tooltip';
 import { useGetTopUsersQuery } from '../../../../graph/generated/hooks';
-import { SessionPageSearchParams } from '../../../Player/utils/utils';
+import { useSearchContext } from '../../../Sessions/SearchContext/SearchContext';
+import { EmptySessionsSearchParams } from '../../../Sessions/SessionsPage';
 import homePageStyles from '../../HomePage.module.scss';
 import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext';
 import { formatShortTime } from '../KeyPerformanceIndicators/utils/utils';
@@ -19,6 +20,7 @@ const ActiveUsersTable = () => {
     const { organization_id } = useParams<{
         organization_id: string;
     }>();
+    const { setSearchParams } = useSearchContext();
     const { dateRangeLength } = useHomePageFiltersContext();
     const history = useHistory();
 
@@ -58,9 +60,17 @@ const ActiveUsersTable = () => {
                 columns={Columns}
                 data={tableData}
                 onClickHandler={(record) => {
-                    history.push(
-                        `/${organization_id}/sessions?${SessionPageSearchParams.identifierAndId}=${record.identifier}:${record.id}`
-                    );
+                    setSearchParams({
+                        ...EmptySessionsSearchParams,
+                        user_properties: [
+                            {
+                                id: record.id,
+                                name: 'identifer',
+                                value: record.identifier,
+                            },
+                        ],
+                    });
+                    history.push(`/${organization_id}/sessions`);
                 }}
                 noDataMessage={
                     <>
