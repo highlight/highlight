@@ -332,21 +332,7 @@ const getSuggestions = (
 
     suggestions.push({
         label: 'Error Message',
-        tooltip: (
-            <>
-                Track Properties are properties related to events that have
-                happened in your application. These are set by you in your
-                application. You can{' '}
-                <a
-                    href="https://docs.highlight.run/docs/tracking-events"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    learn more here
-                </a>
-                .
-            </>
-        ),
+        tooltip: 'The body of the error message.',
         options: [
             //     ...getIncludesOption(query, 'trackProperties', 'track'),
             ...(data?.fields
@@ -356,10 +342,25 @@ const getSuggestions = (
                 .slice(0, limitResultsCount) || []),
         ],
     });
+    suggestions.push({
+        label: 'Visited URLs',
+        tooltip:
+            'Visited URLs are the URLs that the error was thrown on. Filtering with a Visited URL will show you all errors thrown on that URL.',
+        options: [
+            //     ...getIncludesOption(query, 'visitedUrls', 'visitedUrl'),
+            ...(data?.visitedUrls
+                ?.map((suggestion: Suggestion) =>
+                    transformToOption(suggestion, 'visitedUrls')
+                )
+                .slice(0, limitResultsCount) || []),
+        ],
+    });
 
     return suggestions;
 };
 
+// Our API doesn't support includes yet.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getIncludesOption = (
     query: string,
     apiType: string,
