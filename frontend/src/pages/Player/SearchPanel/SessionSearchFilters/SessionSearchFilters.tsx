@@ -123,7 +123,9 @@ const SessionSearchFilters = () => {
             align={{ offset: [8, -24] }}
         >
             <Button
-                className={segmentPickerStyles.segmentButton}
+                className={classNames(segmentPickerStyles.segmentButton, {
+                    [styles.hasFilters]: filtersSetCount > 0,
+                })}
                 type="ghost"
                 small
                 trackingId="sessionPlayerSearchFilters"
