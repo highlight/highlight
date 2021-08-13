@@ -815,19 +815,18 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 				tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(adminIds)))
 			defer commentMentionSlackSpan.Finish()
 
+			// this is needed for posting DMs
+			if org.SlackAccessToken == nil {
+				return e.New("slack access token is nil")
+			}
+
 			var admins []*model.Admin
 			if err := r.DB.Find(&admins, adminIds).Where("slack_im_channel_id IS NOT NULL").Error; err != nil {
 				return e.Wrap(err, "error fetching admins")
 			}
-
 			// return early if no admins w/ slack_im_channel_id
 			if len(admins) < 1 {
 				return nil
-			}
-
-			// this is needed for posting DMs
-			if org.SlackAccessToken == nil {
-				return e.New("slack access token is nil")
 			}
 
 			var blockSet slack.Blocks
@@ -855,7 +854,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 			blockSet.BlockSet = append(blockSet.BlockSet,
 				slack.NewSectionBlock(
 					nil,
-					[]*slack.TextBlockObject{{Type: slack.MarkdownType, Text: fmt.Sprintf("*The Comment:* %s", sessionComment.Text)}}, slack.NewAccessory(button),
+					[]*slack.TextBlockObject{{Type: slack.MarkdownType, Text: fmt.Sprintf("> %s", sessionComment.Text)}}, slack.NewAccessory(button),
 				),
 			)
 
@@ -1016,7 +1015,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationI
 			blockSet.BlockSet = append(blockSet.BlockSet,
 				slack.NewSectionBlock(
 					nil,
-					[]*slack.TextBlockObject{{Type: slack.MarkdownType, Text: fmt.Sprintf("*The Comment:* %s", errorComment.Text)}}, slack.NewAccessory(button),
+					[]*slack.TextBlockObject{{Type: slack.MarkdownType, Text: fmt.Sprintf("> %s", errorComment.Text)}}, slack.NewAccessory(button),
 				),
 			)
 
