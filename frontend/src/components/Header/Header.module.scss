@@ -8,6 +8,10 @@
     position: fixed;
     width: calc(100% - var(--sidebar-width));
     z-index: 100;
+
+    &.guest {
+        width: 100%;
+    }
 }
 
 .hamburger {

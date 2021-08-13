@@ -1,21 +1,16 @@
 package hlog
 
 import (
-	"os"
 	"time"
 
 	dd "github.com/highlight-run/highlight/backend/datadog"
+	"github.com/highlight-run/highlight/backend/util"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
-var (
-	env             = os.Getenv("ENVIRONMENT")
-	shouldLogErrors = env != "dev" && env != "test"
-)
-
 func logIfError(name string, err error) {
-	if err != nil && shouldLogErrors {
+	if err != nil && !util.IsDevOrTestEnv() {
 		log.Error(e.Wrap(err, "dd error tracking: "+name))
 	}
 }

@@ -551,7 +551,7 @@ func (r *mutationResolver) DeleteErrorSegment(ctx context.Context, segmentID int
 	return &model.T, nil
 }
 
-func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organizationID int, planType modelInputs.PlanType) (*string, error) {
+func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context, organizationID int, planType modelInputs.PlanType) (*string, error) {
 	org, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
@@ -596,19 +596,6 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		if err != nil {
 			return nil, e.Wrap(err, "couldn't update subscription")
 		}
-		organization := model.Organization{Model: model.Model{ID: organizationID}}
-		if err := r.DB.Model(&organization).Updates(model.Organization{StripePriceID: &plan}).Error; err != nil {
-			return nil, e.Wrap(err, "error setting stripe_plan_id on organization")
-		}
-
-		// mark sessions as within billing quota on plan upgrade
-		// this is done when the user is already signed up for some sort of billing plan
-		if c.Subscriptions.Data[0].Items.Data[0].Plan != nil {
-			go r.UpdateSessionsVisibility(organizationID, planType, pricing.FromPriceID(c.Subscriptions.Data[0].Items.Data[0].Plan.ID))
-		} else {
-			log.Error("error getting original plan data from stripe client")
-		}
-
 		ret := ""
 		return &ret, nil
 	}
@@ -638,16 +625,37 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		return nil, e.Wrap(err, "error creating CheckoutSession in stripe")
 	}
 
+	return &stripeSession.ID, nil
+}
+
+func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, organizationID int) (*bool, error) {
+	org, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in organization")
+	}
+	params := &stripe.CustomerParams{}
+	params.AddExpand("subscriptions")
+	c, err := r.StripeClient.Customers.Get(*org.StripeCustomerID, params)
+	if err != nil {
+		return nil, e.Wrap(err, "couldn't retrieve stripe customer data")
+	}
+	// If there's a single subscription on the user and a single price item on the subscription
+	if len(c.Subscriptions.Data) != 1 || len(c.Subscriptions.Data[0].Items.Data) != 1 {
+		return nil, e.New("no stripe subscription for customer")
+	}
+
+	planTypeId := c.Subscriptions.Data[0].Plan.ID
+
 	organization := model.Organization{Model: model.Model{ID: organizationID}}
-	if err := r.DB.Model(&organization).Updates(model.Organization{StripePriceID: &plan}).Error; err != nil {
+	if err := r.DB.Model(&organization).Updates(model.Organization{StripePriceID: &planTypeId}).Error; err != nil {
 		return nil, e.Wrap(err, "error setting stripe_plan_id on organization")
 	}
 	// mark sessions as within billing quota on plan upgrade
 	// this code is repeated as the first time, the user already has a billing plan and the function returns early.
 	// here, the user doesn't already have a billing plan, so it's considered an upgrade unless the plan is free
-	go r.UpdateSessionsVisibility(organizationID, planType, modelInputs.PlanTypeFree)
+	go r.UpdateSessionsVisibility(organizationID, pricing.FromPriceID(planTypeId), modelInputs.PlanTypeFree)
 
-	return &stripeSession.ID, nil
+	return &model.T, nil
 }
 
 func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model.SessionComment, error) {
@@ -1045,7 +1053,7 @@ func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, er
 }
 
 func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{}, error) {
-	if os.Getenv("ENVIRONMENT") == "dev" && sessionID == 1 {
+	if util.IsDevEnv() && sessionID == 1 {
 		file, err := ioutil.ReadFile("./tmp/events.json")
 		if err != nil {
 			return nil, e.Wrap(err, "Failed to read temp file")
@@ -1148,8 +1156,8 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 		queryString += fmt.Sprintf("AND (id IN (SELECT error_group_id FROM error_objects WHERE (organization_id=%d) AND (deleted_at IS NULL) AND (created_at > '%s') AND (created_at < '%s')))", organizationID, d.StartDate.Format("2006-01-02 15:04:05"), d.EndDate.Format("2006-01-02 15:04:05"))
 	}
 
-	if resolved := params.HideResolved; resolved != nil && *resolved {
-		queryString += fmt.Sprintf("AND (state <> '%s') ", model.ErrorGroupStates.RESOLVED)
+	if state := params.State; state != nil {
+		queryString += fmt.Sprintf("AND (state = '%s') ", state)
 	}
 
 	if params.Event != nil {
@@ -1526,7 +1534,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 
-	sessionsQueryPreamble := "SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed"
+	sessionsQueryPreamble := "SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, field_group"
 	joinClause := "FROM sessions"
 
 	isUnfilteredQuery, fieldFilters, err := r.getFieldFilters(ctx, organizationID, params)
@@ -1537,7 +1545,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	if !isUnfilteredQuery {
 		fieldsInnerJoinStatement := "INNER JOIN session_fields t ON s.id=t.session_id"
 		fieldsSelectStatement := ", array_agg(t.field_id) fieldIds"
-		joinClause = fmt.Sprintf("FROM (SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, within_billing_quota %s FROM sessions s %s GROUP BY s.id) AS rows", fieldsSelectStatement, fieldsInnerJoinStatement)
+		joinClause = fmt.Sprintf("FROM (SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, within_billing_quota, field_group %s FROM sessions s %s GROUP BY s.id) AS rows", fieldsSelectStatement, fieldsInnerJoinStatement)
 	}
 	whereClause := ` `
 
@@ -1616,7 +1624,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		start := time.Now()
 		query := fmt.Sprintf("%s %s %s ORDER BY created_at DESC LIMIT %d", sessionsQueryPreamble, joinClause, whereClause, count)
 		if err := r.DB.Raw(query).Scan(&queriedSessions).Error; err != nil {
-			return e.Wrap(err, "error querying filtered sessions")
+			return e.Wrapf(err, "error querying filtered sessions: %s", query)
 		}
 		duration := time.Since(start)
 		hlog.Timing("db.sessionsQuery.duration", duration, logTags, 1)
@@ -1634,7 +1642,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		start := time.Now()
 		query := fmt.Sprintf("SELECT count(*) %s %s %s", joinClause, whereClause, whereClauseSuffix)
 		if err := r.DB.Raw(query).Scan(&queriedSessionsCount).Error; err != nil {
-			return e.Wrap(err, "error querying filtered sessions count")
+			return e.Wrapf(err, "error querying filtered sessions count: %s", query)
 		}
 		duration := time.Since(start)
 		hlog.Timing("db.sessionsCountQuery.duration", duration, logTags, 1)
@@ -1656,8 +1664,8 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	}
 
 	endpointDuration := time.Since(endpointStart)
-	hlog.Timing("endpoint.sessions", endpointDuration, logTags, 1)
-	hlog.Incr("endpoint.sessions", logTags, 1)
+	hlog.Timing("gql.sessions.duration", endpointDuration, logTags, 1)
+	hlog.Incr("gql.sessions.count", logTags, 1)
 	if endpointDuration.Milliseconds() > 5000 {
 		log.Error(e.New(fmt.Sprintf("endpoint.sessions took %dms: org_id: %d, count: %d, params: %+v", endpointDuration.Milliseconds(), organizationID, count, params)))
 	}

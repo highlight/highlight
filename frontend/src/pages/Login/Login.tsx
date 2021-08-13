@@ -18,14 +18,24 @@ export const AuthAdminRouter = () => {
     useEffect(() => {
         if (admin) {
             const { email, id, name } = admin;
-            window.analytics.identify(email, {
+            let identifyMetadata: {
+                id: string;
+                avatar?: string;
+                name: string;
+            } = {
                 id,
                 name,
-            });
-            H.identify(email, {
-                id,
-                name,
-            });
+            };
+            window.analytics.identify(email, identifyMetadata);
+
+            if (admin.photo_url) {
+                identifyMetadata = {
+                    ...identifyMetadata,
+                    avatar: admin.photo_url,
+                };
+            }
+
+            H.identify(email, identifyMetadata);
         }
     }, [admin]);
 

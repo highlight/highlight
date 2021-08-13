@@ -35,12 +35,12 @@ type ErrorMetadata struct {
 }
 
 type ErrorSearchParamsInput struct {
-	DateRange    *DateRangeInput `json:"date_range"`
-	Os           *string         `json:"os"`
-	Browser      *string         `json:"browser"`
-	VisitedURL   *string         `json:"visited_url"`
-	HideResolved *bool           `json:"hide_resolved"`
-	Event        *string         `json:"event"`
+	DateRange  *DateRangeInput `json:"date_range"`
+	Os         *string         `json:"os"`
+	Browser    *string         `json:"browser"`
+	VisitedURL *string         `json:"visited_url"`
+	State      *ErrorState     `json:"state"`
+	Event      *string         `json:"event"`
 }
 
 type ErrorTrace struct {

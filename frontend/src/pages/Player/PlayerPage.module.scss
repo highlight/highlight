@@ -135,7 +135,7 @@
     transform: translateX(0);
     transition: transform 0.2s ease-in-out;
     width: var(--left-panel-width);
-    z-index: 99;
+    z-index: 98;
 
     &.hidden {
         position: fixed;

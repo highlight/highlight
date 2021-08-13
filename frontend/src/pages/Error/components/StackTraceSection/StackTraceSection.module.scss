@@ -11,3 +11,14 @@
         width: 75px;
     }
 }
+
+.stackTracesContainer {
+    height: 500px;
+    overflow-y: auto;
+}
+
+.skeleton {
+    border-radius: 8px;
+    height: 109px;
+    margin-bottom: 20px;
+}

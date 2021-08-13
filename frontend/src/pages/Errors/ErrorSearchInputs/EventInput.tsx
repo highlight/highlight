@@ -1,10 +1,9 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { useParams } from 'react-router-dom';
 import { OptionsType, OptionTypeBase, ValueType } from 'react-select';
 import AsyncCreatableSelect from 'react-select/async-creatable';
 
 import { SearchMatchOption } from '../../../components/Option/Option';
-import Switch from '../../../components/Switch/Switch';
 import { useGetErrorFieldSuggestionQuery } from '../../../graph/generated/hooks';
 import SvgBugIcon from '../../../static/BugIcon';
 import inputStyles from '../../Sessions/SearchInputs/InputStyles.module.scss';
@@ -12,11 +11,11 @@ import {
     ContainsLabel,
     SharedSelectStyleProps,
 } from '../../Sessions/SearchInputs/SearchInputUtil';
-import { ErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
+import { useErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
 
 export const EventInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const { searchParams, setSearchParams } = useContext(ErrorSearchContext);
+    const { searchParams, setSearchParams } = useErrorSearchContext();
 
     const { refetch } = useGetErrorFieldSuggestionQuery({ skip: true });
 
@@ -77,22 +76,5 @@ export const EventInput = () => {
                 createOptionPosition={'first'}
             />
         </div>
-    );
-};
-
-export const ResolvedErrorSwitch = () => {
-    const { searchParams, setSearchParams } = useContext(ErrorSearchContext);
-
-    return (
-        <Switch
-            checked={searchParams.hide_resolved}
-            onChange={(val: boolean) => {
-                setSearchParams((params) => ({
-                    ...params,
-                    hide_resolved: val,
-                }));
-            }}
-            label="Hide resolved errors"
-        />
     );
 };

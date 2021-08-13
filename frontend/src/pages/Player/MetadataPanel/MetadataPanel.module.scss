@@ -2,5 +2,6 @@
     display: flex;
     flex-direction: column;
     padding: 0 var(--size-large);
+    padding-bottom: var(--size-large);
     row-gap: var(--size-medium);
 }

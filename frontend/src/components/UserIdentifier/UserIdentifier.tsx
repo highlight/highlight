@@ -1,29 +1,47 @@
 import React from 'react';
-import { Link, useParams } from 'react-router-dom';
 
-import { SessionPageSearchParams } from '../../pages/Player/utils/utils';
+import { Session } from '../../graph/generated/schemas';
+import { useSearchContext } from '../../pages/Sessions/SearchContext/SearchContext';
+import { EmptySessionsSearchParams } from '../../pages/Sessions/SessionsPage';
+import Button from '../Button/Button/Button';
+import styles from './UserIdentifier.module.scss';
 
 interface Props {
-    session: any;
+    session: Session;
 }
 
 const UserIdentifier = ({ session }: Props) => {
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { setSearchParams } = useSearchContext();
 
     const hasIdentifier = !!session?.identifier;
 
     return (
-        <Link
-            to={`/${organization_id}/sessions?${
-                hasIdentifier
-                    ? `${SessionPageSearchParams.identifier}=${session?.identifier}`
-                    : `${SessionPageSearchParams.deviceId}=${session?.fingerprint}`
-            }`}
+        <Button
+            className={styles.button}
+            trackingId="UserIdentifer"
+            type="text"
+            onClick={() => {
+                const newSearchParams = { ...EmptySessionsSearchParams };
+
+                if (hasIdentifier) {
+                    newSearchParams.user_properties = [
+                        {
+                            id: '-1',
+                            name: 'contains',
+                            value: session.identifier,
+                        },
+                    ];
+                } else if (session?.fingerprint) {
+                    newSearchParams.device_id = session.fingerprint.toString();
+                }
+
+                setSearchParams(newSearchParams);
+            }}
         >
             {hasIdentifier
                 ? session.identifier
                 : `Device#${session?.fingerprint}`}
-        </Link>
+        </Button>
     );
 };
 

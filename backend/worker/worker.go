@@ -506,7 +506,7 @@ func (w *Worker) Start() {
 		workerSpan.SetTag("backend", util.Worker)
 		now := time.Now()
 		seconds := 30
-		if os.Getenv("ENVIRONMENT") == "dev" {
+		if util.IsDevEnv() {
 			seconds = 8
 		}
 		someSecondsAgo := now.Add(time.Duration(-1*seconds) * time.Second)

@@ -2,7 +2,6 @@ import useLocalStorage from '@rehooks/local-storage';
 import { useEffect } from 'react';
 import { useWindowSize } from 'react-use';
 
-import { DevToolTabs } from '../../Toolbar/DevToolsContext/DevToolsContext';
 import { EventsForTimeline } from '.';
 
 /**
@@ -21,6 +20,9 @@ const usePlayerConfiguration = () => {
         'highlightMenuOpenDevTools',
         false
     );
+    const [selectedDevToolsTab, setSelectedDevToolsTab] = useLocalStorage<
+        'Errors' | 'Console' | 'Network'
+    >('tabs-DevTools-active-tab', 'Errors');
     const [autoPlayVideo, setAutoPlayVideo] = useLocalStorage(
         'highlightMenuAutoPlayVideo',
         false
@@ -29,10 +31,6 @@ const usePlayerConfiguration = () => {
     const [autoPlaySessions, setAutoPlaySessions] = useLocalStorage(
         'highlightAutoPlaySessions',
         false
-    );
-    const [selectedDevToolsTab, setSelectedDevToolsTab] = useLocalStorage(
-        'highlightSelectedDevtoolTabs',
-        DevToolTabs.Errors
     );
     const [
         selectedTimelineAnnotationTypes,
@@ -83,12 +81,12 @@ const usePlayerConfiguration = () => {
         setShowRightPanel,
         showDevTools,
         setShowDevTools,
+        selectedDevToolsTab,
+        setSelectedDevToolsTab,
         autoPlayVideo,
         setAutoPlayVideo,
         autoPlaySessions,
         setAutoPlaySessions,
-        selectedDevToolsTab,
-        setSelectedDevToolsTab,
         selectedTimelineAnnotationTypes,
         setSelectedTimelineAnnotationTypes,
         selectedTimelineAnnotationTypesUserPersisted,

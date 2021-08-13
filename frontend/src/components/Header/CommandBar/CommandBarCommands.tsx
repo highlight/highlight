@@ -3,8 +3,7 @@ import { History } from 'history';
 import { Command } from 'react-command-palette';
 
 import usePlayerConfiguration from '../../../pages/Player/PlayerHook/utils/usePlayerConfiguration';
-import { onGetLinkWithTimestamp } from '../../../pages/Player/ShareButton/utils/utils';
-import { DevToolTabs } from '../../../pages/Player/Toolbar/DevToolsContext/DevToolsContext';
+import { onGetLinkWithTimestamp } from '../../../pages/Player/SessionShareButton/utils/utils';
 
 export type CommandWithoutId = Omit<Command, 'id'>;
 
@@ -32,11 +31,9 @@ export const usePlayerCommands = (
     const {
         autoPlayVideo,
         playerTime,
-        selectedDevToolsTab,
         selectedTimelineAnnotationTypes,
         selectedTimelineAnnotationTypesUserPersisted,
         setAutoPlayVideo,
-        setSelectedDevToolsTab,
         setSelectedTimelineAnnotationTypes,
         setSelectedTimelineAnnotationTypesUserPersisted,
         setShowDevTools,
@@ -94,39 +91,39 @@ export const usePlayerCommands = (
             },
             name: `${showRightPanel ? 'Hide' : 'Show'} right panel`,
         },
-        {
-            command: () => {
-                if (selectedDevToolsTab === DevToolTabs.Errors) {
-                    setShowDevTools(false);
-                } else {
-                    setShowDevTools(true);
-                    setSelectedDevToolsTab(DevToolTabs.Errors);
-                }
-            },
-            name: 'Toggle errors list',
-        },
-        {
-            command: () => {
-                if (selectedDevToolsTab === DevToolTabs.Network) {
-                    setShowDevTools(false);
-                } else {
-                    setShowDevTools(true);
-                    setSelectedDevToolsTab(DevToolTabs.Network);
-                }
-            },
-            name: 'Toggle network requests',
-        },
-        {
-            command: () => {
-                if (selectedDevToolsTab === DevToolTabs.Console) {
-                    setShowDevTools(false);
-                } else {
-                    setShowDevTools(true);
-                    setSelectedDevToolsTab(DevToolTabs.Console);
-                }
-            },
-            name: 'Toggle console log',
-        },
+        // {
+        //     command: () => {
+        //         if (selectedDevToolsTab === DevToolTabs.Errors) {
+        //             setShowDevTools(false);
+        //         } else {
+        //             setShowDevTools(true);
+        //             setSelectedDevToolsTab(DevToolTabs.Errors);
+        //         }
+        //     },
+        //     name: 'Toggle errors list',
+        // },
+        // {
+        //     command: () => {
+        //         if (selectedDevToolsTab === DevToolTabs.Network) {
+        //             setShowDevTools(false);
+        //         } else {
+        //             setShowDevTools(true);
+        //             setSelectedDevToolsTab(DevToolTabs.Network);
+        //         }
+        //     },
+        //     name: 'Toggle network requests',
+        // },
+        // {
+        //     command: () => {
+        //         if (selectedDevToolsTab === DevToolTabs.Console) {
+        //             setShowDevTools(false);
+        //         } else {
+        //             setShowDevTools(true);
+        //             setSelectedDevToolsTab(DevToolTabs.Console);
+        //         }
+        //     },
+        //     name: 'Toggle console log',
+        // },
         {
             command: () => {
                 setAutoPlayVideo(!autoPlayVideo);

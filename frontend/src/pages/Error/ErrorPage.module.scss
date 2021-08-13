@@ -1,22 +1,31 @@
 @import 'src/static/shared.scss';
 
-.errorPageWrapper {
-    --right-panel-width: 325px;
-    background: var(--color-gray-200);
-    height: fit-content;
-    width: 100%;
-}
-
-.errorPageLeft {
+.errorPageCenterColumn {
     flex: 1;
-    min-width: 700px;
+    height: calc(100vh - var(--top-padding));
+    overflow-y: auto;
+    padding-left: var(--size-medium);
+
+    &.hidden {
+        padding-left: var(--size-xxLarge);
+    }
 }
 
-.errorPageRightContent {
+.errorPageLeftColumn {
+    margin-top: calc((-1 * var(--top-padding)) + var(--header-height));
+    width: var(--left-panel-width);
+
+    &.hidden {
+        position: absolute;
+    }
+}
+
+.errorPageRightColumn {
     display: flex;
     flex-direction: column;
     height: calc(100vh - 120px);
     padding-bottom: var(--size-large);
+    padding-right: var(--size-medium);
     position: sticky;
     row-gap: var(--size-large);
     top: 120px;
@@ -35,23 +44,29 @@
 }
 
 .errorPage {
+    --right-panel-width: 325px;
+    --left-panel-width: 475px;
+    --top-padding: 120px;
+
+    background: var(--color-gray-200);
     column-gap: var(--size-large);
     display: grid;
-    grid-template-columns: 1fr var(--right-panel-width);
+    grid-template-columns: var(--left-panel-width) 1fr var(--right-panel-width);
+    height: 100%;
     justify-content: space-between;
-    padding: 120px 80px 80px;
     padding-bottom: 0;
+    padding-top: var(--top-padding);
+    width: 100%;
     word-break: break-word;
+
+    &.withoutLeftPanel {
+        grid-template-columns: 1fr var(--right-panel-width);
+    }
 }
 
 .eventText {
     color: var(--color-gray-500);
     margin-bottom: 30px;
-}
-
-.titleWrapper {
-    align-items: center;
-    display: flex;
 }
 
 .fieldWrapper {
@@ -132,7 +147,6 @@
 .stackTraceErrorTitle {
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .graphSection {
@@ -269,4 +283,8 @@
     align-items: center;
     column-gap: var(--size-xxSmall);
     display: flex;
+}
+
+.titleContainer {
+    margin-bottom: var(--size-large);
 }

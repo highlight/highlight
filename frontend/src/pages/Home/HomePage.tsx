@@ -1,3 +1,4 @@
+import { message } from 'antd';
 import classNames from 'classnames';
 import Lottie from 'lottie-react';
 import moment from 'moment';
@@ -28,6 +29,9 @@ import { dailyCountData } from '../../util/dashboardCalculations';
 import { useIntegrated } from '../../util/integrated';
 import { formatNumber } from '../../util/numbers';
 import { SessionPageSearchParams } from '../Player/utils/utils';
+import { useSearchContext } from '../Sessions/SearchContext/SearchContext';
+import { getDateRangeForDateInput } from '../Sessions/SearchInputs/DateInput';
+import { EmptySessionsSearchParams } from '../Sessions/SessionsPage';
 import ActiveUsersTable from './components/ActiveUsersTable/ActiveUsersTable';
 import {
     HomePageFiltersContext,
@@ -153,6 +157,7 @@ const SessionCountGraph = () => {
     const { organization_id } = useParams<{
         organization_id: string;
     }>();
+    const { setSearchParams } = useSearchContext();
     const { dateRangeLength, setHasData } = useHomePageFiltersContext();
     const [sessionCountData, setSessionCountData] = useState<Array<DailyCount>>(
         []
@@ -208,9 +213,15 @@ const SessionCountGraph = () => {
                 data={sessionCountData}
                 name="Sessions"
                 onClickHandler={(payload: any) => {
-                    history.push(
-                        `/${organization_id}/sessions?${SessionPageSearchParams.date}=${payload.activeLabel}`
+                    const date = moment(payload.activeLabel);
+                    setSearchParams({
+                        ...EmptySessionsSearchParams,
+                        date_range: getDateRangeForDateInput(date, date),
+                    });
+                    message.success(
+                        `Showing sessions that were recorded on ${payload.activeLabel}`
                     );
+                    history.push(`/${organization_id}/sessions`);
                 }}
             />
         </div>
