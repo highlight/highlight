@@ -505,9 +505,7 @@ type Mutation {
         organization_id: ID!
         plan_type: PlanType!
     ): String
-    updateBillingDetails(
-        organization_id: ID!
-    ): BillingDetails
+    updateBillingDetails(organization_id: ID!): Boolean
     createSessionComment(
         organization_id: ID!
         session_id: ID!

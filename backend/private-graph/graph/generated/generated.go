@@ -459,7 +459,7 @@ type MutationResolver interface {
 	EditErrorSegment(ctx context.Context, id int, organizationID int, params model.ErrorSearchParamsInput) (*bool, error)
 	DeleteErrorSegment(ctx context.Context, segmentID int) (*bool, error)
 	CreateOrUpdateStripeSubscription(ctx context.Context, organizationID int, planType model.PlanType) (*string, error)
-	UpdateBillingDetails(ctx context.Context, organizationID int) (*model.BillingDetails, error)
+	UpdateBillingDetails(ctx context.Context, organizationID int) (*bool, error)
 	CreateSessionComment(ctx context.Context, organizationID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model1.SessionComment, error)
 	DeleteSessionComment(ctx context.Context, id int) (*bool, error)
 	CreateErrorComment(ctx context.Context, organizationID int, errorGroupID int, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, errorURL string, authorName string) (*model1.ErrorComment, error)
@@ -3217,9 +3217,7 @@ type Mutation {
         organization_id: ID!
         plan_type: PlanType!
     ): String
-    updateBillingDetails(
-        organization_id: ID!
-    ): BillingDetails
+    updateBillingDetails(organization_id: ID!): Boolean
     createSessionComment(
         organization_id: ID!
         session_id: ID!
@@ -8600,9 +8598,9 @@ func (ec *executionContext) _Mutation_updateBillingDetails(ctx context.Context, 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.BillingDetails)
+	res := resTmp.(*bool)
 	fc.Result = res
-	return ec.marshalOBillingDetails2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐBillingDetails(ctx, field.Selections, res)
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createSessionComment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -19149,13 +19147,6 @@ func (ec *executionContext) marshalOAverageSessionLength2ᚖgithubᚗcomᚋhighl
 		return graphql.Null
 	}
 	return ec._AverageSessionLength(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOBillingDetails2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐBillingDetails(ctx context.Context, sel ast.SelectionSet, v *model.BillingDetails) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._BillingDetails(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interface{}) (bool, error) {

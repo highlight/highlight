@@ -661,7 +661,7 @@ export type Mutation = {
     editErrorSegment?: Maybe<Scalars['Boolean']>;
     deleteErrorSegment?: Maybe<Scalars['Boolean']>;
     createOrUpdateStripeSubscription?: Maybe<Scalars['String']>;
-    updateBillingDetails?: Maybe<BillingDetails>;
+    updateBillingDetails?: Maybe<Scalars['Boolean']>;
     createSessionComment?: Maybe<SessionComment>;
     deleteSessionComment?: Maybe<Scalars['Boolean']>;
     createErrorComment?: Maybe<ErrorComment>;

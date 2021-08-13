@@ -23,14 +23,7 @@ mutation CreateOrUpdateStripeSubscription(
 }
 
 mutation UpdateBillingDetails($organization_id: ID!) {
-    updateBillingDetails(organization_id: $organization_id) {
-        plan {
-            type
-            quota
-        }
-        meter
-        sessionsOutOfQuota
-    }
+    updateBillingDetails(organization_id: $organization_id)
 }
 
 mutation updateErrorGroupState($id: ID!, $state: String!) {
