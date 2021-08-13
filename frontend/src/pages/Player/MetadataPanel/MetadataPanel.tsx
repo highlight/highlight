@@ -176,11 +176,13 @@ const MetadataPanel = () => {
     ];
 
     parsedFields?.forEach((field) => {
-        userData.push({
-            keyDisplayValue: field.name,
-            valueDisplayValue: field.value,
-            renderType: 'string',
-        });
+        if (field.name !== 'avatar') {
+            userData.push({
+                keyDisplayValue: field.name,
+                valueDisplayValue: field.value,
+                renderType: 'string',
+            });
+        }
     });
 
     const deviceData: KeyValueTableRow[] = [];
