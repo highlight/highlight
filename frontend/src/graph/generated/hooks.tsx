@@ -2444,6 +2444,7 @@ export const GetAdminDocument = gql`
             name
             email
             photo_url
+            slack_im_channel_id
         }
     }
 `;

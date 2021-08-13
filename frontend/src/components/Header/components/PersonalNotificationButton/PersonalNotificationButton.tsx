@@ -6,7 +6,7 @@ import styles from './PersonalNotificationButton.module.scss';
 import { useSlackBot } from './utils/utils';
 
 const PersonalNotificationButton = () => {
-    const { isHighlightAdmin } = useAuthContext();
+    const { isHighlightAdmin, admin } = useAuthContext();
 
     let redirectUrl = window.location.pathname;
     // this doesn't work if we redirect to /alerts
@@ -17,7 +17,14 @@ const PersonalNotificationButton = () => {
     }
     const { slackUrl: slackBotUrl } = useSlackBot(redirectUrl);
 
-    if (!isHighlightAdmin) return null;
+    console.log('slack id: ', admin?.slack_im_channel_id);
+    if (
+        !isHighlightAdmin ||
+        (admin?.slack_im_channel_id !== null &&
+            admin?.slack_im_channel_id !== undefined &&
+            admin?.slack_im_channel_id !== 'null')
+    )
+        return null;
 
     return (
         <Button

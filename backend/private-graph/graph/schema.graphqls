@@ -264,6 +264,7 @@ type Admin {
     name: String!
     email: String!
     photo_url: String
+    slack_im_channel_id: String
 }
 
 # A subset of Admin. This type will contain fields that are allowed to be exposed to other users.

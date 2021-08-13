@@ -301,6 +301,7 @@ export type Admin = {
     name: Scalars['String'];
     email: Scalars['String'];
     photo_url?: Maybe<Scalars['String']>;
+    slack_im_channel_id?: Maybe<Scalars['String']>;
 };
 
 export type SanitizedAdmin = {
