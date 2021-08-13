@@ -3,9 +3,9 @@ package util
 import "os"
 
 var (
-	env    		= os.Getenv("ENVIRONMENT")
-	DEV_ENV 	= "dev"
-	TEST_ENV 	= "test"
+	env    	 = os.Getenv("ENVIRONMENT")
+	DEV_ENV  = "dev"
+	TEST_ENV = "test"
 )
 
 func IsDevEnv() bool {
