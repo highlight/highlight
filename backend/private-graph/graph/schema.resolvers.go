@@ -1053,7 +1053,7 @@ func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, er
 }
 
 func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{}, error) {
-	if os.Getenv("ENVIRONMENT") == "dev" && sessionID == 1 {
+	if util.IsDevEnv() && sessionID == 1 {
 		file, err := ioutil.ReadFile("./tmp/events.json")
 		if err != nil {
 			return nil, e.Wrap(err, "Failed to read temp file")
