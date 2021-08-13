@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { components, OptionsType, OptionTypeBase } from 'react-select';
 import AsyncSelect from 'react-select/async';
@@ -18,7 +18,7 @@ const ErrorSearch = () => {
     const [selectedProperties, setSelectedProperties] = useState<
         ErrorSearchOption[]
     >([]);
-    const { searchParams, setSearchParams } = useErrorSearchContext();
+    const { setSearchParams } = useErrorSearchContext();
 
     const handleChange = (_selectedProperties: any) => {
         const selectedProperties = transformSelectedProperties(
@@ -74,48 +74,6 @@ const ErrorSearch = () => {
 
         return getSuggestions(fetched.data, query, 10);
     };
-
-    useEffect(() => {
-        if (searchParams) {
-            //     const userProperties = (
-            //         searchParams.user_properties || []
-            //     ).map((property) => transformToOption(property, 'userProperties'));
-            //     const trackProperties = (
-            //         searchParams.track_properties || []
-            //     ).map((property) => transformToOption(property, 'trackProperties'));
-            //     const visitedUrl =
-            //         (searchParams.visited_url?.length || 0) > 0
-            //             ? searchParams.visited_url
-            //             : undefined;
-            //     const referrer =
-            //         (searchParams.referrer?.length || 0) > 0
-            //             ? searchParams.referrer
-            //             : undefined;
-            //     const selectedValues: SessionSearchOption[] = [
-            //         ...userProperties,
-            //         ...trackProperties,
-            //     ];
-            //     if (visitedUrl) {
-            //         selectedValues.push({
-            //             apiType: 'visitedUrls',
-            //             id: visitedUrl,
-            //             name: visitedUrl,
-            //             value: `visitedUrl:${visitedUrl}`,
-            //             valueType: 'visitedUrl',
-            //         });
-            //     }
-            //     if (referrer) {
-            //         selectedValues.push({
-            //             apiType: 'referrers',
-            //             id: referrer,
-            //             name: referrer,
-            //             value: `referrer:${referrer}`,
-            //             valueType: 'referrer',
-            //         });
-            //     }
-            //     setSelectedProperties(selectedValues);
-        }
-    }, [searchParams]);
 
     return (
         <AsyncSelect
