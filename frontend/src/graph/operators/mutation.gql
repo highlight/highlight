@@ -51,18 +51,6 @@ mutation DeleteAdminFromOrganization($organization_id: ID!, $admin_id: ID!) {
     )
 }
 
-mutation OpenSlackConversation(
-    $organization_id: ID!
-    $code: String!
-    $redirect_path: String!
-) {
-    openSlackConversation(
-        organization_id: $organization_id
-        code: $code
-        redirect_path: $redirect_path
-    )
-}
-
 mutation AddSlackIntegrationToWorkspace(
     $organization_id: ID!
     $code: String!
