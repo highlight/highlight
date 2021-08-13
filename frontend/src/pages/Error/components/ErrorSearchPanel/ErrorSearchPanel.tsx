@@ -5,6 +5,8 @@ import { ErrorFeedV2 } from '../../../Errors/ErrorFeedV2/ErrorFeedV2';
 import PanelToggleButton from '../../../Player/components/PanelToggleButton/PanelToggleButton';
 import useErrorPageConfiguration from '../../utils/ErrorPageUIConfiguration';
 import ErrorSearch from '../ErrorSearch/ErrorSearch';
+import ErrorSearchFilters from '../ErrorSearchFilters/ErrorSearchFilters';
+import SegmentPickerForErrors from '../SegmentPickerForErrors/SegmentPickerForErrors';
 import styles from './ErrorSearchPanel.module.scss';
 
 const ErrorSearchPanel = () => {
@@ -20,6 +22,8 @@ const ErrorSearchPanel = () => {
                 <>
                     <div className={styles.filtersContainer}>
                         <ErrorSearch />
+                        <SegmentPickerForErrors />
+                        <ErrorSearchFilters />
                     </div>
                     <ErrorFeedV2 />
                 </>

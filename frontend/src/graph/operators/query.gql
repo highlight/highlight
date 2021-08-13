@@ -381,6 +381,25 @@ query GetErrorFieldSuggestion(
     }
 }
 
+query GetErrorSearchSuggestions($organization_id: ID!, $query: String!) {
+    visitedUrls: error_field_suggestion(
+        organization_id: $organization_id
+        name: "visited_url"
+        query: $query
+    ) {
+        name
+        value
+    }
+    fields: error_field_suggestion(
+        organization_id: $organization_id
+        name: "event"
+        query: $query
+    ) {
+        name
+        value
+    }
+}
+
 query GetSessionSearchResults($organization_id: ID!, $query: String!) {
     trackProperties: property_suggestion(
         organization_id: $organization_id

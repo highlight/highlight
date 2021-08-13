@@ -996,6 +996,34 @@ export type GetErrorFieldSuggestionQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetErrorSearchSuggestionsQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    query: Types.Scalars['String'];
+}>;
+
+export type GetErrorSearchSuggestionsQuery = { __typename?: 'Query' } & {
+    visitedUrls?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'ErrorField' } & Pick<
+                    Types.ErrorField,
+                    'name' | 'value'
+                >
+            >
+        >
+    >;
+    fields?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'ErrorField' } & Pick<
+                    Types.ErrorField,
+                    'name' | 'value'
+                >
+            >
+        >
+    >;
+};
+
 export type GetSessionSearchResultsQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     query: Types.Scalars['String'];

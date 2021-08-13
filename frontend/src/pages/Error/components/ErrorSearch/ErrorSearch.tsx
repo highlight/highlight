@@ -5,12 +5,10 @@ import AsyncSelect from 'react-select/async';
 
 import InfoTooltip from '../../../../components/InfoTooltip/InfoTooltip';
 import TextHighlighter from '../../../../components/TextHighlighter/TextHighlighter';
-import { useGetSessionSearchResultsQuery } from '../../../../graph/generated/hooks';
-import useSelectedSessionSearchFilters from '../../../../persistedStorage/useSelectedSessionSearchFilters';
+import { useGetErrorSearchSuggestionsQuery } from '../../../../graph/generated/hooks';
 import SvgSearchIcon from '../../../../static/SearchIcon';
 import { useErrorSearchContext } from '../../../Errors/ErrorSearchContext/ErrorSearchContext';
 import SessionSearchFilters from '../../../Player/SearchPanel/SessionSearchFilters/SessionSearchFilters';
-import { UserProperty } from '../../../Sessions/SearchContext/SearchContext';
 import styles from './ErrorSearch.module.scss';
 
 const ErrorSearch = () => {
@@ -19,69 +17,49 @@ const ErrorSearch = () => {
     }>();
     const [query, setQuery] = useState('');
     const [selectedProperties, setSelectedProperties] = useState<
-        SessionSearchOption[]
+        ErrorSearchOption[]
     >([]);
     const { searchParams, setSearchParams } = useErrorSearchContext();
-    const { selectedSearchFilters } = useSelectedSessionSearchFilters();
+    console.log(searchParams);
 
     const handleChange = (_selectedProperties: any) => {
         const selectedProperties = transformSelectedProperties(
             _selectedProperties
-        ) as SessionSearchOption[];
+        ) as ErrorSearchOption[];
         setSelectedProperties(selectedProperties);
 
         const newSearchParams: {
-            userProperties: UserProperty[];
-            trackProperties: UserProperty[];
-            visitedUrls: string[];
-            referrers: string[];
+            visited_url: string[];
+            event: string[];
         } = {
-            userProperties: [],
-            trackProperties: [],
-            visitedUrls: [],
-            referrers: [],
+            event: [],
+            visited_url: [],
         };
-        selectedProperties?.forEach(({ apiType, id, name, value }) => {
+        selectedProperties?.forEach(({ apiType, name }) => {
             switch (apiType) {
-                case 'userProperties':
-                    newSearchParams.userProperties.push({
-                        id,
-                        name,
-                        value,
-                    });
-                    break;
-                case 'trackProperties':
-                    newSearchParams.trackProperties.push({
-                        id,
-                        name,
-                        value,
-                    });
+                case 'event':
+                    newSearchParams.event.push(name);
                     break;
                 case 'visitedUrls':
-                    newSearchParams.visitedUrls.push(name);
-                    break;
-                case 'referrers':
-                    newSearchParams.referrers.push(name);
+                    newSearchParams.visited_url.push(name);
                     break;
             }
         });
 
         setSearchParams((params) => ({
             ...params,
-            track_properties: newSearchParams.trackProperties,
-            user_properties: newSearchParams.userProperties,
-            referrer:
-                newSearchParams.referrers.length > 0
-                    ? newSearchParams.referrers[0]
+            event:
+                newSearchParams.event.length > 0
+                    ? newSearchParams.event[0]
                     : undefined,
             visited_url:
-                newSearchParams.visitedUrls.length > 0
-                    ? newSearchParams.visitedUrls[0]
+                newSearchParams.visited_url.length > 0
+                    ? newSearchParams.visited_url[0]
                     : undefined,
         }));
     };
 
-    const { loading, data, refetch } = useGetSessionSearchResultsQuery({
+    const { loading, data, refetch } = useGetErrorSearchSuggestionsQuery({
         variables: {
             organization_id,
             query: '',
@@ -96,7 +74,7 @@ const ErrorSearch = () => {
             query: input,
         });
 
-        return getSuggestions(fetched.data, selectedSearchFilters, query, 3);
+        return getSuggestions(fetched.data, query, 10);
     };
 
     useEffect(() => {
@@ -300,12 +278,7 @@ const ErrorSearch = () => {
                 }),
             }}
             isSearchable
-            defaultOptions={getSuggestions(
-                data,
-                selectedSearchFilters,
-                query,
-                3
-            )}
+            defaultOptions={getSuggestions(data, query, 3)}
             maxMenuHeight={400}
         />
     );
@@ -316,13 +289,9 @@ export default ErrorSearch;
 /**
  * The session properties that support search.
  */
-type API_TYPES =
-    | 'trackProperties'
-    | 'userProperties'
-    | 'visitedUrls'
-    | 'referrers';
+type API_TYPES = 'visitedUrls' | 'event';
 
-export interface SessionSearchOption {
+export interface ErrorSearchOption {
     valueType: string;
     name: string;
     id: string;
@@ -339,7 +308,7 @@ interface Suggestion {
 const transformToOption = (
     { id, name, value }: Suggestion,
     apiType: API_TYPES
-): SessionSearchOption => {
+): ErrorSearchOption => {
     const valueToUse = value;
 
     if (
@@ -367,101 +336,41 @@ const transformToOption = (
 
 const getSuggestions = (
     data: any,
-    selectedTypes: string[],
     query: string,
     limitResultsCount?: number
 ) => {
     const suggestions: {
         label: string;
         tooltip: string | React.ReactNode;
-        options: SessionSearchOption[];
+        options: ErrorSearchOption[];
     }[] = [];
 
-    if (selectedTypes.includes('Track Properties')) {
-        suggestions.push({
-            label: 'Track Properties',
-            tooltip: (
-                <>
-                    Track Properties are properties related to events that have
-                    happened in your application. These are set by you in your
-                    application. You can{' '}
-                    <a
-                        href="https://docs.highlight.run/docs/tracking-events"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        learn more here
-                    </a>
-                    .
-                </>
-            ),
-            options: [
-                ...getIncludesOption(query, 'trackProperties', 'track'),
-                ...(data?.trackProperties
-                    ?.map((suggestion: Suggestion) =>
-                        transformToOption(suggestion, 'trackProperties')
-                    )
-                    .slice(0, limitResultsCount) || []),
-            ],
-        });
-    }
-    if (selectedTypes.includes('User Properties')) {
-        suggestions.push({
-            label: 'User Properties',
-            tooltip: (
-                <>
-                    User Properties are properties related to the user. These
-                    are set by you in your application. You can{' '}
-                    <a
-                        href="https://docs.highlight.run/docs/identifying-users"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        learn more here
-                    </a>
-                    .
-                </>
-            ),
-            options: [
-                ...getIncludesOption(query, 'userProperties', 'user'),
-                ...(data?.userProperties
-                    ?.map((suggestion: Suggestion) =>
-                        transformToOption(suggestion, 'userProperties')
-                    )
-                    .slice(0, limitResultsCount) || []),
-            ],
-        });
-    }
-    if (selectedTypes.includes('Visited URLs')) {
-        suggestions.push({
-            label: 'Visited URLs',
-            tooltip:
-                'Visited URLs are the URLs a user has visited. Filtering with a Visited URL will show you all sessions where a user visited that URL.',
-            options: [
-                ...getIncludesOption(query, 'visitedUrls', 'visitedUrl'),
-                ...(data?.visitedUrls
-                    ?.map((suggestion: Suggestion) =>
-                        transformToOption(suggestion, 'visitedUrls')
-                    )
-                    .slice(0, limitResultsCount) || []),
-            ],
-        });
-    }
-    if (selectedTypes.includes('Referrers')) {
-        suggestions.push({
-            label: 'Referrers',
-            tooltip:
-                'Referrers are the websites your users came from. For example, if a user on Twitter clicked a link to your application, the referrer would be Twitter.',
-            options: [
-                ...getIncludesOption(query, 'referrers', 'referrers'),
-                ...(data?.referrers
-                    ?.map((suggestion: Suggestion) =>
-                        transformToOption(suggestion, 'referrers')
-                    )
-                    .slice(0, limitResultsCount) || []),
-            ],
-        });
-    }
+    suggestions.push({
+        label: 'Error Message',
+        tooltip: (
+            <>
+                Track Properties are properties related to events that have
+                happened in your application. These are set by you in your
+                application. You can{' '}
+                <a
+                    href="https://docs.highlight.run/docs/tracking-events"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    learn more here
+                </a>
+                .
+            </>
+        ),
+        options: [
+            //     ...getIncludesOption(query, 'trackProperties', 'track'),
+            ...(data?.fields
+                ?.map((suggestion: Suggestion) =>
+                    transformToOption(suggestion, 'event')
+                )
+                .slice(0, limitResultsCount) || []),
+        ],
+    });
 
     return suggestions;
 };
