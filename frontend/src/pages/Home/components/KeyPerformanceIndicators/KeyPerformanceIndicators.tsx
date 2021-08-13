@@ -5,7 +5,6 @@ import { useParams } from 'react-router-dom';
 
 import { useGetKeyPerformanceIndicatorsQuery } from '../../../../graph/generated/hooks';
 import { useSearchContext } from '../../../Sessions/SearchContext/SearchContext';
-import { LIVE_SEGMENT_ID } from '../../../Sessions/SearchSidebar/SegmentPicker/SegmentPicker';
 import { EmptySessionsSearchParams } from '../../../Sessions/SessionsPage';
 import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext';
 import KeyPerformanceIndicator from './KeyPerformanceIndicator/KeyPerformanceIndicator';
@@ -59,13 +58,8 @@ const KeyPerformanceIndicators = () => {
                             data?.unprocessedSessionsCount || 0
                         )}
                         title="Live Users"
-                        route={`/${organization_id}/sessions/segment/${LIVE_SEGMENT_ID}`}
                         tooltipText={
-                            <>
-                                Users that are currently using your app.
-                                <br />
-                                Click to see the sessions.
-                            </>
+                            <>Users that are currently using your app.</>
                         }
                     />
                     <KeyPerformanceIndicator

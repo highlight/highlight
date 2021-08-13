@@ -1,3 +1,4 @@
+import { message } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 import classNames from 'classnames';
 import React, { useState } from 'react';
@@ -70,6 +71,9 @@ const ActiveUsersTable = () => {
                             },
                         ],
                     });
+                    message.success(
+                        `Showing sessions for ${record.identifier}`
+                    );
                     history.push(`/${organization_id}/sessions`);
                 }}
                 noDataMessage={
