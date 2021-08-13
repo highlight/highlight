@@ -6,8 +6,16 @@ import styles from './PersonalNotificationButton.module.scss';
 import { useSlackBot } from './utils/utils';
 
 const PersonalNotificationButton = () => {
-    const { admin } = useAuthContext();
-    const { slackUrl: slackBotUrl } = useSlackBot(window.location.pathname);
+    const { isHighlightAdmin } = useAuthContext();
+
+    let redirectUrl = window.location.pathname;
+    if (redirectUrl.length > 3) {
+        // remove orgid and prepended slash
+        redirectUrl = redirectUrl.substring(redirectUrl.indexOf('/', 1) + 1);
+    }
+    const { slackUrl: slackBotUrl } = useSlackBot(redirectUrl);
+
+    if (!isHighlightAdmin) return null;
 
     return (
         <Button
