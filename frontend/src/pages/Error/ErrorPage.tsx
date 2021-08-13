@@ -48,6 +48,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
     const { data, loading } = useGetErrorGroupQuery({
         variables: { id: error_id },
     });
+    //     const loading = true;
     const [segmentName, setSegmentName] = useState<string | null>(null);
     const [cachedParams, setCachedParams] = useLocalStorage<ErrorSearchParams>(
         `cachedErrorParams-v2-${segmentName || 'no-selected-segment'}`,
@@ -103,7 +104,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                                 {loading ? (
                                     <Skeleton
                                         count={1}
-                                        style={{ width: 300 }}
+                                        style={{ width: 300, height: 37 }}
                                     />
                                 ) : (
                                     <ErrorTitle
@@ -114,8 +115,11 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                             <div className={styles.eventText}>
                                 {loading ? (
                                     <Skeleton
-                                        count={2}
-                                        style={{ height: 20, marginBottom: 10 }}
+                                        count={1}
+                                        style={{
+                                            height: '2ch',
+                                            marginBottom: 0,
+                                        }}
                                     />
                                 ) : (
                                     <ErrorDescription
@@ -124,20 +128,13 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                                 )}
                             </div>
                             <h3 className={styles.titleWithAction}>
-                                {loading ? (
-                                    <Skeleton
-                                        duration={1}
-                                        count={1}
-                                        style={{ width: 300 }}
-                                    />
-                                ) : (
-                                    'Stack Trace'
-                                )}
+                                Stack Trace
                                 <Tooltip title="Download the stack trace">
                                     <Button
                                         trackingId="DownloadErrorStackTrace"
                                         iconButton
                                         type="text"
+                                        disabled={loading}
                                         onClick={() => {
                                             if (data?.error_group) {
                                                 const traceLines = data.error_group.stack_trace.map(
@@ -179,6 +176,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                             </h3>
                             <div className={styles.fieldWrapper}>
                                 <StackTraceSection
+                                    loading={loading}
                                     errorGroup={data?.error_group}
                                 />
                             </div>
@@ -200,14 +198,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                         <div className={styles.errorPageRightColumn}>
                             <Card>
                                 <h3 className={styles.tooltipTitle}>
-                                    {loading ? (
-                                        <Skeleton
-                                            count={1}
-                                            style={{ width: 280 }}
-                                        />
-                                    ) : (
-                                        'State'
-                                    )}
+                                    State
                                     <InfoTooltip
                                         title={
                                             <>
@@ -248,11 +239,10 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                                     />
                                 </h3>
                                 <div>
-                                    {data?.error_group?.state && (
-                                        <ErrorStateSelect
-                                            state={data.error_group.state}
-                                        />
-                                    )}
+                                    <ErrorStateSelect
+                                        state={data?.error_group?.state}
+                                        loading={loading}
+                                    />
                                 </div>
                             </Card>
                             <ErrorRightPanel errorGroup={data} />
@@ -325,6 +315,7 @@ export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
                     data={timeFilter}
                     defaultValue={timeFilter[1]}
                     onSelect={setDateRangeLength}
+                    disabled={!errorGroup}
                 />
             </div>
             <div className={classNames(styles.section, styles.graphSection)}>

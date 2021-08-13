@@ -42,7 +42,10 @@ const ErrorModal = ({ error }: Props) => {
                             </div>
 
                             <h3>Stack Trace</h3>
-                            <StackTraceSection errorGroup={data.error_group} />
+                            <StackTraceSection
+                                errorGroup={data.error_group}
+                                loading={loading}
+                            />
 
                             <ErrorFrequencyGraph
                                 errorGroup={data.error_group}

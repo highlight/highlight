@@ -1,4 +1,5 @@
 import React from 'react';
+import Skeleton from 'react-loading-skeleton';
 
 import { ErrorGroup, Maybe } from '../../../../graph/generated/schemas';
 import ErrorPageStyles from '../../ErrorPage.module.scss';
@@ -6,21 +7,28 @@ import styles from './StackTraceSection.module.scss';
 
 interface Props {
     errorGroup: Maybe<ErrorGroup> | undefined;
+    loading: boolean;
 }
 
-const StackTraceSection = ({ errorGroup }: Props) => {
+const StackTraceSection = ({ errorGroup, loading }: Props) => {
     return (
-        <>
-            {errorGroup?.stack_trace.map((e, i) => (
-                <StackSection
-                    key={i}
-                    fileName={e?.fileName ?? ''}
-                    functionName={e?.functionName ?? ''}
-                    lineNumber={e?.lineNumber ?? 0}
-                    columnNumber={e?.columnNumber ?? 0}
-                />
-            ))}
-        </>
+        <div className={styles.stackTracesContainer}>
+            {loading
+                ? Array(5)
+                      .fill(0)
+                      .map((_, index) => (
+                          <Skeleton key={index} className={styles.skeleton} />
+                      ))
+                : errorGroup?.stack_trace.map((e, i) => (
+                      <StackSection
+                          key={i}
+                          fileName={e?.fileName ?? ''}
+                          functionName={e?.functionName ?? ''}
+                          lineNumber={e?.lineNumber ?? 0}
+                          columnNumber={e?.columnNumber ?? 0}
+                      />
+                  ))}
+        </div>
     );
 };
 
