@@ -420,4 +420,3 @@ func (r *queryResolver) getFieldFilters(ctx context.Context, organizationID int,
 
 	return isUnfilteredQuery, whereClause, nil
 }
-
