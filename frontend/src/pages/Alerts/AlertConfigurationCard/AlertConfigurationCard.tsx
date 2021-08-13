@@ -371,7 +371,7 @@ export const AlertConfigurationCard = ({
                                         <div>No channels found.</div>
                                     )
                                 }
-                                defaultValue={alert.ChannelsToNotify.map(
+                                defaultValue={alert?.ChannelsToNotify?.map(
                                     (channel: any) => channel.webhook_channel_id
                                 )}
                                 dropdownRender={(menu) => (

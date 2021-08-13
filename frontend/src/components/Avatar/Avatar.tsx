@@ -63,10 +63,13 @@ export const Avatar = ({
     style = {},
     seed,
     shape = 'circle',
+    customImage,
 }: {
     style?: React.CSSProperties;
     seed: string;
     shape?: 'circle' | 'rounded' | 'square';
+    /** Use `customImage` instead of generating a random SVG Avatar. */
+    customImage?: string;
 }) => {
     const config = useMemo(() => {
         const seedAsInt = getAvatarHash(seed);
@@ -91,6 +94,10 @@ export const Avatar = ({
             shirtColor: '#5629c6',
         });
     }, [seed]);
+
+    if (customImage) {
+        return <img src={customImage} style={style} className={userAvatar} />;
+    }
 
     return <ReactNiceAvatar style={style as any} {...config} shape={shape} />;
 };

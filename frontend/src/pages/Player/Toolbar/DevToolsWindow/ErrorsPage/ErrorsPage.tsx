@@ -92,7 +92,7 @@ const ErrorsPage = () => {
                                 setFilterSearchTerm(event.target.value);
                             }}
                             size="small"
-                            disabled={loading}
+                            disabled={loading || errorsToRender.length === 0}
                         />
                     </div>
                 </div>

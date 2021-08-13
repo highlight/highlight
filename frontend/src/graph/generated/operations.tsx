@@ -22,14 +22,23 @@ export type MarkSessionAsStarredMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
-export type CreateOrUpdateSubscriptionMutationVariables = Types.Exact<{
+export type CreateOrUpdateStripeSubscriptionMutationVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     plan_type: Types.PlanType;
 }>;
 
-export type CreateOrUpdateSubscriptionMutation = {
+export type CreateOrUpdateStripeSubscriptionMutation = {
     __typename?: 'Mutation';
-} & Pick<Types.Mutation, 'createOrUpdateSubscription'>;
+} & Pick<Types.Mutation, 'createOrUpdateStripeSubscription'>;
+
+export type UpdateBillingDetailsMutationVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+}>;
+
+export type UpdateBillingDetailsMutation = { __typename?: 'Mutation' } & Pick<
+    Types.Mutation,
+    'updateBillingDetails'
+>;
 
 export type UpdateErrorGroupStateMutationVariables = Types.Exact<{
     id: Types.Scalars['ID'];
@@ -493,6 +502,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'starred'
             | 'enable_strict_privacy'
             | 'enable_recording_network_contents'
+            | 'field_group'
             | 'object_storage_enabled'
             | 'payload_size'
             | 'within_billing_quota'
@@ -707,6 +717,7 @@ export type GetSessionsQuery = { __typename?: 'Query' } & {
                     | 'viewed'
                     | 'starred'
                     | 'processed'
+                    | 'field_group'
                     | 'first_time'
                 > & {
                         fields?: Types.Maybe<

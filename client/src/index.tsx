@@ -85,6 +85,19 @@ export type NetworkRecordingOptions = {
     urlBlocklist?: string[];
 };
 
+export type IntegrationOptions = {
+    mixpanel?: MixpanelIntegrationOptions;
+    amplitude?: AmplitudeIntegrationOptions;
+};
+
+export interface MixpanelIntegrationOptions {
+    projectToken: string;
+}
+
+export interface AmplitudeIntegrationOptions {
+    apiKey: string;
+}
+
 export type HighlightClassOptions = {
     organizationID: number | string;
     debug?: boolean | DebugOptions;

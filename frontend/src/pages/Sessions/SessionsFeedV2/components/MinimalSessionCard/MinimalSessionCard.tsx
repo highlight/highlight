@@ -13,6 +13,7 @@ import { MillisToMinutesAndSecondsVerbose } from '../../../../../util/time';
 import usePlayerConfiguration from '../../../../Player/PlayerHook/utils/usePlayerConfiguration';
 import { LIVE_SEGMENT_ID } from '../../../SearchSidebar/SegmentPicker/SegmentPicker';
 import styles from './MinimalSessionCard.module.scss';
+import { getIdentifiedUserProfileImage } from './utils/utils';
 
 interface Props {
     session: Maybe<Session>;
@@ -34,6 +35,8 @@ const MinimalSessionCard = ({ session, selected }: Props) => {
             setViewed(true);
         }
     }, [session?.id, session_id]);
+
+    const customAvatarImage = getIdentifiedUserProfileImage(session);
 
     return (
         <div className={styles.sessionCardWrapper} key={session?.id}>
@@ -61,6 +64,7 @@ const MinimalSessionCard = ({ session, selected }: Props) => {
                                           ).toString()) ?? ''
                                 }
                                 style={{ height: 25, width: 25 }}
+                                customImage={customAvatarImage}
                             />
                         </div>
                         <div className={styles.sessionTextSectionWrapper}>
@@ -107,7 +111,12 @@ const MinimalSessionCard = ({ session, selected }: Props) => {
                                             title={`${session?.city}, ${session?.state}`}
                                         >
                                             <div className={styles.topText}>
-                                                {`${session?.city}, ${session?.state}`}
+                                                {`${
+                                                    session?.city &&
+                                                    session?.state
+                                                        ? `${session?.city}, ${session?.state}`
+                                                        : ''
+                                                }`}
                                             </div>
                                         </Tooltip>
                                         <Tooltip
