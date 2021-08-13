@@ -8,9 +8,7 @@ import (
 
 	e "github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
-	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	log "github.com/sirupsen/logrus"
-	"github.com/slack-go/slack"
 	"github.com/stripe/stripe-go/client"
 	"gorm.io/gorm"
 
@@ -264,98 +262,4 @@ func (r *Resolver) UpdateSessionsVisibility(organizationID int, newPlan modelInp
 			log.Error(e.Wrap(err, "error updating within_billing_quota on sessions upon plan upgrade"))
 		}
 	}
-}
-
-func (r *Resolver) SendEmailAlert(tos []*mail.Email, authorName, viewLink, textForEmail, templateID string, sessionImage *string) error {
-	m := mail.NewV3Mail()
-	from := mail.NewEmail("Highlight", "notifications@highlight.run")
-	m.SetFrom(from)
-	m.SetTemplateID(templateID)
-
-	p := mail.NewPersonalization()
-	p.AddTos(tos...)
-	p.SetDynamicTemplateData("Author_Name", authorName)
-	p.SetDynamicTemplateData("Comment_Link", viewLink)
-	p.SetDynamicTemplateData("Comment_Body", textForEmail)
-
-	if sessionImage != nil {
-		p.SetDynamicTemplateData("Session_Image", sessionImage)
-		a := mail.NewAttachment()
-		a.SetContent(*sessionImage)
-		a.SetFilename("session-image.png")
-		a.SetContentID("sessionImage")
-		a.SetType("image/png")
-		m.AddAttachment(a)
-	}
-
-	m.AddPersonalizations(p)
-
-	_, err := r.MailClient.Send(m)
-	if err != nil {
-		return e.Wrap(err, "error sending sendgrid email for comments mentions")
-	}
-
-	return nil
-}
-
-func (r *Resolver) SendPersonalSlackAlert(org *model.Organization, admin *model.Admin, adminIds []int, viewLink, commentText, subjectScope string) error {
-	// this is needed for posting DMs
-	if org.SlackAccessToken == nil {
-		return e.New("slack access token is nil")
-	}
-
-	var admins []*model.Admin
-	if err := r.DB.Find(&admins, adminIds).Where("slack_im_channel_id IS NOT NULL").Error; err != nil {
-		return e.Wrap(err, "error fetching admins")
-	}
-	// return early if no admins w/ slack_im_channel_id
-	if len(admins) < 1 {
-		return nil
-	}
-
-	var blockSet slack.Blocks
-
-	determiner := "a"
-	if subjectScope == "error" {
-		determiner = "an"
-	}
-	message := fmt.Sprintf("You were tagged in %s %s comment.", determiner, subjectScope)
-	if admin.Email != nil && *admin.Email != "" {
-		message = fmt.Sprintf("%s tagged you in %s %s comment.", *admin.Email, determiner, subjectScope)
-	}
-	if admin.Name != nil && *admin.Name != "" {
-		message = fmt.Sprintf("%s tagged you in %s %s comment.", *admin.Name, determiner, subjectScope)
-	}
-	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewHeaderBlock(&slack.TextBlockObject{Type: slack.PlainTextType, Text: message}))
-
-	button := slack.NewButtonBlockElement(
-		"",
-		"click",
-		slack.NewTextBlockObject(
-			slack.PlainTextType,
-			strings.Title(fmt.Sprintf("Visit %s", subjectScope)),
-			false,
-			false,
-		),
-	)
-	button.URL = viewLink
-	blockSet.BlockSet = append(blockSet.BlockSet,
-		slack.NewSectionBlock(
-			nil,
-			[]*slack.TextBlockObject{{Type: slack.MarkdownType, Text: fmt.Sprintf("> %s", commentText)}}, slack.NewAccessory(button),
-		),
-	)
-
-	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewDividerBlock())
-	slackClient := slack.New(*org.SlackAccessToken)
-	for _, a := range admins {
-		if a.SlackIMChannelID != nil {
-			_, _, err := slackClient.PostMessage(*a.SlackIMChannelID, slack.MsgOptionBlocks(blockSet.BlockSet...))
-			if err != nil {
-				return e.Wrap(err, "error posting slack message")
-			}
-		}
-	}
-
-	return nil
 }
