@@ -1,4 +1,5 @@
 import { message } from 'antd';
+import classNames from 'classnames';
 import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { StringParam, useQueryParam } from 'use-query-params';
@@ -45,7 +46,11 @@ export const ErrorStateSelect: React.FC<{
     return (
         <Select
             options={ErrorStateOptions}
-            className={styles.select}
+            className={classNames(styles.select, {
+                [styles.resolved]: initialErrorState === ErrorState.Resolved,
+                [styles.open]: initialErrorState === ErrorState.Open,
+                [styles.ignored]: initialErrorState === ErrorState.Ignored,
+            })}
             value={initialErrorState}
             onChange={async (newState: ErrorState) => {
                 await updateErrorGroupState({

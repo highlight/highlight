@@ -25,15 +25,15 @@
     width: 8px;
 
     &.resolved {
-        background-color: var(--color-green);
+        background-color: var(--color-error-resolved);
     }
 
     &.ignored {
-        background-color: var(--color-gray-500);
+        background-color: var(--color-error-ignored);
     }
 
     &.open {
-        background-color: var(--color-red);
+        background-color: var(--color-error-open);
     }
 }
 
