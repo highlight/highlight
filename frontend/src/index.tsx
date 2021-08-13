@@ -20,7 +20,6 @@ import {
 } from './AuthContext';
 import { ErrorState } from './components/ErrorState/ErrorState';
 import { useGetAdminLazyQuery } from './graph/generated/hooks';
-import About from './pages/About/About';
 import LoginForm, { AuthAdminRouter } from './pages/Login/Login';
 import * as serviceWorker from './serviceWorker';
 import { auth } from './util/auth';
@@ -165,9 +164,6 @@ get in contact with us!
         >
             <Router>
                 <Switch>
-                    <Route path="/about">
-                        <About />
-                    </Route>
                     <Route
                         path="/:organization_id(\d+)/sessions/:session_id(\d+)"
                         exact
