@@ -6,6 +6,7 @@ import classNames from 'classnames';
 import _ from 'lodash';
 import Lottie from 'lottie-react';
 import React, {
+    Suspense,
     useCallback,
     useEffect,
     useMemo,
@@ -37,6 +38,9 @@ import PlayerCommentCanvas, {
 import { usePlayer } from './PlayerHook/PlayerHook';
 import usePlayerConfiguration from './PlayerHook/utils/usePlayerConfiguration';
 import styles from './PlayerPage.module.scss';
+const PlayerPageProductTour = React.lazy(
+    () => import('./PlayerPageProductTour/PlayerPageProductTour')
+);
 import {
     ReplayerContextProvider,
     ReplayerState,
@@ -152,6 +156,13 @@ const Player = () => {
     return (
         <PlayerUIContextProvider value={{ searchBarRef, setSearchBarRef }}>
             <ReplayerContextProvider value={player}>
+                {isPlayerReady && !isLoggedIn && (
+                    <>
+                        <Suspense fallback={null}>
+                            <PlayerPageProductTour />
+                        </Suspense>
+                    </>
+                )}
                 <div
                     className={classNames(styles.playerBody, {
                         [styles.withLeftPanel]: showLeftPanel,

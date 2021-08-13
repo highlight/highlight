@@ -8,6 +8,7 @@ import MetadataPanel from '../MetadataPanel/MetadataPanel';
 import usePlayerConfiguration from '../PlayerHook/utils/usePlayerConfiguration';
 import { EventStream } from '../PlayerPage';
 import playerPageStyles from '../PlayerPage.module.scss';
+import { PlayerPageProductTourSelectors } from '../PlayerPageProductTour/PlayerPageProductTour';
 import { useReplayerContext } from '../ReplayerContext';
 import SessionFullCommentList from '../SessionFullCommentList/SessionFullCommentList';
 import styles from './RightPlayerPanel.module.scss';
@@ -47,6 +48,7 @@ const RightPlayerPanel = () => {
                     {showRightPanel && (
                         <Tabs
                             centered
+                            tabsHtmlId={`${PlayerPageProductTourSelectors.PlayerRightPanel}`}
                             id="PlayerRightPanel"
                             noPadding
                             className={styles.tabs}
