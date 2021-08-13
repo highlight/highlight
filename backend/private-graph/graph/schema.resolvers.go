@@ -676,6 +676,11 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 		return nil, e.Wrap(err, "admin cannot leave a comment")
 	}
 
+	var org model.Organization
+	if err := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&org).Error; err != nil {
+		return nil, e.Wrap(err, "error querying organization")
+	}
+
 	admins := []model.Admin{}
 	if !isGuestCreatingSession {
 		for _, a := range taggedAdmins {
@@ -705,45 +710,39 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 	createSessionCommentSpan.Finish()
 
 	if len(taggedAdmins) > 0 && !isGuestCreatingSession {
-		commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
-			tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(taggedAdmins)))
 
 		tos := []*mail.Email{}
+		var adminIds []int
 
 		for _, admin := range taggedAdmins {
 			tos = append(tos, &mail.Email{Address: admin.Email})
+			adminIds = append(adminIds, admin.ID)
 		}
-		m := mail.NewV3Mail()
-		from := mail.NewEmail("Highlight", "notifications@highlight.run")
 		viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
-		m.SetFrom(from)
-		m.SetTemplateID(SendGridSessionCommentEmailTemplateID)
 
-		p := mail.NewPersonalization()
-		p.AddTos(tos...)
-		p.SetDynamicTemplateData("Author_Name", authorName)
-		p.SetDynamicTemplateData("Comment_Link", viewLink)
-		p.SetDynamicTemplateData("Comment_Body", textForEmail)
-		p.SetDynamicTemplateData("Session_Image", sessionImage)
+		var g errgroup.Group
 
-		if sessionImage != nil {
-			a := mail.NewAttachment()
-			a.SetContent(*sessionImage)
-			a.SetFilename("session-image.png")
-			a.SetContentID("sessionImage")
-			a.SetType("image/png")
-			m.AddAttachment(a)
-		}
+		g.Go(func() error {
+			commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
+				tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(taggedAdmins)))
+			defer commentMentionEmailSpan.Finish()
 
-		m.AddPersonalizations(p)
+			return r.SendEmailAlert(tos, authorName, viewLink, textForEmail, SendGridSessionCommentEmailTemplateID, sessionImage)
+		})
 
-		_, err := r.MailClient.Send(m)
+		g.Go(func() error {
+			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
+				tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(adminIds)))
+			defer commentMentionSlackSpan.Finish()
+
+			return r.SendPersonalSlackAlert(&org, admin, adminIds, viewLink, sessionComment.Text, "session")
+		})
+		err := g.Wait()
 		if err != nil {
-			return nil, fmt.Errorf("error sending sendgrid email for comments mentions: %v", err)
+			return nil, e.Wrap(err, "error notifying admins about being tagged in a comment")
 		}
-
-		commentMentionEmailSpan.Finish()
 	}
+
 	return sessionComment, nil
 }
 
@@ -772,6 +771,11 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationI
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
 
+	var org model.Organization
+	if err := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&org).Error; err != nil {
+		return nil, e.Wrap(err, "error querying organization")
+	}
+
 	admins := []model.Admin{}
 	for _, a := range taggedAdmins {
 		admins = append(admins,
@@ -795,34 +799,38 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationI
 	}
 	createErrorCommentSpan.Finish()
 
-	commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
-		tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(taggedAdmins)))
 	if len(taggedAdmins) > 0 {
 		tos := []*mail.Email{}
+		var adminIds []int
 
 		for _, admin := range taggedAdmins {
 			tos = append(tos, &mail.Email{Address: admin.Email})
+			adminIds = append(adminIds, admin.ID)
 		}
-		m := mail.NewV3Mail()
-		from := mail.NewEmail("Highlight", "notifications@highlight.run")
+
 		viewLink := fmt.Sprintf("%v", errorURL)
-		m.SetFrom(from)
-		m.SetTemplateID(SendGridErrorCommentEmailTemplateId)
+		var g errgroup.Group
 
-		p := mail.NewPersonalization()
-		p.AddTos(tos...)
-		p.SetDynamicTemplateData("Author_Name", authorName)
-		p.SetDynamicTemplateData("Comment_Link", viewLink)
-		p.SetDynamicTemplateData("Comment_Body", textForEmail)
+		g.Go(func() error {
+			commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
+				tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(taggedAdmins)))
+			defer commentMentionEmailSpan.Finish()
 
-		m.AddPersonalizations(p)
+			return r.SendEmailAlert(tos, authorName, viewLink, textForEmail, SendGridErrorCommentEmailTemplateId, nil)
+		})
 
-		_, err := r.MailClient.Send(m)
+		g.Go(func() error {
+			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
+				tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(adminIds)))
+			defer commentMentionSlackSpan.Finish()
+
+			return r.SendPersonalSlackAlert(&org, admin, adminIds, viewLink, errorComment.Text, "error")
+		})
+		err := g.Wait()
 		if err != nil {
-			return nil, fmt.Errorf("error sending sendgrid email for comments mentions: %v", err)
+			return nil, e.Wrap(err, "error notifying admins about being tagged in a comment")
 		}
 	}
-	commentMentionEmailSpan.Finish()
 	return errorComment, nil
 }
 
@@ -837,6 +845,55 @@ func (r *mutationResolver) DeleteErrorComment(ctx context.Context, id int) (*boo
 	}
 	if err := r.DB.Delete(&model.ErrorComment{Model: model.Model{ID: id}}).Error; err != nil {
 		return nil, e.Wrap(err, "error deleting error_comment")
+	}
+	return &model.T, nil
+}
+
+func (r *mutationResolver) OpenSlackConversation(ctx context.Context, organizationID int, code string, redirectPath string) (*bool, error) {
+	var (
+		SLACK_CLIENT_ID     string
+		SLACK_CLIENT_SECRET string
+	)
+	_, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in organization")
+	}
+	redirect := os.Getenv("FRONTEND_URI")
+	redirect += "/" + strconv.Itoa(organizationID) + "/" + redirectPath
+	if tempSlackClientID, ok := os.LookupEnv("SLACK_CLIENT_ID"); ok && tempSlackClientID != "" {
+		SLACK_CLIENT_ID = tempSlackClientID
+	}
+	if tempSlackClientSecret, ok := os.LookupEnv("SLACK_CLIENT_SECRET"); ok && tempSlackClientSecret != "" {
+		SLACK_CLIENT_SECRET = tempSlackClientSecret
+	}
+	resp, err := slack.
+		GetOAuthV2Response(
+			&http.Client{},
+			SLACK_CLIENT_ID,
+			SLACK_CLIENT_SECRET,
+			code,
+			redirect,
+		)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting slack oauth response")
+	}
+
+	if err := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).Updates(&model.Organization{SlackAccessToken: &resp.AccessToken}).Error; err != nil {
+		return nil, e.Wrap(err, "error updating slack access token in org")
+	}
+
+	slackClient := slack.New(resp.AccessToken)
+	c, _, _, err := slackClient.OpenConversation(&slack.OpenConversationParameters{Users: []string{resp.AuthedUser.ID}})
+	if err != nil {
+		return nil, e.Wrap(err, "error opening slack conversation")
+	}
+	adminUID := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
+	if err := r.DB.Where(&model.Admin{UID: &adminUID}).Updates(&model.Admin{SlackIMChannelID: &c.ID}).Error; err != nil {
+		return nil, e.Wrap(err, "error updating slack conversation on admin table")
+	}
+	_, _, err = slackClient.PostMessage(c.ID, slack.MsgOptionText("You will receive personal notifications when you're tagged in a session or error comment here!", false))
+	if err != nil {
+		return nil, e.Wrap(err, "error posting message to user")
 	}
 	return &model.T, nil
 }
