@@ -41,6 +41,7 @@ import styles from './PlayerPage.module.scss';
 const PlayerPageProductTour = React.lazy(
     () => import('./PlayerPageProductTour/PlayerPageProductTour')
 );
+import { IntegrationCard } from '../Sessions/IntegrationCard/IntegrationCard';
 import {
     ReplayerContextProvider,
     ReplayerState,
@@ -53,7 +54,11 @@ import { StreamElement } from './StreamElement/StreamElement';
 import { NewCommentForm } from './Toolbar/NewCommentForm/NewCommentForm';
 import { Toolbar } from './Toolbar/Toolbar';
 
-const Player = () => {
+interface Props {
+    integrated: boolean;
+}
+
+const Player = ({ integrated }: Props) => {
     const { isLoggedIn } = useAuthContext();
     const { session_id, organization_id } = useParams<{
         session_id: string;
@@ -156,6 +161,7 @@ const Player = () => {
     return (
         <PlayerUIContextProvider value={{ searchBarRef, setSearchBarRef }}>
             <ReplayerContextProvider value={player}>
+                {!integrated && <IntegrationCard />}
                 {isPlayerReady && !isLoggedIn && (
                     <>
                         <Suspense fallback={null}>

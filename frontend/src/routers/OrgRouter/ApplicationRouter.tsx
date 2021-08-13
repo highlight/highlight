@@ -18,9 +18,7 @@ import {
     SearchContextProvider,
     SearchParams,
 } from '../../pages/Sessions/SearchContext/SearchContext';
-import SessionsPage, {
-    EmptySessionsSearchParams,
-} from '../../pages/Sessions/SessionsPage';
+import { EmptySessionsSearchParams } from '../../pages/Sessions/SessionsPage';
 import SetupPage from '../../pages/Setup/SetupPage';
 import WorkspaceSettings from '../../pages/WorkspaceSettings/WorkspaceSettings';
 import WorkspaceTeam from '../../pages/WorkspaceTeam/WorkspaceTeam';
@@ -119,26 +117,9 @@ const ApplicationRouter = ({ integrated }: Props) => {
             }}
         >
             <Switch>
-                <Route
-                    path="/:organization_id/sessions/segment/:segment_id"
-                    exact
-                >
-                    <SessionsPage integrated={integrated} />
+                <Route path="/:organization_id/sessions/:session_id?" exact>
+                    <Player integrated={integrated} />
                 </Route>
-                <Route path="/:organization_id/sessions/:session_id" exact>
-                    <Player />
-                </Route>
-                {!ORGANIZATIONS_TO_DISABLE_OLD_SESSION_FEED.includes(
-                    organization_id
-                ) ? (
-                    <Route path="/:organization_id/sessions" exact>
-                        <SessionsPage integrated={integrated} />
-                    </Route>
-                ) : (
-                    <Route path="/:organization_id/sessions/:session_id?" exact>
-                        <Player />
-                    </Route>
-                )}
                 <Route path="/:organization_id/settings">
                     <WorkspaceSettings />
                 </Route>
@@ -194,11 +175,3 @@ const InitialSearchParamsForUrl = {
     visited_url: undefined,
     show_live_sessions: undefined,
 };
-
-const ORGANIZATIONS_TO_DISABLE_OLD_SESSION_FEED = [
-    '1',
-    /* Porter */ '162',
-    /* Tributi */ '213',
-    /* Portal */ '79',
-    /* PortalDev */ '107',
-];
