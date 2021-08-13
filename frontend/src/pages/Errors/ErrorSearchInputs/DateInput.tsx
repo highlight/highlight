@@ -1,21 +1,22 @@
 import { DatePicker, message } from 'antd';
 import moment from 'moment';
-import React, { useContext, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 
+import SvgCalendarIcon from '../../../static/CalendarIcon';
 import { SessionPageSearchParams } from '../../Player/utils/utils';
 import { getDateRangeForDateInput } from '../../Sessions/SearchInputs/DateInput';
 import inputStyles from '../../Sessions/SearchInputs/InputStyles.module.scss';
 import {
-    ErrorSearchContext,
     ErrorSearchParams,
+    useErrorSearchContext,
 } from '../ErrorSearchContext/ErrorSearchContext';
 import { EmptyErrorsSearchParams } from '../ErrorsPage';
 
 const { RangePicker } = DatePicker;
 
 export const DateInput = () => {
-    const { searchParams, setSearchParams } = useContext(ErrorSearchContext);
+    const { searchParams, setSearchParams } = useErrorSearchContext();
     const location = useLocation();
     const history = useHistory();
     const dateFromSearchParams = new URLSearchParams(location.search).get(
@@ -51,6 +52,7 @@ export const DateInput = () => {
                         : null
                 }
                 className={inputStyles.datePicker}
+                suffixIcon={<SvgCalendarIcon />}
                 onChange={(_date: any, dateStrings: [string, string]) => {
                     // Dates in local timezone.
                     const start_date = dateStrings[0]

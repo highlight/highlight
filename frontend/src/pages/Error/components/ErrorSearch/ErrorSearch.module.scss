@@ -1,0 +1,58 @@
+.select {
+    width: 100%;
+}
+
+.searchIcon {
+    color: var(--color-gray-400);
+    height: var(--size-medium);
+    margin-right: var(--size-small);
+    width: var(--size-medium);
+}
+
+.valueLabel {
+    font-size: 12px;
+    padding: var(--size-xxSmall) var(--size-xxSmall);
+    padding-left: var(--size-xSmall);
+}
+
+.keyLabel {
+    color: var(--color-gray-500);
+    flex-shrink: 0;
+    font-size: 12px;
+    margin-left: auto;
+}
+
+.optionLabelContainer {
+    display: flex;
+    overflow: hidden;
+}
+
+.nameLabel {
+    flex-grow: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.filterContainer {
+    align-items: center;
+    display: flex;
+    font-size: 12px !important;
+    padding: var(--size-xSmall) var(--size-small);
+
+    h4 {
+        color: var(--color-gray-500);
+        margin: 0 !important;
+        margin-right: var(--size-xxSmall) !important;
+    }
+
+    button {
+        font-size: 12px;
+    }
+}
+
+.groupHeading {
+    align-items: center;
+    column-gap: var(--size-xxSmall);
+    display: flex;
+}

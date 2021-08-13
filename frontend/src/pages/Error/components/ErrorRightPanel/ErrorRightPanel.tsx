@@ -6,6 +6,7 @@ import { GetErrorGroupQuery } from '../../../../graph/generated/operations';
 import ErrorComments from '../ErrorComments/ErrorComments';
 import ErrorFullCommentList from './components/ErrorFullCommentList/ErrorFullCommentList';
 import ErrorMetadata from './components/ErrorMetadata/ErrorMetadata';
+import ErrorSessionList from './components/ErrorSessionList/ErrorSessionList';
 import styles from './ErrorRightPanel.module.scss';
 
 interface Props {
@@ -19,6 +20,14 @@ const ErrorRightPanel = ({ errorGroup }: Props) => {
                 centered
                 noPadding
                 tabs={[
+                    {
+                        title: 'Sessions',
+                        panelContent: (
+                            <div className={styles.tabContainer}>
+                                <ErrorSessionList errorGroup={errorGroup} />
+                            </div>
+                        ),
+                    },
                     {
                         title: 'Metadata',
                         panelContent: (

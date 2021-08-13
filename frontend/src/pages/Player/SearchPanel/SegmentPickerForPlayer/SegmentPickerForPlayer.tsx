@@ -111,7 +111,6 @@ const SegmentPickerForPlayer = () => {
             <Select
                 value={segmentName}
                 onChange={(value, option) => {
-                    debugger;
                     if ((option as any)?.key === STARRED_SEGMENT_ID) {
                         setShowStarredSessions(true);
                         setExistingParams(EmptySessionsSearchParams);

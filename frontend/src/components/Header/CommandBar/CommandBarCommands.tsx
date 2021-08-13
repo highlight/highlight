@@ -3,7 +3,7 @@ import { History } from 'history';
 import { Command } from 'react-command-palette';
 
 import usePlayerConfiguration from '../../../pages/Player/PlayerHook/utils/usePlayerConfiguration';
-import { onGetLinkWithTimestamp } from '../../../pages/Player/ShareButton/utils/utils';
+import { onGetLinkWithTimestamp } from '../../../pages/Player/SessionShareButton/utils/utils';
 
 export type CommandWithoutId = Omit<Command, 'id'>;
 

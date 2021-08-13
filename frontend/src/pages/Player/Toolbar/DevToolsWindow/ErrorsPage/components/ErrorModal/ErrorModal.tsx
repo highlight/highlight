@@ -31,7 +31,7 @@ const ErrorModal = ({ error }: Props) => {
                 <div>
                     {data && (
                         <>
-                            <div className={styles.errorTitleContainer}>
+                            <div className={styles.titleContainer}>
                                 <ErrorTitle errorGroup={data.error_group} />
                             </div>
 
@@ -42,7 +42,10 @@ const ErrorModal = ({ error }: Props) => {
                             </div>
 
                             <h3>Stack Trace</h3>
-                            <StackTraceSection errorGroup={data.error_group} />
+                            <StackTraceSection
+                                errorGroup={data.error_group}
+                                loading={loading}
+                            />
 
                             <ErrorFrequencyGraph
                                 errorGroup={data.error_group}

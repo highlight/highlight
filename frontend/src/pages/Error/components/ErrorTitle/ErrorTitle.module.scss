@@ -1,0 +1,15 @@
+.header {
+    align-items: center;
+    display: flex;
+    width: 100%;
+
+    > div {
+        align-items: center;
+        column-gap: var(--size-medium);
+        display: flex;
+    }
+
+    > button {
+        margin-left: auto;
+    }
+}

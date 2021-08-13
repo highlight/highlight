@@ -12,7 +12,6 @@ import AlertsPage from '../../pages/Alerts/Alerts';
 import BillingPage from '../../pages/Billing/Billing';
 import { Buttons } from '../../pages/Buttons/Buttons';
 import ErrorPage from '../../pages/Error/ErrorPage';
-import ErrorsPage from '../../pages/Errors/ErrorsPage';
 import HomePage from '../../pages/Home/HomePage';
 import Player from '../../pages/Player/PlayerPage';
 import {
@@ -155,14 +154,8 @@ const ApplicationRouter = ({ integrated }: Props) => {
                 <Route path="/:organization_id/setup">
                     <SetupPage integrated={integrated} />
                 </Route>
-                <Route path="/:organization_id/errors/segment/:segment_id">
-                    <ErrorsPage integrated={integrated} />
-                </Route>
-                <Route path="/:organization_id/errors/:error_id">
-                    <ErrorPage />
-                </Route>
-                <Route path="/:organization_id/errors">
-                    <ErrorsPage integrated={integrated} />
+                <Route path="/:organization_id/errors/:error_id?">
+                    <ErrorPage integrated={integrated} />
                 </Route>
                 <Route path="/:organization_id/buttons">
                     <Buttons />

@@ -182,11 +182,6 @@
 
 .resultCount {
     align-items: center;
-    background: linear-gradient(
-        to top,
-        rgba(255, 255, 255, 0),
-        rgba(255, 255, 255, 1) 30%
-    );
     color: var(--color-gray-500);
     font-family: var(--header-font-family);
     justify-content: space-between;

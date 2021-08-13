@@ -52,6 +52,10 @@
     &.detailed {
         max-width: 250px;
     }
+
+    &.errorVersion {
+        max-width: 230px;
+    }
 }
 
 .detailedSection {
@@ -192,6 +196,10 @@
 
     &.detailed {
         grid-template-columns: 26px 1fr 0.25fr;
+    }
+
+    &.errorVersion {
+        grid-template-columns: 1fr;
     }
 }
 

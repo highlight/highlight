@@ -1184,7 +1184,7 @@ export const CreateErrorSegmentDocument = gql`
                 os
                 browser
                 visited_url
-                hide_resolved
+                state
             }
         }
     }
@@ -2570,7 +2570,6 @@ export const GetErrorGroupDocument = gql`
             type
             organization_id
             event
-            resolved
             state
             stack_trace {
                 fileName
@@ -2658,7 +2657,7 @@ export const GetErrorGroupsDocument = gql`
                 id
                 type
                 event
-                resolved
+                state
                 state
                 environments
                 stack_trace {
@@ -3025,6 +3024,76 @@ export type GetErrorFieldSuggestionQueryResult = Apollo.QueryResult<
     Types.GetErrorFieldSuggestionQuery,
     Types.GetErrorFieldSuggestionQueryVariables
 >;
+export const GetErrorSearchSuggestionsDocument = gql`
+    query GetErrorSearchSuggestions($organization_id: ID!, $query: String!) {
+        visitedUrls: error_field_suggestion(
+            organization_id: $organization_id
+            name: "visited_url"
+            query: $query
+        ) {
+            name
+            value
+        }
+        fields: error_field_suggestion(
+            organization_id: $organization_id
+            name: "event"
+            query: $query
+        ) {
+            name
+            value
+        }
+    }
+`;
+
+/**
+ * __useGetErrorSearchSuggestionsQuery__
+ *
+ * To run a query within a React component, call `useGetErrorSearchSuggestionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorSearchSuggestionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetErrorSearchSuggestionsQuery({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *      query: // value for 'query'
+ *   },
+ * });
+ */
+export function useGetErrorSearchSuggestionsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetErrorSearchSuggestionsQuery,
+        Types.GetErrorSearchSuggestionsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetErrorSearchSuggestionsQuery,
+        Types.GetErrorSearchSuggestionsQueryVariables
+    >(GetErrorSearchSuggestionsDocument, baseOptions);
+}
+export function useGetErrorSearchSuggestionsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetErrorSearchSuggestionsQuery,
+        Types.GetErrorSearchSuggestionsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetErrorSearchSuggestionsQuery,
+        Types.GetErrorSearchSuggestionsQueryVariables
+    >(GetErrorSearchSuggestionsDocument, baseOptions);
+}
+export type GetErrorSearchSuggestionsQueryHookResult = ReturnType<
+    typeof useGetErrorSearchSuggestionsQuery
+>;
+export type GetErrorSearchSuggestionsLazyQueryHookResult = ReturnType<
+    typeof useGetErrorSearchSuggestionsLazyQuery
+>;
+export type GetErrorSearchSuggestionsQueryResult = Apollo.QueryResult<
+    Types.GetErrorSearchSuggestionsQuery,
+    Types.GetErrorSearchSuggestionsQueryVariables
+>;
 export const GetSessionSearchResultsDocument = gql`
     query GetSessionSearchResults($organization_id: ID!, $query: String!) {
         trackProperties: property_suggestion(
@@ -3338,7 +3407,7 @@ export const GetErrorSegmentsDocument = gql`
                 os
                 browser
                 visited_url
-                hide_resolved
+                state
                 event
             }
         }

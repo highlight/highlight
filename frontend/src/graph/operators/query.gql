@@ -267,7 +267,6 @@ query GetErrorGroup($id: ID!) {
         type
         organization_id
         event
-        resolved
         state
         stack_trace {
             fileName
@@ -305,7 +304,7 @@ query GetErrorGroups(
             id
             type
             event
-            resolved
+            state
             state
             environments
             stack_trace {
@@ -374,6 +373,25 @@ query GetErrorFieldSuggestion(
     error_field_suggestion(
         organization_id: $organization_id
         name: $name
+        query: $query
+    ) {
+        name
+        value
+    }
+}
+
+query GetErrorSearchSuggestions($organization_id: ID!, $query: String!) {
+    visitedUrls: error_field_suggestion(
+        organization_id: $organization_id
+        name: "visited_url"
+        query: $query
+    ) {
+        name
+        value
+    }
+    fields: error_field_suggestion(
+        organization_id: $organization_id
+        name: "event"
         query: $query
     ) {
         name
@@ -492,7 +510,7 @@ query GetErrorSegments($organization_id: ID!) {
             os
             browser
             visited_url
-            hide_resolved
+            state
             event
         }
     }

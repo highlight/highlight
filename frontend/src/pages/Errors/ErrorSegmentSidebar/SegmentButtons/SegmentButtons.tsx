@@ -1,6 +1,6 @@
 import { message } from 'antd';
 import _ from 'lodash';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { RouteComponentProps, useParams, withRouter } from 'react-router-dom';
 
@@ -13,7 +13,7 @@ import {
     useCreateErrorSegmentMutation,
     useEditErrorSegmentMutation,
 } from '../../../../graph/generated/hooks';
-import { ErrorSearchContext } from '../../ErrorSearchContext/ErrorSearchContext';
+import { useErrorSearchContext } from '../../ErrorSearchContext/ErrorSearchContext';
 import styles from './SegmentButtons.module.scss';
 
 type Inputs = {
@@ -32,7 +32,7 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
         segmentName,
         existingParams,
         setExistingParams,
-    } = useContext(ErrorSearchContext);
+    } = useErrorSearchContext();
     const [paramsIsDifferent, setParamsIsDifferent] = useState(false);
     const [editSegment, editSegmentOptions] = useEditErrorSegmentMutation({
         refetchQueries: ['GetErrorSegments'],

@@ -154,8 +154,8 @@ func ErrorInputToParams(params *modelInputs.ErrorSearchParamsInput) *model.Error
 		VisitedURL: params.VisitedURL,
 		Event:      params.Event,
 	}
-	if params.HideResolved != nil {
-		modelParams.HideResolved = *params.HideResolved
+	if params.State != nil {
+		modelParams.State = params.State
 	}
 	if params.DateRange != nil {
 		modelParams.DateRange = &model.DateRange{}
