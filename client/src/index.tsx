@@ -613,19 +613,21 @@ export class Highlight {
             }
             // Send the payload as the page closes. navigator.sendBeacon guarantees that a request will be made.
             window.addEventListener('beforeunload', () => {
-                const payload = this._getPayload();
-                let blob = new Blob(
-                    [
-                        JSON.stringify({
-                            query: print(PushPayloadDocument),
-                            variables: payload,
-                        }),
-                    ],
-                    {
-                        type: 'application/json',
-                    }
-                );
-                navigator.sendBeacon(`${this._backendUrl}`, blob);
+                if ('sendBeacon' in navigator) {
+                    const payload = this._getPayload();
+                    let blob = new Blob(
+                        [
+                            JSON.stringify({
+                                query: print(PushPayloadDocument),
+                                variables: payload,
+                            }),
+                        ],
+                        {
+                            type: 'application/json',
+                        }
+                    );
+                    navigator.sendBeacon(`${this._backendUrl}`, blob);
+                }
             });
             this.ready = true;
             this.state = 'Recording';
