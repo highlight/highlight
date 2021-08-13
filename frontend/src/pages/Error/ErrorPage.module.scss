@@ -4,13 +4,20 @@
     flex: 1;
     height: calc(100vh - var(--top-padding));
     overflow-y: auto;
+    padding-left: var(--size-medium);
+
+    &.hidden {
+        padding-left: var(--size-xxLarge);
+    }
 }
 
 .errorPageLeftColumn {
-    border-right: 1px solid var(--color-gray-300);
-    box-shadow: var(--box-shadow-3);
     margin-top: calc((-1 * var(--top-padding)) + var(--header-height));
     width: var(--left-panel-width);
+
+    &.hidden {
+        position: absolute;
+    }
 }
 
 .errorPageRightColumn {
@@ -52,10 +59,8 @@
     width: 100%;
     word-break: break-word;
 
-    &.withLeftPanel {
-        grid-template-columns: var(-left-panel-width) 1fr var(
-                --right-panel-width
-            );
+    &.withoutLeftPanel {
+        grid-template-columns: 1fr var(--right-panel-width);
     }
 }
 

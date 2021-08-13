@@ -39,6 +39,7 @@ import ErrorTitle from './components/ErrorTitle/ErrorTitle';
 import StackTraceSection from './components/StackTraceSection/StackTraceSection';
 import styles from './ErrorPage.module.scss';
 import { ErrorStateSelect } from './ErrorStateSelect/ErrorStateSelect';
+import useErrorPageConfiguration from './utils/ErrorPageUIConfiguration';
 
 const ErrorPage = ({ integrated }: { integrated: boolean }) => {
     const { error_id } = useParams<{ error_id: string }>();
@@ -60,6 +61,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
         searchParams,
         setCachedParams,
     ]);
+    const { showLeftPanel } = useErrorPageConfiguration();
 
     return (
         <ErrorSearchContextProvider
@@ -73,11 +75,23 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
             }}
         >
             {!integrated && <IntegrationCard />}
-            <div className={styles.errorPage}>
-                <div className={styles.errorPageLeftColumn}>
+            <div
+                className={classNames(styles.errorPage, {
+                    [styles.withoutLeftPanel]: !showLeftPanel,
+                })}
+            >
+                <div
+                    className={classNames(styles.errorPageLeftColumn, {
+                        [styles.hidden]: !showLeftPanel,
+                    })}
+                >
                     <ErrorSearchPanel />
                 </div>
-                <div className={styles.errorPageCenterColumn}>
+                <div
+                    className={classNames(styles.errorPageCenterColumn, {
+                        [styles.hidden]: !showLeftPanel,
+                    })}
+                >
                     <div className={styles.titleContainer}>
                         {loading ? (
                             <Skeleton count={1} style={{ width: 300 }} />
