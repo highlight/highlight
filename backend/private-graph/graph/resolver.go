@@ -15,6 +15,7 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/util"
 )
 
 // This file will not be regenerated automatically.
@@ -49,7 +50,7 @@ func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
 // These are authentication methods used to make sure that data is secured.
 // This'll probably get expensive at some point; they can probably be cached.
 func (r *Resolver) isAdminInOrganization(ctx context.Context, org_id int) (*model.Organization, error) {
-	if os.Getenv("ENVIRONMENT") == "test" {
+	if util.IsTestEnv() {
 		return nil, nil
 	}
 	if r.isWhitelistedAccount(ctx) {
