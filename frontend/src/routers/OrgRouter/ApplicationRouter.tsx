@@ -118,7 +118,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
         >
             <Switch>
                 <Route path="/:organization_id/sessions/:session_id?" exact>
-                    <Player />
+                    <Player integrated={integrated} />
                 </Route>
                 <Route path="/:organization_id/settings">
                     <WorkspaceSettings />
