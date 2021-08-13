@@ -37,6 +37,7 @@ const ApplicationPicker = () => {
         <div>
             <TextSelect
                 defaultValue={currentApplication?.id}
+                displayValue={currentApplication?.name}
                 options={applicationOptions}
                 onChange={(applicationId) => {
                     if (applicationId === newApplicationOption.value) {

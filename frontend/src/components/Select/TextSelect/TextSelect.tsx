@@ -4,7 +4,8 @@ import {
     SelectProps as AntDesignSelectProps,
 } from 'antd';
 import classNames from 'classnames';
-import React from 'react';
+import { H } from 'highlight.run';
+import React, { useState } from 'react';
 
 import SvgChevronDownIcon from '../../../static/ChevronDownIcon';
 import styles from './TextSelect.module.scss';
@@ -34,32 +35,58 @@ type Props = Pick<
         disabled?: boolean;
         id: string;
     }[];
+    displayValue: string | undefined;
 };
 
-const TextSelect = ({ options, className, children, ...props }: Props) => {
+const TextSelect = ({
+    options,
+    className,
+    children,
+    displayValue: propsDisplayValue,
+    ...props
+}: Props) => {
+    const [displayValue, setDisplayValue] = useState(propsDisplayValue);
+
     return (
-        <AntDesignSelect
-            {...props}
-            disabled={props.loading}
-            className={classNames(className, styles.select)}
-            menuItemSelectedIcon={null}
-            defaultActiveFirstOption={false}
-            dropdownClassName={styles.dropdown}
-            suffixIcon={
-                <SvgChevronDownIcon
-                    className={classNames({
-                        [styles.suffixIconActive]: !!props.value,
-                    })}
-                />
-            }
-        >
-            {options?.map(({ displayValue, value, disabled, id }) => (
-                <Option key={id} value={value} disabled={disabled}>
-                    {displayValue}
-                </Option>
-            ))}
-            {children}
-        </AntDesignSelect>
+        <div className={styles.textSelectContainer}>
+            <h2
+                className={styles.displayValue}
+                onClick={() => {
+                    H.track('TextSelectDisplayValue');
+                }}
+            >
+                {displayValue}
+            </h2>
+            <AntDesignSelect
+                {...props}
+                disabled={props.loading}
+                onChange={(applicationId, newOption) => {
+                    setDisplayValue((newOption as any).props.children);
+
+                    if (props.onChange) {
+                        props.onChange(applicationId, newOption);
+                    }
+                }}
+                className={classNames(className, styles.select)}
+                menuItemSelectedIcon={null}
+                defaultActiveFirstOption={false}
+                dropdownClassName={styles.dropdown}
+                suffixIcon={
+                    <SvgChevronDownIcon
+                        className={classNames({
+                            [styles.suffixIconActive]: !!props.value,
+                        })}
+                    />
+                }
+            >
+                {options?.map(({ displayValue, value, disabled, id }) => (
+                    <Option key={id} value={value} disabled={disabled}>
+                        {displayValue}
+                    </Option>
+                ))}
+                {children}
+            </AntDesignSelect>
+        </div>
     );
 };
 
