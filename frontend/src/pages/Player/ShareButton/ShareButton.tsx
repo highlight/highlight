@@ -10,6 +10,7 @@ import Modal from '../../../components/Modal/Modal';
 import ModalBody from '../../../components/ModalBody/ModalBody';
 import Switch from '../../../components/Switch/Switch';
 import { useUpdateSessionIsPublicMutation } from '../../../graph/generated/hooks';
+import SvgShareIcon from '../../../static/ShareIcon';
 import { useReplayerContext } from '../ReplayerContext';
 import styles from './ShareButton.module.scss';
 import { onGetLink, onGetLinkWithTimestamp } from './utils/utils';
@@ -34,7 +35,9 @@ const ShareButton = (props: ButtonProps) => {
                     H.track('Clicked share button');
                     setShowModal(true);
                 }}
+                className={styles.button}
             >
+                <SvgShareIcon />
                 Share
             </Button>
             <Modal

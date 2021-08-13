@@ -223,9 +223,9 @@ export type EventsForTimelineKeys = typeof EventsForTimeline;
  * Gets events for the timeline indicator based on the type of event.
  */
 export const getEventsForTimelineIndicator = (
-    sessionIntervals: ParsedSessionInterval[],
     events: HighlightEvent[],
-    sessionStartTime: number
+    sessionStartTime: number,
+    sessionTotalTime: number
 ): ParsedHighlightEvent[] => {
     const eventsToAddToTimeline = events.filter((event) => {
         if (event.type === 5) {
@@ -236,10 +236,10 @@ export const getEventsForTimelineIndicator = (
     });
 
     const groupedEvents = assignEventToSessionInterval(
-        sessionIntervals,
         eventsToAddToTimeline,
-        sessionStartTime
-    ).flat();
+        sessionStartTime,
+        sessionTotalTime
+    );
 
     return groupedEvents as ParsedHighlightEvent[];
 };
@@ -248,16 +248,16 @@ export const getEventsForTimelineIndicator = (
  * Returns the comments that are in the respective interval bins. If a comment is in the ith index, then it shows up in the ith session interval.
  */
 export const getCommentsInSessionIntervals = (
-    sessionIntervals: ParsedSessionInterval[],
     comments: SessionComment[],
-    sessionStartTime: number
-): ParsedSessionComment[][] => {
+    sessionStartTime: number,
+    sessionTotalTime: number
+): ParsedSessionComment[] => {
     return assignEventToSessionInterval(
-        sessionIntervals,
         comments,
         sessionStartTime,
+        sessionTotalTime,
         true
-    ) as ParsedSessionComment[][];
+    ) as ParsedSessionComment[];
 };
 
 type ParsableEvent = ErrorObject | HighlightEvent | SessionComment;
@@ -266,46 +266,25 @@ type ParsableEvent = ErrorObject | HighlightEvent | SessionComment;
  * Adds events to the session interval that the event occurred in.
  */
 const assignEventToSessionInterval = (
-    sessionIntervals: ParsedSessionInterval[],
     events: ParsableEvent[],
     sessionStartTime: number,
+    sessionTotalTime: number,
     /** Whether the timestamp in events global time or already relative to the session. */
     relativeTime = false
 ) => {
-    let eventIndex = 0;
-    let sessionIntervalIndex = 0;
-    let currentSessionInterval = sessionIntervals[sessionIntervalIndex];
-    const response: ParsedEvent[][] = Array.from(
-        Array(sessionIntervals.length)
-    ).map(() => []);
+    const response: ParsedEvent[] = [];
 
-    while (
-        eventIndex < events.length &&
-        sessionIntervalIndex < sessionIntervals.length
-    ) {
-        const event = events[eventIndex];
+    events.forEach((event) => {
         const relativeTimestamp = relativeTime
             ? event.timestamp
             : new Date(event.timestamp).getTime() - sessionStartTime;
 
-        if (
-            relativeTimestamp >= currentSessionInterval.startTime &&
-            relativeTimestamp <= currentSessionInterval.endTime
-        ) {
-            const relativeTime =
-                relativeTimestamp - currentSessionInterval.startTime;
-            response[sessionIntervalIndex].push({
-                ...event,
-                // Calculate at the percentage of time where the event occurred in the session.
-                relativeIntervalPercentage:
-                    (relativeTime / currentSessionInterval.duration) * 100,
-            });
-            eventIndex++;
-        } else {
-            sessionIntervalIndex++;
-            currentSessionInterval = sessionIntervals[sessionIntervalIndex];
-        }
-    }
+        response.push({
+            ...event,
+            relativeIntervalPercentage:
+                (relativeTimestamp / sessionTotalTime) * 100,
+        });
+    });
 
     return response;
 };

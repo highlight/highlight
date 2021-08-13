@@ -18,6 +18,7 @@ type Props = Pick<TabsProps, 'animated' | 'tabBarExtraContent' | 'centered'> & {
     id: string;
     /** Whether the tab contents has the default padding. */
     noPadding?: boolean;
+    className?: string;
 };
 
 const Tabs = ({
@@ -25,6 +26,7 @@ const Tabs = ({
     id,
     noPadding = false,
     tabBarExtraContent,
+    className,
     ...props
 }: Props) => {
     const [activeTab, setActiveTab] = useLocalStorage(
@@ -45,7 +47,7 @@ const Tabs = ({
                     </div>
                 ) : null
             }
-            className={styles.tabs}
+            className={classNames(styles.tabs, className)}
             {...props}
         >
             {tabs.map(({ panelContent, title }) => (

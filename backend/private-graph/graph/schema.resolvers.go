@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/pricing"
@@ -441,90 +442,28 @@ func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int
 }
 
 func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (string, error) {
-	apiKey := os.Getenv("APOLLO_IO_API_KEY")
-
-	type MatchRequest struct {
-		ApiKey string `json:"api_key"`
-		Email  string `json:"email"`
-	}
-	type MatchResponse struct {
-		Person map[string]interface{} `json:"person"`
-	}
-
-	matchRequest := &MatchRequest{ApiKey: apiKey, Email: email}
-	matchResponse := &MatchResponse{}
-	err := util.RestRequest("https://api.apollo.io/v1/people/match", "POST", matchRequest, matchResponse)
+	short, long, err := apolloio.Enrich(email)
 	if err != nil {
-		log.Errorf("error sending match request: %v", err)
+		log.Errorf("error enriching email: %v", err)
+		return email, nil
 	}
 
-	contactString := ""
-	contactBytes, err := json.MarshalIndent(matchResponse.Person, "", "  ")
-	if err == nil {
-		contactString = string(contactBytes)
-	} else {
-		log.Errorf("error marshaling: %v", err)
-	}
-
-	contactStringShort := ""
-	shortContactMap := make(map[string]string)
-	for key, val := range matchResponse.Person {
-		if valString, ok := val.(string); ok {
-			shortContactMap[key] = valString
-		}
-	}
-	contactBytesShort, err := json.MarshalIndent(shortContactMap, "", "  ")
-	if err == nil {
-		contactStringShort = string(contactBytesShort)
-	} else {
-		log.Errorf("error marshaling short: %v", err)
-	}
 	model.DB.Create(&model.EmailSignup{
 		Email:               email,
-		ApolloData:          contactString,
-		ApolloDataShortened: contactStringShort,
+		ApolloData:          *long,
+		ApolloDataShortened: *short,
 	})
 
-	type ContactsRequest struct {
-		ApiKey string `json:"api_key"`
-		Email  string `json:"email"`
-	}
-	type Contact struct {
-		ID string `json:"id"`
-	}
-	type ContactsResponse struct {
-		Contact Contact `json:"contact"`
-	}
-	contactsRequest := &ContactsRequest{ApiKey: apiKey, Email: email}
-	contactsResponse := &ContactsResponse{}
-	err = util.RestRequest("https://api.apollo.io/v1/contacts", "POST", contactsRequest, contactsResponse)
-	if err != nil {
-		log.Errorf("error sending contacts request: %v", err)
-		return email, nil
-	}
-
-	type SequenceRequest struct {
-		ApiKey                      string   `json:"api_key"`
-		ContactIDs                  []string `json:"contact_ids"`
-		EmailerCampaignID           string   `json:"emailer_campaign_id"`
-		SendEmailFromEmailAccountID string   `json:"send_email_from_email_account_id"`
-	}
-	type SequenceResponse struct {
-		Contacts json.RawMessage `json:"contacts"`
-	}
-	sequenceRequest := &SequenceRequest{
-		ApiKey:                      apiKey,
-		ContactIDs:                  []string{contactsResponse.Contact.ID},
-		EmailerCampaignID:           "60fb134ce97fa1014c1cc141", // Represents the sequence ID for "Landing Page Signups"
-		SendEmailFromEmailAccountID: "6053cd5ef93cca00e498990f", // Respresents the ID for Jay's email account (jay@highlight.run)
-	}
-	sequenceResponse := &SequenceResponse{}
-	url := fmt.Sprintf("https://api.apollo.io/v1/emailer_campaigns/%v/add_contact_ids", sequenceRequest.EmailerCampaignID)
-	err = util.RestRequest(url, "POST", sequenceRequest, sequenceResponse)
-	if err != nil {
-		log.Errorf("error sending contacts request: %v", err)
-		return email, nil
-	}
+	go func() {
+		if contact, err := apolloio.CreateContact(email); err != nil {
+			log.Errorf("error creating apollo contact: %v", err)
+		} else {
+			sequenceID := "60fb134ce97fa1014c1cc141" // represents the "Landing Page Signups" sequence.
+			if err := apolloio.AddToSequence(contact.ID, sequenceID); err != nil {
+				log.Errorf("error adding to apollo sequence: %v", err)
+			}
+		}
+	}()
 
 	return email, nil
 }
@@ -1590,6 +1529,7 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, organizationID
 }
 
 func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count int, lifecycle modelInputs.SessionLifecycle, starred bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
+	endpointStart := time.Now()
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
@@ -1713,14 +1653,14 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 
 	fieldsSpan.Finish()
 
-	sessionsQueryPreamble := "SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed"
+	sessionsQueryPreamble := "SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, field_group"
 	joinClause := "FROM sessions"
 
 	isUnfilteredQuery := len(fieldIds) == 0 && len(visitedIds) == 0 && len(referrerIds) == 0 && len(notFieldIds) == 0 && len(notTrackFieldIds) == 0
 	if !isUnfilteredQuery {
 		fieldsInnerJoinStatement := "INNER JOIN session_fields t ON s.id=t.session_id"
 		fieldsSelectStatement := ", array_agg(t.field_id) fieldIds"
-		joinClause = fmt.Sprintf("FROM (SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, within_billing_quota %s FROM sessions s %s GROUP BY s.id) AS rows", fieldsSelectStatement, fieldsInnerJoinStatement)
+		joinClause = fmt.Sprintf("FROM (SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, within_billing_quota, field_group %s FROM sessions s %s GROUP BY s.id) AS rows", fieldsSelectStatement, fieldsInnerJoinStatement)
 	}
 	whereClause := ` `
 
@@ -1866,6 +1806,13 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		Sessions:   queriedSessions,
 		TotalCount: queriedSessionsCount,
 	}
+
+	endpointDuration := time.Since(endpointStart)
+	hlog.Timing("gql.sessions.duration", endpointDuration, logTags, 1)
+	hlog.Incr("gql.sessions.count", logTags, 1)
+	if endpointDuration.Milliseconds() > 5000 {
+		log.Error(e.New(fmt.Sprintf("endpoint.sessions took %dms: org_id: %d, count: %d, params: %+v", endpointDuration.Milliseconds(), organizationID, count, params)))
+	}
 	return sessionList, nil
 }
 
@@ -1977,7 +1924,7 @@ func (r *queryResolver) Organizations(ctx context.Context) ([]*model.Organizatio
 		return nil, e.Wrap(err, "error retrieiving user")
 	}
 	orgs := []*model.Organization{}
-	if err := r.DB.Model(&admin).Association("Organizations").Find(&orgs); err != nil {
+	if err := r.DB.Order("name asc").Model(&admin).Association("Organizations").Find(&orgs); err != nil {
 		return nil, e.Wrap(err, "error getting associated organizations")
 	}
 	return orgs, nil
@@ -2104,6 +2051,16 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		if err := r.DB.Create(newAdmin).Error; err != nil {
 			return nil, e.Wrap(err, "error creating new admin")
 		}
+		go func() {
+			if contact, err := apolloio.CreateContact(*newAdmin.Email); err != nil {
+				log.Errorf("error creating apollo contact: %v", err)
+			} else {
+				sequenceID := "6105bc9bf2a2dd0112bdd26b" // represents the "New Authenticated Users" sequence.
+				if err := apolloio.AddToSequence(contact.ID, sequenceID); err != nil {
+					log.Errorf("error adding new contact to sequence: %v", err)
+				}
+			}
+		}()
 		admin = newAdmin
 	}
 	if admin.PhotoURL == nil || admin.Name == nil {
@@ -2188,7 +2145,7 @@ func (r *sessionAlertResolver) UserProperties(ctx context.Context, obj *model.Se
 
 func (r *sessionCommentResolver) Author(ctx context.Context, obj *model.SessionComment) (*modelInputs.SanitizedAdmin, error) {
 	admin := &model.Admin{}
-	if err := r.DB.Debug().Where(&model.Admin{Model: model.Model{ID: obj.AdminId}}).First(&admin).Error; err != nil {
+	if err := r.DB.Where(&model.Admin{Model: model.Model{ID: obj.AdminId}}).First(&admin).Error; err != nil {
 		return nil, e.Wrap(err, "Error finding admin for comment")
 	}
 

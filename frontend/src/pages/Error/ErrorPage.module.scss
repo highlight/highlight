@@ -1,6 +1,9 @@
 @import 'src/static/shared.scss';
 
 .errorPageWrapper {
+    --right-panel-width: 325px;
+    background: var(--color-gray-200);
+    height: fit-content;
     width: 100%;
 }
 
@@ -9,18 +12,15 @@
     min-width: 700px;
 }
 
-.errorPageRight {
-    min-width: 360px;
-    padding-left: 40px;
-    width: 360px;
-}
-
 .errorPageRightContent {
     display: flex;
     flex-direction: column;
     height: calc(100vh - 120px);
+    padding-bottom: var(--size-large);
     position: sticky;
+    row-gap: var(--size-large);
     top: 120px;
+    width: 100%;
 }
 
 .title {
@@ -35,9 +35,12 @@
 }
 
 .errorPage {
-    display: flex;
+    column-gap: var(--size-large);
+    display: grid;
+    grid-template-columns: 1fr var(--right-panel-width);
     justify-content: space-between;
-    margin: 120px 80px 80px;
+    padding: 120px 80px 80px;
+    padding-bottom: 0;
     word-break: break-word;
 }
 
@@ -71,10 +74,12 @@
 }
 
 .section {
+    background: var(--color-primary-background);
     border: 1px solid var(--color-gray-300);
     border-radius: 8px;
     display: flex;
     margin-bottom: 20px;
+    overflow: hidden;
     transition: 0.4s;
     width: 100%;
 }
@@ -87,9 +92,18 @@
 
 .triggerWrapper {
     display: flex;
-    flex-direction: row;
-    padding: 15px 12px;
+    flex-direction: column;
     width: 100%;
+
+    > div {
+        padding: var(--size-medium);
+    }
+
+    hr {
+        border-top: var(--color-gray-300);
+        margin: 0;
+        width: 100%;
+    }
 }
 
 .iconWrapper {
@@ -219,7 +233,6 @@
     @include rounded-border;
     align-items: center;
     display: flex;
-    margin-top: var(--size-small);
     padding: var(--size-xSmall);
 }
 
@@ -227,17 +240,6 @@
     @include rounded-border;
     margin-bottom: var(--size-small);
     padding: var(--size-small);
-}
-
-.commentsContainer {
-    max-height: 300px;
-    overflow: auto;
-}
-
-.commentSection {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
 }
 
 .titleWithAction {

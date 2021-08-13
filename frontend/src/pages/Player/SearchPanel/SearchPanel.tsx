@@ -6,15 +6,23 @@ import styles from './SearchPanel.module.scss';
 import SegmentPickerForPlayer from './SegmentPickerForPlayer/SegmentPickerForPlayer';
 import SessionSearchFilters from './SessionSearchFilters/SessionSearchFilters';
 
-const SearchPanel = () => {
+interface Props {
+    visible: boolean;
+}
+
+const SearchPanel = ({ visible }: Props) => {
     return (
         <div className={styles.searchPanel}>
-            <div className={styles.filtersContainer}>
-                <SessionSearch />
-                <SegmentPickerForPlayer />
-                <SessionSearchFilters />
-            </div>
-            <SessionFeed />
+            {visible && (
+                <>
+                    <div className={styles.filtersContainer}>
+                        <SessionSearch />
+                        <SegmentPickerForPlayer />
+                        <SessionSearchFilters />
+                    </div>
+                    <SessionFeed />
+                </>
+            )}
         </div>
     );
 };

@@ -25,6 +25,7 @@ query GetSession($id: ID!) {
         starred
         enable_strict_privacy
         enable_recording_network_contents
+        field_group
         fields {
             name
             value
@@ -189,6 +190,7 @@ query GetSessions(
             viewed
             starred
             processed
+            field_group
             fields {
                 name
                 value
@@ -205,6 +207,22 @@ query GetOrganizations {
     organizations {
         id
         name
+    }
+}
+
+# Gets the current application and all applications the admin has access to.
+query GetApplications($id: ID!) {
+    organizations {
+        id
+        name
+    }
+    organization(id: $id) {
+        id
+        name
+        verbose_id
+        billing_email
+        slack_webhook_channel
+        secret
     }
 }
 

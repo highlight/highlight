@@ -32,7 +32,7 @@ const Switch = ({
             })}
         >
             {labelFirst && labelToRender}
-            <AntDesignSwitch {...props} />
+            <AntDesignSwitch {...props} size="small" />
             {!labelFirst && labelToRender}
         </label>
     );

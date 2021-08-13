@@ -2154,10 +2154,10 @@
   dependencies:
     "@hapi/hoek" "^8.3.0"
 
-"@highlight-run/rrweb@0.12.3":
-  version "0.12.3"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-0.12.3.tgz#9d9a138a951e7a95394bab3e8e66887e342ab892"
-  integrity sha512-L7MxWzW/H0Hf0oJcvascUo0I7vc2vVYlTCwr/bmVA6XIO4kdSqalfX6ZUMND5FN+xr5IDKkTxCVgTB5BkjSt7w==
+"@highlight-run/rrweb@0.12.4":
+  version "0.12.4"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-0.12.4.tgz#8b4f990036bf77ad6396e751d695e6f87e857171"
+  integrity sha512-fOtJ0AVynV8Hmj8MA1DxrI45SWQ+ADXabyWAYGrJnRzWjf9iRyDO7RpWKM9DxZvuICcmupX/XxeDC2omkcQSaA==
   dependencies:
     "@types/css-font-loading-module" "0.0.4"
     "@xstate/fsm" "^1.4.0"
@@ -2463,6 +2463,13 @@
   version "2.4.0"
   resolved "https://registry.yarnpkg.com/@rehooks/local-storage/-/local-storage-2.4.0.tgz#fb884b2b657cad5f77aa6ab60bb3532f0e0725d2"
   integrity sha512-LoXDbEHsuIckVgBsFAv8SuU/M7memjyfWut9Zf36TQXqqCHBRFv8bweg9PymQCa1aWIMjNrZQflFdo55FDlXYg==
+
+"@rehooks/window-size@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@rehooks/window-size/-/window-size-1.0.2.tgz#24583dda021969e7b7166b923b055a47cca4e4b5"
+  integrity sha512-sqPpGM4kivmOFHG+UKqmJbVDBSLOpjMZgqnCNzpzXRZey8R84LL3MaYiE5hulAAosiOh3UJopvJhgUauccaoeA==
+  dependencies:
+    react "^16.7.0-alpha.0"
 
 "@rollup/plugin-node-resolve@^7.1.1":
   version "7.1.3"
@@ -7969,10 +7976,10 @@ highlight-words-core@^1.2.0:
   resolved "https://registry.yarnpkg.com/highlight-words-core/-/highlight-words-core-1.2.2.tgz#1eff6d7d9f0a22f155042a00791237791b1eeaaa"
   integrity sha512-BXUKIkUuh6cmmxzi5OIbUJxrG8OAk2MqoL1DtO3Wo9D2faJg2ph5ntyuQeLqaHJmzER6H5tllCDA9ZnNe9BVGg==
 
-highlight.run@^2.3.1:
-  version "2.3.1"
-  resolved "https://registry.yarnpkg.com/highlight.run/-/highlight.run-2.3.1.tgz#5c80d3a32e2ba6b2f1b899c667d3f0a4d11a6081"
-  integrity sha512-IaDQHFnruyfjsYiykU6Y3LH6YUyFtJXkbVzEK3bI8t1reJ9mv23HfZdtFtVxpcxZZgnpbi7+KKhw0SHPw+JuJw==
+highlight.run@2.4.0:
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/highlight.run/-/highlight.run-2.4.0.tgz#776d4d52c67986d17283d96d319fe5c7919029d3"
+  integrity sha512-46kdasuyAe/hpEobscPRFVVuI7/6ws+4zDBzKKTOpplIMMj2uZzVUGQ7d/BAd+yh9l2viUHt5XkMeXWrh6W7Tg==
 
 history@^4.9.0:
   version "4.10.1"
@@ -13645,7 +13652,7 @@ react-virtuoso@^1.5.4:
     react-app-polyfill "^1.0.6"
     resize-observer-polyfill "^1.5.1"
 
-react@^16.13.1:
+react@^16.13.1, react@^16.7.0-alpha.0:
   version "16.14.0"
   resolved "https://registry.yarnpkg.com/react/-/react-16.14.0.tgz#94d776ddd0aaa37da3eda8fc5b6b18a4c9a3114d"
   integrity sha512-0X2CImDkJGApiAlcf0ODKIneSwBPhqJawOa5wCtKbu7ZECrmS26NvtSILynQ66cgkT/RJ4LidJOc3bUESwmU8g==

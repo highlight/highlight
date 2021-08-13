@@ -81,6 +81,27 @@ const MetadataPanel = () => {
             renderType: 'string',
         },
         {
+            keyDisplayValue: 'Strict Privacy',
+            valueDisplayValue: session?.enable_strict_privacy
+                ? 'Enabled'
+                : 'Disabled',
+            renderType: 'string',
+            valueInfoTooltipMessage: (
+                <>
+                    {session?.enable_strict_privacy
+                        ? 'Text and images in this session are obfuscated.'
+                        : 'This session is recording all content on the page.'}{' '}
+                    <a
+                        href="https://docs.highlight.run/docs/privacy#overview"
+                        target="_blank"
+                        rel="noreferrer"
+                    >
+                        Learn more about Strict Privacy Mode.
+                    </a>
+                </>
+            ),
+        },
+        {
             keyDisplayValue: 'Record Network Requests',
             valueDisplayValue: session?.enable_recording_network_contents
                 ? 'Enabled'

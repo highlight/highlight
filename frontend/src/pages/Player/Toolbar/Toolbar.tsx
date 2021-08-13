@@ -1,27 +1,23 @@
 import classNames from 'classnames';
 import React, { useEffect, useRef, useState } from 'react';
 import Draggable from 'react-draggable';
-import { FaPause } from 'react-icons/fa';
 import Skeleton from 'react-loading-skeleton';
 
+import { useAuthContext } from '../../../AuthContext';
 import Button from '../../../components/Button/Button/Button';
 import Modal from '../../../components/Modal/Modal';
 import Popover from '../../../components/Popover/Popover';
 import PopoverListContent from '../../../components/Popover/PopoverListContent';
-import {
-    SidebarState,
-    useSidebarContext,
-} from '../../../components/Sidebar/SidebarContext';
 import Switch from '../../../components/Switch/Switch';
 import ToggleButton from '../../../components/ToggleButton/ToggleButton';
 import Tooltip from '../../../components/Tooltip/Tooltip';
-import { useGetAdminQuery } from '../../../graph/generated/hooks';
 import { ErrorObject } from '../../../graph/generated/schemas';
 import SvgDevtoolsIcon from '../../../static/DevtoolsIcon';
+import SvgPauseIcon from '../../../static/PauseIcon';
 import SvgPlayIcon from '../../../static/PlayIcon';
-import SvgRedoIcon from '../../../static/RedoIcon';
 import SvgSettingsIcon from '../../../static/SettingsIcon';
-import SvgUndoIcon from '../../../static/UndoIcon';
+import SvgSkipBackIcon from '../../../static/SkipBackIcon';
+import SvgSkipForwardIcon from '../../../static/SkipForwardIcon';
 import {
     MillisToMinutesAndSeconds,
     MillisToMinutesAndSecondsVerbose,
@@ -73,8 +69,7 @@ export const Toolbar = () => {
         showPlayerMouseTail,
         setShowPlayerMouseTail,
     } = usePlayerConfiguration();
-    const { staticSidebarState } = useSidebarContext();
-    const { data: admin_data } = useGetAdminQuery({ skip: false });
+    const { isLoggedIn } = useAuthContext();
     const max = replayer?.getMetaData().totalTime ?? 0;
     const sliderWrapperRef = useRef<HTMLButtonElement>(null);
     const [selectedError, setSelectedError] = useState<ErrorObject | undefined>(
@@ -103,7 +98,7 @@ export const Toolbar = () => {
 
     // Automatically start the player if the user has set the preference.
     useEffect(() => {
-        if (admin_data) {
+        if (isLoggedIn) {
             if (
                 (autoPlayVideo || autoPlaySessions) &&
                 replayer &&
@@ -117,7 +112,7 @@ export const Toolbar = () => {
             }
         }
     }, [
-        admin_data,
+        isLoggedIn,
         autoPlayVideo,
         autoPlaySessions,
         isPlayerReady,
@@ -204,8 +199,8 @@ export const Toolbar = () => {
     // The play button should be disabled if the player has reached the end.
     const disablePlayButton = time >= (replayer?.getMetaData().totalTime ?? 0);
     const leftSidebarWidth = showLeftPanel ? 475 : 0;
-    const staticSidebarWidth =
-        staticSidebarState == SidebarState.Expanded ? 64 : 0;
+    /** 64 (sidebar width) + 12 (left padding for the toolbar)  */
+    const staticSidebarWidth = isLoggedIn ? 64 + 12 : 12;
 
     return (
         <ErrorModalContextProvider value={{ selectedError, setSelectedError }}>
@@ -324,7 +319,7 @@ export const Toolbar = () => {
                                         )}
                                     />
                                 ) : (
-                                    <FaPause
+                                    <SvgPauseIcon
                                         fill="inherit"
                                         className={classNames(
                                             styles.playButtonStyle,
@@ -359,7 +354,7 @@ export const Toolbar = () => {
                                     }
                                 }}
                             >
-                                <SvgUndoIcon
+                                <SvgSkipBackIcon
                                     fill="inherit"
                                     className={classNames(
                                         styles.skipButtonStyle,
@@ -396,7 +391,7 @@ export const Toolbar = () => {
                                     }
                                 }}
                             >
-                                <SvgRedoIcon
+                                <SvgSkipForwardIcon
                                     fill="inherit"
                                     className={classNames(
                                         styles.skipButtonStyle,
@@ -418,7 +413,6 @@ export const Toolbar = () => {
                     </div>
                 </div>
                 <div className={styles.toolbarRightSection}>
-                    <TimelineAnnotationsSettings disabled={disableControls} />
                     <Tooltip
                         title="View the DevTools to see console logs, errors, and network requests."
                         placement="topLeft"
@@ -492,6 +486,17 @@ export const Toolbar = () => {
                                         >
                                             Playback speed
                                             <SpeedControl
+                                                disabled={disableControls}
+                                            />
+                                        </div>,
+                                        <div
+                                            key="timelineAnnotationSettings"
+                                            className={
+                                                styles.speedControlContainer
+                                            }
+                                        >
+                                            Annotations
+                                            <TimelineAnnotationsSettings
                                                 disabled={disableControls}
                                             />
                                         </div>,

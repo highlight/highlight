@@ -502,6 +502,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'starred'
             | 'enable_strict_privacy'
             | 'enable_recording_network_contents'
+            | 'field_group'
             | 'object_storage_enabled'
             | 'payload_size'
             | 'within_billing_quota'
@@ -716,6 +717,7 @@ export type GetSessionsQuery = { __typename?: 'Query' } & {
                     | 'viewed'
                     | 'starred'
                     | 'processed'
+                    | 'field_group'
                     | 'first_time'
                 > & {
                         fields?: Types.Maybe<
@@ -746,6 +748,34 @@ export type GetOrganizationsQuery = { __typename?: 'Query' } & {
                     'id' | 'name'
                 >
             >
+        >
+    >;
+};
+
+export type GetApplicationsQueryVariables = Types.Exact<{
+    id: Types.Scalars['ID'];
+}>;
+
+export type GetApplicationsQuery = { __typename?: 'Query' } & {
+    organizations?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Organization' } & Pick<
+                    Types.Organization,
+                    'id' | 'name'
+                >
+            >
+        >
+    >;
+    organization?: Types.Maybe<
+        { __typename?: 'Organization' } & Pick<
+            Types.Organization,
+            | 'id'
+            | 'name'
+            | 'verbose_id'
+            | 'billing_email'
+            | 'slack_webhook_channel'
+            | 'secret'
         >
     >;
 };

@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import { Avatar } from '../../../../../components/Avatar/Avatar';
@@ -10,8 +10,10 @@ import SvgFaceIdIcon from '../../../../../static/FaceIdIcon';
 import SvgFastForwardIcon from '../../../../../static/FastForwardIcon';
 import SvgUserPlusIcon from '../../../../../static/UserPlusIcon';
 import { MillisToMinutesAndSecondsVerbose } from '../../../../../util/time';
+import usePlayerConfiguration from '../../../../Player/PlayerHook/utils/usePlayerConfiguration';
 import { LIVE_SEGMENT_ID } from '../../../SearchSidebar/SegmentPicker/SegmentPicker';
 import styles from './MinimalSessionCard.module.scss';
+import { getIdentifiedUserProfileImage } from './utils/utils';
 
 interface Props {
     session: Maybe<Session>;
@@ -19,10 +21,22 @@ interface Props {
 }
 
 const MinimalSessionCard = ({ session, selected }: Props) => {
-    const { organization_id, segment_id } = useParams<{
+    const { organization_id, segment_id, session_id } = useParams<{
         organization_id: string;
         segment_id: string;
+        session_id: string;
     }>();
+    const { showDetailedSessionView } = usePlayerConfiguration();
+
+    const [viewed, setViewed] = useState(session?.viewed || false);
+
+    useEffect(() => {
+        if (session_id === session?.id) {
+            setViewed(true);
+        }
+    }, [session?.id, session_id]);
+
+    const customAvatarImage = getIdentifiedUserProfileImage(session);
 
     return (
         <div className={styles.sessionCardWrapper} key={session?.id}>
@@ -32,7 +46,12 @@ const MinimalSessionCard = ({ session, selected }: Props) => {
                         [styles.selected]: selected,
                     })}
                 >
-                    <div className={styles.sessionCardContentWrapper}>
+                    <div
+                        className={classNames(
+                            styles.sessionCardContentWrapper,
+                            { [styles.detailed]: showDetailedSessionView }
+                        )}
+                    >
                         <div className={styles.avatarWrapper}>
                             <Avatar
                                 seed={
@@ -45,10 +64,18 @@ const MinimalSessionCard = ({ session, selected }: Props) => {
                                           ).toString()) ?? ''
                                 }
                                 style={{ height: 25, width: 25 }}
+                                customImage={customAvatarImage}
                             />
                         </div>
                         <div className={styles.sessionTextSectionWrapper}>
-                            <div className={styles.sessionTextSection}>
+                            <div
+                                className={classNames(
+                                    styles.sessionTextSection,
+                                    {
+                                        [styles.detailed]: showDetailedSessionView,
+                                    }
+                                )}
+                            >
                                 <div
                                     className={classNames(
                                         styles.middleText,
@@ -62,53 +89,112 @@ const MinimalSessionCard = ({ session, selected }: Props) => {
                                         }`}
                                 </div>
                             </div>
-                            <div className={styles.sessionTextSection}>
-                                <Tooltip
-                                    title={
-                                        session?.processed ? (
-                                            <table>
-                                                <tbody>
-                                                    <tr>
-                                                        <td>Active:</td>
-                                                        <td>
-                                                            {MillisToMinutesAndSecondsVerbose(
-                                                                session.active_length ||
-                                                                    0
-                                                            )}
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Total:</td>
-                                                        <td>
-                                                            {MillisToMinutesAndSecondsVerbose(
-                                                                session.length ||
-                                                                    0
-                                                            )}
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        ) : null
+                            <div
+                                className={classNames(
+                                    styles.sessionTextSection,
+                                    {
+                                        [styles.detailedSection]: showDetailedSessionView,
                                     }
-                                    align={{ offset: [-40, 0] }}
-                                >
-                                    <div className={styles.topText}>
-                                        {session?.processed &&
-                                        segment_id !== LIVE_SEGMENT_ID
-                                            ? MillisToMinutesAndSecondsVerbose(
-                                                  session.active_length || 0
-                                              )
-                                            : 'Live'}
-                                    </div>
-                                </Tooltip>
+                                )}
+                            >
+                                {showDetailedSessionView ? (
+                                    <>
+                                        <div className={styles.topText}>
+                                            {session?.processed &&
+                                            segment_id !== LIVE_SEGMENT_ID
+                                                ? MillisToMinutesAndSecondsVerbose(
+                                                      session.active_length || 0
+                                                  )
+                                                : 'Live'}
+                                        </div>
+                                        <Tooltip
+                                            title={`${session?.city}, ${session?.state}`}
+                                        >
+                                            <div className={styles.topText}>
+                                                {`${
+                                                    session?.city &&
+                                                    session?.state
+                                                        ? `${session?.city}, ${session?.state}`
+                                                        : ''
+                                                }`}
+                                            </div>
+                                        </Tooltip>
+                                        <Tooltip
+                                            title={`${new Date(
+                                                session?.created_at
+                                            )}`}
+                                        >
+                                            <div className={styles.topText}>
+                                                {`${new Date(
+                                                    session?.created_at
+                                                ).toLocaleString('en-us', {
+                                                    day: 'numeric',
+                                                    month: 'long',
+                                                    year: 'numeric',
+                                                })}`}
+                                            </div>
+                                        </Tooltip>
+                                        <Tooltip
+                                            title={`${session?.browser_name}`}
+                                        >
+                                            <div className={styles.topText}>
+                                                {`${session?.browser_name}`}
+                                            </div>
+                                        </Tooltip>
+                                    </>
+                                ) : (
+                                    <Tooltip
+                                        title={
+                                            session?.processed ? (
+                                                <table>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>Active:</td>
+                                                            <td>
+                                                                {MillisToMinutesAndSecondsVerbose(
+                                                                    session.active_length ||
+                                                                        0
+                                                                )}
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Total:</td>
+                                                            <td>
+                                                                {MillisToMinutesAndSecondsVerbose(
+                                                                    session.length ||
+                                                                        0
+                                                                )}
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            ) : null
+                                        }
+                                        align={{ offset: [-40, 0] }}
+                                    >
+                                        <div className={styles.topText}>
+                                            {session?.processed &&
+                                            segment_id !== LIVE_SEGMENT_ID
+                                                ? MillisToMinutesAndSecondsVerbose(
+                                                      session.active_length || 0
+                                                  )
+                                                : 'Live'}
+                                        </div>
+                                    </Tooltip>
+                                )}
                             </div>
                         </div>
 
-                        <div className={styles.cardAnnotationContainer}>
+                        <div
+                            className={classNames(
+                                styles.cardAnnotationContainer,
+                                { [styles.detailed]: showDetailedSessionView }
+                            )}
+                        >
                             <div>
                                 <Tooltip
                                     title={
-                                        !session?.viewed
+                                        !viewed
                                             ? `This session hasn't been viewed.`
                                             : 'This session has been viewed.'
                                     }
@@ -117,7 +203,7 @@ const MinimalSessionCard = ({ session, selected }: Props) => {
                                         className={styles.cardAnnotation}
                                         style={
                                             {
-                                                '--primary-color': !session?.viewed
+                                                '--primary-color': !viewed
                                                     ? 'var(--color-blue-400)'
                                                     : 'var(--color-gray-300)',
                                             } as React.CSSProperties

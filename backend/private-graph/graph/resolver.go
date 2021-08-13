@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	e "github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
@@ -40,8 +41,9 @@ func (r *Resolver) getCurrentAdmin(ctx context.Context) (*model.Admin, error) {
 
 func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
 	uid := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
-	// If the user is engineering@..., we whitelist.
-	return uid == WhitelistedUID
+	email := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.Email))
+	// Allow access to engineering@highlight.run or any verified @highlight.run email.
+	return uid == WhitelistedUID || strings.Contains(email, "@highlight.run")
 }
 
 // These are authentication methods used to make sure that data is secured.
