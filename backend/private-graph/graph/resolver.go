@@ -265,7 +265,7 @@ func (r *Resolver) UpdateSessionsVisibility(organizationID int, newPlan modelInp
 	}
 }
 
-func (r *queryResolver) getFieldFilters(ctx context.Context, organizationID int, params *modelInputs.SearchParamsInput) (isUnfilteredQuery bool, whereClause string, err error) {
+func (r *queryResolver) getFieldFilters(ctx context.Context, organizationID int, params *modelInputs.SearchParamsInput) (customJoinClause string, whereClause string, err error) {
 	// Find fields based on the search params
 	//included fields
 	fieldCheck := true
@@ -312,7 +312,7 @@ func (r *queryResolver) getFieldFilters(ctx context.Context, organizationID int,
 		if len(params.UserProperties)+len(params.TrackProperties) != len(fieldIds) {
 			var tempFieldIds []int
 			if err := fieldQuery.Pluck("id", &tempFieldIds).Error; err != nil {
-				return false, "", e.Wrap(err, "error querying initial set of session fields")
+				return "", "", e.Wrap(err, "error querying initial set of session fields")
 			}
 			fieldIds = append(fieldIds, tempFieldIds...)
 		}
@@ -323,7 +323,7 @@ func (r *queryResolver) getFieldFilters(ctx context.Context, organizationID int,
 
 	if params.VisitedURL != nil {
 		if err := visitedQuery.Pluck("id", &visitedIds).Error; err != nil {
-			return false, "", e.Wrap(err, "error querying visited-url fields")
+			return "", "", e.Wrap(err, "error querying visited-url fields")
 		}
 		if len(visitedIds) == 0 {
 			visitedCheck = false
@@ -332,7 +332,7 @@ func (r *queryResolver) getFieldFilters(ctx context.Context, organizationID int,
 
 	if params.Referrer != nil {
 		if err := referrerQuery.Pluck("id", &referrerIds).Error; err != nil {
-			return false, "", e.Wrap(err, "error querying referrer fields")
+			return "", "", e.Wrap(err, "error querying referrer fields")
 		}
 		if len(referrerIds) == 0 {
 			referrerCheck = false
@@ -356,7 +356,7 @@ func (r *queryResolver) getFieldFilters(ctx context.Context, organizationID int,
 	if len(params.ExcludedProperties) != len(notFieldIds) {
 		var tempNotFieldIds []int
 		if err := notFieldQuery.Pluck("id", &notFieldIds).Error; err != nil {
-			return false, "", e.Wrap(err, "error querying initial set of excluded sessions fields")
+			return "", "", e.Wrap(err, "error querying initial set of excluded sessions fields")
 		}
 		notFieldIds = append(notFieldIds, tempNotFieldIds...)
 	}
@@ -379,7 +379,7 @@ func (r *queryResolver) getFieldFilters(ctx context.Context, organizationID int,
 	if len(params.ExcludedTrackProperties) != len(notTrackFieldIds) {
 		var tempNotTrackFieldIds []int
 		if err := notTrackFieldQuery.Pluck("id", &tempNotTrackFieldIds).Error; err != nil {
-			return false, "", e.Wrap(err, "error querying initial set of excluded track sessions fields")
+			return "", "", e.Wrap(err, "error querying initial set of excluded track sessions fields")
 		}
 		notTrackFieldIds = append(notTrackFieldIds, tempNotTrackFieldIds...)
 	}
@@ -416,7 +416,12 @@ func (r *queryResolver) getFieldFilters(ctx context.Context, organizationID int,
 		whereClause += "AND (id != id) "
 	}
 
-	isUnfilteredQuery = len(fieldIds) == 0 && len(visitedIds) == 0 && len(referrerIds) == 0 && len(notFieldIds) == 0 && len(notTrackFieldIds) == 0
+	isUnfilteredQuery := len(fieldIds) == 0 && len(visitedIds) == 0 && len(referrerIds) == 0 && len(notFieldIds) == 0 && len(notTrackFieldIds) == 0
+	if !isUnfilteredQuery {
+		fieldsInnerJoinStatement := "INNER JOIN session_fields t ON s.id=t.session_id"
+		fieldsSelectStatement := ", array_agg(t.field_id) fieldIds"
+		customJoinClause = fmt.Sprintf("FROM (SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, within_billing_quota, field_group %s FROM sessions s %s GROUP BY s.id) AS rows", fieldsSelectStatement, fieldsInnerJoinStatement)
+	}
 
-	return isUnfilteredQuery, whereClause, nil
+	return customJoinClause, whereClause, nil
 }
