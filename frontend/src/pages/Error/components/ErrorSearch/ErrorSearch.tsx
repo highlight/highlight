@@ -8,7 +8,6 @@ import TextHighlighter from '../../../../components/TextHighlighter/TextHighligh
 import { useGetErrorSearchSuggestionsQuery } from '../../../../graph/generated/hooks';
 import SvgSearchIcon from '../../../../static/SearchIcon';
 import { useErrorSearchContext } from '../../../Errors/ErrorSearchContext/ErrorSearchContext';
-import SessionSearchFilters from '../../../Player/SearchPanel/SessionSearchFilters/SessionSearchFilters';
 import styles from './ErrorSearch.module.scss';
 
 const ErrorSearch = () => {
@@ -20,7 +19,6 @@ const ErrorSearch = () => {
         ErrorSearchOption[]
     >([]);
     const { searchParams, setSearchParams } = useErrorSearchContext();
-    console.log(searchParams);
 
     const handleChange = (_selectedProperties: any) => {
         const selectedProperties = transformSelectedProperties(
@@ -205,19 +203,6 @@ const ErrorSearch = () => {
                                 </div>
                             </components.Option>
                         </div>
-                    );
-                },
-                Menu: (props) => {
-                    return (
-                        <components.Menu {...props}>
-                            <>
-                                <div className={styles.filterContainer}>
-                                    <h4>Includes:</h4>
-                                    <SessionSearchFilters />
-                                </div>
-                                {props.children}
-                            </>
-                        </components.Menu>
                     );
                 },
                 GroupHeading: (props) => {

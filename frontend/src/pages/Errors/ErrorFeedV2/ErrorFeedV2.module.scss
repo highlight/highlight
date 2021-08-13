@@ -84,30 +84,22 @@
     flex-direction: column;
     flex-grow: 1;
     height: 200px;
-    margin-top: -24px;
     overflow-x: hidden;
     overflow-y: auto;
-    padding-top: 16px;
     width: 100%;
 }
 
 .fixedContent {
+    align-items: center;
+    display: flex;
+    padding-bottom: var(--size-small);
     position: relative;
-    z-index: 99;
 }
 
 .resultCount {
-    background: linear-gradient(
-        to top,
-        rgba(255, 255, 255, 0),
-        rgba(255, 255, 255, 1) 30%
-    );
     color: var(--color-gray-500);
     font-family: var(--header-font-family);
-    margin: 0 -3px;
-    padding: 8px 5px 16px;
     width: 100%;
-    z-index: 10;
 }
 
 .errorCardWrapper {
