@@ -3,7 +3,7 @@ package util
 import "os"
 
 var (
-	env    	 = os.Getenv("ENVIRONMENT")
+	env      = os.Getenv("ENVIRONMENT")
 	DEV_ENV  = "dev"
 	TEST_ENV = "test"
 )
