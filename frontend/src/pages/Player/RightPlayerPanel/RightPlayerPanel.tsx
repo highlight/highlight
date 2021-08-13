@@ -1,60 +1,92 @@
+import classNames from 'classnames';
 import React from 'react';
 
 import Tabs from '../../../components/Tabs/Tabs';
-import CommentStream from '../CommentStream/CommentStream';
+import PanelToggleButton from '../components/PanelToggleButton/PanelToggleButton';
 import { MetadataBox } from '../MetadataBox/MetadataBox';
 import MetadataPanel from '../MetadataPanel/MetadataPanel';
 import usePlayerConfiguration from '../PlayerHook/utils/usePlayerConfiguration';
 import { EventStream } from '../PlayerPage';
+import playerPageStyles from '../PlayerPage.module.scss';
+import { PlayerPageProductTourSelectors } from '../PlayerPageProductTour/PlayerPageProductTour';
 import { useReplayerContext } from '../ReplayerContext';
+import SessionFullCommentList from '../SessionFullCommentList/SessionFullCommentList';
 import styles from './RightPlayerPanel.module.scss';
 
 const RightPlayerPanel = () => {
     const {
         showRightPanel: showRightPanelPreference,
+        setShowRightPanel,
     } = usePlayerConfiguration();
     const { canViewSession } = useReplayerContext();
 
     const showRightPanel = showRightPanelPreference && canViewSession;
 
-    if (!showRightPanel) {
-        return null;
-    }
-
     return (
-        <div className={styles.playerRightPanelContainer}>
-            <div className={styles.playerRightPanelCollapsible}>
-                <MetadataBox />
-                <Tabs
-                    centered
-                    id="PlayerRightPanel"
-                    noPadding
-                    className={styles.tabs}
-                    tabs={[
+        <>
+            <div
+                className={classNames(styles.playerRightPanelContainer, {
+                    [styles.hidden]: !showRightPanel,
+                })}
+            >
+                <PanelToggleButton
+                    className={classNames(
+                        playerPageStyles.panelToggleButton,
+                        playerPageStyles.panelToggleButtonRight,
                         {
-                            title: 'Events',
-                            panelContent: <EventStream />,
-                        },
-                        {
-                            title: 'Comments',
-                            panelContent: (
-                                <div className={styles.tabContentContainer}>
-                                    <CommentStream />
-                                </div>
-                            ),
-                        },
-                        {
-                            title: 'Metadata',
-                            panelContent: (
-                                <div className={styles.tabContentContainer}>
-                                    <MetadataPanel />
-                                </div>
-                            ),
-                        },
-                    ]}
+                            [playerPageStyles.panelShown]: showRightPanel,
+                        }
+                    )}
+                    direction="right"
+                    isOpen={showRightPanel}
+                    onClick={() => {
+                        setShowRightPanel(!showRightPanel);
+                    }}
                 />
+                <div className={styles.playerRightPanelCollapsible}>
+                    <MetadataBox />
+                    {showRightPanel && (
+                        <Tabs
+                            centered
+                            tabsHtmlId={`${PlayerPageProductTourSelectors.PlayerRightPanel}`}
+                            id="PlayerRightPanel"
+                            noPadding
+                            className={styles.tabs}
+                            tabs={[
+                                {
+                                    title: 'Events',
+                                    panelContent: <EventStream />,
+                                },
+                                {
+                                    title: 'Comments',
+                                    panelContent: (
+                                        <div
+                                            className={
+                                                styles.tabContentContainer
+                                            }
+                                        >
+                                            <SessionFullCommentList />
+                                        </div>
+                                    ),
+                                },
+                                {
+                                    title: 'Metadata',
+                                    panelContent: (
+                                        <div
+                                            className={
+                                                styles.tabContentContainer
+                                            }
+                                        >
+                                            <MetadataPanel />
+                                        </div>
+                                    ),
+                                },
+                            ]}
+                        />
+                    )}
+                </div>
             </div>
-        </div>
+        </>
     );
 };
 

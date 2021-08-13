@@ -27,7 +27,12 @@ export const SessionFeed = () => {
         session_id: string;
     }>();
     const [count, setCount] = useState(10);
-    const { autoPlaySessions, setAutoPlaySessions } = usePlayerConfiguration();
+    const {
+        autoPlaySessions,
+        setAutoPlaySessions,
+        setShowDetailedSessionView,
+        showDetailedSessionView,
+    } = usePlayerConfiguration();
 
     // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
     const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
@@ -116,13 +121,22 @@ export const SessionFeed = () => {
                                     />{' '}
                                     sessions
                                 </span>
-                                <Switch
-                                    label="Autoplay"
-                                    checked={autoPlaySessions}
-                                    onChange={(checked) => {
-                                        setAutoPlaySessions(checked);
-                                    }}
-                                />
+                                <div className={styles.sessionFeedActions}>
+                                    <Switch
+                                        label="Autoplay"
+                                        checked={autoPlaySessions}
+                                        onChange={(checked) => {
+                                            setAutoPlaySessions(checked);
+                                        }}
+                                    />
+                                    <Switch
+                                        label="Show Details"
+                                        checked={showDetailedSessionView}
+                                        onChange={(checked) => {
+                                            setShowDetailedSessionView(checked);
+                                        }}
+                                    />
+                                </div>
                             </div>
                         )
                     )}

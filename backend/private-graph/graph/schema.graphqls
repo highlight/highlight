@@ -125,7 +125,6 @@ type ErrorGroup {
     metadata_log: [ErrorMetadata]!
     field_group: [ErrorField]
     state: ErrorState!
-    resolved: Boolean
     environments: String
 }
 
@@ -211,7 +210,7 @@ input ErrorSearchParamsInput {
     os: String
     browser: String
     visited_url: String
-    hide_resolved: Boolean
+    state: ErrorState
     event: String
 }
 
@@ -220,7 +219,7 @@ type ErrorSearchParams {
     os: String
     browser: String
     visited_url: String
-    hide_resolved: Boolean
+    state: ErrorState
     event: String
 }
 
@@ -501,10 +500,11 @@ type Mutation {
     deleteErrorSegment(segment_id: ID!): Boolean
     # If this endpoint returns a checkout_id, we initiate a stripe checkout.
     # Otherwise, we simply update the subscription.
-    createOrUpdateSubscription(
+    createOrUpdateStripeSubscription(
         organization_id: ID!
         plan_type: PlanType!
     ): String
+    updateBillingDetails(organization_id: ID!): Boolean
     createSessionComment(
         organization_id: ID!
         session_id: ID!

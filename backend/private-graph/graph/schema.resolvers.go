@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/pricing"
@@ -441,90 +442,28 @@ func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int
 }
 
 func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (string, error) {
-	apiKey := os.Getenv("APOLLO_IO_API_KEY")
-
-	type MatchRequest struct {
-		ApiKey string `json:"api_key"`
-		Email  string `json:"email"`
-	}
-	type MatchResponse struct {
-		Person map[string]interface{} `json:"person"`
-	}
-
-	matchRequest := &MatchRequest{ApiKey: apiKey, Email: email}
-	matchResponse := &MatchResponse{}
-	err := util.RestRequest("https://api.apollo.io/v1/people/match", "POST", matchRequest, matchResponse)
+	short, long, err := apolloio.Enrich(email)
 	if err != nil {
-		log.Errorf("error sending match request: %v", err)
+		log.Errorf("error enriching email: %v", err)
+		return email, nil
 	}
 
-	contactString := ""
-	contactBytes, err := json.MarshalIndent(matchResponse.Person, "", "  ")
-	if err == nil {
-		contactString = string(contactBytes)
-	} else {
-		log.Errorf("error marshaling: %v", err)
-	}
-
-	contactStringShort := ""
-	shortContactMap := make(map[string]string)
-	for key, val := range matchResponse.Person {
-		if valString, ok := val.(string); ok {
-			shortContactMap[key] = valString
-		}
-	}
-	contactBytesShort, err := json.MarshalIndent(shortContactMap, "", "  ")
-	if err == nil {
-		contactStringShort = string(contactBytesShort)
-	} else {
-		log.Errorf("error marshaling short: %v", err)
-	}
 	model.DB.Create(&model.EmailSignup{
 		Email:               email,
-		ApolloData:          contactString,
-		ApolloDataShortened: contactStringShort,
+		ApolloData:          *long,
+		ApolloDataShortened: *short,
 	})
 
-	type ContactsRequest struct {
-		ApiKey string `json:"api_key"`
-		Email  string `json:"email"`
-	}
-	type Contact struct {
-		ID string `json:"id"`
-	}
-	type ContactsResponse struct {
-		Contact Contact `json:"contact"`
-	}
-	contactsRequest := &ContactsRequest{ApiKey: apiKey, Email: email}
-	contactsResponse := &ContactsResponse{}
-	err = util.RestRequest("https://api.apollo.io/v1/contacts", "POST", contactsRequest, contactsResponse)
-	if err != nil {
-		log.Errorf("error sending contacts request: %v", err)
-		return email, nil
-	}
-
-	type SequenceRequest struct {
-		ApiKey                      string   `json:"api_key"`
-		ContactIDs                  []string `json:"contact_ids"`
-		EmailerCampaignID           string   `json:"emailer_campaign_id"`
-		SendEmailFromEmailAccountID string   `json:"send_email_from_email_account_id"`
-	}
-	type SequenceResponse struct {
-		Contacts json.RawMessage `json:"contacts"`
-	}
-	sequenceRequest := &SequenceRequest{
-		ApiKey:                      apiKey,
-		ContactIDs:                  []string{contactsResponse.Contact.ID},
-		EmailerCampaignID:           "60fb134ce97fa1014c1cc141", // Represents the sequence ID for "Landing Page Signups"
-		SendEmailFromEmailAccountID: "6053cd5ef93cca00e498990f", // Respresents the ID for Jay's email account (jay@highlight.run)
-	}
-	sequenceResponse := &SequenceResponse{}
-	url := fmt.Sprintf("https://api.apollo.io/v1/emailer_campaigns/%v/add_contact_ids", sequenceRequest.EmailerCampaignID)
-	err = util.RestRequest(url, "POST", sequenceRequest, sequenceResponse)
-	if err != nil {
-		log.Errorf("error sending contacts request: %v", err)
-		return email, nil
-	}
+	go func() {
+		if contact, err := apolloio.CreateContact(email); err != nil {
+			log.Errorf("error creating apollo contact: %v", err)
+		} else {
+			sequenceID := "60fb134ce97fa1014c1cc141" // represents the "Landing Page Signups" sequence.
+			if err := apolloio.AddToSequence(contact.ID, sequenceID); err != nil {
+				log.Errorf("error adding to apollo sequence: %v", err)
+			}
+		}
+	}()
 
 	return email, nil
 }
@@ -612,7 +551,7 @@ func (r *mutationResolver) DeleteErrorSegment(ctx context.Context, segmentID int
 	return &model.T, nil
 }
 
-func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organizationID int, planType modelInputs.PlanType) (*string, error) {
+func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context, organizationID int, planType modelInputs.PlanType) (*string, error) {
 	org, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
@@ -657,19 +596,6 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		if err != nil {
 			return nil, e.Wrap(err, "couldn't update subscription")
 		}
-		organization := model.Organization{Model: model.Model{ID: organizationID}}
-		if err := r.DB.Model(&organization).Updates(model.Organization{StripePriceID: &plan}).Error; err != nil {
-			return nil, e.Wrap(err, "error setting stripe_plan_id on organization")
-		}
-
-		// mark sessions as within billing quota on plan upgrade
-		// this is done when the user is already signed up for some sort of billing plan
-		if c.Subscriptions.Data[0].Items.Data[0].Plan != nil {
-			go r.UpdateSessionsVisibility(organizationID, planType, pricing.FromPriceID(c.Subscriptions.Data[0].Items.Data[0].Plan.ID))
-		} else {
-			log.Error("error getting original plan data from stripe client")
-		}
-
 		ret := ""
 		return &ret, nil
 	}
@@ -699,16 +625,37 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		return nil, e.Wrap(err, "error creating CheckoutSession in stripe")
 	}
 
+	return &stripeSession.ID, nil
+}
+
+func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, organizationID int) (*bool, error) {
+	org, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in organization")
+	}
+	params := &stripe.CustomerParams{}
+	params.AddExpand("subscriptions")
+	c, err := r.StripeClient.Customers.Get(*org.StripeCustomerID, params)
+	if err != nil {
+		return nil, e.Wrap(err, "couldn't retrieve stripe customer data")
+	}
+	// If there's a single subscription on the user and a single price item on the subscription
+	if len(c.Subscriptions.Data) != 1 || len(c.Subscriptions.Data[0].Items.Data) != 1 {
+		return nil, e.New("no stripe subscription for customer")
+	}
+
+	planTypeId := c.Subscriptions.Data[0].Plan.ID
+
 	organization := model.Organization{Model: model.Model{ID: organizationID}}
-	if err := r.DB.Model(&organization).Updates(model.Organization{StripePriceID: &plan}).Error; err != nil {
+	if err := r.DB.Model(&organization).Updates(model.Organization{StripePriceID: &planTypeId}).Error; err != nil {
 		return nil, e.Wrap(err, "error setting stripe_plan_id on organization")
 	}
 	// mark sessions as within billing quota on plan upgrade
 	// this code is repeated as the first time, the user already has a billing plan and the function returns early.
 	// here, the user doesn't already have a billing plan, so it's considered an upgrade unless the plan is free
-	go r.UpdateSessionsVisibility(organizationID, planType, modelInputs.PlanTypeFree)
+	go r.UpdateSessionsVisibility(organizationID, pricing.FromPriceID(planTypeId), modelInputs.PlanTypeFree)
 
-	return &stripeSession.ID, nil
+	return &model.T, nil
 }
 
 func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model.SessionComment, error) {
@@ -1163,7 +1110,7 @@ func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, er
 }
 
 func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{}, error) {
-	if os.Getenv("ENVIRONMENT") == "dev" && sessionID == 1 {
+	if util.IsDevEnv() && sessionID == 1 {
 		file, err := ioutil.ReadFile("./tmp/events.json")
 		if err != nil {
 			return nil, e.Wrap(err, "Failed to read temp file")
@@ -1266,8 +1213,8 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 		queryString += fmt.Sprintf("AND (id IN (SELECT error_group_id FROM error_objects WHERE (organization_id=%d) AND (deleted_at IS NULL) AND (created_at > '%s') AND (created_at < '%s')))", organizationID, d.StartDate.Format("2006-01-02 15:04:05"), d.EndDate.Format("2006-01-02 15:04:05"))
 	}
 
-	if resolved := params.HideResolved; resolved != nil && *resolved {
-		queryString += fmt.Sprintf("AND (state <> '%s') ", model.ErrorGroupStates.RESOLVED)
+	if state := params.State; state != nil {
+		queryString += fmt.Sprintf("AND (state = '%s') ", state)
 	}
 
 	if params.Event != nil {
@@ -1639,6 +1586,7 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, organizationID
 }
 
 func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count int, lifecycle modelInputs.SessionLifecycle, starred bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
+	endpointStart := time.Now()
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
@@ -1762,14 +1710,14 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 
 	fieldsSpan.Finish()
 
-	sessionsQueryPreamble := "SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed"
+	sessionsQueryPreamble := "SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, field_group"
 	joinClause := "FROM sessions"
 
 	isUnfilteredQuery := len(fieldIds) == 0 && len(visitedIds) == 0 && len(referrerIds) == 0 && len(notFieldIds) == 0 && len(notTrackFieldIds) == 0
 	if !isUnfilteredQuery {
 		fieldsInnerJoinStatement := "INNER JOIN session_fields t ON s.id=t.session_id"
 		fieldsSelectStatement := ", array_agg(t.field_id) fieldIds"
-		joinClause = fmt.Sprintf("FROM (SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, within_billing_quota %s FROM sessions s %s GROUP BY s.id) AS rows", fieldsSelectStatement, fieldsInnerJoinStatement)
+		joinClause = fmt.Sprintf("FROM (SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, within_billing_quota, field_group %s FROM sessions s %s GROUP BY s.id) AS rows", fieldsSelectStatement, fieldsInnerJoinStatement)
 	}
 	whereClause := ` `
 
@@ -1877,7 +1825,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		start := time.Now()
 		query := fmt.Sprintf("%s %s %s ORDER BY created_at DESC LIMIT %d", sessionsQueryPreamble, joinClause, whereClause, count)
 		if err := r.DB.Raw(query).Scan(&queriedSessions).Error; err != nil {
-			return e.Wrap(err, "error querying filtered sessions")
+			return e.Wrapf(err, "error querying filtered sessions: %s", query)
 		}
 		duration := time.Since(start)
 		hlog.Timing("db.sessionsQuery.duration", duration, logTags, 1)
@@ -1895,7 +1843,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		start := time.Now()
 		query := fmt.Sprintf("SELECT count(*) %s %s %s", joinClause, whereClause, whereClauseSuffix)
 		if err := r.DB.Raw(query).Scan(&queriedSessionsCount).Error; err != nil {
-			return e.Wrap(err, "error querying filtered sessions count")
+			return e.Wrapf(err, "error querying filtered sessions count: %s", query)
 		}
 		duration := time.Since(start)
 		hlog.Timing("db.sessionsCountQuery.duration", duration, logTags, 1)
@@ -1914,6 +1862,13 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	sessionList := &model.SessionResults{
 		Sessions:   queriedSessions,
 		TotalCount: queriedSessionsCount,
+	}
+
+	endpointDuration := time.Since(endpointStart)
+	hlog.Timing("gql.sessions.duration", endpointDuration, logTags, 1)
+	hlog.Incr("gql.sessions.count", logTags, 1)
+	if endpointDuration.Milliseconds() > 5000 {
+		log.Error(e.New(fmt.Sprintf("endpoint.sessions took %dms: org_id: %d, count: %d, params: %+v", endpointDuration.Milliseconds(), organizationID, count, params)))
 	}
 	return sessionList, nil
 }
@@ -2153,6 +2108,16 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		if err := r.DB.Create(newAdmin).Error; err != nil {
 			return nil, e.Wrap(err, "error creating new admin")
 		}
+		go func() {
+			if contact, err := apolloio.CreateContact(*newAdmin.Email); err != nil {
+				log.Errorf("error creating apollo contact: %v", err)
+			} else {
+				sequenceID := "6105bc9bf2a2dd0112bdd26b" // represents the "New Authenticated Users" sequence.
+				if err := apolloio.AddToSequence(contact.ID, sequenceID); err != nil {
+					log.Errorf("error adding new contact to sequence: %v", err)
+				}
+			}
+		}()
 		admin = newAdmin
 	}
 	if admin.PhotoURL == nil || admin.Name == nil {

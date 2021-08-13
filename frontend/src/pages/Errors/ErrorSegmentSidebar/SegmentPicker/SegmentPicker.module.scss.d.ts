@@ -1,3 +1,4 @@
+export const actionsContainer: string;
 export const checkIcon: string;
 export const downIcon: string;
 export const dropdownHandler: string;

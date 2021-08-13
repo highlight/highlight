@@ -18,7 +18,9 @@ export const Buttons = () => {
                     className={commonStyles.submitButton}
                     onClick={() => {
                         sendEmail({
-                            variables: { email: 'jaykhatrimail@gmail.com' },
+                            variables: {
+                                email: 'anothernewemail@newemail.com',
+                            },
                         });
                     }}
                 >

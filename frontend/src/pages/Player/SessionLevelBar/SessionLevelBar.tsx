@@ -5,7 +5,7 @@ import Skeleton from 'react-loading-skeleton';
 
 import SvgDimensionsIcon from '../../../static/DimensionsIcon';
 import { ReplayerState, useReplayerContext } from '../ReplayerContext';
-import ShareButton from '../ShareButton/ShareButton';
+import SessionShareButton from '../SessionShareButton/SessionShareButton';
 import { CurrentUrlBar } from './CurrentUrlBar/CurrentUrlBar';
 import styles from './SessionLevelBar.module.scss';
 import SessionToken from './SessionToken/SessionToken';
@@ -92,7 +92,7 @@ const SessionLevelBar = () => {
                     </>
                 )}
             </div>
-            <ShareButton className={styles.shareButton} />
+            <SessionShareButton className={styles.shareButton} />
         </div>
     );
 };

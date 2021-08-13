@@ -39,7 +39,9 @@ export const usePlayerHotKeys = () => {
      * Without this, undefined behavior will occur.
      * Example: If the user clicks a button, then presses space, space will trigger the default action on the button and also the space hotkey.
      */
-    const moveFocusToDocument = () => {
+    const moveFocusToDocument = (e: KeyboardEvent) => {
+        e.stopPropagation();
+        e.preventDefault();
         window.focus();
 
         if (
@@ -52,22 +54,24 @@ export const usePlayerHotKeys = () => {
 
     useHotkeys(
         'space',
-        () => {
-            H.track('PlayerPausePlayKeyboardShortcut');
-            moveFocusToDocument();
+        (e) => {
+            if (replayer) {
+                H.track('PlayerPausePlayKeyboardShortcut');
+                moveFocusToDocument(e);
 
-            switch (state) {
-                case ReplayerState.Playing:
-                    pause(time);
-                    break;
-                case ReplayerState.Paused:
-                case ReplayerState.LoadedAndUntouched:
-                case ReplayerState.LoadedWithDeepLink:
-                    play(time);
-                    break;
-                case ReplayerState.Loading:
-                case ReplayerState.SessionRecordingStopped:
-                    break;
+                switch (state) {
+                    case ReplayerState.Playing:
+                        pause(time);
+                        break;
+                    case ReplayerState.Paused:
+                    case ReplayerState.LoadedAndUntouched:
+                    case ReplayerState.LoadedWithDeepLink:
+                        play(time);
+                        break;
+                    case ReplayerState.Loading:
+                    case ReplayerState.SessionRecordingStopped:
+                        break;
+                }
             }
         },
         [state, time, pause, play]
@@ -75,27 +79,29 @@ export const usePlayerHotKeys = () => {
 
     useHotkeys(
         'left',
-        () => {
-            H.track('PlayerSkipBackwardsKeyboardShortcut');
-            moveFocusToDocument();
+        (e) => {
+            if (replayer) {
+                H.track('PlayerSkipBackwardsKeyboardShortcut');
+                moveFocusToDocument(e);
 
-            const newTime = getNewTimeWithSkip({
-                time,
-                direction: 'backwards',
-            });
+                const newTime = getNewTimeWithSkip({
+                    time,
+                    direction: 'backwards',
+                });
 
-            switch (state) {
-                case ReplayerState.Playing:
-                    play(newTime);
-                    break;
-                case ReplayerState.Paused:
-                case ReplayerState.LoadedAndUntouched:
-                case ReplayerState.LoadedWithDeepLink:
-                    pause(newTime);
-                    break;
-                case ReplayerState.Loading:
-                case ReplayerState.SessionRecordingStopped:
-                    break;
+                switch (state) {
+                    case ReplayerState.Playing:
+                        play(newTime);
+                        break;
+                    case ReplayerState.Paused:
+                    case ReplayerState.LoadedAndUntouched:
+                    case ReplayerState.LoadedWithDeepLink:
+                        pause(newTime);
+                        break;
+                    case ReplayerState.Loading:
+                    case ReplayerState.SessionRecordingStopped:
+                        break;
+                }
             }
         },
         [time, state, pause, play]
@@ -103,29 +109,31 @@ export const usePlayerHotKeys = () => {
 
     useHotkeys(
         'right',
-        () => {
-            H.track('PlayerSkipForwardsKeyboardShortcut');
-            moveFocusToDocument();
+        (e) => {
+            if (replayer) {
+                H.track('PlayerSkipForwardsKeyboardShortcut');
+                moveFocusToDocument(e);
 
-            const totalTime = replayer?.getMetaData().totalTime;
-            const newTime = getNewTimeWithSkip({
-                time,
-                direction: 'forwards',
-                totalTime,
-            });
+                const totalTime = replayer?.getMetaData().totalTime;
+                const newTime = getNewTimeWithSkip({
+                    time,
+                    direction: 'forwards',
+                    totalTime,
+                });
 
-            switch (state) {
-                case ReplayerState.Playing:
-                    play(newTime);
-                    break;
-                case ReplayerState.Paused:
-                case ReplayerState.LoadedAndUntouched:
-                case ReplayerState.LoadedWithDeepLink:
-                    pause(newTime);
-                    break;
-                case ReplayerState.Loading:
-                case ReplayerState.SessionRecordingStopped:
-                    break;
+                switch (state) {
+                    case ReplayerState.Playing:
+                        play(newTime);
+                        break;
+                    case ReplayerState.Paused:
+                    case ReplayerState.LoadedAndUntouched:
+                    case ReplayerState.LoadedWithDeepLink:
+                        pause(newTime);
+                        break;
+                    case ReplayerState.Loading:
+                    case ReplayerState.SessionRecordingStopped:
+                        break;
+                }
             }
         },
         [time, replayer, state, pause, play]

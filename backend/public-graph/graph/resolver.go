@@ -192,7 +192,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *
 			Event:          errorObj.Event,
 			StackTrace:     frameString,
 			Type:           errorObj.Type,
-			Resolved:       &model.F,
+			State:          modelInputs.ErrorStateOpen.String(),
 		}
 		if err := r.DB.Create(newErrorGroup).Error; err != nil {
 			return nil, e.Wrap(err, "Error creating new error group")
@@ -470,7 +470,7 @@ type fetcher interface {
 }
 
 func init() {
-	if os.Getenv("ENVIRONMENT") == "dev" {
+	if util.IsDevEnv() {
 		fetch = DiskFetcher{}
 	} else {
 		fetch = NetworkFetcher{}
@@ -535,7 +535,9 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 		mappedStackFrame, err := r.processStackFrame(organizationId, sessionId, *stackFrame)
 		diff := time.Since(start).Milliseconds()
 		if err != nil {
-			log.Error(err)
+			if !util.IsDevOrTestEnv() {
+				log.Error(err)
+			}
 			mappedStackFrame = &modelInputs.ErrorTrace{
 				FileName:     stackFrame.FileName,
 				LineNumber:   stackFrame.LineNumber,
