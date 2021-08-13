@@ -903,7 +903,6 @@ func (r *mutationResolver) DeleteErrorComment(ctx context.Context, id int) (*boo
 }
 
 func (r *mutationResolver) OpenSlackConversation(ctx context.Context, organizationID int, code string, redirectPath string) (*bool, error) {
-	log.Info("here")
 	var (
 		SLACK_CLIENT_ID     string
 		SLACK_CLIENT_SECRET string
@@ -929,7 +928,6 @@ func (r *mutationResolver) OpenSlackConversation(ctx context.Context, organizati
 			redirect,
 		)
 	if err != nil {
-		log.Info("there")
 		return nil, e.Wrap(err, "error getting slack oauth response")
 	}
 
