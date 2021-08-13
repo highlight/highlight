@@ -9,6 +9,8 @@ const PersonalNotificationButton = () => {
     const { isHighlightAdmin } = useAuthContext();
 
     let redirectUrl = window.location.pathname;
+    // this doesn't work if we redirect to /alerts
+    redirectUrl = redirectUrl.replace('alerts', 'home');
     if (redirectUrl.length > 3) {
         // remove orgid and prepended slash
         redirectUrl = redirectUrl.substring(redirectUrl.indexOf('/', 1) + 1);
