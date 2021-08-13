@@ -1533,130 +1533,15 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
-	// Find fields based on the search params
-	//included fields
-	fieldCheck := true
-	visitedCheck := true
-	referrerCheck := true
-	fieldIds := []int{}
-	fieldQuery := r.DB.Model(&model.Field{})
-	visitedIds := []int{}
-	referrerIds := []int{}
-	visitedQuery := r.DB.Model(&model.Field{})
-	referrerQuery := r.DB.Model(&model.Field{})
-
-	fieldsSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-		tracer.ResourceName("db.fieldsQuery"), tracer.Tag("org_id", organizationID))
-	for _, prop := range params.UserProperties {
-		if prop.Name == "contains" {
-			fieldQuery = fieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
-		} else if prop.ID == nil || *prop.ID == 0 {
-			fieldQuery = fieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user")
-		} else {
-			fieldIds = append(fieldIds, *prop.ID)
-		}
-	}
-
-	for _, prop := range params.TrackProperties {
-		if prop.Name == "contains" {
-			fieldQuery = fieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "track")
-		} else if prop.ID == nil || *prop.ID == 0 {
-			fieldQuery = fieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "track")
-		} else {
-			fieldIds = append(fieldIds, *prop.ID)
-		}
-	}
-
-	if params.VisitedURL != nil {
-		visitedQuery = visitedQuery.Or("name = ? and value ILIKE ?", "visited-url", "%"+*params.VisitedURL+"%")
-	}
-
-	if params.Referrer != nil {
-		referrerQuery = referrerQuery.Or("name = ? and value ILIKE ?", "referrer", "%"+*params.Referrer+"%")
-	}
-
-	if len(params.UserProperties)+len(params.TrackProperties) > 0 {
-		if len(params.UserProperties)+len(params.TrackProperties) != len(fieldIds) {
-			var tempFieldIds []int
-			if err := fieldQuery.Pluck("id", &tempFieldIds).Error; err != nil {
-				return nil, e.Wrap(err, "error querying initial set of session fields")
-			}
-			fieldIds = append(fieldIds, tempFieldIds...)
-		}
-		if len(fieldIds) == 0 {
-			fieldCheck = false
-		}
-	}
-
-	if params.VisitedURL != nil {
-		if err := visitedQuery.Pluck("id", &visitedIds).Error; err != nil {
-			return nil, e.Wrap(err, "error querying visited-url fields")
-		}
-		if len(visitedIds) == 0 {
-			visitedCheck = false
-		}
-	}
-
-	if params.Referrer != nil {
-		if err := referrerQuery.Pluck("id", &referrerIds).Error; err != nil {
-			return nil, e.Wrap(err, "error querying referrer fields")
-		}
-		if len(referrerIds) == 0 {
-			referrerCheck = false
-		}
-	}
-
-	//excluded fields
-	notFieldIds := []int{}
-	notFieldQuery := r.DB.Model(&model.Field{})
-
-	for _, prop := range params.ExcludedProperties {
-		if prop.Name == "contains" {
-			notFieldQuery = notFieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
-		} else if prop.ID == nil || *prop.ID == 0 {
-			notFieldQuery = notFieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user")
-		} else {
-			notFieldIds = append(notFieldIds, *prop.ID)
-		}
-	}
-
-	if len(params.ExcludedProperties) != len(notFieldIds) {
-		var tempNotFieldIds []int
-		if err := notFieldQuery.Pluck("id", &notFieldIds).Error; err != nil {
-			return nil, e.Wrap(err, "error querying initial set of excluded sessions fields")
-		}
-		notFieldIds = append(notFieldIds, tempNotFieldIds...)
-	}
-
-	//excluded track fields
-	notTrackFieldIds := []int{}
-	notTrackFieldQuery := r.DB.Model(&model.Field{})
-
-	for _, prop := range params.ExcludedTrackProperties {
-		if prop.Name == "contains" {
-			notTrackFieldQuery = notTrackFieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "track")
-		} else if prop.ID == nil || *prop.ID == 0 {
-			notTrackFieldQuery = notTrackFieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "track")
-		} else {
-			notTrackFieldIds = append(notTrackFieldIds, *prop.ID)
-		}
-	}
-
-	//pluck not field ids
-	if len(params.ExcludedTrackProperties) != len(notTrackFieldIds) {
-		var tempNotTrackFieldIds []int
-		if err := notTrackFieldQuery.Pluck("id", &tempNotTrackFieldIds).Error; err != nil {
-			return nil, e.Wrap(err, "error querying initial set of excluded track sessions fields")
-		}
-		notTrackFieldIds = append(notTrackFieldIds, tempNotTrackFieldIds...)
-	}
-
-	fieldsSpan.Finish()
 
 	sessionsQueryPreamble := "SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, field_group"
 	joinClause := "FROM sessions"
 
-	isUnfilteredQuery := len(fieldIds) == 0 && len(visitedIds) == 0 && len(referrerIds) == 0 && len(notFieldIds) == 0 && len(notTrackFieldIds) == 0
+	isUnfilteredQuery, fieldFilters, err := r.getFieldFilters(ctx, organizationID, params)
+	if err != nil {
+		return nil, err
+	}
+
 	if !isUnfilteredQuery {
 		fieldsInnerJoinStatement := "INNER JOIN session_fields t ON s.id=t.session_id"
 		fieldsSelectStatement := ", array_agg(t.field_id) fieldIds"
@@ -1692,31 +1577,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	}
 	whereClause += "AND (deleted_at IS NULL) "
 
-	if len(fieldIds) > 0 {
-		t := strings.Replace(fmt.Sprint(fieldIds), " ", ",", -1)
-		whereClause += fmt.Sprintf("AND (fieldIds && ARRAY%s::integer[])", t)
-	}
-
-	if len(visitedIds) > 0 {
-		t := strings.Replace(fmt.Sprint(visitedIds), " ", ",", -1)
-		whereClause += fmt.Sprintf("AND (fieldIds && ARRAY%s::integer[])", t)
-	}
-
-	if len(referrerIds) > 0 {
-		t := strings.Replace(fmt.Sprint(referrerIds), " ", ",", -1)
-		whereClause += fmt.Sprintf("AND (fieldIds && ARRAY%s::integer[])", t)
-	}
-
-	if len(notFieldIds) > 0 {
-		t := strings.Replace(fmt.Sprint(notFieldIds), " ", ",", -1)
-		whereClause += fmt.Sprintf("AND NOT (fieldIds && ARRAY%s::integer[])", t)
-	}
-
-	if len(notTrackFieldIds) > 0 {
-		t := strings.Replace(fmt.Sprint(notTrackFieldIds), " ", ",", -1)
-		whereClause += fmt.Sprintf("AND NOT (fieldIds && ARRAY%s::integer[])", t)
-	}
-
+	whereClause += fieldFilters
 	if d := params.DateRange; d != nil {
 		whereClause += fmt.Sprintf("AND (created_at > '%s') AND (created_at < '%s') ", d.StartDate.Format("2006-01-02 15:04:05"), d.EndDate.Format("2006-01-02 15:04:05"))
 	}
@@ -1739,11 +1600,6 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 
 	if deviceId := params.DeviceID; deviceId != nil {
 		whereClause += fmt.Sprintf("AND (fingerprint = '%s') ", *deviceId)
-	}
-
-	//if there should be fields but aren't no sessions are returned
-	if !fieldCheck || !visitedCheck || !referrerCheck {
-		whereClause += "AND (id != id) "
 	}
 
 	// user shouldn't see sessions that are not within billing quota
