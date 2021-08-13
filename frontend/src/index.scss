@@ -76,6 +76,11 @@
     // UI Elements
     --sidebar-width: 64px;
     --header-height: 80px;
+
+    // Errors
+    --color-error-resolved: var(--color-green);
+    --color-error-ignored: var(--color-gray-500);
+    --color-error-open: var(--color-red);
 }
 
 [data-theme='dark'] {
