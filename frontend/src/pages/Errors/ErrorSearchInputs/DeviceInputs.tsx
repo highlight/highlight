@@ -55,7 +55,7 @@ export const OperatingSystemInput = () => {
                 components={{
                     DropdownIndicator: () => (
                         <div className={inputStyles.iconWrapper}>
-                            <OSIcon fill="#808080" />
+                            <OSIcon />
                         </div>
                     ),
                     IndicatorSeparator: () => null,
@@ -115,7 +115,7 @@ export const BrowserInput = () => {
                 components={{
                     DropdownIndicator: () => (
                         <div className={inputStyles.iconWrapper}>
-                            <BrowserIcon fill="#808080" />
+                            <BrowserIcon />
                         </div>
                     ),
                     IndicatorSeparator: () => null,

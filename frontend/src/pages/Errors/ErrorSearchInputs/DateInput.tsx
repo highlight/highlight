@@ -3,6 +3,7 @@ import moment from 'moment';
 import React, { useEffect } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 
+import SvgCalendarIcon from '../../../static/CalendarIcon';
 import { SessionPageSearchParams } from '../../Player/utils/utils';
 import { getDateRangeForDateInput } from '../../Sessions/SearchInputs/DateInput';
 import inputStyles from '../../Sessions/SearchInputs/InputStyles.module.scss';
@@ -51,6 +52,7 @@ export const DateInput = () => {
                         : null
                 }
                 className={inputStyles.datePicker}
+                suffixIcon={<SvgCalendarIcon />}
                 onChange={(_date: any, dateStrings: [string, string]) => {
                     // Dates in local timezone.
                     const start_date = dateStrings[0]
