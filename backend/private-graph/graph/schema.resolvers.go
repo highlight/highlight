@@ -1760,7 +1760,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		start := time.Now()
 		query := fmt.Sprintf("%s %s %s ORDER BY created_at DESC LIMIT %d", sessionsQueryPreamble, joinClause, whereClause, count)
 		if err := r.DB.Raw(query).Scan(&queriedSessions).Error; err != nil {
-			return e.Wrap(err, "error querying filtered sessions: "+query)
+			return e.Wrapf(err, "error querying filtered sessions: %s", query)
 		}
 		duration := time.Since(start)
 		hlog.Timing("db.sessionsQuery.duration", duration, logTags, 1)
@@ -1778,7 +1778,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		start := time.Now()
 		query := fmt.Sprintf("SELECT count(*) %s %s %s", joinClause, whereClause, whereClauseSuffix)
 		if err := r.DB.Raw(query).Scan(&queriedSessionsCount).Error; err != nil {
-			return e.Wrap(err, "error querying filtered sessions count: "+query)
+			return e.Wrapf(err, "error querying filtered sessions count: %s", query)
 		}
 		duration := time.Since(start)
 		hlog.Timing("db.sessionsCountQuery.duration", duration, logTags, 1)
