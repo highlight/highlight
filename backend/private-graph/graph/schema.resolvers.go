@@ -1537,16 +1537,15 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	sessionsQueryPreamble := "SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, field_group"
 	joinClause := "FROM sessions"
 
-	isUnfilteredQuery, fieldFilters, err := r.getFieldFilters(ctx, organizationID, params)
+	customJoinClause, fieldFilters, err := r.getFieldFilters(ctx, organizationID, params)
 	if err != nil {
 		return nil, err
 	}
 
-	if !isUnfilteredQuery {
-		fieldsInnerJoinStatement := "INNER JOIN session_fields t ON s.id=t.session_id"
-		fieldsSelectStatement := ", array_agg(t.field_id) fieldIds"
-		joinClause = fmt.Sprintf("FROM (SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, within_billing_quota, field_group %s FROM sessions s %s GROUP BY s.id) AS rows", fieldsSelectStatement, fieldsInnerJoinStatement)
+	if customJoinClause != "" {
+		joinClause = customJoinClause
 	}
+
 	whereClause := ` `
 
 	whereClause += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
@@ -1609,7 +1608,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	queriedSessions := []model.Session{}
 	var queriedSessionsCount int64
 	whereClauseSuffix := "AND NOT ((processed = true AND ((active_length IS NOT NULL AND active_length < 1000) OR (active_length IS NULL AND length < 1000)))) "
-	logTags := []string{fmt.Sprintf("org_id:%d", organizationID), fmt.Sprintf("filtered:%t", !isUnfilteredQuery)}
+	logTags := []string{fmt.Sprintf("org_id:%d", organizationID), fmt.Sprintf("filtered:%t", fieldFilters != "")}
 
 	g.Go(func() error {
 		if params.LengthRange != nil {
