@@ -56,7 +56,9 @@ const MinimalSessionCard = ({
     return (
         <div className={styles.sessionCardWrapper} key={session?.id}>
             <Link
-                to={`/${organization_id}/sessions/${session?.id}${urlParams}`}
+                to={`/${organization_id}/sessions/${session?.id}${
+                    urlParams || ''
+                }`}
             >
                 <div
                     className={classNames(styles.sessionCard, {
