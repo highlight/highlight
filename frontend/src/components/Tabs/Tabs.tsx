@@ -18,6 +18,8 @@ type Props = Pick<TabsProps, 'animated' | 'tabBarExtraContent' | 'centered'> & {
     id: string;
     /** Whether the tab contents has the default padding. */
     noPadding?: boolean;
+    /** An HTML id to attach to the tabs. */
+    tabsHtmlId?: string;
     className?: string;
 };
 
@@ -26,6 +28,7 @@ const Tabs = ({
     id,
     noPadding = false,
     tabBarExtraContent,
+    tabsHtmlId,
     className,
     ...props
 }: Props) => {
@@ -36,6 +39,7 @@ const Tabs = ({
 
     return (
         <AntDesignTabs
+            activeKey={activeTab}
             defaultActiveKey={activeTab}
             onChange={(activeKey) => {
                 setActiveTab(activeKey);
@@ -47,6 +51,7 @@ const Tabs = ({
                     </div>
                 ) : null
             }
+            id={tabsHtmlId}
             className={classNames(styles.tabs, className)}
             {...props}
         >

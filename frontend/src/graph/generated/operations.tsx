@@ -22,14 +22,23 @@ export type MarkSessionAsStarredMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
-export type CreateOrUpdateSubscriptionMutationVariables = Types.Exact<{
+export type CreateOrUpdateStripeSubscriptionMutationVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     plan_type: Types.PlanType;
 }>;
 
-export type CreateOrUpdateSubscriptionMutation = {
+export type CreateOrUpdateStripeSubscriptionMutation = {
     __typename?: 'Mutation';
-} & Pick<Types.Mutation, 'createOrUpdateSubscription'>;
+} & Pick<Types.Mutation, 'createOrUpdateStripeSubscription'>;
+
+export type UpdateBillingDetailsMutationVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+}>;
+
+export type UpdateBillingDetailsMutation = { __typename?: 'Mutation' } & Pick<
+    Types.Mutation,
+    'updateBillingDetails'
+>;
 
 export type UpdateErrorGroupStateMutationVariables = Types.Exact<{
     id: Types.Scalars['ID'];

@@ -24,7 +24,11 @@ export const Header = () => {
     return (
         <>
             <CommandBar />
-            <div className={styles.header}>
+            <div
+                className={classNames(styles.header, {
+                    [styles.guest]: !isLoggedIn,
+                })}
+            >
                 {process.env.REACT_APP_ONPREM === 'true' ? (
                     <OnPremiseBanner />
                 ) : (

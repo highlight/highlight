@@ -9,8 +9,6 @@ export enum DevToolTabs {
 interface DevToolsContext {
     openDevTools: boolean;
     setOpenDevTools: (val: boolean) => void;
-    selectedTab: DevToolTabs;
-    setSelectedTab: (tab: DevToolTabs) => void;
 }
 
 export const [

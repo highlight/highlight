@@ -660,7 +660,8 @@ export type Mutation = {
     createErrorSegment?: Maybe<ErrorSegment>;
     editErrorSegment?: Maybe<Scalars['Boolean']>;
     deleteErrorSegment?: Maybe<Scalars['Boolean']>;
-    createOrUpdateSubscription?: Maybe<Scalars['String']>;
+    createOrUpdateStripeSubscription?: Maybe<Scalars['String']>;
+    updateBillingDetails?: Maybe<Scalars['Boolean']>;
     createSessionComment?: Maybe<SessionComment>;
     deleteSessionComment?: Maybe<Scalars['Boolean']>;
     createErrorComment?: Maybe<ErrorComment>;
@@ -759,9 +760,13 @@ export type MutationDeleteErrorSegmentArgs = {
     segment_id: Scalars['ID'];
 };
 
-export type MutationCreateOrUpdateSubscriptionArgs = {
+export type MutationCreateOrUpdateStripeSubscriptionArgs = {
     organization_id: Scalars['ID'];
     plan_type: PlanType;
+};
+
+export type MutationUpdateBillingDetailsArgs = {
+    organization_id: Scalars['ID'];
 };
 
 export type MutationCreateSessionCommentArgs = {

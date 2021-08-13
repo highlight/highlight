@@ -2154,10 +2154,10 @@
   dependencies:
     "@hapi/hoek" "^8.3.0"
 
-"@highlight-run/rrweb@0.12.4":
-  version "0.12.4"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-0.12.4.tgz#8b4f990036bf77ad6396e751d695e6f87e857171"
-  integrity sha512-fOtJ0AVynV8Hmj8MA1DxrI45SWQ+ADXabyWAYGrJnRzWjf9iRyDO7RpWKM9DxZvuICcmupX/XxeDC2omkcQSaA==
+"@highlight-run/rrweb@0.12.5":
+  version "0.12.5"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-0.12.5.tgz#e03701dfe5b01a814ca29b79397b8e8b7eba3aff"
+  integrity sha512-eeJ08LtDwZ0MGd6oxckip/W3149WcsLdCVxDJWgxyR1BRL29ASyAkg2nRy8SoqY3FtH/F15iL11XtlSDRBUtvg==
   dependencies:
     "@types/css-font-loading-module" "0.0.4"
     "@xstate/fsm" "^1.4.0"
@@ -8477,6 +8477,16 @@ internmap@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/internmap/-/internmap-1.0.1.tgz#0017cc8a3b99605f0302f2b198d272e015e5df95"
   integrity sha512-lDB5YccMydFBtasVtxnZ3MRBHuaoE8GKsppq+EchKL2U4nK/DmEpPHNH8MZe5HkMtpSiTSOZwfN0tzYjO/lJEw==
+
+intro.js-react@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/intro.js-react/-/intro.js-react-0.4.0.tgz#bcbc2b39b13b4393f6f9651bc6e8add8365253ce"
+  integrity sha512-cJq6E2FXBzFVkiw4v7cXiJjtVze+92yLCoJwBOXWOIn/2E9yze6wqtUtblw2CULUHnktyP/72Fe+vNOP3tpRgA==
+
+intro.js@^4.1.0:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/intro.js/-/intro.js-4.1.0.tgz#7e4ae5877df0c452b23d1fd96f2666eb87796b22"
+  integrity sha512-+Y+UsP+yvqqlEOjFExMBXKopn3nzwc91PaUl0SrvqiVs6ztko1DzfkoXR2AnfirZVZZhr5Aej6wlXRlvIkuMcA==
 
 invariant@^2.2.4:
   version "2.2.4"
