@@ -5,6 +5,7 @@ import { useState } from 'react';
 
 import Button from '../../../../components/Button/Button/Button';
 import Popover from '../../../../components/Popover/Popover';
+import { ErrorState } from '../../../../graph/generated/schemas';
 import SvgFilterIcon from '../../../../static/FilterIcon';
 import { useErrorSearchContext } from '../../../Errors/ErrorSearchContext/ErrorSearchContext';
 import { DateInput } from '../../../Errors/ErrorSearchInputs/DateInput';
@@ -12,6 +13,7 @@ import {
     BrowserInput,
     OperatingSystemInput,
 } from '../../../Errors/ErrorSearchInputs/DeviceInputs';
+import ErrorStateInput from '../../../Errors/ErrorSearchInputs/ErrorStateInput';
 import segmentPickerStyles from '../SegmentPickerForErrors/SegmentPickerForErrors.module.scss';
 import styles from './ErrorSearchFilters.module.scss';
 
@@ -25,7 +27,7 @@ const ErrorSearchFilters = () => {
             !!searchParams.date_range?.start_date ||
                 !!searchParams.date_range?.end_date,
             !!searchParams.event,
-            !!searchParams.hide_resolved,
+            searchParams?.state !== ErrorState.Open,
             !!searchParams.os,
             !!searchParams.visited_url,
         ];
@@ -38,7 +40,7 @@ const ErrorSearchFilters = () => {
         searchParams.date_range?.end_date,
         searchParams.date_range?.start_date,
         searchParams.event,
-        searchParams.hide_resolved,
+        searchParams.state,
         searchParams.os,
         searchParams.visited_url,
     ]);
@@ -49,13 +51,16 @@ const ErrorSearchFilters = () => {
             large
             content={
                 <main className={styles.contentContainer}>
-                    <section className={styles.groupContainer}></section>
                     <section
                         className={classNames(
                             styles.groupContainer,
                             styles.inputContainer
                         )}
                     >
+                        <label>
+                            <span>Error State</span>
+                            <ErrorStateInput />
+                        </label>
                         <label>
                             <span>Browser</span>
                             <BrowserInput />
@@ -64,8 +69,6 @@ const ErrorSearchFilters = () => {
                             <span>Operating System</span>
                             <OperatingSystemInput />
                         </label>
-                        <div></div>
-                        <div></div>
                         <label>
                             <span>Date Range</span>
                             <DateInput />

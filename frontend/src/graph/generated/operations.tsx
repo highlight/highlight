@@ -310,7 +310,7 @@ export type CreateErrorSegmentMutation = { __typename?: 'Mutation' } & {
         > & {
                 params: { __typename?: 'ErrorSearchParams' } & Pick<
                     Types.ErrorSearchParams,
-                    'os' | 'browser' | 'visited_url' | 'hide_resolved'
+                    'os' | 'browser' | 'visited_url' | 'state'
                 > & {
                         date_range?: Types.Maybe<
                             { __typename?: 'DateRange' } & Pick<
@@ -834,7 +834,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
     error_group?: Types.Maybe<
         { __typename?: 'ErrorGroup' } & Pick<
             Types.ErrorGroup,
-            'id' | 'type' | 'organization_id' | 'event' | 'resolved' | 'state'
+            'id' | 'type' | 'organization_id' | 'event' | 'state'
         > & {
                 stack_trace: Array<
                     Types.Maybe<
@@ -890,12 +890,7 @@ export type GetErrorGroupsQuery = { __typename?: 'Query' } & {
                 error_groups: Array<
                     { __typename?: 'ErrorGroup' } & Pick<
                         Types.ErrorGroup,
-                        | 'id'
-                        | 'type'
-                        | 'event'
-                        | 'resolved'
-                        | 'state'
-                        | 'environments'
+                        'id' | 'type' | 'event' | 'state' | 'environments'
                     > & {
                             stack_trace: Array<
                                 Types.Maybe<
@@ -1208,11 +1203,7 @@ export type GetErrorSegmentsQuery = { __typename?: 'Query' } & {
                 > & {
                         params: { __typename?: 'ErrorSearchParams' } & Pick<
                             Types.ErrorSearchParams,
-                            | 'os'
-                            | 'browser'
-                            | 'visited_url'
-                            | 'hide_resolved'
-                            | 'event'
+                            'os' | 'browser' | 'visited_url' | 'state' | 'event'
                         > & {
                                 date_range?: Types.Maybe<
                                     { __typename?: 'DateRange' } & Pick<

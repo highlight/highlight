@@ -50,7 +50,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
     });
     const [segmentName, setSegmentName] = useState<string | null>(null);
     const [cachedParams, setCachedParams] = useLocalStorage<ErrorSearchParams>(
-        `cachedErrorParams-${segmentName || 'no-selected-segment'}`,
+        `cachedErrorParams-v2-${segmentName || 'no-selected-segment'}`,
         {}
     );
     const [searchParams, setSearchParams] = useState<ErrorSearchParams>(

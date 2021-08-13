@@ -517,12 +517,12 @@ type ErrorResults struct {
 }
 
 type ErrorSearchParams struct {
-	DateRange    *DateRange `json:"date_range"`
-	Browser      *string    `json:"browser"`
-	OS           *string    `json:"os"`
-	VisitedURL   *string    `json:"visited_url"`
-	HideResolved bool       `json:"hide_resolved"`
-	Event        *string    `json:"event"`
+	DateRange  *DateRange              `json:"date_range"`
+	Browser    *string                 `json:"browser"`
+	OS         *string                 `json:"os"`
+	VisitedURL *string                 `json:"visited_url"`
+	Event      *string                 `json:"event"`
+	State      *modelInputs.ErrorState `json:"state"`
 }
 type ErrorSegment struct {
 	Model
@@ -560,7 +560,6 @@ type ErrorGroup struct {
 	StackTrace       string
 	MappedStackTrace *string
 	State            string `json:"state" gorm:"default:OPEN"`
-	Resolved         *bool  `json:"resolved"` // DEPRECATED, USE STATE INSTEAD
 	MetadataLog      *string
 	Fields           []*ErrorField `gorm:"many2many:error_group_fields;"`
 	FieldGroup       *string

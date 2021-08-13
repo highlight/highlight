@@ -245,7 +245,7 @@ mutation CreateErrorSegment(
             os
             browser
             visited_url
-            hide_resolved
+            state
         }
     }
 }

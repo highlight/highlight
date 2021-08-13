@@ -150,7 +150,6 @@ export type ErrorGroup = {
     metadata_log: Array<Maybe<ErrorMetadata>>;
     field_group?: Maybe<Array<Maybe<ErrorField>>>;
     state: ErrorState;
-    resolved?: Maybe<Scalars['Boolean']>;
     environments?: Maybe<Scalars['String']>;
 };
 
@@ -242,7 +241,7 @@ export type ErrorSearchParamsInput = {
     os?: Maybe<Scalars['String']>;
     browser?: Maybe<Scalars['String']>;
     visited_url?: Maybe<Scalars['String']>;
-    hide_resolved?: Maybe<Scalars['Boolean']>;
+    state?: Maybe<ErrorState>;
     event?: Maybe<Scalars['String']>;
 };
 
@@ -252,7 +251,7 @@ export type ErrorSearchParams = {
     os?: Maybe<Scalars['String']>;
     browser?: Maybe<Scalars['String']>;
     visited_url?: Maybe<Scalars['String']>;
-    hide_resolved?: Maybe<Scalars['Boolean']>;
+    state?: Maybe<ErrorState>;
     event?: Maybe<Scalars['String']>;
 };
 

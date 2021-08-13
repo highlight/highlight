@@ -8,7 +8,10 @@ import { useUpdateErrorGroupStateMutation } from '../../../graph/generated/hooks
 import { ErrorState } from '../../../graph/generated/schemas';
 import styles from './ErrorStateSelect.module.scss';
 
-const ErrorStateOptions = Object.keys(ErrorState).map((key) => ({
+/**
+ * The possible states for an `ErrorGroup`.
+ */
+export const ErrorStateOptions = Object.keys(ErrorState).map((key) => ({
     displayValue: `${key}`,
     value: key.toUpperCase(),
     id: key.toUpperCase(),

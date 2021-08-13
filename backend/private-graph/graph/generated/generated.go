@@ -119,7 +119,6 @@ type ComplexityRoot struct {
 		ID             func(childComplexity int) int
 		MetadataLog    func(childComplexity int) int
 		OrganizationID func(childComplexity int) int
-		Resolved       func(childComplexity int) int
 		StackTrace     func(childComplexity int) int
 		State          func(childComplexity int) int
 		Type           func(childComplexity int) int
@@ -157,12 +156,12 @@ type ComplexityRoot struct {
 	}
 
 	ErrorSearchParams struct {
-		Browser      func(childComplexity int) int
-		DateRange    func(childComplexity int) int
-		Event        func(childComplexity int) int
-		HideResolved func(childComplexity int) int
-		OS           func(childComplexity int) int
-		VisitedURL   func(childComplexity int) int
+		Browser    func(childComplexity int) int
+		DateRange  func(childComplexity int) int
+		Event      func(childComplexity int) int
+		OS         func(childComplexity int) int
+		State      func(childComplexity int) int
+		VisitedURL func(childComplexity int) int
 	}
 
 	ErrorSegment struct {
@@ -806,13 +805,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorGroup.OrganizationID(childComplexity), true
 
-	case "ErrorGroup.resolved":
-		if e.complexity.ErrorGroup.Resolved == nil {
-			break
-		}
-
-		return e.complexity.ErrorGroup.Resolved(childComplexity), true
-
 	case "ErrorGroup.stack_trace":
 		if e.complexity.ErrorGroup.StackTrace == nil {
 			break
@@ -1009,19 +1001,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorSearchParams.Event(childComplexity), true
 
-	case "ErrorSearchParams.hide_resolved":
-		if e.complexity.ErrorSearchParams.HideResolved == nil {
-			break
-		}
-
-		return e.complexity.ErrorSearchParams.HideResolved(childComplexity), true
-
 	case "ErrorSearchParams.os":
 		if e.complexity.ErrorSearchParams.OS == nil {
 			break
 		}
 
 		return e.complexity.ErrorSearchParams.OS(childComplexity), true
+
+	case "ErrorSearchParams.state":
+		if e.complexity.ErrorSearchParams.State == nil {
+			break
+		}
+
+		return e.complexity.ErrorSearchParams.State(childComplexity), true
 
 	case "ErrorSearchParams.visited_url":
 		if e.complexity.ErrorSearchParams.VisitedURL == nil {
@@ -2837,7 +2829,6 @@ type ErrorGroup {
     metadata_log: [ErrorMetadata]!
     field_group: [ErrorField]
     state: ErrorState!
-    resolved: Boolean
     environments: String
 }
 
@@ -2923,7 +2914,7 @@ input ErrorSearchParamsInput {
     os: String
     browser: String
     visited_url: String
-    hide_resolved: Boolean
+    state: ErrorState
     event: String
 }
 
@@ -2932,7 +2923,7 @@ type ErrorSearchParams {
     os: String
     browser: String
     visited_url: String
-    hide_resolved: Boolean
+    state: ErrorState
     event: String
 }
 
@@ -6362,38 +6353,6 @@ func (ec *executionContext) _ErrorGroup_state(ctx context.Context, field graphql
 	return ec.marshalNErrorState2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorState(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ErrorGroup_resolved(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ErrorGroup",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Resolved, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*bool)
-	fc.Result = res
-	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _ErrorGroup_environments(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -7294,7 +7253,7 @@ func (ec *executionContext) _ErrorSearchParams_visited_url(ctx context.Context, 
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ErrorSearchParams_hide_resolved(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorSearchParams) (ret graphql.Marshaler) {
+func (ec *executionContext) _ErrorSearchParams_state(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorSearchParams) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7312,7 +7271,7 @@ func (ec *executionContext) _ErrorSearchParams_hide_resolved(ctx context.Context
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.HideResolved, nil
+		return obj.State, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7321,9 +7280,9 @@ func (ec *executionContext) _ErrorSearchParams_hide_resolved(ctx context.Context
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(*model.ErrorState)
 	fc.Result = res
-	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalOErrorState2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorState(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorSearchParams_event(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorSearchParams) (ret graphql.Marshaler) {
@@ -15135,11 +15094,11 @@ func (ec *executionContext) unmarshalInputErrorSearchParamsInput(ctx context.Con
 			if err != nil {
 				return it, err
 			}
-		case "hide_resolved":
+		case "state":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hide_resolved"))
-			it.HideResolved, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("state"))
+			it.State, err = ec.unmarshalOErrorState2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorState(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15911,8 +15870,6 @@ func (ec *executionContext) _ErrorGroup(ctx context.Context, sel ast.SelectionSe
 				}
 				return res
 			})
-		case "resolved":
-			out.Values[i] = ec._ErrorGroup_resolved(ctx, field, obj)
 		case "environments":
 			out.Values[i] = ec._ErrorGroup_environments(ctx, field, obj)
 		default:
@@ -16109,8 +16066,8 @@ func (ec *executionContext) _ErrorSearchParams(ctx context.Context, sel ast.Sele
 			out.Values[i] = ec._ErrorSearchParams_browser(ctx, field, obj)
 		case "visited_url":
 			out.Values[i] = ec._ErrorSearchParams_visited_url(ctx, field, obj)
-		case "hide_resolved":
-			out.Values[i] = ec._ErrorSearchParams_hide_resolved(ctx, field, obj)
+		case "state":
+			out.Values[i] = ec._ErrorSearchParams_state(ctx, field, obj)
 		case "event":
 			out.Values[i] = ec._ErrorSearchParams_event(ctx, field, obj)
 		default:
@@ -19384,6 +19341,22 @@ func (ec *executionContext) marshalOErrorSegment2ᚖgithubᚗcomᚋhighlightᚑr
 		return graphql.Null
 	}
 	return ec._ErrorSegment(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOErrorState2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorState(ctx context.Context, v interface{}) (*model.ErrorState, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ErrorState)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOErrorState2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorState(ctx context.Context, sel ast.SelectionSet, v *model.ErrorState) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalOErrorTrace2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorTrace(ctx context.Context, sel ast.SelectionSet, v *model.ErrorTrace) graphql.Marshaler {

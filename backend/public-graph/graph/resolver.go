@@ -192,7 +192,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *
 			Event:          errorObj.Event,
 			StackTrace:     frameString,
 			Type:           errorObj.Type,
-			Resolved:       &model.F,
+			State:          modelInputs.ErrorStateOpen.String(),
 		}
 		if err := r.DB.Create(newErrorGroup).Error; err != nil {
 			return nil, e.Wrap(err, "Error creating new error group")

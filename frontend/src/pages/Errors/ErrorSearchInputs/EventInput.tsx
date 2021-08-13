@@ -4,7 +4,6 @@ import { OptionsType, OptionTypeBase, ValueType } from 'react-select';
 import AsyncCreatableSelect from 'react-select/async-creatable';
 
 import { SearchMatchOption } from '../../../components/Option/Option';
-import Switch from '../../../components/Switch/Switch';
 import { useGetErrorFieldSuggestionQuery } from '../../../graph/generated/hooks';
 import SvgBugIcon from '../../../static/BugIcon';
 import inputStyles from '../../Sessions/SearchInputs/InputStyles.module.scss';
@@ -77,22 +76,5 @@ export const EventInput = () => {
                 createOptionPosition={'first'}
             />
         </div>
-    );
-};
-
-export const ResolvedErrorSwitch = () => {
-    const { searchParams, setSearchParams } = useErrorSearchContext();
-
-    return (
-        <Switch
-            checked={searchParams.hide_resolved}
-            onChange={(val: boolean) => {
-                setSearchParams((params) => ({
-                    ...params,
-                    hide_resolved: val,
-                }));
-            }}
-            label="Hide resolved errors"
-        />
     );
 };

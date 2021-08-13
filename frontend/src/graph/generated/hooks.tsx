@@ -1184,7 +1184,7 @@ export const CreateErrorSegmentDocument = gql`
                 os
                 browser
                 visited_url
-                hide_resolved
+                state
             }
         }
     }
@@ -2570,7 +2570,6 @@ export const GetErrorGroupDocument = gql`
             type
             organization_id
             event
-            resolved
             state
             stack_trace {
                 fileName
@@ -2658,7 +2657,7 @@ export const GetErrorGroupsDocument = gql`
                 id
                 type
                 event
-                resolved
+                state
                 state
                 environments
                 stack_trace {
@@ -3408,7 +3407,7 @@ export const GetErrorSegmentsDocument = gql`
                 os
                 browser
                 visited_url
-                hide_resolved
+                state
                 event
             }
         }

@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { ErrorState } from '../../../graph/generated/schemas';
 import { createContext } from '../../../util/context/context';
 
 export type ErrorSearchParams = {
@@ -7,7 +8,7 @@ export type ErrorSearchParams = {
     os?: string;
     browser?: string;
     visited_url?: string;
-    hide_resolved?: boolean;
+    state?: ErrorState;
     event?: string;
 };
 
