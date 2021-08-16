@@ -12,7 +12,7 @@ interface Props {
 
 const StackTraceSection = ({ errorGroup, loading }: Props) => {
     return (
-        <div className={styles.stackTracesContainer}>
+        <div>
             {loading
                 ? Array(5)
                       .fill(0)
