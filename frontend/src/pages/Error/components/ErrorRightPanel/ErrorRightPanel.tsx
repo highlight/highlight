@@ -40,10 +40,10 @@ const ErrorRightPanel = ({ errorGroup }: Props) => {
                         title: 'Comments',
                         panelContent: (
                             <div className={styles.commentsTabContainer}>
+                                <ErrorFullCommentList />
                                 <div className={styles.createCommentContainer}>
                                     <ErrorComments />
                                 </div>
-                                <ErrorFullCommentList />
                             </div>
                         ),
                     },
