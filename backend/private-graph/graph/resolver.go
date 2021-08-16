@@ -58,7 +58,7 @@ func (r *Resolver) isAdminInOrganization(ctx context.Context, org_id int) (*mode
 	if util.IsTestEnv() {
 		return nil, nil
 	}
-	if r.isWhitelistedAccount(ctx) {
+	if r.isWhitelistedAccount(ctx) || r.isDemoOrg(org_id) {
 		org := &model.Organization{}
 		if err := r.DB.Where(&model.Organization{Model: model.Model{ID: org_id}}).First(&org).Error; err != nil {
 			return nil, e.Wrap(err, "error querying org")
