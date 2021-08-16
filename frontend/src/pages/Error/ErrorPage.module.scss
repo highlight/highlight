@@ -61,6 +61,14 @@
 
     &.withoutLeftPanel {
         grid-template-columns: 1fr var(--right-panel-width);
+
+        &.empty {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    &.empty {
+        grid-template-columns: var(--left-panel-width) 1fr;
     }
 }
 

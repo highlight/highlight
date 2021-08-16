@@ -13,15 +13,17 @@ interface Props {
 const ErrorTitle = ({ errorGroup }: Props) => {
     return (
         <header className={styles.header}>
-            <div>
-                <h2>{getHeaderFromError(errorGroup?.event ?? [])}</h2>
-                <Field
-                    k={'mechanism'}
-                    v={errorGroup?.type || 'window.onerror'}
-                    color={'warning'}
-                />
+            <div className={styles.topRow}>
+                <div>
+                    <h2>{getHeaderFromError(errorGroup?.event ?? [])}</h2>
+                </div>
+                <ErrorShareButton errorGroup={errorGroup} />
             </div>
-            <ErrorShareButton errorGroup={errorGroup} />
+            <Field
+                k={'mechanism'}
+                v={errorGroup?.type || 'window.onerror'}
+                color={'warning'}
+            />
         </header>
     );
 };

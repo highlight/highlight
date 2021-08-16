@@ -80,6 +80,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
             <div
                 className={classNames(styles.errorPage, {
                     [styles.withoutLeftPanel]: !showLeftPanel,
+                    [styles.empty]: !error_id,
                 })}
             >
                 <div
