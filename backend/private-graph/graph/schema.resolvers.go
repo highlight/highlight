@@ -202,7 +202,7 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 
 func (r *mutationResolver) EditOrganization(ctx context.Context, id int, name *string, billingEmail *string) (*model.Organization, error) {
 	org, err := r.isAdminInOrganization(ctx, id)
-	if err != nil {
+	if err != nil || r.isDemoOrg(id) {
 		return nil, e.Wrap(err, "error querying org")
 	}
 	if err := r.DB.Model(org).Updates(&model.Organization{
@@ -262,7 +262,7 @@ func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, id int, st
 
 func (r *mutationResolver) DeleteOrganization(ctx context.Context, id int) (*bool, error) {
 	_, err := r.isAdminInOrganization(ctx, id)
-	if err != nil {
+	if err != nil || r.isDemoOrg(id) {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
 	if err := r.DB.Delete(&model.Organization{Model: model.Model{ID: id}}).Error; err != nil {
