@@ -101,18 +101,29 @@ const MinimalSessionCard = ({
                                     }
                                 )}
                             >
-                                <div
-                                    className={classNames(
-                                        styles.middleText,
-                                        'highlight-block'
-                                    )}
-                                >
-                                    {session?.identifier ||
+                                <Tooltip
+                                    title={
+                                        session?.identifier ||
                                         `#${
                                             session?.fingerprint ||
                                             session?.user_id
-                                        }`}
-                                </div>
+                                        }`
+                                    }
+                                    mouseEnterDelay={0}
+                                >
+                                    <div
+                                        className={classNames(
+                                            styles.middleText,
+                                            'highlight-block'
+                                        )}
+                                    >
+                                        {session?.identifier ||
+                                            `#${
+                                                session?.fingerprint ||
+                                                session?.user_id
+                                            }`}
+                                    </div>
+                                </Tooltip>
                             </div>
                             <div
                                 className={classNames(
@@ -191,6 +202,7 @@ const MinimalSessionCard = ({
                                     </>
                                 ) : (
                                     <Tooltip
+                                        mouseEnterDelay={0.2}
                                         title={
                                             session?.processed ? (
                                                 <table>
