@@ -301,6 +301,7 @@ export type Admin = {
     name: Scalars['String'];
     email: Scalars['String'];
     photo_url?: Maybe<Scalars['String']>;
+    slack_im_channel_id?: Maybe<Scalars['String']>;
 };
 
 export type SanitizedAdmin = {
@@ -665,6 +666,7 @@ export type Mutation = {
     deleteSessionComment?: Maybe<Scalars['Boolean']>;
     createErrorComment?: Maybe<ErrorComment>;
     deleteErrorComment?: Maybe<Scalars['Boolean']>;
+    openSlackConversation?: Maybe<Scalars['Boolean']>;
     updateErrorAlert?: Maybe<ErrorAlert>;
     updateNewUserAlert?: Maybe<SessionAlert>;
     updateTrackPropertiesAlert?: Maybe<SessionAlert>;
@@ -799,6 +801,12 @@ export type MutationCreateErrorCommentArgs = {
 
 export type MutationDeleteErrorCommentArgs = {
     id: Scalars['ID'];
+};
+
+export type MutationOpenSlackConversationArgs = {
+    organization_id: Scalars['ID'];
+    code: Scalars['String'];
+    redirect_path: Scalars['String'];
 };
 
 export type MutationUpdateErrorAlertArgs = {
