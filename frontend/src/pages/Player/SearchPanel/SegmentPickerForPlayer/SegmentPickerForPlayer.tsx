@@ -21,6 +21,7 @@ import { gqlSanitize } from '../../../../util/gqlSanitize';
 import { useSearchContext } from '../../../Sessions/SearchContext/SearchContext';
 import CreateSegmentModal from '../../../Sessions/SearchSidebar/SegmentButtons/CreateSegmentModal';
 import DeleteSessionSegmentModal from '../../../Sessions/SearchSidebar/SegmentPicker/DeleteSessionSegmentModal/DeleteSessionSegmentModal';
+import { STARRED_SEGMENT_ID } from '../../../Sessions/SearchSidebar/SegmentPicker/SegmentPicker';
 import { EmptySessionsSearchParams } from '../../../Sessions/SessionsPage';
 import styles from './SegmentPickerForPlayer.module.scss';
 
@@ -35,6 +36,7 @@ const SegmentPickerForPlayer = () => {
         segmentName,
         searchParams,
         existingParams,
+        setShowStarredSessions,
     } = useSearchContext();
     const { loading, data } = useGetSegmentsQuery({
         variables: { organization_id },
@@ -85,21 +87,41 @@ const SegmentPickerForPlayer = () => {
     }, [searchParams, existingParams]);
 
     const showUpdateSegmentOption = paramsIsDifferent && segmentName;
-    const segmentOptions = (data?.segments || [])
-        .map((segment) => ({
-            displayValue: segment?.name || '',
-            value: segment?.name || '',
-            id: segment?.id || '',
-        }))
-        .sort((a, b) =>
-            a.displayValue.toLowerCase() > b.displayValue.toLowerCase() ? 1 : -1
-        );
+    const segmentOptions = [
+        {
+            displayValue: 'Starred',
+            id: STARRED_SEGMENT_ID,
+            value: 'Starred',
+        },
+        ...(data?.segments || [])
+            .map((segment) => ({
+                displayValue: segment?.name || '',
+                value: segment?.name || '',
+                id: segment?.id || '',
+            }))
+            .sort((a, b) =>
+                a.displayValue.toLowerCase() > b.displayValue.toLowerCase()
+                    ? 1
+                    : -1
+            ),
+    ];
 
     return (
         <section className={styles.segmentPickerSection}>
             <Select
                 value={segmentName}
                 onChange={(value, option) => {
+                    if ((option as any)?.key === STARRED_SEGMENT_ID) {
+                        setShowStarredSessions(true);
+                        setExistingParams(EmptySessionsSearchParams);
+                        setSearchParams(EmptySessionsSearchParams);
+                        setSegmentName('Starred');
+                        setSelectedSegment({ value, id: STARRED_SEGMENT_ID });
+                        return;
+                    } else {
+                        setShowStarredSessions(false);
+                    }
+
                     let nextValue = undefined;
                     if (value && option) {
                         nextValue = {
@@ -140,22 +162,24 @@ const SegmentPickerForPlayer = () => {
                             >
                                 {option.displayValue}
                             </Tooltip>
-                            <Button
-                                trackingId="deleteSegmentFromPlayerSegmentPicker"
-                                type="ghost"
-                                iconButton
-                                aria-label={`Delete ${option.value} segment`}
-                                small
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSegmentToDelete({
-                                        id: option.id,
-                                        name: option.displayValue,
-                                    });
-                                }}
-                            >
-                                <SvgCloseIcon />
-                            </Button>
+                            {option.id !== STARRED_SEGMENT_ID && (
+                                <Button
+                                    trackingId="deleteSegmentFromPlayerSegmentPicker"
+                                    type="ghost"
+                                    iconButton
+                                    aria-label={`Delete ${option.value} segment`}
+                                    small
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSegmentToDelete({
+                                            id: option.id,
+                                            name: option.displayValue,
+                                        });
+                                    }}
+                                >
+                                    <SvgCloseIcon />
+                                </Button>
+                            )}
                         </span>
                     </Option>
                 ))}

@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
@@ -41,6 +42,7 @@ func SetupAuthClient() {
 func PrivateMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var uid string
+		email := ""
 		token := r.Header.Get("token")
 		if token != "" {
 			token := r.Header.Get("token")
@@ -50,8 +52,17 @@ func PrivateMiddleware(next http.Handler) http.Handler {
 				return
 			}
 			uid = t.UID
+			if userRecord, err := AuthClient.GetUser(context.Background(), uid); err == nil {
+				email = userRecord.Email
+
+				// This is to prevent attackers from impersonating Highlight staff.
+				if strings.Contains(userRecord.Email, "@highlight.run") && !userRecord.EmailVerified {
+					email = ""
+				}
+			}
 		}
 		ctx := context.WithValue(r.Context(), model.ContextKeys.UID, uid)
+		ctx = context.WithValue(ctx, model.ContextKeys.Email, email)
 		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r)
 	})

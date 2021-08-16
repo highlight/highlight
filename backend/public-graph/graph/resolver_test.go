@@ -62,7 +62,6 @@ func TestHandleErrorAndGroup(t *testing.T) {
 				{
 					OrganizationID: 1,
 					StackTrace:     nullStr,
-					Resolved:       &model.F,
 					State:          model.ErrorGroupStates.OPEN,
 					MetadataLog:    &metaDataStr,
 					Environments:   `{"dev":2}`,
@@ -86,7 +85,6 @@ func TestHandleErrorAndGroup(t *testing.T) {
 				{
 					OrganizationID: 1,
 					StackTrace:     nullStr,
-					Resolved:       &model.F,
 					State:          model.ErrorGroupStates.OPEN,
 					MetadataLog:    &metaDataStr,
 					Environments:   `{"dev":1,"prod":1}`,
@@ -109,7 +107,6 @@ func TestHandleErrorAndGroup(t *testing.T) {
 				{
 					OrganizationID: 1,
 					StackTrace:     nullStr,
-					Resolved:       &model.F,
 					State:          model.ErrorGroupStates.OPEN,
 					MetadataLog:    &metaDataStr,
 					Environments:   `{"dev":1}`,
@@ -133,7 +130,6 @@ func TestHandleErrorAndGroup(t *testing.T) {
 				{
 					OrganizationID:   1,
 					StackTrace:       shortTraceStr,
-					Resolved:         &model.F,
 					State:            model.ErrorGroupStates.OPEN,
 					MetadataLog:      &metaDataStr,
 					Environments:     `{}`,
@@ -158,7 +154,6 @@ func TestHandleErrorAndGroup(t *testing.T) {
 				{
 					OrganizationID:   1,
 					StackTrace:       longTraceStr,
-					Resolved:         &model.F,
 					MetadataLog:      &metaDataStr,
 					Environments:     `{}`,
 					State:            model.ErrorGroupStates.OPEN,

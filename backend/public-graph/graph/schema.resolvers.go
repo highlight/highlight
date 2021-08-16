@@ -11,11 +11,12 @@ import (
 	"os"
 	"time"
 
-	dd "github.com/highlight-run/highlight/backend/datadog"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
+	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/util"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
@@ -27,7 +28,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 	session, err := InitializeSessionImplementation(r, ctx, organizationVerboseID, enableStrictPrivacy, enableRecordingNetworkContents, firstloadVersion, clientVersion, clientConfig, environment, appVersion, fingerprint)
 
 	orgID := model.FromVerboseID(organizationVerboseID)
-	if os.Getenv("ENVIRONMENT") != "dev" && err != nil {
+	if !util.IsDevEnv() && err != nil {
 		msg := slack.WebhookMessage{Text: fmt.
 			Sprintf("Error in InitializeSession: %q\nOccurred for organization: {%d, %q}\nIs on-prem: %q", err, orgID, organizationVerboseID, os.Getenv("REACT_APP_ONPREM"))}
 		err := slack.PostWebhook(os.Getenv("SLACK_INITIALIZED_SESSION_FAILED_WEB_HOOK"), &msg)
@@ -257,7 +258,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 
 		var errorFields []*model.ErrorField
 		if v.Payload != nil && *v.Payload != "" {
-			dd.StatsD.Histogram(fmt.Sprintf("%s.errorPayloadSize", histogram.pushPayload), float64(len(*v.Payload)), //nolint
+			hlog.Histogram(fmt.Sprintf("%s.errorPayloadSize", histogram.pushPayload), float64(len(*v.Payload)), //nolint
 				[]string{fmt.Sprintf("env:%s", os.Getenv("ENVIRONMENT")),
 					fmt.Sprintf("org_id:%d", organizationID)}, 1)
 

@@ -113,6 +113,7 @@
     display: flex;
     flex-direction: column;
     height: 100%;
+    padding: var(--size-medium);
 
     .playerContainer {
         display: flex;
@@ -129,6 +130,17 @@
     height: 100%;
     padding: var(--size-large) var(--size-xLarge);
     padding-bottom: 0;
+    position: relative;
+    top: 0;
+    transform: translateX(0);
+    transition: transform 0.2s ease-in-out;
+    width: var(--left-panel-width);
+    z-index: 98;
+
+    &.hidden {
+        position: fixed;
+        transform: translateX(calc(-1 * (var(--left-panel-width))));
+    }
 }
 
 .loadingWrapper {
@@ -140,6 +152,7 @@
 }
 
 .rrwebPlayerSection {
+    column-gap: var(--size-medium);
     display: flex;
 
     flex: 2;
@@ -178,6 +191,7 @@
 
 .playerBody {
     --left-panel-width: 475px;
+    --right-panel-width: 350px;
 
     --background-color: var(--color-gray-200);
     --dot-color: var(--color-gray-300);
@@ -234,5 +248,29 @@
         &:last-of-type {
             padding-bottom: 50px;
         }
+    }
+}
+
+.panelToggleButton {
+    position: absolute;
+    transform: translateY(calc(112px + var(--size-medium) + 30px));
+    z-index: 999;
+}
+
+.panelToggleButtonLeft {
+    right: calc((-1 * var(--size-xLarge) / 2) - var(--size-medium));
+    top: 97px;
+
+    &.panelShown {
+        right: calc(-1 * (var(--size-xLarge) / 2));
+        top: 16px;
+    }
+}
+
+.panelToggleButtonRight {
+    left: calc((var(--size-xLarge) + var(--size-medium)) * -1);
+
+    &.panelShown {
+        left: calc(-1 * var(--size-medium));
     }
 }

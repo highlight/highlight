@@ -1,7 +1,7 @@
 .metadataPanel {
     display: flex;
     flex-direction: column;
-    height: 100%;
     padding: 0 var(--size-large);
+    padding-bottom: var(--size-large);
     row-gap: var(--size-medium);
 }

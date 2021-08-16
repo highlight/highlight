@@ -1,3 +1,42 @@
 .select {
     width: 100%;
+
+    &.resolved {
+        :global(.ant-select-selector) {
+            background-color: var(--color-error-resolved);
+            color: var(--text-primary-inverted) !important;
+        }
+
+        :global(.ant-select-arrow) {
+            svg {
+                color: var(--text-primary-inverted);
+            }
+        }
+    }
+
+    &.open {
+        :global(.ant-select-selector) {
+            background-color: var(--color-error-open);
+            color: var(--text-primary-inverted) !important;
+        }
+
+        :global(.ant-select-arrow) {
+            svg {
+                color: var(--text-primary-inverted);
+            }
+        }
+    }
+
+    &.ignored {
+        :global(.ant-select-selector) {
+            background-color: var(--color-error-ignored);
+            color: var(--text-primary-inverted) !important;
+        }
+
+        :global(.ant-select-arrow) {
+            svg {
+                color: var(--text-primary-inverted);
+            }
+        }
+    }
 }

@@ -9,6 +9,7 @@ interface Props {
     title: string;
     route?: string;
     tooltipText: string | React.ReactNode;
+    onClick?: () => void;
 }
 
 const KeyPerformanceIndicator = ({
@@ -16,6 +17,7 @@ const KeyPerformanceIndicator = ({
     value,
     route,
     tooltipText,
+    onClick,
 }: Props) => {
     const body = (
         <>
@@ -28,7 +30,13 @@ const KeyPerformanceIndicator = ({
     );
     return (
         <div className={styles.keyPerformanceIndicator}>
-            {route ? <Link to={route}>{body}</Link> : body}
+            {route ? (
+                <Link to={route} onClick={onClick}>
+                    {body}
+                </Link>
+            ) : (
+                body
+            )}
         </div>
     );
 };

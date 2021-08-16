@@ -155,7 +155,6 @@ export type ErrorGroup = {
     stack_trace: Array<Maybe<ErrorTrace>>;
     metadata_log: Array<Maybe<ErrorMetadata>>;
     state: ErrorState;
-    resolved?: Maybe<Scalars['Boolean']>;
     environments?: Maybe<Scalars['String']>;
     fields?: Maybe<Array<Maybe<ErrorField>>>;
 };
@@ -248,7 +247,7 @@ export type ErrorSearchParamsInput = {
     os?: Maybe<Scalars['String']>;
     browser?: Maybe<Scalars['String']>;
     visited_url?: Maybe<Scalars['String']>;
-    hide_resolved?: Maybe<Scalars['Boolean']>;
+    state?: Maybe<ErrorState>;
     event?: Maybe<Scalars['String']>;
     payload_fields?: Maybe<Array<Maybe<FieldInput>>>;
 };
@@ -259,7 +258,7 @@ export type ErrorSearchParams = {
     os?: Maybe<Scalars['String']>;
     browser?: Maybe<Scalars['String']>;
     visited_url?: Maybe<Scalars['String']>;
-    hide_resolved?: Maybe<Scalars['Boolean']>;
+    state?: Maybe<ErrorState>;
     event?: Maybe<Scalars['String']>;
 };
 
@@ -667,7 +666,8 @@ export type Mutation = {
     createErrorSegment?: Maybe<ErrorSegment>;
     editErrorSegment?: Maybe<Scalars['Boolean']>;
     deleteErrorSegment?: Maybe<Scalars['Boolean']>;
-    createOrUpdateSubscription?: Maybe<Scalars['String']>;
+    createOrUpdateStripeSubscription?: Maybe<Scalars['String']>;
+    updateBillingDetails?: Maybe<Scalars['Boolean']>;
     createSessionComment?: Maybe<SessionComment>;
     deleteSessionComment?: Maybe<Scalars['Boolean']>;
     createErrorComment?: Maybe<ErrorComment>;
@@ -766,9 +766,13 @@ export type MutationDeleteErrorSegmentArgs = {
     segment_id: Scalars['ID'];
 };
 
-export type MutationCreateOrUpdateSubscriptionArgs = {
+export type MutationCreateOrUpdateStripeSubscriptionArgs = {
     organization_id: Scalars['ID'];
     plan_type: PlanType;
+};
+
+export type MutationUpdateBillingDetailsArgs = {
+    organization_id: Scalars['ID'];
 };
 
 export type MutationCreateSessionCommentArgs = {

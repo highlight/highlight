@@ -20,7 +20,7 @@
 
     p {
         color: var(--color-gray-500);
-        margin-bottom: 0;
+        margin-bottom: 0 !important;
     }
 
     .content {
@@ -33,5 +33,9 @@
         margin: 0 auto;
         margin-bottom: var(--size-large);
         width: 250px;
+    }
+
+    .actions {
+        margin-top: var(--size-xLarge);
     }
 }

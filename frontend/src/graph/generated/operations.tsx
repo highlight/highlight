@@ -22,14 +22,23 @@ export type MarkSessionAsStarredMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
-export type CreateOrUpdateSubscriptionMutationVariables = Types.Exact<{
+export type CreateOrUpdateStripeSubscriptionMutationVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     plan_type: Types.PlanType;
 }>;
 
-export type CreateOrUpdateSubscriptionMutation = {
+export type CreateOrUpdateStripeSubscriptionMutation = {
     __typename?: 'Mutation';
-} & Pick<Types.Mutation, 'createOrUpdateSubscription'>;
+} & Pick<Types.Mutation, 'createOrUpdateStripeSubscription'>;
+
+export type UpdateBillingDetailsMutationVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+}>;
+
+export type UpdateBillingDetailsMutation = { __typename?: 'Mutation' } & Pick<
+    Types.Mutation,
+    'updateBillingDetails'
+>;
 
 export type UpdateErrorGroupStateMutationVariables = Types.Exact<{
     id: Types.Scalars['ID'];
@@ -301,7 +310,7 @@ export type CreateErrorSegmentMutation = { __typename?: 'Mutation' } & {
         > & {
                 params: { __typename?: 'ErrorSearchParams' } & Pick<
                     Types.ErrorSearchParams,
-                    'os' | 'browser' | 'visited_url' | 'hide_resolved'
+                    'os' | 'browser' | 'visited_url' | 'state'
                 > & {
                         date_range?: Types.Maybe<
                             { __typename?: 'DateRange' } & Pick<
@@ -493,6 +502,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'starred'
             | 'enable_strict_privacy'
             | 'enable_recording_network_contents'
+            | 'field_group'
             | 'object_storage_enabled'
             | 'payload_size'
             | 'within_billing_quota'
@@ -707,6 +717,7 @@ export type GetSessionsQuery = { __typename?: 'Query' } & {
                     | 'viewed'
                     | 'starred'
                     | 'processed'
+                    | 'field_group'
                     | 'first_time'
                 > & {
                         fields?: Types.Maybe<
@@ -737,6 +748,34 @@ export type GetOrganizationsQuery = { __typename?: 'Query' } & {
                     'id' | 'name'
                 >
             >
+        >
+    >;
+};
+
+export type GetApplicationsQueryVariables = Types.Exact<{
+    id: Types.Scalars['ID'];
+}>;
+
+export type GetApplicationsQuery = { __typename?: 'Query' } & {
+    organizations?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Organization' } & Pick<
+                    Types.Organization,
+                    'id' | 'name'
+                >
+            >
+        >
+    >;
+    organization?: Types.Maybe<
+        { __typename?: 'Organization' } & Pick<
+            Types.Organization,
+            | 'id'
+            | 'name'
+            | 'verbose_id'
+            | 'billing_email'
+            | 'slack_webhook_channel'
+            | 'secret'
         >
     >;
 };
@@ -795,7 +834,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
     error_group?: Types.Maybe<
         { __typename?: 'ErrorGroup' } & Pick<
             Types.ErrorGroup,
-            'id' | 'type' | 'organization_id' | 'event' | 'resolved' | 'state'
+            'id' | 'type' | 'organization_id' | 'event' | 'state'
         > & {
                 stack_trace: Array<
                     Types.Maybe<
@@ -851,12 +890,7 @@ export type GetErrorGroupsQuery = { __typename?: 'Query' } & {
                 error_groups: Array<
                     { __typename?: 'ErrorGroup' } & Pick<
                         Types.ErrorGroup,
-                        | 'id'
-                        | 'type'
-                        | 'event'
-                        | 'resolved'
-                        | 'state'
-                        | 'environments'
+                        'id' | 'type' | 'event' | 'state' | 'environments'
                     > & {
                             stack_trace: Array<
                                 Types.Maybe<
@@ -975,6 +1009,34 @@ export type GetErrorFieldSuggestionQueryVariables = Types.Exact<{
 
 export type GetErrorFieldSuggestionQuery = { __typename?: 'Query' } & {
     error_field_suggestion?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'ErrorField' } & Pick<
+                    Types.ErrorField,
+                    'name' | 'value'
+                >
+            >
+        >
+    >;
+};
+
+export type GetErrorSearchSuggestionsQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    query: Types.Scalars['String'];
+}>;
+
+export type GetErrorSearchSuggestionsQuery = { __typename?: 'Query' } & {
+    visitedUrls?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'ErrorField' } & Pick<
+                    Types.ErrorField,
+                    'name' | 'value'
+                >
+            >
+        >
+    >;
+    fields?: Types.Maybe<
         Array<
             Types.Maybe<
                 { __typename?: 'ErrorField' } & Pick<
@@ -1161,11 +1223,7 @@ export type GetErrorSegmentsQuery = { __typename?: 'Query' } & {
                 > & {
                         params: { __typename?: 'ErrorSearchParams' } & Pick<
                             Types.ErrorSearchParams,
-                            | 'os'
-                            | 'browser'
-                            | 'visited_url'
-                            | 'hide_resolved'
-                            | 'event'
+                            'os' | 'browser' | 'visited_url' | 'state' | 'event'
                         > & {
                                 date_range?: Types.Maybe<
                                     { __typename?: 'DateRange' } & Pick<

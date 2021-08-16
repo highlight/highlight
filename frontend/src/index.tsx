@@ -20,7 +20,6 @@ import {
 } from './AuthContext';
 import { ErrorState } from './components/ErrorState/ErrorState';
 import { useGetAdminLazyQuery } from './graph/generated/hooks';
-import About from './pages/About/About';
 import LoginForm, { AuthAdminRouter } from './pages/Login/Login';
 import * as serviceWorker from './serviceWorker';
 import { auth } from './util/auth';
@@ -38,11 +37,18 @@ const options: HighlightOptions = {
         enabled: true,
         recordHeadersAndBody: true,
     },
+    integrations: {
+        mixpanel: {
+            projectToken: 'e70039b6a5b93e7c86b8afb02b6d2300',
+        },
+    },
 };
 const favicon = document.querySelector("link[rel~='icon']") as any;
 if (dev) {
     options.scriptUrl = 'http://localhost:8080/dist/index.js';
     options.backendUrl = 'http://localhost:8082/public';
+
+    options.integrations = undefined;
 
     const sampleEnvironmentNames = [
         'john',
@@ -158,9 +164,6 @@ get in contact with us!
         >
             <Router>
                 <Switch>
-                    <Route path="/about">
-                        <About />
-                    </Route>
                     <Route
                         path="/:organization_id(\d+)/sessions/:session_id(\d+)"
                         exact

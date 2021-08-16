@@ -1,0 +1,20 @@
+.rightPanel {
+    flex-grow: 1;
+
+    .tabContainer {
+        height: 100%;
+        padding: var(--size-medium) var(--size-large);
+    }
+
+    .commentsTabContainer {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        padding: var(--size-medium) 0;
+
+        .createCommentContainer {
+            padding: 0 var(--size-large);
+            padding-bottom: var(--size-xLarge);
+        }
+    }
+}

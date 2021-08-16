@@ -8,11 +8,8 @@ import { SearchMatchOption } from '../../../components/Option/Option';
 import { useGetFieldSuggestionQuery } from '../../../graph/generated/hooks';
 import SvgLinkIcon from '../../../static/LinkIcon';
 import SvgReferrer from '../../../static/Referrer';
-import { SessionPageSearchParams } from '../../Player/utils/utils';
 import { useSearchContext } from '../SearchContext/SearchContext';
 import { LIVE_SEGMENT_ID } from '../SearchSidebar/SegmentPicker/SegmentPicker';
-import { EmptySessionsSearchParams } from '../SessionsPage';
-import useWatchSessionPageSearchParams from './hooks/useWatchSessionPageSearchParams';
 import inputStyles from './InputStyles.module.scss';
 import { ContainsLabel, SharedSelectStyleProps } from './SearchInputUtil';
 
@@ -110,15 +107,6 @@ export const ReferrerInput = () => {
     ) => {
         setSearchParams((params) => ({ ...params, referrer: current?.value }));
     };
-
-    useWatchSessionPageSearchParams(
-        SessionPageSearchParams.referrer,
-        (value) => ({
-            ...EmptySessionsSearchParams,
-            referrer: value,
-        }),
-        (value) => `Showing sessions that were referred by ${value}`
-    );
 
     return (
         <div>

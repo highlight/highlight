@@ -8,11 +8,11 @@
     margin-bottom: 30px;
 }
 
-.errorTitleContainer {
-    align-items: center;
-    display: flex;
-}
-
 .container {
     max-height: 70vh;
+}
+
+.titleContainer {
+    margin-bottom: var(--size-large);
+    padding-right: var(--size-large);
 }

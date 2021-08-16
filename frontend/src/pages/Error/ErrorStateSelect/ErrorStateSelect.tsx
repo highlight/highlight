@@ -1,5 +1,6 @@
 import { message } from 'antd';
-import React, { useEffect, useState } from 'react';
+import classNames from 'classnames';
+import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { StringParam, useQueryParam } from 'use-query-params';
 
@@ -8,20 +9,25 @@ import { useUpdateErrorGroupStateMutation } from '../../../graph/generated/hooks
 import { ErrorState } from '../../../graph/generated/schemas';
 import styles from './ErrorStateSelect.module.scss';
 
-const ErrorStateOptions = Object.keys(ErrorState).map((key) => ({
+/**
+ * The possible states for an `ErrorGroup`.
+ */
+export const ErrorStateOptions = Object.keys(ErrorState).map((key) => ({
     displayValue: `${key}`,
     value: key.toUpperCase(),
     id: key.toUpperCase(),
 }));
 
 export const ErrorStateSelect: React.FC<{
-    state: ErrorState;
-}> = ({ state: initialErrorState }) => {
+    state?: ErrorState;
+    loading: boolean;
+}> = ({ state: initialErrorState, loading }) => {
     const { error_id } = useParams<{ error_id: string }>();
-    const [updateErrorGroupState] = useUpdateErrorGroupStateMutation();
-    const [loading, setLoading] = useState(false);
+    const [
+        updateErrorGroupState,
+        { loading: updateLoading },
+    ] = useUpdateErrorGroupStateMutation();
     const [action, setAction] = useQueryParam('action', StringParam);
-    const [errorState, setErrorState] = useState(initialErrorState);
 
     // Sets the state based on the query parameters. This is used for the Slack deep-linked messages.
     useEffect(() => {
@@ -32,7 +38,6 @@ export const ErrorStateSelect: React.FC<{
                     variables: { id: error_id, state: castedAction },
                 });
                 showStateUpdateMessage(castedAction);
-                setErrorState(castedAction);
             }
             setAction(undefined);
         }
@@ -41,19 +46,20 @@ export const ErrorStateSelect: React.FC<{
     return (
         <Select
             options={ErrorStateOptions}
-            className={styles.select}
-            value={errorState}
+            className={classNames(styles.select, {
+                [styles.resolved]: initialErrorState === ErrorState.Resolved,
+                [styles.open]: initialErrorState === ErrorState.Open,
+                [styles.ignored]: initialErrorState === ErrorState.Ignored,
+            })}
+            value={initialErrorState}
             onChange={async (newState: ErrorState) => {
-                setLoading(true);
-                setErrorState(newState);
                 await updateErrorGroupState({
                     variables: { id: error_id, state: newState },
                 });
-                setLoading(false);
 
                 showStateUpdateMessage(newState);
             }}
-            loading={loading}
+            loading={updateLoading || loading}
         />
     );
 };

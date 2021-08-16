@@ -1,26 +1,35 @@
 @import 'src/static/shared.scss';
 
-.errorPageWrapper {
-    width: 100%;
-}
-
-.errorPageLeft {
+.errorPageCenterColumn {
     flex: 1;
-    min-width: 700px;
+    height: calc(100vh - var(--top-padding));
+    overflow-y: auto;
+    padding-left: var(--size-medium);
+
+    &.hidden {
+        padding-left: var(--size-xxLarge);
+    }
 }
 
-.errorPageRight {
-    min-width: 360px;
-    padding-left: 40px;
-    width: 360px;
+.errorPageLeftColumn {
+    margin-top: calc((-1 * var(--top-padding)) + var(--header-height));
+    width: var(--left-panel-width);
+
+    &.hidden {
+        position: absolute;
+    }
 }
 
-.errorPageRightContent {
+.errorPageRightColumn {
     display: flex;
     flex-direction: column;
     height: calc(100vh - 120px);
+    padding-bottom: var(--size-large);
+    padding-right: var(--size-medium);
     position: sticky;
+    row-gap: var(--size-large);
     top: 120px;
+    width: 100%;
 }
 
 .title {
@@ -35,20 +44,29 @@
 }
 
 .errorPage {
-    display: flex;
+    --right-panel-width: 325px;
+    --left-panel-width: 475px;
+    --top-padding: 120px;
+
+    background: var(--color-gray-200);
+    column-gap: var(--size-large);
+    display: grid;
+    grid-template-columns: var(--left-panel-width) 1fr var(--right-panel-width);
+    height: 100%;
     justify-content: space-between;
-    margin: 120px 80px 80px;
+    padding-bottom: 0;
+    padding-top: var(--top-padding);
+    width: 100%;
     word-break: break-word;
+
+    &.withoutLeftPanel {
+        grid-template-columns: 1fr var(--right-panel-width);
+    }
 }
 
 .eventText {
     color: var(--color-gray-500);
     margin-bottom: 30px;
-}
-
-.titleWrapper {
-    align-items: center;
-    display: flex;
 }
 
 .fieldWrapper {
@@ -71,10 +89,12 @@
 }
 
 .section {
+    background: var(--color-primary-background);
     border: 1px solid var(--color-gray-300);
     border-radius: 8px;
     display: flex;
     margin-bottom: 20px;
+    overflow: hidden;
     transition: 0.4s;
     width: 100%;
 }
@@ -87,9 +107,18 @@
 
 .triggerWrapper {
     display: flex;
-    flex-direction: row;
-    padding: 15px 12px;
+    flex-direction: column;
     width: 100%;
+
+    > div {
+        padding: var(--size-medium);
+    }
+
+    hr {
+        border-top: var(--color-gray-300);
+        margin: 0;
+        width: 100%;
+    }
 }
 
 .iconWrapper {
@@ -118,7 +147,6 @@
 .stackTraceErrorTitle {
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .graphSection {
@@ -219,7 +247,6 @@
     @include rounded-border;
     align-items: center;
     display: flex;
-    margin-top: var(--size-small);
     padding: var(--size-xSmall);
 }
 
@@ -227,17 +254,6 @@
     @include rounded-border;
     margin-bottom: var(--size-small);
     padding: var(--size-small);
-}
-
-.commentsContainer {
-    max-height: 300px;
-    overflow: auto;
-}
-
-.commentSection {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
 }
 
 .titleWithAction {
@@ -267,4 +283,8 @@
     align-items: center;
     column-gap: var(--size-xxSmall);
     display: flex;
+}
+
+.titleContainer {
+    margin-bottom: var(--size-large);
 }

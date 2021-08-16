@@ -86,6 +86,12 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap"
+            rel="stylesheet"
+        />
         <title>Highlight App</title>
         <script>
             // We pre-filled your app ID in the widget URL: 'https://widget.intercom.io/widget/gm6369ty'
@@ -199,5 +205,32 @@
 
       To begin the development, run `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
-    --></body>
+    -->
+        <script async>
+            !(function (w, d, i, s) {
+                function l() {
+                    if (!d.getElementById(i)) {
+                        var f = d.getElementsByTagName(s)[0],
+                            e = d.createElement(s);
+                        (e.type = 'text/javascript'),
+                            (e.async = !0),
+                            (e.src = 'https://canny.io/sdk.js'),
+                            f.parentNode.insertBefore(e, f);
+                    }
+                }
+                if ('function' != typeof w.Canny) {
+                    var c = function () {
+                        c.q.push(arguments);
+                    };
+                    (c.q = []),
+                        (w.Canny = c),
+                        'complete' === d.readyState
+                            ? l()
+                            : w.attachEvent
+                            ? w.attachEvent('onload', l)
+                            : w.addEventListener('load', l, !1);
+                }
+            })(window, document, 'canny-jssdk', 'script');
+        </script>
+    </body>
 </html>

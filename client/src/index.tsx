@@ -85,6 +85,19 @@ export type NetworkRecordingOptions = {
     urlBlocklist?: string[];
 };
 
+export type IntegrationOptions = {
+    mixpanel?: MixpanelIntegrationOptions;
+    amplitude?: AmplitudeIntegrationOptions;
+};
+
+export interface MixpanelIntegrationOptions {
+    projectToken: string;
+}
+
+export interface AmplitudeIntegrationOptions {
+    apiKey: string;
+}
+
 export type HighlightClassOptions = {
     organizationID: number | string;
     debug?: boolean | DebugOptions;
@@ -600,19 +613,21 @@ export class Highlight {
             }
             // Send the payload as the page closes. navigator.sendBeacon guarantees that a request will be made.
             window.addEventListener('beforeunload', () => {
-                const payload = this._getPayload();
-                let blob = new Blob(
-                    [
-                        JSON.stringify({
-                            query: print(PushPayloadDocument),
-                            variables: payload,
-                        }),
-                    ],
-                    {
-                        type: 'application/json',
-                    }
-                );
-                navigator.sendBeacon(`${this._backendUrl}`, blob);
+                if ('sendBeacon' in navigator) {
+                    const payload = this._getPayload();
+                    let blob = new Blob(
+                        [
+                            JSON.stringify({
+                                query: print(PushPayloadDocument),
+                                variables: payload,
+                            }),
+                        ],
+                        {
+                            type: 'application/json',
+                        }
+                    );
+                    navigator.sendBeacon(`${this._backendUrl}`, blob);
+                }
             });
             this.ready = true;
             this.state = 'Recording';
@@ -665,6 +680,7 @@ export class Highlight {
                     return;
                 }
                 if (
+                    this.state === 'Recording' &&
                     this.listeners &&
                     this.sessionData.sessionStartTime &&
                     Date.now() - this.sessionData.sessionStartTime >
@@ -672,7 +688,6 @@ export class Highlight {
                 ) {
                     this.sessionData.sessionStartTime = Date.now();
                     this.stopRecording();
-                    this.initialize(this.organizationID);
                     return;
                 }
             } catch (e) {
@@ -686,9 +701,11 @@ export class Highlight {
                 HighlightWarning('_save', e);
             }
         }
-        setTimeout(() => {
-            this._save();
-        }, SEND_FREQUENCY);
+        if (this.state === 'Recording') {
+            setTimeout(() => {
+                this._save();
+            }, SEND_FREQUENCY);
+        }
     }
 
     _getPayload(): PushPayloadMutationVariables {
@@ -725,7 +742,7 @@ export class Highlight {
 
         const messagesString = stringify({ messages: this.messages });
         this.logger.log(
-            `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources, ${this.errors.length} errors \nTo: ${process.env.PUBLIC_GRAPH_URI}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionData.sessionID}`
+            `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources, ${this.errors.length} errors \nTo: ${this._backendUrl}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionData.sessionID}`
         );
         if (!this.disableNetworkRecording) {
             performance.clearResourceTimings();

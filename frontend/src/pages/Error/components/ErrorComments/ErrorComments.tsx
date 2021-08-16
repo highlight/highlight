@@ -15,7 +15,6 @@ import {
     useCreateErrorCommentMutation,
     useDeleteErrorCommentMutation,
     useGetAdminsQuery,
-    useGetErrorCommentsQuery,
 } from '../../../../graph/generated/hooks';
 import { SanitizedAdminInput } from '../../../../graph/generated/schemas';
 import CommentTextBody from '../../../Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody';
@@ -26,11 +25,6 @@ const ErrorComments = () => {
         error_id: string;
         organization_id: string;
     }>();
-    const { data: errorCommentsData } = useGetErrorCommentsQuery({
-        variables: {
-            error_group_id: error_id,
-        },
-    });
     const { admin } = useAuthContext();
     const [createComment] = useCreateErrorCommentMutation();
     const [commentText, setCommentText] = useState('');
@@ -124,14 +118,6 @@ const ErrorComments = () => {
 
     return (
         <>
-            <div className={styles.commentsContainer}>
-                {errorCommentsData?.error_comments.map(
-                    (comment) =>
-                        comment && (
-                            <ErrorComment key={comment.id} comment={comment} />
-                        )
-                )}
-            </div>
             <Form
                 name="newComment"
                 onFinish={onFinish}
@@ -181,7 +167,7 @@ const ErrorComments = () => {
     );
 };
 
-const ErrorComment = ({ comment }: any) => (
+export const ErrorCommentCard = ({ comment }: any) => (
     <div className={styles.commentDiv}>
         <ErrorCommentHeader comment={comment}>
             <CommentTextBody commentText={comment.text} />

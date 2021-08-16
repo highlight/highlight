@@ -8,10 +8,7 @@ import { useGetFieldSuggestionQuery } from '../../../graph/generated/hooks';
 import SvgBrowser from '../../../static/Browser';
 import SvgMonitorIcon from '../../../static/MonitorIcon';
 import SvgOs from '../../../static/Os';
-import { SessionPageSearchParams } from '../../Player/utils/utils';
 import { useSearchContext } from '../SearchContext/SearchContext';
-import { EmptySessionsSearchParams } from '../SessionsPage';
-import useWatchSessionPageSearchParams from './hooks/useWatchSessionPageSearchParams';
 import inputStyles from './InputStyles.module.scss';
 import { SharedSelectStyleProps } from './SearchInputUtil';
 
@@ -163,12 +160,6 @@ export const DeviceIdInput = () => {
         setSearchParams((params) => ({ ...params, device_id: current?.value }));
         H.track('DeviceIDFilter');
     };
-
-    useWatchSessionPageSearchParams(
-        SessionPageSearchParams.deviceId,
-        (value) => ({ ...EmptySessionsSearchParams, device_id: value }),
-        (value) => `Showing sessions for device #${value}`
-    );
 
     return (
         <div>

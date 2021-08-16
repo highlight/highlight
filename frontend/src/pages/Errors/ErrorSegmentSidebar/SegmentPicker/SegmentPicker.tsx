@@ -1,7 +1,7 @@
 import { message } from 'antd';
 import classNames from 'classnames';
 import _ from 'lodash';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { Link, useHistory, useParams } from 'react-router-dom';
 
@@ -17,8 +17,8 @@ import { ReactComponent as CheckIcon } from '../../../../static/check.svg';
 import { ReactComponent as TrashIcon } from '../../../../static/trash.svg';
 import { gqlSanitize } from '../../../../util/gqlSanitize';
 import {
-    ErrorSearchContext,
     ErrorSearchParams,
+    useErrorSearchContext,
 } from '../../ErrorSearchContext/ErrorSearchContext';
 import { EmptyErrorsSearchParams } from '../../ErrorsPage';
 import styles from './SegmentPicker.module.scss';
@@ -26,9 +26,11 @@ import styles from './SegmentPicker.module.scss';
 const NO_SEGMENT = 'none';
 
 export const ErrorSegmentPicker = () => {
-    const { setSearchParams, setSegmentName, setExistingParams } = useContext(
-        ErrorSearchContext
-    );
+    const {
+        setSearchParams,
+        setSegmentName,
+        setExistingParams,
+    } = useErrorSearchContext();
     const { segment_id, organization_id } = useParams<{
         segment_id: string;
         organization_id: string;
