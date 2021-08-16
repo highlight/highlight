@@ -2154,10 +2154,10 @@
   dependencies:
     "@hapi/hoek" "^8.3.0"
 
-"@highlight-run/rrweb@0.12.5":
-  version "0.12.5"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-0.12.5.tgz#e03701dfe5b01a814ca29b79397b8e8b7eba3aff"
-  integrity sha512-eeJ08LtDwZ0MGd6oxckip/W3149WcsLdCVxDJWgxyR1BRL29ASyAkg2nRy8SoqY3FtH/F15iL11XtlSDRBUtvg==
+"@highlight-run/rrweb@0.12.6":
+  version "0.12.6"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-0.12.6.tgz#c637878ec12849078845c8800f51202cca65afad"
+  integrity sha512-WGHnOphVxD6dHXcw6PAATkfL9BxebPQ+Yfftj0DI5ezRredthm8/hULVk9ZerVybbwz2wUE3Jkrzvj7tCaIiug==
   dependencies:
     "@types/css-font-loading-module" "0.0.4"
     "@xstate/fsm" "^1.4.0"
