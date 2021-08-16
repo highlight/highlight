@@ -48,6 +48,10 @@ func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
 	return uid == WhitelistedUID || strings.Contains(email, "@highlight.run")
 }
 
+func (r *Resolver) isDemoOrg(org_id int) bool {
+	return org_id == 0
+}
+
 // These are authentication methods used to make sure that data is secured.
 // This'll probably get expensive at some point; they can probably be cached.
 func (r *Resolver) isAdminInOrganization(ctx context.Context, org_id int) (*model.Organization, error) {
