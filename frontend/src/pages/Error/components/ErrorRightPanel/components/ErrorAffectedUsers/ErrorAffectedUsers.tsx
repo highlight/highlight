@@ -23,7 +23,25 @@ const ErrorAffectedUsers = ({ loading, errorGroup }: Props) => {
 
     if (errorGroup?.error_group && errorGroup.error_group.metadata_log.length) {
         numberOfAffectedSessions = errorGroup.error_group.metadata_log.length;
-        mostRecentAffectedSession = errorGroup.error_group.metadata_log[0];
+        mostRecentAffectedSession;
+
+        const mostRecentAffectedSessionIndex = errorGroup.error_group.metadata_log.reduce(
+            (acc, curr, index) => {
+                if (
+                    errorGroup?.error_group?.metadata_log?.length &&
+                    errorGroup.error_group?.metadata_log[acc] &&
+                    curr?.timestamp >
+                        errorGroup.error_group.metadata_log[acc]?.timestamp
+                ) {
+                    return index;
+                }
+                return acc;
+            },
+            0
+        );
+
+        mostRecentAffectedSession =
+            errorGroup.error_group.metadata_log[mostRecentAffectedSessionIndex];
     }
 
     return (
