@@ -13,6 +13,8 @@ interface Props {
     /** Should this button be rendered as a <a>? */
     anchor?: boolean;
     href?: string;
+    icon?: React.ReactNode;
+    fullWidth?: boolean;
 }
 
 const ButtonLink: React.FC<Props> = ({
@@ -22,6 +24,8 @@ const ButtonLink: React.FC<Props> = ({
     className,
     anchor,
     href,
+    icon,
+    fullWidth,
 }) => {
     if (anchor) {
         if (!href) {
@@ -30,7 +34,10 @@ const ButtonLink: React.FC<Props> = ({
         return (
             <a
                 href={href}
-                className={classNames(styles.link, className)}
+                className={classNames(styles.link, className, {
+                    [styles.withIcon]: icon,
+                    [styles.fullWidth]: fullWidth,
+                })}
                 onClick={() => {
                     H.track(`Link-${trackingId}`);
                 }}
@@ -49,11 +56,15 @@ const ButtonLink: React.FC<Props> = ({
     return (
         <Link
             to={to}
-            className={classNames(styles.link, className)}
+            className={classNames(styles.link, className, {
+                [styles.withIcon]: icon,
+                [styles.fullWidth]: fullWidth,
+            })}
             onClick={() => {
                 H.track(`Link-${trackingId}`);
             }}
         >
+            {icon}
             {children}
         </Link>
     );

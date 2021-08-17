@@ -33,7 +33,5 @@ export const title: string;
 export const titleContainer: string;
 export const titleWithAction: string;
 export const titleWithMargin: string;
-export const tooltipList: string;
-export const tooltipTitle: string;
 export const triggerWrapper: string;
 export const withoutLeftPanel: string;
