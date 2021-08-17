@@ -1,3 +1,4 @@
+import useLocalStorage from '@rehooks/local-storage';
 import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { Redirect, Route, Switch, useParams } from 'react-router-dom';
@@ -36,6 +37,9 @@ const ApplicationRouter = ({ integrated }: Props) => {
     const [searchParams, setSearchParams] = useState<SearchParams>(
         EmptySessionsSearchParams
     );
+    const [selectedSegment, setSelectedSegment] = useLocalStorage<
+        { value: string; id: string } | undefined
+    >('highlightSegmentPickerForPlayerSelectedSegmentId', undefined);
     const [
         searchParamsToUrlParams,
         setSearchParamsToUrlParams,
@@ -114,6 +118,8 @@ const ApplicationRouter = ({ integrated }: Props) => {
                 setSegmentName,
                 showStarredSessions,
                 setShowStarredSessions,
+                selectedSegment,
+                setSelectedSegment,
             }}
         >
             <Switch>

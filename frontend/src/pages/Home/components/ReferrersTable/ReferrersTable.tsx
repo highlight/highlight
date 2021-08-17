@@ -21,7 +21,11 @@ const ReferrersTable = () => {
     }>();
     const { dateRangeLength } = useHomePageFiltersContext();
     const history = useHistory();
-    const { setSearchParams } = useSearchContext();
+    const {
+        setSearchParams,
+        setSegmentName,
+        setSelectedSegment,
+    } = useSearchContext();
 
     const { loading } = useGetReferrersCountQuery({
         variables: { organization_id, lookBackPeriod: dateRangeLength },
@@ -59,7 +63,10 @@ const ReferrersTable = () => {
             <BarChartTable
                 columns={Columns}
                 data={tableData}
+                loading={loading}
                 onClickHandler={(record) => {
+                    setSegmentName(null);
+                    setSelectedSegment(undefined);
                     setSearchParams({
                         ...EmptySessionsSearchParams,
                         referrer: record.host,

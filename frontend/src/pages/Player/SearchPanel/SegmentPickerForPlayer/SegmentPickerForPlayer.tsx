@@ -1,4 +1,3 @@
-import useLocalStorage from '@rehooks/local-storage';
 import { message, Select as AntDesignSelect } from 'antd';
 import classNames from 'classnames';
 const { Option } = AntDesignSelect;
@@ -37,13 +36,12 @@ const SegmentPickerForPlayer = () => {
         searchParams,
         existingParams,
         setShowStarredSessions,
+        selectedSegment,
+        setSelectedSegment,
     } = useSearchContext();
     const { loading, data } = useGetSegmentsQuery({
         variables: { organization_id },
     });
-    const [selectedSegment, setSelectedSegment] = useLocalStorage<
-        { value: string; id: string } | undefined
-    >('highlightSegmentPickerForPlayerSelectedSegmentId', undefined);
     const [paramsIsDifferent, setParamsIsDifferent] = useState(false);
     const [showCreateSegmentModal, setShowCreateSegmentModal] = useState(false);
     const [segmentToDelete, setSegmentToDelete] = useState<{
