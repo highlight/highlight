@@ -11,7 +11,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/event-parse"
+	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
@@ -68,7 +68,7 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 
 	// Check if there is a session created by this user.
 	firstTime := &model.F
-	if err := r.DB.Where(&model.Session{Identifier: userIdentifier, OrganizationID: session.OrganizationID}).Take(&model.Session{}).Error; err != nil {
+	if err := r.DB.Where(&model.Session{Identifier: userIdentifier}).Where("organization_id = ?", session.OrganizationID).Take(&model.Session{}).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			firstTime = &model.T
 		} else {
@@ -286,7 +286,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 
 		// Get ErrorAlert object and send respective alert
 		var errorAlert model.ErrorAlert
-		if err := r.DB.Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{Alert: model.Alert{OrganizationID: organizationID}}).First(&errorAlert).Error; err != nil {
+		if err := r.DB.Model(&model.ErrorAlert{}).Where("organization_id = ?", organizationID).First(&errorAlert).Error; err != nil {
 			log.Error(e.Wrap(err, "error fetching ErrorAlert object"))
 		} else {
 			if errorAlert.CountThreshold >= 1 {
@@ -307,7 +307,10 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 							t := 30
 							errorAlert.ThresholdWindow = &t
 						}
-						if err := r.DB.Model(&model.ErrorObject{}).Where(&model.ErrorObject{OrganizationID: organizationID, ErrorGroupID: group.ID}).Where("created_at > ?", time.Now().Add(time.Duration(-(*errorAlert.ThresholdWindow))*time.Minute)).Count(&numErrors).Error; err != nil {
+						if err := r.DB.Model(&model.ErrorObject{}).Where("organization_id = ?", organizationID).
+							Where(&model.ErrorObject{ErrorGroupID: group.ID}).
+							Where("created_at > ?", time.Now().Add(time.Duration(-(*errorAlert.ThresholdWindow))*time.Minute)).
+							Count(&numErrors).Error; err != nil {
 							log.Error(e.Wrapf(err, "error counting errors from past %d minutes", *errorAlert.ThresholdWindow))
 						}
 						if errorAlert.CountThreshold == 1 || numErrors >= int64(errorAlert.CountThreshold) {
