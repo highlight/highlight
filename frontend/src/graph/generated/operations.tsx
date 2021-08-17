@@ -834,7 +834,12 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
     error_group?: Types.Maybe<
         { __typename?: 'ErrorGroup' } & Pick<
             Types.ErrorGroup,
-            'id' | 'type' | 'organization_id' | 'event' | 'state'
+            | 'id'
+            | 'type'
+            | 'organization_id'
+            | 'event'
+            | 'state'
+            | 'mapped_stack_trace'
         > & {
                 stack_trace: Array<
                     Types.Maybe<

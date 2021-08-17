@@ -1,0 +1,9 @@
+.alert {
+    &:global(.ant-alert) {
+        padding: var(--size-medium) !important;
+    }
+
+    :global(.ant-alert-message) {
+        font-weight: 500;
+    }
+}

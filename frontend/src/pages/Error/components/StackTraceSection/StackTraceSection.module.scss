@@ -17,3 +17,11 @@
     height: 109px;
     margin-bottom: 20px;
 }
+
+.alert {
+    margin-bottom: var(--size-large);
+
+    a {
+        margin-top: var(--size-medium);
+    }
+}
