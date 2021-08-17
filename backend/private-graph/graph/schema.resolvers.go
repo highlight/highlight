@@ -265,7 +265,7 @@ func (r *mutationResolver) DeleteOrganization(ctx context.Context, id int) (*boo
 	if err != nil || r.isDemoOrg(id) {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
-	if err := r.DB.Delete(&model.Organization{Model: model.Model{ID: id}}).Error; err != nil {
+	if err := r.DB.Model(&model.Organization{}).Delete("id = ?", id).Error; err != nil {
 		return nil, e.Wrap(err, "error deleting organization")
 	}
 	return &model.T, nil
@@ -318,7 +318,7 @@ func (r *mutationResolver) SendAdminInvite(ctx context.Context, organizationID i
 
 func (r *mutationResolver) AddAdminToOrganization(ctx context.Context, organizationID int, inviteID string) (*int, error) {
 	org := &model.Organization{}
-	if err := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&org).Error; err != nil {
+	if err := r.DB.Model(&model.Organization{}).Where("id = ?", organizationID).First(&org).Error; err != nil {
 		return nil, e.Wrap(err, "error querying org")
 	}
 	if org.Secret == nil || (org.Secret != nil && *org.Secret != inviteID) {
@@ -346,7 +346,7 @@ func (r *mutationResolver) DeleteAdminFromOrganization(ctx context.Context, orga
 		return nil, e.New("Admin tried deleting themselves from the organization")
 	}
 
-	if err := r.DB.Model(&model.Organization{Model: model.Model{ID: organizationID}}).Association("Admins").Delete(model.Admin{Model: model.Model{ID: adminID}}); err != nil {
+	if err := r.DB.Model(&model.Organization{}).Where("id = ?", organizationID).Association("Admins").Delete(model.Admin{Model: model.Model{ID: adminID}}); err != nil {
 		return nil, e.Wrap(err, "error deleting admin from organization")
 	}
 
@@ -1349,7 +1349,7 @@ func (r *queryResolver) Admins(ctx context.Context, organizationID int) ([]*mode
 	}
 	admins := []*model.Admin{}
 	err := r.DB.Model(
-		&model.Organization{Model: model.Model{ID: organizationID}}).Order("created_at asc").Association("Admins").Find(&admins)
+		&model.Organization{}).Where("organization_id = ?", organizationID).Order("created_at asc").Association("Admins").Find(&admins)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting associated admins")
 	}
