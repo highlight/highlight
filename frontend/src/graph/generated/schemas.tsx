@@ -148,6 +148,7 @@ export type ErrorGroup = {
     event: Array<Maybe<Scalars['String']>>;
     stack_trace: Array<Maybe<ErrorTrace>>;
     metadata_log: Array<Maybe<ErrorMetadata>>;
+    mapped_stack_trace?: Maybe<Scalars['String']>;
     field_group?: Maybe<Array<Maybe<ErrorField>>>;
     state: ErrorState;
     environments?: Maybe<Scalars['String']>;

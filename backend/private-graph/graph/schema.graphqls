@@ -123,6 +123,7 @@ type ErrorGroup {
     event: [String]!
     stack_trace: [ErrorTrace]!
     metadata_log: [ErrorMetadata]!
+    mapped_stack_trace: String
     field_group: [ErrorField]
     state: ErrorState!
     environments: String
