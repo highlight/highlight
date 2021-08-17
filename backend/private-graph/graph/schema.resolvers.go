@@ -875,13 +875,10 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID 
 	alert.CountThreshold = countThreshold
 	alert.ThresholdWindow = &thresholdWindow
 	if err := r.DB.Model(&model.ErrorAlert{
-		Alert: model.Alert{
-			OrganizationID: organizationID,
-		},
 		Model: model.Model{
 			ID: errorAlertID,
 		},
-	}).Updates(alert).Error; err != nil {
+	}).Where("organization_id = ?", organizationID).Updates(alert).Error; err != nil {
 		return nil, e.Wrap(err, "error updating org fields")
 	}
 	return alert, nil
@@ -920,13 +917,10 @@ func (r *mutationResolver) UpdateNewUserAlert(ctx context.Context, organizationI
 	alert.ExcludedEnvironments = &envString
 	alert.CountThreshold = countThreshold
 	if err := r.DB.Model(&model.SessionAlert{
-		Alert: model.Alert{
-			OrganizationID: organizationID,
-		},
 		Model: model.Model{
 			ID: sessionAlertID,
 		},
-	}).Updates(alert).Error; err != nil {
+	}).Where("organization_id = ?", organizationID).Updates(alert).Error; err != nil {
 		return nil, e.Wrap(err, "error updating org fields")
 	}
 	return alert, nil
@@ -967,13 +961,10 @@ func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, organ
 	alert.ChannelsToNotify = &channelsString
 	alert.TrackProperties = &trackPropertiesString
 	if err := r.DB.Model(&model.SessionAlert{
-		Alert: model.Alert{
-			OrganizationID: organizationID,
-		},
 		Model: model.Model{
 			ID: sessionAlertID,
 		},
-	}).Updates(alert).Error; err != nil {
+	}).Where("organization_id = ?", organizationID).Updates(alert).Error; err != nil {
 		return nil, e.Wrap(err, "error updating org fields for track properties alert")
 	}
 	return alert, nil
@@ -1014,13 +1005,10 @@ func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, organi
 	alert.ChannelsToNotify = &channelsString
 	alert.UserProperties = &userPropertiesString
 	if err := r.DB.Model(&model.SessionAlert{
-		Alert: model.Alert{
-			OrganizationID: organizationID,
-		},
 		Model: model.Model{
 			ID: sessionAlertID,
 		},
-	}).Updates(alert).Error; err != nil {
+	}).Where("organization_id = ?", organizationID).Updates(alert).Error; err != nil {
 		return nil, e.Wrap(err, "error updating org fields for user properties alert")
 	}
 	return alert, nil
@@ -1310,7 +1298,7 @@ func (r *queryResolver) SessionCommentsForOrganization(ctx context.Context, orga
 	}
 
 	var sessionComments []*model.SessionComment
-	if err := r.DB.Where(model.SessionComment{OrganizationID: organizationID}).Find(&sessionComments).Error; err != nil {
+	if err := r.DB.Model(model.SessionComment{}).Where("organization_id = ?", organizationID).Find(&sessionComments).Error; err != nil {
 		return nil, e.Wrap(err, "error getting session comments for organization")
 	}
 
@@ -1348,7 +1336,7 @@ func (r *queryResolver) ErrorCommentsForOrganization(ctx context.Context, organi
 	}
 
 	var errorComments []*model.ErrorComment
-	if err := r.DB.Where(model.ErrorComment{OrganizationID: organizationID}).Find(&errorComments).Error; err != nil {
+	if err := r.DB.Model(model.ErrorComment{}).Where("organization_id = ?", organizationID).Find(&errorComments).Error; err != nil {
 		return nil, e.Wrap(err, "error getting error comments for organization")
 	}
 
@@ -1373,8 +1361,7 @@ func (r *queryResolver) IsIntegrated(ctx context.Context, organizationID int) (*
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 	var count int64
-	err := r.DB.Model(&model.Session{}).Where(
-		&model.Session{OrganizationID: organizationID}).Count(&count).Error
+	err := r.DB.Model(&model.Session{}).Where("organization_id = ?", organizationID).Count(&count).Error
 	if err != nil {
 		return nil, e.Wrap(err, "error getting associated admins")
 	}
@@ -1390,7 +1377,7 @@ func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, organizati
 	}
 
 	var count int64
-	if err := r.DB.Model(&model.Session{}).Where(&model.Session{OrganizationID: organizationID, Processed: &model.F}).Count(&count).Error; err != nil {
+	if err := r.DB.Model(&model.Session{}).Where("organization_id = ?", organizationID).Where(&model.Session{Processed: &model.F}).Count(&count).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving count of unprocessed sessions")
 	}
 
@@ -1413,7 +1400,7 @@ func (r *queryResolver) OrganizationHasViewedASession(ctx context.Context, organ
 	}
 
 	session := model.Session{}
-	if err := r.DB.Model(&session).Where(&model.Session{OrganizationID: organizationID, Viewed: &model.T}).First(&session).Error; err != nil {
+	if err := r.DB.Model(&session).Where("organization_id = ?", organizationID).Where(&model.Session{Viewed: &model.T}).First(&session).Error; err != nil {
 		return &session, nil
 	}
 	return &session, nil
@@ -1429,7 +1416,7 @@ func (r *queryResolver) DailySessionsCount(ctx context.Context, organizationID i
 	startDateUTC := time.Date(dateRange.StartDate.UTC().Year(), dateRange.StartDate.UTC().Month(), dateRange.StartDate.UTC().Day(), 0, 0, 0, 0, time.UTC)
 	endDateUTC := time.Date(dateRange.EndDate.UTC().Year(), dateRange.EndDate.UTC().Month(), dateRange.EndDate.UTC().Day(), 0, 0, 0, 0, time.UTC)
 
-	if err := r.DB.Where(&model.DailySessionCount{OrganizationID: organizationID}).Where("date BETWEEN ? AND ?", startDateUTC, endDateUTC).Find(&dailySessions).Error; err != nil {
+	if err := r.DB.Where("organization_id = ?", organizationID).Where("date BETWEEN ? AND ?", startDateUTC, endDateUTC).Find(&dailySessions).Error; err != nil {
 		return nil, e.Wrap(err, "error reading from daily sessions")
 	}
 
@@ -1446,7 +1433,7 @@ func (r *queryResolver) DailyErrorsCount(ctx context.Context, organizationID int
 	startDateUTC := time.Date(dateRange.StartDate.UTC().Year(), dateRange.StartDate.UTC().Month(), dateRange.StartDate.UTC().Day(), 0, 0, 0, 0, time.UTC)
 	endDateUTC := time.Date(dateRange.EndDate.UTC().Year(), dateRange.EndDate.UTC().Month(), dateRange.EndDate.UTC().Day(), 0, 0, 0, 0, time.UTC)
 
-	if err := r.DB.Where(&model.DailyErrorCount{OrganizationID: organizationID}).Where("date BETWEEN ? AND ?", startDateUTC, endDateUTC).Find(&dailyErrors).Error; err != nil {
+	if err := r.DB.Where("organization_id = ?", organizationID).Where("date BETWEEN ? AND ?", startDateUTC, endDateUTC).Find(&dailyErrors).Error; err != nil {
 		return nil, e.Wrap(err, "error reading from daily errors")
 	}
 
@@ -1729,7 +1716,8 @@ func (r *queryResolver) FieldSuggestion(ctx context.Context, organizationID int,
 		return nil, e.Wrap(err, "error querying organization")
 	}
 	fields := []*model.Field{}
-	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Name: name}).
+	res := r.DB.Where(&model.Field{Name: name}).
+		Where("organization_id = ?", organizationID).
 		Where("length(value) > ?", 0).
 		Where("value ILIKE ?", "%"+query+"%").
 		Limit(model.SUGGESTION_LIMIT_CONSTANT).
@@ -1745,7 +1733,8 @@ func (r *queryResolver) PropertySuggestion(ctx context.Context, organizationID i
 		return nil, e.Wrap(err, "error querying organization")
 	}
 	fields := []*model.Field{}
-	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Type: typeArg}).Where(r.DB.
+	res := r.DB.Where(&model.Field{Type: typeArg}).Where(r.DB.
+		Where("organization_id = ?", organizationID).
 		Where(r.DB.Where("length(value) > ?", 0).Where("value ILIKE ?", "%"+query+"%")).
 		Or(r.DB.Where("length(name) > ?", 0).Where("name ILIKE ?", "%"+query+"%"))).
 		Limit(model.SUGGESTION_LIMIT_CONSTANT).
@@ -1791,7 +1780,7 @@ func (r *queryResolver) ErrorAlert(ctx context.Context, organizationID int) (*mo
 		return nil, e.Wrap(err, "error querying organization")
 	}
 	alert := model.ErrorAlert{}
-	if err := r.DB.Where(&model.ErrorAlert{Alert: model.Alert{OrganizationID: organizationID}}).First(&alert).Error; err != nil {
+	if err := r.DB.Model(&model.ErrorAlert{}).Where("organization_id = ?", organizationID).First(&alert).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error alerts")
 	}
 	return &alert, nil
@@ -1803,7 +1792,8 @@ func (r *queryResolver) NewUserAlert(ctx context.Context, organizationID int) (*
 		return nil, e.Wrap(err, "error querying organization on new user alert")
 	}
 	var alert model.SessionAlert
-	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type IS NULL OR type=?", model.AlertType.NEW_USER).First(&alert).Error; err != nil {
+	if err := r.DB.Model(&model.SessionAlert{}).Where("organization_id = ?", organizationID).
+		Where("type IS NULL OR type=?", model.AlertType.NEW_USER).First(&alert).Error; err != nil {
 		return nil, e.Wrap(err, "error querying  new user alert")
 	}
 	return &alert, nil
@@ -1815,7 +1805,8 @@ func (r *queryResolver) TrackPropertiesAlert(ctx context.Context, organizationID
 		return nil, e.Wrap(err, "error querying organization")
 	}
 	var alert model.SessionAlert
-	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID, Type: &model.AlertType.TRACK_PROPERTIES}}).First(&alert).Error; err != nil {
+	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{Type: &model.AlertType.TRACK_PROPERTIES}}).
+		Where("organization_id = ?", organizationID).First(&alert).Error; err != nil {
 		return nil, e.Wrap(err, "error querying track properties alert")
 	}
 	return &alert, nil
@@ -1827,7 +1818,8 @@ func (r *queryResolver) UserPropertiesAlert(ctx context.Context, organizationID 
 		return nil, e.Wrap(err, "error querying organization")
 	}
 	var alert model.SessionAlert
-	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type=?", model.AlertType.USER_PROPERTIES).First(&alert).Error; err != nil {
+	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{Type: &model.AlertType.USER_PROPERTIES}}).
+		Where("organization_id = ?", organizationID).First(&alert).Error; err != nil {
 		return nil, e.Wrap(err, "error querying user properties alert")
 	}
 	return &alert, nil
@@ -1848,7 +1840,8 @@ func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, query string,
 		return nil, e.Wrap(err, "error querying organization")
 	}
 	fields := []*model.Field{}
-	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Type: "session", Name: "environment"}).
+	res := r.DB.Where(&model.Field{Type: "session", Name: "environment"}).
+		Where("organization_id = ?", organizationID).
 		Where("length(value) > ?", 0).
 		Where("value ILIKE ?", "%"+query+"%").
 		Limit(model.SUGGESTION_LIMIT_CONSTANT).
@@ -1941,7 +1934,7 @@ func (r *queryResolver) Segments(ctx context.Context, organizationID int) ([]*mo
 	}
 	// list of maps, where each map represents a field query.
 	segments := []*model.Segment{}
-	if err := r.DB.Where(model.Segment{OrganizationID: organizationID}).Find(&segments).Error; err != nil {
+	if err := r.DB.Model(model.Segment{}).Where("organization_id = ?").Find(&segments).Error; err != nil {
 		log.Errorf("error querying segments from organization: %v", err)
 	}
 	return segments, nil
@@ -1953,7 +1946,7 @@ func (r *queryResolver) ErrorSegments(ctx context.Context, organizationID int) (
 	}
 	// list of maps, where each map represents a field query.
 	segments := []*model.ErrorSegment{}
-	if err := r.DB.Where(model.ErrorSegment{OrganizationID: organizationID}).Find(&segments).Error; err != nil {
+	if err := r.DB.Model(model.ErrorSegment{}).Where("organization_id = ?").Find(&segments).Error; err != nil {
 		log.Errorf("error querying segments from organization: %v", err)
 	}
 	return segments, nil
