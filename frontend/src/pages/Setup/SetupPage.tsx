@@ -95,18 +95,9 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                                     { copied: 'code snippet' }
                                 );
                             }}
-                            text={
-                                platform === PlatformType.NextJs
-                                    ? `if (typeof window !== 'undefined') {
-    H.identify(\n\t'${
-        admin?.email || 'eliza@gmail.com'
-    }', \n\t{id: 'ajdf837dj', phone: '867-5309'}
-    )
-}`
-                                    : `H.identify(\n\t'${
-                                          admin?.email || 'eliza@gmail.com'
-                                      }', \n\t{id: 'ajdf837dj', phone: '867-5309'}\n)`
-                            }
+                            text={`H.identify(\n\t'${
+                                admin?.email || 'eliza@gmail.com'
+                            }', \n\t{id: 'ajdf837dj', phone: '867-5309'}\n)`}
                         />
                     </Section>
                     <Section
@@ -233,22 +224,6 @@ const JsAppInstructions = ({
                 <CodeBlock text={`yarn add highlight.run`} />
             </Section>
             <Section title="Initializing Highlight">
-                {platform === PlatformType.NextJs ? (
-                    <div className={styles.callout}>
-                        <div className={styles.calloutEmoji}>
-                            <span role="img" aria-label="light-bulb">
-                                💡
-                            </span>
-                        </div>
-                        <p>
-                            In Next.js, wrap all client side function calls in{' '}
-                            <code>if (typeof window...</code>
-                            to force the logic to be executed client side.
-                        </p>
-                    </div>
-                ) : (
-                    <></>
-                )}
                 <p>Initialize the SDK by importing Highlight like so: </p>
                 <CodeBlock text={`import { H } from 'highlight.run'`} />
                 <p>
@@ -271,9 +246,9 @@ const JsAppInstructions = ({
                         />
                     ) : (
                         <CodeBlock
-                            text={`if (typeof window !== 'undefined') {
-    ${getInitSnippet(orgVerboseId)}' is your ORG_ID
-}`}
+                            text={`${getInitSnippet(
+                                orgVerboseId
+                            )} // ${orgVerboseId} is your ORG_ID`}
                         />
                     )}
                 </p>
@@ -311,9 +286,7 @@ createApp(App).mount('#app');`}
                     <CodeBlock
                         text={`import { H } from 'highlight.run';
 
-if (typeof window !== 'undefined') {
-  ${getInitSnippet(orgVerboseId)}
-}
+${getInitSnippet(orgVerboseId)}
 
 function MyApp({ Component, pageProps }) {
   return <Component {...pageProps} />
