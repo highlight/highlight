@@ -1,6 +1,8 @@
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
 
+import Alert from '../../../../components/Alert/Alert';
+import ButtonLink from '../../../../components/Button/ButtonLink/ButtonLink';
 import { ErrorGroup, Maybe } from '../../../../graph/generated/schemas';
 import ErrorPageStyles from '../../ErrorPage.module.scss';
 import styles from './StackTraceSection.module.scss';
@@ -13,6 +15,29 @@ interface Props {
 const StackTraceSection = ({ errorGroup, loading }: Props) => {
     return (
         <div>
+            {!errorGroup?.mapped_stack_trace && !loading && (
+                <Alert
+                    trackingId="PrivacySourceMapEducation"
+                    className={styles.alert}
+                    message="These stack frames don't look that useful 😢"
+                    description={
+                        <>
+                            We're guessing you don't ship sourcemaps with your
+                            app. Did you know that Highlight has a{' '}
+                            <a>CLI tool</a> that you can run during your CI/CD
+                            process to upload sourcemaps to Highlight without
+                            making them publicly available?
+                            <ButtonLink
+                                anchor
+                                trackingId="stackFrameLearnMoreAboutPrivateSourcemaps"
+                                href="https://docs.highlight.run/docs/sending-sourcemaps"
+                            >
+                                Learn More
+                            </ButtonLink>
+                        </>
+                    }
+                />
+            )}
             {loading
                 ? Array(5)
                       .fill(0)
