@@ -22,7 +22,11 @@ const ActiveUsersTable = () => {
     const { organization_id } = useParams<{
         organization_id: string;
     }>();
-    const { setSearchParams } = useSearchContext();
+    const {
+        setSearchParams,
+        setSegmentName,
+        setSelectedSegment,
+    } = useSearchContext();
     const { dateRangeLength } = useHomePageFiltersContext();
     const history = useHistory();
     const [filterSearchTerm, setFilterSearchTerm] = useState('');
@@ -84,6 +88,8 @@ const ActiveUsersTable = () => {
                 columns={Columns}
                 data={filteredTableData}
                 onClickHandler={(record) => {
+                    setSegmentName(null);
+                    setSelectedSegment(undefined);
                     setSearchParams({
                         ...EmptySessionsSearchParams,
                         user_properties: [

@@ -157,7 +157,11 @@ const SessionCountGraph = () => {
     const { organization_id } = useParams<{
         organization_id: string;
     }>();
-    const { setSearchParams } = useSearchContext();
+    const {
+        setSearchParams,
+        setSegmentName,
+        setSelectedSegment,
+    } = useSearchContext();
     const { dateRangeLength, setHasData } = useHomePageFiltersContext();
     const [sessionCountData, setSessionCountData] = useState<Array<DailyCount>>(
         []
@@ -214,10 +218,13 @@ const SessionCountGraph = () => {
                 name="Sessions"
                 onClickHandler={(payload: any) => {
                     const date = moment(payload.activeLabel);
+                    setSegmentName(null);
+                    setSelectedSegment(undefined);
                     setSearchParams({
                         ...EmptySessionsSearchParams,
                         date_range: getDateRangeForDateInput(date, date),
                     });
+
                     message.success(
                         `Showing sessions that were recorded on ${payload.activeLabel}`
                     );

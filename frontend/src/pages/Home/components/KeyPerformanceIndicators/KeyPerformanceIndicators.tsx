@@ -14,7 +14,11 @@ import { formatLongNumber, formatShortTime } from './utils/utils';
 const KeyPerformanceIndicators = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { dateRangeLength } = useHomePageFiltersContext();
-    const { setSearchParams } = useSearchContext();
+    const {
+        setSearchParams,
+        setSegmentName,
+        setSelectedSegment,
+    } = useSearchContext();
     const { loading, data } = useGetKeyPerformanceIndicatorsQuery({
         variables: { organization_id, lookBackPeriod: dateRangeLength },
     });
@@ -33,6 +37,8 @@ const KeyPerformanceIndicators = () => {
                         route={`/${organization_id}/sessions`}
                         onClick={() => {
                             message.success('Showing sessions for new users');
+                            setSegmentName(null);
+                            setSelectedSegment(undefined);
                             setSearchParams({
                                 ...EmptySessionsSearchParams,
                                 first_time: true,

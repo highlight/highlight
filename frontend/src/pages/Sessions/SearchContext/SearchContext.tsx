@@ -39,6 +39,15 @@ interface SearchContext {
     setSegmentName: React.Dispatch<React.SetStateAction<string | null>>;
     showStarredSessions: boolean;
     setShowStarredSessions: React.Dispatch<React.SetStateAction<boolean>>;
+    selectedSegment: { value: string; id: string } | undefined;
+    setSelectedSegment: (
+        newValue:
+            | {
+                  value: string;
+                  id: string;
+              }
+            | undefined
+    ) => void;
 }
 
 export const [
