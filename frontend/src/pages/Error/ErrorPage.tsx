@@ -21,7 +21,7 @@ import { StandardDropdown } from '../../components/Dropdown/StandardDropdown/Sta
 import InfoTooltip from '../../components/InfoTooltip/InfoTooltip';
 import { RechartTooltip } from '../../components/recharts/RechartTooltip/RechartTooltip';
 import Tooltip from '../../components/Tooltip/Tooltip';
-import { useGetErrorGroupQuery } from '../../graph/generated/hooks';
+import { useGetErrorGroupLazyQuery } from '../../graph/generated/hooks';
 import { ErrorGroup, Maybe } from '../../graph/generated/schemas';
 import SvgDownloadIcon from '../../static/DownloadIcon';
 import { frequencyTimeData } from '../../util/errorCalculations';
@@ -45,7 +45,7 @@ import useErrorPageConfiguration from './utils/ErrorPageUIConfiguration';
 const ErrorPage = ({ integrated }: { integrated: boolean }) => {
     const { error_id } = useParams<{ error_id: string }>();
 
-    const { data, loading } = useGetErrorGroupQuery({
+    const [getErrorGroupQuery, { data, loading }] = useGetErrorGroupLazyQuery({
         variables: { id: error_id },
     });
     //     const loading = true;
@@ -63,6 +63,13 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
         searchParams,
         setCachedParams,
     ]);
+
+    useEffect(() => {
+        if (error_id) {
+            getErrorGroupQuery();
+        }
+    }, [error_id, getErrorGroupQuery]);
+
     const { showLeftPanel } = useErrorPageConfiguration();
 
     return (
