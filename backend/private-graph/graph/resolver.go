@@ -189,7 +189,7 @@ func (r *Resolver) isAdminErrorGroupOwner(ctx context.Context, errorGroupID int)
 	if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: errorGroupID}}).First(&errorGroup).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session")
 	}
-	_, err := r.isAdminInOrganization(ctx, errorGroup.OrganizationID)
+	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, errorGroup.OrganizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "error validating admin in organization")
 	}
@@ -202,7 +202,7 @@ func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_id int) (se
 		return nil, false, e.Wrap(err, "error querying session")
 	}
 
-	_, err = r.isAdminInOrganization(ctx, session.OrganizationID)
+	_, err = r.isAdminInOrganizationOrDemoOrg(ctx, session.OrganizationID)
 	if err != nil {
 		return session, false, e.Wrap(err, "error validating admin in organization")
 	}
@@ -233,7 +233,7 @@ func (r *Resolver) isAdminSegmentOwner(ctx context.Context, segment_id int) (*mo
 	if err := r.DB.Where(&model.Segment{Model: model.Model{ID: segment_id}}).First(&segment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying segment")
 	}
-	_, err := r.isAdminInOrganization(ctx, segment.OrganizationID)
+	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, segment.OrganizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "error validating admin in organization")
 	}
@@ -245,7 +245,7 @@ func (r *Resolver) isAdminErrorSegmentOwner(ctx context.Context, error_segment_i
 	if err := r.DB.Where(&model.ErrorSegment{Model: model.Model{ID: error_segment_id}}).First(&segment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error segment")
 	}
-	_, err := r.isAdminInOrganization(ctx, segment.OrganizationID)
+	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, segment.OrganizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "error validating admin in organization")
 	}
