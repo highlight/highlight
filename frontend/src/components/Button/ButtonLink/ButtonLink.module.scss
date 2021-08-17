@@ -11,4 +11,15 @@
     &:hover {
         color: var(--text-primary-inverted);
     }
+
+    &.withIcon {
+        align-items: center;
+        column-gap: var(--size-medium);
+        display: flex;
+    }
+
+    &.fullWidth {
+        justify-content: center;
+        width: 100%;
+    }
 }

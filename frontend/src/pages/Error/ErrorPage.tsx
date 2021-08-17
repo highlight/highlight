@@ -16,9 +16,7 @@ import {
 } from 'recharts';
 
 import Button from '../../components/Button/Button/Button';
-import Card from '../../components/Card/Card';
 import { StandardDropdown } from '../../components/Dropdown/StandardDropdown/StandardDropdown';
-import InfoTooltip from '../../components/InfoTooltip/InfoTooltip';
 import { RechartTooltip } from '../../components/recharts/RechartTooltip/RechartTooltip';
 import Tooltip from '../../components/Tooltip/Tooltip';
 import { useGetErrorGroupLazyQuery } from '../../graph/generated/hooks';
@@ -33,13 +31,13 @@ import { EmptyErrorsSearchParams } from '../Errors/ErrorsPage';
 import { IntegrationCard } from '../Sessions/IntegrationCard/IntegrationCard';
 import ErrorDescription from './components/ErrorDescription/ErrorDescription';
 import { parseErrorDescriptionList } from './components/ErrorDescription/utils/utils';
+import ErrorAffectedUsers from './components/ErrorRightPanel/components/ErrorAffectedUsers/ErrorAffectedUsers';
 import NoActiveErrorCard from './components/ErrorRightPanel/components/NoActiveErrorCard/NoActiveErrorCard';
 import ErrorRightPanel from './components/ErrorRightPanel/ErrorRightPanel';
 import ErrorSearchPanel from './components/ErrorSearchPanel/ErrorSearchPanel';
 import ErrorTitle from './components/ErrorTitle/ErrorTitle';
 import StackTraceSection from './components/StackTraceSection/StackTraceSection';
 import styles from './ErrorPage.module.scss';
-import { ErrorStateSelect } from './ErrorStateSelect/ErrorStateSelect';
 import useErrorPageConfiguration from './utils/ErrorPageUIConfiguration';
 
 const ErrorPage = ({ integrated }: { integrated: boolean }) => {
@@ -204,55 +202,10 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                             </div>
                         </div>
                         <div className={styles.errorPageRightColumn}>
-                            <Card>
-                                <h3 className={styles.tooltipTitle}>
-                                    State
-                                    <InfoTooltip
-                                        title={
-                                            <>
-                                                <ul
-                                                    className={
-                                                        styles.tooltipList
-                                                    }
-                                                >
-                                                    <li>
-                                                        <strong>Open</strong>:
-                                                        This error has not been
-                                                        fixed. You will receive
-                                                        alerts when this error
-                                                        is thrown.
-                                                    </li>
-                                                    <li>
-                                                        <strong>
-                                                            Resolved
-                                                        </strong>
-                                                        : This error has been
-                                                        fixed and you are not
-                                                        expecting this error to
-                                                        be thrown again. If this
-                                                        error gets thrown, you
-                                                        will receive an alert.
-                                                    </li>
-                                                    <li>
-                                                        <strong>Ignored</strong>
-                                                        : This is a noisy/false
-                                                        positive error that
-                                                        should be ignored. You
-                                                        will not receive any
-                                                        alerts for this error.
-                                                    </li>
-                                                </ul>
-                                            </>
-                                        }
-                                    />
-                                </h3>
-                                <div>
-                                    <ErrorStateSelect
-                                        state={data?.error_group?.state}
-                                        loading={loading}
-                                    />
-                                </div>
-                            </Card>
+                            <ErrorAffectedUsers
+                                errorGroup={data}
+                                loading={loading}
+                            />
                             <ErrorRightPanel errorGroup={data} />
                         </div>
                     </>

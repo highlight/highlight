@@ -58,6 +58,7 @@ export { default as PauseIcon } from './PauseIcon';
 export { default as Play } from './Play';
 export { default as PlayButton } from './PlayButton';
 export { default as PlayIcon } from './PlayIcon';
+export { default as PlaySolidIcon } from './PlaySolidIcon';
 export { default as PlugIcon } from './PlugIcon';
 export { default as Plus } from './Plus';
 export { default as PlusIcon } from './PlusIcon';
