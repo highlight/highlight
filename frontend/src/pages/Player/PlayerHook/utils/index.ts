@@ -199,7 +199,7 @@ export const useSetPlayerTimestampFromSearchParam = (
 };
 
 /** These are the type of custom events that will show up as annotations on the timeline. */
-export const CustomEventsForTimeline = [
+const CustomEventsForTimeline = [
     'Click',
     'Focus',
     'Reload',
