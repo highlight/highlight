@@ -1,6 +1,6 @@
 import { H } from 'highlight.run';
 import React from 'react';
-import { useHistory, useLocation, useParams } from 'react-router-dom';
+import { useHistory, useLocation } from 'react-router-dom';
 
 import { useApplicationContext } from '../../../../routers/OrgRouter/ApplicationContext';
 import InfoTooltip from '../../../InfoTooltip/InfoTooltip';
@@ -8,7 +8,6 @@ import Switch from '../../../Switch/Switch';
 import styles from './DemoWorkspaceToggle.module.scss';
 
 const DemoWorkspaceToggle = () => {
-    const { organization_id } = useParams<{ organization_id: string }>();
     const history = useHistory();
     const { pathname } = useLocation();
     const { allApplications, currentApplication } = useApplicationContext();
@@ -23,14 +22,12 @@ const DemoWorkspaceToggle = () => {
             <div className={styles.toggleSwitch}>
                 <Switch
                     label=""
-                    checked={
-                        organization_id === '0' /* should be true if org id=0 */
-                    }
+                    checked={currentApplication?.id === '0'}
                     onChange={() => {
                         const [, path] = pathname
                             .split('/')
                             .filter((token) => token.length);
-                        if (organization_id !== '0') {
+                        if (currentApplication?.id !== '0') {
                             history.push(`/0/${path}`);
                         } else if (allApplications) {
                             for (let i = 0; i < allApplications?.length; i++) {
