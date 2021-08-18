@@ -132,6 +132,7 @@ const AuthenticationRouter = () => {
             } else if (adminData.admin) {
                 setAuthRole(AuthRole.AUTHENTICATED);
             }
+            H.track('Authenticated');
         } else if (adminError) {
             setAuthRole(AuthRole.UNAUTHENTICATED);
         }
