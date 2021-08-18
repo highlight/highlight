@@ -1,4 +1,5 @@
 import classNames from 'classnames';
+import { H } from 'highlight.run';
 import React, { useEffect, useRef, useState } from 'react';
 import Draggable from 'react-draggable';
 import Skeleton from 'react-loading-skeleton';
@@ -346,6 +347,7 @@ export const Toolbar = () => {
                                 )}
                                 disabled={disableControls}
                                 onClick={() => {
+                                    H.track('PlayerSkipBackwards');
                                     const newTime = getNewTimeWithSkip({
                                         time,
                                         direction: 'backwards',
@@ -380,6 +382,7 @@ export const Toolbar = () => {
                                 )}
                                 disabled={disableControls}
                                 onClick={() => {
+                                    H.track('PlayerSkipForwards');
                                     const totalTime =
                                         replayer?.getMetaData().totalTime ?? 0;
                                     const newTime = getNewTimeWithSkip({
