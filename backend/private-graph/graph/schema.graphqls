@@ -235,13 +235,13 @@ input DateRangeInput {
 }
 
 type LengthRange {
-    min: Int
-    max: Int
+    min: Float
+    max: Float
 }
 
 input LengthRangeInput {
-    min: Int
-    max: Int
+    min: Float
+    max: Float
 }
 
 type UserProperty {
