@@ -28,6 +28,9 @@ const DemoWorkspaceToggle = () => {
                             .split('/')
                             .filter((token) => token.length);
                         if (currentApplication?.id !== '0') {
+                            H.track('toggleDemoWorkspace', {
+                                currentApplicationID: currentApplication!.id,
+                            });
                             history.push(`/0/${path}`);
                         } else if (allApplications) {
                             for (let i = 0; i < allApplications?.length; i++) {
@@ -43,7 +46,6 @@ const DemoWorkspaceToggle = () => {
                         } else {
                             history.push(`/new`);
                         }
-                        H.track('activateDemoWorkspace');
                     }}
                 />
             </div>
