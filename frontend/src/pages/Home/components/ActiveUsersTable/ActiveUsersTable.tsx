@@ -10,8 +10,8 @@ import { getPercentageDisplayValue } from '../../../../components/BarChartTable/
 import Input from '../../../../components/Input/Input';
 import Tooltip from '../../../../components/Tooltip/Tooltip';
 import { useGetTopUsersQuery } from '../../../../graph/generated/hooks';
+import { EmptySessionsSearchParams } from '../../../Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '../../../Sessions/SearchContext/SearchContext';
-import { EmptySessionsSearchParams } from '../../../Sessions/SessionsPage';
 import homePageStyles from '../../HomePage.module.scss';
 import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext';
 import { formatShortTime } from '../KeyPerformanceIndicators/utils/utils';

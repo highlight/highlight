@@ -90,7 +90,7 @@ type StackSectionProps = {
     longestLineNumberCharacterLength?: number;
 };
 
-export const StackSection: React.FC<StackSectionProps> = ({
+const StackSection: React.FC<StackSectionProps> = ({
     fileName,
     functionName,
     lineNumber,

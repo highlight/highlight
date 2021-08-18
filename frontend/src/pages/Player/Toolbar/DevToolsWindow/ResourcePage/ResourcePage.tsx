@@ -419,14 +419,14 @@ const ResourceRow = ({
         </div>
     );
 };
-export interface Request {
+interface Request {
     url: string;
     verb: string;
     headers: Headers;
     body: any;
 }
 
-export interface Response {
+interface Response {
     status: number;
     headers: any;
     body: any;
@@ -434,7 +434,7 @@ export interface Response {
     size?: number;
 }
 
-export interface RequestResponsePair {
+interface RequestResponsePair {
     request: Request;
     response: Response;
     /** Whether this URL matched a `urlToBlock` so the contents should not be recorded. */

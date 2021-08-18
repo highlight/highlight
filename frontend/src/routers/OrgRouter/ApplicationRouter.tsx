@@ -15,11 +15,11 @@ import { Buttons } from '../../pages/Buttons/Buttons';
 import ErrorPage from '../../pages/Error/ErrorPage';
 import HomePage from '../../pages/Home/HomePage';
 import Player from '../../pages/Player/PlayerPage';
+import { EmptySessionsSearchParams } from '../../pages/Sessions/EmptySessionsSearchParams';
 import {
     SearchContextProvider,
     SearchParams,
 } from '../../pages/Sessions/SearchContext/SearchContext';
-import { EmptySessionsSearchParams } from '../../pages/Sessions/SessionsPage';
 import SetupPage from '../../pages/Setup/SetupPage';
 import WorkspaceSettings from '../../pages/WorkspaceSettings/WorkspaceSettings';
 import WorkspaceTeam from '../../pages/WorkspaceTeam/WorkspaceTeam';

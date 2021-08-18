@@ -8,8 +8,8 @@ import DataCard from '../../../components/DataCard/DataCard';
 import KeyValueTable, {
     KeyValueTableRow,
 } from '../../../components/KeyValueTable/KeyValueTable';
+import { EmptySessionsSearchParams } from '../../Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '../../Sessions/SearchContext/SearchContext';
-import { EmptySessionsSearchParams } from '../../Sessions/SessionsPage';
 import { useReplayerContext } from '../ReplayerContext';
 import { formatSize } from '../Toolbar/DevToolsWindow/ResourcePage/ResourcePage';
 import styles from './MetadataPanel.module.scss';

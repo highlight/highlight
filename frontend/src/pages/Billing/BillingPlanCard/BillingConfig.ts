@@ -7,14 +7,14 @@ export type BillingPlan = {
     advertisedFeatures: string[];
 };
 
-export const freePlan: BillingPlan = {
+const freePlan: BillingPlan = {
     name: 'Free',
     type: PlanType.Free,
     monthlyPrice: '0',
     advertisedFeatures: ['500 sessions /month', 'Unlimited dev tools access'],
 };
 
-export const basicPlan: BillingPlan = {
+const basicPlan: BillingPlan = {
     name: 'Basic',
     type: PlanType.Basic,
     monthlyPrice: '100',
@@ -25,7 +25,7 @@ export const basicPlan: BillingPlan = {
     ],
 };
 
-export const startupPlan: BillingPlan = {
+const startupPlan: BillingPlan = {
     name: 'Startup',
     type: PlanType.Startup,
     monthlyPrice: '250',
@@ -36,7 +36,7 @@ export const startupPlan: BillingPlan = {
     ],
 };
 
-export const enterprisePlan: BillingPlan = {
+const enterprisePlan: BillingPlan = {
     name: 'Enterprise',
     type: PlanType.Enterprise,
     monthlyPrice: '500+',
