@@ -8,7 +8,7 @@
         display: inline-block;
         margin-right: var(--size-medium);
         text-align: right;
-        width: 75px;
+        width: calc(1ch * var(--longest-character-length));
     }
 }
 
