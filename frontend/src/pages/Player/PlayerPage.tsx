@@ -236,6 +236,7 @@ const Player = ({ integrated }: Props) => {
                     {(canViewSession && !!session) ||
                     replayerState !== ReplayerState.Empty ? (
                         <div
+                            id="playerCenterPanel"
                             className={classNames(styles.playerCenterPanel, {
                                 [styles.gridBackground]: isPlayerFullscreen,
                             })}
@@ -360,6 +361,21 @@ const Player = ({ integrated }: Props) => {
                         visible={commentModalPosition !== undefined}
                         onCancel={() => {
                             setCommentModalPosition(undefined);
+                        }}
+                        // Sets the Modal's mount node as the player center panel.
+                        // The default is document.body
+                        // We override here to be able to show the comments when the player is in fullscreen
+                        // Without this, the new comment modal would be below the fullscreen view.
+                        getContainer={() => {
+                            const playerCenterPanel = document.getElementById(
+                                'playerCenterPanel'
+                            );
+
+                            if (playerCenterPanel) {
+                                return playerCenterPanel;
+                            }
+
+                            return document.body;
                         }}
                         destroyOnClose
                         minimal
