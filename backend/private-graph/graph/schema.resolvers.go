@@ -1934,7 +1934,7 @@ func (r *queryResolver) Segments(ctx context.Context, organizationID int) ([]*mo
 	}
 	// list of maps, where each map represents a field query.
 	segments := []*model.Segment{}
-	if err := r.DB.Model(model.Segment{}).Where("organization_id = ?").Find(&segments).Error; err != nil {
+	if err := r.DB.Model(model.Segment{}).Where("organization_id = ?", organizationID).Find(&segments).Error; err != nil {
 		log.Errorf("error querying segments from organization: %v", err)
 	}
 	return segments, nil
@@ -1946,7 +1946,7 @@ func (r *queryResolver) ErrorSegments(ctx context.Context, organizationID int) (
 	}
 	// list of maps, where each map represents a field query.
 	segments := []*model.ErrorSegment{}
-	if err := r.DB.Model(model.ErrorSegment{}).Where("organization_id = ?").Find(&segments).Error; err != nil {
+	if err := r.DB.Debug().Model(model.ErrorSegment{}).Where("organization_id = ?", organizationID).Find(&segments).Error; err != nil {
 		log.Errorf("error querying segments from organization: %v", err)
 	}
 	return segments, nil
