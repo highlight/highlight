@@ -1,0 +1,22 @@
+.sectionBody {
+    align-items: center;
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--border-radius);
+    display: flex;
+    font-weight: bold;
+    height: 32px;
+    margin: 0 24px;
+    padding: 10px;
+}
+
+.infoTooltip {
+    align-self: flex-end;
+    height: var(--size-medium);
+    width: var(--size-medium);
+}
+
+.toggleSwitch {
+    justify-content: center;
+    margin-left: 4px;
+    margin-right: -10px;
+}
