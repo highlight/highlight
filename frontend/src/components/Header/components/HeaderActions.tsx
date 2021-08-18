@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useAuthContext } from '../../../AuthContext';
+import { useAuthContext } from '../../../authentication/AuthContext';
 import SvgBookIcon from '../../../static/BookIcon';
 import Button from '../../Button/Button/Button';
 import HelpMenu from '../HelpMenu/HelpMenu';

@@ -17,7 +17,7 @@ import {
     YAxis,
 } from 'recharts';
 
-import { useAuthContext } from '../../AuthContext';
+import { useAuthContext } from '../../authentication/AuthContext';
 import Button from '../../components/Button/Button/Button';
 import { StandardDropdown } from '../../components/Dropdown/StandardDropdown/StandardDropdown';
 import { RechartTooltip } from '../../components/recharts/RechartTooltip/RechartTooltip';

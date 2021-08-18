@@ -1,7 +1,37 @@
 import 'rc-slider/assets/index.css';
 
+import { useAuthContext } from '@authentication/AuthContext';
+import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
+import ElevatedCard from '@components/ElevatedCard/ElevatedCard';
+import FullBleedCard from '@components/FullBleedCard/FullBleedCard';
+import Modal from '@components/Modal/Modal';
 import { EventType, Replayer } from '@highlight-run/rrweb';
 import { eventWithTime } from '@highlight-run/rrweb/dist/types';
+import NoActiveSessionCard from '@pages/Player/components/NoActiveSessionCard/NoActiveSessionCard';
+import PanelToggleButton from '@pages/Player/components/PanelToggleButton/PanelToggleButton';
+import { PlayerUIContextProvider } from '@pages/Player/context/PlayerUIContext';
+import { HighlightEvent } from '@pages/Player/HighlightEvent';
+import PlayerCommentCanvas, {
+    Coordinates2D,
+} from '@pages/Player/PlayerCommentCanvas/PlayerCommentCanvas';
+import { usePlayer } from '@pages/Player/PlayerHook/PlayerHook';
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
+import PlayerPageProductTour from '@pages/Player/PlayerPageProductTour/PlayerPageProductTour';
+import {
+    ReplayerContextProvider,
+    ReplayerState,
+    useReplayerContext,
+} from '@pages/Player/ReplayerContext';
+import RightPlayerPanel from '@pages/Player/RightPlayerPanel/RightPlayerPanel';
+import SearchPanel from '@pages/Player/SearchPanel/SearchPanel';
+import SessionLevelBar from '@pages/Player/SessionLevelBar/SessionLevelBar';
+import { StreamElement } from '@pages/Player/StreamElement/StreamElement';
+import { NewCommentForm } from '@pages/Player/Toolbar/NewCommentForm/NewCommentForm';
+import { Toolbar } from '@pages/Player/Toolbar/Toolbar';
+import { usePlayerFullscreen } from '@pages/Player/utils/PlayerHooks';
+import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard';
+import { SessionSearchOption } from '@pages/Sessions/SessionsFeedV2/components/SessionSearch/SessionSearch';
+import { useMarkSessionAsViewedMutation } from '@queries/hooks';
 import classNames from 'classnames';
 import _ from 'lodash';
 import Lottie from 'lottie-react';
@@ -20,40 +50,8 @@ import AsyncSelect from 'react-select/async';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
-import { useAuthContext } from '../../AuthContext';
-import ButtonLink from '../../components/Button/ButtonLink/ButtonLink';
-import ElevatedCard from '../../components/ElevatedCard/ElevatedCard';
-import FullBleedCard from '../../components/FullBleedCard/FullBleedCard';
-import Modal from '../../components/Modal/Modal';
-import { useMarkSessionAsViewedMutation } from '../../graph/generated/hooks';
 import WaitingAnimation from '../../lottie/waiting.json';
-import { SessionSearchOption } from '../Sessions/SessionsFeedV2/components/SessionSearch/SessionSearch';
-import NoActiveSessionCard from './components/NoActiveSessionCard/NoActiveSessionCard';
-import PanelToggleButton from './components/PanelToggleButton/PanelToggleButton';
-import { PlayerUIContextProvider } from './context/PlayerUIContext';
-import { HighlightEvent } from './HighlightEvent';
-import PlayerCommentCanvas, {
-    Coordinates2D,
-} from './PlayerCommentCanvas/PlayerCommentCanvas';
-import { usePlayer } from './PlayerHook/PlayerHook';
-import usePlayerConfiguration from './PlayerHook/utils/usePlayerConfiguration';
 import styles from './PlayerPage.module.scss';
-const PlayerPageProductTour = React.lazy(
-    () => import('./PlayerPageProductTour/PlayerPageProductTour')
-);
-import { IntegrationCard } from '../Sessions/IntegrationCard/IntegrationCard';
-import {
-    ReplayerContextProvider,
-    ReplayerState,
-    useReplayerContext,
-} from './ReplayerContext';
-import RightPlayerPanel from './RightPlayerPanel/RightPlayerPanel';
-import SearchPanel from './SearchPanel/SearchPanel';
-import SessionLevelBar from './SessionLevelBar/SessionLevelBar';
-import { StreamElement } from './StreamElement/StreamElement';
-import { NewCommentForm } from './Toolbar/NewCommentForm/NewCommentForm';
-import { Toolbar } from './Toolbar/Toolbar';
-import { usePlayerFullscreen } from './utils/PlayerHooks';
 
 interface Props {
     integrated: boolean;

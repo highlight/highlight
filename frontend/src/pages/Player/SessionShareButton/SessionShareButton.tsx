@@ -3,7 +3,7 @@ import { H } from 'highlight.run';
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { useAuthContext } from '../../../AuthContext';
+import { useAuthContext } from '../../../authentication/AuthContext';
 import ShareButton from '../../../components/Button/ShareButton/ShareButton';
 import CopyText from '../../../components/CopyText/CopyText';
 import Modal from '../../../components/Modal/Modal';

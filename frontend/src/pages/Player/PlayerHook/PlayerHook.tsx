@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
-import { useAuthContext } from '../../../AuthContext';
+import { useAuthContext } from '../../../authentication/AuthContext';
 import {
     useGetSessionCommentsLazyQuery,
     useGetSessionLazyQuery,

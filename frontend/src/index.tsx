@@ -17,7 +17,7 @@ import {
     isAuthLoading,
     isHighlightAdmin,
     isLoggedIn,
-} from './AuthContext';
+} from './authentication/AuthContext';
 import { ErrorState } from './components/ErrorState/ErrorState';
 import { useGetAdminLazyQuery } from './graph/generated/hooks';
 import LoginForm, { AuthAdminRouter } from './pages/Login/Login';

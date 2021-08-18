@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import Draggable from 'react-draggable';
 import Skeleton from 'react-loading-skeleton';
 
-import { useAuthContext } from '../../../AuthContext';
+import { useAuthContext } from '../../../authentication/AuthContext';
 import Button from '../../../components/Button/Button/Button';
 import Modal from '../../../components/Modal/Modal';
 import Popover from '../../../components/Popover/Popover';

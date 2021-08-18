@@ -4,7 +4,7 @@ import Skeleton from 'react-loading-skeleton';
 import { useParams } from 'react-router-dom';
 import useFetch from 'use-http';
 
-import { useAuthContext } from '../../AuthContext';
+import { useAuthContext } from '../../authentication/AuthContext';
 import ButtonLink from '../../components/Button/ButtonLink/ButtonLink';
 import Collapsible from '../../components/Collapsible/Collapsible';
 import SvgSlackLogo from '../../components/icons/SlackLogo';

@@ -1,5 +1,5 @@
-import { Admin } from './graph/generated/schemas';
-import { createContext } from './util/context/context';
+import { Admin } from '../graph/generated/schemas';
+import { createContext } from '../util/context/context';
 
 export enum AuthRole {
     AUTHENTICATED_HIGHLIGHT, // A highlight staff member

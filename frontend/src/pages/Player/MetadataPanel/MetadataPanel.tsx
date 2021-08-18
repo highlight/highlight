@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { Link } from 'react-router-dom';
 
-import { useAuthContext } from '../../../AuthContext';
+import { useAuthContext } from '../../../authentication/AuthContext';
 import DataCard from '../../../components/DataCard/DataCard';
 import KeyValueTable, {
     KeyValueTableRow,

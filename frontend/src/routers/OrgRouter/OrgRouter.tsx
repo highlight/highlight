@@ -2,7 +2,7 @@ import useLocalStorage from '@rehooks/local-storage';
 import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { useAuthContext } from '../../AuthContext';
+import { useAuthContext } from '../../authentication/AuthContext';
 import commonStyles from '../../Common.module.scss';
 import { ErrorState } from '../../components/ErrorState/ErrorState';
 import { Header } from '../../components/Header/Header';

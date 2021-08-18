@@ -4,7 +4,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
 
-import { useAuthContext } from '../../AuthContext';
+import { useAuthContext } from '../../authentication/AuthContext';
 import { useGetBillingDetailsQuery } from '../../graph/generated/hooks';
 import { PlanType } from '../../graph/generated/schemas';
 import { ReactComponent as Banner } from '../../static/banner.svg';
