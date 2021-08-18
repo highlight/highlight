@@ -307,6 +307,7 @@ export const Toolbar = () => {
                                 )}
                                 disabled={disableControls || disablePlayButton}
                                 onClick={() => {
+                                    H.track('Player Play/Pause Button');
                                     if (isPaused) {
                                         play(time);
                                     } else {

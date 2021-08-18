@@ -1,4 +1,5 @@
 import classNames from 'classnames';
+import { H } from 'highlight.run';
 import moment from 'moment';
 import React, { useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
@@ -16,6 +17,7 @@ import {
     YAxis,
 } from 'recharts';
 
+import { useAuthContext } from '../../AuthContext';
 import Button from '../../components/Button/Button/Button';
 import { StandardDropdown } from '../../components/Dropdown/StandardDropdown/StandardDropdown';
 import { RechartTooltip } from '../../components/recharts/RechartTooltip/RechartTooltip';
@@ -49,7 +51,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
     const [getErrorGroupQuery, { data, loading }] = useGetErrorGroupLazyQuery({
         variables: { id: error_id },
     });
-    //     const loading = true;
+    const { isLoggedIn } = useAuthContext();
     const [segmentName, setSegmentName] = useState<string | null>(null);
     const [cachedParams, setCachedParams] = useLocalStorage<ErrorSearchParams>(
         `cachedErrorParams-v2-${segmentName || 'no-selected-segment'}`,
@@ -71,8 +73,9 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
     useEffect(() => {
         if (error_id) {
             getErrorGroupQuery();
+            H.track('Viewed error', { is_guest: !isLoggedIn });
         }
-    }, [error_id, getErrorGroupQuery]);
+    }, [error_id, getErrorGroupQuery, isLoggedIn]);
 
     const { showLeftPanel } = useErrorPageConfiguration();
 
