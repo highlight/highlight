@@ -4,8 +4,8 @@ import Skeleton from 'react-loading-skeleton';
 import { useParams } from 'react-router-dom';
 
 import { useGetKeyPerformanceIndicatorsQuery } from '../../../../graph/generated/hooks';
+import { EmptySessionsSearchParams } from '../../../Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '../../../Sessions/SearchContext/SearchContext';
-import { EmptySessionsSearchParams } from '../../../Sessions/SessionsPage';
 import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext';
 import KeyPerformanceIndicator from './KeyPerformanceIndicator/KeyPerformanceIndicator';
 import styles from './KeyPerformanceIndicators.module.scss';

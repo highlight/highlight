@@ -13,8 +13,8 @@ import {
 import { ReactComponent as CheckIcon } from '../../../../static/check.svg';
 import { ReactComponent as TrashIcon } from '../../../../static/trash.svg';
 import { gqlSanitize } from '../../../../util/gqlSanitize';
+import { EmptySessionsSearchParams } from '../../EmptySessionsSearchParams';
 import { useSearchContext } from '../../SearchContext/SearchContext';
-import { EmptySessionsSearchParams } from '../../SessionsPage';
 import DeleteSessionSegmentModal from './DeleteSessionSegmentModal/DeleteSessionSegmentModal';
 import styles from './SegmentPicker.module.scss';
 
