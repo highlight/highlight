@@ -146,6 +146,14 @@ export const usePlayerFullscreen = () => {
     const [isPlayerFullscreen, setIsPlayerFullscreen] = useState(false);
 
     useEffect(() => {
+        document.onfullscreenchange = () => {
+            if (!document.fullscreenElement) {
+                setIsPlayerFullscreen(false);
+            }
+        };
+    }, []);
+
+    useEffect(() => {
         if (playerCenterPanelRef.current) {
             if (isPlayerFullscreen) {
                 playerCenterPanelRef.current.requestFullscreen();
