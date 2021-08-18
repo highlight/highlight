@@ -349,7 +349,6 @@ export const usePlayer = (): ReplayerContextInterface => {
     useEffect(() => {
         if (
             state === ReplayerState.SessionEnded &&
-            showLeftPanel &&
             autoPlaySessions &&
             sessionResults.sessions.length > 0
         ) {

@@ -53,6 +53,7 @@ import SessionLevelBar from './SessionLevelBar/SessionLevelBar';
 import { StreamElement } from './StreamElement/StreamElement';
 import { NewCommentForm } from './Toolbar/NewCommentForm/NewCommentForm';
 import { Toolbar } from './Toolbar/Toolbar';
+import { usePlayerFullscreen } from './utils/PlayerHooks';
 
 interface Props {
     integrated: boolean;
@@ -86,6 +87,11 @@ const Player = ({ integrated }: Props) => {
         showRightPanel,
     } = usePlayerConfiguration();
     const playerWrapperRef = useRef<HTMLDivElement>(null);
+    const {
+        isPlayerFullscreen,
+        setIsPlayerFullscreen,
+        playerCenterPanelRef,
+    } = usePlayerFullscreen();
     const newCommentModalRef = useRef<HTMLDivElement>(null);
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
     const [commentModalPosition, setCommentModalPosition] = useState<
@@ -159,7 +165,15 @@ const Player = ({ integrated }: Props) => {
     const showLeftPanel = showLeftPanelPreference && canViewSession;
 
     return (
-        <PlayerUIContextProvider value={{ searchBarRef, setSearchBarRef }}>
+        <PlayerUIContextProvider
+            value={{
+                searchBarRef,
+                setSearchBarRef,
+                isPlayerFullscreen,
+                setIsPlayerFullscreen,
+                playerCenterPanelRef,
+            }}
+        >
             <ReplayerContextProvider value={player}>
                 {!integrated && <IntegrationCard />}
                 {isPlayerReady && !isLoggedIn && (
@@ -170,9 +184,13 @@ const Player = ({ integrated }: Props) => {
                     </>
                 )}
                 <div
-                    className={classNames(styles.playerBody, {
-                        [styles.withLeftPanel]: showLeftPanel,
-                    })}
+                    className={classNames(
+                        styles.playerBody,
+                        styles.gridBackground,
+                        {
+                            [styles.withLeftPanel]: showLeftPanel,
+                        }
+                    )}
                 >
                     <div
                         className={classNames(styles.playerLeftPanel, {
@@ -217,11 +235,19 @@ const Player = ({ integrated }: Props) => {
                     )}
                     {(canViewSession && !!session) ||
                     replayerState !== ReplayerState.Empty ? (
-                        <div className={styles.playerCenterPanel}>
+                        <div
+                            id="playerCenterPanel"
+                            className={classNames(styles.playerCenterPanel, {
+                                [styles.gridBackground]: isPlayerFullscreen,
+                            })}
+                            ref={playerCenterPanelRef}
+                        >
                             <div className={styles.playerContainer}>
                                 <div className={styles.rrwebPlayerSection}>
                                     <div className={styles.playerCenterColumn}>
-                                        <SessionLevelBar />
+                                        {!isPlayerFullscreen && (
+                                            <SessionLevelBar />
+                                        )}
                                         <div
                                             className={
                                                 styles.rrwebPlayerWrapper
@@ -322,7 +348,9 @@ const Player = ({ integrated }: Props) => {
                                         <Toolbar />
                                     </div>
 
-                                    <RightPlayerPanel />
+                                    {!isPlayerFullscreen && (
+                                        <RightPlayerPanel />
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -333,6 +361,21 @@ const Player = ({ integrated }: Props) => {
                         visible={commentModalPosition !== undefined}
                         onCancel={() => {
                             setCommentModalPosition(undefined);
+                        }}
+                        // Sets the Modal's mount node as the player center panel.
+                        // The default is document.body
+                        // We override here to be able to show the comments when the player is in fullscreen
+                        // Without this, the new comment modal would be below the fullscreen view.
+                        getContainer={() => {
+                            const playerCenterPanel = document.getElementById(
+                                'playerCenterPanel'
+                            );
+
+                            if (playerCenterPanel) {
+                                return playerCenterPanel;
+                            }
+
+                            return document.body;
                         }}
                         destroyOnClose
                         minimal

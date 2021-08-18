@@ -1,4 +1,5 @@
 import { H } from 'highlight.run';
+import { useEffect, useRef, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 
 import { ReplayerState, useReplayerContext } from '../ReplayerContext';
@@ -138,4 +139,33 @@ export const usePlayerHotKeys = () => {
         },
         [time, replayer, state, pause, play]
     );
+};
+
+export const usePlayerFullscreen = () => {
+    const playerCenterPanelRef = useRef<HTMLDivElement>(null);
+    const [isPlayerFullscreen, setIsPlayerFullscreen] = useState(false);
+
+    useEffect(() => {
+        document.onfullscreenchange = () => {
+            if (!document.fullscreenElement) {
+                setIsPlayerFullscreen(false);
+            }
+        };
+    }, []);
+
+    useEffect(() => {
+        if (playerCenterPanelRef.current) {
+            if (isPlayerFullscreen) {
+                playerCenterPanelRef.current.requestFullscreen();
+            } else if (document.fullscreenElement) {
+                document.exitFullscreen();
+            }
+        }
+    }, [isPlayerFullscreen]);
+
+    return {
+        playerCenterPanelRef,
+        isPlayerFullscreen,
+        setIsPlayerFullscreen,
+    };
 };

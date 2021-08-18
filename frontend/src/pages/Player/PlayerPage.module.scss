@@ -193,16 +193,6 @@
     --left-panel-width: 475px;
     --right-panel-width: 350px;
 
-    --background-color: var(--color-gray-200);
-    --dot-color: var(--color-gray-300);
-    --dot-size: 2px;
-    --square-size: 50px;
-    background-image: radial-gradient(
-        var(--dot-color) var(--dot-size),
-        var(--background-color) var(--dot-size)
-    );
-    background-position: 0 0;
-    background-size: var(--square-size) var(--square-size);
     display: grid;
     grid-template-columns: 1fr;
     height: 100%;
@@ -213,6 +203,19 @@
     &.withLeftPanel {
         grid-template-columns: var(--left-panel-width) 1fr;
     }
+}
+
+.gridBackground {
+    --background-color: var(--color-gray-200);
+    --dot-color: var(--color-gray-300);
+    --dot-size: 2px;
+    --square-size: 50px;
+    background-image: radial-gradient(
+        var(--dot-color) var(--dot-size),
+        var(--background-color) var(--dot-size)
+    );
+    background-position: 0 0;
+    background-size: var(--square-size) var(--square-size);
 }
 
 .commentModal {
