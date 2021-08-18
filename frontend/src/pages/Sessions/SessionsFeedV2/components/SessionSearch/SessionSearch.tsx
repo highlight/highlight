@@ -245,7 +245,10 @@ const SessionSearch = () => {
                 },
                 Menu: (props) => {
                     return (
-                        <components.Menu {...props}>
+                        <components.Menu
+                            {...props}
+                            className={classNames(props.className, styles.menu)}
+                        >
                             <>
                                 <div className={styles.filterContainer}>
                                     <h4>Includes:</h4>
