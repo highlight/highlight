@@ -13,6 +13,8 @@ import ToggleButton from '../../../components/ToggleButton/ToggleButton';
 import Tooltip from '../../../components/Tooltip/Tooltip';
 import { ErrorObject } from '../../../graph/generated/schemas';
 import SvgDevtoolsIcon from '../../../static/DevtoolsIcon';
+import SvgFullscreenIcon from '../../../static/FullscreenIcon';
+import SvgMinimize2Icon from '../../../static/Minimize2Icon';
 import SvgPauseIcon from '../../../static/PauseIcon';
 import SvgPlayIcon from '../../../static/PlayIcon';
 import SvgSettingsIcon from '../../../static/SettingsIcon';
@@ -22,6 +24,7 @@ import {
     MillisToMinutesAndSeconds,
     MillisToMinutesAndSecondsVerbose,
 } from '../../../util/time';
+import { usePlayerUIContext } from '../context/PlayerUIContext';
 import { EventsForTimeline, EventsForTimelineKeys } from '../PlayerHook/utils';
 import usePlayerConfiguration from '../PlayerHook/utils/usePlayerConfiguration';
 import { PlayerPageProductTourSelectors } from '../PlayerPageProductTour/PlayerPageProductTour';
@@ -69,6 +72,7 @@ export const Toolbar = () => {
         setShowPlayerMouseTail,
     } = usePlayerConfiguration();
     const { isLoggedIn } = useAuthContext();
+    const { setIsPlayerFullscreen, isPlayerFullscreen } = usePlayerUIContext();
     const max = replayer?.getMetaData().totalTime ?? 0;
     const sliderWrapperRef = useRef<HTMLButtonElement>(null);
     const [selectedError, setSelectedError] = useState<ErrorObject | undefined>(
@@ -209,7 +213,7 @@ export const Toolbar = () => {
                     setOpenDevTools: setShowDevTools,
                 }}
             >
-                <TimelineIndicators />
+                {!isPlayerFullscreen && <TimelineIndicators />}
                 <div id={PlayerPageProductTourSelectors.DevToolsPanel}>
                     <DevToolsWindow
                         time={(replayer?.getMetaData().startTime ?? 0) + time}
@@ -412,106 +416,144 @@ export const Toolbar = () => {
                     </div>
                 </div>
                 <div className={styles.toolbarRightSection}>
-                    <Tooltip
-                        title="View the DevTools to see console logs, errors, and network requests."
-                        placement="topLeft"
-                        arrowPointAtCenter
-                    >
-                        <ToggleButton
-                            id={`${PlayerPageProductTourSelectors.DevToolsButton}`}
-                            trackingId="PlayerDevTools"
-                            type="text"
-                            className={styles.devToolsButton}
-                            onClick={() => {
-                                setShowDevTools(!showDevTools);
-                            }}
-                            disabled={disableControls}
-                            toggled={showDevTools}
-                        >
-                            <SvgDevtoolsIcon
-                                className={classNames(styles.devToolsIcon, {
-                                    [styles.devToolsActive]: showDevTools,
-                                })}
-                            />
-                        </ToggleButton>
-                    </Tooltip>
+                    {!isPlayerFullscreen && (
+                        <>
+                            <Tooltip
+                                title="View the DevTools to see console logs, errors, and network requests."
+                                placement="topLeft"
+                                arrowPointAtCenter
+                            >
+                                <ToggleButton
+                                    id={`${PlayerPageProductTourSelectors.DevToolsButton}`}
+                                    trackingId="PlayerDevTools"
+                                    type="text"
+                                    className={styles.devToolsButton}
+                                    onClick={() => {
+                                        setShowDevTools(!showDevTools);
+                                    }}
+                                    disabled={disableControls}
+                                    toggled={showDevTools}
+                                >
+                                    <SvgDevtoolsIcon
+                                        className={classNames(
+                                            styles.devToolsIcon,
+                                            {
+                                                [styles.devToolsActive]: showDevTools,
+                                            }
+                                        )}
+                                    />
+                                </ToggleButton>
+                            </Tooltip>
 
-                    <Popover
-                        placement="topLeft"
-                        trigger={['click']}
-                        content={
-                            <>
-                                <PopoverListContent
-                                    className={styles.settingsPopover}
-                                    noHoverChange
-                                    listItems={[
-                                        <Switch
-                                            labelFirst
-                                            justifySpaceBetween
-                                            noMarginAroundSwitch
-                                            key="sessionAutoplay"
-                                            checked={autoPlayVideo}
-                                            label="Autoplay"
-                                            onChange={(checked) => {
-                                                setAutoPlayVideo(checked);
-                                            }}
-                                        />,
-                                        <Switch
-                                            labelFirst
-                                            justifySpaceBetween
-                                            noMarginAroundSwitch
-                                            key="skipInactive"
-                                            checked={skipInactive}
-                                            label="Skip inactive"
-                                            onChange={(checked) => {
-                                                setSkipInactive(checked);
-                                            }}
-                                        />,
-                                        <Switch
-                                            labelFirst
-                                            justifySpaceBetween
-                                            noMarginAroundSwitch
-                                            key="mouseTrail"
-                                            checked={showPlayerMouseTail}
-                                            label="Show mouse trail"
-                                            onChange={(checked) => {
-                                                setShowPlayerMouseTail(checked);
-                                            }}
-                                        />,
-                                        <div
-                                            key="speedControl"
-                                            className={
-                                                styles.speedControlContainer
-                                            }
-                                        >
-                                            Playback speed
-                                            <SpeedControl
-                                                disabled={disableControls}
-                                            />
-                                        </div>,
-                                        <div
-                                            key="timelineAnnotationSettings"
-                                            className={
-                                                styles.speedControlContainer
-                                            }
-                                        >
-                                            Annotations
-                                            <TimelineAnnotationsSettings
-                                                disabled={disableControls}
-                                            />
-                                        </div>,
-                                    ]}
-                                />
-                            </>
-                        }
+                            <Popover
+                                placement="topLeft"
+                                trigger={['click']}
+                                content={
+                                    <>
+                                        <PopoverListContent
+                                            className={styles.settingsPopover}
+                                            noHoverChange
+                                            listItems={[
+                                                <Switch
+                                                    labelFirst
+                                                    justifySpaceBetween
+                                                    noMarginAroundSwitch
+                                                    key="sessionAutoplay"
+                                                    checked={autoPlayVideo}
+                                                    label="Autoplay"
+                                                    onChange={(checked) => {
+                                                        setAutoPlayVideo(
+                                                            checked
+                                                        );
+                                                    }}
+                                                />,
+                                                <Switch
+                                                    labelFirst
+                                                    justifySpaceBetween
+                                                    noMarginAroundSwitch
+                                                    key="skipInactive"
+                                                    checked={skipInactive}
+                                                    label="Skip inactive"
+                                                    onChange={(checked) => {
+                                                        setSkipInactive(
+                                                            checked
+                                                        );
+                                                    }}
+                                                />,
+                                                <Switch
+                                                    labelFirst
+                                                    justifySpaceBetween
+                                                    noMarginAroundSwitch
+                                                    key="mouseTrail"
+                                                    checked={
+                                                        showPlayerMouseTail
+                                                    }
+                                                    label="Show mouse trail"
+                                                    onChange={(checked) => {
+                                                        setShowPlayerMouseTail(
+                                                            checked
+                                                        );
+                                                    }}
+                                                />,
+                                                <div
+                                                    key="speedControl"
+                                                    className={
+                                                        styles.speedControlContainer
+                                                    }
+                                                >
+                                                    Playback speed
+                                                    <SpeedControl
+                                                        disabled={
+                                                            disableControls
+                                                        }
+                                                    />
+                                                </div>,
+                                                <div
+                                                    key="timelineAnnotationSettings"
+                                                    className={
+                                                        styles.speedControlContainer
+                                                    }
+                                                >
+                                                    Annotations
+                                                    <TimelineAnnotationsSettings
+                                                        disabled={
+                                                            disableControls
+                                                        }
+                                                    />
+                                                </div>,
+                                            ]}
+                                        />
+                                    </>
+                                }
+                            >
+                                <Button
+                                    trackingId="PlayerToolbarSettings"
+                                    className={styles.settingsButton}
+                                >
+                                    <SvgSettingsIcon
+                                        className={styles.devToolsIcon}
+                                    />
+                                </Button>
+                            </Popover>
+                        </>
+                    )}
+                    <Button
+                        trackingId="PlayerFullScreenButton"
+                        className={styles.settingsButton}
+                        onClick={() => {
+                            setIsPlayerFullscreen(
+                                (previousValue) => !previousValue
+                            );
+                        }}
                     >
-                        <Button
-                            trackingId="PlayerToolbarSettings"
-                            className={styles.settingsButton}
-                        >
-                            <SvgSettingsIcon className={styles.devToolsIcon} />
-                        </Button>
-                    </Popover>
+                        {isPlayerFullscreen ? (
+                            <SvgMinimize2Icon className={styles.devToolsIcon} />
+                        ) : (
+                            <SvgFullscreenIcon
+                                className={styles.devToolsIcon}
+                            />
+                        )}
+                    </Button>
                 </div>
             </div>
         </ErrorModalContextProvider>

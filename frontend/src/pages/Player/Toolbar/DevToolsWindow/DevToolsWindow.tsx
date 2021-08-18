@@ -3,6 +3,7 @@ import ResizePanel from 'react-resize-panel-ts';
 
 import Tabs, { TabItem } from '../../../../components/Tabs/Tabs';
 import SvgXIcon from '../../../../static/XIcon';
+import { usePlayerUIContext } from '../../context/PlayerUIContext';
 import DOMInteractionsToggle from '../../DOMInteractionsToggle/DOMInteractionsToggle';
 import { useDevToolsContext } from '../DevToolsContext/DevToolsContext';
 import { ConsolePage } from './ConsolePage/ConsolePage';
@@ -18,6 +19,7 @@ export const DevToolsWindow = ({
     startTime: number;
 }) => {
     const { openDevTools, setOpenDevTools } = useDevToolsContext();
+    const { isPlayerFullscreen } = usePlayerUIContext();
 
     const TABS: TabItem[] = [
         {
@@ -34,7 +36,7 @@ export const DevToolsWindow = ({
         },
     ];
 
-    if (!openDevTools) {
+    if (!openDevTools || isPlayerFullscreen) {
         return null;
     }
 
