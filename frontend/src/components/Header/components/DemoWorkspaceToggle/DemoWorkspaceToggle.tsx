@@ -36,15 +36,15 @@ const DemoWorkspaceToggle = () => {
                         });
                         history.push(`/0/${path}`);
                     } else if (allApplications) {
-                        for (let i = 0; i < allApplications?.length; i++) {
-                            if (
-                                allApplications[i]?.id !==
-                                currentApplication?.id
-                            ) {
-                                history.push(
-                                    `/${allApplications[i]?.id}/${path}`
-                                );
-                            }
+                        if (allApplications[0]?.id !== currentApplication?.id) {
+                            history.push(`/${allApplications[0]?.id}/${path}`);
+                        } else {
+                            history.push(
+                                `/${
+                                    allApplications[allApplications.length - 1]
+                                        ?.id
+                                }/${path}`
+                            );
                         }
                     } else {
                         history.push(`/new`);
