@@ -604,6 +604,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		password = os.Getenv("PSQL_PASSWORD")
 		sslmode  = "disable"
 	)
+
 	databaseURL, ok := os.LookupEnv("DATABASE_URL")
 	if ok {
 		re, err := regexp.Compile(`(?m)^(?:postgres://)([^:]*)(?::)([^@]*)(?:@)([^:]*)(?::)([^/]*)(?:/)(.*)`)
@@ -621,6 +622,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 			}
 		}
 	}
+	log.Printf("setting up db @ %v \n", databaseURL)
 	psqlConf := fmt.Sprintf(
 		"host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
 		host,
@@ -646,6 +648,8 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 	if err != nil {
 		return nil, e.Wrap(err, "Failed to connect to database")
 	}
+
+	log.Printf("running db migration ... \n")
 	if err := DB.AutoMigrate(
 		Models...,
 	); err != nil {
@@ -656,6 +660,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		return nil, e.Wrap(err, "error retrieving underlying sql db")
 	}
 	sqlDB.SetMaxOpenConns(15)
+	log.Printf("finished db migration. \n")
 	return DB, nil
 }
 
