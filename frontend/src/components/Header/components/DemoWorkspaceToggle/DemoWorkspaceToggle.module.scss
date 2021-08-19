@@ -3,10 +3,9 @@
     border: 1px solid var(--color-gray-300);
     border-radius: var(--border-radius);
     display: flex;
-    font-weight: 400;
-    height: 32px;
-    margin: 0 24px;
-    padding: 10px;
+    height: var(--size-xLarge);
+    margin: 0 var(--size-large);
+    padding: var(--size-xSmall);
 }
 
 .infoTooltip {
