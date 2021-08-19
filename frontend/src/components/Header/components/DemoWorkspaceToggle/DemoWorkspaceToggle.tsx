@@ -28,7 +28,7 @@ const DemoWorkspaceToggle = () => {
                             .split('/')
                             .filter((token) => token.length);
                         if (currentApplication?.id !== '0') {
-                            H.track('toggleDemoWorkspace', {
+                            H.track('ViewDemoApplication', {
                                 currentApplicationID:
                                     currentApplication?.id || '',
                             });
