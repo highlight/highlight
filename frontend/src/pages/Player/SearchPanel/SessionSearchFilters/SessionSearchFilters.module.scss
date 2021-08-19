@@ -38,3 +38,8 @@
     border: 1px solid var(--color-purple);
     color: var(--text-primary);
 }
+
+.popover {
+    max-width: 800px;
+    min-width: 200px;
+}
