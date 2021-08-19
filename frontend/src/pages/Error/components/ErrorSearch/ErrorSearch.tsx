@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import _ from 'lodash';
+import React, { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { components, OptionsType, OptionTypeBase } from 'react-select';
+import { components } from 'react-select';
 import AsyncSelect from 'react-select/async';
 
 import InfoTooltip from '../../../../components/InfoTooltip/InfoTooltip';
@@ -66,16 +67,20 @@ const ErrorSearch = () => {
         },
     });
 
-    const generateOptions = async (
-        input: string
-    ): Promise<OptionsType<OptionTypeBase> | void[]> => {
-        const fetched = await refetch({
+    const generateOptions = async (input: string, callback: any) => {
+        refetch({
             organization_id,
             query: input,
+        }).then((fetched) => {
+            callback(getSuggestions(fetched.data, query, 10));
         });
-
-        return getSuggestions(fetched.data, query, 10);
     };
+
+    const debouncedGenerateOptions = useMemo(
+        () => _.debounce(generateOptions, 200),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        []
+    );
 
     return (
         <AsyncSelect
@@ -87,7 +92,7 @@ const ErrorSearch = () => {
                 }
             }}
             isMulti
-            loadOptions={generateOptions}
+            loadOptions={debouncedGenerateOptions}
             isLoading={loading}
             isClearable={false}
             onChange={handleChange}
