@@ -2,6 +2,7 @@ package graph
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -40,14 +41,17 @@ func SetupAuthClient() {
 }
 
 func PrivateMiddleware(next http.Handler) http.Handler {
+	fmt.Println("Middleware")
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var uid string
 		email := ""
 		token := r.Header.Get("token")
 		if token != "" {
 			token := r.Header.Get("token")
+			fmt.Println("Verifying token " + token)
 			t, err := AuthClient.VerifyIDToken(context.Background(), token)
 			if err != nil {
+				fmt.Println("Bad token")
 				http.Error(w, e.Wrap(err, "invalid id token").Error(), http.StatusInternalServerError)
 				return
 			}

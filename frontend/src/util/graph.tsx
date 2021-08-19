@@ -4,9 +4,10 @@ import { ApolloClient, createHttpLink, InMemoryCache } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import * as firebase from 'firebase/app';
 
-const uri =
-    process.env.REACT_APP_PRIVATE_GRAPH_URI ??
-    window.location.origin + '/private';
+// const uri =
+//     process.env.REACT_APP_PRIVATE_GRAPH_URI ??
+//     window.location.origin + '/private';
+const uri = 'http://localhost:8082/private';
 const highlightGraph = createHttpLink({
     uri,
     credentials: 'include',
