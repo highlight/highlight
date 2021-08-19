@@ -6,7 +6,7 @@ import React from 'react';
 import styles from './Switch.module.scss';
 
 type Props = Pick<SwitchProps, 'checked' | 'onChange' | 'loading'> & {
-    label: string;
+    label: string | React.ReactNode;
     /** Renders the label before the switch. */
     labelFirst?: boolean;
     /** Renders the label and the switch with space-between. */
