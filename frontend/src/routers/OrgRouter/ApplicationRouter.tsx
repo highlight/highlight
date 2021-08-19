@@ -6,6 +6,7 @@ import {
     BooleanParam,
     JsonParam,
     StringParam,
+    useQueryParam,
     useQueryParams,
 } from 'use-query-params';
 
@@ -60,6 +61,10 @@ const ApplicationRouter = ({ integrated }: Props) => {
         device_id: StringParam,
         show_live_sessions: BooleanParam,
     });
+    const [activeSegmentUrlParam, setActiveSegmentUrlParam] = useQueryParam(
+        'segment',
+        JsonParam
+    );
 
     const [existingParams, setExistingParams] = useState<SearchParams>(
         EmptySessionsSearchParams
@@ -102,6 +107,23 @@ const ApplicationRouter = ({ integrated }: Props) => {
     useEffect(() => {
         if (!_.isEqual(InitialSearchParamsForUrl, searchParamsToUrlParams)) {
             setSearchParams(searchParamsToUrlParams as SearchParams);
+        }
+        // We only want to run this on mount (i.e. when the page first loads).
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // Session Segment Deep Linking
+    useEffect(() => {
+        if (selectedSegment && selectedSegment.id && selectedSegment.value) {
+            setActiveSegmentUrlParam(selectedSegment);
+        } else {
+            setActiveSegmentUrlParam(undefined);
+        }
+    }, [selectedSegment, setActiveSegmentUrlParam]);
+
+    useEffect(() => {
+        if (activeSegmentUrlParam) {
+            setSelectedSegment(activeSegmentUrlParam);
         }
         // We only want to run this on mount (i.e. when the page first loads).
         // eslint-disable-next-line react-hooks/exhaustive-deps
