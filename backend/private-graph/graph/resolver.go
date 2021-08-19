@@ -54,6 +54,9 @@ func (r *Resolver) isDemoOrg(org_id int) bool {
 
 // These are authentication methods used to make sure that data is secured.
 // This'll probably get expensive at some point; they can probably be cached.
+
+// isAdminInOrganizationOrDemoOrg should be used for actions that you want admins in all organizations
+// and laymen in the demo org to have access to.
 func (r *Resolver) isAdminInOrganizationOrDemoOrg(ctx context.Context, org_id int) (*model.Organization, error) {
 	var org *model.Organization
 	var err error
@@ -70,6 +73,8 @@ func (r *Resolver) isAdminInOrganizationOrDemoOrg(ctx context.Context, org_id in
 	return org, nil
 }
 
+// isAdminInOrganization should be used for actions that you only want admins in all organizations to have access to.
+// Use this on actions that you don't want laymen in the demo org to have access to.
 func (r *Resolver) isAdminInOrganization(ctx context.Context, org_id int) (*model.Organization, error) {
 	if util.IsTestEnv() {
 		return nil, nil
