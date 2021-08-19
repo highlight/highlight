@@ -622,7 +622,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 			}
 		}
 	}
-	log.Printf("setting up db @ %v \n", databaseURL)
+	log.Printf("setting up db @ %v \n", host)
 	psqlConf := fmt.Sprintf(
 		"host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
 		host,
