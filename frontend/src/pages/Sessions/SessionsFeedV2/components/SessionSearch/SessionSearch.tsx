@@ -1,5 +1,6 @@
 import classNames from 'classnames';
-import React, { useEffect, useState } from 'react';
+import { debounce } from 'lodash';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { components, OptionsType, OptionTypeBase } from 'react-select';
 import AsyncSelect from 'react-select/async';
@@ -93,16 +94,30 @@ const SessionSearch = () => {
         },
     });
 
-    const generateOptions = async (
-        input: string
-    ): Promise<OptionsType<OptionTypeBase> | void[]> => {
-        const fetched = await refetch({
-            organization_id,
-            query: input,
-        });
+    const generateOptions = useCallback(
+        async (
+            input: string
+        ): Promise<OptionsType<OptionTypeBase> | void[]> => {
+            const fetched = await refetch({
+                organization_id,
+                query: input,
+            });
 
-        return getSuggestions(fetched.data, selectedSearchFilters, query, 3);
-    };
+            return getSuggestions(
+                fetched.data,
+                selectedSearchFilters,
+                query,
+                3
+            );
+        },
+        [organization_id, query, refetch, selectedSearchFilters]
+    );
+
+    const debouncedGenerateOptions = useMemo(
+        () => debounce(generateOptions, 200),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        []
+    );
 
     useEffect(() => {
         if (searchParams) {
@@ -159,7 +174,7 @@ const SessionSearch = () => {
                 }
             }}
             isMulti
-            loadOptions={generateOptions}
+            loadOptions={debouncedGenerateOptions}
             isLoading={loading}
             isClearable={false}
             onChange={handleChange}
