@@ -55,13 +55,19 @@ func (r *Resolver) isDemoOrg(org_id int) bool {
 // These are authentication methods used to make sure that data is secured.
 // This'll probably get expensive at some point; they can probably be cached.
 func (r *Resolver) isAdminInOrganizationOrDemoOrg(ctx context.Context, org_id int) (*model.Organization, error) {
-	o, err := r.isAdminInOrganization(ctx, org_id)
-	if err != nil {
-		if !r.isDemoOrg(org_id) {
-			return nil, err
+	var org *model.Organization
+	var err error
+	if r.isDemoOrg(org_id) {
+		if err = r.DB.Model(&model.Organization{}).Where("id = ?", 0).First(&org).Error; err != nil {
+			return nil, e.Wrap(err, "error querying demo org")
+		}
+	} else {
+		org, err = r.isAdminInOrganization(ctx, org_id)
+		if err != nil {
+			return nil, e.Wrap(err, "admin is not in organization or demo org")
 		}
 	}
-	return o, nil
+	return org, nil
 }
 
 func (r *Resolver) isAdminInOrganization(ctx context.Context, org_id int) (*model.Organization, error) {
