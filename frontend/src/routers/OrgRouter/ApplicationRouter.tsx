@@ -1,3 +1,4 @@
+import KeyboardShortcutsEducation from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation';
 import useLocalStorage from '@rehooks/local-storage';
 import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
@@ -144,6 +145,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
                 setSelectedSegment,
             }}
         >
+            <KeyboardShortcutsEducation />
             <Switch>
                 <Route path="/:organization_id/sessions/:session_id?" exact>
                     <Player integrated={integrated} />
