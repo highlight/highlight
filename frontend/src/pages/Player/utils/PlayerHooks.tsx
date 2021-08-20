@@ -19,7 +19,7 @@ import { ReplayerState, useReplayerContext } from '../ReplayerContext';
 /**
  * The time to skip along the timeline. Used to skip X time back or forwards.
  */
-const SKIP_DURATION = 5000;
+export const PLAYER_SKIP_DURATION = 5000;
 
 export const getNewTimeWithSkip = ({
     direction,
@@ -32,10 +32,10 @@ export const getNewTimeWithSkip = ({
 }) => {
     switch (direction) {
         case 'backwards':
-            return Math.max(time - SKIP_DURATION, 0);
+            return Math.max(time - PLAYER_SKIP_DURATION, 0);
         case 'forwards':
             if (!!totalTime) {
-                return Math.min(time + SKIP_DURATION, totalTime);
+                return Math.min(time + PLAYER_SKIP_DURATION, totalTime);
             }
             return time;
         default:
