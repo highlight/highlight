@@ -31,7 +31,7 @@ export const getNewTimeWithSkip = ({
     }
 };
 
-export const usePlayerHotKeys = () => {
+export const usePlayerKeyboardShortcuts = () => {
     const { state, play, pause, time, replayer } = useReplayerContext();
 
     /**
