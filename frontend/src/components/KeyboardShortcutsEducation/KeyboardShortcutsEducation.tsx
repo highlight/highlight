@@ -4,19 +4,22 @@ import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
 import SvgSearchIcon from '@icons/SearchIcon';
 import { PLAYBACK_SPEED_INCREMENT } from '@pages/Player/Toolbar/SpeedControl/SpeedControl';
 import { PLAYER_SKIP_DURATION } from '@pages/Player/utils/PlayerHooks';
+import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React, { useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { useLocation } from 'react-router';
-import { useToggle } from 'react-use';
 
 import styles from './KeyboardShortcutsEducation.module.scss';
 
 const KeyboardShortcutsEducation = () => {
     const location = useLocation();
     const [searchQuery, setSearchQuery] = useState('');
-    const [showGuide, toggleShowGuide] = useToggle(false);
+    const {
+        showKeyboardShortcutsGuide,
+        toggleShowKeyboardShortcutsGuide,
+    } = useGlobalContext();
 
     useHotkeys(
         'shift+/',
@@ -32,12 +35,12 @@ const KeyboardShortcutsEducation = () => {
                 document.activeElement.blur();
             }
 
-            if (showGuide) {
+            if (showKeyboardShortcutsGuide) {
                 H.track('ViewedKeyboardShortcutsGuide');
             }
-            toggleShowGuide();
+            toggleShowKeyboardShortcutsGuide();
         },
-        [showGuide]
+        [showKeyboardShortcutsGuide]
     );
 
     useHotkeys(
@@ -54,11 +57,11 @@ const KeyboardShortcutsEducation = () => {
                 document.activeElement.blur();
             }
 
-            if (showGuide) {
-                toggleShowGuide();
+            if (showKeyboardShortcutsGuide) {
+                toggleShowKeyboardShortcutsGuide();
             }
         },
-        [showGuide]
+        [showKeyboardShortcutsGuide]
     );
 
     const filteredPlayerKeyboardShortcuts = PlayerKeyboardShortcuts.filter(
@@ -82,15 +85,17 @@ const KeyboardShortcutsEducation = () => {
         <>
             <div
                 className={classNames(styles.backdrop, {
-                    [styles.hidden]: !showGuide,
+                    [styles.hidden]: !showKeyboardShortcutsGuide,
                 })}
-                onClick={toggleShowGuide}
+                onClick={() => {
+                    toggleShowKeyboardShortcutsGuide();
+                }}
             ></div>
 
             <ElevatedCard
                 title="Keyboard Shortcuts"
                 className={classNames(styles.elevatedCard, {
-                    [styles.hidden]: !showGuide,
+                    [styles.hidden]: !showKeyboardShortcutsGuide,
                 })}
             >
                 <main className={styles.container}>
