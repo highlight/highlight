@@ -10,3 +10,4 @@ export const kbd: string;
 export const kbdContainer: string;
 export const searchIcon: string;
 export const shortcutContainer: string;
+export const symbol: string;

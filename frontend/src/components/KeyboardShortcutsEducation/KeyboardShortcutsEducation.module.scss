@@ -79,6 +79,11 @@
     min-width: 20px;
     padding: var(--size-xxSmall);
     text-transform: capitalize;
+
+    &.symbol {
+        font-size: 16px;
+        line-height: 0px;
+    }
 }
 
 .description {

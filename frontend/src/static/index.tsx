@@ -45,6 +45,7 @@ export { default as HomeIcon } from './HomeIcon';
 export { default as Hover } from './Hover';
 export { default as HumanImage } from './HumanImage';
 export { default as InformationIcon } from './InformationIcon';
+export { default as KeyboardIcon } from './KeyboardIcon';
 export { default as Link } from './Link';
 export { default as LinkIcon } from './LinkIcon';
 export { default as Lock } from './Lock';
