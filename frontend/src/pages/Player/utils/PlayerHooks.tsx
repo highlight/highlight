@@ -1,3 +1,4 @@
+import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import {
     findNextSessionInList,
     findPreviousSessionInList,
@@ -52,7 +53,16 @@ export const usePlayerKeyboardShortcuts = () => {
         replayer,
         sessionResults,
     } = useReplayerContext();
-    const { setPlayerSpeed, playerSpeed } = usePlayerConfiguration();
+    const { setIsPlayerFullscreen } = usePlayerUIContext();
+    const {
+        setPlayerSpeed,
+        playerSpeed,
+        setEnableInspectElement,
+        setShowLeftPanel,
+        showLeftPanel,
+        showRightPanel,
+        setShowRightPanel,
+    } = usePlayerConfiguration();
     const { session_id, organization_id } = useParams<{
         session_id: string;
         organization_id: string;
@@ -261,6 +271,61 @@ export const usePlayerKeyboardShortcuts = () => {
             message.success(`Playback speed set to ${newSpeed.toFixed(1)}x`);
         },
         [playerSpeed]
+    );
+
+    useHotkeys(
+        'f',
+        (e) => {
+            if (replayer) {
+                H.track('PlayerToggleFullscreenKeyboardShortcut');
+                moveFocusToDocument(e);
+
+                setIsPlayerFullscreen((previousState) => !previousState);
+            }
+        },
+        [replayer]
+    );
+
+    useHotkeys('c', (e) => {
+        H.track('PlayerEnableCommentsKeyboardShortcut');
+        moveFocusToDocument(e);
+
+        setEnableInspectElement(false);
+        message.success(
+            'Commenting enabled, click anywhere on the video to create a comment.'
+        );
+    });
+
+    useHotkeys('d', (e) => {
+        H.track('PlayerEnableInspectElementKeyboardShortcut');
+        moveFocusToDocument(e);
+
+        setEnableInspectElement(true);
+        message.success(
+            "Inspect element enabled, you can open up your browser's DevTools and inspect the DOM now."
+        );
+    });
+
+    useHotkeys(
+        'cmd+b, ctrl+b',
+        (e) => {
+            H.track('PlayerToggleLeftSidebarKeyboardShortcut');
+            moveFocusToDocument(e);
+
+            setShowLeftPanel(!showLeftPanel);
+        },
+        [showLeftPanel]
+    );
+
+    useHotkeys(
+        'cmd+i, ctrl+i',
+        (e) => {
+            H.track('PlayerToggleRightSidebarKeyboardShortcut');
+            moveFocusToDocument(e);
+
+            setShowRightPanel(!showRightPanel);
+        },
+        [showRightPanel]
     );
 };
 

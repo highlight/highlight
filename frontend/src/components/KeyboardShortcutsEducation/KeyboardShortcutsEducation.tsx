@@ -222,6 +222,8 @@ interface ShortcutItem {
     shortcut: string[];
 }
 
+const isOnMac = window.navigator.platform.includes('Mac');
+
 const GeneralKeyboardShortcuts: ShortcutItem[] = [
     {
         description: 'Open Keyboard Shortcuts Guide',
@@ -262,16 +264,24 @@ const PlayerKeyboardShortcuts: ShortcutItem[] = [
         description: `Increase the playback speed by ${PLAYBACK_SPEED_INCREMENT}x`,
         shortcut: ['shift', '.'],
     },
-    //     {
-    //         description: `Toggle fullscreen`,
-    //         shortcut: ['F'],
-    //     },
-    //     {
-    //         description: `Enable commenting`,
-    //         shortcut: ['c'],
-    //     },
-    //     {
-    //         description: `Inspect element`,
-    //         shortcut: ['d'],
-    //     },
+    {
+        description: `Toggle fullscreen`,
+        shortcut: ['f'],
+    },
+    {
+        description: `Enable commenting`,
+        shortcut: ['c'],
+    },
+    {
+        description: `Inspect element`,
+        shortcut: ['d'],
+    },
+    {
+        description: `Toggle left sidebar`,
+        shortcut: [isOnMac ? '⌘' : 'Ctrl', 'b'],
+    },
+    {
+        description: `Toggle right sidebar`,
+        shortcut: [isOnMac ? '⌘' : 'Ctrl', 'i'],
+    },
 ];
