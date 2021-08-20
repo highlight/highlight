@@ -214,7 +214,12 @@ const KeyboardShortcut = ({ shortcut }: Pick<ShortcutItem, 'shortcut'>) => {
     return (
         <span className={styles.kbdContainer}>
             {shortcut.map((key) => (
-                <kbd key={key} className={styles.kbd}>
+                <kbd
+                    key={key}
+                    className={classNames(styles.kbd, {
+                        [styles.symbol]: key === '⌘',
+                    })}
+                >
                     {key}
                 </kbd>
             ))}
