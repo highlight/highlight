@@ -1,5 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext';
-import { GetAdminsQuery } from '@queries/operations';
+import { GetAdminsQuery } from '@graph/operations';
 import classNames from 'classnames';
 import React, { PropsWithChildren } from 'react';
 import { SuggestionDataItem } from 'react-mentions';

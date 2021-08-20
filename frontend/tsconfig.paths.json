@@ -20,7 +20,7 @@
 			"@routers/*": [
 				"./routers/*"
 			],
-			"@queries/*": [
+			"@graph/*": [
 				"./graph/generated/*"
 			],
 			"@authentication/*": [
