@@ -1,10 +1,8 @@
 import KeyboardShortcutsEducation from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation';
 import useLocalStorage from '@rehooks/local-storage';
-import { GlobalContextProvider } from '@routers/OrgRouter/context/GlobalContext';
 import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { Redirect, Route, Switch, useParams } from 'react-router-dom';
-import { useToggle } from 'react-use';
 import {
     BooleanParam,
     JsonParam,
@@ -38,10 +36,6 @@ const ApplicationRouter = ({ integrated }: Props) => {
     const [showStarredSessions, setShowStarredSessions] = useState<boolean>(
         false
     );
-    const [
-        showKeyboardShortcutsGuide,
-        toggleShowKeyboardShortcutsGuide,
-    ] = useToggle(false);
     const [searchParams, setSearchParams] = useState<SearchParams>(
         EmptySessionsSearchParams
     );
@@ -137,65 +131,58 @@ const ApplicationRouter = ({ integrated }: Props) => {
     }, []);
 
     return (
-        <GlobalContextProvider
+        <SearchContextProvider
             value={{
-                showKeyboardShortcutsGuide,
-                toggleShowKeyboardShortcutsGuide,
+                searchParams,
+                setSearchParams,
+                existingParams,
+                setExistingParams,
+                segmentName,
+                setSegmentName,
+                showStarredSessions,
+                setShowStarredSessions,
+                selectedSegment,
+                setSelectedSegment,
             }}
         >
-            <SearchContextProvider
-                value={{
-                    searchParams,
-                    setSearchParams,
-                    existingParams,
-                    setExistingParams,
-                    segmentName,
-                    setSegmentName,
-                    showStarredSessions,
-                    setShowStarredSessions,
-                    selectedSegment,
-                    setSelectedSegment,
-                }}
-            >
-                <KeyboardShortcutsEducation />
-                <Switch>
-                    <Route path="/:organization_id/sessions/:session_id?" exact>
-                        <Player integrated={integrated} />
-                    </Route>
-                    <Route path="/:organization_id/settings">
-                        <WorkspaceSettings />
-                    </Route>
-                    <Route path="/:organization_id/alerts">
-                        <AlertsPage />
-                    </Route>
-                    <Route path="/:organization_id/team">
-                        <WorkspaceTeam />
-                    </Route>
-                    <Route path="/:organization_id/billing">
-                        <BillingPage />
-                    </Route>
-                    <Route path="/:organization_id/setup">
-                        <SetupPage integrated={integrated} />
-                    </Route>
-                    <Route path="/:organization_id/errors/:error_id?">
-                        <ErrorPage integrated={integrated} />
-                    </Route>
-                    <Route path="/:organization_id/buttons">
-                        <Buttons />
-                    </Route>
-                    <Route path="/:organization_id/home">
-                        <HomePage />
-                    </Route>
-                    <Route path="/:organization_id">
-                        {integrated ? (
-                            <Redirect to={`/${organization_id}/home`} />
-                        ) : (
-                            <Redirect to={`/${organization_id}/setup`} />
-                        )}
-                    </Route>
-                </Switch>
-            </SearchContextProvider>
-        </GlobalContextProvider>
+            <KeyboardShortcutsEducation />
+            <Switch>
+                <Route path="/:organization_id/sessions/:session_id?" exact>
+                    <Player integrated={integrated} />
+                </Route>
+                <Route path="/:organization_id/settings">
+                    <WorkspaceSettings />
+                </Route>
+                <Route path="/:organization_id/alerts">
+                    <AlertsPage />
+                </Route>
+                <Route path="/:organization_id/team">
+                    <WorkspaceTeam />
+                </Route>
+                <Route path="/:organization_id/billing">
+                    <BillingPage />
+                </Route>
+                <Route path="/:organization_id/setup">
+                    <SetupPage integrated={integrated} />
+                </Route>
+                <Route path="/:organization_id/errors/:error_id?">
+                    <ErrorPage integrated={integrated} />
+                </Route>
+                <Route path="/:organization_id/buttons">
+                    <Buttons />
+                </Route>
+                <Route path="/:organization_id/home">
+                    <HomePage />
+                </Route>
+                <Route path="/:organization_id">
+                    {integrated ? (
+                        <Redirect to={`/${organization_id}/home`} />
+                    ) : (
+                        <Redirect to={`/${organization_id}/setup`} />
+                    )}
+                </Route>
+            </Switch>
+        </SearchContextProvider>
     );
 };
 
