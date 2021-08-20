@@ -2,6 +2,12 @@ import {
     findNextSessionInList,
     findPreviousSessionInList,
 } from '@pages/Player/PlayerHook/utils';
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
+import {
+    PLAYBACK_MAX_SPEED,
+    PLAYBACK_MIN_SPEED,
+    PLAYBACK_SPEED_INCREMENT,
+} from '@pages/Player/Toolbar/SpeedControl/SpeedControl';
 import { message } from 'antd';
 import { H } from 'highlight.run';
 import { useEffect, useRef, useState } from 'react';
@@ -46,6 +52,7 @@ export const usePlayerKeyboardShortcuts = () => {
         replayer,
         sessionResults,
     } = useReplayerContext();
+    const { setPlayerSpeed, playerSpeed } = usePlayerConfiguration();
     const { session_id, organization_id } = useParams<{
         session_id: string;
         organization_id: string;
@@ -212,6 +219,48 @@ export const usePlayerKeyboardShortcuts = () => {
             }
         },
         [session_id, sessionResults]
+    );
+
+    useHotkeys(
+        'shift+.',
+        (e) => {
+            H.track('PlayerIncreasePlayerSpeedKeyboardShortcut');
+            moveFocusToDocument(e);
+
+            if (playerSpeed === PLAYBACK_MAX_SPEED) {
+                message.success(
+                    `Playback speed is already at the max: ${PLAYBACK_MAX_SPEED}x`
+                );
+                return;
+            }
+
+            const newSpeed = playerSpeed + PLAYBACK_SPEED_INCREMENT;
+            setPlayerSpeed(newSpeed);
+
+            message.success(`Playback speed set to ${newSpeed.toFixed(1)}x`);
+        },
+        [playerSpeed]
+    );
+
+    useHotkeys(
+        'shift+,',
+        (e) => {
+            H.track('PlayerDecreasePlayerSpeedKeyboardShortcut');
+            moveFocusToDocument(e);
+
+            if (playerSpeed === PLAYBACK_MIN_SPEED) {
+                message.success(
+                    `Playback speed is already at the minimum: ${PLAYBACK_MIN_SPEED}x`
+                );
+                return;
+            }
+
+            const newSpeed = playerSpeed - PLAYBACK_SPEED_INCREMENT;
+            setPlayerSpeed(newSpeed);
+
+            message.success(`Playback speed set to ${newSpeed.toFixed(1)}x`);
+        },
+        [playerSpeed]
     );
 };
 
