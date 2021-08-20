@@ -35,7 +35,10 @@ import {
     ReplayerState,
     useReplayerContext,
 } from '../ReplayerContext';
-import { getNewTimeWithSkip, usePlayerHotKeys } from '../utils/PlayerHooks';
+import {
+    getNewTimeWithSkip,
+    usePlayerKeyboardShortcuts,
+} from '../utils/PlayerHooks';
 import { DevToolsContextProvider } from './DevToolsContext/DevToolsContext';
 import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
 import ErrorModal from './DevToolsWindow/ErrorsPage/components/ErrorModal/ErrorModal';
@@ -57,7 +60,7 @@ export const Toolbar = () => {
         canViewSession,
         isPlayerReady,
     } = useReplayerContext();
-    usePlayerHotKeys();
+    usePlayerKeyboardShortcuts();
     const {
         playerSpeed,
         skipInactive,

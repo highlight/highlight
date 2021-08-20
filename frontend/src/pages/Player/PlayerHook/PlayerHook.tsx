@@ -27,6 +27,7 @@ import {
     ReplayerState,
 } from '../ReplayerContext';
 import {
+    findNextSessionInList,
     getCommentsInSessionIntervals,
     getEventsForTimelineIndicator,
     getSessionIntervals,
@@ -352,25 +353,19 @@ export const usePlayer = (): ReplayerContextInterface => {
             autoPlaySessions &&
             sessionResults.sessions.length > 0
         ) {
-            let currentSessionIndex = sessionResults.sessions.findIndex(
-                (session) => session.id === session_id
+            const nextSessionInListId = findNextSessionInList(
+                sessionResults.sessions,
+                session_id
             );
 
-            // This happens if the current session was removed from the session feed.
-            if (currentSessionIndex === -1) {
-                currentSessionIndex = 0;
-            }
-
-            const nextSessionIndex = currentSessionIndex + 1;
-
             // Don't go beyond the last session.
-            if (nextSessionIndex >= sessionResults.sessions.length) {
+            if (!nextSessionInListId) {
                 message.success('No more sessions to view.');
                 return;
             }
 
             history.push(
-                `/${organization_id}/sessions/${sessionResults.sessions[nextSessionIndex].id}`
+                `/${organization_id}/sessions/${sessionResults.sessions[nextSessionInListId].id}`
             );
             resetPlayer(ReplayerState.Loading);
             message.success('Playing the next session.');

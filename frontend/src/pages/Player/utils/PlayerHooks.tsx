@@ -1,6 +1,18 @@
+import {
+    findNextSessionInList,
+    findPreviousSessionInList,
+} from '@pages/Player/PlayerHook/utils';
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
+import {
+    PLAYBACK_MAX_SPEED,
+    PLAYBACK_MIN_SPEED,
+    PLAYBACK_SPEED_INCREMENT,
+} from '@pages/Player/Toolbar/SpeedControl/SpeedControl';
+import { message } from 'antd';
 import { H } from 'highlight.run';
 import { useEffect, useRef, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
+import { useHistory, useParams } from 'react-router-dom';
 
 import { ReplayerState, useReplayerContext } from '../ReplayerContext';
 
@@ -31,8 +43,25 @@ export const getNewTimeWithSkip = ({
     }
 };
 
-export const usePlayerHotKeys = () => {
-    const { state, play, pause, time, replayer } = useReplayerContext();
+export const usePlayerKeyboardShortcuts = () => {
+    const {
+        state,
+        play,
+        pause,
+        time,
+        replayer,
+        sessionResults,
+    } = useReplayerContext();
+    const { setPlayerSpeed, playerSpeed } = usePlayerConfiguration();
+    const { session_id, organization_id } = useParams<{
+        session_id: string;
+        organization_id: string;
+    }>();
+    const history = useHistory();
+    message.config({
+        maxCount: 1,
+        rtl: false,
+    });
 
     /**
      * This function needs to be called before each hot key.
@@ -138,6 +167,100 @@ export const usePlayerHotKeys = () => {
             }
         },
         [time, replayer, state, pause, play]
+    );
+
+    useHotkeys(
+        'shift+n',
+        (e) => {
+            if (sessionResults.sessions.length > 0 && session_id) {
+                H.track('PlayerSkipToNextSessionKeyboardShortcut');
+                moveFocusToDocument(e);
+
+                const nextSessionId = findNextSessionInList(
+                    sessionResults.sessions,
+                    session_id
+                );
+
+                if (!nextSessionId) {
+                    message.success('No more sessions to play.');
+                    return;
+                }
+
+                history.push(
+                    `/${organization_id}/sessions/${sessionResults.sessions[nextSessionId].id}`
+                );
+                message.success('Playing the next session.');
+            }
+        },
+        [session_id, sessionResults]
+    );
+
+    useHotkeys(
+        'shift+p',
+        (e) => {
+            if (sessionResults.sessions.length > 0 && session_id) {
+                H.track('PlayerSkipToPreviousSessionKeyboardShortcut');
+                moveFocusToDocument(e);
+
+                const nextSessionId = findPreviousSessionInList(
+                    sessionResults.sessions,
+                    session_id
+                );
+
+                if (nextSessionId === null) {
+                    message.success('No more sessions to play.');
+                    return;
+                }
+
+                history.push(
+                    `/${organization_id}/sessions/${sessionResults.sessions[nextSessionId].id}`
+                );
+                message.success('Playing the previous session.');
+            }
+        },
+        [session_id, sessionResults]
+    );
+
+    useHotkeys(
+        'shift+.',
+        (e) => {
+            H.track('PlayerIncreasePlayerSpeedKeyboardShortcut');
+            moveFocusToDocument(e);
+
+            if (playerSpeed === PLAYBACK_MAX_SPEED) {
+                message.success(
+                    `Playback speed is already at the max: ${PLAYBACK_MAX_SPEED}x`
+                );
+                return;
+            }
+
+            const newSpeed = playerSpeed + PLAYBACK_SPEED_INCREMENT;
+            setPlayerSpeed(newSpeed);
+
+            message.success(`Playback speed set to ${newSpeed.toFixed(1)}x`);
+        },
+        [playerSpeed]
+    );
+
+    useHotkeys(
+        'shift+,',
+        (e) => {
+            H.track('PlayerDecreasePlayerSpeedKeyboardShortcut');
+            moveFocusToDocument(e);
+
+            if (playerSpeed === PLAYBACK_MIN_SPEED) {
+                message.success(
+                    `Playback speed is already at the minimum: ${PLAYBACK_MIN_SPEED}x`
+                );
+                return;
+            }
+
+            const newSpeed = playerSpeed - PLAYBACK_SPEED_INCREMENT;
+            setPlayerSpeed(newSpeed);
+
+            message.success(`Playback speed set to ${newSpeed.toFixed(1)}x`);
+        },
+        [playerSpeed]
     );
 };
 
