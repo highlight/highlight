@@ -1,3 +1,4 @@
+import { ErrorObject, Session, SessionComment } from '@graph/schemas';
 import { Replayer } from '@highlight-run/rrweb';
 import {
     playerMetaData,
@@ -6,10 +7,6 @@ import {
 import { useCallback, useState } from 'react';
 import { useLocation } from 'react-router';
 
-import {
-    ErrorObject,
-    SessionComment,
-} from '../../../../graph/generated/schemas';
 import { HighlightEvent } from '../../HighlightEvent';
 import {
     ParsedEvent,
@@ -287,4 +284,50 @@ const assignEventToSessionInterval = (
     });
 
     return response;
+};
+
+export const findNextSessionInList = (
+    allSessions: Session[],
+    currentSessionId: string
+): number | null => {
+    let currentSessionIndex = allSessions.findIndex(
+        (session) => session.id === currentSessionId
+    );
+
+    // This happens if the current session was removed from the session feed.
+    if (currentSessionIndex === -1) {
+        currentSessionIndex = 0;
+    }
+
+    const nextSessionIndex = currentSessionIndex + 1;
+
+    // Don't go beyond the last session.
+    if (nextSessionIndex >= allSessions.length) {
+        return null;
+    }
+
+    return nextSessionIndex;
+};
+
+export const findPreviousSessionInList = (
+    allSessions: Session[],
+    currentSessionId: string
+): number | null => {
+    const currentSessionIndex = allSessions.findIndex(
+        (session) => session.id === currentSessionId
+    );
+
+    // This happens if the current session was removed from the session feed.
+    if (currentSessionIndex < 0) {
+        return 0;
+    }
+
+    const nextSessionIndex = currentSessionIndex - 1;
+
+    // Don't go beyond the first session.
+    if (nextSessionIndex < 0) {
+        return null;
+    }
+
+    return nextSessionIndex;
 };

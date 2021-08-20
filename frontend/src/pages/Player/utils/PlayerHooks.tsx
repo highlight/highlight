@@ -1,6 +1,12 @@
+import {
+    findNextSessionInList,
+    findPreviousSessionInList,
+} from '@pages/Player/PlayerHook/utils';
+import { message } from 'antd';
 import { H } from 'highlight.run';
 import { useEffect, useRef, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
+import { useHistory, useParams } from 'react-router-dom';
 
 import { ReplayerState, useReplayerContext } from '../ReplayerContext';
 
@@ -32,7 +38,23 @@ export const getNewTimeWithSkip = ({
 };
 
 export const usePlayerKeyboardShortcuts = () => {
-    const { state, play, pause, time, replayer } = useReplayerContext();
+    const {
+        state,
+        play,
+        pause,
+        time,
+        replayer,
+        sessionResults,
+    } = useReplayerContext();
+    const { session_id, organization_id } = useParams<{
+        session_id: string;
+        organization_id: string;
+    }>();
+    const history = useHistory();
+    message.config({
+        maxCount: 1,
+        rtl: false,
+    });
 
     /**
      * This function needs to be called before each hot key.
@@ -138,6 +160,58 @@ export const usePlayerKeyboardShortcuts = () => {
             }
         },
         [time, replayer, state, pause, play]
+    );
+
+    useHotkeys(
+        'shift+n',
+        (e) => {
+            if (sessionResults.sessions.length > 0 && session_id) {
+                H.track('PlayerSkipToNextSessionKeyboardShortcut');
+                moveFocusToDocument(e);
+
+                const nextSessionId = findNextSessionInList(
+                    sessionResults.sessions,
+                    session_id
+                );
+
+                if (!nextSessionId) {
+                    message.success('No more sessions to play.');
+                    return;
+                }
+
+                history.push(
+                    `/${organization_id}/sessions/${sessionResults.sessions[nextSessionId].id}`
+                );
+                message.success('Playing the next session.');
+            }
+        },
+        [session_id, sessionResults]
+    );
+
+    useHotkeys(
+        'shift+p',
+        (e) => {
+            if (sessionResults.sessions.length > 0 && session_id) {
+                H.track('PlayerSkipToPreviousSessionKeyboardShortcut');
+                moveFocusToDocument(e);
+
+                const nextSessionId = findPreviousSessionInList(
+                    sessionResults.sessions,
+                    session_id
+                );
+
+                if (nextSessionId === null) {
+                    message.success('No more sessions to play.');
+                    return;
+                }
+
+                history.push(
+                    `/${organization_id}/sessions/${sessionResults.sessions[nextSessionId].id}`
+                );
+                message.success('Playing the previous session.');
+            }
+        },
+        [session_id, sessionResults]
     );
 };
 
