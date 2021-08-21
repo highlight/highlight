@@ -57,9 +57,13 @@
         }
     }
 
-    h3,
     p {
         font-size: 13px !important;
+    }
+
+    h3 {
+        font-size: 16px !important;
+        margin-bottom: var(--size-small) !important;
     }
 }
 
@@ -103,9 +107,38 @@
 
 .emptyDescription {
     margin-top: 0 !important;
+    text-align: center;
 }
 
 .disabled {
     cursor: not-allowed;
     filter: opacity(0.3);
+}
+
+.titleContainer {
+    align-items: center;
+    display: flex;
+}
+
+.suggestionButton {
+    align-items: center;
+    background: var(--color-gray-300);
+    color: var(--text-primary);
+    column-gap: var(--size-small);
+    display: flex;
+    font-size: 12px;
+    margin-left: auto;
+    padding: var(--size-xSmall) var(--size-small);
+
+    &:hover {
+        color: var(--text-primary);
+    }
+
+    &.cta {
+        background: var(--color-purple);
+        color: var(--text-primary-inverted);
+        font-weight: 500;
+        margin: 0 auto;
+        margin-top: var(--size-large);
+    }
 }
