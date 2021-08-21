@@ -264,6 +264,32 @@ func (r *Resolver) UpdateSessionsVisibility(organizationID int, newPlan modelInp
 	}
 }
 
+func (r *queryResolver) getFieldFilters(ctx context.Context, organizationID int, params *modelInputs.SearchParamsInput) (customJoinClause string, whereClause string, err error) {
+	if params.VisitedURL != nil {
+		whereClause += andHasFieldsWhere("fields.name = 'visited-url' AND fields.value ILIKE %" + *params.VisitedURL + "%")
+	}
+
+	if params.Referrer != nil {
+		whereClause += andHasFieldsWhere("fields.name = 'referrer' AND fields.value ILIKE %" + *params.Referrer + "%")
+	}
+
+	inclusiveFilters := []string{}
+	inclusiveFilters = append(inclusiveFilters, getSQLFilters(params.UserProperties, "user")...)
+	inclusiveFilters = append(inclusiveFilters, getSQLFilters(params.TrackProperties, "track")...)
+	if len(inclusiveFilters) > 0 {
+		whereClause += andHasFieldsWhere(strings.Join(inclusiveFilters, " OR "))
+	}
+
+	exclusiveFilters := []string{}
+	exclusiveFilters = append(exclusiveFilters, getSQLFilters(params.ExcludedProperties, "user")...)
+	exclusiveFilters = append(exclusiveFilters, getSQLFilters(params.ExcludedTrackProperties, "track")...)
+	if len(exclusiveFilters) > 0 {
+		whereClause += andDoesNotHaveFieldsWhere(strings.Join(exclusiveFilters, " OR "))
+	}
+
+	return "", whereClause, nil
+}
+
 func andHasFieldsWhere(fieldConditions string) string {
 	return fmt.Sprintf(`AND EXISTS (
 		SELECT 1
@@ -306,30 +332,4 @@ func getSQLFilters(userPropertyInputs []*modelInputs.UserPropertyInput, property
 		}
 	}
 	return sqlFilters
-}
-
-func (r *queryResolver) getFieldFilters(ctx context.Context, organizationID int, params *modelInputs.SearchParamsInput) (customJoinClause string, whereClause string, err error) {
-	if params.VisitedURL != nil {
-		whereClause += andHasFieldsWhere("fields.name = 'visited-url' AND fields.value ILIKE %" + *params.VisitedURL + "%")
-	}
-
-	if params.Referrer != nil {
-		whereClause += andHasFieldsWhere("fields.name = 'referrer' AND fields.value ILIKE %" + *params.Referrer + "%")
-	}
-
-	inclusiveFilters := []string{}
-	inclusiveFilters = append(inclusiveFilters, getSQLFilters(params.UserProperties, "user")...)
-	inclusiveFilters = append(inclusiveFilters, getSQLFilters(params.TrackProperties, "track")...)
-	if len(inclusiveFilters) > 0 {
-		whereClause += andHasFieldsWhere(strings.Join(inclusiveFilters, " OR "))
-	}
-
-	exclusiveFilters := []string{}
-	exclusiveFilters = append(exclusiveFilters, getSQLFilters(params.ExcludedProperties, "user")...)
-	exclusiveFilters = append(exclusiveFilters, getSQLFilters(params.ExcludedTrackProperties, "track")...)
-	if len(exclusiveFilters) > 0 {
-		whereClause += andDoesNotHaveFieldsWhere(strings.Join(exclusiveFilters, " OR "))
-	}
-
-	return "", whereClause, nil
 }
