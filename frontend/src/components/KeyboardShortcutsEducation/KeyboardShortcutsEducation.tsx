@@ -1,3 +1,4 @@
+import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import ElevatedCard from '@components/ElevatedCard/ElevatedCard';
 import Input from '@components/Input/Input';
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
@@ -80,6 +81,9 @@ const KeyboardShortcutsEducation = () => {
     );
 
     const isOnSessionPlayerPage = location.pathname.includes('sessions');
+    const hasNoSearchHits =
+        filteredPlayerKeyboardShortcuts.length === 0 &&
+        filteredGeneralKeyboardShortcuts.length === 0;
 
     return (
         <>
@@ -93,7 +97,19 @@ const KeyboardShortcutsEducation = () => {
             ></div>
 
             <ElevatedCard
-                title="Keyboard Shortcuts"
+                title={
+                    <div className={styles.titleContainer}>
+                        Shortcuts{' '}
+                        <ButtonLink
+                            anchor
+                            href="https://feedback.highlight.run/feature-requests"
+                            trackingId="SuggestKeyboardShortcut"
+                            className={styles.suggestionButton}
+                        >
+                            Suggest a Shortcut
+                        </ButtonLink>
+                    </div>
+                }
                 className={classNames(styles.elevatedCard, {
                     [styles.hidden]: !showKeyboardShortcutsGuide,
                 })}
@@ -106,10 +122,9 @@ const KeyboardShortcutsEducation = () => {
                             setSearchQuery(e.target.value);
                         }}
                         allowClear
-                        disabled={!isOnSessionPlayerPage}
                     />
 
-                    {!isOnSessionPlayerPage && (
+                    {!isOnSessionPlayerPage && !hasNoSearchHits && (
                         <section>
                             <h3 className={styles.emptyTitle}>
                                 {location.pathname.split('/').reverse()[0]} Page
@@ -121,15 +136,25 @@ const KeyboardShortcutsEducation = () => {
                         </section>
                     )}
 
-                    {filteredPlayerKeyboardShortcuts.length === 0 &&
-                        filteredGeneralKeyboardShortcuts.length === 0 && (
-                            <section>
-                                <p className={styles.emptyDescription}>
-                                    No keyboard results matching '{searchQuery}
-                                    '.
-                                </p>
-                            </section>
-                        )}
+                    {hasNoSearchHits && (
+                        <section>
+                            <p className={styles.emptyDescription}>
+                                No keyboard results matching '{searchQuery}
+                                '.
+                            </p>
+                            <ButtonLink
+                                anchor
+                                href="https://feedback.highlight.run/feature-requests"
+                                trackingId="SuggestKeyboardShortcutFromSearch"
+                                className={classNames(
+                                    styles.suggestionButton,
+                                    styles.cta
+                                )}
+                            >
+                                Suggest a Shortcut
+                            </ButtonLink>
+                        </section>
+                    )}
 
                     {filteredGeneralKeyboardShortcuts.length > 0 && (
                         <section>

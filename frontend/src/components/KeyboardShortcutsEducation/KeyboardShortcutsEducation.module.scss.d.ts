@@ -1,5 +1,6 @@
 export const backdrop: string;
 export const container: string;
+export const cta: string;
 export const description: string;
 export const disabled: string;
 export const elevatedCard: string;
@@ -10,4 +11,6 @@ export const kbd: string;
 export const kbdContainer: string;
 export const searchIcon: string;
 export const shortcutContainer: string;
+export const suggestionButton: string;
 export const symbol: string;
+export const titleContainer: string;
