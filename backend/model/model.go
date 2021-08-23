@@ -471,8 +471,8 @@ type DateRange struct {
 }
 
 type LengthRange struct {
-	Min int
-	Max int
+	Min float64
+	Max float64
 }
 
 type UserProperty struct {

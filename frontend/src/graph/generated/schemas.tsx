@@ -269,13 +269,13 @@ export type DateRangeInput = {
 
 export type LengthRange = {
     __typename?: 'LengthRange';
-    min?: Maybe<Scalars['Int']>;
-    max?: Maybe<Scalars['Int']>;
+    min?: Maybe<Scalars['Float']>;
+    max?: Maybe<Scalars['Float']>;
 };
 
 export type LengthRangeInput = {
-    min?: Maybe<Scalars['Int']>;
-    max?: Maybe<Scalars['Int']>;
+    min?: Maybe<Scalars['Float']>;
+    max?: Maybe<Scalars['Float']>;
 };
 
 export type UserProperty = {
