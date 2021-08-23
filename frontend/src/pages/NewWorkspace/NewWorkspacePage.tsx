@@ -73,6 +73,14 @@ const NewWorkspacePage = () => {
                         'Create Workspace'
                     )}
                 </Button>
+                <Button
+                    trackingId="NewWorkspaceViewDemoWorkspace"
+                    type="ghost"
+                    className={commonStyles.submitButton}
+                    href="/0"
+                >
+                    View Demo Workspace
+                </Button>
             </form>
         </div>
     );

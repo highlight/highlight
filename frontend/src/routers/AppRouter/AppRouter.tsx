@@ -1,7 +1,12 @@
 import '../../App.scss';
 
 import React from 'react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import {
+    BrowserRouter as Router,
+    Redirect,
+    Route,
+    Switch,
+} from 'react-router-dom';
 
 import { Landing } from '../../pages/Landing/Landing';
 import NewMemberPage from '../../pages/NewMember/NewMemberPage';
@@ -28,6 +33,9 @@ export const AppRouter = () => {
                     </Route>
                     <Route path="/_internal">
                         <InternalRouter />
+                    </Route>
+                    <Route path="/demo">
+                        <Redirect to={`/0`} />
                     </Route>
                     <Route path="/:organization_id(\d+)">
                         <OrgRouter />
