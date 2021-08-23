@@ -80,6 +80,10 @@ const FreePlanBanner = () => {
         return null;
     }
 
+    if (organization_id === '0') {
+        return null;
+    }
+
     let bannerMessage = `You've used ${data?.billingDetails.meter}/${data?.billingDetails.plan.quota} of your free sessions.`;
     if (isOrganizationWithinTrial(data?.organization)) {
         bannerMessage = `You have unlimited sessions until ${moment(
