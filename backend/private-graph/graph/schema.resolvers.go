@@ -1348,7 +1348,7 @@ func (r *queryResolver) Admins(ctx context.Context, organizationID int) ([]*mode
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 	admins := []*model.Admin{}
-	err := r.DB.Debug().Raw("SELECT * FROM admins WHERE id IN (SELECT admin_id FROM organization_admins WHERE organization_id = ?) ORDER BY created_at ASC", organizationID).Find(&admins).Error
+	err := r.DB.Raw("SELECT * FROM admins WHERE id IN (SELECT admin_id FROM organization_admins WHERE organization_id = ?) ORDER BY created_at ASC", organizationID).Find(&admins).Error
 	if err != nil {
 		return nil, e.Wrap(err, "error getting associated admins")
 	}
@@ -1945,7 +1945,7 @@ func (r *queryResolver) ErrorSegments(ctx context.Context, organizationID int) (
 	}
 	// list of maps, where each map represents a field query.
 	segments := []*model.ErrorSegment{}
-	if err := r.DB.Debug().Model(model.ErrorSegment{}).Where("organization_id = ?", organizationID).Find(&segments).Error; err != nil {
+	if err := r.DB.Model(model.ErrorSegment{}).Where("organization_id = ?", organizationID).Find(&segments).Error; err != nil {
 		log.Errorf("error querying segments from organization: %v", err)
 	}
 	return segments, nil
