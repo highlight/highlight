@@ -552,7 +552,7 @@ func (r *mutationResolver) DeleteErrorSegment(ctx context.Context, segmentID int
 }
 
 func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context, organizationID int, planType modelInputs.PlanType) (*string, error) {
-	org, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID)
+	org, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
@@ -629,7 +629,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 }
 
 func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, organizationID int) (*bool, error) {
-	org, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID)
+	org, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
