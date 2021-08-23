@@ -126,7 +126,11 @@ const AdvancedLengthInput = () => {
             <div className={styles.group}>
                 <Input
                     type="number"
-                    defaultValue={(searchParams?.length_range?.min ?? 0) * 60}
+                    placeholder="Min"
+                    defaultValue={
+                        searchParams?.length_range?.min &&
+                        searchParams.length_range.min * 60
+                    }
                     onChange={(e) => {
                         e.persist();
                         debouncedStartingDurationChangeHandler(e);
@@ -136,7 +140,11 @@ const AdvancedLengthInput = () => {
             <div className={styles.group}>
                 <Input
                     type="number"
-                    defaultValue={(searchParams?.length_range?.max ?? 0) * 60}
+                    placeholder="Max"
+                    defaultValue={
+                        searchParams?.length_range?.max &&
+                        searchParams.length_range.max * 60
+                    }
                     onChange={(e) => {
                         e.persist();
                         debouncedEndingDurationChangeHandler(e);
