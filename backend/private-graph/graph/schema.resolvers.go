@@ -272,7 +272,7 @@ func (r *mutationResolver) DeleteOrganization(ctx context.Context, id int) (*boo
 }
 
 func (r *mutationResolver) SendAdminInvite(ctx context.Context, organizationID int, email string, baseURL string) (*string, error) {
-	org, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID)
+	org, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying org")
 	}
