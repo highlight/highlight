@@ -1348,8 +1348,7 @@ func (r *queryResolver) Admins(ctx context.Context, organizationID int) ([]*mode
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 	admins := []*model.Admin{}
-	err := r.DB.Model(
-		&model.Organization{}).Where("organization_id = ?", organizationID).Order("created_at asc").Association("Admins").Find(&admins)
+	err := r.DB.Debug().Raw("SELECT * FROM admins WHERE id IN (SELECT admin_id FROM organization_admins WHERE organization_id = ?) ORDER BY created_at ASC", organizationID).Find(&admins).Error
 	if err != nil {
 		return nil, e.Wrap(err, "error getting associated admins")
 	}
