@@ -264,7 +264,7 @@ func (r *Resolver) UpdateSessionsVisibility(organizationID int, newPlan modelInp
 	}
 }
 
-func (r *queryResolver) getFieldFilters(ctx context.Context, organizationID int, params *modelInputs.SearchParamsInput) (customJoinClause string, whereClause string, err error) {
+func (r *queryResolver) getFieldFilters(ctx context.Context, organizationID int, params *modelInputs.SearchParamsInput) (whereClause string, err error) {
 	if params.VisitedURL != nil {
 		whereClause += andHasFieldsWhere("fields.name = 'visited-url' AND fields.value ILIKE %" + *params.VisitedURL + "%")
 	}
@@ -287,7 +287,7 @@ func (r *queryResolver) getFieldFilters(ctx context.Context, organizationID int,
 		whereClause += andDoesNotHaveFieldsWhere(strings.Join(exclusiveFilters, " OR "))
 	}
 
-	return "", whereClause, nil
+	return whereClause, nil
 }
 
 func andHasFieldsWhere(fieldConditions string) string {
