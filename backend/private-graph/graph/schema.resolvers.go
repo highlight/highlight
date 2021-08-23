@@ -1560,11 +1560,11 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	}
 	if params.LengthRange != nil {
 		if params.LengthRange.Min != nil {
-			whereClause += fmt.Sprintf("AND (active_length >= %d) ", *params.LengthRange.Min*60000)
+			whereClause += fmt.Sprintf("AND (active_length >= %f) ", *params.LengthRange.Min*60000)
 		}
 		if params.LengthRange.Max != nil {
 			if *params.LengthRange.Max != 60 && *params.LengthRange.Max != 0 {
-				whereClause += fmt.Sprintf("AND (active_length <= %d) ", *params.LengthRange.Max*60000)
+				whereClause += fmt.Sprintf("AND (active_length <= %f) ", *params.LengthRange.Max*60000)
 			}
 		}
 	}
