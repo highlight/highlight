@@ -1,7 +1,37 @@
 import 'rc-slider/assets/index.css';
 
+import { useAuthContext } from '@authentication/AuthContext';
+import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
+import ElevatedCard from '@components/ElevatedCard/ElevatedCard';
+import FullBleedCard from '@components/FullBleedCard/FullBleedCard';
+import Modal from '@components/Modal/Modal';
+import { useMarkSessionAsViewedMutation } from '@graph/hooks';
 import { EventType, Replayer } from '@highlight-run/rrweb';
 import { eventWithTime } from '@highlight-run/rrweb/dist/types';
+import NoActiveSessionCard from '@pages/Player/components/NoActiveSessionCard/NoActiveSessionCard';
+import PanelToggleButton from '@pages/Player/components/PanelToggleButton/PanelToggleButton';
+import { PlayerUIContextProvider } from '@pages/Player/context/PlayerUIContext';
+import { HighlightEvent } from '@pages/Player/HighlightEvent';
+import PlayerCommentCanvas, {
+    Coordinates2D,
+} from '@pages/Player/PlayerCommentCanvas/PlayerCommentCanvas';
+import { usePlayer } from '@pages/Player/PlayerHook/PlayerHook';
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
+import PlayerPageProductTour from '@pages/Player/PlayerPageProductTour/PlayerPageProductTour';
+import {
+    ReplayerContextProvider,
+    ReplayerState,
+    useReplayerContext,
+} from '@pages/Player/ReplayerContext';
+import RightPlayerPanel from '@pages/Player/RightPlayerPanel/RightPlayerPanel';
+import SearchPanel from '@pages/Player/SearchPanel/SearchPanel';
+import SessionLevelBar from '@pages/Player/SessionLevelBar/SessionLevelBar';
+import { StreamElement } from '@pages/Player/StreamElement/StreamElement';
+import { NewCommentForm } from '@pages/Player/Toolbar/NewCommentForm/NewCommentForm';
+import { Toolbar } from '@pages/Player/Toolbar/Toolbar';
+import { usePlayerFullscreen } from '@pages/Player/utils/PlayerHooks';
+import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard';
+import { SessionSearchOption } from '@pages/Sessions/SessionsFeedV2/components/SessionSearch/SessionSearch';
 import classNames from 'classnames';
 import _ from 'lodash';
 import Lottie from 'lottie-react';
@@ -20,39 +50,8 @@ import AsyncSelect from 'react-select/async';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
-import { useAuthContext } from '../../AuthContext';
-import ButtonLink from '../../components/Button/ButtonLink/ButtonLink';
-import ElevatedCard from '../../components/ElevatedCard/ElevatedCard';
-import FullBleedCard from '../../components/FullBleedCard/FullBleedCard';
-import Modal from '../../components/Modal/Modal';
-import { useMarkSessionAsViewedMutation } from '../../graph/generated/hooks';
 import WaitingAnimation from '../../lottie/waiting.json';
-import { SessionSearchOption } from '../Sessions/SessionsFeedV2/components/SessionSearch/SessionSearch';
-import NoActiveSessionCard from './components/NoActiveSessionCard/NoActiveSessionCard';
-import PanelToggleButton from './components/PanelToggleButton/PanelToggleButton';
-import { PlayerUIContextProvider } from './context/PlayerUIContext';
-import { HighlightEvent } from './HighlightEvent';
-import PlayerCommentCanvas, {
-    Coordinates2D,
-} from './PlayerCommentCanvas/PlayerCommentCanvas';
-import { usePlayer } from './PlayerHook/PlayerHook';
-import usePlayerConfiguration from './PlayerHook/utils/usePlayerConfiguration';
 import styles from './PlayerPage.module.scss';
-const PlayerPageProductTour = React.lazy(
-    () => import('./PlayerPageProductTour/PlayerPageProductTour')
-);
-import { IntegrationCard } from '../Sessions/IntegrationCard/IntegrationCard';
-import {
-    ReplayerContextProvider,
-    ReplayerState,
-    useReplayerContext,
-} from './ReplayerContext';
-import RightPlayerPanel from './RightPlayerPanel/RightPlayerPanel';
-import SearchPanel from './SearchPanel/SearchPanel';
-import SessionLevelBar from './SessionLevelBar/SessionLevelBar';
-import { StreamElement } from './StreamElement/StreamElement';
-import { NewCommentForm } from './Toolbar/NewCommentForm/NewCommentForm';
-import { Toolbar } from './Toolbar/Toolbar';
 
 interface Props {
     integrated: boolean;
@@ -86,6 +85,11 @@ const Player = ({ integrated }: Props) => {
         showRightPanel,
     } = usePlayerConfiguration();
     const playerWrapperRef = useRef<HTMLDivElement>(null);
+    const {
+        isPlayerFullscreen,
+        setIsPlayerFullscreen,
+        playerCenterPanelRef,
+    } = usePlayerFullscreen();
     const newCommentModalRef = useRef<HTMLDivElement>(null);
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
     const [commentModalPosition, setCommentModalPosition] = useState<
@@ -159,7 +163,15 @@ const Player = ({ integrated }: Props) => {
     const showLeftPanel = showLeftPanelPreference && canViewSession;
 
     return (
-        <PlayerUIContextProvider value={{ searchBarRef, setSearchBarRef }}>
+        <PlayerUIContextProvider
+            value={{
+                searchBarRef,
+                setSearchBarRef,
+                isPlayerFullscreen,
+                setIsPlayerFullscreen,
+                playerCenterPanelRef,
+            }}
+        >
             <ReplayerContextProvider value={player}>
                 {!integrated && <IntegrationCard />}
                 {isPlayerReady && !isLoggedIn && (
@@ -170,9 +182,13 @@ const Player = ({ integrated }: Props) => {
                     </>
                 )}
                 <div
-                    className={classNames(styles.playerBody, {
-                        [styles.withLeftPanel]: showLeftPanel,
-                    })}
+                    className={classNames(
+                        styles.playerBody,
+                        styles.gridBackground,
+                        {
+                            [styles.withLeftPanel]: showLeftPanel,
+                        }
+                    )}
                 >
                     <div
                         className={classNames(styles.playerLeftPanel, {
@@ -217,11 +233,19 @@ const Player = ({ integrated }: Props) => {
                     )}
                     {(canViewSession && !!session) ||
                     replayerState !== ReplayerState.Empty ? (
-                        <div className={styles.playerCenterPanel}>
+                        <div
+                            id="playerCenterPanel"
+                            className={classNames(styles.playerCenterPanel, {
+                                [styles.gridBackground]: isPlayerFullscreen,
+                            })}
+                            ref={playerCenterPanelRef}
+                        >
                             <div className={styles.playerContainer}>
                                 <div className={styles.rrwebPlayerSection}>
                                     <div className={styles.playerCenterColumn}>
-                                        <SessionLevelBar />
+                                        {!isPlayerFullscreen && (
+                                            <SessionLevelBar />
+                                        )}
                                         <div
                                             className={
                                                 styles.rrwebPlayerWrapper
@@ -322,7 +346,9 @@ const Player = ({ integrated }: Props) => {
                                         <Toolbar />
                                     </div>
 
-                                    <RightPlayerPanel />
+                                    {!isPlayerFullscreen && (
+                                        <RightPlayerPanel />
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -333,6 +359,21 @@ const Player = ({ integrated }: Props) => {
                         visible={commentModalPosition !== undefined}
                         onCancel={() => {
                             setCommentModalPosition(undefined);
+                        }}
+                        // Sets the Modal's mount node as the player center panel.
+                        // The default is document.body
+                        // We override here to be able to show the comments when the player is in fullscreen
+                        // Without this, the new comment modal would be below the fullscreen view.
+                        getContainer={() => {
+                            const playerCenterPanel = document.getElementById(
+                                'playerCenterPanel'
+                            );
+
+                            if (playerCenterPanel) {
+                                return playerCenterPanel;
+                            }
+
+                            return document.body;
                         }}
                         destroyOnClose
                         minimal

@@ -1,14 +1,14 @@
 .editor {
     background: var(--color-editor-background);
     color: var(--color-editor-foreground-text);
-    font-family: 'Roboto Mono', monospace;
+    font-family: var(--monospace-font-family);
 
     .lineNumber {
         color: var(--color-editor-secondary-text);
         display: inline-block;
         margin-right: var(--size-medium);
         text-align: right;
-        width: 75px;
+        width: calc(1ch * var(--longest-character-length));
     }
 }
 

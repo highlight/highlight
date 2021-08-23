@@ -1,8 +1,8 @@
 import React from 'react';
 
 import { Session } from '../../graph/generated/schemas';
+import { EmptySessionsSearchParams } from '../../pages/Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '../../pages/Sessions/SearchContext/SearchContext';
-import { EmptySessionsSearchParams } from '../../pages/Sessions/SessionsPage';
 import Button from '../Button/Button/Button';
 import styles from './UserIdentifier.module.scss';
 

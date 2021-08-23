@@ -29,9 +29,9 @@ import { dailyCountData } from '../../util/dashboardCalculations';
 import { useIntegrated } from '../../util/integrated';
 import { formatNumber } from '../../util/numbers';
 import { SessionPageSearchParams } from '../Player/utils/utils';
+import { EmptySessionsSearchParams } from '../Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '../Sessions/SearchContext/SearchContext';
 import { getDateRangeForDateInput } from '../Sessions/SearchInputs/DateInput';
-import { EmptySessionsSearchParams } from '../Sessions/SessionsPage';
 import ActiveUsersTable from './components/ActiveUsersTable/ActiveUsersTable';
 import {
     HomePageFiltersContext,

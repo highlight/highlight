@@ -17,11 +17,11 @@ import SvgCloseIcon from '../../../../static/CloseIcon';
 import SvgEditIcon from '../../../../static/EditIcon';
 import SvgPlusIcon from '../../../../static/PlusIcon';
 import { gqlSanitize } from '../../../../util/gqlSanitize';
+import { EmptySessionsSearchParams } from '../../../Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '../../../Sessions/SearchContext/SearchContext';
 import CreateSegmentModal from '../../../Sessions/SearchSidebar/SegmentButtons/CreateSegmentModal';
 import DeleteSessionSegmentModal from '../../../Sessions/SearchSidebar/SegmentPicker/DeleteSessionSegmentModal/DeleteSessionSegmentModal';
 import { STARRED_SEGMENT_ID } from '../../../Sessions/SearchSidebar/SegmentPicker/SegmentPicker';
-import { EmptySessionsSearchParams } from '../../../Sessions/SessionsPage';
 import styles from './SegmentPickerForPlayer.module.scss';
 
 const SegmentPickerForPlayer = () => {

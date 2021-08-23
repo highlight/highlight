@@ -1,3 +1,4 @@
+import React from 'react';
 import AsyncSelect from 'react-select/async';
 
 import { createContext } from '../../../util/context/context';
@@ -8,6 +9,9 @@ interface PlayerUIContext {
     setSearchBarRef: React.Dispatch<
         React.SetStateAction<AsyncSelect<SessionSearchOption, true> | undefined>
     >;
+    isPlayerFullscreen: boolean;
+    setIsPlayerFullscreen: React.Dispatch<React.SetStateAction<boolean>>;
+    playerCenterPanelRef: React.RefObject<HTMLDivElement>;
 }
 
 export const [

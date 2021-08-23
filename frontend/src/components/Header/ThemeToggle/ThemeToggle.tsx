@@ -2,7 +2,7 @@ import useLocalStorage from '@rehooks/local-storage';
 import React, { useEffect } from 'react';
 import { RiMoonClearFill, RiSunLine } from 'react-icons/ri';
 
-import { useAuthContext } from '../../../AuthContext';
+import { useAuthContext } from '../../../authentication/AuthContext';
 import Button from '../../Button/Button/Button';
 
 enum THEMES {

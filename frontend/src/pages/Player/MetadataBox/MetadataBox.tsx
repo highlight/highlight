@@ -3,7 +3,7 @@ import React from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useParams } from 'react-router-dom';
 
-import { useAuthContext } from '../../../AuthContext';
+import { useAuthContext } from '../../../authentication/AuthContext';
 import { Avatar } from '../../../components/Avatar/Avatar';
 import UserIdentifier from '../../../components/UserIdentifier/UserIdentifier';
 import { useMarkSessionAsStarredMutation } from '../../../graph/generated/hooks';

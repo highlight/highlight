@@ -44,3 +44,13 @@
     color: var(--color-gray-500);
     margin: 0 !important;
 }
+
+.skeleton {
+    border-radius: var(--size-xSmall) !important;
+    display: block !important;
+    height: 90px;
+    margin: var(--size-xxSmall) var(--size-large);
+    margin-bottom: var(--size-medium);
+    margin-top: 0;
+    width: auto !important;
+}

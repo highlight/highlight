@@ -12,7 +12,7 @@ export type ErrorSearchParams = {
     event?: string;
 };
 
-export type ErrorSearchContext = {
+type ErrorSearchContext = {
     searchParams: ErrorSearchParams;
     setSearchParams: React.Dispatch<React.SetStateAction<ErrorSearchParams>>;
     existingParams: ErrorSearchParams;

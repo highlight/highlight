@@ -18,6 +18,7 @@ type TransparentPopoverProps = Pick<
     | 'placement'
     | 'align'
     | 'visible'
+    | 'getPopupContainer'
 >;
 
 /**

@@ -1,6 +1,7 @@
 export const filterContainer: string;
 export const groupHeading: string;
 export const keyLabel: string;
+export const menu: string;
 export const nameLabel: string;
 export const optionLabelContainer: string;
 export const searchIcon: string;
