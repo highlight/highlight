@@ -266,11 +266,11 @@ func (r *Resolver) UpdateSessionsVisibility(organizationID int, newPlan modelInp
 
 func (r *queryResolver) getFieldFilters(ctx context.Context, organizationID int, params *modelInputs.SearchParamsInput) (whereClause string, err error) {
 	if params.VisitedURL != nil {
-		whereClause += andHasFieldsWhere("fields.name = 'visited-url' AND fields.value ILIKE %" + *params.VisitedURL + "%")
+		whereClause += andHasFieldsWhere("fields.name = 'visited-url' AND fields.value ILIKE '%" + *params.VisitedURL + "%'")
 	}
 
 	if params.Referrer != nil {
-		whereClause += andHasFieldsWhere("fields.name = 'referrer' AND fields.value ILIKE %" + *params.Referrer + "%")
+		whereClause += andHasFieldsWhere("fields.name = 'referrer' AND fields.value ILIKE '%" + *params.Referrer + "%'")
 	}
 
 	inclusiveFilters := []string{}
@@ -324,7 +324,7 @@ func getSQLFilters(userPropertyInputs []*modelInputs.UserPropertyInput, property
 	sqlFilters := []string{}
 	for _, prop := range userPropertyInputs {
 		if prop.Name == "contains" {
-			sqlFilters = append(sqlFilters, "(fields.type = '"+propertyType+"' AND fields.value ILIKE %"+prop.Value+"%)")
+			sqlFilters = append(sqlFilters, "(fields.type = '"+propertyType+"' AND fields.value ILIKE '%"+prop.Value+"%')")
 		} else if prop.ID == nil || *prop.ID == 0 {
 			sqlFilters = append(sqlFilters, "(fields.type = '"+propertyType+"' AND fields.name = '"+prop.Name+"' AND fields.value = '"+prop.Value+"')")
 		} else {
