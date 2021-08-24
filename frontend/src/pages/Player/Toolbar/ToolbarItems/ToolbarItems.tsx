@@ -99,7 +99,9 @@ const ToolbarItemComponent = ({
                         placement="topLeft"
                         arrowPointAtCenter
                     >
-                        {toolbarRender}
+                        <div className={styles.toolbarItem}>
+                            {toolbarRender}
+                        </div>
                     </Tooltip>
                 </Dropdown>
             ) : (

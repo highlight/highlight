@@ -30,3 +30,17 @@
 .pinButton {
     margin-right: var(--size-small) !important;
 }
+
+.toolbarItem {
+    animation: grow 0.1s forwards;
+}
+
+@keyframes grow {
+    0% {
+        transform: scale(0);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
