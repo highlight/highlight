@@ -29,16 +29,18 @@ const setHistory = (
 
     let toVisit = `/0/${path}`;
 
-    if (allApplications) {
-        if (allApplications[0]?.id !== currentApplication?.id) {
-            toVisit = `/${allApplications[0]?.id}/${path}`;
+    if (currentApplication?.id === '0') {
+        if (allApplications) {
+            if (allApplications[0]?.id !== currentApplication?.id) {
+                toVisit = `/${allApplications[0]?.id}/${path}`;
+            } else {
+                toVisit = `/${
+                    allApplications[allApplications.length - 1]?.id
+                }/${path}`;
+            }
         } else {
-            toVisit = `/${
-                allApplications[allApplications.length - 1]?.id
-            }/${path}`;
+            toVisit = `/new`;
         }
-    } else {
-        toVisit = `/new`;
     }
     history.push(toVisit);
 };
