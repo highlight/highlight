@@ -497,7 +497,6 @@ const getIncludesOption = (
     apiType: string,
     valueType: string
 ) => {
-    console.log(query);
     return query.length === 0
         ? []
         : [
