@@ -9,7 +9,7 @@
     height: 32px !important;
 
     &:hover {
-        background-color: transparent !important;
+        background-color: var(--color-gray-200) !important;
         border-color: var(--color-gray-300) !important;
     }
 
@@ -22,5 +22,14 @@
     svg {
         height: var(--size-medium);
         width: var(--size-medium);
+    }
+
+    &.iconButton {
+        border-color: transparent;
+        padding: var(--size-xxSmall) var(--size-xSmall) !important;
+
+        &:hover {
+            border-color: transparent !important;
+        }
     }
 }

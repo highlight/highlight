@@ -58,6 +58,7 @@ export { default as Os } from './Os';
 export { default as PanelBottomIcon } from './PanelBottomIcon';
 export { default as PanelRightIcon } from './PanelRightIcon';
 export { default as PauseIcon } from './PauseIcon';
+export { default as PinTackIcon } from './PinTackIcon';
 export { default as Play } from './Play';
 export { default as PlayButton } from './PlayButton';
 export { default as PlayIcon } from './PlayIcon';
