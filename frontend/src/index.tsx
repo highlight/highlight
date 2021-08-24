@@ -165,6 +165,10 @@ get in contact with us!
         >
             <Router>
                 <Switch>
+                    <Route path="/:organization_id(0)/*" exact>
+                        {/* Allow guests to access this route without being asked to log in */}
+                        <AuthAdminRouter />
+                    </Route>
                     <Route
                         path="/:organization_id(\d+)/sessions/:session_id(\d+)"
                         exact

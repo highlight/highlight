@@ -47,8 +47,33 @@ func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
 	return uid == WhitelistedUID || strings.Contains(email, "@highlight.run")
 }
 
+func (r *Resolver) isDemoOrg(org_id int) bool {
+	return org_id == 0
+}
+
 // These are authentication methods used to make sure that data is secured.
 // This'll probably get expensive at some point; they can probably be cached.
+
+// isAdminInOrganizationOrDemoOrg should be used for actions that you want admins in all organizations
+// and laymen in the demo org to have access to.
+func (r *Resolver) isAdminInOrganizationOrDemoOrg(ctx context.Context, org_id int) (*model.Organization, error) {
+	var org *model.Organization
+	var err error
+	if r.isDemoOrg(org_id) {
+		if err = r.DB.Model(&model.Organization{}).Where("id = ?", 0).First(&org).Error; err != nil {
+			return nil, e.Wrap(err, "error querying demo org")
+		}
+	} else {
+		org, err = r.isAdminInOrganization(ctx, org_id)
+		if err != nil {
+			return nil, e.Wrap(err, "admin is not in organization or demo org")
+		}
+	}
+	return org, nil
+}
+
+// isAdminInOrganization should be used for actions that you only want admins in all organizations to have access to.
+// Use this on actions that you don't want laymen in the demo org to have access to.
 func (r *Resolver) isAdminInOrganization(ctx context.Context, org_id int) (*model.Organization, error) {
 	if util.IsTestEnv() {
 		return nil, nil
@@ -174,7 +199,7 @@ func (r *Resolver) isAdminErrorGroupOwner(ctx context.Context, errorGroupID int)
 	if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: errorGroupID}}).First(&errorGroup).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session")
 	}
-	_, err := r.isAdminInOrganization(ctx, errorGroup.OrganizationID)
+	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, errorGroup.OrganizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "error validating admin in organization")
 	}
@@ -187,7 +212,7 @@ func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_id int) (se
 		return nil, false, e.Wrap(err, "error querying session")
 	}
 
-	_, err = r.isAdminInOrganization(ctx, session.OrganizationID)
+	_, err = r.isAdminInOrganizationOrDemoOrg(ctx, session.OrganizationID)
 	if err != nil {
 		return session, false, e.Wrap(err, "error validating admin in organization")
 	}
@@ -218,7 +243,7 @@ func (r *Resolver) isAdminSegmentOwner(ctx context.Context, segment_id int) (*mo
 	if err := r.DB.Where(&model.Segment{Model: model.Model{ID: segment_id}}).First(&segment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying segment")
 	}
-	_, err := r.isAdminInOrganization(ctx, segment.OrganizationID)
+	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, segment.OrganizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "error validating admin in organization")
 	}
@@ -230,7 +255,7 @@ func (r *Resolver) isAdminErrorSegmentOwner(ctx context.Context, error_segment_i
 	if err := r.DB.Where(&model.ErrorSegment{Model: model.Model{ID: error_segment_id}}).First(&segment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error segment")
 	}
-	_, err := r.isAdminInOrganization(ctx, segment.OrganizationID)
+	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, segment.OrganizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "error validating admin in organization")
 	}

@@ -9,7 +9,7 @@ type Props = Pick<
     SwitchProps,
     'checked' | 'onChange' | 'loading' | 'className'
 > & {
-    label: string;
+    label: string | React.ReactNode;
     /** Renders the label before the switch. */
     labelFirst?: boolean;
     /** Renders the label and the switch with space-between. */

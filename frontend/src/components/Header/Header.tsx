@@ -15,6 +15,7 @@ import { isOrganizationWithinTrial } from '../../util/billing/billing';
 import { HighlightLogo } from '../HighlightLogo/HighlightLogo';
 import { CommandBar } from './CommandBar/CommandBar';
 import ApplicationPicker from './components/ApplicationPicker/ApplicationPicker';
+import DemoWorkspaceToggle from './components/DemoWorkspaceToggle/DemoWorkspaceToggle';
 import FeedbackButton from './components/FeedbackButton/FeedbackButton';
 import HeaderActions from './components/HeaderActions';
 import styles from './Header.module.scss';
@@ -52,6 +53,11 @@ export const Header = () => {
                             </Link>
                         </div>
                     )}
+
+                    <div className={styles.demoWorkspaceContainer}>
+                        <DemoWorkspaceToggle />
+                    </div>
+
                     <div className={styles.rightHeader}>
                         <HeaderActions />
                         <FeedbackButton />
@@ -78,6 +84,10 @@ const FreePlanBanner = () => {
     }
 
     if (data?.billingDetails.plan.type !== PlanType.Free) {
+        return null;
+    }
+
+    if (organization_id === '0') {
         return null;
     }
 
