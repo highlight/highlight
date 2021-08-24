@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { useAuthContext } from '../../../../AuthContext';
 import Button from '../../../Button/Button/Button';
+import { useAuthContext } from './../../../../authentication/AuthContext';
 import styles from './PersonalNotificationButton.module.scss';
 import { useSlackBot } from './utils/utils';
 
