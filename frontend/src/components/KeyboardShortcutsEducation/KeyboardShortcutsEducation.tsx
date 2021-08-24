@@ -161,31 +161,39 @@ const KeyboardShortcutsEducation = () => {
                             <h3>General</h3>
 
                             <table>
-                                {filteredGeneralKeyboardShortcuts.map(
-                                    (shortcut) => (
-                                        <tr key={shortcut.description}>
-                                            <td className={styles.description}>
-                                                <TextHighlighter
-                                                    searchWords={searchQuery.split(
-                                                        ' '
-                                                    )}
-                                                    textToHighlight={
-                                                        shortcut.description
+                                <tbody>
+                                    {filteredGeneralKeyboardShortcuts.map(
+                                        (shortcut) => (
+                                            <tr key={shortcut.description}>
+                                                <td
+                                                    className={
+                                                        styles.description
                                                     }
-                                                />
-                                            </td>
-                                            <td
-                                                className={
-                                                    styles.shortcutContainer
-                                                }
-                                            >
-                                                <KeyboardShortcut
-                                                    shortcut={shortcut.shortcut}
-                                                />
-                                            </td>
-                                        </tr>
-                                    )
-                                )}
+                                                >
+                                                    <TextHighlighter
+                                                        searchWords={searchQuery.split(
+                                                            ' '
+                                                        )}
+                                                        textToHighlight={
+                                                            shortcut.description
+                                                        }
+                                                    />
+                                                </td>
+                                                <td
+                                                    className={
+                                                        styles.shortcutContainer
+                                                    }
+                                                >
+                                                    <KeyboardShortcut
+                                                        shortcut={
+                                                            shortcut.shortcut
+                                                        }
+                                                    />
+                                                </td>
+                                            </tr>
+                                        )
+                                    )}
+                                </tbody>
                             </table>
                         </section>
                     )}
@@ -199,31 +207,39 @@ const KeyboardShortcutsEducation = () => {
                             <h3>Session Player Page</h3>
 
                             <table>
-                                {filteredPlayerKeyboardShortcuts.map(
-                                    (shortcut) => (
-                                        <tr key={shortcut.description}>
-                                            <td className={styles.description}>
-                                                <TextHighlighter
-                                                    searchWords={searchQuery.split(
-                                                        ' '
-                                                    )}
-                                                    textToHighlight={
-                                                        shortcut.description
+                                <tbody>
+                                    {filteredPlayerKeyboardShortcuts.map(
+                                        (shortcut) => (
+                                            <tr key={shortcut.description}>
+                                                <td
+                                                    className={
+                                                        styles.description
                                                     }
-                                                />
-                                            </td>
-                                            <td
-                                                className={
-                                                    styles.shortcutContainer
-                                                }
-                                            >
-                                                <KeyboardShortcut
-                                                    shortcut={shortcut.shortcut}
-                                                />
-                                            </td>
-                                        </tr>
-                                    )
-                                )}
+                                                >
+                                                    <TextHighlighter
+                                                        searchWords={searchQuery.split(
+                                                            ' '
+                                                        )}
+                                                        textToHighlight={
+                                                            shortcut.description
+                                                        }
+                                                    />
+                                                </td>
+                                                <td
+                                                    className={
+                                                        styles.shortcutContainer
+                                                    }
+                                                >
+                                                    <KeyboardShortcut
+                                                        shortcut={
+                                                            shortcut.shortcut
+                                                        }
+                                                    />
+                                                </td>
+                                            </tr>
+                                        )
+                                    )}
+                                </tbody>
                             </table>
                         </section>
                     )}
