@@ -381,9 +381,11 @@ export const AlertConfigurationCard = ({
                                         <div className={styles.addContainer}>
                                             Can't find the channel or person
                                             here?{' '}
-                                            <a href={slackUrl}>
-                                                Add a Slack Channel
-                                            </a>
+                                            {organization_id !== '0' && (
+                                                <a href={slackUrl}>
+                                                    Add a Slack Channel
+                                                </a>
+                                            )}
                                             .
                                         </div>
                                     </div>
