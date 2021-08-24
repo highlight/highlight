@@ -18,5 +18,5 @@ SELECT * FROM sessions WHERE id IN (1562888, 1562788, 1562901, 1562920, 1562930,
 SELECT * FROM error_groups WHERE id IN (1895, 1896, 1897, 1898, 1900);
 SELECT * FROM error_objects WHERE id IN (49744, 49761, 49746, 49769, 49738, 49768, 49742, 49767, 49732, 49765);
 
-select * from fields where id in (select field_id from session_fields where session_id in (1562888, 1562788, 1562901, 1562920, 1562930, 1562943));
-select * from session_fields where session_id in (1562888, 1562788, 1562901, 1562920, 1562930, 1562943)
+SELECT * FROM fields WHERE id IN (SELECT field_id FROM session_fields WHERE session_id IN (1562888, 1562788, 1562901, 1562920, 1562930, 1562943));
+SELECT * FROM session_fields WHERE session_id IN (1562888, 1562788, 1562901, 1562920, 1562930, 1562943);
