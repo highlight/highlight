@@ -1,3 +1,4 @@
+import DemoWorkspaceToggle from '@components/Header/components/DemoWorkspaceToggle/DemoWorkspaceToggle';
 import { message } from 'antd';
 import classNames from 'classnames';
 import Lottie from 'lottie-react';
@@ -133,6 +134,15 @@ const HomePage = () => {
                                             to install Highlight. It should take
                                             less than a minute for us to detect
                                             installation.
+                                            <div
+                                                className={
+                                                    styles.demoWorkspaceButton
+                                                }
+                                            >
+                                                <DemoWorkspaceToggle
+                                                    integrated={integrated}
+                                                />
+                                            </div>
                                         </>
                                     )}
                                 </p>
