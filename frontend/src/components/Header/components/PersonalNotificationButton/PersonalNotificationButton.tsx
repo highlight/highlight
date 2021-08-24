@@ -17,7 +17,6 @@ const PersonalNotificationButton = () => {
     }
     const { slackUrl: slackBotUrl } = useSlackBot(redirectUrl);
 
-    console.log('slack id: ', admin?.slack_im_channel_id);
     if (!isHighlightAdmin || !!admin?.slack_im_channel_id !== null) return null;
 
     return (
