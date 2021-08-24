@@ -59,11 +59,9 @@ export const Header = ({ integrated }: Props) => {
                         </div>
                     )}
 
-                    {(!integrated || organization_id === '0') && (
-                        <div className={styles.demoWorkspaceContainer}>
-                            <DemoWorkspaceToggle />
-                        </div>
-                    )}
+                    <div className={styles.demoWorkspaceContainer}>
+                        <DemoWorkspaceToggle integrated={integrated} />
+                    </div>
 
                     <div className={styles.rightHeader}>
                         <HeaderActions />
