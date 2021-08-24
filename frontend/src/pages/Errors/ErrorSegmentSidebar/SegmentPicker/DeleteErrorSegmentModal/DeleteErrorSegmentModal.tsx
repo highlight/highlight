@@ -1,3 +1,4 @@
+import { namedOperations } from '@graph/operations';
 import { message } from 'antd';
 import React from 'react';
 import { useHistory, useParams } from 'react-router-dom';
@@ -44,7 +45,7 @@ const DeleteErrorSegmentModal: React.FC<Props> = ({
                 },
             });
         },
-        refetchQueries: ['GetErrorSegments'],
+        refetchQueries: [namedOperations.Query.GetErrorSegments],
     });
 
     return (

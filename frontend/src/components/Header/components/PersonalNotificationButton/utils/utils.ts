@@ -1,3 +1,4 @@
+import { namedOperations } from '@graph/operations';
 import { message } from 'antd';
 import { useEffect, useState } from 'react';
 import { useHistory } from 'react-router';
@@ -10,7 +11,7 @@ export const useSlackBot = (redirectPath: string) => {
     const history = useHistory();
     const { organization_id } = useParams<{ organization_id: string }>();
     const [openSlackConversation] = useOpenSlackConversationMutation({
-        refetchQueries: ['GetOrganization'],
+        refetchQueries: [namedOperations.Query.GetOrganizations],
     });
     const [loading, setLoading] = useState<boolean>(false);
 

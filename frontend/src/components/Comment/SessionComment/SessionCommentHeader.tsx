@@ -1,3 +1,4 @@
+import { namedOperations } from '@graph/operations';
 import { Menu, message } from 'antd';
 import { H } from 'highlight.run';
 import React, { PropsWithChildren } from 'react';
@@ -32,7 +33,7 @@ const SessionCommentHeader = ({
 }: PropsWithChildren<Props>) => {
     const { pause, session } = useReplayerContext();
     const [deleteSessionComment] = useDeleteSessionCommentMutation({
-        refetchQueries: ['GetSessionComments'],
+        refetchQueries: [namedOperations.Query.GetSessionComments],
     });
     const history = useHistory();
 

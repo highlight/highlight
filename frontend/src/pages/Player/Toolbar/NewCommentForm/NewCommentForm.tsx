@@ -1,3 +1,4 @@
+import { namedOperations } from '@graph/operations';
 import { Form, message } from 'antd';
 import { H } from 'highlight.run';
 import React, { useMemo, useState } from 'react';
@@ -93,7 +94,7 @@ export const NewCommentForm = ({
                     //     .toDataURL()
                     //     .replace('data:image/png;base64,', ''),
                 },
-                refetchQueries: ['GetSessionComments'],
+                refetchQueries: [namedOperations.Query.GetSessionComments],
             });
             onCloseHandler();
             form.resetFields();
