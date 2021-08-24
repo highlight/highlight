@@ -232,7 +232,6 @@ query GetAdmin {
         name
         email
         photo_url
-        slack_im_channel_id
     }
 }
 
