@@ -1,3 +1,4 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import { H } from 'highlight.run';
 import React from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
@@ -11,6 +12,11 @@ const DemoWorkspaceToggle = () => {
     const history = useHistory();
     const { pathname } = useLocation();
     const { allApplications, currentApplication } = useApplicationContext();
+    const { isHighlightAdmin } = useAuthContext();
+
+    if (!isHighlightAdmin) {
+        return null;
+    }
 
     return (
         <div className={styles.sectionBody}>
