@@ -1,3 +1,4 @@
+import { namedOperations } from '@graph/operations';
 import { message } from 'antd';
 import classNames from 'classnames/bind';
 import React from 'react';
@@ -28,7 +29,10 @@ export const FieldsForm = () => {
         editOrganization,
         { data: editData, loading: editLoading },
     ] = useEditOrganizationMutation({
-        refetchQueries: ['GetOrganizations', 'GetOrganization'],
+        refetchQueries: [
+            namedOperations.Query.GetOrganizations,
+            namedOperations.Query.GetOrganization,
+        ],
     });
 
     const onSubmit = (inputs: Inputs) => {

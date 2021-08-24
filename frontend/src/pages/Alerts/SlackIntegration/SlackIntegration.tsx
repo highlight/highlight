@@ -1,3 +1,4 @@
+import { namedOperations } from '@graph/operations';
 import { message } from 'antd';
 import { useEffect, useState } from 'react';
 import { useHistory } from 'react-router';
@@ -10,7 +11,7 @@ export const useSlack = (redirectPath: string, refetchQueries?: string[]) => {
     const history = useHistory();
     const { organization_id } = useParams<{ organization_id: string }>();
     const [addSlackIntegration] = useAddSlackIntegrationToWorkspaceMutation({
-        refetchQueries: ['GetOrganization'],
+        refetchQueries: [namedOperations.Query.GetOrganization],
     });
     const [loading, setLoading] = useState<boolean>(false);
 

@@ -1,3 +1,4 @@
+import { namedOperations } from '@graph/operations';
 import { message } from 'antd';
 import React from 'react';
 import { useForm } from 'react-hook-form';
@@ -29,7 +30,7 @@ const CreateSegmentModal = ({
     afterCreateHandler,
 }: Props) => {
     const [createSegment, { loading }] = useCreateSegmentMutation({
-        refetchQueries: ['GetSegments'],
+        refetchQueries: [namedOperations.Query.GetSegments],
     });
     const { register, handleSubmit, errors, reset } = useForm<Inputs>();
     const { organization_id } = useParams<{

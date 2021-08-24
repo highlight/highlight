@@ -1,3 +1,4 @@
+import { namedOperations } from '@graph/operations';
 import { message, Select as AntDesignSelect } from 'antd';
 import classNames from 'classnames';
 const { Option } = AntDesignSelect;
@@ -49,7 +50,7 @@ const SegmentPickerForPlayer = () => {
         id?: string;
     } | null>(null);
     const [editSegment] = useEditSegmentMutation({
-        refetchQueries: ['GetSegments'],
+        refetchQueries: [namedOperations.Query.GetSegments],
     });
 
     const currentSegment = data?.segments?.find(

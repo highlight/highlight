@@ -1,3 +1,4 @@
+import { namedOperations } from '@graph/operations';
 import { Form, Menu, message } from 'antd';
 import { H } from 'highlight.run';
 import React, { useMemo, useState } from 'react';
@@ -52,7 +53,7 @@ const ErrorComments = () => {
                     tagged_admins: mentionedAdmins,
                     author_name: admin?.name || admin?.email || 'Someone',
                 },
-                refetchQueries: ['GetErrorComments'],
+                refetchQueries: [namedOperations.Query.GetErrorComments],
             });
             form.resetFields();
             setCommentText('');
@@ -177,7 +178,7 @@ export const ErrorCommentCard = ({ comment }: any) => (
 
 const ErrorCommentHeader = ({ comment, children }: any) => {
     const [deleteSessionComment] = useDeleteErrorCommentMutation({
-        refetchQueries: ['GetErrorComments'],
+        refetchQueries: [namedOperations.Query.GetErrorComments],
     });
 
     const menu = (

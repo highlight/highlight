@@ -1,3 +1,4 @@
+import { namedOperations } from '@graph/operations';
 import useLocalStorage from '@rehooks/local-storage';
 import { message, Select as AntDesignSelect } from 'antd';
 import classNames from 'classnames';
@@ -49,7 +50,7 @@ const SegmentPickerForErrors = () => {
         id?: string;
     } | null>(null);
     const [editSegment] = useEditErrorSegmentMutation({
-        refetchQueries: ['GetErrorSegments'],
+        refetchQueries: [namedOperations.Query.GetErrorSegments],
     });
 
     const currentSegment = data?.error_segments?.find(

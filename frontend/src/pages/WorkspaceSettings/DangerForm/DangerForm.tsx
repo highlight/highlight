@@ -1,3 +1,4 @@
+import { namedOperations } from '@graph/operations';
 import { Skeleton } from 'antd';
 import classNames from 'classnames/bind';
 import React from 'react';
@@ -26,7 +27,9 @@ export const DangerForm = () => {
     const [
         deleteOrganization,
         { loading: deleteLoading, data: deleteData },
-    ] = useDeleteOrganizationMutation({ refetchQueries: ['GetOrganizations'] });
+    ] = useDeleteOrganizationMutation({
+        refetchQueries: [namedOperations.Query.GetOrganizations],
+    });
 
     const { register, handleSubmit, errors } = useForm<Inputs>();
     const onSubmit = () => {

@@ -1,3 +1,4 @@
+import { namedOperations } from '@graph/operations';
 import { Divider, Form, message } from 'antd';
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -77,7 +78,7 @@ export const AlertConfigurationCard = ({
                     })),
             };
             const requestBody = {
-                refetchQueries: ['GetAlertsPagePayload'],
+                refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
             };
 
             switch (type) {
