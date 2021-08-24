@@ -35,13 +35,15 @@ const ActiveUsersTable = () => {
         variables: { organization_id, lookBackPeriod: dateRangeLength },
         onCompleted: (data) => {
             if (data.topUsers) {
-                const transformedData = data.topUsers.map((topUser, index) => ({
-                    key: index,
-                    identifier: topUser?.identifier,
-                    total_active_time: topUser?.total_active_time,
-                    active_time_percentage: topUser?.active_time_percentage,
-                    id: topUser?.id,
-                }));
+                const transformedData = data.topUsers
+                    .reverse()
+                    .map((topUser, index) => ({
+                        key: index,
+                        identifier: topUser?.identifier,
+                        total_active_time: topUser?.total_active_time,
+                        active_time_percentage: topUser?.active_time_percentage,
+                        id: topUser?.id,
+                    }));
 
                 setTableData(transformedData);
             }
