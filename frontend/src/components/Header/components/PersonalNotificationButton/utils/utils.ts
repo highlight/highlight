@@ -11,7 +11,7 @@ export const useSlackBot = (redirectPath: string) => {
     const history = useHistory();
     const { organization_id } = useParams<{ organization_id: string }>();
     const [openSlackConversation] = useOpenSlackConversationMutation({
-        refetchQueries: [namedOperations.Query.GetOrganizations],
+        refetchQueries: [namedOperations.Query.GetOrganization],
     });
     const [loading, setLoading] = useState<boolean>(false);
 
