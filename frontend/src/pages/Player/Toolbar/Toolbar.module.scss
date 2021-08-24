@@ -338,5 +338,6 @@
 }
 
 .settingsPopover {
-    width: 250px;
+    max-height: fit-content;
+    width: 300px;
 }
