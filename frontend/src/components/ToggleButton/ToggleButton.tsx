@@ -14,6 +14,7 @@ type Props = ButtonProps & {
     prefixIcon?: React.ReactNode;
     /** Renders only the icon if true. */
     hideTextLabel?: boolean;
+    iconButton?: boolean;
 };
 
 const ToggleButton: React.FC<Props> = ({
@@ -22,6 +23,8 @@ const ToggleButton: React.FC<Props> = ({
     toggled,
     prefixIcon,
     hideTextLabel,
+    iconButton,
+    className,
     ...props
 }) => {
     return (
@@ -33,8 +36,9 @@ const ToggleButton: React.FC<Props> = ({
                 }
                 H.track(`ToggleButton-${trackingId}`);
             }}
-            className={classNames(styles.toggleButtonBase, {
+            className={classNames(styles.toggleButtonBase, className, {
                 [styles.toggled]: toggled,
+                [styles.iconButton]: iconButton,
             })}
         >
             {prefixIcon}
