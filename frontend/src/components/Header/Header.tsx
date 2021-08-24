@@ -22,7 +22,11 @@ import PersonalNotificationButton from './components/PersonalNotificationButton/
 import styles from './Header.module.scss';
 import { UserDropdown } from './UserDropdown/UserDropdown';
 
-export const Header = () => {
+interface Props {
+    integrated: boolean;
+}
+
+export const Header = ({ integrated }: Props) => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { isLoggedIn } = useAuthContext();
 
@@ -55,9 +59,11 @@ export const Header = () => {
                         </div>
                     )}
 
-                    <div className={styles.demoWorkspaceContainer}>
-                        <DemoWorkspaceToggle />
-                    </div>
+                    {(!integrated || organization_id === '0') && (
+                        <div className={styles.demoWorkspaceContainer}>
+                            <DemoWorkspaceToggle />
+                        </div>
+                    )}
 
                     <div className={styles.rightHeader}>
                         <HeaderActions />
