@@ -10,7 +10,6 @@ import (
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
 	"github.com/stripe/stripe-go/client"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/model"
@@ -290,163 +289,72 @@ func (r *Resolver) UpdateSessionsVisibility(organizationID int, newPlan modelInp
 	}
 }
 
-func (r *queryResolver) getFieldFilters(ctx context.Context, organizationID int, params *modelInputs.SearchParamsInput) (customJoinClause string, whereClause string, err error) {
-	// Find fields based on the search params
-	//included fields
-	fieldCheck := true
-	visitedCheck := true
-	referrerCheck := true
-	fieldIds := []int{}
-	fieldQuery := r.DB.Model(&model.Field{})
-	visitedIds := []int{}
-	referrerIds := []int{}
-	visitedQuery := r.DB.Model(&model.Field{})
-	referrerQuery := r.DB.Model(&model.Field{})
-
-	fieldsSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-		tracer.ResourceName("db.fieldsQuery"), tracer.Tag("org_id", organizationID))
-	for _, prop := range params.UserProperties {
-		if prop.Name == "contains" {
-			fieldQuery = fieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
-		} else if prop.ID == nil || *prop.ID == 0 {
-			fieldQuery = fieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user")
-		} else {
-			fieldIds = append(fieldIds, *prop.ID)
-		}
-	}
-
-	for _, prop := range params.TrackProperties {
-		if prop.Name == "contains" {
-			fieldQuery = fieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "track")
-		} else if prop.ID == nil || *prop.ID == 0 {
-			fieldQuery = fieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "track")
-		} else {
-			fieldIds = append(fieldIds, *prop.ID)
-		}
-	}
-
+func (r *queryResolver) getFieldFilters(ctx context.Context, organizationID int, params *modelInputs.SearchParamsInput) (whereClause string, err error) {
 	if params.VisitedURL != nil {
-		visitedQuery = visitedQuery.Or("name = ? and value ILIKE ?", "visited-url", "%"+*params.VisitedURL+"%")
+		whereClause += andHasFieldsWhere("fields.name = 'visited-url' AND fields.value ILIKE '%" + *params.VisitedURL + "%'")
 	}
 
 	if params.Referrer != nil {
-		referrerQuery = referrerQuery.Or("name = ? and value ILIKE ?", "referrer", "%"+*params.Referrer+"%")
+		whereClause += andHasFieldsWhere("fields.name = 'referrer' AND fields.value ILIKE '%" + *params.Referrer + "%'")
 	}
 
-	if len(params.UserProperties)+len(params.TrackProperties) > 0 {
-		if len(params.UserProperties)+len(params.TrackProperties) != len(fieldIds) {
-			var tempFieldIds []int
-			if err := fieldQuery.Pluck("id", &tempFieldIds).Error; err != nil {
-				return "", "", e.Wrap(err, "error querying initial set of session fields")
-			}
-			fieldIds = append(fieldIds, tempFieldIds...)
-		}
-		if len(fieldIds) == 0 {
-			fieldCheck = false
-		}
+	inclusiveFilters := []string{}
+	inclusiveFilters = append(inclusiveFilters, getSQLFilters(params.UserProperties, "user")...)
+	inclusiveFilters = append(inclusiveFilters, getSQLFilters(params.TrackProperties, "track")...)
+	if len(inclusiveFilters) > 0 {
+		whereClause += andHasFieldsWhere(strings.Join(inclusiveFilters, " OR "))
 	}
 
-	if params.VisitedURL != nil {
-		if err := visitedQuery.Pluck("id", &visitedIds).Error; err != nil {
-			return "", "", e.Wrap(err, "error querying visited-url fields")
-		}
-		if len(visitedIds) == 0 {
-			visitedCheck = false
-		}
+	exclusiveFilters := []string{}
+	exclusiveFilters = append(exclusiveFilters, getSQLFilters(params.ExcludedProperties, "user")...)
+	exclusiveFilters = append(exclusiveFilters, getSQLFilters(params.ExcludedTrackProperties, "track")...)
+	if len(exclusiveFilters) > 0 {
+		whereClause += andDoesNotHaveFieldsWhere(strings.Join(exclusiveFilters, " OR "))
 	}
 
-	if params.Referrer != nil {
-		if err := referrerQuery.Pluck("id", &referrerIds).Error; err != nil {
-			return "", "", e.Wrap(err, "error querying referrer fields")
-		}
-		if len(referrerIds) == 0 {
-			referrerCheck = false
-		}
-	}
+	return whereClause, nil
+}
 
-	//excluded fields
-	notFieldIds := []int{}
-	notFieldQuery := r.DB.Model(&model.Field{})
+func andHasFieldsWhere(fieldConditions string) string {
+	return fmt.Sprintf(`AND EXISTS (
+		SELECT 1
+		FROM session_fields
+		JOIN fields
+		ON session_fields.field_id = fields.id
+		WHERE session_fields.session_id = sessions.id
+		AND (
+			%s
+		)
+		LIMIT 1
+	) `, fieldConditions)
+}
 
-	for _, prop := range params.ExcludedProperties {
+func andDoesNotHaveFieldsWhere(fieldConditions string) string {
+	return fmt.Sprintf(`AND NOT EXISTS (
+		SELECT 1
+		FROM session_fields
+		JOIN fields
+		ON session_fields.field_id = fields.id
+		WHERE session_fields.session_id = sessions.id
+		AND (
+			%s
+		)
+		LIMIT 1
+	) `, fieldConditions)
+}
+
+// Takes a list of user search inputs, and converts them into a list of SQL filters
+// propertyType: 'user' or 'track'
+func getSQLFilters(userPropertyInputs []*modelInputs.UserPropertyInput, propertyType string) []string {
+	sqlFilters := []string{}
+	for _, prop := range userPropertyInputs {
 		if prop.Name == "contains" {
-			notFieldQuery = notFieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
+			sqlFilters = append(sqlFilters, "(fields.type = '"+propertyType+"' AND fields.value ILIKE '%"+prop.Value+"%')")
 		} else if prop.ID == nil || *prop.ID == 0 {
-			notFieldQuery = notFieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user")
+			sqlFilters = append(sqlFilters, "(fields.type = '"+propertyType+"' AND fields.name = '"+prop.Name+"' AND fields.value = '"+prop.Value+"')")
 		} else {
-			notFieldIds = append(notFieldIds, *prop.ID)
+			sqlFilters = append(sqlFilters, fmt.Sprintf("(fields.id = %d)", *prop.ID))
 		}
 	}
-
-	if len(params.ExcludedProperties) != len(notFieldIds) {
-		var tempNotFieldIds []int
-		if err := notFieldQuery.Pluck("id", &notFieldIds).Error; err != nil {
-			return "", "", e.Wrap(err, "error querying initial set of excluded sessions fields")
-		}
-		notFieldIds = append(notFieldIds, tempNotFieldIds...)
-	}
-
-	//excluded track fields
-	notTrackFieldIds := []int{}
-	notTrackFieldQuery := r.DB.Model(&model.Field{})
-
-	for _, prop := range params.ExcludedTrackProperties {
-		if prop.Name == "contains" {
-			notTrackFieldQuery = notTrackFieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "track")
-		} else if prop.ID == nil || *prop.ID == 0 {
-			notTrackFieldQuery = notTrackFieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "track")
-		} else {
-			notTrackFieldIds = append(notTrackFieldIds, *prop.ID)
-		}
-	}
-
-	//pluck not field ids
-	if len(params.ExcludedTrackProperties) != len(notTrackFieldIds) {
-		var tempNotTrackFieldIds []int
-		if err := notTrackFieldQuery.Pluck("id", &tempNotTrackFieldIds).Error; err != nil {
-			return "", "", e.Wrap(err, "error querying initial set of excluded track sessions fields")
-		}
-		notTrackFieldIds = append(notTrackFieldIds, tempNotTrackFieldIds...)
-	}
-
-	fieldsSpan.Finish()
-
-	if len(fieldIds) > 0 {
-		t := strings.Replace(fmt.Sprint(fieldIds), " ", ",", -1)
-		whereClause += fmt.Sprintf("AND (fieldIds && ARRAY%s::integer[])", t)
-	}
-
-	if len(visitedIds) > 0 {
-		t := strings.Replace(fmt.Sprint(visitedIds), " ", ",", -1)
-		whereClause += fmt.Sprintf("AND (fieldIds && ARRAY%s::integer[])", t)
-	}
-
-	if len(referrerIds) > 0 {
-		t := strings.Replace(fmt.Sprint(referrerIds), " ", ",", -1)
-		whereClause += fmt.Sprintf("AND (fieldIds && ARRAY%s::integer[])", t)
-	}
-
-	if len(notFieldIds) > 0 {
-		t := strings.Replace(fmt.Sprint(notFieldIds), " ", ",", -1)
-		whereClause += fmt.Sprintf("AND NOT (fieldIds && ARRAY%s::integer[])", t)
-	}
-
-	if len(notTrackFieldIds) > 0 {
-		t := strings.Replace(fmt.Sprint(notTrackFieldIds), " ", ",", -1)
-		whereClause += fmt.Sprintf("AND NOT (fieldIds && ARRAY%s::integer[])", t)
-	}
-
-	//if there should be fields but aren't no sessions are returned
-	if !fieldCheck || !visitedCheck || !referrerCheck {
-		whereClause += "AND (id != id) "
-	}
-
-	isUnfilteredQuery := len(fieldIds) == 0 && len(visitedIds) == 0 && len(referrerIds) == 0 && len(notFieldIds) == 0 && len(notTrackFieldIds) == 0
-	if !isUnfilteredQuery {
-		fieldsInnerJoinStatement := "INNER JOIN session_fields t ON s.id=t.session_id"
-		fieldsSelectStatement := ", array_agg(t.field_id) fieldIds"
-		customJoinClause = fmt.Sprintf("FROM (SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, within_billing_quota, field_group %s FROM sessions s %s GROUP BY s.id) AS rows", fieldsSelectStatement, fieldsInnerJoinStatement)
-	}
-
-	return customJoinClause, whereClause, nil
+	return sqlFilters
 }

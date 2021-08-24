@@ -1,12 +1,14 @@
 .header {
-    align-items: center;
     display: flex;
+    flex-direction: column;
+    row-gap: var(--size-xSmall);
     width: 100%;
 
-    > div {
+    > .topRow {
         align-items: center;
         column-gap: var(--size-medium);
         display: flex;
+        justify-content: space-between;
     }
 
     > button {

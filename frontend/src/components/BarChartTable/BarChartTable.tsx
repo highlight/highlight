@@ -11,6 +11,7 @@ interface Props {
     /** The string shown to the user when the table has no data. */
     noDataMessage?: string | React.ReactNode;
     noDataTitle?: string;
+    loading: boolean;
 }
 
 const BarChartTable = ({
@@ -19,6 +20,7 @@ const BarChartTable = ({
     onClickHandler,
     noDataMessage,
     noDataTitle,
+    loading,
 }: Props) => {
     return (
         <ConfigProvider
@@ -30,6 +32,7 @@ const BarChartTable = ({
             )}
         >
             <Table
+                loading={loading}
                 scroll={{ y: 250 }}
                 showHeader={false}
                 columns={columns}

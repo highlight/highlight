@@ -1,4 +1,4 @@
-export function parseTime(val: number) {
+function parseTime(val: number) {
     const days = ~~(val / 86400);
     const hours = ~~(val / 3600) - days * 24;
     const minutes = ~~(val / 60) - days * 1440 - hours * 60;
@@ -50,7 +50,7 @@ export function formatShortTime(
     return t;
 }
 
-export function formatNumber(n: number) {
+function formatNumber(n: number) {
     return Number(n).toFixed(0);
 }
 

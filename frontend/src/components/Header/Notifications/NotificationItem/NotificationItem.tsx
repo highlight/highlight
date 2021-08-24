@@ -95,6 +95,6 @@ const getLink = (notification: any, organization_id: string) => {
         default:
             return `/`;
         case NotificationType.SessionComment:
-            return `${baseUrl}/sessions/${notification.session_id}?${PlayerSearchParameters.commentId}=${notification.id}`;
+            return `${baseUrl}/sessions/${notification.session_id}?${PlayerSearchParameters.commentId}=${notification.id}&${PlayerSearchParameters.ts}=${notification.timestamp}`;
     }
 };

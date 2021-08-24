@@ -2577,6 +2577,7 @@ export const GetErrorGroupDocument = gql`
                 functionName
                 columnNumber
             }
+            mapped_stack_trace
             metadata_log {
                 error_id
                 session_id

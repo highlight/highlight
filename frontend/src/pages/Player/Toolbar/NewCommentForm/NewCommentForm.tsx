@@ -4,7 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { OnChangeHandlerFunc } from 'react-mentions';
 import { useParams } from 'react-router-dom';
 
-import { useAuthContext } from '../../../../AuthContext';
+import { useAuthContext } from '../../../../authentication/AuthContext';
 import Button from '../../../../components/Button/Button/Button';
 import {
     AdminSuggestion,

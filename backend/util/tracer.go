@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 
 	"github.com/99designs/gqlgen/graphql"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -43,13 +44,12 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 	}
 
 	start := graphql.Now()
-	defer func() {
-		end := graphql.Now()
-		fieldSpan.SetTag("field.duration", end.Sub(start))
-		fieldSpan.Finish()
-	}()
+	res, err := next(ctx)
+	end := graphql.Now()
+	fieldSpan.SetTag("field.duration", end.Sub(start))
+	fieldSpan.Finish(tracer.WithError(err))
 
-	return next(ctx)
+	return res, err
 }
 
 func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHandler) *graphql.Response {
@@ -63,5 +63,12 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 	resp := next(ctx)
 	end := graphql.Now()
 	span.SetTag("operation.duration", end.Sub(start))
+	if resp.Errors != nil {
+		var errs []ddtrace.FinishOption
+		for _, err := range resp.Errors {
+			errs = append(errs, tracer.WithError(err))
+		}
+		span.Finish(errs...)
+	}
 	return resp
 }

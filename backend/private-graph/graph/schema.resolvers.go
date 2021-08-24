@@ -1523,13 +1523,9 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	sessionsQueryPreamble := "SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, field_group"
 	joinClause := "FROM sessions"
 
-	customJoinClause, fieldFilters, err := r.getFieldFilters(ctx, organizationID, params)
+	fieldFilters, err := r.getFieldFilters(ctx, organizationID, params)
 	if err != nil {
 		return nil, err
-	}
-
-	if customJoinClause != "" {
-		joinClause = customJoinClause
 	}
 
 	whereClause := ` `
@@ -1546,11 +1542,11 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	}
 	if params.LengthRange != nil {
 		if params.LengthRange.Min != nil {
-			whereClause += fmt.Sprintf("AND (active_length >= %d) ", *params.LengthRange.Min*60000)
+			whereClause += fmt.Sprintf("AND (active_length >= %f) ", *params.LengthRange.Min*60000)
 		}
 		if params.LengthRange.Max != nil {
 			if *params.LengthRange.Max != 60 && *params.LengthRange.Max != 0 {
-				whereClause += fmt.Sprintf("AND (active_length <= %d) ", *params.LengthRange.Max*60000)
+				whereClause += fmt.Sprintf("AND (active_length <= %f) ", *params.LengthRange.Max*60000)
 			}
 		}
 	}

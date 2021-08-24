@@ -1,9 +1,9 @@
+import { useAuthContext } from '@authentication/AuthContext';
+import { GetAdminsQuery } from '@graph/operations';
 import classNames from 'classnames';
 import React, { PropsWithChildren } from 'react';
 import { SuggestionDataItem } from 'react-mentions';
 
-import { useAuthContext } from '../../AuthContext';
-import { GetAdminsQuery } from '../../graph/generated/operations';
 import { Admin, SanitizedAdminInput } from '../../graph/generated/schemas';
 import { AdminAvatar } from '../Avatar/Avatar';
 import DotsMenu from '../DotsMenu/DotsMenu';

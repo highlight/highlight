@@ -21,6 +21,7 @@ import { processNotifications } from './utils/utils';
 const Notifications = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const [notifications, setNotifications] = useState<any[]>([]);
+    const [showPopover, setShowPopover] = useState(false);
     const [
         unreadNotificationsCount,
         setUnreadNotificationsCount,
@@ -57,6 +58,7 @@ const Notifications = () => {
         <Popover
             hasBorder
             isList
+            visible={showPopover}
             trigger={['click']}
             content={
                 <div className={styles.popover}>
@@ -71,6 +73,7 @@ const Notifications = () => {
                                             notification.id
                                         )}
                                         onViewHandler={() => {
+                                            setShowPopover(false);
                                             if (notification.id) {
                                                 H.track(
                                                     'Clicked on notification item',
@@ -105,6 +108,7 @@ const Notifications = () => {
                 if (visible) {
                     H.track('Viewed notifications');
                 }
+                setShowPopover(visible);
             }}
             title={
                 <div className={styles.popoverTitle}>

@@ -4,8 +4,8 @@ import { OptionsType, OptionTypeBase, ValueType } from 'react-select';
 import AsyncSelect from 'react-select/async';
 
 import { useGetErrorFieldSuggestionQuery } from '../../../graph/generated/hooks';
-import { ReactComponent as BrowserIcon } from '../../../static/browser.svg';
-import { ReactComponent as OSIcon } from '../../../static/os.svg';
+import SvgBrowser from '../../../static/Browser';
+import SvgOs from '../../../static/Os';
 import inputStyles from '../../Sessions/SearchInputs/InputStyles.module.scss';
 import { SharedSelectStyleProps } from '../../Sessions/SearchInputs/SearchInputUtil';
 import { useErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
@@ -55,7 +55,7 @@ export const OperatingSystemInput = () => {
                 components={{
                     DropdownIndicator: () => (
                         <div className={inputStyles.iconWrapper}>
-                            <OSIcon />
+                            <SvgOs />
                         </div>
                     ),
                     IndicatorSeparator: () => null,
@@ -115,7 +115,7 @@ export const BrowserInput = () => {
                 components={{
                     DropdownIndicator: () => (
                         <div className={inputStyles.iconWrapper}>
-                            <BrowserIcon />
+                            <SvgBrowser />
                         </div>
                     ),
                     IndicatorSeparator: () => null,

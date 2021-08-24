@@ -4,7 +4,7 @@ import React, { PropsWithChildren } from 'react';
 import styles from './ElevatedCard.module.scss';
 
 interface Props {
-    title?: string;
+    title?: string | React.ReactNode;
     animation?: React.ReactNode;
     /** Buttons or action elements for the card. These are rendered at the bottom of the card. */
     actions?: React.ReactNode;

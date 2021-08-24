@@ -121,6 +121,7 @@ const SessionSearchFilters = () => {
             trigger="click"
             placement="rightTop"
             align={{ offset: [8, -24] }}
+            popoverClassName={styles.popover}
         >
             <Button
                 className={classNames(segmentPickerStyles.segmentButton, {

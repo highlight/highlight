@@ -1,7 +1,7 @@
 import { H } from 'highlight.run';
 import React from 'react';
 
-import { useAuthContext } from '../../../../AuthContext';
+import { useAuthContext } from '../../../../authentication/AuthContext';
 import SvgAnnotationDotsIcon from '../../../../static/AnnotationDotsIcon';
 import SvgBugIcon from '../../../../static/BugIcon';
 import SvgPlusIcon from '../../../../static/PlusIcon';

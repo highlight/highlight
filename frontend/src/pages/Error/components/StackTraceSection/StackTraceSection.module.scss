@@ -1,24 +1,27 @@
 .editor {
     background: var(--color-editor-background);
     color: var(--color-editor-foreground-text);
-    font-family: 'Roboto Mono', monospace;
+    font-family: var(--monospace-font-family);
 
     .lineNumber {
         color: var(--color-editor-secondary-text);
         display: inline-block;
         margin-right: var(--size-medium);
         text-align: right;
-        width: 75px;
+        width: calc(1ch * var(--longest-character-length));
     }
-}
-
-.stackTracesContainer {
-    height: 500px;
-    overflow-y: auto;
 }
 
 .skeleton {
     border-radius: 8px;
     height: 109px;
     margin-bottom: 20px;
+}
+
+.alert {
+    margin-bottom: var(--size-large);
+
+    a {
+        margin-top: var(--size-medium);
+    }
 }

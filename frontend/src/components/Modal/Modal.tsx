@@ -16,6 +16,7 @@ type Props = Pick<
     | 'destroyOnClose'
     | 'centered'
     | 'mask'
+    | 'getContainer'
 > & {
     title?: string;
     minimal?: boolean;

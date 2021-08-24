@@ -8,8 +8,8 @@ import { useHistory, useParams } from 'react-router-dom';
 import BarChartTable from '../../../../components/BarChartTable/BarChartTable';
 import { getPercentageDisplayValue } from '../../../../components/BarChartTable/utils/utils';
 import { useGetReferrersCountQuery } from '../../../../graph/generated/hooks';
+import { EmptySessionsSearchParams } from '../../../Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '../../../Sessions/SearchContext/SearchContext';
-import { EmptySessionsSearchParams } from '../../../Sessions/SessionsPage';
 import homePageStyles from '../../HomePage.module.scss';
 import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext';
 import styles from './ReferrersTable.module.scss';
@@ -21,7 +21,11 @@ const ReferrersTable = () => {
     }>();
     const { dateRangeLength } = useHomePageFiltersContext();
     const history = useHistory();
-    const { setSearchParams } = useSearchContext();
+    const {
+        setSearchParams,
+        setSegmentName,
+        setSelectedSegment,
+    } = useSearchContext();
 
     const { loading } = useGetReferrersCountQuery({
         variables: { organization_id, lookBackPeriod: dateRangeLength },
@@ -59,7 +63,10 @@ const ReferrersTable = () => {
             <BarChartTable
                 columns={Columns}
                 data={tableData}
+                loading={loading}
                 onClickHandler={(record) => {
+                    setSegmentName(null);
+                    setSelectedSegment(undefined);
                     setSearchParams({
                         ...EmptySessionsSearchParams,
                         referrer: record.host,

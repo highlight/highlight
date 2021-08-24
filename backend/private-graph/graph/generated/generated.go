@@ -113,15 +113,16 @@ type ComplexityRoot struct {
 	}
 
 	ErrorGroup struct {
-		Environments   func(childComplexity int) int
-		Event          func(childComplexity int) int
-		FieldGroup     func(childComplexity int) int
-		ID             func(childComplexity int) int
-		MetadataLog    func(childComplexity int) int
-		OrganizationID func(childComplexity int) int
-		StackTrace     func(childComplexity int) int
-		State          func(childComplexity int) int
-		Type           func(childComplexity int) int
+		Environments     func(childComplexity int) int
+		Event            func(childComplexity int) int
+		FieldGroup       func(childComplexity int) int
+		ID               func(childComplexity int) int
+		MappedStackTrace func(childComplexity int) int
+		MetadataLog      func(childComplexity int) int
+		OrganizationID   func(childComplexity int) int
+		StackTrace       func(childComplexity int) int
+		State            func(childComplexity int) int
+		Type             func(childComplexity int) int
 	}
 
 	ErrorMetadata struct {
@@ -428,6 +429,7 @@ type ErrorGroupResolver interface {
 	Event(ctx context.Context, obj *model1.ErrorGroup) ([]*string, error)
 	StackTrace(ctx context.Context, obj *model1.ErrorGroup) ([]*model.ErrorTrace, error)
 	MetadataLog(ctx context.Context, obj *model1.ErrorGroup) ([]*model.ErrorMetadata, error)
+
 	FieldGroup(ctx context.Context, obj *model1.ErrorGroup) ([]*model1.ErrorField, error)
 	State(ctx context.Context, obj *model1.ErrorGroup) (model.ErrorState, error)
 }
@@ -790,6 +792,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorGroup.ID(childComplexity), true
+
+	case "ErrorGroup.mapped_stack_trace":
+		if e.complexity.ErrorGroup.MappedStackTrace == nil {
+			break
+		}
+
+		return e.complexity.ErrorGroup.MappedStackTrace(childComplexity), true
 
 	case "ErrorGroup.metadata_log":
 		if e.complexity.ErrorGroup.MetadataLog == nil {
@@ -2827,6 +2836,7 @@ type ErrorGroup {
     event: [String]!
     stack_trace: [ErrorTrace]!
     metadata_log: [ErrorMetadata]!
+    mapped_stack_trace: String
     field_group: [ErrorField]
     state: ErrorState!
     environments: String
@@ -2938,13 +2948,13 @@ input DateRangeInput {
 }
 
 type LengthRange {
-    min: Int
-    max: Int
+    min: Float
+    max: Float
 }
 
 input LengthRangeInput {
-    min: Int
-    max: Int
+    min: Float
+    max: Float
 }
 
 type UserProperty {
@@ -6286,6 +6296,38 @@ func (ec *executionContext) _ErrorGroup_metadata_log(ctx context.Context, field 
 	return ec.marshalNErrorMetadata2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorMetadata(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _ErrorGroup_mapped_stack_trace(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ErrorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MappedStackTrace, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _ErrorGroup_field_group(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -7781,9 +7823,9 @@ func (ec *executionContext) _LengthRange_min(ctx context.Context, field graphql.
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(float64)
 	fc.Result = res
-	return ec.marshalOInt2int(ctx, field.Selections, res)
+	return ec.marshalOFloat2float64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _LengthRange_max(ctx context.Context, field graphql.CollectedField, obj *model1.LengthRange) (ret graphql.Marshaler) {
@@ -7813,9 +7855,9 @@ func (ec *executionContext) _LengthRange_max(ctx context.Context, field graphql.
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(float64)
 	fc.Result = res
-	return ec.marshalOInt2int(ctx, field.Selections, res)
+	return ec.marshalOFloat2float64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createOrganization(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -15126,7 +15168,7 @@ func (ec *executionContext) unmarshalInputLengthRangeInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("min"))
-			it.Min, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			it.Min, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15134,7 +15176,7 @@ func (ec *executionContext) unmarshalInputLengthRangeInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("max"))
-			it.Max, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			it.Max, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15845,6 +15887,8 @@ func (ec *executionContext) _ErrorGroup(ctx context.Context, sel ast.SelectionSe
 				}
 				return res
 			})
+		case "mapped_stack_trace":
+			out.Values[i] = ec._ErrorGroup_mapped_stack_trace(ctx, field, obj)
 		case "field_group":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -19411,6 +19455,30 @@ func (ec *executionContext) marshalOField2ᚖgithubᚗcomᚋhighlightᚑrunᚋhi
 		return graphql.Null
 	}
 	return ec._Field(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOFloat2float64(ctx context.Context, v interface{}) (float64, error) {
+	res, err := graphql.UnmarshalFloat(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOFloat2float64(ctx context.Context, sel ast.SelectionSet, v float64) graphql.Marshaler {
+	return graphql.MarshalFloat(v)
+}
+
+func (ec *executionContext) unmarshalOFloat2ᚖfloat64(ctx context.Context, v interface{}) (*float64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalFloat(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel ast.SelectionSet, v *float64) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalFloat(*v)
 }
 
 func (ec *executionContext) unmarshalOID2ᚖint(ctx context.Context, v interface{}) (*int, error) {

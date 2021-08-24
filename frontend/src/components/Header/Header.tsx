@@ -1,10 +1,13 @@
+import SvgCloseIcon from '@icons/CloseIcon';
 import classNames from 'classnames/bind';
+import { H } from 'highlight.run';
 import moment from 'moment';
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
+import { useSessionStorage } from 'react-use';
 
-import { useAuthContext } from '../../AuthContext';
+import { useAuthContext } from '../../authentication/AuthContext';
 import { useGetBillingDetailsQuery } from '../../graph/generated/hooks';
 import { PlanType } from '../../graph/generated/schemas';
 import { ReactComponent as Banner } from '../../static/banner.svg';
@@ -67,6 +70,10 @@ export const Header = () => {
 };
 
 const FreePlanBanner = () => {
+    const [temporarilyHideBanner, setTemporarilyHideBanner] = useSessionStorage(
+        'highlightHideFreePlanBanner',
+        false
+    );
     const { organization_id } = useParams<{ organization_id: string }>();
     const { data, loading } = useGetBillingDetailsQuery({
         variables: { organization_id },
@@ -84,8 +91,13 @@ const FreePlanBanner = () => {
         return null;
     }
 
+    if (temporarilyHideBanner) {
+        return null;
+    }
+
     let bannerMessage = `You've used ${data?.billingDetails.meter}/${data?.billingDetails.plan.quota} of your free sessions.`;
-    if (isOrganizationWithinTrial(data?.organization)) {
+    const hasTrial = isOrganizationWithinTrial(data?.organization);
+    if (hasTrial) {
         bannerMessage = `You have unlimited sessions until ${moment(
             data?.organization?.trial_end_date
         ).format('MM/DD/YY')}. `;
@@ -103,6 +115,18 @@ const FreePlanBanner = () => {
                     here!
                 </Link>
             </div>
+            {hasTrial && (
+                <button
+                    onClick={() => {
+                        H.track('TemporarilyHideFreePlanBanner', {
+                            hasTrial,
+                        });
+                        setTemporarilyHideBanner(true);
+                    }}
+                >
+                    <SvgCloseIcon />
+                </button>
+            )}
         </div>
     );
 };
