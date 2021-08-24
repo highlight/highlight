@@ -566,5 +566,6 @@ type Mutation {
         environments: [String]!
         user_properties: [UserPropertyInput]!
     ): SessionAlert
+    updatePersonalAlert(id: ID): ID
     updateSessionIsPublic(session_id: ID!, is_public: Boolean!): Session
 }

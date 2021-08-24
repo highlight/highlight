@@ -672,6 +672,7 @@ export type Mutation = {
     updateNewUserAlert?: Maybe<SessionAlert>;
     updateTrackPropertiesAlert?: Maybe<SessionAlert>;
     updateUserPropertiesAlert?: Maybe<SessionAlert>;
+    updatePersonalAlert?: Maybe<Scalars['ID']>;
     updateSessionIsPublic?: Maybe<Session>;
 };
 
@@ -841,6 +842,10 @@ export type MutationUpdateUserPropertiesAlertArgs = {
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;
     user_properties: Array<Maybe<UserPropertyInput>>;
+};
+
+export type MutationUpdatePersonalAlertArgs = {
+    id?: Maybe<Scalars['ID']>;
 };
 
 export type MutationUpdateSessionIsPublicArgs = {
