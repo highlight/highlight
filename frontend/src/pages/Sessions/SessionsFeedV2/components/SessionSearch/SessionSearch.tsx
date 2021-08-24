@@ -101,7 +101,7 @@ const SessionSearch = () => {
             query: input,
         }).then((fetched) => {
             callback(
-                getSuggestions(fetched.data, selectedSearchFilters, query, 3)
+                getSuggestions(fetched.data, selectedSearchFilters, input, 3)
             );
         });
     };
