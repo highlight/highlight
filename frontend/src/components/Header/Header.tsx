@@ -28,6 +28,7 @@ export const Header = () => {
 
     return (
         <>
+            <h2>AWS AMPLIFY TEST</h2>
             <CommandBar />
             <div
                 className={classNames(styles.header, {
