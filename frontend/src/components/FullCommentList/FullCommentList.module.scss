@@ -2,6 +2,7 @@
     color: var(--color-gray-500);
     font-size: 12px;
     height: 100%;
+    position: relative;
 
     > div::-webkit-scrollbar {
         display: none;
@@ -19,10 +20,10 @@
 }
 
 .noCommentsContainer {
-    margin-left: auto;
-    margin-right: auto;
-    padding-top: 50%;
+    left: 18%;
+    position: absolute;
     text-align: center;
+    top: 35%;
     width: 200px;
 
     h2 {
