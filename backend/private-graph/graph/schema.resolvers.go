@@ -335,7 +335,7 @@ func (r *mutationResolver) AddAdminToOrganization(ctx context.Context, organizat
 }
 
 func (r *mutationResolver) DeleteAdminFromOrganization(ctx context.Context, organizationID int, adminID int) (*int, error) {
-	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID); err != nil {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
 	admin, err := r.getCurrentAdmin(ctx)
@@ -358,7 +358,7 @@ func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, o
 		SLACK_CLIENT_ID     string
 		SLACK_CLIENT_SECRET string
 	)
-	org, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID)
+	org, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
