@@ -18,7 +18,6 @@ import (
 	"github.com/rs/cors"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/stripe/stripe-go/client"
-	"gorm.io/gorm"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
@@ -231,19 +230,6 @@ func main() {
 			}
 		})
 		r.Handle("/*", fileHandler)
-	}
-
-	// setup demo org if doesn't exist
-	if err := db.Model(&model.Organization{}).First(map[string]interface{}{"id": 0, "name": "demo"}).Error; err != nil {
-		if e.Is(err, gorm.ErrRecordNotFound) {
-			if err := db.Model(&model.Organization{}).Create(map[string]interface{}{"id": 0, "name": "demo"}).Error; err != nil {
-				log.Error(e.Wrap(err, "error creating demo org"))
-				// insert data here
-				// TODO: generate a bunch of data for this org, export it all, then import on org creation
-			}
-		} else {
-			log.Error(e.Wrap(err, "error fetching demo org"))
-		}
 	}
 
 	/*
