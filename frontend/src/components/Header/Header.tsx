@@ -169,7 +169,7 @@ const DemoWorkspaceBanner = ({ integrated }: Props) => {
     return (
         <div
             className={styles.trialWrapper}
-            style={{ cursor: 'pointer' }}
+            style={{ cursor: 'pointer', background: 'var(--color-green)' }}
             onClick={() => {
                 setHistory(
                     allApplications,
@@ -179,7 +179,10 @@ const DemoWorkspaceBanner = ({ integrated }: Props) => {
                 );
             }}
         >
-            <Banner className={styles.bannerSvg} />
+            <Banner
+                className={styles.bannerSvg}
+                style={{ fill: 'var(--color-green)' }}
+            />
             <div className={classNames(styles.trialTimeText)}>
                 Viewing Demo Workspace. Click to{' '}
                 {integrated ? 'Return to ' : 'Create '}
