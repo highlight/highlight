@@ -6,24 +6,11 @@
     display: flex;
     height: 32px;
     padding-bottom: var(--size-xxSmall);
-    padding-top: var(--size-xxSmall);
+    padding-top: var(--size-xxSmall) !important;
 
     &:hover,
     &:active,
     &:focus {
         border: 0;
-    }
-}
-
-.feedbackButtonMenu {
-    a {
-        color: var(--text-primary);
-    }
-
-    a,
-    button {
-        align-items: center;
-        column-gap: var(--size-xSmall);
-        display: flex !important;
     }
 }
