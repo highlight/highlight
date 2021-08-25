@@ -6,9 +6,14 @@ var (
 	env            = os.Getenv("ENVIRONMENT")
 	DEV_ENV        = "dev"
 	TEST_ENV       = "test"
+	PROD_ENV       = "prod"
 	ON_PREM        = os.Getenv("REACT_APP_ONPREM")
 	DOPPLER_CONFIG = os.Getenv("DOPPLER_CONFIG")
 )
+
+func IsProdEnv() bool {
+	return env == PROD_ENV
+}
 
 func IsDevEnv() bool {
 	return env == DEV_ENV

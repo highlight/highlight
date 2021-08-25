@@ -35,12 +35,13 @@ import (
 )
 
 var (
+	runtimeString      = "private-graph"
 	frontendURL        = os.Getenv("FRONTEND_URI")
 	staticFrontendPath = os.Getenv("ONPREM_STATIC_FRONTEND_PATH")
 	landingStagingURL  = os.Getenv("LANDING_PAGE_STAGING_URI")
 	sendgridKey        = os.Getenv("SENDGRID_API_KEY")
 	stripeApiKey       = os.Getenv("STRIPE_API_KEY")
-	runtime            = flag.String("runtime", "all", "the runtime of the backend; either 1) dev (all runtimes) 2) worker 3) public-graph 4) private-graph")
+	runtime            = &runtimeString
 )
 
 // we inject this value at build time for on-prem
@@ -174,9 +175,9 @@ func main() {
 	*/
 	if runtimeParsed == util.PrivateGraph || runtimeParsed == util.All {
 		privateEndpoint := "/private"
-		if runtimeParsed == util.PrivateGraph {
-			privateEndpoint = "/"
-		}
+		// if runtimeParsed == util.PrivateGraph {
+		// 	privateEndpoint = "/"
+		// }
 		r.Route(privateEndpoint, func(r chi.Router) {
 			r.Use(private.PrivateMiddleware)
 			privateServer := ghandler.NewDefaultServer(privategen.NewExecutableSchema(

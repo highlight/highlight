@@ -628,7 +628,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		port     = os.Getenv("PSQL_PORT")
 		username = os.Getenv("PSQL_USER")
 		password = os.Getenv("PSQL_PASSWORD")
-		sslmode  = "disable"
+		sslmode  = "require"
 	)
 
 	databaseURL, ok := os.LookupEnv("DATABASE_URL")
@@ -660,7 +660,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 
 	var err error
 
-	logLevel := logger.Silent
+	logLevel := logger.Info
 	if os.Getenv("HIGHLIGHT_DEBUG_MODE") == "blame-GARAGE-spike-typic-neckline-santiago-tore-keep-becalm-preach-fiber-pomade-escheat-crone-tasmania" {
 		logLevel = logger.Info
 	}
