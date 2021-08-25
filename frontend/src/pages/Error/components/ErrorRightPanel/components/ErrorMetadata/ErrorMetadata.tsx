@@ -13,7 +13,7 @@ interface Props {
 
 const ErrorMetadata = ({ errorGroup }: Props) => {
     const fieldsData: KeyValueTableRow[] = (
-        errorGroup?.error_group?.field_group || []
+        errorGroup?.error_group?.fields || []
     )
         .filter((field) => field?.name !== 'visited_url')
         .map((field) => ({
