@@ -17,13 +17,16 @@ const PersonalNotificationButton = () => {
     }
     const { slackUrl: slackBotUrl } = useSlackBot(redirectUrl);
 
-    if (!isHighlightAdmin || !!admin?.slack_im_channel_id !== null) return null;
+    if (!isHighlightAdmin) return null;
+
+    // personal notifications are already setup
+    if (!!admin?.slack_im_channel_id) return null;
 
     return (
         <Button
             className={styles.personalNotificationButton}
             type="primary"
-            trackingId="personalNotificationButton"
+            trackingId="EnablePersonalNotificationButton"
             href={slackBotUrl}
         >
             Enable Personal Notifications?
