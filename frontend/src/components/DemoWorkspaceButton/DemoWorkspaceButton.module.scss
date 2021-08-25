@@ -1,0 +1,26 @@
+.demoWorkspaceButton {
+    align-items: center;
+    background: var(--color-primary-inverted-background);
+    border: 0;
+    border-radius: var(--border-radius);
+    color: var(--color-primary-background);
+    column-gap: var(--size-xSmall);
+    display: flex;
+    height: var(--size-xLarge);
+    padding-bottom: var(--size-xxSmall);
+    padding-top: var(--size-xxSmall);
+
+    &:hover,
+    &:active,
+    &:focus {
+        background: var(--color-primary-inverted-background);
+        border: 0;
+        color: var(--color-primary-background);
+    }
+}
+
+.infoTooltip {
+    align-self: flex-start;
+    height: var(--size-medium);
+    width: var(--size-medium);
+}

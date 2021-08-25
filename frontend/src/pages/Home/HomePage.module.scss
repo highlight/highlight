@@ -75,3 +75,9 @@
 .composedChart {
     cursor: pointer !important;
 }
+
+.demoWorkspaceButton {
+    display: flex;
+    justify-content: center;
+    margin-top: var(--size-medium);
+}
