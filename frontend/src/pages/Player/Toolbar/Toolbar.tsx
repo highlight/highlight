@@ -18,7 +18,6 @@ import Skeleton from 'react-loading-skeleton';
 import { useAuthContext } from '../../../authentication/AuthContext';
 import Button from '../../../components/Button/Button/Button';
 import Modal from '../../../components/Modal/Modal';
-import Tooltip from '../../../components/Tooltip/Tooltip';
 import { ErrorObject } from '../../../graph/generated/schemas';
 import SvgFullscreenIcon from '../../../static/FullscreenIcon';
 import SvgMinimize2Icon from '../../../static/Minimize2Icon';
@@ -308,122 +307,99 @@ export const Toolbar = () => {
                 </div>
                 <div className={styles.toolbarSection}>
                     <div className={styles.toolbarLeftSection}>
-                        <Tooltip
-                            title={isPaused ? 'Play (space)' : 'Pause (space)'}
-                            align={{ offset: [8, 0] }}
+                        <button
+                            className={classNames(
+                                styles.undoSection,
+                                styles.button
+                            )}
+                            disabled={disableControls}
+                            onClick={() => {
+                                H.track('PlayerSkipBackwards');
+                                const newTime = getNewTimeWithSkip({
+                                    time,
+                                    direction: 'backwards',
+                                });
+                                if (isPaused) {
+                                    pause(newTime);
+                                } else {
+                                    play(newTime);
+                                }
+                            }}
                         >
-                            <div>
-                                <button
-                                    className={classNames(
-                                        styles.playSection,
-                                        styles.button
-                                    )}
-                                    disabled={
-                                        disableControls || disablePlayButton
-                                    }
-                                    onClick={() => {
-                                        H.track('Player Play/Pause Button');
-                                        if (isPaused) {
-                                            play(time);
-                                        } else {
-                                            pause(time);
-                                        }
-                                    }}
-                                >
-                                    {isPaused ? (
-                                        <SvgPlayIcon
-                                            fill="inherit"
-                                            className={classNames(
-                                                styles.playButtonStyle,
-                                                styles.icon
-                                            )}
-                                        />
-                                    ) : (
-                                        <SvgPauseIcon
-                                            fill="inherit"
-                                            className={classNames(
-                                                styles.playButtonStyle,
-                                                styles.icon
-                                            )}
-                                        />
-                                    )}
-                                </button>
-                            </div>
-                        </Tooltip>
+                            <SvgSkipBackIcon
+                                fill="inherit"
+                                className={classNames(
+                                    styles.skipButtonStyle,
+                                    styles.icon
+                                )}
+                            />
+                        </button>
 
-                        <Tooltip
-                            title="Skip 5 seconds backward (Left arrow)"
-                            align={{ offset: [12, 0] }}
+                        <button
+                            className={classNames(
+                                styles.playSection,
+                                styles.button
+                            )}
+                            disabled={disableControls || disablePlayButton}
+                            onClick={() => {
+                                H.track('Player Play/Pause Button');
+                                if (isPaused) {
+                                    play(time);
+                                } else {
+                                    pause(time);
+                                }
+                            }}
                         >
-                            <div>
-                                <button
+                            {isPaused ? (
+                                <SvgPlayIcon
+                                    fill="inherit"
                                     className={classNames(
-                                        styles.undoSection,
-                                        styles.button
+                                        styles.playButtonStyle,
+                                        styles.icon
                                     )}
-                                    disabled={disableControls}
-                                    onClick={() => {
-                                        H.track('PlayerSkipBackwards');
-                                        const newTime = getNewTimeWithSkip({
-                                            time,
-                                            direction: 'backwards',
-                                        });
-                                        if (isPaused) {
-                                            pause(newTime);
-                                        } else {
-                                            play(newTime);
-                                        }
-                                    }}
-                                >
-                                    <SvgSkipBackIcon
-                                        fill="inherit"
-                                        className={classNames(
-                                            styles.skipButtonStyle,
-                                            styles.icon
-                                        )}
-                                    />
-                                </button>
-                            </div>
-                        </Tooltip>
+                                />
+                            ) : (
+                                <SvgPauseIcon
+                                    fill="inherit"
+                                    className={classNames(
+                                        styles.playButtonStyle,
+                                        styles.icon
+                                    )}
+                                />
+                            )}
+                        </button>
 
-                        <Tooltip
-                            title="Skip 5 seconds forward (Right arrow)"
-                            align={{ offset: [12, 0] }}
+                        <button
+                            className={classNames(
+                                styles.redoSection,
+                                styles.button
+                            )}
+                            disabled={disableControls}
+                            onClick={() => {
+                                H.track('PlayerSkipForwards');
+                                const totalTime =
+                                    replayer?.getMetaData().totalTime ?? 0;
+                                const newTime = getNewTimeWithSkip({
+                                    time,
+                                    totalTime,
+                                    direction: 'forwards',
+                                });
+                                if (isPaused) {
+                                    pause(newTime);
+                                } else {
+                                    play(newTime);
+                                }
+                            }}
                         >
-                            <div>
-                                <button
-                                    className={classNames(
-                                        styles.redoSection,
-                                        styles.button
-                                    )}
-                                    disabled={disableControls}
-                                    onClick={() => {
-                                        H.track('PlayerSkipForwards');
-                                        const totalTime =
-                                            replayer?.getMetaData().totalTime ??
-                                            0;
-                                        const newTime = getNewTimeWithSkip({
-                                            time,
-                                            totalTime,
-                                            direction: 'forwards',
-                                        });
-                                        if (isPaused) {
-                                            pause(newTime);
-                                        } else {
-                                            play(newTime);
-                                        }
-                                    }}
-                                >
-                                    <SvgSkipForwardIcon
-                                        fill="inherit"
-                                        className={classNames(
-                                            styles.skipButtonStyle,
-                                            styles.icon
-                                        )}
-                                    />
-                                </button>
-                            </div>
-                        </Tooltip>
+                            <SvgSkipForwardIcon
+                                fill="inherit"
+                                className={classNames(
+                                    styles.skipButtonStyle,
+                                    styles.icon
+                                )}
+                            />
+                        </button>
+
                         <div className={styles.timeSection}>
                             {disableControls ? (
                                 <Skeleton count={1} width="100px" />
