@@ -1,4 +1,4 @@
-import DemoWorkspaceToggle from '@components/Header/components/DemoWorkspaceToggle/DemoWorkspaceToggle';
+import DemoWorkspaceButton from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import Lottie from 'lottie-react';
 import React from 'react';
 import { Link } from 'react-router-dom';
@@ -22,7 +22,7 @@ export const IntegrationCard = () => {
                 to detect installation.
             </p>
             <div className={styles.demoWorkspaceButton}>
-                <DemoWorkspaceToggle integrated={false} />
+                <DemoWorkspaceButton integrated={false} />
             </div>
         </FullBleedCard>
     );

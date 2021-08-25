@@ -1,4 +1,4 @@
-import DemoWorkspaceToggle from '@components/Header/components/DemoWorkspaceToggle/DemoWorkspaceToggle';
+import DemoWorkspaceButton from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { message } from 'antd';
 import classNames from 'classnames';
 import Lottie from 'lottie-react';
@@ -139,7 +139,7 @@ const HomePage = () => {
                                                     styles.demoWorkspaceButton
                                                 }
                                             >
-                                                <DemoWorkspaceToggle
+                                                <DemoWorkspaceButton
                                                     integrated={integrated}
                                                 />
                                             </div>
