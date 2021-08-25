@@ -1,5 +1,6 @@
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import {
+    changeSession,
     findNextSessionInList,
     findPreviousSessionInList,
 } from '@pages/Player/PlayerHook/utils';
@@ -186,20 +187,11 @@ export const usePlayerKeyboardShortcuts = () => {
                 H.track('PlayerSkipToNextSessionKeyboardShortcut');
                 moveFocusToDocument(e);
 
-                const nextSessionId = findNextSessionInList(
+                const nextSession = findNextSessionInList(
                     sessionResults.sessions,
                     session_id
                 );
-
-                if (!nextSessionId) {
-                    message.success('No more sessions to play.');
-                    return;
-                }
-
-                history.push(
-                    `/${organization_id}/sessions/${sessionResults.sessions[nextSessionId].id}`
-                );
-                message.success('Playing the next session.');
+                changeSession(organization_id, history, nextSession);
             }
         },
         [session_id, sessionResults]
@@ -212,20 +204,16 @@ export const usePlayerKeyboardShortcuts = () => {
                 H.track('PlayerSkipToPreviousSessionKeyboardShortcut');
                 moveFocusToDocument(e);
 
-                const nextSessionId = findPreviousSessionInList(
+                const nextSession = findPreviousSessionInList(
                     sessionResults.sessions,
                     session_id
                 );
-
-                if (nextSessionId === null) {
-                    message.success('No more sessions to play.');
-                    return;
-                }
-
-                history.push(
-                    `/${organization_id}/sessions/${sessionResults.sessions[nextSessionId].id}`
+                changeSession(
+                    organization_id,
+                    history,
+                    nextSession,
+                    'Playing the previous session.'
                 );
-                message.success('Playing the previous session.');
             }
         },
         [session_id, sessionResults]

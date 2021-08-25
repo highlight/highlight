@@ -14,6 +14,7 @@ import { H } from 'highlight.run';
 import React, { useEffect, useRef, useState } from 'react';
 import Draggable from 'react-draggable';
 import Skeleton from 'react-loading-skeleton';
+import { useHistory, useParams } from 'react-router-dom';
 
 import { useAuthContext } from '../../../authentication/AuthContext';
 import Button from '../../../components/Button/Button/Button';
@@ -30,7 +31,13 @@ import {
     MillisToMinutesAndSecondsVerbose,
 } from '../../../util/time';
 import { usePlayerUIContext } from '../context/PlayerUIContext';
-import { EventsForTimeline, EventsForTimelineKeys } from '../PlayerHook/utils';
+import {
+    changeSession,
+    EventsForTimeline,
+    EventsForTimelineKeys,
+    findNextSessionInList,
+    findPreviousSessionInList,
+} from '../PlayerHook/utils';
 import usePlayerConfiguration from '../PlayerHook/utils/usePlayerConfiguration';
 import { PlayerPageProductTourSelectors } from '../PlayerPageProductTour/PlayerPageProductTour';
 import {
@@ -39,10 +46,7 @@ import {
     ReplayerState,
     useReplayerContext,
 } from '../ReplayerContext';
-import {
-    getNewTimeWithSkip,
-    usePlayerKeyboardShortcuts,
-} from '../utils/PlayerHooks';
+import { usePlayerKeyboardShortcuts } from '../utils/PlayerHooks';
 import { DevToolsContextProvider } from './DevToolsContext/DevToolsContext';
 import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
 import ErrorModal from './DevToolsWindow/ErrorsPage/components/ErrorModal/ErrorModal';
@@ -61,6 +65,7 @@ export const Toolbar = () => {
         sessionIntervals,
         canViewSession,
         isPlayerReady,
+        sessionResults,
     } = useReplayerContext();
     usePlayerKeyboardShortcuts();
     const {
@@ -74,8 +79,13 @@ export const Toolbar = () => {
         setAutoPlayVideo,
         enableInspectElement,
     } = usePlayerConfiguration();
+    const history = useHistory();
     const toolbarItems = useToolbarItems();
     const { isLoggedIn } = useAuthContext();
+    const { session_id, organization_id } = useParams<{
+        session_id: string;
+        organization_id: string;
+    }>();
     const { setIsPlayerFullscreen, isPlayerFullscreen } = usePlayerUIContext();
     const max = replayer?.getMetaData().totalTime ?? 0;
     const sliderWrapperRef = useRef<HTMLButtonElement>(null);
@@ -312,18 +322,18 @@ export const Toolbar = () => {
                                 styles.undoSection,
                                 styles.button
                             )}
-                            disabled={disableControls}
                             onClick={() => {
-                                H.track('PlayerSkipBackwards');
-                                const newTime = getNewTimeWithSkip({
-                                    time,
-                                    direction: 'backwards',
-                                });
-                                if (isPaused) {
-                                    pause(newTime);
-                                } else {
-                                    play(newTime);
-                                }
+                                H.track('PlayerSkipToPreviousSession');
+                                const nextSession = findPreviousSessionInList(
+                                    sessionResults.sessions,
+                                    session_id
+                                );
+                                changeSession(
+                                    organization_id,
+                                    history,
+                                    nextSession,
+                                    'Playing the previous session.'
+                                );
                             }}
                         >
                             <SvgSkipBackIcon
@@ -374,21 +384,18 @@ export const Toolbar = () => {
                                 styles.redoSection,
                                 styles.button
                             )}
-                            disabled={disableControls}
                             onClick={() => {
-                                H.track('PlayerSkipForwards');
-                                const totalTime =
-                                    replayer?.getMetaData().totalTime ?? 0;
-                                const newTime = getNewTimeWithSkip({
-                                    time,
-                                    totalTime,
-                                    direction: 'forwards',
-                                });
-                                if (isPaused) {
-                                    pause(newTime);
-                                } else {
-                                    play(newTime);
-                                }
+                                H.track('PlayerSkipToNextSession');
+
+                                const nextSession = findNextSessionInList(
+                                    sessionResults.sessions,
+                                    session_id
+                                );
+                                changeSession(
+                                    organization_id,
+                                    history,
+                                    nextSession
+                                );
                             }}
                         >
                             <SvgSkipForwardIcon

@@ -4,6 +4,8 @@ import {
     playerMetaData,
     SessionInterval,
 } from '@highlight-run/rrweb/dist/types';
+import { message } from 'antd';
+import * as H from 'history';
 import { useCallback, useState } from 'react';
 import { useLocation } from 'react-router';
 
@@ -289,7 +291,7 @@ const assignEventToSessionInterval = (
 export const findNextSessionInList = (
     allSessions: Session[],
     currentSessionId: string
-): number | null => {
+): Session | null => {
     let currentSessionIndex = allSessions.findIndex(
         (session) => session.id === currentSessionId
     );
@@ -306,20 +308,20 @@ export const findNextSessionInList = (
         return null;
     }
 
-    return nextSessionIndex;
+    return allSessions[nextSessionIndex];
 };
 
 export const findPreviousSessionInList = (
     allSessions: Session[],
     currentSessionId: string
-): number | null => {
+): Session | null => {
     const currentSessionIndex = allSessions.findIndex(
         (session) => session.id === currentSessionId
     );
 
     // This happens if the current session was removed from the session feed.
     if (currentSessionIndex < 0) {
-        return 0;
+        return allSessions[0];
     }
 
     const nextSessionIndex = currentSessionIndex - 1;
@@ -329,5 +331,20 @@ export const findPreviousSessionInList = (
         return null;
     }
 
-    return nextSessionIndex;
+    return allSessions[nextSessionIndex];
+};
+
+export const changeSession = (
+    organizationId: string,
+    history: H.History,
+    session: Session | null,
+    successMessageText = 'Playing the next session.'
+) => {
+    if (!session) {
+        message.success('No more sessions to play.');
+        return;
+    }
+
+    history.push(`/${organizationId}/sessions/${session.id}`);
+    message.success(successMessageText);
 };
