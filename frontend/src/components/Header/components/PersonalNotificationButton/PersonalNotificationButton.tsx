@@ -20,7 +20,7 @@ const PersonalNotificationButton = () => {
     if (!isHighlightAdmin) return null;
 
     // personal notifications are already setup
-    if (!!!admin?.slack_im_channel_id) return null;
+    if (!!admin?.slack_im_channel_id) return null;
 
     return (
         <Button
