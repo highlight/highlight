@@ -182,6 +182,14 @@ const DemoWorkspaceBanner = ({ integrated }: Props) => {
             <Banner
                 className={styles.bannerSvg}
                 style={{ fill: 'var(--color-green)' }}
+                onClick={() => {
+                    setHistory(
+                        allApplications,
+                        currentApplication,
+                        history,
+                        pathname
+                    );
+                }}
             />
             <div className={classNames(styles.trialTimeText)}>
                 Viewing Demo Workspace. Click to{' '}
