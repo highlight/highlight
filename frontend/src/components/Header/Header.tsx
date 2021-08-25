@@ -15,18 +15,13 @@ import { isOrganizationWithinTrial } from '../../util/billing/billing';
 import { HighlightLogo } from '../HighlightLogo/HighlightLogo';
 import { CommandBar } from './CommandBar/CommandBar';
 import ApplicationPicker from './components/ApplicationPicker/ApplicationPicker';
-import DemoWorkspaceToggle from './components/DemoWorkspaceToggle/DemoWorkspaceToggle';
 import FeedbackButton from './components/FeedbackButton/FeedbackButton';
 import HeaderActions from './components/HeaderActions';
 import PersonalNotificationButton from './components/PersonalNotificationButton/PersonalNotificationButton';
 import styles from './Header.module.scss';
 import { UserDropdown } from './UserDropdown/UserDropdown';
 
-interface Props {
-    integrated: boolean;
-}
-
-export const Header = ({ integrated }: Props) => {
+export const Header = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { isLoggedIn } = useAuthContext();
 
@@ -38,11 +33,8 @@ export const Header = ({ integrated }: Props) => {
                     [styles.guest]: !isLoggedIn,
                 })}
             >
-                {process.env.REACT_APP_ONPREM === 'true' ? (
-                    <OnPremiseBanner />
-                ) : (
-                    <FreePlanBanner />
-                )}
+                {getBanner(organization_id)}
+
                 <div className={styles.headerContent}>
                     {isLoggedIn ? (
                         <div className={styles.applicationPickerContainer}>
@@ -59,10 +51,6 @@ export const Header = ({ integrated }: Props) => {
                         </div>
                     )}
 
-                    <div className={styles.demoWorkspaceContainer}>
-                        <DemoWorkspaceToggle integrated={integrated} />
-                    </div>
-
                     <div className={styles.rightHeader}>
                         <HeaderActions />
                         <PersonalNotificationButton />
@@ -73,6 +61,16 @@ export const Header = ({ integrated }: Props) => {
             </div>
         </>
     );
+};
+
+const getBanner = (organization_id: string) => {
+    if (process.env.REACT_APP_ENV === 'true') {
+        return <OnPremiseBanner />;
+    } else if (organization_id === '0') {
+        return <DemoWorkspaceBanner />;
+    } else {
+        return <FreePlanBanner />;
+    }
 };
 
 const FreePlanBanner = () => {
@@ -142,7 +140,7 @@ const OnPremiseBanner = () => {
         <div
             className={styles.trialWrapper}
             style={{
-                backgroundColor: 'var(--color-primary-inverted-background',
+                backgroundColor: 'var(--color-primary-inverted-background)',
             }}
         >
             <Banner
@@ -152,6 +150,17 @@ const OnPremiseBanner = () => {
             <div className={classNames(styles.trialTimeText)}>
                 Running Highlight On-premise{' '}
                 {`v${process.env.REACT_APP_COMMIT_SHA}`}
+            </div>
+        </div>
+    );
+};
+
+const DemoWorkspaceBanner = () => {
+    return (
+        <div className={styles.trialWrapper}>
+            <Banner className={styles.bannerSvg} />
+            <div className={classNames(styles.trialTimeText)}>
+                Viewing Demo Workspace{' '}
             </div>
         </div>
     );
