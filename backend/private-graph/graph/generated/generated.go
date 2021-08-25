@@ -116,7 +116,7 @@ type ComplexityRoot struct {
 	ErrorGroup struct {
 		Environments     func(childComplexity int) int
 		Event            func(childComplexity int) int
-		FieldGroup       func(childComplexity int) int
+		Fields           func(childComplexity int) int
 		ID               func(childComplexity int) int
 		MappedStackTrace func(childComplexity int) int
 		MetadataLog      func(childComplexity int) int
@@ -140,10 +140,10 @@ type ComplexityRoot struct {
 		ColumnNumber   func(childComplexity int) int
 		ErrorGroupID   func(childComplexity int) int
 		Event          func(childComplexity int) int
+		Fields         func(childComplexity int) int
 		ID             func(childComplexity int) int
 		LineNumber     func(childComplexity int) int
 		OrganizationID func(childComplexity int) int
-		Payload        func(childComplexity int) int
 		SessionID      func(childComplexity int) int
 		Source         func(childComplexity int) int
 		StackTrace     func(childComplexity int) int
@@ -432,7 +432,6 @@ type ErrorGroupResolver interface {
 	StackTrace(ctx context.Context, obj *model1.ErrorGroup) ([]*model.ErrorTrace, error)
 	MetadataLog(ctx context.Context, obj *model1.ErrorGroup) ([]*model.ErrorMetadata, error)
 
-	FieldGroup(ctx context.Context, obj *model1.ErrorGroup) ([]*model1.ErrorField, error)
 	State(ctx context.Context, obj *model1.ErrorGroup) (model.ErrorState, error)
 }
 type ErrorObjectResolver interface {
@@ -789,12 +788,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorGroup.Event(childComplexity), true
 
-	case "ErrorGroup.field_group":
-		if e.complexity.ErrorGroup.FieldGroup == nil {
+	case "ErrorGroup.fields":
+		if e.complexity.ErrorGroup.Fields == nil {
 			break
 		}
 
-		return e.complexity.ErrorGroup.FieldGroup(childComplexity), true
+		return e.complexity.ErrorGroup.Fields(childComplexity), true
 
 	case "ErrorGroup.id":
 		if e.complexity.ErrorGroup.ID == nil {
@@ -915,6 +914,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorObject.Event(childComplexity), true
 
+	case "ErrorObject.fields":
+		if e.complexity.ErrorObject.Fields == nil {
+			break
+		}
+
+		return e.complexity.ErrorObject.Fields(childComplexity), true
+
 	case "ErrorObject.id":
 		if e.complexity.ErrorObject.ID == nil {
 			break
@@ -935,13 +941,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorObject.OrganizationID(childComplexity), true
-
-	case "ErrorObject.payload":
-		if e.complexity.ErrorObject.Payload == nil {
-			break
-		}
-
-		return e.complexity.ErrorObject.Payload(childComplexity), true
 
 	case "ErrorObject.session_id":
 		if e.complexity.ErrorObject.SessionID == nil {
@@ -2842,11 +2841,17 @@ type ErrorObject {
     columnNumber: Int
     stack_trace: [Any]
     timestamp: Time
-    payload: String
+    fields: [ErrorField]
 }
 
 type ErrorField {
     organization_id: Int
+    name: String!
+    value: String!
+}
+
+input FieldInput {
+    id: ID
     name: String!
     value: String!
 }
@@ -2859,9 +2864,9 @@ type ErrorGroup {
     stack_trace: [ErrorTrace]!
     metadata_log: [ErrorMetadata]!
     mapped_stack_trace: String
-    field_group: [ErrorField]
     state: ErrorState!
     environments: String
+    fields: [ErrorField]
 }
 
 type ErrorMetadata {
@@ -2948,6 +2953,7 @@ input ErrorSearchParamsInput {
     visited_url: String
     state: ErrorState
     event: String
+    payload_fields: [FieldInput]
 }
 
 type ErrorSearchParams {
@@ -6421,38 +6427,6 @@ func (ec *executionContext) _ErrorGroup_mapped_stack_trace(ctx context.Context, 
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ErrorGroup_field_group(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ErrorGroup",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ErrorGroup().FieldGroup(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*model1.ErrorField)
-	fc.Result = res
-	return ec.marshalOErrorField2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorField(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _ErrorGroup_state(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -6518,6 +6492,38 @@ func (ec *executionContext) _ErrorGroup_environments(ctx context.Context, field 
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorGroup_fields(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ErrorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Fields, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.ErrorField)
+	fc.Result = res
+	return ec.marshalOErrorField2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorField(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorMetadata_error_id(ctx context.Context, field graphql.CollectedField, obj *model.ErrorMetadata) (ret graphql.Marshaler) {
@@ -7158,7 +7164,7 @@ func (ec *executionContext) _ErrorObject_timestamp(ctx context.Context, field gr
 	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ErrorObject_payload(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
+func (ec *executionContext) _ErrorObject_fields(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7176,7 +7182,7 @@ func (ec *executionContext) _ErrorObject_payload(ctx context.Context, field grap
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Payload, nil
+		return obj.Fields, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7185,9 +7191,9 @@ func (ec *executionContext) _ErrorObject_payload(ctx context.Context, field grap
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.([]*model1.ErrorField)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOErrorField2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorField(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorResults_error_groups(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorResults) (ret graphql.Marshaler) {
@@ -15284,6 +15290,50 @@ func (ec *executionContext) unmarshalInputErrorSearchParamsInput(ctx context.Con
 			if err != nil {
 				return it, err
 			}
+		case "payload_fields":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("payload_fields"))
+			it.PayloadFields, err = ec.unmarshalOFieldInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐFieldInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputFieldInput(ctx context.Context, obj interface{}) (model.FieldInput, error) {
+	var it model.FieldInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalOID2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+			it.Value, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -16023,17 +16073,6 @@ func (ec *executionContext) _ErrorGroup(ctx context.Context, sel ast.SelectionSe
 			})
 		case "mapped_stack_trace":
 			out.Values[i] = ec._ErrorGroup_mapped_stack_trace(ctx, field, obj)
-		case "field_group":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._ErrorGroup_field_group(ctx, field, obj)
-				return res
-			})
 		case "state":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -16050,6 +16089,8 @@ func (ec *executionContext) _ErrorGroup(ctx context.Context, sel ast.SelectionSe
 			})
 		case "environments":
 			out.Values[i] = ec._ErrorGroup_environments(ctx, field, obj)
+		case "fields":
+			out.Values[i] = ec._ErrorGroup_fields(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -16180,8 +16221,8 @@ func (ec *executionContext) _ErrorObject(ctx context.Context, sel ast.SelectionS
 			})
 		case "timestamp":
 			out.Values[i] = ec._ErrorObject_timestamp(ctx, field, obj)
-		case "payload":
-			out.Values[i] = ec._ErrorObject_payload(ctx, field, obj)
+		case "fields":
+			out.Values[i] = ec._ErrorObject_fields(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -19591,6 +19632,38 @@ func (ec *executionContext) marshalOField2ᚖgithubᚗcomᚋhighlightᚑrunᚋhi
 		return graphql.Null
 	}
 	return ec._Field(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOFieldInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐFieldInput(ctx context.Context, v interface{}) ([]*model.FieldInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*model.FieldInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOFieldInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐFieldInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOFieldInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐFieldInput(ctx context.Context, v interface{}) (*model.FieldInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputFieldInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOFloat2float64(ctx context.Context, v interface{}) (float64, error) {
