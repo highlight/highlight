@@ -198,15 +198,12 @@ func ErrorInputToParams(params *modelInputs.ErrorSearchParamsInput) *model.Error
 
 func (r *Resolver) isAdminErrorGroupOwner(ctx context.Context, errorGroupID int) (*model.ErrorGroup, error) {
 	errorGroup := &model.ErrorGroup{}
-	if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: errorGroupID}}).First(&errorGroup).Error; err != nil {
+	if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: errorGroupID}}).Preload("Fields", "NOT name = ?", "event").First(&errorGroup).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session")
 	}
 	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, errorGroup.OrganizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "error validating admin in organization")
-	}
-	if err := r.DB.Model(errorGroup).Association("Fields").Find(&errorGroup.Fields); err != nil {
-		return nil, e.Wrap(err, "error fetching error fields for error group")
 	}
 	return errorGroup, nil
 }
