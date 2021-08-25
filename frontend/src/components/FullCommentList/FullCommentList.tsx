@@ -24,8 +24,6 @@ const FullCommentList = ({
             {loading && (
                 <>
                     <Skeleton className={styles.skeleton} />
-                    <Skeleton className={styles.skeleton} />
-                    <Skeleton className={styles.skeleton} />
                 </>
             )}
             {!loading && comments.length === 0 ? (
