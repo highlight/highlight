@@ -2,7 +2,7 @@ import useLocalStorage from '@rehooks/local-storage';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { useAuthContext } from '../AuthContext';
+import { useAuthContext } from '../authentication/AuthContext';
 import { useIsIntegratedLazyQuery } from '../graph/generated/hooks';
 
 export const useIntegrated = (): { integrated: boolean; loading: boolean } => {

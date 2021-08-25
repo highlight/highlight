@@ -55,10 +55,11 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Admin struct {
-		Email    func(childComplexity int) int
-		ID       func(childComplexity int) int
-		Name     func(childComplexity int) int
-		PhotoURL func(childComplexity int) int
+		Email            func(childComplexity int) int
+		ID               func(childComplexity int) int
+		Name             func(childComplexity int) int
+		PhotoURL         func(childComplexity int) int
+		SlackIMChannelID func(childComplexity int) int
 	}
 
 	AverageSessionLength struct {
@@ -113,15 +114,16 @@ type ComplexityRoot struct {
 	}
 
 	ErrorGroup struct {
-		Environments   func(childComplexity int) int
-		Event          func(childComplexity int) int
-		Fields         func(childComplexity int) int
-		ID             func(childComplexity int) int
-		MetadataLog    func(childComplexity int) int
-		OrganizationID func(childComplexity int) int
-		StackTrace     func(childComplexity int) int
-		State          func(childComplexity int) int
-		Type           func(childComplexity int) int
+		Environments     func(childComplexity int) int
+		Event            func(childComplexity int) int
+		FieldGroup       func(childComplexity int) int
+		ID               func(childComplexity int) int
+		MappedStackTrace func(childComplexity int) int
+		MetadataLog      func(childComplexity int) int
+		OrganizationID   func(childComplexity int) int
+		StackTrace       func(childComplexity int) int
+		State            func(childComplexity int) int
+		Type             func(childComplexity int) int
 	}
 
 	ErrorMetadata struct {
@@ -138,10 +140,10 @@ type ComplexityRoot struct {
 		ColumnNumber   func(childComplexity int) int
 		ErrorGroupID   func(childComplexity int) int
 		Event          func(childComplexity int) int
-		Fields         func(childComplexity int) int
 		ID             func(childComplexity int) int
 		LineNumber     func(childComplexity int) int
 		OrganizationID func(childComplexity int) int
+		Payload        func(childComplexity int) int
 		SessionID      func(childComplexity int) int
 		Source         func(childComplexity int) int
 		StackTrace     func(childComplexity int) int
@@ -212,6 +214,7 @@ type ComplexityRoot struct {
 		EmailSignup                      func(childComplexity int, email string) int
 		MarkSessionAsStarred             func(childComplexity int, id int, starred *bool) int
 		MarkSessionAsViewed              func(childComplexity int, id int, viewed *bool) int
+		OpenSlackConversation            func(childComplexity int, organizationID int, code string, redirectPath string) int
 		SendAdminInvite                  func(childComplexity int, organizationID int, email string, baseURL string) int
 		UpdateBillingDetails             func(childComplexity int, organizationID int) int
 		UpdateErrorAlert                 func(childComplexity int, organizationID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
@@ -428,6 +431,8 @@ type ErrorGroupResolver interface {
 	Event(ctx context.Context, obj *model1.ErrorGroup) ([]*string, error)
 	StackTrace(ctx context.Context, obj *model1.ErrorGroup) ([]*model.ErrorTrace, error)
 	MetadataLog(ctx context.Context, obj *model1.ErrorGroup) ([]*model.ErrorMetadata, error)
+
+	FieldGroup(ctx context.Context, obj *model1.ErrorGroup) ([]*model1.ErrorField, error)
 	State(ctx context.Context, obj *model1.ErrorGroup) (model.ErrorState, error)
 }
 type ErrorObjectResolver interface {
@@ -462,6 +467,7 @@ type MutationResolver interface {
 	DeleteSessionComment(ctx context.Context, id int) (*bool, error)
 	CreateErrorComment(ctx context.Context, organizationID int, errorGroupID int, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, errorURL string, authorName string) (*model1.ErrorComment, error)
 	DeleteErrorComment(ctx context.Context, id int) (*bool, error)
+	OpenSlackConversation(ctx context.Context, organizationID int, code string, redirectPath string) (*bool, error)
 	UpdateErrorAlert(ctx context.Context, organizationID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.ErrorAlert, error)
 	UpdateNewUserAlert(ctx context.Context, organizationID int, sessionAlertID int, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.SessionAlert, error)
 	UpdateTrackPropertiesAlert(ctx context.Context, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, trackProperties []*model.TrackPropertyInput) (*model1.SessionAlert, error)
@@ -572,6 +578,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Admin.PhotoURL(childComplexity), true
+
+	case "Admin.slack_im_channel_id":
+		if e.complexity.Admin.SlackIMChannelID == nil {
+			break
+		}
+
+		return e.complexity.Admin.SlackIMChannelID(childComplexity), true
 
 	case "AverageSessionLength.length":
 		if e.complexity.AverageSessionLength.Length == nil {
@@ -776,12 +789,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorGroup.Event(childComplexity), true
 
-	case "ErrorGroup.fields":
-		if e.complexity.ErrorGroup.Fields == nil {
+	case "ErrorGroup.field_group":
+		if e.complexity.ErrorGroup.FieldGroup == nil {
 			break
 		}
 
-		return e.complexity.ErrorGroup.Fields(childComplexity), true
+		return e.complexity.ErrorGroup.FieldGroup(childComplexity), true
 
 	case "ErrorGroup.id":
 		if e.complexity.ErrorGroup.ID == nil {
@@ -789,6 +802,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorGroup.ID(childComplexity), true
+
+	case "ErrorGroup.mapped_stack_trace":
+		if e.complexity.ErrorGroup.MappedStackTrace == nil {
+			break
+		}
+
+		return e.complexity.ErrorGroup.MappedStackTrace(childComplexity), true
 
 	case "ErrorGroup.metadata_log":
 		if e.complexity.ErrorGroup.MetadataLog == nil {
@@ -895,13 +915,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorObject.Event(childComplexity), true
 
-	case "ErrorObject.fields":
-		if e.complexity.ErrorObject.Fields == nil {
-			break
-		}
-
-		return e.complexity.ErrorObject.Fields(childComplexity), true
-
 	case "ErrorObject.id":
 		if e.complexity.ErrorObject.ID == nil {
 			break
@@ -922,6 +935,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorObject.OrganizationID(childComplexity), true
+
+	case "ErrorObject.payload":
+		if e.complexity.ErrorObject.Payload == nil {
+			break
+		}
+
+		return e.complexity.ErrorObject.Payload(childComplexity), true
 
 	case "ErrorObject.session_id":
 		if e.complexity.ErrorObject.SessionID == nil {
@@ -1365,6 +1385,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.MarkSessionAsViewed(childComplexity, args["id"].(int), args["viewed"].(*bool)), true
+
+	case "Mutation.openSlackConversation":
+		if e.complexity.Mutation.OpenSlackConversation == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_openSlackConversation_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.OpenSlackConversation(childComplexity, args["organization_id"].(int), args["code"].(string), args["redirect_path"].(string)), true
 
 	case "Mutation.sendAdminInvite":
 		if e.complexity.Mutation.SendAdminInvite == nil {
@@ -2810,17 +2842,11 @@ type ErrorObject {
     columnNumber: Int
     stack_trace: [Any]
     timestamp: Time
-    fields: [ErrorField]
+    payload: String
 }
 
 type ErrorField {
     organization_id: Int
-    name: String!
-    value: String!
-}
-
-input FieldInput {
-    id: ID
     name: String!
     value: String!
 }
@@ -2832,9 +2858,10 @@ type ErrorGroup {
     event: [String]!
     stack_trace: [ErrorTrace]!
     metadata_log: [ErrorMetadata]!
+    mapped_stack_trace: String
+    field_group: [ErrorField]
     state: ErrorState!
     environments: String
-    fields: [ErrorField]
 }
 
 type ErrorMetadata {
@@ -2921,7 +2948,6 @@ input ErrorSearchParamsInput {
     visited_url: String
     state: ErrorState
     event: String
-    payload_fields: [FieldInput]
 }
 
 type ErrorSearchParams {
@@ -2944,13 +2970,13 @@ input DateRangeInput {
 }
 
 type LengthRange {
-    min: Int
-    max: Int
+    min: Float
+    max: Float
 }
 
 input LengthRangeInput {
-    min: Int
-    max: Int
+    min: Float
+    max: Float
 }
 
 type UserProperty {
@@ -2974,6 +3000,7 @@ type Admin {
     name: String!
     email: String!
     photo_url: String
+    slack_im_channel_id: String
 }
 
 # A subset of Admin. This type will contain fields that are allowed to be exposed to other users.
@@ -3240,6 +3267,11 @@ type Mutation {
         author_name: String!
     ): ErrorComment
     deleteErrorComment(id: ID!): Boolean
+    openSlackConversation(
+        organization_id: ID!
+        code: String!
+        redirect_path: String!
+    ): Boolean
     updateErrorAlert(
         organization_id: ID!
         error_alert_id: ID!
@@ -3882,6 +3914,39 @@ func (ec *executionContext) field_Mutation_markSessionAsViewed_args(ctx context.
 		}
 	}
 	args["viewed"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_openSlackConversation_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organization_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["code"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("code"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["code"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["redirect_path"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("redirect_path"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["redirect_path"] = arg2
 	return args, nil
 }
 
@@ -5149,6 +5214,38 @@ func (ec *executionContext) _Admin_photo_url(ctx context.Context, field graphql.
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Admin_slack_im_channel_id(ctx context.Context, field graphql.CollectedField, obj *model1.Admin) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Admin",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SlackIMChannelID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _AverageSessionLength_length(ctx context.Context, field graphql.CollectedField, obj *model.AverageSessionLength) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -6292,6 +6389,70 @@ func (ec *executionContext) _ErrorGroup_metadata_log(ctx context.Context, field 
 	return ec.marshalNErrorMetadata2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorMetadata(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _ErrorGroup_mapped_stack_trace(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ErrorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MappedStackTrace, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorGroup_field_group(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ErrorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ErrorGroup().FieldGroup(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.ErrorField)
+	fc.Result = res
+	return ec.marshalOErrorField2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorField(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _ErrorGroup_state(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -6357,38 +6518,6 @@ func (ec *executionContext) _ErrorGroup_environments(ctx context.Context, field 
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalOString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ErrorGroup_fields(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ErrorGroup",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Fields, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*model1.ErrorField)
-	fc.Result = res
-	return ec.marshalOErrorField2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorField(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorMetadata_error_id(ctx context.Context, field graphql.CollectedField, obj *model.ErrorMetadata) (ret graphql.Marshaler) {
@@ -7029,7 +7158,7 @@ func (ec *executionContext) _ErrorObject_timestamp(ctx context.Context, field gr
 	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ErrorObject_fields(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
+func (ec *executionContext) _ErrorObject_payload(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -7047,7 +7176,7 @@ func (ec *executionContext) _ErrorObject_fields(ctx context.Context, field graph
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Fields, nil
+		return obj.Payload, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7056,9 +7185,9 @@ func (ec *executionContext) _ErrorObject_fields(ctx context.Context, field graph
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*model1.ErrorField)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOErrorField2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorField(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorResults_error_groups(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorResults) (ret graphql.Marshaler) {
@@ -7787,9 +7916,9 @@ func (ec *executionContext) _LengthRange_min(ctx context.Context, field graphql.
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(float64)
 	fc.Result = res
-	return ec.marshalOInt2int(ctx, field.Selections, res)
+	return ec.marshalOFloat2float64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _LengthRange_max(ctx context.Context, field graphql.CollectedField, obj *model1.LengthRange) (ret graphql.Marshaler) {
@@ -7819,9 +7948,9 @@ func (ec *executionContext) _LengthRange_max(ctx context.Context, field graphql.
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(float64)
 	fc.Result = res
-	return ec.marshalOInt2int(ctx, field.Selections, res)
+	return ec.marshalOFloat2float64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createOrganization(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -8711,6 +8840,45 @@ func (ec *executionContext) _Mutation_deleteErrorComment(ctx context.Context, fi
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().DeleteErrorComment(rctx, args["id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_openSlackConversation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_openSlackConversation_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().OpenSlackConversation(rctx, args["organization_id"].(int), args["code"].(string), args["redirect_path"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15116,50 +15284,6 @@ func (ec *executionContext) unmarshalInputErrorSearchParamsInput(ctx context.Con
 			if err != nil {
 				return it, err
 			}
-		case "payload_fields":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("payload_fields"))
-			it.PayloadFields, err = ec.unmarshalOFieldInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐFieldInput(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputFieldInput(ctx context.Context, obj interface{}) (model.FieldInput, error) {
-	var it model.FieldInput
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "id":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalOID2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "name":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "value":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
-			it.Value, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		}
 	}
 
@@ -15176,7 +15300,7 @@ func (ec *executionContext) unmarshalInputLengthRangeInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("min"))
-			it.Min, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			it.Min, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15184,7 +15308,7 @@ func (ec *executionContext) unmarshalInputLengthRangeInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("max"))
-			it.Max, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			it.Max, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15490,6 +15614,8 @@ func (ec *executionContext) _Admin(ctx context.Context, sel ast.SelectionSet, ob
 			}
 		case "photo_url":
 			out.Values[i] = ec._Admin_photo_url(ctx, field, obj)
+		case "slack_im_channel_id":
+			out.Values[i] = ec._Admin_slack_im_channel_id(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -15895,6 +16021,19 @@ func (ec *executionContext) _ErrorGroup(ctx context.Context, sel ast.SelectionSe
 				}
 				return res
 			})
+		case "mapped_stack_trace":
+			out.Values[i] = ec._ErrorGroup_mapped_stack_trace(ctx, field, obj)
+		case "field_group":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ErrorGroup_field_group(ctx, field, obj)
+				return res
+			})
 		case "state":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -15911,8 +16050,6 @@ func (ec *executionContext) _ErrorGroup(ctx context.Context, sel ast.SelectionSe
 			})
 		case "environments":
 			out.Values[i] = ec._ErrorGroup_environments(ctx, field, obj)
-		case "fields":
-			out.Values[i] = ec._ErrorGroup_fields(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -16043,8 +16180,8 @@ func (ec *executionContext) _ErrorObject(ctx context.Context, sel ast.SelectionS
 			})
 		case "timestamp":
 			out.Values[i] = ec._ErrorObject_timestamp(ctx, field, obj)
-		case "fields":
-			out.Values[i] = ec._ErrorObject_fields(ctx, field, obj)
+		case "payload":
+			out.Values[i] = ec._ErrorObject_payload(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -16334,6 +16471,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_createErrorComment(ctx, field)
 		case "deleteErrorComment":
 			out.Values[i] = ec._Mutation_deleteErrorComment(ctx, field)
+		case "openSlackConversation":
+			out.Values[i] = ec._Mutation_openSlackConversation(ctx, field)
 		case "updateErrorAlert":
 			out.Values[i] = ec._Mutation_updateErrorAlert(ctx, field)
 		case "updateNewUserAlert":
@@ -19454,36 +19593,28 @@ func (ec *executionContext) marshalOField2ᚖgithubᚗcomᚋhighlightᚑrunᚋhi
 	return ec._Field(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOFieldInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐFieldInput(ctx context.Context, v interface{}) ([]*model.FieldInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []interface{}
-	if v != nil {
-		if tmp1, ok := v.([]interface{}); ok {
-			vSlice = tmp1
-		} else {
-			vSlice = []interface{}{v}
-		}
-	}
-	var err error
-	res := make([]*model.FieldInput, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOFieldInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐFieldInput(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
+func (ec *executionContext) unmarshalOFloat2float64(ctx context.Context, v interface{}) (float64, error) {
+	res, err := graphql.UnmarshalFloat(v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOFieldInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐFieldInput(ctx context.Context, v interface{}) (*model.FieldInput, error) {
+func (ec *executionContext) marshalOFloat2float64(ctx context.Context, sel ast.SelectionSet, v float64) graphql.Marshaler {
+	return graphql.MarshalFloat(v)
+}
+
+func (ec *executionContext) unmarshalOFloat2ᚖfloat64(ctx context.Context, v interface{}) (*float64, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := ec.unmarshalInputFieldInput(ctx, v)
+	res, err := graphql.UnmarshalFloat(v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel ast.SelectionSet, v *float64) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalFloat(*v)
 }
 
 func (ec *executionContext) unmarshalOID2ᚖint(ctx context.Context, v interface{}) (*int, error) {

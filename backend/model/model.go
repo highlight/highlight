@@ -281,13 +281,14 @@ func (u *Organization) BeforeCreate(tx *gorm.DB) (err error) {
 
 type Admin struct {
 	Model
-	Name            *string
-	Email           *string
-	PhotoURL        *string          `json:"photo_url"`
-	UID             *string          `gorm:"unique_index"`
-	Organizations   []Organization   `gorm:"many2many:organization_admins;"`
-	SessionComments []SessionComment `gorm:"many2many:session_comment_admins;"`
-	ErrorComments   []ErrorComment   `gorm:"many2many:error_comment_admins;"`
+	Name             *string
+	Email            *string
+	PhotoURL         *string          `json:"photo_url"`
+	UID              *string          `gorm:"unique_index"`
+	Organizations    []Organization   `gorm:"many2many:organization_admins;"`
+	SessionComments  []SessionComment `gorm:"many2many:session_comment_admins;"`
+	ErrorComments    []ErrorComment   `gorm:"many2many:error_comment_admins;"`
+	SlackIMChannelID *string
 }
 
 type EmailSignup struct {
@@ -471,8 +472,8 @@ type DateRange struct {
 }
 
 type LengthRange struct {
-	Min int
-	Max int
+	Min float64
+	Max float64
 }
 
 type UserProperty struct {
@@ -614,6 +615,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		password = os.Getenv("PSQL_PASSWORD")
 		sslmode  = "disable"
 	)
+
 	databaseURL, ok := os.LookupEnv("DATABASE_URL")
 	if ok {
 		re, err := regexp.Compile(`(?m)^(?:postgres://)([^:]*)(?::)([^@]*)(?:@)([^:]*)(?::)([^/]*)(?:/)(.*)`)
@@ -631,6 +633,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 			}
 		}
 	}
+	log.Printf("setting up db @ %s\n", host)
 	psqlConf := fmt.Sprintf(
 		"host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
 		host,
@@ -656,6 +659,8 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 	if err != nil {
 		return nil, e.Wrap(err, "Failed to connect to database")
 	}
+
+	log.Printf("running db migration ... \n")
 	if err := DB.AutoMigrate(
 		Models...,
 	); err != nil {
@@ -666,6 +671,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		return nil, e.Wrap(err, "error retrieving underlying sql db")
 	}
 	sqlDB.SetMaxOpenConns(15)
+	log.Printf("finished db migration. \n")
 	return DB, nil
 }
 

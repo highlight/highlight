@@ -17,7 +17,7 @@ import {
     isAuthLoading,
     isHighlightAdmin,
     isLoggedIn,
-} from './AuthContext';
+} from './authentication/AuthContext';
 import { ErrorState } from './components/ErrorState/ErrorState';
 import { useGetAdminLazyQuery } from './graph/generated/hooks';
 import LoginForm, { AuthAdminRouter } from './pages/Login/Login';
@@ -132,6 +132,7 @@ const AuthenticationRouter = () => {
             } else if (adminData.admin) {
                 setAuthRole(AuthRole.AUTHENTICATED);
             }
+            H.track('Authenticated');
         } else if (adminError) {
             setAuthRole(AuthRole.UNAUTHENTICATED);
         }
@@ -164,6 +165,10 @@ get in contact with us!
         >
             <Router>
                 <Switch>
+                    <Route path="/:organization_id(0)/*" exact>
+                        {/* Allow guests to access this route without being asked to log in */}
+                        <AuthAdminRouter />
+                    </Route>
                     <Route
                         path="/:organization_id(\d+)/sessions/:session_id(\d+)"
                         exact

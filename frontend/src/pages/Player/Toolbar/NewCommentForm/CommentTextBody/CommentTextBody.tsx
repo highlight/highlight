@@ -1,9 +1,10 @@
 import classNames from 'classnames';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Mention, MentionsInput, OnChangeHandlerFunc } from 'react-mentions';
 
 import { AdminAvatar } from '../../../../../components/Avatar/Avatar';
 import { AdminSuggestion } from '../../../../../components/Comment/CommentHeader';
+import newCommentFormStyles from '../NewCommentForm.module.scss';
 import commentTextBodyClassNames from './CommentTextBody.module.css';
 import styles from './CommentTextBody.module.scss';
 
@@ -24,6 +25,15 @@ const CommentTextBody = ({
     onDisplayTransformHandler,
     suggestionsPortalHost,
 }: Props) => {
+    useEffect(() => {
+        const textarea = document.querySelector(
+            `.${newCommentFormStyles.commentInputContainer} textarea`
+        ) as HTMLTextAreaElement | null;
+        if (textarea) {
+            textarea.focus();
+        }
+    });
+
     return (
         <MentionsInput
             value={commentText}

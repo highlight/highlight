@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import Skeleton from 'react-loading-skeleton';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 import styles from './FullCommentList.module.scss';
@@ -20,6 +21,11 @@ const FullCommentList = ({
 
     return (
         <div className={styles.commentStream}>
+            {loading && (
+                <>
+                    <Skeleton className={styles.skeleton} />
+                </>
+            )}
             {!loading && comments.length === 0 ? (
                 <div className={styles.noCommentsContainer}>
                     <h2>There are no comments yet</h2>

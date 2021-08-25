@@ -23,10 +23,9 @@ import styles from './ErrorFeedV2.module.scss';
 export const ErrorFeedV2 = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const [count, setCount] = useState(10);
-    const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
     const [data, setData] = useState<ErrorResults>({
         error_groups: [],
-        totalCount: -1,
+        totalCount: 0,
     });
     const { searchParams } = useErrorSearchContext();
 
@@ -35,12 +34,6 @@ export const ErrorFeedV2 = () => {
             organization_id,
             count: count + 10,
             params: searchParams,
-        },
-        onCompleted: (response) => {
-            if (response.error_groups) {
-                setData(gqlSanitize(response.error_groups));
-            }
-            setShowLoadingSkeleton(false);
         },
     });
 
@@ -70,19 +63,22 @@ export const ErrorFeedV2 = () => {
     return (
         <>
             <div className={styles.fixedContent}>
-                <div
-                    className={styles.resultCount}
-                >{`${formatNumberWithDelimiters(data.totalCount)} errors`}</div>
+                <div className={styles.resultCount}>
+                    {loading ? (
+                        <Skeleton width="100px" />
+                    ) : (
+                        `${formatNumberWithDelimiters(data.totalCount)} errors`
+                    )}
+                </div>
             </div>
             <div className={styles.feedContent}>
                 <div ref={infiniteRef as RefObject<HTMLDivElement>}>
-                    {loading && showLoadingSkeleton ? (
+                    {loading ? (
                         <Skeleton
                             height={110}
                             count={3}
                             style={{
                                 borderRadius: 8,
-                                marginTop: 14,
                                 marginBottom: 14,
                             }}
                         />

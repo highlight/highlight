@@ -24,6 +24,7 @@ type PopoverProps = Pick<
     isList?: boolean;
     popoverClassName?: string;
     large?: boolean;
+    contentContainerClassName?: string;
 };
 
 /**
@@ -35,6 +36,7 @@ const Popover: React.FC<PopoverProps> = ({
     title,
     isList,
     popoverClassName,
+    contentContainerClassName,
     large = false,
     ...props
 }) => {
@@ -47,10 +49,13 @@ const Popover: React.FC<PopoverProps> = ({
             {...props}
             content={
                 <div
-                    className={classNames({
-                        [styles.contentContainer]: !isList,
-                        [styles.large]: large,
-                    })}
+                    className={classNames(
+                        {
+                            [styles.contentContainer]: !isList,
+                            [styles.large]: large,
+                        },
+                        contentContainerClassName
+                    )}
                 >
                     {title}
                     <div className={styles.content}>{props.content}</div>

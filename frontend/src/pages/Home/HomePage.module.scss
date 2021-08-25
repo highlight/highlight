@@ -14,6 +14,15 @@
     align-items: center;
     display: flex;
     justify-content: space-between;
+    margin-bottom: var(--size-medium);
+
+    h3 {
+        margin-bottom: 0 !important;
+    }
+
+    :global(.ant-input-affix-wrapper) {
+        width: 150px;
+    }
 }
 
 .graphSection {
@@ -65,4 +74,10 @@
 
 .composedChart {
     cursor: pointer !important;
+}
+
+.demoWorkspaceButton {
+    display: flex;
+    justify-content: center;
+    margin-top: var(--size-medium);
 }

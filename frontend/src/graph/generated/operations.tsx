@@ -79,6 +79,17 @@ export type DeleteAdminFromOrganizationMutation = {
     __typename?: 'Mutation';
 } & Pick<Types.Mutation, 'deleteAdminFromOrganization'>;
 
+export type OpenSlackConversationMutationVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    code: Types.Scalars['String'];
+    redirect_path: Types.Scalars['String'];
+}>;
+
+export type OpenSlackConversationMutation = { __typename?: 'Mutation' } & Pick<
+    Types.Mutation,
+    'openSlackConversation'
+>;
+
 export type AddSlackIntegrationToWorkspaceMutationVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     code: Types.Scalars['String'];
@@ -786,7 +797,7 @@ export type GetAdminQuery = { __typename?: 'Query' } & {
     admin?: Types.Maybe<
         { __typename?: 'Admin' } & Pick<
             Types.Admin,
-            'id' | 'name' | 'email' | 'photo_url'
+            'id' | 'name' | 'email' | 'photo_url' | 'slack_im_channel_id'
         >
     >;
 };
@@ -834,7 +845,12 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
     error_group?: Types.Maybe<
         { __typename?: 'ErrorGroup' } & Pick<
             Types.ErrorGroup,
-            'id' | 'type' | 'organization_id' | 'event' | 'state'
+            | 'id'
+            | 'type'
+            | 'organization_id'
+            | 'event'
+            | 'state'
+            | 'mapped_stack_trace'
         > & {
                 stack_trace: Array<
                     Types.Maybe<
@@ -1595,4 +1611,86 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
                 >;
             }
     >;
+};
+
+export const namedOperations = {
+    Query: {
+        GetSessionPayload: 'GetSessionPayload' as const,
+        GetSession: 'GetSession' as const,
+        GetAdmins: 'GetAdmins' as const,
+        GetSessionComments: 'GetSessionComments' as const,
+        GetNotifications: 'GetNotifications' as const,
+        GetSessionCommentsForAdmin: 'GetSessionCommentsForAdmin' as const,
+        GetErrorComments: 'GetErrorComments' as const,
+        GetOnboardingSteps: 'GetOnboardingSteps' as const,
+        GetSessions: 'GetSessions' as const,
+        GetOrganizations: 'GetOrganizations' as const,
+        GetApplications: 'GetApplications' as const,
+        GetAdmin: 'GetAdmin' as const,
+        GetOrganization: 'GetOrganization' as const,
+        GetBillingDetails: 'GetBillingDetails' as const,
+        GetErrorGroup: 'GetErrorGroup' as const,
+        GetErrorGroups: 'GetErrorGroups' as const,
+        GetMessages: 'GetMessages' as const,
+        GetResources: 'GetResources' as const,
+        GetFieldSuggestion: 'GetFieldSuggestion' as const,
+        GetOrganizationSuggestion: 'GetOrganizationSuggestion' as const,
+        GetErrorFieldSuggestion: 'GetErrorFieldSuggestion' as const,
+        GetErrorSearchSuggestions: 'GetErrorSearchSuggestions' as const,
+        GetSessionSearchResults: 'GetSessionSearchResults' as const,
+        GetTrackSuggestion: 'GetTrackSuggestion' as const,
+        GetUserSuggestion: 'GetUserSuggestion' as const,
+        GetSegments: 'GetSegments' as const,
+        GetErrorSegments: 'GetErrorSegments' as const,
+        IsIntegrated: 'IsIntegrated' as const,
+        UnprocessedSessionsCount: 'UnprocessedSessionsCount' as const,
+        GetKeyPerformanceIndicators: 'GetKeyPerformanceIndicators' as const,
+        GetReferrersCount: 'GetReferrersCount' as const,
+        GetNewUsersCount: 'GetNewUsersCount' as const,
+        GetAverageSessionLength: 'GetAverageSessionLength' as const,
+        GetTopUsers: 'GetTopUsers' as const,
+        GetDailySessionsCount: 'GetDailySessionsCount' as const,
+        GetDailyErrorsCount: 'GetDailyErrorsCount' as const,
+        GetErrorAlert: 'GetErrorAlert' as const,
+        GetNewUserAlert: 'GetNewUserAlert' as const,
+        GetTrackPropertiesAlert: 'GetTrackPropertiesAlert' as const,
+        GetUserPropertiesAlert: 'GetUserPropertiesAlert' as const,
+        GetEnvironmentSuggestion: 'GetEnvironmentSuggestion' as const,
+        GetSlackChannelSuggestion: 'GetSlackChannelSuggestion' as const,
+        GetAlertsPagePayload: 'GetAlertsPagePayload' as const,
+    },
+    Mutation: {
+        MarkSessionAsViewed: 'MarkSessionAsViewed' as const,
+        MarkSessionAsStarred: 'MarkSessionAsStarred' as const,
+        CreateOrUpdateStripeSubscription: 'CreateOrUpdateStripeSubscription' as const,
+        UpdateBillingDetails: 'UpdateBillingDetails' as const,
+        updateErrorGroupState: 'updateErrorGroupState' as const,
+        SendEmailSignup: 'SendEmailSignup' as const,
+        AddAdminToOrganization: 'AddAdminToOrganization' as const,
+        DeleteAdminFromOrganization: 'DeleteAdminFromOrganization' as const,
+        OpenSlackConversation: 'OpenSlackConversation' as const,
+        AddSlackIntegrationToWorkspace: 'AddSlackIntegrationToWorkspace' as const,
+        CreateOrganization: 'CreateOrganization' as const,
+        EditOrganization: 'EditOrganization' as const,
+        DeleteOrganization: 'DeleteOrganization' as const,
+        DeleteSegment: 'DeleteSegment' as const,
+        EditSegment: 'EditSegment' as const,
+        CreateSegment: 'CreateSegment' as const,
+        CreateSessionComment: 'CreateSessionComment' as const,
+        DeleteSessionComment: 'DeleteSessionComment' as const,
+        CreateErrorComment: 'CreateErrorComment' as const,
+        DeleteErrorComment: 'DeleteErrorComment' as const,
+        DeleteErrorSegment: 'DeleteErrorSegment' as const,
+        EditErrorSegment: 'EditErrorSegment' as const,
+        CreateErrorSegment: 'CreateErrorSegment' as const,
+        UpdateErrorAlert: 'UpdateErrorAlert' as const,
+        UpdateNewUserAlert: 'UpdateNewUserAlert' as const,
+        UpdateTrackPropertiesAlert: 'UpdateTrackPropertiesAlert' as const,
+        UpdateUserPropertiesAlert: 'UpdateUserPropertiesAlert' as const,
+        UpdateSessionIsPublic: 'UpdateSessionIsPublic' as const,
+        SendAdminInvite: 'SendAdminInvite' as const,
+    },
+    Fragment: {
+        errorFields: 'errorFields' as const,
+    },
 };

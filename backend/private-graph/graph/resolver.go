@@ -8,9 +8,10 @@ import (
 
 	e "github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
+	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	log "github.com/sirupsen/logrus"
+	"github.com/slack-go/slack"
 	"github.com/stripe/stripe-go/client"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/model"
@@ -48,8 +49,33 @@ func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
 	return uid == WhitelistedUID || strings.Contains(email, "@highlight.run")
 }
 
+func (r *Resolver) isDemoOrg(org_id int) bool {
+	return org_id == 0
+}
+
 // These are authentication methods used to make sure that data is secured.
 // This'll probably get expensive at some point; they can probably be cached.
+
+// isAdminInOrganizationOrDemoOrg should be used for actions that you want admins in all organizations
+// and laymen in the demo org to have access to.
+func (r *Resolver) isAdminInOrganizationOrDemoOrg(ctx context.Context, org_id int) (*model.Organization, error) {
+	var org *model.Organization
+	var err error
+	if r.isDemoOrg(org_id) {
+		if err = r.DB.Model(&model.Organization{}).Where("id = ?", 0).First(&org).Error; err != nil {
+			return nil, e.Wrap(err, "error querying demo org")
+		}
+	} else {
+		org, err = r.isAdminInOrganization(ctx, org_id)
+		if err != nil {
+			return nil, e.Wrap(err, "admin is not in organization or demo org")
+		}
+	}
+	return org, nil
+}
+
+// isAdminInOrganization should be used for actions that you only want admins in all organizations to have access to.
+// Use this on actions that you don't want laymen in the demo org to have access to.
 func (r *Resolver) isAdminInOrganization(ctx context.Context, org_id int) (*model.Organization, error) {
 	if util.IsTestEnv() {
 		return nil, nil
@@ -175,7 +201,7 @@ func (r *Resolver) isAdminErrorGroupOwner(ctx context.Context, errorGroupID int)
 	if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: errorGroupID}}).First(&errorGroup).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session")
 	}
-	_, err := r.isAdminInOrganization(ctx, errorGroup.OrganizationID)
+	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, errorGroup.OrganizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "error validating admin in organization")
 	}
@@ -191,7 +217,7 @@ func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_id int) (se
 		return nil, false, e.Wrap(err, "error querying session")
 	}
 
-	_, err = r.isAdminInOrganization(ctx, session.OrganizationID)
+	_, err = r.isAdminInOrganizationOrDemoOrg(ctx, session.OrganizationID)
 	if err != nil {
 		return session, false, e.Wrap(err, "error validating admin in organization")
 	}
@@ -222,7 +248,7 @@ func (r *Resolver) isAdminSegmentOwner(ctx context.Context, segment_id int) (*mo
 	if err := r.DB.Where(&model.Segment{Model: model.Model{ID: segment_id}}).First(&segment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying segment")
 	}
-	_, err := r.isAdminInOrganization(ctx, segment.OrganizationID)
+	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, segment.OrganizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "error validating admin in organization")
 	}
@@ -234,7 +260,7 @@ func (r *Resolver) isAdminErrorSegmentOwner(ctx context.Context, error_segment_i
 	if err := r.DB.Where(&model.ErrorSegment{Model: model.Model{ID: error_segment_id}}).First(&segment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error segment")
 	}
-	_, err := r.isAdminInOrganization(ctx, segment.OrganizationID)
+	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, segment.OrganizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "error validating admin in organization")
 	}
@@ -268,163 +294,166 @@ func (r *Resolver) UpdateSessionsVisibility(organizationID int, newPlan modelInp
 	}
 }
 
-func (r *queryResolver) getFieldFilters(ctx context.Context, organizationID int, params *modelInputs.SearchParamsInput) (customJoinClause string, whereClause string, err error) {
-	// Find fields based on the search params
-	//included fields
-	fieldCheck := true
-	visitedCheck := true
-	referrerCheck := true
-	fieldIds := []int{}
-	fieldQuery := r.DB.Model(&model.Field{})
-	visitedIds := []int{}
-	referrerIds := []int{}
-	visitedQuery := r.DB.Model(&model.Field{})
-	referrerQuery := r.DB.Model(&model.Field{})
-
-	fieldsSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-		tracer.ResourceName("db.fieldsQuery"), tracer.Tag("org_id", organizationID))
-	for _, prop := range params.UserProperties {
-		if prop.Name == "contains" {
-			fieldQuery = fieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
-		} else if prop.ID == nil || *prop.ID == 0 {
-			fieldQuery = fieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user")
-		} else {
-			fieldIds = append(fieldIds, *prop.ID)
-		}
-	}
-
-	for _, prop := range params.TrackProperties {
-		if prop.Name == "contains" {
-			fieldQuery = fieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "track")
-		} else if prop.ID == nil || *prop.ID == 0 {
-			fieldQuery = fieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "track")
-		} else {
-			fieldIds = append(fieldIds, *prop.ID)
-		}
-	}
-
+func (r *queryResolver) getFieldFilters(ctx context.Context, organizationID int, params *modelInputs.SearchParamsInput) (whereClause string, err error) {
 	if params.VisitedURL != nil {
-		visitedQuery = visitedQuery.Or("name = ? and value ILIKE ?", "visited-url", "%"+*params.VisitedURL+"%")
+		whereClause += andHasFieldsWhere("fields.name = 'visited-url' AND fields.value ILIKE '%" + *params.VisitedURL + "%'")
 	}
 
 	if params.Referrer != nil {
-		referrerQuery = referrerQuery.Or("name = ? and value ILIKE ?", "referrer", "%"+*params.Referrer+"%")
+		whereClause += andHasFieldsWhere("fields.name = 'referrer' AND fields.value ILIKE '%" + *params.Referrer + "%'")
 	}
 
-	if len(params.UserProperties)+len(params.TrackProperties) > 0 {
-		if len(params.UserProperties)+len(params.TrackProperties) != len(fieldIds) {
-			var tempFieldIds []int
-			if err := fieldQuery.Pluck("id", &tempFieldIds).Error; err != nil {
-				return "", "", e.Wrap(err, "error querying initial set of session fields")
+	inclusiveFilters := []string{}
+	inclusiveFilters = append(inclusiveFilters, getSQLFilters(params.UserProperties, "user")...)
+	inclusiveFilters = append(inclusiveFilters, getSQLFilters(params.TrackProperties, "track")...)
+	if len(inclusiveFilters) > 0 {
+		whereClause += andHasFieldsWhere(strings.Join(inclusiveFilters, " OR "))
+	}
+
+	exclusiveFilters := []string{}
+	exclusiveFilters = append(exclusiveFilters, getSQLFilters(params.ExcludedProperties, "user")...)
+	exclusiveFilters = append(exclusiveFilters, getSQLFilters(params.ExcludedTrackProperties, "track")...)
+	if len(exclusiveFilters) > 0 {
+		whereClause += andDoesNotHaveFieldsWhere(strings.Join(exclusiveFilters, " OR "))
+	}
+
+	return whereClause, nil
+}
+
+func andHasFieldsWhere(fieldConditions string) string {
+	return fmt.Sprintf(`AND EXISTS (
+		SELECT 1
+		FROM session_fields
+		JOIN fields
+		ON session_fields.field_id = fields.id
+		WHERE session_fields.session_id = sessions.id
+		AND (
+			%s
+		)
+		LIMIT 1
+	) `, fieldConditions)
+}
+
+func andDoesNotHaveFieldsWhere(fieldConditions string) string {
+	return fmt.Sprintf(`AND NOT EXISTS (
+		SELECT 1
+		FROM session_fields
+		JOIN fields
+		ON session_fields.field_id = fields.id
+		WHERE session_fields.session_id = sessions.id
+		AND (
+			%s
+		)
+		LIMIT 1
+	) `, fieldConditions)
+}
+
+// Takes a list of user search inputs, and converts them into a list of SQL filters
+// propertyType: 'user' or 'track'
+func getSQLFilters(userPropertyInputs []*modelInputs.UserPropertyInput, propertyType string) []string {
+	sqlFilters := []string{}
+	for _, prop := range userPropertyInputs {
+		if prop.Name == "contains" {
+			sqlFilters = append(sqlFilters, "(fields.type = '"+propertyType+"' AND fields.value ILIKE '%"+prop.Value+"%')")
+		} else if prop.ID == nil || *prop.ID == 0 {
+			sqlFilters = append(sqlFilters, "(fields.type = '"+propertyType+"' AND fields.name = '"+prop.Name+"' AND fields.value = '"+prop.Value+"')")
+		} else {
+			sqlFilters = append(sqlFilters, fmt.Sprintf("(fields.id = %d)", *prop.ID))
+		}
+	}
+	return sqlFilters
+}
+
+func (r *Resolver) SendEmailAlert(tos []*mail.Email, authorName, viewLink, textForEmail, templateID string, sessionImage *string) error {
+	m := mail.NewV3Mail()
+	from := mail.NewEmail("Highlight", "notifications@highlight.run")
+	m.SetFrom(from)
+	m.SetTemplateID(templateID)
+
+	p := mail.NewPersonalization()
+	p.AddTos(tos...)
+	p.SetDynamicTemplateData("Author_Name", authorName)
+	p.SetDynamicTemplateData("Comment_Link", viewLink)
+	p.SetDynamicTemplateData("Comment_Body", textForEmail)
+
+	if sessionImage != nil {
+		p.SetDynamicTemplateData("Session_Image", sessionImage)
+		a := mail.NewAttachment()
+		a.SetContent(*sessionImage)
+		a.SetFilename("session-image.png")
+		a.SetContentID("sessionImage")
+		a.SetType("image/png")
+		m.AddAttachment(a)
+	}
+
+	m.AddPersonalizations(p)
+
+	_, err := r.MailClient.Send(m)
+	if err != nil {
+		return e.Wrap(err, "error sending sendgrid email for comments mentions")
+	}
+
+	return nil
+}
+
+func (r *Resolver) SendPersonalSlackAlert(org *model.Organization, admin *model.Admin, adminIds []int, viewLink, commentText, subjectScope string) error {
+	// this is needed for posting DMs
+	if org.SlackAccessToken == nil {
+		return e.New("slack access token is nil")
+	}
+
+	var admins []*model.Admin
+	if err := r.DB.Find(&admins, adminIds).Where("slack_im_channel_id IS NOT NULL").Error; err != nil {
+		return e.Wrap(err, "error fetching admins")
+	}
+	// return early if no admins w/ slack_im_channel_id
+	if len(admins) < 1 {
+		return nil
+	}
+
+	var blockSet slack.Blocks
+
+	determiner := "a"
+	if subjectScope == "error" {
+		determiner = "an"
+	}
+	message := fmt.Sprintf("You were tagged in %s %s comment.", determiner, subjectScope)
+	if admin.Email != nil && *admin.Email != "" {
+		message = fmt.Sprintf("%s tagged you in %s %s comment.", *admin.Email, determiner, subjectScope)
+	}
+	if admin.Name != nil && *admin.Name != "" {
+		message = fmt.Sprintf("%s tagged you in %s %s comment.", *admin.Name, determiner, subjectScope)
+	}
+	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewHeaderBlock(&slack.TextBlockObject{Type: slack.PlainTextType, Text: message}))
+
+	button := slack.NewButtonBlockElement(
+		"",
+		"click",
+		slack.NewTextBlockObject(
+			slack.PlainTextType,
+			strings.Title(fmt.Sprintf("Visit %s", subjectScope)),
+			false,
+			false,
+		),
+	)
+	button.URL = viewLink
+	blockSet.BlockSet = append(blockSet.BlockSet,
+		slack.NewSectionBlock(
+			nil,
+			[]*slack.TextBlockObject{{Type: slack.MarkdownType, Text: fmt.Sprintf("> %s", commentText)}}, slack.NewAccessory(button),
+		),
+	)
+
+	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewDividerBlock())
+	slackClient := slack.New(*org.SlackAccessToken)
+	for _, a := range admins {
+		if a.SlackIMChannelID != nil {
+			_, _, err := slackClient.PostMessage(*a.SlackIMChannelID, slack.MsgOptionBlocks(blockSet.BlockSet...))
+			if err != nil {
+				return e.Wrap(err, "error posting slack message")
 			}
-			fieldIds = append(fieldIds, tempFieldIds...)
-		}
-		if len(fieldIds) == 0 {
-			fieldCheck = false
 		}
 	}
 
-	if params.VisitedURL != nil {
-		if err := visitedQuery.Pluck("id", &visitedIds).Error; err != nil {
-			return "", "", e.Wrap(err, "error querying visited-url fields")
-		}
-		if len(visitedIds) == 0 {
-			visitedCheck = false
-		}
-	}
-
-	if params.Referrer != nil {
-		if err := referrerQuery.Pluck("id", &referrerIds).Error; err != nil {
-			return "", "", e.Wrap(err, "error querying referrer fields")
-		}
-		if len(referrerIds) == 0 {
-			referrerCheck = false
-		}
-	}
-
-	//excluded fields
-	notFieldIds := []int{}
-	notFieldQuery := r.DB.Model(&model.Field{})
-
-	for _, prop := range params.ExcludedProperties {
-		if prop.Name == "contains" {
-			notFieldQuery = notFieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
-		} else if prop.ID == nil || *prop.ID == 0 {
-			notFieldQuery = notFieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user")
-		} else {
-			notFieldIds = append(notFieldIds, *prop.ID)
-		}
-	}
-
-	if len(params.ExcludedProperties) != len(notFieldIds) {
-		var tempNotFieldIds []int
-		if err := notFieldQuery.Pluck("id", &notFieldIds).Error; err != nil {
-			return "", "", e.Wrap(err, "error querying initial set of excluded sessions fields")
-		}
-		notFieldIds = append(notFieldIds, tempNotFieldIds...)
-	}
-
-	//excluded track fields
-	notTrackFieldIds := []int{}
-	notTrackFieldQuery := r.DB.Model(&model.Field{})
-
-	for _, prop := range params.ExcludedTrackProperties {
-		if prop.Name == "contains" {
-			notTrackFieldQuery = notTrackFieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "track")
-		} else if prop.ID == nil || *prop.ID == 0 {
-			notTrackFieldQuery = notTrackFieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "track")
-		} else {
-			notTrackFieldIds = append(notTrackFieldIds, *prop.ID)
-		}
-	}
-
-	//pluck not field ids
-	if len(params.ExcludedTrackProperties) != len(notTrackFieldIds) {
-		var tempNotTrackFieldIds []int
-		if err := notTrackFieldQuery.Pluck("id", &tempNotTrackFieldIds).Error; err != nil {
-			return "", "", e.Wrap(err, "error querying initial set of excluded track sessions fields")
-		}
-		notTrackFieldIds = append(notTrackFieldIds, tempNotTrackFieldIds...)
-	}
-
-	fieldsSpan.Finish()
-
-	if len(fieldIds) > 0 {
-		t := strings.Replace(fmt.Sprint(fieldIds), " ", ",", -1)
-		whereClause += fmt.Sprintf("AND (fieldIds && ARRAY%s::integer[])", t)
-	}
-
-	if len(visitedIds) > 0 {
-		t := strings.Replace(fmt.Sprint(visitedIds), " ", ",", -1)
-		whereClause += fmt.Sprintf("AND (fieldIds && ARRAY%s::integer[])", t)
-	}
-
-	if len(referrerIds) > 0 {
-		t := strings.Replace(fmt.Sprint(referrerIds), " ", ",", -1)
-		whereClause += fmt.Sprintf("AND (fieldIds && ARRAY%s::integer[])", t)
-	}
-
-	if len(notFieldIds) > 0 {
-		t := strings.Replace(fmt.Sprint(notFieldIds), " ", ",", -1)
-		whereClause += fmt.Sprintf("AND NOT (fieldIds && ARRAY%s::integer[])", t)
-	}
-
-	if len(notTrackFieldIds) > 0 {
-		t := strings.Replace(fmt.Sprint(notTrackFieldIds), " ", ",", -1)
-		whereClause += fmt.Sprintf("AND NOT (fieldIds && ARRAY%s::integer[])", t)
-	}
-
-	//if there should be fields but aren't no sessions are returned
-	if !fieldCheck || !visitedCheck || !referrerCheck {
-		whereClause += "AND (id != id) "
-	}
-
-	isUnfilteredQuery := len(fieldIds) == 0 && len(visitedIds) == 0 && len(referrerIds) == 0 && len(notFieldIds) == 0 && len(notTrackFieldIds) == 0
-	if !isUnfilteredQuery {
-		fieldsInnerJoinStatement := "INNER JOIN session_fields t ON s.id=t.session_id"
-		fieldsSelectStatement := ", array_agg(t.field_id) fieldIds"
-		customJoinClause = fmt.Sprintf("FROM (SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, within_billing_quota, field_group %s FROM sessions s %s GROUP BY s.id) AS rows", fieldsSelectStatement, fieldsInnerJoinStatement)
-	}
-
-	return customJoinClause, whereClause, nil
+	return nil
 }

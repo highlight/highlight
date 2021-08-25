@@ -14,6 +14,7 @@
 	"go.lintFlags": [
 		"--fast"
 	],
+	"typescript.preferences.importModuleSpecifier": "non-relative",
 	"[go]": {
 		"editor.defaultFormatter": "golang.go"
 	},
@@ -68,7 +69,7 @@
 		"backend/go.sum": true,
 		"backend/event-parse/sample-events/*.json": true,
 		"**/*.scss.d.ts": true,
-		"frontend/src/graph/generated/*": true,
+		// "frontend/src/graph/generated/*": true,
 		"backend/payload/*": true,
 		"**/yarn-error.log": true
 	},

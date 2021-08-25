@@ -25,19 +25,6 @@
     row-gap: var(--size-large);
 }
 
-.callout {
-    align-items: center;
-    background-color: var(--color-gray-200);
-    border-radius: 4px;
-    display: flex;
-    line-height: 2;
-    margin-bottom: var(--size-medium);
-
-    p {
-        margin-bottom: 0 !important;
-    }
-}
-
 .sectionTitleWithIcon {
     align-items: center;
     column-gap: var(--size-xSmall);
@@ -51,12 +38,6 @@
 .title {
     margin-bottom: 0 !important;
     margin-right: var(--size-xSmall) !important;
-}
-
-.calloutEmoji {
-    font-size: 20px;
-    height: 100%;
-    padding: 8px;
 }
 
 .codeBlockInlined {

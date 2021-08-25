@@ -1,6 +1,9 @@
+import classNames from 'classnames';
+import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import { components, OptionsType, OptionTypeBase } from 'react-select';
+import { components } from 'react-select';
 import AsyncSelect from 'react-select/async';
 
 import InfoTooltip from '../../../../../components/InfoTooltip/InfoTooltip';
@@ -92,16 +95,22 @@ const SessionSearch = () => {
         },
     });
 
-    const generateOptions = async (
-        input: string
-    ): Promise<OptionsType<OptionTypeBase> | void[]> => {
-        const fetched = await refetch({
+    const generateOptions = (input: string, callback: any) => {
+        refetch({
             organization_id,
             query: input,
+        }).then((fetched) => {
+            callback(
+                getSuggestions(fetched.data, selectedSearchFilters, input, 3)
+            );
         });
-
-        return getSuggestions(fetched.data, selectedSearchFilters, query, 3);
     };
+
+    const debouncedGenerateOptions = useMemo(
+        () => _.debounce(generateOptions, 200),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        []
+    );
 
     useEffect(() => {
         if (searchParams) {
@@ -158,7 +167,7 @@ const SessionSearch = () => {
                 }
             }}
             isMulti
-            loadOptions={generateOptions}
+            loadOptions={debouncedGenerateOptions}
             isLoading={loading}
             isClearable={false}
             onChange={handleChange}
@@ -245,7 +254,10 @@ const SessionSearch = () => {
                 },
                 Menu: (props) => {
                     return (
-                        <components.Menu {...props}>
+                        <components.Menu
+                            {...props}
+                            className={classNames(props.className, styles.menu)}
+                        >
                             <>
                                 <div className={styles.filterContainer}>
                                     <h4>Includes:</h4>

@@ -1,3 +1,5 @@
+import KeyboardShortcutsEducation from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation';
+import useLocalStorage from '@rehooks/local-storage';
 import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { Redirect, Route, Switch, useParams } from 'react-router-dom';
@@ -5,6 +7,7 @@ import {
     BooleanParam,
     JsonParam,
     StringParam,
+    useQueryParam,
     useQueryParams,
 } from 'use-query-params';
 
@@ -14,11 +17,11 @@ import { Buttons } from '../../pages/Buttons/Buttons';
 import ErrorPage from '../../pages/Error/ErrorPage';
 import HomePage from '../../pages/Home/HomePage';
 import Player from '../../pages/Player/PlayerPage';
+import { EmptySessionsSearchParams } from '../../pages/Sessions/EmptySessionsSearchParams';
 import {
     SearchContextProvider,
     SearchParams,
 } from '../../pages/Sessions/SearchContext/SearchContext';
-import { EmptySessionsSearchParams } from '../../pages/Sessions/SessionsPage';
 import SetupPage from '../../pages/Setup/SetupPage';
 import WorkspaceSettings from '../../pages/WorkspaceSettings/WorkspaceSettings';
 import WorkspaceTeam from '../../pages/WorkspaceTeam/WorkspaceTeam';
@@ -36,6 +39,9 @@ const ApplicationRouter = ({ integrated }: Props) => {
     const [searchParams, setSearchParams] = useState<SearchParams>(
         EmptySessionsSearchParams
     );
+    const [selectedSegment, setSelectedSegment] = useLocalStorage<
+        { value: string; id: string } | undefined
+    >('highlightSegmentPickerForPlayerSelectedSegmentId', undefined);
     const [
         searchParamsToUrlParams,
         setSearchParamsToUrlParams,
@@ -56,6 +62,10 @@ const ApplicationRouter = ({ integrated }: Props) => {
         device_id: StringParam,
         show_live_sessions: BooleanParam,
     });
+    const [activeSegmentUrlParam, setActiveSegmentUrlParam] = useQueryParam(
+        'segment',
+        JsonParam
+    );
 
     const [existingParams, setExistingParams] = useState<SearchParams>(
         EmptySessionsSearchParams
@@ -103,6 +113,23 @@ const ApplicationRouter = ({ integrated }: Props) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Session Segment Deep Linking
+    useEffect(() => {
+        if (selectedSegment && selectedSegment.id && selectedSegment.value) {
+            setActiveSegmentUrlParam(selectedSegment);
+        } else {
+            setActiveSegmentUrlParam(undefined);
+        }
+    }, [selectedSegment, setActiveSegmentUrlParam]);
+
+    useEffect(() => {
+        if (activeSegmentUrlParam) {
+            setSelectedSegment(activeSegmentUrlParam);
+        }
+        // We only want to run this on mount (i.e. when the page first loads).
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     return (
         <SearchContextProvider
             value={{
@@ -114,8 +141,11 @@ const ApplicationRouter = ({ integrated }: Props) => {
                 setSegmentName,
                 showStarredSessions,
                 setShowStarredSessions,
+                selectedSegment,
+                setSelectedSegment,
             }}
         >
+            <KeyboardShortcutsEducation />
             <Switch>
                 <Route path="/:organization_id/sessions/:session_id?" exact>
                     <Player integrated={integrated} />

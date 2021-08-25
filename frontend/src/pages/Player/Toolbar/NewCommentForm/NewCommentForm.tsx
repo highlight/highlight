@@ -1,10 +1,11 @@
+import { namedOperations } from '@graph/operations';
 import { Form, message } from 'antd';
 import { H } from 'highlight.run';
 import React, { useMemo, useState } from 'react';
 import { OnChangeHandlerFunc } from 'react-mentions';
 import { useParams } from 'react-router-dom';
 
-import { useAuthContext } from '../../../../AuthContext';
+import { useAuthContext } from '../../../../authentication/AuthContext';
 import Button from '../../../../components/Button/Button/Button';
 import {
     AdminSuggestion,
@@ -93,7 +94,7 @@ export const NewCommentForm = ({
                     //     .toDataURL()
                     //     .replace('data:image/png;base64,', ''),
                 },
-                refetchQueries: ['GetSessionComments'],
+                refetchQueries: [namedOperations.Query.GetSessionComments],
             });
             onCloseHandler();
             form.resetFields();

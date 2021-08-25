@@ -1,5 +1,3 @@
-export const callout: string;
-export const calloutEmoji: string;
 export const codeBlockBasic: string;
 export const codeBlockInlined: string;
 export const headingWrapper: string;

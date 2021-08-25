@@ -55,3 +55,7 @@
     column-gap: var(--size-xxSmall);
     display: flex;
 }
+
+.menu {
+    z-index: 5 !important;
+}

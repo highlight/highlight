@@ -232,6 +232,7 @@ query GetAdmin {
         name
         email
         photo_url
+        slack_im_channel_id
     }
 }
 
@@ -274,6 +275,7 @@ query GetErrorGroup($id: ID!) {
             functionName
             columnNumber
         }
+        mapped_stack_trace
         metadata_log {
             error_id
             session_id

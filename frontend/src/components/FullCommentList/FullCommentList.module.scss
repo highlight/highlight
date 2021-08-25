@@ -2,6 +2,7 @@
     color: var(--color-gray-500);
     font-size: 12px;
     height: 100%;
+    position: relative;
 
     > div::-webkit-scrollbar {
         display: none;
@@ -19,10 +20,10 @@
 }
 
 .noCommentsContainer {
-    margin-left: auto;
-    margin-right: auto;
-    padding-top: 200px;
+    left: 18%;
+    position: absolute;
     text-align: center;
+    top: 35%;
     width: 200px;
 
     h2 {
@@ -43,4 +44,14 @@
 .timestamp {
     color: var(--color-gray-500);
     margin: 0 !important;
+}
+
+.skeleton {
+    border-radius: var(--size-xSmall) !important;
+    display: block !important;
+    height: 90px;
+    margin: var(--size-xxSmall) var(--size-large);
+    margin-bottom: var(--size-medium);
+    margin-top: 0;
+    width: auto !important;
 }

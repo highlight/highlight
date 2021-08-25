@@ -44,16 +44,49 @@
 }
 
 .trialWrapper {
+    --banner-height: 15px;
+
     align-items: center;
     animation: enter-viewport 1s forwards;
     background-color: var(--color-purple);
     color: var(--text-primary-inverted);
     display: flex;
-    height: 15px;
+    height: var(--banner-height);
     justify-content: center;
     position: absolute;
     width: 100%;
     z-index: 1000;
+
+    button {
+        --button-size: var(--size-medium);
+        --icon-size: var(--size-xSmall);
+        align-items: center;
+        background: var(--color-purple);
+        border: 0;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        height: var(--button-size);
+        justify-content: center;
+        position: absolute;
+        top: calc(var(--banner-height) + var(--size-xSmall));
+        transform: scale(1);
+        transform-origin: center;
+        transition: all 0.2s ease-in-out;
+        width: var(--button-size);
+
+        svg {
+            flex-shrink: 0;
+            height: var(--icon-size);
+            transform-origin: center;
+            transition: all 0.2s ease-in-out;
+            width: var(--icon-size);
+        }
+
+        &:hover {
+            transform: scale(1.5);
+        }
+    }
 }
 
 @keyframes enter-viewport {
@@ -138,6 +171,11 @@
 }
 
 .applicationPickerContainer {
+    align-items: center;
+    display: flex;
+}
+
+.demoWorkspaceContainer {
     align-items: center;
     display: flex;
 }

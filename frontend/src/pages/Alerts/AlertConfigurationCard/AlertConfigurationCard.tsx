@@ -1,3 +1,4 @@
+import { namedOperations } from '@graph/operations';
 import { Divider, Form, message } from 'antd';
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -77,7 +78,7 @@ export const AlertConfigurationCard = ({
                     })),
             };
             const requestBody = {
-                refetchQueries: ['GetAlertsPagePayload'],
+                refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
             };
 
             switch (type) {
@@ -381,9 +382,11 @@ export const AlertConfigurationCard = ({
                                         <div className={styles.addContainer}>
                                             Can't find the channel or person
                                             here?{' '}
-                                            <a href={slackUrl}>
-                                                Add a Slack Channel
-                                            </a>
+                                            {organization_id !== '0' && (
+                                                <a href={slackUrl}>
+                                                    Add a Slack Channel
+                                                </a>
+                                            )}
                                             .
                                         </div>
                                     </div>

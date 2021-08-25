@@ -13,8 +13,9 @@
         padding: var(--size-medium) 0;
 
         .createCommentContainer {
+            margin-top: auto;
             padding: 0 var(--size-large);
-            padding-bottom: var(--size-xLarge);
+            padding-top: var(--size-xLarge);
         }
     }
 }

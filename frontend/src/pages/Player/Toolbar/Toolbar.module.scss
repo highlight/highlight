@@ -121,7 +121,7 @@
     flex-direction: row;
     flex-wrap: nowrap;
     height: 100%;
-    justify-content: center;
+    justify-content: flex-end;
     margin-left: auto;
     padding-right: var(--size-medium);
 
@@ -338,5 +338,6 @@
 }
 
 .settingsPopover {
-    width: 250px;
+    max-height: fit-content;
+    width: 300px;
 }

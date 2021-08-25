@@ -61,6 +61,14 @@
 
     &.withoutLeftPanel {
         grid-template-columns: 1fr var(--right-panel-width);
+
+        &.empty {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    &.empty {
+        grid-template-columns: var(--left-panel-width) 1fr;
     }
 }
 
@@ -268,21 +276,6 @@
 
 .titleWithMargin {
     margin-bottom: var(--size-small);
-}
-
-.tooltipList {
-    margin: 0;
-    padding-left: var(--size-large);
-
-    li {
-        color: var(--text-primary-inverted) !important;
-    }
-}
-
-.tooltipTitle {
-    align-items: center;
-    column-gap: var(--size-xxSmall);
-    display: flex;
 }
 
 .titleContainer {

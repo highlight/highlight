@@ -9,9 +9,9 @@ import { useGetAdminQuery } from '../../../../graph/generated/hooks';
 import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration';
 import styles from './SpeedControl.module.scss';
 
-const MIN_SPEED = 0.5;
-const MAX_SPEED = 8.0;
-const SPEED_INCREMENT = 0.5;
+export const PLAYBACK_MIN_SPEED = 0.5;
+export const PLAYBACK_MAX_SPEED = 8.0;
+export const PLAYBACK_SPEED_INCREMENT = 0.5;
 
 interface Props {
     disabled: boolean;
@@ -25,9 +25,15 @@ const SpeedControl = ({ disabled }: Props) => {
         let newSpeed = playerSpeed;
 
         if (type === 'DECREMENT') {
-            newSpeed = Math.max(MIN_SPEED, newSpeed - SPEED_INCREMENT);
+            newSpeed = Math.max(
+                PLAYBACK_MIN_SPEED,
+                newSpeed - PLAYBACK_SPEED_INCREMENT
+            );
         } else {
-            newSpeed = Math.min(MAX_SPEED, newSpeed + SPEED_INCREMENT);
+            newSpeed = Math.min(
+                PLAYBACK_MAX_SPEED,
+                newSpeed + PLAYBACK_SPEED_INCREMENT
+            );
         }
 
         setPlayerSpeed(newSpeed);
@@ -49,7 +55,7 @@ const SpeedControl = ({ disabled }: Props) => {
                     onHandleSpeedChange('DECREMENT');
                 }}
                 type="primary"
-                disabled={disabled || playerSpeed === MIN_SPEED}
+                disabled={disabled || playerSpeed === PLAYBACK_MIN_SPEED}
             >
                 <BiMinus />
             </Button>
@@ -68,7 +74,7 @@ const SpeedControl = ({ disabled }: Props) => {
                 onClick={() => {
                     onHandleSpeedChange('INCREMENT');
                 }}
-                disabled={disabled || playerSpeed === MAX_SPEED}
+                disabled={disabled || playerSpeed === PLAYBACK_MAX_SPEED}
             >
                 <BsPlus />
             </Button>

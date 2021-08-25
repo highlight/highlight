@@ -59,8 +59,8 @@ type FieldInput struct {
 }
 
 type LengthRangeInput struct {
-	Min *int `json:"min"`
-	Max *int `json:"max"`
+	Min *float64 `json:"min"`
+	Max *float64 `json:"max"`
 }
 
 type NewUsersCount struct {
