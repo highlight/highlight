@@ -182,7 +182,7 @@ const DemoWorkspaceBanner = ({ integrated }: Props) => {
             <Banner className={styles.bannerSvg} />
             <div className={classNames(styles.trialTimeText)}>
                 Viewing Demo Workspace. Click to{' '}
-                {integrated ? 'Return to' : 'Create'}
+                {integrated ? 'Return to ' : 'Create '}
                 Your Workspace.
             </div>
         </div>
