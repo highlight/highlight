@@ -106,6 +106,7 @@
 }
 
 .toolbarLeftSection {
+    column-gap: var(--size-large);
     display: flex;
     flex-direction: row;
     margin-left: var(--size-medium);
@@ -162,7 +163,6 @@
     display: flex;
     height: 100%;
     justify-content: center;
-    margin-left: 22px;
 }
 
 .redoSection {
@@ -171,7 +171,6 @@
     display: flex;
     height: 100%;
     justify-content: center;
-    margin-left: 24px;
 }
 
 .playButtonStyle {
@@ -237,7 +236,6 @@
     font-size: 12px;
     height: 100%;
     justify-content: center;
-    margin-left: 20px;
 }
 
 .skipButtonStyle {

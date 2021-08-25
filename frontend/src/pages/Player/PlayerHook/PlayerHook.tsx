@@ -1,6 +1,5 @@
 import { Replayer, ReplayerEvents } from '@highlight-run/rrweb';
 import { customEvent } from '@highlight-run/rrweb/dist/types';
-import { message } from 'antd';
 import { H } from 'highlight.run';
 import { useCallback, useEffect, useState } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
@@ -27,6 +26,7 @@ import {
     ReplayerState,
 } from '../ReplayerContext';
 import {
+    changeSession,
     findNextSessionInList,
     getCommentsInSessionIntervals,
     getEventsForTimelineIndicator,
@@ -353,22 +353,14 @@ export const usePlayer = (): ReplayerContextInterface => {
             autoPlaySessions &&
             sessionResults.sessions.length > 0
         ) {
-            const nextSessionInListId = findNextSessionInList(
+            const nextSessionInList = findNextSessionInList(
                 sessionResults.sessions,
                 session_id
             );
 
-            // Don't go beyond the last session.
-            if (!nextSessionInListId) {
-                message.success('No more sessions to view.');
-                return;
-            }
+            changeSession(organization_id, history, nextSessionInList);
 
-            history.push(
-                `/${organization_id}/sessions/${sessionResults.sessions[nextSessionInListId].id}`
-            );
             resetPlayer(ReplayerState.Loading);
-            message.success('Playing the next session.');
         }
     }, [
         autoPlaySessions,
