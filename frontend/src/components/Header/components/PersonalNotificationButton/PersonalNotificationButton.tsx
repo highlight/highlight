@@ -19,20 +19,8 @@ const PersonalNotificationButton = () => {
 
     if (!isHighlightAdmin) return null;
 
-    // this should be in alerts page, yah? no reason to make it way too easy to ignore highlight
-    if (!!!admin?.slack_im_channel_id) {
-        return (
-            <Button
-                type="primary"
-                trackingId="DisablePersonalNotificationButton"
-                onClick={() => {
-                    admin?.id;
-                }}
-            >
-                Disable Personal Notifications?
-            </Button>
-        );
-    }
+    // personal notifications are already setup
+    if (!!!admin?.slack_im_channel_id) return null;
 
     return (
         <Button
