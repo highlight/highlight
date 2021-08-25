@@ -1237,7 +1237,14 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 }
 
 func (r *queryResolver) ErrorGroup(ctx context.Context, id int) (*model.ErrorGroup, error) {
-	return r.isAdminErrorGroupOwner(ctx, id)
+	errorGroup, err := r.isAdminErrorGroupOwner(ctx, id)
+	if err != nil {
+		return nil, e.Wrap(err, "error checking if admin is error group owner")
+	}
+	if err := r.DB.Model(errorGroup).Where("NOT name IN (?, ?)", "event", "visited_url").Association("Fields").Find(&errorGroup.Fields); err != nil {
+		return nil, e.Wrap(err, "error fetching error fields for error group")
+	}
+	return errorGroup, nil
 }
 
 func (r *queryResolver) Messages(ctx context.Context, sessionID int) ([]interface{}, error) {
