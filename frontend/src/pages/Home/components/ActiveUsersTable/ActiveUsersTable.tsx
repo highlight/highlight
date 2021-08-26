@@ -36,6 +36,7 @@ const ActiveUsersTable = () => {
         onCompleted: (data) => {
             if (data.topUsers) {
                 const transformedData = data.topUsers
+                    .slice()
                     .reverse()
                     .map((topUser, index) => ({
                         key: index,
