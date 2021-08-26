@@ -15,19 +15,16 @@ type Props = { text?: string } & Pick<
 const PersonalNotificationButton = ({ ...props }: Props) => {
     const { isHighlightAdmin, admin } = useAuthContext();
 
-    let redirectUrl = window.location.pathname;
-    // this doesn't work if we redirect to /alerts
-    redirectUrl = redirectUrl.replace('alerts', 'home');
-    if (redirectUrl.length > 3) {
-        // remove orgid and prepended slash
-        redirectUrl = redirectUrl.substring(redirectUrl.indexOf('/', 1) + 1);
-    }
-    const { slackUrl: slackBotUrl } = useSlackBot(redirectUrl);
+    const { slackUrl: slackBotUrl } = useSlackBot();
 
     if (!isHighlightAdmin) return null;
 
     // personal notifications are already setup
-    if (!!admin?.slack_im_channel_id) return null;
+    if (
+        !!admin?.slack_im_channel_id &&
+        process.env.REACT_APP_ENVIRONMENT !== 'dev'
+    )
+        return null;
 
     return (
         <Button
