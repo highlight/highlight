@@ -1,3 +1,4 @@
+import Alert from '@components/Alert/Alert';
 import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
 import React, { useRef } from 'react';
 import Skeleton from 'react-loading-skeleton';
@@ -40,19 +41,40 @@ const FullCommentList = ({
                     />
                 </div>
             ) : (
-                <Virtuoso
-                    ref={virtuoso}
-                    overscan={500}
-                    data={comments}
-                    itemContent={(index, comment: any) => (
-                        <div
-                            key={comment.id || index}
-                            className={styles.comment}
-                        >
-                            {commentRender(comment)}
-                        </div>
-                    )}
-                />
+                <>
+                    <Alert
+                        trackingId={'PersonalNotificationCTA'}
+                        message={'Enable Slack Notifications'}
+                        description={
+                            <>
+                                {
+                                    'Get a personal slack notification anytime someone tags you in a Highlight comment!'
+                                }
+                                <PersonalNotificationButton
+                                    text={'Enable Notifications'}
+                                    style={{
+                                        marginTop: 'var(--size-medium)',
+                                        width: 'fit-content',
+                                    }}
+                                />
+                            </>
+                        }
+                        className={styles.comment}
+                    />
+                    <Virtuoso
+                        ref={virtuoso}
+                        overscan={500}
+                        data={comments}
+                        itemContent={(index, comment: any) => (
+                            <div
+                                key={comment.id || index}
+                                className={styles.comment}
+                            >
+                                {commentRender(comment)}
+                            </div>
+                        )}
+                    />
+                </>
             )}
         </div>
     );
