@@ -1,3 +1,4 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import Alert from '@components/Alert/Alert';
 import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
 import React, { useRef } from 'react';
@@ -20,6 +21,7 @@ const FullCommentList = ({
     noCommentsMessage,
 }: Props) => {
     const virtuoso = useRef<VirtuosoHandle>(null);
+    const { admin } = useAuthContext();
 
     return (
         <div className={styles.commentStream}>
@@ -34,33 +36,30 @@ const FullCommentList = ({
                         <h2>There are no comments yet</h2>
                         <p>{noCommentsMessage}</p>
                     </div>
-                    <PersonalNotificationButton
-                        style={{
-                            width: 'fit-content',
-                        }}
-                    />
+                    <PersonalNotificationButton />
                 </div>
             ) : (
                 <>
-                    <Alert
-                        trackingId={'PersonalNotificationCTA'}
-                        message={'Enable Slack Notifications'}
-                        description={
-                            <>
-                                {
-                                    'Get a personal slack notification anytime someone tags you in a Highlight comment!'
-                                }
-                                <PersonalNotificationButton
-                                    text={'Enable Notifications'}
-                                    style={{
-                                        marginTop: 'var(--size-medium)',
-                                        width: 'fit-content',
-                                    }}
-                                />
-                            </>
-                        }
-                        className={styles.comment}
-                    />
+                    {!admin?.slack_im_channel_id && (
+                        <Alert
+                            trackingId={'PersonalNotificationCTA'}
+                            message={'Enable Slack Notifications'}
+                            description={
+                                <>
+                                    {
+                                        'Get a personal slack notification anytime someone tags you in a Highlight comment!'
+                                    }
+                                    <PersonalNotificationButton
+                                        text={'Enable Notifications'}
+                                        style={{
+                                            marginTop: 'var(--size-medium)',
+                                        }}
+                                    />
+                                </>
+                            }
+                            className={styles.comment}
+                        />
+                    )}
                     <Virtuoso
                         ref={virtuoso}
                         overscan={500}
