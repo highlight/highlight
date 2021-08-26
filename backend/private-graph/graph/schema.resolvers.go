@@ -739,7 +739,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 		})
 		err := g.Wait()
 		if err != nil {
-			return nil, e.Wrap(err, "error notifying admins about being tagged in a comment")
+			log.Errorf(e.Wrap(err, "error notifying admins about being tagged in a comment").Error())
 		}
 	}
 
@@ -828,7 +828,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationI
 		})
 		err := g.Wait()
 		if err != nil {
-			return nil, e.Wrap(err, "error notifying admins about being tagged in a comment")
+			log.Errorf(e.Wrap(err, "error notifying admins about being tagged in a comment").Error())
 		}
 	}
 	return errorComment, nil
