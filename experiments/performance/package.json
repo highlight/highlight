@@ -4,6 +4,6 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
-    "playwright": "^1.9.2"
+    "playwright": "^1.13.1"
   }
 }
