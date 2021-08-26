@@ -1,15 +1,18 @@
 import React from 'react';
 
-import Button from '../../../Button/Button/Button';
+import Button, {
+    GenericHighlightButtonProps,
+} from '../../../Button/Button/Button';
 import { useAuthContext } from './../../../../authentication/AuthContext';
 import styles from './PersonalNotificationButton.module.scss';
 import { useSlackBot } from './utils/utils';
 
-interface Props {
-    style?: React.CSSProperties | undefined;
-}
+type Props = { text?: string } & Pick<
+    GenericHighlightButtonProps,
+    'className' | 'style'
+>;
 
-const PersonalNotificationButton = ({ style }: Props) => {
+const PersonalNotificationButton = ({ ...props }: Props) => {
     const { isHighlightAdmin, admin } = useAuthContext();
 
     let redirectUrl = window.location.pathname;
@@ -32,9 +35,9 @@ const PersonalNotificationButton = ({ style }: Props) => {
             type="primary"
             trackingId="EnablePersonalNotificationButton"
             href={slackBotUrl}
-            style={style}
+            style={props.style}
         >
-            Enable Personal Notifications?
+            {props?.text || 'Enable Personal Notifications?'}
         </Button>
     );
 };
