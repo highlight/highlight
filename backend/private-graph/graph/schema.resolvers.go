@@ -1130,7 +1130,7 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 	errorFieldIds := []int{}
-	errorFieldQuery := r.DB.Model(&model.ErrorField{}).Where(&model.ErrorField{OrganizationID: organizationID})
+	errorFieldQuery := r.DB.Model(&model.ErrorField{}).Where("organization_id = ?", organizationID)
 	errorFieldQueryCondition := r.DB
 
 	if params.Browser != nil {
