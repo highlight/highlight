@@ -5,7 +5,11 @@ import { useAuthContext } from './../../../../authentication/AuthContext';
 import styles from './PersonalNotificationButton.module.scss';
 import { useSlackBot } from './utils/utils';
 
-const PersonalNotificationButton = () => {
+interface Props {
+    style?: React.CSSProperties | undefined;
+}
+
+const PersonalNotificationButton = ({ style }: Props) => {
     const { isHighlightAdmin, admin } = useAuthContext();
 
     let redirectUrl = window.location.pathname;
@@ -28,6 +32,7 @@ const PersonalNotificationButton = () => {
             type="primary"
             trackingId="EnablePersonalNotificationButton"
             href={slackBotUrl}
+            style={style}
         >
             Enable Personal Notifications?
         </Button>
