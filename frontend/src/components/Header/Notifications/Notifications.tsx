@@ -1,10 +1,11 @@
+import { useSlackBot } from '@components/Header/components/PersonalNotificationButton/utils/utils';
 import useLocalStorage from '@rehooks/local-storage';
 import { Menu } from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import Lottie from 'lottie-react';
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Redirect, useParams } from 'react-router-dom';
 
 import { useGetNotificationsQuery } from '../../../graph/generated/hooks';
 import NotificationAnimation from '../../../lottie/waiting.json';
@@ -19,6 +20,8 @@ import NotificationItem from './NotificationItem/NotificationItem';
 import { processNotifications } from './utils/utils';
 
 const Notifications = () => {
+    const { slackUrl: slackBotUrl } = useSlackBot();
+
     const { organization_id } = useParams<{ organization_id: string }>();
     const [notifications, setNotifications] = useState<any[]>([]);
     const [showPopover, setShowPopover] = useState(false);
@@ -113,32 +116,43 @@ const Notifications = () => {
             title={
                 <div className={styles.popoverTitle}>
                     <h3>Comments</h3>
-                    <DotsMenu
-                        trackingId="MarkAllNotificationsAsRead"
-                        menu={
-                            <Menu>
-                                <Menu.Item
-                                    onClick={() => {
-                                        setReadNotifications([
-                                            ...notifications.map(
-                                                (notification) =>
-                                                    notification.id.toString()
-                                            ),
-                                        ]);
-                                    }}
-                                >
-                                    Mark all as read
-                                </Menu.Item>
-                                <Menu.Item
-                                    onClick={() => {
-                                        setReadNotifications([]);
-                                    }}
-                                >
-                                    Mark all as unread
-                                </Menu.Item>
-                            </Menu>
-                        }
-                    />
+                    <div className={styles.dotContainer}>
+                        <Dot pulse />
+                        <DotsMenu
+                            trackingId="MarkAllNotificationsAsRead"
+                            menu={
+                                <Menu>
+                                    <Menu.Item
+                                        onClick={() => {
+                                            setReadNotifications([
+                                                ...notifications.map(
+                                                    (notification) =>
+                                                        notification.id.toString()
+                                                ),
+                                            ]);
+                                        }}
+                                    >
+                                        Mark all as read
+                                    </Menu.Item>
+                                    <Menu.Item
+                                        onClick={() => {
+                                            setReadNotifications([]);
+                                        }}
+                                    >
+                                        Mark all as unread
+                                    </Menu.Item>
+                                    <Menu.Item
+                                        onClick={() => {
+                                            <Redirect to={slackBotUrl} />;
+                                        }}
+                                    >
+                                        {'Enable Personal Slack Notifications'}
+                                        <Dot pulse />
+                                    </Menu.Item>
+                                </Menu>
+                            }
+                        />
+                    </div>
                 </div>
             }
         >
