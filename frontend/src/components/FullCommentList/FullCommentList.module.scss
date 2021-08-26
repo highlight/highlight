@@ -20,6 +20,15 @@
 }
 
 .noCommentsContainer {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    height: inherit;
+    justify-content: center;
+    margin: var(--size-xxLarge);
+}
+
+.noCommentsTextContainer {
     left: 18%;
     position: absolute;
     text-align: center;

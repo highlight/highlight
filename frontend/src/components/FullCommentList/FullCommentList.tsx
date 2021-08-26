@@ -1,3 +1,4 @@
+import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
 import React, { useRef } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
@@ -28,8 +29,15 @@ const FullCommentList = ({
             )}
             {!loading && comments.length === 0 ? (
                 <div className={styles.noCommentsContainer}>
-                    <h2>There are no comments yet</h2>
-                    <p>{noCommentsMessage}</p>
+                    <div className={styles.noCommentsTextContainer}>
+                        <h2>There are no comments yet</h2>
+                        <p>{noCommentsMessage}</p>
+                    </div>
+                    <PersonalNotificationButton
+                        style={{
+                            width: 'fit-content',
+                        }}
+                    />
                 </div>
             ) : (
                 <Virtuoso
