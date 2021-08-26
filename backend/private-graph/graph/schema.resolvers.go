@@ -720,27 +720,27 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 		}
 		viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
 
-		var g errgroup.Group
-
-		g.Go(func() error {
+		go func() {
 			commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
 				tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(taggedAdmins)))
 			defer commentMentionEmailSpan.Finish()
 
-			return r.SendEmailAlert(tos, authorName, viewLink, textForEmail, SendGridSessionCommentEmailTemplateID, sessionImage)
-		})
+			err := r.SendEmailAlert(tos, authorName, viewLink, textForEmail, SendGridSessionCommentEmailTemplateID, sessionImage)
+			if err != nil {
+				log.Errorf(e.Wrap(err, "error notifying tagged admins in session comment").Error())
+			}
+		}()
 
-		g.Go(func() error {
+		go func() {
 			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
 				tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(adminIds)))
 			defer commentMentionSlackSpan.Finish()
 
-			return r.SendPersonalSlackAlert(&org, admin, adminIds, viewLink, sessionComment.Text, "session")
-		})
-		err := g.Wait()
-		if err != nil {
-			log.Errorf(e.Wrap(err, "error notifying admins about being tagged in a comment").Error())
-		}
+			err := r.SendPersonalSlackAlert(&org, admin, adminIds, viewLink, sessionComment.Text, "session")
+			if err != nil {
+				log.Errorf(e.Wrap(err, "error notifying tagged admins in session comment").Error())
+			}
+		}()
 	}
 
 	return sessionComment, nil
@@ -809,27 +809,28 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationI
 		}
 
 		viewLink := fmt.Sprintf("%v", errorURL)
-		var g errgroup.Group
 
-		g.Go(func() error {
+		go func() {
 			commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
 				tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(taggedAdmins)))
 			defer commentMentionEmailSpan.Finish()
 
-			return r.SendEmailAlert(tos, authorName, viewLink, textForEmail, SendGridErrorCommentEmailTemplateId, nil)
-		})
+			err := r.SendEmailAlert(tos, authorName, viewLink, textForEmail, SendGridErrorCommentEmailTemplateId, nil)
+			if err != nil {
+				log.Error(e.Wrap(err, "error notifying tagged admins in error comment"))
+			}
+		}()
 
-		g.Go(func() error {
+		go func() {
 			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
 				tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(adminIds)))
 			defer commentMentionSlackSpan.Finish()
 
-			return r.SendPersonalSlackAlert(&org, admin, adminIds, viewLink, errorComment.Text, "error")
-		})
-		err := g.Wait()
-		if err != nil {
-			log.Errorf(e.Wrap(err, "error notifying admins about being tagged in a comment").Error())
-		}
+			err = r.SendPersonalSlackAlert(&org, admin, adminIds, viewLink, errorComment.Text, "error")
+			if err != nil {
+				log.Error(e.Wrap(err, "error notifying tagged admins in error comment"))
+			}
+		}()
 	}
 	return errorComment, nil
 }
