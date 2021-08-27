@@ -738,12 +738,12 @@ export class Highlight {
 
         const resourcesString = JSON.stringify({ resources: resources });
 
-        const messagesImmutable = JSON.parse(JSON.stringify(this.messages));
-        this.messages = this.messages.slice(messagesImmutable.length);
+        const messages = [...this.messages];
+        this.messages = this.messages.slice(messages.length);
 
-        const messagesString = stringify({ messages: messagesImmutable });
+        const messagesString = stringify({ messages: messages });
         this.logger.log(
-            `Sending: ${this.events.length} events, ${messagesImmutable.length} messages, ${resources.length} network resources, ${this.errors.length} errors \nTo: ${this._backendUrl}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionData.sessionID}`
+            `Sending: ${this.events.length} events, ${messages.length} messages, ${resources.length} network resources, ${this.errors.length} errors \nTo: ${this._backendUrl}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionData.sessionID}`
         );
         if (!this.disableNetworkRecording) {
             performance.clearResourceTimings();
