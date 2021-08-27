@@ -235,7 +235,6 @@ export class Highlight {
         this.enableSegmentIntegration = options.enableSegmentIntegration;
         this.enableStrictPrivacy = options.enableStrictPrivacy || false;
         this.logger = new Logger(this.debugOptions.clientInteractions);
-        this.logger.log('Highlight object options: ', options);
         this._backendUrl =
             options?.backendUrl ||
             process.env.PUBLIC_GRAPH_URI ||
@@ -462,7 +461,6 @@ export class Highlight {
   Org ID: ${organization_id}
   Verbose Org ID: ${this.organizationID}
   SessionID: ${this.sessionData.sessionID}
-  : ${this.sessionData.sessionID}
   Session Data:
   `,
                         gr.initializeSession
@@ -740,18 +738,12 @@ export class Highlight {
 
         const resourcesString = JSON.stringify({ resources: resources });
 
-        // console.log('messages', this.messages.length, this.messages);
-        // const messages = [...this.messages];
-        // console.log(messages.length);
-        // this.messages = this.messages.slice(messages.length);
-        // console.log(JSON.stringify(this.messages));
+        const messagesImmutable = JSON.parse(JSON.stringify(this.messages));
+        this.messages = this.messages.slice(messagesImmutable.length);
 
-        const messagesClone = JSON.parse(JSON.stringify(this.messages));
-        this.messages = this.messages.slice(messagesClone.length);
-
-        const messagesString = stringify({ messages: messagesClone });
+        const messagesString = stringify({ messages: messagesImmutable });
         this.logger.log(
-            `Sending: ${this.events.length} events, ${messagesClone.length} messages, ${resources.length} network resources, ${this.errors.length} errors \nTo: ${this._backendUrl}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionData.sessionID}`
+            `Sending: ${this.events.length} events, ${messagesImmutable.length} messages, ${resources.length} network resources, ${this.errors.length} errors \nTo: ${this._backendUrl}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionData.sessionID}`
         );
         if (!this.disableNetworkRecording) {
             performance.clearResourceTimings();
