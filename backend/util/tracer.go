@@ -66,6 +66,13 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 	if resp.Errors != nil {
 		var errs []ddtrace.FinishOption
 		for _, err := range resp.Errors {
+			// actualError := err.Unwrap()
+			// if stackTraceError, ok := actualError.(stackTracer); ok {
+			// 	pp.Println("here's an error: ")
+			// 	for _, f := range stackTraceError.StackTrace() {
+			// 		pp.Printf("%+s:%d\n", f, f)
+			// 	}
+			// }
 			errs = append(errs, tracer.WithError(err))
 		}
 		span.Finish(errs...)

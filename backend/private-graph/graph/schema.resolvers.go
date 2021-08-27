@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -15,12 +16,12 @@ import (
 	"time"
 
 	"github.com/highlight-run/highlight/backend/apolloio"
-	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
+	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -144,7 +145,7 @@ func (r *errorObjectResolver) StackTrace(ctx context.Context, obj *model.ErrorOb
 	frames := []interface{}{}
 	if obj.StackTrace != nil {
 		if err := json.Unmarshal([]byte(*obj.StackTrace), &frames); err != nil {
-			return nil, fmt.Errorf("error decoding stack frame data: %v", err)
+			return nil, e.Wrap(err, "error decoding stack frame data")
 		}
 	}
 	return frames, nil
@@ -1092,7 +1093,7 @@ func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, er
 	sessionObj := &model.Session{}
 	res := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: id}}).First(&sessionObj)
 	if res.Error != nil {
-		return nil, fmt.Errorf("error reading from session: %v", res.Error)
+		return nil, e.Wrapf(res.Error, "error reading from session")
 	}
 	return sessionObj, nil
 }
@@ -1128,7 +1129,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 		tracer.ResourceName("db.eventsObjectsQuery"), tracer.Tag("org_id", s.OrganizationID))
 	eventObjs := []*model.EventsObject{}
 	if res := r.DB.Order("created_at desc").Where(&model.EventsObject{SessionID: sessionID}).Find(&eventObjs); res.Error != nil {
-		return nil, fmt.Errorf("error reading from events: %v", res.Error)
+		return nil, e.Wrapf(res.Error, "error reading from events")
 	}
 	eventsQuerySpan.Finish()
 	eventsParseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
@@ -1137,7 +1138,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 	for _, eventObj := range eventObjs {
 		subEvents := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(eventObj.Events), &subEvents); err != nil {
-			return nil, fmt.Errorf("error decoding event data: %v", err)
+			return nil, e.Wrapf(err, "error decoding event data")
 		}
 		allEvents["events"] = append(subEvents["events"], allEvents["events"]...)
 	}
@@ -1266,13 +1267,13 @@ func (r *queryResolver) Messages(ctx context.Context, sessionID int) ([]interfac
 	}
 	messagesObj := []*model.MessagesObject{}
 	if res := r.DB.Order("created_at desc").Where(&model.MessagesObject{SessionID: sessionID}).Find(&messagesObj); res.Error != nil {
-		return nil, fmt.Errorf("error reading from messages: %v", res.Error)
+		return nil, e.Wrap(res.Error, "error reading from messages")
 	}
 	allEvents := make(map[string][]interface{})
 	for _, messageObj := range messagesObj {
 		subMessage := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(messageObj.Messages), &subMessage); err != nil {
-			return nil, fmt.Errorf("error decoding message data: %v", err)
+			return nil, e.Wrap(err, "error decoding message data")
 		}
 		allEvents["messages"] = append(subMessage["messages"], allEvents["messages"]...)
 	}
@@ -1289,7 +1290,7 @@ func (r *queryResolver) Errors(ctx context.Context, sessionID int) ([]*model.Err
 	defer eventsQuerySpan.Finish()
 	errorsObj := []*model.ErrorObject{}
 	if res := r.DB.Order("created_at asc").Where(&model.ErrorObject{SessionID: sessionID}).Find(&errorsObj); res.Error != nil {
-		return nil, fmt.Errorf("error reading from errors: %v", res.Error)
+		return nil, e.Wrapf(err, "error reading from errors")
 	}
 	return errorsObj, nil
 }
@@ -1311,13 +1312,13 @@ func (r *queryResolver) Resources(ctx context.Context, sessionID int) ([]interfa
 	}
 	resourcesObject := []*model.ResourcesObject{}
 	if res := r.DB.Order("created_at desc").Where(&model.ResourcesObject{SessionID: sessionID}).Find(&resourcesObject); res.Error != nil {
-		return nil, fmt.Errorf("error reading from resources: %v", res.Error)
+		return nil, e.Wrapf(res.Error, "error reading from resources")
 	}
 	allResources := make(map[string][]interface{})
 	for _, resourceObj := range resourcesObject {
 		subResources := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(resourceObj.Resources), &subResources); err != nil {
-			return nil, fmt.Errorf("error decoding resource data: %v", err)
+			return nil, e.Wrapf(err, "error decoding resource data")
 		}
 		allResources["resources"] = append(subResources["resources"], allResources["resources"]...)
 	}
@@ -1571,143 +1572,157 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, organizationID
 	return &modelInputs.UserFingerprintCount{Count: count}, nil
 }
 
+type stackTracer interface {
+	StackTrace() e.StackTrace
+}
+
 func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count int, lifecycle modelInputs.SessionLifecycle, starred bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
-	endpointStart := time.Now()
-	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID); err != nil {
-		return nil, e.Wrap(err, "admin not found in org")
-	}
-
-	sessionsQueryPreamble := "SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, field_group"
-	joinClause := "FROM sessions"
-
-	fieldFilters, err := r.getFieldFilters(ctx, organizationID, params)
-	if err != nil {
-		return nil, err
-	}
-
-	whereClause := ` `
-
-	whereClause += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
-	if lifecycle == modelInputs.SessionLifecycleCompleted {
-		whereClause += fmt.Sprintf("AND (length > %d) ", 1000)
-	}
-	if starred {
-		whereClause += "AND (starred = true) "
-	}
-	if firstTime := params.FirstTime; firstTime != nil && *firstTime {
-		whereClause += "AND (first_time = true) "
-	}
-	if params.LengthRange != nil {
-		if params.LengthRange.Min != nil {
-			whereClause += fmt.Sprintf("AND (active_length >= %f) ", *params.LengthRange.Min*60000)
+	err := errors.New("hello")
+	if stackTraceError, ok := err.(stackTracer); ok {
+		pp.Println("here's an error: ")
+		for _, f := range stackTraceError.StackTrace() {
+			pp.Printf("%+s:%d\n", f, f)
 		}
-		if params.LengthRange.Max != nil {
-			if *params.LengthRange.Max != 60 && *params.LengthRange.Max != 0 {
-				whereClause += fmt.Sprintf("AND (active_length <= %f) ", *params.LengthRange.Max*60000)
-			}
-		}
+	} else {
+		pp.Println("nope1")
 	}
+	return nil, err
+	// 	endpointStart := time.Now()
+	// 	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID); err != nil {
+	// 		return nil, e.Wrap(err, "admin not found in org")
+	// 	}
 
-	if lifecycle == modelInputs.SessionLifecycleCompleted {
-		whereClause += "AND (processed = true) "
-	} else if lifecycle == modelInputs.SessionLifecycleLive {
-		whereClause += "AND (processed = false) "
-	}
-	whereClause += "AND (deleted_at IS NULL) "
+	// 	sessionsQueryPreamble := "SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, field_group"
+	// 	joinClause := "FROM sessions"
 
-	whereClause += fieldFilters
-	if d := params.DateRange; d != nil {
-		whereClause += fmt.Sprintf("AND (created_at > '%s') AND (created_at < '%s') ", d.StartDate.Format("2006-01-02 15:04:05"), d.EndDate.Format("2006-01-02 15:04:05"))
-	}
+	// 	fieldFilters, err := r.getFieldFilters(ctx, organizationID, params)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
 
-	if os := params.Os; os != nil {
-		whereClause += fmt.Sprintf("AND (os_name = '%s') ", *os)
-	}
+	// 	whereClause := ` `
 
-	if identified := params.Identified; identified != nil && *identified {
-		whereClause += "AND (length(identifier) > 0) "
-	}
+	// 	whereClause += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
+	// 	if lifecycle == modelInputs.SessionLifecycleCompleted {
+	// 		whereClause += fmt.Sprintf("AND (length > %d) ", 1000)
+	// 	}
+	// 	if starred {
+	// 		whereClause += "AND (starred = true) "
+	// 	}
+	// 	if firstTime := params.FirstTime; firstTime != nil && *firstTime {
+	// 		whereClause += "AND (first_time = true) "
+	// 	}
+	// 	if params.LengthRange != nil {
+	// 		if params.LengthRange.Min != nil {
+	// 			whereClause += fmt.Sprintf("AND (active_length >= %f) ", *params.LengthRange.Min*60000)
+	// 		}
+	// 		if params.LengthRange.Max != nil {
+	// 			if *params.LengthRange.Max != 60 && *params.LengthRange.Max != 0 {
+	// 				whereClause += fmt.Sprintf("AND (active_length <= %f) ", *params.LengthRange.Max*60000)
+	// 			}
+	// 		}
+	// 	}
 
-	if viewed := params.HideViewed; viewed != nil && *viewed {
-		whereClause += "AND (viewed = false OR viewed IS NULL) "
-	}
+	// 	if lifecycle == modelInputs.SessionLifecycleCompleted {
+	// 		whereClause += "AND (processed = true) "
+	// 	} else if lifecycle == modelInputs.SessionLifecycleLive {
+	// 		whereClause += "AND (processed = false) "
+	// 	}
+	// 	whereClause += "AND (deleted_at IS NULL) "
 
-	if browser := params.Browser; browser != nil {
-		whereClause += fmt.Sprintf("AND (browser_name = '%s') ", *browser)
-	}
+	// 	whereClause += fieldFilters
+	// 	if d := params.DateRange; d != nil {
+	// 		whereClause += fmt.Sprintf("AND (created_at > '%s') AND (created_at < '%s') ", d.StartDate.Format("2006-01-02 15:04:05"), d.EndDate.Format("2006-01-02 15:04:05"))
+	// 	}
 
-	if deviceId := params.DeviceID; deviceId != nil {
-		whereClause += fmt.Sprintf("AND (fingerprint = '%s') ", *deviceId)
-	}
+	// 	if os := params.Os; os != nil {
+	// 		whereClause += fmt.Sprintf("AND (os_name = '%s') ", *os)
+	// 	}
 
-	// user shouldn't see sessions that are not within billing quota
-	whereClause += "AND (within_billing_quota IS NULL OR within_billing_quota=true) "
+	// 	if identified := params.Identified; identified != nil && *identified {
+	// 		whereClause += "AND (length(identifier) > 0) "
+	// 	}
 
-	var g errgroup.Group
-	queriedSessions := []model.Session{}
-	var queriedSessionsCount int64
-	whereClauseSuffix := "AND NOT ((processed = true AND ((active_length IS NOT NULL AND active_length < 1000) OR (active_length IS NULL AND length < 1000)))) "
-	logTags := []string{fmt.Sprintf("org_id:%d", organizationID), fmt.Sprintf("filtered:%t", fieldFilters != "")}
+	// 	if viewed := params.HideViewed; viewed != nil && *viewed {
+	// 		whereClause += "AND (viewed = false OR viewed IS NULL) "
+	// 	}
 
-	g.Go(func() error {
-		if params.LengthRange != nil {
-			if params.LengthRange.Min != nil || params.LengthRange.Max != nil {
-				whereClauseSuffix = "AND processed = true "
-			}
+	// 	if browser := params.Browser; browser != nil {
+	// 		whereClause += fmt.Sprintf("AND (browser_name = '%s') ", *browser)
+	// 	}
 
-		}
-		whereClause += whereClauseSuffix
-		sessionsSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-			tracer.ResourceName("db.sessionsQuery"), tracer.Tag("org_id", organizationID))
-		start := time.Now()
-		query := fmt.Sprintf("%s %s %s ORDER BY created_at DESC LIMIT %d", sessionsQueryPreamble, joinClause, whereClause, count)
-		if err := r.DB.Raw(query).Scan(&queriedSessions).Error; err != nil {
-			return e.Wrapf(err, "error querying filtered sessions: %s", query)
-		}
-		duration := time.Since(start)
-		hlog.Timing("db.sessionsQuery.duration", duration, logTags, 1)
-		hlog.Incr("db.sessionsQuery.count", logTags, 1)
-		if duration.Milliseconds() > 3000 {
-			log.Error(e.New(fmt.Sprintf("sessionsQuery took %dms: %s", duration.Milliseconds(), query)))
-		}
-		sessionsSpan.Finish()
-		return nil
-	})
+	// 	if deviceId := params.DeviceID; deviceId != nil {
+	// 		whereClause += fmt.Sprintf("AND (fingerprint = '%s') ", *deviceId)
+	// 	}
 
-	g.Go(func() error {
-		sessionCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-			tracer.ResourceName("db.sessionsCountQuery"), tracer.Tag("org_id", organizationID))
-		start := time.Now()
-		query := fmt.Sprintf("SELECT count(*) %s %s %s", joinClause, whereClause, whereClauseSuffix)
-		if err := r.DB.Raw(query).Scan(&queriedSessionsCount).Error; err != nil {
-			return e.Wrapf(err, "error querying filtered sessions count: %s", query)
-		}
-		duration := time.Since(start)
-		hlog.Timing("db.sessionsCountQuery.duration", duration, logTags, 1)
-		if duration.Milliseconds() > 3000 {
-			log.Error(e.New(fmt.Sprintf("sessionsCountQuery took %dms: %s", duration.Milliseconds(), query)))
-		}
-		sessionCountSpan.Finish()
-		return nil
-	})
+	// 	// user shouldn't see sessions that are not within billing quota
+	// 	whereClause += "AND (within_billing_quota IS NULL OR within_billing_quota=true) "
 
-	// Waits for both goroutines to finish, then returns the first non-nil error (if any).
-	if err := g.Wait(); err != nil {
-		return nil, e.Wrap(err, "error querying session data")
-	}
+	// 	var g errgroup.Group
+	// 	queriedSessions := []model.Session{}
+	// 	var queriedSessionsCount int64
+	// 	whereClauseSuffix := "AND NOT ((processed = true AND ((active_length IS NOT NULL AND active_length < 1000) OR (active_length IS NULL AND length < 1000)))) "
+	// 	logTags := []string{fmt.Sprintf("org_id:%d", organizationID), fmt.Sprintf("filtered:%t", fieldFilters != "")}
 
-	sessionList := &model.SessionResults{
-		Sessions:   queriedSessions,
-		TotalCount: queriedSessionsCount,
-	}
+	// 	g.Go(func() error {
+	// 		if params.LengthRange != nil {
+	// 			if params.LengthRange.Min != nil || params.LengthRange.Max != nil {
+	// 				whereClauseSuffix = "AND processed = true "
+	// 			}
 
-	endpointDuration := time.Since(endpointStart)
-	hlog.Timing("gql.sessions.duration", endpointDuration, logTags, 1)
-	hlog.Incr("gql.sessions.count", logTags, 1)
-	if endpointDuration.Milliseconds() > 5000 {
-		log.Error(e.New(fmt.Sprintf("endpoint.sessions took %dms: org_id: %d, count: %d, params: %+v", endpointDuration.Milliseconds(), organizationID, count, params)))
-	}
-	return sessionList, nil
+	// 		}
+	// 		whereClause += whereClauseSuffix
+	// 		sessionsSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
+	// 			tracer.ResourceName("db.sessionsQuery"), tracer.Tag("org_id", organizationID))
+	// 		start := time.Now()
+	// 		query := fmt.Sprintf("%s %s %s ORDER BY created_at DESC LIMIT %d", sessionsQueryPreamble, joinClause, whereClause, count)
+	// 		if err := r.DB.Raw(query).Scan(&queriedSessions).Error; err != nil {
+	// 			return e.Wrapf(err, "error querying filtered sessions: %s", query)
+	// 		}
+	// 		duration := time.Since(start)
+	// 		hlog.Timing("db.sessionsQuery.duration", duration, logTags, 1)
+	// 		hlog.Incr("db.sessionsQuery.count", logTags, 1)
+	// 		if duration.Milliseconds() > 3000 {
+	// 			log.Error(e.New(fmt.Sprintf("sessionsQuery took %dms: %s", duration.Milliseconds(), query)))
+	// 		}
+	// 		sessionsSpan.Finish()
+	// 		return nil
+	// 	})
+
+	// 	g.Go(func() error {
+	// 		sessionCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
+	// 			tracer.ResourceName("db.sessionsCountQuery"), tracer.Tag("org_id", organizationID))
+	// 		start := time.Now()
+	// 		query := fmt.Sprintf("SELECT count(*) %s %s %s", joinClause, whereClause, whereClauseSuffix)
+	// 		if err := r.DB.Raw(query).Scan(&queriedSessionsCount).Error; err != nil {
+	// 			return e.Wrapf(err, "error querying filtered sessions count: %s", query)
+	// 		}
+	// 		duration := time.Since(start)
+	// 		hlog.Timing("db.sessionsCountQuery.duration", duration, logTags, 1)
+	// 		if duration.Milliseconds() > 3000 {
+	// 			log.Error(e.New(fmt.Sprintf("sessionsCountQuery took %dms: %s", duration.Milliseconds(), query)))
+	// 		}
+	// 		sessionCountSpan.Finish()
+	// 		return nil
+	// 	})
+
+	// 	// Waits for both goroutines to finish, then returns the first non-nil error (if any).
+	// 	if err := g.Wait(); err != nil {
+	// 		return nil, e.Wrap(err, "error querying session data")
+	// 	}
+
+	// 	sessionList := &model.SessionResults{
+	// 		Sessions:   queriedSessions,
+	// 		TotalCount: queriedSessionsCount,
+	// 	}
+
+	// 	endpointDuration := time.Since(endpointStart)
+	// 	hlog.Timing("gql.sessions.duration", endpointDuration, logTags, 1)
+	// 	hlog.Incr("gql.sessions.count", logTags, 1)
+	// 	if endpointDuration.Milliseconds() > 5000 {
+	// 		log.Error(e.New(fmt.Sprintf("endpoint.sessions took %dms: org_id: %d, count: %d, params: %+v", endpointDuration.Milliseconds(), organizationID, count, params)))
+	// 	}
+	// 	return sessionList, nil
 }
 
 func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) (*modelInputs.BillingDetails, error) {
