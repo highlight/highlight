@@ -117,7 +117,14 @@ const Notifications = () => {
                 <div className={styles.popoverTitle}>
                     <h3>Comments</h3>
                     <div className={styles.dotContainer}>
-                        <Dot pulse />
+                        <div
+                            style={{
+                                position: 'absolute',
+                                marginLeft: 'var(--size-medium)',
+                            }}
+                        >
+                            <Dot pulse />
+                        </div>
                         <DotsMenu
                             trackingId="MarkAllNotificationsAsRead"
                             menu={
@@ -147,7 +154,9 @@ const Notifications = () => {
                                         }}
                                     >
                                         {'Enable Personal Slack Notifications'}
-                                        <Dot pulse />
+                                        <div style={{ position: 'absolute' }}>
+                                            <Dot pulse />
+                                        </div>
                                     </Menu.Item>
                                 </Menu>
                             }
