@@ -2,10 +2,9 @@ import SvgCloseIcon from '@icons/CloseIcon';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import classNames from 'classnames/bind';
 import { H } from 'highlight.run';
-import { History } from 'history';
 import moment from 'moment';
 import React from 'react';
-import { Link, useHistory, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
 import { useSessionStorage } from 'react-use';
 
@@ -23,11 +22,7 @@ import PersonalNotificationButton from './components/PersonalNotificationButton/
 import styles from './Header.module.scss';
 import { UserDropdown } from './UserDropdown/UserDropdown';
 
-interface Props {
-    integrated: boolean;
-}
-
-export const Header = ({ integrated }: Props) => {
+export const Header = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { isLoggedIn } = useAuthContext();
 
@@ -39,7 +34,7 @@ export const Header = ({ integrated }: Props) => {
                     [styles.guest]: !isLoggedIn,
                 })}
             >
-                {getBanner(organization_id, integrated)}
+                {getBanner(organization_id)}
 
                 <div className={styles.headerContent}>
                     {isLoggedIn ? (
@@ -69,11 +64,11 @@ export const Header = ({ integrated }: Props) => {
     );
 };
 
-const getBanner = (organization_id: string, integrated: boolean) => {
+const getBanner = (organization_id: string) => {
     if (process.env.REACT_APP_ENV === 'true') {
         return <OnPremiseBanner />;
     } else if (organization_id === '0') {
-        return <DemoWorkspaceBanner integrated={integrated} />;
+        return <DemoWorkspaceBanner />;
     } else {
         return <FreePlanBanner />;
     }
@@ -161,46 +156,39 @@ const OnPremiseBanner = () => {
     );
 };
 
-const DemoWorkspaceBanner = ({ integrated }: Props) => {
+const DemoWorkspaceBanner = () => {
     const { currentApplication, allApplications } = useApplicationContext();
     const { pathname } = useLocation();
-    const history = useHistory();
+
+    const redirectLink = getRedirectLink(
+        allApplications,
+        currentApplication,
+        pathname
+    );
 
     return (
         <div
             className={styles.trialWrapper}
-            style={{ cursor: 'pointer', background: 'var(--color-green)' }}
-            onClick={() => {
-                setHistory(
-                    allApplications,
-                    currentApplication,
-                    history,
-                    pathname
-                );
+            style={{
+                cursor: 'pointer',
+                background: 'var(--color-green-extra-dark)',
             }}
         >
             <Banner
                 className={styles.bannerSvg}
-                style={{ fill: 'var(--color-green)' }}
-                onClick={() => {
-                    setHistory(
-                        allApplications,
-                        currentApplication,
-                        history,
-                        pathname
-                    );
-                }}
+                style={{ fill: 'var(--color-green-extra-dark)' }}
             />
             <div className={classNames(styles.trialTimeText)}>
-                Viewing Demo Workspace. Click to{' '}
-                {integrated ? 'Return to ' : 'Create '}
-                Your Workspace.
+                Viewing Demo Workspace.{' '}
+                <Link className={styles.demoLink} to={redirectLink}>
+                    Click here!
+                </Link>
             </div>
         </div>
     );
 };
 
-const setHistory = (
+const getRedirectLink = (
     allApplications: Maybe<
         Maybe<
             {
@@ -209,9 +197,8 @@ const setHistory = (
         >[]
     >,
     currentApplication: Organization | undefined,
-    history: History<unknown>,
     pathname: string
-) => {
+): string => {
     const [, path] = pathname.split('/').filter((token) => token.length);
     let toVisit = `/new`;
 
@@ -225,5 +212,5 @@ const setHistory = (
         }
     }
 
-    history.push(toVisit);
+    return toVisit;
 };
