@@ -1,4 +1,4 @@
-import SvgCloseIcon from '@icons/CloseIcon';
+import SvgXIcon from '@icons/XIcon';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import classNames from 'classnames/bind';
 import { H } from 'highlight.run';
@@ -134,7 +134,7 @@ const FreePlanBanner = () => {
                         setTemporarilyHideBanner(true);
                     }}
                 >
-                    <SvgCloseIcon />
+                    <SvgXIcon />
                 </button>
             )}
         </div>
