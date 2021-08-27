@@ -547,7 +547,6 @@ export class Highlight {
                 })
             );
             if (!this.disableConsoleRecording) {
-                console.log('listening to console stuff...');
                 this.listeners.push(
                     ConsoleListener((c: ConsoleMessage) => {
                         if (c.type == 'Error' && c.value && c.trace)
