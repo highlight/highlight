@@ -293,31 +293,31 @@ func (r *Resolver) UpdateSessionsVisibility(organizationID int, newPlan modelInp
 
 func (r *queryResolver) getFieldFilters(ctx context.Context, organizationID int, params *modelInputs.SearchParamsInput) (whereClause string, err error) {
 	if params.VisitedURL != nil {
-		whereClause += andHasFieldsWhere("fields.name = 'visited-url' AND fields.value ILIKE '%" + *params.VisitedURL + "%'")
+		whereClause += andSessionHasFieldsWhere("fields.name = 'visited-url' AND fields.value ILIKE '%" + *params.VisitedURL + "%'")
 	}
 
 	if params.Referrer != nil {
-		whereClause += andHasFieldsWhere("fields.name = 'referrer' AND fields.value ILIKE '%" + *params.Referrer + "%'")
+		whereClause += andSessionHasFieldsWhere("fields.name = 'referrer' AND fields.value ILIKE '%" + *params.Referrer + "%'")
 	}
 
 	inclusiveFilters := []string{}
 	inclusiveFilters = append(inclusiveFilters, getSQLFilters(params.UserProperties, "user")...)
 	inclusiveFilters = append(inclusiveFilters, getSQLFilters(params.TrackProperties, "track")...)
 	if len(inclusiveFilters) > 0 {
-		whereClause += andHasFieldsWhere(strings.Join(inclusiveFilters, " OR "))
+		whereClause += andSessionHasFieldsWhere(strings.Join(inclusiveFilters, " OR "))
 	}
 
 	exclusiveFilters := []string{}
 	exclusiveFilters = append(exclusiveFilters, getSQLFilters(params.ExcludedProperties, "user")...)
 	exclusiveFilters = append(exclusiveFilters, getSQLFilters(params.ExcludedTrackProperties, "track")...)
 	if len(exclusiveFilters) > 0 {
-		whereClause += andDoesNotHaveFieldsWhere(strings.Join(exclusiveFilters, " OR "))
+		whereClause += andSessionDoesNotHaveFieldsWhere(strings.Join(exclusiveFilters, " OR "))
 	}
 
 	return whereClause, nil
 }
 
-func andHasFieldsWhere(fieldConditions string) string {
+func andSessionHasFieldsWhere(fieldConditions string) string {
 	return fmt.Sprintf(`AND EXISTS (
 		SELECT 1
 		FROM session_fields
@@ -331,13 +331,71 @@ func andHasFieldsWhere(fieldConditions string) string {
 	) `, fieldConditions)
 }
 
-func andDoesNotHaveFieldsWhere(fieldConditions string) string {
+func andSessionDoesNotHaveFieldsWhere(fieldConditions string) string {
 	return fmt.Sprintf(`AND NOT EXISTS (
 		SELECT 1
 		FROM session_fields
 		JOIN fields
 		ON session_fields.field_id = fields.id
 		WHERE session_fields.session_id = sessions.id
+		AND (
+			%s
+		)
+		LIMIT 1
+	) `, fieldConditions)
+}
+
+func andErrorGroupHasSessionsWhere(fieldConditions string) string {
+	return fmt.Sprintf(`AND EXISTS (
+		SELECT 1
+		FROM error_objects
+		JOIN sessions
+		ON error_objects.session_id = sessions.id
+		WHERE error_objects.error_group_id = error_groups.id
+		AND (
+			%s
+		)
+		LIMIT 1
+	) `, fieldConditions)
+}
+
+func andErrorGroupHasFieldsWhere(fieldConditions string) string {
+	return fmt.Sprintf(`AND EXISTS (
+		SELECT 1
+		FROM error_objects
+		JOIN session_fields
+		ON error_objects.session_id = session_fields.session_id
+		JOIN fields
+		ON session_fields.field_id = fields.id
+		WHERE error_objects.error_group_id = error_groups.id
+		AND (
+			%s
+		)
+		LIMIT 1
+	) `, fieldConditions)
+}
+
+func andErrorGroupDoesNotHaveFieldsWhere(fieldConditions string) string {
+	return fmt.Sprintf(`AND NOT EXISTS (
+		SELECT 1
+		FROM error_objects
+		JOIN session_fields
+		ON error_objects.session_id = session_fields.session_id
+		JOIN fields
+		ON session_fields.field_id = fields.id
+		WHERE error_objects.error_group_id = error_groups.id
+		AND (
+			%s
+		)
+		LIMIT 1
+	) `, fieldConditions)
+}
+
+func andErrorGroupHasErrorObjectWhere(fieldConditions string) string {
+	return fmt.Sprintf(`AND EXISTS (
+		SELECT 1
+		FROM error_objects
+		WHERE error_objects.error_group_id = error_groups.id
 		AND (
 			%s
 		)
