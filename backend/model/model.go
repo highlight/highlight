@@ -655,10 +655,6 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 	); err != nil {
 		return nil, e.Wrap(err, "Error migrating db")
 	}
-	_, err = DB.DB()
-	if err != nil {
-		return nil, e.Wrap(err, "error retrieving underlying sql db")
-	}
 	log.Printf("finished db migration. \n")
 	return DB, nil
 }
