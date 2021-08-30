@@ -99,7 +99,7 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 		Select("session_id, id AS error_id, timestamp, os, browser, url").Scan(&metadataLogs).Error; err != nil {
 		return nil, err
 	}
-	filtered := []*modelInputs.ErrorMetadata{}
+	var filtered []*modelInputs.ErrorMetadata
 	for _, metadataLog := range metadataLogs {
 		if metadataLog.Timestamp.IsZero() {
 			continue
