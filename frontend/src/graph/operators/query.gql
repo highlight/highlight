@@ -615,6 +615,18 @@ query GetDailyErrorsCount($organization_id: ID!, $date_range: DateRangeInput!) {
     }
 }
 
+query GetDailyErrorFrequency(
+    $organization_id: ID!
+    $error_group_id: ID!
+    $date_range: DateRangeInput!
+) {
+    dailyErrorFrequency(
+        organization_id: $organization_id
+        error_group_id: $error_group_id
+        date_range: $date_range
+    )
+}
+
 query GetErrorAlert($organization_id: ID!) {
     error_alert(organization_id: $organization_id) {
         ChannelsToNotify {

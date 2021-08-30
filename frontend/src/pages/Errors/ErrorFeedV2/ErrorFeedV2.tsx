@@ -1,4 +1,5 @@
 import classNames from 'classnames/bind';
+import moment from 'moment';
 import React, { RefObject, useEffect, useState } from 'react';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
 import Skeleton from 'react-loading-skeleton';
@@ -6,14 +7,16 @@ import { Link, useParams } from 'react-router-dom';
 
 import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
 import Tooltip from '../../../components/Tooltip/Tooltip';
-import { useGetErrorGroupsQuery } from '../../../graph/generated/hooks';
+import {
+    useGetDailyErrorFrequencyQuery,
+    useGetErrorGroupsQuery,
+} from '../../../graph/generated/hooks';
 import {
     ErrorGroup,
     ErrorResults,
     ErrorState,
     Maybe,
 } from '../../../graph/generated/schemas';
-import { frequencyTimeData } from '../../../util/errorCalculations';
 import { gqlSanitize } from '../../../util/gqlSanitize';
 import { formatNumberWithDelimiters } from '../../../util/numbers';
 import { parseErrorDescription } from '../../Error/components/ErrorDescription/utils/utils';
@@ -121,9 +124,19 @@ const ErrorCardV2 = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
         Array(6).fill(0)
     );
 
-    useEffect(() => {
-        setErrorDates(frequencyTimeData(errorGroup, 6));
-    }, [errorGroup]);
+    useGetDailyErrorFrequencyQuery({
+        variables: {
+            organization_id: organization_id,
+            error_group_id: errorGroup!.id,
+            date_range: {
+                start_date: moment.utc().subtract(6, 'd').startOf('day'),
+                end_date: moment.utc().startOf('day'),
+            },
+        },
+        onCompleted: (response) => {
+            setErrorDates(response.dailyErrorFrequency);
+        },
+    });
 
     return (
         <div className={styles.errorCardWrapper} key={errorGroup?.id}>

@@ -1373,6 +1373,17 @@ export type GetDailyErrorsCountQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetDailyErrorFrequencyQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    error_group_id: Types.Scalars['ID'];
+    date_range: Types.DateRangeInput;
+}>;
+
+export type GetDailyErrorFrequencyQuery = { __typename?: 'Query' } & Pick<
+    Types.Query,
+    'dailyErrorFrequency'
+>;
+
 export type GetErrorAlertQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
 }>;
@@ -1631,6 +1642,7 @@ export const namedOperations = {
         GetTopUsers: 'GetTopUsers' as const,
         GetDailySessionsCount: 'GetDailySessionsCount' as const,
         GetDailyErrorsCount: 'GetDailyErrorsCount' as const,
+        GetDailyErrorFrequency: 'GetDailyErrorFrequency' as const,
         GetErrorAlert: 'GetErrorAlert' as const,
         GetNewUserAlert: 'GetNewUserAlert' as const,
         GetTrackPropertiesAlert: 'GetTrackPropertiesAlert' as const,

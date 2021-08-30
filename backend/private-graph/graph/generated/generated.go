@@ -252,6 +252,7 @@ type ComplexityRoot struct {
 		Admins                         func(childComplexity int, organizationID int) int
 		AverageSessionLength           func(childComplexity int, organizationID int, lookBackPeriod int) int
 		BillingDetails                 func(childComplexity int, organizationID int) int
+		DailyErrorFrequency            func(childComplexity int, organizationID int, errorGroupID int, dateRange model.DateRangeInput) int
 		DailyErrorsCount               func(childComplexity int, organizationID int, dateRange model.DateRangeInput) int
 		DailySessionsCount             func(childComplexity int, organizationID int, dateRange model.DateRangeInput) int
 		EnvironmentSuggestion          func(childComplexity int, query string, organizationID int) int
@@ -495,6 +496,7 @@ type QueryResolver interface {
 	OrganizationHasViewedASession(ctx context.Context, organizationID int) (*model1.Session, error)
 	DailySessionsCount(ctx context.Context, organizationID int, dateRange model.DateRangeInput) ([]*model1.DailySessionCount, error)
 	DailyErrorsCount(ctx context.Context, organizationID int, dateRange model.DateRangeInput) ([]*model1.DailyErrorCount, error)
+	DailyErrorFrequency(ctx context.Context, organizationID int, errorGroupID int, dateRange model.DateRangeInput) ([]*int64, error)
 	Referrers(ctx context.Context, organizationID int, lookBackPeriod int) ([]*model.ReferrerTablePayload, error)
 	NewUsersCount(ctx context.Context, organizationID int, lookBackPeriod int) (*model.NewUsersCount, error)
 	TopUsers(ctx context.Context, organizationID int, lookBackPeriod int) ([]*model.TopUsersPayload, error)
@@ -1637,6 +1639,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.BillingDetails(childComplexity, args["organization_id"].(int)), true
+
+	case "Query.dailyErrorFrequency":
+		if e.complexity.Query.DailyErrorFrequency == nil {
+			break
+		}
+
+		args, err := ec.field_Query_dailyErrorFrequency_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.DailyErrorFrequency(childComplexity, args["organization_id"].(int), args["error_group_id"].(int), args["date_range"].(model.DateRangeInput)), true
 
 	case "Query.dailyErrorsCount":
 		if e.complexity.Query.DailyErrorsCount == nil {
@@ -3140,6 +3154,11 @@ type Query {
         organization_id: ID!
         date_range: DateRangeInput!
     ): [DailyErrorCount]!
+    dailyErrorFrequency(
+        organization_id: ID!
+        error_group_id: ID!
+        date_range: DateRangeInput!
+    ): [Int64]!
     referrers(
         organization_id: ID!
         lookBackPeriod: Int!
@@ -4355,6 +4374,39 @@ func (ec *executionContext) field_Query_billingDetails_args(ctx context.Context,
 		}
 	}
 	args["organization_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_dailyErrorFrequency_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organization_id"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["error_group_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_group_id"))
+		arg1, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["error_group_id"] = arg1
+	var arg2 model.DateRangeInput
+	if tmp, ok := rawArgs["date_range"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_range"))
+		arg2, err = ec.unmarshalNDateRangeInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["date_range"] = arg2
 	return args, nil
 }
 
@@ -10245,6 +10297,48 @@ func (ec *executionContext) _Query_dailyErrorsCount(ctx context.Context, field g
 	res := resTmp.([]*model1.DailyErrorCount)
 	fc.Result = res
 	return ec.marshalNDailyErrorCount2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐDailyErrorCount(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_dailyErrorFrequency(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_dailyErrorFrequency_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().DailyErrorFrequency(rctx, args["organization_id"].(int), args["error_group_id"].(int), args["date_range"].(model.DateRangeInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*int64)
+	fc.Result = res
+	return ec.marshalNInt642ᚕᚖint64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_referrers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -16859,6 +16953,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "dailyErrorFrequency":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_dailyErrorFrequency(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "referrers":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -18424,6 +18532,36 @@ func (ec *executionContext) marshalNInt642int64(ctx context.Context, sel ast.Sel
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNInt642ᚕᚖint64(ctx context.Context, v interface{}) ([]*int64, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*int64, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOInt642ᚖint64(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNInt642ᚕᚖint64(ctx context.Context, sel ast.SelectionSet, v []*int64) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalOInt642ᚖint64(ctx, sel, v[i])
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalNPlan2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐPlan(ctx context.Context, sel ast.SelectionSet, v *model.Plan) graphql.Marshaler {

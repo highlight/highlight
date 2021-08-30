@@ -441,6 +441,7 @@ export type Query = {
     organizationHasViewedASession?: Maybe<Session>;
     dailySessionsCount: Array<Maybe<DailySessionCount>>;
     dailyErrorsCount: Array<Maybe<DailyErrorCount>>;
+    dailyErrorFrequency: Array<Maybe<Scalars['Int64']>>;
     referrers: Array<Maybe<ReferrerTablePayload>>;
     newUsersCount?: Maybe<NewUsersCount>;
     topUsers: Array<Maybe<TopUsersPayload>>;
@@ -539,6 +540,12 @@ export type QueryDailySessionsCountArgs = {
 
 export type QueryDailyErrorsCountArgs = {
     organization_id: Scalars['ID'];
+    date_range: DateRangeInput;
+};
+
+export type QueryDailyErrorFrequencyArgs = {
+    organization_id: Scalars['ID'];
+    error_group_id: Scalars['ID'];
     date_range: DateRangeInput;
 };
 

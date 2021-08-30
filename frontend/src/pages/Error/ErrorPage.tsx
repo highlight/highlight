@@ -22,10 +22,12 @@ import Button from '../../components/Button/Button/Button';
 import { StandardDropdown } from '../../components/Dropdown/StandardDropdown/StandardDropdown';
 import { RechartTooltip } from '../../components/recharts/RechartTooltip/RechartTooltip';
 import Tooltip from '../../components/Tooltip/Tooltip';
-import { useGetErrorGroupLazyQuery } from '../../graph/generated/hooks';
+import {
+    useGetDailyErrorFrequencyQuery,
+    useGetErrorGroupLazyQuery,
+} from '../../graph/generated/hooks';
 import { ErrorGroup, Maybe } from '../../graph/generated/schemas';
 import SvgDownloadIcon from '../../static/DownloadIcon';
-import { frequencyTimeData } from '../../util/errorCalculations';
 import {
     ErrorSearchContextProvider,
     ErrorSearchParams,
@@ -264,18 +266,30 @@ export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
         setErrorDates(Array(dateRangeLength).fill(0));
     }, [dateRangeLength]);
 
-    useEffect(() => {
-        const errorDatesCopy = frequencyTimeData(errorGroup, dateRangeLength);
-        const errorData = errorDatesCopy.map((val, idx) => ({
-            date: moment()
-                .startOf('day')
-                .subtract(dateRangeLength - 1 - idx, 'days')
-                .format('D MMM YYYY'),
-            occurrences: val,
-        }));
-        setTotalErrors(errorDatesCopy.reduce((acc, val) => acc + val, 0));
-        setErrorDates(errorData);
-    }, [errorGroup, dateRangeLength]);
+    useGetDailyErrorFrequencyQuery({
+        variables: {
+            organization_id: '' + errorGroup?.organization_id,
+            error_group_id: '' + errorGroup?.id,
+            date_range: {
+                start_date: moment.utc().subtract(6, 'd').startOf('day'),
+                end_date: moment.utc().startOf('day'),
+            },
+        },
+        onCompleted: (response) => {
+            const errorData = response.dailyErrorFrequency.map((val, idx) => ({
+                date: moment()
+                    .startOf('day')
+                    .subtract(dateRangeLength - 1 - idx, 'days')
+                    .format('D MMM YYYY'),
+                occurrences: val,
+            }));
+            setTotalErrors(
+                response.dailyErrorFrequency.reduce((acc, val) => acc + val, 0)
+            );
+            setErrorDates(errorData);
+        },
+    });
+
     return (
         <>
             <div

@@ -1518,6 +1518,29 @@ func (r *queryResolver) DailyErrorsCount(ctx context.Context, organizationID int
 	return dailyErrors, nil
 }
 
+func (r *queryResolver) DailyErrorFrequency(ctx context.Context, organizationID int, errorGroupID int, dateRange modelInputs.DateRangeInput) ([]*int64, error) {
+	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin not found in org")
+	}
+
+	var dailyErrors []*int64
+
+	startDateUTC := time.Date(dateRange.StartDate.UTC().Year(), dateRange.StartDate.UTC().Month(), dateRange.StartDate.UTC().Day(), 0, 0, 0, 0, time.UTC)
+	endDateUTC := time.Date(dateRange.EndDate.UTC().Year(), dateRange.EndDate.UTC().Month(), dateRange.EndDate.UTC().Day(), 0, 0, 0, 0, time.UTC)
+
+	for i := 0; i < int(endDateUTC.Sub(startDateUTC).Hours()/24); i++ {
+		var count int64
+		r.DB.Debug().Model(&model.ErrorObject{}).Where("organization_id = ?", organizationID).Where(&model.ErrorObject{ErrorGroupID: errorGroupID}).
+			Where("updated_at BETWEEN ? AND ?", startDateUTC.Add(time.Duration((1+i)*24)*time.Hour), startDateUTC.Add(time.Duration((2+i)*24)*time.Hour)).
+			Count(&count)
+		dailyErrors = append(dailyErrors, &count)
+	}
+
+	log.Infof("there: %+v", dailyErrors)
+
+	return dailyErrors, nil
+}
+
 func (r *queryResolver) Referrers(ctx context.Context, organizationID int, lookBackPeriod int) ([]*modelInputs.ReferrerTablePayload, error) {
 	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
