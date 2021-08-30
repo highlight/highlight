@@ -94,6 +94,8 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 	if err := r.DB.Model(&model.ErrorObject{}).Where(&model.ErrorObject{ErrorGroupID: obj.ID}).
 		Where("NOT id=0").
 		Where("NOT session_id=0").
+		Order("updated_at desc").
+		Limit(20).
 		Select("session_id, id AS error_id, timestamp, os, browser, url").Scan(&metadataLogs).Error; err != nil {
 		return nil, err
 	}
