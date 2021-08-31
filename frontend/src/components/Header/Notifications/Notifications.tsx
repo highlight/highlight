@@ -120,14 +120,16 @@ const Notifications = () => {
                 <div className={styles.popoverTitle}>
                     <h3>Comments</h3>
                     <div className={styles.dotContainer}>
-                        <div
-                            style={{
-                                position: 'absolute',
-                                marginLeft: 'var(--size-medium)',
-                            }}
-                        >
-                            <Dot pulse />
-                        </div>
+                        {!admin?.slack_im_channel_id && isHighlightAdmin && (
+                            <div
+                                style={{
+                                    position: 'absolute',
+                                    marginLeft: 'var(--size-medium)',
+                                }}
+                            >
+                                <Dot pulse />
+                            </div>
+                        )}
                         <DotsMenu
                             trackingId="MarkAllNotificationsAsRead"
                             menu={
