@@ -47,7 +47,7 @@ const Notifications = () => {
         },
     });
 
-    const { admin } = useAuthContext();
+    const { admin, isHighlightAdmin } = useAuthContext();
 
     useEffect(() => {
         const unreadCount = notifications.reduce((prev, curr) => {
@@ -151,24 +151,27 @@ const Notifications = () => {
                                     >
                                         Mark all as unread
                                     </Menu.Item>
-                                    {!admin?.slack_im_channel_id && (
-                                        <Menu.Item
-                                            onClick={() => {
-                                                <Redirect to={slackBotUrl} />;
-                                            }}
-                                        >
-                                            {
-                                                'Enable Personal Slack Notifications  '
-                                            }
-                                            <div
-                                                style={{
-                                                    display: 'inline-flex',
+                                    {!admin?.slack_im_channel_id &&
+                                        isHighlightAdmin && (
+                                            <Menu.Item
+                                                onClick={() => {
+                                                    <Redirect
+                                                        to={slackBotUrl}
+                                                    />;
                                                 }}
                                             >
-                                                <Dot pulse />
-                                            </div>
-                                        </Menu.Item>
-                                    )}
+                                                {
+                                                    'Enable Personal Slack Notifications  '
+                                                }
+                                                <div
+                                                    style={{
+                                                        display: 'inline-flex',
+                                                    }}
+                                                >
+                                                    <Dot pulse />
+                                                </div>
+                                            </Menu.Item>
+                                        )}
                                 </Menu>
                             }
                         />

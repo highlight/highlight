@@ -21,7 +21,7 @@ const FullCommentList = ({
     noCommentsMessage,
 }: Props) => {
     const virtuoso = useRef<VirtuosoHandle>(null);
-    const { admin } = useAuthContext();
+    const { admin, isHighlightAdmin } = useAuthContext();
 
     return (
         <div className={styles.commentStream}>
@@ -40,7 +40,7 @@ const FullCommentList = ({
                 </div>
             ) : (
                 <>
-                    {!admin?.slack_im_channel_id && (
+                    {!admin?.slack_im_channel_id && isHighlightAdmin && (
                         <Alert
                             trackingId={'PersonalNotificationCTA'}
                             message={'Enable Slack Notifications'}
