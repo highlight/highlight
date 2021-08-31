@@ -1,9 +1,9 @@
+import SvgXIcon from '@icons/XIcon';
 import { Alert as AntDesignAlert, AlertProps } from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React, { useState } from 'react';
 
-import SvgCloseIcon from '../../static/CloseIcon';
 import SvgInformationIcon from '../../static/InformationIcon';
 import styles from './Alert.module.scss';
 
@@ -27,7 +27,7 @@ const Alert = ({ trackingId, ...props }: Props) => {
             className={classNames(props.className, styles.alert)}
             closable
             showIcon
-            closeText={<SvgCloseIcon />}
+            closeText={<SvgXIcon />}
             icon={<SvgInformationIcon />}
             onClose={(e) => {
                 if (props.onClose) {

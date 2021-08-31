@@ -395,8 +395,9 @@ func (r *Resolver) SendEmailAlert(tos []*mail.Email, authorName, viewLink, textF
 
 func (r *Resolver) SendPersonalSlackAlert(org *model.Organization, admin *model.Admin, adminIds []int, viewLink, commentText, subjectScope string) error {
 	// this is needed for posting DMs
+	// if nil, user simply hasn't signed up for notifications, so return nil
 	if org.SlackAccessToken == nil {
-		return e.New("slack access token is nil")
+		return nil
 	}
 
 	var admins []*model.Admin

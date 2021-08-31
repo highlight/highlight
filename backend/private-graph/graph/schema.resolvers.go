@@ -326,7 +326,7 @@ func (r *mutationResolver) DeleteAdminFromOrganization(ctx context.Context, orga
 		return nil, e.New("Admin tried deleting themselves from the organization")
 	}
 
-	if err := r.DB.Model(&model.Organization{}).Where("id = ?", organizationID).Association("Admins").Delete(model.Admin{Model: model.Model{ID: adminID}}); err != nil {
+	if err := r.DB.Model(&model.Organization{Model: model.Model{ID: organizationID}}).Association("Admins").Delete(model.Admin{Model: model.Model{ID: adminID}}); err != nil {
 		return nil, e.Wrap(err, "error deleting admin from organization")
 	}
 
@@ -700,27 +700,27 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 		}
 		viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
 
-		var g errgroup.Group
-
-		g.Go(func() error {
+		go func() {
 			commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
 				tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(taggedAdmins)))
 			defer commentMentionEmailSpan.Finish()
 
-			return r.SendEmailAlert(tos, authorName, viewLink, textForEmail, SendGridSessionCommentEmailTemplateID, sessionImage)
-		})
+			err := r.SendEmailAlert(tos, authorName, viewLink, textForEmail, SendGridSessionCommentEmailTemplateID, sessionImage)
+			if err != nil {
+				log.Errorf(e.Wrap(err, "error notifying tagged admins in session comment").Error())
+			}
+		}()
 
-		g.Go(func() error {
+		go func() {
 			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
 				tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(adminIds)))
 			defer commentMentionSlackSpan.Finish()
 
-			return r.SendPersonalSlackAlert(&org, admin, adminIds, viewLink, sessionComment.Text, "session")
-		})
-		err := g.Wait()
-		if err != nil {
-			return nil, e.Wrap(err, "error notifying admins about being tagged in a comment")
-		}
+			err := r.SendPersonalSlackAlert(&org, admin, adminIds, viewLink, sessionComment.Text, "session")
+			if err != nil {
+				log.Errorf(e.Wrap(err, "error notifying tagged admins in session comment").Error())
+			}
+		}()
 	}
 
 	return sessionComment, nil
@@ -789,27 +789,28 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationI
 		}
 
 		viewLink := fmt.Sprintf("%v", errorURL)
-		var g errgroup.Group
 
-		g.Go(func() error {
+		go func() {
 			commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
 				tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(taggedAdmins)))
 			defer commentMentionEmailSpan.Finish()
 
-			return r.SendEmailAlert(tos, authorName, viewLink, textForEmail, SendGridErrorCommentEmailTemplateId, nil)
-		})
+			err := r.SendEmailAlert(tos, authorName, viewLink, textForEmail, SendGridErrorCommentEmailTemplateId, nil)
+			if err != nil {
+				log.Error(e.Wrap(err, "error notifying tagged admins in error comment"))
+			}
+		}()
 
-		g.Go(func() error {
+		go func() {
 			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
 				tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(adminIds)))
 			defer commentMentionSlackSpan.Finish()
 
-			return r.SendPersonalSlackAlert(&org, admin, adminIds, viewLink, errorComment.Text, "error")
-		})
-		err := g.Wait()
-		if err != nil {
-			return nil, e.Wrap(err, "error notifying admins about being tagged in a comment")
-		}
+			err = r.SendPersonalSlackAlert(&org, admin, adminIds, viewLink, errorComment.Text, "error")
+			if err != nil {
+				log.Error(e.Wrap(err, "error notifying tagged admins in error comment"))
+			}
+		}()
 	}
 	return errorComment, nil
 }
@@ -1126,6 +1127,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 }
 
 func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, count int, params *modelInputs.ErrorSearchParamsInput) (*model.ErrorResults, error) {
+	endpointStart := time.Now()
 	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
@@ -1204,11 +1206,19 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 	var g errgroup.Group
 	var queriedErrorGroupsCount int64
 
+	logTags := []string{fmt.Sprintf("org_id:%d", organizationID), fmt.Sprintf("filtered:%t", len(errorFieldIds) > 0)}
 	g.Go(func() error {
 		errorGroupSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.errorGroups"), tracer.Tag("org_id", organizationID))
-		if err := r.DB.Raw(fmt.Sprintf("%s %s ORDER BY updated_at DESC LIMIT %d", selectPreamble, queryString, count)).Scan(&errorGroups).Error; err != nil {
+		start := time.Now()
+		query := fmt.Sprintf("%s %s ORDER BY updated_at DESC LIMIT %d", selectPreamble, queryString, count)
+		if err := r.DB.Raw(query).Scan(&errorGroups).Error; err != nil {
 			return e.Wrap(err, "error reading from error groups")
+		}
+		duration := time.Since(start)
+		hlog.Timing("db.errorGroupsQuery.duration", duration, logTags, 1)
+		if duration.Milliseconds() > 3000 {
+			log.Error(e.New(fmt.Sprintf("errorGroupsQuery took %dms: %s", duration.Milliseconds(), query)))
 		}
 		errorGroupSpan.Finish()
 		return nil
@@ -1217,8 +1227,15 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 	g.Go(func() error {
 		errorGroupCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.errorGroupsCount"), tracer.Tag("org_id", organizationID))
-		if err := r.DB.Raw(fmt.Sprintf("%s %s", countPreamble, queryString)).Scan(&queriedErrorGroupsCount).Error; err != nil {
+		start := time.Now()
+		query := fmt.Sprintf("%s %s", countPreamble, queryString)
+		if err := r.DB.Raw(query).Scan(&queriedErrorGroupsCount).Error; err != nil {
 			return e.Wrap(err, "error counting error groups")
+		}
+		duration := time.Since(start)
+		hlog.Timing("db.errorGroupsQuery.duration", duration, logTags, 1)
+		if duration.Milliseconds() > 3000 {
+			log.Error(e.New(fmt.Sprintf("errorGroupsQuery took %dms: %s", duration.Milliseconds(), query)))
 		}
 		errorGroupCountSpan.Finish()
 		return nil
@@ -1232,6 +1249,12 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 	errorResults := &model.ErrorResults{
 		ErrorGroups: errorGroups,
 		TotalCount:  queriedErrorGroupsCount,
+	}
+	endpointDuration := time.Since(endpointStart)
+	hlog.Timing("gql.errorGroups.duration", endpointDuration, logTags, 1)
+	hlog.Incr("gql.errorGroups.count", logTags, 1)
+	if endpointDuration.Milliseconds() > 3000 {
+		log.Error(e.New(fmt.Sprintf("gql.errorGroups took %dms: org_id: %d, params: %+v", endpointDuration.Milliseconds(), organizationID, params)))
 	}
 	return errorResults, nil
 }
@@ -1664,7 +1687,6 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		}
 		duration := time.Since(start)
 		hlog.Timing("db.sessionsQuery.duration", duration, logTags, 1)
-		hlog.Incr("db.sessionsQuery.count", logTags, 1)
 		if duration.Milliseconds() > 3000 {
 			log.Error(e.New(fmt.Sprintf("sessionsQuery took %dms: %s", duration.Milliseconds(), query)))
 		}
@@ -1703,7 +1725,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	hlog.Timing("gql.sessions.duration", endpointDuration, logTags, 1)
 	hlog.Incr("gql.sessions.count", logTags, 1)
 	if endpointDuration.Milliseconds() > 5000 {
-		log.Error(e.New(fmt.Sprintf("endpoint.sessions took %dms: org_id: %d, count: %d, params: %+v", endpointDuration.Milliseconds(), organizationID, count, params)))
+		log.Error(e.New(fmt.Sprintf("gql.sessions took %dms: org_id: %d, params: %+v", endpointDuration.Milliseconds(), organizationID, params)))
 	}
 	return sessionList, nil
 }
