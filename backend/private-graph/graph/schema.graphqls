@@ -408,7 +408,7 @@ type Query {
     dailyErrorFrequency(
         organization_id: ID!
         error_group_id: ID!
-        date_range: DateRangeInput!
+        date_offset: Int!
     ): [Int64]!
     referrers(
         organization_id: ID!

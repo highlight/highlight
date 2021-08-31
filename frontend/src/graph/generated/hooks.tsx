@@ -4082,12 +4082,12 @@ export const GetDailyErrorFrequencyDocument = gql`
     query GetDailyErrorFrequency(
         $organization_id: ID!
         $error_group_id: ID!
-        $date_range: DateRangeInput!
+        $date_offset: Int!
     ) {
         dailyErrorFrequency(
             organization_id: $organization_id
             error_group_id: $error_group_id
-            date_range: $date_range
+            date_offset: $date_offset
         )
     }
 `;
@@ -4106,7 +4106,7 @@ export const GetDailyErrorFrequencyDocument = gql`
  *   variables: {
  *      organization_id: // value for 'organization_id'
  *      error_group_id: // value for 'error_group_id'
- *      date_range: // value for 'date_range'
+ *      date_offset: // value for 'date_offset'
  *   },
  * });
  */

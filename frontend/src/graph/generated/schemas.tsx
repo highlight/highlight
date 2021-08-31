@@ -546,7 +546,7 @@ export type QueryDailyErrorsCountArgs = {
 export type QueryDailyErrorFrequencyArgs = {
     organization_id: Scalars['ID'];
     error_group_id: Scalars['ID'];
-    date_range: DateRangeInput;
+    date_offset: Scalars['Int'];
 };
 
 export type QueryReferrersArgs = {

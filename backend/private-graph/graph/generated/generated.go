@@ -252,7 +252,7 @@ type ComplexityRoot struct {
 		Admins                         func(childComplexity int, organizationID int) int
 		AverageSessionLength           func(childComplexity int, organizationID int, lookBackPeriod int) int
 		BillingDetails                 func(childComplexity int, organizationID int) int
-		DailyErrorFrequency            func(childComplexity int, organizationID int, errorGroupID int, dateRange model.DateRangeInput) int
+		DailyErrorFrequency            func(childComplexity int, organizationID int, errorGroupID int, dateOffset int) int
 		DailyErrorsCount               func(childComplexity int, organizationID int, dateRange model.DateRangeInput) int
 		DailySessionsCount             func(childComplexity int, organizationID int, dateRange model.DateRangeInput) int
 		EnvironmentSuggestion          func(childComplexity int, query string, organizationID int) int
@@ -496,7 +496,7 @@ type QueryResolver interface {
 	OrganizationHasViewedASession(ctx context.Context, organizationID int) (*model1.Session, error)
 	DailySessionsCount(ctx context.Context, organizationID int, dateRange model.DateRangeInput) ([]*model1.DailySessionCount, error)
 	DailyErrorsCount(ctx context.Context, organizationID int, dateRange model.DateRangeInput) ([]*model1.DailyErrorCount, error)
-	DailyErrorFrequency(ctx context.Context, organizationID int, errorGroupID int, dateRange model.DateRangeInput) ([]*int64, error)
+	DailyErrorFrequency(ctx context.Context, organizationID int, errorGroupID int, dateOffset int) ([]*int64, error)
 	Referrers(ctx context.Context, organizationID int, lookBackPeriod int) ([]*model.ReferrerTablePayload, error)
 	NewUsersCount(ctx context.Context, organizationID int, lookBackPeriod int) (*model.NewUsersCount, error)
 	TopUsers(ctx context.Context, organizationID int, lookBackPeriod int) ([]*model.TopUsersPayload, error)
@@ -1650,7 +1650,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.DailyErrorFrequency(childComplexity, args["organization_id"].(int), args["error_group_id"].(int), args["date_range"].(model.DateRangeInput)), true
+		return e.complexity.Query.DailyErrorFrequency(childComplexity, args["organization_id"].(int), args["error_group_id"].(int), args["date_offset"].(int)), true
 
 	case "Query.dailyErrorsCount":
 		if e.complexity.Query.DailyErrorsCount == nil {
@@ -3157,7 +3157,7 @@ type Query {
     dailyErrorFrequency(
         organization_id: ID!
         error_group_id: ID!
-        date_range: DateRangeInput!
+        date_offset: Int!
     ): [Int64]!
     referrers(
         organization_id: ID!
@@ -4398,15 +4398,15 @@ func (ec *executionContext) field_Query_dailyErrorFrequency_args(ctx context.Con
 		}
 	}
 	args["error_group_id"] = arg1
-	var arg2 model.DateRangeInput
-	if tmp, ok := rawArgs["date_range"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_range"))
-		arg2, err = ec.unmarshalNDateRangeInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx, tmp)
+	var arg2 int
+	if tmp, ok := rawArgs["date_offset"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_offset"))
+		arg2, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["date_range"] = arg2
+	args["date_offset"] = arg2
 	return args, nil
 }
 
@@ -10324,7 +10324,7 @@ func (ec *executionContext) _Query_dailyErrorFrequency(ctx context.Context, fiel
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().DailyErrorFrequency(rctx, args["organization_id"].(int), args["error_group_id"].(int), args["date_range"].(model.DateRangeInput))
+		return ec.resolvers.Query().DailyErrorFrequency(rctx, args["organization_id"].(int), args["error_group_id"].(int), args["date_offset"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

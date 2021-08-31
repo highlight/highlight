@@ -1518,25 +1518,25 @@ func (r *queryResolver) DailyErrorsCount(ctx context.Context, organizationID int
 	return dailyErrors, nil
 }
 
-func (r *queryResolver) DailyErrorFrequency(ctx context.Context, organizationID int, errorGroupID int, dateRange modelInputs.DateRangeInput) ([]*int64, error) {
+func (r *queryResolver) DailyErrorFrequency(ctx context.Context, organizationID int, errorGroupID int, dateOffset int) ([]*int64, error) {
 	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 
 	var dailyErrors []*int64
 
-	startDateUTC := time.Date(dateRange.StartDate.UTC().Year(), dateRange.StartDate.UTC().Month(), dateRange.StartDate.UTC().Day(), 0, 0, 0, 0, time.UTC)
-	endDateUTC := time.Date(dateRange.EndDate.UTC().Year(), dateRange.EndDate.UTC().Month(), dateRange.EndDate.UTC().Day(), 0, 0, 0, 0, time.UTC)
-
-	for i := 0; i < int(endDateUTC.Sub(startDateUTC).Hours()/24); i++ {
-		var count int64
-		r.DB.Debug().Model(&model.ErrorObject{}).Where("organization_id = ?", organizationID).Where(&model.ErrorObject{ErrorGroupID: errorGroupID}).
-			Where("updated_at BETWEEN ? AND ?", startDateUTC.Add(time.Duration((1+i)*24)*time.Hour), startDateUTC.Add(time.Duration((2+i)*24)*time.Hour)).
-			Count(&count)
-		dailyErrors = append(dailyErrors, &count)
+	if err := r.DB.Raw(`
+		SELECT count(e.id)
+		FROM (SELECT to_char(date_trunc('day', (current_date - offs)), 'YYYY-MM-DD') as date
+			  FROM generate_series(0, ?, 1) AS offs
+			 ) d LEFT OUTER JOIN
+			 error_objects e
+			 ON d.date = to_char(date_trunc('day', e.updated_at), 'YYYY-MM-DD')
+			 AND e.error_group_id = ? AND e.organization_id = ?
+		GROUP BY d.date;
+	`, dateOffset, errorGroupID, organizationID).Scan(&dailyErrors).Error; err != nil {
+		return nil, e.Wrap(err, "error querying daily frequency")
 	}
-
-	log.Infof("there: %+v", dailyErrors)
 
 	return dailyErrors, nil
 }

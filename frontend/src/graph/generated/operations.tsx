@@ -1376,7 +1376,7 @@ export type GetDailyErrorsCountQuery = { __typename?: 'Query' } & {
 export type GetDailyErrorFrequencyQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     error_group_id: Types.Scalars['ID'];
-    date_range: Types.DateRangeInput;
+    date_offset: Types.Scalars['Int'];
 }>;
 
 export type GetDailyErrorFrequencyQuery = { __typename?: 'Query' } & Pick<

@@ -1,5 +1,4 @@
 import classNames from 'classnames/bind';
-import moment from 'moment';
 import React, { RefObject, useEffect, useState } from 'react';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
 import Skeleton from 'react-loading-skeleton';
@@ -128,10 +127,7 @@ const ErrorCardV2 = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
         variables: {
             organization_id: organization_id,
             error_group_id: errorGroup!.id,
-            date_range: {
-                start_date: moment.utc().subtract(6, 'd').startOf('day'),
-                end_date: moment.utc().startOf('day'),
-            },
+            date_offset: 5,
         },
         onCompleted: (response) => {
             setErrorDates(response.dailyErrorFrequency);
