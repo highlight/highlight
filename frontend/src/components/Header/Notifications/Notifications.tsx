@@ -1,3 +1,4 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import { useSlackBot } from '@components/Header/components/PersonalNotificationButton/utils/utils';
 import useLocalStorage from '@rehooks/local-storage';
 import { Menu } from 'antd';
@@ -45,6 +46,8 @@ const Notifications = () => {
             organization_id,
         },
     });
+
+    const { admin } = useAuthContext();
 
     useEffect(() => {
         const unreadCount = notifications.reduce((prev, curr) => {
@@ -148,16 +151,24 @@ const Notifications = () => {
                                     >
                                         Mark all as unread
                                     </Menu.Item>
-                                    <Menu.Item
-                                        onClick={() => {
-                                            <Redirect to={slackBotUrl} />;
-                                        }}
-                                    >
-                                        {'Enable Personal Slack Notifications'}
-                                        <div style={{ position: 'absolute' }}>
-                                            <Dot pulse />
-                                        </div>
-                                    </Menu.Item>
+                                    {!admin?.slack_im_channel_id && (
+                                        <Menu.Item
+                                            onClick={() => {
+                                                <Redirect to={slackBotUrl} />;
+                                            }}
+                                        >
+                                            {
+                                                'Enable Personal Slack Notifications  '
+                                            }
+                                            <div
+                                                style={{
+                                                    display: 'inline-flex',
+                                                }}
+                                            >
+                                                <Dot pulse />
+                                            </div>
+                                        </Menu.Item>
+                                    )}
                                 </Menu>
                             }
                         />
