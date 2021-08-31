@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/highlight-run/highlight/backend/apolloio"
@@ -1177,16 +1178,21 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 		queryString += fmt.Sprintf("AND (event ILIKE '%s') ", "%"+*params.Event+"%")
 	}
 
+	sessionFilters := []string{}
 	if params.Browser != nil {
-		queryString += andErrorGroupHasSessionsWhere(fmt.Sprintf("sessions.browser_name = '%s'", *params.Browser))
+		sessionFilters = append(sessionFilters, fmt.Sprintf("(sessions.browser_name = '%s')", *params.Browser))
 	}
 
 	if params.Os != nil {
-		queryString += andErrorGroupHasFieldsWhere(fmt.Sprintf("name = '%s' AND value = '%s'", "os_name", *params.Os))
+		sessionFilters = append(sessionFilters, fmt.Sprintf("(sessions.os_name = '%s')", *params.Os))
 	}
 
 	if params.VisitedURL != nil {
-		queryString += andErrorGroupHasFieldsWhere(fmt.Sprintf("name = '%s' AND value = '%s'", "visited_url", *params.VisitedURL))
+		sessionFilters = append(sessionFilters, SessionHasFieldsWhere(fmt.Sprintf("name = '%s' AND value = '%s'", "visited-url", *params.VisitedURL)))
+	}
+
+	if len(sessionFilters) > 0 {
+		queryString += andErrorGroupHasSessionsWhere(strings.Join(sessionFilters, " AND "))
 	}
 
 	var g errgroup.Group
@@ -1548,7 +1554,8 @@ func (r *queryResolver) AverageSessionLength(ctx context.Context, organizationID
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 	var length float64
-	if err := r.DB.Raw(fmt.Sprintf("SELECT avg(active_length) FROM sessions WHERE organization_id=%d AND processed=true AND active_length IS NOT NULL AND created_at >= NOW() - INTERVAL '%d DAY';", organizationID, lookBackPeriod)).Scan(&length).Error; err != nil {
+	query := fmt.Sprintf("SELECT avg(active_length) FROM sessions WHERE organization_id=%d AND processed=true AND active_length IS NOT NULL AND created_at >= NOW() - INTERVAL '%d DAY';", organizationID, lookBackPeriod)
+	if err := r.DB.Raw(query).Scan(&length).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving average length for sessions")
 	}
 

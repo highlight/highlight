@@ -318,7 +318,11 @@ func (r *queryResolver) getFieldFilters(ctx context.Context, organizationID int,
 }
 
 func andSessionHasFieldsWhere(fieldConditions string) string {
-	return fmt.Sprintf(`AND EXISTS (
+	return "AND " + SessionHasFieldsWhere(fieldConditions)
+}
+
+func SessionHasFieldsWhere(fieldConditions string) string {
+	return fmt.Sprintf(`EXISTS (
 		SELECT 1
 		FROM session_fields
 		JOIN fields
@@ -351,22 +355,6 @@ func andErrorGroupHasSessionsWhere(fieldConditions string) string {
 		FROM error_objects
 		JOIN sessions
 		ON error_objects.session_id = sessions.id
-		WHERE error_objects.error_group_id = error_groups.id
-		AND (
-			%s
-		)
-		LIMIT 1
-	) `, fieldConditions)
-}
-
-func andErrorGroupHasFieldsWhere(fieldConditions string) string {
-	return fmt.Sprintf(`AND EXISTS (
-		SELECT 1
-		FROM error_objects
-		JOIN session_fields
-		ON error_objects.session_id = session_fields.session_id
-		JOIN fields
-		ON session_fields.field_id = fields.id
 		WHERE error_objects.error_group_id = error_groups.id
 		AND (
 			%s
