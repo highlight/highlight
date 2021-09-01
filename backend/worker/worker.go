@@ -253,7 +253,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			activeDuration += tempDuration
 		}
 	}
-	// hlog.Histogram("worker.processSession.payloadStringSize", float64(payloadStringBytes), nil, 1) //nolint
 
 	// Calculate total session length and write the length to the session.
 	sessionTotalLength := CalculateSessionLength(firstEventTimestamp, lastEventTimestamp)
