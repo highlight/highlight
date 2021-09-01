@@ -1,4 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext';
+import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
 import { useSlackBot } from '@components/Header/components/PersonalNotificationButton/utils/utils';
 import useLocalStorage from '@rehooks/local-storage';
 import { Menu } from 'antd';
@@ -6,7 +7,7 @@ import classNames from 'classnames';
 import { H } from 'highlight.run';
 import Lottie from 'lottie-react';
 import React, { useEffect, useState } from 'react';
-import { Redirect, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import { useGetNotificationsQuery } from '../../../graph/generated/hooks';
 import NotificationAnimation from '../../../lottie/waiting.json';
@@ -119,17 +120,8 @@ const Notifications = () => {
             title={
                 <div className={styles.popoverTitle}>
                     <h3>Comments</h3>
+                    <PersonalNotificationButton />
                     <div className={styles.dotContainer}>
-                        {!admin?.slack_im_channel_id && isHighlightAdmin && (
-                            <div
-                                style={{
-                                    position: 'absolute',
-                                    marginLeft: 'var(--size-medium)',
-                                }}
-                            >
-                                <Dot pulse />
-                            </div>
-                        )}
                         <DotsMenu
                             trackingId="MarkAllNotificationsAsRead"
                             menu={
@@ -153,27 +145,6 @@ const Notifications = () => {
                                     >
                                         Mark all as unread
                                     </Menu.Item>
-                                    {!admin?.slack_im_channel_id &&
-                                        isHighlightAdmin && (
-                                            <Menu.Item
-                                                onClick={() => {
-                                                    <Redirect
-                                                        to={slackBotUrl}
-                                                    />;
-                                                }}
-                                            >
-                                                {
-                                                    'Enable Personal Slack Notifications  '
-                                                }
-                                                <div
-                                                    style={{
-                                                        display: 'inline-flex',
-                                                    }}
-                                                >
-                                                    <Dot pulse />
-                                                </div>
-                                            </Menu.Item>
-                                        )}
                                 </Menu>
                             }
                         />
