@@ -28,7 +28,7 @@ const PersonalNotificationButton = ({ ...props }: Props) => {
 
     return (
         <Button
-            className={styles.personalNotificationButton}
+            className={props?.className || styles.personalNotificationButton}
             type="primary"
             trackingId="EnablePersonalNotificationButton"
             href={slackBotUrl}
