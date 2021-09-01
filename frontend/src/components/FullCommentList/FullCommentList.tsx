@@ -40,26 +40,28 @@ const FullCommentList = ({
                 </div>
             ) : (
                 <>
-                    {!admin?.slack_im_channel_id && isHighlightAdmin && (
-                        <Alert
-                            trackingId={'PersonalNotificationCTA'}
-                            message={'Enable Slack Notifications'}
-                            description={
-                                <>
-                                    {
-                                        'Get a personal slack notification anytime someone tags you in a Highlight comment!'
-                                    }
-                                    <PersonalNotificationButton
-                                        text={'Enable Notifications'}
-                                        style={{
-                                            marginTop: 'var(--size-medium)',
-                                        }}
-                                    />
-                                </>
-                            }
-                            className={styles.comment}
-                        />
-                    )}
+                    {!loading &&
+                        !admin?.slack_im_channel_id &&
+                        isHighlightAdmin && (
+                            <Alert
+                                trackingId={'PersonalNotificationCTA'}
+                                message={'Enable Slack Notifications'}
+                                description={
+                                    <>
+                                        {
+                                            'Get a personal slack notification anytime someone tags you in a Highlight comment!'
+                                        }
+                                        <PersonalNotificationButton
+                                            text={'Enable Notifications'}
+                                            style={{
+                                                marginTop: 'var(--size-medium)',
+                                            }}
+                                        />
+                                    </>
+                                }
+                                className={styles.comment}
+                            />
+                        )}
                     <Virtuoso
                         ref={virtuoso}
                         overscan={500}
