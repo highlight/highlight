@@ -82,8 +82,6 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 		return errors.Wrap(err, "error updating session to storage enabled")
 	}
 
-	hlog.Histogram("worker.pushToObjectStorageAndWipe.payloadSize", float64(totalPayloadSize), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
-
 	// Delete all the events_objects in the DB.
 	if err := w.Resolver.DB.Unscoped().Where(&model.EventsObject{SessionID: s.ID}).Delete(&model.EventsObject{}).Error; err != nil {
 		return errors.Wrapf(err, "error deleting all event records")
@@ -99,7 +97,6 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 }
 
 func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session, eventsFile *os.File, resourcesFile *os.File, messagesFile *os.File) (*payload.PayloadManager, error) {
-	var totalPayloadSize int64 = 0
 	manager := payload.NewPayloadManager(eventsFile, resourcesFile, messagesFile)
 
 	// Fetch/write events.
@@ -161,27 +158,6 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session, event
 		numberOfRows += 1
 	}
 	manager.Messages.Length = numberOfRows
-
-	// Measure payload sizes.
-	eventInfo, err := eventsFile.Stat()
-	if err != nil {
-		return nil, errors.Wrap(err, "error getting event file info")
-	}
-	totalPayloadSize += eventInfo.Size()
-
-	resourceInfo, err := resourcesFile.Stat()
-	if err != nil {
-		return nil, errors.Wrap(err, "error getting resource file info")
-	}
-	totalPayloadSize += resourceInfo.Size()
-
-	messagesInfo, err := messagesFile.Stat()
-	if err != nil {
-		return nil, errors.Wrap(err, "error getting message file info")
-	}
-	totalPayloadSize += messagesInfo.Size()
-
-	hlog.Histogram("worker.processSession.scannedSessionPayload", float64(totalPayloadSize), nil, 1) //nolint
 
 	return manager, nil
 }
