@@ -121,7 +121,10 @@ const Notifications = () => {
                 <div className={styles.popoverTitle}>
                     <h3>Comments</h3>
                     {!admin?.slack_im_channel_id && isHighlightAdmin && (
-                        <PersonalNotificationButton />
+                        <PersonalNotificationButton
+                            className={styles.personalNotifications}
+                            text="Get Slack Notifications"
+                        />
                     )}
                     <div className={styles.dotContainer}>
                         <DotsMenu

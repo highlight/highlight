@@ -125,3 +125,15 @@
 .animation {
     width: 100%;
 }
+
+.personalNotifications {
+    align-self: center;
+    border-radius: var(--size-xxSmall);
+    font-size: xx-small;
+    height: 20px;
+    margin-left: auto;
+    padding-bottom: 1px;
+    padding-left: var(--size-xSmall);
+    padding-right: var(--size-xSmall);
+    padding-top: 1px;
+}
