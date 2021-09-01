@@ -182,7 +182,6 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session, event
 	totalPayloadSize += messagesInfo.Size()
 
 	hlog.Histogram("worker.processSession.scannedSessionPayload", float64(totalPayloadSize), nil, 1) //nolint
-	log.Infof("payload size for session '%v' is '%v'\n", s.ID, totalPayloadSize)
 
 	return manager, nil
 }
