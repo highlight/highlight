@@ -2,6 +2,7 @@
     background-color: var(--color-primary-inverted-background);
     border: 0;
     border-radius: var(--border-radius);
+    column-gap: var(--size-xSmall);
 
     &:hover,
     &:active,

@@ -1,5 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext';
 import Button from '@components/Button/Button/Button';
+import SvgLogInIcon from '@icons/LogInIcon';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import React from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
@@ -35,7 +36,7 @@ const DemoWorkspaceButton = ({ integrated }: Props) => {
                 history.push(`/0/${path}`);
             }}
         >
-            Visit Demo Workspace
+            <SvgLogInIcon /> Visit Demo Workspace
         </Button>
     );
 };
