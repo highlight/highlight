@@ -346,7 +346,7 @@ func (r *mutationResolver) DeleteAdminFromOrganization(ctx context.Context, orga
 		return nil, e.New("Admin tried deleting themselves from the organization")
 	}
 
-	if err := r.DB.Model(&model.Organization{}).Where("id = ?", organizationID).Association("Admins").Delete(model.Admin{Model: model.Model{ID: adminID}}); err != nil {
+	if err := r.DB.Model(&model.Organization{Model: model.Model{ID: organizationID}}).Association("Admins").Delete(model.Admin{Model: model.Model{ID: adminID}}); err != nil {
 		return nil, e.Wrap(err, "error deleting admin from organization")
 	}
 
@@ -1147,59 +1147,27 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 }
 
 func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, count int, params *modelInputs.ErrorSearchParamsInput) (*model.ErrorResults, error) {
+	endpointStart := time.Now()
 	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
-	errorFieldIds := []int{}
-	errorFieldQuery := r.DB.Model(&model.ErrorField{})
-
-	if params.Browser != nil {
-		errorFieldQuery = errorFieldQuery.Where("name = ? AND value = ?", "browser", params.Browser)
-	}
-
-	if params.Os != nil {
-		errorFieldQuery = errorFieldQuery.Where("name = ? AND value = ?", "os_name", params.Os)
-	}
-
-	if params.VisitedURL != nil {
-		errorFieldQuery = errorFieldQuery.Where("name = ? AND value = ?", "visited_url", params.VisitedURL)
-	}
-
-	fieldsSelectStatement := ", array_agg(t.error_field_id) fieldIds"
-	joinErrorGroupFieldsStatement := "INNER JOIN error_group_fields t ON e.id=t.error_group_id"
-
-	if params.Browser == nil && params.Os == nil && params.VisitedURL == nil {
-		fieldsSelectStatement = ""
-		joinErrorGroupFieldsStatement = ""
-	} else {
-		errorFieldQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.errorFieldIds"))
-		if err := errorFieldQuery.Pluck("id", &errorFieldIds).Error; err != nil {
-			return nil, e.Wrap(err, "error querying error fields")
-		}
-		errorFieldQuerySpan.Finish()
-
-	}
 
 	errorGroups := []model.ErrorGroup{}
-	selectPreamble := `SELECT id, organization_id, event, stack_trace, metadata_log, created_at, deleted_at, updated_at, state`
+	selectPreamble := `SELECT id, organization_id, event, COALESCE(mapped_stack_trace, stack_trace) as stack_trace, metadata_log, created_at, deleted_at, updated_at, state`
 	countPreamble := `SELECT COUNT(*)`
 
-	queryString := fmt.Sprintf(`FROM (SELECT id, organization_id, event, COALESCE(mapped_stack_trace, stack_trace) as stack_trace, metadata_log, created_at, deleted_at, updated_at, state %s
-	FROM error_groups e %s GROUP BY e.id) AS rows `, fieldsSelectStatement, joinErrorGroupFieldsStatement)
+	queryString := `FROM error_groups `
 
 	queryString += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
 	queryString += "AND (deleted_at IS NULL) "
 
-	if len(errorFieldIds) > 0 {
-		fieldIdConstructionSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-			tracer.ResourceName("fieldIdConstruction"), tracer.Tag("org_id", organizationID))
-		t := strings.Replace(fmt.Sprint(errorFieldIds), " ", ",", -1)
-		queryString += fmt.Sprintf("AND (fieldIds && ARRAY%s::integer[])", t)
-		fieldIdConstructionSpan.Finish()
-	}
-
 	if d := params.DateRange; d != nil {
-		queryString += fmt.Sprintf("AND (id IN (SELECT error_group_id FROM error_objects WHERE (organization_id=%d) AND (deleted_at IS NULL) AND (created_at > '%s') AND (created_at < '%s')))", organizationID, d.StartDate.Format("2006-01-02 15:04:05"), d.EndDate.Format("2006-01-02 15:04:05"))
+		queryString += andErrorGroupHasErrorObjectWhere(fmt.Sprintf(
+			"(organization_id=%d) AND (deleted_at IS NULL) AND (created_at > '%s') AND (created_at < '%s')",
+			organizationID,
+			d.StartDate.Format("2006-01-02 15:04:05"),
+			d.EndDate.Format("2006-01-02 15:04:05"),
+		))
 	}
 
 	if state := params.State; state != nil {
@@ -1210,14 +1178,39 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 		queryString += fmt.Sprintf("AND (event ILIKE '%s') ", "%"+*params.Event+"%")
 	}
 
+	sessionFilters := []string{}
+	if params.Browser != nil {
+		sessionFilters = append(sessionFilters, fmt.Sprintf("(sessions.browser_name = '%s')", *params.Browser))
+	}
+
+	if params.Os != nil {
+		sessionFilters = append(sessionFilters, fmt.Sprintf("(sessions.os_name = '%s')", *params.Os))
+	}
+
+	if params.VisitedURL != nil {
+		sessionFilters = append(sessionFilters, SessionHasFieldsWhere(fmt.Sprintf("name = '%s' AND value = '%s'", "visited-url", *params.VisitedURL)))
+	}
+
+	if len(sessionFilters) > 0 {
+		queryString += andErrorGroupHasSessionsWhere(strings.Join(sessionFilters, " AND "))
+	}
+
 	var g errgroup.Group
 	var queriedErrorGroupsCount int64
 
+	logTags := []string{fmt.Sprintf("org_id:%d", organizationID)}
 	g.Go(func() error {
 		errorGroupSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.errorGroups"), tracer.Tag("org_id", organizationID))
-		if err := r.DB.Raw(fmt.Sprintf("%s %s ORDER BY updated_at DESC LIMIT %d", selectPreamble, queryString, count)).Scan(&errorGroups).Error; err != nil {
+		start := time.Now()
+		query := fmt.Sprintf("%s %s ORDER BY updated_at DESC LIMIT %d", selectPreamble, queryString, count)
+		if err := r.DB.Raw(query).Scan(&errorGroups).Error; err != nil {
 			return e.Wrap(err, "error reading from error groups")
+		}
+		duration := time.Since(start)
+		hlog.Timing("db.errorGroupsQuery.duration", duration, logTags, 1)
+		if duration.Milliseconds() > 3000 {
+			log.Error(e.New(fmt.Sprintf("errorGroupsQuery took %dms: %s", duration.Milliseconds(), query)))
 		}
 		errorGroupSpan.Finish()
 		return nil
@@ -1226,10 +1219,16 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 	g.Go(func() error {
 		errorGroupCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.errorGroupsCount"), tracer.Tag("org_id", organizationID))
-		if err := r.DB.Raw(fmt.Sprintf("%s %s", countPreamble, queryString)).Scan(&queriedErrorGroupsCount).Error; err != nil {
+		start := time.Now()
+		query := fmt.Sprintf("%s %s", countPreamble, queryString)
+		if err := r.DB.Raw(query).Scan(&queriedErrorGroupsCount).Error; err != nil {
 			return e.Wrap(err, "error counting error groups")
 		}
-
+		duration := time.Since(start)
+		hlog.Timing("db.errorGroupsQuery.duration", duration, logTags, 1)
+		if duration.Milliseconds() > 3000 {
+			log.Error(e.New(fmt.Sprintf("errorGroupsQuery took %dms: %s", duration.Milliseconds(), query)))
+		}
 		errorGroupCountSpan.Finish()
 		return nil
 	})
@@ -1242,6 +1241,12 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 	errorResults := &model.ErrorResults{
 		ErrorGroups: errorGroups,
 		TotalCount:  queriedErrorGroupsCount,
+	}
+	endpointDuration := time.Since(endpointStart)
+	hlog.Timing("gql.errorGroups.duration", endpointDuration, logTags, 1)
+	hlog.Incr("gql.errorGroups.count", logTags, 1)
+	if endpointDuration.Milliseconds() > 3000 {
+		log.Error(e.New(fmt.Sprintf("gql.errorGroups took %dms: org_id: %d, params: %+v", endpointDuration.Milliseconds(), organizationID, params)))
 	}
 	return errorResults, nil
 }
@@ -1549,7 +1554,8 @@ func (r *queryResolver) AverageSessionLength(ctx context.Context, organizationID
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 	var length float64
-	if err := r.DB.Raw(fmt.Sprintf("SELECT avg(active_length) FROM sessions WHERE organization_id=%d AND processed=true AND active_length IS NOT NULL AND created_at >= NOW() - INTERVAL '%d DAY';", organizationID, lookBackPeriod)).Scan(&length).Error; err != nil {
+	query := fmt.Sprintf("SELECT avg(active_length) FROM sessions WHERE organization_id=%d AND processed=true AND active_length IS NOT NULL AND created_at >= NOW() - INTERVAL '%d DAY';", organizationID, lookBackPeriod)
+	if err := r.DB.Raw(query).Scan(&length).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving average length for sessions")
 	}
 
@@ -1667,7 +1673,6 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		}
 		duration := time.Since(start)
 		hlog.Timing("db.sessionsQuery.duration", duration, logTags, 1)
-		hlog.Incr("db.sessionsQuery.count", logTags, 1)
 		if duration.Milliseconds() > 3000 {
 			log.Error(e.New(fmt.Sprintf("sessionsQuery took %dms: %s", duration.Milliseconds(), query)))
 		}
@@ -1706,7 +1711,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	hlog.Timing("gql.sessions.duration", endpointDuration, logTags, 1)
 	hlog.Incr("gql.sessions.count", logTags, 1)
 	if endpointDuration.Milliseconds() > 5000 {
-		log.Error(e.New(fmt.Sprintf("endpoint.sessions took %dms: org_id: %d, count: %d, params: %+v", endpointDuration.Milliseconds(), organizationID, count, params)))
+		log.Error(e.New(fmt.Sprintf("gql.sessions took %dms: org_id: %d, params: %+v", endpointDuration.Milliseconds(), organizationID, params)))
 	}
 	return sessionList, nil
 }

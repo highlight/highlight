@@ -1,4 +1,5 @@
 import { namedOperations } from '@graph/operations';
+import SvgXIcon from '@icons/XIcon';
 import useLocalStorage from '@rehooks/local-storage';
 import { message, Select as AntDesignSelect } from 'antd';
 import classNames from 'classnames';
@@ -15,7 +16,6 @@ import {
     useEditErrorSegmentMutation,
     useGetErrorSegmentsQuery,
 } from '../../../../graph/generated/hooks';
-import SvgCloseIcon from '../../../../static/CloseIcon';
 import SvgEditIcon from '../../../../static/EditIcon';
 import SvgPlusIcon from '../../../../static/PlusIcon';
 import { gqlSanitize } from '../../../../util/gqlSanitize';
@@ -154,7 +154,7 @@ const SegmentPickerForErrors = () => {
                                     });
                                 }}
                             >
-                                <SvgCloseIcon />
+                                <SvgXIcon />
                             </Button>
                         </span>
                     </Option>

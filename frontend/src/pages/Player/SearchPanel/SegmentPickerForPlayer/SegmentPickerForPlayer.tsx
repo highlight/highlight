@@ -1,4 +1,5 @@
 import { namedOperations } from '@graph/operations';
+import SvgXIcon from '@icons/XIcon';
 import { message, Select as AntDesignSelect } from 'antd';
 import classNames from 'classnames';
 const { Option } = AntDesignSelect;
@@ -14,7 +15,6 @@ import {
     useEditSegmentMutation,
     useGetSegmentsQuery,
 } from '../../../../graph/generated/hooks';
-import SvgCloseIcon from '../../../../static/CloseIcon';
 import SvgEditIcon from '../../../../static/EditIcon';
 import SvgPlusIcon from '../../../../static/PlusIcon';
 import { gqlSanitize } from '../../../../util/gqlSanitize';
@@ -176,7 +176,7 @@ const SegmentPickerForPlayer = () => {
                                         });
                                     }}
                                 >
-                                    <SvgCloseIcon />
+                                    <SvgXIcon />
                                 </Button>
                             )}
                         </span>

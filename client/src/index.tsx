@@ -740,10 +740,7 @@ export class Highlight {
         const messages = [...this.messages];
         this.messages = this.messages.slice(messages.length);
 
-        const messagesString = stringify({ messages: this.messages });
-        this.logger.log(
-            `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources, ${this.errors.length} errors \nTo: ${this._backendUrl}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionData.sessionID}`
-        );
+        const messagesString = stringify({ messages: messages });
         if (!this.disableNetworkRecording) {
             performance.clearResourceTimings();
         }
@@ -760,6 +757,10 @@ export class Highlight {
 
         const errors = [...this.errors];
         this.errors = this.errors.slice(errors.length);
+
+        this.logger.log(
+            `Sending: ${events.length} events, ${messages.length} messages, ${resources.length} network resources, ${errors.length} errors \nTo: ${this._backendUrl}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionData.sessionID}`
+        );
 
         return {
             session_id: this.sessionData.sessionID.toString(),
