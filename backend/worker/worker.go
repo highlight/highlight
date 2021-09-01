@@ -2,7 +2,6 @@ package worker
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"math/rand"
 	"os"
@@ -61,15 +60,12 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	var totalPayloadSize int64
 	if sessionPayloadSize != nil {
 		totalPayloadSize += *sessionPayloadSize
-		hlog.Histogram("worker.processSession.sessionPayloadSize", float64(*sessionPayloadSize), []string{fmt.Sprintf("session_id:%d", s.ID), fmt.Sprintf("org_id:%d", s.OrganizationID)}, 1) //nolint
 	}
 	if resourcePayloadSize != nil {
 		totalPayloadSize += *resourcePayloadSize
-		hlog.Histogram("worker.processSession.resourcePayloadSize", float64(*resourcePayloadSize), []string{fmt.Sprintf("session_id:%d", s.ID), fmt.Sprintf("org_id:%d", s.OrganizationID)}, 1) //nolint
 	}
 	if messagePayloadSize != nil {
 		totalPayloadSize += *messagePayloadSize
-		hlog.Histogram("worker.processSession.messagePayloadSize", float64(*messagePayloadSize), []string{fmt.Sprintf("session_id:%d", s.ID), fmt.Sprintf("org_id:%d", s.OrganizationID)}, 1) //nolint
 	}
 
 	// Mark this session as stored in S3.
