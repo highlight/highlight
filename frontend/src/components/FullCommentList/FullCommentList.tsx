@@ -45,11 +45,11 @@ const FullCommentList = ({
                         isHighlightAdmin && (
                             <Alert
                                 trackingId={'PersonalNotificationCTA'}
-                                message={'Enable Slack Notifications'}
+                                message={'Get Comment Notifications'}
                                 description={
                                     <>
                                         {
-                                            'Get a personal slack notification anytime someone tags you in a Highlight comment!'
+                                            'Get a slack DM anytime someone tags you in a Highlight comment!'
                                         }
                                         <PersonalNotificationButton
                                             text={'Enable Notifications'}

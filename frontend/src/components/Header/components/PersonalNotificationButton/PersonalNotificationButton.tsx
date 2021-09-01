@@ -34,7 +34,7 @@ const PersonalNotificationButton = ({ ...props }: Props) => {
             href={slackBotUrl}
             style={props.style}
         >
-            {props?.text || 'Enable Personal Notifications?'}
+            {props?.text || 'Get Comment Notifications'}
         </Button>
     );
 };
