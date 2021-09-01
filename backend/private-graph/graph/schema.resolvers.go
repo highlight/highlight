@@ -727,7 +727,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 
 			err := r.SendEmailAlert(tos, authorName, viewLink, textForEmail, SendGridSessionCommentEmailTemplateID, sessionImage)
 			if err != nil {
-				log.Errorf(e.Wrap(err, "error notifying tagged admins in session comment").Error())
+				log.Error(e.Wrap(err, "error notifying tagged admins in session comment"))
 			}
 		}()
 
@@ -738,7 +738,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 
 			err := r.SendPersonalSlackAlert(&org, admin, adminIds, viewLink, sessionComment.Text, "session")
 			if err != nil {
-				log.Errorf(e.Wrap(err, "error notifying tagged admins in session comment").Error())
+				log.Error(e.Wrap(err, "error notifying tagged admins in session comment"))
 			}
 		}()
 	}
