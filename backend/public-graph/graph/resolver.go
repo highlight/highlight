@@ -80,14 +80,6 @@ type FieldData struct {
 	Value string
 }
 
-const histogramName = "public-graph"
-
-var histogram = struct {
-	publicGraph string
-}{
-	publicGraph: histogramName,
-}
-
 //Change to AppendProperties(sessionId,properties,type)
 func (r *Resolver) AppendProperties(sessionID int, properties map[string]string, propType Property) error {
 	session := &model.Session{}
