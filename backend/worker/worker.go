@@ -170,7 +170,7 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session, event
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting message file info")
 	}
-	hlog.Histogram("worker.processSession.messagesPayloadSize", float64(messagesInfo.Size()), nil, 1) //nolint
+	hlog.Histogram("worker.processSession.messagePayloadSize", float64(messagesInfo.Size()), nil, 1) //nolint
 
 	return manager, nil
 }
