@@ -170,13 +170,12 @@ const DemoWorkspaceBanner = () => {
         <div
             className={styles.trialWrapper}
             style={{
-                cursor: 'pointer',
-                background: 'var(--color-green-extra-dark)',
+                background: 'var(--color-primary-inverted-background)',
             }}
         >
             <Banner
                 className={styles.bannerSvg}
-                style={{ fill: 'var(--color-green-extra-dark)' }}
+                style={{ fill: 'var(--color-primary-inverted-background)' }}
             />
             <div className={classNames(styles.trialTimeText)}>
                 Viewing Demo Workspace.{' '}

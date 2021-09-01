@@ -1,12 +1,12 @@
 .demoWorkspaceButton {
-    background-color: var(--color-green-extra-dark);
+    background-color: var(--color-primary-inverted-background);
     border: 0;
     border-radius: var(--border-radius);
 
     &:hover,
     &:active,
     &:focus {
-        background-color: var(--color-green-dark);
+        background-color: var(--color-gray-800);
         border: 0;
     }
 }
