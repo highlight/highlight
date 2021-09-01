@@ -153,6 +153,25 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session, event
 	}
 	manager.Messages.Length = numberOfRows
 
+	// Measure payload sizes.
+	eventInfo, err := eventsFile.Stat()
+	if err != nil {
+		return nil, errors.Wrap(err, "error getting event file info")
+	}
+	hlog.Histogram("worker.processSession.eventPayloadSize", float64(eventInfo.Size()), nil, 1) //nolint
+
+	resourceInfo, err := resourcesFile.Stat()
+	if err != nil {
+		return nil, errors.Wrap(err, "error getting resource file info")
+	}
+	hlog.Histogram("worker.processSession.resourcePayloadSize", float64(resourceInfo.Size()), nil, 1) //nolint
+
+	messagesInfo, err := messagesFile.Stat()
+	if err != nil {
+		return nil, errors.Wrap(err, "error getting message file info")
+	}
+	hlog.Histogram("worker.processSession.messagesPayloadSize", float64(messagesInfo.Size()), nil, 1) //nolint
+
 	return manager, nil
 }
 
