@@ -1,5 +1,7 @@
 .commentStream {
     color: var(--color-gray-500);
+    display: flex;
+    flex-direction: column;
     font-size: 12px;
     height: 100%;
     position: relative;
@@ -29,8 +31,6 @@
 }
 
 .noCommentsTextContainer {
-    left: 18%;
-    position: absolute;
     text-align: center;
     top: 35%;
     width: 200px;
