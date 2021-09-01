@@ -42,7 +42,6 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
 	}
-	fmt.Printf("starting push for: %v \n", s.ID)
 	sessionPayloadSize, err := w.S3Client.PushFileToS3(ctx, s.ID, s.OrganizationID, eventsFile, storage.S3SessionsPayloadBucketName, storage.SessionContents)
 	// If this is unsucessful, return early (we treat this session as if it is stored in psql).
 	if err != nil {
@@ -92,7 +91,6 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	if err := w.Resolver.DB.Unscoped().Where(&model.MessagesObject{SessionID: s.ID}).Delete(&model.MessagesObject{}).Error; err != nil {
 		return errors.Wrap(err, "error deleting all messages")
 	}
-	log.WithFields(log.Fields{"session_id": s.ID, "org_id": s.OrganizationID}).Infof("parsed session")
 	return nil
 }
 
@@ -221,7 +219,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	// need to reset file pointer to beginning of file for reading
 	for _, file := range []*os.File{eventsFile, resourcesFile, messagesFile} {
-		log.WithFields(log.Fields{"session_id": s.ID, "org_id": s.OrganizationID}).Infof("resetting file pointer (%s)", file.Name())
 		_, err = file.Seek(0, io.SeekStart)
 		if err != nil {
 			log.WithField("file_name", file.Name()).Errorf("error seeking to beginning of file: %v", err)
@@ -513,14 +510,12 @@ func (w *Worker) Start() {
 
 		for _, session := range sessions {
 			span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"), tracer.Tag("session_id", strconv.Itoa(session.ID)))
-			log.WithField("session_id", session.ID).Info("beginning to process session")
 			if err := w.processSession(ctx, session); err != nil {
 				log.WithField("session_id", session.ID).Error(e.Wrap(err, "error processing main session"))
 				tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID))
 				span.Finish()
 				continue
 			}
-			log.WithField("session_id", session.ID).Info("successfully processed session")
 			span.Finish()
 		}
 		workerSpan.Finish()
