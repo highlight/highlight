@@ -130,12 +130,18 @@ export type ErrorObject = {
     columnNumber?: Maybe<Scalars['Int']>;
     stack_trace?: Maybe<Array<Maybe<Scalars['Any']>>>;
     timestamp?: Maybe<Scalars['Time']>;
-    payload?: Maybe<Scalars['String']>;
+    fields?: Maybe<Array<Maybe<ErrorField>>>;
 };
 
 export type ErrorField = {
     __typename?: 'ErrorField';
     organization_id?: Maybe<Scalars['Int']>;
+    name: Scalars['String'];
+    value: Scalars['String'];
+};
+
+export type FieldInput = {
+    id?: Maybe<Scalars['ID']>;
     name: Scalars['String'];
     value: Scalars['String'];
 };
@@ -149,9 +155,9 @@ export type ErrorGroup = {
     stack_trace: Array<Maybe<ErrorTrace>>;
     metadata_log: Array<Maybe<ErrorMetadata>>;
     mapped_stack_trace?: Maybe<Scalars['String']>;
-    field_group?: Maybe<Array<Maybe<ErrorField>>>;
     state: ErrorState;
     environments?: Maybe<Scalars['String']>;
+    fields?: Maybe<Array<Maybe<ErrorField>>>;
 };
 
 export type ErrorMetadata = {
@@ -244,6 +250,7 @@ export type ErrorSearchParamsInput = {
     visited_url?: Maybe<Scalars['String']>;
     state?: Maybe<ErrorState>;
     event?: Maybe<Scalars['String']>;
+    payload_fields?: Maybe<Array<Maybe<FieldInput>>>;
 };
 
 export type ErrorSearchParams = {
