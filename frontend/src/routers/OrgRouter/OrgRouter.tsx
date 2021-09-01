@@ -74,7 +74,7 @@ export const OrgRouter = () => {
                     allApplications: data?.organizations || [],
                 }}
             >
-                <Header integrated={integrated} />
+                <Header />
                 {isLoggedIn && <Sidebar />}
                 <div className={commonStyles.bodyWrapper}>
                     {/* Edge case: shareable links will still direct to this error page if you are logged in on a different org */}
