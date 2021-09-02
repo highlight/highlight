@@ -1,6 +1,5 @@
 name: Deploy to AWS
-on:
-  push
+on: push
 jobs:
    push_to_registry:
     name: Push Docker image to Docker Hub
