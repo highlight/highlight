@@ -1,6 +1,8 @@
+import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import classNames from 'classnames/bind';
 import React from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
+import { CSSProperties } from 'react-router-dom/node_modules/@types/react';
 
 import SvgAnnouncementIcon from '../../static/AnnouncementIcon';
 import SvgBriefcase2Icon from '../../static/Briefcase2Icon';
@@ -73,6 +75,8 @@ const END_NAVIGATION_ITEMS: NavigationItem[] = [
 ];
 
 export const Sidebar = () => {
+    const { currentApplication } = useApplicationContext();
+    const isClickable = currentApplication?.id !== '0';
     return (
         <>
             <div
@@ -104,6 +108,7 @@ export const Sidebar = () => {
                             route={route}
                             text={displayName}
                             key={route}
+                            isClickable={isClickable}
                         >
                             <Icon
                                 className={classNames(styles.icon, className)}
@@ -124,27 +129,42 @@ export const Sidebar = () => {
 const MiniSidebarItem: React.FC<{
     route: string;
     text: string;
-}> = ({ route, text, children }) => {
+    isClickable?: boolean;
+}> = ({ route, text, isClickable, children }) => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { pathname } = useLocation();
     const page = pathname.split('/')[2] ?? '';
+
+    let linkStyleOverride: CSSProperties | undefined;
+    let divStyleOverride: CSSProperties | undefined;
+    if (isClickable !== undefined && !isClickable) {
+        linkStyleOverride = { pointerEvents: 'none' };
+        divStyleOverride = { cursor: 'not-allowed' };
+    }
+
     return (
-        <Link className={styles.miniRow} to={`/${organization_id}/${route}`}>
-            <Tooltip
-                title={text}
-                placement="right"
-                align={{ offset: [16, 0] }}
-                mouseEnterDelay={0}
+        <div style={divStyleOverride}>
+            <Link
+                className={styles.miniRow}
+                to={`/${organization_id}/${route}`}
+                style={linkStyleOverride}
             >
-                <div
-                    className={classNames([
-                        styles.miniSidebarIconWrapper,
-                        page.includes(route) && styles.selected,
-                    ])}
+                <Tooltip
+                    title={text}
+                    placement="right"
+                    align={{ offset: [16, 0] }}
+                    mouseEnterDelay={0}
                 >
-                    {children}
-                </div>
-            </Tooltip>
-        </Link>
+                    <div
+                        className={classNames([
+                            styles.miniSidebarIconWrapper,
+                            page.includes(route) && styles.selected,
+                        ])}
+                    >
+                        {children}
+                    </div>
+                </Tooltip>
+            </Link>
+        </div>
     );
 };
