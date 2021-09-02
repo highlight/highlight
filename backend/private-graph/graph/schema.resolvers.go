@@ -1942,14 +1942,13 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	uid := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
 	adminSpan := tracer.StartSpan("resolver.getAdmin", tracer.ResourceName("db.admin"),
 		tracer.Tag("admin_uid", uid))
-	var spanError error
-	defer adminSpan.Finish(tracer.WithError(spanError))
 	admin := &model.Admin{UID: &uid}
 	res := r.DB.Where(&model.Admin{UID: &uid}).First(&admin)
 	if err := res.Error; err != nil {
 		firebaseUser, err := AuthClient.GetUser(context.Background(), uid)
 		if err != nil {
-			spanError = e.Wrap(err, "error retrieving user from firebase api")
+			spanError := e.Wrap(err, "error retrieving user from firebase api")
+			adminSpan.Finish(tracer.WithError(spanError))
 			return nil, spanError
 		}
 		newAdmin := &model.Admin{
@@ -1959,7 +1958,8 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 			PhotoURL: &firebaseUser.PhotoURL,
 		}
 		if err := r.DB.Create(newAdmin).Error; err != nil {
-			spanError = e.Wrap(err, "error creating new admin")
+			spanError := e.Wrap(err, "error creating new admin")
+			adminSpan.Finish(tracer.WithError(spanError))
 			return nil, spanError
 		}
 		go func() {
@@ -1977,19 +1977,22 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	if admin.PhotoURL == nil || admin.Name == nil {
 		firebaseUser, err := AuthClient.GetUser(context.Background(), uid)
 		if err != nil {
-			spanError = e.Wrap(err, "error retrieving user from firebase api")
+			spanError := e.Wrap(err, "error retrieving user from firebase api")
+			adminSpan.Finish(tracer.WithError(spanError))
 			return nil, spanError
 		}
 		if err := r.DB.Model(admin).Updates(&model.Admin{
 			PhotoURL: &firebaseUser.PhotoURL,
 			Name:     &firebaseUser.DisplayName,
 		}).Error; err != nil {
-			spanError = e.Wrap(err, "error updating org fields")
+			spanError := e.Wrap(err, "error updating org fields")
+			adminSpan.Finish(tracer.WithError(spanError))
 			return nil, spanError
 		}
 		admin.PhotoURL = &firebaseUser.PhotoURL
 		admin.Name = &firebaseUser.DisplayName
 	}
+	adminSpan.Finish()
 	return admin, nil
 }
 
