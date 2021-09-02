@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/gorilla/handlers"
@@ -54,11 +55,43 @@ func init() {
 	runtimeParsed = util.Runtime(*runtime)
 }
 
+type Request struct {
+	StartTime   time.Time
+	EndTime     time.Time
+	ErrorString *string
+}
+
 func health(w http.ResponseWriter, r *http.Request) {
 	_, err := w.Write([]byte("healthy"))
 	if err != nil {
 		log.Error(e.Wrap(err, "error writing health response"))
 	}
+}
+
+// func health(h http.Handler) http.Handler {
+// 	return http.HandlerFunc(
+// 		func(w http.ResponseWriter, r *http.Request) {
+// 			request := Request{}
+// 			request.StartTime = time.Now()
+
+// 			defer func() {
+// 				request.EndTime = time.Now()
+// 			}()
+
+// 			requestId := r.Header.Get("X-Highlight-Request")
+// 			pp.Printf("request id (%v) \n", requestId)
+// 			_, err := w.Write([]byte("healthy"))
+// 			if err != nil {
+// 				log.Error(e.Wrap(err, "error writing health response"))
+// 			}
+// 		},
+// 	)
+// }
+
+func HighlightWrapper(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		h.ServeHTTP(w, r)
+	})
 }
 
 func validateOrigin(request *http.Request, origin string) bool {
@@ -144,9 +177,10 @@ func main() {
 	r.Use(cors.New(cors.Options{
 		AllowOriginRequestFunc: validateOrigin,
 		AllowCredentials:       true,
-		AllowedHeaders:         []string{"Content-Type", "Token", "Sentry-Trace"},
+		AllowedHeaders:         []string{"Content-Type", "Token", "Sentry-Trace", "X-Highlight-Request"},
 	}).Handler)
-	r.MethodFunc(http.MethodGet, "/health", health)
+	// r.MethodFunc(http.MethodGet, "/health", health)
+	r.Handle("/health", HighlightWrapper(http.HandlerFunc(health)))
 
 	/*
 		Selectively turn on backends depending on the input flag

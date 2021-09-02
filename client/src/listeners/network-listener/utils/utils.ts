@@ -86,4 +86,4 @@ export const isHighlightNetworkResourceFilter = (
         .toLocaleLowerCase()
         .includes(process.env.PUBLIC_GRAPH_URI ?? 'highlight.run') ||
     name.toLocaleLowerCase().includes('highlight.run') ||
-    name.toLocaleLowerCase().includes(backendUrl);
+    name.toLocaleLowerCase().includes(backendUrl) && !name.toLocaleLowerCase().includes("health");

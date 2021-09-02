@@ -13,6 +13,7 @@ interface NetworkListenerArguments {
     headersToRedact: string[];
     backendUrl: string;
     urlBlocklist: string[];
+    sessionID: number;
 }
 
 export const NetworkListener = ({
@@ -21,9 +22,11 @@ export const NetworkListener = ({
     headersToRedact,
     backendUrl,
     urlBlocklist,
+    sessionID,
 }: NetworkListenerArguments) => {
     const removeXHRListener = XHRListener(
         (requestResponsePair) => {
+            console.log("got an xhr callback");
             xhrCallback(
                 sanitizeRequestResponsePair(
                     requestResponsePair,
@@ -32,10 +35,12 @@ export const NetworkListener = ({
             );
         },
         backendUrl,
-        urlBlocklist
+        urlBlocklist,
+        sessionID,
     );
     const removeFetchListener = FetchListener(
         (requestResponsePair) => {
+            console.log("got a fetch callback");
             fetchCallback(
                 sanitizeRequestResponsePair(
                     requestResponsePair,

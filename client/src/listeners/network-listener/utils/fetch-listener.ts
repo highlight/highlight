@@ -13,7 +13,9 @@ export const FetchListener = (
 ) => {
     const originalFetch = window.fetch;
 
+    console.log("fetch: overriding fetch:")
     window.fetch = function (input, init) {
+        console.log("fetch: something is happening: ");
         const { method, url } = getRequestProperties(input, init);
         const request: HighlightRequest = {
             headers: {},
@@ -34,6 +36,7 @@ export const FetchListener = (
 
         responsePromise = originalFetch.call(this, input, init);
 
+        console.log("fetch: ", method, url);
         if (!isHighlightNetworkResourceFilter(url, backendUrl)) {
             logRequest(
                 responsePromise,
@@ -47,6 +50,7 @@ export const FetchListener = (
     };
 
     return () => {
+        console.log("fetch: unmounting");
         window.fetch = originalFetch;
     };
 };

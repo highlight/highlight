@@ -16,7 +16,8 @@ interface BrowserXHR extends XMLHttpRequest {
 export const XHRListener = (
     callback: NetworkListenerCallback,
     backendUrl: string,
-    urlBlocklist: string[]
+    urlBlocklist: string[],
+    sessionID: number,
 ) => {
     const XHR = XMLHttpRequest.prototype;
 
@@ -45,12 +46,16 @@ export const XHRListener = (
         value: string
     ) {
         this._requestHeaders[header] = value;
+        console.log('xhr: setting header for: ', this._url, header, value);
 
         // @ts-expect-error
         return originalSetRequestHeader.apply(this, arguments);
     };
 
     XHR.send = function (this: BrowserXHR, postData: any) {
+        this.setRequestHeader('X-Highlight-Request', makeid(10)+":"+sessionID.toString());
+
+
         const shouldRecordHeaderAndBody = this._shouldRecordHeaderAndBody;
         const requestModel: Request = {
             url: this._url,
@@ -163,3 +168,14 @@ export const XHRListener = (
         XHR.setRequestHeader = originalSetRequestHeader;
     };
 };
+
+function makeid(length: number) {
+    var result           = '';
+    var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for ( var i = 0; i < length; i++ ) {
+      result += characters.charAt(Math.floor(Math.random() * 
+ charactersLength));
+   }
+   return result;
+}
