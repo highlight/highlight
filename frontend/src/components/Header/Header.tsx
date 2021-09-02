@@ -180,7 +180,7 @@ const DemoWorkspaceBanner = () => {
             <div className={classNames(styles.trialTimeText)}>
                 Viewing Demo Workspace.{' '}
                 <Link className={styles.demoLink} to={redirectLink}>
-                    Click here!
+                    Click here to leave!
                 </Link>
             </div>
         </div>
