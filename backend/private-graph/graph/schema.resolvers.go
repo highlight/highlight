@@ -91,14 +91,20 @@ func (r *errorGroupResolver) StackTrace(ctx context.Context, obj *model.ErrorGro
 
 func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorMetadata, error) {
 	var metadataLogs []*modelInputs.ErrorMetadata
-	if err := r.DB.Model(&model.ErrorObject{}).Where(&model.ErrorObject{ErrorGroupID: obj.ID}).
-		Where("NOT id=0").
-		Where("NOT session_id=0").
-		Order("updated_at desc").
-		Limit(20).
-		Select("session_id, id AS error_id, timestamp, os, browser, url AS visited_url").Scan(&metadataLogs).Error; err != nil {
-		return nil, err
-	}
+	r.DB.Raw(`
+		SELECT s.id AS session_id, e.id AS error_id, e.timestamp, s.os_name AS os, s.browser_name AS browser, e.url AS visited_url
+		FROM sessions AS s
+		INNER JOIN (
+			SELECT DISTINCT ON (session_id) session_id, id, timestamp, url
+			FROM error_objects
+			WHERE error_group_id = ?
+			ORDER BY session_id
+			LIMIT 20
+		) AS e
+		ON s.id = e.session_id
+		ORDER BY s.updated_at DESC
+		LIMIT 20;
+	`, obj.ID).Scan(&metadataLogs)
 	var filtered []*modelInputs.ErrorMetadata
 	for _, metadataLog := range metadataLogs {
 		if metadataLog.Timestamp.IsZero() {
