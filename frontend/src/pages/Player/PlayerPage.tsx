@@ -15,7 +15,10 @@ import { HighlightEvent } from '@pages/Player/HighlightEvent';
 import PlayerCommentCanvas, {
     Coordinates2D,
 } from '@pages/Player/PlayerCommentCanvas/PlayerCommentCanvas';
-import { usePlayer } from '@pages/Player/PlayerHook/PlayerHook';
+import {
+    SessionViewability,
+    usePlayer,
+} from '@pages/Player/PlayerHook/PlayerHook';
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
 import PlayerPageProductTour from '@pages/Player/PlayerPageProductTour/PlayerPageProductTour';
 import {
@@ -75,7 +78,7 @@ const Player = ({ integrated }: Props) => {
         setScale,
         replayer,
         time,
-        canViewSession,
+        sessionViewability,
         isPlayerReady,
         session,
     } = player;
@@ -160,7 +163,9 @@ const Player = ({ integrated }: Props) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sizes, replayer]);
 
-    const showLeftPanel = showLeftPanelPreference && canViewSession;
+    const showLeftPanel =
+        showLeftPanelPreference &&
+        sessionViewability !== SessionViewability.OVER_BILLING_QUOTA;
 
     return (
         <PlayerUIContextProvider
@@ -211,7 +216,8 @@ const Player = ({ integrated }: Props) => {
                             }}
                         />
                     </div>
-                    {!canViewSession && (
+                    {sessionViewability ===
+                        SessionViewability.OVER_BILLING_QUOTA && (
                         <FullBleedCard
                             title="Session quota reached 😔"
                             animation={
@@ -231,8 +237,34 @@ const Player = ({ integrated }: Props) => {
                             </ButtonLink>
                         </FullBleedCard>
                     )}
-                    {(canViewSession && !!session) ||
-                    replayerState !== ReplayerState.Empty ? (
+                    {sessionViewability === SessionViewability.EMPTY_SESSION ? (
+                        <ElevatedCard
+                            className={styles.emptySessionCard}
+                            title="Session isn't ready to view yet 😔"
+                            animation={
+                                <Lottie animationData={WaitingAnimation} />
+                            }
+                        >
+                            <p>
+                                We need more time to process this session. If
+                                this looks like a bug, shoot us a message on{' '}
+                                <span
+                                    className={styles.intercomLink}
+                                    onClick={() => {
+                                        window.Intercom(
+                                            'showNewMessage',
+                                            `I'm seeing an empty session. This is the session ID: "${session_id}"`
+                                        );
+                                    }}
+                                >
+                                    Intercom
+                                </span>
+                                .
+                            </p>
+                        </ElevatedCard>
+                    ) : (sessionViewability === SessionViewability.VIEWABLE &&
+                          !!session) ||
+                      replayerState !== ReplayerState.Empty ? (
                         <div
                             id="playerCenterPanel"
                             className={classNames(styles.playerCenterPanel, {
