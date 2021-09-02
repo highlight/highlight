@@ -537,8 +537,8 @@ func (w *Worker) Start() {
 			log.Infof("sessions that will be processed: %v", sessionIds)
 		}
 
+		// process 4 sessions at a time. this number was chosen arbitrarily.
 		wp := workerpool.New(4)
-
 		for _, session := range sessions {
 			session := session
 			wp.Submit(func() {
@@ -554,6 +554,7 @@ func (w *Worker) Start() {
 				span.Finish()
 			})
 		}
+		// wait for all workers to finish so we don't query sessions that are still being processed
 		wp.StopWait()
 		workerSpan.Finish()
 	}
