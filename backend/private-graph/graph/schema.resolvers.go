@@ -1950,7 +1950,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		firebaseUser, err := AuthClient.GetUser(context.Background(), uid)
 		if err != nil {
 			spanError = e.Wrap(err, "error retrieving user from firebase api")
-			return nil, e.Wrap(err, "error retrieving user from firebase api")
+			return nil, spanError
 		}
 		newAdmin := &model.Admin{
 			UID:      &uid,
@@ -1960,7 +1960,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		}
 		if err := r.DB.Create(newAdmin).Error; err != nil {
 			spanError = e.Wrap(err, "error creating new admin")
-			return nil, e.Wrap(err, "error creating new admin")
+			return nil, spanError
 		}
 		go func() {
 			if contact, err := apolloio.CreateContact(*newAdmin.Email); err != nil {
@@ -1978,14 +1978,14 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		firebaseUser, err := AuthClient.GetUser(context.Background(), uid)
 		if err != nil {
 			spanError = e.Wrap(err, "error retrieving user from firebase api")
-			return nil, e.Wrap(err, "error retrieving user from firebase api")
+			return nil, spanError
 		}
 		if err := r.DB.Model(admin).Updates(&model.Admin{
 			PhotoURL: &firebaseUser.PhotoURL,
 			Name:     &firebaseUser.DisplayName,
 		}).Error; err != nil {
 			spanError = e.Wrap(err, "error updating org fields")
-			return nil, e.Wrap(err, "error updating org fields")
+			return nil, spanError
 		}
 		admin.PhotoURL = &firebaseUser.PhotoURL
 		admin.Name = &firebaseUser.DisplayName
