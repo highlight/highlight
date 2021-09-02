@@ -98,7 +98,7 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 			SELECT DISTINCT ON (session_id) session_id, id, timestamp, url
 			FROM error_objects
 			WHERE error_group_id = ?
-			ORDER BY session_id
+			ORDER BY session_id DESC
 			LIMIT 20
 		) AS e
 		ON s.id = e.session_id
