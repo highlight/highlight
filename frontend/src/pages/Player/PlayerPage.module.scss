@@ -277,3 +277,14 @@
         left: calc(-1 * var(--size-medium));
     }
 }
+
+.intercomLink {
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.emptySessionCard {
+    align-self: center;
+    height: fit-content;
+    justify-self: center;
+}
