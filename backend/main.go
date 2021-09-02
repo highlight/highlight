@@ -68,26 +68,6 @@ func health(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// func health(h http.Handler) http.Handler {
-// 	return http.HandlerFunc(
-// 		func(w http.ResponseWriter, r *http.Request) {
-// 			request := Request{}
-// 			request.StartTime = time.Now()
-
-// 			defer func() {
-// 				request.EndTime = time.Now()
-// 			}()
-
-// 			requestId := r.Header.Get("X-Highlight-Request")
-// 			pp.Printf("request id (%v) \n", requestId)
-// 			_, err := w.Write([]byte("healthy"))
-// 			if err != nil {
-// 				log.Error(e.Wrap(err, "error writing health response"))
-// 			}
-// 		},
-// 	)
-// }
-
 func HighlightWrapper(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		h.ServeHTTP(w, r)

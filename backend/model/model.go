@@ -119,6 +119,13 @@ type Model struct {
 	DeletedAt *time.Time `json:"deleted_at"`
 }
 
+type Request struct {
+	Model
+	StartTime     time.Time
+	EndTime       time.Time
+	ErrorObjectID int
+}
+
 type Organization struct {
 	Model
 	Name             *string
