@@ -1,3 +1,7 @@
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
@@ -20,6 +24,11 @@ const ReferrersTable = () => {
     const { organization_id } = useParams<{
         organization_id: string;
     }>();
+    const organizationIdRemapped =
+        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : organization_id;
+
     const { dateRangeLength } = useHomePageFiltersContext();
     const history = useHistory();
     const {
@@ -75,7 +84,7 @@ const ReferrersTable = () => {
                     message.success(
                         `Showing sessions that were referred by ${record.host}`
                     );
-                    history.push(`/${organization_id}/sessions`);
+                    history.push(`/${organizationIdRemapped}/sessions`);
                 }}
                 noDataTitle="No referrer data yet 😔"
                 noDataMessage="Doesn't look like your app has been referred to yet."

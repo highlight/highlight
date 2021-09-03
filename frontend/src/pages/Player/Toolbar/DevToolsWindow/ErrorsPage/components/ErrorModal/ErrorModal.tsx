@@ -1,3 +1,7 @@
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 import { useHistory } from 'react-router';
@@ -22,6 +26,10 @@ const ErrorModal = ({ error }: Props) => {
     });
     const history = useHistory();
     const { organization_id } = useParams<{ organization_id: string }>();
+    const organizationIdRemapped =
+        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : organization_id;
 
     return (
         <div className={styles.container}>
@@ -58,7 +66,7 @@ const ErrorModal = ({ error }: Props) => {
                             type="primary"
                             onClick={() => {
                                 history.push(
-                                    `/${organization_id}/errors/${error.error_group_id}`
+                                    `/${organizationIdRemapped}/errors/${error.error_group_id}`
                                 );
                             }}
                         >

@@ -1,4 +1,7 @@
-import { DEMO_WORKSPACE_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import SvgXIcon from '@icons/XIcon';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { useParams } from '@util/react-router/useParams';
@@ -25,6 +28,10 @@ import { UserDropdown } from './UserDropdown/UserDropdown';
 
 export const Header = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
+    const organizationIdRemapped =
+        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : organization_id;
     const { isLoggedIn } = useAuthContext();
 
     return (
@@ -46,7 +53,7 @@ export const Header = () => {
                         <div className={styles.logoWrapper}>
                             <Link
                                 className={styles.homeLink}
-                                to={`/${organization_id}/home`}
+                                to={`/${organizationIdRemapped}/home`}
                             >
                                 <HighlightLogo />
                             </Link>
@@ -81,6 +88,10 @@ const FreePlanBanner = () => {
         false
     );
     const { organization_id } = useParams<{ organization_id: string }>();
+    const organizationIdRemapped =
+        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : organization_id;
     const { data, loading } = useGetBillingDetailsQuery({
         variables: { organization_id },
     });
@@ -116,7 +127,7 @@ const FreePlanBanner = () => {
                 {bannerMessage + ' '} Upgrade{' '}
                 <Link
                     className={styles.trialLink}
-                    to={`/${organization_id}/billing`}
+                    to={`/${organizationIdRemapped}/billing`}
                 >
                     here!
                 </Link>

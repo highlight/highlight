@@ -1,3 +1,7 @@
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
@@ -38,6 +42,10 @@ const MinimalSessionCard = ({
         segment_id: string;
         session_id: string;
     }>();
+    const organizationIdRemapped =
+        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : organization_id;
     const {
         showDetailedSessionView: showDetailedSessionViewPlayerConfiguration,
     } = usePlayerConfiguration();
@@ -57,7 +65,7 @@ const MinimalSessionCard = ({
     return (
         <div className={styles.sessionCardWrapper} key={session?.id}>
             <Link
-                to={`/${organization_id}/sessions/${session?.id}${
+                to={`/${organizationIdRemapped}/sessions/${session?.id}${
                     urlParams || ''
                 }`}
             >

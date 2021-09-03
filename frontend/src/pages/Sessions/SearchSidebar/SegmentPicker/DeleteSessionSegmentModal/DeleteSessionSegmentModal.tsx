@@ -1,3 +1,7 @@
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { namedOperations } from '@graph/operations';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
@@ -31,6 +35,10 @@ const DeleteSessionSegmentModal: React.FC<Props> = ({
         segment_id: string;
         organization_id: string;
     }>();
+    const organizationIdRemapped =
+        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : organization_id;
     const history = useHistory<SearchParams>();
     const [deleteSegment, { loading }] = useDeleteSegmentMutation({
         update(cache) {
@@ -87,7 +95,7 @@ const DeleteSessionSegmentModal: React.FC<Props> = ({
                                     hideModalHandler();
                                     if (segment_id === segmentToDelete?.id) {
                                         history.push(
-                                            `/${organization_id}/sessions`
+                                            `/${organizationIdRemapped}/sessions`
                                         );
                                     }
                                     if (afterDeleteHandler) {

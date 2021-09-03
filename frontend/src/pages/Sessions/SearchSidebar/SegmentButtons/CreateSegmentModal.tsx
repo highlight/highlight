@@ -1,3 +1,7 @@
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { namedOperations } from '@graph/operations';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
@@ -38,6 +42,10 @@ const CreateSegmentModal = ({
         organization_id: string;
         segment_id: string;
     }>();
+    const organizationIdRemapped =
+        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : organization_id;
     const { searchParams, setExistingParams } = useSearchContext();
     const history = useHistory();
 
@@ -59,7 +67,7 @@ const CreateSegmentModal = ({
                 );
             } else {
                 history.push(
-                    `/${organization_id}/sessions/segment/${r.data?.createSegment?.id}`
+                    `/${organizationIdRemapped}/sessions/segment/${r.data?.createSegment?.id}`
                 );
             }
             onHideModal();

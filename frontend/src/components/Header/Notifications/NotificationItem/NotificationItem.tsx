@@ -1,3 +1,7 @@
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 import { Link } from 'react-router-dom';
@@ -24,11 +28,15 @@ const CommentNotification = ({
     viewed,
 }: Props) => {
     const { organization_id } = useParams<{ organization_id: string }>();
+    const organizationIdRemapped =
+        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : organization_id;
 
     return (
         <Link
             className={notificationStyles.notification}
-            to={getLink(notification, organization_id)}
+            to={getLink(notification, organizationIdRemapped)}
             onClick={onViewHandler}
         >
             <div className={notificationStyles.notificationStartColumn}>

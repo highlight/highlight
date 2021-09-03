@@ -1,3 +1,7 @@
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 
@@ -11,6 +15,10 @@ const LimitedSessionCard = () => {
     const { organization_id } = useParams<{
         organization_id: string;
     }>();
+    const organizationIdRemapped =
+        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : organization_id;
     const { data } = useGetBillingDetailsQuery({
         variables: { organization_id },
     });
@@ -41,7 +49,7 @@ const LimitedSessionCard = () => {
             </p>
             <ButtonLink
                 className={styles.center}
-                to={`/${organization_id}/billing`}
+                to={`/${organizationIdRemapped}/billing`}
                 trackingId="LimitedSessionsCardUpgradePlan"
             >
                 Upgrade Plan
