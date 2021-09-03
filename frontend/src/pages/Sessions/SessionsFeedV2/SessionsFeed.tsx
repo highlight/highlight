@@ -128,6 +128,7 @@ export const SessionFeed = () => {
                                         onChange={(checked) => {
                                             setAutoPlaySessions(checked);
                                         }}
+                                        trackingId="SessionFeedAutoplay"
                                     />
                                     <Switch
                                         label="Show Details"
@@ -135,6 +136,7 @@ export const SessionFeed = () => {
                                         onChange={(checked) => {
                                             setShowDetailedSessionView(checked);
                                         }}
+                                        trackingId="SessionFeedShowDetails"
                                     />
                                 </div>
                             </div>

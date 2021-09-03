@@ -75,6 +75,7 @@ const SessionShareButton = (props: ButtonProps) => {
                             setShareTimestamp(checked);
                         }}
                         label="Include current timestamp"
+                        trackingId="SessionShareURLIncludeTimestamp"
                     />
                 </ModalBody>
             </Modal>
@@ -120,6 +121,7 @@ const ExternalSharingToggle = () => {
                     });
                 }}
                 label="Allow anyone with the link to access this session."
+                trackingId="SessionSharingExternal"
             />
         </div>
     );
