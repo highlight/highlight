@@ -1,7 +1,3 @@
-import {
-    DEMO_WORKSPACE_APPLICATION_ID,
-    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
-} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { ErrorObject, Session, SessionComment } from '@graph/schemas';
 import { Replayer } from '@highlight-run/rrweb';
 import {
@@ -345,9 +341,7 @@ export const changeSession = (
     successMessageText = 'Playing the next session.'
 ) => {
     const organizationIdRemapped =
-        organizationId === DEMO_WORKSPACE_APPLICATION_ID
-            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-            : organizationId;
+        organizationId === '0' ? 'demo' : organizationId;
 
     if (!session) {
         message.success('No more sessions to play.');
