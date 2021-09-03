@@ -1,0 +1,12 @@
+{
+    "containerDefinitions": [
+        {
+            "name": "private-graph",
+            "image": "123456789012.dkr.ecr.us-west-2.amazonaws.com/aws-nodejs-sample:v1",
+            "memory": 200,
+            "cpu": 10,
+            "essential": true
+        }
+    ],
+    "family": "highlight-production"
+}

@@ -22,5 +22,12 @@ jobs:
                 ECR_REPOSITORY: highlight-production-ecr-repo
                 IMAGE_TAG: ${{ github.sha }}
               run: |
-                docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f Dockerfile.prod .
+                docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f deploy/Dockerfile.prod .
                 docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+            - name: Deploy to Amazon ECS
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              with:
+                task-definition: deploy/private-graph-task.json
+                service: my-service
+                cluster: my-cluster
+                wait-for-service-stability: true
