@@ -127,6 +127,7 @@ type ErrorGroup {
     field_group: [ErrorField]
     state: ErrorState!
     environments: String
+    error_frequency: [Int64]!
 }
 
 type ErrorMetadata {

@@ -6,10 +6,7 @@ import { Link, useParams } from 'react-router-dom';
 
 import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
 import Tooltip from '../../../components/Tooltip/Tooltip';
-import {
-    useGetDailyErrorFrequencyQuery,
-    useGetErrorGroupsQuery,
-} from '../../../graph/generated/hooks';
+import { useGetErrorGroupsQuery } from '../../../graph/generated/hooks';
 import {
     ErrorGroup,
     ErrorResults,
@@ -123,16 +120,10 @@ const ErrorCardV2 = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
         Array(6).fill(0)
     );
 
-    useGetDailyErrorFrequencyQuery({
-        variables: {
-            organization_id: organization_id,
-            error_group_id: errorGroup!.id,
-            date_offset: 5,
-        },
-        onCompleted: (response) => {
-            setErrorDates(response.dailyErrorFrequency);
-        },
-    });
+    useEffect(() => {
+        if (errorGroup !== undefined)
+            setErrorDates(errorGroup!.error_frequency);
+    }, [setErrorDates, errorGroup]);
 
     return (
         <div className={styles.errorCardWrapper} key={errorGroup?.id}>

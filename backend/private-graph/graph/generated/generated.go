@@ -115,6 +115,7 @@ type ComplexityRoot struct {
 
 	ErrorGroup struct {
 		Environments     func(childComplexity int) int
+		ErrorFrequency   func(childComplexity int) int
 		Event            func(childComplexity int) int
 		FieldGroup       func(childComplexity int) int
 		ID               func(childComplexity int) int
@@ -435,6 +436,8 @@ type ErrorGroupResolver interface {
 
 	FieldGroup(ctx context.Context, obj *model1.ErrorGroup) ([]*model1.ErrorField, error)
 	State(ctx context.Context, obj *model1.ErrorGroup) (model.ErrorState, error)
+
+	ErrorFrequency(ctx context.Context, obj *model1.ErrorGroup) ([]*int64, error)
 }
 type ErrorObjectResolver interface {
 	Event(ctx context.Context, obj *model1.ErrorObject) ([]*string, error)
@@ -783,6 +786,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorGroup.Environments(childComplexity), true
+
+	case "ErrorGroup.error_frequency":
+		if e.complexity.ErrorGroup.ErrorFrequency == nil {
+			break
+		}
+
+		return e.complexity.ErrorGroup.ErrorFrequency(childComplexity), true
 
 	case "ErrorGroup.event":
 		if e.complexity.ErrorGroup.Event == nil {
@@ -2876,6 +2886,7 @@ type ErrorGroup {
     field_group: [ErrorField]
     state: ErrorState!
     environments: String
+    error_frequency: [Int64]!
 }
 
 type ErrorMetadata {
@@ -6570,6 +6581,41 @@ func (ec *executionContext) _ErrorGroup_environments(ctx context.Context, field 
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorGroup_error_frequency(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ErrorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ErrorGroup().ErrorFrequency(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*int64)
+	fc.Result = res
+	return ec.marshalNInt642ᚕᚖint64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorMetadata_error_id(ctx context.Context, field graphql.CollectedField, obj *model.ErrorMetadata) (ret graphql.Marshaler) {
@@ -16144,6 +16190,20 @@ func (ec *executionContext) _ErrorGroup(ctx context.Context, sel ast.SelectionSe
 			})
 		case "environments":
 			out.Values[i] = ec._ErrorGroup_environments(ctx, field, obj)
+		case "error_frequency":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ErrorGroup_error_frequency(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

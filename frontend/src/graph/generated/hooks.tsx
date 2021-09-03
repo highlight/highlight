@@ -2648,6 +2648,7 @@ export const GetErrorGroupDocument = gql`
                 name
                 value
             }
+            error_frequency
         }
     }
 `;
@@ -2729,6 +2730,7 @@ export const GetErrorGroupsDocument = gql`
                     session_id
                     timestamp
                 }
+                error_frequency
             }
             totalCount
         }
