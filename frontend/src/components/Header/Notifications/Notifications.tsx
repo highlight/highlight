@@ -1,10 +1,10 @@
 import useLocalStorage from '@rehooks/local-storage';
+import { useParams } from '@util/react-router/useParams';
 import { Menu } from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import Lottie from 'lottie-react';
 import React, { useEffect, useState } from 'react';
-import { useParams } from '@util/react-router/useParams';
 
 import { useGetNotificationsQuery } from '../../../graph/generated/hooks';
 import NotificationAnimation from '../../../lottie/waiting.json';

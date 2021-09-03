@@ -1,7 +1,7 @@
+import { useParams } from '@util/react-router/useParams';
 import { Checkbox } from 'antd';
 import { CheckboxChangeEvent } from 'antd/lib/checkbox';
 import React from 'react';
-import { useParams } from '@util/react-router/useParams';
 import { OptionsType, OptionTypeBase } from 'react-select';
 import AsyncCreatableSelect from 'react-select/async-creatable';
 

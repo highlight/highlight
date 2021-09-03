@@ -1,7 +1,7 @@
+import { useParams } from '@util/react-router/useParams';
 import { H } from 'highlight.run';
 import React, { FunctionComponent, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { useParams } from '@util/react-router/useParams';
 import useFetch from 'use-http';
 
 import { useAuthContext } from '../../authentication/AuthContext';

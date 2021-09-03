@@ -1,7 +1,7 @@
+import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { useParams } from '@util/react-router/useParams';
 
 import { useGetKeyPerformanceIndicatorsQuery } from '../../../../graph/generated/hooks';
 import { EmptySessionsSearchParams } from '../../../Sessions/EmptySessionsSearchParams';
