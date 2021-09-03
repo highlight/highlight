@@ -270,7 +270,7 @@ export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
         variables: {
             organization_id: '' + errorGroup?.organization_id,
             error_group_id: '' + errorGroup?.id,
-            date_offset: 5,
+            date_offset: dateRangeLength - 1,
         },
         onCompleted: (response) => {
             const errorData = response.dailyErrorFrequency.map((val, idx) => ({
