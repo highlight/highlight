@@ -268,7 +268,7 @@ export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
 
     useGetDailyErrorFrequencyQuery({
         variables: {
-            organization_id: '' + errorGroup?.organization_id,
+            organization_id: `${errorGroup?.organization_id}`,
             error_group_id: '' + errorGroup?.id,
             date_offset: dateRangeLength - 1,
         },
