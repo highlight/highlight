@@ -159,6 +159,7 @@ export const DevToolsToolbarItem = ({
                     onChange={(checked) => {
                         setShowDevTools(checked);
                     }}
+                    trackingId="ToolbarDevTools"
                 />
             }
             onPinToggle={() => {
@@ -303,6 +304,7 @@ export const MouseTrailToolbarItem = ({
                     onChange={(checked) => {
                         setShowPlayerMouseTail(checked);
                     }}
+                    trackingId="ToolbarMouseTrail"
                 />
             }
             onPinToggle={() => {
@@ -362,6 +364,7 @@ export const SkipInactiveToolbarItem = ({
                     onChange={(checked) => {
                         setSkipInactive(checked);
                     }}
+                    trackingId="ToolbarSkipInactive"
                 />
             }
             onPinToggle={() => {
@@ -421,6 +424,7 @@ export const AutoPlayToolbarItem = ({
                     onChange={(checked) => {
                         setAutoPlayVideo(checked);
                     }}
+                    trackingId="ToolbarAutoPlay"
                 />
             }
             onPinToggle={() => {
