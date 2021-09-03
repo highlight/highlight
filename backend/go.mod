@@ -12,6 +12,7 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.3.1
 	github.com/aws/aws-sdk-go-v2/config v1.1.4
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.4.0
+	github.com/gammazero/workerpool v1.1.2 // indirect
 	github.com/go-chi/chi v3.3.2+incompatible
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/go-test/deep v1.0.4

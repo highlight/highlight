@@ -16,6 +16,7 @@ import (
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
+	"github.com/gammazero/workerpool"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
@@ -503,7 +504,6 @@ func (w *Worker) Start() {
 			sessionsSpan.Finish()
 			continue
 		}
-		// TODO: remove eventually this it's gross
 		rand.Seed(time.Now().UnixNano())
 		rand.Shuffle(len(sessions), func(i, j int) {
 			sessions[i], sessions[j] = sessions[j], sessions[i]
@@ -523,16 +523,23 @@ func (w *Worker) Start() {
 			log.Infof("sessions that will be processed: %v", sessionIds)
 		}
 
+		// process 4 sessions at a time. this number was chosen arbitrarily.
+		wp := workerpool.New(40)
 		for _, session := range sessions {
-			span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"), tracer.Tag("session_id", strconv.Itoa(session.ID)))
-			if err := w.processSession(ctx, session); err != nil {
-				log.WithField("session_id", session.ID).Error(e.Wrap(err, "error processing main session"))
-				tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID))
+			session := session
+			wp.Submit(func() {
+				span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"), tracer.Tag("session_id", strconv.Itoa(session.ID)))
+				if err := w.processSession(ctx, session); err != nil {
+					log.WithField("session_id", session.ID).Error(e.Wrap(err, "error processing main session"))
+					tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID))
+					span.Finish()
+					return
+				}
 				span.Finish()
-				continue
-			}
-			span.Finish()
+			})
 		}
+		// wait for all workers to finish so we don't query sessions that are still being processed
+		wp.StopWait()
 		workerSpan.Finish()
 	}
 }
