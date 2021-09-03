@@ -121,8 +121,8 @@ const ErrorCardV2 = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
     );
 
     useEffect(() => {
-        if (errorGroup !== undefined)
-            setErrorDates(errorGroup!.error_frequency);
+        if (errorGroup?.error_frequency)
+            setErrorDates(errorGroup.error_frequency);
     }, [setErrorDates, errorGroup]);
 
     return (
