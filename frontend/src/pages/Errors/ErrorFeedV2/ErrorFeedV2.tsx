@@ -1,8 +1,13 @@
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames/bind';
 import React, { RefObject, useEffect, useState } from 'react';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
 import Skeleton from 'react-loading-skeleton';
-import { Link, useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
 import Tooltip from '../../../components/Tooltip/Tooltip';
@@ -116,6 +121,10 @@ const ErrorCardV2 = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
         organization_id: string;
         error_id?: string;
     }>();
+    const organizationIdRemapped =
+        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : organization_id;
     // Represents the last six days i.e. [5 days ago, 4 days ago, 3 days ago, etc..]
     const [errorDates, setErrorDates] = useState<Array<number>>(
         Array(6).fill(0)
@@ -127,7 +136,7 @@ const ErrorCardV2 = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
 
     return (
         <div className={styles.errorCardWrapper} key={errorGroup?.id}>
-            <Link to={`/${organization_id}/errors/${errorGroup?.id}`}>
+            <Link to={`/${organizationIdRemapped}/errors/${errorGroup?.id}`}>
                 <div
                     className={classNames(styles.errorCard, {
                         [styles.selected]: error_id === errorGroup?.id,

@@ -1,7 +1,7 @@
+import { useParams } from '@util/react-router/useParams';
 import React, { RefObject, useEffect, useMemo, useState } from 'react';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
 import Skeleton from 'react-loading-skeleton';
-import { useParams } from 'react-router-dom';
 import TextTransition from 'react-text-transition';
 
 import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';

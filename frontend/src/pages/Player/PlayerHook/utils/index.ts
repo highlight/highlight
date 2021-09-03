@@ -340,11 +340,14 @@ export const changeSession = (
     session: Session | null,
     successMessageText = 'Playing the next session.'
 ) => {
+    const organizationIdRemapped =
+        organizationId === '0' ? 'demo' : organizationId;
+
     if (!session) {
         message.success('No more sessions to play.');
         return;
     }
 
-    history.push(`/${organizationId}/sessions/${session.id}`);
+    history.push(`/${organizationIdRemapped}/sessions/${session.id}`);
     message.success(successMessageText);
 };

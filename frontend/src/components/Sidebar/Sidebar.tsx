@@ -1,6 +1,11 @@
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames/bind';
 import React from 'react';
-import { Link, useLocation, useParams } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 import SvgAnnouncementIcon from '../../static/AnnouncementIcon';
 import SvgBriefcase2Icon from '../../static/Briefcase2Icon';
@@ -126,10 +131,17 @@ const MiniSidebarItem: React.FC<{
     text: string;
 }> = ({ route, text, children }) => {
     const { organization_id } = useParams<{ organization_id: string }>();
+    const organizationIdRemapped =
+        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : organization_id;
     const { pathname } = useLocation();
     const page = pathname.split('/')[2] ?? '';
     return (
-        <Link className={styles.miniRow} to={`/${organization_id}/${route}`}>
+        <Link
+            className={styles.miniRow}
+            to={`/${organizationIdRemapped}/${route}`}
+        >
             <Tooltip
                 title={text}
                 placement="right"

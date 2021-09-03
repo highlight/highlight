@@ -111,6 +111,13 @@
               "InputNumber"
             ],
             "message": "Please use InputNumber from /src/components/InputNumber instead."
+          },
+          {
+            "name": "react-router-dom",
+            "importNames": [
+              "useParams"
+            ],
+            "message": "Please use useParams from @util/react-router/useParams instead."
           }
         ]
       }

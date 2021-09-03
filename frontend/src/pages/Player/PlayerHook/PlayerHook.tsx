@@ -1,8 +1,9 @@
 import { Replayer, ReplayerEvents } from '@highlight-run/rrweb';
 import { customEvent } from '@highlight-run/rrweb/dist/types';
+import { useParams } from '@util/react-router/useParams';
 import { H } from 'highlight.run';
 import { useCallback, useEffect, useState } from 'react';
-import { useHistory, useParams } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
 import { useAuthContext } from '../../../authentication/AuthContext';
