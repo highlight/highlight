@@ -1,6 +1,6 @@
+import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { useParams } from 'react-router-dom';
 
 import { Avatar } from '../../../../../../components/Avatar/Avatar';
 import ButtonLink from '../../../../../../components/Button/ButtonLink/ButtonLink';

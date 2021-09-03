@@ -1,7 +1,7 @@
+import { useParams } from '@util/react-router/useParams';
 import { ButtonProps, message } from 'antd';
 import { H } from 'highlight.run';
 import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
 
 import { useAuthContext } from '../../../authentication/AuthContext';
 import ShareButton from '../../../components/Button/ShareButton/ShareButton';

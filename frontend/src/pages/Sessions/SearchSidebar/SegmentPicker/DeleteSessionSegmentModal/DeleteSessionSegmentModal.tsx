@@ -1,7 +1,8 @@
 import { namedOperations } from '@graph/operations';
+import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import React from 'react';
-import { useHistory, useParams } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 
 import Button from '../../../../../components/Button/Button/Button';
 import { CircularSpinner } from '../../../../../components/Loading/Loading';

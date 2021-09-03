@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams } from '@util/react-router/useParams';
 
 import { useGetBillingDetailsQuery } from '../../../graph/generated/hooks';
 import { isOrganizationWithinTrial } from '../../../util/billing/billing';

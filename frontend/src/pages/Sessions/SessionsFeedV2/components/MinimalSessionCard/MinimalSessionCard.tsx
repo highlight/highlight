@@ -1,6 +1,7 @@
+import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 import { Avatar } from '../../../../../components/Avatar/Avatar';
 import Tooltip from '../../../../../components/Tooltip/Tooltip';

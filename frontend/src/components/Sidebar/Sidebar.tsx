@@ -1,6 +1,7 @@
+import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames/bind';
 import React from 'react';
-import { Link, useLocation, useParams } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 import SvgAnnouncementIcon from '../../static/AnnouncementIcon';
 import SvgBriefcase2Icon from '../../static/Briefcase2Icon';

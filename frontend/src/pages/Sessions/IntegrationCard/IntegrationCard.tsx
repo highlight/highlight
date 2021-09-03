@@ -1,8 +1,8 @@
 import DemoWorkspaceButton from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { useParams } from '@util/react-router/useParams';
 import Lottie from 'lottie-react';
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useParams } from 'react-router-dom';
 
 import FullBleedCard from '../../../components/FullBleedCard/FullBleedCard';
 import WaitingAnimation from '../../../lottie/waiting.json';
