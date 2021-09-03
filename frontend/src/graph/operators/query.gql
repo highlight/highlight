@@ -142,6 +142,9 @@ query GetOnboardingSteps($organization_id: ID!, $admin_id: ID!) {
     organizationHasViewedASession(organization_id: $organization_id) {
         id
     }
+    admin {
+        slack_im_channel_id
+    }
 }
 
 mutation SendAdminInvite(

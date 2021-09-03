@@ -109,6 +109,14 @@ const OnboardingBubble = () => {
                 completed: !!data.adminHasCreatedComment || false,
                 tooltip: `You can create a comment on a session by clicking on the session player. You can also tag your team by @'ing them.`,
             });
+            STEPS.push({
+                displayName: 'Set up comment notifications',
+                action: () => {
+                    history.push(`/${organization_id}/sessions`);
+                },
+                completed: !!data.admin?.slack_im_channel_id || false,
+                tooltip: `You will get a slack DM anytime someone tags you in a Highlight comment!`,
+            });
             setSteps(STEPS);
             const stepsNotFinishedCount = STEPS.reduce((prev, curr) => {
                 if (!curr.completed) {
