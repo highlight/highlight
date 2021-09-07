@@ -7,7 +7,6 @@ import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames/bind';
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { CSSProperties } from 'react-router-dom/node_modules/@types/react';
 
 import SvgAnnouncementIcon from '../../static/AnnouncementIcon';
 import SvgBriefcase2Icon from '../../static/Briefcase2Icon';
@@ -107,23 +106,28 @@ export const Sidebar = () => {
                         </MiniSidebarItem>
                     )
                 )}
-                <div className={styles.settingsDivider} />
-                {END_NAVIGATION_ITEMS.map(
-                    ({ Icon, displayName, route, className }) => (
-                        <MiniSidebarItem
-                            route={route}
-                            text={displayName}
-                            key={route}
-                            isClickable={isClickable}
-                        >
-                            <Icon
-                                className={classNames(styles.icon, className)}
-                                height="32px"
-                                width="32px"
-                            />
-                        </MiniSidebarItem>
-                    )
+                {currentApplication?.id !== DEMO_WORKSPACE_APPLICATION_ID && (
+                    <div className={styles.settingsDivider} />
                 )}
+                {currentApplication?.id !== DEMO_WORKSPACE_APPLICATION_ID &&
+                    END_NAVIGATION_ITEMS.map(
+                        ({ Icon, displayName, route, className }) => (
+                            <MiniSidebarItem
+                                route={route}
+                                text={displayName}
+                                key={route}
+                            >
+                                <Icon
+                                    className={classNames(
+                                        styles.icon,
+                                        className
+                                    )}
+                                    height="32px"
+                                    width="32px"
+                                />
+                            </MiniSidebarItem>
+                        )
+                    )}
                 <div className={styles.changelogContainer}>
                     <Changelog />
                 </div>
@@ -135,8 +139,7 @@ export const Sidebar = () => {
 const MiniSidebarItem: React.FC<{
     route: string;
     text: string;
-    isClickable?: boolean;
-}> = ({ route, text, isClickable, children }) => {
+}> = ({ route, text, children }) => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const organizationIdRemapped =
         organization_id === DEMO_WORKSPACE_APPLICATION_ID
@@ -145,36 +148,26 @@ const MiniSidebarItem: React.FC<{
     const { pathname } = useLocation();
     const page = pathname.split('/')[2] ?? '';
 
-    let linkStyleOverride: CSSProperties | undefined;
-    let divStyleOverride: CSSProperties | undefined;
-    if (isClickable !== undefined && !isClickable) {
-        linkStyleOverride = { pointerEvents: 'none' };
-        divStyleOverride = { cursor: 'not-allowed' };
-    }
-
     return (
-        <div style={divStyleOverride}>
-            <Link
-                className={styles.miniRow}
-                style={linkStyleOverride}
-                to={`/${organizationIdRemapped}/${route}`}
+        <Link
+            className={styles.miniRow}
+            to={`/${organizationIdRemapped}/${route}`}
+        >
+            <Tooltip
+                title={text}
+                placement="right"
+                align={{ offset: [16, 0] }}
+                mouseEnterDelay={0}
             >
-                <Tooltip
-                    title={text}
-                    placement="right"
-                    align={{ offset: [16, 0] }}
-                    mouseEnterDelay={0}
+                <div
+                    className={classNames([
+                        styles.miniSidebarIconWrapper,
+                        page.includes(route) && styles.selected,
+                    ])}
                 >
-                    <div
-                        className={classNames([
-                            styles.miniSidebarIconWrapper,
-                            page.includes(route) && styles.selected,
-                        ])}
-                    >
-                        {children}
-                    </div>
-                </Tooltip>
-            </Link>
-        </div>
+                    {children}
+                </div>
+            </Tooltip>
+        </Link>
     );
 };
