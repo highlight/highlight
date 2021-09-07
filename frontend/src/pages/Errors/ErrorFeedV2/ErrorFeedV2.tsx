@@ -2,6 +2,7 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames/bind';
 import React, { RefObject, useEffect, useState } from 'react';
@@ -19,7 +20,6 @@ import {
 } from '../../../graph/generated/schemas';
 import { gqlSanitize } from '../../../util/gqlSanitize';
 import { formatNumberWithDelimiters } from '../../../util/numbers';
-import { parseErrorDescription } from '../../Error/components/ErrorDescription/utils/utils';
 import { useErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
 import styles from './ErrorFeedV2.module.scss';
 
@@ -87,7 +87,7 @@ export const ErrorFeedV2 = () => {
                         />
                     ) : (
                         <>
-                            {/* {!data.error_groups.length ? (
+                            {!data.error_groups.length ? (
                                 <SearchEmptyState item={'errors'} />
                             ) : (
                                 data.error_groups?.map(
@@ -105,7 +105,7 @@ export const ErrorFeedV2 = () => {
                                         marginBottom: 14,
                                     }}
                                 />
-                            )} */}
+                            )}
                         </>
                     )}
                 </div>
@@ -181,7 +181,7 @@ const ErrorCardV2 = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                                     'highlight-block'
                                 )}
                             >
-                                {parseErrorDescription(errorGroup?.event)}
+                                {/* {parseErrorDescription(errorGroup?.event)} */}
                             </div>
                         </div>
                         <div className={styles.errorTextSection}>
