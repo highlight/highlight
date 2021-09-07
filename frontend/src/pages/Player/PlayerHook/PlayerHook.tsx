@@ -195,7 +195,6 @@ export const usePlayer = (): ReplayerContextInterface => {
     useEffect(() => {
         if (eventsData?.events?.length ?? 0 > 1) {
             setSessionViewability(SessionViewability.VIEWABLE);
-            console.time('LoadingEvents');
             setState(ReplayerState.Loading);
             // Add an id field to each event so it can be referenced.
             const newEvents: HighlightEvent[] = toHighlightEvents(
@@ -285,7 +284,6 @@ export const usePlayer = (): ReplayerContextInterface => {
                             ? ReplayerState.LoadedWithDeepLink
                             : ReplayerState.LoadedAndUntouched
                     );
-                    console.timeEnd('LoadingEvents');
                     setPlayerTimestamp(
                         replayer.getMetaData().totalTime,
                         replayer.getMetaData().startTime,
