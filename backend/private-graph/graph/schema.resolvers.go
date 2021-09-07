@@ -105,14 +105,7 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 		ORDER BY s.updated_at DESC
 		LIMIT 20;
 	`, obj.ID).Scan(&metadataLogs)
-	var filtered []*modelInputs.ErrorMetadata
-	for _, metadataLog := range metadataLogs {
-		if metadataLog.Timestamp.IsZero() {
-			continue
-		}
-		filtered = append(filtered, metadataLog)
-	}
-	return filtered, nil
+	return metadataLogs, nil
 }
 
 func (r *errorGroupResolver) FieldGroup(ctx context.Context, obj *model.ErrorGroup) ([]*model.ErrorField, error) {
