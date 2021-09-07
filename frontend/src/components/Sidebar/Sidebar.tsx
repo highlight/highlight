@@ -81,7 +81,8 @@ const END_NAVIGATION_ITEMS: NavigationItem[] = [
 
 export const Sidebar = () => {
     const { currentApplication } = useApplicationContext();
-    const isClickable = currentApplication?.id !== '0';
+    const isClickable =
+        currentApplication?.id !== DEMO_WORKSPACE_APPLICATION_ID;
     return (
         <>
             <div
