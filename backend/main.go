@@ -3,13 +3,14 @@ package main
 import (
 	"flag"
 	"html/template"
+	"io"
 	"net/http"
 	"os"
 	"path"
 	"strings"
 
 	"github.com/go-chi/chi"
-	"github.com/gorilla/handlers"
+	"github.com/go-chi/chi/middleware"
 	dd "github.com/highlight-run/highlight/backend/datadog"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/util"
@@ -26,6 +27,7 @@ import (
 	public "github.com/highlight-run/highlight/backend/public-graph/graph"
 	publicgen "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	log "github.com/sirupsen/logrus"
+	brotli_enc "gopkg.in/kothar/brotli-go.v0/enc"
 
 	_ "gorm.io/gorm"
 )
@@ -140,7 +142,14 @@ func main() {
 	}
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.
-	r.Use(handlers.CompressHandler)
+	// r.Use(handlers.CompressHandler)
+	compressor := middleware.NewCompressor(5, "application/json")
+	compressor.SetEncoder("br", func(w io.Writer, level int) io.Writer {
+		params := brotli_enc.NewBrotliParams()
+		params.SetQuality(level)
+		return brotli_enc.NewBrotliWriter(params, w)
+	})
+	r.Use(compressor.Handler)
 	r.Use(cors.New(cors.Options{
 		AllowOriginRequestFunc: validateOrigin,
 		AllowCredentials:       true,
