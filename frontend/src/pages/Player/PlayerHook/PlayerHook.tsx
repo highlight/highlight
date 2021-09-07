@@ -1,4 +1,4 @@
-import { Replayer, ReplayerEvents } from '@highlight-run/rrweb';
+import { Replayer } from '@highlight-run/rrweb';
 import { customEvent } from '@highlight-run/rrweb/dist/types';
 import { useParams } from '@util/react-router/useParams';
 import { H } from 'highlight.run';
@@ -217,9 +217,6 @@ export const usePlayer = (): ReplayerContextInterface => {
                 triggerFocus: false,
                 mouseTail: showPlayerMouseTail,
             });
-            r.on(ReplayerEvents.Finish, () => {
-                setState(ReplayerState.SessionEnded);
-            });
             r.on('event-cast', (e: any) => {
                 const event = e as HighlightEvent;
                 if ((event as customEvent)?.data?.tag === 'Stop') {
@@ -338,6 +335,13 @@ export const usePlayer = (): ReplayerContextInterface => {
             const frameAction = () => {
                 if (replayer) {
                     setTime(replayer.getCurrentTime());
+
+                    if (
+                        replayer.getCurrentTime() >=
+                        replayer.getMetaData().totalTime
+                    ) {
+                        setState(ReplayerState.SessionEnded);
+                    }
                 }
                 setTimerId(requestAnimationFrame(frameAction));
             };
