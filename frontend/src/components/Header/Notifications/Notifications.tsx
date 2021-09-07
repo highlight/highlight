@@ -1,6 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext';
 import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
-import { useSlackBot } from '@components/Header/components/PersonalNotificationButton/utils/utils';
 import useLocalStorage from '@rehooks/local-storage';
 import { Menu } from 'antd';
 import classNames from 'classnames';
@@ -22,8 +21,6 @@ import NotificationItem from './NotificationItem/NotificationItem';
 import { processNotifications } from './utils/utils';
 
 const Notifications = () => {
-    const { slackUrl: slackBotUrl } = useSlackBot();
-
     const { organization_id } = useParams<{ organization_id: string }>();
     const [notifications, setNotifications] = useState<any[]>([]);
     const [showPopover, setShowPopover] = useState(false);
