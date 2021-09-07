@@ -353,7 +353,6 @@ export const usePlayer = (): ReplayerContextInterface => {
             setTimerId(null);
         }
     }, [state, timerId]);
-    //     // "Subscribes" the time with the Replayer when the Player is playing.
 
     useEffect(() => {
         setPlayerTimeToPersistance(time);
