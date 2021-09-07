@@ -90,17 +90,22 @@ func (r *errorGroupResolver) StackTrace(ctx context.Context, obj *model.ErrorGro
 }
 
 func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorMetadata, error) {
-	ret := []*modelInputs.ErrorMetadata{}
-	if err := json.Unmarshal([]byte(*obj.MetadataLog), &ret); err != nil {
-		return nil, e.Wrap(err, "error unmarshaling error metadata")
-	}
-	filtered := []*modelInputs.ErrorMetadata{}
-	for _, log := range ret {
-		if log.ErrorID != 0 && log.SessionID != 0 && !log.Timestamp.IsZero() {
-			filtered = append(filtered, log)
-		}
-	}
-	return filtered, nil
+	var metadataLogs []*modelInputs.ErrorMetadata
+	r.DB.Raw(`
+		SELECT s.id AS session_id, e.id AS error_id, e.timestamp, s.os_name AS os, s.browser_name AS browser, e.url AS visited_url
+		FROM sessions AS s
+		INNER JOIN (
+			SELECT DISTINCT ON (session_id) session_id, id, timestamp, url
+			FROM error_objects
+			WHERE error_group_id = ?
+			ORDER BY session_id DESC
+			LIMIT 20
+		) AS e
+		ON s.id = e.session_id
+		ORDER BY s.updated_at DESC
+		LIMIT 20;
+	`, obj.ID).Scan(&metadataLogs)
+	return metadataLogs, nil
 }
 
 func (r *errorGroupResolver) FieldGroup(ctx context.Context, obj *model.ErrorGroup) ([]*model.ErrorField, error) {

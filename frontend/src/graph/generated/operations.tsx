@@ -845,6 +845,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
     error_group?: Types.Maybe<
         { __typename?: 'ErrorGroup' } & Pick<
             Types.ErrorGroup,
+            | 'created_at'
             | 'id'
             | 'type'
             | 'organization_id'
@@ -907,6 +908,7 @@ export type GetErrorGroupsQuery = { __typename?: 'Query' } & {
                 error_groups: Array<
                     { __typename?: 'ErrorGroup' } & Pick<
                         Types.ErrorGroup,
+                        | 'created_at'
                         | 'id'
                         | 'type'
                         | 'event'

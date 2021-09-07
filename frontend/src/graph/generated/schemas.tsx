@@ -142,6 +142,7 @@ export type ErrorField = {
 
 export type ErrorGroup = {
     __typename?: 'ErrorGroup';
+    created_at: Scalars['Time'];
     id: Scalars['ID'];
     organization_id: Scalars['Int'];
     type: Scalars['String'];
