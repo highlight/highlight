@@ -18,6 +18,7 @@ import {
     ErrorState,
     Maybe,
 } from '../../../graph/generated/schemas';
+import { gqlSanitize } from '../../../util/gqlSanitize';
 import { formatNumberWithDelimiters } from '../../../util/numbers';
 import { parseErrorDescription } from '../../Error/components/ErrorDescription/utils/utils';
 import { useErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
@@ -42,7 +43,7 @@ export const ErrorFeedV2 = () => {
 
     useEffect(() => {
         if (errorData?.error_groups) {
-            setData(errorData.error_groups as ErrorResults);
+            setData(gqlSanitize(errorData.error_groups));
         }
     }, [errorData]);
 
