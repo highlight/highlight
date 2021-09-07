@@ -2,6 +2,7 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames/bind';
 import React from 'react';
@@ -78,6 +79,7 @@ const END_NAVIGATION_ITEMS: NavigationItem[] = [
 ];
 
 export const Sidebar = () => {
+    const { currentApplication } = useApplicationContext();
     return (
         <>
             <div
@@ -102,21 +104,28 @@ export const Sidebar = () => {
                         </MiniSidebarItem>
                     )
                 )}
-                <div className={styles.settingsDivider} />
-                {END_NAVIGATION_ITEMS.map(
-                    ({ Icon, displayName, route, className }) => (
-                        <MiniSidebarItem
-                            route={route}
-                            text={displayName}
-                            key={route}
-                        >
-                            <Icon
-                                className={classNames(styles.icon, className)}
-                                height="32px"
-                                width="32px"
-                            />
-                        </MiniSidebarItem>
-                    )
+                {currentApplication?.id !== DEMO_WORKSPACE_APPLICATION_ID && (
+                    <>
+                        <div className={styles.settingsDivider} />
+                        {END_NAVIGATION_ITEMS.map(
+                            ({ Icon, displayName, route, className }) => (
+                                <MiniSidebarItem
+                                    route={route}
+                                    text={displayName}
+                                    key={route}
+                                >
+                                    <Icon
+                                        className={classNames(
+                                            styles.icon,
+                                            className
+                                        )}
+                                        height="32px"
+                                        width="32px"
+                                    />
+                                </MiniSidebarItem>
+                            )
+                        )}
+                    </>
                 )}
                 <div className={styles.changelogContainer}>
                     <Changelog />
@@ -137,6 +146,7 @@ const MiniSidebarItem: React.FC<{
             : organization_id;
     const { pathname } = useLocation();
     const page = pathname.split('/')[2] ?? '';
+
     return (
         <Link
             className={styles.miniRow}
