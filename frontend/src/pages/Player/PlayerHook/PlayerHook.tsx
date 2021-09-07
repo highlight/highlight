@@ -381,7 +381,6 @@ export const usePlayer = (): ReplayerContextInterface => {
         resetPlayer,
         sessionResults.sessions,
         session_id,
-        showLeftPanel,
         state,
     ]);
 
