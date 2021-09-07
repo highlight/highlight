@@ -32,7 +32,6 @@ export const ErrorFeedV2 = () => {
     });
     const { searchParams } = useErrorSearchContext();
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { loading, fetchMore, data: errorData } = useGetErrorGroupsQuery({
         variables: {
             organization_id,
@@ -53,14 +52,14 @@ export const ErrorFeedV2 = () => {
         hasNextPage: data.error_groups.length < data.totalCount,
         scrollContainer: 'parent',
         onLoadMore: () => {
-            //     setCount((previousCount) => previousCount + 10);
-            //     fetchMore({
-            //         variables: {
-            //             params: searchParams,
-            //             count,
-            //             organization_id,
-            //         },
-            //     });
+            setCount((previousCount) => previousCount + 10);
+            fetchMore({
+                variables: {
+                    params: searchParams,
+                    count,
+                    organization_id,
+                },
+            });
         },
     });
 
