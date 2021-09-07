@@ -100,7 +100,11 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     const [
         getSessionPayloadQuery,
-        { loading: eventsLoading, data: eventsData },
+        {
+            loading: eventsLoading,
+            data: eventsData,
+            called: getSessionPayloadQueryCalled,
+        },
     ] = useGetSessionPayloadLazyQuery({
         variables: {
             session_id,
@@ -108,13 +112,18 @@ export const usePlayer = (): ReplayerContextInterface => {
         fetchPolicy: 'no-cache',
     });
 
-    const [getSessionQuery, { data: sessionData }] = useGetSessionLazyQuery({
+    const [
+        getSessionQuery,
+        { data: sessionData, called: getSessionQueryCalled },
+    ] = useGetSessionLazyQuery({
         variables: {
             id: session_id,
         },
         onCompleted: (data) => {
             if (data.session?.within_billing_quota) {
-                getSessionPayloadQuery();
+                if (!getSessionPayloadQueryCalled) {
+                    getSessionPayloadQuery();
+                }
                 setSessionViewability(SessionViewability.VIEWABLE);
                 H.track('Viewed session', { is_guest: !isLoggedIn });
             } else {
@@ -155,13 +164,22 @@ export const usePlayer = (): ReplayerContextInterface => {
         if (session_id) {
             setState(ReplayerState.Loading);
             setSession(undefined);
-            getSessionQuery();
+
+            if (!getSessionQueryCalled) {
+                getSessionQuery();
+            }
             getSessionCommentsQuery();
         } else {
             // This case happens when no session is active.
             resetPlayer(ReplayerState.Empty);
         }
-    }, [getSessionCommentsQuery, getSessionQuery, session_id, resetPlayer]);
+    }, [
+        getSessionCommentsQuery,
+        getSessionQuery,
+        session_id,
+        resetPlayer,
+        getSessionQueryCalled,
+    ]);
 
     useEffect(() => {
         setSession(sessionData?.session as Session | undefined);
