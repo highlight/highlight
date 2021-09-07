@@ -371,7 +371,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
             changeSession(organization_id, history, nextSessionInList);
 
-            resetPlayer(ReplayerState.Loading);
+            resetPlayer(ReplayerState.Empty);
         }
     }, [
         autoPlaySessions,
@@ -440,6 +440,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         setSessionResults,
         isPlayerReady:
             state !== ReplayerState.Loading &&
+            state !== ReplayerState.Empty &&
             scale !== 1 &&
             sessionViewability === SessionViewability.VIEWABLE,
         session,
