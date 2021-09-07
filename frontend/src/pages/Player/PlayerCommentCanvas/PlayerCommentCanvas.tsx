@@ -1,6 +1,6 @@
+import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import React, { useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
 
 import { useGetSessionCommentsQuery } from '../../../graph/generated/hooks';
 import CommentPinIcon from '../../../static/comment-pin.png';

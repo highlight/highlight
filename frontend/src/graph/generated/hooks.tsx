@@ -2649,6 +2649,7 @@ export const GetErrorGroupDocument = gql`
                 name
                 value
             }
+            error_frequency
         }
     }
 `;
@@ -2731,6 +2732,7 @@ export const GetErrorGroupsDocument = gql`
                     session_id
                     timestamp
                 }
+                error_frequency
             }
             totalCount
         }
@@ -4079,6 +4081,70 @@ export type GetDailyErrorsCountLazyQueryHookResult = ReturnType<
 export type GetDailyErrorsCountQueryResult = Apollo.QueryResult<
     Types.GetDailyErrorsCountQuery,
     Types.GetDailyErrorsCountQueryVariables
+>;
+export const GetDailyErrorFrequencyDocument = gql`
+    query GetDailyErrorFrequency(
+        $organization_id: ID!
+        $error_group_id: ID!
+        $date_offset: Int!
+    ) {
+        dailyErrorFrequency(
+            organization_id: $organization_id
+            error_group_id: $error_group_id
+            date_offset: $date_offset
+        )
+    }
+`;
+
+/**
+ * __useGetDailyErrorFrequencyQuery__
+ *
+ * To run a query within a React component, call `useGetDailyErrorFrequencyQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetDailyErrorFrequencyQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetDailyErrorFrequencyQuery({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *      error_group_id: // value for 'error_group_id'
+ *      date_offset: // value for 'date_offset'
+ *   },
+ * });
+ */
+export function useGetDailyErrorFrequencyQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetDailyErrorFrequencyQuery,
+        Types.GetDailyErrorFrequencyQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetDailyErrorFrequencyQuery,
+        Types.GetDailyErrorFrequencyQueryVariables
+    >(GetDailyErrorFrequencyDocument, baseOptions);
+}
+export function useGetDailyErrorFrequencyLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetDailyErrorFrequencyQuery,
+        Types.GetDailyErrorFrequencyQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetDailyErrorFrequencyQuery,
+        Types.GetDailyErrorFrequencyQueryVariables
+    >(GetDailyErrorFrequencyDocument, baseOptions);
+}
+export type GetDailyErrorFrequencyQueryHookResult = ReturnType<
+    typeof useGetDailyErrorFrequencyQuery
+>;
+export type GetDailyErrorFrequencyLazyQueryHookResult = ReturnType<
+    typeof useGetDailyErrorFrequencyLazyQuery
+>;
+export type GetDailyErrorFrequencyQueryResult = Apollo.QueryResult<
+    Types.GetDailyErrorFrequencyQuery,
+    Types.GetDailyErrorFrequencyQueryVariables
 >;
 export const GetErrorAlertDocument = gql`
     query GetErrorAlert($organization_id: ID!) {

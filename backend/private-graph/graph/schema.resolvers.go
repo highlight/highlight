@@ -148,6 +148,13 @@ func (r *errorGroupResolver) State(ctx context.Context, obj *model.ErrorGroup) (
 	}
 }
 
+func (r *errorGroupResolver) ErrorFrequency(ctx context.Context, obj *model.ErrorGroup) ([]*int64, error) {
+	if obj != nil {
+		return r.Query().DailyErrorFrequency(ctx, obj.OrganizationID, obj.ID, 5)
+	}
+	return nil, nil
+}
+
 func (r *errorObjectResolver) Event(ctx context.Context, obj *model.ErrorObject) ([]*string, error) {
 	return util.JsonStringToStringArray(obj.Event), nil
 }
@@ -739,7 +746,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 
 			err := r.SendEmailAlert(tos, authorName, viewLink, textForEmail, SendGridSessionCommentEmailTemplateID, sessionImage)
 			if err != nil {
-				log.Errorf(e.Wrap(err, "error notifying tagged admins in session comment").Error())
+				log.Error(e.Wrap(err, "error notifying tagged admins in session comment"))
 			}
 		}()
 
@@ -750,7 +757,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 
 			err := r.SendPersonalSlackAlert(&org, admin, adminIds, viewLink, sessionComment.Text, "session")
 			if err != nil {
-				log.Errorf(e.Wrap(err, "error notifying tagged admins in session comment").Error())
+				log.Error(e.Wrap(err, "error notifying tagged admins in session comment"))
 			}
 		}()
 	}
@@ -1514,6 +1521,31 @@ func (r *queryResolver) DailyErrorsCount(ctx context.Context, organizationID int
 	return dailyErrors, nil
 }
 
+func (r *queryResolver) DailyErrorFrequency(ctx context.Context, organizationID int, errorGroupID int, dateOffset int) ([]*int64, error) {
+	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin not found in org")
+	}
+
+	var dailyErrors []*int64
+
+	if err := r.DB.Raw(`
+		SELECT count(e.id)
+		FROM (
+			SELECT to_char(date_trunc('day', (current_date - offs)), 'YYYY-MM-DD') AS date
+			FROM generate_series(0, ?, 1) 
+			AS offs
+		) d LEFT OUTER JOIN
+		error_objects e
+		ON d.date = to_char(date_trunc('day', e.updated_at), 'YYYY-MM-DD')
+		AND e.error_group_id = ? AND e.organization_id = ?
+		GROUP BY d.date;
+	`, dateOffset, errorGroupID, organizationID).Scan(&dailyErrors).Error; err != nil {
+		return nil, e.Wrap(err, "error querying daily frequency")
+	}
+
+	return dailyErrors, nil
+}
+
 func (r *queryResolver) Referrers(ctx context.Context, organizationID int, lookBackPeriod int) ([]*modelInputs.ReferrerTablePayload, error) {
 	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
@@ -1952,12 +1984,18 @@ func (r *queryResolver) Organization(ctx context.Context, id int) (*model.Organi
 
 func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	uid := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
+	adminSpan := tracer.StartSpan("resolver.getAdmin", tracer.ResourceName("db.admin"),
+		tracer.Tag("admin_uid", uid))
 	admin := &model.Admin{UID: &uid}
-	res := r.DB.Where(&model.Admin{UID: &uid}).First(&admin)
-	if err := res.Error; err != nil {
+	if err := r.DB.Where(&model.Admin{UID: &uid}).First(&admin).Error; err != nil {
+		firebaseSpan := tracer.StartSpan("resolver.getAdmin", tracer.ResourceName("db.createAdminFromFirebase"),
+			tracer.Tag("admin_uid", uid))
 		firebaseUser, err := AuthClient.GetUser(context.Background(), uid)
 		if err != nil {
-			return nil, e.Wrap(err, "error retrieving user from firebase api")
+			spanError := e.Wrap(err, "error retrieving user from firebase api")
+			firebaseSpan.Finish(tracer.WithError(spanError))
+			adminSpan.Finish(tracer.WithError(spanError))
+			return nil, spanError
 		}
 		newAdmin := &model.Admin{
 			UID:      &uid,
@@ -1966,8 +2004,11 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 			PhotoURL: &firebaseUser.PhotoURL,
 		}
 		if err := r.DB.Create(newAdmin).Error; err != nil {
-			return nil, e.Wrap(err, "error creating new admin")
+			spanError := e.Wrap(err, "error creating new admin")
+			adminSpan.Finish(tracer.WithError(spanError))
+			return nil, spanError
 		}
+		firebaseSpan.Finish()
 		go func() {
 			if contact, err := apolloio.CreateContact(*newAdmin.Email); err != nil {
 				log.Errorf("error creating apollo contact: %v", err)
@@ -1981,19 +2022,29 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		admin = newAdmin
 	}
 	if admin.PhotoURL == nil || admin.Name == nil {
+		firebaseSpan := tracer.StartSpan("resolver.getAdmin", tracer.ResourceName("db.updateAdminFromFirebase"),
+			tracer.Tag("admin_uid", uid))
 		firebaseUser, err := AuthClient.GetUser(context.Background(), uid)
 		if err != nil {
-			return nil, e.Wrap(err, "error retrieving user from firebase api")
+			spanError := e.Wrap(err, "error retrieving user from firebase api")
+			adminSpan.Finish(tracer.WithError(spanError))
+			firebaseSpan.Finish(tracer.WithError(spanError))
+			return nil, spanError
 		}
 		if err := r.DB.Model(admin).Updates(&model.Admin{
 			PhotoURL: &firebaseUser.PhotoURL,
 			Name:     &firebaseUser.DisplayName,
 		}).Error; err != nil {
-			return nil, e.Wrap(err, "error updating org fields")
+			spanError := e.Wrap(err, "error updating org fields")
+			adminSpan.Finish(tracer.WithError(spanError))
+			firebaseSpan.Finish(tracer.WithError(spanError))
+			return nil, spanError
 		}
 		admin.PhotoURL = &firebaseUser.PhotoURL
 		admin.Name = &firebaseUser.DisplayName
+		firebaseSpan.Finish()
 	}
+	adminSpan.Finish()
 	return admin, nil
 }
 

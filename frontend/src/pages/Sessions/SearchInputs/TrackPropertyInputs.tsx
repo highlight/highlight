@@ -1,5 +1,5 @@
+import { useParams } from '@util/react-router/useParams';
 import React from 'react';
-import { useParams } from 'react-router-dom';
 import { OptionsType, OptionTypeBase } from 'react-select';
 import AsyncCreatableSelect from 'react-select/async-creatable';
 

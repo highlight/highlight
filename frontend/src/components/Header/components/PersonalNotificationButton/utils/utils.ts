@@ -1,8 +1,8 @@
 import { namedOperations } from '@graph/operations';
+import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import { useEffect, useState } from 'react';
 import { useHistory } from 'react-router';
-import { useParams } from 'react-router-dom';
 
 import { useOpenSlackConversationMutation } from '../../../../../graph/generated/hooks';
 import { GetBaseURL } from '../../../../../util/window';

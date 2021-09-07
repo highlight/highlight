@@ -128,6 +128,7 @@ type ErrorGroup {
     field_group: [ErrorField]
     state: ErrorState!
     environments: String
+    error_frequency: [Int64]!
 }
 
 type ErrorMetadata {
@@ -406,6 +407,11 @@ type Query {
         organization_id: ID!
         date_range: DateRangeInput!
     ): [DailyErrorCount]!
+    dailyErrorFrequency(
+        organization_id: ID!
+        error_group_id: ID!
+        date_offset: Int!
+    ): [Int64]!
     referrers(
         organization_id: ID!
         lookBackPeriod: Int!

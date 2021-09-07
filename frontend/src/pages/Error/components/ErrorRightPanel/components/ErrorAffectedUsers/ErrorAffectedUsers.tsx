@@ -1,6 +1,10 @@
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { useParams } from 'react-router-dom';
 
 import { Avatar } from '../../../../../../components/Avatar/Avatar';
 import ButtonLink from '../../../../../../components/Button/ButtonLink/ButtonLink';
@@ -18,6 +22,10 @@ interface Props {
 
 const ErrorAffectedUsers = ({ loading, errorGroup }: Props) => {
     const { organization_id } = useParams<{ organization_id: string }>();
+    const organizationIdRemapped =
+        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : organization_id;
     let numberOfAffectedSessions;
     let mostRecentAffectedSession;
 
@@ -80,7 +88,7 @@ const ErrorAffectedUsers = ({ loading, errorGroup }: Props) => {
                     <div className={styles.actionsContainer}>
                         <ButtonLink
                             trackingId="ErrorMostRecentSession"
-                            to={`/${organization_id}/sessions/${mostRecentAffectedSession?.session_id}`}
+                            to={`/${organizationIdRemapped}/sessions/${mostRecentAffectedSession?.session_id}`}
                             icon={
                                 <SvgPlaySolidIcon
                                     className={styles.playButton}

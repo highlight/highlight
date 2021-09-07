@@ -4,9 +4,9 @@ import useLocalStorage from '@rehooks/local-storage';
 import { message, Select as AntDesignSelect } from 'antd';
 import classNames from 'classnames';
 const { Option } = AntDesignSelect;
+import { useParams } from '@util/react-router/useParams';
 import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
 import TextTransition from 'react-text-transition';
 
 import Button from '../../../../components/Button/Button/Button';

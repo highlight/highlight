@@ -1,7 +1,7 @@
+import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
 import React, { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
 import { StringParam, useQueryParam } from 'use-query-params';
 
 import Select from '../../../components/Select/Select';
