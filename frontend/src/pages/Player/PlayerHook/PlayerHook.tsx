@@ -235,6 +235,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         } else if (!!eventsData) {
             setSessionViewability(SessionViewability.EMPTY_SESSION);
         }
+        // This hook shouldn't depend on `showPlayerMouseTail`. The player is updated through a setter. Making this hook depend on `showPlayerMouseTrail` will cause the player to be remounted when `showPlayerMouseTrail` changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [eventsData, setPlayerTimeToPersistance]);
 
