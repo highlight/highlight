@@ -107,27 +107,28 @@ export const Sidebar = () => {
                     )
                 )}
                 {currentApplication?.id !== DEMO_WORKSPACE_APPLICATION_ID && (
-                    <div className={styles.settingsDivider} />
+                    <>
+                        <div className={styles.settingsDivider} />
+                        {END_NAVIGATION_ITEMS.map(
+                            ({ Icon, displayName, route, className }) => (
+                                <MiniSidebarItem
+                                    route={route}
+                                    text={displayName}
+                                    key={route}
+                                >
+                                    <Icon
+                                        className={classNames(
+                                            styles.icon,
+                                            className
+                                        )}
+                                        height="32px"
+                                        width="32px"
+                                    />
+                                </MiniSidebarItem>
+                            )
+                        )}
+                    </>
                 )}
-                {currentApplication?.id !== DEMO_WORKSPACE_APPLICATION_ID &&
-                    END_NAVIGATION_ITEMS.map(
-                        ({ Icon, displayName, route, className }) => (
-                            <MiniSidebarItem
-                                route={route}
-                                text={displayName}
-                                key={route}
-                            >
-                                <Icon
-                                    className={classNames(
-                                        styles.icon,
-                                        className
-                                    )}
-                                    height="32px"
-                                    width="32px"
-                                />
-                            </MiniSidebarItem>
-                        )
-                    )}
                 <div className={styles.changelogContainer}>
                     <Changelog />
                 </div>
