@@ -1,12 +1,8 @@
 import '../../App.scss';
 
+import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import React from 'react';
-import {
-    BrowserRouter as Router,
-    Redirect,
-    Route,
-    Switch,
-} from 'react-router-dom';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 
 import { Landing } from '../../pages/Landing/Landing';
 import NewMemberPage from '../../pages/NewMember/NewMemberPage';
@@ -34,10 +30,12 @@ export const AppRouter = () => {
                     <Route path="/_internal">
                         <InternalRouter />
                     </Route>
-                    <Route path="/demo">
-                        <Redirect to={`/0`} />
-                    </Route>
                     <Route path="/:organization_id(\d+)">
+                        <OrgRouter />
+                    </Route>
+                    <Route
+                        path={`/:organization_id(${DEMO_WORKSPACE_PROXY_APPLICATION_ID})`}
+                    >
                         <OrgRouter />
                     </Route>
                     <Route path="/">

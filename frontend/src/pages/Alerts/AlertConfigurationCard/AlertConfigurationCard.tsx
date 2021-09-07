@@ -1,7 +1,8 @@
+import { DEMO_WORKSPACE_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { namedOperations } from '@graph/operations';
+import { useParams } from '@util/react-router/useParams';
 import { Divider, Form, message } from 'antd';
 import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
 import TextTransition from 'react-text-transition';
 
 import Button from '../../../components/Button/Button/Button';
@@ -382,7 +383,8 @@ export const AlertConfigurationCard = ({
                                         <div className={styles.addContainer}>
                                             Can't find the channel or person
                                             here?{' '}
-                                            {organization_id !== '0' && (
+                                            {organization_id !==
+                                                DEMO_WORKSPACE_APPLICATION_ID && (
                                                 <a href={slackUrl}>
                                                     Add a Slack Channel
                                                 </a>

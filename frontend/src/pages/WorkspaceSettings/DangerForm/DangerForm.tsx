@@ -1,9 +1,10 @@
 import { namedOperations } from '@graph/operations';
+import { useParams } from '@util/react-router/useParams';
 import { Skeleton } from 'antd';
 import classNames from 'classnames/bind';
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { Redirect, useParams } from 'react-router-dom';
+import { Redirect } from 'react-router-dom';
 
 import commonStyles from '../../../Common.module.scss';
 import Button from '../../../components/Button/Button/Button';

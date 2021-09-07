@@ -1,9 +1,14 @@
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 import classNames from 'classnames';
 import React, { useMemo, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { useHistory, useParams } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 
 import BarChartTable from '../../../../components/BarChartTable/BarChartTable';
 import { getPercentageDisplayValue } from '../../../../components/BarChartTable/utils/utils';
@@ -22,6 +27,11 @@ const ActiveUsersTable = () => {
     const { organization_id } = useParams<{
         organization_id: string;
     }>();
+    const organizationIdRemapped =
+        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : organization_id;
+
     const {
         setSearchParams,
         setSegmentName,
@@ -106,7 +116,7 @@ const ActiveUsersTable = () => {
                     message.success(
                         `Showing sessions for ${record.identifier}`
                     );
-                    history.push(`/${organization_id}/sessions`);
+                    history.push(`/${organizationIdRemapped}/sessions`);
                 }}
                 noDataMessage={
                     filteredTableData.length === 0 &&

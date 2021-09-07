@@ -1,6 +1,6 @@
 import useLocalStorage from '@rehooks/local-storage';
+import { useParams } from '@util/react-router/useParams';
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
 
 import { useAuthContext } from '../authentication/AuthContext';
 import { useIsIntegratedLazyQuery } from '../graph/generated/hooks';

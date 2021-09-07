@@ -179,3 +179,12 @@
     align-items: center;
     display: flex;
 }
+
+.demoLink {
+    color: var(--color-text-primary-inverted);
+    text-decoration: underline;
+}
+
+.demoLink:hover {
+    color: var(--color-gray-400) !important;
+}

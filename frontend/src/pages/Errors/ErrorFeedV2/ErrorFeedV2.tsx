@@ -1,8 +1,13 @@
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames/bind';
 import React, { RefObject, useEffect, useState } from 'react';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
 import Skeleton from 'react-loading-skeleton';
-import { Link, useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
 import Tooltip from '../../../components/Tooltip/Tooltip';
@@ -13,7 +18,6 @@ import {
     ErrorState,
     Maybe,
 } from '../../../graph/generated/schemas';
-import { frequencyTimeData } from '../../../util/errorCalculations';
 import { gqlSanitize } from '../../../util/gqlSanitize';
 import { formatNumberWithDelimiters } from '../../../util/numbers';
 import { parseErrorDescription } from '../../Error/components/ErrorDescription/utils/utils';
@@ -116,18 +120,23 @@ const ErrorCardV2 = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
         organization_id: string;
         error_id?: string;
     }>();
+    const organizationIdRemapped =
+        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : organization_id;
     // Represents the last six days i.e. [5 days ago, 4 days ago, 3 days ago, etc..]
     const [errorDates, setErrorDates] = useState<Array<number>>(
         Array(6).fill(0)
     );
 
     useEffect(() => {
-        setErrorDates(frequencyTimeData(errorGroup, 6));
-    }, [errorGroup]);
+        if (errorGroup?.error_frequency)
+            setErrorDates(errorGroup.error_frequency);
+    }, [setErrorDates, errorGroup]);
 
     return (
         <div className={styles.errorCardWrapper} key={errorGroup?.id}>
-            <Link to={`/${organization_id}/errors/${errorGroup?.id}`}>
+            <Link to={`/${organizationIdRemapped}/errors/${errorGroup?.id}`}>
                 <div
                     className={classNames(styles.errorCard, {
                         [styles.selected]: error_id === errorGroup?.id,
@@ -177,11 +186,11 @@ const ErrorCardV2 = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                             </div>
                         </div>
                         <div className={styles.errorTextSection}>
-                            {errorGroup?.metadata_log[0] ? (
+                            {errorGroup?.created_at ? (
                                 <>
                                     <div className={styles.bottomText}>
                                         {`Since ${new Date(
-                                            errorGroup.metadata_log[0].timestamp
+                                            errorGroup.created_at
                                         ).toLocaleString('en-us', {
                                             day: 'numeric',
                                             month: 'long',

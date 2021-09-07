@@ -10,11 +10,12 @@ import {
     PLAYBACK_MIN_SPEED,
     PLAYBACK_SPEED_INCREMENT,
 } from '@pages/Player/Toolbar/SpeedControl/SpeedControl';
+import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import { H } from 'highlight.run';
 import { useEffect, useRef, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { useHistory, useParams } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 
 import { ReplayerState, useReplayerContext } from '../ReplayerContext';
 

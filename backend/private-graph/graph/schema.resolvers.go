@@ -91,22 +91,21 @@ func (r *errorGroupResolver) StackTrace(ctx context.Context, obj *model.ErrorGro
 
 func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorMetadata, error) {
 	var metadataLogs []*modelInputs.ErrorMetadata
-	if err := r.DB.Model(&model.ErrorObject{}).Where(&model.ErrorObject{ErrorGroupID: obj.ID}).
-		Where("NOT id=0").
-		Where("NOT session_id=0").
-		Order("updated_at desc").
-		Limit(20).
-		Select("session_id, id AS error_id, timestamp, os, browser, url AS visited_url").Scan(&metadataLogs).Error; err != nil {
-		return nil, err
-	}
-	var filtered []*modelInputs.ErrorMetadata
-	for _, metadataLog := range metadataLogs {
-		if metadataLog.Timestamp.IsZero() {
-			continue
-		}
-		filtered = append(filtered, metadataLog)
-	}
-	return filtered, nil
+	r.DB.Raw(`
+		SELECT s.id AS session_id, e.id AS error_id, e.timestamp, s.os_name AS os, s.browser_name AS browser, e.url AS visited_url
+		FROM sessions AS s
+		INNER JOIN (
+			SELECT DISTINCT ON (session_id) session_id, id, timestamp, url
+			FROM error_objects
+			WHERE error_group_id = ?
+			ORDER BY session_id DESC
+			LIMIT 20
+		) AS e
+		ON s.id = e.session_id
+		ORDER BY s.updated_at DESC
+		LIMIT 20;
+	`, obj.ID).Scan(&metadataLogs)
+	return metadataLogs, nil
 }
 
 func (r *errorGroupResolver) FieldGroup(ctx context.Context, obj *model.ErrorGroup) ([]*model.ErrorField, error) {
@@ -140,6 +139,13 @@ func (r *errorGroupResolver) State(ctx context.Context, obj *model.ErrorGroup) (
 	default:
 		return modelInputs.ErrorStateOpen, e.New("invalid error group state")
 	}
+}
+
+func (r *errorGroupResolver) ErrorFrequency(ctx context.Context, obj *model.ErrorGroup) ([]*int64, error) {
+	if obj != nil {
+		return r.Query().DailyErrorFrequency(ctx, obj.OrganizationID, obj.ID, 5)
+	}
+	return nil, nil
 }
 
 func (r *errorObjectResolver) Event(ctx context.Context, obj *model.ErrorObject) ([]*string, error) {
@@ -733,7 +739,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 
 			err := r.SendEmailAlert(tos, authorName, viewLink, textForEmail, SendGridSessionCommentEmailTemplateID, sessionImage)
 			if err != nil {
-				log.Errorf(e.Wrap(err, "error notifying tagged admins in session comment").Error())
+				log.Error(e.Wrap(err, "error notifying tagged admins in session comment"))
 			}
 		}()
 
@@ -744,7 +750,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 
 			err := r.SendPersonalSlackAlert(&org, admin, adminIds, viewLink, sessionComment.Text, "session")
 			if err != nil {
-				log.Errorf(e.Wrap(err, "error notifying tagged admins in session comment").Error())
+				log.Error(e.Wrap(err, "error notifying tagged admins in session comment"))
 			}
 		}()
 	}
@@ -1157,56 +1163,23 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
-	errorFieldIds := []int{}
-	errorFieldQuery := r.DB.Model(&model.ErrorField{})
-
-	if params.Browser != nil {
-		errorFieldQuery = errorFieldQuery.Where("name = ? AND value = ?", "browser", params.Browser)
-	}
-
-	if params.Os != nil {
-		errorFieldQuery = errorFieldQuery.Where("name = ? AND value = ?", "os_name", params.Os)
-	}
-
-	if params.VisitedURL != nil {
-		errorFieldQuery = errorFieldQuery.Where("name = ? AND value = ?", "visited_url", params.VisitedURL)
-	}
-
-	fieldsSelectStatement := ", array_agg(t.error_field_id) fieldIds"
-	joinErrorGroupFieldsStatement := "INNER JOIN error_group_fields t ON e.id=t.error_group_id"
-
-	if params.Browser == nil && params.Os == nil && params.VisitedURL == nil {
-		fieldsSelectStatement = ""
-		joinErrorGroupFieldsStatement = ""
-	} else {
-		errorFieldQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.errorFieldIds"))
-		if err := errorFieldQuery.Pluck("id", &errorFieldIds).Error; err != nil {
-			return nil, e.Wrap(err, "error querying error fields")
-		}
-		errorFieldQuerySpan.Finish()
-
-	}
 
 	errorGroups := []model.ErrorGroup{}
-	selectPreamble := `SELECT id, organization_id, event, stack_trace, metadata_log, created_at, deleted_at, updated_at, state`
+	selectPreamble := `SELECT id, organization_id, event, COALESCE(mapped_stack_trace, stack_trace) as stack_trace, metadata_log, created_at, deleted_at, updated_at, state`
 	countPreamble := `SELECT COUNT(*)`
 
-	queryString := fmt.Sprintf(`FROM (SELECT id, organization_id, event, COALESCE(mapped_stack_trace, stack_trace) as stack_trace, metadata_log, created_at, deleted_at, updated_at, state %s
-	FROM error_groups e %s GROUP BY e.id) AS rows `, fieldsSelectStatement, joinErrorGroupFieldsStatement)
+	queryString := `FROM error_groups `
 
 	queryString += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
 	queryString += "AND (deleted_at IS NULL) "
 
-	if len(errorFieldIds) > 0 {
-		fieldIdConstructionSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-			tracer.ResourceName("fieldIdConstruction"), tracer.Tag("org_id", organizationID))
-		t := strings.Replace(fmt.Sprint(errorFieldIds), " ", ",", -1)
-		queryString += fmt.Sprintf("AND (fieldIds && ARRAY%s::integer[])", t)
-		fieldIdConstructionSpan.Finish()
-	}
-
 	if d := params.DateRange; d != nil {
-		queryString += fmt.Sprintf("AND (id IN (SELECT error_group_id FROM error_objects WHERE (organization_id=%d) AND (deleted_at IS NULL) AND (created_at > '%s') AND (created_at < '%s')))", organizationID, d.StartDate.Format("2006-01-02 15:04:05"), d.EndDate.Format("2006-01-02 15:04:05"))
+		queryString += andErrorGroupHasErrorObjectWhere(fmt.Sprintf(
+			"(organization_id=%d) AND (deleted_at IS NULL) AND (created_at > '%s') AND (created_at < '%s')",
+			organizationID,
+			d.StartDate.Format("2006-01-02 15:04:05"),
+			d.EndDate.Format("2006-01-02 15:04:05"),
+		))
 	}
 
 	if state := params.State; state != nil {
@@ -1217,10 +1190,27 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 		queryString += fmt.Sprintf("AND (event ILIKE '%s') ", "%"+*params.Event+"%")
 	}
 
+	sessionFilters := []string{}
+	if params.Browser != nil {
+		sessionFilters = append(sessionFilters, fmt.Sprintf("(sessions.browser_name = '%s')", *params.Browser))
+	}
+
+	if params.Os != nil {
+		sessionFilters = append(sessionFilters, fmt.Sprintf("(sessions.os_name = '%s')", *params.Os))
+	}
+
+	if params.VisitedURL != nil {
+		sessionFilters = append(sessionFilters, SessionHasFieldsWhere(fmt.Sprintf("name = '%s' AND value = '%s'", "visited-url", *params.VisitedURL)))
+	}
+
+	if len(sessionFilters) > 0 {
+		queryString += andErrorGroupHasSessionsWhere(strings.Join(sessionFilters, " AND "))
+	}
+
 	var g errgroup.Group
 	var queriedErrorGroupsCount int64
 
-	logTags := []string{fmt.Sprintf("org_id:%d", organizationID), fmt.Sprintf("filtered:%t", len(errorFieldIds) > 0)}
+	logTags := []string{fmt.Sprintf("org_id:%d", organizationID)}
 	g.Go(func() error {
 		errorGroupSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.errorGroups"), tracer.Tag("org_id", organizationID))
@@ -1524,6 +1514,31 @@ func (r *queryResolver) DailyErrorsCount(ctx context.Context, organizationID int
 	return dailyErrors, nil
 }
 
+func (r *queryResolver) DailyErrorFrequency(ctx context.Context, organizationID int, errorGroupID int, dateOffset int) ([]*int64, error) {
+	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin not found in org")
+	}
+
+	var dailyErrors []*int64
+
+	if err := r.DB.Raw(`
+		SELECT count(e.id)
+		FROM (
+			SELECT to_char(date_trunc('day', (current_date - offs)), 'YYYY-MM-DD') AS date
+			FROM generate_series(0, ?, 1) 
+			AS offs
+		) d LEFT OUTER JOIN
+		error_objects e
+		ON d.date = to_char(date_trunc('day', e.updated_at), 'YYYY-MM-DD')
+		AND e.error_group_id = ? AND e.organization_id = ?
+		GROUP BY d.date;
+	`, dateOffset, errorGroupID, organizationID).Scan(&dailyErrors).Error; err != nil {
+		return nil, e.Wrap(err, "error querying daily frequency")
+	}
+
+	return dailyErrors, nil
+}
+
 func (r *queryResolver) Referrers(ctx context.Context, organizationID int, lookBackPeriod int) ([]*modelInputs.ReferrerTablePayload, error) {
 	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
@@ -1576,7 +1591,8 @@ func (r *queryResolver) AverageSessionLength(ctx context.Context, organizationID
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 	var length float64
-	if err := r.DB.Raw(fmt.Sprintf("SELECT avg(active_length) FROM sessions WHERE organization_id=%d AND processed=true AND active_length IS NOT NULL AND created_at >= NOW() - INTERVAL '%d DAY';", organizationID, lookBackPeriod)).Scan(&length).Error; err != nil {
+	query := fmt.Sprintf("SELECT avg(active_length) FROM sessions WHERE organization_id=%d AND processed=true AND active_length IS NOT NULL AND created_at >= NOW() - INTERVAL '%d DAY';", organizationID, lookBackPeriod)
+	if err := r.DB.Raw(query).Scan(&length).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving average length for sessions")
 	}
 
@@ -1961,12 +1977,18 @@ func (r *queryResolver) Organization(ctx context.Context, id int) (*model.Organi
 
 func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	uid := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
+	adminSpan := tracer.StartSpan("resolver.getAdmin", tracer.ResourceName("db.admin"),
+		tracer.Tag("admin_uid", uid))
 	admin := &model.Admin{UID: &uid}
-	res := r.DB.Where(&model.Admin{UID: &uid}).First(&admin)
-	if err := res.Error; err != nil {
+	if err := r.DB.Where(&model.Admin{UID: &uid}).First(&admin).Error; err != nil {
+		firebaseSpan := tracer.StartSpan("resolver.getAdmin", tracer.ResourceName("db.createAdminFromFirebase"),
+			tracer.Tag("admin_uid", uid))
 		firebaseUser, err := AuthClient.GetUser(context.Background(), uid)
 		if err != nil {
-			return nil, e.Wrap(err, "error retrieving user from firebase api")
+			spanError := e.Wrap(err, "error retrieving user from firebase api")
+			firebaseSpan.Finish(tracer.WithError(spanError))
+			adminSpan.Finish(tracer.WithError(spanError))
+			return nil, spanError
 		}
 		newAdmin := &model.Admin{
 			UID:      &uid,
@@ -1975,8 +1997,11 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 			PhotoURL: &firebaseUser.PhotoURL,
 		}
 		if err := r.DB.Create(newAdmin).Error; err != nil {
-			return nil, e.Wrap(err, "error creating new admin")
+			spanError := e.Wrap(err, "error creating new admin")
+			adminSpan.Finish(tracer.WithError(spanError))
+			return nil, spanError
 		}
+		firebaseSpan.Finish()
 		go func() {
 			if contact, err := apolloio.CreateContact(*newAdmin.Email); err != nil {
 				log.Errorf("error creating apollo contact: %v", err)
@@ -1990,19 +2015,29 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		admin = newAdmin
 	}
 	if admin.PhotoURL == nil || admin.Name == nil {
+		firebaseSpan := tracer.StartSpan("resolver.getAdmin", tracer.ResourceName("db.updateAdminFromFirebase"),
+			tracer.Tag("admin_uid", uid))
 		firebaseUser, err := AuthClient.GetUser(context.Background(), uid)
 		if err != nil {
-			return nil, e.Wrap(err, "error retrieving user from firebase api")
+			spanError := e.Wrap(err, "error retrieving user from firebase api")
+			adminSpan.Finish(tracer.WithError(spanError))
+			firebaseSpan.Finish(tracer.WithError(spanError))
+			return nil, spanError
 		}
 		if err := r.DB.Model(admin).Updates(&model.Admin{
 			PhotoURL: &firebaseUser.PhotoURL,
 			Name:     &firebaseUser.DisplayName,
 		}).Error; err != nil {
-			return nil, e.Wrap(err, "error updating org fields")
+			spanError := e.Wrap(err, "error updating org fields")
+			adminSpan.Finish(tracer.WithError(spanError))
+			firebaseSpan.Finish(tracer.WithError(spanError))
+			return nil, spanError
 		}
 		admin.PhotoURL = &firebaseUser.PhotoURL
 		admin.Name = &firebaseUser.DisplayName
+		firebaseSpan.Finish()
 	}
+	adminSpan.Finish()
 	return admin, nil
 }
 

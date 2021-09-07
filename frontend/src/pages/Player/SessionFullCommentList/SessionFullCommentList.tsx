@@ -1,5 +1,5 @@
+import { useParams } from '@util/react-router/useParams';
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
 
 import { SessionCommentCard } from '../../../components/Comment/SessionComment/SessionComment';
 import FullCommentList from '../../../components/FullCommentList/FullCommentList';

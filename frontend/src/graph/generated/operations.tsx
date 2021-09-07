@@ -845,12 +845,14 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
     error_group?: Types.Maybe<
         { __typename?: 'ErrorGroup' } & Pick<
             Types.ErrorGroup,
+            | 'created_at'
             | 'id'
             | 'type'
             | 'organization_id'
             | 'event'
             | 'state'
             | 'mapped_stack_trace'
+            | 'error_frequency'
         > & {
                 stack_trace: Array<
                     Types.Maybe<
@@ -906,7 +908,13 @@ export type GetErrorGroupsQuery = { __typename?: 'Query' } & {
                 error_groups: Array<
                     { __typename?: 'ErrorGroup' } & Pick<
                         Types.ErrorGroup,
-                        'id' | 'type' | 'event' | 'state' | 'environments'
+                        | 'created_at'
+                        | 'id'
+                        | 'type'
+                        | 'event'
+                        | 'state'
+                        | 'environments'
+                        | 'error_frequency'
                     > & {
                             stack_trace: Array<
                                 Types.Maybe<
@@ -1373,6 +1381,17 @@ export type GetDailyErrorsCountQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetDailyErrorFrequencyQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    error_group_id: Types.Scalars['ID'];
+    date_offset: Types.Scalars['Int'];
+}>;
+
+export type GetDailyErrorFrequencyQuery = { __typename?: 'Query' } & Pick<
+    Types.Query,
+    'dailyErrorFrequency'
+>;
+
 export type GetErrorAlertQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
 }>;
@@ -1631,6 +1650,7 @@ export const namedOperations = {
         GetTopUsers: 'GetTopUsers' as const,
         GetDailySessionsCount: 'GetDailySessionsCount' as const,
         GetDailyErrorsCount: 'GetDailyErrorsCount' as const,
+        GetDailyErrorFrequency: 'GetDailyErrorFrequency' as const,
         GetErrorAlert: 'GetErrorAlert' as const,
         GetNewUserAlert: 'GetNewUserAlert' as const,
         GetTrackPropertiesAlert: 'GetTrackPropertiesAlert' as const,

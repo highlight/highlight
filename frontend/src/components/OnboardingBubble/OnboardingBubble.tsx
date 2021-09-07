@@ -1,11 +1,11 @@
 import useLocalStorage from '@rehooks/local-storage';
+import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React, { useEffect, useState } from 'react';
 import Confetti from 'react-confetti';
 import { useHistory } from 'react-router';
-import { useParams } from 'react-router-dom';
 import useSessionStorage from 'react-use/lib/useSessionStorage';
 
 import {

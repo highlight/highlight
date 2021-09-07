@@ -1,9 +1,9 @@
 import { namedOperations } from '@graph/operations';
+import { useParams } from '@util/react-router/useParams';
 import { Form, message } from 'antd';
 import { H } from 'highlight.run';
 import React, { useMemo, useState } from 'react';
 import { OnChangeHandlerFunc } from 'react-mentions';
-import { useParams } from 'react-router-dom';
 
 import { useAuthContext } from '../../../../authentication/AuthContext';
 import Button from '../../../../components/Button/Button/Button';
