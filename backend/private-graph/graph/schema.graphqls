@@ -117,6 +117,7 @@ type ErrorField {
 }
 
 type ErrorGroup {
+    created_at: Time!
     id: ID!
     organization_id: Int!
     type: String!

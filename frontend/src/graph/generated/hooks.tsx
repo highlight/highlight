@@ -2623,6 +2623,7 @@ export type GetBillingDetailsQueryResult = Apollo.QueryResult<
 export const GetErrorGroupDocument = gql`
     query GetErrorGroup($id: ID!) {
         error_group(id: $id) {
+            created_at
             id
             type
             organization_id
@@ -2712,6 +2713,7 @@ export const GetErrorGroupsDocument = gql`
             params: $params
         ) {
             error_groups {
+                created_at
                 id
                 type
                 event

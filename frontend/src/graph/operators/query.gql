@@ -264,6 +264,7 @@ query GetBillingDetails($organization_id: ID!) {
 
 query GetErrorGroup($id: ID!) {
     error_group(id: $id) {
+        created_at
         id
         type
         organization_id
@@ -303,6 +304,7 @@ query GetErrorGroups(
         params: $params
     ) {
         error_groups {
+            created_at
             id
             type
             event

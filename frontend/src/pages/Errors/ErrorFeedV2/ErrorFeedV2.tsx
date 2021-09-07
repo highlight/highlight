@@ -181,7 +181,7 @@ const ErrorCardV2 = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                                 <>
                                     <div className={styles.bottomText}>
                                         {`Since ${new Date(
-                                            errorGroup.metadata_log[0].timestamp
+                                            errorGroup.created_at
                                         ).toLocaleString('en-us', {
                                             day: 'numeric',
                                             month: 'long',
