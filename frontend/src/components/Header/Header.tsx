@@ -73,7 +73,7 @@ export const Header = () => {
 };
 
 const getBanner = (organization_id: string) => {
-    if (process.env.REACT_APP_ENV === 'true') {
+    if (process.env.REACT_APP_ONPREM === 'true') {
         return <OnPremiseBanner />;
     } else if (organization_id === DEMO_WORKSPACE_APPLICATION_ID) {
         return <DemoWorkspaceBanner />;
