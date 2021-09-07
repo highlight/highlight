@@ -1,7 +1,7 @@
 import useLocalStorage from '@rehooks/local-storage';
 import { GlobalContextProvider } from '@routers/OrgRouter/context/GlobalContext';
+import { useParams } from '@util/react-router/useParams';
 import React, { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
 import { useToggle } from 'react-use';
 
 import { useAuthContext } from '../../authentication/AuthContext';

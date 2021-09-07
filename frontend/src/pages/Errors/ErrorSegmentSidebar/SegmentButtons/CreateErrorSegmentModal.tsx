@@ -1,8 +1,9 @@
 import { namedOperations } from '@graph/operations';
+import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { useHistory, useParams } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 
 import commonStyles from '../../../../Common.module.scss';
 import Button from '../../../../components/Button/Button/Button';

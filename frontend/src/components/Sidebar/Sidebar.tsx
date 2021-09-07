@@ -1,7 +1,12 @@
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
+import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames/bind';
 import React from 'react';
-import { Link, useLocation, useParams } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { CSSProperties } from 'react-router-dom/node_modules/@types/react';
 
 import SvgAnnouncementIcon from '../../static/AnnouncementIcon';
@@ -132,6 +137,10 @@ const MiniSidebarItem: React.FC<{
     isClickable?: boolean;
 }> = ({ route, text, isClickable, children }) => {
     const { organization_id } = useParams<{ organization_id: string }>();
+    const organizationIdRemapped =
+        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : organization_id;
     const { pathname } = useLocation();
     const page = pathname.split('/')[2] ?? '';
 
@@ -146,8 +155,8 @@ const MiniSidebarItem: React.FC<{
         <div style={divStyleOverride}>
             <Link
                 className={styles.miniRow}
-                to={`/${organization_id}/${route}`}
                 style={linkStyleOverride}
+                to={`/${organizationIdRemapped}/${route}`}
             >
                 <Tooltip
                     title={text}

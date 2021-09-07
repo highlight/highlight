@@ -1,6 +1,6 @@
+import { useParams } from '@util/react-router/useParams';
 import _ from 'lodash';
 import React, { useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
 import { components } from 'react-select';
 import AsyncSelect from 'react-select/async';
 

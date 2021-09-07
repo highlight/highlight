@@ -2,7 +2,6 @@ package worker
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"math/rand"
 	"os"
@@ -43,7 +42,6 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
 	}
-	fmt.Printf("starting push for: %v \n", s.ID)
 	sessionPayloadSize, err := w.S3Client.PushFileToS3(ctx, s.ID, s.OrganizationID, eventsFile, storage.S3SessionsPayloadBucketName, storage.SessionContents)
 	// If this is unsucessful, return early (we treat this session as if it is stored in psql).
 	if err != nil {
@@ -63,15 +61,12 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	var totalPayloadSize int64
 	if sessionPayloadSize != nil {
 		totalPayloadSize += *sessionPayloadSize
-		hlog.Histogram("worker.processSession.sessionPayloadSize", float64(*sessionPayloadSize), []string{fmt.Sprintf("session_id:%d", s.ID), fmt.Sprintf("org_id:%d", s.OrganizationID)}, 1) //nolint
 	}
 	if resourcePayloadSize != nil {
 		totalPayloadSize += *resourcePayloadSize
-		hlog.Histogram("worker.processSession.resourcePayloadSize", float64(*resourcePayloadSize), []string{fmt.Sprintf("session_id:%d", s.ID), fmt.Sprintf("org_id:%d", s.OrganizationID)}, 1) //nolint
 	}
 	if messagePayloadSize != nil {
 		totalPayloadSize += *messagePayloadSize
-		hlog.Histogram("worker.processSession.messagePayloadSize", float64(*messagePayloadSize), []string{fmt.Sprintf("session_id:%d", s.ID), fmt.Sprintf("org_id:%d", s.OrganizationID)}, 1) //nolint
 	}
 
 	// Mark this session as stored in S3.
@@ -83,8 +78,6 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 		return errors.Wrap(err, "error updating session to storage enabled")
 	}
 
-	hlog.Histogram("worker.pushToObjectStorageAndWipe.payloadSize", float64(totalPayloadSize), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
-
 	// Delete all the events_objects in the DB.
 	if err := w.Resolver.DB.Unscoped().Where(&model.EventsObject{SessionID: s.ID}).Delete(&model.EventsObject{}).Error; err != nil {
 		return errors.Wrapf(err, "error deleting all event records")
@@ -95,12 +88,10 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	if err := w.Resolver.DB.Unscoped().Where(&model.MessagesObject{SessionID: s.ID}).Delete(&model.MessagesObject{}).Error; err != nil {
 		return errors.Wrap(err, "error deleting all messages")
 	}
-	log.WithFields(log.Fields{"session_id": s.ID, "org_id": s.OrganizationID}).Infof("parsed session")
 	return nil
 }
 
 func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session, eventsFile *os.File, resourcesFile *os.File, messagesFile *os.File) (*payload.PayloadManager, error) {
-	var totalPayloadSize int64 = 0
 	manager := payload.NewPayloadManager(eventsFile, resourcesFile, messagesFile)
 
 	// Fetch/write events.
@@ -168,22 +159,19 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session, event
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting event file info")
 	}
-	totalPayloadSize += eventInfo.Size()
+	hlog.Histogram("worker.processSession.eventPayloadSize", float64(eventInfo.Size()), nil, 1) //nolint
 
 	resourceInfo, err := resourcesFile.Stat()
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting resource file info")
 	}
-	totalPayloadSize += resourceInfo.Size()
+	hlog.Histogram("worker.processSession.resourcePayloadSize", float64(resourceInfo.Size()), nil, 1) //nolint
 
 	messagesInfo, err := messagesFile.Stat()
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting message file info")
 	}
-	totalPayloadSize += messagesInfo.Size()
-
-	hlog.Histogram("worker.processSession.scannedSessionPayload", float64(totalPayloadSize), nil, 1) //nolint
-	log.Infof("payload size for session '%v' is '%v'\n", s.ID, totalPayloadSize)
+	hlog.Histogram("worker.processSession.messagePayloadSize", float64(messagesInfo.Size()), nil, 1) //nolint
 
 	return manager, nil
 }
@@ -247,7 +235,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	// need to reset file pointer to beginning of file for reading
 	for _, file := range []*os.File{eventsFile, resourcesFile, messagesFile} {
-		log.WithFields(log.Fields{"session_id": s.ID, "org_id": s.OrganizationID}).Infof("resetting file pointer (%s)", file.Name())
 		_, err = file.Seek(0, io.SeekStart)
 		if err != nil {
 			log.WithField("file_name", file.Name()).Errorf("error seeking to beginning of file: %v", err)
@@ -279,7 +266,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			activeDuration += tempDuration
 		}
 	}
-	// hlog.Histogram("worker.processSession.payloadStringSize", float64(payloadStringBytes), nil, 1) //nolint
 
 	// Calculate total session length and write the length to the session.
 	sessionTotalLength := CalculateSessionLength(firstEventTimestamp, lastEventTimestamp)
@@ -538,19 +524,16 @@ func (w *Worker) Start() {
 		}
 
 		// process 4 sessions at a time. this number was chosen arbitrarily.
-		wp := workerpool.New(4)
+		wp := workerpool.New(40)
 		for _, session := range sessions {
 			session := session
 			wp.Submit(func() {
 				span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"), tracer.Tag("session_id", strconv.Itoa(session.ID)))
-				log.WithField("session_id", session.ID).Info("beginning to process session")
 				if err := w.processSession(ctx, session); err != nil {
 					log.WithField("session_id", session.ID).Error(e.Wrap(err, "error processing main session"))
-					tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID))
-					span.Finish()
+					span.Finish(tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID)))
 					return
 				}
-				log.WithField("session_id", session.ID).Info("successfully processed session")
 				span.Finish()
 			})
 		}

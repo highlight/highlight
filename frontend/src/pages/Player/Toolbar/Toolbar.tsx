@@ -9,12 +9,13 @@ import {
 import useToolbarItems from '@pages/Player/Toolbar/ToolbarItems/useToolbarItems';
 import { ToolbarItemsContextProvider } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext';
 import ToolbarMenu from '@pages/Player/Toolbar/ToolbarMenu/ToolbarMenu';
+import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React, { useEffect, useRef, useState } from 'react';
 import Draggable from 'react-draggable';
 import Skeleton from 'react-loading-skeleton';
-import { useHistory, useParams } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 
 import { useAuthContext } from '../../../authentication/AuthContext';
 import Button from '../../../components/Button/Button/Button';
