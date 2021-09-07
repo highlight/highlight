@@ -18,7 +18,6 @@ import {
     ErrorState,
     Maybe,
 } from '../../../graph/generated/schemas';
-import { frequencyTimeData } from '../../../util/errorCalculations';
 import { gqlSanitize } from '../../../util/gqlSanitize';
 import { formatNumberWithDelimiters } from '../../../util/numbers';
 import { parseErrorDescription } from '../../Error/components/ErrorDescription/utils/utils';
@@ -131,8 +130,9 @@ const ErrorCardV2 = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
     );
 
     useEffect(() => {
-        setErrorDates(frequencyTimeData(errorGroup, 6));
-    }, [errorGroup]);
+        if (errorGroup?.error_frequency)
+            setErrorDates(errorGroup.error_frequency);
+    }, [setErrorDates, errorGroup]);
 
     return (
         <div className={styles.errorCardWrapper} key={errorGroup?.id}>

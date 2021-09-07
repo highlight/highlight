@@ -289,6 +289,7 @@ query GetErrorGroup($id: ID!) {
             name
             value
         }
+        error_frequency
     }
 }
 
@@ -320,6 +321,7 @@ query GetErrorGroups(
                 session_id
                 timestamp
             }
+            error_frequency
         }
         totalCount
     }
@@ -613,6 +615,18 @@ query GetDailyErrorsCount($organization_id: ID!, $date_range: DateRangeInput!) {
         date
         count
     }
+}
+
+query GetDailyErrorFrequency(
+    $organization_id: ID!
+    $error_group_id: ID!
+    $date_offset: Int!
+) {
+    dailyErrorFrequency(
+        organization_id: $organization_id
+        error_group_id: $error_group_id
+        date_offset: $date_offset
+    )
 }
 
 query GetErrorAlert($organization_id: ID!) {
