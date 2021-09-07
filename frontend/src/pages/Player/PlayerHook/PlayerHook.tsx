@@ -87,7 +87,6 @@ export const usePlayer = (): ReplayerContextInterface => {
     const {
         setPlayerTime: setPlayerTimeToPersistance,
         autoPlaySessions,
-        showLeftPanel,
         showPlayerMouseTail,
     } = usePlayerConfiguration();
     const [sessionEndTime, setSessionEndTime] = useState<number>(0);
