@@ -151,6 +151,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         [setPlayerTimeToPersistance]
     );
 
+    // Initializes the session state and fetches the session data
     useEffect(() => {
         if (session_id) {
             setState(ReplayerState.Loading);
@@ -158,6 +159,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             getSessionQuery();
             getSessionCommentsQuery();
         } else {
+            // This case happens when no session is active.
             resetPlayer(ReplayerState.Empty);
         }
     }, [getSessionCommentsQuery, getSessionQuery, session_id, resetPlayer]);
