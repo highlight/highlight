@@ -9,7 +9,6 @@ import useInfiniteScroll from 'react-infinite-scroll-hook';
 import Skeleton from 'react-loading-skeleton';
 import { Link } from 'react-router-dom';
 
-import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
 import Tooltip from '../../../components/Tooltip/Tooltip';
 import { useGetErrorGroupsQuery } from '../../../graph/generated/hooks';
 import {
@@ -18,6 +17,7 @@ import {
     ErrorState,
     Maybe,
 } from '../../../graph/generated/schemas';
+import { gqlSanitize } from '../../../util/gqlSanitize';
 import { formatNumberWithDelimiters } from '../../../util/numbers';
 import { parseErrorDescription } from '../../Error/components/ErrorDescription/utils/utils';
 import { useErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
@@ -41,11 +41,11 @@ export const ErrorFeedV2 = () => {
         },
     });
 
-    //     useEffect(() => {
-    //         if (errorData?.error_groups) {
-    //             setData(gqlSanitize(errorData.error_groups));
-    //         }
-    //     }, [errorData]);
+    useEffect(() => {
+        if (errorData?.error_groups) {
+            setData(gqlSanitize(errorData.error_groups));
+        }
+    }, [errorData]);
 
     const infiniteRef = useInfiniteScroll({
         checkInterval: 1200, // frequency to check (1.2s)
@@ -88,7 +88,7 @@ export const ErrorFeedV2 = () => {
                         />
                     ) : (
                         <>
-                            {!data.error_groups.length ? (
+                            {/* {!data.error_groups.length ? (
                                 <SearchEmptyState item={'errors'} />
                             ) : (
                                 data.error_groups?.map(
@@ -106,7 +106,7 @@ export const ErrorFeedV2 = () => {
                                         marginBottom: 14,
                                     }}
                                 />
-                            )}
+                            )} */}
                         </>
                     )}
                 </div>
