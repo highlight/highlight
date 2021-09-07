@@ -3,6 +3,7 @@ import {
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState';
+import { parseErrorDescription } from '@pages/Error/components/ErrorDescription/utils/utils';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames/bind';
 import React, { RefObject, useEffect, useState } from 'react';
@@ -181,7 +182,7 @@ const ErrorCardV2 = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                                     'highlight-block'
                                 )}
                             >
-                                {/* {parseErrorDescription(errorGroup?.event)} */}
+                                {parseErrorDescription(errorGroup?.event)}
                             </div>
                         </div>
                         <div className={styles.errorTextSection}>

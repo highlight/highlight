@@ -24,6 +24,9 @@ export const parseErrorDescriptionList = (
 
     while (index < text.length) {
         let currentLine = text[index] as string;
+        if (!currentLine) {
+            break;
+        }
         /**
          * The specifier %s used to interpolate values in a console.(log|info|etc.) call.
          * https://developer.mozilla.org/en-US/docs/Web/API/Console#Using_string_substitutions
