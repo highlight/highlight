@@ -27,7 +27,6 @@ import {
     ReplayerState,
 } from '../ReplayerContext';
 import {
-    changeSession,
     findNextSessionInList,
     getCommentsInSessionIntervals,
     getEventsForTimelineIndicator,
@@ -391,9 +390,15 @@ export const usePlayer = (): ReplayerContextInterface => {
                 session_id
             );
 
-            changeSession(organization_id, history, nextSessionInList);
-
-            resetPlayer(ReplayerState.Empty);
+            if (nextSessionInList) {
+                setState(ReplayerState.Paused);
+                setTimeout(() => {
+                    history.push(
+                        `/${organization_id}/sessions/${nextSessionInList.id}`
+                    );
+                    resetPlayer(ReplayerState.Empty);
+                }, 250);
+            }
         }
     }, [
         autoPlaySessions,

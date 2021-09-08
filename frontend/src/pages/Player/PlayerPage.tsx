@@ -270,8 +270,7 @@ const Player = ({ integrated }: Props) => {
                                 .
                             </p>
                         </ElevatedCard>
-                    ) : (sessionViewability === SessionViewability.VIEWABLE &&
-                          !!session) ||
+                    ) : sessionViewability === SessionViewability.VIEWABLE ||
                       replayerState !== ReplayerState.Empty ? (
                         <div
                             id="playerCenterPanel"
