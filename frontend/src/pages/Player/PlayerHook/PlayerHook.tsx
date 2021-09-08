@@ -1,4 +1,4 @@
-import { Replayer, ReplayerEvents } from '@highlight-run/rrweb';
+import { Replayer } from '@highlight-run/rrweb';
 import { customEvent } from '@highlight-run/rrweb/dist/types';
 import { useParams } from '@util/react-router/useParams';
 import { H } from 'highlight.run';
@@ -87,7 +87,6 @@ export const usePlayer = (): ReplayerContextInterface => {
     const {
         setPlayerTime: setPlayerTimeToPersistance,
         autoPlaySessions,
-        showLeftPanel,
         showPlayerMouseTail,
     } = usePlayerConfiguration();
     const [sessionEndTime, setSessionEndTime] = useState<number>(0);
@@ -101,7 +100,11 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     const [
         getSessionPayloadQuery,
-        { loading: eventsLoading, data: eventsData },
+        {
+            loading: eventsLoading,
+            data: eventsData,
+            called: getSessionPayloadQueryCalled,
+        },
     ] = useGetSessionPayloadLazyQuery({
         variables: {
             session_id,
@@ -109,13 +112,18 @@ export const usePlayer = (): ReplayerContextInterface => {
         fetchPolicy: 'no-cache',
     });
 
-    const [getSessionQuery, { data: sessionData }] = useGetSessionLazyQuery({
+    const [
+        getSessionQuery,
+        { data: sessionData, called: getSessionQueryCalled },
+    ] = useGetSessionLazyQuery({
         variables: {
             id: session_id,
         },
         onCompleted: (data) => {
             if (data.session?.within_billing_quota) {
-                getSessionPayloadQuery();
+                if (!getSessionPayloadQueryCalled) {
+                    getSessionPayloadQuery();
+                }
                 setSessionViewability(SessionViewability.VIEWABLE);
                 H.track('Viewed session', { is_guest: !isLoggedIn });
             } else {
@@ -151,16 +159,27 @@ export const usePlayer = (): ReplayerContextInterface => {
         [setPlayerTimeToPersistance]
     );
 
+    // Initializes the session state and fetches the session data
     useEffect(() => {
         if (session_id) {
             setState(ReplayerState.Loading);
             setSession(undefined);
-            getSessionQuery();
+
+            if (!getSessionQueryCalled) {
+                getSessionQuery();
+            }
             getSessionCommentsQuery();
         } else {
+            // This case happens when no session is active.
             resetPlayer(ReplayerState.Empty);
         }
-    }, [getSessionCommentsQuery, getSessionQuery, session_id, resetPlayer]);
+    }, [
+        getSessionCommentsQuery,
+        getSessionQuery,
+        session_id,
+        resetPlayer,
+        getSessionQueryCalled,
+    ]);
 
     useEffect(() => {
         setSession(sessionData?.session as Session | undefined);
@@ -193,7 +212,6 @@ export const usePlayer = (): ReplayerContextInterface => {
     useEffect(() => {
         if (eventsData?.events?.length ?? 0 > 1) {
             setSessionViewability(SessionViewability.VIEWABLE);
-            console.time('LoadingEvents');
             setState(ReplayerState.Loading);
             // Add an id field to each event so it can be referenced.
             const newEvents: HighlightEvent[] = toHighlightEvents(
@@ -217,9 +235,6 @@ export const usePlayer = (): ReplayerContextInterface => {
                 triggerFocus: false,
                 mouseTail: showPlayerMouseTail,
             });
-            r.on(ReplayerEvents.Finish, () => {
-                setState(ReplayerState.SessionEnded);
-            });
             r.on('event-cast', (e: any) => {
                 const event = e as HighlightEvent;
                 if ((event as customEvent)?.data?.tag === 'Stop') {
@@ -234,6 +249,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         } else if (!!eventsData) {
             setSessionViewability(SessionViewability.EMPTY_SESSION);
         }
+        // This hook shouldn't depend on `showPlayerMouseTail`. The player is updated through a setter. Making this hook depend on `showPlayerMouseTrail` will cause the player to be remounted when `showPlayerMouseTrail` changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [eventsData, setPlayerTimeToPersistance]);
 
@@ -283,7 +299,6 @@ export const usePlayer = (): ReplayerContextInterface => {
                             ? ReplayerState.LoadedWithDeepLink
                             : ReplayerState.LoadedAndUntouched
                     );
-                    console.timeEnd('LoadingEvents');
                     setPlayerTimestamp(
                         replayer.getMetaData().totalTime,
                         replayer.getMetaData().startTime,
@@ -338,6 +353,13 @@ export const usePlayer = (): ReplayerContextInterface => {
             const frameAction = () => {
                 if (replayer) {
                     setTime(replayer.getCurrentTime());
+
+                    if (
+                        replayer.getCurrentTime() >=
+                        replayer.getMetaData().totalTime
+                    ) {
+                        setState(ReplayerState.SessionEnded);
+                    }
                 }
                 setTimerId(requestAnimationFrame(frameAction));
             };
@@ -352,7 +374,6 @@ export const usePlayer = (): ReplayerContextInterface => {
             setTimerId(null);
         }
     }, [state, timerId]);
-    //     // "Subscribes" the time with the Replayer when the Player is playing.
 
     useEffect(() => {
         setPlayerTimeToPersistance(time);
@@ -372,7 +393,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
             changeSession(organization_id, history, nextSessionInList);
 
-            resetPlayer(ReplayerState.Loading);
+            resetPlayer(ReplayerState.Empty);
         }
     }, [
         autoPlaySessions,
@@ -381,7 +402,6 @@ export const usePlayer = (): ReplayerContextInterface => {
         resetPlayer,
         sessionResults.sessions,
         session_id,
-        showLeftPanel,
         state,
     ]);
 
@@ -442,6 +462,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         setSessionResults,
         isPlayerReady:
             state !== ReplayerState.Loading &&
+            state !== ReplayerState.Empty &&
             scale !== 1 &&
             sessionViewability === SessionViewability.VIEWABLE,
         session,
