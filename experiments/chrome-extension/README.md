@@ -44,3 +44,8 @@ You don’t have to ever use `eject`. The curated feature set is suitable for sm
 You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
 To learn React, check out the [React documentation](https://reactjs.org/).
+
+
+## Instructions for Highlighters
+
+run `yarn build`, open chrome extensions, click developer mode on the top right, click load unpacked extension on the top left, select `{path}/highlight/experiments/chrome-extension/build`, et voila
