@@ -24,10 +24,16 @@ jobs:
               run: |
                 docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f deploy/Dockerfile.prod .
                 docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-            - name: Deploy to Amazon ECS
-              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+            - name: Render Amazon ECS task definition
+              id: render-web-container
+              uses: aws-actions/amazon-ecs-render-task-definition@v1
               with:
                 task-definition: deploy/private-graph-task.json
+                container-name: highlight-backend
+                image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}
+            - name: Deploy to Amazon ECS service
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              with:
+                task-definition: ${{ steps.render-web-container.outputs.task-definition }}
                 service: my-service
                 cluster: my-cluster
-                wait-for-service-stability: true
