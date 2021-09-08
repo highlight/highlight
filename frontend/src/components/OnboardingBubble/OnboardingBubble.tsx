@@ -150,10 +150,6 @@ const OnboardingBubble = () => {
         stopPolling,
     ]);
 
-    if (organization_id === DEMO_WORKSPACE_APPLICATION_ID) {
-        return null;
-    }
-
     if (rainConfetti) {
         return <Confetti recycle={false} />;
     }
@@ -161,7 +157,8 @@ const OnboardingBubble = () => {
     if (
         loading ||
         stepsNotFinishedCount === -1 ||
-        temporarilyHideOnboardingBubble
+        temporarilyHideOnboardingBubble ||
+        organization_id === DEMO_WORKSPACE_APPLICATION_ID
     ) {
         return null;
     }
