@@ -1,3 +1,4 @@
+import { DEMO_WORKSPACE_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
@@ -148,6 +149,10 @@ const OnboardingBubble = () => {
         startPolling,
         stopPolling,
     ]);
+
+    if (organization_id === DEMO_WORKSPACE_APPLICATION_ID) {
+        return null;
+    }
 
     if (rainConfetti) {
         return <Confetti recycle={false} />;
