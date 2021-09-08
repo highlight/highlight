@@ -168,7 +168,7 @@ export const H: HighlightPublicInterface = {
             script.setAttribute('type', 'text/javascript');
             document.getElementsByTagName('head')[0].appendChild(script);
             script.addEventListener('load', () => {
-                highlight_obj = new window.Highlight({
+                highlight_obj = Highlight.create({
                     organizationID: orgID,
                     debug: options?.debug,
                     backendUrl: options?.backendUrl,
