@@ -378,6 +378,12 @@ export const usePlayer = (): ReplayerContextInterface => {
         setPlayerTimeToPersistance(time);
     }, [setPlayerTimeToPersistance, time]);
 
+    useEffect(() => {
+        if (!session_id) {
+            setState(ReplayerState.Empty);
+        }
+    }, [session_id]);
+
     // Finds the next session in the session feed to play if autoplay is enabled.
     useEffect(() => {
         if (
