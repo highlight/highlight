@@ -48,4 +48,12 @@ To learn React, check out the [React documentation](https://reactjs.org/).
 
 ## Instructions for Highlighters
 
-run `yarn build`, open chrome extensions, click developer mode on the top right, click load unpacked extension on the top left, select `{path}/highlight/experiments/chrome-extension/build`, et voila
+steps:
+* `cd experiments/chrome-extension`
+* `yarn build`
+* replace `new window.Highlight` with `Highlight.create` in `firstload/index.tsx`
+* `yarn firstload:update`
+* open chrome extensions page on chrome or sidekick 
+* enable developer mode on the top right 
+* click load unpacked extension on the top left and select `{path}/highlight/experiments/chrome-extension/build`
+* voila, c'est bon
