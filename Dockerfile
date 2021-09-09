@@ -28,6 +28,7 @@ COPY ./.prettierrc ./
 RUN CI=false yarn build
 
 FROM alpine
+RUN apk update && apk add build-base
 ENV ONPREM_STATIC_FRONTEND_PATH="./build"
 ENV ENABLE_OBJECT_STORAGE=true
 WORKDIR /root/
