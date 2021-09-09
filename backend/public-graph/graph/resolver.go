@@ -344,12 +344,12 @@ func GetLocationFromIP(ip string) (location *Location, err error) {
 	switch location.Longitude.(type) {
 	case float64:
 	default:
-		location.Longitude = nil
+		location.Longitude = float64(0)
 	}
 	switch location.Latitude.(type) {
 	case float64:
 	default:
-		location.Latitude = nil
+		location.Latitude = float64(0)
 	}
 
 	return location, nil
