@@ -11,7 +11,6 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
-	dd "github.com/highlight-run/highlight/backend/datadog"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/worker"
@@ -21,6 +20,7 @@ import (
 	"github.com/stripe/stripe-go/client"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
+	dd "github.com/highlight-run/highlight/backend/datadog"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	private "github.com/highlight-run/highlight/backend/private-graph/graph"
 	privategen "github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -108,7 +108,9 @@ func main() {
 		port = defaultPort
 	}
 
-	shouldStartDatadog := (env == "prod" && os.Getenv("REACT_APP_ONPREM") != "true")
+	shouldStartDatadog := (env == "prod" &&
+		os.Getenv("REACT_APP_ONPREM") != "true" &&
+		os.Getenv("DOPPLER_ENVIRONMENT") != "prod_aws")
 	if shouldStartDatadog {
 		log.Info("Running dd client setup process...")
 		if err := dd.Start(); err != nil {
