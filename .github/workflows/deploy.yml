@@ -1,6 +1,9 @@
 
 name: Deploy to AWS
-on: [push]
+on: 
+  push:
+      branches:
+          - 'master'
 jobs:
     push_to_registry:
         runs-on: ubuntu-latest
