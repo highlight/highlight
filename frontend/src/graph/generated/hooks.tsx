@@ -1900,7 +1900,6 @@ export const GetNotificationsDocument = gql`
                 email
                 photo_url
             }
-            type
         }
         error_comments_for_organization(organization_id: $organization_id) {
             id

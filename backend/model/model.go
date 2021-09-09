@@ -596,7 +596,6 @@ type SessionComment struct {
 	XCoordinate    float64
 	YCoordinate    float64
 	Type           string `json:"type" gorm:"default:ADMIN"`
-	Metadata       JSONB  `json:"metadata" gorm:"type:jsonb"`
 }
 
 type ErrorComment struct {

@@ -235,11 +235,9 @@ export type CreateSessionCommentMutation = { __typename?: 'Mutation' } & {
             | 'x_coordinate'
             | 'y_coordinate'
         > & {
-                author?: Types.Maybe<
-                    { __typename?: 'SanitizedAdmin' } & Pick<
-                        Types.SanitizedAdmin,
-                        'id' | 'name' | 'email'
-                    >
+                author: { __typename?: 'SanitizedAdmin' } & Pick<
+                    Types.SanitizedAdmin,
+                    'id' | 'name' | 'email'
                 >;
             }
     >;
@@ -573,11 +571,9 @@ export type GetSessionCommentsQuery = { __typename?: 'Query' } & {
                 | 'y_coordinate'
                 | 'type'
             > & {
-                    author?: Types.Maybe<
-                        { __typename?: 'SanitizedAdmin' } & Pick<
-                            Types.SanitizedAdmin,
-                            'id' | 'name' | 'email' | 'photo_url'
-                        >
+                    author: { __typename?: 'SanitizedAdmin' } & Pick<
+                        Types.SanitizedAdmin,
+                        'id' | 'name' | 'email' | 'photo_url'
                     >;
                 }
         >
@@ -593,18 +589,11 @@ export type GetNotificationsQuery = { __typename?: 'Query' } & {
         Types.Maybe<
             { __typename?: 'SessionComment' } & Pick<
                 Types.SessionComment,
-                | 'id'
-                | 'timestamp'
-                | 'updated_at'
-                | 'session_id'
-                | 'text'
-                | 'type'
+                'id' | 'timestamp' | 'updated_at' | 'session_id' | 'text'
             > & {
-                    author?: Types.Maybe<
-                        { __typename?: 'SanitizedAdmin' } & Pick<
-                            Types.SanitizedAdmin,
-                            'id' | 'name' | 'email' | 'photo_url'
-                        >
+                    author: { __typename?: 'SanitizedAdmin' } & Pick<
+                        Types.SanitizedAdmin,
+                        'id' | 'name' | 'email' | 'photo_url'
                     >;
                 }
         >
@@ -640,11 +629,9 @@ export type GetSessionCommentsForAdminQuery = { __typename?: 'Query' } & {
                 | 'updated_at'
                 | 'text'
             > & {
-                    author?: Types.Maybe<
-                        { __typename?: 'SanitizedAdmin' } & Pick<
-                            Types.SanitizedAdmin,
-                            'id' | 'name' | 'email' | 'photo_url'
-                        >
+                    author: { __typename?: 'SanitizedAdmin' } & Pick<
+                        Types.SanitizedAdmin,
+                        'id' | 'name' | 'email' | 'photo_url'
                     >;
                 }
         >

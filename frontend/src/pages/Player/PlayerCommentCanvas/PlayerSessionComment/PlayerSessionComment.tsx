@@ -7,8 +7,7 @@ import TransparentPopover from '../../../../components/Popover/TransparentPopove
 import {
     Maybe,
     SanitizedAdmin,
-    SessionComment as SessionCommentModelType,
-    SessionCommentType,
+    SessionComment as SessionCommentType,
 } from '../../../../graph/generated/schemas';
 import CommentPinIcon from '../../../../static/comment-pin.png';
 import { MillisToMinutesAndSeconds } from '../../../../util/time';
@@ -19,7 +18,7 @@ import styles from './PlayerSessionComment.module.scss';
 interface Props {
     comment: Maybe<
         { __typename?: 'SessionComment' } & Pick<
-            SessionCommentModelType,
+            SessionCommentType,
             | 'id'
             | 'timestamp'
             | 'created_at'
@@ -29,13 +28,10 @@ interface Props {
             | 'x_coordinate'
             | 'y_coordinate'
             | 'organization_id'
-            | 'type'
         > & {
-                author?: Maybe<
-                    { __typename?: 'SanitizedAdmin' } & Pick<
-                        SanitizedAdmin,
-                        'id' | 'name' | 'email' | 'photo_url'
-                    >
+                author: { __typename?: 'SanitizedAdmin' } & Pick<
+                    SanitizedAdmin,
+                    'id' | 'name' | 'email' | 'photo_url'
                 >;
             }
     >;
@@ -56,16 +52,6 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
     }, [comment?.id, deepLinkedCommentId]);
 
     if (!comment) {
-        return null;
-    }
-
-    // This case is true when the comment is a non-ADMIN type comment.
-    if (
-        comment.x_coordinate == null ||
-        comment.y_coordinate == null ||
-        comment.timestamp == null ||
-        comment.type !== SessionCommentType.Admin
-    ) {
         return null;
     }
 
@@ -123,10 +109,10 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
             >
                 <button
                     onClick={() => {
-                        pause(comment.timestamp as number);
+                        pause(comment.timestamp);
                         message.success(
                             `Changed player time to where comment was created at ${MillisToMinutesAndSeconds(
-                                comment.timestamp as number
+                                comment.timestamp
                             )}.`
                         );
                     }}

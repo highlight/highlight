@@ -69,11 +69,6 @@ enum ErrorState {
     IGNORED
 }
 
-enum SessionCommentType {
-    Admin
-    FEEDBACK
-}
-
 type Organization {
     id: ID!
     verbose_id: String!
@@ -302,16 +297,15 @@ type ErrorResults {
 type SessionComment {
     id: ID!
     organization_id: ID!
-    timestamp: Int
+    timestamp: Int!
     created_at: Time!
     updated_at: Time!
     session_id: Int!
-    author: SanitizedAdmin
+    author: SanitizedAdmin!
     text: String!
-    x_coordinate: Float
-    y_coordinate: Float
-    type: SessionCommentType!
-    metadata: Any
+    x_coordinate: Float!
+    y_coordinate: Float!
+    type: String!
 }
 
 type ErrorComment {

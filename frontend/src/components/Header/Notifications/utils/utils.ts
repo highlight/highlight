@@ -1,11 +1,8 @@
-import { SessionCommentType } from '@graph/schemas';
-
 import { GetNotificationsQuery } from '../../../../graph/generated/operations';
 
 export enum NotificationType {
     ErrorComment,
     SessionComment,
-    SessionFeedback,
 }
 
 export const processNotifications = ({
@@ -18,29 +15,15 @@ export const processNotifications = ({
             type: NotificationType.ErrorComment,
         })
     );
-
-    const sessionComments = session_comments_for_organization.filter(
-        (comment) => comment?.type === SessionCommentType.Admin
-    );
-    const sessionFeedback = session_comments_for_organization.filter(
-        (comment) => comment?.type === SessionCommentType.Feedback
-    );
-    const sessionAdminCommentNotifications = sessionComments.map(
+    const sessionCommentNotifications = session_comments_for_organization.map(
         (sessionComment) => ({
             ...sessionComment,
             type: NotificationType.SessionComment,
         })
     );
-    const sessionFeedbackCommentNotifications = sessionFeedback.map(
-        (sessionComment) => ({
-            ...sessionComment,
-            type: NotificationType.SessionFeedback,
-        })
-    );
     const allNotifications: any[] = [
         ...errorCommentNotifications,
-        ...sessionAdminCommentNotifications,
-        ...sessionFeedbackCommentNotifications,
+        ...sessionCommentNotifications,
     ];
 
     const sortedNotificationsDescending = allNotifications.sort((a, b) => {

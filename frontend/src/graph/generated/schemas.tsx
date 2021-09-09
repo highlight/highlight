@@ -88,11 +88,6 @@ export enum ErrorState {
     Ignored = 'IGNORED',
 }
 
-export enum SessionCommentType {
-    Admin = 'Admin',
-    Feedback = 'FEEDBACK',
-}
-
 export type Organization = {
     __typename?: 'Organization';
     id: Scalars['ID'];
@@ -342,16 +337,15 @@ export type SessionComment = {
     __typename?: 'SessionComment';
     id: Scalars['ID'];
     organization_id: Scalars['ID'];
-    timestamp?: Maybe<Scalars['Int']>;
+    timestamp: Scalars['Int'];
     created_at: Scalars['Time'];
     updated_at: Scalars['Time'];
     session_id: Scalars['Int'];
-    author?: Maybe<SanitizedAdmin>;
+    author: SanitizedAdmin;
     text: Scalars['String'];
-    x_coordinate?: Maybe<Scalars['Float']>;
-    y_coordinate?: Maybe<Scalars['Float']>;
-    type: SessionCommentType;
-    metadata?: Maybe<Scalars['Any']>;
+    x_coordinate: Scalars['Float'];
+    y_coordinate: Scalars['Float'];
+    type: Scalars['String'];
 };
 
 export type ErrorComment = {
