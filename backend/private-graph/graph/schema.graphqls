@@ -305,6 +305,7 @@ type SessionComment {
     text: String!
     x_coordinate: Float!
     y_coordinate: Float!
+    type: String!
 }
 
 type ErrorComment {

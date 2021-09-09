@@ -345,6 +345,7 @@ export type SessionComment = {
     text: Scalars['String'];
     x_coordinate: Scalars['Float'];
     y_coordinate: Scalars['Float'];
+    type: Scalars['String'];
 };
 
 export type ErrorComment = {
