@@ -1,5 +1,6 @@
 FROM golang:alpine as backend-builder
 RUN apk update && apk add git
+RUN apk add build-base
 RUN mkdir /build-backend
 WORKDIR /build-backend
 COPY ./backend .
