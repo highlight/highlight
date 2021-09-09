@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -84,8 +85,13 @@ func main() {
 	// initialize logger
 	log.SetReportCaller(true)
 
-	if os.Getenv("DEPLOYMENT_KEY") != "HIGHLIGHT_ONPREM_BETA" {
-		log.Fatalf("please specify a deploy key in order to run Highlight")
+	switch os.Getenv("DEPLOYMENT_KEY") {
+	case "HIGHLIGHT_ONPREM_BETA":
+		// default case, should only exist in main highlight prod
+	case "HIGHLIGHT_BEHAVE_HEALTH-augusta-watch-NOTATE-remedy-oslo":
+		go expireHighlightAfterDate(time.Date(2021, 10, 1, 0, 0, 0, 0, time.UTC))
+	default:
+		log.Fatal("please specify a deploy key in order to run Highlight")
 	}
 
 	if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" && (os.Getenv("AWS_ACCESS_KEY_ID") == "" || os.Getenv("AWS_S3_BUCKET_NAME") == "" || os.Getenv("AWS_SECRET_ACCESS_KEY") == "") {
@@ -264,5 +270,14 @@ func main() {
 		log.Fatal(http.ListenAndServe(":"+port, r))
 	} else {
 		log.Fatal(http.ListenAndServe(":"+port, r))
+	}
+}
+
+func expireHighlightAfterDate(endDate time.Time) {
+	for {
+		if time.Now().After(endDate) {
+			log.Fatalf("your highlight trial has expired")
+		}
+		time.Sleep(time.Second)
 	}
 }
