@@ -62,6 +62,16 @@ var ErrorGroupStates = struct {
 	IGNORED:  "IGNORED",
 }
 
+var SessionCommentTypes = struct {
+	// Comments created by a Highlight user on the Highlight app.
+	ADMIN string
+	// Comments created by a Highlight customer, comes from feedback from their app.
+	FEEDBACK string
+}{
+	ADMIN:    "ADMIN",
+	FEEDBACK: "FEEDBACK",
+}
+
 type contextString string
 
 var ContextKeys = struct {
@@ -585,6 +595,7 @@ type SessionComment struct {
 	Text           string
 	XCoordinate    float64
 	YCoordinate    float64
+	Type           string `json:"type" gorm:"default:ADMIN"`
 }
 
 type ErrorComment struct {

@@ -569,6 +569,7 @@ export type GetSessionCommentsQuery = { __typename?: 'Query' } & {
                 | 'text'
                 | 'x_coordinate'
                 | 'y_coordinate'
+                | 'type'
             > & {
                     author: { __typename?: 'SanitizedAdmin' } & Pick<
                         Types.SanitizedAdmin,
