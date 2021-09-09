@@ -1,8 +1,8 @@
 name: Publish Docker image
 on:
   push:
-#      branches:
-#          - 'master'
+      branches:
+          - 'master'
 jobs:
    push_to_registry:
     name: Push Docker image to Docker Hub
