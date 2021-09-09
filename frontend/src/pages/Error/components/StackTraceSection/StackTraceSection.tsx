@@ -103,20 +103,25 @@ const StackSection: React.FC<StackSectionProps> = ({
                     {truncateFileName(fileName || '')}
                 </span>
             </div>
-            <hr />
-            <div className={styles.editor}>
-                <span
-                    className={styles.lineNumber}
-                    style={
-                        {
-                            '--longest-character-length': longestLineNumberCharacterLength,
-                        } as React.CSSProperties
-                    }
-                >
-                    {lineNumber}
-                </span>
-                <span>{functionName}()</span>
-            </div>
+
+            {functionName && (
+                <>
+                    <hr />
+                    <div className={styles.editor}>
+                        <span
+                            className={styles.lineNumber}
+                            style={
+                                {
+                                    '--longest-character-length': longestLineNumberCharacterLength,
+                                } as React.CSSProperties
+                            }
+                        >
+                            {lineNumber}
+                        </span>
+                        <span>{functionName}()</span>
+                    </div>
+                </>
+            )}
         </div>
     );
     return (
