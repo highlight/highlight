@@ -19,6 +19,7 @@ import (
 	"github.com/stripe/stripe-go/client"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
+	dd "github.com/highlight-run/highlight/backend/datadog"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	private "github.com/highlight-run/highlight/backend/private-graph/graph"
 	privategen "github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -105,17 +106,19 @@ func main() {
 		port = defaultPort
 	}
 
-	// shouldStartDatadog := (env == "prod" && os.Getenv("REACT_APP_ONPREM") != "true")
-	// if shouldStartDatadog {
-	// 	log.Info("Running dd client setup process...")
-	// 	if err := dd.Start(); err != nil {
-	// 		log.Fatal(e.Wrap(err, "error starting dd clients"))
-	// 	} else {
-	// 		defer dd.Stop()
-	// 	}
-	// } else {
-	// 	log.Info("Excluding dd client setup process...")
-	// }
+	shouldStartDatadog := (env == "prod" &&
+		os.Getenv("REACT_APP_ONPREM") != "true" &&
+		os.Getenv("DOPPLER_ENVIRONMENT") != "prod_aws")
+	if shouldStartDatadog {
+		log.Info("Running dd client setup process...")
+		if err := dd.Start(); err != nil {
+			log.Fatal(e.Wrap(err, "error starting dd clients"))
+		} else {
+			defer dd.Stop()
+		}
+	} else {
+		log.Info("Excluding dd client setup process...")
+	}
 
 	db, err := model.SetupDB(os.Getenv("PSQL_DB"))
 	if err != nil {
