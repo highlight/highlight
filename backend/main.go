@@ -88,7 +88,7 @@ func main() {
 	switch os.Getenv("DEPLOYMENT_KEY") {
 	case "HIGHLIGHT_ONPREM_BETA":
 		// default case, should only exist in main highlight prod
-	case "HIGHLIGHT_BEHAVE_HEALTH-augusta-watch-NOTATE-remedy-oslo":
+	case "HIGHLIGHT_BEHAVE_HEALTH-i_fgQwbthAdqr9Aat_MzM7iU3!@fKr-_vopjXR@f":
 		go expireHighlightAfterDate(time.Date(2021, 10, 1, 0, 0, 0, 0, time.UTC))
 	default:
 		log.Fatal("please specify a deploy key in order to run Highlight")
