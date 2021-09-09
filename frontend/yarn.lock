@@ -2964,10 +2964,10 @@
   dependencies:
     "@hapi/hoek" "^8.3.0"
 
-"@highlight-run/react@^0.0.5":
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/@highlight-run/react/-/react-0.0.5.tgz#6d32c467052f71c5ad2eb142ad9f87f3e57fb3b7"
-  integrity sha512-wZpLb6LHhUjOpJDNx7SiQ8ZvcLahRl8DDhXQDIUHljd5RMtIpFwLHT3/n8WdP1/u0XKup3kNoEUFVxi6/R6RvA==
+"@highlight-run/react@^0.0.6":
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/@highlight-run/react/-/react-0.0.6.tgz#408198cc069258590f820a6e10348f23ad2199bb"
+  integrity sha512-wnF/ynJNEuiIgk9ffvRy0C4qC81mcdiRbv7TWDxWtmpZcU20VbwHXN+75yVzgVUswnIMAlbNtdShUJj3Kt7vgA==
   dependencies:
     "@types/node" "^12.0.0"
     "@types/react" "^17.0.0"

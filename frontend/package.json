@@ -5,7 +5,7 @@
     "dependencies": {
         "@apollo/client": "^3.1.4",
         "@craco/craco": "^6.1.1",
-        "@highlight-run/react": "^0.0.5",
+        "@highlight-run/react": "^0.0.6",
         "@highlight-run/rrweb": "^0.12.9",
         "@rehooks/local-storage": "^2.4.0",
         "@rehooks/window-size": "^1.0.2",

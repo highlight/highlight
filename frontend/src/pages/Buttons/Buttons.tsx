@@ -32,7 +32,7 @@ export const Buttons = () => {
             >
                 Show Error Boundary
             </button>
-            {showTest && <Test10 />}
+            {showTest && <Test20 />}
             <div className={styles.buttonBody}>
                 <div>
                     <button
@@ -145,7 +145,7 @@ export const Buttons = () => {
     );
 };
 
-const Test10 = () => (
+const Test20 = () => (
     <h2>
         {/* @ts-expect-error*/}
         {a}
