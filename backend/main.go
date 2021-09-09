@@ -80,6 +80,7 @@ var defaultPort = "8082"
 
 func main() {
 	// initialize logger
+	// placeholder comment
 	log.SetReportCaller(true)
 
 	if os.Getenv("DEPLOYMENT_KEY") != "HIGHLIGHT_ONPREM_BETA" {
