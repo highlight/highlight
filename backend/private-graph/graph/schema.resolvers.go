@@ -79,7 +79,7 @@ func (r *errorGroupResolver) StackTrace(ctx context.Context, obj *model.ErrorGro
 	}
 	var ret []*modelInputs.ErrorTrace
 	stackTraceString := obj.StackTrace
-	if obj.MappedStackTrace != nil && *obj.MappedStackTrace != "" {
+	if obj.MappedStackTrace != nil && *obj.MappedStackTrace != "" && *obj.MappedStackTrace != "null" {
 		stackTraceString = *obj.MappedStackTrace
 	}
 	if err := json.Unmarshal([]byte(stackTraceString), &ret); err != nil {
@@ -1525,7 +1525,7 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, organizationID 
 		SELECT count(e.id)
 		FROM (
 			SELECT to_char(date_trunc('day', (current_date - offs)), 'YYYY-MM-DD') AS date
-			FROM generate_series(0, ?, 1) 
+			FROM generate_series(0, ?, 1)
 			AS offs
 		) d LEFT OUTER JOIN
 		error_objects e
