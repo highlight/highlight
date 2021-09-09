@@ -7,7 +7,8 @@ applications:
             - yarn install
         build:
           commands:
-            - yarn run build
+            - curl -Ls https://cli.doppler.com/install.sh
+            -  doppler run -- yarn run build
       artifacts:
         baseDirectory: build
         files:
