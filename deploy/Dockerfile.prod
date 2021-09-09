@@ -5,9 +5,5 @@ WORKDIR /build-backend
 COPY ./backend .
 RUN go mod download
 RUN GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /bin/backend
-
-FROM alpine
-WORKDIR /root/
-COPY --from=backend-builder /bin/backend /bin/backend
 RUN (curl -Ls https://cli.doppler.com/install.sh || wget -qO- https://cli.doppler.com/install.sh) | sh
 CMD ["doppler", "run", "--", "/bin/backend", "-runtime=private-graph"]
