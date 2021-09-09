@@ -2964,15 +2964,14 @@
   dependencies:
     "@hapi/hoek" "^8.3.0"
 
-"@highlight-run/react@^0.0.4":
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/@highlight-run/react/-/react-0.0.4.tgz#49fcb9d7e637d133c76c47dbf27fd22d4da06221"
-  integrity sha512-RdiG0BXO6qh8TBGX1L952ZP5QWcDZFBARMQ/lUfLch7ZA8TIaLhh3hHQw03HZyFfauxaPQQq8nrYTD6Ut7Jjow==
+"@highlight-run/react@^0.0.5":
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/@highlight-run/react/-/react-0.0.5.tgz#6d32c467052f71c5ad2eb142ad9f87f3e57fb3b7"
+  integrity sha512-wZpLb6LHhUjOpJDNx7SiQ8ZvcLahRl8DDhXQDIUHljd5RMtIpFwLHT3/n8WdP1/u0XKup3kNoEUFVxi6/R6RvA==
   dependencies:
     "@types/node" "^12.0.0"
     "@types/react" "^17.0.0"
     "@types/react-dom" "^17.0.0"
-    highlight.run "^2.6.0"
     typescript "^4.1.2"
 
 "@highlight-run/rrweb@^0.12.9":
@@ -8913,11 +8912,6 @@ highlight.run@2.4.0:
   version "2.4.0"
   resolved "https://registry.yarnpkg.com/highlight.run/-/highlight.run-2.4.0.tgz#776d4d52c67986d17283d96d319fe5c7919029d3"
   integrity sha512-46kdasuyAe/hpEobscPRFVVuI7/6ws+4zDBzKKTOpplIMMj2uZzVUGQ7d/BAd+yh9l2viUHt5XkMeXWrh6W7Tg==
-
-highlight.run@^2.6.0:
-  version "2.6.0"
-  resolved "https://registry.yarnpkg.com/highlight.run/-/highlight.run-2.6.0.tgz#7a6ef6bd04489a345c06a2ddc1b3a5e9481ce3f7"
-  integrity sha512-QSJGnuMGKbZn3jnli63cCKyzIq+0hOYw3kcvS+KqL25DmA6BuokXmJxT8OZV1brmtAmkIaqq8eQWStYVZaBg6w==
 
 history@^4.9.0:
   version "4.10.1"
