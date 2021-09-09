@@ -315,8 +315,8 @@ type SessionResults struct {
 
 type Session struct {
 	Model
-	// Unguessable, cryptographically random url-safe ID
-	LongID      string `json:"long_id" gorm:"uniqueIndex;not null;default:replace(replace(replace(encode(gen_random_bytes(33), 'base64'),'+','-'),'/','_'),'=','')"`
+	// The ID used publicly for the URL on the client; used for sharing
+	SecureID    string `json:"secure_id" gorm:"uniqueIndex;not null;default:secure_id_generator()"`
 	UserID      int    `json:"user_id"`
 	Fingerprint int    `json:"fingerprint"`
 	// User provided identifier (see IdentifySession)
@@ -566,6 +566,8 @@ type ErrorObject struct {
 
 type ErrorGroup struct {
 	Model
+	// The ID used publicly for the URL on the client; used for sharing
+	SecureID         string `json:"secure_id" gorm:"uniqueIndex;not null;default:secure_id_generator()"`
 	OrganizationID   int
 	Event            string
 	Type             string
@@ -663,6 +665,22 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 	}
 
 	log.Printf("running db migration ... \n")
+	if err := DB.Exec("CREATE EXTENSION IF NOT EXISTS pgcrypto;").Error; err != nil {
+		return nil, e.Wrap(err, "Error installing pgcrypto")
+	}
+	// Unguessable, cryptographically random url-safe ID for users to share links
+	if err := DB.Exec(`
+		CREATE OR REPLACE FUNCTION secure_id_generator(OUT result text) AS $$
+		BEGIN
+			result := encode(gen_random_bytes(21), 'base64');
+			result := replace(result, '+', '0');
+			result := replace(result, '/', '1');
+			result := replace(result, '=', '');
+		END;
+		$$ LANGUAGE PLPGSQL;
+	`).Error; err != nil {
+		return nil, e.Wrap(err, "Error creating secure_id_generator")
+	}
 	if err := DB.AutoMigrate(
 		Models...,
 	); err != nil {
