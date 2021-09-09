@@ -1591,7 +1591,7 @@ func (r *queryResolver) TopUsers(ctx context.Context, organizationID int, lookBa
 				AND identifier <> '' 
 				AND created_at >= NOW() - INTERVAL '? DAY' 
 				AND processed=true
-		) as active_time_percentage
+		) AS active_time_percentage
 		FROM (
 			SELECT identifier, active_length 
 			FROM sessions 
