@@ -2,6 +2,7 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import SvgQuoteIcon from '@icons/QuoteIcon';
 import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 import { Link } from 'react-router-dom';
@@ -70,6 +71,8 @@ const getIcon = (type: NotificationType) => {
             return <SvgBugIcon />;
         case NotificationType.SessionComment:
             return <SvgMessageIcon />;
+        case NotificationType.SessionFeedback:
+            return <SvgQuoteIcon />;
     }
 };
 
@@ -84,6 +87,9 @@ const getTitle = (notification: any): React.ReactNode => {
             break;
         case NotificationType.SessionComment:
             suffix = 'commented on a session';
+            break;
+        case NotificationType.SessionFeedback:
+            suffix = 'left feedback';
             break;
     }
 
@@ -101,9 +107,11 @@ const getLink = (notification: any, organization_id: string) => {
     switch (notification.type as NotificationType) {
         case NotificationType.ErrorComment:
             return `${baseUrl}/errors/${notification.error_id}`;
-        default:
-            return `/`;
         case NotificationType.SessionComment:
             return `${baseUrl}/sessions/${notification.session_id}?${PlayerSearchParameters.commentId}=${notification.id}&${PlayerSearchParameters.ts}=${notification.timestamp}`;
+        case NotificationType.SessionFeedback:
+            return `${baseUrl}/sessions/${notification.session_id}?${PlayerSearchParameters.commentId}=${notification.id}`;
+        default:
+            return `/`;
     }
 };

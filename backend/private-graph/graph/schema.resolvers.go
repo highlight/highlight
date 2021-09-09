@@ -2106,6 +2106,38 @@ func (r *sessionAlertResolver) UserProperties(ctx context.Context, obj *model.Se
 
 func (r *sessionCommentResolver) Author(ctx context.Context, obj *model.SessionComment) (*modelInputs.SanitizedAdmin, error) {
 	admin := &model.Admin{}
+
+	// This case happens when the feedback is provided by feedback mechanism.
+	if obj.Type == modelInputs.SessionCommentTypeFeedback.String() {
+		feedbackAdminPhotoURL := "https://example.com"
+		name := "Anonymous"
+		email := ""
+
+		if obj.Metadata != nil {
+			if val, ok := obj.Metadata["name"]; ok {
+				switch val.(type) {
+				case string:
+					name = fmt.Sprintf("%v", val)
+				}
+			}
+			if val, ok := obj.Metadata["email"]; ok {
+				switch val.(type) {
+				case string:
+					email = fmt.Sprintf("%v", val)
+				}
+			}
+
+		}
+
+		feedbackAdmin := &modelInputs.SanitizedAdmin{
+			ID:       -1,
+			Name:     &name,
+			Email:    email,
+			PhotoURL: &feedbackAdminPhotoURL,
+		}
+		return feedbackAdmin, nil
+	}
+
 	if err := r.DB.Where(&model.Admin{Model: model.Model{ID: obj.AdminId}}).First(&admin).Error; err != nil {
 		return nil, e.Wrap(err, "Error finding admin for comment")
 	}
@@ -2132,6 +2164,21 @@ func (r *sessionCommentResolver) Author(ctx context.Context, obj *model.SessionC
 	}
 
 	return sanitizedAdmin, nil
+}
+
+func (r *sessionCommentResolver) Type(ctx context.Context, obj *model.SessionComment) (modelInputs.SessionCommentType, error) {
+	switch obj.Type {
+	case model.SessionCommentTypes.ADMIN:
+		return modelInputs.SessionCommentTypeAdmin, nil
+	case model.SessionCommentTypes.FEEDBACK:
+		return modelInputs.SessionCommentTypeFeedback, nil
+	default:
+		return modelInputs.SessionCommentTypeFeedback, e.New("invalid session comment type")
+	}
+}
+
+func (r *sessionCommentResolver) Metadata(ctx context.Context, obj *model.SessionComment) (interface{}, error) {
+	return obj.Metadata, nil
 }
 
 // ErrorAlert returns generated.ErrorAlertResolver implementation.
