@@ -17,3 +17,4 @@ applications:
         paths:
           - node_modules/**/*
     appRoot: frontend
+
