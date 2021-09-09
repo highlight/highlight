@@ -1,10 +1,10 @@
 name: Deploy to AWS
-on: 
-  push:
-      branches:
-          - 'master'
+on:
+    push:
+        branches:
+            master
 jobs:
-    push_to_registry:
+    build_deploy_private_graph:
         runs-on: ubuntu-latest
         steps:
             - name: Check out the repo
