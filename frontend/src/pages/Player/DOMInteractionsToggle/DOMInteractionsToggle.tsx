@@ -22,6 +22,7 @@ const DOMInteractionsToggle = () => {
                     onChange={() => {
                         setEnableInspectElement(!enableInspectElement);
                     }}
+                    trackingId="DOMInteractions"
                 />{' '}
             </div>
         </Tooltip>

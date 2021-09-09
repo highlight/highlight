@@ -1,11 +1,15 @@
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import SvgXIcon from '@icons/XIcon';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
+import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames/bind';
 import { H } from 'highlight.run';
 import moment from 'moment';
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useParams } from 'react-router-dom';
 import { useSessionStorage } from 'react-use';
 
 import { useAuthContext } from '../../authentication/AuthContext';
@@ -24,6 +28,10 @@ import { UserDropdown } from './UserDropdown/UserDropdown';
 
 export const Header = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
+    const organizationIdRemapped =
+        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : organization_id;
     const { isLoggedIn } = useAuthContext();
 
     return (
@@ -45,7 +53,7 @@ export const Header = () => {
                         <div className={styles.logoWrapper}>
                             <Link
                                 className={styles.homeLink}
-                                to={`/${organization_id}/home`}
+                                to={`/${organizationIdRemapped}/home`}
                             >
                                 <HighlightLogo />
                             </Link>
@@ -65,9 +73,9 @@ export const Header = () => {
 };
 
 const getBanner = (organization_id: string) => {
-    if (process.env.REACT_APP_ENV === 'true') {
+    if (process.env.REACT_APP_ONPREM === 'true') {
         return <OnPremiseBanner />;
-    } else if (organization_id === '0') {
+    } else if (organization_id === DEMO_WORKSPACE_APPLICATION_ID) {
         return <DemoWorkspaceBanner />;
     } else {
         return <FreePlanBanner />;
@@ -80,6 +88,10 @@ const FreePlanBanner = () => {
         false
     );
     const { organization_id } = useParams<{ organization_id: string }>();
+    const organizationIdRemapped =
+        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : organization_id;
     const { data, loading } = useGetBillingDetailsQuery({
         variables: { organization_id },
     });
@@ -92,7 +104,7 @@ const FreePlanBanner = () => {
         return null;
     }
 
-    if (organization_id === '0') {
+    if (organization_id === DEMO_WORKSPACE_APPLICATION_ID) {
         return null;
     }
 
@@ -115,7 +127,7 @@ const FreePlanBanner = () => {
                 {bannerMessage + ' '} Upgrade{' '}
                 <Link
                     className={styles.trialLink}
-                    to={`/${organization_id}/billing`}
+                    to={`/${organizationIdRemapped}/billing`}
                 >
                     here!
                 </Link>
@@ -180,7 +192,7 @@ const DemoWorkspaceBanner = () => {
             <div className={classNames(styles.trialTimeText)}>
                 Viewing Demo Workspace.{' '}
                 <Link className={styles.demoLink} to={redirectLink}>
-                    Click here!
+                    Go back to your workspace.
                 </Link>
             </div>
         </div>

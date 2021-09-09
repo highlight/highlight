@@ -3,13 +3,14 @@ package main
 import (
 	"flag"
 	"html/template"
+	"io"
 	"net/http"
 	"os"
 	"path"
 	"strings"
 
 	"github.com/go-chi/chi"
-	"github.com/gorilla/handlers"
+	"github.com/go-chi/chi/middleware"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/worker"
@@ -26,13 +27,14 @@ import (
 	public "github.com/highlight-run/highlight/backend/public-graph/graph"
 	publicgen "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	log "github.com/sirupsen/logrus"
+	brotli_enc "gopkg.in/kothar/brotli-go.v0/enc"
 
 	_ "gorm.io/gorm"
 )
 
 var (
-	env                = os.Getenv("ENVIRONMENT")
 	frontendURL        = os.Getenv("FRONTEND_URI")
+	env                = os.Getenv("ENVIRONMENT")
 	staticFrontendPath = os.Getenv("ONPREM_STATIC_FRONTEND_PATH")
 	landingStagingURL  = os.Getenv("LANDING_PAGE_STAGING_URI")
 	sendgridKey        = os.Getenv("SENDGRID_API_KEY")
@@ -142,7 +144,14 @@ func main() {
 	}
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.
-	r.Use(handlers.CompressHandler)
+	// r.Use(handlers.CompressHandler)
+	compressor := middleware.NewCompressor(5, "application/json")
+	compressor.SetEncoder("br", func(w io.Writer, level int) io.Writer {
+		params := brotli_enc.NewBrotliParams()
+		params.SetQuality(level)
+		return brotli_enc.NewBrotliWriter(params, w)
+	})
+	r.Use(compressor.Handler)
 	r.Use(cors.New(cors.Options{
 		AllowOriginRequestFunc: validateOrigin,
 		AllowCredentials:       true,
