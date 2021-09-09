@@ -38,7 +38,7 @@ const SessionCommentHeader = ({
     const history = useHistory();
 
     const getCommentLink = () => {
-        const url = onGetLinkWithTimestamp(comment.timestamp);
+        const url = onGetLinkWithTimestamp(comment.timestamp || 0);
         url.searchParams.set(PlayerSearchParameters.commentId, comment.id);
         return url;
     };
@@ -67,10 +67,10 @@ const SessionCommentHeader = ({
                             history.location.pathname
                         }?${urlSearchParams.toString()}`
                     );
-                    pause(comment.timestamp);
+                    pause(comment.timestamp || 0);
                     message.success(
                         `Changed player time to where comment was created at ${MillisToMinutesAndSeconds(
-                            comment.timestamp
+                            comment.timestamp || 0
                         )}.`
                     );
                 }}
