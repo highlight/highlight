@@ -33,8 +33,8 @@ import (
 )
 
 var (
-	env                = os.Getenv("ENVIRONMENT")
 	frontendURL        = os.Getenv("FRONTEND_URI")
+	env                = os.Getenv("ENVIRONMENT")
 	staticFrontendPath = os.Getenv("ONPREM_STATIC_FRONTEND_PATH")
 	landingStagingURL  = os.Getenv("LANDING_PAGE_STAGING_URI")
 	sendgridKey        = os.Getenv("SENDGRID_API_KEY")
