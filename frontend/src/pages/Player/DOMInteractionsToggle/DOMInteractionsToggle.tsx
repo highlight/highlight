@@ -1,6 +1,6 @@
-import { Switch } from 'antd';
 import React from 'react';
 
+import Switch from '../../../components/Switch/Switch';
 import Tooltip from '../../../components/Tooltip/Tooltip';
 import usePlayerConfiguration from '../PlayerHook/utils/usePlayerConfiguration';
 import styles from './DOMInteractionsToggle.module.scss';
@@ -17,12 +17,13 @@ const DOMInteractionsToggle = () => {
         >
             <div className={styles.container}>
                 <Switch
+                    label="Inspect Element"
                     checked={enableInspectElement}
                     onChange={() => {
                         setEnableInspectElement(!enableInspectElement);
                     }}
+                    trackingId="DOMInteractions"
                 />{' '}
-                Inspect Element
             </div>
         </Tooltip>
     );

@@ -1,3 +1,4 @@
+import classNames from 'classnames';
 import React, { useMemo } from 'react';
 import ReactNiceAvatar, { genConfig } from 'react-nice-avatar';
 
@@ -53,7 +54,7 @@ const HAIR_STYLES = [
     'womanLong',
     'womanShort',
 ] as const;
-const HAT_STYLES = ['beanie', 'turban', 'none'] as const;
+const HAT_STYLES = ['beanie', 'none'] as const;
 const GLASSES_STYLES = ['round', 'square', 'none'] as const;
 const NOSE_STYLES = ['short', 'long', 'round'] as const;
 const MOUTH_STYLES = ['laugh', 'smile', 'peace'] as const;
@@ -63,10 +64,15 @@ export const Avatar = ({
     style = {},
     seed,
     shape = 'circle',
+    customImage,
+    className,
 }: {
     style?: React.CSSProperties;
     seed: string;
     shape?: 'circle' | 'rounded' | 'square';
+    /** Use `customImage` instead of generating a random SVG Avatar. */
+    customImage?: string;
+    className?: string;
 }) => {
     const config = useMemo(() => {
         const seedAsInt = getAvatarHash(seed);
@@ -92,7 +98,24 @@ export const Avatar = ({
         });
     }, [seed]);
 
-    return <ReactNiceAvatar style={style as any} {...config} shape={shape} />;
+    if (customImage) {
+        return (
+            <img
+                src={customImage}
+                style={style}
+                className={classNames(userAvatar, className)}
+            />
+        );
+    }
+
+    return (
+        <ReactNiceAvatar
+            style={style as any}
+            {...config}
+            shape={shape}
+            className={className}
+        />
+    );
 };
 
 export const AdminAvatar = ({

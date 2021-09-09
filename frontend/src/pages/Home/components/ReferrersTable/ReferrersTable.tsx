@@ -1,13 +1,20 @@
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { useParams } from '@util/react-router/useParams';
+import { message } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 import classNames from 'classnames';
 import React, { useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { useHistory, useParams } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 
 import BarChartTable from '../../../../components/BarChartTable/BarChartTable';
 import { getPercentageDisplayValue } from '../../../../components/BarChartTable/utils/utils';
 import { useGetReferrersCountQuery } from '../../../../graph/generated/hooks';
-import { SessionPageSearchParams } from '../../../Player/utils/utils';
+import { EmptySessionsSearchParams } from '../../../Sessions/EmptySessionsSearchParams';
+import { useSearchContext } from '../../../Sessions/SearchContext/SearchContext';
 import homePageStyles from '../../HomePage.module.scss';
 import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext';
 import styles from './ReferrersTable.module.scss';
@@ -17,8 +24,18 @@ const ReferrersTable = () => {
     const { organization_id } = useParams<{
         organization_id: string;
     }>();
+    const organizationIdRemapped =
+        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : organization_id;
+
     const { dateRangeLength } = useHomePageFiltersContext();
     const history = useHistory();
+    const {
+        setSearchParams,
+        setSegmentName,
+        setSelectedSegment,
+    } = useSearchContext();
 
     const { loading } = useGetReferrersCountQuery({
         variables: { organization_id, lookBackPeriod: dateRangeLength },
@@ -56,10 +73,18 @@ const ReferrersTable = () => {
             <BarChartTable
                 columns={Columns}
                 data={tableData}
+                loading={loading}
                 onClickHandler={(record) => {
-                    history.push(
-                        `/${organization_id}/sessions?${SessionPageSearchParams.referrer}=${record.host}`
+                    setSegmentName(null);
+                    setSelectedSegment(undefined);
+                    setSearchParams({
+                        ...EmptySessionsSearchParams,
+                        referrer: record.host,
+                    });
+                    message.success(
+                        `Showing sessions that were referred by ${record.host}`
                     );
+                    history.push(`/${organizationIdRemapped}/sessions`);
                 }}
                 noDataTitle="No referrer data yet 😔"
                 noDataMessage="Doesn't look like your app has been referred to yet."

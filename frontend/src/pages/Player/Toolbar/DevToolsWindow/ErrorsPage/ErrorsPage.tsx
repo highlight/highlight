@@ -11,7 +11,7 @@ import ErrorCard, { ErrorCardState } from './components/ErrorCard/ErrorCard';
 import styles from './ErrorsPage.module.scss';
 import { findLastActiveEventIndex } from './utils/utils';
 
-export interface ErrorsPageHistoryState {
+interface ErrorsPageHistoryState {
     errorCardIndex: number;
 }
 
@@ -92,7 +92,7 @@ const ErrorsPage = () => {
                                 setFilterSearchTerm(event.target.value);
                             }}
                             size="small"
-                            disabled={loading}
+                            disabled={loading || errorsToRender.length === 0}
                         />
                     </div>
                 </div>

@@ -1,10 +1,10 @@
 import useLocalStorage from '@rehooks/local-storage';
+import { useParams } from '@util/react-router/useParams';
 import { Menu } from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import Lottie from 'lottie-react';
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
 
 import { useGetNotificationsQuery } from '../../../graph/generated/hooks';
 import NotificationAnimation from '../../../lottie/waiting.json';
@@ -21,6 +21,7 @@ import { processNotifications } from './utils/utils';
 const Notifications = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const [notifications, setNotifications] = useState<any[]>([]);
+    const [showPopover, setShowPopover] = useState(false);
     const [
         unreadNotificationsCount,
         setUnreadNotificationsCount,
@@ -56,8 +57,9 @@ const Notifications = () => {
     return (
         <Popover
             hasBorder
-            placement="bottomLeft"
             isList
+            visible={showPopover}
+            trigger={['click']}
             content={
                 <div className={styles.popover}>
                     {notifications.length !== 0 ? (
@@ -71,6 +73,7 @@ const Notifications = () => {
                                             notification.id
                                         )}
                                         onViewHandler={() => {
+                                            setShowPopover(false);
                                             if (notification.id) {
                                                 H.track(
                                                     'Clicked on notification item',
@@ -105,6 +108,7 @@ const Notifications = () => {
                 if (visible) {
                     H.track('Viewed notifications');
                 }
+                setShowPopover(visible);
             }}
             title={
                 <div className={styles.popoverTitle}>

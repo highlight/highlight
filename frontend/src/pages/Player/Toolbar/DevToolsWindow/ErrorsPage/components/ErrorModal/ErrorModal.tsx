@@ -1,6 +1,10 @@
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 import { useHistory } from 'react-router';
-import { useParams } from 'react-router-dom';
 
 import Button from '../../../../../../../components/Button/Button/Button';
 import { LoadingBar } from '../../../../../../../components/Loading/Loading';
@@ -22,6 +26,10 @@ const ErrorModal = ({ error }: Props) => {
     });
     const history = useHistory();
     const { organization_id } = useParams<{ organization_id: string }>();
+    const organizationIdRemapped =
+        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : organization_id;
 
     return (
         <div className={styles.container}>
@@ -31,7 +39,7 @@ const ErrorModal = ({ error }: Props) => {
                 <div>
                     {data && (
                         <>
-                            <div className={styles.errorTitleContainer}>
+                            <div className={styles.titleContainer}>
                                 <ErrorTitle errorGroup={data.error_group} />
                             </div>
 
@@ -42,7 +50,10 @@ const ErrorModal = ({ error }: Props) => {
                             </div>
 
                             <h3>Stack Trace</h3>
-                            <StackTraceSection errorGroup={data.error_group} />
+                            <StackTraceSection
+                                errorGroup={data.error_group}
+                                loading={loading}
+                            />
 
                             <ErrorFrequencyGraph
                                 errorGroup={data.error_group}
@@ -55,7 +66,7 @@ const ErrorModal = ({ error }: Props) => {
                             type="primary"
                             onClick={() => {
                                 history.push(
-                                    `/${organization_id}/errors/${error.error_group_id}`
+                                    `/${organizationIdRemapped}/errors/${error.error_group_id}`
                                 );
                             }}
                         >

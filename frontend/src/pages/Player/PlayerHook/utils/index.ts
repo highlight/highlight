@@ -1,15 +1,14 @@
+import { ErrorObject, Session, SessionComment } from '@graph/schemas';
 import { Replayer } from '@highlight-run/rrweb';
 import {
     playerMetaData,
     SessionInterval,
 } from '@highlight-run/rrweb/dist/types';
+import { message } from 'antd';
+import * as H from 'history';
 import { useCallback, useState } from 'react';
 import { useLocation } from 'react-router';
 
-import {
-    ErrorObject,
-    SessionComment,
-} from '../../../../graph/generated/schemas';
 import { HighlightEvent } from '../../HighlightEvent';
 import {
     ParsedEvent,
@@ -199,7 +198,7 @@ export const useSetPlayerTimestampFromSearchParam = (
 };
 
 /** These are the type of custom events that will show up as annotations on the timeline. */
-export const CustomEventsForTimeline = [
+const CustomEventsForTimeline = [
     'Click',
     'Focus',
     'Reload',
@@ -223,9 +222,9 @@ export type EventsForTimelineKeys = typeof EventsForTimeline;
  * Gets events for the timeline indicator based on the type of event.
  */
 export const getEventsForTimelineIndicator = (
-    sessionIntervals: ParsedSessionInterval[],
     events: HighlightEvent[],
-    sessionStartTime: number
+    sessionStartTime: number,
+    sessionTotalTime: number
 ): ParsedHighlightEvent[] => {
     const eventsToAddToTimeline = events.filter((event) => {
         if (event.type === 5) {
@@ -236,10 +235,10 @@ export const getEventsForTimelineIndicator = (
     });
 
     const groupedEvents = assignEventToSessionInterval(
-        sessionIntervals,
         eventsToAddToTimeline,
-        sessionStartTime
-    ).flat();
+        sessionStartTime,
+        sessionTotalTime
+    );
 
     return groupedEvents as ParsedHighlightEvent[];
 };
@@ -248,16 +247,16 @@ export const getEventsForTimelineIndicator = (
  * Returns the comments that are in the respective interval bins. If a comment is in the ith index, then it shows up in the ith session interval.
  */
 export const getCommentsInSessionIntervals = (
-    sessionIntervals: ParsedSessionInterval[],
     comments: SessionComment[],
-    sessionStartTime: number
-): ParsedSessionComment[][] => {
+    sessionStartTime: number,
+    sessionTotalTime: number
+): ParsedSessionComment[] => {
     return assignEventToSessionInterval(
-        sessionIntervals,
         comments,
         sessionStartTime,
+        sessionTotalTime,
         true
-    ) as ParsedSessionComment[][];
+    ) as ParsedSessionComment[];
 };
 
 type ParsableEvent = ErrorObject | HighlightEvent | SessionComment;
@@ -266,46 +265,89 @@ type ParsableEvent = ErrorObject | HighlightEvent | SessionComment;
  * Adds events to the session interval that the event occurred in.
  */
 const assignEventToSessionInterval = (
-    sessionIntervals: ParsedSessionInterval[],
     events: ParsableEvent[],
     sessionStartTime: number,
+    sessionTotalTime: number,
     /** Whether the timestamp in events global time or already relative to the session. */
     relativeTime = false
 ) => {
-    let eventIndex = 0;
-    let sessionIntervalIndex = 0;
-    let currentSessionInterval = sessionIntervals[sessionIntervalIndex];
-    const response: ParsedEvent[][] = Array.from(
-        Array(sessionIntervals.length)
-    ).map(() => []);
+    const response: ParsedEvent[] = [];
 
-    while (
-        eventIndex < events.length &&
-        sessionIntervalIndex < sessionIntervals.length
-    ) {
-        const event = events[eventIndex];
+    events.forEach((event) => {
         const relativeTimestamp = relativeTime
             ? event.timestamp
             : new Date(event.timestamp).getTime() - sessionStartTime;
 
-        if (
-            relativeTimestamp >= currentSessionInterval.startTime &&
-            relativeTimestamp <= currentSessionInterval.endTime
-        ) {
-            const relativeTime =
-                relativeTimestamp - currentSessionInterval.startTime;
-            response[sessionIntervalIndex].push({
-                ...event,
-                // Calculate at the percentage of time where the event occurred in the session.
-                relativeIntervalPercentage:
-                    (relativeTime / currentSessionInterval.duration) * 100,
-            });
-            eventIndex++;
-        } else {
-            sessionIntervalIndex++;
-            currentSessionInterval = sessionIntervals[sessionIntervalIndex];
-        }
-    }
+        response.push({
+            ...event,
+            relativeIntervalPercentage:
+                (relativeTimestamp / sessionTotalTime) * 100,
+        });
+    });
 
     return response;
+};
+
+export const findNextSessionInList = (
+    allSessions: Session[],
+    currentSessionId: string
+): Session | null => {
+    let currentSessionIndex = allSessions.findIndex(
+        (session) => session.id === currentSessionId
+    );
+
+    // This happens if the current session was removed from the session feed.
+    if (currentSessionIndex === -1) {
+        currentSessionIndex = 0;
+    }
+
+    const nextSessionIndex = currentSessionIndex + 1;
+
+    // Don't go beyond the last session.
+    if (nextSessionIndex >= allSessions.length) {
+        return null;
+    }
+
+    return allSessions[nextSessionIndex];
+};
+
+export const findPreviousSessionInList = (
+    allSessions: Session[],
+    currentSessionId: string
+): Session | null => {
+    const currentSessionIndex = allSessions.findIndex(
+        (session) => session.id === currentSessionId
+    );
+
+    // This happens if the current session was removed from the session feed.
+    if (currentSessionIndex < 0) {
+        return allSessions[0];
+    }
+
+    const nextSessionIndex = currentSessionIndex - 1;
+
+    // Don't go beyond the first session.
+    if (nextSessionIndex < 0) {
+        return null;
+    }
+
+    return allSessions[nextSessionIndex];
+};
+
+export const changeSession = (
+    organizationId: string,
+    history: H.History,
+    session: Session | null,
+    successMessageText = 'Playing the next session.'
+) => {
+    const organizationIdRemapped =
+        organizationId === '0' ? 'demo' : organizationId;
+
+    if (!session) {
+        message.success('No more sessions to play.');
+        return;
+    }
+
+    history.push(`/${organizationIdRemapped}/sessions/${session.id}`);
+    message.success(successMessageText);
 };

@@ -91,6 +91,21 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
                 align={{ offset: [0, 12] }}
                 visible={visible}
                 defaultVisible={deepLinkedCommentId === comment.id}
+                // Sets the Popover's mount node as the player center panel.
+                // The default is document.body
+                // We override here to be able to show the comments when the player is in fullscreen
+                // Without this, the new comment modal would be below the fullscreen view.
+                getPopupContainer={() => {
+                    const playerCenterPanel = document.getElementById(
+                        'playerCenterPanel'
+                    );
+
+                    if (playerCenterPanel) {
+                        return playerCenterPanel;
+                    }
+
+                    return document.body;
+                }}
             >
                 <button
                     onClick={() => {

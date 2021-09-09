@@ -1,15 +1,17 @@
+import { message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { Link, useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
-import { useAuthContext } from '../../../AuthContext';
+import { useAuthContext } from '../../../authentication/AuthContext';
 import DataCard from '../../../components/DataCard/DataCard';
 import KeyValueTable, {
     KeyValueTableRow,
 } from '../../../components/KeyValueTable/KeyValueTable';
+import { EmptySessionsSearchParams } from '../../Sessions/EmptySessionsSearchParams';
+import { useSearchContext } from '../../Sessions/SearchContext/SearchContext';
 import { useReplayerContext } from '../ReplayerContext';
 import { formatSize } from '../Toolbar/DevToolsWindow/ResourcePage/ResourcePage';
-import { SessionPageSearchParams } from '../utils/utils';
 import styles from './MetadataPanel.module.scss';
 
 type Field = {
@@ -19,10 +21,12 @@ type Field = {
 };
 
 const MetadataPanel = () => {
-    const { organization_id } = useParams<{
-        organization_id: string;
-    }>();
     const { session } = useReplayerContext();
+    const {
+        setSearchParams,
+        setSegmentName,
+        setSelectedSegment,
+    } = useSearchContext();
     const { isHighlightAdmin } = useAuthContext();
 
     const [parsedFields, setParsedFields] = useState<Field[]>([]);
@@ -79,6 +83,27 @@ const MetadataPanel = () => {
                 </>
             ),
             renderType: 'string',
+        },
+        {
+            keyDisplayValue: 'Strict Privacy',
+            valueDisplayValue: session?.enable_strict_privacy
+                ? 'Enabled'
+                : 'Disabled',
+            renderType: 'string',
+            valueInfoTooltipMessage: (
+                <>
+                    {session?.enable_strict_privacy
+                        ? 'Text and images in this session are obfuscated.'
+                        : 'This session is recording all content on the page.'}{' '}
+                    <a
+                        href="https://docs.highlight.run/docs/privacy#overview"
+                        target="_blank"
+                        rel="noreferrer"
+                    >
+                        Learn more about Strict Privacy Mode.
+                    </a>
+                </>
+            ),
         },
         {
             keyDisplayValue: 'Record Network Requests',
@@ -155,11 +180,13 @@ const MetadataPanel = () => {
     ];
 
     parsedFields?.forEach((field) => {
-        userData.push({
-            keyDisplayValue: field.name,
-            valueDisplayValue: field.value,
-            renderType: 'string',
-        });
+        if (field.name !== 'avatar') {
+            userData.push({
+                keyDisplayValue: field.name,
+                valueDisplayValue: field.value,
+                renderType: 'string',
+            });
+        }
     });
 
     const deviceData: KeyValueTableRow[] = [];
@@ -169,9 +196,18 @@ const MetadataPanel = () => {
             keyDisplayValue: 'Device ID',
             valueDisplayValue: (
                 <Link
-                    to={`/${organization_id}/sessions?${new URLSearchParams({
-                        [SessionPageSearchParams.deviceId]: session.fingerprint.toString(),
-                    }).toString()}`}
+                    to={window.location.pathname}
+                    onClick={() => {
+                        message.success(
+                            `Showing sessions created by device #${session.fingerprint}`
+                        );
+                        setSegmentName(null);
+                        setSelectedSegment(undefined);
+                        setSearchParams({
+                            ...EmptySessionsSearchParams,
+                            device_id: session.fingerprint?.toString(),
+                        });
+                    }}
                 >
                     #{session?.fingerprint}
                 </Link>

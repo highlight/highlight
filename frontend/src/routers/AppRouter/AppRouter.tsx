@@ -1,5 +1,6 @@
 import '../../App.scss';
 
+import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import React from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 
@@ -30,6 +31,11 @@ export const AppRouter = () => {
                         <InternalRouter />
                     </Route>
                     <Route path="/:organization_id(\d+)">
+                        <OrgRouter />
+                    </Route>
+                    <Route
+                        path={`/:organization_id(${DEMO_WORKSPACE_PROXY_APPLICATION_ID})`}
+                    >
                         <OrgRouter />
                     </Route>
                     <Route path="/">

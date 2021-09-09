@@ -9,6 +9,7 @@ $vert: 2px;
 
 .key {
     align-items: center;
+    background: var(--color-primary-background);
     border-bottom-left-radius: var(--size-xxSmall);
     border-top-left-radius: var(--size-xxSmall);
     display: flex;
@@ -25,6 +26,5 @@ $vert: 2px;
     border-radius: 4px;
     display: inline-block;
     font-weight: 300 !important;
-    margin-bottom: 10px;
-    margin-right: 11px;
+    width: fit-content;
 }

@@ -1,14 +1,16 @@
+import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { useParams } from 'react-router-dom';
 
-import { useAuthContext } from '../../../AuthContext';
+import { useAuthContext } from '../../../authentication/AuthContext';
 import { Avatar } from '../../../components/Avatar/Avatar';
 import UserIdentifier from '../../../components/UserIdentifier/UserIdentifier';
 import { useMarkSessionAsStarredMutation } from '../../../graph/generated/hooks';
+import { Maybe, Session } from '../../../graph/generated/schemas';
 import { ReactComponent as StarIcon } from '../../../static/star.svg';
 import { ReactComponent as FilledStarIcon } from '../../../static/star-filled.svg';
+import { getIdentifiedUserProfileImage } from '../../Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils';
 import { useReplayerContext } from '../ReplayerContext';
 import styles from './MetadataBox.module.scss';
 import { getMajorVersion } from './utils/utils';
@@ -34,6 +36,9 @@ export const MetadataBox = () => {
         },
     });
     const created = new Date(session?.created_at ?? 0);
+    const customAvatarImage = getIdentifiedUserProfileImage(
+        session as Maybe<Session>
+    );
 
     return (
         <div className={styles.locationBox}>
@@ -77,6 +82,7 @@ export const MetadataBox = () => {
                             style={{ width: '36px', height: '36px' }}
                             seed={session?.identifier ?? ''}
                             shape="rounded"
+                            customImage={customAvatarImage}
                         />
                     )}
                 </div>

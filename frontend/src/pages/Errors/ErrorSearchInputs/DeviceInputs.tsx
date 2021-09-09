@@ -1,18 +1,18 @@
-import React, { useContext } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams } from '@util/react-router/useParams';
+import React from 'react';
 import { OptionsType, OptionTypeBase, ValueType } from 'react-select';
 import AsyncSelect from 'react-select/async';
 
 import { useGetErrorFieldSuggestionQuery } from '../../../graph/generated/hooks';
-import { ReactComponent as BrowserIcon } from '../../../static/browser.svg';
-import { ReactComponent as OSIcon } from '../../../static/os.svg';
+import SvgBrowser from '../../../static/Browser';
+import SvgOs from '../../../static/Os';
 import inputStyles from '../../Sessions/SearchInputs/InputStyles.module.scss';
 import { SharedSelectStyleProps } from '../../Sessions/SearchInputs/SearchInputUtil';
-import { ErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
+import { useErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
 
 export const OperatingSystemInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const { searchParams, setSearchParams } = useContext(ErrorSearchContext);
+    const { searchParams, setSearchParams } = useErrorSearchContext();
 
     const { refetch } = useGetErrorFieldSuggestionQuery({ skip: true });
 
@@ -42,7 +42,7 @@ export const OperatingSystemInput = () => {
     return (
         <div>
             <AsyncSelect
-                placeholder={'Operating System'}
+                placeholder={'Windows, Mac, Linux...'}
                 isClearable
                 cacheOptions
                 value={
@@ -55,7 +55,7 @@ export const OperatingSystemInput = () => {
                 components={{
                     DropdownIndicator: () => (
                         <div className={inputStyles.iconWrapper}>
-                            <OSIcon fill="#808080" />
+                            <SvgOs />
                         </div>
                     ),
                     IndicatorSeparator: () => null,
@@ -69,7 +69,7 @@ export const OperatingSystemInput = () => {
 
 export const BrowserInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const { searchParams, setSearchParams } = useContext(ErrorSearchContext);
+    const { searchParams, setSearchParams } = useErrorSearchContext();
 
     const { refetch } = useGetErrorFieldSuggestionQuery({ skip: true });
 
@@ -100,7 +100,7 @@ export const BrowserInput = () => {
     return (
         <div>
             <AsyncSelect
-                placeholder={'Browser'}
+                placeholder={'Chrome, Firefox, Safari...'}
                 isClearable
                 cacheOptions
                 value={
@@ -115,7 +115,7 @@ export const BrowserInput = () => {
                 components={{
                     DropdownIndicator: () => (
                         <div className={inputStyles.iconWrapper}>
-                            <BrowserIcon fill="#808080" />
+                            <SvgBrowser />
                         </div>
                     ),
                     IndicatorSeparator: () => null,

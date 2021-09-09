@@ -22,14 +22,23 @@ export type MarkSessionAsStarredMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
-export type CreateOrUpdateSubscriptionMutationVariables = Types.Exact<{
+export type CreateOrUpdateStripeSubscriptionMutationVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     plan_type: Types.PlanType;
 }>;
 
-export type CreateOrUpdateSubscriptionMutation = {
+export type CreateOrUpdateStripeSubscriptionMutation = {
     __typename?: 'Mutation';
-} & Pick<Types.Mutation, 'createOrUpdateSubscription'>;
+} & Pick<Types.Mutation, 'createOrUpdateStripeSubscription'>;
+
+export type UpdateBillingDetailsMutationVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+}>;
+
+export type UpdateBillingDetailsMutation = { __typename?: 'Mutation' } & Pick<
+    Types.Mutation,
+    'updateBillingDetails'
+>;
 
 export type UpdateErrorGroupStateMutationVariables = Types.Exact<{
     id: Types.Scalars['ID'];
@@ -69,6 +78,17 @@ export type DeleteAdminFromOrganizationMutationVariables = Types.Exact<{
 export type DeleteAdminFromOrganizationMutation = {
     __typename?: 'Mutation';
 } & Pick<Types.Mutation, 'deleteAdminFromOrganization'>;
+
+export type OpenSlackConversationMutationVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    code: Types.Scalars['String'];
+    redirect_path: Types.Scalars['String'];
+}>;
+
+export type OpenSlackConversationMutation = { __typename?: 'Mutation' } & Pick<
+    Types.Mutation,
+    'openSlackConversation'
+>;
 
 export type AddSlackIntegrationToWorkspaceMutationVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
@@ -301,7 +321,7 @@ export type CreateErrorSegmentMutation = { __typename?: 'Mutation' } & {
         > & {
                 params: { __typename?: 'ErrorSearchParams' } & Pick<
                     Types.ErrorSearchParams,
-                    'os' | 'browser' | 'visited_url' | 'hide_resolved'
+                    'os' | 'browser' | 'visited_url' | 'state'
                 > & {
                         date_range?: Types.Maybe<
                             { __typename?: 'DateRange' } & Pick<
@@ -493,6 +513,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'starred'
             | 'enable_strict_privacy'
             | 'enable_recording_network_contents'
+            | 'field_group'
             | 'object_storage_enabled'
             | 'payload_size'
             | 'within_billing_quota'
@@ -548,6 +569,7 @@ export type GetSessionCommentsQuery = { __typename?: 'Query' } & {
                 | 'text'
                 | 'x_coordinate'
                 | 'y_coordinate'
+                | 'type'
             > & {
                     author: { __typename?: 'SanitizedAdmin' } & Pick<
                         Types.SanitizedAdmin,
@@ -707,6 +729,7 @@ export type GetSessionsQuery = { __typename?: 'Query' } & {
                     | 'viewed'
                     | 'starred'
                     | 'processed'
+                    | 'field_group'
                     | 'first_time'
                 > & {
                         fields?: Types.Maybe<
@@ -741,13 +764,41 @@ export type GetOrganizationsQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetApplicationsQueryVariables = Types.Exact<{
+    id: Types.Scalars['ID'];
+}>;
+
+export type GetApplicationsQuery = { __typename?: 'Query' } & {
+    organizations?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Organization' } & Pick<
+                    Types.Organization,
+                    'id' | 'name'
+                >
+            >
+        >
+    >;
+    organization?: Types.Maybe<
+        { __typename?: 'Organization' } & Pick<
+            Types.Organization,
+            | 'id'
+            | 'name'
+            | 'verbose_id'
+            | 'billing_email'
+            | 'slack_webhook_channel'
+            | 'secret'
+        >
+    >;
+};
+
 export type GetAdminQueryVariables = Types.Exact<{ [key: string]: never }>;
 
 export type GetAdminQuery = { __typename?: 'Query' } & {
     admin?: Types.Maybe<
         { __typename?: 'Admin' } & Pick<
             Types.Admin,
-            'id' | 'name' | 'email' | 'photo_url'
+            'id' | 'name' | 'email' | 'photo_url' | 'slack_im_channel_id'
         >
     >;
 };
@@ -795,7 +846,14 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
     error_group?: Types.Maybe<
         { __typename?: 'ErrorGroup' } & Pick<
             Types.ErrorGroup,
-            'id' | 'type' | 'organization_id' | 'event' | 'resolved' | 'state'
+            | 'created_at'
+            | 'id'
+            | 'type'
+            | 'organization_id'
+            | 'event'
+            | 'state'
+            | 'mapped_stack_trace'
+            | 'error_frequency'
         > & {
                 stack_trace: Array<
                     Types.Maybe<
@@ -851,12 +909,13 @@ export type GetErrorGroupsQuery = { __typename?: 'Query' } & {
                 error_groups: Array<
                     { __typename?: 'ErrorGroup' } & Pick<
                         Types.ErrorGroup,
+                        | 'created_at'
                         | 'id'
                         | 'type'
                         | 'event'
-                        | 'resolved'
                         | 'state'
                         | 'environments'
+                        | 'error_frequency'
                     > & {
                             stack_trace: Array<
                                 Types.Maybe<
@@ -955,6 +1014,34 @@ export type GetErrorFieldSuggestionQueryVariables = Types.Exact<{
 
 export type GetErrorFieldSuggestionQuery = { __typename?: 'Query' } & {
     error_field_suggestion?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'ErrorField' } & Pick<
+                    Types.ErrorField,
+                    'name' | 'value'
+                >
+            >
+        >
+    >;
+};
+
+export type GetErrorSearchSuggestionsQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    query: Types.Scalars['String'];
+}>;
+
+export type GetErrorSearchSuggestionsQuery = { __typename?: 'Query' } & {
+    visitedUrls?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'ErrorField' } & Pick<
+                    Types.ErrorField,
+                    'name' | 'value'
+                >
+            >
+        >
+    >;
+    fields?: Types.Maybe<
         Array<
             Types.Maybe<
                 { __typename?: 'ErrorField' } & Pick<
@@ -1141,11 +1228,7 @@ export type GetErrorSegmentsQuery = { __typename?: 'Query' } & {
                 > & {
                         params: { __typename?: 'ErrorSearchParams' } & Pick<
                             Types.ErrorSearchParams,
-                            | 'os'
-                            | 'browser'
-                            | 'visited_url'
-                            | 'hide_resolved'
-                            | 'event'
+                            'os' | 'browser' | 'visited_url' | 'state' | 'event'
                         > & {
                                 date_range?: Types.Maybe<
                                     { __typename?: 'DateRange' } & Pick<
@@ -1298,6 +1381,17 @@ export type GetDailyErrorsCountQuery = { __typename?: 'Query' } & {
         >
     >;
 };
+
+export type GetDailyErrorFrequencyQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    error_group_id: Types.Scalars['ID'];
+    date_offset: Types.Scalars['Int'];
+}>;
+
+export type GetDailyErrorFrequencyQuery = { __typename?: 'Query' } & Pick<
+    Types.Query,
+    'dailyErrorFrequency'
+>;
 
 export type GetErrorAlertQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
@@ -1517,4 +1611,87 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
                 >;
             }
     >;
+};
+
+export const namedOperations = {
+    Query: {
+        GetSessionPayload: 'GetSessionPayload' as const,
+        GetSession: 'GetSession' as const,
+        GetAdmins: 'GetAdmins' as const,
+        GetSessionComments: 'GetSessionComments' as const,
+        GetNotifications: 'GetNotifications' as const,
+        GetSessionCommentsForAdmin: 'GetSessionCommentsForAdmin' as const,
+        GetErrorComments: 'GetErrorComments' as const,
+        GetOnboardingSteps: 'GetOnboardingSteps' as const,
+        GetSessions: 'GetSessions' as const,
+        GetOrganizations: 'GetOrganizations' as const,
+        GetApplications: 'GetApplications' as const,
+        GetAdmin: 'GetAdmin' as const,
+        GetOrganization: 'GetOrganization' as const,
+        GetBillingDetails: 'GetBillingDetails' as const,
+        GetErrorGroup: 'GetErrorGroup' as const,
+        GetErrorGroups: 'GetErrorGroups' as const,
+        GetMessages: 'GetMessages' as const,
+        GetResources: 'GetResources' as const,
+        GetFieldSuggestion: 'GetFieldSuggestion' as const,
+        GetOrganizationSuggestion: 'GetOrganizationSuggestion' as const,
+        GetErrorFieldSuggestion: 'GetErrorFieldSuggestion' as const,
+        GetErrorSearchSuggestions: 'GetErrorSearchSuggestions' as const,
+        GetSessionSearchResults: 'GetSessionSearchResults' as const,
+        GetTrackSuggestion: 'GetTrackSuggestion' as const,
+        GetUserSuggestion: 'GetUserSuggestion' as const,
+        GetSegments: 'GetSegments' as const,
+        GetErrorSegments: 'GetErrorSegments' as const,
+        IsIntegrated: 'IsIntegrated' as const,
+        UnprocessedSessionsCount: 'UnprocessedSessionsCount' as const,
+        GetKeyPerformanceIndicators: 'GetKeyPerformanceIndicators' as const,
+        GetReferrersCount: 'GetReferrersCount' as const,
+        GetNewUsersCount: 'GetNewUsersCount' as const,
+        GetAverageSessionLength: 'GetAverageSessionLength' as const,
+        GetTopUsers: 'GetTopUsers' as const,
+        GetDailySessionsCount: 'GetDailySessionsCount' as const,
+        GetDailyErrorsCount: 'GetDailyErrorsCount' as const,
+        GetDailyErrorFrequency: 'GetDailyErrorFrequency' as const,
+        GetErrorAlert: 'GetErrorAlert' as const,
+        GetNewUserAlert: 'GetNewUserAlert' as const,
+        GetTrackPropertiesAlert: 'GetTrackPropertiesAlert' as const,
+        GetUserPropertiesAlert: 'GetUserPropertiesAlert' as const,
+        GetEnvironmentSuggestion: 'GetEnvironmentSuggestion' as const,
+        GetSlackChannelSuggestion: 'GetSlackChannelSuggestion' as const,
+        GetAlertsPagePayload: 'GetAlertsPagePayload' as const,
+    },
+    Mutation: {
+        MarkSessionAsViewed: 'MarkSessionAsViewed' as const,
+        MarkSessionAsStarred: 'MarkSessionAsStarred' as const,
+        CreateOrUpdateStripeSubscription: 'CreateOrUpdateStripeSubscription' as const,
+        UpdateBillingDetails: 'UpdateBillingDetails' as const,
+        updateErrorGroupState: 'updateErrorGroupState' as const,
+        SendEmailSignup: 'SendEmailSignup' as const,
+        AddAdminToOrganization: 'AddAdminToOrganization' as const,
+        DeleteAdminFromOrganization: 'DeleteAdminFromOrganization' as const,
+        OpenSlackConversation: 'OpenSlackConversation' as const,
+        AddSlackIntegrationToWorkspace: 'AddSlackIntegrationToWorkspace' as const,
+        CreateOrganization: 'CreateOrganization' as const,
+        EditOrganization: 'EditOrganization' as const,
+        DeleteOrganization: 'DeleteOrganization' as const,
+        DeleteSegment: 'DeleteSegment' as const,
+        EditSegment: 'EditSegment' as const,
+        CreateSegment: 'CreateSegment' as const,
+        CreateSessionComment: 'CreateSessionComment' as const,
+        DeleteSessionComment: 'DeleteSessionComment' as const,
+        CreateErrorComment: 'CreateErrorComment' as const,
+        DeleteErrorComment: 'DeleteErrorComment' as const,
+        DeleteErrorSegment: 'DeleteErrorSegment' as const,
+        EditErrorSegment: 'EditErrorSegment' as const,
+        CreateErrorSegment: 'CreateErrorSegment' as const,
+        UpdateErrorAlert: 'UpdateErrorAlert' as const,
+        UpdateNewUserAlert: 'UpdateNewUserAlert' as const,
+        UpdateTrackPropertiesAlert: 'UpdateTrackPropertiesAlert' as const,
+        UpdateUserPropertiesAlert: 'UpdateUserPropertiesAlert' as const,
+        UpdateSessionIsPublic: 'UpdateSessionIsPublic' as const,
+        SendAdminInvite: 'SendAdminInvite' as const,
+    },
+    Fragment: {
+        errorFields: 'errorFields' as const,
+    },
 };

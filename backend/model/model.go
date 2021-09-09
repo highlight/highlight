@@ -62,6 +62,16 @@ var ErrorGroupStates = struct {
 	IGNORED:  "IGNORED",
 }
 
+var SessionCommentTypes = struct {
+	// Comments created by a Highlight user on the Highlight app.
+	ADMIN string
+	// Comments created by a Highlight customer, comes from feedback from their app.
+	FEEDBACK string
+}{
+	ADMIN:    "ADMIN",
+	FEEDBACK: "FEEDBACK",
+}
+
 type contextString string
 
 var ContextKeys = struct {
@@ -69,11 +79,14 @@ var ContextKeys = struct {
 	UserAgent      contextString
 	AcceptLanguage contextString
 	UID            contextString
+	// The email for the current user. If the email is a @highlight.run, the email will need to be verified, otherwise `Email` will be an empty string.
+	Email contextString
 }{
 	IP:             "ip",
 	UserAgent:      "userAgent",
 	AcceptLanguage: "acceptLanguage",
 	UID:            "uid",
+	Email:          "email",
 }
 
 var Models = []interface{}{
@@ -110,7 +123,7 @@ func init() {
 }
 
 type Model struct {
-	ID        int        `gorm:"primary_key" json:"id"`
+	ID        int        `gorm:"primary_key;type:serial" json:"id"`
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at"`
 	DeletedAt *time.Time `json:"deleted_at"`
@@ -278,13 +291,14 @@ func (u *Organization) BeforeCreate(tx *gorm.DB) (err error) {
 
 type Admin struct {
 	Model
-	Name            *string
-	Email           *string
-	PhotoURL        *string          `json:"photo_url"`
-	UID             *string          `gorm:"unique_index"`
-	Organizations   []Organization   `gorm:"many2many:organization_admins;"`
-	SessionComments []SessionComment `gorm:"many2many:session_comment_admins;"`
-	ErrorComments   []ErrorComment   `gorm:"many2many:error_comment_admins;"`
+	Name             *string
+	Email            *string
+	PhotoURL         *string          `json:"photo_url"`
+	UID              *string          `gorm:"unique_index"`
+	Organizations    []Organization   `gorm:"many2many:organization_admins;"`
+	SessionComments  []SessionComment `gorm:"many2many:session_comment_admins;"`
+	ErrorComments    []ErrorComment   `gorm:"many2many:error_comment_admins;"`
+	SlackIMChannelID *string
 }
 
 type EmailSignup struct {
@@ -470,8 +484,8 @@ type DateRange struct {
 }
 
 type LengthRange struct {
-	Min int
-	Max int
+	Min float64
+	Max float64
 }
 
 type UserProperty struct {
@@ -516,12 +530,12 @@ type ErrorResults struct {
 }
 
 type ErrorSearchParams struct {
-	DateRange    *DateRange `json:"date_range"`
-	Browser      *string    `json:"browser"`
-	OS           *string    `json:"os"`
-	VisitedURL   *string    `json:"visited_url"`
-	HideResolved bool       `json:"hide_resolved"`
-	Event        *string    `json:"event"`
+	DateRange  *DateRange              `json:"date_range"`
+	Browser    *string                 `json:"browser"`
+	OS         *string                 `json:"os"`
+	VisitedURL *string                 `json:"visited_url"`
+	Event      *string                 `json:"event"`
+	State      *modelInputs.ErrorState `json:"state"`
 }
 type ErrorSegment struct {
 	Model
@@ -559,7 +573,6 @@ type ErrorGroup struct {
 	StackTrace       string
 	MappedStackTrace *string
 	State            string `json:"state" gorm:"default:OPEN"`
-	Resolved         *bool  `json:"resolved"` // DEPRECATED, USE STATE INSTEAD
 	MetadataLog      *string
 	Fields           []*ErrorField `gorm:"many2many:error_group_fields;"`
 	FieldGroup       *string
@@ -584,6 +597,7 @@ type SessionComment struct {
 	Text           string
 	XCoordinate    float64
 	YCoordinate    float64
+	Type           string `json:"type" gorm:"default:ADMIN"`
 }
 
 type ErrorComment struct {
@@ -603,6 +617,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		password = os.Getenv("PSQL_PASSWORD")
 		sslmode  = "disable"
 	)
+
 	databaseURL, ok := os.LookupEnv("DATABASE_URL")
 	if ok {
 		re, err := regexp.Compile(`(?m)^(?:postgres://)([^:]*)(?::)([^@]*)(?:@)([^:]*)(?::)([^/]*)(?:/)(.*)`)
@@ -620,6 +635,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 			}
 		}
 	}
+	log.Printf("setting up db @ %s\n", host)
 	psqlConf := fmt.Sprintf(
 		"host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
 		host,
@@ -645,6 +661,8 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 	if err != nil {
 		return nil, e.Wrap(err, "Failed to connect to database")
 	}
+
+	log.Printf("running db migration ... \n")
 	if err := DB.AutoMigrate(
 		Models...,
 	); err != nil {
@@ -655,6 +673,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		return nil, e.Wrap(err, "error retrieving underlying sql db")
 	}
 	sqlDB.SetMaxOpenConns(15)
+	log.Printf("finished db migration. \n")
 	return DB, nil
 }
 

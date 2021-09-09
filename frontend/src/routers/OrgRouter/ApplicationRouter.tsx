@@ -1,10 +1,14 @@
+import KeyboardShortcutsEducation from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation';
+import useLocalStorage from '@rehooks/local-storage';
+import { useParams } from '@util/react-router/useParams';
 import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
-import { Redirect, Route, Switch, useParams } from 'react-router-dom';
+import { Redirect, Route, Switch } from 'react-router-dom';
 import {
     BooleanParam,
     JsonParam,
     StringParam,
+    useQueryParam,
     useQueryParams,
 } from 'use-query-params';
 
@@ -12,16 +16,13 @@ import AlertsPage from '../../pages/Alerts/Alerts';
 import BillingPage from '../../pages/Billing/Billing';
 import { Buttons } from '../../pages/Buttons/Buttons';
 import ErrorPage from '../../pages/Error/ErrorPage';
-import ErrorsPage from '../../pages/Errors/ErrorsPage';
 import HomePage from '../../pages/Home/HomePage';
 import Player from '../../pages/Player/PlayerPage';
+import { EmptySessionsSearchParams } from '../../pages/Sessions/EmptySessionsSearchParams';
 import {
     SearchContextProvider,
     SearchParams,
 } from '../../pages/Sessions/SearchContext/SearchContext';
-import SessionsPage, {
-    EmptySessionsSearchParams,
-} from '../../pages/Sessions/SessionsPage';
 import SetupPage from '../../pages/Setup/SetupPage';
 import WorkspaceSettings from '../../pages/WorkspaceSettings/WorkspaceSettings';
 import WorkspaceTeam from '../../pages/WorkspaceTeam/WorkspaceTeam';
@@ -33,9 +34,15 @@ interface Props {
 const ApplicationRouter = ({ integrated }: Props) => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const [segmentName, setSegmentName] = useState<string | null>(null);
+    const [showStarredSessions, setShowStarredSessions] = useState<boolean>(
+        false
+    );
     const [searchParams, setSearchParams] = useState<SearchParams>(
         EmptySessionsSearchParams
     );
+    const [selectedSegment, setSelectedSegment] = useLocalStorage<
+        { value: string; id: string } | undefined
+    >('highlightSegmentPickerForPlayerSelectedSegmentId', undefined);
     const [
         searchParamsToUrlParams,
         setSearchParamsToUrlParams,
@@ -56,6 +63,10 @@ const ApplicationRouter = ({ integrated }: Props) => {
         device_id: StringParam,
         show_live_sessions: BooleanParam,
     });
+    const [activeSegmentUrlParam, setActiveSegmentUrlParam] = useQueryParam(
+        'segment',
+        JsonParam
+    );
 
     const [existingParams, setExistingParams] = useState<SearchParams>(
         EmptySessionsSearchParams
@@ -67,6 +78,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
             searchParams
         );
 
+        // Handles the case where the user is loading the page from a link shared from another user that has search params in the URL.
         if (!segmentName && areAnySearchParamsSet) {
             // `undefined` values will not be persisted to the URL.
             // Because of that, we only want to change the values from `undefined`
@@ -91,14 +103,29 @@ const ApplicationRouter = ({ integrated }: Props) => {
             setSearchParamsToUrlParams({
                 ...searchParamsToReflectInUrl,
             });
-        } else {
-            setSearchParamsToUrlParams(InitialSearchParamsForUrl);
         }
     }, [setSearchParamsToUrlParams, searchParams, segmentName]);
 
     useEffect(() => {
         if (!_.isEqual(InitialSearchParamsForUrl, searchParamsToUrlParams)) {
             setSearchParams(searchParamsToUrlParams as SearchParams);
+        }
+        // We only want to run this on mount (i.e. when the page first loads).
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // Session Segment Deep Linking
+    useEffect(() => {
+        if (selectedSegment && selectedSegment.id && selectedSegment.value) {
+            setActiveSegmentUrlParam(selectedSegment);
+        } else {
+            setActiveSegmentUrlParam(undefined);
+        }
+    }, [selectedSegment, setActiveSegmentUrlParam]);
+
+    useEffect(() => {
+        if (activeSegmentUrlParam) {
+            setSelectedSegment(activeSegmentUrlParam);
         }
         // We only want to run this on mount (i.e. when the page first loads).
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -113,27 +140,17 @@ const ApplicationRouter = ({ integrated }: Props) => {
                 setExistingParams,
                 segmentName,
                 setSegmentName,
+                showStarredSessions,
+                setShowStarredSessions,
+                selectedSegment,
+                setSelectedSegment,
             }}
         >
+            <KeyboardShortcutsEducation />
             <Switch>
-                <Route
-                    path="/:organization_id/sessions/segment/:segment_id"
-                    exact
-                >
-                    <SessionsPage integrated={integrated} />
+                <Route path="/:organization_id/sessions/:session_id?" exact>
+                    <Player integrated={integrated} />
                 </Route>
-                <Route path="/:organization_id/sessions/:session_id" exact>
-                    <Player />
-                </Route>
-                {organization_id !== '1' ? (
-                    <Route path="/:organization_id/sessions" exact>
-                        <SessionsPage integrated={integrated} />
-                    </Route>
-                ) : (
-                    <Route path="/:organization_id/sessions/:session_id?" exact>
-                        <Player />
-                    </Route>
-                )}
                 <Route path="/:organization_id/settings">
                     <WorkspaceSettings />
                 </Route>
@@ -149,14 +166,8 @@ const ApplicationRouter = ({ integrated }: Props) => {
                 <Route path="/:organization_id/setup">
                     <SetupPage integrated={integrated} />
                 </Route>
-                <Route path="/:organization_id/errors/segment/:segment_id">
-                    <ErrorsPage integrated={integrated} />
-                </Route>
-                <Route path="/:organization_id/errors/:error_id">
-                    <ErrorPage />
-                </Route>
-                <Route path="/:organization_id/errors">
-                    <ErrorsPage integrated={integrated} />
+                <Route path="/:organization_id/errors/:error_id?">
+                    <ErrorPage integrated={integrated} />
                 </Route>
                 <Route path="/:organization_id/buttons">
                     <Buttons />

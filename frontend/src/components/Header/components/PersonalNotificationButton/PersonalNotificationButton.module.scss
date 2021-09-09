@@ -1,0 +1,16 @@
+.personalNotificationButton {
+    align-items: center;
+    border: 0;
+    border-radius: var(--size-xSmall);
+    column-gap: var(--size-xSmall);
+    display: flex;
+    height: 32px;
+    padding-bottom: var(--size-xxSmall);
+    padding-top: var(--size-xxSmall) !important;
+
+    &:hover,
+    &:active,
+    &:focus {
+        border: 0;
+    }
+}

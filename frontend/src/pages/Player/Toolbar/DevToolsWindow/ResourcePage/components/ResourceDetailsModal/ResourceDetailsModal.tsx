@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useAuthContext } from '../../../../../../../AuthContext';
+import { useAuthContext } from '../../../../../../../authentication/AuthContext';
 import DataCard from '../../../../../../../components/DataCard/DataCard';
 import KeyValueTable, {
     KeyValueTableRow,

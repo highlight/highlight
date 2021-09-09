@@ -1,3 +1,4 @@
+import { namedOperations } from '@graph/operations';
 import { Menu, message } from 'antd';
 import { H } from 'highlight.run';
 import React, { PropsWithChildren } from 'react';
@@ -9,7 +10,7 @@ import {
     ParsedSessionComment,
     useReplayerContext,
 } from '../../../pages/Player/ReplayerContext';
-import { onGetLinkWithTimestamp } from '../../../pages/Player/ShareButton/utils/utils';
+import { onGetLinkWithTimestamp } from '../../../pages/Player/SessionShareButton/utils/utils';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
 import { CommentHeader } from '../CommentHeader';
 
@@ -32,7 +33,7 @@ const SessionCommentHeader = ({
 }: PropsWithChildren<Props>) => {
     const { pause, session } = useReplayerContext();
     const [deleteSessionComment] = useDeleteSessionCommentMutation({
-        refetchQueries: ['GetSessionComments'],
+        refetchQueries: [namedOperations.Query.GetSessionComments],
     });
     const history = useHistory();
 

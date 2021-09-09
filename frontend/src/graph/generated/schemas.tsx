@@ -142,16 +142,18 @@ export type ErrorField = {
 
 export type ErrorGroup = {
     __typename?: 'ErrorGroup';
+    created_at: Scalars['Time'];
     id: Scalars['ID'];
     organization_id: Scalars['Int'];
     type: Scalars['String'];
     event: Array<Maybe<Scalars['String']>>;
     stack_trace: Array<Maybe<ErrorTrace>>;
     metadata_log: Array<Maybe<ErrorMetadata>>;
+    mapped_stack_trace?: Maybe<Scalars['String']>;
     field_group?: Maybe<Array<Maybe<ErrorField>>>;
     state: ErrorState;
-    resolved?: Maybe<Scalars['Boolean']>;
     environments?: Maybe<Scalars['String']>;
+    error_frequency: Array<Maybe<Scalars['Int64']>>;
 };
 
 export type ErrorMetadata = {
@@ -242,7 +244,7 @@ export type ErrorSearchParamsInput = {
     os?: Maybe<Scalars['String']>;
     browser?: Maybe<Scalars['String']>;
     visited_url?: Maybe<Scalars['String']>;
-    hide_resolved?: Maybe<Scalars['Boolean']>;
+    state?: Maybe<ErrorState>;
     event?: Maybe<Scalars['String']>;
 };
 
@@ -252,7 +254,7 @@ export type ErrorSearchParams = {
     os?: Maybe<Scalars['String']>;
     browser?: Maybe<Scalars['String']>;
     visited_url?: Maybe<Scalars['String']>;
-    hide_resolved?: Maybe<Scalars['Boolean']>;
+    state?: Maybe<ErrorState>;
     event?: Maybe<Scalars['String']>;
 };
 
@@ -269,13 +271,13 @@ export type DateRangeInput = {
 
 export type LengthRange = {
     __typename?: 'LengthRange';
-    min?: Maybe<Scalars['Int']>;
-    max?: Maybe<Scalars['Int']>;
+    min?: Maybe<Scalars['Float']>;
+    max?: Maybe<Scalars['Float']>;
 };
 
 export type LengthRangeInput = {
-    min?: Maybe<Scalars['Int']>;
-    max?: Maybe<Scalars['Int']>;
+    min?: Maybe<Scalars['Float']>;
+    max?: Maybe<Scalars['Float']>;
 };
 
 export type UserProperty = {
@@ -302,6 +304,7 @@ export type Admin = {
     name: Scalars['String'];
     email: Scalars['String'];
     photo_url?: Maybe<Scalars['String']>;
+    slack_im_channel_id?: Maybe<Scalars['String']>;
 };
 
 export type SanitizedAdmin = {
@@ -342,6 +345,7 @@ export type SessionComment = {
     text: Scalars['String'];
     x_coordinate: Scalars['Float'];
     y_coordinate: Scalars['Float'];
+    type: Scalars['String'];
 };
 
 export type ErrorComment = {
@@ -440,6 +444,7 @@ export type Query = {
     organizationHasViewedASession?: Maybe<Session>;
     dailySessionsCount: Array<Maybe<DailySessionCount>>;
     dailyErrorsCount: Array<Maybe<DailyErrorCount>>;
+    dailyErrorFrequency: Array<Maybe<Scalars['Int64']>>;
     referrers: Array<Maybe<ReferrerTablePayload>>;
     newUsersCount?: Maybe<NewUsersCount>;
     topUsers: Array<Maybe<TopUsersPayload>>;
@@ -539,6 +544,12 @@ export type QueryDailySessionsCountArgs = {
 export type QueryDailyErrorsCountArgs = {
     organization_id: Scalars['ID'];
     date_range: DateRangeInput;
+};
+
+export type QueryDailyErrorFrequencyArgs = {
+    organization_id: Scalars['ID'];
+    error_group_id: Scalars['ID'];
+    date_offset: Scalars['Int'];
 };
 
 export type QueryReferrersArgs = {
@@ -660,11 +671,13 @@ export type Mutation = {
     createErrorSegment?: Maybe<ErrorSegment>;
     editErrorSegment?: Maybe<Scalars['Boolean']>;
     deleteErrorSegment?: Maybe<Scalars['Boolean']>;
-    createOrUpdateSubscription?: Maybe<Scalars['String']>;
+    createOrUpdateStripeSubscription?: Maybe<Scalars['String']>;
+    updateBillingDetails?: Maybe<Scalars['Boolean']>;
     createSessionComment?: Maybe<SessionComment>;
     deleteSessionComment?: Maybe<Scalars['Boolean']>;
     createErrorComment?: Maybe<ErrorComment>;
     deleteErrorComment?: Maybe<Scalars['Boolean']>;
+    openSlackConversation?: Maybe<Scalars['Boolean']>;
     updateErrorAlert?: Maybe<ErrorAlert>;
     updateNewUserAlert?: Maybe<SessionAlert>;
     updateTrackPropertiesAlert?: Maybe<SessionAlert>;
@@ -759,9 +772,13 @@ export type MutationDeleteErrorSegmentArgs = {
     segment_id: Scalars['ID'];
 };
 
-export type MutationCreateOrUpdateSubscriptionArgs = {
+export type MutationCreateOrUpdateStripeSubscriptionArgs = {
     organization_id: Scalars['ID'];
     plan_type: PlanType;
+};
+
+export type MutationUpdateBillingDetailsArgs = {
+    organization_id: Scalars['ID'];
 };
 
 export type MutationCreateSessionCommentArgs = {
@@ -795,6 +812,12 @@ export type MutationCreateErrorCommentArgs = {
 
 export type MutationDeleteErrorCommentArgs = {
     id: Scalars['ID'];
+};
+
+export type MutationOpenSlackConversationArgs = {
+    organization_id: Scalars['ID'];
+    code: Scalars['String'];
+    redirect_path: Scalars['String'];
 };
 
 export type MutationUpdateErrorAlertArgs = {

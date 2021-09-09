@@ -1,10 +1,15 @@
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { useParams } from '@util/react-router/useParams';
+import { message } from 'antd';
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { useParams } from 'react-router-dom';
 
 import { useGetKeyPerformanceIndicatorsQuery } from '../../../../graph/generated/hooks';
-import { SessionPageSearchParams } from '../../../Player/utils/utils';
-import { LIVE_SEGMENT_ID } from '../../../Sessions/SearchSidebar/SegmentPicker/SegmentPicker';
+import { EmptySessionsSearchParams } from '../../../Sessions/EmptySessionsSearchParams';
+import { useSearchContext } from '../../../Sessions/SearchContext/SearchContext';
 import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext';
 import KeyPerformanceIndicator from './KeyPerformanceIndicator/KeyPerformanceIndicator';
 import styles from './KeyPerformanceIndicators.module.scss';
@@ -12,7 +17,16 @@ import { formatLongNumber, formatShortTime } from './utils/utils';
 
 const KeyPerformanceIndicators = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
+    const organizationIdRemapped =
+        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : organization_id;
     const { dateRangeLength } = useHomePageFiltersContext();
+    const {
+        setSearchParams,
+        setSegmentName,
+        setSelectedSegment,
+    } = useSearchContext();
     const { loading, data } = useGetKeyPerformanceIndicatorsQuery({
         variables: { organization_id, lookBackPeriod: dateRangeLength },
     });
@@ -28,9 +42,16 @@ const KeyPerformanceIndicators = () => {
                             data?.newUsersCount?.count || 0
                         )}
                         title="New Users"
-                        route={`/${organization_id}/sessions?${new URLSearchParams(
-                            { [SessionPageSearchParams.firstTimeUsers]: 'true' }
-                        ).toString()}`}
+                        route={`/${organizationIdRemapped}/sessions`}
+                        onClick={() => {
+                            message.success('Showing sessions for new users');
+                            setSegmentName(null);
+                            setSelectedSegment(undefined);
+                            setSearchParams({
+                                ...EmptySessionsSearchParams,
+                                first_time: true,
+                            });
+                        }}
                         tooltipText={
                             <>
                                 New users for your app that have an identity.
@@ -51,13 +72,8 @@ const KeyPerformanceIndicators = () => {
                             data?.unprocessedSessionsCount || 0
                         )}
                         title="Live Users"
-                        route={`/${organization_id}/sessions/segment/${LIVE_SEGMENT_ID}`}
                         tooltipText={
-                            <>
-                                Users that are currently using your app.
-                                <br />
-                                Click to see the sessions.
-                            </>
+                            <>Users that are currently using your app.</>
                         }
                     />
                     <KeyPerformanceIndicator

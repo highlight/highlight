@@ -3,7 +3,8 @@ import React from 'react';
 import { Field } from '../../../../components/Field/Field';
 import { ErrorGroup, Maybe } from '../../../../graph/generated/schemas';
 import { getHeaderFromError } from '../../ErrorPage';
-import styles from '../../ErrorPage.module.scss';
+import ErrorShareButton from '../ErrorShareButton/ErrorShareButton';
+import styles from './ErrorTitle.module.scss';
 
 interface Props {
     errorGroup: Maybe<ErrorGroup> | undefined;
@@ -11,16 +12,19 @@ interface Props {
 
 const ErrorTitle = ({ errorGroup }: Props) => {
     return (
-        <>
-            <h2 className={styles.title}>
-                {getHeaderFromError(errorGroup?.event ?? [])}
-            </h2>
+        <header className={styles.header}>
+            <div className={styles.topRow}>
+                <div>
+                    <h2>{getHeaderFromError(errorGroup?.event ?? [])}</h2>
+                </div>
+                <ErrorShareButton errorGroup={errorGroup} />
+            </div>
             <Field
                 k={'mechanism'}
                 v={errorGroup?.type || 'window.onerror'}
                 color={'warning'}
             />
-        </>
+        </header>
     );
 };
 

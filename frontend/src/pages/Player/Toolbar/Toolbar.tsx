@@ -1,46 +1,57 @@
+import {
+    AutoPlayToolbarItem,
+    DevToolsToolbarItem,
+    MouseTrailToolbarItem,
+    PlaybackSpeedControlToolbarItem,
+    SkipInactiveToolbarItem,
+    TimelineAnnotationsToolbarItem,
+} from '@pages/Player/Toolbar/ToolbarItems/ToolbarItems';
+import useToolbarItems from '@pages/Player/Toolbar/ToolbarItems/useToolbarItems';
+import { ToolbarItemsContextProvider } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext';
+import ToolbarMenu from '@pages/Player/Toolbar/ToolbarMenu/ToolbarMenu';
+import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
+import { H } from 'highlight.run';
 import React, { useEffect, useRef, useState } from 'react';
 import Draggable from 'react-draggable';
-import { FaPause } from 'react-icons/fa';
 import Skeleton from 'react-loading-skeleton';
+import { useHistory } from 'react-router-dom';
 
+import { useAuthContext } from '../../../authentication/AuthContext';
 import Button from '../../../components/Button/Button/Button';
 import Modal from '../../../components/Modal/Modal';
-import Popover from '../../../components/Popover/Popover';
-import PopoverListContent from '../../../components/Popover/PopoverListContent';
-import {
-    SidebarState,
-    useSidebarContext,
-} from '../../../components/Sidebar/SidebarContext';
-import Switch from '../../../components/Switch/Switch';
-import ToggleButton from '../../../components/ToggleButton/ToggleButton';
-import Tooltip from '../../../components/Tooltip/Tooltip';
-import { useGetAdminQuery } from '../../../graph/generated/hooks';
 import { ErrorObject } from '../../../graph/generated/schemas';
-import SvgDevtoolsIcon from '../../../static/DevtoolsIcon';
+import SvgFullscreenIcon from '../../../static/FullscreenIcon';
+import SvgMinimize2Icon from '../../../static/Minimize2Icon';
+import SvgPauseIcon from '../../../static/PauseIcon';
 import SvgPlayIcon from '../../../static/PlayIcon';
-import SvgRedoIcon from '../../../static/RedoIcon';
-import SvgSettingsIcon from '../../../static/SettingsIcon';
-import SvgUndoIcon from '../../../static/UndoIcon';
+import SvgSkipBackIcon from '../../../static/SkipBackIcon';
+import SvgSkipForwardIcon from '../../../static/SkipForwardIcon';
 import {
     MillisToMinutesAndSeconds,
     MillisToMinutesAndSecondsVerbose,
 } from '../../../util/time';
-import { EventsForTimeline, EventsForTimelineKeys } from '../PlayerHook/utils';
+import { usePlayerUIContext } from '../context/PlayerUIContext';
+import {
+    changeSession,
+    EventsForTimeline,
+    EventsForTimelineKeys,
+    findNextSessionInList,
+    findPreviousSessionInList,
+} from '../PlayerHook/utils';
 import usePlayerConfiguration from '../PlayerHook/utils/usePlayerConfiguration';
+import { PlayerPageProductTourSelectors } from '../PlayerPageProductTour/PlayerPageProductTour';
 import {
     ParsedSessionInterval,
     ReplayerPausedStates,
     ReplayerState,
     useReplayerContext,
 } from '../ReplayerContext';
-import { getNewTimeWithSkip, usePlayerHotKeys } from '../utils/PlayerHooks';
+import { usePlayerKeyboardShortcuts } from '../utils/PlayerHooks';
 import { DevToolsContextProvider } from './DevToolsContext/DevToolsContext';
 import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
 import ErrorModal from './DevToolsWindow/ErrorsPage/components/ErrorModal/ErrorModal';
 import { ErrorModalContextProvider } from './ErrorModalContext/ErrorModalContext';
-import SpeedControl from './SpeedControl/SpeedControl';
-import TimelineAnnotationsSettings from './TimelineAnnotationsSettings/TimelineAnnotationsSettings';
 import TimelineIndicators from './TimelineIndicators/TimelineIndicators';
 import styles from './Toolbar.module.scss';
 
@@ -55,27 +66,28 @@ export const Toolbar = () => {
         sessionIntervals,
         canViewSession,
         isPlayerReady,
+        sessionResults,
     } = useReplayerContext();
-    usePlayerHotKeys();
+    usePlayerKeyboardShortcuts();
     const {
         playerSpeed,
         skipInactive,
-        setSkipInactive,
         showLeftPanel,
-        showRightPanel,
         showDevTools,
         setShowDevTools,
         autoPlayVideo,
         autoPlaySessions,
         setAutoPlayVideo,
         enableInspectElement,
-        selectedDevToolsTab,
-        setSelectedDevToolsTab,
-        showPlayerMouseTail,
-        setShowPlayerMouseTail,
     } = usePlayerConfiguration();
-    const { staticSidebarState } = useSidebarContext();
-    const { data: admin_data } = useGetAdminQuery({ skip: false });
+    const history = useHistory();
+    const toolbarItems = useToolbarItems();
+    const { isLoggedIn } = useAuthContext();
+    const { session_id, organization_id } = useParams<{
+        session_id: string;
+        organization_id: string;
+    }>();
+    const { setIsPlayerFullscreen, isPlayerFullscreen } = usePlayerUIContext();
     const max = replayer?.getMetaData().totalTime ?? 0;
     const sliderWrapperRef = useRef<HTMLButtonElement>(null);
     const [selectedError, setSelectedError] = useState<ErrorObject | undefined>(
@@ -104,7 +116,7 @@ export const Toolbar = () => {
 
     // Automatically start the player if the user has set the preference.
     useEffect(() => {
-        if (admin_data) {
+        if (isLoggedIn) {
             if (
                 (autoPlayVideo || autoPlaySessions) &&
                 replayer &&
@@ -118,7 +130,7 @@ export const Toolbar = () => {
             }
         }
     }, [
-        admin_data,
+        isLoggedIn,
         autoPlayVideo,
         autoPlaySessions,
         isPlayerReady,
@@ -205,312 +217,265 @@ export const Toolbar = () => {
     // The play button should be disabled if the player has reached the end.
     const disablePlayButton = time >= (replayer?.getMetaData().totalTime ?? 0);
     const leftSidebarWidth = showLeftPanel ? 475 : 0;
-    const staticSidebarWidth =
-        staticSidebarState == SidebarState.Expanded ? 64 : 0;
+    /** 64 (sidebar width) + 12 (left padding for the toolbar)  */
+    const staticSidebarWidth = isLoggedIn ? 64 + 12 : 12;
 
     return (
-        <ErrorModalContextProvider value={{ selectedError, setSelectedError }}>
-            <DevToolsContextProvider
-                value={{
-                    openDevTools: showDevTools,
-                    setOpenDevTools: setShowDevTools,
-                    selectedTab: selectedDevToolsTab,
-                    setSelectedTab: setSelectedDevToolsTab,
-                }}
+        <ToolbarItemsContextProvider value={toolbarItems}>
+            <ErrorModalContextProvider
+                value={{ selectedError, setSelectedError }}
             >
-                <TimelineIndicators />
-                <DevToolsWindow
-                    time={(replayer?.getMetaData().startTime ?? 0) + time}
-                    startTime={replayer?.getMetaData().startTime ?? 0}
-                />
-            </DevToolsContextProvider>
-            <Modal
-                visible={!!selectedError}
-                onCancel={() => {
-                    setSelectedError(undefined);
-                }}
-                width={'fit-content'}
-            >
-                <ErrorModal error={selectedError!} />
-            </Modal>
-            <div className={styles.playerRail}>
-                <div
-                    className={styles.sliderRail}
-                    style={{
-                        position: 'absolute',
-                        display: 'flex',
-                        background:
-                            sessionIntervals.length > 0 ? 'none' : '#e4e8eb',
+                <DevToolsContextProvider
+                    value={{
+                        openDevTools: showDevTools,
+                        setOpenDevTools: setShowDevTools,
                     }}
                 >
-                    {sessionIntervals.map((e, ind) => (
-                        <SessionSegment
-                            key={ind}
-                            interval={e}
-                            sliderClientX={sliderClientX}
-                            wrapperWidth={wrapperWidth}
-                            getSliderTime={getSliderTime}
+                    {!isPlayerFullscreen && <TimelineIndicators />}
+                    <div id={PlayerPageProductTourSelectors.DevToolsPanel}>
+                        <DevToolsWindow
+                            time={
+                                (replayer?.getMetaData().startTime ?? 0) + time
+                            }
+                            startTime={replayer?.getMetaData().startTime ?? 0}
                         />
-                    ))}
-                </div>
-                <button
-                    disabled={disableControls}
-                    className={styles.sliderWrapper}
-                    ref={sliderWrapperRef}
-                    onMouseMove={(e: React.MouseEvent<HTMLButtonElement>) =>
-                        setSliderClientX(
-                            e.clientX - staticSidebarWidth - leftSidebarWidth
-                        )
-                    }
-                    onMouseLeave={() => setSliderClientX(-1)}
-                    onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-                        const ratio =
-                            (e.clientX -
-                                staticSidebarWidth -
-                                leftSidebarWidth) /
-                            wrapperWidth;
-                        setTime(getSliderTime(ratio));
+                    </div>
+                </DevToolsContextProvider>
+                <Modal
+                    visible={!!selectedError}
+                    onCancel={() => {
+                        setSelectedError(undefined);
                     }}
+                    width={'fit-content'}
                 >
-                    <div className={styles.sliderRail}></div>
-
-                    <Draggable
-                        axis="x"
-                        bounds="parent"
-                        onStop={endLogger}
-                        onDrag={onDraggable}
-                        onStart={startDraggable}
-                        disabled={disableControls}
-                        position={{
-                            x: Math.max(
-                                getSliderPercent(time) * wrapperWidth - 10,
-                                0
-                            ),
-                            y: 0,
+                    <ErrorModal error={selectedError!} />
+                </Modal>
+                <div className={styles.playerRail}>
+                    <div
+                        className={styles.sliderRail}
+                        style={{
+                            position: 'absolute',
+                            display: 'flex',
+                            background:
+                                sessionIntervals.length > 0
+                                    ? 'none'
+                                    : '#e4e8eb',
                         }}
                     >
-                        <div className={styles.indicatorParent}>
-                            <div className={styles.indicator} />
-                        </div>
-                    </Draggable>
-                </button>
-            </div>
-            <div className={styles.toolbarSection}>
-                <div className={styles.toolbarLeftSection}>
-                    <Tooltip
-                        title={isPaused ? 'Play (space)' : 'Pause (space)'}
-                        align={{ offset: [8, 0] }}
+                        {sessionIntervals.map((e, ind) => (
+                            <SessionSegment
+                                key={ind}
+                                interval={e}
+                                sliderClientX={sliderClientX}
+                                wrapperWidth={wrapperWidth}
+                                getSliderTime={getSliderTime}
+                            />
+                        ))}
+                    </div>
+                    <button
+                        disabled={disableControls}
+                        className={styles.sliderWrapper}
+                        ref={sliderWrapperRef}
+                        onMouseMove={(e: React.MouseEvent<HTMLButtonElement>) =>
+                            setSliderClientX(
+                                e.clientX -
+                                    staticSidebarWidth -
+                                    leftSidebarWidth
+                            )
+                        }
+                        onMouseLeave={() => setSliderClientX(-1)}
+                        onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                            const ratio =
+                                (e.clientX -
+                                    staticSidebarWidth -
+                                    leftSidebarWidth) /
+                                wrapperWidth;
+                            setTime(getSliderTime(ratio));
+                        }}
                     >
-                        <div>
-                            <button
-                                className={classNames(
-                                    styles.playSection,
-                                    styles.button
-                                )}
-                                disabled={disableControls || disablePlayButton}
-                                onClick={() => {
-                                    if (isPaused) {
-                                        play(time);
-                                    } else {
-                                        pause(time);
-                                    }
-                                }}
-                            >
-                                {isPaused ? (
-                                    <SvgPlayIcon
-                                        fill="inherit"
-                                        className={classNames(
-                                            styles.playButtonStyle,
-                                            styles.icon
-                                        )}
-                                    />
-                                ) : (
-                                    <FaPause
-                                        fill="inherit"
-                                        className={classNames(
-                                            styles.playButtonStyle,
-                                            styles.icon
-                                        )}
-                                    />
-                                )}
-                            </button>
-                        </div>
-                    </Tooltip>
+                        <div className={styles.sliderRail}></div>
 
-                    <Tooltip
-                        title="Skip 5 seconds backward (Left arrow)"
-                        align={{ offset: [12, 0] }}
-                    >
-                        <div>
-                            <button
+                        <Draggable
+                            axis="x"
+                            bounds="parent"
+                            onStop={endLogger}
+                            onDrag={onDraggable}
+                            onStart={startDraggable}
+                            disabled={disableControls}
+                            position={{
+                                x: Math.max(
+                                    getSliderPercent(time) * wrapperWidth - 10,
+                                    0
+                                ),
+                                y: 0,
+                            }}
+                        >
+                            <div className={styles.indicatorParent}>
+                                <div className={styles.indicator} />
+                            </div>
+                        </Draggable>
+                    </button>
+                </div>
+                <div className={styles.toolbarSection}>
+                    <div className={styles.toolbarLeftSection}>
+                        <button
+                            className={classNames(
+                                styles.undoSection,
+                                styles.button
+                            )}
+                            onClick={() => {
+                                H.track('PlayerSkipToPreviousSession');
+                                const nextSession = findPreviousSessionInList(
+                                    sessionResults.sessions,
+                                    session_id
+                                );
+                                changeSession(
+                                    organization_id,
+                                    history,
+                                    nextSession,
+                                    'Playing the previous session.'
+                                );
+                            }}
+                        >
+                            <SvgSkipBackIcon
+                                fill="inherit"
                                 className={classNames(
-                                    styles.undoSection,
-                                    styles.button
+                                    styles.skipButtonStyle,
+                                    styles.icon
                                 )}
-                                disabled={disableControls}
-                                onClick={() => {
-                                    const newTime = getNewTimeWithSkip({
-                                        time,
-                                        direction: 'backwards',
-                                    });
-                                    if (isPaused) {
-                                        pause(newTime);
-                                    } else {
-                                        play(newTime);
-                                    }
-                                }}
-                            >
-                                <SvgUndoIcon
+                            />
+                        </button>
+
+                        <button
+                            className={classNames(
+                                styles.playSection,
+                                styles.button
+                            )}
+                            disabled={disableControls || disablePlayButton}
+                            onClick={() => {
+                                H.track('Player Play/Pause Button');
+                                if (isPaused) {
+                                    play(time);
+                                } else {
+                                    pause(time);
+                                }
+                            }}
+                        >
+                            {isPaused ? (
+                                <SvgPlayIcon
                                     fill="inherit"
                                     className={classNames(
-                                        styles.skipButtonStyle,
+                                        styles.playButtonStyle,
                                         styles.icon
                                     )}
                                 />
-                            </button>
-                        </div>
-                    </Tooltip>
-
-                    <Tooltip
-                        title="Skip 5 seconds forward (Right arrow)"
-                        align={{ offset: [12, 0] }}
-                    >
-                        <div>
-                            <button
-                                className={classNames(
-                                    styles.redoSection,
-                                    styles.button
-                                )}
-                                disabled={disableControls}
-                                onClick={() => {
-                                    const totalTime =
-                                        replayer?.getMetaData().totalTime ?? 0;
-                                    const newTime = getNewTimeWithSkip({
-                                        time,
-                                        totalTime,
-                                        direction: 'forwards',
-                                    });
-                                    if (isPaused) {
-                                        pause(newTime);
-                                    } else {
-                                        play(newTime);
-                                    }
-                                }}
-                            >
-                                <SvgRedoIcon
+                            ) : (
+                                <SvgPauseIcon
                                     fill="inherit"
                                     className={classNames(
-                                        styles.skipButtonStyle,
+                                        styles.playButtonStyle,
                                         styles.icon
                                     )}
                                 />
-                            </button>
+                            )}
+                        </button>
+
+                        <button
+                            className={classNames(
+                                styles.redoSection,
+                                styles.button
+                            )}
+                            onClick={() => {
+                                H.track('PlayerSkipToNextSession');
+
+                                const nextSession = findNextSessionInList(
+                                    sessionResults.sessions,
+                                    session_id
+                                );
+                                changeSession(
+                                    organization_id,
+                                    history,
+                                    nextSession
+                                );
+                            }}
+                        >
+                            <SvgSkipForwardIcon
+                                fill="inherit"
+                                className={classNames(
+                                    styles.skipButtonStyle,
+                                    styles.icon
+                                )}
+                            />
+                        </button>
+
+                        <div className={styles.timeSection}>
+                            {disableControls ? (
+                                <Skeleton count={1} width="100px" />
+                            ) : (
+                                <>
+                                    {MillisToMinutesAndSeconds(
+                                        //     Sometimes the replayer will report a higher time when the player has ended.
+                                        time >= max ? max : time
+                                    )}
+                                    &nbsp;/&nbsp;
+                                    {MillisToMinutesAndSeconds(max)}
+                                </>
+                            )}
                         </div>
-                    </Tooltip>
-                    <div className={styles.timeSection}>
-                        {disableControls ? (
-                            <Skeleton count={1} width="100px" />
-                        ) : (
+                    </div>
+                    <div className={styles.toolbarRightSection}>
+                        {!isPlayerFullscreen && (
                             <>
-                                {MillisToMinutesAndSeconds(time)}&nbsp;/&nbsp;
-                                {MillisToMinutesAndSeconds(max)}
+                                <PlaybackSpeedControlToolbarItem
+                                    loading={disableControls}
+                                    renderContext="toolbar"
+                                />
+                                <TimelineAnnotationsToolbarItem
+                                    loading={disableControls}
+                                    renderContext="toolbar"
+                                />
+                                <SkipInactiveToolbarItem
+                                    loading={disableControls}
+                                    renderContext="toolbar"
+                                />
+                                <AutoPlayToolbarItem
+                                    loading={disableControls}
+                                    renderContext="toolbar"
+                                />
+                                <MouseTrailToolbarItem
+                                    loading={disableControls}
+                                    renderContext="toolbar"
+                                />
+                                <DevToolsToolbarItem
+                                    loading={disableControls}
+                                    renderContext="toolbar"
+                                />
+                                <ToolbarMenu loading={disableControls} />
                             </>
                         )}
+                        <Button
+                            trackingId="PlayerFullScreenButton"
+                            className={styles.settingsButton}
+                            onClick={() => {
+                                setIsPlayerFullscreen(
+                                    (previousValue) => !previousValue
+                                );
+                            }}
+                        >
+                            {isPlayerFullscreen ? (
+                                <SvgMinimize2Icon
+                                    className={styles.devToolsIcon}
+                                />
+                            ) : (
+                                <SvgFullscreenIcon
+                                    className={styles.devToolsIcon}
+                                />
+                            )}
+                        </Button>
                     </div>
                 </div>
-                <div className={styles.toolbarRightSection}>
-                    <TimelineAnnotationsSettings disabled={disableControls} />
-                    <Tooltip
-                        title="View the DevTools to see console logs, errors, and network requests."
-                        placement="topLeft"
-                        arrowPointAtCenter
-                    >
-                        <ToggleButton
-                            trackingId="PlayerDevTools"
-                            type="text"
-                            className={styles.devToolsButton}
-                            onClick={() => {
-                                setShowDevTools(!showDevTools);
-                            }}
-                            disabled={disableControls}
-                            toggled={showDevTools}
-                        >
-                            <SvgDevtoolsIcon
-                                className={classNames(styles.devToolsIcon, {
-                                    [styles.devToolsActive]: showDevTools,
-                                })}
-                            />
-                        </ToggleButton>
-                    </Tooltip>
-
-                    <Popover
-                        placement="topLeft"
-                        trigger={['click']}
-                        content={
-                            <>
-                                <PopoverListContent
-                                    className={styles.settingsPopover}
-                                    noHoverChange
-                                    listItems={[
-                                        <Switch
-                                            labelFirst
-                                            justifySpaceBetween
-                                            noMarginAroundSwitch
-                                            key="sessionAutoplay"
-                                            checked={autoPlayVideo}
-                                            label="Autoplay"
-                                            onChange={(checked) => {
-                                                setAutoPlayVideo(checked);
-                                            }}
-                                        />,
-                                        <Switch
-                                            labelFirst
-                                            justifySpaceBetween
-                                            noMarginAroundSwitch
-                                            key="skipInactive"
-                                            checked={skipInactive}
-                                            label="Skip inactive"
-                                            onChange={(checked) => {
-                                                setSkipInactive(checked);
-                                            }}
-                                        />,
-                                        <Switch
-                                            labelFirst
-                                            justifySpaceBetween
-                                            noMarginAroundSwitch
-                                            key="mouseTrail"
-                                            checked={showPlayerMouseTail}
-                                            label="Show mouse trail"
-                                            onChange={(checked) => {
-                                                setShowPlayerMouseTail(checked);
-                                            }}
-                                        />,
-                                        <div
-                                            key="speedControl"
-                                            className={
-                                                styles.speedControlContainer
-                                            }
-                                        >
-                                            Playback speed
-                                            <SpeedControl
-                                                disabled={disableControls}
-                                            />
-                                        </div>,
-                                    ]}
-                                />
-                            </>
-                        }
-                    >
-                        <Button
-                            trackingId="PlayerToolbarSettings"
-                            className={styles.settingsButton}
-                        >
-                            <SvgSettingsIcon className={styles.devToolsIcon} />
-                        </Button>
-                    </Popover>
-                </div>
-            </div>
-        </ErrorModalContextProvider>
+            </ErrorModalContextProvider>
+        </ToolbarItemsContextProvider>
     );
 };
 

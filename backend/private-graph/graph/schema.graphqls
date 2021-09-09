@@ -117,16 +117,18 @@ type ErrorField {
 }
 
 type ErrorGroup {
+    created_at: Time!
     id: ID!
     organization_id: Int!
     type: String!
     event: [String]!
     stack_trace: [ErrorTrace]!
     metadata_log: [ErrorMetadata]!
+    mapped_stack_trace: String
     field_group: [ErrorField]
     state: ErrorState!
-    resolved: Boolean
     environments: String
+    error_frequency: [Int64]!
 }
 
 type ErrorMetadata {
@@ -211,7 +213,7 @@ input ErrorSearchParamsInput {
     os: String
     browser: String
     visited_url: String
-    hide_resolved: Boolean
+    state: ErrorState
     event: String
 }
 
@@ -220,7 +222,7 @@ type ErrorSearchParams {
     os: String
     browser: String
     visited_url: String
-    hide_resolved: Boolean
+    state: ErrorState
     event: String
 }
 
@@ -235,13 +237,13 @@ input DateRangeInput {
 }
 
 type LengthRange {
-    min: Int
-    max: Int
+    min: Float
+    max: Float
 }
 
 input LengthRangeInput {
-    min: Int
-    max: Int
+    min: Float
+    max: Float
 }
 
 type UserProperty {
@@ -265,6 +267,7 @@ type Admin {
     name: String!
     email: String!
     photo_url: String
+    slack_im_channel_id: String
 }
 
 # A subset of Admin. This type will contain fields that are allowed to be exposed to other users.
@@ -302,6 +305,7 @@ type SessionComment {
     text: String!
     x_coordinate: Float!
     y_coordinate: Float!
+    type: String!
 }
 
 type ErrorComment {
@@ -404,6 +408,11 @@ type Query {
         organization_id: ID!
         date_range: DateRangeInput!
     ): [DailyErrorCount]!
+    dailyErrorFrequency(
+        organization_id: ID!
+        error_group_id: ID!
+        date_offset: Int!
+    ): [Int64]!
     referrers(
         organization_id: ID!
         lookBackPeriod: Int!
@@ -501,10 +510,11 @@ type Mutation {
     deleteErrorSegment(segment_id: ID!): Boolean
     # If this endpoint returns a checkout_id, we initiate a stripe checkout.
     # Otherwise, we simply update the subscription.
-    createOrUpdateSubscription(
+    createOrUpdateStripeSubscription(
         organization_id: ID!
         plan_type: PlanType!
     ): String
+    updateBillingDetails(organization_id: ID!): Boolean
     createSessionComment(
         organization_id: ID!
         session_id: ID!
@@ -530,6 +540,11 @@ type Mutation {
         author_name: String!
     ): ErrorComment
     deleteErrorComment(id: ID!): Boolean
+    openSlackConversation(
+        organization_id: ID!
+        code: String!
+        redirect_path: String!
+    ): Boolean
     updateErrorAlert(
         organization_id: ID!
         error_alert_id: ID!

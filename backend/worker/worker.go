@@ -2,7 +2,6 @@ package worker
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"math/rand"
 	"os"
@@ -17,6 +16,7 @@ import (
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
+	"github.com/gammazero/workerpool"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
@@ -42,7 +42,6 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
 	}
-	fmt.Printf("starting push for: %v \n", s.ID)
 	sessionPayloadSize, err := w.S3Client.PushFileToS3(ctx, s.ID, s.OrganizationID, eventsFile, storage.S3SessionsPayloadBucketName, storage.SessionContents)
 	// If this is unsucessful, return early (we treat this session as if it is stored in psql).
 	if err != nil {
@@ -62,15 +61,12 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	var totalPayloadSize int64
 	if sessionPayloadSize != nil {
 		totalPayloadSize += *sessionPayloadSize
-		hlog.Histogram("worker.processSession.sessionPayloadSize", float64(*sessionPayloadSize), []string{fmt.Sprintf("session_id:%d", s.ID), fmt.Sprintf("org_id:%d", s.OrganizationID)}, 1) //nolint
 	}
 	if resourcePayloadSize != nil {
 		totalPayloadSize += *resourcePayloadSize
-		hlog.Histogram("worker.processSession.resourcePayloadSize", float64(*resourcePayloadSize), []string{fmt.Sprintf("session_id:%d", s.ID), fmt.Sprintf("org_id:%d", s.OrganizationID)}, 1) //nolint
 	}
 	if messagePayloadSize != nil {
 		totalPayloadSize += *messagePayloadSize
-		hlog.Histogram("worker.processSession.messagePayloadSize", float64(*messagePayloadSize), []string{fmt.Sprintf("session_id:%d", s.ID), fmt.Sprintf("org_id:%d", s.OrganizationID)}, 1) //nolint
 	}
 
 	// Mark this session as stored in S3.
@@ -82,8 +78,6 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 		return errors.Wrap(err, "error updating session to storage enabled")
 	}
 
-	hlog.Histogram("worker.pushToObjectStorageAndWipe.payloadSize", float64(totalPayloadSize), []string{fmt.Sprintf("session_id:%d", s.ID)}, 1) //nolint
-
 	// Delete all the events_objects in the DB.
 	if err := w.Resolver.DB.Unscoped().Where(&model.EventsObject{SessionID: s.ID}).Delete(&model.EventsObject{}).Error; err != nil {
 		return errors.Wrapf(err, "error deleting all event records")
@@ -94,12 +88,10 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	if err := w.Resolver.DB.Unscoped().Where(&model.MessagesObject{SessionID: s.ID}).Delete(&model.MessagesObject{}).Error; err != nil {
 		return errors.Wrap(err, "error deleting all messages")
 	}
-	log.Infof("parsed session (%d)", s.ID)
 	return nil
 }
 
 func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session, eventsFile *os.File, resourcesFile *os.File, messagesFile *os.File) (*payload.PayloadManager, error) {
-	var totalPayloadSize int64 = 0
 	manager := payload.NewPayloadManager(eventsFile, resourcesFile, messagesFile)
 
 	// Fetch/write events.
@@ -167,22 +159,19 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session, event
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting event file info")
 	}
-	totalPayloadSize += eventInfo.Size()
+	hlog.Histogram("worker.processSession.eventPayloadSize", float64(eventInfo.Size()), nil, 1) //nolint
 
 	resourceInfo, err := resourcesFile.Stat()
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting resource file info")
 	}
-	totalPayloadSize += resourceInfo.Size()
+	hlog.Histogram("worker.processSession.resourcePayloadSize", float64(resourceInfo.Size()), nil, 1) //nolint
 
 	messagesInfo, err := messagesFile.Stat()
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting message file info")
 	}
-	totalPayloadSize += messagesInfo.Size()
-
-	hlog.Histogram("worker.processSession.scannedSessionPayload", float64(totalPayloadSize), nil, 1) //nolint
-	log.Infof("payload size for session '%v' is '%v'\n", s.ID, totalPayloadSize)
+	hlog.Histogram("worker.processSession.messagePayloadSize", float64(messagesInfo.Size()), nil, 1) //nolint
 
 	return manager, nil
 }
@@ -234,7 +223,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	//Delete the session if there's no events.
 	if payloadManager.Events.Length == 0 {
-		log.Infof("there are no events for session (%d)", s.ID)
+		log.WithFields(log.Fields{"session_id": s.ID, "org_id": s.OrganizationID}).Warn("there are no events for session")
 		if err := w.Resolver.DB.Select(clause.Associations).Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
 			return errors.Wrap(err, "error trying to delete associations for session with no events")
 		}
@@ -246,7 +235,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	// need to reset file pointer to beginning of file for reading
 	for _, file := range []*os.File{eventsFile, resourcesFile, messagesFile} {
-		log.Infof("resetting file pointer (%s) for session (%d)", file.Name(), s.ID)
 		_, err = file.Seek(0, io.SeekStart)
 		if err != nil {
 			log.WithField("file_name", file.Name()).Errorf("error seeking to beginning of file: %v", err)
@@ -261,7 +249,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	re := p.Reader()
 	hasNext := true
 	for hasNext {
-		log.Infof("in loop for session: %d", s.ID)
 		se, err := re.Next()
 		if err != nil {
 			if !errors.Is(err, io.EOF) {
@@ -272,7 +259,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		if se != nil && *se != "" {
 			eventsObject := model.EventsObject{Events: *se}
 			var tempDuration time.Duration
-			log.Infof("calculating active duration for session (%d)", s.ID)
 			tempDuration, firstEventTimestamp, lastEventTimestamp, err = getActiveDuration(&eventsObject, firstEventTimestamp, lastEventTimestamp)
 			if err != nil {
 				return e.Wrap(err, "error getting active duration")
@@ -280,10 +266,8 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			activeDuration += tempDuration
 		}
 	}
-	// hlog.Histogram("worker.processSession.payloadStringSize", float64(payloadStringBytes), nil, 1) //nolint
 
 	// Calculate total session length and write the length to the session.
-	log.Infof("calculating session length for session (%d)", s.ID)
 	sessionTotalLength := CalculateSessionLength(firstEventTimestamp, lastEventTimestamp)
 	sessionTotalLengthInMilliseconds := sessionTotalLength.Milliseconds()
 
@@ -291,7 +275,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// 1. Nothing happened in the session
 	// 2. A web crawler visited the page and produced no events
 	if activeDuration == 0 {
-		log.Infof("active duration is 0 for session (%d)", s.ID)
+		log.WithFields(log.Fields{"session_id": s.ID, "org_id": s.OrganizationID}).Warn("active duration is 0 for session, deleting...")
 		if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Delete(&model.EventsObject{}).Error; err != nil {
 			return errors.Wrap(err, "error trying to delete events_object for session of length 0ms")
 		}
@@ -487,14 +471,14 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	// Waits for all goroutines to finish, then returns the first non-nil error (if any).
 	if err := g.Wait(); err != nil {
-		log.Error(err)
+		log.WithFields(log.Fields{"session_id": s.ID, "org_id": s.OrganizationID}).Error(e.Wrap(err, "error sending slack alert"))
 	}
 
 	// Upload to s3 and wipe from the db.
 	if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" {
 		state := "normal"
 		if err := w.pushToObjectStorageAndWipe(ctx, s, &state, eventsFile, resourcesFile, messagesFile); err != nil {
-			log.Errorf("error pushing to object and wiping from db (%v): %v", s.ID, err)
+			log.WithFields(log.Fields{"session_id": s.ID, "org_id": s.OrganizationID}).Error(e.Wrap(err, "error pushing to object and wiping from db"))
 		}
 	}
 	return nil
@@ -509,7 +493,7 @@ func (w *Worker) Start() {
 		workerSpan.SetTag("backend", util.Worker)
 		now := time.Now()
 		seconds := 30
-		if os.Getenv("ENVIRONMENT") == "dev" {
+		if util.IsDevEnv() {
 			seconds = 8
 		}
 		someSecondsAgo := now.Add(time.Duration(-1*seconds) * time.Second)
@@ -520,7 +504,6 @@ func (w *Worker) Start() {
 			sessionsSpan.Finish()
 			continue
 		}
-		// TODO: remove eventually this it's gross
 		rand.Seed(time.Now().UnixNano())
 		rand.Shuffle(len(sessions), func(i, j int) {
 			sessions[i], sessions[j] = sessions[j], sessions[i]
@@ -540,18 +523,22 @@ func (w *Worker) Start() {
 			log.Infof("sessions that will be processed: %v", sessionIds)
 		}
 
+		// process 4 sessions at a time. this number was chosen arbitrarily.
+		wp := workerpool.New(40)
 		for _, session := range sessions {
-			span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"), tracer.Tag("session_id", strconv.Itoa(session.ID)))
-			log.Infof("beginning to process session: %v", session.ID)
-			if err := w.processSession(ctx, session); err != nil {
-				log.Errorf("error processing main session(%v): %v", session.ID, err)
-				tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID))
+			session := session
+			wp.Submit(func() {
+				span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"), tracer.Tag("session_id", strconv.Itoa(session.ID)))
+				if err := w.processSession(ctx, session); err != nil {
+					log.WithField("session_id", session.ID).Error(e.Wrap(err, "error processing main session"))
+					span.Finish(tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID)))
+					return
+				}
 				span.Finish()
-				continue
-			}
-			log.Infof("successfully processed session: %v", session.ID)
-			span.Finish()
+			})
 		}
+		// wait for all workers to finish so we don't query sessions that are still being processed
+		wp.StopWait()
 		workerSpan.Finish()
 	}
 }

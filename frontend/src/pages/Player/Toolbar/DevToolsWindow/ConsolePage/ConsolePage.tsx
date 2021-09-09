@@ -1,3 +1,4 @@
+import { useParams } from '@util/react-router/useParams';
 import { message as AntDesignMessage } from 'antd';
 import _ from 'lodash';
 import React, {
@@ -9,7 +10,6 @@ import React, {
 } from 'react';
 import ReactJson from 'react-json-view';
 import Skeleton from 'react-loading-skeleton';
-import { useParams } from 'react-router-dom';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 import GoToButton from '../../../../../components/Button/GoToButton';
@@ -170,7 +170,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
                                 setFilterSearchTerm(event.target.value);
                             }}
                             size="small"
-                            disabled={loading}
+                            disabled={loading || messagesToRender.length === 0}
                         />
                     </div>
                 </div>

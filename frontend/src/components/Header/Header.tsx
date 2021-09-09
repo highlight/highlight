@@ -1,63 +1,69 @@
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import SvgXIcon from '@icons/XIcon';
+import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
+import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames/bind';
+import { H } from 'highlight.run';
 import moment from 'moment';
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { useParams } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { useSessionStorage } from 'react-use';
 
-import { useAuthContext } from '../../AuthContext';
+import { useAuthContext } from '../../authentication/AuthContext';
 import { useGetBillingDetailsQuery } from '../../graph/generated/hooks';
-import { PlanType } from '../../graph/generated/schemas';
+import { Maybe, Organization, PlanType } from '../../graph/generated/schemas';
 import { ReactComponent as Banner } from '../../static/banner.svg';
-import { ReactComponent as Hamburger } from '../../static/hamburger.svg';
 import { isOrganizationWithinTrial } from '../../util/billing/billing';
 import { HighlightLogo } from '../HighlightLogo/HighlightLogo';
-import { SidebarState, useSidebarContext } from '../Sidebar/SidebarContext';
 import { CommandBar } from './CommandBar/CommandBar';
+import ApplicationPicker from './components/ApplicationPicker/ApplicationPicker';
+import FeedbackButton from './components/FeedbackButton/FeedbackButton';
+import HeaderActions from './components/HeaderActions';
+import PersonalNotificationButton from './components/PersonalNotificationButton/PersonalNotificationButton';
 import styles from './Header.module.scss';
-import HelpMenu from './HelpMenu/HelpMenu';
-import Notifications from './Notifications/Notifications';
-import ThemeToggle from './ThemeToggle/ThemeToggle';
 import { UserDropdown } from './UserDropdown/UserDropdown';
 
 export const Header = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const { state, toggleSidebar } = useSidebarContext();
+    const organizationIdRemapped =
+        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : organization_id;
     const { isLoggedIn } = useAuthContext();
 
     return (
         <>
             <CommandBar />
-            <div className={styles.header}>
-                {process.env.REACT_APP_ONPREM === 'true' ? (
-                    <OnPremiseBanner />
-                ) : (
-                    <FreePlanBanner />
-                )}
+            <div
+                className={classNames(styles.header, {
+                    [styles.guest]: !isLoggedIn,
+                })}
+            >
+                {getBanner(organization_id)}
+
                 <div className={styles.headerContent}>
-                    <div className={styles.logoWrapper}>
-                        {isLoggedIn && (
-                            <Hamburger
-                                className={styles.hamburger}
-                                onClick={toggleSidebar}
-                                style={{
-                                    transform:
-                                        state === SidebarState.Expanded
-                                            ? 'rotate(-180deg)'
-                                            : 'rotate(0deg)',
-                                }}
-                            />
-                        )}
-                        <Link
-                            className={styles.homeLink}
-                            to={`/${organization_id}/home`}
-                        >
-                            <HighlightLogo />
-                        </Link>
-                    </div>
+                    {isLoggedIn ? (
+                        <div className={styles.applicationPickerContainer}>
+                            <ApplicationPicker />
+                        </div>
+                    ) : (
+                        <div className={styles.logoWrapper}>
+                            <Link
+                                className={styles.homeLink}
+                                to={`/${organizationIdRemapped}/home`}
+                            >
+                                <HighlightLogo />
+                            </Link>
+                        </div>
+                    )}
+
                     <div className={styles.rightHeader}>
-                        <ThemeToggle />
-                        {isLoggedIn && <Notifications />}
-                        <HelpMenu />
+                        <HeaderActions />
+                        <PersonalNotificationButton />
+                        <FeedbackButton />
                         {isLoggedIn && <UserDropdown />}
                     </div>
                 </div>
@@ -66,8 +72,26 @@ export const Header = () => {
     );
 };
 
+const getBanner = (organization_id: string) => {
+    if (process.env.REACT_APP_ONPREM === 'true') {
+        return <OnPremiseBanner />;
+    } else if (organization_id === DEMO_WORKSPACE_APPLICATION_ID) {
+        return <DemoWorkspaceBanner />;
+    } else {
+        return <FreePlanBanner />;
+    }
+};
+
 const FreePlanBanner = () => {
+    const [temporarilyHideBanner, setTemporarilyHideBanner] = useSessionStorage(
+        'highlightHideFreePlanBanner',
+        false
+    );
     const { organization_id } = useParams<{ organization_id: string }>();
+    const organizationIdRemapped =
+        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : organization_id;
     const { data, loading } = useGetBillingDetailsQuery({
         variables: { organization_id },
     });
@@ -80,8 +104,17 @@ const FreePlanBanner = () => {
         return null;
     }
 
+    if (organization_id === DEMO_WORKSPACE_APPLICATION_ID) {
+        return null;
+    }
+
+    if (temporarilyHideBanner) {
+        return null;
+    }
+
     let bannerMessage = `You've used ${data?.billingDetails.meter}/${data?.billingDetails.plan.quota} of your free sessions.`;
-    if (isOrganizationWithinTrial(data?.organization)) {
+    const hasTrial = isOrganizationWithinTrial(data?.organization);
+    if (hasTrial) {
         bannerMessage = `You have unlimited sessions until ${moment(
             data?.organization?.trial_end_date
         ).format('MM/DD/YY')}. `;
@@ -94,11 +127,23 @@ const FreePlanBanner = () => {
                 {bannerMessage + ' '} Upgrade{' '}
                 <Link
                     className={styles.trialLink}
-                    to={`/${organization_id}/billing`}
+                    to={`/${organizationIdRemapped}/billing`}
                 >
                     here!
                 </Link>
             </div>
+            {hasTrial && (
+                <button
+                    onClick={() => {
+                        H.track('TemporarilyHideFreePlanBanner', {
+                            hasTrial,
+                        });
+                        setTemporarilyHideBanner(true);
+                    }}
+                >
+                    <SvgXIcon />
+                </button>
+            )}
         </div>
     );
 };
@@ -108,7 +153,7 @@ const OnPremiseBanner = () => {
         <div
             className={styles.trialWrapper}
             style={{
-                backgroundColor: 'var(--color-primary-inverted-background',
+                backgroundColor: 'var(--color-primary-inverted-background)',
             }}
         >
             <Banner
@@ -121,4 +166,62 @@ const OnPremiseBanner = () => {
             </div>
         </div>
     );
+};
+
+const DemoWorkspaceBanner = () => {
+    const { currentApplication, allApplications } = useApplicationContext();
+    const { pathname } = useLocation();
+
+    const redirectLink = getRedirectLink(
+        allApplications,
+        currentApplication,
+        pathname
+    );
+
+    return (
+        <div
+            className={styles.trialWrapper}
+            style={{
+                background: 'var(--color-primary-inverted-background)',
+            }}
+        >
+            <Banner
+                className={styles.bannerSvg}
+                style={{ fill: 'var(--color-primary-inverted-background)' }}
+            />
+            <div className={classNames(styles.trialTimeText)}>
+                Viewing Demo Workspace.{' '}
+                <Link className={styles.demoLink} to={redirectLink}>
+                    Go back to your workspace.
+                </Link>
+            </div>
+        </div>
+    );
+};
+
+const getRedirectLink = (
+    allApplications: Maybe<
+        Maybe<
+            {
+                __typename?: 'Organization' | undefined;
+            } & Pick<Organization, 'id' | 'name'>
+        >[]
+    >,
+    currentApplication: Organization | undefined,
+    pathname: string
+): string => {
+    const [, path] = pathname.split('/').filter((token) => token.length);
+    let toVisit = `/new`;
+
+    if (allApplications) {
+        if (allApplications[0]?.id !== currentApplication?.id) {
+            toVisit = `/${allApplications[0]?.id}/${path}`;
+        } else {
+            toVisit = `/${
+                allApplications[allApplications.length - 1]?.id
+            }/${path}`;
+        }
+    }
+
+    return toVisit;
 };

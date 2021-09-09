@@ -1,9 +1,10 @@
+import { useParams } from '@util/react-router/useParams';
 import React, { useEffect } from 'react';
 import CommandPalette, { Command } from 'react-command-palette';
 import { RouteComponentProps } from 'react-router';
-import { useParams, withRouter } from 'react-router-dom';
+import { withRouter } from 'react-router-dom';
 
-import { useAuthContext } from '../../../AuthContext';
+import { useAuthContext } from '../../../authentication/AuthContext';
 import { useGetOrganizationSuggestionLazyQuery } from '../../../graph/generated/hooks';
 import styles from './CommandBar.module.scss';
 import {

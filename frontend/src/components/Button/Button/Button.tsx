@@ -5,7 +5,7 @@ import React from 'react';
 
 import styles from './Button.module.scss';
 
-type Props = ButtonProps & {
+export type GenericHighlightButtonProps = ButtonProps & {
     /** The ID used for identifying that this button was clicked for analytics. */
     trackingId: string;
     /** Does this button only have an icon? */
@@ -20,7 +20,7 @@ const Button = ({
     iconButton,
     small = false,
     ...props
-}: React.PropsWithChildren<Props>) => {
+}: React.PropsWithChildren<GenericHighlightButtonProps>) => {
     return (
         <AntDesignButton
             {...props}
@@ -35,6 +35,7 @@ const Button = ({
                 [styles.small]: small,
                 [styles.link]: props.type === 'link',
             })}
+            target={props.type === 'text' && props.href ? '_blank' : undefined}
         >
             {children}
         </AntDesignButton>

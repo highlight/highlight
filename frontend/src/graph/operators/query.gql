@@ -25,6 +25,7 @@ query GetSession($id: ID!) {
         starred
         enable_strict_privacy
         enable_recording_network_contents
+        field_group
         fields {
             name
             value
@@ -64,6 +65,7 @@ query GetSessionComments($session_id: ID!) {
         }
         x_coordinate
         y_coordinate
+        type
     }
 }
 
@@ -189,6 +191,7 @@ query GetSessions(
             viewed
             starred
             processed
+            field_group
             fields {
                 name
                 value
@@ -208,12 +211,29 @@ query GetOrganizations {
     }
 }
 
+# Gets the current application and all applications the admin has access to.
+query GetApplications($id: ID!) {
+    organizations {
+        id
+        name
+    }
+    organization(id: $id) {
+        id
+        name
+        verbose_id
+        billing_email
+        slack_webhook_channel
+        secret
+    }
+}
+
 query GetAdmin {
     admin {
         id
         name
         email
         photo_url
+        slack_im_channel_id
     }
 }
 
@@ -245,11 +265,11 @@ query GetBillingDetails($organization_id: ID!) {
 
 query GetErrorGroup($id: ID!) {
     error_group(id: $id) {
+        created_at
         id
         type
         organization_id
         event
-        resolved
         state
         stack_trace {
             fileName
@@ -257,6 +277,7 @@ query GetErrorGroup($id: ID!) {
             functionName
             columnNumber
         }
+        mapped_stack_trace
         metadata_log {
             error_id
             session_id
@@ -270,6 +291,7 @@ query GetErrorGroup($id: ID!) {
             name
             value
         }
+        error_frequency
     }
 }
 
@@ -284,10 +306,11 @@ query GetErrorGroups(
         params: $params
     ) {
         error_groups {
+            created_at
             id
             type
             event
-            resolved
+            state
             state
             environments
             stack_trace {
@@ -301,6 +324,7 @@ query GetErrorGroups(
                 session_id
                 timestamp
             }
+            error_frequency
         }
         totalCount
     }
@@ -356,6 +380,25 @@ query GetErrorFieldSuggestion(
     error_field_suggestion(
         organization_id: $organization_id
         name: $name
+        query: $query
+    ) {
+        name
+        value
+    }
+}
+
+query GetErrorSearchSuggestions($organization_id: ID!, $query: String!) {
+    visitedUrls: error_field_suggestion(
+        organization_id: $organization_id
+        name: "visited_url"
+        query: $query
+    ) {
+        name
+        value
+    }
+    fields: error_field_suggestion(
+        organization_id: $organization_id
+        name: "event"
         query: $query
     ) {
         name
@@ -474,7 +517,7 @@ query GetErrorSegments($organization_id: ID!) {
             os
             browser
             visited_url
-            hide_resolved
+            state
             event
         }
     }
@@ -575,6 +618,18 @@ query GetDailyErrorsCount($organization_id: ID!, $date_range: DateRangeInput!) {
         date
         count
     }
+}
+
+query GetDailyErrorFrequency(
+    $organization_id: ID!
+    $error_group_id: ID!
+    $date_offset: Int!
+) {
+    dailyErrorFrequency(
+        organization_id: $organization_id
+        error_group_id: $error_group_id
+        date_offset: $date_offset
+    )
 }
 
 query GetErrorAlert($organization_id: ID!) {

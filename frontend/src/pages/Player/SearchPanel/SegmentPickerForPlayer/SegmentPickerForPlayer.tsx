@@ -1,10 +1,11 @@
-import useLocalStorage from '@rehooks/local-storage';
+import { namedOperations } from '@graph/operations';
+import SvgXIcon from '@icons/XIcon';
 import { message, Select as AntDesignSelect } from 'antd';
 import classNames from 'classnames';
 const { Option } = AntDesignSelect;
+import { useParams } from '@util/react-router/useParams';
 import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
 import TextTransition from 'react-text-transition';
 
 import Button from '../../../../components/Button/Button/Button';
@@ -14,14 +15,14 @@ import {
     useEditSegmentMutation,
     useGetSegmentsQuery,
 } from '../../../../graph/generated/hooks';
-import SvgCloseIcon from '../../../../static/CloseIcon';
 import SvgEditIcon from '../../../../static/EditIcon';
 import SvgPlusIcon from '../../../../static/PlusIcon';
 import { gqlSanitize } from '../../../../util/gqlSanitize';
+import { EmptySessionsSearchParams } from '../../../Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '../../../Sessions/SearchContext/SearchContext';
 import CreateSegmentModal from '../../../Sessions/SearchSidebar/SegmentButtons/CreateSegmentModal';
 import DeleteSessionSegmentModal from '../../../Sessions/SearchSidebar/SegmentPicker/DeleteSessionSegmentModal/DeleteSessionSegmentModal';
-import { EmptySessionsSearchParams } from '../../../Sessions/SessionsPage';
+import { STARRED_SEGMENT_ID } from '../../../Sessions/SearchSidebar/SegmentPicker/SegmentPicker';
 import styles from './SegmentPickerForPlayer.module.scss';
 
 const SegmentPickerForPlayer = () => {
@@ -35,13 +36,13 @@ const SegmentPickerForPlayer = () => {
         segmentName,
         searchParams,
         existingParams,
+        setShowStarredSessions,
+        selectedSegment,
+        setSelectedSegment,
     } = useSearchContext();
     const { loading, data } = useGetSegmentsQuery({
         variables: { organization_id },
     });
-    const [selectedSegment, setSelectedSegment] = useLocalStorage<
-        { value: string; id: string } | undefined
-    >('highlightSegmentPickerForPlayerSelectedSegmentId', undefined);
     const [paramsIsDifferent, setParamsIsDifferent] = useState(false);
     const [showCreateSegmentModal, setShowCreateSegmentModal] = useState(false);
     const [segmentToDelete, setSegmentToDelete] = useState<{
@@ -49,7 +50,7 @@ const SegmentPickerForPlayer = () => {
         id?: string;
     } | null>(null);
     const [editSegment] = useEditSegmentMutation({
-        refetchQueries: ['GetSegments'],
+        refetchQueries: [namedOperations.Query.GetSegments],
     });
 
     const currentSegment = data?.segments?.find(
@@ -85,21 +86,41 @@ const SegmentPickerForPlayer = () => {
     }, [searchParams, existingParams]);
 
     const showUpdateSegmentOption = paramsIsDifferent && segmentName;
-    const segmentOptions = (data?.segments || [])
-        .map((segment) => ({
-            displayValue: segment?.name || '',
-            value: segment?.name || '',
-            id: segment?.id || '',
-        }))
-        .sort((a, b) =>
-            a.displayValue.toLowerCase() > b.displayValue.toLowerCase() ? 1 : -1
-        );
+    const segmentOptions = [
+        {
+            displayValue: 'Starred',
+            id: STARRED_SEGMENT_ID,
+            value: 'Starred',
+        },
+        ...(data?.segments || [])
+            .map((segment) => ({
+                displayValue: segment?.name || '',
+                value: segment?.name || '',
+                id: segment?.id || '',
+            }))
+            .sort((a, b) =>
+                a.displayValue.toLowerCase() > b.displayValue.toLowerCase()
+                    ? 1
+                    : -1
+            ),
+    ];
 
     return (
         <section className={styles.segmentPickerSection}>
             <Select
                 value={segmentName}
                 onChange={(value, option) => {
+                    if ((option as any)?.key === STARRED_SEGMENT_ID) {
+                        setShowStarredSessions(true);
+                        setExistingParams(EmptySessionsSearchParams);
+                        setSearchParams(EmptySessionsSearchParams);
+                        setSegmentName('Starred');
+                        setSelectedSegment({ value, id: STARRED_SEGMENT_ID });
+                        return;
+                    } else {
+                        setShowStarredSessions(false);
+                    }
+
                     let nextValue = undefined;
                     if (value && option) {
                         nextValue = {
@@ -140,22 +161,24 @@ const SegmentPickerForPlayer = () => {
                             >
                                 {option.displayValue}
                             </Tooltip>
-                            <Button
-                                trackingId="deleteSegmentFromPlayerSegmentPicker"
-                                type="ghost"
-                                iconButton
-                                aria-label={`Delete ${option.value} segment`}
-                                small
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSegmentToDelete({
-                                        id: option.id,
-                                        name: option.displayValue,
-                                    });
-                                }}
-                            >
-                                <SvgCloseIcon />
-                            </Button>
+                            {option.id !== STARRED_SEGMENT_ID && (
+                                <Button
+                                    trackingId="deleteSegmentFromPlayerSegmentPicker"
+                                    type="ghost"
+                                    iconButton
+                                    aria-label={`Delete ${option.value} segment`}
+                                    small
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSegmentToDelete({
+                                            id: option.id,
+                                            name: option.displayValue,
+                                        });
+                                    }}
+                                >
+                                    <SvgXIcon />
+                                </Button>
+                            )}
                         </span>
                     </Option>
                 ))}

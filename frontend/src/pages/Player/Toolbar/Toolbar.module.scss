@@ -106,6 +106,7 @@
 }
 
 .toolbarLeftSection {
+    column-gap: var(--size-large);
     display: flex;
     flex-direction: row;
     margin-left: var(--size-medium);
@@ -121,7 +122,7 @@
     flex-direction: row;
     flex-wrap: nowrap;
     height: 100%;
-    justify-content: center;
+    justify-content: flex-end;
     margin-left: auto;
     padding-right: var(--size-medium);
 
@@ -131,10 +132,16 @@
         margin-right: var(--size-xxSmall);
         margin-top: var(--size-xxSmall);
     }
+
+    > *:last-child {
+        margin-right: 0;
+    }
 }
 
 .toolbarSection {
     background-color: var(--color-primary-background);
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--border-radius);
     display: flex;
     flex-direction: row;
     height: 50px;
@@ -156,7 +163,6 @@
     display: flex;
     height: 100%;
     justify-content: center;
-    margin-left: 22px;
 }
 
 .redoSection {
@@ -165,7 +171,6 @@
     display: flex;
     height: 100%;
     justify-content: center;
-    margin-left: 24px;
 }
 
 .playButtonStyle {
@@ -231,7 +236,6 @@
     font-size: 12px;
     height: 100%;
     justify-content: center;
-    margin-left: 20px;
 }
 
 .skipButtonStyle {
@@ -332,5 +336,6 @@
 }
 
 .settingsPopover {
-    width: 250px;
+    max-height: fit-content;
+    width: 300px;
 }

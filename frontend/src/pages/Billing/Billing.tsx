@@ -1,17 +1,19 @@
 import { loadStripe } from '@stripe/stripe-js';
+import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import Confetti from 'react-confetti';
 import Skeleton from 'react-loading-skeleton';
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 import Collapsible from '../../components/Collapsible/Collapsible';
 import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import Progress from '../../components/Progress/Progress';
 import {
-    useCreateOrUpdateSubscriptionMutation,
+    useCreateOrUpdateStripeSubscriptionMutation,
     useGetBillingDetailsQuery,
+    useUpdateBillingDetailsMutation,
 } from '../../graph/generated/hooks';
 import { PlanType } from '../../graph/generated/schemas';
 import SvgShieldWarningIcon from '../../static/ShieldWarningIcon';
@@ -55,14 +57,21 @@ const BillingPage = () => {
     });
 
     const [
-        createOrUpdateSubscription,
+        createOrUpdateStripeSubscription,
         { data },
-    ] = useCreateOrUpdateSubscriptionMutation();
+    ] = useCreateOrUpdateStripeSubscriptionMutation();
+
+    const [updateBillingDetails] = useUpdateBillingDetailsMutation();
 
     useEffect(() => {
         const response = pathname.split('/')[3] ?? '';
         if (response === 'success') {
-            message.success('Billing change applied!', 5);
+            updateBillingDetails({ variables: { organization_id } }).then(
+                () => {
+                    message.success('Billing change applied!', 5);
+                    refetch();
+                }
+            );
         }
         if (checkoutRedirectFailedMessage) {
             message.error(checkoutRedirectFailedMessage, 5);
@@ -70,45 +79,60 @@ const BillingPage = () => {
         if (billingError) {
             message.error(billingError.message, 5);
         }
-    }, [pathname, checkoutRedirectFailedMessage, billingError]);
+    }, [
+        pathname,
+        checkoutRedirectFailedMessage,
+        billingError,
+        updateBillingDetails,
+        organization_id,
+        refetch,
+    ]);
 
     const createOnSelect = (newPlan: PlanType) => {
         return async () => {
             setLoadingPlanType(newPlan);
-            createOrUpdateSubscription({
+            createOrUpdateStripeSubscription({
                 variables: {
                     organization_id: organization_id,
                     plan_type: newPlan,
                 },
             }).then((r) => {
-                if (!r.data?.createOrUpdateSubscription) {
-                    const previousPlan = billingData!.billingDetails!.plan.type;
-                    const upgradedPlan = didUpgradePlan(previousPlan, newPlan);
-
-                    if (upgradedPlan) {
-                        setRainConfetti(true);
-                        message.success(
-                            "Thanks for upgrading your plan! As a token of our appreciation, we've made all your sessions viewable even if there's more than your new quota.",
-                            10
+                if (!r.data?.createOrUpdateStripeSubscription) {
+                    updateBillingDetails({
+                        variables: { organization_id },
+                    }).then(() => {
+                        const previousPlan = billingData!.billingDetails!.plan
+                            .type;
+                        const upgradedPlan = didUpgradePlan(
+                            previousPlan,
+                            newPlan
                         );
-                    } else {
-                        setRainConfetti(false);
-                        message.success('Billing change applied!', 5);
-                    }
+
+                        if (upgradedPlan) {
+                            setRainConfetti(true);
+                            message.success(
+                                "Thanks for upgrading your plan! As a token of our appreciation, we've made all your sessions viewable even if there's more than your new quota.",
+                                10
+                            );
+                        } else {
+                            setRainConfetti(false);
+                            message.success('Billing change applied!', 5);
+                        }
+                        refetch().then(() => {
+                            setLoadingPlanType(null);
+                        });
+                    });
                 }
-                refetch().then(() => {
-                    setLoadingPlanType(null);
-                });
             });
         };
     };
 
-    if (data?.createOrUpdateSubscription && stripePromiseOrNull) {
+    if (data?.createOrUpdateStripeSubscription && stripePromiseOrNull) {
         (async function () {
             const stripe = await stripePromiseOrNull;
             const result = stripe
                 ? await stripe.redirectToCheckout({
-                      sessionId: data.createOrUpdateSubscription ?? '',
+                      sessionId: data.createOrUpdateStripeSubscription ?? '',
                   })
                 : { error: 'Error: could not load stripe client.' };
 

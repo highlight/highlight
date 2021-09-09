@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/highlight-run/highlight/backend/util"
 	"github.com/pkg/errors"
 )
 
@@ -157,7 +158,7 @@ func (s *StorageClient) ReadMessagesFromS3(sessionId int, organizationId int) ([
 }
 
 func (s *StorageClient) bucketKey(sessionId int, organizationId int, key PayloadType) *string {
-	if os.Getenv("ENVIRONMENT") == "dev" {
+	if util.IsDevEnv() {
 		return aws.String(fmt.Sprintf("dev/%v/%v/%v", organizationId, sessionId, string(key)))
 	}
 	return aws.String(fmt.Sprintf("%v/%v/%v", organizationId, sessionId, string(key)))
@@ -165,8 +166,7 @@ func (s *StorageClient) bucketKey(sessionId int, organizationId int, key Payload
 
 func (s *StorageClient) sourceMapBucketKey(organizationId int, version *string, fileName string) *string {
 	var key string
-	env := os.Getenv("ENVIRONMENT")
-	if env == "dev" {
+	if util.IsDevEnv() {
 		key = "dev/"
 	}
 	if version == nil {

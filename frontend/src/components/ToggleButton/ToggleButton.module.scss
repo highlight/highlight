@@ -9,18 +9,26 @@
     height: 32px !important;
 
     &:hover {
-        background-color: transparent !important;
+        background-color: var(--color-gray-200) !important;
         border-color: var(--color-gray-300) !important;
     }
 
     &.toggled {
         background: var(--color-purple-200) !important;
-        border: 1px solid var(--color-purple) !important;
-        color: var(--text-primary);
+        color: var(--color-purple);
     }
 
     svg {
         height: var(--size-medium);
         width: var(--size-medium);
+    }
+
+    &.iconButton {
+        border-color: transparent;
+        padding: var(--size-xxSmall) var(--size-xSmall) !important;
+
+        &:hover {
+            border-color: transparent !important;
+        }
     }
 }

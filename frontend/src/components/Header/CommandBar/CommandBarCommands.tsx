@@ -1,10 +1,13 @@
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { message } from 'antd';
 import { History } from 'history';
 import { Command } from 'react-command-palette';
 
 import usePlayerConfiguration from '../../../pages/Player/PlayerHook/utils/usePlayerConfiguration';
-import { onGetLinkWithTimestamp } from '../../../pages/Player/ShareButton/utils/utils';
-import { DevToolTabs } from '../../../pages/Player/Toolbar/DevToolsContext/DevToolsContext';
+import { onGetLinkWithTimestamp } from '../../../pages/Player/SessionShareButton/utils/utils';
 
 export type CommandWithoutId = Omit<Command, 'id'>;
 
@@ -17,10 +20,15 @@ export const getNavigationCommands = (
     organization_id: string,
     history: History
 ): CommandWithoutId[] => {
+    const organizationIdRemapped =
+        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : organization_id;
+
     return NAVIGATION_COMMANDS.map(({ name, route }) => ({
         category: 'Navigation',
         command() {
-            history.push(`/${organization_id}/${route}`);
+            history.push(`/${organizationIdRemapped}/${route}`);
         },
         name,
     }));
@@ -32,11 +40,9 @@ export const usePlayerCommands = (
     const {
         autoPlayVideo,
         playerTime,
-        selectedDevToolsTab,
         selectedTimelineAnnotationTypes,
         selectedTimelineAnnotationTypesUserPersisted,
         setAutoPlayVideo,
-        setSelectedDevToolsTab,
         setSelectedTimelineAnnotationTypes,
         setSelectedTimelineAnnotationTypesUserPersisted,
         setShowDevTools,
@@ -94,39 +100,39 @@ export const usePlayerCommands = (
             },
             name: `${showRightPanel ? 'Hide' : 'Show'} right panel`,
         },
-        {
-            command: () => {
-                if (selectedDevToolsTab === DevToolTabs.Errors) {
-                    setShowDevTools(false);
-                } else {
-                    setShowDevTools(true);
-                    setSelectedDevToolsTab(DevToolTabs.Errors);
-                }
-            },
-            name: 'Toggle errors list',
-        },
-        {
-            command: () => {
-                if (selectedDevToolsTab === DevToolTabs.Network) {
-                    setShowDevTools(false);
-                } else {
-                    setShowDevTools(true);
-                    setSelectedDevToolsTab(DevToolTabs.Network);
-                }
-            },
-            name: 'Toggle network requests',
-        },
-        {
-            command: () => {
-                if (selectedDevToolsTab === DevToolTabs.Console) {
-                    setShowDevTools(false);
-                } else {
-                    setShowDevTools(true);
-                    setSelectedDevToolsTab(DevToolTabs.Console);
-                }
-            },
-            name: 'Toggle console log',
-        },
+        // {
+        //     command: () => {
+        //         if (selectedDevToolsTab === DevToolTabs.Errors) {
+        //             setShowDevTools(false);
+        //         } else {
+        //             setShowDevTools(true);
+        //             setSelectedDevToolsTab(DevToolTabs.Errors);
+        //         }
+        //     },
+        //     name: 'Toggle errors list',
+        // },
+        // {
+        //     command: () => {
+        //         if (selectedDevToolsTab === DevToolTabs.Network) {
+        //             setShowDevTools(false);
+        //         } else {
+        //             setShowDevTools(true);
+        //             setSelectedDevToolsTab(DevToolTabs.Network);
+        //         }
+        //     },
+        //     name: 'Toggle network requests',
+        // },
+        // {
+        //     command: () => {
+        //         if (selectedDevToolsTab === DevToolTabs.Console) {
+        //             setShowDevTools(false);
+        //         } else {
+        //             setShowDevTools(true);
+        //             setSelectedDevToolsTab(DevToolTabs.Console);
+        //         }
+        //     },
+        //     name: 'Toggle console log',
+        // },
         {
             command: () => {
                 setAutoPlayVideo(!autoPlayVideo);

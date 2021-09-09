@@ -1,9 +1,14 @@
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { useParams } from '@util/react-router/useParams';
 import React from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 import { PlayerSearchParameters } from '../../../../pages/Player/PlayerHook/utils';
-import CommentTextBody from '../../../../pages/Player/Toolbar/NewCommentEntry/CommentTextBody/CommentTextBody';
-import SvgErrorsIcon from '../../../../static/ErrorsIcon';
+import CommentTextBody from '../../../../pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody';
+import SvgBugIcon from '../../../../static/BugIcon';
 import SvgMessageIcon from '../../../../static/MessageIcon';
 import { AdminAvatar } from '../../../Avatar/Avatar';
 import Dot from '../../../Dot/Dot';
@@ -23,11 +28,15 @@ const CommentNotification = ({
     viewed,
 }: Props) => {
     const { organization_id } = useParams<{ organization_id: string }>();
+    const organizationIdRemapped =
+        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : organization_id;
 
     return (
         <Link
             className={notificationStyles.notification}
-            to={getLink(notification, organization_id)}
+            to={getLink(notification, organizationIdRemapped)}
             onClick={onViewHandler}
         >
             <div className={notificationStyles.notificationStartColumn}>
@@ -58,7 +67,7 @@ export default CommentNotification;
 const getIcon = (type: NotificationType) => {
     switch (type) {
         case NotificationType.ErrorComment:
-            return <SvgErrorsIcon />;
+            return <SvgBugIcon />;
         case NotificationType.SessionComment:
             return <SvgMessageIcon />;
     }
@@ -95,6 +104,6 @@ const getLink = (notification: any, organization_id: string) => {
         default:
             return `/`;
         case NotificationType.SessionComment:
-            return `${baseUrl}/sessions/${notification.session_id}?${PlayerSearchParameters.commentId}=${notification.id}`;
+            return `${baseUrl}/sessions/${notification.session_id}?${PlayerSearchParameters.commentId}=${notification.id}&${PlayerSearchParameters.ts}=${notification.timestamp}`;
     }
 };

@@ -1,10 +1,12 @@
-import { Replayer, ReplayerEvents } from '@highlight-run/rrweb';
+import { Replayer } from '@highlight-run/rrweb';
 import { customEvent } from '@highlight-run/rrweb/dist/types';
-import { message } from 'antd';
+import { useParams } from '@util/react-router/useParams';
+import { H } from 'highlight.run';
 import { useCallback, useEffect, useState } from 'react';
-import { useHistory, useParams } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
+import { useAuthContext } from '../../../authentication/AuthContext';
 import {
     useGetSessionCommentsLazyQuery,
     useGetSessionLazyQuery,
@@ -25,6 +27,7 @@ import {
     ReplayerState,
 } from '../ReplayerContext';
 import {
+    findNextSessionInList,
     getCommentsInSessionIntervals,
     getEventsForTimelineIndicator,
     getSessionIntervals,
@@ -41,7 +44,14 @@ const EVENTS_CHUNK_SIZE = parseInt(
     10
 );
 
+export enum SessionViewability {
+    VIEWABLE,
+    EMPTY_SESSION,
+    OVER_BILLING_QUOTA,
+}
+
 export const usePlayer = (): ReplayerContextInterface => {
+    const { isLoggedIn } = useAuthContext();
     const { session_id, organization_id } = useParams<{
         session_id: string;
         organization_id: string;
@@ -67,14 +77,15 @@ export const usePlayer = (): ReplayerContextInterface => {
     const [, setSelectedErrorId] = useState<string | undefined>(undefined);
     const [replayer, setReplayer] = useState<Replayer | undefined>(undefined);
     const [state, setState] = useState<ReplayerState>(ReplayerState.Empty);
-    const [canViewSession, setCanViewSession] = useState(true);
+    const [sessionViewability, setSessionViewability] = useState(
+        SessionViewability.VIEWABLE
+    );
     const [time, setTime] = useState<number>(0);
     const [session, setSession] = useState<undefined | Session>(undefined);
     /** localStorageTime acts like a message broker to share the current player time for components that are outside of the context tree. */
     const {
         setPlayerTime: setPlayerTimeToPersistance,
         autoPlaySessions,
-        showLeftPanel,
         showPlayerMouseTail,
     } = usePlayerConfiguration();
     const [sessionEndTime, setSessionEndTime] = useState<number>(0);
@@ -88,7 +99,11 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     const [
         getSessionPayloadQuery,
-        { loading, data: eventsData },
+        {
+            loading: eventsLoading,
+            data: eventsData,
+            called: getSessionPayloadQueryCalled,
+        },
     ] = useGetSessionPayloadLazyQuery({
         variables: {
             session_id,
@@ -96,16 +111,22 @@ export const usePlayer = (): ReplayerContextInterface => {
         fetchPolicy: 'no-cache',
     });
 
-    const [getSessionQuery, { data: sessionData }] = useGetSessionLazyQuery({
+    const [
+        getSessionQuery,
+        { data: sessionData, called: getSessionQueryCalled },
+    ] = useGetSessionLazyQuery({
         variables: {
             id: session_id,
         },
         onCompleted: (data) => {
             if (data.session?.within_billing_quota) {
-                getSessionPayloadQuery();
-                setCanViewSession(true);
+                if (!getSessionPayloadQueryCalled) {
+                    getSessionPayloadQuery();
+                }
+                setSessionViewability(SessionViewability.VIEWABLE);
+                H.track('Viewed session', { is_guest: !isLoggedIn });
             } else {
-                setCanViewSession(false);
+                setSessionViewability(SessionViewability.OVER_BILLING_QUOTA);
             }
         },
     });
@@ -132,21 +153,32 @@ export const usePlayer = (): ReplayerContextInterface => {
             setPlayerTimeToPersistance(0);
             setSessionEndTime(0);
             setSessionIntervals([]);
-            setCanViewSession(true);
+            setSessionViewability(SessionViewability.VIEWABLE);
         },
         [setPlayerTimeToPersistance]
     );
 
+    // Initializes the session state and fetches the session data
     useEffect(() => {
         if (session_id) {
             setState(ReplayerState.Loading);
             setSession(undefined);
-            getSessionQuery();
+
+            if (!getSessionQueryCalled) {
+                getSessionQuery();
+            }
             getSessionCommentsQuery();
         } else {
+            // This case happens when no session is active.
             resetPlayer(ReplayerState.Empty);
         }
-    }, [getSessionCommentsQuery, getSessionQuery, session_id, resetPlayer]);
+    }, [
+        getSessionCommentsQuery,
+        getSessionQuery,
+        session_id,
+        resetPlayer,
+        getSessionQueryCalled,
+    ]);
 
     useEffect(() => {
         setSession(sessionData?.session as Session | undefined);
@@ -154,10 +186,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     // Reset all state when loading events.
     useEffect(() => {
-        if (loading) {
+        if (eventsLoading) {
             resetPlayer(ReplayerState.Loading);
         }
-    }, [loading, resetPlayer, setPlayerTimeToPersistance]);
+    }, [eventsLoading, resetPlayer, setPlayerTimeToPersistance]);
 
     // Downloads the events data only if the URL search parameter '?download=1' is present.
     useEffect(() => {
@@ -178,7 +210,7 @@ export const usePlayer = (): ReplayerContextInterface => {
     // Handle data in playback mode.
     useEffect(() => {
         if (eventsData?.events?.length ?? 0 > 1) {
-            console.time('LoadingEvents');
+            setSessionViewability(SessionViewability.VIEWABLE);
             setState(ReplayerState.Loading);
             // Add an id field to each event so it can be referenced.
             const newEvents: HighlightEvent[] = toHighlightEvents(
@@ -202,9 +234,6 @@ export const usePlayer = (): ReplayerContextInterface => {
                 triggerFocus: false,
                 mouseTail: showPlayerMouseTail,
             });
-            r.on(ReplayerEvents.Finish, () => {
-                setState(ReplayerState.SessionEnded);
-            });
             r.on('event-cast', (e: any) => {
                 const event = e as HighlightEvent;
                 if ((event as customEvent)?.data?.tag === 'Stop') {
@@ -216,7 +245,10 @@ export const usePlayer = (): ReplayerContextInterface => {
                 setErrors(eventsData.errors as ErrorObject[]);
             }
             setReplayer(r);
+        } else if (!!eventsData) {
+            setSessionViewability(SessionViewability.EMPTY_SESSION);
         }
+        // This hook shouldn't depend on `showPlayerMouseTail`. The player is updated through a setter. Making this hook depend on `showPlayerMouseTrail` will cause the player to be remounted when `showPlayerMouseTrail` changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [eventsData, setPlayerTimeToPersistance]);
 
@@ -255,9 +287,9 @@ export const usePlayer = (): ReplayerContextInterface => {
                     setSessionIntervals(sessionIntervals);
                     setEventsForTimelineIndicator(
                         getEventsForTimelineIndicator(
-                            sessionIntervals,
                             events,
-                            replayer.getMetaData().startTime
+                            replayer.getMetaData().startTime,
+                            replayer.getMetaData().totalTime
                         )
                     );
                     setSessionEndTime(replayer.getMetaData().totalTime);
@@ -266,7 +298,6 @@ export const usePlayer = (): ReplayerContextInterface => {
                             ? ReplayerState.LoadedWithDeepLink
                             : ReplayerState.LoadedAndUntouched
                     );
-                    console.timeEnd('LoadingEvents');
                     setPlayerTimestamp(
                         replayer.getMetaData().totalTime,
                         replayer.getMetaData().startTime,
@@ -302,10 +333,10 @@ export const usePlayer = (): ReplayerContextInterface => {
         ) {
             setSessionComments(
                 getCommentsInSessionIntervals(
-                    sessionIntervals,
                     sessionCommentsData.session_comments as SessionComment[],
-                    replayer.getMetaData().startTime
-                ).flat()
+                    replayer.getMetaData().startTime,
+                    replayer.getMetaData().totalTime
+                )
             );
         }
     }, [
@@ -321,6 +352,13 @@ export const usePlayer = (): ReplayerContextInterface => {
             const frameAction = () => {
                 if (replayer) {
                     setTime(replayer.getCurrentTime());
+
+                    if (
+                        replayer.getCurrentTime() >=
+                        replayer.getMetaData().totalTime
+                    ) {
+                        setState(ReplayerState.SessionEnded);
+                    }
                 }
                 setTimerId(requestAnimationFrame(frameAction));
             };
@@ -335,42 +373,38 @@ export const usePlayer = (): ReplayerContextInterface => {
             setTimerId(null);
         }
     }, [state, timerId]);
-    //     // "Subscribes" the time with the Replayer when the Player is playing.
 
     useEffect(() => {
         setPlayerTimeToPersistance(time);
     }, [setPlayerTimeToPersistance, time]);
 
+    useEffect(() => {
+        if (!session_id) {
+            setState(ReplayerState.Empty);
+        }
+    }, [session_id]);
+
     // Finds the next session in the session feed to play if autoplay is enabled.
     useEffect(() => {
         if (
             state === ReplayerState.SessionEnded &&
-            showLeftPanel &&
             autoPlaySessions &&
             sessionResults.sessions.length > 0
         ) {
-            let currentSessionIndex = sessionResults.sessions.findIndex(
-                (session) => session.id === session_id
+            const nextSessionInList = findNextSessionInList(
+                sessionResults.sessions,
+                session_id
             );
 
-            // This happens if the current session was removed from the session feed.
-            if (currentSessionIndex === -1) {
-                currentSessionIndex = 0;
+            if (nextSessionInList) {
+                setState(ReplayerState.Paused);
+                setTimeout(() => {
+                    history.push(
+                        `/${organization_id}/sessions/${nextSessionInList.id}`
+                    );
+                    resetPlayer(ReplayerState.Empty);
+                }, 250);
             }
-
-            const nextSessionIndex = currentSessionIndex + 1;
-
-            // Don't go beyond the last session.
-            if (nextSessionIndex >= sessionResults.sessions.length) {
-                message.success('No more sessions to view.');
-                return;
-            }
-
-            history.push(
-                `/${organization_id}/sessions/${sessionResults.sessions[nextSessionIndex].id}`
-            );
-            resetPlayer(ReplayerState.Loading);
-            message.success('Playing the next session.');
         }
     }, [
         autoPlaySessions,
@@ -379,7 +413,6 @@ export const usePlayer = (): ReplayerContextInterface => {
         resetPlayer,
         sessionResults.sessions,
         session_id,
-        showLeftPanel,
         state,
     ]);
 
@@ -433,12 +466,16 @@ export const usePlayer = (): ReplayerContextInterface => {
         pause,
         errors,
         sessionComments,
-        canViewSession,
+        sessionViewability,
+        canViewSession: sessionViewability === SessionViewability.VIEWABLE,
         eventsForTimelineIndicator,
         sessionResults,
         setSessionResults,
         isPlayerReady:
-            state !== ReplayerState.Loading && scale !== 1 && canViewSession,
+            state !== ReplayerState.Loading &&
+            state !== ReplayerState.Empty &&
+            scale !== 1 &&
+            sessionViewability === SessionViewability.VIEWABLE,
         session,
         playerProgress: replayer
             ? time / replayer.getMetaData().totalTime

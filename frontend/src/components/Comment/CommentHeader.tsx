@@ -1,12 +1,10 @@
+import { useAuthContext } from '@authentication/AuthContext';
+import { GetAdminsQuery } from '@graph/operations';
 import classNames from 'classnames';
 import React, { PropsWithChildren } from 'react';
 import { SuggestionDataItem } from 'react-mentions';
 
-import {
-    GetAdminQuery,
-    GetAdminsQuery,
-} from '../../graph/generated/operations';
-import { SanitizedAdminInput } from '../../graph/generated/schemas';
+import { Admin, SanitizedAdminInput } from '../../graph/generated/schemas';
 import { AdminAvatar } from '../Avatar/Avatar';
 import DotsMenu from '../DotsMenu/DotsMenu';
 import RelativeTime from '../RelativeTime/RelativeTime';
@@ -19,11 +17,14 @@ export interface AdminSuggestion extends SuggestionDataItem {
 }
 
 export const parseAdminSuggestions = (
+    /** A list of all admins in the organization. */
     data: GetAdminsQuery | undefined,
-    admin_data: GetAdminQuery | undefined,
+    /** The current logged in admin. */
+    currentAdmin: Admin | undefined,
+    /** A list of admins that have already been mentioned. */
     mentionedAdmins: SanitizedAdminInput[]
 ): AdminSuggestion[] => {
-    if (!data?.admins || !admin_data?.admin) {
+    if (!data?.admins || !currentAdmin) {
         return [];
     }
 
@@ -33,7 +34,7 @@ export const parseAdminSuggestions = (
             .filter(
                 (admin) =>
                     // 1. The admin that is creating the comment
-                    admin!.email !== admin_data.admin!.email &&
+                    admin!.email !== currentAdmin!.email &&
                     // 2. Admins that are already mentioned
                     !mentionedAdmins.some(
                         (mentionedAdmin) => mentionedAdmin.id === admin?.id
@@ -61,6 +62,8 @@ export const CommentHeader = ({
     menu: JSX.Element;
     footer?: React.ReactNode;
 }>) => {
+    const { isLoggedIn } = useAuthContext();
+
     return (
         <>
             <div className={classNames(styles.commentHeader)}>
@@ -75,7 +78,9 @@ export const CommentHeader = ({
                     </span>
                 </div>
                 <span className={styles.endActions}>
-                    <DotsMenu menu={menu} trackingId="CommentsHeader" />
+                    {isLoggedIn && (
+                        <DotsMenu menu={menu} trackingId="CommentsHeader" />
+                    )}
                 </span>
                 <div className={styles.childrenContainer}>{children}</div>
                 {footer && <div className={styles.footer}>{footer}</div>}

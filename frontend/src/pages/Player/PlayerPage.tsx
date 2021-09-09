@@ -1,11 +1,50 @@
 import 'rc-slider/assets/index.css';
 
+import { useAuthContext } from '@authentication/AuthContext';
+import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import ElevatedCard from '@components/ElevatedCard/ElevatedCard';
+import FullBleedCard from '@components/FullBleedCard/FullBleedCard';
+import Modal from '@components/Modal/Modal';
+import { useMarkSessionAsViewedMutation } from '@graph/hooks';
 import { EventType, Replayer } from '@highlight-run/rrweb';
 import { eventWithTime } from '@highlight-run/rrweb/dist/types';
+import NoActiveSessionCard from '@pages/Player/components/NoActiveSessionCard/NoActiveSessionCard';
+import PanelToggleButton from '@pages/Player/components/PanelToggleButton/PanelToggleButton';
+import { PlayerUIContextProvider } from '@pages/Player/context/PlayerUIContext';
+import { HighlightEvent } from '@pages/Player/HighlightEvent';
+import PlayerCommentCanvas, {
+    Coordinates2D,
+} from '@pages/Player/PlayerCommentCanvas/PlayerCommentCanvas';
+import {
+    SessionViewability,
+    usePlayer,
+} from '@pages/Player/PlayerHook/PlayerHook';
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
+import PlayerPageProductTour from '@pages/Player/PlayerPageProductTour/PlayerPageProductTour';
+import {
+    ReplayerContextProvider,
+    ReplayerState,
+    useReplayerContext,
+} from '@pages/Player/ReplayerContext';
+import RightPlayerPanel from '@pages/Player/RightPlayerPanel/RightPlayerPanel';
+import SearchPanel from '@pages/Player/SearchPanel/SearchPanel';
+import SessionLevelBar from '@pages/Player/SessionLevelBar/SessionLevelBar';
+import { StreamElement } from '@pages/Player/StreamElement/StreamElement';
+import { NewCommentForm } from '@pages/Player/Toolbar/NewCommentForm/NewCommentForm';
+import { Toolbar } from '@pages/Player/Toolbar/Toolbar';
+import { usePlayerFullscreen } from '@pages/Player/utils/PlayerHooks';
+import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard';
+import { SessionSearchOption } from '@pages/Sessions/SessionsFeedV2/components/SessionSearch/SessionSearch';
+import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import _ from 'lodash';
 import Lottie from 'lottie-react';
 import React, {
+    Suspense,
     useCallback,
     useEffect,
     useMemo,
@@ -14,43 +53,32 @@ import React, {
 } from 'react';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import useResizeAware from 'react-resize-aware';
-import { useParams } from 'react-router-dom';
+import AsyncSelect from 'react-select/async';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
-import { useAuthContext } from '../../AuthContext';
-import ButtonLink from '../../components/Button/ButtonLink/ButtonLink';
-import ElevatedCard from '../../components/ElevatedCard/ElevatedCard';
-import FullBleedCard from '../../components/FullBleedCard/FullBleedCard';
-import Modal from '../../components/Modal/Modal';
-import { useMarkSessionAsViewedMutation } from '../../graph/generated/hooks';
 import WaitingAnimation from '../../lottie/waiting.json';
-import { HighlightEvent } from './HighlightEvent';
-import PlayerCommentCanvas, {
-    Coordinates2D,
-} from './PlayerCommentCanvas/PlayerCommentCanvas';
-import { usePlayer } from './PlayerHook/PlayerHook';
-import usePlayerConfiguration from './PlayerHook/utils/usePlayerConfiguration';
 import styles from './PlayerPage.module.scss';
-import {
-    ReplayerContextProvider,
-    ReplayerState,
-    useReplayerContext,
-} from './ReplayerContext';
-import RightPlayerPanel from './RightPlayerPanel/RightPlayerPanel';
-import SearchPanel from './SearchPanel/SearchPanel';
-import SessionLevelBar from './SessionLevelBar/SessionLevelBar';
-import { StreamElement } from './StreamElement/StreamElement';
-import { NewCommentEntry } from './Toolbar/NewCommentEntry/NewCommentEntry';
-import { Toolbar } from './Toolbar/Toolbar';
 
-const Player = () => {
+interface Props {
+    integrated: boolean;
+}
+
+const Player = ({ integrated }: Props) => {
     const { isLoggedIn } = useAuthContext();
     const { session_id, organization_id } = useParams<{
         session_id: string;
         organization_id: string;
     }>();
+    const organizationIdRemapped =
+        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : organization_id;
     const [resizeListener, sizes] = useResizeAware();
+
+    const [searchBarRef, setSearchBarRef] = useState<
+        AsyncSelect<SessionSearchOption, true> | undefined
+    >(undefined);
     const player = usePlayer();
     const {
         state: replayerState,
@@ -58,18 +86,23 @@ const Player = () => {
         setScale,
         replayer,
         time,
-        canViewSession,
+        sessionViewability,
         isPlayerReady,
         session,
     } = player;
-    const { setShowLeftPanel } = usePlayerConfiguration();
-    const playerWrapperRef = useRef<HTMLDivElement>(null);
-    const newCommentModalRef = useRef<HTMLDivElement>(null);
-    const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
     const {
+        setShowLeftPanel,
         showLeftPanel: showLeftPanelPreference,
         showRightPanel,
     } = usePlayerConfiguration();
+    const playerWrapperRef = useRef<HTMLDivElement>(null);
+    const {
+        isPlayerFullscreen,
+        setIsPlayerFullscreen,
+        playerCenterPanelRef,
+    } = usePlayerFullscreen();
+    const newCommentModalRef = useRef<HTMLDivElement>(null);
+    const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
     const [commentModalPosition, setCommentModalPosition] = useState<
         Coordinates2D | undefined
     >(undefined);
@@ -138,174 +171,279 @@ const Player = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sizes, replayer]);
 
-    const showLeftPanel = showLeftPanelPreference && canViewSession;
+    const showLeftPanel =
+        showLeftPanelPreference &&
+        sessionViewability !== SessionViewability.OVER_BILLING_QUOTA;
 
     return (
-        <ReplayerContextProvider value={player}>
-            <div
-                className={classNames(styles.playerBody, {
-                    [styles.withLeftPanel]: showLeftPanel,
-                })}
-            >
-                {showLeftPanel && (
-                    <div className={styles.playerLeftPanel}>
-                        <SearchPanel />
-                    </div>
+        <PlayerUIContextProvider
+            value={{
+                searchBarRef,
+                setSearchBarRef,
+                isPlayerFullscreen,
+                setIsPlayerFullscreen,
+                playerCenterPanelRef,
+            }}
+        >
+            <ReplayerContextProvider value={player}>
+                {!integrated && <IntegrationCard />}
+                {isPlayerReady && !isLoggedIn && (
+                    <>
+                        <Suspense fallback={null}>
+                            <PlayerPageProductTour />
+                        </Suspense>
+                    </>
                 )}
-                {!canViewSession && (
-                    <FullBleedCard
-                        title="Session quota reached 😔"
-                        animation={<Lottie animationData={WaitingAnimation} />}
-                    >
-                        <p>
-                            This session was recorded after you reached your
-                            session quota. To view it, upgrade your plan.
-                        </p>
-                        <ButtonLink
-                            to={`/${organization_id}/billing`}
-                            trackingId="PlayerPageUpgradePlan"
-                            className={styles.center}
-                        >
-                            Upgrade Plan
-                        </ButtonLink>
-                    </FullBleedCard>
-                )}
-                {!!session || replayerState !== ReplayerState.Empty ? (
-                    <div className={styles.playerCenterPanel}>
-                        <SessionLevelBar />
-                        <div className={styles.playerContainer}>
-                            <div className={styles.rrwebPlayerSection}>
-                                <div className={styles.playerCenterColumn}>
-                                    <div
-                                        className={styles.rrwebPlayerWrapper}
-                                        ref={playerWrapperRef}
-                                    >
-                                        {resizeListener}
-                                        {replayerState ===
-                                            ReplayerState.SessionRecordingStopped && (
-                                            <div
-                                                className={
-                                                    styles.manuallyStoppedMessageContainer
-                                                }
-                                                style={{
-                                                    height: replayer?.wrapper.getBoundingClientRect()
-                                                        .height,
-                                                    width: replayer?.wrapper.getBoundingClientRect()
-                                                        .width,
-                                                }}
-                                            >
-                                                <ElevatedCard title="Session recording manually stopped">
-                                                    <p>
-                                                        <a
-                                                            href="https://docs.highlight.run/reference#stop"
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                        >
-                                                            <code>
-                                                                H.stop()
-                                                            </code>
-                                                        </a>{' '}
-                                                        was called during the
-                                                        session. Calling this
-                                                        method stops the session
-                                                        recording. If you expect
-                                                        the recording to
-                                                        continue please check
-                                                        where you are calling{' '}
-                                                        <a
-                                                            href="https://docs.highlight.run/reference#stop"
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                        >
-                                                            <code>
-                                                                H.stop()
-                                                            </code>
-                                                        </a>
-                                                        .
-                                                    </p>
-                                                </ElevatedCard>
-                                            </div>
-                                        )}
-                                        {isPlayerReady && (
-                                            <PlayerCommentCanvas
-                                                setModalPosition={
-                                                    setCommentModalPosition
-                                                }
-                                                isReplayerReady={isPlayerReady}
-                                                modalPosition={
-                                                    commentModalPosition
-                                                }
-                                                setCommentPosition={
-                                                    setCommentPosition
-                                                }
-                                            />
-                                        )}
-                                        <div
-                                            style={{
-                                                visibility: isPlayerReady
-                                                    ? 'visible'
-                                                    : 'hidden',
-                                            }}
-                                            className={classNames(
-                                                styles.rrwebPlayerDiv,
-                                                'highlight-block'
-                                            )}
-                                            id="player"
-                                        />
-                                        {!isPlayerReady && (
-                                            <PlayerSkeleton
-                                                showingLeftPanel={showLeftPanel}
-                                                showingRightPanel={
-                                                    showRightPanel
-                                                }
-                                                width={
-                                                    playerWrapperRef.current
-                                                        ?.clientWidth
-                                                }
-                                            />
-                                        )}
-                                    </div>
-                                    <Toolbar />
-                                </div>
-
-                                <RightPlayerPanel />
-                            </div>
-                        </div>
-                    </div>
-                ) : (
-                    <h1>No</h1>
-                )}
-                <Modal
-                    visible={commentModalPosition !== undefined}
-                    onCancel={() => {
-                        setCommentModalPosition(undefined);
-                    }}
-                    destroyOnClose
-                    minimal
-                    width="324px"
-                    style={{
-                        left: `${commentModalPosition?.x}px`,
-                        top: `${commentModalPosition?.y}px`,
-                        margin: 0,
-                    }}
-                    mask={false}
-                    modalRender={(node) => (
-                        <div className={styles.commentModal}>{node}</div>
+                <div
+                    className={classNames(
+                        styles.playerBody,
+                        styles.gridBackground,
+                        {
+                            [styles.withLeftPanel]: showLeftPanel,
+                        }
                     )}
                 >
-                    <div ref={newCommentModalRef}>
-                        <NewCommentEntry
-                            currentTime={Math.floor(time)}
-                            onCloseHandler={() => {
-                                setCommentModalPosition(undefined);
+                    <div
+                        className={classNames(styles.playerLeftPanel, {
+                            [styles.hidden]: !showLeftPanel,
+                        })}
+                    >
+                        <SearchPanel visible={showLeftPanel} />
+                        <PanelToggleButton
+                            className={classNames(
+                                styles.panelToggleButton,
+                                styles.panelToggleButtonLeft,
+                                {
+                                    [styles.panelShown]: showLeftPanelPreference,
+                                }
+                            )}
+                            direction="left"
+                            isOpen={showLeftPanelPreference}
+                            onClick={() => {
+                                setShowLeftPanel(!showLeftPanelPreference);
                             }}
-                            commentPosition={commentPosition}
-                            parentRef={newCommentModalRef}
                         />
                     </div>
-                </Modal>
-            </div>
-        </ReplayerContextProvider>
+                    {sessionViewability ===
+                        SessionViewability.OVER_BILLING_QUOTA && (
+                        <FullBleedCard
+                            title="Session quota reached 😔"
+                            animation={
+                                <Lottie animationData={WaitingAnimation} />
+                            }
+                        >
+                            <p>
+                                This session was recorded after you reached your
+                                session quota. To view it, upgrade your plan.
+                            </p>
+                            <ButtonLink
+                                to={`/${organizationIdRemapped}/billing`}
+                                trackingId="PlayerPageUpgradePlan"
+                                className={styles.center}
+                            >
+                                Upgrade Plan
+                            </ButtonLink>
+                        </FullBleedCard>
+                    )}
+                    {sessionViewability === SessionViewability.EMPTY_SESSION ? (
+                        <ElevatedCard
+                            className={styles.emptySessionCard}
+                            title="Session isn't ready to view yet 😔"
+                            animation={
+                                <Lottie animationData={WaitingAnimation} />
+                            }
+                        >
+                            <p>
+                                We need more time to process this session. If
+                                this looks like a bug, shoot us a message on{' '}
+                                <span
+                                    className={styles.intercomLink}
+                                    onClick={() => {
+                                        window.Intercom(
+                                            'showNewMessage',
+                                            `I'm seeing an empty session. This is the session ID: "${session_id}"`
+                                        );
+                                    }}
+                                >
+                                    Intercom
+                                </span>
+                                .
+                            </p>
+                        </ElevatedCard>
+                    ) : (sessionViewability === SessionViewability.VIEWABLE &&
+                          !!session) ||
+                      replayerState !== ReplayerState.Empty ||
+                      (replayerState === ReplayerState.Empty &&
+                          !!session_id) ? (
+                        <div
+                            id="playerCenterPanel"
+                            className={classNames(styles.playerCenterPanel, {
+                                [styles.gridBackground]: isPlayerFullscreen,
+                            })}
+                            ref={playerCenterPanelRef}
+                        >
+                            <div className={styles.playerContainer}>
+                                <div className={styles.rrwebPlayerSection}>
+                                    <div className={styles.playerCenterColumn}>
+                                        {!isPlayerFullscreen && (
+                                            <SessionLevelBar />
+                                        )}
+                                        <div
+                                            className={
+                                                styles.rrwebPlayerWrapper
+                                            }
+                                            ref={playerWrapperRef}
+                                        >
+                                            {resizeListener}
+                                            {replayerState ===
+                                                ReplayerState.SessionRecordingStopped && (
+                                                <div
+                                                    className={
+                                                        styles.manuallyStoppedMessageContainer
+                                                    }
+                                                    style={{
+                                                        height: replayer?.wrapper.getBoundingClientRect()
+                                                            .height,
+                                                        width: replayer?.wrapper.getBoundingClientRect()
+                                                            .width,
+                                                    }}
+                                                >
+                                                    <ElevatedCard title="Session recording manually stopped">
+                                                        <p>
+                                                            <a
+                                                                href="https://docs.highlight.run/reference#stop"
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                            >
+                                                                <code>
+                                                                    H.stop()
+                                                                </code>
+                                                            </a>{' '}
+                                                            was called during
+                                                            the session. Calling
+                                                            this method stops
+                                                            the session
+                                                            recording. If you
+                                                            expect the recording
+                                                            to continue please
+                                                            check where you are
+                                                            calling{' '}
+                                                            <a
+                                                                href="https://docs.highlight.run/reference#stop"
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                            >
+                                                                <code>
+                                                                    H.stop()
+                                                                </code>
+                                                            </a>
+                                                            .
+                                                        </p>
+                                                    </ElevatedCard>
+                                                </div>
+                                            )}
+                                            {isPlayerReady && (
+                                                <PlayerCommentCanvas
+                                                    setModalPosition={
+                                                        setCommentModalPosition
+                                                    }
+                                                    isReplayerReady={
+                                                        isPlayerReady
+                                                    }
+                                                    modalPosition={
+                                                        commentModalPosition
+                                                    }
+                                                    setCommentPosition={
+                                                        setCommentPosition
+                                                    }
+                                                />
+                                            )}
+                                            <div
+                                                style={{
+                                                    visibility: isPlayerReady
+                                                        ? 'visible'
+                                                        : 'hidden',
+                                                }}
+                                                className={classNames(
+                                                    styles.rrwebPlayerDiv,
+                                                    'highlight-block'
+                                                )}
+                                                id="player"
+                                            />
+                                            {!isPlayerReady && (
+                                                <PlayerSkeleton
+                                                    showingLeftPanel={
+                                                        showLeftPanel
+                                                    }
+                                                    showingRightPanel={
+                                                        showRightPanel
+                                                    }
+                                                    width={
+                                                        playerWrapperRef.current
+                                                            ?.clientWidth
+                                                    }
+                                                />
+                                            )}
+                                        </div>
+                                        <Toolbar />
+                                    </div>
+
+                                    {!isPlayerFullscreen && (
+                                        <RightPlayerPanel />
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <NoActiveSessionCard />
+                    )}
+                    <Modal
+                        visible={commentModalPosition !== undefined}
+                        onCancel={() => {
+                            setCommentModalPosition(undefined);
+                        }}
+                        // Sets the Modal's mount node as the player center panel.
+                        // The default is document.body
+                        // We override here to be able to show the comments when the player is in fullscreen
+                        // Without this, the new comment modal would be below the fullscreen view.
+                        getContainer={() => {
+                            const playerCenterPanel = document.getElementById(
+                                'playerCenterPanel'
+                            );
+
+                            if (playerCenterPanel) {
+                                return playerCenterPanel;
+                            }
+
+                            return document.body;
+                        }}
+                        destroyOnClose
+                        minimal
+                        width="324px"
+                        style={{
+                            left: `${commentModalPosition?.x}px`,
+                            top: `${commentModalPosition?.y}px`,
+                            margin: 0,
+                        }}
+                        mask={false}
+                        modalRender={(node) => (
+                            <div className={styles.commentModal}>{node}</div>
+                        )}
+                    >
+                        <div ref={newCommentModalRef}>
+                            <NewCommentForm
+                                currentTime={Math.floor(time)}
+                                onCloseHandler={() => {
+                                    setCommentModalPosition(undefined);
+                                }}
+                                commentPosition={commentPosition}
+                                parentRef={newCommentModalRef}
+                            />
+                        </div>
+                    </Modal>
+                </div>
+            </ReplayerContextProvider>
+        </PlayerUIContextProvider>
     );
 };
 

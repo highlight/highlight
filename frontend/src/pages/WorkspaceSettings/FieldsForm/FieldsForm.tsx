@@ -1,8 +1,9 @@
+import { namedOperations } from '@graph/operations';
+import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames/bind';
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { useParams } from 'react-router-dom';
 
 import commonStyles from '../../../Common.module.scss';
 import Button from '../../../components/Button/Button/Button';
@@ -28,7 +29,10 @@ export const FieldsForm = () => {
         editOrganization,
         { data: editData, loading: editLoading },
     ] = useEditOrganizationMutation({
-        refetchQueries: ['GetOrganizations', 'GetOrganization'],
+        refetchQueries: [
+            namedOperations.Query.GetOrganizations,
+            namedOperations.Query.GetOrganization,
+        ],
     });
 
     const onSubmit = (inputs: Inputs) => {

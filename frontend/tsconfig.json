@@ -1,4 +1,5 @@
 {
+  "extends": "./tsconfig.paths.json",
   "compilerOptions": {
     "target": "es5",
     "lib": [
@@ -19,11 +20,13 @@
     "noEmit": true,
     "jsx": "react",
     "allowJs": true,
-    "typeRoots": ["./node_modules/@types", "./src/@types"],
-    // hnoFallthroughCasesInSwitch is needed. See ttps://github.com/facebook/create-react-app/issues/9429#issuecomment-674994709
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/@types"
+    ],
     "noFallthroughCasesInSwitch": true
   },
   "include": [
-    "src"
-  ],
+    "./src"
+  ]
 }

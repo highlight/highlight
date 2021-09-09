@@ -1,10 +1,14 @@
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { useParams } from '@util/react-router/useParams';
 import { H } from 'highlight.run';
 import React, { FunctionComponent, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { useParams } from 'react-router-dom';
 import useFetch from 'use-http';
 
-import { useAuthContext } from '../../AuthContext';
+import { useAuthContext } from '../../authentication/AuthContext';
 import ButtonLink from '../../components/Button/ButtonLink/ButtonLink';
 import Collapsible from '../../components/Collapsible/Collapsible';
 import SvgSlackLogo from '../../components/icons/SlackLogo';
@@ -30,6 +34,10 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
     const { admin } = useAuthContext();
     const [platform, setPlatform] = useState(PlatformType.React);
     const { organization_id } = useParams<{ organization_id: string }>();
+    const organizationIdRemapped =
+        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : organization_id;
     const { data, loading } = useGetOrganizationQuery({
         variables: { id: organization_id },
     });
@@ -95,18 +103,9 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                                     { copied: 'code snippet' }
                                 );
                             }}
-                            text={
-                                platform === PlatformType.NextJs
-                                    ? `if (typeof window !== 'undefined') {
-    H.identify(\n\t'${
-        admin?.email || 'eliza@gmail.com'
-    }', \n\t{id: 'ajdf837dj', phone: '867-5309'}
-    )
-}`
-                                    : `H.identify(\n\t'${
-                                          admin?.email || 'eliza@gmail.com'
-                                      }', \n\t{id: 'ajdf837dj', phone: '867-5309'}\n)`
-                            }
+                            text={`H.identify(\n\t'${
+                                admin?.email || 'eliza@gmail.com'
+                            }', \n\t{id: 'ajdf837dj', phone: '867-5309'}\n)`}
                         />
                     </Section>
                     <Section
@@ -157,7 +156,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                         </p>
                         <div className={styles.integrationContainer}>
                             <ButtonLink
-                                to={`/${organization_id}/alerts`}
+                                to={`/${organizationIdRemapped}/alerts`}
                                 trackingId="ConfigureAlertsFromSetupPage"
                             >
                                 Configure Your Alerts
@@ -233,22 +232,6 @@ const JsAppInstructions = ({
                 <CodeBlock text={`yarn add highlight.run`} />
             </Section>
             <Section title="Initializing Highlight">
-                {platform === PlatformType.NextJs ? (
-                    <div className={styles.callout}>
-                        <div className={styles.calloutEmoji}>
-                            <span role="img" aria-label="light-bulb">
-                                💡
-                            </span>
-                        </div>
-                        <p>
-                            In Next.js, wrap all client side function calls in{' '}
-                            <code>if (typeof window...</code>
-                            to force the logic to be executed client side.
-                        </p>
-                    </div>
-                ) : (
-                    <></>
-                )}
                 <p>Initialize the SDK by importing Highlight like so: </p>
                 <CodeBlock text={`import { H } from 'highlight.run'`} />
                 <p>
@@ -271,9 +254,9 @@ const JsAppInstructions = ({
                         />
                     ) : (
                         <CodeBlock
-                            text={`if (typeof window !== 'undefined') {
-    ${getInitSnippet(orgVerboseId)}' is your ORG_ID
-}`}
+                            text={`${getInitSnippet(
+                                orgVerboseId
+                            )} // ${orgVerboseId} is your ORG_ID`}
                         />
                     )}
                 </p>
@@ -311,9 +294,7 @@ createApp(App).mount('#app');`}
                     <CodeBlock
                         text={`import { H } from 'highlight.run';
 
-if (typeof window !== 'undefined') {
-  ${getInitSnippet(orgVerboseId)}
-}
+${getInitSnippet(orgVerboseId)}
 
 function MyApp({ Component, pageProps }) {
   return <Component {...pageProps} />

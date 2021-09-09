@@ -12,3 +12,9 @@
     width: 100%;
     z-index: 99;
 }
+
+.demoWorkspaceButton {
+    display: flex;
+    justify-content: center;
+    margin-top: var(--size-medium);
+}

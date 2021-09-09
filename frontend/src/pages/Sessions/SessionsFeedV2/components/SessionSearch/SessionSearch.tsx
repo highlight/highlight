@@ -1,6 +1,9 @@
+import { useParams } from '@util/react-router/useParams';
+import classNames from 'classnames';
+import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { components, OptionsType, OptionTypeBase } from 'react-select';
+import { useMemo } from 'react';
+import { components } from 'react-select';
 import AsyncSelect from 'react-select/async';
 
 import InfoTooltip from '../../../../../components/InfoTooltip/InfoTooltip';
@@ -8,6 +11,7 @@ import TextHighlighter from '../../../../../components/TextHighlighter/TextHighl
 import { useGetSessionSearchResultsQuery } from '../../../../../graph/generated/hooks';
 import useSelectedSessionSearchFilters from '../../../../../persistedStorage/useSelectedSessionSearchFilters';
 import SvgSearchIcon from '../../../../../static/SearchIcon';
+import { usePlayerUIContext } from '../../../../Player/context/PlayerUIContext';
 import {
     UserProperty,
     useSearchContext,
@@ -24,6 +28,7 @@ const SessionSearch = () => {
         SessionSearchOption[]
     >([]);
     const { searchParams, setSearchParams } = useSearchContext();
+    const { setSearchBarRef } = usePlayerUIContext();
     const { selectedSearchFilters } = useSelectedSessionSearchFilters();
 
     const handleChange = (_selectedProperties: any) => {
@@ -90,16 +95,22 @@ const SessionSearch = () => {
         },
     });
 
-    const generateOptions = async (
-        input: string
-    ): Promise<OptionsType<OptionTypeBase> | void[]> => {
-        const fetched = await refetch({
+    const generateOptions = (input: string, callback: any) => {
+        refetch({
             organization_id,
             query: input,
+        }).then((fetched) => {
+            callback(
+                getSuggestions(fetched.data, selectedSearchFilters, input, 3)
+            );
         });
-
-        return getSuggestions(fetched.data, selectedSearchFilters, query, 3);
     };
+
+    const debouncedGenerateOptions = useMemo(
+        () => _.debounce(generateOptions, 200),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        []
+    );
 
     useEffect(() => {
         if (searchParams) {
@@ -148,12 +159,20 @@ const SessionSearch = () => {
 
     return (
         <AsyncSelect
+            ref={(ref) => {
+                if (ref) {
+                    setSearchBarRef(ref);
+                } else {
+                    setSearchBarRef(undefined);
+                }
+            }}
             isMulti
-            loadOptions={generateOptions}
+            loadOptions={debouncedGenerateOptions}
             isLoading={loading}
             isClearable={false}
             onChange={handleChange}
             className={styles.select}
+            openMenuOnFocus
             value={selectedProperties}
             placeholder="Enter a property, URL, user, etc..."
             noOptionsMessage={({ inputValue }) =>
@@ -235,7 +254,10 @@ const SessionSearch = () => {
                 },
                 Menu: (props) => {
                     return (
-                        <components.Menu {...props}>
+                        <components.Menu
+                            {...props}
+                            className={classNames(props.className, styles.menu)}
+                        >
                             <>
                                 <div className={styles.filterContainer}>
                                     <h4>Includes:</h4>
@@ -326,7 +348,7 @@ type API_TYPES =
     | 'visitedUrls'
     | 'referrers';
 
-interface SessionSearchOption {
+export interface SessionSearchOption {
     valueType: string;
     name: string;
     id: string;

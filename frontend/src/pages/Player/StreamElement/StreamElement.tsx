@@ -8,12 +8,12 @@ import { BooleanParam, useQueryParam } from 'use-query-params';
 
 import GoToButton from '../../../components/Button/GoToButton';
 import InfoTooltip from '../../../components/InfoTooltip/InfoTooltip';
+import SvgCursorClickIcon from '../../../static/CursorClickIcon';
 import SvgCursorIcon from '../../../static/CursorIcon';
+import SvgDimensionsIcon from '../../../static/DimensionsIcon';
 import SvgFaceIdIcon from '../../../static/FaceIdIcon';
 import { ReactComponent as HoverIcon } from '../../../static/hover.svg';
 import SvgLinkIcon from '../../../static/LinkIcon';
-import SvgMaximizeIcon from '../../../static/MaximizeIcon';
-import { ReactComponent as PointerIcon } from '../../../static/pointer-up.svg';
 import { ReactComponent as ReferrerIcon } from '../../../static/referrer.svg';
 import { ReactComponent as ReloadIcon } from '../../../static/reload.svg';
 import { ReactComponent as SegmentIcon } from '../../../static/segment.svg';
@@ -192,7 +192,7 @@ export const getEventRenderDetails = (
 
 export const getPlayerEventIcon = (title: string, debug?: boolean) =>
     title === 'Click' ? (
-        <PointerIcon className={classNames(styles.tiltedIcon)} />
+        <SvgCursorClickIcon className={classNames(styles.tiltedIcon)} />
     ) : title?.includes('Segment') ? (
         <SegmentIcon className={classNames(styles.defaultIcon)} />
     ) : title === 'Navigate' ? (
@@ -210,7 +210,7 @@ export const getPlayerEventIcon = (title: string, debug?: boolean) =>
     ) : title === 'Stop' ? (
         <FaRegStopCircle className={classNames(styles.defaultIcon)} />
     ) : title === 'Viewport' ? (
-        <SvgMaximizeIcon className={classNames(styles.defaultIcon)} />
+        <SvgDimensionsIcon className={classNames(styles.defaultIcon)} />
     ) : title === 'Focus' ? (
         <SvgCursorIcon className={classNames(styles.defaultIcon)} />
     ) : debug ? (

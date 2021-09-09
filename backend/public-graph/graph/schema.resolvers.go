@@ -11,10 +11,12 @@ import (
 	"os"
 	"time"
 
-	parse "github.com/highlight-run/highlight/backend/event-parse"
+	"github.com/highlight-run/highlight/backend/event-parse"
+	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/util"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
@@ -24,9 +26,10 @@ import (
 
 func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string) (*model.Session, error) {
 	session, err := InitializeSessionImplementation(r, ctx, organizationVerboseID, enableStrictPrivacy, enableRecordingNetworkContents, firstloadVersion, clientVersion, clientConfig, environment, appVersion, fingerprint)
+	hlog.Incr("gql.initializeSession.count", []string{fmt.Sprintf("success:%t", err == nil)}, 1)
 
 	orgID := model.FromVerboseID(organizationVerboseID)
-	if os.Getenv("ENVIRONMENT") != "dev" && err != nil {
+	if !util.IsDevEnv() && err != nil {
 		msg := slack.WebhookMessage{Text: fmt.
 			Sprintf("Error in InitializeSession: %q\nOccurred for organization: {%d, %q}\nIs on-prem: %q", err, orgID, organizationVerboseID, os.Getenv("REACT_APP_ONPREM"))}
 		err := slack.PostWebhook(os.Getenv("SLACK_INITIALIZED_SESSION_FAILED_WEB_HOOK"), &msg)
@@ -125,9 +128,10 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	querySessionSpan.SetTag("numberOfErrors", len(errors))
 	querySessionSpan.SetTag("numberOfEvents", len(events.Events))
 	sessionObj := &model.Session{}
-	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&sessionObj)
-	if res.Error != nil {
-		return nil, fmt.Errorf("error reading from session %v: %v", sessionID, res.Error)
+	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&sessionObj).Error; err != nil {
+		retErr := e.Wrapf(err, "error reading from session %v", sessionID)
+		querySessionSpan.Finish(tracer.WithError(retErr))
+		return nil, retErr
 	}
 	querySessionSpan.SetTag("org_id", sessionObj.OrganizationID)
 	querySessionSpan.Finish()

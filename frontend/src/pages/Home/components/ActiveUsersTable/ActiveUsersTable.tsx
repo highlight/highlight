@@ -1,14 +1,22 @@
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { useParams } from '@util/react-router/useParams';
+import { message } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 import classNames from 'classnames';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { useHistory, useParams } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 
 import BarChartTable from '../../../../components/BarChartTable/BarChartTable';
 import { getPercentageDisplayValue } from '../../../../components/BarChartTable/utils/utils';
+import Input from '../../../../components/Input/Input';
 import Tooltip from '../../../../components/Tooltip/Tooltip';
 import { useGetTopUsersQuery } from '../../../../graph/generated/hooks';
-import { SessionPageSearchParams } from '../../../Player/utils/utils';
+import { EmptySessionsSearchParams } from '../../../Sessions/EmptySessionsSearchParams';
+import { useSearchContext } from '../../../Sessions/SearchContext/SearchContext';
 import homePageStyles from '../../HomePage.module.scss';
 import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext';
 import { formatShortTime } from '../KeyPerformanceIndicators/utils/utils';
@@ -19,25 +27,49 @@ const ActiveUsersTable = () => {
     const { organization_id } = useParams<{
         organization_id: string;
     }>();
+    const organizationIdRemapped =
+        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : organization_id;
+
+    const {
+        setSearchParams,
+        setSegmentName,
+        setSelectedSegment,
+    } = useSearchContext();
     const { dateRangeLength } = useHomePageFiltersContext();
     const history = useHistory();
+    const [filterSearchTerm, setFilterSearchTerm] = useState('');
 
     const { loading } = useGetTopUsersQuery({
         variables: { organization_id, lookBackPeriod: dateRangeLength },
         onCompleted: (data) => {
             if (data.topUsers) {
-                const transformedData = data.topUsers.map((topUser, index) => ({
-                    key: index,
-                    identifier: topUser?.identifier,
-                    total_active_time: topUser?.total_active_time,
-                    active_time_percentage: topUser?.active_time_percentage,
-                    id: topUser?.id,
-                }));
+                const transformedData = data.topUsers
+                    .slice()
+                    .reverse()
+                    .map((topUser, index) => ({
+                        key: index,
+                        identifier: topUser?.identifier,
+                        total_active_time: topUser?.total_active_time,
+                        active_time_percentage: topUser?.active_time_percentage,
+                        id: topUser?.id,
+                    }));
 
                 setTableData(transformedData);
             }
         },
     });
+
+    const filteredTableData = useMemo(() => {
+        if (filterSearchTerm === '') {
+            return tableData;
+        }
+
+        return tableData.filter((row) => {
+            return row.identifier.includes(filterSearchTerm);
+        });
+    }, [filterSearchTerm, tableData]);
 
     if (loading) {
         return <Skeleton count={1} style={{ width: '100%', height: 300 }} />;
@@ -53,32 +85,69 @@ const ActiveUsersTable = () => {
         >
             <div className={homePageStyles.chartHeaderWrapper}>
                 <h3>Top Users</h3>
+                <Input
+                    allowClear
+                    placeholder="Filter"
+                    value={filterSearchTerm}
+                    onChange={(event) => {
+                        setFilterSearchTerm(event.target.value);
+                    }}
+                    size="small"
+                    disabled={loading}
+                />
             </div>
             <BarChartTable
+                loading={loading}
                 columns={Columns}
-                data={tableData}
+                data={filteredTableData}
                 onClickHandler={(record) => {
-                    history.push(
-                        `/${organization_id}/sessions?${SessionPageSearchParams.identifierAndId}=${record.identifier}:${record.id}`
+                    setSegmentName(null);
+                    setSelectedSegment(undefined);
+                    setSearchParams({
+                        ...EmptySessionsSearchParams,
+                        user_properties: [
+                            {
+                                id: record.id,
+                                name: 'identifer',
+                                value: record.identifier,
+                            },
+                        ],
+                    });
+                    message.success(
+                        `Showing sessions for ${record.identifier}`
                     );
+                    history.push(`/${organizationIdRemapped}/sessions`);
                 }}
                 noDataMessage={
-                    <>
-                        It doesn't look like we have any sessions with
-                        identified users. You will need to call{' '}
-                        <code>identify()</code> in your app to identify users
-                        during their sessions. You can{' '}
-                        <a
-                            href="https://docs.highlight.run/docs/identifying-users"
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            learn more here
-                        </a>
-                        .
-                    </>
+                    filteredTableData.length === 0 &&
+                    filterSearchTerm !== '' ? (
+                        <>
+                            This table will only shows the top 50 users based on
+                            total active time in your app. '{filterSearchTerm}'
+                            is not in the top 50.
+                        </>
+                    ) : (
+                        <>
+                            It doesn't look like we have any sessions with
+                            identified users. You will need to call{' '}
+                            <code>identify()</code> in your app to identify
+                            users during their sessions. You can{' '}
+                            <a
+                                href="https://docs.highlight.run/docs/identifying-users"
+                                target="_blank"
+                                rel="noreferrer"
+                            >
+                                learn more here
+                            </a>
+                            .
+                        </>
+                    )
                 }
-                noDataTitle="No user data yet 😔"
+                noDataTitle={
+                    filteredTableData.length === 0 && filterSearchTerm !== ''
+                        ? `No matches for '${filterSearchTerm}'`
+                        : 'No user data yet 😔'
+                }
             />
         </div>
     );
