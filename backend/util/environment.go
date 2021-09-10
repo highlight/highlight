@@ -10,6 +10,14 @@ var (
 	DOPPLER_CONFIG = os.Getenv("DOPPLER_CONFIG")
 )
 
+func IsDevEnv() bool {
+	return env == DEV_ENV
+}
+
+func IsTestEnv() bool {
+	return env == TEST_ENV
+}
+
 func IsDevOrTestEnv() bool {
 	return env == DEV_ENV || env == TEST_ENV
 }
