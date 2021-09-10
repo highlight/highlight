@@ -6,4 +6,4 @@ COPY ./backend .
 RUN go mod download
 RUN GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /bin/backend
 RUN (curl -Ls https://cli.doppler.com/install.sh || wget -qO- https://cli.doppler.com/install.sh) | sh
-CMD ["doppler", "run", "--", "/bin/backend", "-runtime=private-graph"]
+# Not specifying an entrypoint here, as this is overridden in the task definition.

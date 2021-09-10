@@ -22,7 +22,13 @@
                     "containerPort": 8082
                 }
             ],
-            "command": [],
+            "command": [
+                "doppler",
+                "run",
+                "--",
+                "/bin/backend",
+                "-runtime=private-graph"
+            ],
             "linuxParameters": null,
             "environment": [],
             "resourceRequirements": null,
