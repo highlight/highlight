@@ -46,7 +46,7 @@ const Notifications = () => {
         },
     });
 
-    const { admin, isHighlightAdmin } = useAuthContext();
+    const { admin } = useAuthContext();
 
     useEffect(() => {
         const unreadCount = notifications.reduce((prev, curr) => {
@@ -65,7 +65,7 @@ const Notifications = () => {
                 <div className={styles.popover}>
                     {notifications.length !== 0 ? (
                         <>
-                            {!admin?.slack_im_channel_id && isHighlightAdmin && (
+                            {!admin?.slack_im_channel_id && (
                                 <Alert
                                     trackingId={
                                         'NotificationsTab-PersonalNotificationCTA'

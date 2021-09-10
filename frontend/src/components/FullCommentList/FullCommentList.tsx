@@ -21,7 +21,7 @@ const FullCommentList = ({
     noCommentsMessage,
 }: Props) => {
     const virtuoso = useRef<VirtuosoHandle>(null);
-    const { admin, isHighlightAdmin, isLoggedIn } = useAuthContext();
+    const { admin, isLoggedIn } = useAuthContext();
 
     return (
         <div className={styles.commentStream}>
@@ -40,29 +40,26 @@ const FullCommentList = ({
                 </div>
             ) : (
                 <>
-                    {!loading &&
-                        isLoggedIn &&
-                        !admin?.slack_im_channel_id &&
-                        isHighlightAdmin && (
-                            <Alert
-                                trackingId={'PersonalNotificationCTA'}
-                                message={'Get Comment Notifications'}
-                                description={
-                                    <>
-                                        {
-                                            'Get a slack DM anytime someone tags you in a Highlight comment!'
-                                        }
-                                        <PersonalNotificationButton
-                                            text={'Enable Notifications'}
-                                            style={{
-                                                marginTop: 'var(--size-medium)',
-                                            }}
-                                        />
-                                    </>
-                                }
-                                className={styles.comment}
-                            />
-                        )}
+                    {!loading && isLoggedIn && !admin?.slack_im_channel_id && (
+                        <Alert
+                            trackingId={'PersonalNotificationCTA'}
+                            message={'Get Comment Notifications'}
+                            description={
+                                <>
+                                    {
+                                        'Get a slack DM anytime someone tags you in a Highlight comment!'
+                                    }
+                                    <PersonalNotificationButton
+                                        text={'Enable Notifications'}
+                                        style={{
+                                            marginTop: 'var(--size-medium)',
+                                        }}
+                                    />
+                                </>
+                            }
+                            className={styles.comment}
+                        />
+                    )}
                     <Virtuoso
                         ref={virtuoso}
                         overscan={500}
