@@ -13,11 +13,11 @@ type Props = { text?: string } & Pick<
 >;
 
 const PersonalNotificationButton = ({ ...props }: Props) => {
-    const { isHighlightAdmin, admin } = useAuthContext();
+    const { isHighlightAdmin, admin, isLoggedIn } = useAuthContext();
 
     const { slackUrl: slackBotUrl } = useSlackBot();
 
-    if (!isHighlightAdmin) return null;
+    if (!isHighlightAdmin || !isLoggedIn) return null;
 
     // personal notifications are already setup
     if (
