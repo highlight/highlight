@@ -11,7 +11,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/event-parse"
+	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
@@ -337,8 +337,23 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	return &sessionID, nil
 }
 
-func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionsID int, userName *string, userEmail *string, verbatim string) (int, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int, userName *string, userEmail *string, verbatim string, timestamp time.Time) (int, error) {
+	metadata := make(map[string]interface{})
+
+	if userName != nil {
+		metadata["name"] = *userName
+	}
+	if userEmail != nil {
+		metadata["email"] = *userEmail
+	}
+	metadata["timestamp"] = timestamp
+
+	feedbackComment := &model.SessionComment{SessionId: sessionID, Text: verbatim, Metadata: metadata, Type: model.SessionCommentTypes.FEEDBACK}
+	if err := r.DB.Create(feedbackComment).Error; err != nil {
+		return -1, e.Wrap(err, "error creating session feedback")
+	}
+
+	return feedbackComment.ID, nil
 }
 
 func (r *queryResolver) Ignore(ctx context.Context, id int) (interface{}, error) {

@@ -2109,7 +2109,6 @@ func (r *sessionCommentResolver) Author(ctx context.Context, obj *model.SessionC
 
 	// This case happens when the feedback is provided by feedback mechanism.
 	if obj.Type == modelInputs.SessionCommentTypeFeedback.String() {
-		feedbackAdminPhotoURL := "https://example.com"
 		name := "Anonymous"
 		email := ""
 
@@ -2130,10 +2129,9 @@ func (r *sessionCommentResolver) Author(ctx context.Context, obj *model.SessionC
 		}
 
 		feedbackAdmin := &modelInputs.SanitizedAdmin{
-			ID:       -1,
-			Name:     &name,
-			Email:    email,
-			PhotoURL: &feedbackAdminPhotoURL,
+			ID:    -1,
+			Name:  &name,
+			Email: email,
 		}
 		return feedbackAdmin, nil
 	}

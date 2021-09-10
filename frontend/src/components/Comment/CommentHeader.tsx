@@ -87,7 +87,8 @@ export const CommentHeader = ({
                     <p className={styles.commentAuthor}>
                         {comment?.type === SessionCommentType.Feedback
                             ? comment?.metadata?.name ||
-                              comment?.metadata?.email?.split('@')[0]
+                              comment?.metadata?.email?.split('@')[0] ||
+                              'Anonymous'
                             : comment.author.name ||
                               comment.author.email.split('@')[0]}
                     </p>
