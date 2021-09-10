@@ -79,7 +79,7 @@ func (r *errorGroupResolver) StackTrace(ctx context.Context, obj *model.ErrorGro
 	}
 	var ret []*modelInputs.ErrorTrace
 	stackTraceString := obj.StackTrace
-	if obj.MappedStackTrace != nil && *obj.MappedStackTrace != "" {
+	if obj.MappedStackTrace != nil && *obj.MappedStackTrace != "" && *obj.MappedStackTrace != "null" {
 		stackTraceString = *obj.MappedStackTrace
 	}
 	if err := json.Unmarshal([]byte(stackTraceString), &ret); err != nil {
