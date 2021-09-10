@@ -11,7 +11,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/event-parse"
+	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
@@ -56,7 +56,7 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 		userObj[k] = fmt.Sprintf("%v", v)
 	}
 	if err := r.AppendProperties(sessionID, userProperties, PropertyType.USER); err != nil {
-		log.Error(e.Wrap(err, "error adding set of properites to db"))
+		log.Error(e.Wrap(err, "error adding set of properties to db"))
 	}
 
 	session := &model.Session{}
@@ -99,7 +99,7 @@ func (r *mutationResolver) AddTrackProperties(ctx context.Context, sessionID int
 	}
 	err := r.AppendProperties(sessionID, fields, PropertyType.TRACK)
 	if err != nil {
-		return nil, e.Wrap(err, "error adding set of properites to db")
+		return nil, e.Wrap(err, "error adding set of properties to db")
 	}
 	return &sessionID, nil
 }
@@ -115,7 +115,7 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 	}
 	err := r.AppendProperties(sessionID, fields, PropertyType.SESSION)
 	if err != nil {
-		return nil, e.Wrap(err, "error adding set of properites to db")
+		return nil, e.Wrap(err, "error adding set of properties to db")
 	}
 	return &sessionID, nil
 }

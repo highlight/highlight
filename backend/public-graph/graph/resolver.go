@@ -85,7 +85,7 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 	session := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session)
 	if err := res.Error; err != nil {
-		return e.Wrap(err, "error getting session in append properties")
+		return e.Wrapf(err, "error getting session(id=%d) in append properties(type=%s)", sessionID, propType)
 	}
 
 	modelFields := []*model.Field{}
