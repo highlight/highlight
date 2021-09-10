@@ -600,6 +600,7 @@ export type GetNotificationsQuery = { __typename?: 'Query' } & {
                 | 'session_id'
                 | 'text'
                 | 'type'
+                | 'metadata'
             > & {
                     author?: Types.Maybe<
                         { __typename?: 'SanitizedAdmin' } & Pick<

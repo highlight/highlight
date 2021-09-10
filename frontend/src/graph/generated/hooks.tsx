@@ -1902,6 +1902,7 @@ export const GetNotificationsDocument = gql`
                 photo_url
             }
             type
+            metadata
         }
         error_comments_for_organization(organization_id: $organization_id) {
             id

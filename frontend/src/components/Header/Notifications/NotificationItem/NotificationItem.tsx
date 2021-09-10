@@ -11,7 +11,7 @@ import { PlayerSearchParameters } from '../../../../pages/Player/PlayerHook/util
 import CommentTextBody from '../../../../pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody';
 import SvgBugIcon from '../../../../static/BugIcon';
 import SvgMessageIcon from '../../../../static/MessageIcon';
-import { AdminAvatar } from '../../../Avatar/Avatar';
+import { AdminAvatar, Avatar } from '../../../Avatar/Avatar';
 import Dot from '../../../Dot/Dot';
 import RelativeTime from '../../../RelativeTime/RelativeTime';
 import notificationStyles from '../Notification.module.scss';
@@ -45,7 +45,7 @@ const CommentNotification = ({
                     {getIcon(notification.type)}
                 </div>
 
-                <AdminAvatar adminInfo={notification.author} size={30} />
+                {getAvatar(notification)}
             </div>
             <div className={notificationStyles.notificationBody}>
                 <h3 className={notificationStyles.title}>
@@ -76,8 +76,30 @@ const getIcon = (type: NotificationType) => {
     }
 };
 
+const getAvatar = (notification: any) => {
+    switch (notification.type) {
+        case NotificationType.ErrorComment:
+        case NotificationType.SessionComment:
+            return <AdminAvatar adminInfo={notification.author} size={30} />;
+        case NotificationType.SessionFeedback:
+            return (
+                <Avatar
+                    seed={
+                        notification?.metadata?.name ||
+                        notification?.metadata?.email ||
+                        'Anonymous'
+                    }
+                    style={{
+                        height: 30,
+                        width: 30,
+                    }}
+                />
+            );
+    }
+};
+
 const getTitle = (notification: any): React.ReactNode => {
-    const notificationAuthor =
+    let notificationAuthor =
         notification?.author.name || notification?.author.email;
     let suffix = 'commented';
 
@@ -89,6 +111,10 @@ const getTitle = (notification: any): React.ReactNode => {
             suffix = 'commented on a session';
             break;
         case NotificationType.SessionFeedback:
+            notificationAuthor =
+                notification?.metadata?.name ||
+                notification?.metadata?.email?.split('@')[0] ||
+                'Anonymous';
             suffix = 'left feedback';
             break;
     }
