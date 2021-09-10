@@ -8,7 +8,7 @@ export const notification: string;
 export const notificationBody: string;
 export const notificationIconContainer: string;
 export const notificationStartColumn: string;
-export const personalNotifications: string;
+export const personalNotificationAlert: string;
 export const popover: string;
 export const popoverTitle: string;
 export const timestamp: string;

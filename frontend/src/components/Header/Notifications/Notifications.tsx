@@ -1,4 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext';
+import Alert from '@components/Alert/Alert';
 import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
 import useLocalStorage from '@rehooks/local-storage';
 import { Menu } from 'antd';
@@ -67,44 +68,75 @@ const Notifications = () => {
             content={
                 <div className={styles.popover}>
                     {notifications.length !== 0 ? (
-                        <PopoverListContent
-                            listItems={notifications.map(
-                                (notification, index) => (
-                                    <NotificationItem
-                                        notification={notification}
-                                        key={notification?.id || index}
-                                        viewed={readNotifications.includes(
-                                            notification.id
-                                        )}
-                                        onViewHandler={() => {
-                                            setShowPopover(false);
-                                            if (notification.id) {
-                                                H.track(
-                                                    'Clicked on notification item',
-                                                    {}
-                                                );
-                                                setReadNotifications([
-                                                    ...readNotifications,
-                                                    notification.id.toString(),
-                                                ]);
+                        <>
+                            {!admin?.slack_im_channel_id && isHighlightAdmin && (
+                                <Alert
+                                    trackingId={
+                                        'NotificationsTab-PersonalNotificationCTA'
+                                    }
+                                    message={'Get Comment Notifications'}
+                                    description={
+                                        <>
+                                            {
+                                                'Get a slack DM anytime someone tags you in a Highlight comment!'
                                             }
-                                        }}
-                                    />
-                                )
+                                            <PersonalNotificationButton
+                                                text={'Enable Notifications'}
+                                                style={{
+                                                    marginTop:
+                                                        'var(--size-medium)',
+                                                }}
+                                            />
+                                        </>
+                                    }
+                                    className={styles.personalNotificationAlert}
+                                />
                             )}
-                        />
-                    ) : (
-                        <div className={styles.emptyStateContainer}>
-                            <Lottie
-                                animationData={NotificationAnimation}
-                                className={styles.animation}
+                            <PopoverListContent
+                                listItems={notifications.map(
+                                    (notification, index) => (
+                                        <NotificationItem
+                                            notification={notification}
+                                            key={notification?.id || index}
+                                            viewed={readNotifications.includes(
+                                                notification.id
+                                            )}
+                                            onViewHandler={() => {
+                                                setShowPopover(false);
+                                                if (notification.id) {
+                                                    H.track(
+                                                        'Clicked on notification item',
+                                                        {}
+                                                    );
+                                                    setReadNotifications([
+                                                        ...readNotifications,
+                                                        notification.id.toString(),
+                                                    ]);
+                                                }
+                                            }}
+                                        />
+                                    )
+                                )}
                             />
-                            <p>
-                                Comments made in your organization will show up
-                                here. Get started by mentioning a team member on
-                                an error or a session.
-                            </p>
-                        </div>
+                        </>
+                    ) : (
+                        <>
+                            <div className={styles.emptyStateContainer}>
+                                <Lottie
+                                    animationData={NotificationAnimation}
+                                    className={styles.animation}
+                                />
+                                <p>
+                                    Comments made in your organization will show
+                                    up here. Get started by mentioning a team
+                                    member on an error or a session.
+                                </p>
+                                <PersonalNotificationButton
+                                    text="Get Slack Notifications"
+                                    style={{ maxWidth: 'fit-content' }}
+                                />
+                            </div>
+                        </>
                     )}
                 </div>
             }
@@ -117,12 +149,6 @@ const Notifications = () => {
             title={
                 <div className={styles.popoverTitle}>
                     <h3>Comments</h3>
-                    {!admin?.slack_im_channel_id && isHighlightAdmin && (
-                        <PersonalNotificationButton
-                            className={styles.personalNotifications}
-                            text="Get Slack Notifications"
-                        />
-                    )}
                     <div className={styles.dotContainer}>
                         <DotsMenu
                             trackingId="MarkAllNotificationsAsRead"
