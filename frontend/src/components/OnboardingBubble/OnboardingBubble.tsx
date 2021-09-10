@@ -1,3 +1,4 @@
+import { useSlackBot } from '@components/Header/components/PersonalNotificationButton/utils/utils';
 import useLocalStorage from '@rehooks/local-storage';
 import { message } from 'antd';
 import classNames from 'classnames';
@@ -64,6 +65,8 @@ const OnboardingBubble = () => {
         fetchPolicy: 'network-only',
     });
 
+    const { slackUrl: slackBotUrl } = useSlackBot();
+
     useEffect(() => {
         if (data) {
             const STEPS: OnboardingStep[] = [];
@@ -110,9 +113,9 @@ const OnboardingBubble = () => {
                 tooltip: `You can create a comment on a session by clicking on the session player. You can also tag your team by @'ing them.`,
             });
             STEPS.push({
-                displayName: 'Set up comment notifications',
+                displayName: 'Set up personal notifications',
                 action: () => {
-                    history.push(`/${organization_id}/sessions`);
+                    window.location.href = slackBotUrl;
                 },
                 completed: !!data.admin?.slack_im_channel_id || false,
                 tooltip: `You will get a slack DM anytime someone tags you in a Highlight comment!`,
@@ -155,6 +158,7 @@ const OnboardingBubble = () => {
         setHasFinishedOnboarding,
         startPolling,
         stopPolling,
+        slackBotUrl,
     ]);
 
     if (rainConfetti) {
