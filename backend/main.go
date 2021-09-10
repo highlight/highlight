@@ -114,9 +114,7 @@ func main() {
 		port = defaultPort
 	}
 
-	shouldStartDatadog := (env == "prod" &&
-		os.Getenv("REACT_APP_ONPREM") != "true" &&
-		os.Getenv("DOPPLER_ENVIRONMENT") != "prod_aws")
+	shouldStartDatadog := !util.IsDevOrTestEnv() && !util.IsOnPrem()
 	if shouldStartDatadog {
 		log.Info("Running dd client setup process...")
 		if err := dd.Start(); err != nil {
