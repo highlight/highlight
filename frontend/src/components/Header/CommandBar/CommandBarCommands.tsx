@@ -1,3 +1,7 @@
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { message } from 'antd';
 import { History } from 'history';
 import { Command } from 'react-command-palette';
@@ -16,10 +20,15 @@ export const getNavigationCommands = (
     organization_id: string,
     history: History
 ): CommandWithoutId[] => {
+    const organizationIdRemapped =
+        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : organization_id;
+
     return NAVIGATION_COMMANDS.map(({ name, route }) => ({
         category: 'Navigation',
         command() {
-            history.push(`/${organization_id}/${route}`);
+            history.push(`/${organizationIdRemapped}/${route}`);
         },
         name,
     }));

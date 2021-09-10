@@ -1,7 +1,7 @@
+import { useParams } from '@util/react-router/useParams';
 import { ButtonProps, message } from 'antd';
 import { H } from 'highlight.run';
 import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
 
 import { useAuthContext } from '../../../authentication/AuthContext';
 import ShareButton from '../../../components/Button/ShareButton/ShareButton';
@@ -75,6 +75,7 @@ const SessionShareButton = (props: ButtonProps) => {
                             setShareTimestamp(checked);
                         }}
                         label="Include current timestamp"
+                        trackingId="SessionShareURLIncludeTimestamp"
                     />
                 </ModalBody>
             </Modal>
@@ -120,6 +121,7 @@ const ExternalSharingToggle = () => {
                     });
                 }}
                 label="Allow anyone with the link to access this session."
+                trackingId="SessionSharingExternal"
             />
         </div>
     );

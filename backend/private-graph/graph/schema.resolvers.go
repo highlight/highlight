@@ -79,7 +79,7 @@ func (r *errorGroupResolver) StackTrace(ctx context.Context, obj *model.ErrorGro
 	}
 	var ret []*modelInputs.ErrorTrace
 	stackTraceString := obj.StackTrace
-	if obj.MappedStackTrace != nil && *obj.MappedStackTrace != "" {
+	if obj.MappedStackTrace != nil && *obj.MappedStackTrace != "" && *obj.MappedStackTrace != "null" {
 		stackTraceString = *obj.MappedStackTrace
 	}
 	if err := json.Unmarshal([]byte(stackTraceString), &ret); err != nil {
@@ -90,17 +90,22 @@ func (r *errorGroupResolver) StackTrace(ctx context.Context, obj *model.ErrorGro
 }
 
 func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorMetadata, error) {
-	ret := []*modelInputs.ErrorMetadata{}
-	if err := json.Unmarshal([]byte(*obj.MetadataLog), &ret); err != nil {
-		return nil, e.Wrap(err, "error unmarshaling error metadata")
-	}
-	filtered := []*modelInputs.ErrorMetadata{}
-	for _, log := range ret {
-		if log.ErrorID != 0 && log.SessionID != 0 && !log.Timestamp.IsZero() {
-			filtered = append(filtered, log)
-		}
-	}
-	return filtered, nil
+	var metadataLogs []*modelInputs.ErrorMetadata
+	r.DB.Raw(`
+		SELECT s.id AS session_id, e.id AS error_id, e.timestamp, s.os_name AS os, s.browser_name AS browser, e.url AS visited_url
+		FROM sessions AS s
+		INNER JOIN (
+			SELECT DISTINCT ON (session_id) session_id, id, timestamp, url
+			FROM error_objects
+			WHERE error_group_id = ?
+			ORDER BY session_id DESC
+			LIMIT 20
+		) AS e
+		ON s.id = e.session_id
+		ORDER BY s.updated_at DESC
+		LIMIT 20;
+	`, obj.ID).Scan(&metadataLogs)
+	return metadataLogs, nil
 }
 
 func (r *errorGroupResolver) FieldGroup(ctx context.Context, obj *model.ErrorGroup) ([]*model.ErrorField, error) {
@@ -134,6 +139,13 @@ func (r *errorGroupResolver) State(ctx context.Context, obj *model.ErrorGroup) (
 	default:
 		return modelInputs.ErrorStateOpen, e.New("invalid error group state")
 	}
+}
+
+func (r *errorGroupResolver) ErrorFrequency(ctx context.Context, obj *model.ErrorGroup) ([]*int64, error) {
+	if obj != nil {
+		return r.Query().DailyErrorFrequency(ctx, obj.OrganizationID, obj.ID, 5)
+	}
+	return nil, nil
 }
 
 func (r *errorObjectResolver) Event(ctx context.Context, obj *model.ErrorObject) ([]*string, error) {
@@ -727,7 +739,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 
 			err := r.SendEmailAlert(tos, authorName, viewLink, textForEmail, SendGridSessionCommentEmailTemplateID, sessionImage)
 			if err != nil {
-				log.Errorf(e.Wrap(err, "error notifying tagged admins in session comment").Error())
+				log.Error(e.Wrap(err, "error notifying tagged admins in session comment"))
 			}
 		}()
 
@@ -738,7 +750,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 
 			err := r.SendPersonalSlackAlert(&org, admin, adminIds, viewLink, sessionComment.Text, "session")
 			if err != nil {
-				log.Errorf(e.Wrap(err, "error notifying tagged admins in session comment").Error())
+				log.Error(e.Wrap(err, "error notifying tagged admins in session comment"))
 			}
 		}()
 	}
@@ -1502,6 +1514,31 @@ func (r *queryResolver) DailyErrorsCount(ctx context.Context, organizationID int
 	return dailyErrors, nil
 }
 
+func (r *queryResolver) DailyErrorFrequency(ctx context.Context, organizationID int, errorGroupID int, dateOffset int) ([]*int64, error) {
+	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin not found in org")
+	}
+
+	var dailyErrors []*int64
+
+	if err := r.DB.Raw(`
+		SELECT count(e.id)
+		FROM (
+			SELECT to_char(date_trunc('day', (current_date - offs)), 'YYYY-MM-DD') AS date
+			FROM generate_series(0, ?, 1)
+			AS offs
+		) d LEFT OUTER JOIN
+		error_objects e
+		ON d.date = to_char(date_trunc('day', e.updated_at), 'YYYY-MM-DD')
+		AND e.error_group_id = ? AND e.organization_id = ?
+		GROUP BY d.date;
+	`, dateOffset, errorGroupID, organizationID).Scan(&dailyErrors).Error; err != nil {
+		return nil, e.Wrap(err, "error querying daily frequency")
+	}
+
+	return dailyErrors, nil
+}
+
 func (r *queryResolver) Referrers(ctx context.Context, organizationID int, lookBackPeriod int) ([]*modelInputs.ReferrerTablePayload, error) {
 	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
@@ -1940,12 +1977,18 @@ func (r *queryResolver) Organization(ctx context.Context, id int) (*model.Organi
 
 func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	uid := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
+	adminSpan := tracer.StartSpan("resolver.getAdmin", tracer.ResourceName("db.admin"),
+		tracer.Tag("admin_uid", uid))
 	admin := &model.Admin{UID: &uid}
-	res := r.DB.Where(&model.Admin{UID: &uid}).First(&admin)
-	if err := res.Error; err != nil {
+	if err := r.DB.Where(&model.Admin{UID: &uid}).First(&admin).Error; err != nil {
+		firebaseSpan := tracer.StartSpan("resolver.getAdmin", tracer.ResourceName("db.createAdminFromFirebase"),
+			tracer.Tag("admin_uid", uid))
 		firebaseUser, err := AuthClient.GetUser(context.Background(), uid)
 		if err != nil {
-			return nil, e.Wrap(err, "error retrieving user from firebase api")
+			spanError := e.Wrap(err, "error retrieving user from firebase api")
+			firebaseSpan.Finish(tracer.WithError(spanError))
+			adminSpan.Finish(tracer.WithError(spanError))
+			return nil, spanError
 		}
 		newAdmin := &model.Admin{
 			UID:      &uid,
@@ -1954,8 +1997,11 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 			PhotoURL: &firebaseUser.PhotoURL,
 		}
 		if err := r.DB.Create(newAdmin).Error; err != nil {
-			return nil, e.Wrap(err, "error creating new admin")
+			spanError := e.Wrap(err, "error creating new admin")
+			adminSpan.Finish(tracer.WithError(spanError))
+			return nil, spanError
 		}
+		firebaseSpan.Finish()
 		go func() {
 			if contact, err := apolloio.CreateContact(*newAdmin.Email); err != nil {
 				log.Errorf("error creating apollo contact: %v", err)
@@ -1969,19 +2015,29 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		admin = newAdmin
 	}
 	if admin.PhotoURL == nil || admin.Name == nil {
+		firebaseSpan := tracer.StartSpan("resolver.getAdmin", tracer.ResourceName("db.updateAdminFromFirebase"),
+			tracer.Tag("admin_uid", uid))
 		firebaseUser, err := AuthClient.GetUser(context.Background(), uid)
 		if err != nil {
-			return nil, e.Wrap(err, "error retrieving user from firebase api")
+			spanError := e.Wrap(err, "error retrieving user from firebase api")
+			adminSpan.Finish(tracer.WithError(spanError))
+			firebaseSpan.Finish(tracer.WithError(spanError))
+			return nil, spanError
 		}
 		if err := r.DB.Model(admin).Updates(&model.Admin{
 			PhotoURL: &firebaseUser.PhotoURL,
 			Name:     &firebaseUser.DisplayName,
 		}).Error; err != nil {
-			return nil, e.Wrap(err, "error updating org fields")
+			spanError := e.Wrap(err, "error updating org fields")
+			adminSpan.Finish(tracer.WithError(spanError))
+			firebaseSpan.Finish(tracer.WithError(spanError))
+			return nil, spanError
 		}
 		admin.PhotoURL = &firebaseUser.PhotoURL
 		admin.Name = &firebaseUser.DisplayName
+		firebaseSpan.Finish()
 	}
+	adminSpan.Finish()
 	return admin, nil
 }
 
@@ -2050,6 +2106,36 @@ func (r *sessionAlertResolver) UserProperties(ctx context.Context, obj *model.Se
 
 func (r *sessionCommentResolver) Author(ctx context.Context, obj *model.SessionComment) (*modelInputs.SanitizedAdmin, error) {
 	admin := &model.Admin{}
+
+	// This case happens when the feedback is provided by feedback mechanism.
+	if obj.Type == modelInputs.SessionCommentTypeFeedback.String() {
+		name := "Anonymous"
+		email := ""
+
+		if obj.Metadata != nil {
+			if val, ok := obj.Metadata["name"]; ok {
+				switch val.(type) {
+				case string:
+					name = fmt.Sprintf("%v", val)
+				}
+			}
+			if val, ok := obj.Metadata["email"]; ok {
+				switch val.(type) {
+				case string:
+					email = fmt.Sprintf("%v", val)
+				}
+			}
+
+		}
+
+		feedbackAdmin := &modelInputs.SanitizedAdmin{
+			ID:    -1,
+			Name:  &name,
+			Email: email,
+		}
+		return feedbackAdmin, nil
+	}
+
 	if err := r.DB.Where(&model.Admin{Model: model.Model{ID: obj.AdminId}}).First(&admin).Error; err != nil {
 		return nil, e.Wrap(err, "Error finding admin for comment")
 	}
@@ -2076,6 +2162,21 @@ func (r *sessionCommentResolver) Author(ctx context.Context, obj *model.SessionC
 	}
 
 	return sanitizedAdmin, nil
+}
+
+func (r *sessionCommentResolver) Type(ctx context.Context, obj *model.SessionComment) (modelInputs.SessionCommentType, error) {
+	switch obj.Type {
+	case model.SessionCommentTypes.ADMIN:
+		return modelInputs.SessionCommentTypeAdmin, nil
+	case model.SessionCommentTypes.FEEDBACK:
+		return modelInputs.SessionCommentTypeFeedback, nil
+	default:
+		return modelInputs.SessionCommentTypeFeedback, e.New("invalid session comment type")
+	}
+}
+
+func (r *sessionCommentResolver) Metadata(ctx context.Context, obj *model.SessionComment) (interface{}, error) {
+	return obj.Metadata, nil
 }
 
 // ErrorAlert returns generated.ErrorAlertResolver implementation.

@@ -1,3 +1,4 @@
+import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
 import _ from 'lodash';
@@ -9,7 +10,6 @@ import React, {
     useState,
 } from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { useParams } from 'react-router-dom';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 import GoToButton from '../../../../../components/Button/GoToButton';

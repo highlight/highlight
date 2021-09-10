@@ -62,6 +62,16 @@ var ErrorGroupStates = struct {
 	IGNORED:  "IGNORED",
 }
 
+var SessionCommentTypes = struct {
+	// Comments created by a Highlight user on the Highlight app.
+	ADMIN string
+	// Comments created by a Highlight customer, comes from feedback from their app.
+	FEEDBACK string
+}{
+	ADMIN:    "ADMIN",
+	FEEDBACK: "FEEDBACK",
+}
+
 type contextString string
 
 var ContextKeys = struct {
@@ -305,8 +315,10 @@ type SessionResults struct {
 
 type Session struct {
 	Model
-	UserID      int `json:"user_id"`
-	Fingerprint int `json:"fingerprint"`
+	// The ID used publicly for the URL on the client; used for sharing
+	SecureID    string `json:"secure_id" gorm:"uniqueIndex;not null;default:secure_id_generator()"`
+	UserID      int    `json:"user_id"`
+	Fingerprint int    `json:"fingerprint"`
 	// User provided identifier (see IdentifySession)
 	Identifier     string `json:"identifier"`
 	OrganizationID int    `json:"organization_id"`
@@ -357,7 +369,7 @@ type Session struct {
 	MigrationState       *string `json:"migration_state"`
 }
 
-// AreModelsWeaklyEqual compares two structs of the same type while ignoring the Model field
+// AreModelsWeaklyEqual compares two structs of the same type while ignoring the Model and SecureID field
 // a and b MUST be pointers, otherwise this won't work
 func AreModelsWeaklyEqual(a, b interface{}) (bool, []string, error) {
 	if reflect.TypeOf(a) != reflect.TypeOf(b) {
@@ -370,7 +382,8 @@ func AreModelsWeaklyEqual(a, b interface{}) (bool, []string, error) {
 		return false, nil, e.New("`a` is not a pointer")
 	}
 	// 'dereference' with Elem() and get the field by name
-	aField := aReflection.Elem().FieldByName("Model")
+	aModelField := aReflection.Elem().FieldByName("Model")
+	aSecureIDField := aReflection.Elem().FieldByName("SecureID")
 
 	bReflection := reflect.ValueOf(b)
 	// Check if the passed interface is a pointer
@@ -378,14 +391,23 @@ func AreModelsWeaklyEqual(a, b interface{}) (bool, []string, error) {
 		return false, nil, e.New("`b` is not a pointer")
 	}
 	// 'dereference' with Elem() and get the field by name
-	bField := bReflection.Elem().FieldByName("Model")
+	bModelField := bReflection.Elem().FieldByName("Model")
+	bSecureIDField := bReflection.Elem().FieldByName("SecureID")
 
-	if aField.IsValid() && bField.IsValid() {
+	if aModelField.IsValid() && bModelField.IsValid() {
 		// override Model on b with a's model
-		bField.Set(aField)
-	} else if aField.IsValid() || bField.IsValid() {
+		bModelField.Set(aModelField)
+	} else if aModelField.IsValid() || bModelField.IsValid() {
 		// return error if one has a model and the other doesn't
 		return false, nil, e.New("one interface has a model and the other doesn't")
+	}
+
+	if aSecureIDField.IsValid() && bSecureIDField.IsValid() {
+		// override SecureID on b with a's SecureID
+		bSecureIDField.Set(aSecureIDField)
+	} else if aSecureIDField.IsValid() || bSecureIDField.IsValid() {
+		// return error if one has a SecureID and the other doesn't
+		return false, nil, e.New("one interface has a SecureID and the other doesn't")
 	}
 
 	// get diff
@@ -554,6 +576,8 @@ type ErrorObject struct {
 
 type ErrorGroup struct {
 	Model
+	// The ID used publicly for the URL on the client; used for sharing
+	SecureID         string `json:"secure_id" gorm:"uniqueIndex;not null;default:secure_id_generator()"`
 	OrganizationID   int
 	Event            string
 	Type             string
@@ -585,6 +609,8 @@ type SessionComment struct {
 	Text           string
 	XCoordinate    float64
 	YCoordinate    float64
+	Type           string `json:"type" gorm:"default:ADMIN"`
+	Metadata       JSONB  `json:"metadata" gorm:"type:jsonb"`
 }
 
 type ErrorComment struct {
@@ -650,6 +676,22 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 	}
 
 	log.Printf("running db migration ... \n")
+	if err := DB.Exec("CREATE EXTENSION IF NOT EXISTS pgcrypto;").Error; err != nil {
+		return nil, e.Wrap(err, "Error installing pgcrypto")
+	}
+	// Unguessable, cryptographically random url-safe ID for users to share links
+	if err := DB.Exec(`
+		CREATE OR REPLACE FUNCTION secure_id_generator(OUT result text) AS $$
+		BEGIN
+			result := encode(gen_random_bytes(21), 'base64');
+			result := replace(result, '+', '0');
+			result := replace(result, '/', '1');
+			result := replace(result, '=', '');
+		END;
+		$$ LANGUAGE PLPGSQL;
+	`).Error; err != nil {
+		return nil, e.Wrap(err, "Error creating secure_id_generator")
+	}
 	if err := DB.AutoMigrate(
 		Models...,
 	); err != nil {

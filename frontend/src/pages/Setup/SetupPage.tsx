@@ -1,7 +1,11 @@
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { useParams } from '@util/react-router/useParams';
 import { H } from 'highlight.run';
 import React, { FunctionComponent, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { useParams } from 'react-router-dom';
 import useFetch from 'use-http';
 
 import { useAuthContext } from '../../authentication/AuthContext';
@@ -30,6 +34,10 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
     const { admin } = useAuthContext();
     const [platform, setPlatform] = useState(PlatformType.React);
     const { organization_id } = useParams<{ organization_id: string }>();
+    const organizationIdRemapped =
+        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : organization_id;
     const { data, loading } = useGetOrganizationQuery({
         variables: { id: organization_id },
     });
@@ -148,7 +156,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                         </p>
                         <div className={styles.integrationContainer}>
                             <ButtonLink
-                                to={`/${organization_id}/alerts`}
+                                to={`/${organizationIdRemapped}/alerts`}
                                 trackingId="ConfigureAlertsFromSetupPage"
                             >
                                 Configure Your Alerts

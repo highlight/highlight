@@ -3,14 +3,15 @@ package main
 import (
 	"flag"
 	"html/template"
+	"io"
 	"net/http"
 	"os"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/go-chi/chi"
-	"github.com/gorilla/handlers"
-	dd "github.com/highlight-run/highlight/backend/datadog"
+	"github.com/go-chi/chi/middleware"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/worker"
@@ -20,18 +21,19 @@ import (
 	"github.com/stripe/stripe-go/client"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
+	dd "github.com/highlight-run/highlight/backend/datadog"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	private "github.com/highlight-run/highlight/backend/private-graph/graph"
 	privategen "github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	public "github.com/highlight-run/highlight/backend/public-graph/graph"
 	publicgen "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	log "github.com/sirupsen/logrus"
+	brotli_enc "gopkg.in/kothar/brotli-go.v0/enc"
 
 	_ "gorm.io/gorm"
 )
 
 var (
-	env                = os.Getenv("ENVIRONMENT")
 	frontendURL        = os.Getenv("FRONTEND_URI")
 	staticFrontendPath = os.Getenv("ONPREM_STATIC_FRONTEND_PATH")
 	landingStagingURL  = os.Getenv("LANDING_PAGE_STAGING_URI")
@@ -82,8 +84,13 @@ func main() {
 	// initialize logger
 	log.SetReportCaller(true)
 
-	if os.Getenv("DEPLOYMENT_KEY") != "HIGHLIGHT_ONPREM_BETA" {
-		log.Fatalf("please specify a deploy key in order to run Highlight")
+	switch os.Getenv("DEPLOYMENT_KEY") {
+	case "HIGHLIGHT_ONPREM_BETA":
+		// default case, should only exist in main highlight prod
+	case "HIGHLIGHT_BEHAVE_HEALTH-i_fgQwbthAdqr9Aat_MzM7iU3!@fKr-_vopjXR@f":
+		go expireHighlightAfterDate(time.Date(2021, 10, 1, 0, 0, 0, 0, time.UTC))
+	default:
+		log.Fatal("please specify a deploy key in order to run Highlight")
 	}
 
 	if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" && (os.Getenv("AWS_ACCESS_KEY_ID") == "" || os.Getenv("AWS_S3_BUCKET_NAME") == "" || os.Getenv("AWS_SECRET_ACCESS_KEY") == "") {
@@ -106,7 +113,7 @@ func main() {
 		port = defaultPort
 	}
 
-	shouldStartDatadog := (env == "prod" && os.Getenv("REACT_APP_ONPREM") != "true")
+	shouldStartDatadog := !util.IsDevOrTestEnv() && !util.IsOnPrem() && util.IsOnRender()
 	if shouldStartDatadog {
 		log.Info("Running dd client setup process...")
 		if err := dd.Start(); err != nil {
@@ -140,7 +147,14 @@ func main() {
 	}
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.
-	r.Use(handlers.CompressHandler)
+	// r.Use(handlers.CompressHandler)
+	compressor := middleware.NewCompressor(5, "application/json")
+	compressor.SetEncoder("br", func(w io.Writer, level int) io.Writer {
+		params := brotli_enc.NewBrotliParams()
+		params.SetQuality(level)
+		return brotli_enc.NewBrotliWriter(params, w)
+	})
+	r.Use(compressor.Handler)
 	r.Use(cors.New(cors.Options{
 		AllowOriginRequestFunc: validateOrigin,
 		AllowCredentials:       true,
@@ -253,5 +267,14 @@ func main() {
 		log.Fatal(http.ListenAndServe(":"+port, r))
 	} else {
 		log.Fatal(http.ListenAndServe(":"+port, r))
+	}
+}
+
+func expireHighlightAfterDate(endDate time.Time) {
+	for {
+		if time.Now().After(endDate) {
+			log.Fatalf("your highlight trial has expired")
+		}
+		time.Sleep(time.Hour)
 	}
 }

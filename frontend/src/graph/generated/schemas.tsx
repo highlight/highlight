@@ -88,6 +88,11 @@ export enum ErrorState {
     Ignored = 'IGNORED',
 }
 
+export enum SessionCommentType {
+    Admin = 'Admin',
+    Feedback = 'FEEDBACK',
+}
+
 export type Organization = {
     __typename?: 'Organization';
     id: Scalars['ID'];
@@ -142,6 +147,7 @@ export type ErrorField = {
 
 export type ErrorGroup = {
     __typename?: 'ErrorGroup';
+    created_at: Scalars['Time'];
     id: Scalars['ID'];
     organization_id: Scalars['Int'];
     type: Scalars['String'];
@@ -152,6 +158,7 @@ export type ErrorGroup = {
     field_group?: Maybe<Array<Maybe<ErrorField>>>;
     state: ErrorState;
     environments?: Maybe<Scalars['String']>;
+    error_frequency: Array<Maybe<Scalars['Int64']>>;
 };
 
 export type ErrorMetadata = {
@@ -335,14 +342,16 @@ export type SessionComment = {
     __typename?: 'SessionComment';
     id: Scalars['ID'];
     organization_id: Scalars['ID'];
-    timestamp: Scalars['Int'];
+    timestamp?: Maybe<Scalars['Int']>;
     created_at: Scalars['Time'];
     updated_at: Scalars['Time'];
     session_id: Scalars['Int'];
-    author: SanitizedAdmin;
+    author?: Maybe<SanitizedAdmin>;
     text: Scalars['String'];
-    x_coordinate: Scalars['Float'];
-    y_coordinate: Scalars['Float'];
+    x_coordinate?: Maybe<Scalars['Float']>;
+    y_coordinate?: Maybe<Scalars['Float']>;
+    type: SessionCommentType;
+    metadata?: Maybe<Scalars['Any']>;
 };
 
 export type ErrorComment = {
@@ -441,6 +450,7 @@ export type Query = {
     organizationHasViewedASession?: Maybe<Session>;
     dailySessionsCount: Array<Maybe<DailySessionCount>>;
     dailyErrorsCount: Array<Maybe<DailyErrorCount>>;
+    dailyErrorFrequency: Array<Maybe<Scalars['Int64']>>;
     referrers: Array<Maybe<ReferrerTablePayload>>;
     newUsersCount?: Maybe<NewUsersCount>;
     topUsers: Array<Maybe<TopUsersPayload>>;
@@ -540,6 +550,12 @@ export type QueryDailySessionsCountArgs = {
 export type QueryDailyErrorsCountArgs = {
     organization_id: Scalars['ID'];
     date_range: DateRangeInput;
+};
+
+export type QueryDailyErrorFrequencyArgs = {
+    organization_id: Scalars['ID'];
+    error_group_id: Scalars['ID'];
+    date_offset: Scalars['Int'];
 };
 
 export type QueryReferrersArgs = {

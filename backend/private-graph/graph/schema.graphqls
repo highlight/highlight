@@ -69,6 +69,11 @@ enum ErrorState {
     IGNORED
 }
 
+enum SessionCommentType {
+    Admin
+    FEEDBACK
+}
+
 type Organization {
     id: ID!
     verbose_id: String!
@@ -117,6 +122,7 @@ type ErrorField {
 }
 
 type ErrorGroup {
+    created_at: Time!
     id: ID!
     organization_id: Int!
     type: String!
@@ -127,6 +133,7 @@ type ErrorGroup {
     field_group: [ErrorField]
     state: ErrorState!
     environments: String
+    error_frequency: [Int64]!
 }
 
 type ErrorMetadata {
@@ -295,14 +302,16 @@ type ErrorResults {
 type SessionComment {
     id: ID!
     organization_id: ID!
-    timestamp: Int!
+    timestamp: Int
     created_at: Time!
     updated_at: Time!
     session_id: Int!
-    author: SanitizedAdmin!
+    author: SanitizedAdmin
     text: String!
-    x_coordinate: Float!
-    y_coordinate: Float!
+    x_coordinate: Float
+    y_coordinate: Float
+    type: SessionCommentType!
+    metadata: Any
 }
 
 type ErrorComment {
@@ -405,6 +414,11 @@ type Query {
         organization_id: ID!
         date_range: DateRangeInput!
     ): [DailyErrorCount]!
+    dailyErrorFrequency(
+        organization_id: ID!
+        error_group_id: ID!
+        date_offset: Int!
+    ): [Int64]!
     referrers(
         organization_id: ID!
         lookBackPeriod: Int!

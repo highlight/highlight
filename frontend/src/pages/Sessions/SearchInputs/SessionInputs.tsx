@@ -1,6 +1,6 @@
+import { useParams } from '@util/react-router/useParams';
 import { Checkbox } from 'antd';
 import React from 'react';
-import { useParams } from 'react-router-dom';
 
 import { useSearchContext } from '../SearchContext/SearchContext';
 import { LIVE_SEGMENT_ID } from '../SearchSidebar/SegmentPicker/SegmentPicker';

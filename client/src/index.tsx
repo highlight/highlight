@@ -666,6 +666,26 @@ export class Highlight {
         return this._recordingStartTime;
     }
 
+    addSessionFeedback({
+        timestamp,
+        verbatim,
+        user_email,
+        user_name,
+    }: {
+        verbatim: string;
+        timestamp: string;
+        user_name?: string;
+        user_email?: string;
+    }) {
+        this.graphqlSDK.addSessionFeedback({
+            session_id: this.sessionData.sessionID.toString(),
+            timestamp,
+            verbatim,
+            user_email,
+            user_name,
+        });
+    }
+
     // Reset the events array and push to a backend.
     async _save() {
         try {

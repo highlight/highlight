@@ -2,6 +2,10 @@ import 'rc-slider/assets/index.css';
 
 import { useAuthContext } from '@authentication/AuthContext';
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import ElevatedCard from '@components/ElevatedCard/ElevatedCard';
 import FullBleedCard from '@components/FullBleedCard/FullBleedCard';
 import Modal from '@components/Modal/Modal';
@@ -15,7 +19,10 @@ import { HighlightEvent } from '@pages/Player/HighlightEvent';
 import PlayerCommentCanvas, {
     Coordinates2D,
 } from '@pages/Player/PlayerCommentCanvas/PlayerCommentCanvas';
-import { usePlayer } from '@pages/Player/PlayerHook/PlayerHook';
+import {
+    SessionViewability,
+    usePlayer,
+} from '@pages/Player/PlayerHook/PlayerHook';
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
 import PlayerPageProductTour from '@pages/Player/PlayerPageProductTour/PlayerPageProductTour';
 import {
@@ -32,6 +39,7 @@ import { Toolbar } from '@pages/Player/Toolbar/Toolbar';
 import { usePlayerFullscreen } from '@pages/Player/utils/PlayerHooks';
 import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard';
 import { SessionSearchOption } from '@pages/Sessions/SessionsFeedV2/components/SessionSearch/SessionSearch';
+import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import _ from 'lodash';
 import Lottie from 'lottie-react';
@@ -45,7 +53,6 @@ import React, {
 } from 'react';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import useResizeAware from 'react-resize-aware';
-import { useParams } from 'react-router-dom';
 import AsyncSelect from 'react-select/async';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import { BooleanParam, useQueryParam } from 'use-query-params';
@@ -63,6 +70,10 @@ const Player = ({ integrated }: Props) => {
         session_id: string;
         organization_id: string;
     }>();
+    const organizationIdRemapped =
+        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : organization_id;
     const [resizeListener, sizes] = useResizeAware();
 
     const [searchBarRef, setSearchBarRef] = useState<
@@ -75,7 +86,7 @@ const Player = ({ integrated }: Props) => {
         setScale,
         replayer,
         time,
-        canViewSession,
+        sessionViewability,
         isPlayerReady,
         session,
     } = player;
@@ -160,7 +171,9 @@ const Player = ({ integrated }: Props) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sizes, replayer]);
 
-    const showLeftPanel = showLeftPanelPreference && canViewSession;
+    const showLeftPanel =
+        showLeftPanelPreference &&
+        sessionViewability !== SessionViewability.OVER_BILLING_QUOTA;
 
     return (
         <PlayerUIContextProvider
@@ -211,7 +224,8 @@ const Player = ({ integrated }: Props) => {
                             }}
                         />
                     </div>
-                    {!canViewSession && (
+                    {sessionViewability ===
+                        SessionViewability.OVER_BILLING_QUOTA && (
                         <FullBleedCard
                             title="Session quota reached 😔"
                             animation={
@@ -223,7 +237,7 @@ const Player = ({ integrated }: Props) => {
                                 session quota. To view it, upgrade your plan.
                             </p>
                             <ButtonLink
-                                to={`/${organization_id}/billing`}
+                                to={`/${organizationIdRemapped}/billing`}
                                 trackingId="PlayerPageUpgradePlan"
                                 className={styles.center}
                             >
@@ -231,8 +245,36 @@ const Player = ({ integrated }: Props) => {
                             </ButtonLink>
                         </FullBleedCard>
                     )}
-                    {(canViewSession && !!session) ||
-                    replayerState !== ReplayerState.Empty ? (
+                    {sessionViewability === SessionViewability.EMPTY_SESSION ? (
+                        <ElevatedCard
+                            className={styles.emptySessionCard}
+                            title="Session isn't ready to view yet 😔"
+                            animation={
+                                <Lottie animationData={WaitingAnimation} />
+                            }
+                        >
+                            <p>
+                                We need more time to process this session. If
+                                this looks like a bug, shoot us a message on{' '}
+                                <span
+                                    className={styles.intercomLink}
+                                    onClick={() => {
+                                        window.Intercom(
+                                            'showNewMessage',
+                                            `I'm seeing an empty session. This is the session ID: "${session_id}"`
+                                        );
+                                    }}
+                                >
+                                    Intercom
+                                </span>
+                                .
+                            </p>
+                        </ElevatedCard>
+                    ) : (sessionViewability === SessionViewability.VIEWABLE &&
+                          !!session) ||
+                      replayerState !== ReplayerState.Empty ||
+                      (replayerState === ReplayerState.Empty &&
+                          !!session_id) ? (
                         <div
                             id="playerCenterPanel"
                             className={classNames(styles.playerCenterPanel, {

@@ -2,12 +2,12 @@ import { useAuthContext } from '@authentication/AuthContext';
 import Alert from '@components/Alert/Alert';
 import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
 import useLocalStorage from '@rehooks/local-storage';
+import { useParams } from '@util/react-router/useParams';
 import { Menu } from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import Lottie from 'lottie-react';
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
 
 import { useGetNotificationsQuery } from '../../../graph/generated/hooks';
 import NotificationAnimation from '../../../lottie/waiting.json';
@@ -33,7 +33,7 @@ const Notifications = () => {
         'highlight-read-notifications',
         []
     );
-    const { loading } = useGetNotificationsQuery({
+    const {} = useGetNotificationsQuery({
         onCompleted: (data) => {
             if (data) {
                 const processedNotifications = processNotifications(data);
@@ -54,10 +54,6 @@ const Notifications = () => {
         }, 0);
         setUnreadNotificationsCount(unreadCount);
     }, [notifications, readNotifications]);
-
-    if (loading) {
-        return null;
-    }
 
     return (
         <Popover

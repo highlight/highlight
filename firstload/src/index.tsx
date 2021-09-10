@@ -80,7 +80,7 @@ const HighlightWarning = (context: string, msg: any) => {
 };
 
 export interface HighlightPublicInterface {
-    init: (orgID: number | string, debug?: HighlightOptions) => void;
+    init: (orgID?: number | string, debug?: HighlightOptions) => void;
     /**
      * Calling this will assign an identifier to the session.
      * @example identify('teresa@acme.com', { accountAge: 3, cohort: 8 })
@@ -116,6 +116,14 @@ export interface HighlightPublicInterface {
     stop: () => void;
     onHighlightReady: (func: () => void) => void;
     options: HighlightOptions | undefined;
+    /**
+     * Calling this will add a feedback comment to the session.
+     */
+    addSessionFeedback: (
+        verbatim: string,
+        user_name?: string,
+        user_email?: string
+    ) => void;
 }
 
 interface Metadata {
@@ -137,7 +145,7 @@ var script: HTMLScriptElement;
 var highlight_obj: Highlight;
 export const H: HighlightPublicInterface = {
     options: undefined,
-    init: (orgID: number | string, options?: HighlightOptions) => {
+    init: (orgID?: number | string, options?: HighlightOptions) => {
         try {
             H.options = options;
 
@@ -146,6 +154,14 @@ export const H: HighlightPublicInterface = {
                 typeof window === 'undefined' ||
                 typeof document === 'undefined'
             ) {
+                return;
+            }
+
+            // Don't initialize if an orgID is not set.
+            if (!orgID) {
+                console.info(
+                    'Highlight is not initializing because orgID was passed undefined.'
+                );
                 return;
             }
 
@@ -187,6 +203,24 @@ export const H: HighlightPublicInterface = {
             }
         } catch (e) {
             HighlightWarning('init', e);
+        }
+    },
+    addSessionFeedback: (
+        verbatim: string,
+        user_name?: string,
+        user_email?: string
+    ) => {
+        try {
+            H.onHighlightReady(() =>
+                highlight_obj.addSessionFeedback({
+                    verbatim,
+                    timestamp: new Date().toISOString(),
+                    user_email,
+                    user_name,
+                })
+            );
+        } catch (e) {
+            HighlightWarning('error', e);
         }
     },
     consumeError: (

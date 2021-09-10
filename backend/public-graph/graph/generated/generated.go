@@ -45,6 +45,7 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Mutation struct {
+		AddSessionFeedback   func(childComplexity int, sessionID int, userName *string, userEmail *string, verbatim string, timestamp time.Time) int
 		AddSessionProperties func(childComplexity int, sessionID int, propertiesObject interface{}) int
 		AddTrackProperties   func(childComplexity int, sessionID int, propertiesObject interface{}) int
 		IdentifySession      func(childComplexity int, sessionID int, userIdentifier string, userObject interface{}) int
@@ -69,6 +70,7 @@ type MutationResolver interface {
 	AddTrackProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error)
 	AddSessionProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error)
 	PushPayload(ctx context.Context, sessionID int, events model.ReplayEventsInput, messages string, resources string, errors []*model.ErrorObjectInput) (*int, error)
+	AddSessionFeedback(ctx context.Context, sessionID int, userName *string, userEmail *string, verbatim string, timestamp time.Time) (int, error)
 }
 type QueryResolver interface {
 	Ignore(ctx context.Context, id int) (interface{}, error)
@@ -88,6 +90,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "Mutation.addSessionFeedback":
+		if e.complexity.Mutation.AddSessionFeedback == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addSessionFeedback_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddSessionFeedback(childComplexity, args["session_id"].(int), args["user_name"].(*string), args["user_email"].(*string), args["verbatim"].(string), args["timestamp"].(time.Time)), true
 
 	case "Mutation.addSessionProperties":
 		if e.complexity.Mutation.AddSessionProperties == nil {
@@ -311,6 +325,13 @@ type Mutation {
         resources: String!
         errors: [ErrorObjectInput]!
     ): ID
+    addSessionFeedback(
+        session_id: ID!
+        user_name: String
+        user_email: String
+        verbatim: String!
+        timestamp: Time!
+    ): ID!
 }
 
 type Query {
@@ -323,6 +344,57 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_addSessionFeedback_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["session_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["session_id"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["user_name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_name"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["user_name"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["user_email"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_email"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["user_email"] = arg2
+	var arg3 string
+	if tmp, ok := rawArgs["verbatim"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("verbatim"))
+		arg3, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["verbatim"] = arg3
+	var arg4 time.Time
+	if tmp, ok := rawArgs["timestamp"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timestamp"))
+		arg4, err = ec.unmarshalNTime2timeᚐTime(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["timestamp"] = arg4
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_addSessionProperties_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -804,6 +876,48 @@ func (ec *executionContext) _Mutation_pushPayload(ctx context.Context, field gra
 	res := resTmp.(*int)
 	fc.Result = res
 	return ec.marshalOID2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_addSessionFeedback(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addSessionFeedback_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddSessionFeedback(rctx, args["session_id"].(int), args["user_name"].(*string), args["user_email"].(*string), args["verbatim"].(string), args["timestamp"].(time.Time))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_ignore(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2321,6 +2435,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_addSessionProperties(ctx, field)
 		case "pushPayload":
 			out.Values[i] = ec._Mutation_pushPayload(ctx, field)
+		case "addSessionFeedback":
+			out.Values[i] = ec._Mutation_addSessionFeedback(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

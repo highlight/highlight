@@ -235,9 +235,11 @@ export type CreateSessionCommentMutation = { __typename?: 'Mutation' } & {
             | 'x_coordinate'
             | 'y_coordinate'
         > & {
-                author: { __typename?: 'SanitizedAdmin' } & Pick<
-                    Types.SanitizedAdmin,
-                    'id' | 'name' | 'email'
+                author?: Types.Maybe<
+                    { __typename?: 'SanitizedAdmin' } & Pick<
+                        Types.SanitizedAdmin,
+                        'id' | 'name' | 'email'
+                    >
                 >;
             }
     >;
@@ -569,10 +571,14 @@ export type GetSessionCommentsQuery = { __typename?: 'Query' } & {
                 | 'text'
                 | 'x_coordinate'
                 | 'y_coordinate'
+                | 'type'
+                | 'metadata'
             > & {
-                    author: { __typename?: 'SanitizedAdmin' } & Pick<
-                        Types.SanitizedAdmin,
-                        'id' | 'name' | 'email' | 'photo_url'
+                    author?: Types.Maybe<
+                        { __typename?: 'SanitizedAdmin' } & Pick<
+                            Types.SanitizedAdmin,
+                            'id' | 'name' | 'email' | 'photo_url'
+                        >
                     >;
                 }
         >
@@ -588,11 +594,19 @@ export type GetNotificationsQuery = { __typename?: 'Query' } & {
         Types.Maybe<
             { __typename?: 'SessionComment' } & Pick<
                 Types.SessionComment,
-                'id' | 'timestamp' | 'updated_at' | 'session_id' | 'text'
+                | 'id'
+                | 'timestamp'
+                | 'updated_at'
+                | 'session_id'
+                | 'text'
+                | 'type'
+                | 'metadata'
             > & {
-                    author: { __typename?: 'SanitizedAdmin' } & Pick<
-                        Types.SanitizedAdmin,
-                        'id' | 'name' | 'email' | 'photo_url'
+                    author?: Types.Maybe<
+                        { __typename?: 'SanitizedAdmin' } & Pick<
+                            Types.SanitizedAdmin,
+                            'id' | 'name' | 'email' | 'photo_url'
+                        >
                     >;
                 }
         >
@@ -628,9 +642,11 @@ export type GetSessionCommentsForAdminQuery = { __typename?: 'Query' } & {
                 | 'updated_at'
                 | 'text'
             > & {
-                    author: { __typename?: 'SanitizedAdmin' } & Pick<
-                        Types.SanitizedAdmin,
-                        'id' | 'name' | 'email' | 'photo_url'
+                    author?: Types.Maybe<
+                        { __typename?: 'SanitizedAdmin' } & Pick<
+                            Types.SanitizedAdmin,
+                            'id' | 'name' | 'email' | 'photo_url'
+                        >
                     >;
                 }
         >
@@ -848,12 +864,14 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
     error_group?: Types.Maybe<
         { __typename?: 'ErrorGroup' } & Pick<
             Types.ErrorGroup,
+            | 'created_at'
             | 'id'
             | 'type'
             | 'organization_id'
             | 'event'
             | 'state'
             | 'mapped_stack_trace'
+            | 'error_frequency'
         > & {
                 stack_trace: Array<
                     Types.Maybe<
@@ -909,7 +927,13 @@ export type GetErrorGroupsQuery = { __typename?: 'Query' } & {
                 error_groups: Array<
                     { __typename?: 'ErrorGroup' } & Pick<
                         Types.ErrorGroup,
-                        'id' | 'type' | 'event' | 'state' | 'environments'
+                        | 'created_at'
+                        | 'id'
+                        | 'type'
+                        | 'event'
+                        | 'state'
+                        | 'environments'
+                        | 'error_frequency'
                     > & {
                             stack_trace: Array<
                                 Types.Maybe<
@@ -1376,6 +1400,17 @@ export type GetDailyErrorsCountQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetDailyErrorFrequencyQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    error_group_id: Types.Scalars['ID'];
+    date_offset: Types.Scalars['Int'];
+}>;
+
+export type GetDailyErrorFrequencyQuery = { __typename?: 'Query' } & Pick<
+    Types.Query,
+    'dailyErrorFrequency'
+>;
+
 export type GetErrorAlertQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
 }>;
@@ -1634,6 +1669,7 @@ export const namedOperations = {
         GetTopUsers: 'GetTopUsers' as const,
         GetDailySessionsCount: 'GetDailySessionsCount' as const,
         GetDailyErrorsCount: 'GetDailyErrorsCount' as const,
+        GetDailyErrorFrequency: 'GetDailyErrorFrequency' as const,
         GetErrorAlert: 'GetErrorAlert' as const,
         GetNewUserAlert: 'GetNewUserAlert' as const,
         GetTrackPropertiesAlert: 'GetTrackPropertiesAlert' as const,

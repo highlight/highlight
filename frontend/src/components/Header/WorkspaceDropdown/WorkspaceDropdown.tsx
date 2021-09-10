@@ -1,5 +1,5 @@
+import { useParams } from '@util/react-router/useParams';
 import React from 'react';
-import { useParams } from 'react-router-dom';
 
 import { useGetOrganizationQuery } from '../../../graph/generated/hooks';
 import { generateRandomColor } from '../../../util/color';
