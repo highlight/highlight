@@ -572,6 +572,7 @@ export type GetSessionCommentsQuery = { __typename?: 'Query' } & {
                 | 'x_coordinate'
                 | 'y_coordinate'
                 | 'type'
+                | 'metadata'
             > & {
                     author?: Types.Maybe<
                         { __typename?: 'SanitizedAdmin' } & Pick<
@@ -599,6 +600,7 @@ export type GetNotificationsQuery = { __typename?: 'Query' } & {
                 | 'session_id'
                 | 'text'
                 | 'type'
+                | 'metadata'
             > & {
                     author?: Types.Maybe<
                         { __typename?: 'SanitizedAdmin' } & Pick<

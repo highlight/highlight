@@ -116,6 +116,14 @@ export interface HighlightPublicInterface {
     stop: () => void;
     onHighlightReady: (func: () => void) => void;
     options: HighlightOptions | undefined;
+    /**
+     * Calling this will add a feedback comment to the session.
+     */
+    addSessionFeedback: (
+        verbatim: string,
+        user_name?: string,
+        user_email?: string
+    ) => void;
 }
 
 interface Metadata {
@@ -195,6 +203,24 @@ export const H: HighlightPublicInterface = {
             }
         } catch (e) {
             HighlightWarning('init', e);
+        }
+    },
+    addSessionFeedback: (
+        verbatim: string,
+        user_name?: string,
+        user_email?: string
+    ) => {
+        try {
+            H.onHighlightReady(() =>
+                highlight_obj.addSessionFeedback({
+                    verbatim,
+                    timestamp: new Date().toISOString(),
+                    user_email,
+                    user_name,
+                })
+            );
+        } catch (e) {
+            HighlightWarning('error', e);
         }
     },
     consumeError: (

@@ -30,7 +30,7 @@ const Notifications = () => {
         'highlight-read-notifications',
         []
     );
-    const { loading } = useGetNotificationsQuery({
+    const {} = useGetNotificationsQuery({
         onCompleted: (data) => {
             if (data) {
                 const processedNotifications = processNotifications(data);
@@ -49,10 +49,6 @@ const Notifications = () => {
         }, 0);
         setUnreadNotificationsCount(unreadCount);
     }, [notifications, readNotifications]);
-
-    if (loading) {
-        return null;
-    }
 
     return (
         <Popover

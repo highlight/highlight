@@ -45,7 +45,7 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Mutation struct {
-		AddSessionFeedback   func(childComplexity int, sessionsID int, userName *string, userEmail *string, verbatim string) int
+		AddSessionFeedback   func(childComplexity int, sessionID int, userName *string, userEmail *string, verbatim string, timestamp time.Time) int
 		AddSessionProperties func(childComplexity int, sessionID int, propertiesObject interface{}) int
 		AddTrackProperties   func(childComplexity int, sessionID int, propertiesObject interface{}) int
 		IdentifySession      func(childComplexity int, sessionID int, userIdentifier string, userObject interface{}) int
@@ -70,7 +70,7 @@ type MutationResolver interface {
 	AddTrackProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error)
 	AddSessionProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error)
 	PushPayload(ctx context.Context, sessionID int, events model.ReplayEventsInput, messages string, resources string, errors []*model.ErrorObjectInput) (*int, error)
-	AddSessionFeedback(ctx context.Context, sessionsID int, userName *string, userEmail *string, verbatim string) (int, error)
+	AddSessionFeedback(ctx context.Context, sessionID int, userName *string, userEmail *string, verbatim string, timestamp time.Time) (int, error)
 }
 type QueryResolver interface {
 	Ignore(ctx context.Context, id int) (interface{}, error)
@@ -101,7 +101,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddSessionFeedback(childComplexity, args["sessions_id"].(int), args["user_name"].(*string), args["user_email"].(*string), args["verbatim"].(string)), true
+		return e.complexity.Mutation.AddSessionFeedback(childComplexity, args["session_id"].(int), args["user_name"].(*string), args["user_email"].(*string), args["verbatim"].(string), args["timestamp"].(time.Time)), true
 
 	case "Mutation.addSessionProperties":
 		if e.complexity.Mutation.AddSessionProperties == nil {
@@ -326,10 +326,11 @@ type Mutation {
         errors: [ErrorObjectInput]!
     ): ID
     addSessionFeedback(
-        sessions_id: ID!
+        session_id: ID!
         user_name: String
         user_email: String
         verbatim: String!
+        timestamp: Time!
     ): ID!
 }
 
@@ -348,14 +349,14 @@ func (ec *executionContext) field_Mutation_addSessionFeedback_args(ctx context.C
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
-	if tmp, ok := rawArgs["sessions_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sessions_id"))
+	if tmp, ok := rawArgs["session_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["sessions_id"] = arg0
+	args["session_id"] = arg0
 	var arg1 *string
 	if tmp, ok := rawArgs["user_name"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_name"))
@@ -383,6 +384,15 @@ func (ec *executionContext) field_Mutation_addSessionFeedback_args(ctx context.C
 		}
 	}
 	args["verbatim"] = arg3
+	var arg4 time.Time
+	if tmp, ok := rawArgs["timestamp"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timestamp"))
+		arg4, err = ec.unmarshalNTime2timeᚐTime(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["timestamp"] = arg4
 	return args, nil
 }
 
@@ -893,7 +903,7 @@ func (ec *executionContext) _Mutation_addSessionFeedback(ctx context.Context, fi
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddSessionFeedback(rctx, args["sessions_id"].(int), args["user_name"].(*string), args["user_email"].(*string), args["verbatim"].(string))
+		return ec.resolvers.Mutation().AddSessionFeedback(rctx, args["session_id"].(int), args["user_name"].(*string), args["user_email"].(*string), args["verbatim"].(string), args["timestamp"].(time.Time))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

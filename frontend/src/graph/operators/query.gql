@@ -66,6 +66,7 @@ query GetSessionComments($session_id: ID!) {
         x_coordinate
         y_coordinate
         type
+        metadata
     }
 }
 
@@ -83,6 +84,7 @@ query GetNotifications($organization_id: ID!) {
             photo_url
         }
         type
+        metadata
     }
     error_comments_for_organization(organization_id: $organization_id) {
         id

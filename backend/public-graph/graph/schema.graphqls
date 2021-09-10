@@ -64,10 +64,11 @@ type Mutation {
         errors: [ErrorObjectInput]!
     ): ID
     addSessionFeedback(
-        sessions_id: ID!
+        session_id: ID!
         user_name: String
         user_email: String
         verbatim: String!
+        timestamp: Time!
     ): ID!
 }
 
