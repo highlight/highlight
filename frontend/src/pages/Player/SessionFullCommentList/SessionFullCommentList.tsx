@@ -1,3 +1,4 @@
+import { SessionCommentType } from '@graph/schemas';
 import { useParams } from '@util/react-router/useParams';
 import React, { useEffect, useState } from 'react';
 
@@ -38,9 +39,22 @@ const SessionFullCommentList = () => {
                     deepLinkedCommentId={deepLinkedCommentId}
                     comment={comment}
                     footer={
-                        <p className={styles.timestamp}>
-                            {MillisToMinutesAndSeconds(comment?.timestamp || 0)}
-                        </p>
+                        <div className={styles.footer}>
+                            {comment.type === SessionCommentType.Feedback &&
+                                comment?.author?.email && (
+                                    <a
+                                        href={`mailto:${comment.author.email}`}
+                                        className={styles.email}
+                                    >
+                                        {comment.author.email}
+                                    </a>
+                                )}
+                            <p className={styles.timestamp}>
+                                {MillisToMinutesAndSeconds(
+                                    comment?.timestamp || 0
+                                )}
+                            </p>
+                        </div>
                     }
                 />
             )}

@@ -1,4 +1,5 @@
 import { namedOperations } from '@graph/operations';
+import { SessionCommentType } from '@graph/schemas';
 import { Menu, message } from 'antd';
 import { H } from 'highlight.run';
 import React, { PropsWithChildren } from 'react';
@@ -54,6 +55,21 @@ const SessionCommentHeader = ({
             >
                 Copy link
             </Menu.Item>
+            {comment.type === SessionCommentType.Feedback &&
+                comment?.author?.email && (
+                    <Menu.Item
+                        onClick={() => {
+                            message.success(
+                                "Copied the feedback provider's email!"
+                            );
+                            navigator.clipboard.writeText(
+                                comment.author?.email as string
+                            );
+                        }}
+                    >
+                        Copy feedback email
+                    </Menu.Item>
+                )}
             <Menu.Item
                 onClick={() => {
                     const urlSearchParams = new URLSearchParams();
