@@ -381,6 +381,7 @@ type ComplexityRoot struct {
 		Author         func(childComplexity int) int
 		CreatedAt      func(childComplexity int) int
 		ID             func(childComplexity int) int
+		Metadata       func(childComplexity int) int
 		OrganizationID func(childComplexity int) int
 		SessionId      func(childComplexity int) int
 		Text           func(childComplexity int) int
@@ -541,6 +542,9 @@ type SessionAlertResolver interface {
 }
 type SessionCommentResolver interface {
 	Author(ctx context.Context, obj *model1.SessionComment) (*model.SanitizedAdmin, error)
+
+	Type(ctx context.Context, obj *model1.SessionComment) (model.SessionCommentType, error)
+	Metadata(ctx context.Context, obj *model1.SessionComment) (interface{}, error)
 }
 
 type executableSchema struct {
@@ -2555,6 +2559,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SessionComment.ID(childComplexity), true
 
+	case "SessionComment.metadata":
+		if e.complexity.SessionComment.Metadata == nil {
+			break
+		}
+
+		return e.complexity.SessionComment.Metadata(childComplexity), true
+
 	case "SessionComment.organization_id":
 		if e.complexity.SessionComment.OrganizationID == nil {
 			break
@@ -2844,6 +2855,11 @@ enum ErrorState {
     IGNORED
 }
 
+enum SessionCommentType {
+    Admin
+    FEEDBACK
+}
+
 type Organization {
     id: ID!
     verbose_id: String!
@@ -3072,15 +3088,16 @@ type ErrorResults {
 type SessionComment {
     id: ID!
     organization_id: ID!
-    timestamp: Int!
+    timestamp: Int
     created_at: Time!
     updated_at: Time!
     session_id: Int!
-    author: SanitizedAdmin!
+    author: SanitizedAdmin
     text: String!
-    x_coordinate: Float!
-    y_coordinate: Float!
-    type: String!
+    x_coordinate: Float
+    y_coordinate: Float
+    type: SessionCommentType!
+    metadata: Any
 }
 
 type ErrorComment {
@@ -13563,14 +13580,11 @@ func (ec *executionContext) _SessionComment_timestamp(ctx context.Context, field
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SessionComment_created_at(ctx context.Context, field graphql.CollectedField, obj *model1.SessionComment) (ret graphql.Marshaler) {
@@ -13703,14 +13717,11 @@ func (ec *executionContext) _SessionComment_author(ctx context.Context, field gr
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*model.SanitizedAdmin)
 	fc.Result = res
-	return ec.marshalNSanitizedAdmin2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedAdmin(ctx, field.Selections, res)
+	return ec.marshalOSanitizedAdmin2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedAdmin(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SessionComment_text(ctx context.Context, field graphql.CollectedField, obj *model1.SessionComment) (ret graphql.Marshaler) {
@@ -13773,14 +13784,11 @@ func (ec *executionContext) _SessionComment_x_coordinate(ctx context.Context, fi
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(float64)
 	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOFloat2float64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SessionComment_y_coordinate(ctx context.Context, field graphql.CollectedField, obj *model1.SessionComment) (ret graphql.Marshaler) {
@@ -13808,14 +13816,11 @@ func (ec *executionContext) _SessionComment_y_coordinate(ctx context.Context, fi
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(float64)
 	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOFloat2float64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SessionComment_type(ctx context.Context, field graphql.CollectedField, obj *model1.SessionComment) (ret graphql.Marshaler) {
@@ -13829,14 +13834,14 @@ func (ec *executionContext) _SessionComment_type(ctx context.Context, field grap
 		Object:     "SessionComment",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Type, nil
+		return ec.resolvers.SessionComment().Type(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13848,9 +13853,41 @@ func (ec *executionContext) _SessionComment_type(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(model.SessionCommentType)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNSessionCommentType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSessionCommentType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SessionComment_metadata(ctx context.Context, field graphql.CollectedField, obj *model1.SessionComment) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SessionComment",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.SessionComment().Metadata(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(interface{})
+	fc.Result = res
+	return ec.marshalOAny2interface(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SessionResults_sessions(ctx context.Context, field graphql.CollectedField, obj *model1.SessionResults) (ret graphql.Marshaler) {
@@ -17833,9 +17870,6 @@ func (ec *executionContext) _SessionComment(ctx context.Context, sel ast.Selecti
 			}
 		case "timestamp":
 			out.Values[i] = ec._SessionComment_timestamp(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "created_at":
 			out.Values[i] = ec._SessionComment_created_at(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -17860,9 +17894,6 @@ func (ec *executionContext) _SessionComment(ctx context.Context, sel ast.Selecti
 					}
 				}()
 				res = ec._SessionComment_author(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			})
 		case "text":
@@ -17872,19 +17903,33 @@ func (ec *executionContext) _SessionComment(ctx context.Context, sel ast.Selecti
 			}
 		case "x_coordinate":
 			out.Values[i] = ec._SessionComment_x_coordinate(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "y_coordinate":
 			out.Values[i] = ec._SessionComment_y_coordinate(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "type":
-			out.Values[i] = ec._SessionComment_type(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._SessionComment_type(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "metadata":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._SessionComment_metadata(ctx, field, obj)
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -18969,6 +19014,16 @@ func (ec *executionContext) marshalNSessionComment2ᚕᚖgithubᚗcomᚋhighligh
 	return ret
 }
 
+func (ec *executionContext) unmarshalNSessionCommentType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSessionCommentType(ctx context.Context, v interface{}) (model.SessionCommentType, error) {
+	var res model.SessionCommentType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNSessionCommentType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSessionCommentType(ctx context.Context, sel ast.SelectionSet, v model.SessionCommentType) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNSessionLifecycle2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSessionLifecycle(ctx context.Context, v interface{}) (model.SessionLifecycle, error) {
 	var res model.SessionLifecycle
 	err := res.UnmarshalGQL(v)
@@ -20050,6 +20105,13 @@ func (ec *executionContext) marshalOReferrerTablePayload2ᚖgithubᚗcomᚋhighl
 		return graphql.Null
 	}
 	return ec._ReferrerTablePayload(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOSanitizedAdmin2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedAdmin(ctx context.Context, sel ast.SelectionSet, v *model.SanitizedAdmin) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._SanitizedAdmin(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOSanitizedAdminInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedAdminInput(ctx context.Context, v interface{}) (*model.SanitizedAdminInput, error) {

@@ -337,6 +337,10 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	return &sessionID, nil
 }
 
+func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionsID int, userName *string, userEmail *string, verbatim string) (int, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *queryResolver) Ignore(ctx context.Context, id int) (interface{}, error) {
 	return nil, nil
 }

@@ -226,6 +226,47 @@ func (e PlanType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type SessionCommentType string
+
+const (
+	SessionCommentTypeAdmin    SessionCommentType = "Admin"
+	SessionCommentTypeFeedback SessionCommentType = "FEEDBACK"
+)
+
+var AllSessionCommentType = []SessionCommentType{
+	SessionCommentTypeAdmin,
+	SessionCommentTypeFeedback,
+}
+
+func (e SessionCommentType) IsValid() bool {
+	switch e {
+	case SessionCommentTypeAdmin, SessionCommentTypeFeedback:
+		return true
+	}
+	return false
+}
+
+func (e SessionCommentType) String() string {
+	return string(e)
+}
+
+func (e *SessionCommentType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SessionCommentType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SessionCommentType", str)
+	}
+	return nil
+}
+
+func (e SessionCommentType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type SessionLifecycle string
 
 const (
