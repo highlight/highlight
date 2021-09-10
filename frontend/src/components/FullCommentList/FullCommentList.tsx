@@ -21,7 +21,7 @@ const FullCommentList = ({
     noCommentsMessage,
 }: Props) => {
     const virtuoso = useRef<VirtuosoHandle>(null);
-    const { admin, isHighlightAdmin } = useAuthContext();
+    const { admin, isHighlightAdmin, isLoggedIn } = useAuthContext();
 
     return (
         <div className={styles.commentStream}>
@@ -41,6 +41,7 @@ const FullCommentList = ({
             ) : (
                 <>
                     {!loading &&
+                        isLoggedIn &&
                         !admin?.slack_im_channel_id &&
                         isHighlightAdmin && (
                             <Alert
