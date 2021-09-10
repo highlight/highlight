@@ -1834,6 +1834,7 @@ export const GetSessionCommentsDocument = gql`
             x_coordinate
             y_coordinate
             type
+            metadata
         }
     }
 `;

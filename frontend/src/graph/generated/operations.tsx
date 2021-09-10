@@ -572,6 +572,7 @@ export type GetSessionCommentsQuery = { __typename?: 'Query' } & {
                 | 'x_coordinate'
                 | 'y_coordinate'
                 | 'type'
+                | 'metadata'
             > & {
                     author?: Types.Maybe<
                         { __typename?: 'SanitizedAdmin' } & Pick<

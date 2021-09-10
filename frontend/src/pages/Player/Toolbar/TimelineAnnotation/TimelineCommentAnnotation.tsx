@@ -37,7 +37,7 @@ function TimelineCommentAnnotation({ comment }: Props): ReactElement {
                 event={comment}
                 colorKey="Comments"
                 onClickHandler={() => {
-                    if (replayer) {
+                    if (replayer && comment.timestamp != null) {
                         pause(comment.timestamp);
                         message.success(
                             `Changed player time to where comment was created at ${MillisToMinutesAndSeconds(
