@@ -19,5 +19,5 @@ func IsOnPrem() bool {
 }
 
 func IsOnRender() bool {
-	return ON_RENDER == "prod_aws_render"
+	return DOPPLER_CONFIG == "prod_aws_render"
 }
