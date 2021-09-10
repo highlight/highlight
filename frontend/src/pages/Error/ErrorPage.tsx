@@ -209,11 +209,13 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                                         />
                                     </h3>
                                 )}
-                                <div className={styles.fieldWrapper}>
-                                    <ErrorFrequencyGraph
-                                        errorGroup={data?.error_group}
-                                    />
-                                </div>
+                                {!loading && (
+                                    <div className={styles.fieldWrapper}>
+                                        <ErrorFrequencyGraph
+                                            errorGroup={data?.error_group}
+                                        />
+                                    </div>
+                                )}
                             </div>
                             <div className={styles.errorPageRightColumn}>
                                 <ErrorAffectedUsers
