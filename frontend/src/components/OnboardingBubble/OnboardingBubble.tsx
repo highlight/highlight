@@ -118,7 +118,7 @@ const OnboardingBubble = () => {
                     window.location.href = slackBotUrl;
                 },
                 completed: !!data.admin?.slack_im_channel_id || false,
-                tooltip: `You will get a slack DM anytime someone tags you in a Highlight comment!`,
+                tooltip: `You will get a Slack DM anytime someone tags you in a Highlight comment!`,
             });
             setSteps(STEPS);
             const stepsNotFinishedCount = STEPS.reduce((prev, curr) => {
