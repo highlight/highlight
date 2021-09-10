@@ -64,6 +64,7 @@ export type Mutation = {
   addTrackProperties?: Maybe<Scalars['ID']>;
   addSessionProperties?: Maybe<Scalars['ID']>;
   pushPayload?: Maybe<Scalars['ID']>;
+  addSessionFeedback: Scalars['ID'];
 };
 
 
@@ -105,6 +106,14 @@ export type MutationPushPayloadArgs = {
   messages: Scalars['String'];
   resources: Scalars['String'];
   errors: Array<Maybe<ErrorObjectInput>>;
+};
+
+
+export type MutationAddSessionFeedbackArgs = {
+  sessions_id: Scalars['ID'];
+  user_name?: Maybe<Scalars['String']>;
+  user_email?: Maybe<Scalars['String']>;
+  verbatim: Scalars['String'];
 };
 
 export type Query = {

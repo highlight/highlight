@@ -13,6 +13,7 @@ type Field {
 
 type Session {
     id: ID!
+    secure_id: String!
     user_id: ID!
     fingerprint: Int
     os_name: String!
@@ -124,6 +125,7 @@ type ErrorField {
 type ErrorGroup {
     created_at: Time!
     id: ID!
+    secure_id: String!
     organization_id: Int!
     type: String!
     event: [String]!
@@ -384,21 +386,27 @@ type SessionAlert {
 scalar Upload
 
 type Query {
-    session(id: ID!): Session
-    events(session_id: ID!): [Any]
+    session(id: ID, secure_id: String): Session
+    events(session_id: ID, session_secure_id: String): [Any]
     error_groups(
         organization_id: ID!
         count: Int!
         params: ErrorSearchParamsInput
     ): ErrorResults
-    error_group(id: ID!): ErrorGroup
-    messages(session_id: ID!): [Any]
-    errors(session_id: ID!): [ErrorObject]
-    resources(session_id: ID!): [Any]
-    session_comments(session_id: ID!): [SessionComment]!
+    error_group(id: ID, secure_id: String): ErrorGroup
+    messages(session_id: ID, session_secure_id: String): [Any]
+    errors(session_id: ID, session_secure_id: String): [ErrorObject]
+    resources(session_id: ID, session_secure_id: String): [Any]
+    session_comments(
+        session_id: ID
+        session_secure_id: String
+    ): [SessionComment]!
     session_comments_for_admin: [SessionComment]!
     session_comments_for_organization(organization_id: ID!): [SessionComment]!
-    error_comments(error_group_id: ID!): [ErrorComment]!
+    error_comments(
+        error_group_id: ID
+        error_group_secure_id: String
+    ): [ErrorComment]!
     error_comments_for_admin: [ErrorComment]!
     error_comments_for_organization(organization_id: ID!): [ErrorComment]!
     admins(organization_id: ID!): [Admin]
@@ -416,7 +424,8 @@ type Query {
     ): [DailyErrorCount]!
     dailyErrorFrequency(
         organization_id: ID!
-        error_group_id: ID!
+        error_group_id: ID
+        error_group_secure_id: String
         date_offset: Int!
     ): [Int64]!
     referrers(
@@ -475,9 +484,9 @@ type Query {
 type Mutation {
     createOrganization(name: String!): Organization
     editOrganization(id: ID!, name: String, billing_email: String): Organization
-    markSessionAsViewed(id: ID!, viewed: Boolean): Session
-    markSessionAsStarred(id: ID!, starred: Boolean): Session
-    updateErrorGroupState(id: ID!, state: String!): ErrorGroup
+    markSessionAsViewed(id: ID, secure_id: String, viewed: Boolean): Session
+    markSessionAsStarred(id: ID, secure_id: String, starred: Boolean): Session
+    updateErrorGroupState(id: ID, secure_id: String, state: String!): ErrorGroup
     deleteOrganization(id: ID!): Boolean
     sendAdminInvite(
         organization_id: ID!
@@ -523,7 +532,8 @@ type Mutation {
     updateBillingDetails(organization_id: ID!): Boolean
     createSessionComment(
         organization_id: ID!
-        session_id: ID!
+        session_id: ID
+        session_secure_id: String
         session_timestamp: Int!
         text: String!
         text_for_email: String!
@@ -538,7 +548,8 @@ type Mutation {
     deleteSessionComment(id: ID!): Boolean
     createErrorComment(
         organization_id: ID!
-        error_group_id: ID!
+        error_group_id: ID
+        error_group_secure_id: String
         text: String!
         text_for_email: String!
         tagged_admins: [SanitizedAdminInput]!
@@ -580,5 +591,9 @@ type Mutation {
         environments: [String]!
         user_properties: [UserPropertyInput]!
     ): SessionAlert
-    updateSessionIsPublic(session_id: ID!, is_public: Boolean!): Session
+    updateSessionIsPublic(
+        session_id: ID
+        session_secure_id: String
+        is_public: Boolean!
+    ): Session
 }
