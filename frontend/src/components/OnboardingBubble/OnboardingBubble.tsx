@@ -1,3 +1,4 @@
+import { DEMO_WORKSPACE_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
@@ -156,7 +157,8 @@ const OnboardingBubble = () => {
     if (
         loading ||
         stepsNotFinishedCount === -1 ||
-        temporarilyHideOnboardingBubble
+        temporarilyHideOnboardingBubble ||
+        organization_id === DEMO_WORKSPACE_APPLICATION_ID
     ) {
         return null;
     }

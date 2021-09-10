@@ -1,4 +1,3 @@
-import { useAuthContext } from '@authentication/AuthContext';
 import Button from '@components/Button/Button/Button';
 import SvgLogInIcon from '@icons/LogInIcon';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
@@ -24,13 +23,8 @@ const DemoWorkspaceButton = ({ integrated }: Props) => {
     const history = useHistory();
     const { pathname } = useLocation();
     const { currentApplication } = useApplicationContext();
-    const { isHighlightAdmin } = useAuthContext();
 
     const [, path] = pathname.split('/').filter((token) => token.length);
-
-    if (!isHighlightAdmin) {
-        return null;
-    }
 
     if (
         integrated &&
