@@ -79,6 +79,7 @@ interface SessionFeedbackOptions {
     verbatim: string;
     userName?: string;
     userEmail?: string;
+    timestampOverride?: string;
 }
 
 const HighlightWarning = (context: string, msg: any) => {
@@ -207,12 +208,17 @@ export const H: HighlightPublicInterface = {
             HighlightWarning('init', e);
         }
     },
-    addSessionFeedback: ({ verbatim, userName, userEmail }) => {
+    addSessionFeedback: ({
+        verbatim,
+        userName,
+        userEmail,
+        timestampOverride,
+    }) => {
         try {
             H.onHighlightReady(() =>
                 highlight_obj.addSessionFeedback({
                     verbatim,
-                    timestamp: new Date().toISOString(),
+                    timestamp: timestampOverride || new Date().toISOString(),
                     user_email: userEmail,
                     user_name: userName,
                 })
