@@ -8,12 +8,23 @@ import { CustomError, DefaultError } from './ButtonsHelper';
 export const Buttons = () => {
     const [hasError, setHasError] = useState(false);
     const [sendEmail, { loading }] = useSendEmailSignupMutation();
+    const [showTest, setShowTest] = useState(false);
+
     if (hasError) {
         throw new Error('got an error');
     }
     return (
         <div className={styles.buttonBody}>
             <div>
+                <button
+                    onClick={() => {
+                        setShowTest(true);
+                    }}
+                >
+                    Show Error Boundary
+                </button>
+                {showTest && <Test21 />}
+
                 <button
                     className={commonStyles.submitButton}
                     onClick={() => {
@@ -121,3 +132,10 @@ export const Buttons = () => {
         </div>
     );
 };
+
+const Test21 = () => (
+    <h2>
+        {/* @ts-expect-error*/}
+        {badVariable}
+    </h2>
+);
