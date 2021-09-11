@@ -11,8 +11,20 @@ export const Buttons = () => {
     if (hasError) {
         throw new Error('got an error');
     }
+    const [showBadComponent, setShowBadComponent] = useState(false);
+
     return (
         <div className={styles.buttonBody}>
+            <div>
+                <button
+                    onClick={() => {
+                        setShowBadComponent(true);
+                    }}
+                >
+                    Show Error Boundary
+                </button>
+                {showBadComponent && <BadComponent />}
+            </div>
             <div>
                 <button
                     className={commonStyles.submitButton}
@@ -121,3 +133,10 @@ export const Buttons = () => {
         </div>
     );
 };
+
+const BadComponent = () => (
+    <div>
+        {/* @ts-expect-error */}
+        {badVariableAccess}
+    </div>
+);

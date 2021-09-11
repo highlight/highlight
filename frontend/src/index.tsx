@@ -3,6 +3,7 @@ import './index.scss';
 import '@highlight-run/rrweb/dist/index.css';
 
 import { ApolloProvider } from '@apollo/client';
+import { ErrorBoundary } from '@highlight-run/react';
 import { H, HighlightOptions } from 'highlight.run';
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
@@ -25,7 +26,6 @@ import * as serviceWorker from './serviceWorker';
 import { auth } from './util/auth';
 import { showHiringMessage } from './util/console/hiringMessage';
 import { client } from './util/graph';
-import { SimpleErrorBoundary } from './util/simpleErrorBoundary';
 
 const dev = process.env.NODE_ENV === 'development' ? true : false;
 const options: HighlightOptions = {
@@ -85,7 +85,7 @@ showHiringMessage();
 
 const App = () => {
     return (
-        <SimpleErrorBoundary>
+        <ErrorBoundary showDialog>
             <ApolloProvider client={client}>
                 <QueryParamProvider>
                     <SkeletonTheme color={'#F5F5F5'} highlightColor={'#FCFCFC'}>
@@ -93,7 +93,7 @@ const App = () => {
                     </SkeletonTheme>
                 </QueryParamProvider>
             </ApolloProvider>
-        </SimpleErrorBoundary>
+        </ErrorBoundary>
     );
 };
 
