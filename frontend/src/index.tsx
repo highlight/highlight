@@ -85,7 +85,27 @@ showHiringMessage();
 
 const App = () => {
     return (
-        <ErrorBoundary showDialog>
+        <ErrorBoundary
+            showDialog
+            dialogOptions={{
+                user: { email: 'elon@spacex.com', name: 'Elon Musk' },
+            }}
+            fallback={() => (
+                <main>
+                    <img
+                        src="https://media4.giphy.com/media/HhTXt43pk1I1W/giphy.gif?cid=ecf05e47fkv5pzkmmdeb3ennd7r6tq0clsg64xib8k89ybpw&rid=giphy.gif&ct=g"
+                        alt=""
+                        style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100vw',
+                            height: '100vh',
+                        }}
+                    />
+                </main>
+            )}
+        >
             <ApolloProvider client={client}>
                 <QueryParamProvider>
                     <SkeletonTheme color={'#F5F5F5'} highlightColor={'#FCFCFC'}>

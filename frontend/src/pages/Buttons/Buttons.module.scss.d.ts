@@ -1,1 +1,1 @@
-export const buttonBody: string;
+export const container: string;
