@@ -32,7 +32,8 @@ func main() {
 	var s3Keys []types.ObjectIdentifier
 	for _, id := range ids {
 		for _, suffix := range []string{"console-messages", "network-resources", "session-contents"} {
-			s3Keys = append(s3Keys, types.ObjectIdentifier{Key: &fmt.Sprintf("1/%d/%s", id, suffix)})
+			key := fmt.Sprintf("1/%d/%s", id, suffix)
+			s3Keys = append(s3Keys, types.ObjectIdentifier{Key: &key})
 		}
 	}
 
