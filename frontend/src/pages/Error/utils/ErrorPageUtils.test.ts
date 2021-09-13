@@ -12,7 +12,7 @@ describe('ErrorPageUtils', () => {
                 },
             } as GetErrorGroupQuery);
 
-            expect(result).toBe([]);
+            expect(result).toStrictEqual([]);
         });
 
         it('should handle an error group with duplicate fields', () => {
