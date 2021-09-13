@@ -4,7 +4,7 @@ import {
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { Avatar } from '../../../../../components/Avatar/Avatar';
@@ -37,6 +37,7 @@ const MinimalSessionCard = ({
     showDetailedViewOverride = false,
     urlParams,
 }: Props) => {
+    const ref = useRef<HTMLDivElement | null>(null);
     const { organization_id, segment_id, session_id } = useParams<{
         organization_id: string;
         segment_id: string;
@@ -48,6 +49,7 @@ const MinimalSessionCard = ({
             : organization_id;
     const {
         showDetailedSessionView: showDetailedSessionViewPlayerConfiguration,
+        autoPlaySessions,
     } = usePlayerConfiguration();
     const showDetailedSessionView =
         showDetailedSessionViewPlayerConfiguration || showDetailedViewOverride;
@@ -60,10 +62,19 @@ const MinimalSessionCard = ({
         }
     }, [session?.id, session_id]);
 
+    useEffect(() => {
+        if (autoPlaySessions && session_id === session?.id && ref?.current) {
+            ref.current.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center',
+            });
+        }
+    }, [autoPlaySessions, session?.id, session_id]);
+
     const customAvatarImage = getIdentifiedUserProfileImage(session);
 
     return (
-        <div className={styles.sessionCardWrapper} key={session?.id}>
+        <div className={styles.sessionCardWrapper} key={session?.id} ref={ref}>
             <Link
                 to={`/${organizationIdRemapped}/sessions/${session?.id}${
                     urlParams || ''
