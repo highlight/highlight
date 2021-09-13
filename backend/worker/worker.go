@@ -257,6 +257,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			hasNext = false
 		}
 		if se != nil && *se != "" {
+			log.Infof("events:\n %+v", *se)
 			eventsObject := model.EventsObject{Events: *se}
 			var tempDuration time.Duration
 			tempDuration, firstEventTimestamp, lastEventTimestamp, err = getActiveDuration(&eventsObject, firstEventTimestamp, lastEventTimestamp)
@@ -266,6 +267,17 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			activeDuration += tempDuration
 		}
 	}
+	/*
+		for each event:
+			if last timestamp isn't zero:
+				diff := subtract last timestamp from current
+				if diff <= min inactive duration:
+					active duration += diff
+			last = current
+			if first timestamp is zero:
+				first = current
+			some flag if event is click event
+	*/
 
 	// Calculate total session length and write the length to the session.
 	sessionTotalLength := CalculateSessionLength(firstEventTimestamp, lastEventTimestamp)
