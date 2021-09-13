@@ -95,9 +95,6 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                         </p>
                         <CodeBlock
                             onCopy={() => {
-                                window.analytics.track('Copied Code Snippet', {
-                                    copied: 'code snippet',
-                                });
                                 H.track(
                                     'Copied Code Snippet (Highlight Event)',
                                     { copied: 'code snippet' }
@@ -192,7 +189,6 @@ const HtmlInstructions = ({ orgVerboseId }: { orgVerboseId: string }) => {
                 ) : (
                     <CodeBlock
                         onCopy={() => {
-                            window.analytics.track('Copied Script', {});
                             H.track('Copied Script (Highlight Event)', {
                                 copied: 'script',
                             });
