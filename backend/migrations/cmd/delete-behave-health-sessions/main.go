@@ -42,7 +42,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to initialize s3 client: %v", err)
 	}
-	_, err := storageClient.S3Client.DeleteObjects(context.Background(), s3.DeleteObjectsInput{Bucket: &storage.S3SessionsPayloadBucketName, Delete: &types.Delete{Objects: s3Keys}})
+	_, err := storageClient.S3Client.DeleteObjects(context.Background(), &s3.DeleteObjectsInput{Bucket: &storage.S3SessionsPayloadBucketName, Delete: &types.Delete{Objects: s3Keys}})
 	if err != nil {
 		log.Fatalf("failed to delete s3 objects: %v", err)
 	}
