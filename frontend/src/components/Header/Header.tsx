@@ -22,7 +22,6 @@ import { CommandBar } from './CommandBar/CommandBar';
 import ApplicationPicker from './components/ApplicationPicker/ApplicationPicker';
 import FeedbackButton from './components/FeedbackButton/FeedbackButton';
 import HeaderActions from './components/HeaderActions';
-import PersonalNotificationButton from './components/PersonalNotificationButton/PersonalNotificationButton';
 import styles from './Header.module.scss';
 import { UserDropdown } from './UserDropdown/UserDropdown';
 
@@ -62,7 +61,6 @@ export const Header = () => {
 
                     <div className={styles.rightHeader}>
                         <HeaderActions />
-                        <PersonalNotificationButton />
                         <FeedbackButton />
                         {isLoggedIn && <UserDropdown />}
                     </div>

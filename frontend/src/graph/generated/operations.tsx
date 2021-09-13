@@ -696,6 +696,9 @@ export type GetOnboardingStepsQuery = { __typename?: 'Query' } & Pick<
         organizationHasViewedASession?: Types.Maybe<
             { __typename?: 'Session' } & Pick<Types.Session, 'id'>
         >;
+        admin?: Types.Maybe<
+            { __typename?: 'Admin' } & Pick<Types.Admin, 'slack_im_channel_id'>
+        >;
     };
 
 export type SendAdminInviteMutationVariables = Types.Exact<{

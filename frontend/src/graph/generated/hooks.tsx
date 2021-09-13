@@ -2113,6 +2113,9 @@ export const GetOnboardingStepsDocument = gql`
         organizationHasViewedASession(organization_id: $organization_id) {
             id
         }
+        admin {
+            slack_im_channel_id
+        }
     }
 `;
 
