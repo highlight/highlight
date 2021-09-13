@@ -76,6 +76,7 @@ if (dev) {
 H.init(process.env.REACT_APP_FRONTEND_ORG ?? 1, options);
 if (process.env.REACT_APP_ONPREM !== 'true') {
     H.start();
+
     window.Intercom('boot', {
         app_id: 'gm6369ty',
         alignment: 'right',
