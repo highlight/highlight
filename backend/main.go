@@ -208,6 +208,7 @@ func main() {
 	}
 
 	// make sure all sessions are visible for on-prem users
+	// TODO: remove this after behave health deploys
 	if util.IsOnPrem() {
 		go func() {
 			// don't log error bc this is on on-prem.
