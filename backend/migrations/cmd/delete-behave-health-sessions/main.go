@@ -1,12 +1,12 @@
 package main
 
 import (
-	"os"
 	"fmt"
+	"os"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/object-storage"
