@@ -163,7 +163,8 @@ export const SessionFeed = () => {
                                 <SearchEmptyState item={'sessions'} newFeed />
                             ) : (
                                 <>
-                                    <LimitedSessionCard />
+                                    {process.env.REACT_APP_ONPREM !==
+                                        'true' && <LimitedSessionCard />}
                                     {filteredSessions.map((u) => (
                                         <MinimalSessionCard
                                             session={u}
