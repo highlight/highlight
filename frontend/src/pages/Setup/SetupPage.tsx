@@ -199,13 +199,13 @@ const HtmlInstructions = ({ orgVerboseId }: { orgVerboseId: string }) => {
                         }}
                         text={`<script>
 ${codeStr}
-window.H.init('${orgVerboseId}${
+window.H.init('${orgVerboseId}'${
                             process.env.REACT_APP_ONPREM === 'true'
                                 ? ', {backendUrl: "' +
                                   GetBaseURL() +
                                   '/public"}'
                                 : ''
-                        }')
+                        })
 </script>`}
                     />
                 )}
