@@ -74,13 +74,15 @@ if (dev) {
     options.environment = 'Pull Request Preview';
 }
 H.init(process.env.REACT_APP_FRONTEND_ORG ?? 1, options);
-H.start();
+if (process.env.REACT_APP_ONPREM !== 'true') {
+    H.start();
+    window.Intercom('boot', {
+        app_id: 'gm6369ty',
+        alignment: 'right',
+        hide_default_launcher: true,
+    });
+}
 
-window.Intercom('boot', {
-    app_id: 'gm6369ty',
-    alignment: 'right',
-    hide_default_launcher: true,
-});
 showHiringMessage();
 
 const App = () => {
