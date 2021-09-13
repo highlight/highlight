@@ -207,10 +207,23 @@ func main() {
 		})
 	}
 
+	// make sure all sessions are visible for on-prem users
+	// TODO: remove this after behave health deploys
+	if util.IsOnPrem() {
+		go func() {
+			// don't log error bc this is on on-prem.
+			db.Raw(`
+				UPDATE sessions
+				SET within_billing_quota=true
+				WHERE NOT within_billing_quota=true
+			`)
+		}()
+	}
+
 	/*
 		Run a simple server that runs the frontend if 'staticFrontedPath' and 'all' is set.
 	*/
-	if staticFrontendPath != "" && os.Getenv("REACT_APP_ONPREM") == "true" {
+	if staticFrontendPath != "" && util.IsOnPrem() {
 		log.Printf("static frontend path: %v \n", staticFrontendPath)
 		staticHtmlPath := path.Join(staticFrontendPath, "index.html")
 		t, err := template.ParseFiles(staticHtmlPath)

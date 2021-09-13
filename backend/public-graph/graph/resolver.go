@@ -662,6 +662,9 @@ func (r *Resolver) isOrgWithinBillingQuota(organization *model.Organization, now
 	if organization.TrialEndDate != nil && organization.TrialEndDate.After(now) {
 		return true
 	}
+	if util.IsOnPrem() {
+		return true
+	}
 	var (
 		withinBillingQuota bool
 		quota              int
