@@ -4,7 +4,7 @@ on: [push]
     #     branches:
     #         master
 jobs:
-    build_deploy_private_graph:
+    deploy_backend:
         runs-on: ubuntu-latest
         steps:
             - name: Check out the repo
