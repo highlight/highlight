@@ -36,13 +36,11 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 	fc := graphql.GetFieldContext(ctx)
 	fieldSpan, ctx := tracer.StartSpanFromContext(ctx, "operation.field", tracer.ResourceName(fc.Field.Name))
 	fieldSpan.SetTag("field.type", fc.Field.Definition.Type.String())
-
 	if b, err := json.MarshalIndent(fc.Args, "", ""); err == nil {
 		if bs := string(b); len(bs) <= 1000 {
 			fieldSpan.SetTag("field.arguments", bs)
 		}
 	}
-
 	start := graphql.Now()
 	res, err := next(ctx)
 	end := graphql.Now()
@@ -54,15 +52,16 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 
 func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHandler) *graphql.Response {
 	rc := graphql.GetOperationContext(ctx)
-	start := rc.Stats.OperationStart
 	// NOTE: This gets called for the first time at the highest level. Creates the 'tracing' value, calls the next handler
 	// and returns the response.
-	span, ctx := tracer.StartSpanFromContext(ctx, "graphql.operation", tracer.ResourceName(rc.Operation.Name))
+	opName := "undefined"
+	if rc != nil && rc.Operation != nil {
+		opName = rc.OperationName
+	}
+	span, ctx := tracer.StartSpanFromContext(ctx, "graphql.operation", tracer.ResourceName(opName))
 	span.SetTag("backend", t.serverType)
 	defer span.Finish()
 	resp := next(ctx)
-	end := graphql.Now()
-	span.SetTag("operation.duration", end.Sub(start))
 	if resp.Errors != nil {
 		var errs []ddtrace.FinishOption
 		for _, err := range resp.Errors {

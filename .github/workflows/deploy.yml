@@ -2,9 +2,12 @@ name: Deploy to AWS
 on:
     push:
         branches:
-            master
+            - 'master'
+        paths:
+            - 'backend/**'
+            - '.github/workflows/deploy.yml'
 jobs:
-    build_deploy_private_graph:
+    deploy_backend:
         runs-on: ubuntu-latest
         steps:
             - name: Check out the repo
@@ -26,16 +29,31 @@ jobs:
               run: |
                 docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f deploy/Dockerfile.prod .
                 docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-            - name: Render Amazon ECS task definition
-              id: render-web-container
+            # Edit and deploy private-graph
+            - name: Replace image label for private-graph task
+              id: image-private-graph
               uses: aws-actions/amazon-ecs-render-task-definition@v1
               with:
                 task-definition: deploy/private-graph-task.json
                 container-name: highlight-backend
                 image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}
-            - name: Deploy to Amazon ECS service
+            - name: Deploy to Amazon ECS private-graph service
               uses: aws-actions/amazon-ecs-deploy-task-definition@v1
               with:
-                task-definition: ${{ steps.render-web-container.outputs.task-definition }}
+                task-definition: ${{ steps.image-private-graph.outputs.task-definition }}
                 service: private-graph-service
+                cluster: highlight-production-cluster
+            # Edit and deploy public-graph
+            - name: Replace image label for public-graph task
+              id: image-public-graph
+              uses: aws-actions/amazon-ecs-render-task-definition@v1
+              with:
+                task-definition: deploy/public-graph-task.json
+                container-name: highlight-backend
+                image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}
+            - name: Deploy to Amazon ECS public-graph service
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              with:
+                task-definition: ${{ steps.image-public-graph.outputs.task-definition }}
+                service: public-graph-service
                 cluster: highlight-production-cluster
