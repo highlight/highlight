@@ -2,6 +2,7 @@ package graph
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -196,10 +197,19 @@ func ErrorInputToParams(params *modelInputs.ErrorSearchParamsInput) *model.Error
 	return modelParams
 }
 
-func (r *Resolver) isAdminErrorGroupOwner(ctx context.Context, errorGroupID int) (*model.ErrorGroup, error) {
+func (r *Resolver) isAdminErrorGroupOwner(ctx context.Context, errorGroupID *int, errorGroupSecureID *string) (*model.ErrorGroup, error) {
 	errorGroup := &model.ErrorGroup{}
-	if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: errorGroupID}}).First(&errorGroup).Error; err != nil {
-		return nil, e.Wrap(err, "error querying session")
+	if errorGroupID == nil && errorGroupSecureID == nil {
+		return nil, errors.New("No ID was specified for the error group")
+	}
+	if errorGroupSecureID != nil {
+		if err := r.DB.Where(&model.ErrorGroup{SecureID: *errorGroupSecureID}).First(&errorGroup).Error; err != nil {
+			return nil, e.Wrap(err, "error querying error group by secureID: "+*errorGroupSecureID)
+		}
+	} else {
+		if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: *errorGroupID}}).First(&errorGroup).Error; err != nil {
+			return nil, e.Wrap(err, fmt.Sprintf("error querying error group by ID: %d", *errorGroupID))
+		}
 	}
 	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, errorGroup.OrganizationID)
 	if err != nil {
@@ -208,10 +218,19 @@ func (r *Resolver) isAdminErrorGroupOwner(ctx context.Context, errorGroupID int)
 	return errorGroup, nil
 }
 
-func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_id int) (session *model.Session, ownsSession bool, err error) {
+func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_id *int, session_secure_id *string) (session *model.Session, ownsSession bool, err error) {
 	session = &model.Session{}
-	if err = r.DB.Where(&model.Session{Model: model.Model{ID: session_id}}).First(&session).Error; err != nil {
-		return nil, false, e.Wrap(err, "error querying session")
+	if session_id == nil && session_secure_id == nil {
+		return nil, false, errors.New("No ID was specified for the session")
+	}
+	if session_secure_id != nil {
+		if err = r.DB.Where(&model.Session{SecureID: *session_secure_id}).First(&session).Error; err != nil {
+			return nil, false, e.Wrap(err, "error querying session by secure_id: "+*session_secure_id)
+		}
+	} else {
+		if err = r.DB.Where(&model.Session{Model: model.Model{ID: *session_id}}).First(&session).Error; err != nil {
+			return nil, false, e.Wrap(err, fmt.Sprintf("error querying session by id: %d", *session_id))
+		}
 	}
 
 	_, err = r.isAdminInOrganizationOrDemoOrg(ctx, session.OrganizationID)
@@ -221,8 +240,8 @@ func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_id int) (se
 	return session, true, nil
 }
 
-func (r *Resolver) canAdminViewSession(ctx context.Context, session_id int) (*model.Session, error) {
-	session, isOwner, err := r._doesAdminOwnSession(ctx, session_id)
+func (r *Resolver) canAdminViewSession(ctx context.Context, session_id *int, session_secure_id *string) (*model.Session, error) {
+	session, isOwner, err := r._doesAdminOwnSession(ctx, session_id, session_secure_id)
 	if err == nil && isOwner {
 		return session, nil
 	}
@@ -232,8 +251,8 @@ func (r *Resolver) canAdminViewSession(ctx context.Context, session_id int) (*mo
 	return nil, err
 }
 
-func (r *Resolver) canAdminModifySession(ctx context.Context, session_id int) (*model.Session, error) {
-	session, isOwner, err := r._doesAdminOwnSession(ctx, session_id)
+func (r *Resolver) canAdminModifySession(ctx context.Context, session_id *int, session_secure_id *string) (*model.Session, error) {
+	session, isOwner, err := r._doesAdminOwnSession(ctx, session_id, session_secure_id)
 	if err == nil && isOwner {
 		return session, nil
 	}
