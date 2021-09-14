@@ -53,8 +53,8 @@
                 }
             ],
             "dockerSecurityOptions": null,
-            "cpu": "4096",
-            "memory": "8192",
+            "cpu": null,
+            "memory": null,
             "memoryReservation": null,
             "volumesFrom": [],
             "stopTimeout": null,
