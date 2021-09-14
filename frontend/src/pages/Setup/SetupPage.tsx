@@ -2,6 +2,7 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import { H } from 'highlight.run';
 import React, { FunctionComponent, useState } from 'react';
@@ -196,7 +197,7 @@ const HtmlInstructions = ({ orgVerboseId }: { orgVerboseId: string }) => {
                         text={`<script>
 ${codeStr}
 window.H.init('${orgVerboseId}'${
-                            process.env.REACT_APP_ONPREM === 'true'
+                            isOnPrem
                                 ? ', {backendUrl: "' +
                                   GetBaseURL() +
                                   '/public"}'
@@ -328,9 +329,7 @@ const getInitSnippet = (orgId: string, withOptions = false) =>
         ? `H.init('${orgId}', {
   environment: 'production',
   enableStrictPrivacy: false,${
-      process.env.REACT_APP_ONPREM === 'true'
-          ? '\n  backendUrl: "' + GetBaseURL() + '/public",'
-          : ''
+      isOnPrem ? '\n  backendUrl: "' + GetBaseURL() + '/public",' : ''
   }
 });`
         : `H.init('${orgId}');`;
