@@ -36,13 +36,11 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 	fc := graphql.GetFieldContext(ctx)
 	fieldSpan, ctx := tracer.StartSpanFromContext(ctx, "operation.field", tracer.ResourceName(fc.Field.Name))
 	fieldSpan.SetTag("field.type", fc.Field.Definition.Type.String())
-
 	if b, err := json.MarshalIndent(fc.Args, "", ""); err == nil {
 		if bs := string(b); len(bs) <= 1000 {
 			fieldSpan.SetTag("field.arguments", bs)
 		}
 	}
-
 	start := graphql.Now()
 	res, err := next(ctx)
 	end := graphql.Now()
