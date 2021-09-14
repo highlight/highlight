@@ -117,7 +117,7 @@ func main() {
 	if shouldStartDatadog {
 		log.Info("Running dd client setup process...")
 		if err := dd.Start(); err != nil {
-			log.Fatal(e.Wrap(err, "error starting dd clients"))
+			log.Fatal(e.Wrap(err, "error starting dd clients with error"))
 		} else {
 			defer dd.Stop()
 		}
