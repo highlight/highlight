@@ -715,6 +715,16 @@ query GetAlertsPagePayload($organization_id: ID!) {
         ThresholdWindow
         id
     }
+    session_feedback_alert(organization_id: $organization_id) {
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        ExcludedEnvironments
+        CountThreshold
+        ThresholdWindow
+        id
+    }
     new_user_alert(organization_id: $organization_id) {
         id
         ChannelsToNotify {
