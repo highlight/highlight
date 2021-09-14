@@ -12,6 +12,7 @@ export const Buttons = () => {
         throw new Error('got an error');
     }
     const [showBadComponent, setShowBadComponent] = useState(false);
+    console.log('change 1');
 
     return (
         <div className={styles.buttonBody}>
