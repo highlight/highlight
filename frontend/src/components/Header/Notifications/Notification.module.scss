@@ -95,7 +95,7 @@
 }
 
 .popoverTitle {
-    align-items: baseline;
+    align-items: center;
     border-bottom: 1px solid var(--color-gray-300);
     column-gap: var(--size-xSmall);
     display: flex;
@@ -116,7 +116,7 @@
     align-items: center;
     display: flex;
     flex-direction: column;
-    height: 280px;
+    height: 320px;
     margin: 0 auto;
     text-align: center;
     width: 80%;
@@ -124,4 +124,8 @@
 
 .animation {
     width: 100%;
+}
+
+.personalNotificationAlert {
+    margin-bottom: var(--size-large);
 }

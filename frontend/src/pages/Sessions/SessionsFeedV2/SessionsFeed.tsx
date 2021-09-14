@@ -1,3 +1,4 @@
+import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import React, { RefObject, useEffect, useMemo, useState } from 'react';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
@@ -163,7 +164,7 @@ export const SessionFeed = () => {
                                 <SearchEmptyState item={'sessions'} newFeed />
                             ) : (
                                 <>
-                                    <LimitedSessionCard />
+                                    {!isOnPrem && <LimitedSessionCard />}
                                     {filteredSessions.map((u) => (
                                         <MinimalSessionCard
                                             session={u}

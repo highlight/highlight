@@ -1,5 +1,6 @@
 import { namedOperations } from '@graph/operations';
 import { SessionCommentType } from '@graph/schemas';
+import { getFeedbackCommentSessionTimestamp } from '@util/comment/util';
 import { Menu, message } from 'antd';
 import { H } from 'highlight.run';
 import React, { PropsWithChildren } from 'react';
@@ -32,7 +33,7 @@ const SessionCommentHeader = ({
     menuItems,
     footer,
 }: PropsWithChildren<Props>) => {
-    const { pause, session } = useReplayerContext();
+    const { pause, session, replayer } = useReplayerContext();
     const [deleteSessionComment] = useDeleteSessionCommentMutation({
         refetchQueries: [namedOperations.Query.GetSessionComments],
     });
@@ -56,14 +57,14 @@ const SessionCommentHeader = ({
                 Copy link
             </Menu.Item>
             {comment.type === SessionCommentType.Feedback &&
-                comment?.author?.email && (
+                comment?.metadata?.email && (
                     <Menu.Item
                         onClick={() => {
                             message.success(
                                 "Copied the feedback provider's email!"
                             );
                             navigator.clipboard.writeText(
-                                comment.author?.email as string
+                                comment.metadata?.email as string
                             );
                         }}
                     >
@@ -83,10 +84,24 @@ const SessionCommentHeader = ({
                             history.location.pathname
                         }?${urlSearchParams.toString()}`
                     );
-                    pause(comment.timestamp || 0);
+
+                    let commentTimestamp = comment.timestamp || 0;
+
+                    if (comment.type === SessionCommentType.Feedback) {
+                        const sessionStartTime = replayer?.getMetaData()
+                            .startTime;
+
+                        if (sessionStartTime) {
+                            commentTimestamp = getFeedbackCommentSessionTimestamp(
+                                comment,
+                                sessionStartTime
+                            );
+                        }
+                    }
+                    pause(commentTimestamp);
                     message.success(
                         `Changed player time to where comment was created at ${MillisToMinutesAndSeconds(
-                            comment.timestamp || 0
+                            commentTimestamp
                         )}.`
                     );
                 }}

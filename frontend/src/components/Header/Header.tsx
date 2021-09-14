@@ -4,6 +4,7 @@ import {
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import SvgXIcon from '@icons/XIcon';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
+import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames/bind';
 import { H } from 'highlight.run';
@@ -22,7 +23,6 @@ import { CommandBar } from './CommandBar/CommandBar';
 import ApplicationPicker from './components/ApplicationPicker/ApplicationPicker';
 import FeedbackButton from './components/FeedbackButton/FeedbackButton';
 import HeaderActions from './components/HeaderActions';
-import PersonalNotificationButton from './components/PersonalNotificationButton/PersonalNotificationButton';
 import styles from './Header.module.scss';
 import { UserDropdown } from './UserDropdown/UserDropdown';
 
@@ -62,7 +62,6 @@ export const Header = () => {
 
                     <div className={styles.rightHeader}>
                         <HeaderActions />
-                        <PersonalNotificationButton />
                         <FeedbackButton />
                         {isLoggedIn && <UserDropdown />}
                     </div>
@@ -73,7 +72,7 @@ export const Header = () => {
 };
 
 const getBanner = (organization_id: string) => {
-    if (process.env.REACT_APP_ONPREM === 'true') {
+    if (isOnPrem) {
         return <OnPremiseBanner />;
     } else if (organization_id === DEMO_WORKSPACE_APPLICATION_ID) {
         return <DemoWorkspaceBanner />;

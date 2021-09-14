@@ -1,3 +1,4 @@
+import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { H } from 'highlight.run';
 import React from 'react';
 
@@ -15,22 +16,26 @@ const FeedbackButton = () => {
     return (
         <PopoverMenu
             menuItems={[
-                {
-                    displayName: 'Bug Report',
-                    icon: <SvgBugIcon />,
-                    action: async () => {
-                        const sessionId = await H.getSessionURL();
+                ...(!isOnPrem
+                    ? [
+                          {
+                              displayName: 'Bug Report',
+                              icon: <SvgBugIcon />,
+                              action: async () => {
+                                  const sessionId = await H.getSessionURL();
 
-                        window.Intercom('boot', {
-                            app_id: 'gm6369ty',
-                            alignment: 'right',
-                            hide_default_launcher: true,
-                            email: admin?.email,
-                            sessionId,
-                        });
-                        window.Intercom('showNewMessage');
-                    },
-                },
+                                  window.Intercom('boot', {
+                                      app_id: 'gm6369ty',
+                                      alignment: 'right',
+                                      hide_default_launcher: true,
+                                      email: admin?.email,
+                                      sessionId,
+                                  });
+                                  window.Intercom('showNewMessage');
+                              },
+                          },
+                      ]
+                    : []),
                 {
                     displayName: 'Feature Request',
                     icon: <SvgPlusIcon />,

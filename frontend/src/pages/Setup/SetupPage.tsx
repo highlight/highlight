@@ -2,6 +2,7 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import { H } from 'highlight.run';
 import React, { FunctionComponent, useState } from 'react';
@@ -95,9 +96,6 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                         </p>
                         <CodeBlock
                             onCopy={() => {
-                                window.analytics.track('Copied Code Snippet', {
-                                    copied: 'code snippet',
-                                });
                                 H.track(
                                     'Copied Code Snippet (Highlight Event)',
                                     { copied: 'code snippet' }
@@ -192,20 +190,19 @@ const HtmlInstructions = ({ orgVerboseId }: { orgVerboseId: string }) => {
                 ) : (
                     <CodeBlock
                         onCopy={() => {
-                            window.analytics.track('Copied Script', {});
                             H.track('Copied Script (Highlight Event)', {
                                 copied: 'script',
                             });
                         }}
                         text={`<script>
 ${codeStr}
-window.H.init('${orgVerboseId}${
-                            process.env.REACT_APP_ONPREM === 'true'
+window.H.init('${orgVerboseId}'${
+                            isOnPrem
                                 ? ', {backendUrl: "' +
                                   GetBaseURL() +
                                   '/public"}'
                                 : ''
-                        }')
+                        })
 </script>`}
                     />
                 )}
@@ -332,9 +329,7 @@ const getInitSnippet = (orgId: string, withOptions = false) =>
         ? `H.init('${orgId}', {
   environment: 'production',
   enableStrictPrivacy: false,${
-      process.env.REACT_APP_ONPREM === 'true'
-          ? '\n  backendUrl: "' + GetBaseURL() + '/public",'
-          : ''
+      isOnPrem ? '\n  backendUrl: "' + GetBaseURL() + '/public",' : ''
   }
 });`
         : `H.init('${orgId}');`;

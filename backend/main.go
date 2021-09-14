@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"html/template"
 	"io"
 	"net/http"
@@ -35,7 +36,6 @@ import (
 
 var (
 	frontendURL        = os.Getenv("FRONTEND_URI")
-	env                = os.Getenv("ENVIRONMENT")
 	staticFrontendPath = os.Getenv("ONPREM_STATIC_FRONTEND_PATH")
 	landingStagingURL  = os.Getenv("LANDING_PAGE_STAGING_URI")
 	sendgridKey        = os.Getenv("SENDGRID_API_KEY")
@@ -43,7 +43,8 @@ var (
 	runtime            = flag.String("runtime", "all", "the runtime of the backend; either 1) dev (all runtimes) 2) worker 3) public-graph 4) private-graph")
 )
 
-var SENDGRID_API_KEY string // we inject this value at build time for on-prem
+// we inject this value at build time for on-prem
+var SENDGRID_API_KEY string
 
 var runtimeParsed util.Runtime
 
@@ -57,10 +58,12 @@ func init() {
 	runtimeParsed = util.Runtime(*runtime)
 }
 
-func health(w http.ResponseWriter, r *http.Request) {
-	_, err := w.Write([]byte("healthy"))
-	if err != nil {
-		log.Error(e.Wrap(err, "error writing health response"))
+func healthRouter(runtime util.Runtime) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		_, err := w.Write([]byte(fmt.Sprintf("%v is healthy", runtime)))
+		if err != nil {
+			log.Error(e.Wrap(err, "error writing health response"))
+		}
 	}
 }
 
@@ -114,13 +117,11 @@ func main() {
 		port = defaultPort
 	}
 
-	shouldStartDatadog := (env == "prod" &&
-		os.Getenv("REACT_APP_ONPREM") != "true" &&
-		os.Getenv("DOPPLER_ENVIRONMENT") != "prod_aws")
+	shouldStartDatadog := !util.IsDevOrTestEnv() && !util.IsOnPrem()
 	if shouldStartDatadog {
 		log.Info("Running dd client setup process...")
 		if err := dd.Start(); err != nil {
-			log.Fatal(e.Wrap(err, "error starting dd clients"))
+			log.Fatal(e.Wrap(err, "error starting dd clients with error"))
 		} else {
 			defer dd.Stop()
 		}
@@ -163,7 +164,7 @@ func main() {
 		AllowCredentials:       true,
 		AllowedHeaders:         []string{"Content-Type", "Token", "Sentry-Trace"},
 	}).Handler)
-	r.MethodFunc(http.MethodGet, "/health", health)
+	r.MethodFunc(http.MethodGet, "/health", healthRouter(runtimeParsed))
 
 	/*
 		Selectively turn on backends depending on the input flag
@@ -210,10 +211,23 @@ func main() {
 		})
 	}
 
+	// make sure all sessions are visible for on-prem users
+	// TODO: remove this after behave health deploys
+	if util.IsOnPrem() {
+		go func() {
+			// don't log error bc this is on on-prem.
+			db.Raw(`
+				UPDATE sessions
+				SET within_billing_quota=true
+				WHERE NOT within_billing_quota=true
+			`)
+		}()
+	}
+
 	/*
 		Run a simple server that runs the frontend if 'staticFrontedPath' and 'all' is set.
 	*/
-	if staticFrontendPath != "" && os.Getenv("REACT_APP_ONPREM") == "true" {
+	if staticFrontendPath != "" && util.IsOnPrem() {
 		log.Printf("static frontend path: %v \n", staticFrontendPath)
 		staticHtmlPath := path.Join(staticFrontendPath, "index.html")
 		t, err := template.ParseFiles(staticHtmlPath)

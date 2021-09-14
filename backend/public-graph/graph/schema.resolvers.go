@@ -56,7 +56,7 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 		userObj[k] = fmt.Sprintf("%v", v)
 	}
 	if err := r.AppendProperties(sessionID, userProperties, PropertyType.USER); err != nil {
-		log.Error(e.Wrap(err, "error adding set of properites to db"))
+		log.Error(e.Wrap(err, "error adding set of properties to db"))
 	}
 
 	session := &model.Session{}
@@ -99,7 +99,7 @@ func (r *mutationResolver) AddTrackProperties(ctx context.Context, sessionID int
 	}
 	err := r.AppendProperties(sessionID, fields, PropertyType.TRACK)
 	if err != nil {
-		return nil, e.Wrap(err, "error adding set of properites to db")
+		return nil, e.Wrap(err, "error adding set of properties to db")
 	}
 	return &sessionID, nil
 }
@@ -115,7 +115,7 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 	}
 	err := r.AppendProperties(sessionID, fields, PropertyType.SESSION)
 	if err != nil {
-		return nil, e.Wrap(err, "error adding set of properites to db")
+		return nil, e.Wrap(err, "error adding set of properties to db")
 	}
 	return &sessionID, nil
 }
@@ -337,8 +337,28 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	return &sessionID, nil
 }
 
-func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionsID int, userName *string, userEmail *string, verbatim string) (int, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int, userName *string, userEmail *string, verbatim string, timestamp time.Time) (int, error) {
+	metadata := make(map[string]interface{})
+
+	if userName != nil {
+		metadata["name"] = *userName
+	}
+	if userEmail != nil {
+		metadata["email"] = *userEmail
+	}
+	metadata["timestamp"] = timestamp
+
+	session := &model.Session{}
+	if err := r.DB.Select("organization_id").Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
+		return -1, e.Wrap(err, "error querying session by sessionID for adding session feedback")
+	}
+
+	feedbackComment := &model.SessionComment{SessionId: sessionID, Text: verbatim, Metadata: metadata, Type: model.SessionCommentTypes.FEEDBACK, OrganizationID: session.OrganizationID}
+	if err := r.DB.Create(feedbackComment).Error; err != nil {
+		return -1, e.Wrap(err, "error creating session feedback")
+	}
+
+	return feedbackComment.ID, nil
 }
 
 func (r *queryResolver) Ignore(ctx context.Context, id int) (interface{}, error) {

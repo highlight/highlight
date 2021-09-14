@@ -104,10 +104,11 @@ export type MutationPushPayloadArgs = {
 
 
 export type MutationAddSessionFeedbackArgs = {
-  sessions_id: Scalars['ID'];
+  session_id: Scalars['ID'];
   user_name?: Maybe<Scalars['String']>;
   user_email?: Maybe<Scalars['String']>;
   verbatim: Scalars['String'];
+  timestamp: Scalars['Time'];
 };
 
 export type Query = {

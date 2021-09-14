@@ -1,3 +1,5 @@
+import { DEMO_WORKSPACE_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { useSlackBot } from '@components/Header/components/PersonalNotificationButton/utils/utils';
 import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
@@ -64,6 +66,8 @@ const OnboardingBubble = () => {
         fetchPolicy: 'network-only',
     });
 
+    const { slackUrl: slackBotUrl } = useSlackBot();
+
     useEffect(() => {
         if (data) {
             const STEPS: OnboardingStep[] = [];
@@ -109,6 +113,14 @@ const OnboardingBubble = () => {
                 completed: !!data.adminHasCreatedComment || false,
                 tooltip: `You can create a comment on a session by clicking on the session player. You can also tag your team by @'ing them.`,
             });
+            STEPS.push({
+                displayName: 'Set up personal notifications',
+                action: () => {
+                    window.location.href = slackBotUrl;
+                },
+                completed: !!data.admin?.slack_im_channel_id || false,
+                tooltip: `You will get a Slack DM anytime someone tags you in a Highlight comment!`,
+            });
             setSteps(STEPS);
             const stepsNotFinishedCount = STEPS.reduce((prev, curr) => {
                 if (!curr.completed) {
@@ -147,6 +159,7 @@ const OnboardingBubble = () => {
         setHasFinishedOnboarding,
         startPolling,
         stopPolling,
+        slackBotUrl,
     ]);
 
     if (rainConfetti) {
@@ -156,7 +169,8 @@ const OnboardingBubble = () => {
     if (
         loading ||
         stepsNotFinishedCount === -1 ||
-        temporarilyHideOnboardingBubble
+        temporarilyHideOnboardingBubble ||
+        organization_id === DEMO_WORKSPACE_APPLICATION_ID
     ) {
         return null;
     }

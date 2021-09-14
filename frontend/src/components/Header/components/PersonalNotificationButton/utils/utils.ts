@@ -7,7 +7,14 @@ import { useHistory } from 'react-router';
 import { useOpenSlackConversationMutation } from '../../../../../graph/generated/hooks';
 import { GetBaseURL } from '../../../../../util/window';
 
-export const useSlackBot = (redirectPath: string) => {
+export const useSlackBot = () => {
+    let redirectPath = window.location.pathname;
+    // this doesn't work if we redirect to /alerts
+    redirectPath = redirectPath.replace('alerts', 'home');
+    if (redirectPath.length > 3) {
+        // remove orgid and prepended slash
+        redirectPath = redirectPath.substring(redirectPath.indexOf('/', 1) + 1);
+    }
     const history = useHistory();
     const { organization_id } = useParams<{ organization_id: string }>();
     const [openSlackConversation] = useOpenSlackConversationMutation({

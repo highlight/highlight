@@ -75,6 +75,13 @@ export type HighlightOptions = {
     integrations?: IntegrationOptions;
 };
 
+interface SessionFeedbackOptions {
+    verbatim: string;
+    userName?: string;
+    userEmail?: string;
+    timestampOverride?: string;
+}
+
 const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, msg);
 };
@@ -116,6 +123,10 @@ export interface HighlightPublicInterface {
     stop: () => void;
     onHighlightReady: (func: () => void) => void;
     options: HighlightOptions | undefined;
+    /**
+     * Calling this will add a feedback comment to the session.
+     */
+    addSessionFeedback: (feedbackOptions: SessionFeedbackOptions) => void;
 }
 
 interface Metadata {
@@ -195,6 +206,25 @@ export const H: HighlightPublicInterface = {
             }
         } catch (e) {
             HighlightWarning('init', e);
+        }
+    },
+    addSessionFeedback: ({
+        verbatim,
+        userName,
+        userEmail,
+        timestampOverride,
+    }) => {
+        try {
+            H.onHighlightReady(() =>
+                highlight_obj.addSessionFeedback({
+                    verbatim,
+                    timestamp: timestampOverride || new Date().toISOString(),
+                    user_email: userEmail,
+                    user_name: userName,
+                })
+            );
+        } catch (e) {
+            HighlightWarning('error', e);
         }
     },
     consumeError: (

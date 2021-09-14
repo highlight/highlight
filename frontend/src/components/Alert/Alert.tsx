@@ -2,7 +2,8 @@ import SvgXIcon from '@icons/XIcon';
 import { Alert as AntDesignAlert, AlertProps } from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
-import React, { useState } from 'react';
+import React from 'react';
+import { useSessionStorage } from 'react-use';
 
 import SvgInformationIcon from '../../static/InformationIcon';
 import styles from './Alert.module.scss';
@@ -15,9 +16,12 @@ type Props = {
 >;
 
 const Alert = ({ trackingId, ...props }: Props) => {
-    const [showAlert, setShowAlert] = useState(true);
+    const [temporarilyHideAlert, setTemporarilyHideAlert] = useSessionStorage(
+        'highlightHideAlert',
+        false
+    );
 
-    if (!showAlert) {
+    if (temporarilyHideAlert) {
         return null;
     }
 
@@ -34,7 +38,7 @@ const Alert = ({ trackingId, ...props }: Props) => {
                     props.onClose(e);
                 }
                 H.track(`AlertClose-${trackingId}`);
-                setShowAlert(false);
+                setTemporarilyHideAlert(true);
             }}
         ></AntDesignAlert>
     );
