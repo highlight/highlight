@@ -42,7 +42,8 @@ var (
 	runtime            = flag.String("runtime", "all", "the runtime of the backend; either 1) dev (all runtimes) 2) worker 3) public-graph 4) private-graph")
 )
 
-var SENDGRID_API_KEY string // we inject this value at build time for on-prem
+// we inject this value at build time for on-prem
+var SENDGRID_API_KEY string
 
 var runtimeParsed util.Runtime
 
