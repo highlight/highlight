@@ -28,7 +28,7 @@ jobs:
                 docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
             # Edit and deploy private-graph
             - name: Replace image label for private-graph task
-              id: render-web-container
+              id: image-private-graph
               uses: aws-actions/amazon-ecs-render-task-definition@v1
               with:
                 task-definition: deploy/private-graph-task.json
@@ -37,12 +37,12 @@ jobs:
             - name: Deploy to Amazon ECS private-graph service
               uses: aws-actions/amazon-ecs-deploy-task-definition@v1
               with:
-                task-definition: ${{ steps.render-web-container.outputs.task-definition }}
+                task-definition: ${{ steps.image-private-graph.outputs.task-definition }}
                 service: private-graph-service
                 cluster: highlight-production-cluster
             # Edit and deploy public-graph
             - name: Replace image label for public-graph task
-              id: render-web-container
+              id: image-public-graph
               uses: aws-actions/amazon-ecs-render-task-definition@v1
               with:
                 task-definition: deploy/public-graph-task.json
@@ -51,6 +51,6 @@ jobs:
             - name: Deploy to Amazon ECS public-graph service
               uses: aws-actions/amazon-ecs-deploy-task-definition@v1
               with:
-                task-definition: ${{ steps.render-web-container.outputs.task-definition }}
+                task-definition: ${{ steps.image-public-graph.outputs.task-definition }}
                 service: public-graph-service
                 cluster: highlight-production-cluster
