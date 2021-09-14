@@ -1833,8 +1833,6 @@ export const GetSessionCommentsDocument = gql`
             }
             x_coordinate
             y_coordinate
-            type
-            metadata
         }
     }
 `;
@@ -1901,8 +1899,6 @@ export const GetNotificationsDocument = gql`
                 email
                 photo_url
             }
-            type
-            metadata
         }
         error_comments_for_organization(organization_id: $organization_id) {
             id
@@ -2112,9 +2108,6 @@ export const GetOnboardingStepsDocument = gql`
         adminHasCreatedComment(admin_id: $admin_id)
         organizationHasViewedASession(organization_id: $organization_id) {
             id
-        }
-        admin {
-            slack_im_channel_id
         }
     }
 `;
