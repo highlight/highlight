@@ -2,7 +2,7 @@ import KeyboardShortcutsEducation from '@components/KeyboardShortcutsEducation/K
 import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import _ from 'lodash';
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { Redirect, Route, Switch } from 'react-router-dom';
 import {
     BooleanParam,
@@ -13,8 +13,9 @@ import {
 } from 'use-query-params';
 
 import AlertsPage from '../../pages/Alerts/Alerts';
-import BillingPage from '../../pages/Billing/Billing';
-import { Buttons } from '../../pages/Buttons/Buttons';
+const BillingPage = React.lazy(() => import('../../pages/Billing/Billing'));
+
+const Buttons = React.lazy(() => import('../../pages/Buttons/Buttons'));
 import ErrorPage from '../../pages/Error/ErrorPage';
 import HomePage from '../../pages/Home/HomePage';
 import Player from '../../pages/Player/PlayerPage';
@@ -161,7 +162,9 @@ const ApplicationRouter = ({ integrated }: Props) => {
                     <WorkspaceTeam />
                 </Route>
                 <Route path="/:organization_id/billing">
-                    <BillingPage />
+                    <Suspense fallback={null}>
+                        <BillingPage />
+                    </Suspense>
                 </Route>
                 <Route path="/:organization_id/setup">
                     <SetupPage integrated={integrated} />
@@ -170,7 +173,9 @@ const ApplicationRouter = ({ integrated }: Props) => {
                     <ErrorPage integrated={integrated} />
                 </Route>
                 <Route path="/:organization_id/buttons">
-                    <Buttons />
+                    <Suspense fallback={null}>
+                        <Buttons />
+                    </Suspense>
                 </Route>
                 <Route path="/:organization_id/home">
                     <HomePage />
