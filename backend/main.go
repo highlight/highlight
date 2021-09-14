@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"html/template"
 	"io"
 	"net/http"
@@ -56,10 +57,12 @@ func init() {
 	runtimeParsed = util.Runtime(*runtime)
 }
 
-func health(w http.ResponseWriter, r *http.Request) {
-	_, err := w.Write([]byte("healthy"))
-	if err != nil {
-		log.Error(e.Wrap(err, "error writing health response"))
+func healthRouter(runtime util.Runtime) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		_, err := w.Write([]byte(fmt.Sprintf("%v is healthy", runtime)))
+		if err != nil {
+			log.Error(e.Wrap(err, "error writing health response"))
+		}
 	}
 }
 
@@ -160,7 +163,7 @@ func main() {
 		AllowCredentials:       true,
 		AllowedHeaders:         []string{"Content-Type", "Token", "Sentry-Trace"},
 	}).Handler)
-	r.MethodFunc(http.MethodGet, "/health", health)
+	r.MethodFunc(http.MethodGet, "/health", healthRouter(runtimeParsed))
 
 	/*
 		Selectively turn on backends depending on the input flag
@@ -202,7 +205,7 @@ func main() {
 				}))
 			clientServer.Use(util.NewTracer(util.PublicGraph))
 			clientServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PublicGraph)))
-			// clientServer.SetRecoverFunc(util.GraphQLRecoverFunc())
+			clientServer.SetRecoverFunc(util.GraphQLRecoverFunc())
 			r.Handle("/", clientServer)
 		})
 	}
