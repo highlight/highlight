@@ -152,7 +152,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
         >
             <KeyboardShortcutsEducation />
             <Switch>
-                <Route path="/:project_id/sessions/:session_id?" exact>
+                <Route path="/:project_id/sessions/:session_secure_id?" exact>
                     <Player integrated={integrated} />
                 </Route>
                 <Route path="/:project_id/settings">
@@ -172,7 +172,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
                 <Route path="/:project_id/setup">
                     <SetupPage integrated={integrated} />
                 </Route>
-                <Route path="/:project_id/errors/:error_id?">
+                <Route path="/:project_id/errors/:error_secure_id?">
                     <ErrorPage integrated={integrated} />
                 </Route>
                 <Route path="/:project_id/buttons">

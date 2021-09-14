@@ -52,8 +52,8 @@ export enum SessionViewability {
 
 export const usePlayer = (): ReplayerContextInterface => {
     const { isLoggedIn } = useAuthContext();
-    const { session_id, project_id } = useParams<{
-        session_id: string;
+    const { session_secure_id, project_id } = useParams<{
+        session_secure_id: string;
         project_id: string;
     }>();
     const history = useHistory();
@@ -106,7 +106,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         },
     ] = useGetSessionPayloadLazyQuery({
         variables: {
-            session_id,
+            session_secure_id,
         },
         fetchPolicy: 'no-cache',
     });
@@ -116,7 +116,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         { data: sessionData, called: getSessionQueryCalled },
     ] = useGetSessionLazyQuery({
         variables: {
-            id: session_id,
+            secure_id: session_secure_id,
         },
         onCompleted: (data) => {
             if (data.session?.within_billing_quota) {
@@ -135,7 +135,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         { data: sessionCommentsData, loading: sessionCommentsLoading },
     ] = useGetSessionCommentsLazyQuery({
         variables: {
-            session_id,
+            session_secure_id,
         },
         // pollInterval: 1000 * 10,
     });
@@ -160,7 +160,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     // Initializes the session state and fetches the session data
     useEffect(() => {
-        if (session_id) {
+        if (session_secure_id) {
             setState(ReplayerState.Loading);
             setSession(undefined);
 
@@ -175,7 +175,7 @@ export const usePlayer = (): ReplayerContextInterface => {
     }, [
         getSessionCommentsQuery,
         getSessionQuery,
-        session_id,
+        session_secure_id,
         resetPlayer,
         getSessionQueryCalled,
     ]);
@@ -200,12 +200,12 @@ export const usePlayer = (): ReplayerContextInterface => {
             });
 
             a.href = URL.createObjectURL(file);
-            a.download = `session-${session_id}.json`;
+            a.download = `session-${session_secure_id}.json`;
             a.click();
 
             URL.revokeObjectURL(a.href);
         }
-    }, [download, eventsData, session_id]);
+    }, [download, eventsData, session_secure_id]);
 
     // Handle data in playback mode.
     useEffect(() => {
@@ -379,10 +379,10 @@ export const usePlayer = (): ReplayerContextInterface => {
     }, [setPlayerTimeToPersistance, time]);
 
     useEffect(() => {
-        if (!session_id) {
+        if (!session_secure_id) {
             setState(ReplayerState.Empty);
         }
-    }, [session_id]);
+    }, [session_secure_id]);
 
     // Finds the next session in the session feed to play if autoplay is enabled.
     useEffect(() => {
@@ -393,7 +393,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         ) {
             const nextSessionInList = findNextSessionInList(
                 sessionResults.sessions,
-                session_id
+                session_secure_id
             );
 
             if (nextSessionInList) {
@@ -412,7 +412,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         project_id,
         resetPlayer,
         sessionResults.sessions,
-        session_id,
+        session_secure_id,
         state,
     ]);
 

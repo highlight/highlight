@@ -21,8 +21,10 @@ interface Props {
 }
 
 const ErrorModal = ({ error }: Props) => {
+    console.log('Rich: ', JSON.stringify(error));
+    console.log('Rich: ', error.error_group_secure_id);
     const { data, loading } = useGetErrorGroupQuery({
-        variables: { id: error.error_group_id.toString() },
+        variables: { secure_id: error.error_group_secure_id },
     });
     const history = useHistory();
     const { project_id } = useParams<{ project_id: string }>();
@@ -71,7 +73,7 @@ const ErrorModal = ({ error }: Props) => {
                             type="primary"
                             onClick={() => {
                                 history.push(
-                                    `/${projectIdRemapped}/errors/${error.error_group_id}`
+                                    `/${projectIdRemapped}/errors/${error.error_group_secure_id}`
                                 );
                             }}
                         >

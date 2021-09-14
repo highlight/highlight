@@ -28,7 +28,7 @@ const ErrorSessionList = ({ errorGroup }: Props) => {
                 <MinimalSessionCard
                     session={
                         ({
-                            id: session?.session_id,
+                            secure_id: session?.session_secure_id,
                             created_at: session?.timestamp,
                             identifier: session?.identifier,
                             fingerprint: session?.fingerprint,
@@ -38,7 +38,7 @@ const ErrorSessionList = ({ errorGroup }: Props) => {
                         } as Partial<Session>) as Session
                     }
                     selected={false}
-                    key={`${session?.session_id}-${index}`}
+                    key={`${session?.session_secure_id}-${index}`}
                     errorVersion
                     showDetailedViewOverride
                     urlParams={`?${PlayerSearchParameters.errorId}=${session?.error_id}`}

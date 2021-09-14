@@ -42,10 +42,10 @@ export const ConsolePage = ({ time }: { time: number }) => {
     const [isInteractingWithMessages, setIsInteractingWithMessages] = useState(
         false
     );
-    const { session_id } = useParams<{ session_id: string }>();
+    const { session_secure_id } = useParams<{ session_secure_id: string }>();
     const { data, loading } = useGetMessagesQuery({
         variables: {
-            session_id,
+            session_secure_id,
         },
         fetchPolicy: 'no-cache',
     });

@@ -48,13 +48,13 @@ import styles from './ErrorPage.module.scss';
 import useErrorPageConfiguration from './utils/ErrorPageUIConfiguration';
 
 const ErrorPage = ({ integrated }: { integrated: boolean }) => {
-    const { error_id, project_id } = useParams<{
-        error_id: string;
+    const { error_secure_id, project_id } = useParams<{
+        error_secure_id: string;
         project_id: string;
     }>();
 
     const [getErrorGroupQuery, { data, loading }] = useGetErrorGroupLazyQuery({
-        variables: { id: error_id },
+        variables: { secure_id: error_secure_id },
     });
     const { isLoggedIn } = useAuthContext();
     const [segmentName, setSegmentName] = useState<string | null>(null);
@@ -79,11 +79,11 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
     ]);
 
     useEffect(() => {
-        if (error_id) {
+        if (error_secure_id) {
             getErrorGroupQuery();
             H.track('Viewed error', { is_guest: !isLoggedIn });
         }
-    }, [error_id, getErrorGroupQuery, isLoggedIn]);
+    }, [error_secure_id, getErrorGroupQuery, isLoggedIn]);
 
     const { showLeftPanel } = useErrorPageConfiguration();
 
@@ -105,7 +105,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                 <div
                     className={classNames(styles.errorPage, {
                         [styles.withoutLeftPanel]: !showLeftPanel,
-                        [styles.empty]: !error_id,
+                        [styles.empty]: !error_secure_id,
                     })}
                 >
                     <div
@@ -116,7 +116,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                         <ErrorSearchPanel />
                     </div>
 
-                    {error_id ? (
+                    {error_secure_id ? (
                         <>
                             <div
                                 className={classNames(
@@ -189,7 +189,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                                                     a.href = URL.createObjectURL(
                                                         file
                                                     );
-                                                    a.download = `stack-trace-for-error-${error_id}.json`;
+                                                    a.download = `stack-trace-for-error-${error_secure_id}.json`;
                                                     a.click();
 
                                                     URL.revokeObjectURL(a.href);
@@ -247,7 +247,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 };
 
 type FrequencyGraphProps = {
-    errorGroup?: Maybe<Pick<ErrorGroup, 'id' | 'project_id'>>;
+    errorGroup?: Maybe<Pick<ErrorGroup, 'secure_id' | 'project_id'>>;
 };
 
 type ErrorFrequency = {
@@ -283,7 +283,7 @@ export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
     useGetDailyErrorFrequencyQuery({
         variables: {
             project_id: `${errorGroup?.project_id}`,
-            error_group_id: `${errorGroup?.id}`,
+            error_group_secure_id: `${errorGroup?.secure_id}`,
             date_offset: dateRangeLength - 1,
         },
         skip: !errorGroup,

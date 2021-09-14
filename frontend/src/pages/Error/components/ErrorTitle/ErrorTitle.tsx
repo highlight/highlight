@@ -8,7 +8,7 @@ import styles from './ErrorTitle.module.scss';
 
 interface Props {
     errorGroup:
-        | Maybe<Pick<ErrorGroup, 'event' | 'type' | 'id' | 'is_public'>>
+        | Maybe<Pick<ErrorGroup, 'event' | 'type' | 'secure_id' | 'is_public'>>
         | undefined;
     showShareButton?: boolean;
 }

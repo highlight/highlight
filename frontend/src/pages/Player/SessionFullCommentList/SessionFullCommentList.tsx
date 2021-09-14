@@ -12,10 +12,10 @@ import { PlayerSearchParameters } from '../PlayerHook/utils';
 import styles from './SessionFullCommentList.module.scss';
 
 const SessionFullCommentList = () => {
-    const { session_id } = useParams<{ session_id: string }>();
+    const { session_secure_id } = useParams<{ session_secure_id: string }>();
     const { data: sessionCommentsData, loading } = useGetSessionCommentsQuery({
         variables: {
-            session_id: session_id,
+            session_secure_id: session_secure_id,
         },
     });
     const { replayer } = useReplayerContext();

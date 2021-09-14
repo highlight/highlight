@@ -293,7 +293,7 @@ export const findNextSessionInList = (
     currentSessionId: string
 ): Session | null => {
     let currentSessionIndex = allSessions.findIndex(
-        (session) => session.id === currentSessionId
+        (session) => session.secure_id === currentSessionId
     );
 
     // This happens if the current session was removed from the session feed.
@@ -316,7 +316,7 @@ export const findPreviousSessionInList = (
     currentSessionId: string
 ): Session | null => {
     const currentSessionIndex = allSessions.findIndex(
-        (session) => session.id === currentSessionId
+        (session) => session.secure_id === currentSessionId
     );
 
     // This happens if the current session was removed from the session feed.
@@ -347,6 +347,6 @@ export const changeSession = (
         return;
     }
 
-    history.push(`/${projectIdRemapped}/sessions/${session.id}`);
+    history.push(`/${projectIdRemapped}/sessions/${session.secure_id}`);
     message.success(successMessageText);
 };

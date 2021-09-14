@@ -109,9 +109,9 @@ const OnboardingBubble = () => {
             STEPS.push({
                 displayName: 'Create your first comment',
                 action: () => {
-                    if (data.projectHasViewedASession?.id !== '0') {
+                    if (data.projectHasViewedASession?.secure_id !== '0') {
                         history.push(
-                            `/${project_id}/sessions/${data.projectHasViewedASession?.id}`
+                            `/${project_id}/sessions/${data.projectHasViewedASession?.secure_id}`
                         );
                     } else {
                         history.push(`/${project_id}/sessions`);

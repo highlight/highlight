@@ -36,7 +36,7 @@ export const ResourcePage = ({
 }) => {
     const { state, session, pause } = useReplayerContext();
     const { setDetailedPanel } = usePlayerUIContext();
-    const { session_id } = useParams<{ session_id: string }>();
+    const { session_secure_id } = useParams<{ session_secure_id: string }>();
     const [options, setOptions] = useState<Array<string>>([]);
     const [currentOption, setCurrentOption] = useState('All');
     const [filterSearchTerm, setFilterSearchTerm] = useState('');
@@ -59,7 +59,7 @@ export const ResourcePage = ({
     >(undefined);
     const { data, loading } = useGetResourcesQuery({
         variables: {
-            session_id,
+            session_secure_id,
         },
         fetchPolicy: 'no-cache',
     });

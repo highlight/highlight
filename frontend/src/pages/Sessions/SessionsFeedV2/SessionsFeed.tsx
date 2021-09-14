@@ -22,10 +22,10 @@ import styles from './SessionsFeed.module.scss';
 
 export const SessionFeed = () => {
     const { setSessionResults, sessionResults } = useReplayerContext();
-    const { project_id, segment_id, session_id } = useParams<{
+    const { project_id, segment_id, session_secure_id } = useParams<{
         project_id: string;
         segment_id: string;
-        session_id: string;
+        session_secure_id: string;
     }>();
     const [count, setCount] = useState(10);
     const {
@@ -168,8 +168,11 @@ export const SessionFeed = () => {
                                     {filteredSessions.map((u) => (
                                         <MinimalSessionCard
                                             session={u}
-                                            key={u?.id}
-                                            selected={session_id === u?.id}
+                                            key={u?.secure_id}
+                                            selected={
+                                                session_secure_id ===
+                                                u?.secure_id
+                                            }
                                         />
                                     ))}
                                 </>

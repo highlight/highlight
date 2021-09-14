@@ -79,8 +79,8 @@ export const Toolbar = () => {
     const history = useHistory();
     const toolbarItems = useToolbarItems();
     const { isLoggedIn } = useAuthContext();
-    const { session_id, project_id } = useParams<{
-        session_id: string;
+    const { session_secure_id, project_id } = useParams<{
+        session_secure_id: string;
         project_id: string;
     }>();
     const { setIsPlayerFullscreen, isPlayerFullscreen } = usePlayerUIContext();
@@ -302,7 +302,7 @@ export const Toolbar = () => {
                             H.track('PlayerSkipToPreviousSession');
                             const nextSession = findPreviousSessionInList(
                                 sessionResults.sessions,
-                                session_id
+                                session_secure_id
                             );
                             changeSession(
                                 project_id,
@@ -365,7 +365,7 @@ export const Toolbar = () => {
 
                             const nextSession = findNextSessionInList(
                                 sessionResults.sessions,
-                                session_id
+                                session_secure_id
                             );
                             changeSession(project_id, history, nextSession);
                         }}

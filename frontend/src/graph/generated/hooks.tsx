@@ -2,23 +2,11 @@ import * as Types from './operations';
 
 import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
-export const ErrorFieldsFragmentDoc = gql`
-    fragment errorFields on ErrorObject {
-        id
-        error_group_id
-        event
-        type
-        url
-        source
-        stack_trace
-        timestamp
-        payload
-    }
-`;
+
 export const MarkSessionAsViewedDocument = gql`
-    mutation MarkSessionAsViewed($id: ID!, $viewed: Boolean!) {
-        markSessionAsViewed(id: $id, viewed: $viewed) {
-            id
+    mutation MarkSessionAsViewed($secure_id: String!, $viewed: Boolean!) {
+        markSessionAsViewed(secure_id: $secure_id, viewed: $viewed) {
+            secure_id
             viewed
         }
     }
@@ -41,7 +29,7 @@ export type MarkSessionAsViewedMutationFn = Apollo.MutationFunction<
  * @example
  * const [markSessionAsViewedMutation, { data, loading, error }] = useMarkSessionAsViewedMutation({
  *   variables: {
- *      id: // value for 'id'
+ *      secure_id: // value for 'secure_id'
  *      viewed: // value for 'viewed'
  *   },
  * });
@@ -66,9 +54,9 @@ export type MarkSessionAsViewedMutationOptions = Apollo.BaseMutationOptions<
     Types.MarkSessionAsViewedMutationVariables
 >;
 export const MarkSessionAsStarredDocument = gql`
-    mutation MarkSessionAsStarred($id: ID!, $starred: Boolean!) {
-        markSessionAsStarred(id: $id, starred: $starred) {
-            id
+    mutation MarkSessionAsStarred($secure_id: String!, $starred: Boolean!) {
+        markSessionAsStarred(secure_id: $secure_id, starred: $starred) {
+            secure_id
             starred
         }
     }
@@ -91,7 +79,7 @@ export type MarkSessionAsStarredMutationFn = Apollo.MutationFunction<
  * @example
  * const [markSessionAsStarredMutation, { data, loading, error }] = useMarkSessionAsStarredMutation({
  *   variables: {
- *      id: // value for 'id'
+ *      secure_id: // value for 'secure_id'
  *      starred: // value for 'starred'
  *   },
  * });
@@ -215,9 +203,9 @@ export type UpdateBillingDetailsMutationOptions = Apollo.BaseMutationOptions<
     Types.UpdateBillingDetailsMutationVariables
 >;
 export const UpdateErrorGroupStateDocument = gql`
-    mutation updateErrorGroupState($id: ID!, $state: String!) {
-        updateErrorGroupState(id: $id, state: $state) {
-            id
+    mutation updateErrorGroupState($secure_id: String!, $state: String!) {
+        updateErrorGroupState(secure_id: $secure_id, state: $state) {
+            secure_id
             state
         }
     }
@@ -240,7 +228,7 @@ export type UpdateErrorGroupStateMutationFn = Apollo.MutationFunction<
  * @example
  * const [updateErrorGroupStateMutation, { data, loading, error }] = useUpdateErrorGroupStateMutation({
  *   variables: {
- *      id: // value for 'id'
+ *      secure_id: // value for 'secure_id'
  *      state: // value for 'state'
  *   },
  * });
@@ -838,7 +826,7 @@ export type CreateSegmentMutationOptions = Apollo.BaseMutationOptions<
 export const CreateSessionCommentDocument = gql`
     mutation CreateSessionComment(
         $project_id: ID!
-        $session_id: ID!
+        $session_secure_id: String!
         $session_timestamp: Int!
         $text: String!
         $text_for_email: String!
@@ -853,7 +841,7 @@ export const CreateSessionCommentDocument = gql`
     ) {
         createSessionComment(
             project_id: $project_id
-            session_id: $session_id
+            session_secure_id: $session_secure_id
             session_timestamp: $session_timestamp
             text: $text
             text_for_email: $text_for_email
@@ -900,7 +888,7 @@ export type CreateSessionCommentMutationFn = Apollo.MutationFunction<
  * const [createSessionCommentMutation, { data, loading, error }] = useCreateSessionCommentMutation({
  *   variables: {
  *      project_id: // value for 'project_id'
- *      session_id: // value for 'session_id'
+ *      session_secure_id: // value for 'session_secure_id'
  *      session_timestamp: // value for 'session_timestamp'
  *      text: // value for 'text'
  *      text_for_email: // value for 'text_for_email'
@@ -983,7 +971,7 @@ export type DeleteSessionCommentMutationOptions = Apollo.BaseMutationOptions<
 export const CreateErrorCommentDocument = gql`
     mutation CreateErrorComment(
         $project_id: ID!
-        $error_group_id: ID!
+        $error_group_secure_id: String!
         $text: String!
         $text_for_email: String!
         $tagged_admins: [SanitizedAdminInput]!
@@ -993,7 +981,7 @@ export const CreateErrorCommentDocument = gql`
     ) {
         createErrorComment(
             project_id: $project_id
-            error_group_id: $error_group_id
+            error_group_secure_id: $error_group_secure_id
             text: $text
             text_for_email: $text_for_email
             tagged_admins: $tagged_admins
@@ -1032,7 +1020,7 @@ export type CreateErrorCommentMutationFn = Apollo.MutationFunction<
  * const [createErrorCommentMutation, { data, loading, error }] = useCreateErrorCommentMutation({
  *   variables: {
  *      project_id: // value for 'project_id'
- *      error_group_id: // value for 'error_group_id'
+ *      error_group_secure_id: // value for 'error_group_secure_id'
  *      text: // value for 'text'
  *      text_for_email: // value for 'text_for_email'
  *      tagged_admins: // value for 'tagged_admins'
@@ -1628,9 +1616,15 @@ export type UpdateUserPropertiesAlertMutationOptions = Apollo.BaseMutationOption
     Types.UpdateUserPropertiesAlertMutationVariables
 >;
 export const UpdateSessionIsPublicDocument = gql`
-    mutation UpdateSessionIsPublic($session_id: ID!, $is_public: Boolean!) {
-        updateSessionIsPublic(session_id: $session_id, is_public: $is_public) {
-            id
+    mutation UpdateSessionIsPublic(
+        $session_secure_id: String!
+        $is_public: Boolean!
+    ) {
+        updateSessionIsPublic(
+            session_secure_id: $session_secure_id
+            is_public: $is_public
+        ) {
+            secure_id
             is_public
         }
     }
@@ -1653,7 +1647,7 @@ export type UpdateSessionIsPublicMutationFn = Apollo.MutationFunction<
  * @example
  * const [updateSessionIsPublicMutation, { data, loading, error }] = useUpdateSessionIsPublicMutation({
  *   variables: {
- *      session_id: // value for 'session_id'
+ *      session_secure_id: // value for 'session_secure_id'
  *      is_public: // value for 'is_public'
  *   },
  * });
@@ -1679,14 +1673,14 @@ export type UpdateSessionIsPublicMutationOptions = Apollo.BaseMutationOptions<
 >;
 export const UpdateErrorGroupIsPublicDocument = gql`
     mutation UpdateErrorGroupIsPublic(
-        $error_group_id: ID!
+        $error_group_secure_id: String!
         $is_public: Boolean!
     ) {
         updateErrorGroupIsPublic(
-            error_group_id: $error_group_id
+            error_group_secure_id: $error_group_secure_id
             is_public: $is_public
         ) {
-            id
+            secure_id
             is_public
         }
     }
@@ -1709,7 +1703,7 @@ export type UpdateErrorGroupIsPublicMutationFn = Apollo.MutationFunction<
  * @example
  * const [updateErrorGroupIsPublicMutation, { data, loading, error }] = useUpdateErrorGroupIsPublicMutation({
  *   variables: {
- *      error_group_id: // value for 'error_group_id'
+ *      error_group_secure_id: // value for 'error_group_secure_id'
  *      is_public: // value for 'is_public'
  *   },
  * });
@@ -1734,13 +1728,20 @@ export type UpdateErrorGroupIsPublicMutationOptions = Apollo.BaseMutationOptions
     Types.UpdateErrorGroupIsPublicMutationVariables
 >;
 export const GetSessionPayloadDocument = gql`
-    query GetSessionPayload($session_id: ID!) {
-        events(session_id: $session_id)
-        errors(session_id: $session_id) {
-            ...errorFields
+    query GetSessionPayload($session_secure_id: String!) {
+        events(session_secure_id: $session_secure_id)
+        errors(session_secure_id: $session_secure_id) {
+            id
+            error_group_secure_id
+            event
+            type
+            url
+            source
+            stack_trace
+            timestamp
+            payload
         }
     }
-    ${ErrorFieldsFragmentDoc}
 `;
 
 /**
@@ -1755,7 +1756,7 @@ export const GetSessionPayloadDocument = gql`
  * @example
  * const { data, loading, error } = useGetSessionPayloadQuery({
  *   variables: {
- *      session_id: // value for 'session_id'
+ *      session_secure_id: // value for 'session_secure_id'
  *   },
  * });
  */
@@ -1792,8 +1793,8 @@ export type GetSessionPayloadQueryResult = Apollo.QueryResult<
     Types.GetSessionPayloadQueryVariables
 >;
 export const GetSessionDocument = gql`
-    query GetSession($id: ID!) {
-        session(id: $id) {
+    query GetSession($secure_id: String!) {
+        session(secure_id: $secure_id) {
             os_name
             os_version
             browser_name
@@ -1838,7 +1839,7 @@ export const GetSessionDocument = gql`
  * @example
  * const { data, loading, error } = useGetSessionQuery({
  *   variables: {
- *      id: // value for 'id'
+ *      secure_id: // value for 'secure_id'
  *   },
  * });
  */
@@ -1930,8 +1931,8 @@ export type GetAdminsQueryResult = Apollo.QueryResult<
     Types.GetAdminsQueryVariables
 >;
 export const GetSessionCommentsDocument = gql`
-    query GetSessionComments($session_id: ID!) {
-        session_comments(session_id: $session_id) {
+    query GetSessionComments($session_secure_id: String!) {
+        session_comments(session_secure_id: $session_secure_id) {
             id
             timestamp
             session_id
@@ -1966,7 +1967,7 @@ export const GetSessionCommentsDocument = gql`
  * @example
  * const { data, loading, error } = useGetSessionCommentsQuery({
  *   variables: {
- *      session_id: // value for 'session_id'
+ *      session_secure_id: // value for 'session_secure_id'
  *   },
  * });
  */
@@ -2009,6 +2010,7 @@ export const GetNotificationsDocument = gql`
             timestamp
             updated_at
             session_id
+            session_secure_id
             text
             author {
                 id
@@ -2025,6 +2027,7 @@ export const GetNotificationsDocument = gql`
             project_id
             text
             error_id
+            error_secure_id
             author {
                 id
                 name
@@ -2150,8 +2153,8 @@ export type GetSessionCommentsForAdminQueryResult = Apollo.QueryResult<
     Types.GetSessionCommentsForAdminQueryVariables
 >;
 export const GetErrorCommentsDocument = gql`
-    query GetErrorComments($error_group_id: ID!) {
-        error_comments(error_group_id: $error_group_id) {
+    query GetErrorComments($error_group_secure_id: String!) {
+        error_comments(error_group_secure_id: $error_group_secure_id) {
             id
             created_at
             updated_at
@@ -2179,7 +2182,7 @@ export const GetErrorCommentsDocument = gql`
  * @example
  * const { data, loading, error } = useGetErrorCommentsQuery({
  *   variables: {
- *      error_group_id: // value for 'error_group_id'
+ *      error_group_secure_id: // value for 'error_group_secure_id'
  *   },
  * });
  */
@@ -2226,7 +2229,7 @@ export const GetOnboardingStepsDocument = gql`
         isIntegrated(project_id: $project_id)
         adminHasCreatedComment(admin_id: $admin_id)
         projectHasViewedASession(project_id: $project_id) {
-            id
+            secure_id
         }
         admin {
             slack_im_channel_id
@@ -2739,8 +2742,8 @@ export type GetBillingDetailsQueryResult = Apollo.QueryResult<
     Types.GetBillingDetailsQueryVariables
 >;
 export const GetErrorGroupDocument = gql`
-    query GetErrorGroup($id: ID!) {
-        error_group(id: $id) {
+    query GetErrorGroup($secure_id: String!) {
+        error_group(secure_id: $secure_id) {
             created_at
             id
             secure_id
@@ -2757,7 +2760,7 @@ export const GetErrorGroupDocument = gql`
             mapped_stack_trace
             metadata_log {
                 error_id
-                session_id
+                session_secure_id
                 environment
                 timestamp
                 os
@@ -2788,7 +2791,7 @@ export const GetErrorGroupDocument = gql`
  * @example
  * const { data, loading, error } = useGetErrorGroupQuery({
  *   variables: {
- *      id: // value for 'id'
+ *      secure_id: // value for 'secure_id'
  *   },
  * });
  */
@@ -2834,6 +2837,7 @@ export const GetErrorGroupsDocument = gql`
             error_groups {
                 created_at
                 id
+                secure_id
                 type
                 event
                 state
@@ -2847,7 +2851,7 @@ export const GetErrorGroupsDocument = gql`
                 }
                 metadata_log {
                     error_id
-                    session_id
+                    session_secure_id
                     timestamp
                 }
                 error_frequency
@@ -2908,8 +2912,8 @@ export type GetErrorGroupsQueryResult = Apollo.QueryResult<
     Types.GetErrorGroupsQueryVariables
 >;
 export const GetMessagesDocument = gql`
-    query GetMessages($session_id: ID!) {
-        messages(session_id: $session_id)
+    query GetMessages($session_secure_id: String!) {
+        messages(session_secure_id: $session_secure_id)
     }
 `;
 
@@ -2925,7 +2929,7 @@ export const GetMessagesDocument = gql`
  * @example
  * const { data, loading, error } = useGetMessagesQuery({
  *   variables: {
- *      session_id: // value for 'session_id'
+ *      session_secure_id: // value for 'session_secure_id'
  *   },
  * });
  */
@@ -2960,8 +2964,8 @@ export type GetMessagesQueryResult = Apollo.QueryResult<
     Types.GetMessagesQueryVariables
 >;
 export const GetResourcesDocument = gql`
-    query GetResources($session_id: ID!) {
-        resources(session_id: $session_id)
+    query GetResources($session_secure_id: String!) {
+        resources(session_secure_id: $session_secure_id)
     }
 `;
 
@@ -2977,7 +2981,7 @@ export const GetResourcesDocument = gql`
  * @example
  * const { data, loading, error } = useGetResourcesQuery({
  *   variables: {
- *      session_id: // value for 'session_id'
+ *      session_secure_id: // value for 'session_secure_id'
  *   },
  * });
  */
@@ -4178,12 +4182,12 @@ export type GetDailyErrorsCountQueryResult = Apollo.QueryResult<
 export const GetDailyErrorFrequencyDocument = gql`
     query GetDailyErrorFrequency(
         $project_id: ID!
-        $error_group_id: ID!
+        $error_group_secure_id: String!
         $date_offset: Int!
     ) {
         dailyErrorFrequency(
             project_id: $project_id
-            error_group_id: $error_group_id
+            error_group_secure_id: $error_group_secure_id
             date_offset: $date_offset
         )
     }
@@ -4202,7 +4206,7 @@ export const GetDailyErrorFrequencyDocument = gql`
  * const { data, loading, error } = useGetDailyErrorFrequencyQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
- *      error_group_id: // value for 'error_group_id'
+ *      error_group_secure_id: // value for 'error_group_secure_id'
  *      date_offset: // value for 'date_offset'
  *   },
  * });

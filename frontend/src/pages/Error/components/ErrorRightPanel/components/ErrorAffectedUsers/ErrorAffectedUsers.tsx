@@ -106,7 +106,7 @@ const ErrorAffectedUsers = ({ loading, errorGroup }: Props) => {
                     <div className={styles.actionsContainer}>
                         <ButtonLink
                             trackingId="ErrorMostRecentSession"
-                            to={`/${projectIdRemapped}/sessions/${mostRecentAffectedSession?.session_id}`}
+                            to={`/${projectIdRemapped}/sessions/${mostRecentAffectedSession?.session_secure_id}`}
                             icon={
                                 <SvgPlaySolidIcon
                                     className={styles.playButton}

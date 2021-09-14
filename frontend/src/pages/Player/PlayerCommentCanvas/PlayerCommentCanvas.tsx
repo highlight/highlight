@@ -32,10 +32,10 @@ const PlayerCommentCanvas = ({
     modalPosition,
     setCommentPosition,
 }: Props) => {
-    const { session_id } = useParams<{ session_id: string }>();
+    const { session_secure_id } = useParams<{ session_secure_id: string }>();
     const { data: sessionCommentsData } = useGetSessionCommentsQuery({
         variables: {
-            session_id: session_id,
+            session_secure_id: session_secure_id,
         },
     });
     const {
