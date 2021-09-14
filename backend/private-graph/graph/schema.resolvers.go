@@ -198,16 +198,19 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 		return nil, e.Wrap(err, "error creating org")
 	}
 	if err := r.DB.Create(&model.ErrorAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.ERROR}}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating org")
+		return nil, e.Wrap(err, "error creating error alert for new org")
+	}
+	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.SESSION_FEEDBACK}}).Error; err != nil {
+		return nil, e.Wrap(err, "error creating session feedback alert for new org")
 	}
 	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.NEW_USER}}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session alert for new org")
+		return nil, e.Wrap(err, "error creating session new user alert for new org")
 	}
 	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.TRACK_PROPERTIES}}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session alert for new org")
+		return nil, e.Wrap(err, "error creating session track properties alert for new org")
 	}
 	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.USER_PROPERTIES}}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session alert for new org")
+		return nil, e.Wrap(err, "error creating session user properties alert for new org")
 	}
 	return org, nil
 }
