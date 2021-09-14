@@ -957,6 +957,49 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID 
 	return alert, nil
 }
 
+func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, organizationID int, sessionFeedbackAlertID int, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
+	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in organization")
+	}
+
+	var alert *model.SessionAlert
+	if err := r.DB.Where(&model.SessionAlert{Model: model.Model{ID: sessionFeedbackAlertID}}).Find(&alert).Error; err != nil {
+		return nil, e.Wrap(err, "error querying session feedback alert")
+	}
+
+	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
+	// For each of the new Slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
+	for _, ch := range slackChannels {
+		sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
+	}
+
+	envBytes, err := json.Marshal(environments)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing environments")
+	}
+	envString := string(envBytes)
+
+	channelsBytes, err := json.Marshal(sanitizedChannels)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing channels")
+	}
+	channelsString := string(channelsBytes)
+
+	alert.ChannelsToNotify = &channelsString
+	alert.ExcludedEnvironments = &envString
+	alert.CountThreshold = countThreshold
+	alert.ThresholdWindow = &thresholdWindow
+	if err := r.DB.Model(&model.SessionAlert{
+		Model: model.Model{
+			ID: sessionFeedbackAlertID,
+		},
+	}).Where("organization_id = ?", organizationID).Updates(alert).Error; err != nil {
+		return nil, e.Wrap(err, "error updating org fields")
+	}
+	return alert, nil
+}
+
 func (r *mutationResolver) UpdateNewUserAlert(ctx context.Context, organizationID int, sessionAlertID int, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
 	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID)
 	if err != nil {
@@ -1879,6 +1922,19 @@ func (r *queryResolver) ErrorAlert(ctx context.Context, organizationID int) (*mo
 	alert := model.ErrorAlert{}
 	if err := r.DB.Model(&model.ErrorAlert{}).Where("organization_id = ?", organizationID).First(&alert).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error alerts")
+	}
+	return &alert, nil
+}
+
+func (r *queryResolver) SessionFeedbackAlert(ctx context.Context, organizationID int) (*model.SessionAlert, error) {
+	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying organization on session feedback alert")
+	}
+	var alert model.SessionAlert
+	if err := r.DB.Model(&model.SessionAlert{}).Where("organization_id = ?", organizationID).
+		Where("type=?", model.AlertType.SESSION_FEEDBACK).First(&alert).Error; err != nil {
+		return nil, e.Wrap(err, "error querying session feedback alert")
 	}
 	return &alert, nil
 }
