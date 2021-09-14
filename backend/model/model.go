@@ -239,6 +239,9 @@ type SlackChannel struct {
 }
 
 func (u *Organization) IntegratedSlackChannels() ([]SlackChannel, error) {
+	if u == nil {
+		return nil, e.New("organization cannot be nil")
+	}
 	parsedChannels := []SlackChannel{}
 	if u.SlackChannels != nil {
 		err := json.Unmarshal([]byte(*u.SlackChannels), &parsedChannels)
@@ -834,10 +837,11 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 	var messageBlock []*slack.TextBlockObject
 
 	frontendURL := os.Getenv("FRONTEND_URI")
-	sessionLink := fmt.Sprintf("<%s/%d/sessions/%d/>", frontendURL, obj.OrganizationID, input.SessionID)
+	suffix := "/"
 	if input.CommentID != nil {
-		sessionLink += fmt.Sprintf("%s?commentId=%d", sessionLink, *input.CommentID)
+		suffix = fmt.Sprintf("?commentId=%d", *input.CommentID)
 	}
+	sessionLink := fmt.Sprintf("<%s/%d/sessions/%d%s>", frontendURL, obj.OrganizationID, input.SessionID, suffix)
 	messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false))
 
 	if obj.Type == nil {
@@ -945,7 +949,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 		if len(input.CommentText) > 50 {
 			shortEvent = input.CommentText[:50] + "..."
 		}
-		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Highlight Session Feedback Alert: %d Recent Occurrences*\n\n%s", *input.CommentsCount, shortEvent), false, false)
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Highlight Session Feedback Alert: %d Recent Feedback Comments*\n\n%s", *input.CommentsCount, shortEvent), false, false)
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
