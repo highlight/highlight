@@ -113,7 +113,7 @@ func main() {
 		port = defaultPort
 	}
 
-	shouldStartDatadog := !util.IsDevOrTestEnv() && !util.IsOnPrem() && util.IsOnRender()
+	shouldStartDatadog := !util.IsDevOrTestEnv() && !util.IsOnPrem()
 	if shouldStartDatadog {
 		log.Info("Running dd client setup process...")
 		if err := dd.Start(); err != nil {
