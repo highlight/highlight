@@ -15,6 +15,7 @@ import {
     useGetUserSuggestionQuery,
     useUpdateErrorAlertMutation,
     useUpdateNewUserAlertMutation,
+    useUpdateSessionFeedbackAlertMutation,
     useUpdateTrackPropertiesAlertMutation,
     useUpdateUserPropertiesAlertMutation,
 } from '../../../graph/generated/hooks';
@@ -59,6 +60,9 @@ export const AlertConfigurationCard = ({
     const [
         updateTrackPropertiesAlert,
     ] = useUpdateTrackPropertiesAlertMutation();
+    const [
+        updateSessionFeedbackAlert,
+    ] = useUpdateSessionFeedbackAlertMutation();
 
     const onSubmit = async () => {
         setLoading(true);
@@ -145,6 +149,16 @@ export const AlertConfigurationCard = ({
                                     };
                                 }),
                             session_alert_id: alert.id,
+                        },
+                    });
+                    break;
+                case ALERT_TYPE.SessionFeedbackComment:
+                    await updateSessionFeedbackAlert({
+                        ...requestBody,
+                        variables: {
+                            ...requestVariables,
+                            session_feedback_alert_id: alert.id,
+                            threshold_window: lookbackPeriod,
                         },
                     });
                     break;
