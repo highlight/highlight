@@ -1,8 +1,8 @@
 name: Deploy to AWS
-on:
-    push:
-        branches:
-            master
+on: [push]
+    # push:
+    #     branches:
+    #         master
 jobs:
     build_deploy_private_graph:
         runs-on: ubuntu-latest
