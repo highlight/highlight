@@ -22,6 +22,40 @@ const (
 	Custom
 )
 
+type EventSource int
+
+const (
+	Mutation EventSource = iota
+	MouseMove
+	MouseInteraction
+	Scroll
+	ViewportResize
+	Input
+	TouchMove
+	MediaInteraction
+	StyleSheetRule
+	CanvasMutation
+	Font
+	Log
+	Drag
+)
+
+type MouseInteractions int
+
+const (
+	MouseUp MouseInteractions = iota
+	MouseDown
+	Click
+	ContextMenu
+	DblClick
+	Focus
+	Blur
+	TouchStart
+	TouchMove_Departed
+	TouchEnd
+	TouchCancel
+)
+
 type fetcher interface {
 	fetchStylesheetData(string) ([]byte, error)
 }
@@ -74,6 +108,14 @@ func (r *ReplayEvent) UnmarshalJSON(b []byte) error {
 	r.Timestamp = javascriptToGolangTime(aux.Timestamp)
 	r.TimestampRaw = aux.Timestamp
 	return nil
+}
+
+// MouseInteractionEventData represents the data field for click events from the following parent events
+type MouseInteractionEventData struct {
+	X      *string            `json:"x"`
+	Y      *string            `json:"y"`
+	Source *EventSource       `json:"source"`
+	Type   *MouseInteractions `json:"type"`
 }
 
 // EventsFromString parses a json string in the form {events: [ev1, ev2, ...]}.

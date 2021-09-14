@@ -1,7 +1,9 @@
 package worker
 
 import (
+	"container/list"
 	"context"
+	"encoding/json"
 	"io"
 	"math/rand"
 	"os"
@@ -248,6 +250,8 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	p := payload.NewPayloadReadWriter(eventsFile)
 	re := p.Reader()
 	hasNext := true
+	clickEventQueue := list.New()
+	processEventChunk(&processEventChunkInput{ClickEventQueue: clickEventQueue})
 	for hasNext {
 		se, err := re.Next()
 		if err != nil {
@@ -269,14 +273,18 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 	/*
 		for each event:
-			if last timestamp isn't zero:
-				diff := subtract last timestamp from current
-				if diff <= min inactive duration:
-					active duration += diff
-			last = current
-			if first timestamp is zero:
-				first = current
-			some flag if event is click event
+			if event.type = parse.IncrementalSnapshot (3)
+				if last timestamp isn't zero:
+					diff := subtract last timestamp from current
+					if diff <= min inactive duration:
+						active duration += diff
+				last = current
+				if first timestamp is zero:
+					first = current
+				if event.data.source in (2, 4):
+					if event.data.type in (Click, DblClick, TouchStart):
+						if diff <= 0.5 sec && |xDiff| < 32 && |yDiff| < 32:
+
 	*/
 
 	// Calculate total session length and write the length to the session.
@@ -588,4 +596,98 @@ func getActiveDuration(event *model.EventsObject, firstEventTimestamp time.Time,
 		}
 	}
 	return activeDuration, firstEventTimestamp, lastEventTimestamp, nil
+}
+
+type processEventChunkInput struct {
+	// EventsChunk represents the chunk of events to be processed in this iteration of processEventChunk
+	EventsChunk *model.EventsObject
+	// ClickEventQueue is a queue containing the last 2 seconds worth of clustered click events
+	ClickEventQueue *list.List
+	// FirstEventTimestamp represents the timestamp for the first event
+	FirstEventTimestamp time.Time
+	// LastEventTimestamp represents the timestamp for the first event
+	LastEventTimestamp time.Time
+}
+
+type processEventChunkOutput struct {
+	// DidEventsChunkChange denotes whether the events chunk was altered and needs to be updated in the stored file
+	DidEventsChunkChange bool
+	// EventsChunk represents the chunk of events to be processed in this iteration of processEventChunk
+	EventsChunk *model.EventsObject
+	// FirstEventTimestamp represents the timestamp for the first event
+	FirstEventTimestamp time.Time
+	// LastEventTimestamp represents the timestamp for the first event
+	LastEventTimestamp time.Time
+	// Error
+	Error error
+}
+
+func processEventChunk(input *processEventChunkInput) *processEventChunkOutput {
+	/*
+		for each event:
+			if event.type = parse.IncrementalSnapshot (3)
+				if last timestamp isn't zero:
+					diff := subtract last timestamp from current
+					if diff <= min inactive duration:
+						active duration += diff
+				last = current
+				if first timestamp is zero:
+					first = current
+				if event.data.source in (2, 4):
+					if event.data.type in (Click, DblClick, TouchStart):
+						if diff <= 0.5 sec && |xDiff| < 32 && |yDiff| < 32:
+
+	*/
+	if input == nil {
+		return &processEventChunkOutput{Error: errors.New("processEventChunkInput cannot be nil")}
+	}
+	if input.EventsChunk == nil {
+		return &processEventChunkOutput{Error: errors.New("EventsChunk cannot be nil")}
+	}
+	if input.ClickEventQueue == nil {
+		return &processEventChunkOutput{Error: errors.New("ClickEventQueue cannot be nil")}
+	}
+	events, err := parse.EventsFromString(input.EventsChunk.Events)
+	if err != nil {
+		return &processEventChunkOutput{Error: err}
+	}
+	activeDuration := time.Duration(0)
+	for _, event := range events.Events {
+		if event == nil {
+			continue
+		}
+		if event.Type == parse.IncrementalSnapshot {
+			var diff time.Duration
+			if !input.LastEventTimestamp.IsZero() {
+				diff = event.Timestamp.Sub(input.LastEventTimestamp)
+				if diff <= MIN_INACTIVE_DURATION {
+					activeDuration += diff
+				}
+			}
+
+			var mouseInteractionEventData parse.MouseInteractionEventData
+			err := json.Unmarshal(event.Data, &mouseInteractionEventData)
+			if err != nil {
+				return &processEventChunkOutput{Error: err}
+			}
+			if mouseInteractionEventData.X == nil || mouseInteractionEventData.Y == nil ||
+				mouseInteractionEventData.Type == nil || mouseInteractionEventData.Source == nil {
+				// all values must not be nil on a click/touch event
+				continue
+			}
+			if *mouseInteractionEventData.Source != parse.MouseInteraction {
+				// Source must be MouseInteraction for a click/touch event
+				continue
+			}
+			if _, ok := map[parse.MouseInteractions]bool{parse.Click: true,
+				parse.DblClick: true, parse.TouchStart: true}[*mouseInteractionEventData.Type]; !ok {
+				// Type must be a Click, Double Click, or Touch Start for a click/touch event
+				continue
+			}
+		}
+		return &processEventChunkOutput{EventsChunk: input.EventsChunk, FirstEventTimestamp: input.FirstEventTimestamp,
+			LastEventTimestamp: input.LastEventTimestamp}
+	}
+
+	return nil
 }
