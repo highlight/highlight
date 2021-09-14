@@ -802,6 +802,12 @@ type SendSlackAlertInput struct {
 	MatchedFields []*Field
 	// UserProperties is a required parameter for User Properties alerts
 	UserProperties map[string]string
+	// CommentID is a required parameter for Session Feedback alerts
+	CommentID *int
+	// CommentsCount is a required parameter for Session Feedback alerts
+	CommentsCount *int64
+	// CommentText is a required parameter for Session Feedback alerts
+	CommentText string
 }
 
 func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
@@ -829,6 +835,9 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 
 	frontendURL := os.Getenv("FRONTEND_URI")
 	sessionLink := fmt.Sprintf("<%s/%d/sessions/%d/>", frontendURL, obj.OrganizationID, input.SessionID)
+	if input.CommentID != nil {
+		sessionLink += fmt.Sprintf("%s?commentId=%d", sessionLink, *input.CommentID)
+	}
 	messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false))
 
 	if obj.Type == nil {
@@ -928,6 +937,15 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 		// construct Slack message
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight User Properties Alert:*\n\n", false, false)
 		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Matched User Properties:*\n%+v", formattedFields), false, false))
+		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
+		blockSet = append(blockSet, slack.NewDividerBlock())
+		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
+	case AlertType.SESSION_FEEDBACK:
+		shortEvent := input.CommentText
+		if len(input.CommentText) > 50 {
+			shortEvent = input.CommentText[:50] + "..."
+		}
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Highlight Session Feedback Alert: %d Recent Occurrences*\n\n%s", *input.CommentsCount, shortEvent), false, false)
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
