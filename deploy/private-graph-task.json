@@ -3,6 +3,20 @@
     "executionRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
     "containerDefinitions": [
         {
+            "name": "datadog-agent",
+            "image": "datadog/agent:latest",
+            "environment": [
+                {
+                    "name": "DD_API_KEY",
+                    "valueFrom": "DD_API_KEY"
+                },
+                {
+                    "name": "ECS_FARGATE",
+                    "value": "true"
+                }
+            ]
+        },
+        {
             "dnsSearchDomains": null,
             "environmentFiles": null,
             "logConfiguration": {
