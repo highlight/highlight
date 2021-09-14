@@ -5,11 +5,13 @@
         {
             "name": "datadog-agent",
             "image": "datadog/agent:latest",
-            "environment": [
+            "secrets": [
                 {
                     "name": "DD_API_KEY",
                     "valueFrom": "DD_API_KEY"
-                },
+                }
+            ],
+            "environment": [
                 {
                     "name": "ECS_FARGATE",
                     "value": "true"
