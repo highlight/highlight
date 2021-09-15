@@ -317,7 +317,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 							if err := r.DB.Model(&model.Organization{}).Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&org).Error; err != nil {
 								log.Error(e.Wrap(err, "error querying organization"))
 							}
-							err = errorAlert.SendSlackAlert(&org, sessionID, sessionObj.Identifier, group, &errorToInsert.URL, nil, nil, &numErrors)
+							err = errorAlert.SendSlackAlert(&model.SendSlackAlertInput{Organization: &org, SessionID: sessionID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &errorToInsert.URL, ErrorsCount: &numErrors})
 							if err != nil {
 								log.Error(e.Wrap(err, "error sending slack error message"))
 							}
