@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gammazero/workerpool"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/highlight-run/highlight/backend/model"
@@ -202,6 +203,7 @@ func main() {
 					Resolvers: &public.Resolver{
 						DB:            db,
 						StorageClient: storage,
+						WorkerPool:    workerpool.New(200),
 					},
 				}))
 			clientServer.Use(util.NewTracer(util.PublicGraph))
