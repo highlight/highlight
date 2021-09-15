@@ -21,15 +21,16 @@ func main() {
 	}
 
 	thresholdWindow := 30
+	emptiness := "[]"
 	var alerts []model.SessionAlert
 	for _, o := range orgs {
 		alerts = append(alerts, model.SessionAlert{
-			Alert:           model.Alert{
+			Alert: model.Alert{
 				OrganizationID:       o.ID,
-				ExcludedEnvironments: "[]",
+				ExcludedEnvironments: &emptiness,
 				CountThreshold:       1,
 				ThresholdWindow:      &thresholdWindow,
-				ChannelsToNotify:     "[]",
+				ChannelsToNotify:     &emptiness,
 				Type:                 &model.AlertType.SESSION_FEEDBACK,
 			},
 		})
