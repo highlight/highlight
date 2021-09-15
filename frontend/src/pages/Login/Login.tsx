@@ -26,7 +26,6 @@ export const AuthAdminRouter = () => {
                 id,
                 name,
             };
-            window.analytics.identify(email, identifyMetadata);
 
             if (admin.photo_url) {
                 identifyMetadata = {

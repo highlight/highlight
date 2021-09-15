@@ -25,7 +25,7 @@ export const parseErrorDescriptionList = (
     while (index < text.length) {
         let currentLine = text[index] as string;
         if (!currentLine) {
-            continue;
+            break;
         }
         /**
          * The specifier %s used to interpolate values in a console.(log|info|etc.) call.

@@ -28,7 +28,8 @@ const ErrorSessionList = ({ errorGroup }: Props) => {
                         ({
                             id: session?.session_id,
                             created_at: session?.timestamp,
-                            identifier: session?.visited_url,
+                            identifier: session?.identifier,
+                            fingerprint: session?.fingerprint,
                             browser_name: session?.browser,
                             os_name: session?.os,
                             environment: session?.environment || 'Production',

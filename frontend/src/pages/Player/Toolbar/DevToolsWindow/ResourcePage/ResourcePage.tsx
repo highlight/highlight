@@ -371,7 +371,8 @@ const ResourceRow = ({
                         formatSize(resource.requestResponsePairs.response.size)
                     ) : resource.requestResponsePairs?.response.status === 0 ? (
                         '-'
-                    ) : resource.requestResponsePairs?.urlBlocked ? (
+                    ) : resource.requestResponsePairs?.urlBlocked ||
+                      resource.transferSize == null ? (
                         '-'
                     ) : resource.transferSize === 0 ? (
                         'Cached'

@@ -62,6 +62,16 @@ var ErrorGroupStates = struct {
 	IGNORED:  "IGNORED",
 }
 
+var SessionCommentTypes = struct {
+	// Comments created by a Highlight user on the Highlight app.
+	ADMIN string
+	// Comments created by a Highlight customer, comes from feedback from their app.
+	FEEDBACK string
+}{
+	ADMIN:    "ADMIN",
+	FEEDBACK: "FEEDBACK",
+}
+
 type contextString string
 
 var ContextKeys = struct {
@@ -305,8 +315,10 @@ type SessionResults struct {
 
 type Session struct {
 	Model
-	UserID      int `json:"user_id"`
-	Fingerprint int `json:"fingerprint"`
+	// The ID used publicly for the URL on the client; used for sharing
+	SecureID    string `json:"secure_id" gorm:"uniqueIndex;not null;default:secure_id_generator()"`
+	UserID      int    `json:"user_id"`
+	Fingerprint int    `json:"fingerprint"`
 	// User provided identifier (see IdentifySession)
 	Identifier     string `json:"identifier"`
 	OrganizationID int    `json:"organization_id"`
@@ -357,7 +369,7 @@ type Session struct {
 	MigrationState       *string `json:"migration_state"`
 }
 
-// AreModelsWeaklyEqual compares two structs of the same type while ignoring the Model field
+// AreModelsWeaklyEqual compares two structs of the same type while ignoring the Model and SecureID field
 // a and b MUST be pointers, otherwise this won't work
 func AreModelsWeaklyEqual(a, b interface{}) (bool, []string, error) {
 	if reflect.TypeOf(a) != reflect.TypeOf(b) {
@@ -370,7 +382,8 @@ func AreModelsWeaklyEqual(a, b interface{}) (bool, []string, error) {
 		return false, nil, e.New("`a` is not a pointer")
 	}
 	// 'dereference' with Elem() and get the field by name
-	aField := aReflection.Elem().FieldByName("Model")
+	aModelField := aReflection.Elem().FieldByName("Model")
+	aSecureIDField := aReflection.Elem().FieldByName("SecureID")
 
 	bReflection := reflect.ValueOf(b)
 	// Check if the passed interface is a pointer
@@ -378,14 +391,23 @@ func AreModelsWeaklyEqual(a, b interface{}) (bool, []string, error) {
 		return false, nil, e.New("`b` is not a pointer")
 	}
 	// 'dereference' with Elem() and get the field by name
-	bField := bReflection.Elem().FieldByName("Model")
+	bModelField := bReflection.Elem().FieldByName("Model")
+	bSecureIDField := bReflection.Elem().FieldByName("SecureID")
 
-	if aField.IsValid() && bField.IsValid() {
+	if aModelField.IsValid() && bModelField.IsValid() {
 		// override Model on b with a's model
-		bField.Set(aField)
-	} else if aField.IsValid() || bField.IsValid() {
+		bModelField.Set(aModelField)
+	} else if aModelField.IsValid() || bModelField.IsValid() {
 		// return error if one has a model and the other doesn't
 		return false, nil, e.New("one interface has a model and the other doesn't")
+	}
+
+	if aSecureIDField.IsValid() && bSecureIDField.IsValid() {
+		// override SecureID on b with a's SecureID
+		bSecureIDField.Set(aSecureIDField)
+	} else if aSecureIDField.IsValid() || bSecureIDField.IsValid() {
+		// return error if one has a SecureID and the other doesn't
+		return false, nil, e.New("one interface has a SecureID and the other doesn't")
 	}
 
 	// get diff
@@ -554,6 +576,8 @@ type ErrorObject struct {
 
 type ErrorGroup struct {
 	Model
+	// The ID used publicly for the URL on the client; used for sharing
+	SecureID         string `json:"secure_id" gorm:"uniqueIndex;not null;default:secure_id_generator()"`
 	OrganizationID   int
 	Event            string
 	Type             string
@@ -584,6 +608,8 @@ type SessionComment struct {
 	Text           string
 	XCoordinate    float64
 	YCoordinate    float64
+	Type           string `json:"type" gorm:"default:ADMIN"`
+	Metadata       JSONB  `json:"metadata" gorm:"type:jsonb"`
 }
 
 type ErrorComment struct {
@@ -649,6 +675,22 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 	}
 
 	log.Printf("running db migration ... \n")
+	if err := DB.Exec("CREATE EXTENSION IF NOT EXISTS pgcrypto;").Error; err != nil {
+		return nil, e.Wrap(err, "Error installing pgcrypto")
+	}
+	// Unguessable, cryptographically random url-safe ID for users to share links
+	if err := DB.Exec(`
+		CREATE OR REPLACE FUNCTION secure_id_generator(OUT result text) AS $$
+		BEGIN
+			result := encode(gen_random_bytes(21), 'base64');
+			result := replace(result, '+', '0');
+			result := replace(result, '/', '1');
+			result := replace(result, '=', '');
+		END;
+		$$ LANGUAGE PLPGSQL;
+	`).Error; err != nil {
+		return nil, e.Wrap(err, "Error creating secure_id_generator")
+	}
 	if err := DB.AutoMigrate(
 		Models...,
 	); err != nil {
@@ -740,7 +782,26 @@ func (s *Session) GetUserProperties() (map[string]string, error) {
 	return userProperties, nil
 }
 
-func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, userIdentifier string, group *ErrorGroup, url *string, matchedFields []*Field, userProperties map[string]string, numErrors *int64) error {
+type SendSlackAlertInput struct {
+	// Organization is a required parameter
+	Organization *Organization
+	// SessionID is a required parameter
+	SessionID int
+	// UserIdentifier is a required parameter for New User and Error alerts
+	UserIdentifier string
+	// Group is a required parameter for Error alerts
+	Group *ErrorGroup
+	// URL is an optional parameter for Error alerts
+	URL *string
+	// ErrorsCount is a required parameter for Error alerts
+	ErrorsCount *int64
+	// MatchedFields is a required parameter for Track Properties and User Properties alerts
+	MatchedFields []*Field
+	// UserProperties is a required parameter for User Properties alerts
+	UserProperties map[string]string
+}
+
+func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 	if obj == nil {
 		return e.New("alert is nil")
 	}
@@ -750,7 +811,7 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 		return e.Wrap(err, "error getting channels to notify from user properties alert")
 	}
 	// get organization's channels
-	integratedSlackChannels, err := organization.IntegratedSlackChannels()
+	integratedSlackChannels, err := input.Organization.IntegratedSlackChannels()
 	if err != nil {
 		return e.Wrap(err, "error getting slack webhook url for alert")
 	}
@@ -764,11 +825,11 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 	var messageBlock []*slack.TextBlockObject
 
 	frontendURL := os.Getenv("FRONTEND_URI")
-	sessionLink := fmt.Sprintf("<%s/%d/sessions/%d/>", frontendURL, obj.OrganizationID, sessionId)
+	sessionLink := fmt.Sprintf("<%s/%d/sessions/%d/>", frontendURL, obj.OrganizationID, input.SessionID)
 	messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false))
 
 	if obj.Type == nil {
-		if group != nil {
+		if input.Group != nil {
 			obj.Type = &AlertType.ERROR
 		} else {
 			obj.Type = &AlertType.NEW_USER
@@ -776,24 +837,24 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 	}
 	switch *obj.Type {
 	case AlertType.ERROR:
-		if group == nil || group.State == ErrorGroupStates.IGNORED {
+		if input.Group == nil || input.Group.State == ErrorGroupStates.IGNORED {
 			return nil
 		}
-		shortEvent := group.Event
-		if len(group.Event) > 50 {
-			shortEvent = group.Event[:50] + "..."
+		shortEvent := input.Group.Event
+		if len(input.Group.Event) > 50 {
+			shortEvent = input.Group.Event[:50] + "..."
 		}
-		errorLink := fmt.Sprintf("%s/%d/errors/%d", frontendURL, obj.OrganizationID, group.ID)
-		// construct slack message
-		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Highlight Error Alert: %d Recent Occurrences*\n\n%s\n<%s/>", *numErrors, shortEvent, errorLink), false, false)
-		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+userIdentifier, false, false))
-		if url != nil {
-			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Visited Url:*\n"+*url, false, false))
+		errorLink := fmt.Sprintf("%s/%d/errors/%d", frontendURL, obj.OrganizationID, input.Group.ID)
+		// construct Slack message
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Highlight Error Alert: %d Recent Occurrences*\n\n%s\n<%s/>", *input.ErrorsCount, shortEvent, errorLink), false, false)
+		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+input.UserIdentifier, false, false))
+		if input.URL != nil {
+			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Visited Url:*\n"+*input.URL, false, false))
 		}
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		var actionBlock []slack.BlockElement
 		for _, action := range modelInputs.AllErrorState {
-			if group.State == string(action) {
+			if input.Group.State == string(action) {
 				continue
 			}
 
@@ -826,12 +887,12 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 			},
 		}
 	case AlertType.NEW_USER:
-		// construct slack message
+		// construct Slack message
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight New User Alert:*\n\n", false, false)
-		if userIdentifier != "" {
-			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+userIdentifier, false, false))
+		if input.UserIdentifier != "" {
+			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+input.UserIdentifier, false, false))
 		}
-		for k, v := range userProperties {
+		for k, v := range input.UserProperties {
 			if k == "" {
 				continue
 			}
@@ -846,10 +907,10 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 	case AlertType.TRACK_PROPERTIES:
 		// format matched properties
 		var formattedFields []string
-		for _, addr := range matchedFields {
+		for _, addr := range input.MatchedFields {
 			formattedFields = append(formattedFields, fmt.Sprintf("{name: %s, value: %s}", addr.Name, addr.Value))
 		}
-		// construct slack message
+		// construct Slack message
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight Track Properties Alert:*\n\n", false, false)
 		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Matched Track Properties:*\n%+v", formattedFields), false, false))
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
@@ -858,10 +919,10 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 	case AlertType.USER_PROPERTIES:
 		// format matched properties
 		var formattedFields []string
-		for _, addr := range matchedFields {
+		for _, addr := range input.MatchedFields {
 			formattedFields = append(formattedFields, fmt.Sprintf("{name: %s, value: %s}", addr.Name, addr.Value))
 		}
-		// construct slack message
+		// construct Slack message
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight User Properties Alert:*\n\n", false, false)
 		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Matched User Properties:*\n%+v", formattedFields), false, false))
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
@@ -880,7 +941,7 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 				}
 			}
 			if slackWebhookURL == "" {
-				log.WithFields(log.Fields{"org_id": organization.ID}).
+				log.WithFields(log.Fields{"org_id": input.Organization.ID}).
 					Error("requested channel has no matching slackWebhookURL")
 				continue
 			}
@@ -891,7 +952,7 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 					&msg,
 				)
 				if err != nil {
-					log.WithFields(log.Fields{"org_id": organization.ID, "slack_webhook_url": slackWebhookURL, "message": fmt.Sprintf("%+v", msg)}).
+					log.WithFields(log.Fields{"org_id": input.Organization.ID, "slack_webhook_url": slackWebhookURL, "message": fmt.Sprintf("%+v", msg)}).
 						Error(e.Wrap(err, "error sending slack msg"))
 				}
 			}()

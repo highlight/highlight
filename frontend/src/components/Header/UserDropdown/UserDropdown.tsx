@@ -65,16 +65,7 @@ export const UserDropdown = () => {
         </div>
     );
     return (
-        <Dropdown
-            overlay={menu}
-            placement={'bottomRight'}
-            onVisibleChange={() => {
-                window.analytics.track('User Icon Hover', {
-                    foo: 'bar',
-                    bar: 'foo',
-                });
-            }}
-        >
+        <Dropdown overlay={menu} placement={'bottomRight'}>
             <div className={styles.accountIconWrapper}>
                 {a_data?.admin ? (
                     <AdminAvatar

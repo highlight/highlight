@@ -63,6 +63,13 @@ type Mutation {
         resources: String!
         errors: [ErrorObjectInput]!
     ): ID
+    addSessionFeedback(
+        session_id: ID!
+        user_name: String
+        user_email: String
+        verbatim: String!
+        timestamp: Time!
+    ): ID!
 }
 
 type Query {

@@ -1,4 +1,6 @@
 import { namedOperations } from '@graph/operations';
+import { SessionCommentType } from '@graph/schemas';
+import { getFeedbackCommentSessionTimestamp } from '@util/comment/util';
 import { Menu, message } from 'antd';
 import { H } from 'highlight.run';
 import React, { PropsWithChildren } from 'react';
@@ -31,14 +33,14 @@ const SessionCommentHeader = ({
     menuItems,
     footer,
 }: PropsWithChildren<Props>) => {
-    const { pause, session } = useReplayerContext();
+    const { pause, session, replayer } = useReplayerContext();
     const [deleteSessionComment] = useDeleteSessionCommentMutation({
         refetchQueries: [namedOperations.Query.GetSessionComments],
     });
     const history = useHistory();
 
     const getCommentLink = () => {
-        const url = onGetLinkWithTimestamp(comment.timestamp);
+        const url = onGetLinkWithTimestamp(comment.timestamp || 0);
         url.searchParams.set(PlayerSearchParameters.commentId, comment.id);
         return url;
     };
@@ -54,6 +56,21 @@ const SessionCommentHeader = ({
             >
                 Copy link
             </Menu.Item>
+            {comment.type === SessionCommentType.Feedback &&
+                comment?.metadata?.email && (
+                    <Menu.Item
+                        onClick={() => {
+                            message.success(
+                                "Copied the feedback provider's email!"
+                            );
+                            navigator.clipboard.writeText(
+                                comment.metadata?.email as string
+                            );
+                        }}
+                    >
+                        Copy feedback email
+                    </Menu.Item>
+                )}
             <Menu.Item
                 onClick={() => {
                     const urlSearchParams = new URLSearchParams();
@@ -67,10 +84,24 @@ const SessionCommentHeader = ({
                             history.location.pathname
                         }?${urlSearchParams.toString()}`
                     );
-                    pause(comment.timestamp);
+
+                    let commentTimestamp = comment.timestamp || 0;
+
+                    if (comment.type === SessionCommentType.Feedback) {
+                        const sessionStartTime = replayer?.getMetaData()
+                            .startTime;
+
+                        if (sessionStartTime) {
+                            commentTimestamp = getFeedbackCommentSessionTimestamp(
+                                comment,
+                                sessionStartTime
+                            );
+                        }
+                    }
+                    pause(commentTimestamp);
                     message.success(
                         `Changed player time to where comment was created at ${MillisToMinutesAndSeconds(
-                            comment.timestamp
+                            commentTimestamp
                         )}.`
                     );
                 }}

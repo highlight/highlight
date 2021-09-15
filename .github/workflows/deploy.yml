@@ -1,0 +1,59 @@
+name: Deploy to AWS
+on:
+    push:
+        branches:
+            - 'master'
+        paths:
+            - 'backend/**'
+            - '.github/workflows/deploy.yml'
+jobs:
+    deploy_backend:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check out the repo
+              uses: actions/checkout@v2
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v1
+              with:
+                aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                aws-region: us-east-2
+            - name: Login to Amazon ECR
+              id: login-ecr
+              uses: aws-actions/amazon-ecr-login@v1
+            - name: Build, tag, and push image to Amazon ECR
+              env:
+                ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+                ECR_REPOSITORY: highlight-production-ecr-repo
+                IMAGE_TAG: ${{ github.sha }}
+              run: |
+                docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f deploy/Dockerfile.prod .
+                docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+            # Edit and deploy private-graph
+            - name: Replace image label for private-graph task
+              id: image-private-graph
+              uses: aws-actions/amazon-ecs-render-task-definition@v1
+              with:
+                task-definition: deploy/private-graph-task.json
+                container-name: highlight-backend
+                image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}
+            - name: Deploy to Amazon ECS private-graph service
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              with:
+                task-definition: ${{ steps.image-private-graph.outputs.task-definition }}
+                service: private-graph-service
+                cluster: highlight-production-cluster
+            # Edit and deploy public-graph
+            - name: Replace image label for public-graph task
+              id: image-public-graph
+              uses: aws-actions/amazon-ecs-render-task-definition@v1
+              with:
+                task-definition: deploy/public-graph-task.json
+                container-name: highlight-backend
+                image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}
+            - name: Deploy to Amazon ECS public-graph service
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              with:
+                task-definition: ${{ steps.image-public-graph.outputs.task-definition }}
+                service: public-graph-service
+                cluster: highlight-production-cluster

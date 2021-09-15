@@ -1,35 +1,40 @@
 import React from 'react';
 
-import Button from '../../../Button/Button/Button';
+import Button, {
+    GenericHighlightButtonProps,
+} from '../../../Button/Button/Button';
 import { useAuthContext } from './../../../../authentication/AuthContext';
 import styles from './PersonalNotificationButton.module.scss';
 import { useSlackBot } from './utils/utils';
 
-const PersonalNotificationButton = () => {
-    const { isHighlightAdmin, admin } = useAuthContext();
+type Props = { text?: string } & Pick<
+    GenericHighlightButtonProps,
+    'className' | 'style'
+>;
 
-    let redirectUrl = window.location.pathname;
-    // this doesn't work if we redirect to /alerts
-    redirectUrl = redirectUrl.replace('alerts', 'home');
-    if (redirectUrl.length > 3) {
-        // remove orgid and prepended slash
-        redirectUrl = redirectUrl.substring(redirectUrl.indexOf('/', 1) + 1);
-    }
-    const { slackUrl: slackBotUrl } = useSlackBot(redirectUrl);
+const PersonalNotificationButton = ({ ...props }: Props) => {
+    const { admin, isLoggedIn } = useAuthContext();
 
-    if (!isHighlightAdmin) return null;
+    const { slackUrl: slackBotUrl } = useSlackBot();
+
+    if (!isLoggedIn) return null;
 
     // personal notifications are already setup
-    if (!!admin?.slack_im_channel_id) return null;
+    if (
+        !!admin?.slack_im_channel_id &&
+        process.env.REACT_APP_ENVIRONMENT !== 'dev'
+    )
+        return null;
 
     return (
         <Button
-            className={styles.personalNotificationButton}
+            className={props?.className || styles.personalNotificationButton}
             type="primary"
             trackingId="EnablePersonalNotificationButton"
             href={slackBotUrl}
+            style={props.style}
         >
-            Enable Personal Notifications?
+            {props?.text || 'Get Comment Notifications'}
         </Button>
     );
 };

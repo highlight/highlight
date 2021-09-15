@@ -413,7 +413,10 @@ export const Toolbar = () => {
                                 <Skeleton count={1} width="100px" />
                             ) : (
                                 <>
-                                    {MillisToMinutesAndSeconds(time)}
+                                    {MillisToMinutesAndSeconds(
+                                        //     Sometimes the replayer will report a higher time when the player has ended.
+                                        time >= max ? max : time
+                                    )}
                                     &nbsp;/&nbsp;
                                     {MillisToMinutesAndSeconds(max)}
                                 </>

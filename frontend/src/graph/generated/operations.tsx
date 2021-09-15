@@ -235,9 +235,11 @@ export type CreateSessionCommentMutation = { __typename?: 'Mutation' } & {
             | 'x_coordinate'
             | 'y_coordinate'
         > & {
-                author: { __typename?: 'SanitizedAdmin' } & Pick<
-                    Types.SanitizedAdmin,
-                    'id' | 'name' | 'email'
+                author?: Types.Maybe<
+                    { __typename?: 'SanitizedAdmin' } & Pick<
+                        Types.SanitizedAdmin,
+                        'id' | 'name' | 'email'
+                    >
                 >;
             }
     >;
@@ -569,10 +571,14 @@ export type GetSessionCommentsQuery = { __typename?: 'Query' } & {
                 | 'text'
                 | 'x_coordinate'
                 | 'y_coordinate'
+                | 'type'
+                | 'metadata'
             > & {
-                    author: { __typename?: 'SanitizedAdmin' } & Pick<
-                        Types.SanitizedAdmin,
-                        'id' | 'name' | 'email' | 'photo_url'
+                    author?: Types.Maybe<
+                        { __typename?: 'SanitizedAdmin' } & Pick<
+                            Types.SanitizedAdmin,
+                            'id' | 'name' | 'email' | 'photo_url'
+                        >
                     >;
                 }
         >
@@ -588,11 +594,19 @@ export type GetNotificationsQuery = { __typename?: 'Query' } & {
         Types.Maybe<
             { __typename?: 'SessionComment' } & Pick<
                 Types.SessionComment,
-                'id' | 'timestamp' | 'updated_at' | 'session_id' | 'text'
+                | 'id'
+                | 'timestamp'
+                | 'updated_at'
+                | 'session_id'
+                | 'text'
+                | 'type'
+                | 'metadata'
             > & {
-                    author: { __typename?: 'SanitizedAdmin' } & Pick<
-                        Types.SanitizedAdmin,
-                        'id' | 'name' | 'email' | 'photo_url'
+                    author?: Types.Maybe<
+                        { __typename?: 'SanitizedAdmin' } & Pick<
+                            Types.SanitizedAdmin,
+                            'id' | 'name' | 'email' | 'photo_url'
+                        >
                     >;
                 }
         >
@@ -628,9 +642,11 @@ export type GetSessionCommentsForAdminQuery = { __typename?: 'Query' } & {
                 | 'updated_at'
                 | 'text'
             > & {
-                    author: { __typename?: 'SanitizedAdmin' } & Pick<
-                        Types.SanitizedAdmin,
-                        'id' | 'name' | 'email' | 'photo_url'
+                    author?: Types.Maybe<
+                        { __typename?: 'SanitizedAdmin' } & Pick<
+                            Types.SanitizedAdmin,
+                            'id' | 'name' | 'email' | 'photo_url'
+                        >
                     >;
                 }
         >
@@ -679,6 +695,9 @@ export type GetOnboardingStepsQuery = { __typename?: 'Query' } & Pick<
         >;
         organizationHasViewedASession?: Types.Maybe<
             { __typename?: 'Session' } & Pick<Types.Session, 'id'>
+        >;
+        admin?: Types.Maybe<
+            { __typename?: 'Admin' } & Pick<Types.Admin, 'slack_im_channel_id'>
         >;
     };
 
@@ -876,6 +895,8 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
                             | 'os'
                             | 'browser'
                             | 'visited_url'
+                            | 'fingerprint'
+                            | 'identifier'
                         >
                     >
                 >;
