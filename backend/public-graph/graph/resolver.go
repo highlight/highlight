@@ -72,12 +72,14 @@ var PropertyType = struct {
 }
 
 type ErrorMetaData struct {
-	Timestamp  time.Time `json:"timestamp"`
-	ErrorID    int       `json:"error_id"`
-	SessionID  int       `json:"session_id"`
-	Browser    string    `json:"browser"`
-	OS         string    `json:"os"`
-	VisitedURL string    `json:"visited_url"`
+	Timestamp   time.Time `json:"timestamp"`
+	ErrorID     int       `json:"error_id"`
+	SessionID   int       `json:"session_id"`
+	Browser     string    `json:"browser"`
+	OS          string    `json:"os"`
+	VisitedURL  string    `json:"visited_url"`
+	Identifier  string    `json:"identifier"`
+	Fingerprint int       `json:"fingerprint"`
 }
 
 type FieldData struct {

@@ -895,6 +895,8 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
                             | 'os'
                             | 'browser'
                             | 'visited_url'
+                            | 'fingerprint'
+                            | 'identifier'
                         >
                     >
                 >;

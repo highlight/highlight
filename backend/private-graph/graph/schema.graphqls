@@ -146,6 +146,8 @@ type ErrorMetadata {
     os: String
     browser: String
     visited_url: String
+    fingerprint: String!
+    identifier: String
 }
 
 type ErrorTrace {

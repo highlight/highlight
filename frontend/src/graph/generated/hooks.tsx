@@ -2651,6 +2651,8 @@ export const GetErrorGroupDocument = gql`
                 os
                 browser
                 visited_url
+                fingerprint
+                identifier
             }
             field_group {
                 name
