@@ -1535,101 +1535,110 @@ export type GetAlertsPagePayloadQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
 }>;
 
-export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
-    slack_channel_suggestion?: Types.Maybe<
-        Array<
-            Types.Maybe<
-                { __typename?: 'SanitizedSlackChannel' } & Pick<
-                    Types.SanitizedSlackChannel,
-                    'webhook_channel' | 'webhook_channel_id'
+export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
+    Types.Query,
+    'is_integrated_with_slack'
+> & {
+        slack_channel_suggestion?: Types.Maybe<
+            Array<
+                Types.Maybe<
+                    { __typename?: 'SanitizedSlackChannel' } & Pick<
+                        Types.SanitizedSlackChannel,
+                        'webhook_channel' | 'webhook_channel_id'
+                    >
                 >
             >
-        >
-    >;
-    environment_suggestion?: Types.Maybe<
-        Array<
-            Types.Maybe<
-                { __typename?: 'Field' } & Pick<Types.Field, 'name' | 'value'>
+        >;
+        environment_suggestion?: Types.Maybe<
+            Array<
+                Types.Maybe<
+                    { __typename?: 'Field' } & Pick<
+                        Types.Field,
+                        'name' | 'value'
+                    >
+                >
             >
-        >
-    >;
-    error_alert?: Types.Maybe<
-        { __typename?: 'ErrorAlert' } & Pick<
-            Types.ErrorAlert,
-            'ExcludedEnvironments' | 'CountThreshold' | 'ThresholdWindow' | 'id'
-        > & {
-                ChannelsToNotify: Array<
-                    Types.Maybe<
-                        { __typename?: 'SanitizedSlackChannel' } & Pick<
-                            Types.SanitizedSlackChannel,
-                            'webhook_channel' | 'webhook_channel_id'
+        >;
+        error_alert?: Types.Maybe<
+            { __typename?: 'ErrorAlert' } & Pick<
+                Types.ErrorAlert,
+                | 'ExcludedEnvironments'
+                | 'CountThreshold'
+                | 'ThresholdWindow'
+                | 'id'
+            > & {
+                    ChannelsToNotify: Array<
+                        Types.Maybe<
+                            { __typename?: 'SanitizedSlackChannel' } & Pick<
+                                Types.SanitizedSlackChannel,
+                                'webhook_channel' | 'webhook_channel_id'
+                            >
                         >
-                    >
-                >;
-            }
-    >;
-    new_user_alert?: Types.Maybe<
-        { __typename?: 'SessionAlert' } & Pick<
-            Types.SessionAlert,
-            'id' | 'ExcludedEnvironments' | 'CountThreshold'
-        > & {
-                ChannelsToNotify: Array<
-                    Types.Maybe<
-                        { __typename?: 'SanitizedSlackChannel' } & Pick<
-                            Types.SanitizedSlackChannel,
-                            'webhook_channel' | 'webhook_channel_id'
+                    >;
+                }
+        >;
+        new_user_alert?: Types.Maybe<
+            { __typename?: 'SessionAlert' } & Pick<
+                Types.SessionAlert,
+                'id' | 'ExcludedEnvironments' | 'CountThreshold'
+            > & {
+                    ChannelsToNotify: Array<
+                        Types.Maybe<
+                            { __typename?: 'SanitizedSlackChannel' } & Pick<
+                                Types.SanitizedSlackChannel,
+                                'webhook_channel' | 'webhook_channel_id'
+                            >
                         >
-                    >
-                >;
-            }
-    >;
-    track_properties_alert?: Types.Maybe<
-        { __typename?: 'SessionAlert' } & Pick<
-            Types.SessionAlert,
-            'id' | 'ExcludedEnvironments' | 'CountThreshold'
-        > & {
-                ChannelsToNotify: Array<
-                    Types.Maybe<
-                        { __typename?: 'SanitizedSlackChannel' } & Pick<
-                            Types.SanitizedSlackChannel,
-                            'webhook_channel' | 'webhook_channel_id'
+                    >;
+                }
+        >;
+        track_properties_alert?: Types.Maybe<
+            { __typename?: 'SessionAlert' } & Pick<
+                Types.SessionAlert,
+                'id' | 'ExcludedEnvironments' | 'CountThreshold'
+            > & {
+                    ChannelsToNotify: Array<
+                        Types.Maybe<
+                            { __typename?: 'SanitizedSlackChannel' } & Pick<
+                                Types.SanitizedSlackChannel,
+                                'webhook_channel' | 'webhook_channel_id'
+                            >
                         >
-                    >
-                >;
-                TrackProperties: Array<
-                    Types.Maybe<
-                        { __typename?: 'TrackProperty' } & Pick<
-                            Types.TrackProperty,
-                            'id' | 'name' | 'value'
+                    >;
+                    TrackProperties: Array<
+                        Types.Maybe<
+                            { __typename?: 'TrackProperty' } & Pick<
+                                Types.TrackProperty,
+                                'id' | 'name' | 'value'
+                            >
                         >
-                    >
-                >;
-            }
-    >;
-    user_properties_alert?: Types.Maybe<
-        { __typename?: 'SessionAlert' } & Pick<
-            Types.SessionAlert,
-            'id' | 'ExcludedEnvironments' | 'CountThreshold'
-        > & {
-                ChannelsToNotify: Array<
-                    Types.Maybe<
-                        { __typename?: 'SanitizedSlackChannel' } & Pick<
-                            Types.SanitizedSlackChannel,
-                            'webhook_channel' | 'webhook_channel_id'
+                    >;
+                }
+        >;
+        user_properties_alert?: Types.Maybe<
+            { __typename?: 'SessionAlert' } & Pick<
+                Types.SessionAlert,
+                'id' | 'ExcludedEnvironments' | 'CountThreshold'
+            > & {
+                    ChannelsToNotify: Array<
+                        Types.Maybe<
+                            { __typename?: 'SanitizedSlackChannel' } & Pick<
+                                Types.SanitizedSlackChannel,
+                                'webhook_channel' | 'webhook_channel_id'
+                            >
                         >
-                    >
-                >;
-                UserProperties: Array<
-                    Types.Maybe<
-                        { __typename?: 'UserProperty' } & Pick<
-                            Types.UserProperty,
-                            'id' | 'name' | 'value'
+                    >;
+                    UserProperties: Array<
+                        Types.Maybe<
+                            { __typename?: 'UserProperty' } & Pick<
+                                Types.UserProperty,
+                                'id' | 'name' | 'value'
+                            >
                         >
-                    >
-                >;
-            }
-    >;
-};
+                    >;
+                }
+        >;
+    };
 
 export const namedOperations = {
     Query: {

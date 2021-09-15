@@ -474,6 +474,7 @@ type Query {
     organizationSuggestion(query: String!): [Organization]
     environment_suggestion(query: String!, organization_id: ID!): [Field]
     slack_channel_suggestion(organization_id: ID!): [SanitizedSlackChannel]
+    is_integrated_with_slack(organization_id: ID!): Boolean!
     organization(id: ID!): Organization
     admin: Admin
     segments(organization_id: ID!): [Segment]

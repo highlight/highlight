@@ -1,3 +1,4 @@
+import classNames from 'classnames';
 import React from 'react';
 
 import Button, {
@@ -12,7 +13,7 @@ type Props = { text?: string } & Pick<
     'className' | 'style'
 >;
 
-const PersonalNotificationButton = ({ ...props }: Props) => {
+const PersonalNotificationButton = ({ className, style, text }: Props) => {
     const { admin, isLoggedIn } = useAuthContext();
 
     const { slackUrl: slackBotUrl } = useSlackBot();
@@ -20,21 +21,17 @@ const PersonalNotificationButton = ({ ...props }: Props) => {
     if (!isLoggedIn) return null;
 
     // personal notifications are already setup
-    if (
-        !!admin?.slack_im_channel_id &&
-        process.env.REACT_APP_ENVIRONMENT !== 'dev'
-    )
-        return null;
+    if (!!admin?.slack_im_channel_id) return null;
 
     return (
         <Button
-            className={props?.className || styles.personalNotificationButton}
+            className={classNames(className, styles.personalNotificationButton)}
             type="primary"
             trackingId="EnablePersonalNotificationButton"
             href={slackBotUrl}
-            style={props.style}
+            style={style}
         >
-            {props?.text || 'Get Comment Notifications'}
+            {text || 'Get Comment Notifications'}
         </Button>
     );
 };

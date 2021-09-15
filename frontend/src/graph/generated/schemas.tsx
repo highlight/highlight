@@ -471,6 +471,7 @@ export type Query = {
     organizationSuggestion?: Maybe<Array<Maybe<Organization>>>;
     environment_suggestion?: Maybe<Array<Maybe<Field>>>;
     slack_channel_suggestion?: Maybe<Array<Maybe<SanitizedSlackChannel>>>;
+    is_integrated_with_slack: Scalars['Boolean'];
     organization?: Maybe<Organization>;
     admin?: Maybe<Admin>;
     segments?: Maybe<Array<Maybe<Segment>>>;
@@ -650,6 +651,10 @@ export type QueryEnvironment_SuggestionArgs = {
 };
 
 export type QuerySlack_Channel_SuggestionArgs = {
+    organization_id: Scalars['ID'];
+};
+
+export type QueryIs_Integrated_With_SlackArgs = {
     organization_id: Scalars['ID'];
 };
 

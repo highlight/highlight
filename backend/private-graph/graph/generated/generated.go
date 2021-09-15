@@ -271,6 +271,7 @@ type ComplexityRoot struct {
 		Events                         func(childComplexity int, sessionID *int, sessionSecureID *string) int
 		FieldSuggestion                func(childComplexity int, organizationID int, name string, query string) int
 		IsIntegrated                   func(childComplexity int, organizationID int) int
+		IsIntegratedWithSlack          func(childComplexity int, organizationID int) int
 		Messages                       func(childComplexity int, sessionID *int, sessionSecureID *string) int
 		NewUserAlert                   func(childComplexity int, organizationID int) int
 		NewUsersCount                  func(childComplexity int, organizationID int, lookBackPeriod int) int
@@ -523,6 +524,7 @@ type QueryResolver interface {
 	OrganizationSuggestion(ctx context.Context, query string) ([]*model1.Organization, error)
 	EnvironmentSuggestion(ctx context.Context, query string, organizationID int) ([]*model1.Field, error)
 	SlackChannelSuggestion(ctx context.Context, organizationID int) ([]*model.SanitizedSlackChannel, error)
+	IsIntegratedWithSlack(ctx context.Context, organizationID int) (bool, error)
 	Organization(ctx context.Context, id int) (*model1.Organization, error)
 	Admin(ctx context.Context) (*model1.Admin, error)
 	Segments(ctx context.Context, organizationID int) ([]*model1.Segment, error)
@@ -1858,6 +1860,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.IsIntegrated(childComplexity, args["organization_id"].(int)), true
+
+	case "Query.is_integrated_with_slack":
+		if e.complexity.Query.IsIntegratedWithSlack == nil {
+			break
+		}
+
+		args, err := ec.field_Query_is_integrated_with_slack_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.IsIntegratedWithSlack(childComplexity, args["organization_id"].(int)), true
 
 	case "Query.messages":
 		if e.complexity.Query.Messages == nil {
@@ -3276,6 +3290,7 @@ type Query {
     organizationSuggestion(query: String!): [Organization]
     environment_suggestion(query: String!, organization_id: ID!): [Field]
     slack_channel_suggestion(organization_id: ID!): [SanitizedSlackChannel]
+    is_integrated_with_slack(organization_id: ID!): Boolean!
     organization(id: ID!): Organization
     admin: Admin
     segments(organization_id: ID!): [Segment]
@@ -4863,6 +4878,21 @@ func (ec *executionContext) field_Query_field_suggestion_args(ctx context.Contex
 }
 
 func (ec *executionContext) field_Query_isIntegrated_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organization_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_is_integrated_with_slack_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -11365,6 +11395,48 @@ func (ec *executionContext) _Query_slack_channel_suggestion(ctx context.Context,
 	return ec.marshalOSanitizedSlackChannel2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannel(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_is_integrated_with_slack(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_is_integrated_with_slack_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().IsIntegratedWithSlack(rctx, args["organization_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_organization(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -17606,6 +17678,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_slack_channel_suggestion(ctx, field)
+				return res
+			})
+		case "is_integrated_with_slack":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_is_integrated_with_slack(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			})
 		case "organization":

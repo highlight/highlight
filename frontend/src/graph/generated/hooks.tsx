@@ -4517,6 +4517,7 @@ export type GetSlackChannelSuggestionQueryResult = Apollo.QueryResult<
 >;
 export const GetAlertsPagePayloadDocument = gql`
     query GetAlertsPagePayload($organization_id: ID!) {
+        is_integrated_with_slack(organization_id: $organization_id)
         slack_channel_suggestion(organization_id: $organization_id) {
             webhook_channel
             webhook_channel_id

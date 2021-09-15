@@ -1972,6 +1972,16 @@ func (r *queryResolver) SlackChannelSuggestion(ctx context.Context, organization
 	return ret, nil
 }
 
+func (r *queryResolver) IsIntegratedWithSlack(ctx context.Context, organizationID int) (bool, error) {
+	org, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID)
+
+	if err != nil {
+		return false, e.Wrap(err, "error querying organization")
+	}
+
+	return org.SlackAccessToken != nil, nil
+}
+
 func (r *queryResolver) Organization(ctx context.Context, id int) (*model.Organization, error) {
 	org, err := r.isAdminInOrganizationOrDemoOrg(ctx, id)
 	if err != nil {

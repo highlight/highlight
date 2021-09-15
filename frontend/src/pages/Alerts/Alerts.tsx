@@ -1,3 +1,5 @@
+import Alert from '@components/Alert/Alert';
+import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
 import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
@@ -57,6 +59,24 @@ const AlertsPage = () => {
             <p className={layoutStyles.subTitle}>
                 Configure the environments you want alerts for.
             </p>
+            {!loading && !data?.is_integrated_with_slack && (
+                <Alert
+                    trackingId="AlertPageSlackBotIntegration"
+                    message="Slack isn't connected"
+                    type="error"
+                    description={
+                        <>
+                            Highlight needs to be connected with Slack in order
+                            to send you and your team messages.
+                            <PersonalNotificationButton
+                                text="Connect Highlight with Slack"
+                                className={styles.integrationButton}
+                            />
+                        </>
+                    }
+                    className={styles.integrationAlert}
+                />
+            )}
 
             <div className={styles.configurationContainer}>
                 {loading ? (
