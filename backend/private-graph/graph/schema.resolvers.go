@@ -869,7 +869,7 @@ func (r *mutationResolver) OpenSlackConversation(ctx context.Context, organizati
 		SLACK_CLIENT_ID     string
 		SLACK_CLIENT_SECRET string
 	)
-	_, err := r.isAdminInOrganization(ctx, organizationID)
+	org, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
@@ -893,8 +893,10 @@ func (r *mutationResolver) OpenSlackConversation(ctx context.Context, organizati
 		return nil, e.Wrap(err, "error getting slack oauth response")
 	}
 
+	if org.SlackAccessToken == nil {
 	if err := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).Updates(&model.Organization{SlackAccessToken: &resp.AccessToken}).Error; err != nil {
 		return nil, e.Wrap(err, "error updating slack access token in org")
+		}
 	}
 
 	slackClient := slack.New(resp.AccessToken)
@@ -911,6 +913,42 @@ func (r *mutationResolver) OpenSlackConversation(ctx context.Context, organizati
 		return nil, e.Wrap(err, "error posting message to user")
 	}
 	return &model.T, nil
+}
+
+func (r *mutationResolver) AddSlackBotIntegrationToOrganization(ctx context.Context, organizationID int, code string, redirectPath string) (bool, error) {
+	var (
+		SLACK_CLIENT_ID     string
+		SLACK_CLIENT_SECRET string
+	)
+	_, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return false, e.Wrap(err, "admin is not in organization")
+	}
+	redirect := os.Getenv("FRONTEND_URI")
+	redirect += "/" + strconv.Itoa(organizationID) + "/" + redirectPath
+	if tempSlackClientID, ok := os.LookupEnv("SLACK_CLIENT_ID"); ok && tempSlackClientID != "" {
+		SLACK_CLIENT_ID = tempSlackClientID
+	}
+	if tempSlackClientSecret, ok := os.LookupEnv("SLACK_CLIENT_SECRET"); ok && tempSlackClientSecret != "" {
+		SLACK_CLIENT_SECRET = tempSlackClientSecret
+	}
+	resp, err := slack.
+		GetOAuthV2Response(
+			&http.Client{},
+			SLACK_CLIENT_ID,
+			SLACK_CLIENT_SECRET,
+			code,
+			redirect,
+		)
+	if err != nil {
+		return false, e.Wrap(err, "error getting slack oauth response")
+	}
+
+	if err := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).Updates(&model.Organization{SlackAccessToken: &resp.AccessToken}).Error; err != nil {
+		return false, e.Wrap(err, "error updating slack access token in org")
+	}
+
+	return true, nil
 }
 
 func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.ErrorAlert, error) {

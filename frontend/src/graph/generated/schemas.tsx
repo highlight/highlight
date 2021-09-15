@@ -700,6 +700,7 @@ export type Mutation = {
     createErrorComment?: Maybe<ErrorComment>;
     deleteErrorComment?: Maybe<Scalars['Boolean']>;
     openSlackConversation?: Maybe<Scalars['Boolean']>;
+    addSlackBotIntegrationToOrganization: Scalars['Boolean'];
     updateErrorAlert?: Maybe<ErrorAlert>;
     updateNewUserAlert?: Maybe<SessionAlert>;
     updateTrackPropertiesAlert?: Maybe<SessionAlert>;
@@ -842,6 +843,12 @@ export type MutationDeleteErrorCommentArgs = {
 };
 
 export type MutationOpenSlackConversationArgs = {
+    organization_id: Scalars['ID'];
+    code: Scalars['String'];
+    redirect_path: Scalars['String'];
+};
+
+export type MutationAddSlackBotIntegrationToOrganizationArgs = {
     organization_id: Scalars['ID'];
     code: Scalars['String'];
     redirect_path: Scalars['String'];

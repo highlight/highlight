@@ -1,14 +1,19 @@
 import { namedOperations } from '@graph/operations';
+import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import { useEffect, useState } from 'react';
 import { useHistory } from 'react-router';
 
-import { useOpenSlackConversationMutation } from '../../../../../graph/generated/hooks';
+import {
+    useAddSlackBotIntegrationToOrganizationMutation,
+    useOpenSlackConversationMutation,
+} from '../../../../../graph/generated/hooks';
 import { GetBaseURL } from '../../../../../util/window';
 
 export interface UseSlackBotProps {
     type: 'Organization' | 'Personal';
+    watch: boolean;
 }
 
 const PersonalSlackScopes =
@@ -16,18 +21,25 @@ const PersonalSlackScopes =
 const OrganizationSlackScopes =
     'channels:join,channels:manage,channels:read,chat:write,groups:read,groups:write,im:read,im:write,mpim:read,mpim:write,users:read';
 
-export const useSlackBot = ({ type }: UseSlackBotProps) => {
+export const useSlackBot = ({ type, watch }: UseSlackBotProps) => {
     let redirectPath = window.location.pathname;
-    // this doesn't work if we redirect to /alerts
-    redirectPath = redirectPath.replace('alerts', 'home');
     if (redirectPath.length > 3) {
         // remove orgid and prepended slash
         redirectPath = redirectPath.substring(redirectPath.indexOf('/', 1) + 1);
     }
+    const [setupType] = useLocalStorage<'' | 'Personal' | 'Organization'>(
+        'Highlight-slackBotSetupType',
+        ''
+    );
     const history = useHistory();
     const { organization_id } = useParams<{ organization_id: string }>();
     const [openSlackConversation] = useOpenSlackConversationMutation({
         refetchQueries: [namedOperations.Query.GetOrganization],
+    });
+    const [
+        addSlackBotIntegrationToOrganization,
+    ] = useAddSlackBotIntegrationToOrganizationMutation({
+        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
     const [loading, setLoading] = useState<boolean>(false);
 
@@ -44,7 +56,7 @@ export const useSlackBot = ({ type }: UseSlackBotProps) => {
         const sideEffect = async () => {
             try {
                 setLoading(true);
-                if (type === 'Personal') {
+                if (setupType === 'Personal') {
                     await openSlackConversation({
                         variables: {
                             organization_id: organization_id,
@@ -53,11 +65,17 @@ export const useSlackBot = ({ type }: UseSlackBotProps) => {
                         },
                     });
                     message.success(
-                        'Personal tagging slack notifications have been setup.',
+                        'Personal Slack notifications have been setup!',
                         5
                     );
-                } else if (type === 'Organization') {
-                    // TODO: Implement
+                } else if (setupType === 'Organization') {
+                    await addSlackBotIntegrationToOrganization({
+                        variables: {
+                            organization_id: organization_id,
+                            code,
+                            redirect_path: redirectPath,
+                        },
+                    });
                     message.success(
                         'Highlight is now integrated with Slack!',
                         5
@@ -74,14 +92,18 @@ export const useSlackBot = ({ type }: UseSlackBotProps) => {
             history.replace({ search: '' });
         };
 
-        sideEffect();
+        if (watch) {
+            sideEffect();
+        }
     }, [
         openSlackConversation,
         history,
         loading,
         organization_id,
         redirectPath,
-        type,
+        addSlackBotIntegrationToOrganization,
+        watch,
+        setupType,
     ]);
 
     return {

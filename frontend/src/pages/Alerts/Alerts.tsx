@@ -9,7 +9,6 @@ import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import { useGetAlertsPagePayloadQuery } from '../../graph/generated/hooks';
 import { AlertConfigurationCard } from './AlertConfigurationCard/AlertConfigurationCard';
 import styles from './Alerts.module.scss';
-import { useSlack } from './SlackIntegration/SlackIntegration';
 
 export enum ALERT_TYPE {
     Error,
@@ -51,7 +50,6 @@ const AlertsPage = () => {
     const { data, loading } = useGetAlertsPagePayloadQuery({
         variables: { organization_id: organization_id },
     });
-    const { slackUrl } = useSlack('alerts', ['GetAlertsPagePayload']);
 
     return (
         <LeadAlignLayout>
@@ -116,7 +114,6 @@ const AlertsPage = () => {
                             channelSuggestions={
                                 data?.slack_channel_suggestion || []
                             }
-                            slackUrl={slackUrl}
                         />
                         <AlertConfigurationCard
                             configuration={ALERT_CONFIGURATIONS[1]}
@@ -129,7 +126,6 @@ const AlertsPage = () => {
                             channelSuggestions={
                                 data?.slack_channel_suggestion || []
                             }
-                            slackUrl={slackUrl}
                         />
                         <AlertConfigurationCard
                             configuration={ALERT_CONFIGURATIONS[2]}
@@ -144,7 +140,6 @@ const AlertsPage = () => {
                             channelSuggestions={
                                 data?.slack_channel_suggestion || []
                             }
-                            slackUrl={slackUrl}
                         />
                         <AlertConfigurationCard
                             configuration={ALERT_CONFIGURATIONS[3]}
@@ -159,7 +154,6 @@ const AlertsPage = () => {
                             channelSuggestions={
                                 data?.slack_channel_suggestion || []
                             }
-                            slackUrl={slackUrl}
                         />
                     </>
                 )}

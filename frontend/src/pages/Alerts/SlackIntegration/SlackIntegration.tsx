@@ -16,7 +16,7 @@ export const useSlack = (redirectPath: string, refetchQueries?: string[]) => {
     const [loading, setLoading] = useState<boolean>(false);
 
     const redirectUriOrigin = `${GetBaseURL()}/${organization_id}`;
-    const slackUrl = `https://slack.com/oauth/v2/authorize?client_id=1354469824468.1868913469441&scope=incoming-webhook&redirect_uri=${redirectUriOrigin}/${redirectPath}`;
+    const slackUrl = `https://slack.com/oauth/v2/authorize?client_id=1354469824468.1868913469441&scope=incoming-webhook&redirect_uri=${redirectUriOrigin}/${redirectPath}?type=123`;
 
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);

@@ -472,6 +472,62 @@ export type OpenSlackConversationMutationOptions = Apollo.BaseMutationOptions<
     Types.OpenSlackConversationMutation,
     Types.OpenSlackConversationMutationVariables
 >;
+export const AddSlackBotIntegrationToOrganizationDocument = gql`
+    mutation AddSlackBotIntegrationToOrganization(
+        $organization_id: ID!
+        $code: String!
+        $redirect_path: String!
+    ) {
+        addSlackBotIntegrationToOrganization(
+            organization_id: $organization_id
+            code: $code
+            redirect_path: $redirect_path
+        )
+    }
+`;
+export type AddSlackBotIntegrationToOrganizationMutationFn = Apollo.MutationFunction<
+    Types.AddSlackBotIntegrationToOrganizationMutation,
+    Types.AddSlackBotIntegrationToOrganizationMutationVariables
+>;
+
+/**
+ * __useAddSlackBotIntegrationToOrganizationMutation__
+ *
+ * To run a mutation, you first call `useAddSlackBotIntegrationToOrganizationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAddSlackBotIntegrationToOrganizationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [addSlackBotIntegrationToOrganizationMutation, { data, loading, error }] = useAddSlackBotIntegrationToOrganizationMutation({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *      code: // value for 'code'
+ *      redirect_path: // value for 'redirect_path'
+ *   },
+ * });
+ */
+export function useAddSlackBotIntegrationToOrganizationMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.AddSlackBotIntegrationToOrganizationMutation,
+        Types.AddSlackBotIntegrationToOrganizationMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.AddSlackBotIntegrationToOrganizationMutation,
+        Types.AddSlackBotIntegrationToOrganizationMutationVariables
+    >(AddSlackBotIntegrationToOrganizationDocument, baseOptions);
+}
+export type AddSlackBotIntegrationToOrganizationMutationHookResult = ReturnType<
+    typeof useAddSlackBotIntegrationToOrganizationMutation
+>;
+export type AddSlackBotIntegrationToOrganizationMutationResult = Apollo.MutationResult<Types.AddSlackBotIntegrationToOrganizationMutation>;
+export type AddSlackBotIntegrationToOrganizationMutationOptions = Apollo.BaseMutationOptions<
+    Types.AddSlackBotIntegrationToOrganizationMutation,
+    Types.AddSlackBotIntegrationToOrganizationMutationVariables
+>;
 export const AddSlackIntegrationToWorkspaceDocument = gql`
     mutation AddSlackIntegrationToWorkspace(
         $organization_id: ID!

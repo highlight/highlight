@@ -563,6 +563,11 @@ type Mutation {
         code: String!
         redirect_path: String!
     ): Boolean
+    addSlackBotIntegrationToOrganization(
+        organization_id: ID!
+        code: String!
+        redirect_path: String!
+    ): Boolean!
     updateErrorAlert(
         organization_id: ID!
         error_alert_id: ID!
