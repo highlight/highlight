@@ -31,7 +31,6 @@ export type Session = {
     __typename?: 'Session';
     id: Scalars['ID'];
     secure_id: Scalars['String'];
-    user_id: Scalars['ID'];
     fingerprint?: Maybe<Scalars['Int']>;
     os_name: Scalars['String'];
     os_version: Scalars['String'];

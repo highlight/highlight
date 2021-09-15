@@ -1688,7 +1688,6 @@ export const GetSessionDocument = gql`
             city
             state
             postal
-            user_id
             fingerprint
             created_at
             language
@@ -2241,7 +2240,6 @@ export const GetSessionsDocument = gql`
         ) {
             sessions {
                 id
-                user_id
                 fingerprint
                 identifier
                 os_name

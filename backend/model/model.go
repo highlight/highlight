@@ -317,7 +317,6 @@ type Session struct {
 	Model
 	// The ID used publicly for the URL on the client; used for sharing
 	SecureID    string `json:"secure_id" gorm:"uniqueIndex;not null;default:secure_id_generator()"`
-	UserID      int    `json:"user_id"`
 	Fingerprint int    `json:"fingerprint"`
 	// User provided identifier (see IdentifySession)
 	Identifier     string `json:"identifier"`

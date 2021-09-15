@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"math/rand"
 	"net/http"
 	"net/url"
 	"path"
@@ -407,7 +406,6 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 	// Get the language from the request header
 	acceptLanguageString := ctx.Value(model.ContextKeys.AcceptLanguage).(string)
 	n := time.Now()
-	userId := 5000 + rand.Intn(5000)
 	var fingerprintInt int = 0
 	if val, err := strconv.Atoi(fingerprint); err == nil {
 		fingerprintInt = val
@@ -417,7 +415,6 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 	withinBillingQuota := r.isOrgWithinBillingQuota(organization, n)
 
 	session := &model.Session{
-		UserID:                         userId,
 		Fingerprint:                    fingerprintInt,
 		OrganizationID:                 organizationID,
 		City:                           location.City,

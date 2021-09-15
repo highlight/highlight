@@ -99,9 +99,7 @@ const MinimalSessionCard = ({
                                     (session?.identifier
                                         ? session?.identifier
                                         : (
-                                              session?.fingerprint ||
-                                              session?.user_id ||
-                                              ''
+                                              session?.fingerprint || ''
                                           ).toString()) ?? ''
                                 }
                                 style={{ height: 25, width: 25 }}
@@ -121,10 +119,9 @@ const MinimalSessionCard = ({
                                 <Tooltip
                                     title={
                                         session?.identifier ||
-                                        `#${
-                                            session?.fingerprint ||
-                                            session?.user_id
-                                        }`
+                                        (session?.fingerprint
+                                            ? `#${session?.fingerprint}`
+                                            : 'unidentified')
                                     }
                                     mouseEnterDelay={0}
                                 >
@@ -135,10 +132,9 @@ const MinimalSessionCard = ({
                                         )}
                                     >
                                         {session?.identifier ||
-                                            `#${
-                                                session?.fingerprint ||
-                                                session?.user_id
-                                            }`}
+                                            (session?.fingerprint
+                                                ? `#${session?.fingerprint}`
+                                                : 'unidentified')}
                                     </div>
                                 </Tooltip>
                             </div>
