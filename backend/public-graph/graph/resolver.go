@@ -823,119 +823,110 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 		}
 		errors = filteredErrors
 
-		wp := workerpool.New(5)
-
 		// increment daily error table
-		wp.Submit(func() {
-			if len(errors) > 0 {
-				n := time.Now()
-				dailyError := &model.DailyErrorCount{}
-				currentDate := time.Date(n.UTC().Year(), n.UTC().Month(), n.UTC().Day(), 0, 0, 0, 0, time.UTC)
-				if err := r.DB.Where(&model.DailyErrorCount{
-					OrganizationID: organizationID,
-					Date:           &currentDate,
-				}).Attrs(&model.DailyErrorCount{
-					Count: 0,
-				}).FirstOrCreate(&dailyError).Error; err != nil {
-					log.Error(e.Wrap(err, "error getting or creating daily error count"))
-					return
-				}
+		if len(errors) > 0 {
+			n := time.Now()
+			dailyError := &model.DailyErrorCount{}
+			currentDate := time.Date(n.UTC().Year(), n.UTC().Month(), n.UTC().Day(), 0, 0, 0, 0, time.UTC)
+			if err := r.DB.Where(&model.DailyErrorCount{
+				OrganizationID: organizationID,
+				Date:           &currentDate,
+			}).Attrs(&model.DailyErrorCount{
+				Count: 0,
+			}).FirstOrCreate(&dailyError).Error; err != nil {
 
-				if err := r.DB.Exec("UPDATE daily_error_counts SET count = count + ? WHERE date = ? AND organization_id = ?", len(errors), currentDate, organizationID).Error; err != nil {
-					log.Error(e.Wrap(err, "error updating daily error count"))
-					return
-				}
+				return e.Wrap(err, "error getting or creating daily error count")
 			}
-		})
+
+			if err := r.DB.Exec("UPDATE daily_error_counts SET count = count + ? WHERE date = ? AND organization_id = ?", len(errors), currentDate, organizationID).Error; err != nil {
+				return e.Wrap(err, "error updating daily error count")
+			}
+		}
 
 		// put errors in db
 		putErrorsToDBSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("db.errors"), tracer.Tag("org_id", organizationID))
 		for _, v := range errors {
-			wp.Submit(func() {
-				traceBytes, err := json.Marshal(v.StackTrace)
-				if err != nil {
-					log.Errorf("Error marshaling trace: %v", v.StackTrace)
+			traceBytes, err := json.Marshal(v.StackTrace)
+			if err != nil {
+				log.Errorf("Error marshaling trace: %v", v.StackTrace)
+				continue
+			}
+			traceString := string(traceBytes)
+
+			errorToInsert := &model.ErrorObject{
+				OrganizationID: organizationID,
+				SessionID:      sessionID,
+				Environment:    sessionObj.Environment,
+				Event:          v.Event,
+				Type:           v.Type,
+				URL:            v.URL,
+				Source:         v.Source,
+				LineNumber:     v.LineNumber,
+				ColumnNumber:   v.ColumnNumber,
+				OS:             sessionObj.OSName,
+				Browser:        sessionObj.BrowserName,
+				StackTrace:     &traceString,
+				Timestamp:      v.Timestamp,
+				Payload:        v.Payload,
+			}
+
+			//create error fields array
+			metaFields := []*model.ErrorField{}
+			metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "browser", Value: sessionObj.BrowserName})
+			metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "os_name", Value: sessionObj.OSName})
+			metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "visited_url", Value: errorToInsert.URL})
+			metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "event", Value: errorToInsert.Event})
+			group, err := r.HandleErrorAndGroup(errorToInsert, v, metaFields, organizationID)
+			if err != nil {
+				log.Errorf("Error updating error group: %v", errorToInsert)
+				continue
+			}
+
+			// Get ErrorAlert object and send respective alert
+			r.AlertWorkerPool.Submit(func() {
+				var errorAlert model.ErrorAlert
+				if err := r.DB.Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{Alert: model.Alert{OrganizationID: organizationID}}).First(&errorAlert).Error; err != nil {
+					log.Error(e.Wrap(err, "error fetching ErrorAlert object"))
 					return
 				}
-				traceString := string(traceBytes)
-
-				errorToInsert := &model.ErrorObject{
-					OrganizationID: organizationID,
-					SessionID:      sessionID,
-					Environment:    sessionObj.Environment,
-					Event:          v.Event,
-					Type:           v.Type,
-					URL:            v.URL,
-					Source:         v.Source,
-					LineNumber:     v.LineNumber,
-					ColumnNumber:   v.ColumnNumber,
-					OS:             sessionObj.OSName,
-					Browser:        sessionObj.BrowserName,
-					StackTrace:     &traceString,
-					Timestamp:      v.Timestamp,
-					Payload:        v.Payload,
-				}
-
-				//create error fields array
-				metaFields := []*model.ErrorField{}
-				metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "browser", Value: sessionObj.BrowserName})
-				metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "os_name", Value: sessionObj.OSName})
-				metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "visited_url", Value: errorToInsert.URL})
-				metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "event", Value: errorToInsert.Event})
-				group, err := r.HandleErrorAndGroup(errorToInsert, v, metaFields, organizationID)
-				if err != nil {
-					log.Errorf("Error updating error group: %v", errorToInsert)
+				if errorAlert.CountThreshold < 1 {
 					return
 				}
-
-				// Get ErrorAlert object and send respective alert
-				r.AlertWorkerPool.Submit(func() {
-					var errorAlert model.ErrorAlert
-					if err := r.DB.Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{Alert: model.Alert{OrganizationID: organizationID}}).First(&errorAlert).Error; err != nil {
-						log.Error(e.Wrap(err, "error fetching ErrorAlert object"))
+				excludedEnvironments, err := errorAlert.GetExcludedEnvironments()
+				if err != nil {
+					log.Error(e.Wrap(err, "error getting excluded environments from ErrorAlert"))
+					return
+				}
+				for _, env := range excludedEnvironments {
+					if env != nil && *env == sessionObj.Environment {
 						return
 					}
-					if errorAlert.CountThreshold < 1 {
-						return
-					}
-					excludedEnvironments, err := errorAlert.GetExcludedEnvironments()
-					if err != nil {
-						log.Error(e.Wrap(err, "error getting excluded environments from ErrorAlert"))
-						return
-					}
-					for _, env := range excludedEnvironments {
-						if env != nil && *env == sessionObj.Environment {
-							return
-						}
-					}
-					numErrors := int64(-1)
-					if errorAlert.ThresholdWindow == nil {
-						t := 30
-						errorAlert.ThresholdWindow = &t
-					}
-					if err := r.DB.Model(&model.ErrorObject{}).Where(&model.ErrorObject{OrganizationID: organizationID, ErrorGroupID: group.ID}).Where("created_at > ?", time.Now().Add(time.Duration(-(*errorAlert.ThresholdWindow))*time.Minute)).Count(&numErrors).Error; err != nil {
-						log.Error(e.Wrapf(err, "error counting errors from past %d minutes", *errorAlert.ThresholdWindow))
-						return
-					}
-					if numErrors+1 < int64(errorAlert.CountThreshold) {
-						return
-					}
-					var org model.Organization
-					if err := r.DB.Model(&model.Organization{}).Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&org).Error; err != nil {
-						log.Error(e.Wrap(err, "error querying organization"))
-						return
-					}
-					err = errorAlert.SendSlackAlert(&org, sessionID, sessionObj.Identifier, group, &errorToInsert.URL, nil, nil, &numErrors)
-					if err != nil {
-						log.Error(e.Wrap(err, "error sending slack error message"))
-						return
-					}
-				})
+				}
+				numErrors := int64(-1)
+				if errorAlert.ThresholdWindow == nil {
+					t := 30
+					errorAlert.ThresholdWindow = &t
+				}
+				if err := r.DB.Model(&model.ErrorObject{}).Where(&model.ErrorObject{OrganizationID: organizationID, ErrorGroupID: group.ID}).Where("created_at > ?", time.Now().Add(time.Duration(-(*errorAlert.ThresholdWindow))*time.Minute)).Count(&numErrors).Error; err != nil {
+					log.Error(e.Wrapf(err, "error counting errors from past %d minutes", *errorAlert.ThresholdWindow))
+					return
+				}
+				if numErrors+1 < int64(errorAlert.CountThreshold) {
+					return
+				}
+				var org model.Organization
+				if err := r.DB.Model(&model.Organization{}).Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&org).Error; err != nil {
+					log.Error(e.Wrap(err, "error querying organization"))
+					return
+				}
+				err = errorAlert.SendSlackAlert(&org, sessionID, sessionObj.Identifier, group, &errorToInsert.URL, nil, nil, &numErrors)
+				if err != nil {
+					log.Error(e.Wrap(err, "error sending slack error message"))
+					return
+				}
 			})
 		}
-
-		wp.StopWait()
 
 		putErrorsToDBSpan.Finish()
 		return nil
