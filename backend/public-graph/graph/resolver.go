@@ -35,9 +35,10 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	WorkerPool    *workerpool.WorkerPool
-	DB            *gorm.DB
-	StorageClient *storage.StorageClient
+	PushPayloadWorkerPool *workerpool.WorkerPool
+	AlertWorkerPool       *workerpool.WorkerPool
+	DB                    *gorm.DB
+	StorageClient         *storage.StorageClient
 }
 
 type Location struct {

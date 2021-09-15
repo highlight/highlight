@@ -123,7 +123,7 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 }
 
 func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput) (*int, error) {
-	r.WorkerPool.Submit(
+	r.PushPayloadWorkerPool.Submit(
 		func() {
 			querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.querySession"))
 			querySessionSpan.SetTag("sessionID", sessionID)
@@ -312,7 +312,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 						}
 
 						// Get ErrorAlert object and send respective alert
-						go func() {
+						r.AlertWorkerPool.Submit(func() {
 							var errorAlert model.ErrorAlert
 							if err := r.DB.Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{Alert: model.Alert{OrganizationID: organizationID}}).First(&errorAlert).Error; err != nil {
 								log.Error(e.Wrap(err, "error fetching ErrorAlert object"))
@@ -353,8 +353,8 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 								log.Error(e.Wrap(err, "error sending slack error message"))
 								return
 							}
-						}()
-					})
+						})
+					}
 				}
 
 				wp.StopWait()
