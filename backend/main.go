@@ -163,7 +163,7 @@ func main() {
 	r.Use(cors.New(cors.Options{
 		AllowOriginRequestFunc: validateOrigin,
 		AllowCredentials:       true,
-		AllowedHeaders:         []string{"*"},
+		AllowedHeaders:         []string{"Content-Type", "Token", "Sentry-Trace"},
 	}).Handler)
 	r.MethodFunc(http.MethodGet, "/health", healthRouter(runtimeParsed))
 
