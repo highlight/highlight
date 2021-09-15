@@ -83,8 +83,14 @@ const ErrorAffectedUsers = ({ loading, errorGroup }: Props) => {
                                 ))}
                         </div>
                         <div className={styles.textContainer}>
-                            <h3>{uniqueUsers.length} Affected Users</h3>
-                            <p>{numberOfAffectedSessions} Total Sessions</p>
+                            <h3>
+                                {uniqueUsers.length} Affected User
+                                {uniqueUsers.length === 1 ? '' : 's'}
+                            </h3>
+                            <p>
+                                {numberOfAffectedSessions} Total Session
+                                {numberOfAffectedSessions === 1 ? '' : 's'}
+                            </p>
                             <p>
                                 Recency:{' '}
                                 {RelativeTime({
