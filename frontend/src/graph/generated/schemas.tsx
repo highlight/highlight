@@ -666,6 +666,9 @@ export type Mutation = {
     markSessionAsStarred?: Maybe<Session>;
     updateErrorGroupState?: Maybe<ErrorGroup>;
     deleteOrganization?: Maybe<Scalars['Boolean']>;
+    createAdminForOnPrem?: Maybe<Scalars['Boolean']>;
+    authenticateAdminForOnPrem?: Maybe<Scalars['String']>;
+    invalidateSessionForOnPrem?: Maybe<Scalars['Boolean']>;
     sendAdminInvite?: Maybe<Scalars['String']>;
     addAdminToOrganization?: Maybe<Scalars['ID']>;
     deleteAdminFromOrganization?: Maybe<Scalars['ID']>;
@@ -718,6 +721,20 @@ export type MutationUpdateErrorGroupStateArgs = {
 
 export type MutationDeleteOrganizationArgs = {
     id: Scalars['ID'];
+};
+
+export type MutationCreateAdminForOnPremArgs = {
+    email: Scalars['String'];
+    password: Scalars['String'];
+};
+
+export type MutationAuthenticateAdminForOnPremArgs = {
+    email: Scalars['String'];
+    password: Scalars['String'];
+};
+
+export type MutationInvalidateSessionForOnPremArgs = {
+    sessionId: Scalars['String'];
 };
 
 export type MutationSendAdminInviteArgs = {

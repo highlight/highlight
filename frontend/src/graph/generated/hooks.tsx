@@ -577,6 +577,146 @@ export type CreateOrganizationMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateOrganizationMutation,
     Types.CreateOrganizationMutationVariables
 >;
+export const CreateAdminForOnPremDocument = gql`
+    mutation CreateAdminForOnPrem($email: String!, $password: String!) {
+        createAdminForOnPrem(email: $email, password: $password)
+    }
+`;
+export type CreateAdminForOnPremMutationFn = Apollo.MutationFunction<
+    Types.CreateAdminForOnPremMutation,
+    Types.CreateAdminForOnPremMutationVariables
+>;
+
+/**
+ * __useCreateAdminForOnPremMutation__
+ *
+ * To run a mutation, you first call `useCreateAdminForOnPremMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateAdminForOnPremMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createAdminForOnPremMutation, { data, loading, error }] = useCreateAdminForOnPremMutation({
+ *   variables: {
+ *      email: // value for 'email'
+ *      password: // value for 'password'
+ *   },
+ * });
+ */
+export function useCreateAdminForOnPremMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.CreateAdminForOnPremMutation,
+        Types.CreateAdminForOnPremMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.CreateAdminForOnPremMutation,
+        Types.CreateAdminForOnPremMutationVariables
+    >(CreateAdminForOnPremDocument, baseOptions);
+}
+export type CreateAdminForOnPremMutationHookResult = ReturnType<
+    typeof useCreateAdminForOnPremMutation
+>;
+export type CreateAdminForOnPremMutationResult = Apollo.MutationResult<Types.CreateAdminForOnPremMutation>;
+export type CreateAdminForOnPremMutationOptions = Apollo.BaseMutationOptions<
+    Types.CreateAdminForOnPremMutation,
+    Types.CreateAdminForOnPremMutationVariables
+>;
+export const AuthenticateAdminForOnPremDocument = gql`
+    mutation AuthenticateAdminForOnPrem($email: String!, $password: String!) {
+        authenticateAdminForOnPrem(email: $email, password: $password)
+    }
+`;
+export type AuthenticateAdminForOnPremMutationFn = Apollo.MutationFunction<
+    Types.AuthenticateAdminForOnPremMutation,
+    Types.AuthenticateAdminForOnPremMutationVariables
+>;
+
+/**
+ * __useAuthenticateAdminForOnPremMutation__
+ *
+ * To run a mutation, you first call `useAuthenticateAdminForOnPremMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAuthenticateAdminForOnPremMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [authenticateAdminForOnPremMutation, { data, loading, error }] = useAuthenticateAdminForOnPremMutation({
+ *   variables: {
+ *      email: // value for 'email'
+ *      password: // value for 'password'
+ *   },
+ * });
+ */
+export function useAuthenticateAdminForOnPremMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.AuthenticateAdminForOnPremMutation,
+        Types.AuthenticateAdminForOnPremMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.AuthenticateAdminForOnPremMutation,
+        Types.AuthenticateAdminForOnPremMutationVariables
+    >(AuthenticateAdminForOnPremDocument, baseOptions);
+}
+export type AuthenticateAdminForOnPremMutationHookResult = ReturnType<
+    typeof useAuthenticateAdminForOnPremMutation
+>;
+export type AuthenticateAdminForOnPremMutationResult = Apollo.MutationResult<Types.AuthenticateAdminForOnPremMutation>;
+export type AuthenticateAdminForOnPremMutationOptions = Apollo.BaseMutationOptions<
+    Types.AuthenticateAdminForOnPremMutation,
+    Types.AuthenticateAdminForOnPremMutationVariables
+>;
+export const InvalidateSessionForOnPremDocument = gql`
+    mutation invalidateSessionForOnPrem($sessionId: String!) {
+        invalidateSessionForOnPrem(sessionId: $sessionId)
+    }
+`;
+export type InvalidateSessionForOnPremMutationFn = Apollo.MutationFunction<
+    Types.InvalidateSessionForOnPremMutation,
+    Types.InvalidateSessionForOnPremMutationVariables
+>;
+
+/**
+ * __useInvalidateSessionForOnPremMutation__
+ *
+ * To run a mutation, you first call `useInvalidateSessionForOnPremMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useInvalidateSessionForOnPremMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [invalidateSessionForOnPremMutation, { data, loading, error }] = useInvalidateSessionForOnPremMutation({
+ *   variables: {
+ *      sessionId: // value for 'sessionId'
+ *   },
+ * });
+ */
+export function useInvalidateSessionForOnPremMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.InvalidateSessionForOnPremMutation,
+        Types.InvalidateSessionForOnPremMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.InvalidateSessionForOnPremMutation,
+        Types.InvalidateSessionForOnPremMutationVariables
+    >(InvalidateSessionForOnPremDocument, baseOptions);
+}
+export type InvalidateSessionForOnPremMutationHookResult = ReturnType<
+    typeof useInvalidateSessionForOnPremMutation
+>;
+export type InvalidateSessionForOnPremMutationResult = Apollo.MutationResult<Types.InvalidateSessionForOnPremMutation>;
+export type InvalidateSessionForOnPremMutationOptions = Apollo.BaseMutationOptions<
+    Types.InvalidateSessionForOnPremMutation,
+    Types.InvalidateSessionForOnPremMutationVariables
+>;
 export const EditOrganizationDocument = gql`
     mutation EditOrganization($id: ID!, $name: String, $billing_email: String) {
         editOrganization(id: $id, name: $name, billing_email: $billing_email) {

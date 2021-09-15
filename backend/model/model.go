@@ -299,6 +299,7 @@ type Admin struct {
 	SessionComments  []SessionComment `gorm:"many2many:session_comment_admins;"`
 	ErrorComments    []ErrorComment   `gorm:"many2many:error_comment_admins;"`
 	SlackIMChannelID *string
+	PasswordHash     *string
 }
 
 type EmailSignup struct {

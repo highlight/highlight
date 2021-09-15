@@ -198,6 +198,8 @@ type ComplexityRoot struct {
 	Mutation struct {
 		AddAdminToOrganization           func(childComplexity int, organizationID int, inviteID string) int
 		AddSlackIntegrationToWorkspace   func(childComplexity int, organizationID int, code string, redirectPath string) int
+		AuthenticateAdminForOnPrem       func(childComplexity int, email string, password string) int
+		CreateAdminForOnPrem             func(childComplexity int, email string, password string) int
 		CreateErrorComment               func(childComplexity int, organizationID int, errorGroupID int, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, errorURL string, authorName string) int
 		CreateErrorSegment               func(childComplexity int, organizationID int, name string, params model.ErrorSearchParamsInput) int
 		CreateOrUpdateStripeSubscription func(childComplexity int, organizationID int, planType model.PlanType) int
@@ -214,6 +216,7 @@ type ComplexityRoot struct {
 		EditOrganization                 func(childComplexity int, id int, name *string, billingEmail *string) int
 		EditSegment                      func(childComplexity int, id int, organizationID int, params model.SearchParamsInput) int
 		EmailSignup                      func(childComplexity int, email string) int
+		InvalidateSessionForOnPrem       func(childComplexity int, sessionID string) int
 		MarkSessionAsStarred             func(childComplexity int, id int, starred *bool) int
 		MarkSessionAsViewed              func(childComplexity int, id int, viewed *bool) int
 		OpenSlackConversation            func(childComplexity int, organizationID int, code string, redirectPath string) int
@@ -457,6 +460,9 @@ type MutationResolver interface {
 	MarkSessionAsStarred(ctx context.Context, id int, starred *bool) (*model1.Session, error)
 	UpdateErrorGroupState(ctx context.Context, id int, state string) (*model1.ErrorGroup, error)
 	DeleteOrganization(ctx context.Context, id int) (*bool, error)
+	CreateAdminForOnPrem(ctx context.Context, email string, password string) (*bool, error)
+	AuthenticateAdminForOnPrem(ctx context.Context, email string, password string) (*string, error)
+	InvalidateSessionForOnPrem(ctx context.Context, sessionID string) (*bool, error)
 	SendAdminInvite(ctx context.Context, organizationID int, email string, baseURL string) (*string, error)
 	AddAdminToOrganization(ctx context.Context, organizationID int, inviteID string) (*int, error)
 	DeleteAdminFromOrganization(ctx context.Context, organizationID int, adminID int) (*int, error)
@@ -1195,6 +1201,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddSlackIntegrationToWorkspace(childComplexity, args["organization_id"].(int), args["code"].(string), args["redirect_path"].(string)), true
 
+	case "Mutation.authenticateAdminForOnPrem":
+		if e.complexity.Mutation.AuthenticateAdminForOnPrem == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_authenticateAdminForOnPrem_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AuthenticateAdminForOnPrem(childComplexity, args["email"].(string), args["password"].(string)), true
+
+	case "Mutation.createAdminForOnPrem":
+		if e.complexity.Mutation.CreateAdminForOnPrem == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createAdminForOnPrem_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateAdminForOnPrem(childComplexity, args["email"].(string), args["password"].(string)), true
+
 	case "Mutation.createErrorComment":
 		if e.complexity.Mutation.CreateErrorComment == nil {
 			break
@@ -1386,6 +1416,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.EmailSignup(childComplexity, args["email"].(string)), true
+
+	case "Mutation.invalidateSessionForOnPrem":
+		if e.complexity.Mutation.InvalidateSessionForOnPrem == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_invalidateSessionForOnPrem_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.InvalidateSessionForOnPrem(childComplexity, args["sessionId"].(string)), true
 
 	case "Mutation.markSessionAsStarred":
 		if e.complexity.Mutation.MarkSessionAsStarred == nil {
@@ -3265,6 +3307,9 @@ type Mutation {
     markSessionAsStarred(id: ID!, starred: Boolean): Session
     updateErrorGroupState(id: ID!, state: String!): ErrorGroup
     deleteOrganization(id: ID!): Boolean
+    createAdminForOnPrem(email: String!, password: String!): Boolean
+    authenticateAdminForOnPrem(email: String!, password: String!): String
+    invalidateSessionForOnPrem(sessionId: String!): Boolean
     sendAdminInvite(
         organization_id: ID!
         email: String!
@@ -3430,6 +3475,54 @@ func (ec *executionContext) field_Mutation_addSlackIntegrationToWorkspace_args(c
 		}
 	}
 	args["redirect_path"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_authenticateAdminForOnPrem_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["email"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["email"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["password"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["password"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createAdminForOnPrem_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["email"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["email"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["password"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["password"] = arg1
 	return args, nil
 }
 
@@ -3931,6 +4024,21 @@ func (ec *executionContext) field_Mutation_emailSignup_args(ctx context.Context,
 		}
 	}
 	args["email"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_invalidateSessionForOnPrem_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["sessionId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sessionId"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["sessionId"] = arg0
 	return args, nil
 }
 
@@ -8342,6 +8450,123 @@ func (ec *executionContext) _Mutation_deleteOrganization(ctx context.Context, fi
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().DeleteOrganization(rctx, args["id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_createAdminForOnPrem(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createAdminForOnPrem_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateAdminForOnPrem(rctx, args["email"].(string), args["password"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_authenticateAdminForOnPrem(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_authenticateAdminForOnPrem_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AuthenticateAdminForOnPrem(rctx, args["email"].(string), args["password"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_invalidateSessionForOnPrem(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_invalidateSessionForOnPrem_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().InvalidateSessionForOnPrem(rctx, args["sessionId"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16718,6 +16943,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_updateErrorGroupState(ctx, field)
 		case "deleteOrganization":
 			out.Values[i] = ec._Mutation_deleteOrganization(ctx, field)
+		case "createAdminForOnPrem":
+			out.Values[i] = ec._Mutation_createAdminForOnPrem(ctx, field)
+		case "authenticateAdminForOnPrem":
+			out.Values[i] = ec._Mutation_authenticateAdminForOnPrem(ctx, field)
+		case "invalidateSessionForOnPrem":
+			out.Values[i] = ec._Mutation_invalidateSessionForOnPrem(ctx, field)
 		case "sendAdminInvite":
 			out.Values[i] = ec._Mutation_sendAdminInvite(ctx, field)
 		case "addAdminToOrganization":

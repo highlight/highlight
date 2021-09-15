@@ -82,6 +82,18 @@ mutation CreateOrganization($name: String!) {
     }
 }
 
+mutation CreateAdminForOnPrem($email: String!, $password: String!) {
+    createAdminForOnPrem(email: $email, password: $password)
+}
+
+mutation AuthenticateAdminForOnPrem($email: String!, $password: String!) {
+    authenticateAdminForOnPrem(email: $email, password: $password)
+}
+
+mutation invalidateSessionForOnPrem($sessionId: String!) {
+    invalidateSessionForOnPrem(sessionId: $sessionId)
+}
+
 mutation EditOrganization($id: ID!, $name: String, $billing_email: String) {
     editOrganization(id: $id, name: $name, billing_email: $billing_email) {
         name

@@ -479,6 +479,9 @@ type Mutation {
     markSessionAsStarred(id: ID!, starred: Boolean): Session
     updateErrorGroupState(id: ID!, state: String!): ErrorGroup
     deleteOrganization(id: ID!): Boolean
+    createAdminForOnPrem(email: String!, password: String!): Boolean
+    authenticateAdminForOnPrem(email: String!, password: String!): String
+    invalidateSessionForOnPrem(sessionId: String!): Boolean
     sendAdminInvite(
         organization_id: ID!
         email: String!

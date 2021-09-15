@@ -113,6 +113,33 @@ export type CreateOrganizationMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
+export type CreateAdminForOnPremMutationVariables = Types.Exact<{
+    email: Types.Scalars['String'];
+    password: Types.Scalars['String'];
+}>;
+
+export type CreateAdminForOnPremMutation = { __typename?: 'Mutation' } & Pick<
+    Types.Mutation,
+    'createAdminForOnPrem'
+>;
+
+export type AuthenticateAdminForOnPremMutationVariables = Types.Exact<{
+    email: Types.Scalars['String'];
+    password: Types.Scalars['String'];
+}>;
+
+export type AuthenticateAdminForOnPremMutation = {
+    __typename?: 'Mutation';
+} & Pick<Types.Mutation, 'authenticateAdminForOnPrem'>;
+
+export type InvalidateSessionForOnPremMutationVariables = Types.Exact<{
+    sessionId: Types.Scalars['String'];
+}>;
+
+export type InvalidateSessionForOnPremMutation = {
+    __typename?: 'Mutation';
+} & Pick<Types.Mutation, 'invalidateSessionForOnPrem'>;
+
 export type EditOrganizationMutationVariables = Types.Exact<{
     id: Types.Scalars['ID'];
     name?: Types.Maybe<Types.Scalars['String']>;
@@ -1690,6 +1717,9 @@ export const namedOperations = {
         OpenSlackConversation: 'OpenSlackConversation' as const,
         AddSlackIntegrationToWorkspace: 'AddSlackIntegrationToWorkspace' as const,
         CreateOrganization: 'CreateOrganization' as const,
+        CreateAdminForOnPrem: 'CreateAdminForOnPrem' as const,
+        AuthenticateAdminForOnPrem: 'AuthenticateAdminForOnPrem' as const,
+        invalidateSessionForOnPrem: 'invalidateSessionForOnPrem' as const,
         EditOrganization: 'EditOrganization' as const,
         DeleteOrganization: 'DeleteOrganization' as const,
         DeleteSegment: 'DeleteSegment' as const,

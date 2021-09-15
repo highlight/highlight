@@ -1,3 +1,8 @@
+import {
+    useAuthenticateAdminForOnPremMutation,
+    useCreateAdminForOnPremMutation,
+} from '@graph/hooks';
+import { isOnPrem } from '@util/onPrem/onPremUtils';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React, { useEffect, useState } from 'react';
@@ -62,27 +67,54 @@ const LoginForm = () => {
     const [signIn, setSignIn] = useState<boolean>(true);
     const { isAuthLoading, isLoggedIn } = useAuthContext();
     const [firebaseError, setFirebaseError] = useState('');
+    const [
+        createAdminForOnPrem,
+        { loading: creatingAccountLoading },
+    ] = useCreateAdminForOnPremMutation();
+    const [
+        authenticateAdminForOnPrem,
+        { loading: signingInLoading },
+    ] = useAuthenticateAdminForOnPremMutation();
 
     const onSubmit = (data: Inputs) => {
-        if (signIn) {
-            auth.signInWithEmailAndPassword(data.email, data.password).catch(
-                (error) => {
+        if (!isOnPrem) {
+            if (signIn) {
+                auth.signInWithEmailAndPassword(
+                    data.email,
+                    data.password
+                ).catch((error) => {
                     setError('password', {
                         type: 'manual',
                         message: error.toString(),
                     });
-                }
-            );
-        } else {
-            auth.createUserWithEmailAndPassword(
-                data.email,
-                data.password
-            ).catch((error) => {
-                setError('password', {
-                    type: 'manual',
-                    message: error.toString(),
                 });
-            });
+            } else {
+                auth.createUserWithEmailAndPassword(
+                    data.email,
+                    data.password
+                ).catch((error) => {
+                    setError('password', {
+                        type: 'manual',
+                        message: error.toString(),
+                    });
+                });
+            }
+        } else {
+            if (signIn) {
+                authenticateAdminForOnPrem({
+                    variables: {
+                        email: data.email,
+                        password: data.password,
+                    },
+                });
+            } else {
+                createAdminForOnPrem({
+                    variables: {
+                        email: data.email,
+                        password: data.password,
+                    },
+                });
+            }
         }
     };
 
@@ -144,6 +176,7 @@ const LoginForm = () => {
                             name="email"
                             ref={register({ required: true })}
                             className={commonStyles.input}
+                            autoComplete="username"
                         />
                         <div className={commonStyles.errorMessage}>
                             {errors.email && 'Enter an email yo!'}
@@ -154,6 +187,7 @@ const LoginForm = () => {
                             name="password"
                             ref={register({ required: true })}
                             className={commonStyles.input}
+                            autoComplete="new-password"
                         />
                         {!signIn && (
                             <>
@@ -175,6 +209,7 @@ const LoginForm = () => {
                                         },
                                     })}
                                     className={commonStyles.input}
+                                    autoComplete="new-password"
                                 />
                             </>
                         )}
@@ -186,33 +221,43 @@ const LoginForm = () => {
                             className={commonStyles.submitButton}
                             type="primary"
                             htmlType="submit"
+                            loading={creatingAccountLoading || signingInLoading}
                         >
                             {signIn ? 'Sign In' : 'Sign Up'}
                         </Button>
                     </form>
-                    <p className={styles.otherSigninText}>
-                        or sign {signIn ? 'in' : 'up'} with
-                    </p>
-                    <Button
-                        trackingId="LoginWithGoogle"
-                        className={classNames(
-                            commonStyles.secondaryButton,
-                            styles.googleButton
-                        )}
-                        onClick={() => {
-                            auth.signInWithRedirect(googleProvider).catch((e) =>
-                                setFirebaseError(JSON.stringify(e))
-                            );
-                        }}
-                    >
-                        <GoogleLogo className={styles.googleLogoStyle} />
-                        <span className={styles.googleText}>
-                            Google Sign {signIn ? 'In' : 'Up'}
-                        </span>
-                    </Button>
-                    <div className={commonStyles.errorMessage}>
-                        {firebaseError}
-                    </div>
+
+                    {!isOnPrem && (
+                        <>
+                            <p className={styles.otherSigninText}>
+                                or sign {signIn ? 'in' : 'up'} with
+                            </p>
+                            <Button
+                                trackingId="LoginWithGoogle"
+                                className={classNames(
+                                    commonStyles.secondaryButton,
+                                    styles.googleButton
+                                )}
+                                onClick={() => {
+                                    auth.signInWithRedirect(
+                                        googleProvider
+                                    ).catch((e) =>
+                                        setFirebaseError(JSON.stringify(e))
+                                    );
+                                }}
+                            >
+                                <GoogleLogo
+                                    className={styles.googleLogoStyle}
+                                />
+                                <span className={styles.googleText}>
+                                    Google Sign {signIn ? 'In' : 'Up'}
+                                </span>
+                            </Button>
+                            <div className={commonStyles.errorMessage}>
+                                {firebaseError}
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
         </Landing>

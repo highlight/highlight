@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -14,6 +15,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/alexedwards/argon2id"
+	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
@@ -29,6 +32,7 @@ import (
 	stripe "github.com/stripe/stripe-go"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"gorm.io/gorm"
 )
 
 func (r *errorAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.ErrorAlert) ([]*modelInputs.SanitizedSlackChannel, error) {
@@ -281,6 +285,70 @@ func (r *mutationResolver) DeleteOrganization(ctx context.Context, id int) (*boo
 		return nil, e.Wrap(err, "error deleting organization")
 	}
 	return &model.T, nil
+}
+
+func (r *mutationResolver) CreateAdminForOnPrem(ctx context.Context, email string, password string) (*bool, error) {
+	if !util.IsOnPrem() {
+		return &model.F, e.New("CreateAdminForOnPrem is being ran on a non-on prem instance when it shouldn't be")
+	}
+
+	var numberOfAdminsWithSameEmail int64
+	if err := r.DB.Model(&model.Admin{}).Where(&model.Admin{Email: &email}).Count(&numberOfAdminsWithSameEmail).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, e.Wrap(err, "error looking up existing admin for on prem")
+	}
+
+	// The email is already being used if there is more than 0 Admins with that email.
+	if numberOfAdminsWithSameEmail != 0 {
+		return &model.F, fmt.Errorf("A user with the email %v already exists. Try logging in.", email)
+	}
+
+	passwordHash, err := argon2id.CreateHash(password, argon2id.DefaultParams)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	uid := uuid.New().String()
+	newAdmin := &model.Admin{
+		Email:        &email,
+		PasswordHash: &passwordHash,
+		UID:          &uid,
+	}
+
+	if err := r.DB.Create(newAdmin).Error; err != nil {
+		return nil, e.Wrap(err, "error creating new admin for on prem")
+	}
+
+	return &model.T, nil
+}
+
+func (r *mutationResolver) AuthenticateAdminForOnPrem(ctx context.Context, email string, password string) (*string, error) {
+	var token string
+	if !util.IsOnPrem() {
+		return &token, e.New("AuthenticateAdminForOnPrem is being ran on a non-on prem instance when it shouldn't be")
+	}
+
+	admin := &model.Admin{}
+	if err := r.DB.Model(&model.Admin{}).Where(&model.Admin{Email: &email}).First(&admin).Error; err != nil {
+		return nil, e.Wrap(err, "error looking up existing admin for authentication for on prem")
+	}
+
+	match, err := argon2id.ComparePasswordAndHash(password, *admin.PasswordHash)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if !match {
+		return &token, nil
+	}
+
+	// TODO: Persist this token for the session duration.
+	token = uuid.NewString()
+
+	return &token, nil
+}
+
+func (r *mutationResolver) InvalidateSessionForOnPrem(ctx context.Context, sessionID string) (*bool, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *mutationResolver) SendAdminInvite(ctx context.Context, organizationID int, email string, baseURL string) (*string, error) {
