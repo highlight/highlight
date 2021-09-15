@@ -239,9 +239,6 @@ type SlackChannel struct {
 }
 
 func (u *Organization) IntegratedSlackChannels() ([]SlackChannel, error) {
-	if u == nil {
-		return nil, e.New("organization cannot be nil")
-	}
 	parsedChannels := []SlackChannel{}
 	if u.SlackChannels != nil {
 		err := json.Unmarshal([]byte(*u.SlackChannels), &parsedChannels)
