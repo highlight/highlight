@@ -1,5 +1,6 @@
 import useLocalStorage from '@rehooks/local-storage';
 import { GlobalContextProvider } from '@routers/OrgRouter/context/GlobalContext';
+import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import React, { useEffect } from 'react';
 import { useToggle } from 'react-use';
@@ -37,13 +38,17 @@ export const OrgRouter = () => {
     );
 
     useEffect(() => {
-        window.Intercom('update', {
-            hide_default_launcher: true,
-        });
-        return () => {
+        if (!isOnPrem) {
             window.Intercom('update', {
-                hide_default_launcher: false,
+                hide_default_launcher: true,
             });
+        }
+        return () => {
+            if (!isOnPrem) {
+                window.Intercom('update', {
+                    hide_default_launcher: false,
+                });
+            }
         };
     }, []);
 

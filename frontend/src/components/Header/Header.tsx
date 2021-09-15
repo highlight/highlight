@@ -4,6 +4,7 @@ import {
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import SvgXIcon from '@icons/XIcon';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
+import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames/bind';
 import { H } from 'highlight.run';
@@ -71,7 +72,7 @@ export const Header = () => {
 };
 
 const getBanner = (organization_id: string) => {
-    if (process.env.REACT_APP_ONPREM === 'true') {
+    if (isOnPrem) {
         return <OnPremiseBanner />;
     } else if (organization_id === DEMO_WORKSPACE_APPLICATION_ID) {
         return <DemoWorkspaceBanner />;

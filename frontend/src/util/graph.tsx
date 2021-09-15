@@ -2,6 +2,7 @@ import 'firebase/auth';
 
 import { ApolloClient, createHttpLink, InMemoryCache } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
+import { isOnPrem } from '@util/onPrem/onPremUtils';
 import * as firebase from 'firebase/app';
 
 const uri =
@@ -12,7 +13,7 @@ const highlightGraph = createHttpLink({
     credentials: 'include',
 });
 
-if (process.env.REACT_APP_ONPREM === 'true') {
+if (isOnPrem) {
     console.log('Private Graph URI: ', uri);
 }
 

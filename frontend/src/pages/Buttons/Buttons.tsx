@@ -140,3 +140,5 @@ const BadComponent = () => (
         {badVariableAccess}
     </div>
 );
+
+export default Buttons;

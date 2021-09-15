@@ -30,6 +30,7 @@ export type Field = {
 export type Session = {
     __typename?: 'Session';
     id: Scalars['ID'];
+    secure_id: Scalars['String'];
     user_id: Scalars['ID'];
     fingerprint?: Maybe<Scalars['Int']>;
     os_name: Scalars['String'];
@@ -149,6 +150,7 @@ export type ErrorGroup = {
     __typename?: 'ErrorGroup';
     created_at: Scalars['Time'];
     id: Scalars['ID'];
+    secure_id: Scalars['String'];
     organization_id: Scalars['Int'];
     type: Scalars['String'];
     event: Array<Maybe<Scalars['String']>>;
@@ -479,11 +481,13 @@ export type Query = {
 };
 
 export type QuerySessionArgs = {
-    id: Scalars['ID'];
+    id?: Maybe<Scalars['ID']>;
+    secure_id?: Maybe<Scalars['String']>;
 };
 
 export type QueryEventsArgs = {
-    session_id: Scalars['ID'];
+    session_id?: Maybe<Scalars['ID']>;
+    session_secure_id?: Maybe<Scalars['String']>;
 };
 
 export type QueryError_GroupsArgs = {
@@ -493,23 +497,28 @@ export type QueryError_GroupsArgs = {
 };
 
 export type QueryError_GroupArgs = {
-    id: Scalars['ID'];
+    id?: Maybe<Scalars['ID']>;
+    secure_id?: Maybe<Scalars['String']>;
 };
 
 export type QueryMessagesArgs = {
-    session_id: Scalars['ID'];
+    session_id?: Maybe<Scalars['ID']>;
+    session_secure_id?: Maybe<Scalars['String']>;
 };
 
 export type QueryErrorsArgs = {
-    session_id: Scalars['ID'];
+    session_id?: Maybe<Scalars['ID']>;
+    session_secure_id?: Maybe<Scalars['String']>;
 };
 
 export type QueryResourcesArgs = {
-    session_id: Scalars['ID'];
+    session_id?: Maybe<Scalars['ID']>;
+    session_secure_id?: Maybe<Scalars['String']>;
 };
 
 export type QuerySession_CommentsArgs = {
-    session_id: Scalars['ID'];
+    session_id?: Maybe<Scalars['ID']>;
+    session_secure_id?: Maybe<Scalars['String']>;
 };
 
 export type QuerySession_Comments_For_OrganizationArgs = {
@@ -517,7 +526,8 @@ export type QuerySession_Comments_For_OrganizationArgs = {
 };
 
 export type QueryError_CommentsArgs = {
-    error_group_id: Scalars['ID'];
+    error_group_id?: Maybe<Scalars['ID']>;
+    error_group_secure_id?: Maybe<Scalars['String']>;
 };
 
 export type QueryError_Comments_For_OrganizationArgs = {
@@ -556,7 +566,8 @@ export type QueryDailyErrorsCountArgs = {
 
 export type QueryDailyErrorFrequencyArgs = {
     organization_id: Scalars['ID'];
-    error_group_id: Scalars['ID'];
+    error_group_id?: Maybe<Scalars['ID']>;
+    error_group_secure_id?: Maybe<Scalars['String']>;
     date_offset: Scalars['Int'];
 };
 
@@ -709,17 +720,20 @@ export type MutationEditOrganizationArgs = {
 };
 
 export type MutationMarkSessionAsViewedArgs = {
-    id: Scalars['ID'];
+    id?: Maybe<Scalars['ID']>;
+    secure_id?: Maybe<Scalars['String']>;
     viewed?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationMarkSessionAsStarredArgs = {
-    id: Scalars['ID'];
+    id?: Maybe<Scalars['ID']>;
+    secure_id?: Maybe<Scalars['String']>;
     starred?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationUpdateErrorGroupStateArgs = {
-    id: Scalars['ID'];
+    id?: Maybe<Scalars['ID']>;
+    secure_id?: Maybe<Scalars['String']>;
     state: Scalars['String'];
 };
 
@@ -796,7 +810,8 @@ export type MutationUpdateBillingDetailsArgs = {
 
 export type MutationCreateSessionCommentArgs = {
     organization_id: Scalars['ID'];
-    session_id: Scalars['ID'];
+    session_id?: Maybe<Scalars['ID']>;
+    session_secure_id?: Maybe<Scalars['String']>;
     session_timestamp: Scalars['Int'];
     text: Scalars['String'];
     text_for_email: Scalars['String'];
@@ -815,7 +830,8 @@ export type MutationDeleteSessionCommentArgs = {
 
 export type MutationCreateErrorCommentArgs = {
     organization_id: Scalars['ID'];
-    error_group_id: Scalars['ID'];
+    error_group_id?: Maybe<Scalars['ID']>;
+    error_group_secure_id?: Maybe<Scalars['String']>;
     text: Scalars['String'];
     text_for_email: Scalars['String'];
     tagged_admins: Array<Maybe<SanitizedAdminInput>>;
@@ -876,6 +892,7 @@ export type MutationUpdateUserPropertiesAlertArgs = {
 };
 
 export type MutationUpdateSessionIsPublicArgs = {
-    session_id: Scalars['ID'];
+    session_id?: Maybe<Scalars['ID']>;
+    session_secure_id?: Maybe<Scalars['String']>;
     is_public: Scalars['Boolean'];
 };

@@ -3,24 +3,58 @@
     "executionRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
     "containerDefinitions": [
         {
-            "name": "datadog-agent",
-            "image": "datadog/agent:latest",
-            "secrets": [
-                {
-                    "name": "DD_API_KEY",
-                    "valueFrom": "DD_API_KEY"
-                }
-            ],
+            "dnsSearchDomains": null,
+            "environmentFiles": null,
+            "logConfiguration": null,
+            "entryPoint": null,
+            "portMappings": [],
+            "command": null,
+            "linuxParameters": null,
+            "cpu": 0,
             "environment": [
-                {
-                    "name": "ECS_FARGATE",
-                    "value": "true"
-                },
                 {
                     "name": "DD_APM_ENABLED",
                     "value": "true"
+                },
+                {
+                    "name": "ECS_FARGATE",
+                    "value": "true"
                 }
-            ]
+            ],
+            "resourceRequirements": null,
+            "ulimits": null,
+            "dnsServers": null,
+            "mountPoints": [],
+            "workingDirectory": null,
+            "secrets": [
+                {
+                    "valueFrom": "DD_API_KEY",
+                    "name": "DD_API_KEY"
+                }
+            ],
+            "dockerSecurityOptions": null,
+            "memory": null,
+            "memoryReservation": null,
+            "volumesFrom": [],
+            "stopTimeout": null,
+            "image": "datadog/agent:latest",
+            "startTimeout": null,
+            "firelensConfiguration": null,
+            "dependsOn": null,
+            "disableNetworking": null,
+            "interactive": null,
+            "healthCheck": null,
+            "essential": true,
+            "links": null,
+            "hostname": null,
+            "extraHosts": null,
+            "pseudoTerminal": null,
+            "user": null,
+            "readonlyRootFilesystem": null,
+            "dockerLabels": null,
+            "systemControls": null,
+            "privileged": null,
+            "name": "datadog-agent"
         },
         {
             "dnsSearchDomains": null,
@@ -29,7 +63,7 @@
                 "logDriver": "awslogs",
                 "secretOptions": null,
                 "options": {
-                    "awslogs-group": "/ecs/private-graph-task",
+                    "awslogs-group": "/ecs/public-graph-task",
                     "awslogs-region": "us-east-2",
                     "awslogs-stream-prefix": "ecs"
                 }
@@ -42,8 +76,15 @@
                     "containerPort": 8082
                 }
             ],
-            "command": [],
+            "command": [
+                "doppler",
+                "run",
+                "--",
+                "/bin/backend",
+                "-runtime=public-graph"
+            ],
             "linuxParameters": null,
+            "cpu": 0,
             "environment": [],
             "resourceRequirements": null,
             "ulimits": null,
@@ -57,7 +98,6 @@
                 }
             ],
             "dockerSecurityOptions": null,
-            "cpu": null,
             "memory": null,
             "memoryReservation": null,
             "volumesFrom": [],
@@ -84,7 +124,7 @@
     ],
     "placementConstraints": [],
     "taskRoleArn": null,
-    "family": "private-graph-task",
+    "family": "public-graph-task",
     "pidMode": null,
     "requiresCompatibilities": ["FARGATE"],
     "networkMode": "awsvpc",

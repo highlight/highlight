@@ -1,4 +1,5 @@
 import { namedOperations } from '@graph/operations';
+import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import { Form, message } from 'antd';
 import { H } from 'highlight.run';
@@ -108,20 +109,26 @@ export const NewCommentForm = ({
             H.track('Create Comment Failed', { error: e });
             message.error(
                 <>
-                    Failed to post a comment, please try again. If this keeps
-                    failing please message us on{' '}
-                    <span
-                        className={styles.intercomLink}
-                        onClick={() => {
-                            window.Intercom(
-                                'showNewMessage',
-                                `I can't create a comment. This is the error I'm getting: "${e}"`
-                            );
-                        }}
-                    >
-                        Intercom
-                    </span>
-                    .
+                    Failed to post a comment, please try again.{' '}
+                    {!isOnPrem ? (
+                        <>
+                            If this keeps failing please message us on{' '}
+                            <span
+                                className={styles.intercomLink}
+                                onClick={() => {
+                                    window.Intercom(
+                                        'showNewMessage',
+                                        `I can't create a comment. This is the error I'm getting: "${e}"`
+                                    );
+                                }}
+                            >
+                                Intercom
+                            </span>
+                            .
+                        </>
+                    ) : (
+                        <>If this keeps failing please reach out to us!</>
+                    )}
                 </>
             );
         }
