@@ -28,7 +28,7 @@ const ErrorAffectedUsers = ({ loading, errorGroup }: Props) => {
             : organization_id;
     let numberOfAffectedSessions;
     let mostRecentAffectedSession;
-    let numberOfAffectedUsers;
+    let uniqueUsers: string[] = [];
 
     if (errorGroup?.error_group && errorGroup.error_group.metadata_log.length) {
         numberOfAffectedSessions = errorGroup.error_group.metadata_log.length;
@@ -52,12 +52,14 @@ const ErrorAffectedUsers = ({ loading, errorGroup }: Props) => {
         mostRecentAffectedSession =
             errorGroup.error_group.metadata_log[mostRecentAffectedSessionIndex];
 
-        const uniqueUsers = new Set(
-            errorGroup.error_group.metadata_log.map(
-                (session) => session?.identifier || session?.fingerprint
+        uniqueUsers = new Array(
+            ...new Set(
+                errorGroup.error_group.metadata_log.map(
+                    (session) =>
+                        (session?.identifier || session?.fingerprint) as string
+                )
             )
         );
-        numberOfAffectedUsers = new Array(uniqueUsers).length;
     }
 
     return (
@@ -68,24 +70,20 @@ const ErrorAffectedUsers = ({ loading, errorGroup }: Props) => {
                 <>
                     <div className={styles.metadata}>
                         <div className={styles.avatarContainer}>
-                            {errorGroup?.error_group?.metadata_log
+                            {uniqueUsers
                                 ?.slice(0, 3)
-                                .map((session, index) => (
+                                .map((identifier, index) => (
                                     <Avatar
                                         key={index}
                                         style={{ left: `${index * 15}px` }}
-                                        seed={
-                                            session?.identifier ||
-                                            session?.fingerprint ||
-                                            ''
-                                        }
+                                        seed={identifier || ''}
                                         shape="rounded"
                                         className={styles.avatar}
                                     />
                                 ))}
                         </div>
                         <div className={styles.textContainer}>
-                            <h3>{numberOfAffectedUsers} Affected Users</h3>
+                            <h3>{uniqueUsers.length} Affected Users</h3>
                             <p>{numberOfAffectedSessions} Total Sessions</p>
                             <p>
                                 Recency:{' '}
