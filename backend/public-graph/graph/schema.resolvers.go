@@ -118,7 +118,7 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 }
 
 func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput) (*int, error) {
-	r.WorkerPool.Submit(func() {
+	r.PushPayloadWorkerPool.Submit(func() {
 		r.processPayload(ctx, sessionID, events, messages, resources, errors)
 	})
 	return &sessionID, nil
