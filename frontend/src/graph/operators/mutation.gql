@@ -75,18 +75,6 @@ mutation AddSlackBotIntegrationToOrganization(
     )
 }
 
-mutation AddSlackIntegrationToWorkspace(
-    $organization_id: ID!
-    $code: String!
-    $redirect_path: String!
-) {
-    addSlackIntegrationToWorkspace(
-        organization_id: $organization_id
-        code: $code
-        redirect_path: $redirect_path
-    )
-}
-
 mutation CreateOrganization($name: String!) {
     createOrganization(name: $name) {
         id

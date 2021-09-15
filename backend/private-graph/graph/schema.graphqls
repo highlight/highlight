@@ -496,11 +496,6 @@ type Mutation {
     ): String
     addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
     deleteAdminFromOrganization(organization_id: ID!, admin_id: ID!): ID
-    addSlackIntegrationToWorkspace(
-        organization_id: ID!
-        code: String!
-        redirect_path: String!
-    ): Boolean
     createSegment(
         organization_id: ID!
         name: String!

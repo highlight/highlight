@@ -100,16 +100,6 @@ export type AddSlackBotIntegrationToOrganizationMutation = {
     __typename?: 'Mutation';
 } & Pick<Types.Mutation, 'addSlackBotIntegrationToOrganization'>;
 
-export type AddSlackIntegrationToWorkspaceMutationVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
-    code: Types.Scalars['String'];
-    redirect_path: Types.Scalars['String'];
-}>;
-
-export type AddSlackIntegrationToWorkspaceMutation = {
-    __typename?: 'Mutation';
-} & Pick<Types.Mutation, 'addSlackIntegrationToWorkspace'>;
-
 export type CreateOrganizationMutationVariables = Types.Exact<{
     name: Types.Scalars['String'];
 }>;
@@ -1708,7 +1698,6 @@ export const namedOperations = {
         DeleteAdminFromOrganization: 'DeleteAdminFromOrganization' as const,
         OpenSlackConversation: 'OpenSlackConversation' as const,
         AddSlackBotIntegrationToOrganization: 'AddSlackBotIntegrationToOrganization' as const,
-        AddSlackIntegrationToWorkspace: 'AddSlackIntegrationToWorkspace' as const,
         CreateOrganization: 'CreateOrganization' as const,
         EditOrganization: 'EditOrganization' as const,
         DeleteOrganization: 'DeleteOrganization' as const,
