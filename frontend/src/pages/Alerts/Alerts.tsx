@@ -1,5 +1,6 @@
 import Alert from '@components/Alert/Alert';
 import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
+import { getSlackUrl } from '@components/Header/components/PersonalNotificationButton/utils/utils';
 import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
@@ -51,26 +52,47 @@ const AlertsPage = () => {
         variables: { organization_id: organization_id },
     });
 
+    const slackUrl = getSlackUrl('Organization', organization_id, 'alerts');
+
     return (
         <LeadAlignLayout>
             <h2>Configure Your Alerts</h2>
             <p className={layoutStyles.subTitle}>
                 Configure the environments you want alerts for.
             </p>
-            {!loading && !data?.is_integrated_with_slack && (
+            {!loading && (
                 <Alert
                     trackingId="AlertPageSlackBotIntegration"
-                    message="Slack isn't connected"
-                    type="error"
+                    message={
+                        !data?.is_integrated_with_slack
+                            ? "Slack isn't connected"
+                            : "Can't find a Slack channel or person?"
+                    }
+                    type={!data?.is_integrated_with_slack ? 'error' : 'info'}
                     description={
                         <>
-                            Highlight needs to be connected with Slack in order
-                            to send you and your team messages.
-                            <PersonalNotificationButton
-                                text="Connect Highlight with Slack"
-                                className={styles.integrationButton}
-                                type="Organization"
-                            />
+                            {!data?.is_integrated_with_slack ? (
+                                <>
+                                    Highlight needs to be connected with Slack
+                                    in order to send you and your team messages.
+                                    <PersonalNotificationButton
+                                        text="Connect Highlight with Slack"
+                                        className={styles.integrationButton}
+                                        type="Organization"
+                                    />
+                                </>
+                            ) : (
+                                <>
+                                    Channels created and people joined after the
+                                    last Highlight and Slack sync will not show
+                                    up automatically.
+                                    <PersonalNotificationButton
+                                        text="Sync Highlight with Slack"
+                                        className={styles.integrationButton}
+                                        type="Organization"
+                                    />
+                                </>
+                            )}
                         </>
                     }
                     className={styles.integrationAlert}
@@ -114,6 +136,7 @@ const AlertsPage = () => {
                             channelSuggestions={
                                 data?.slack_channel_suggestion || []
                             }
+                            slackUrl={slackUrl}
                         />
                         <AlertConfigurationCard
                             configuration={ALERT_CONFIGURATIONS[1]}
@@ -126,6 +149,7 @@ const AlertsPage = () => {
                             channelSuggestions={
                                 data?.slack_channel_suggestion || []
                             }
+                            slackUrl={slackUrl}
                         />
                         <AlertConfigurationCard
                             configuration={ALERT_CONFIGURATIONS[2]}
@@ -140,6 +164,7 @@ const AlertsPage = () => {
                             channelSuggestions={
                                 data?.slack_channel_suggestion || []
                             }
+                            slackUrl={slackUrl}
                         />
                         <AlertConfigurationCard
                             configuration={ALERT_CONFIGURATIONS[3]}
@@ -154,6 +179,7 @@ const AlertsPage = () => {
                             channelSuggestions={
                                 data?.slack_channel_suggestion || []
                             }
+                            slackUrl={slackUrl}
                         />
                     </>
                 )}

@@ -1,6 +1,7 @@
+import { DEMO_WORKSPACE_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { namedOperations } from '@graph/operations';
 import { useParams } from '@util/react-router/useParams';
-import { Form, message } from 'antd';
+import { Divider, Form, message } from 'antd';
 import React, { useState } from 'react';
 import TextTransition from 'react-text-transition';
 
@@ -33,6 +34,7 @@ interface Props {
     configuration: AlertConfiguration;
     environmentOptions: any[];
     channelSuggestions: any[];
+    slackUrl: string;
 }
 
 export const AlertConfigurationCard = ({
@@ -40,6 +42,7 @@ export const AlertConfigurationCard = ({
     configuration: { name, canControlThreshold, type, description },
     environmentOptions,
     channelSuggestions,
+    slackUrl,
 }: Props) => {
     const [loading, setLoading] = useState(false);
     const [formTouched, setFormTouched] = useState(false);
@@ -373,7 +376,24 @@ export const AlertConfigurationCard = ({
                                 defaultValue={alert?.ChannelsToNotify?.map(
                                     (channel: any) => channel.webhook_channel_id
                                 )}
-                                dropdownRender={(menu) => <div>{menu}</div>}
+                                dropdownRender={(menu) => (
+                                    <div>
+                                        {menu}
+                                        <Divider style={{ margin: '4px 0' }} />
+                                        <div className={styles.addContainer}>
+                                            Can't find the channel or person
+                                            here?{' '}
+                                            {organization_id !==
+                                                DEMO_WORKSPACE_APPLICATION_ID && (
+                                                <a href={slackUrl}>
+                                                    Sync Highlight with your
+                                                    Slack Workspace
+                                                </a>
+                                            )}
+                                            .
+                                        </div>
+                                    </div>
+                                )}
                             />
                         )}
                     </Form.Item>

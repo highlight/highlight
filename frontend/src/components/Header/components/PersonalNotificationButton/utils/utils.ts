@@ -43,10 +43,7 @@ export const useSlackBot = ({ type, watch }: UseSlackBotProps) => {
     });
     const [loading, setLoading] = useState<boolean>(false);
 
-    const redirectUriOrigin = `${GetBaseURL()}/${organization_id}`;
-    const slackScopes =
-        type === 'Personal' ? PersonalSlackScopes : OrganizationSlackScopes;
-    const slackUrl = `https://slack.com/oauth/v2/authorize?client_id=1354469824468.1868913469441&scope=${slackScopes}&redirect_uri=${redirectUriOrigin}/${redirectPath}`;
+    const slackUrl = getSlackUrl(type, organization_id, redirectPath);
 
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
@@ -76,10 +73,7 @@ export const useSlackBot = ({ type, watch }: UseSlackBotProps) => {
                             redirect_path: redirectPath,
                         },
                     });
-                    message.success(
-                        'Highlight is now integrated with Slack!',
-                        5
-                    );
+                    message.success('Highlight is now synced with Slack!', 5);
                 }
             } catch (e) {
                 message.error(
@@ -110,4 +104,18 @@ export const useSlackBot = ({ type, watch }: UseSlackBotProps) => {
         loading,
         slackUrl,
     };
+};
+
+export const getSlackUrl = (
+    type: 'Personal' | 'Organization',
+    organizationId: string,
+    redirectPath: string
+) => {
+    const slackScopes =
+        type === 'Personal' ? PersonalSlackScopes : OrganizationSlackScopes;
+    const redirectUriOrigin = `${GetBaseURL()}/${organizationId}`;
+
+    const slackUrl = `https://slack.com/oauth/v2/authorize?client_id=1354469824468.1868913469441&scope=${slackScopes}&redirect_uri=${redirectUriOrigin}/${redirectPath}`;
+
+    return slackUrl;
 };
