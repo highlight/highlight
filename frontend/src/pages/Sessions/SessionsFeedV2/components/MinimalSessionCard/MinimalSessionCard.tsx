@@ -123,8 +123,7 @@ const MinimalSessionCard = ({
                                     title={
                                         session?.identifier ||
                                         `#${
-                                            session?.fingerprint ||
-                                            'unidentified'
+                                            session?.fingerprint
                                         }`
                                     }
                                     mouseEnterDelay={0}
@@ -137,8 +136,7 @@ const MinimalSessionCard = ({
                                     >
                                         {session?.identifier ||
                                             `#${
-                                                session?.fingerprint ||
-                                                'unidentified'
+                                                session?.fingerprint
                                             }`}
                                     </div>
                                 </Tooltip>
