@@ -133,6 +133,8 @@ type ComplexityRoot struct {
 		Browser     func(childComplexity int) int
 		Environment func(childComplexity int) int
 		ErrorID     func(childComplexity int) int
+		Fingerprint func(childComplexity int) int
+		Identifier  func(childComplexity int) int
 		Os          func(childComplexity int) int
 		SessionID   func(childComplexity int) int
 		Timestamp   func(childComplexity int) int
@@ -899,6 +901,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorMetadata.ErrorID(childComplexity), true
+
+	case "ErrorMetadata.fingerprint":
+		if e.complexity.ErrorMetadata.Fingerprint == nil {
+			break
+		}
+
+		return e.complexity.ErrorMetadata.Fingerprint(childComplexity), true
+
+	case "ErrorMetadata.identifier":
+		if e.complexity.ErrorMetadata.Identifier == nil {
+			break
+		}
+
+		return e.complexity.ErrorMetadata.Identifier(childComplexity), true
 
 	case "ErrorMetadata.os":
 		if e.complexity.ErrorMetadata.Os == nil {
@@ -2948,6 +2964,8 @@ type ErrorMetadata {
     os: String
     browser: String
     visited_url: String
+    fingerprint: String!
+    identifier: String
 }
 
 type ErrorTrace {
@@ -7109,6 +7127,73 @@ func (ec *executionContext) _ErrorMetadata_visited_url(ctx context.Context, fiel
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.VisitedURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorMetadata_fingerprint(ctx context.Context, field graphql.CollectedField, obj *model.ErrorMetadata) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ErrorMetadata",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Fingerprint, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorMetadata_identifier(ctx context.Context, field graphql.CollectedField, obj *model.ErrorMetadata) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ErrorMetadata",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Identifier, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16620,6 +16705,13 @@ func (ec *executionContext) _ErrorMetadata(ctx context.Context, sel ast.Selectio
 			out.Values[i] = ec._ErrorMetadata_browser(ctx, field, obj)
 		case "visited_url":
 			out.Values[i] = ec._ErrorMetadata_visited_url(ctx, field, obj)
+		case "fingerprint":
+			out.Values[i] = ec._ErrorMetadata_fingerprint(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "identifier":
+			out.Values[i] = ec._ErrorMetadata_identifier(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
