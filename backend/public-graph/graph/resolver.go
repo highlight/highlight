@@ -884,6 +884,8 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 			}
 
 			// Get ErrorAlert object and send respective alert
+			r := r
+			sessionObj := sessionObj
 			r.AlertWorkerPool.Submit(func() {
 				var errorAlert model.ErrorAlert
 				if err := r.DB.Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{Alert: model.Alert{OrganizationID: organizationID}}).First(&errorAlert).Error; err != nil {
@@ -920,7 +922,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 					log.Error(e.Wrap(err, "error querying organization"))
 					return
 				}
-				err = errorAlert.SendSlackAlert(&org, sessionID, sessionObj.Identifier, group, &errorToInsert.URL, nil, nil, &numErrors)
+				err = errorAlert.SendSlackAlert(&org, sessionObj.ID, sessionObj.Identifier, group, &errorToInsert.URL, nil, nil, &numErrors)
 				if err != nil {
 					log.Error(e.Wrap(err, "error sending slack error message"))
 					return
