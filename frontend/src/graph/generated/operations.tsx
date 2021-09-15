@@ -506,7 +506,6 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'city'
             | 'state'
             | 'postal'
-            | 'user_id'
             | 'fingerprint'
             | 'created_at'
             | 'language'
@@ -729,7 +728,6 @@ export type GetSessionsQuery = { __typename?: 'Query' } & {
                 { __typename?: 'Session' } & Pick<
                     Types.Session,
                     | 'id'
-                    | 'user_id'
                     | 'fingerprint'
                     | 'identifier'
                     | 'os_name'

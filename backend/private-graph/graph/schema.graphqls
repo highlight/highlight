@@ -13,7 +13,6 @@ type Field {
 
 type Session {
     id: ID!
-    user_id: ID!
     fingerprint: Int
     os_name: String!
     os_version: String!

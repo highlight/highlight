@@ -16,7 +16,6 @@ query GetSession($id: ID!) {
         city
         state
         postal
-        user_id
         fingerprint
         created_at
         language
@@ -179,7 +178,6 @@ query GetSessions(
     ) {
         sessions {
             id
-            user_id
             fingerprint
             identifier
             os_name

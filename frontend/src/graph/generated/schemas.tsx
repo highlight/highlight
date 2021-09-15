@@ -30,7 +30,6 @@ export type Field = {
 export type Session = {
     __typename?: 'Session';
     id: Scalars['ID'];
-    user_id: Scalars['ID'];
     fingerprint?: Maybe<Scalars['Int']>;
     os_name: Scalars['String'];
     os_version: Scalars['String'];
