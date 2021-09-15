@@ -66,7 +66,7 @@ const OnboardingBubble = () => {
         fetchPolicy: 'network-only',
     });
 
-    const { slackUrl: slackBotUrl } = useSlackBot();
+    const { slackUrl: slackBotUrl } = useSlackBot({ type: 'Personal' });
 
     useEffect(() => {
         if (data) {

@@ -71,6 +71,7 @@ const AlertsPage = () => {
                             <PersonalNotificationButton
                                 text="Connect Highlight with Slack"
                                 className={styles.integrationButton}
+                                type="Organization"
                             />
                         </>
                     }

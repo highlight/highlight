@@ -6,17 +6,23 @@ import Button, {
 } from '../../../Button/Button/Button';
 import { useAuthContext } from './../../../../authentication/AuthContext';
 import styles from './PersonalNotificationButton.module.scss';
-import { useSlackBot } from './utils/utils';
+import { useSlackBot, UseSlackBotProps } from './utils/utils';
 
 type Props = { text?: string } & Pick<
     GenericHighlightButtonProps,
     'className' | 'style'
->;
+> &
+    Pick<UseSlackBotProps, 'type'>;
 
-const PersonalNotificationButton = ({ className, style, text }: Props) => {
+const PersonalNotificationButton = ({
+    className,
+    style,
+    text,
+    type,
+}: Props) => {
     const { admin, isLoggedIn } = useAuthContext();
 
-    const { slackUrl: slackBotUrl } = useSlackBot();
+    const { slackUrl: slackBotUrl } = useSlackBot({ type });
 
     if (!isLoggedIn) return null;
 

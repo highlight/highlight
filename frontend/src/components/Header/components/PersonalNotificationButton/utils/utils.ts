@@ -7,7 +7,16 @@ import { useHistory } from 'react-router';
 import { useOpenSlackConversationMutation } from '../../../../../graph/generated/hooks';
 import { GetBaseURL } from '../../../../../util/window';
 
-export const useSlackBot = () => {
+export interface UseSlackBotProps {
+    type: 'Organization' | 'Personal';
+}
+
+const PersonalSlackScopes =
+    'channels:manage,groups:write,im:write,mpim:write,chat:write';
+const OrganizationSlackScopes =
+    'channels:join,channels:manage,channels:read,chat:write,groups:read,groups:write,im:read,im:write,mpim:read,mpim:write,users:read';
+
+export const useSlackBot = ({ type }: UseSlackBotProps) => {
     let redirectPath = window.location.pathname;
     // this doesn't work if we redirect to /alerts
     redirectPath = redirectPath.replace('alerts', 'home');
@@ -23,7 +32,9 @@ export const useSlackBot = () => {
     const [loading, setLoading] = useState<boolean>(false);
 
     const redirectUriOrigin = `${GetBaseURL()}/${organization_id}`;
-    const slackUrl = `https://slack.com/oauth/v2/authorize?client_id=1354469824468.1868913469441&scope=channels:manage,groups:write,im:write,mpim:write,chat:write&redirect_uri=${redirectUriOrigin}/${redirectPath}`;
+    const slackScopes =
+        type === 'Personal' ? PersonalSlackScopes : OrganizationSlackScopes;
+    const slackUrl = `https://slack.com/oauth/v2/authorize?client_id=1354469824468.1868913469441&scope=${slackScopes}&redirect_uri=${redirectUriOrigin}/${redirectPath}`;
 
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
@@ -33,17 +44,25 @@ export const useSlackBot = () => {
         const sideEffect = async () => {
             try {
                 setLoading(true);
-                await openSlackConversation({
-                    variables: {
-                        organization_id: organization_id,
-                        code,
-                        redirect_path: redirectPath,
-                    },
-                });
-                message.success(
-                    'Personal tagging slack notifications have been setup.',
-                    5
-                );
+                if (type === 'Personal') {
+                    await openSlackConversation({
+                        variables: {
+                            organization_id: organization_id,
+                            code,
+                            redirect_path: redirectPath,
+                        },
+                    });
+                    message.success(
+                        'Personal tagging slack notifications have been setup.',
+                        5
+                    );
+                } else if (type === 'Organization') {
+                    // TODO: Implement
+                    message.success(
+                        'Highlight is now integrated with Slack!',
+                        5
+                    );
+                }
             } catch (e) {
                 message.error(
                     `There was an error with Slack, please try again.: ${e}`,
@@ -62,6 +81,7 @@ export const useSlackBot = () => {
         loading,
         organization_id,
         redirectPath,
+        type,
     ]);
 
     return {
