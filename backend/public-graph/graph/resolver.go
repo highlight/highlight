@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gammazero/workerpool"
 	"github.com/go-sourcemap/sourcemap"
 	"github.com/mssola/user_agent"
 	e "github.com/pkg/errors"
@@ -34,6 +35,7 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
+	WorkerPool    *workerpool.WorkerPool
 	DB            *gorm.DB
 	StorageClient *storage.StorageClient
 }
