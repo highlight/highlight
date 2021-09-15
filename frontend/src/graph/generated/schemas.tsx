@@ -171,6 +171,8 @@ export type ErrorMetadata = {
     os?: Maybe<Scalars['String']>;
     browser?: Maybe<Scalars['String']>;
     visited_url?: Maybe<Scalars['String']>;
+    fingerprint: Scalars['String'];
+    identifier?: Maybe<Scalars['String']>;
 };
 
 export type ErrorTrace = {

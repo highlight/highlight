@@ -290,6 +290,8 @@ query GetErrorGroup($id: ID!) {
             os
             browser
             visited_url
+            fingerprint
+            identifier
         }
         field_group {
             name

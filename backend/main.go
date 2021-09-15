@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gammazero/workerpool"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/highlight-run/highlight/backend/model"
@@ -200,8 +201,10 @@ func main() {
 			clientServer := ghandler.NewDefaultServer(publicgen.NewExecutableSchema(
 				publicgen.Config{
 					Resolvers: &public.Resolver{
-						DB:            db,
-						StorageClient: storage,
+						DB:                    db,
+						StorageClient:         storage,
+						PushPayloadWorkerPool: workerpool.New(80),
+						AlertWorkerPool:       workerpool.New(40),
 					},
 				}))
 			clientServer.Use(util.NewTracer(util.PublicGraph))
