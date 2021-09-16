@@ -1033,22 +1033,23 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 					// The Highlight Slack bot needs to join the channel before it can send a message.
 					// Slack handles a bot trying to join a channel it already is a part of, we don't need to handle it.
 					log.Printf("Sending Slack Bot Message")
-					if slackClient != nil {
-						if strings.Contains(slackChannelName, "#") {
-							_, _, _, err := slackClient.JoinConversation(slackChannelId)
-							if err != nil {
-								log.Error(e.Wrap(err, "failed to join slack channel"))
-							}
-						}
-						_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionBlocks(blockSet...))
-						if err != nil {
-							log.WithFields(log.Fields{"org_id": input.Organization.ID, "message": fmt.Sprintf("%+v", msg)}).
-								Error(e.Wrap(err, "error sending slack msg via bot api"))
-						}
 
-					} else {
+					if slackClient == nil {
 						log.Printf("Slack Bot Client was not defined")
 					}
+
+					if strings.Contains(slackChannelName, "#") {
+						_, _, _, err := slackClient.JoinConversation(slackChannelId)
+						if err != nil {
+							log.Error(e.Wrap(err, "failed to join slack channel"))
+						}
+					}
+					_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionBlocks(blockSet...))
+					if err != nil {
+						log.WithFields(log.Fields{"org_id": input.Organization.ID, "message": fmt.Sprintf("%+v", msg)}).
+							Error(e.Wrap(err, "error sending slack msg via bot api"))
+					}
+
 				}
 			})
 		}
