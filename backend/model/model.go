@@ -934,6 +934,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 	if input.Organization.SlackAccessToken != nil {
 		slackClient = slack.New(*input.Organization.SlackAccessToken)
 	}
+	log.Printf("Sending Slack Alert for org: %d session: %d", input.Organization.ID, input.SessionID)
 
 	// send message
 	for _, channel := range channels {
@@ -965,6 +966,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 
 			go func() {
 				if isWebhookChannel {
+					log.Printf("Sending Slack Webhook")
 					err := slack.PostWebhook(
 						slackWebhookURL,
 						&msg,
@@ -976,6 +978,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 				} else {
 					// The Highlight Slack bot needs to join the channel before it can send a message.
 					// Slack handles a bot trying to join a channel it already is a part of, we don't need to handle it.
+					log.Printf("Sending Slack Bot Message")
 					if slackClient != nil {
 						if strings.Contains(slackChannelName, "#") {
 							_, _, _, err := slackClient.JoinConversation(slackChannelId)
@@ -989,6 +992,8 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 								Error(e.Wrap(err, "error sending slack msg via bot api"))
 						}
 
+					} else {
+						log.Printf("Slack Bot Client was not defined")
 					}
 				}
 			}()
