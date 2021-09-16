@@ -948,6 +948,13 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 					break
 				}
 			}
+
+			if slackWebhookURL == "" && isWebhookChannel {
+				log.WithFields(log.Fields{"org_id": input.Organization.ID}).
+					Error("requested channel has no matching slackWebhookURL")
+				continue
+			}
+
 			msg.Channel = *channel.WebhookChannel
 			slackChannelId := *channel.WebhookChannelID
 			slackChannelName := *channel.WebhookChannel
