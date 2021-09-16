@@ -654,8 +654,10 @@ type ErrorComment struct {
 }
 
 type WorkerPools struct {
-	PushPayloadWorkerPool *workerpool.WorkerPool
-	AlertWorkerPool       *workerpool.WorkerPool
+	PushPayloadPool    *workerpool.WorkerPool
+	AlertPool          *workerpool.WorkerPool
+	AlertSubtaskPool   *workerpool.WorkerPool
+	ProcessSessionPool *workerpool.WorkerPool
 }
 
 func SetupDB(dbName string) (*gorm.DB, error) {

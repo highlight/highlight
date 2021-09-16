@@ -143,16 +143,21 @@ func main() {
 	if err != nil {
 		log.Fatalf("error creating storage client: %v", err)
 	}
-	workerpools := model.WorkerPools{
-		PushPayloadWorkerPool: workerpool.New(80),
-		AlertWorkerPool:       workerpool.New(40),
+
+	workerpools := &model.WorkerPools{
+		PushPayloadPool:    workerpool.New(80),
+		AlertPool:          workerpool.New(40),
+		AlertSubtaskPool:   workerpool.New(40),
+		ProcessSessionPool: workerpool.New(40),
 	}
+
 	private.SetupAuthClient()
 	privateResolver := &private.Resolver{
 		DB:            db,
 		MailClient:    sendgrid.NewSendClient(sendgridKey),
 		StripeClient:  stripeClient,
 		StorageClient: storage,
+		WorkerPools:   workerpools,
 	}
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.
@@ -207,7 +212,7 @@ func main() {
 					Resolvers: &public.Resolver{
 						DB:            db,
 						StorageClient: storage,
-						WorkerPools:   &workerpools,
+						WorkerPools:   workerpools,
 					},
 				}))
 			clientServer.Use(util.NewTracer(util.PublicGraph))

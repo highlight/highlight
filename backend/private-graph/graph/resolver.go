@@ -37,6 +37,7 @@ type Resolver struct {
 	MailClient    *sendgrid.Client
 	StripeClient  *client.API
 	StorageClient *storage.StorageClient
+	WorkerPools   *model.WorkerPools
 }
 
 func (r *Resolver) getCurrentAdmin(ctx context.Context) (*model.Admin, error) {

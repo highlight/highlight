@@ -37,9 +37,9 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	WorkerPools   *model.WorkerPools
 	DB            *gorm.DB
 	StorageClient *storage.StorageClient
+	WorkerPools   *model.WorkerPools
 }
 
 type Location struct {
@@ -883,7 +883,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 			// Get ErrorAlert object and send respective alert
 			r := r
 			sessionObj := sessionObj
-			r.WorkerPools.AlertWorkerPool.Submit(func() {
+			r.WorkerPools.AlertPool.Submit(func() {
 				var errorAlert model.ErrorAlert
 				if err := r.DB.Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{Alert: model.Alert{OrganizationID: organizationID}}).First(&errorAlert).Error; err != nil {
 					log.Error(e.Wrap(err, "error fetching ErrorAlert object"))
