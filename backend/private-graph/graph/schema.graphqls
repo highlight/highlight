@@ -475,6 +475,7 @@ type Query {
     organizationSuggestion(query: String!): [Organization]
     environment_suggestion(query: String!, organization_id: ID!): [Field]
     slack_channel_suggestion(organization_id: ID!): [SanitizedSlackChannel]
+    is_integrated_with_slack(organization_id: ID!): Boolean!
     organization(id: ID!): Organization
     admin: Admin
     segments(organization_id: ID!): [Segment]
@@ -496,11 +497,6 @@ type Mutation {
     ): String
     addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
     deleteAdminFromOrganization(organization_id: ID!, admin_id: ID!): ID
-    addSlackIntegrationToWorkspace(
-        organization_id: ID!
-        code: String!
-        redirect_path: String!
-    ): Boolean
     createSegment(
         organization_id: ID!
         name: String!
@@ -563,6 +559,11 @@ type Mutation {
         code: String!
         redirect_path: String!
     ): Boolean
+    addSlackBotIntegrationToOrganization(
+        organization_id: ID!
+        code: String!
+        redirect_path: String!
+    ): Boolean!
     updateErrorAlert(
         organization_id: ID!
         error_alert_id: ID!

@@ -365,71 +365,6 @@ func (r *mutationResolver) DeleteAdminFromOrganization(ctx context.Context, orga
 	return &adminID, nil
 }
 
-func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, organizationID int, code string, redirectPath string) (*bool, error) {
-	var (
-		SLACK_CLIENT_ID     string
-		SLACK_CLIENT_SECRET string
-	)
-	org, err := r.isAdminInOrganization(ctx, organizationID)
-	if err != nil {
-		return nil, e.Wrap(err, "admin is not in organization")
-	}
-	redirect := os.Getenv("FRONTEND_URI")
-	redirect += "/" + strconv.Itoa(organizationID) + "/" + redirectPath
-	if tempSlackClientID, ok := os.LookupEnv("SLACK_CLIENT_ID"); ok && tempSlackClientID != "" {
-		SLACK_CLIENT_ID = tempSlackClientID
-	}
-	if tempSlackClientSecret, ok := os.LookupEnv("SLACK_CLIENT_SECRET"); ok && tempSlackClientSecret != "" {
-		SLACK_CLIENT_SECRET = tempSlackClientSecret
-	}
-	resp, err := slack.
-		GetOAuthV2Response(
-			&http.Client{},
-			SLACK_CLIENT_ID,
-			SLACK_CLIENT_SECRET,
-			code,
-			redirect,
-		)
-	if err != nil {
-		return nil, e.Wrap(err, "error getting slack oauth response")
-	}
-	existingChannels, err := org.IntegratedSlackChannels()
-	if err != nil {
-		return nil, e.Wrap(err, "error retrieving existing slack channels")
-	}
-	for _, ch := range existingChannels {
-		if ch.WebhookChannelID == resp.IncomingWebhook.ChannelID {
-			return nil, e.New("this channel has already been connected to your workspace")
-		}
-	}
-	existingChannels = append(existingChannels, model.SlackChannel{
-		WebhookAccessToken: resp.AccessToken,
-		WebhookURL:         resp.IncomingWebhook.URL,
-		WebhookChannelID:   resp.IncomingWebhook.ChannelID,
-		WebhookChannel:     resp.IncomingWebhook.Channel,
-	})
-	channelBytes, err := json.Marshal(existingChannels)
-	if err != nil {
-		return nil, e.Wrap(err, "error marshaling existing channels")
-	}
-	channelString := string(channelBytes)
-	if err := r.DB.Model(org).Updates(&model.Organization{
-		SlackChannels: &channelString,
-	}).Error; err != nil {
-		return nil, e.Wrap(err, "error updating org fields")
-	}
-
-	baseMessage := "👋 Hello from Highlight!"
-	if name := org.Name; name != nil {
-		baseMessage += fmt.Sprintf(" We'll send messages here based on your alert preferences for %v, which can be configured at https://app.highlight.run/%v/alerts.", *name, org.ID)
-	}
-	msg := slack.WebhookMessage{Text: baseMessage}
-	if err := slack.PostWebhook(resp.IncomingWebhook.URL, &msg); err != nil {
-		log.Error(e.Wrap(err, "failed to send hello alert slack message"))
-	}
-	return &model.T, nil
-}
-
 func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int, name string, params modelInputs.SearchParamsInput) (*model.Segment, error) {
 	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
@@ -869,7 +804,7 @@ func (r *mutationResolver) OpenSlackConversation(ctx context.Context, organizati
 		SLACK_CLIENT_ID     string
 		SLACK_CLIENT_SECRET string
 	)
-	_, err := r.isAdminInOrganization(ctx, organizationID)
+	org, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
@@ -893,8 +828,10 @@ func (r *mutationResolver) OpenSlackConversation(ctx context.Context, organizati
 		return nil, e.Wrap(err, "error getting slack oauth response")
 	}
 
-	if err := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).Updates(&model.Organization{SlackAccessToken: &resp.AccessToken}).Error; err != nil {
-		return nil, e.Wrap(err, "error updating slack access token in org")
+	if org.SlackAccessToken == nil {
+		if err := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).Updates(&model.Organization{SlackAccessToken: &resp.AccessToken}).Error; err != nil {
+			return nil, e.Wrap(err, "error updating slack access token in org")
+		}
 	}
 
 	slackClient := slack.New(resp.AccessToken)
@@ -911,6 +848,126 @@ func (r *mutationResolver) OpenSlackConversation(ctx context.Context, organizati
 		return nil, e.Wrap(err, "error posting message to user")
 	}
 	return &model.T, nil
+}
+
+func (r *mutationResolver) AddSlackBotIntegrationToOrganization(ctx context.Context, organizationID int, code string, redirectPath string) (bool, error) {
+	var (
+		SLACK_CLIENT_ID     string
+		SLACK_CLIENT_SECRET string
+	)
+	org, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return false, e.Wrap(err, "admin is not in organization")
+	}
+	redirect := os.Getenv("FRONTEND_URI")
+	redirect += "/" + strconv.Itoa(organizationID) + "/" + redirectPath
+	if tempSlackClientID, ok := os.LookupEnv("SLACK_CLIENT_ID"); ok && tempSlackClientID != "" {
+		SLACK_CLIENT_ID = tempSlackClientID
+	}
+	if tempSlackClientSecret, ok := os.LookupEnv("SLACK_CLIENT_SECRET"); ok && tempSlackClientSecret != "" {
+		SLACK_CLIENT_SECRET = tempSlackClientSecret
+	}
+	resp, err := slack.
+		GetOAuthV2Response(
+			&http.Client{},
+			SLACK_CLIENT_ID,
+			SLACK_CLIENT_SECRET,
+			code,
+			redirect,
+		)
+	if err != nil {
+		return false, e.Wrap(err, "error getting slack oauth response")
+	}
+
+	if err := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).Updates(&model.Organization{SlackAccessToken: &resp.AccessToken}).Error; err != nil {
+		return false, e.Wrap(err, "error updating slack access token in org")
+	}
+
+	slackClient := slack.New(resp.AccessToken)
+
+	getConversationsParam := slack.GetConversationsParameters{
+		Limit: 1000,
+		// public_channel is for public channels in the Slack workspace
+		// im is for all individuals in the Slack workspace
+		Types: []string{"public_channel", "im"},
+	}
+	channels, _, err := slackClient.GetConversations(&getConversationsParam)
+	if err != nil {
+		return false, e.Wrap(err, "error getting Slack channels from Slack.")
+	}
+
+	// We need to get the users in the Slack channel in order to get their name.
+	// The conversations endpoint only returns the user's ID, we'll use the response from `GetUsers` to get the name.
+	users, err := slackClient.GetUsers()
+	if err != nil {
+		log.Error(e.Wrap(err, "failed to get users"))
+	}
+
+	newChannels := []model.SlackChannel{}
+	for _, channel := range channels {
+		newChannel := model.SlackChannel{}
+
+		// Slack channels' `User` will be an empty string and the user's ID if it's a user.
+		if channel.User != "" {
+			var userToFind *slack.User
+			for _, user := range users {
+				if user.ID == channel.User {
+					userToFind = &user
+					break
+				}
+			}
+
+			if userToFind != nil {
+				// Filter out Slack Bots.
+				if userToFind.IsBot || userToFind.Name == "slackbot" {
+					continue
+				}
+				newChannel.WebhookChannel = fmt.Sprintf("@%s", userToFind.Name)
+			}
+		} else {
+			newChannel.WebhookChannel = fmt.Sprintf("#%s", channel.Name)
+		}
+
+		newChannel.WebhookChannelID = channel.ID
+		newChannels = append(newChannels, newChannel)
+	}
+
+	existingChannels, err := org.IntegratedSlackChannels()
+
+	// Filter out `newChannels` that already exist in `existingChannels` so we don't have duplicates.
+	filteredNewChannels := []model.SlackChannel{}
+	for _, newChannel := range newChannels {
+		channelAlreadyExists := false
+
+		for _, existingChannel := range existingChannels {
+			if existingChannel.WebhookChannelID == newChannel.WebhookChannelID {
+				channelAlreadyExists = true
+				break
+			}
+		}
+
+		if !channelAlreadyExists {
+			filteredNewChannels = append(filteredNewChannels, newChannel)
+		}
+	}
+
+	if err != nil {
+		return false, e.Wrap(err, "error retrieving existing slack channels")
+	}
+
+	existingChannels = append(existingChannels, filteredNewChannels...)
+	channelBytes, err := json.Marshal(existingChannels)
+	if err != nil {
+		return false, e.Wrap(err, "error marshaling existing channels")
+	}
+	channelString := string(channelBytes)
+	if err := r.DB.Model(org).Updates(&model.Organization{
+		SlackChannels: &channelString,
+	}).Error; err != nil {
+		return false, e.Wrap(err, "error updating org fields")
+	}
+
+	return true, nil
 }
 
 func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.ErrorAlert, error) {
@@ -1970,6 +2027,16 @@ func (r *queryResolver) SlackChannelSuggestion(ctx context.Context, organization
 		})
 	}
 	return ret, nil
+}
+
+func (r *queryResolver) IsIntegratedWithSlack(ctx context.Context, organizationID int) (bool, error) {
+	org, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID)
+
+	if err != nil {
+		return false, e.Wrap(err, "error querying organization")
+	}
+
+	return org.SlackAccessToken != nil, nil
 }
 
 func (r *queryResolver) Organization(ctx context.Context, id int) (*model.Organization, error) {

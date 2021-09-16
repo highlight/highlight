@@ -472,36 +472,36 @@ export type OpenSlackConversationMutationOptions = Apollo.BaseMutationOptions<
     Types.OpenSlackConversationMutation,
     Types.OpenSlackConversationMutationVariables
 >;
-export const AddSlackIntegrationToWorkspaceDocument = gql`
-    mutation AddSlackIntegrationToWorkspace(
+export const AddSlackBotIntegrationToOrganizationDocument = gql`
+    mutation AddSlackBotIntegrationToOrganization(
         $organization_id: ID!
         $code: String!
         $redirect_path: String!
     ) {
-        addSlackIntegrationToWorkspace(
+        addSlackBotIntegrationToOrganization(
             organization_id: $organization_id
             code: $code
             redirect_path: $redirect_path
         )
     }
 `;
-export type AddSlackIntegrationToWorkspaceMutationFn = Apollo.MutationFunction<
-    Types.AddSlackIntegrationToWorkspaceMutation,
-    Types.AddSlackIntegrationToWorkspaceMutationVariables
+export type AddSlackBotIntegrationToOrganizationMutationFn = Apollo.MutationFunction<
+    Types.AddSlackBotIntegrationToOrganizationMutation,
+    Types.AddSlackBotIntegrationToOrganizationMutationVariables
 >;
 
 /**
- * __useAddSlackIntegrationToWorkspaceMutation__
+ * __useAddSlackBotIntegrationToOrganizationMutation__
  *
- * To run a mutation, you first call `useAddSlackIntegrationToWorkspaceMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useAddSlackIntegrationToWorkspaceMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useAddSlackBotIntegrationToOrganizationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAddSlackBotIntegrationToOrganizationMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [addSlackIntegrationToWorkspaceMutation, { data, loading, error }] = useAddSlackIntegrationToWorkspaceMutation({
+ * const [addSlackBotIntegrationToOrganizationMutation, { data, loading, error }] = useAddSlackBotIntegrationToOrganizationMutation({
  *   variables: {
  *      organization_id: // value for 'organization_id'
  *      code: // value for 'code'
@@ -509,24 +509,24 @@ export type AddSlackIntegrationToWorkspaceMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useAddSlackIntegrationToWorkspaceMutation(
+export function useAddSlackBotIntegrationToOrganizationMutation(
     baseOptions?: Apollo.MutationHookOptions<
-        Types.AddSlackIntegrationToWorkspaceMutation,
-        Types.AddSlackIntegrationToWorkspaceMutationVariables
+        Types.AddSlackBotIntegrationToOrganizationMutation,
+        Types.AddSlackBotIntegrationToOrganizationMutationVariables
     >
 ) {
     return Apollo.useMutation<
-        Types.AddSlackIntegrationToWorkspaceMutation,
-        Types.AddSlackIntegrationToWorkspaceMutationVariables
-    >(AddSlackIntegrationToWorkspaceDocument, baseOptions);
+        Types.AddSlackBotIntegrationToOrganizationMutation,
+        Types.AddSlackBotIntegrationToOrganizationMutationVariables
+    >(AddSlackBotIntegrationToOrganizationDocument, baseOptions);
 }
-export type AddSlackIntegrationToWorkspaceMutationHookResult = ReturnType<
-    typeof useAddSlackIntegrationToWorkspaceMutation
+export type AddSlackBotIntegrationToOrganizationMutationHookResult = ReturnType<
+    typeof useAddSlackBotIntegrationToOrganizationMutation
 >;
-export type AddSlackIntegrationToWorkspaceMutationResult = Apollo.MutationResult<Types.AddSlackIntegrationToWorkspaceMutation>;
-export type AddSlackIntegrationToWorkspaceMutationOptions = Apollo.BaseMutationOptions<
-    Types.AddSlackIntegrationToWorkspaceMutation,
-    Types.AddSlackIntegrationToWorkspaceMutationVariables
+export type AddSlackBotIntegrationToOrganizationMutationResult = Apollo.MutationResult<Types.AddSlackBotIntegrationToOrganizationMutation>;
+export type AddSlackBotIntegrationToOrganizationMutationOptions = Apollo.BaseMutationOptions<
+    Types.AddSlackBotIntegrationToOrganizationMutation,
+    Types.AddSlackBotIntegrationToOrganizationMutationVariables
 >;
 export const CreateOrganizationDocument = gql`
     mutation CreateOrganization($name: String!) {
@@ -4517,6 +4517,7 @@ export type GetSlackChannelSuggestionQueryResult = Apollo.QueryResult<
 >;
 export const GetAlertsPagePayloadDocument = gql`
     query GetAlertsPagePayload($organization_id: ID!) {
+        is_integrated_with_slack(organization_id: $organization_id)
         slack_channel_suggestion(organization_id: $organization_id) {
             webhook_channel
             webhook_channel_id

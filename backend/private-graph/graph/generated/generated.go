@@ -199,35 +199,35 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddAdminToOrganization           func(childComplexity int, organizationID int, inviteID string) int
-		AddSlackIntegrationToWorkspace   func(childComplexity int, organizationID int, code string, redirectPath string) int
-		CreateErrorComment               func(childComplexity int, organizationID int, errorGroupID *int, errorGroupSecureID *string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, errorURL string, authorName string) int
-		CreateErrorSegment               func(childComplexity int, organizationID int, name string, params model.ErrorSearchParamsInput) int
-		CreateOrUpdateStripeSubscription func(childComplexity int, organizationID int, planType model.PlanType) int
-		CreateOrganization               func(childComplexity int, name string) int
-		CreateSegment                    func(childComplexity int, organizationID int, name string, params model.SearchParamsInput) int
-		CreateSessionComment             func(childComplexity int, organizationID int, sessionID *int, sessionSecureID *string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) int
-		DeleteAdminFromOrganization      func(childComplexity int, organizationID int, adminID int) int
-		DeleteErrorComment               func(childComplexity int, id int) int
-		DeleteErrorSegment               func(childComplexity int, segmentID int) int
-		DeleteOrganization               func(childComplexity int, id int) int
-		DeleteSegment                    func(childComplexity int, segmentID int) int
-		DeleteSessionComment             func(childComplexity int, id int) int
-		EditErrorSegment                 func(childComplexity int, id int, organizationID int, params model.ErrorSearchParamsInput) int
-		EditOrganization                 func(childComplexity int, id int, name *string, billingEmail *string) int
-		EditSegment                      func(childComplexity int, id int, organizationID int, params model.SearchParamsInput) int
-		EmailSignup                      func(childComplexity int, email string) int
-		MarkSessionAsStarred             func(childComplexity int, id *int, secureID *string, starred *bool) int
-		MarkSessionAsViewed              func(childComplexity int, id *int, secureID *string, viewed *bool) int
-		OpenSlackConversation            func(childComplexity int, organizationID int, code string, redirectPath string) int
-		SendAdminInvite                  func(childComplexity int, organizationID int, email string, baseURL string) int
-		UpdateBillingDetails             func(childComplexity int, organizationID int) int
-		UpdateErrorAlert                 func(childComplexity int, organizationID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
-		UpdateErrorGroupState            func(childComplexity int, id *int, secureID *string, state string) int
-		UpdateNewUserAlert               func(childComplexity int, organizationID int, sessionAlertID int, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
-		UpdateSessionIsPublic            func(childComplexity int, sessionID *int, sessionSecureID *string, isPublic bool) int
-		UpdateTrackPropertiesAlert       func(childComplexity int, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, trackProperties []*model.TrackPropertyInput) int
-		UpdateUserPropertiesAlert        func(childComplexity int, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, userProperties []*model.UserPropertyInput) int
+		AddAdminToOrganization               func(childComplexity int, organizationID int, inviteID string) int
+		AddSlackBotIntegrationToOrganization func(childComplexity int, organizationID int, code string, redirectPath string) int
+		CreateErrorComment                   func(childComplexity int, organizationID int, errorGroupID *int, errorGroupSecureID *string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, errorURL string, authorName string) int
+		CreateErrorSegment                   func(childComplexity int, organizationID int, name string, params model.ErrorSearchParamsInput) int
+		CreateOrUpdateStripeSubscription     func(childComplexity int, organizationID int, planType model.PlanType) int
+		CreateOrganization                   func(childComplexity int, name string) int
+		CreateSegment                        func(childComplexity int, organizationID int, name string, params model.SearchParamsInput) int
+		CreateSessionComment                 func(childComplexity int, organizationID int, sessionID *int, sessionSecureID *string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) int
+		DeleteAdminFromOrganization          func(childComplexity int, organizationID int, adminID int) int
+		DeleteErrorComment                   func(childComplexity int, id int) int
+		DeleteErrorSegment                   func(childComplexity int, segmentID int) int
+		DeleteOrganization                   func(childComplexity int, id int) int
+		DeleteSegment                        func(childComplexity int, segmentID int) int
+		DeleteSessionComment                 func(childComplexity int, id int) int
+		EditErrorSegment                     func(childComplexity int, id int, organizationID int, params model.ErrorSearchParamsInput) int
+		EditOrganization                     func(childComplexity int, id int, name *string, billingEmail *string) int
+		EditSegment                          func(childComplexity int, id int, organizationID int, params model.SearchParamsInput) int
+		EmailSignup                          func(childComplexity int, email string) int
+		MarkSessionAsStarred                 func(childComplexity int, id *int, secureID *string, starred *bool) int
+		MarkSessionAsViewed                  func(childComplexity int, id *int, secureID *string, viewed *bool) int
+		OpenSlackConversation                func(childComplexity int, organizationID int, code string, redirectPath string) int
+		SendAdminInvite                      func(childComplexity int, organizationID int, email string, baseURL string) int
+		UpdateBillingDetails                 func(childComplexity int, organizationID int) int
+		UpdateErrorAlert                     func(childComplexity int, organizationID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
+		UpdateErrorGroupState                func(childComplexity int, id *int, secureID *string, state string) int
+		UpdateNewUserAlert                   func(childComplexity int, organizationID int, sessionAlertID int, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
+		UpdateSessionIsPublic                func(childComplexity int, sessionID *int, sessionSecureID *string, isPublic bool) int
+		UpdateTrackPropertiesAlert           func(childComplexity int, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, trackProperties []*model.TrackPropertyInput) int
+		UpdateUserPropertiesAlert            func(childComplexity int, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, userProperties []*model.UserPropertyInput) int
 	}
 
 	NewUsersCount struct {
@@ -273,6 +273,7 @@ type ComplexityRoot struct {
 		Events                         func(childComplexity int, sessionID *int, sessionSecureID *string) int
 		FieldSuggestion                func(childComplexity int, organizationID int, name string, query string) int
 		IsIntegrated                   func(childComplexity int, organizationID int) int
+		IsIntegratedWithSlack          func(childComplexity int, organizationID int) int
 		Messages                       func(childComplexity int, sessionID *int, sessionSecureID *string) int
 		NewUserAlert                   func(childComplexity int, organizationID int) int
 		NewUsersCount                  func(childComplexity int, organizationID int, lookBackPeriod int) int
@@ -463,7 +464,6 @@ type MutationResolver interface {
 	SendAdminInvite(ctx context.Context, organizationID int, email string, baseURL string) (*string, error)
 	AddAdminToOrganization(ctx context.Context, organizationID int, inviteID string) (*int, error)
 	DeleteAdminFromOrganization(ctx context.Context, organizationID int, adminID int) (*int, error)
-	AddSlackIntegrationToWorkspace(ctx context.Context, organizationID int, code string, redirectPath string) (*bool, error)
 	CreateSegment(ctx context.Context, organizationID int, name string, params model.SearchParamsInput) (*model1.Segment, error)
 	EmailSignup(ctx context.Context, email string) (string, error)
 	EditSegment(ctx context.Context, id int, organizationID int, params model.SearchParamsInput) (*bool, error)
@@ -478,6 +478,7 @@ type MutationResolver interface {
 	CreateErrorComment(ctx context.Context, organizationID int, errorGroupID *int, errorGroupSecureID *string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, errorURL string, authorName string) (*model1.ErrorComment, error)
 	DeleteErrorComment(ctx context.Context, id int) (*bool, error)
 	OpenSlackConversation(ctx context.Context, organizationID int, code string, redirectPath string) (*bool, error)
+	AddSlackBotIntegrationToOrganization(ctx context.Context, organizationID int, code string, redirectPath string) (bool, error)
 	UpdateErrorAlert(ctx context.Context, organizationID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.ErrorAlert, error)
 	UpdateNewUserAlert(ctx context.Context, organizationID int, sessionAlertID int, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.SessionAlert, error)
 	UpdateTrackPropertiesAlert(ctx context.Context, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, trackProperties []*model.TrackPropertyInput) (*model1.SessionAlert, error)
@@ -524,6 +525,7 @@ type QueryResolver interface {
 	OrganizationSuggestion(ctx context.Context, query string) ([]*model1.Organization, error)
 	EnvironmentSuggestion(ctx context.Context, query string, organizationID int) ([]*model1.Field, error)
 	SlackChannelSuggestion(ctx context.Context, organizationID int) ([]*model.SanitizedSlackChannel, error)
+	IsIntegratedWithSlack(ctx context.Context, organizationID int) (bool, error)
 	Organization(ctx context.Context, id int) (*model1.Organization, error)
 	Admin(ctx context.Context) (*model1.Admin, error)
 	Segments(ctx context.Context, organizationID int) ([]*model1.Segment, error)
@@ -1207,17 +1209,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddAdminToOrganization(childComplexity, args["organization_id"].(int), args["invite_id"].(string)), true
 
-	case "Mutation.addSlackIntegrationToWorkspace":
-		if e.complexity.Mutation.AddSlackIntegrationToWorkspace == nil {
+	case "Mutation.addSlackBotIntegrationToOrganization":
+		if e.complexity.Mutation.AddSlackBotIntegrationToOrganization == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_addSlackIntegrationToWorkspace_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_addSlackBotIntegrationToOrganization_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddSlackIntegrationToWorkspace(childComplexity, args["organization_id"].(int), args["code"].(string), args["redirect_path"].(string)), true
+		return e.complexity.Mutation.AddSlackBotIntegrationToOrganization(childComplexity, args["organization_id"].(int), args["code"].(string), args["redirect_path"].(string)), true
 
 	case "Mutation.createErrorComment":
 		if e.complexity.Mutation.CreateErrorComment == nil {
@@ -1873,6 +1875,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.IsIntegrated(childComplexity, args["organization_id"].(int)), true
+
+	case "Query.is_integrated_with_slack":
+		if e.complexity.Query.IsIntegratedWithSlack == nil {
+			break
+		}
+
+		args, err := ec.field_Query_is_integrated_with_slack_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.IsIntegratedWithSlack(childComplexity, args["organization_id"].(int)), true
 
 	case "Query.messages":
 		if e.complexity.Query.Messages == nil {
@@ -3285,6 +3299,7 @@ type Query {
     organizationSuggestion(query: String!): [Organization]
     environment_suggestion(query: String!, organization_id: ID!): [Field]
     slack_channel_suggestion(organization_id: ID!): [SanitizedSlackChannel]
+    is_integrated_with_slack(organization_id: ID!): Boolean!
     organization(id: ID!): Organization
     admin: Admin
     segments(organization_id: ID!): [Segment]
@@ -3306,11 +3321,6 @@ type Mutation {
     ): String
     addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
     deleteAdminFromOrganization(organization_id: ID!, admin_id: ID!): ID
-    addSlackIntegrationToWorkspace(
-        organization_id: ID!
-        code: String!
-        redirect_path: String!
-    ): Boolean
     createSegment(
         organization_id: ID!
         name: String!
@@ -3373,6 +3383,11 @@ type Mutation {
         code: String!
         redirect_path: String!
     ): Boolean
+    addSlackBotIntegrationToOrganization(
+        organization_id: ID!
+        code: String!
+        redirect_path: String!
+    ): Boolean!
     updateErrorAlert(
         organization_id: ID!
         error_alert_id: ID!
@@ -3440,7 +3455,7 @@ func (ec *executionContext) field_Mutation_addAdminToOrganization_args(ctx conte
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_addSlackIntegrationToWorkspace_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_addSlackBotIntegrationToOrganization_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -4872,6 +4887,21 @@ func (ec *executionContext) field_Query_field_suggestion_args(ctx context.Contex
 }
 
 func (ec *executionContext) field_Query_isIntegrated_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organization_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_is_integrated_with_slack_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -8749,45 +8779,6 @@ func (ec *executionContext) _Mutation_deleteAdminFromOrganization(ctx context.Co
 	return ec.marshalOID2ᚖint(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_addSlackIntegrationToWorkspace(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_addSlackIntegrationToWorkspace_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddSlackIntegrationToWorkspace(rctx, args["organization_id"].(int), args["code"].(string), args["redirect_path"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*bool)
-	fc.Result = res
-	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Mutation_createSegment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -9335,6 +9326,48 @@ func (ec *executionContext) _Mutation_openSlackConversation(ctx context.Context,
 	res := resTmp.(*bool)
 	fc.Result = res
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_addSlackBotIntegrationToOrganization(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addSlackBotIntegrationToOrganization_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddSlackBotIntegrationToOrganization(rctx, args["organization_id"].(int), args["code"].(string), args["redirect_path"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_updateErrorAlert(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -11439,6 +11472,48 @@ func (ec *executionContext) _Query_slack_channel_suggestion(ctx context.Context,
 	res := resTmp.([]*model.SanitizedSlackChannel)
 	fc.Result = res
 	return ec.marshalOSanitizedSlackChannel2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannel(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_is_integrated_with_slack(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_is_integrated_with_slack_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().IsIntegratedWithSlack(rctx, args["organization_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_organization(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -17013,8 +17088,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_addAdminToOrganization(ctx, field)
 		case "deleteAdminFromOrganization":
 			out.Values[i] = ec._Mutation_deleteAdminFromOrganization(ctx, field)
-		case "addSlackIntegrationToWorkspace":
-			out.Values[i] = ec._Mutation_addSlackIntegrationToWorkspace(ctx, field)
 		case "createSegment":
 			out.Values[i] = ec._Mutation_createSegment(ctx, field)
 		case "emailSignup":
@@ -17046,6 +17119,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_deleteErrorComment(ctx, field)
 		case "openSlackConversation":
 			out.Values[i] = ec._Mutation_openSlackConversation(ctx, field)
+		case "addSlackBotIntegrationToOrganization":
+			out.Values[i] = ec._Mutation_addSlackBotIntegrationToOrganization(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "updateErrorAlert":
 			out.Values[i] = ec._Mutation_updateErrorAlert(ctx, field)
 		case "updateNewUserAlert":
@@ -17654,6 +17732,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_slack_channel_suggestion(ctx, field)
+				return res
+			})
+		case "is_integrated_with_slack":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_is_integrated_with_slack(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			})
 		case "organization":
