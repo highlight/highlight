@@ -950,6 +950,9 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 				}
 			}
 			msg.Channel = *channel.WebhookChannel
+			slackChannelId := *channel.WebhookChannelID
+			slackChannelName := *channel.WebhookChannel
+
 			go func() {
 				if isWebhookChannel {
 					err := slack.PostWebhook(
@@ -958,21 +961,21 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 					)
 					if err != nil {
 						log.WithFields(log.Fields{"org_id": input.Organization.ID, "slack_webhook_url": slackWebhookURL, "message": fmt.Sprintf("%+v", msg)}).
-							Error(e.Wrap(err, "error sending slack msg"))
+							Error(e.Wrap(err, "error sending slack msg via webhook"))
 					}
 				} else {
 					// The Highlight Slack bot needs to join the channel before it can send a message.
 					// Slack handles a bot trying to join a channel it already is a part of, we don't need to handle it.
-					if strings.Contains(*channel.WebhookChannel, "#") {
-						_, _, _, err := slackClient.JoinConversation(*channel.WebhookChannelID)
+					if strings.Contains(slackChannelName, "#") {
+						_, _, _, err := slackClient.JoinConversation(slackChannelId)
 						if err != nil {
 							log.Error(e.Wrap(err, "failed to join slack channel"))
 						}
 					}
-					_, _, err := slackClient.PostMessage(*channel.WebhookChannelID, slack.MsgOptionBlocks(blockSet...))
+					_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionBlocks(blockSet...))
 					if err != nil {
-						log.WithFields(log.Fields{"org_id": input.Organization.ID, "slack_webhook_url": slackWebhookURL, "message": fmt.Sprintf("%+v", msg)}).
-							Error(e.Wrap(err, "error sending slack msg"))
+						log.WithFields(log.Fields{"org_id": input.Organization.ID, "message": fmt.Sprintf("%+v", msg)}).
+							Error(e.Wrap(err, "error sending slack msg via bot api"))
 					}
 				}
 			}()
