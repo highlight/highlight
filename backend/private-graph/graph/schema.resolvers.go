@@ -197,16 +197,16 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	if err := r.DB.Create(org).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")
 	}
-	if err := r.DB.Create(&model.ErrorAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.ERROR}}).Error; err != nil {
+	if err := r.DB.Create(&model.ErrorAlert{Alert: model.Alert{OrganizationID: org.ID, ProjectID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.ERROR}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")
 	}
-	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.NEW_USER}}).Error; err != nil {
+	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ProjectID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.NEW_USER}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session alert for new org")
 	}
-	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.TRACK_PROPERTIES}}).Error; err != nil {
+	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ProjectID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.TRACK_PROPERTIES}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session alert for new org")
 	}
-	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.USER_PROPERTIES}}).Error; err != nil {
+	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ProjectID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.USER_PROPERTIES}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session alert for new org")
 	}
 	return org, nil
@@ -381,6 +381,7 @@ func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int
 		Name:           &name,
 		Params:         &paramString,
 		OrganizationID: organizationID,
+		ProjectID:      organizationID,
 	}
 	if err := r.DB.Create(segment).Error; err != nil {
 		return nil, e.Wrap(err, "error creating segment")
@@ -461,6 +462,7 @@ func (r *mutationResolver) CreateErrorSegment(ctx context.Context, organizationI
 		Name:           &name,
 		Params:         &paramString,
 		OrganizationID: organizationID,
+		ProjectID:      organizationID,
 	}
 	if err := r.DB.Create(segment).Error; err != nil {
 		return nil, e.Wrap(err, "error creating segment")
@@ -643,6 +645,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 	sessionComment := &model.SessionComment{
 		Admins:         admins,
 		OrganizationID: organizationID,
+		ProjectID:      organizationID,
 		AdminId:        admin.Model.ID,
 		SessionId:      session.ID,
 		Timestamp:      sessionTimestamp,
@@ -737,6 +740,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationI
 	errorComment := &model.ErrorComment{
 		Admins:         admins,
 		OrganizationID: organizationID,
+		ProjectID:      organizationID,
 		AdminId:        admin.Model.ID,
 		ErrorId:        errorGroup.ID,
 		Text:           text,
