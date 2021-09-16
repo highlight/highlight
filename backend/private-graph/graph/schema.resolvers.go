@@ -2033,6 +2033,31 @@ func (r *queryResolver) SlackChannelSuggestion(ctx context.Context, organization
 	return ret, nil
 }
 
+func (r *queryResolver) SlackMembers(ctx context.Context, organizationID int) ([]*modelInputs.SanitizedSlackChannel, error) {
+	org, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting org")
+	}
+	chs, err := org.IntegratedSlackChannels()
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieving existing channels")
+	}
+
+	ret := []*modelInputs.SanitizedSlackChannel{}
+	for _, ch := range chs {
+		channel := ch.WebhookChannel
+		channelID := ch.WebhookChannelID
+
+		if strings.Contains(channel, "@") {
+			ret = append(ret, &modelInputs.SanitizedSlackChannel{
+				WebhookChannel:   &channel,
+				WebhookChannelID: &channelID,
+			})
+		}
+	}
+	return ret, nil
+}
+
 func (r *queryResolver) IsIntegratedWithSlack(ctx context.Context, organizationID int) (bool, error) {
 	org, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID)
 

@@ -446,7 +446,7 @@ export type Query = {
     error_comments: Array<Maybe<ErrorComment>>;
     error_comments_for_admin: Array<Maybe<ErrorComment>>;
     error_comments_for_organization: Array<Maybe<ErrorComment>>;
-    admins?: Maybe<Array<Maybe<Admin>>>;
+    admins: Array<Maybe<Admin>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
     unprocessedSessionsCount?: Maybe<Scalars['Int64']>;
     adminHasCreatedComment?: Maybe<Scalars['Boolean']>;
@@ -472,6 +472,7 @@ export type Query = {
     organizationSuggestion?: Maybe<Array<Maybe<Organization>>>;
     environment_suggestion?: Maybe<Array<Maybe<Field>>>;
     slack_channel_suggestion?: Maybe<Array<Maybe<SanitizedSlackChannel>>>;
+    slack_members: Array<Maybe<SanitizedSlackChannel>>;
     is_integrated_with_slack: Scalars['Boolean'];
     organization?: Maybe<Organization>;
     admin?: Maybe<Admin>;
@@ -652,6 +653,10 @@ export type QueryEnvironment_SuggestionArgs = {
 };
 
 export type QuerySlack_Channel_SuggestionArgs = {
+    organization_id: Scalars['ID'];
+};
+
+export type QuerySlack_MembersArgs = {
     organization_id: Scalars['ID'];
 };
 
