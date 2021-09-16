@@ -4624,3 +4624,66 @@ export type GetAlertsPagePayloadQueryResult = Apollo.QueryResult<
     Types.GetAlertsPagePayloadQuery,
     Types.GetAlertsPagePayloadQueryVariables
 >;
+export const GetCommentMentionSuggestionsDocument = gql`
+    query GetCommentMentionSuggestions($organization_id: ID!) {
+        admins(organization_id: $organization_id) {
+            id
+            name
+            email
+            photo_url
+        }
+        slack_members(organization_id: $organization_id) {
+            webhook_channel
+            webhook_channel_id
+        }
+    }
+`;
+
+/**
+ * __useGetCommentMentionSuggestionsQuery__
+ *
+ * To run a query within a React component, call `useGetCommentMentionSuggestionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCommentMentionSuggestionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCommentMentionSuggestionsQuery({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *   },
+ * });
+ */
+export function useGetCommentMentionSuggestionsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetCommentMentionSuggestionsQuery,
+        Types.GetCommentMentionSuggestionsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetCommentMentionSuggestionsQuery,
+        Types.GetCommentMentionSuggestionsQueryVariables
+    >(GetCommentMentionSuggestionsDocument, baseOptions);
+}
+export function useGetCommentMentionSuggestionsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetCommentMentionSuggestionsQuery,
+        Types.GetCommentMentionSuggestionsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetCommentMentionSuggestionsQuery,
+        Types.GetCommentMentionSuggestionsQueryVariables
+    >(GetCommentMentionSuggestionsDocument, baseOptions);
+}
+export type GetCommentMentionSuggestionsQueryHookResult = ReturnType<
+    typeof useGetCommentMentionSuggestionsQuery
+>;
+export type GetCommentMentionSuggestionsLazyQueryHookResult = ReturnType<
+    typeof useGetCommentMentionSuggestionsLazyQuery
+>;
+export type GetCommentMentionSuggestionsQueryResult = Apollo.QueryResult<
+    Types.GetCommentMentionSuggestionsQuery,
+    Types.GetCommentMentionSuggestionsQueryVariables
+>;

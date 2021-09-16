@@ -540,13 +540,11 @@ export type GetAdminsQueryVariables = Types.Exact<{
 }>;
 
 export type GetAdminsQuery = { __typename?: 'Query' } & {
-    admins?: Types.Maybe<
-        Array<
-            Types.Maybe<
-                { __typename?: 'Admin' } & Pick<
-                    Types.Admin,
-                    'id' | 'name' | 'email' | 'photo_url'
-                >
+    admins: Array<
+        Types.Maybe<
+            { __typename?: 'Admin' } & Pick<
+                Types.Admin,
+                'id' | 'name' | 'email' | 'photo_url'
             >
         >
     >;
@@ -687,10 +685,8 @@ export type GetOnboardingStepsQuery = { __typename?: 'Query' } & Pick<
                 'slack_channels'
             >
         >;
-        admins?: Types.Maybe<
-            Array<
-                Types.Maybe<{ __typename?: 'Admin' } & Pick<Types.Admin, 'id'>>
-            >
+        admins: Array<
+            Types.Maybe<{ __typename?: 'Admin' } & Pick<Types.Admin, 'id'>>
         >;
         organizationHasViewedASession?: Types.Maybe<
             { __typename?: 'Session' } & Pick<Types.Session, 'id'>
@@ -1640,6 +1636,29 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
         >;
     };
 
+export type GetCommentMentionSuggestionsQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+}>;
+
+export type GetCommentMentionSuggestionsQuery = { __typename?: 'Query' } & {
+    admins: Array<
+        Types.Maybe<
+            { __typename?: 'Admin' } & Pick<
+                Types.Admin,
+                'id' | 'name' | 'email' | 'photo_url'
+            >
+        >
+    >;
+    slack_members: Array<
+        Types.Maybe<
+            { __typename?: 'SanitizedSlackChannel' } & Pick<
+                Types.SanitizedSlackChannel,
+                'webhook_channel' | 'webhook_channel_id'
+            >
+        >
+    >;
+};
+
 export const namedOperations = {
     Query: {
         GetSessionPayload: 'GetSessionPayload' as const,
@@ -1686,6 +1705,7 @@ export const namedOperations = {
         GetEnvironmentSuggestion: 'GetEnvironmentSuggestion' as const,
         GetSlackChannelSuggestion: 'GetSlackChannelSuggestion' as const,
         GetAlertsPagePayload: 'GetAlertsPagePayload' as const,
+        GetCommentMentionSuggestions: 'GetCommentMentionSuggestions' as const,
     },
     Mutation: {
         MarkSessionAsViewed: 'MarkSessionAsViewed' as const,

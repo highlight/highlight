@@ -410,7 +410,7 @@ type Query {
     ): [ErrorComment]!
     error_comments_for_admin: [ErrorComment]!
     error_comments_for_organization(organization_id: ID!): [ErrorComment]!
-    admins(organization_id: ID!): [Admin]
+    admins(organization_id: ID!): [Admin]!
     isIntegrated(organization_id: ID!): Boolean
     unprocessedSessionsCount(organization_id: ID!): Int64
     adminHasCreatedComment(admin_id: ID!): Boolean
@@ -475,6 +475,7 @@ type Query {
     organizationSuggestion(query: String!): [Organization]
     environment_suggestion(query: String!, organization_id: ID!): [Field]
     slack_channel_suggestion(organization_id: ID!): [SanitizedSlackChannel]
+    slack_members(organization_id: ID!): [SanitizedSlackChannel]!
     is_integrated_with_slack(organization_id: ID!): Boolean!
     organization(id: ID!): Organization
     admin: Admin
