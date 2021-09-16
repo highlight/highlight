@@ -687,7 +687,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 				tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(adminIds)))
 			defer commentMentionSlackSpan.Finish()
 
-			err := r.SendPersonalSlackAlert(&org, admin, adminIds, viewLink, sessionComment.Text, "session")
+			err := r.SendPersonalSlackAlert(&org, admin, adminIds, viewLink, textForEmail, "session")
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in session comment"))
 			}
@@ -779,7 +779,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationI
 				tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(adminIds)))
 			defer commentMentionSlackSpan.Finish()
 
-			err = r.SendPersonalSlackAlert(&org, admin, adminIds, viewLink, errorComment.Text, "error")
+			err = r.SendPersonalSlackAlert(&org, admin, adminIds, viewLink, textForEmail, "error")
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in error comment"))
 			}
