@@ -838,11 +838,26 @@ type SendSlackAlertInput struct {
 	MatchedFields []*Field
 	// UserProperties is a required parameter for User Properties alerts
 	UserProperties map[string]string
+	// WorkerPool is a worker pool for alert subtasks
+	WorkerPool *workerpool.WorkerPool
 }
 
 func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 	if obj == nil {
 		return e.New("alert is nil")
+	}
+	// verify that required variables are non nil
+	if input == nil {
+		return e.New("input is nil")
+	}
+	if input.Organization == nil {
+		return e.New("organization is nil")
+	}
+	if input.SessionID < 1 {
+		return e.New("session id is less than 1")
+	}
+	if input.WorkerPool == nil {
+		return e.New("workerpool is nil")
 	}
 	// get alerts channels
 	channels, err := obj.GetChannelsToNotify()
@@ -1003,7 +1018,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 			slackChannelId := *channel.WebhookChannelID
 			slackChannelName := *channel.WebhookChannel
 
-			go func() {
+			input.WorkerPool.Submit(func() {
 				if isWebhookChannel {
 					log.Printf("Sending Slack Webhook")
 					err := slack.PostWebhook(
@@ -1035,7 +1050,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 						log.Printf("Slack Bot Client was not defined")
 					}
 				}
-			}()
+			})
 		}
 	}
 	return nil

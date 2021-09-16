@@ -359,7 +359,8 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 
 		// send Slack message
-		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Organization: org, SessionID: s.ID, UserIdentifier: s.Identifier, UserProperties: userProperties})
+		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Organization: org, SessionID: s.ID,
+			UserIdentifier: s.Identifier, UserProperties: userProperties, WorkerPool: w.Resolver.WorkerPools.AlertSubtaskPool})
 		if err != nil {
 			return e.Wrapf(err, "[org_id: %d] error sending slack message for new user alert", organizationID)
 		}
@@ -410,7 +411,8 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 
 		// send Slack message
-		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Organization: org, SessionID: s.ID, UserIdentifier: s.Identifier, MatchedFields: matchedFields})
+		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Organization: org, SessionID: s.ID,
+			UserIdentifier: s.Identifier, MatchedFields: matchedFields, WorkerPool: w.Resolver.WorkerPools.AlertSubtaskPool})
 		if err != nil {
 			return e.Wrap(err, "error sending track properties alert slack message")
 		}
@@ -462,7 +464,8 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 
 		// send Slack message
-		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Organization: org, SessionID: s.ID, UserIdentifier: s.Identifier, MatchedFields: matchedFields})
+		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Organization: org, SessionID: s.ID,
+			UserIdentifier: s.Identifier, MatchedFields: matchedFields, WorkerPool: w.Resolver.WorkerPools.AlertSubtaskPool})
 		if err != nil {
 			return e.Wrapf(err, "error sending user properties alert slack message")
 		}
