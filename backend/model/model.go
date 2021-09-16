@@ -109,6 +109,7 @@ var Models = []interface{}{
 	&ErrorComment{},
 	&ErrorAlert{},
 	&SessionAlert{},
+	&Project{},
 }
 
 func init() {
@@ -148,8 +149,26 @@ type Organization struct {
 	MonthlySessionLimit *int
 }
 
+type Project struct {
+	Model
+	Name         *string
+	Secret       *string    `json:"-"`
+	Admins       []Admin    `gorm:"many2many:organization_admins;"`
+	TrialEndDate *time.Time `json:"trial_end_date"`
+	// Slack API Interaction.
+	SlackAccessToken      *string
+	SlackWebhookURL       *string
+	SlackWebhookChannel   *string
+	SlackWebhookChannelID *string
+	SlackChannels         *string
+	// Manual monthly session limit override
+	MonthlySessionLimit *int
+	OrganizationID      int
+}
+
 type Alert struct {
 	OrganizationID       int
+	ProjectID            int
 	ExcludedEnvironments *string
 	CountThreshold       int
 	ThresholdWindow      *int
@@ -321,6 +340,7 @@ type Session struct {
 	// User provided identifier (see IdentifySession)
 	Identifier     string `json:"identifier"`
 	OrganizationID int    `json:"organization_id"`
+	ProjectID      int    `json:"project_id"`
 	// Location data based off user ip (see InitializeSession)
 	City      string  `json:"city"`
 	State     string  `json:"state"`
@@ -425,6 +445,7 @@ type Field struct {
 	// 'email@email.com'
 	Value          string
 	OrganizationID int       `json:"organization_id"`
+	ProjectID      int       `json:"project_id"`
 	Sessions       []Session `gorm:"many2many:session_fields;"`
 }
 
@@ -457,6 +478,7 @@ type Segment struct {
 	Name           *string
 	Params         *string `json:"params"`
 	OrganizationID int
+	ProjectID      int `json:"project_id"`
 }
 
 type DailySessionCount struct {
@@ -464,6 +486,7 @@ type DailySessionCount struct {
 	Date           *time.Time `json:"date"`
 	Count          int64      `json:"count"`
 	OrganizationID int
+	ProjectID      int `json:"project_id"`
 }
 
 type DailyErrorCount struct {
@@ -471,6 +494,7 @@ type DailyErrorCount struct {
 	Date           *time.Time `json:"date"`
 	Count          int64      `json:"count"`
 	OrganizationID int
+	ProjectID      int `json:"project_id"`
 }
 
 func (s *SearchParams) GormDataType() string {
@@ -551,11 +575,13 @@ type ErrorSegment struct {
 	Name           *string
 	Params         *string `json:"params"`
 	OrganizationID int
+	ProjectID      int `json:"project_id"`
 }
 
 type ErrorObject struct {
 	Model
 	OrganizationID int
+	ProjectID      int `json:"project_id"`
 	SessionID      int
 	ErrorGroupID   int
 	Event          string
@@ -578,6 +604,7 @@ type ErrorGroup struct {
 	// The ID used publicly for the URL on the client; used for sharing
 	SecureID         string `json:"secure_id" gorm:"uniqueIndex;not null;default:secure_id_generator()"`
 	OrganizationID   int
+	ProjectID        int `json:"project_id"`
 	Event            string
 	Type             string
 	Trace            string //DEPRECATED, USE STACKTRACE INSTEAD
@@ -593,6 +620,7 @@ type ErrorGroup struct {
 type ErrorField struct {
 	Model
 	OrganizationID int
+	ProjectID      int `json:"project_id"`
 	Name           string
 	Value          string
 	ErrorGroups    []ErrorGroup `gorm:"many2many:error_group_fields;"`
@@ -602,6 +630,7 @@ type SessionComment struct {
 	Model
 	Admins         []Admin `gorm:"many2many:session_comment_admins;"`
 	OrganizationID int
+	ProjectID      int `json:"project_id"`
 	AdminId        int
 	SessionId      int
 	Timestamp      int
@@ -616,6 +645,7 @@ type ErrorComment struct {
 	Model
 	Admins         []Admin `gorm:"many2many:error_comment_admins;"`
 	OrganizationID int
+	ProjectID      int `json:"project_id"`
 	AdminId        int
 	ErrorId        int
 	Text           string
