@@ -783,7 +783,26 @@ func (s *Session) GetUserProperties() (map[string]string, error) {
 	return userProperties, nil
 }
 
-func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, userIdentifier string, group *ErrorGroup, url *string, matchedFields []*Field, userProperties map[string]string, numErrors *int64) error {
+type SendSlackAlertInput struct {
+	// Organization is a required parameter
+	Organization *Organization
+	// SessionID is a required parameter
+	SessionID int
+	// UserIdentifier is a required parameter for New User and Error alerts
+	UserIdentifier string
+	// Group is a required parameter for Error alerts
+	Group *ErrorGroup
+	// URL is an optional parameter for Error alerts
+	URL *string
+	// ErrorsCount is a required parameter for Error alerts
+	ErrorsCount *int64
+	// MatchedFields is a required parameter for Track Properties and User Properties alerts
+	MatchedFields []*Field
+	// UserProperties is a required parameter for User Properties alerts
+	UserProperties map[string]string
+}
+
+func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 	if obj == nil {
 		return e.New("alert is nil")
 	}
@@ -793,7 +812,7 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 		return e.Wrap(err, "error getting channels to notify from user properties alert")
 	}
 	// get organization's channels
-	integratedSlackChannels, err := organization.IntegratedSlackChannels()
+	integratedSlackChannels, err := input.Organization.IntegratedSlackChannels()
 	if err != nil {
 		return e.Wrap(err, "error getting slack webhook url for alert")
 	}
@@ -807,11 +826,11 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 	var messageBlock []*slack.TextBlockObject
 
 	frontendURL := os.Getenv("FRONTEND_URI")
-	sessionLink := fmt.Sprintf("<%s/%d/sessions/%d/>", frontendURL, obj.OrganizationID, sessionId)
+	sessionLink := fmt.Sprintf("<%s/%d/sessions/%d/>", frontendURL, obj.OrganizationID, input.SessionID)
 	messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false))
 
 	if obj.Type == nil {
-		if group != nil {
+		if input.Group != nil {
 			obj.Type = &AlertType.ERROR
 		} else {
 			obj.Type = &AlertType.NEW_USER
@@ -819,24 +838,24 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 	}
 	switch *obj.Type {
 	case AlertType.ERROR:
-		if group == nil || group.State == ErrorGroupStates.IGNORED {
+		if input.Group == nil || input.Group.State == ErrorGroupStates.IGNORED {
 			return nil
 		}
-		shortEvent := group.Event
-		if len(group.Event) > 50 {
-			shortEvent = group.Event[:50] + "..."
+		shortEvent := input.Group.Event
+		if len(input.Group.Event) > 50 {
+			shortEvent = input.Group.Event[:50] + "..."
 		}
-		errorLink := fmt.Sprintf("%s/%d/errors/%d", frontendURL, obj.OrganizationID, group.ID)
-		// construct slack message
-		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Highlight Error Alert: %d Recent Occurrences*\n\n%s\n<%s/>", *numErrors, shortEvent, errorLink), false, false)
-		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+userIdentifier, false, false))
-		if url != nil {
-			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Visited Url:*\n"+*url, false, false))
+		errorLink := fmt.Sprintf("%s/%d/errors/%d", frontendURL, obj.OrganizationID, input.Group.ID)
+		// construct Slack message
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Highlight Error Alert: %d Recent Occurrences*\n\n%s\n<%s/>", *input.ErrorsCount, shortEvent, errorLink), false, false)
+		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+input.UserIdentifier, false, false))
+		if input.URL != nil {
+			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Visited Url:*\n"+*input.URL, false, false))
 		}
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		var actionBlock []slack.BlockElement
 		for _, action := range modelInputs.AllErrorState {
-			if group.State == string(action) {
+			if input.Group.State == string(action) {
 				continue
 			}
 
@@ -869,12 +888,12 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 			},
 		}
 	case AlertType.NEW_USER:
-		// construct slack message
+		// construct Slack message
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight New User Alert:*\n\n", false, false)
-		if userIdentifier != "" {
-			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+userIdentifier, false, false))
+		if input.UserIdentifier != "" {
+			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+input.UserIdentifier, false, false))
 		}
-		for k, v := range userProperties {
+		for k, v := range input.UserProperties {
 			if k == "" {
 				continue
 			}
@@ -889,10 +908,10 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 	case AlertType.TRACK_PROPERTIES:
 		// format matched properties
 		var formattedFields []string
-		for _, addr := range matchedFields {
+		for _, addr := range input.MatchedFields {
 			formattedFields = append(formattedFields, fmt.Sprintf("{name: %s, value: %s}", addr.Name, addr.Value))
 		}
-		// construct slack message
+		// construct Slack message
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight Track Properties Alert:*\n\n", false, false)
 		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Matched Track Properties:*\n%+v", formattedFields), false, false))
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
@@ -901,17 +920,17 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 	case AlertType.USER_PROPERTIES:
 		// format matched properties
 		var formattedFields []string
-		for _, addr := range matchedFields {
+		for _, addr := range input.MatchedFields {
 			formattedFields = append(formattedFields, fmt.Sprintf("{name: %s, value: %s}", addr.Name, addr.Value))
 		}
-		// construct slack message
+		// construct Slack message
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight User Properties Alert:*\n\n", false, false)
 		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Matched User Properties:*\n%+v", formattedFields), false, false))
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
 	}
-	slackClient := slack.New(*organization.SlackAccessToken)
+	slackClient := slack.New(*input.Organization.SlackAccessToken)
 
 	// send message
 	for _, channel := range channels {
@@ -938,7 +957,7 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 						&msg,
 					)
 					if err != nil {
-						log.WithFields(log.Fields{"org_id": organization.ID, "slack_webhook_url": slackWebhookURL, "message": fmt.Sprintf("%+v", msg)}).
+						log.WithFields(log.Fields{"org_id": input.Organization.ID, "slack_webhook_url": slackWebhookURL, "message": fmt.Sprintf("%+v", msg)}).
 							Error(e.Wrap(err, "error sending slack msg"))
 					}
 				} else {
@@ -952,7 +971,7 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 					}
 					_, _, err := slackClient.PostMessage(*channel.WebhookChannelID, slack.MsgOptionBlocks(blockSet...))
 					if err != nil {
-						log.WithFields(log.Fields{"org_id": organization.ID, "slack_webhook_url": slackWebhookURL, "message": fmt.Sprintf("%+v", msg)}).
+						log.WithFields(log.Fields{"org_id": input.Organization.ID, "slack_webhook_url": slackWebhookURL, "message": fmt.Sprintf("%+v", msg)}).
 							Error(e.Wrap(err, "error sending slack msg"))
 					}
 				}

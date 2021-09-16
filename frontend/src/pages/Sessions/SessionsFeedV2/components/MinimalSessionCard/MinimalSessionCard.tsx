@@ -90,27 +90,24 @@ const MinimalSessionCard = ({
                             styles.sessionCardContentWrapper,
                             {
                                 [styles.detailed]: showDetailedSessionView,
-                                [styles.errorVersion]: errorVersion,
                             }
                         )}
                     >
-                        {!errorVersion && (
-                            <div className={styles.avatarWrapper}>
-                                <Avatar
-                                    seed={
-                                        (session?.identifier
-                                            ? session?.identifier
-                                            : (
-                                                  session?.fingerprint ||
-                                                  session?.user_id ||
-                                                  ''
-                                              ).toString()) ?? ''
-                                    }
-                                    style={{ height: 25, width: 25 }}
-                                    customImage={customAvatarImage}
-                                />
-                            </div>
-                        )}
+                        <div className={styles.avatarWrapper}>
+                            <Avatar
+                                seed={
+                                    (session?.identifier
+                                        ? session?.identifier
+                                        : (
+                                              session?.fingerprint ||
+                                              session?.user_id ||
+                                              ''
+                                          ).toString()) ?? ''
+                                }
+                                style={{ height: 25, width: 25 }}
+                                customImage={customAvatarImage}
+                            />
+                        </div>
                         <div className={styles.sessionTextSectionWrapper}>
                             <div
                                 className={classNames(
