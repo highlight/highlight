@@ -668,7 +668,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 		}
 		viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
 
-		go func() {
+		r.WorkerPools.AlertPool.Submit(func() {
 			commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
 				tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(taggedAdmins)))
 			defer commentMentionEmailSpan.Finish()
@@ -677,9 +677,9 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in session comment"))
 			}
-		}()
+		})
 
-		go func() {
+		r.WorkerPools.AlertPool.Submit(func() {
 			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
 				tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(adminIds)))
 			defer commentMentionSlackSpan.Finish()
@@ -688,7 +688,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in session comment"))
 			}
-		}()
+		})
 	}
 
 	return sessionComment, nil
@@ -759,7 +759,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationI
 
 		viewLink := fmt.Sprintf("%v", errorURL)
 
-		go func() {
+		r.WorkerPools.AlertPool.Submit(func() {
 			commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
 				tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(taggedAdmins)))
 			defer commentMentionEmailSpan.Finish()
@@ -768,9 +768,9 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationI
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in error comment"))
 			}
-		}()
+		})
 
-		go func() {
+		r.WorkerPools.AlertPool.Submit(func() {
 			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
 				tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(adminIds)))
 			defer commentMentionSlackSpan.Finish()
@@ -779,7 +779,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationI
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in error comment"))
 			}
-		}()
+		})
 	}
 	return errorComment, nil
 }
