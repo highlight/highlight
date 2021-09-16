@@ -12,6 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gammazero/workerpool"
+
 	"github.com/go-test/deep"
 	"github.com/mitchellh/mapstructure"
 	"github.com/rs/xid"
@@ -649,6 +651,11 @@ type ErrorComment struct {
 	AdminId        int
 	ErrorId        int
 	Text           string
+}
+
+type WorkerPools struct {
+	PushPayloadWorkerPool *workerpool.WorkerPool
+	AlertWorkerPool       *workerpool.WorkerPool
 }
 
 func SetupDB(dbName string) (*gorm.DB, error) {
