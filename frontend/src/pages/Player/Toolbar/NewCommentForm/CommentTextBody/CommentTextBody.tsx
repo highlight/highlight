@@ -88,7 +88,7 @@ const Suggestion = ({
                 adminInfo={{
                     name: suggestion.name,
                     email: suggestion.email,
-                    photo_url: suggestion.photo_url,
+                    photo_url: suggestion.photoUrl,
                 }}
                 size={35}
             />
