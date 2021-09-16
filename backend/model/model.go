@@ -911,31 +911,50 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
 	}
+	slackClient := slack.New(*organization.SlackAccessToken)
 
 	// send message
 	for _, channel := range channels {
 		if channel.WebhookChannel != nil {
 			var slackWebhookURL string
+			isWebhookChannel := false
+
+			// Find the webhook URL
 			for _, ch := range integratedSlackChannels {
 				if id := channel.WebhookChannelID; id != nil && ch.WebhookChannelID == *id {
 					slackWebhookURL = ch.WebhookURL
+
+					if ch.WebhookAccessToken != "" {
+						isWebhookChannel = true
+					}
 					break
 				}
 			}
-			if slackWebhookURL == "" {
-				log.WithFields(log.Fields{"org_id": organization.ID}).
-					Error("requested channel has no matching slackWebhookURL")
-				continue
-			}
 			msg.Channel = *channel.WebhookChannel
 			go func() {
-				err := slack.PostWebhook(
-					slackWebhookURL,
-					&msg,
-				)
-				if err != nil {
-					log.WithFields(log.Fields{"org_id": organization.ID, "slack_webhook_url": slackWebhookURL, "message": fmt.Sprintf("%+v", msg)}).
-						Error(e.Wrap(err, "error sending slack msg"))
+				if isWebhookChannel {
+					err := slack.PostWebhook(
+						slackWebhookURL,
+						&msg,
+					)
+					if err != nil {
+						log.WithFields(log.Fields{"org_id": organization.ID, "slack_webhook_url": slackWebhookURL, "message": fmt.Sprintf("%+v", msg)}).
+							Error(e.Wrap(err, "error sending slack msg"))
+					}
+				} else {
+					// The Highlight Slack bot needs to join the channel before it can send a message.
+					// Slack handles a bot trying to join a channel it already is a part of, we don't need to handle it.
+					if strings.Contains(*channel.WebhookChannel, "#") {
+						_, _, _, err := slackClient.JoinConversation(*channel.WebhookChannelID)
+						if err != nil {
+							log.Error(e.Wrap(err, "failed to join slack channel"))
+						}
+					}
+					_, _, err := slackClient.PostMessage(*channel.WebhookChannelID, slack.MsgOptionBlocks(blockSet...))
+					if err != nil {
+						log.WithFields(log.Fields{"org_id": organization.ID, "slack_webhook_url": slackWebhookURL, "message": fmt.Sprintf("%+v", msg)}).
+							Error(e.Wrap(err, "error sending slack msg"))
+					}
 				}
 			}()
 		}
