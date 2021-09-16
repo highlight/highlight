@@ -163,7 +163,7 @@ type Project struct {
 	SlackChannels         *string
 	// Manual monthly session limit override
 	MonthlySessionLimit *int
-	OrganizationID      *string
+	OrganizationID      int
 }
 
 type Alert struct {
