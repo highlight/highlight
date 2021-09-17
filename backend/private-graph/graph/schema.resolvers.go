@@ -1640,11 +1640,11 @@ func (r *queryResolver) TopUsers(ctx context.Context, organizationID int, lookBa
 	var topUsersPayload = []*modelInputs.TopUsersPayload{}
 	topUsersSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("db.topUsers"), tracer.Tag("org_id", organizationID))
-	if err := r.DB.Raw(fmt.Sprintf(`
+	if err := r.DB.Raw(`
 		SELECT identifier, (
 			SELECT id 
 			FROM fields 
-			WHERE organization_id=%d 
+			WHERE organization_id=?
 				AND type='user' 
 				AND name='identifier' 
 				AND value=identifier
@@ -1653,24 +1653,24 @@ func (r *queryResolver) TopUsers(ctx context.Context, organizationID int, lookBa
 			SELECT SUM(active_length) 
 			FROM sessions 
 			WHERE active_length IS NOT NULL 
-				AND organization_id=%d 
+				AND organization_id=?
 				AND identifier <> '' 
-				AND created_at >= NOW() - INTERVAL '%d DAY' 
+				AND created_at >= NOW() - (? * INTERVAL '1 DAY')
 				AND processed=true
 		) AS active_time_percentage
 		FROM (
 			SELECT identifier, active_length 
 			FROM sessions 
 			WHERE active_length IS NOT NULL 
-				AND organization_id=%d 
+				AND organization_id=?
 				AND identifier <> '' 
-				AND created_at >= NOW() - INTERVAL '%d DAY' 
+				AND created_at >= NOW() - (? * INTERVAL '1 DAY')
 				AND processed=true
 		) q1
 		GROUP BY identifier
 		ORDER BY total_active_time
 		LIMIT 50`,
-		organizationID, organizationID, lookBackPeriod, organizationID, lookBackPeriod)).Scan(&topUsersPayload).Error; err != nil {
+		organizationID, organizationID, lookBackPeriod, organizationID, lookBackPeriod).Scan(&topUsersPayload).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving top users")
 	}
 	topUsersSpan.Finish()
