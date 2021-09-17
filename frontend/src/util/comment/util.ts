@@ -52,7 +52,9 @@ export const getCommentMentionSuggestions = (
             id: slackMember!.webhook_channel_id as string,
             name: slackMember!.webhook_channel as string,
             photoUrl: '',
-            email: 'Slack User',
+            email: slackMember!.webhook_channel?.includes('#')
+                ? 'Slack Channel'
+                : 'Slack User',
         })),
     ];
 };

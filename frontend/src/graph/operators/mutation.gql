@@ -195,6 +195,7 @@ mutation CreateErrorComment(
     $text: String!
     $text_for_email: String!
     $tagged_admins: [SanitizedAdminInput]!
+    $tagged_slack_users: [SanitizedSlackChannelInput]!
     $error_url: String!
     $author_name: String!
 ) {
@@ -204,6 +205,7 @@ mutation CreateErrorComment(
         text: $text
         text_for_email: $text_for_email
         tagged_admins: $tagged_admins
+        tagged_slack_users: $tagged_slack_users
         error_url: $error_url
         author_name: $author_name
     ) {

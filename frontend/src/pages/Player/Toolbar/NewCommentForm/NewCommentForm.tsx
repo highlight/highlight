@@ -45,7 +45,7 @@ export const NewCommentForm = ({
 }: Props) => {
     const { time } = useReplayerContext();
     const [createComment] = useCreateSessionCommentMutation();
-    const { admin, isLoggedIn, isHighlightAdmin } = useAuthContext();
+    const { admin, isLoggedIn } = useAuthContext();
     const { session_id, organization_id } = useParams<{
         session_id: string;
         organization_id: string;
@@ -69,7 +69,6 @@ export const NewCommentForm = ({
         data: mentionSuggestionsData,
     } = useGetCommentMentionSuggestionsQuery({
         variables: { organization_id },
-        skip: !isHighlightAdmin,
     });
     const [mentionedAdmins, setMentionedAdmins] = useState<
         SanitizedAdminInput[]
@@ -177,7 +176,11 @@ export const NewCommentForm = ({
 
         setMentionedAdmins(
             mentions
-                .filter((mention) => !mention.display.includes('@'))
+                .filter(
+                    (mention) =>
+                        !mention.display.includes('@') &&
+                        !mention.display.includes('#')
+                )
                 .map((mention) => {
                     const admin = adminsInOrganization?.admins?.find(
                         (admin) => {
@@ -191,7 +194,11 @@ export const NewCommentForm = ({
         if (mentionSuggestionsData?.slack_members) {
             setMentionedSlackUsers(
                 mentions
-                    .filter((mention) => mention.display.includes('@'))
+                    .filter(
+                        (mention) =>
+                            mention.display.includes('@') ||
+                            mention.display.includes('#')
+                    )
                     .map<SanitizedSlackChannelInput>((mention) => {
                         const matchingSlackUser = mentionSuggestionsData.slack_members.find(
                             (slackUser) => {
