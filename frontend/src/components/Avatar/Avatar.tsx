@@ -125,11 +125,11 @@ export const AdminAvatar = ({
     adminInfo?: { name?: string; photo_url?: string | null; email?: string };
     size: number;
 }) => {
-    let isSlackUser = false;
+    let isSlackEntity = false;
     let name = adminInfo?.name;
-    if (name && name[0] === '@') {
+    if (name && (name[0] === '@' || name[0] === '#')) {
         name = name.slice(1);
-        isSlackUser = true;
+        isSlackEntity = true;
     }
 
     const identifier = name
@@ -155,7 +155,7 @@ export const AdminAvatar = ({
             ) : (
                 <div
                     style={{
-                        backgroundColor: isSlackUser
+                        backgroundColor: isSlackEntity
                             ? SLACK_BRAND_COLOR
                             : generateRandomColor(identifier),
                         color: 'var(--text-primary-inverted)',
