@@ -1,4 +1,5 @@
 import { namedOperations } from '@graph/operations';
+import { getCommentMentionSuggestions } from '@util/comment/util';
 import { useParams } from '@util/react-router/useParams';
 import { Form, Menu, message } from 'antd';
 import { H } from 'highlight.run';
@@ -16,18 +17,30 @@ import {
     useCreateErrorCommentMutation,
     useDeleteErrorCommentMutation,
     useGetAdminsQuery,
+    useGetCommentMentionSuggestionsQuery,
 } from '../../../../graph/generated/hooks';
-import { SanitizedAdminInput } from '../../../../graph/generated/schemas';
+import {
+    SanitizedAdminInput,
+    SanitizedSlackChannelInput,
+} from '../../../../graph/generated/schemas';
 import CommentTextBody from '../../../Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody';
 import styles from '../../ErrorPage.module.scss';
 
-const ErrorComments = () => {
+interface Props {
+    parentRef?: React.RefObject<HTMLDivElement>;
+}
+const ErrorComments = ({ parentRef }: Props) => {
     const { error_id, organization_id } = useParams<{
         error_id: string;
         organization_id: string;
     }>();
     const { admin } = useAuthContext();
     const [createComment] = useCreateErrorCommentMutation();
+    const {
+        data: mentionSuggestionsData,
+    } = useGetCommentMentionSuggestionsQuery({
+        variables: { organization_id },
+    });
     const [commentText, setCommentText] = useState('');
     const [commentTextForEmail, setCommentTextForEmail] = useState('');
     const [isCreatingComment, setIsCreatingComment] = useState(false);
@@ -37,6 +50,9 @@ const ErrorComments = () => {
     });
     const [mentionedAdmins, setMentionedAdmins] = useState<
         SanitizedAdminInput[]
+    >([]);
+    const [mentionedSlackUsers, setMentionedSlackUsers] = useState<
+        SanitizedSlackChannelInput[]
     >([]);
 
     const onFinish = async () => {
@@ -51,6 +67,7 @@ const ErrorComments = () => {
                     text_for_email: commentTextForEmail.trim(),
                     error_url: `${window.location.origin}${window.location.pathname}`,
                     tagged_admins: mentionedAdmins,
+                    tagged_slack_users: mentionedSlackUsers,
                     author_name: admin?.name || admin?.email || 'Someone',
                 },
                 refetchQueries: [namedOperations.Query.GetErrorComments],
@@ -82,8 +99,13 @@ const ErrorComments = () => {
     };
 
     const adminSuggestions: AdminSuggestion[] = useMemo(
-        () => parseAdminSuggestions(data, admin, mentionedAdmins),
-        [admin, data, mentionedAdmins]
+        () =>
+            parseAdminSuggestions(
+                getCommentMentionSuggestions(mentionSuggestionsData),
+                admin,
+                mentionedAdmins
+            ),
+        [admin, mentionSuggestionsData, mentionedAdmins]
     );
 
     const onDisplayTransform = (_id: string, display: string): string => {
@@ -99,13 +121,45 @@ const ErrorComments = () => {
         setCommentTextForEmail(newPlainTextValue);
 
         setMentionedAdmins(
-            mentions.map((mention) => {
-                const admin = data?.admins?.find((admin) => {
-                    return admin?.id === mention.id;
-                });
-                return { id: mention.id, email: admin?.email || '' };
-            })
+            mentions
+                .filter(
+                    (mention) =>
+                        !mention.display.includes('@') &&
+                        !mention.display.includes('#')
+                )
+                .map((mention) => {
+                    const admin = data?.admins?.find((admin) => {
+                        return admin?.id === mention.id;
+                    });
+                    return { id: mention.id, email: admin?.email || '' };
+                })
         );
+        if (mentionSuggestionsData?.slack_members) {
+            setMentionedSlackUsers(
+                mentions
+                    .filter(
+                        (mention) =>
+                            mention.display.includes('@') ||
+                            mention.display.includes('#')
+                    )
+                    .map<SanitizedSlackChannelInput>((mention) => {
+                        const matchingSlackUser = mentionSuggestionsData.slack_members.find(
+                            (slackUser) => {
+                                return (
+                                    slackUser?.webhook_channel_id === mention.id
+                                );
+                            }
+                        );
+
+                        return {
+                            webhook_channel_id:
+                                matchingSlackUser?.webhook_channel_id,
+                            webhook_channel_name:
+                                matchingSlackUser?.webhook_channel,
+                        };
+                    })
+            );
+        }
         setCommentText(e.target.value);
     };
 
@@ -138,6 +192,9 @@ const ErrorComments = () => {
                                 placeholder={`Add a comment...`}
                                 suggestions={adminSuggestions}
                                 onDisplayTransformHandler={onDisplayTransform}
+                                suggestionsPortalHost={
+                                    parentRef?.current as Element
+                                }
                             />
                         </div>
                     </Form.Item>

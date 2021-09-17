@@ -201,12 +201,12 @@ type ComplexityRoot struct {
 	Mutation struct {
 		AddAdminToOrganization               func(childComplexity int, organizationID int, inviteID string) int
 		AddSlackBotIntegrationToOrganization func(childComplexity int, organizationID int, code string, redirectPath string) int
-		CreateErrorComment                   func(childComplexity int, organizationID int, errorGroupID *int, errorGroupSecureID *string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, errorURL string, authorName string) int
+		CreateErrorComment                   func(childComplexity int, organizationID int, errorGroupID *int, errorGroupSecureID *string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string) int
 		CreateErrorSegment                   func(childComplexity int, organizationID int, name string, params model.ErrorSearchParamsInput) int
 		CreateOrUpdateStripeSubscription     func(childComplexity int, organizationID int, planType model.PlanType) int
 		CreateOrganization                   func(childComplexity int, name string) int
 		CreateSegment                        func(childComplexity int, organizationID int, name string, params model.SearchParamsInput) int
-		CreateSessionComment                 func(childComplexity int, organizationID int, sessionID *int, sessionSecureID *string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) int
+		CreateSessionComment                 func(childComplexity int, organizationID int, sessionID *int, sessionSecureID *string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string) int
 		DeleteAdminFromOrganization          func(childComplexity int, organizationID int, adminID int) int
 		DeleteErrorComment                   func(childComplexity int, id int) int
 		DeleteErrorSegment                   func(childComplexity int, segmentID int) int
@@ -474,9 +474,9 @@ type MutationResolver interface {
 	DeleteErrorSegment(ctx context.Context, segmentID int) (*bool, error)
 	CreateOrUpdateStripeSubscription(ctx context.Context, organizationID int, planType model.PlanType) (*string, error)
 	UpdateBillingDetails(ctx context.Context, organizationID int) (*bool, error)
-	CreateSessionComment(ctx context.Context, organizationID int, sessionID *int, sessionSecureID *string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model1.SessionComment, error)
+	CreateSessionComment(ctx context.Context, organizationID int, sessionID *int, sessionSecureID *string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model1.SessionComment, error)
 	DeleteSessionComment(ctx context.Context, id int) (*bool, error)
-	CreateErrorComment(ctx context.Context, organizationID int, errorGroupID *int, errorGroupSecureID *string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, errorURL string, authorName string) (*model1.ErrorComment, error)
+	CreateErrorComment(ctx context.Context, organizationID int, errorGroupID *int, errorGroupSecureID *string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string) (*model1.ErrorComment, error)
 	DeleteErrorComment(ctx context.Context, id int) (*bool, error)
 	OpenSlackConversation(ctx context.Context, organizationID int, code string, redirectPath string) (*bool, error)
 	AddSlackBotIntegrationToOrganization(ctx context.Context, organizationID int, code string, redirectPath string) (bool, error)
@@ -1233,7 +1233,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateErrorComment(childComplexity, args["organization_id"].(int), args["error_group_id"].(*int), args["error_group_secure_id"].(*string), args["text"].(string), args["text_for_email"].(string), args["tagged_admins"].([]*model.SanitizedAdminInput), args["error_url"].(string), args["author_name"].(string)), true
+		return e.complexity.Mutation.CreateErrorComment(childComplexity, args["organization_id"].(int), args["error_group_id"].(*int), args["error_group_secure_id"].(*string), args["text"].(string), args["text_for_email"].(string), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), args["error_url"].(string), args["author_name"].(string)), true
 
 	case "Mutation.createErrorSegment":
 		if e.complexity.Mutation.CreateErrorSegment == nil {
@@ -1293,7 +1293,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateSessionComment(childComplexity, args["organization_id"].(int), args["session_id"].(*int), args["session_secure_id"].(*string), args["session_timestamp"].(int), args["text"].(string), args["text_for_email"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64), args["tagged_admins"].([]*model.SanitizedAdminInput), args["session_url"].(string), args["time"].(float64), args["author_name"].(string), args["session_image"].(*string)), true
+		return e.complexity.Mutation.CreateSessionComment(childComplexity, args["organization_id"].(int), args["session_id"].(*int), args["session_secure_id"].(*string), args["session_timestamp"].(int), args["text"].(string), args["text_for_email"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), args["session_url"].(string), args["time"].(float64), args["author_name"].(string), args["session_image"].(*string)), true
 
 	case "Mutation.deleteAdminFromOrganization":
 		if e.complexity.Mutation.DeleteAdminFromOrganization == nil {
@@ -2979,7 +2979,7 @@ type ErrorMetadata {
     error_id: Int!
     session_id: Int!
     environment: String
-    timestamp: Time!
+    timestamp: Time
     os: String
     browser: String
     visited_url: String
@@ -3376,6 +3376,7 @@ type Mutation {
         x_coordinate: Float!
         y_coordinate: Float!
         tagged_admins: [SanitizedAdminInput]!
+        tagged_slack_users: [SanitizedSlackChannelInput]!
         session_url: String!
         time: Float!
         author_name: String!
@@ -3389,6 +3390,7 @@ type Mutation {
         text: String!
         text_for_email: String!
         tagged_admins: [SanitizedAdminInput]!
+        tagged_slack_users: [SanitizedSlackChannelInput]!
         error_url: String!
         author_name: String!
     ): ErrorComment
@@ -3560,24 +3562,33 @@ func (ec *executionContext) field_Mutation_createErrorComment_args(ctx context.C
 		}
 	}
 	args["tagged_admins"] = arg5
-	var arg6 string
-	if tmp, ok := rawArgs["error_url"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_url"))
-		arg6, err = ec.unmarshalNString2string(ctx, tmp)
+	var arg6 []*model.SanitizedSlackChannelInput
+	if tmp, ok := rawArgs["tagged_slack_users"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tagged_slack_users"))
+		arg6, err = ec.unmarshalNSanitizedSlackChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["error_url"] = arg6
+	args["tagged_slack_users"] = arg6
 	var arg7 string
-	if tmp, ok := rawArgs["author_name"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("author_name"))
+	if tmp, ok := rawArgs["error_url"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_url"))
 		arg7, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["author_name"] = arg7
+	args["error_url"] = arg7
+	var arg8 string
+	if tmp, ok := rawArgs["author_name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("author_name"))
+		arg8, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["author_name"] = arg8
 	return args, nil
 }
 
@@ -3770,42 +3781,51 @@ func (ec *executionContext) field_Mutation_createSessionComment_args(ctx context
 		}
 	}
 	args["tagged_admins"] = arg8
-	var arg9 string
+	var arg9 []*model.SanitizedSlackChannelInput
+	if tmp, ok := rawArgs["tagged_slack_users"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tagged_slack_users"))
+		arg9, err = ec.unmarshalNSanitizedSlackChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["tagged_slack_users"] = arg9
+	var arg10 string
 	if tmp, ok := rawArgs["session_url"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_url"))
-		arg9, err = ec.unmarshalNString2string(ctx, tmp)
+		arg10, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["session_url"] = arg9
-	var arg10 float64
+	args["session_url"] = arg10
+	var arg11 float64
 	if tmp, ok := rawArgs["time"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("time"))
-		arg10, err = ec.unmarshalNFloat2float64(ctx, tmp)
+		arg11, err = ec.unmarshalNFloat2float64(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["time"] = arg10
-	var arg11 string
+	args["time"] = arg11
+	var arg12 string
 	if tmp, ok := rawArgs["author_name"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("author_name"))
-		arg11, err = ec.unmarshalNString2string(ctx, tmp)
+		arg12, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["author_name"] = arg11
-	var arg12 *string
+	args["author_name"] = arg12
+	var arg13 *string
 	if tmp, ok := rawArgs["session_image"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_image"))
-		arg12, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg13, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["session_image"] = arg12
+	args["session_image"] = arg13
 	return args, nil
 }
 
@@ -7085,14 +7105,11 @@ func (ec *executionContext) _ErrorMetadata_timestamp(ctx context.Context, field 
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(time.Time)
+	res := resTmp.(*time.Time)
 	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorMetadata_os(ctx context.Context, field graphql.CollectedField, obj *model.ErrorMetadata) (ret graphql.Marshaler) {
@@ -9188,7 +9205,7 @@ func (ec *executionContext) _Mutation_createSessionComment(ctx context.Context, 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateSessionComment(rctx, args["organization_id"].(int), args["session_id"].(*int), args["session_secure_id"].(*string), args["session_timestamp"].(int), args["text"].(string), args["text_for_email"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64), args["tagged_admins"].([]*model.SanitizedAdminInput), args["session_url"].(string), args["time"].(float64), args["author_name"].(string), args["session_image"].(*string))
+		return ec.resolvers.Mutation().CreateSessionComment(rctx, args["organization_id"].(int), args["session_id"].(*int), args["session_secure_id"].(*string), args["session_timestamp"].(int), args["text"].(string), args["text_for_email"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), args["session_url"].(string), args["time"].(float64), args["author_name"].(string), args["session_image"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9266,7 +9283,7 @@ func (ec *executionContext) _Mutation_createErrorComment(ctx context.Context, fi
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateErrorComment(rctx, args["organization_id"].(int), args["error_group_id"].(*int), args["error_group_secure_id"].(*string), args["text"].(string), args["text_for_email"].(string), args["tagged_admins"].([]*model.SanitizedAdminInput), args["error_url"].(string), args["author_name"].(string))
+		return ec.resolvers.Mutation().CreateErrorComment(rctx, args["organization_id"].(int), args["error_group_id"].(*int), args["error_group_secure_id"].(*string), args["text"].(string), args["text_for_email"].(string), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), args["error_url"].(string), args["author_name"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16802,9 +16819,6 @@ func (ec *executionContext) _ErrorMetadata(ctx context.Context, sel ast.Selectio
 			out.Values[i] = ec._ErrorMetadata_environment(ctx, field, obj)
 		case "timestamp":
 			out.Values[i] = ec._ErrorMetadata_timestamp(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "os":
 			out.Values[i] = ec._ErrorMetadata_os(ctx, field, obj)
 		case "browser":

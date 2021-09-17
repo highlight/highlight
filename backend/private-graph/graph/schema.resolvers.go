@@ -607,7 +607,7 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, organizatio
 	return &model.T, nil
 }
 
-func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, sessionID *int, sessionSecureID *string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model.SessionComment, error) {
+func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, sessionID *int, sessionSecureID *string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model.SessionComment, error) {
 	admin, err := r.getCurrentAdmin(ctx)
 	isGuestCreatingSession := false
 	if admin == nil || err != nil {
@@ -660,6 +660,8 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 	}
 	createSessionCommentSpan.Finish()
 
+	viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
+
 	if len(taggedAdmins) > 0 && !isGuestCreatingSession {
 
 		tos := []*mail.Email{}
@@ -669,7 +671,6 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 			tos = append(tos, &mail.Email{Address: admin.Email})
 			adminIds = append(adminIds, admin.ID)
 		}
-		viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
 
 		go func() {
 			commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
@@ -694,6 +695,20 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 		}()
 	}
 
+	if len(taggedSlackUsers) > 0 && !isGuestCreatingSession {
+		go func() {
+			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
+				tracer.ResourceName("slackBot.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(taggedSlackUsers)))
+			defer commentMentionSlackSpan.Finish()
+
+			err := r.SendSlackAlertToUser(&org, admin, taggedSlackUsers, viewLink, textForEmail, "session")
+			if err != nil {
+				log.Error(e.Wrap(err, "error notifying tagged admins in session comment for slack bot"))
+			}
+		}()
+
+	}
+
 	return sessionComment, nil
 }
 
@@ -712,7 +727,7 @@ func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*b
 	return &model.T, nil
 }
 
-func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationID int, errorGroupID *int, errorGroupSecureID *string, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, errorURL string, authorName string) (*model.ErrorComment, error) {
+func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationID int, errorGroupID *int, errorGroupSecureID *string, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, errorURL string, authorName string) (*model.ErrorComment, error) {
 	admin, err := r.getCurrentAdmin(ctx)
 	if admin == nil || err != nil {
 		return nil, e.Wrap(err, "Unable to retrieve admin info")
@@ -752,6 +767,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationI
 	}
 	createErrorCommentSpan.Finish()
 
+	viewLink := fmt.Sprintf("%v", errorURL)
 	if len(taggedAdmins) > 0 {
 		tos := []*mail.Email{}
 		var adminIds []int
@@ -760,8 +776,6 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationI
 			tos = append(tos, &mail.Email{Address: admin.Email})
 			adminIds = append(adminIds, admin.ID)
 		}
-
-		viewLink := fmt.Sprintf("%v", errorURL)
 
 		go func() {
 			commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
@@ -1640,11 +1654,37 @@ func (r *queryResolver) TopUsers(ctx context.Context, organizationID int, lookBa
 	var topUsersPayload = []*modelInputs.TopUsersPayload{}
 	topUsersSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("db.topUsers"), tracer.Tag("org_id", organizationID))
-	if err := r.DB.Raw(fmt.Sprintf(`SELECT identifier, (SELECT id FROM fields WHERE organization_id=%d AND type='user' AND name='identifier' AND value=identifier) AS id, SUM(active_length) as total_active_time, SUM(active_length) / (SELECT SUM(active_length) from sessions WHERE active_length IS NOT NULL AND organization_id=%d AND identifier <> '' AND created_at >= NOW() - INTERVAL '%d DAY' AND processed=true) as active_time_percentage
-	FROM (SELECT identifier, active_length from sessions WHERE active_length IS NOT NULL AND organization_id=%d AND identifier <> '' AND created_at >= NOW() - INTERVAL '%d DAY' AND processed=true) q1
-	GROUP BY identifier
-	ORDER BY total_active_time
-	LIMIT 50`, organizationID, organizationID, lookBackPeriod, organizationID, lookBackPeriod)).Scan(&topUsersPayload).Error; err != nil {
+	if err := r.DB.Raw(`
+		SELECT identifier, (
+			SELECT id
+			FROM fields
+			WHERE organization_id=?
+				AND type='user'
+				AND name='identifier'
+				AND value=identifier
+			LIMIT 1
+		) AS id, SUM(active_length) as total_active_time, SUM(active_length) / (
+			SELECT SUM(active_length)
+			FROM sessions
+			WHERE active_length IS NOT NULL
+				AND organization_id=?
+				AND identifier <> ''
+				AND created_at >= NOW() - (? * INTERVAL '1 DAY')
+				AND processed=true
+		) AS active_time_percentage
+		FROM (
+			SELECT identifier, active_length
+			FROM sessions
+			WHERE active_length IS NOT NULL
+				AND organization_id=?
+				AND identifier <> ''
+				AND created_at >= NOW() - (? * INTERVAL '1 DAY')
+				AND processed=true
+		) q1
+		GROUP BY identifier
+		ORDER BY total_active_time
+		LIMIT 50`,
+		organizationID, organizationID, lookBackPeriod, organizationID, lookBackPeriod).Scan(&topUsersPayload).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving top users")
 	}
 	topUsersSpan.Finish()
@@ -2048,12 +2088,10 @@ func (r *queryResolver) SlackMembers(ctx context.Context, organizationID int) ([
 		channel := ch.WebhookChannel
 		channelID := ch.WebhookChannelID
 
-		if strings.Contains(channel, "@") {
-			ret = append(ret, &modelInputs.SanitizedSlackChannel{
-				WebhookChannel:   &channel,
-				WebhookChannelID: &channelID,
-			})
-		}
+		ret = append(ret, &modelInputs.SanitizedSlackChannel{
+			WebhookChannel:   &channel,
+			WebhookChannelID: &channelID,
+		})
 	}
 	return ret, nil
 }

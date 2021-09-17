@@ -3823,10 +3823,10 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react-mentions@^4.1.0":
-  version "4.1.0"
-  resolved "https://registry.yarnpkg.com/@types/react-mentions/-/react-mentions-4.1.0.tgz#876d4ce9655206acebff4eda8f34149ab00e8b64"
-  integrity sha512-HwYX96mVzH47b+vUZLHea7gSHTheW7mqcHjxaoc+KBTBFaLlXmF4fj56LeJVatBYwgwW8GjQCqacIPwGXNBRnA==
+"@types/react-mentions@^4.1.3":
+  version "4.1.3"
+  resolved "https://registry.yarnpkg.com/@types/react-mentions/-/react-mentions-4.1.3.tgz#3291ab9efca214dafd721306faa46312d465251f"
+  integrity sha512-Kfmw8OBydSHEWmPwBxHwM2CrN9DNvJJ4DhJ6DTC1p4kDGxs3BCLf0uVMpLBM1kpLglQhZxaI3B1lryss74I6aw==
   dependencies:
     "@types/react" "*"
 
@@ -14360,10 +14360,10 @@ react-loading-skeleton@^2.1.1:
   dependencies:
     "@emotion/core" "^10.0.22"
 
-react-mentions@^4.1.1:
-  version "4.1.1"
-  resolved "https://registry.yarnpkg.com/react-mentions/-/react-mentions-4.1.1.tgz#9f74928f7a33d587151e95dc7ef303f2002790de"
-  integrity sha512-+BK8dQzXPZUBFYfbv1hwbve9lp0lGYHOUyb1hk9s13mzvmVD9S+l9oszo1CaumVjYdb9olJ4NMJW2jBRGck9Rw==
+react-mentions@^4.3.0:
+  version "4.3.0"
+  resolved "https://registry.yarnpkg.com/react-mentions/-/react-mentions-4.3.0.tgz#6ff2c4226c9362964ff8e97a7af42cb138446892"
+  integrity sha512-qr60FhczwzDX/0ZHWKaV8nriDx0a/+totqa7z1jGiz8YipNMp3ReAJMfA+UUlIVj1lnbCzpFUAo/bTQBW0IVlg==
   dependencies:
     "@babel/runtime" "7.4.5"
     invariant "^2.2.4"

@@ -861,6 +861,7 @@ export const CreateSessionCommentDocument = gql`
         $x_coordinate: Float!
         $y_coordinate: Float!
         $tagged_admins: [SanitizedAdminInput]!
+        $tagged_slack_users: [SanitizedSlackChannelInput]!
         $session_url: String!
         $time: Float!
         $author_name: String!
@@ -875,6 +876,7 @@ export const CreateSessionCommentDocument = gql`
             x_coordinate: $x_coordinate
             y_coordinate: $y_coordinate
             tagged_admins: $tagged_admins
+            tagged_slack_users: $tagged_slack_users
             session_url: $session_url
             time: $time
             author_name: $author_name
@@ -921,6 +923,7 @@ export type CreateSessionCommentMutationFn = Apollo.MutationFunction<
  *      x_coordinate: // value for 'x_coordinate'
  *      y_coordinate: // value for 'y_coordinate'
  *      tagged_admins: // value for 'tagged_admins'
+ *      tagged_slack_users: // value for 'tagged_slack_users'
  *      session_url: // value for 'session_url'
  *      time: // value for 'time'
  *      author_name: // value for 'author_name'
@@ -1000,6 +1003,7 @@ export const CreateErrorCommentDocument = gql`
         $text: String!
         $text_for_email: String!
         $tagged_admins: [SanitizedAdminInput]!
+        $tagged_slack_users: [SanitizedSlackChannelInput]!
         $error_url: String!
         $author_name: String!
     ) {
@@ -1009,6 +1013,7 @@ export const CreateErrorCommentDocument = gql`
             text: $text
             text_for_email: $text_for_email
             tagged_admins: $tagged_admins
+            tagged_slack_users: $tagged_slack_users
             error_url: $error_url
             author_name: $author_name
         ) {
@@ -1047,6 +1052,7 @@ export type CreateErrorCommentMutationFn = Apollo.MutationFunction<
  *      text: // value for 'text'
  *      text_for_email: // value for 'text_for_email'
  *      tagged_admins: // value for 'tagged_admins'
+ *      tagged_slack_users: // value for 'tagged_slack_users'
  *      error_url: // value for 'error_url'
  *      author_name: // value for 'author_name'
  *   },

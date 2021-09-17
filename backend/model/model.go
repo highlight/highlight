@@ -262,6 +262,8 @@ func (u *Organization) IntegratedSlackChannels() ([]SlackChannel, error) {
 		if err != nil {
 			return nil, e.Wrap(err, "error parsing details json")
 		}
+	} else {
+		return parsedChannels, nil
 	}
 	repeat := false
 	for _, c := range parsedChannels {
@@ -270,12 +272,15 @@ func (u *Organization) IntegratedSlackChannels() ([]SlackChannel, error) {
 		}
 	}
 	if u.SlackWebhookChannel != nil && !repeat {
-		parsedChannels = append(parsedChannels, SlackChannel{
-			WebhookAccessToken: *u.SlackAccessToken,
-			WebhookURL:         *u.SlackWebhookURL,
-			WebhookChannel:     *u.SlackWebhookChannel,
-			WebhookChannelID:   *u.SlackWebhookChannelID,
-		})
+		// Archived channels or users will not have a channel ID.
+		if u.SlackWebhookChannelID != nil {
+			parsedChannels = append(parsedChannels, SlackChannel{
+				WebhookAccessToken: *u.SlackAccessToken,
+				WebhookURL:         *u.SlackWebhookURL,
+				WebhookChannel:     *u.SlackWebhookChannel,
+				WebhookChannelID:   *u.SlackWebhookChannelID,
+			})
+		}
 	}
 	return parsedChannels, nil
 }
