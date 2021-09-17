@@ -860,6 +860,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
             Types.ErrorGroup,
             | 'created_at'
             | 'id'
+            | 'secure_id'
             | 'type'
             | 'organization_id'
             | 'event'
