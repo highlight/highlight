@@ -146,8 +146,6 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 	}
 
 	r.AlertWorkerPool.Submit(func() {
-		// TODO: combine `error_alerts` and `session_alerts` tables and create unique composite index on (organization_id, type)
-
 		var sessionFeedbackAlert model.SessionAlert
 		if err := r.DB.Raw(`
 			SELECT *

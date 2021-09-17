@@ -840,6 +840,7 @@ type SendSlackAlertInput struct {
 }
 
 func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
+	// TODO: combine `error_alerts` and `session_alerts` tables and create unique composite index on (organization_id, type)
 	if obj == nil {
 		return e.New("alert is nil")
 	}
