@@ -31,7 +31,6 @@ export type Session = {
     __typename?: 'Session';
     id: Scalars['ID'];
     secure_id: Scalars['String'];
-    user_id: Scalars['ID'];
     fingerprint?: Maybe<Scalars['Int']>;
     os_name: Scalars['String'];
     os_version: Scalars['String'];
@@ -172,6 +171,8 @@ export type ErrorMetadata = {
     os?: Maybe<Scalars['String']>;
     browser?: Maybe<Scalars['String']>;
     visited_url?: Maybe<Scalars['String']>;
+    fingerprint: Scalars['String'];
+    identifier?: Maybe<Scalars['String']>;
 };
 
 export type ErrorTrace = {
@@ -445,7 +446,7 @@ export type Query = {
     error_comments: Array<Maybe<ErrorComment>>;
     error_comments_for_admin: Array<Maybe<ErrorComment>>;
     error_comments_for_organization: Array<Maybe<ErrorComment>>;
-    admins?: Maybe<Array<Maybe<Admin>>>;
+    admins: Array<Maybe<Admin>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
     unprocessedSessionsCount?: Maybe<Scalars['Int64']>;
     adminHasCreatedComment?: Maybe<Scalars['Boolean']>;
@@ -471,6 +472,8 @@ export type Query = {
     organizationSuggestion?: Maybe<Array<Maybe<Organization>>>;
     environment_suggestion?: Maybe<Array<Maybe<Field>>>;
     slack_channel_suggestion?: Maybe<Array<Maybe<SanitizedSlackChannel>>>;
+    slack_members: Array<Maybe<SanitizedSlackChannel>>;
+    is_integrated_with_slack: Scalars['Boolean'];
     organization?: Maybe<Organization>;
     admin?: Maybe<Admin>;
     segments?: Maybe<Array<Maybe<Segment>>>;
@@ -653,6 +656,14 @@ export type QuerySlack_Channel_SuggestionArgs = {
     organization_id: Scalars['ID'];
 };
 
+export type QuerySlack_MembersArgs = {
+    organization_id: Scalars['ID'];
+};
+
+export type QueryIs_Integrated_With_SlackArgs = {
+    organization_id: Scalars['ID'];
+};
+
 export type QueryOrganizationArgs = {
     id: Scalars['ID'];
 };
@@ -680,7 +691,6 @@ export type Mutation = {
     sendAdminInvite?: Maybe<Scalars['String']>;
     addAdminToOrganization?: Maybe<Scalars['ID']>;
     deleteAdminFromOrganization?: Maybe<Scalars['ID']>;
-    addSlackIntegrationToWorkspace?: Maybe<Scalars['Boolean']>;
     createSegment?: Maybe<Segment>;
     emailSignup: Scalars['String'];
     editSegment?: Maybe<Scalars['Boolean']>;
@@ -695,6 +705,7 @@ export type Mutation = {
     createErrorComment?: Maybe<ErrorComment>;
     deleteErrorComment?: Maybe<Scalars['Boolean']>;
     openSlackConversation?: Maybe<Scalars['Boolean']>;
+    addSlackBotIntegrationToOrganization: Scalars['Boolean'];
     updateErrorAlert?: Maybe<ErrorAlert>;
     updateNewUserAlert?: Maybe<SessionAlert>;
     updateTrackPropertiesAlert?: Maybe<SessionAlert>;
@@ -748,12 +759,6 @@ export type MutationAddAdminToOrganizationArgs = {
 export type MutationDeleteAdminFromOrganizationArgs = {
     organization_id: Scalars['ID'];
     admin_id: Scalars['ID'];
-};
-
-export type MutationAddSlackIntegrationToWorkspaceArgs = {
-    organization_id: Scalars['ID'];
-    code: Scalars['String'];
-    redirect_path: Scalars['String'];
 };
 
 export type MutationCreateSegmentArgs = {
@@ -837,6 +842,12 @@ export type MutationDeleteErrorCommentArgs = {
 };
 
 export type MutationOpenSlackConversationArgs = {
+    organization_id: Scalars['ID'];
+    code: Scalars['String'];
+    redirect_path: Scalars['String'];
+};
+
+export type MutationAddSlackBotIntegrationToOrganizationArgs = {
     organization_id: Scalars['ID'];
     code: Scalars['String'];
     redirect_path: Scalars['String'];

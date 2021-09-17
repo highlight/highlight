@@ -386,7 +386,8 @@ export const AlertConfigurationCard = ({
                                             {organization_id !==
                                                 DEMO_WORKSPACE_APPLICATION_ID && (
                                                 <a href={slackUrl}>
-                                                    Add a Slack Channel
+                                                    Sync Highlight with your
+                                                    Slack Workspace
                                                 </a>
                                             )}
                                             .

@@ -358,8 +358,8 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			return e.Wrapf(err, "[org_id: %d] error getting user properties from new user alert", s.OrganizationID)
 		}
 
-		// send slack message
-		err = sessionAlert.SendSlackAlert(org, s.ID, s.Identifier, nil, nil, nil, userProperties, nil)
+		// send Slack message
+		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Organization: org, SessionID: s.ID, UserIdentifier: s.Identifier, UserProperties: userProperties})
 		if err != nil {
 			return e.Wrapf(err, "[org_id: %d] error sending slack message for new user alert", organizationID)
 		}
@@ -409,8 +409,8 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			return nil
 		}
 
-		// send slack message
-		err = sessionAlert.SendSlackAlert(org, s.ID, s.Identifier, nil, nil, matchedFields, nil, nil)
+		// send Slack message
+		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Organization: org, SessionID: s.ID, UserIdentifier: s.Identifier, MatchedFields: matchedFields})
 		if err != nil {
 			return e.Wrap(err, "error sending track properties alert slack message")
 		}
@@ -461,8 +461,8 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			return nil
 		}
 
-		// send slack message
-		err = sessionAlert.SendSlackAlert(org, s.ID, s.Identifier, nil, nil, matchedFields, nil, nil)
+		// send Slack message
+		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Organization: org, SessionID: s.ID, UserIdentifier: s.Identifier, MatchedFields: matchedFields})
 		if err != nil {
 			return e.Wrapf(err, "error sending user properties alert slack message")
 		}
@@ -514,10 +514,11 @@ func (w *Worker) Start() {
 		type SessionLog struct {
 			SessionID      int
 			OrganizationID int
+			ProjectID      int
 		}
 		sessionIds := []SessionLog{}
 		for _, session := range sessions {
-			sessionIds = append(sessionIds, SessionLog{SessionID: session.ID, OrganizationID: session.OrganizationID})
+			sessionIds = append(sessionIds, SessionLog{SessionID: session.ID, OrganizationID: session.OrganizationID, ProjectID: session.OrganizationID})
 		}
 		if len(sessionIds) > 0 {
 			log.Infof("sessions that will be processed: %v", sessionIds)

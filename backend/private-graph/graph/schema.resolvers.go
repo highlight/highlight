@@ -92,7 +92,7 @@ func (r *errorGroupResolver) StackTrace(ctx context.Context, obj *model.ErrorGro
 func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorMetadata, error) {
 	var metadataLogs []*modelInputs.ErrorMetadata
 	r.DB.Raw(`
-		SELECT s.id AS session_id, e.id AS error_id, e.timestamp, s.os_name AS os, s.browser_name AS browser, e.url AS visited_url
+		SELECT s.id AS session_id, e.id AS error_id, e.timestamp, s.os_name AS os, s.browser_name AS browser, e.url AS visited_url, s.fingerprint AS fingerprint, s.identifier AS identifier
 		FROM sessions AS s
 		INNER JOIN (
 			SELECT DISTINCT ON (session_id) session_id, id, timestamp, url
@@ -197,16 +197,16 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	if err := r.DB.Create(org).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")
 	}
-	if err := r.DB.Create(&model.ErrorAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.ERROR}}).Error; err != nil {
+	if err := r.DB.Create(&model.ErrorAlert{Alert: model.Alert{OrganizationID: org.ID, ProjectID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.ERROR}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")
 	}
-	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.NEW_USER}}).Error; err != nil {
+	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ProjectID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.NEW_USER}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session alert for new org")
 	}
-	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.TRACK_PROPERTIES}}).Error; err != nil {
+	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ProjectID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.TRACK_PROPERTIES}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session alert for new org")
 	}
-	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.USER_PROPERTIES}}).Error; err != nil {
+	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ProjectID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.USER_PROPERTIES}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session alert for new org")
 	}
 	return org, nil
@@ -365,71 +365,6 @@ func (r *mutationResolver) DeleteAdminFromOrganization(ctx context.Context, orga
 	return &adminID, nil
 }
 
-func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, organizationID int, code string, redirectPath string) (*bool, error) {
-	var (
-		SLACK_CLIENT_ID     string
-		SLACK_CLIENT_SECRET string
-	)
-	org, err := r.isAdminInOrganization(ctx, organizationID)
-	if err != nil {
-		return nil, e.Wrap(err, "admin is not in organization")
-	}
-	redirect := os.Getenv("FRONTEND_URI")
-	redirect += "/" + strconv.Itoa(organizationID) + "/" + redirectPath
-	if tempSlackClientID, ok := os.LookupEnv("SLACK_CLIENT_ID"); ok && tempSlackClientID != "" {
-		SLACK_CLIENT_ID = tempSlackClientID
-	}
-	if tempSlackClientSecret, ok := os.LookupEnv("SLACK_CLIENT_SECRET"); ok && tempSlackClientSecret != "" {
-		SLACK_CLIENT_SECRET = tempSlackClientSecret
-	}
-	resp, err := slack.
-		GetOAuthV2Response(
-			&http.Client{},
-			SLACK_CLIENT_ID,
-			SLACK_CLIENT_SECRET,
-			code,
-			redirect,
-		)
-	if err != nil {
-		return nil, e.Wrap(err, "error getting slack oauth response")
-	}
-	existingChannels, err := org.IntegratedSlackChannels()
-	if err != nil {
-		return nil, e.Wrap(err, "error retrieving existing slack channels")
-	}
-	for _, ch := range existingChannels {
-		if ch.WebhookChannelID == resp.IncomingWebhook.ChannelID {
-			return nil, e.New("this channel has already been connected to your workspace")
-		}
-	}
-	existingChannels = append(existingChannels, model.SlackChannel{
-		WebhookAccessToken: resp.AccessToken,
-		WebhookURL:         resp.IncomingWebhook.URL,
-		WebhookChannelID:   resp.IncomingWebhook.ChannelID,
-		WebhookChannel:     resp.IncomingWebhook.Channel,
-	})
-	channelBytes, err := json.Marshal(existingChannels)
-	if err != nil {
-		return nil, e.Wrap(err, "error marshaling existing channels")
-	}
-	channelString := string(channelBytes)
-	if err := r.DB.Model(org).Updates(&model.Organization{
-		SlackChannels: &channelString,
-	}).Error; err != nil {
-		return nil, e.Wrap(err, "error updating org fields")
-	}
-
-	baseMessage := "👋 Hello from Highlight!"
-	if name := org.Name; name != nil {
-		baseMessage += fmt.Sprintf(" We'll send messages here based on your alert preferences for %v, which can be configured at https://app.highlight.run/%v/alerts.", *name, org.ID)
-	}
-	msg := slack.WebhookMessage{Text: baseMessage}
-	if err := slack.PostWebhook(resp.IncomingWebhook.URL, &msg); err != nil {
-		log.Error(e.Wrap(err, "failed to send hello alert slack message"))
-	}
-	return &model.T, nil
-}
-
 func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int, name string, params modelInputs.SearchParamsInput) (*model.Segment, error) {
 	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
@@ -446,6 +381,7 @@ func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int
 		Name:           &name,
 		Params:         &paramString,
 		OrganizationID: organizationID,
+		ProjectID:      organizationID,
 	}
 	if err := r.DB.Create(segment).Error; err != nil {
 		return nil, e.Wrap(err, "error creating segment")
@@ -526,6 +462,7 @@ func (r *mutationResolver) CreateErrorSegment(ctx context.Context, organizationI
 		Name:           &name,
 		Params:         &paramString,
 		OrganizationID: organizationID,
+		ProjectID:      organizationID,
 	}
 	if err := r.DB.Create(segment).Error; err != nil {
 		return nil, e.Wrap(err, "error creating segment")
@@ -708,6 +645,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 	sessionComment := &model.SessionComment{
 		Admins:         admins,
 		OrganizationID: organizationID,
+		ProjectID:      organizationID,
 		AdminId:        admin.Model.ID,
 		SessionId:      session.ID,
 		Timestamp:      sessionTimestamp,
@@ -749,7 +687,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 				tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(adminIds)))
 			defer commentMentionSlackSpan.Finish()
 
-			err := r.SendPersonalSlackAlert(&org, admin, adminIds, viewLink, sessionComment.Text, "session")
+			err := r.SendPersonalSlackAlert(&org, admin, adminIds, viewLink, textForEmail, "session")
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in session comment"))
 			}
@@ -802,6 +740,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationI
 	errorComment := &model.ErrorComment{
 		Admins:         admins,
 		OrganizationID: organizationID,
+		ProjectID:      organizationID,
 		AdminId:        admin.Model.ID,
 		ErrorId:        errorGroup.ID,
 		Text:           text,
@@ -840,7 +779,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationI
 				tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(adminIds)))
 			defer commentMentionSlackSpan.Finish()
 
-			err = r.SendPersonalSlackAlert(&org, admin, adminIds, viewLink, errorComment.Text, "error")
+			err = r.SendPersonalSlackAlert(&org, admin, adminIds, viewLink, textForEmail, "error")
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in error comment"))
 			}
@@ -869,7 +808,7 @@ func (r *mutationResolver) OpenSlackConversation(ctx context.Context, organizati
 		SLACK_CLIENT_ID     string
 		SLACK_CLIENT_SECRET string
 	)
-	_, err := r.isAdminInOrganization(ctx, organizationID)
+	org, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
@@ -893,8 +832,10 @@ func (r *mutationResolver) OpenSlackConversation(ctx context.Context, organizati
 		return nil, e.Wrap(err, "error getting slack oauth response")
 	}
 
-	if err := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).Updates(&model.Organization{SlackAccessToken: &resp.AccessToken}).Error; err != nil {
-		return nil, e.Wrap(err, "error updating slack access token in org")
+	if org.SlackAccessToken == nil {
+		if err := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).Updates(&model.Organization{SlackAccessToken: &resp.AccessToken}).Error; err != nil {
+			return nil, e.Wrap(err, "error updating slack access token in org")
+		}
 	}
 
 	slackClient := slack.New(resp.AccessToken)
@@ -911,6 +852,126 @@ func (r *mutationResolver) OpenSlackConversation(ctx context.Context, organizati
 		return nil, e.Wrap(err, "error posting message to user")
 	}
 	return &model.T, nil
+}
+
+func (r *mutationResolver) AddSlackBotIntegrationToOrganization(ctx context.Context, organizationID int, code string, redirectPath string) (bool, error) {
+	var (
+		SLACK_CLIENT_ID     string
+		SLACK_CLIENT_SECRET string
+	)
+	org, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return false, e.Wrap(err, "admin is not in organization")
+	}
+	redirect := os.Getenv("FRONTEND_URI")
+	redirect += "/" + strconv.Itoa(organizationID) + "/" + redirectPath
+	if tempSlackClientID, ok := os.LookupEnv("SLACK_CLIENT_ID"); ok && tempSlackClientID != "" {
+		SLACK_CLIENT_ID = tempSlackClientID
+	}
+	if tempSlackClientSecret, ok := os.LookupEnv("SLACK_CLIENT_SECRET"); ok && tempSlackClientSecret != "" {
+		SLACK_CLIENT_SECRET = tempSlackClientSecret
+	}
+	resp, err := slack.
+		GetOAuthV2Response(
+			&http.Client{},
+			SLACK_CLIENT_ID,
+			SLACK_CLIENT_SECRET,
+			code,
+			redirect,
+		)
+	if err != nil {
+		return false, e.Wrap(err, "error getting slack oauth response")
+	}
+
+	if err := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).Updates(&model.Organization{SlackAccessToken: &resp.AccessToken}).Error; err != nil {
+		return false, e.Wrap(err, "error updating slack access token in org")
+	}
+
+	slackClient := slack.New(resp.AccessToken)
+
+	getConversationsParam := slack.GetConversationsParameters{
+		Limit: 1000,
+		// public_channel is for public channels in the Slack workspace
+		// im is for all individuals in the Slack workspace
+		Types: []string{"public_channel", "im"},
+	}
+	channels, _, err := slackClient.GetConversations(&getConversationsParam)
+	if err != nil {
+		return false, e.Wrap(err, "error getting Slack channels from Slack.")
+	}
+
+	// We need to get the users in the Slack channel in order to get their name.
+	// The conversations endpoint only returns the user's ID, we'll use the response from `GetUsers` to get the name.
+	users, err := slackClient.GetUsers()
+	if err != nil {
+		log.Error(e.Wrap(err, "failed to get users"))
+	}
+
+	newChannels := []model.SlackChannel{}
+	for _, channel := range channels {
+		newChannel := model.SlackChannel{}
+
+		// Slack channels' `User` will be an empty string and the user's ID if it's a user.
+		if channel.User != "" {
+			var userToFind *slack.User
+			for _, user := range users {
+				if user.ID == channel.User {
+					userToFind = &user
+					break
+				}
+			}
+
+			if userToFind != nil {
+				// Filter out Slack Bots.
+				if userToFind.IsBot || userToFind.Name == "slackbot" {
+					continue
+				}
+				newChannel.WebhookChannel = fmt.Sprintf("@%s", userToFind.Name)
+			}
+		} else {
+			newChannel.WebhookChannel = fmt.Sprintf("#%s", channel.Name)
+		}
+
+		newChannel.WebhookChannelID = channel.ID
+		newChannels = append(newChannels, newChannel)
+	}
+
+	existingChannels, err := org.IntegratedSlackChannels()
+
+	// Filter out `newChannels` that already exist in `existingChannels` so we don't have duplicates.
+	filteredNewChannels := []model.SlackChannel{}
+	for _, newChannel := range newChannels {
+		channelAlreadyExists := false
+
+		for _, existingChannel := range existingChannels {
+			if existingChannel.WebhookChannelID == newChannel.WebhookChannelID {
+				channelAlreadyExists = true
+				break
+			}
+		}
+
+		if !channelAlreadyExists {
+			filteredNewChannels = append(filteredNewChannels, newChannel)
+		}
+	}
+
+	if err != nil {
+		return false, e.Wrap(err, "error retrieving existing slack channels")
+	}
+
+	existingChannels = append(existingChannels, filteredNewChannels...)
+	channelBytes, err := json.Marshal(existingChannels)
+	if err != nil {
+		return false, e.Wrap(err, "error marshaling existing channels")
+	}
+	channelString := string(channelBytes)
+	if err := r.DB.Model(org).Updates(&model.Organization{
+		SlackChannels: &channelString,
+	}).Error; err != nil {
+		return false, e.Wrap(err, "error updating org fields")
+	}
+
+	return true, nil
 }
 
 func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.ErrorAlert, error) {
@@ -1579,11 +1640,37 @@ func (r *queryResolver) TopUsers(ctx context.Context, organizationID int, lookBa
 	var topUsersPayload = []*modelInputs.TopUsersPayload{}
 	topUsersSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("db.topUsers"), tracer.Tag("org_id", organizationID))
-	if err := r.DB.Raw(fmt.Sprintf(`SELECT identifier, (SELECT id FROM fields WHERE organization_id=%d AND type='user' AND name='identifier' AND value=identifier) AS id, SUM(active_length) as total_active_time, SUM(active_length) / (SELECT SUM(active_length) from sessions WHERE active_length IS NOT NULL AND organization_id=%d AND identifier <> '' AND created_at >= NOW() - INTERVAL '%d DAY' AND processed=true) as active_time_percentage
-	FROM (SELECT identifier, active_length from sessions WHERE active_length IS NOT NULL AND organization_id=%d AND identifier <> '' AND created_at >= NOW() - INTERVAL '%d DAY' AND processed=true) q1
-	GROUP BY identifier
-	ORDER BY total_active_time
-	LIMIT 50`, organizationID, organizationID, lookBackPeriod, organizationID, lookBackPeriod)).Scan(&topUsersPayload).Error; err != nil {
+	if err := r.DB.Raw(`
+		SELECT identifier, (
+			SELECT id 
+			FROM fields 
+			WHERE organization_id=? 
+				AND type='user' 
+				AND name='identifier' 
+				AND value=identifier
+			LIMIT 1
+		) AS id, SUM(active_length) as total_active_time, SUM(active_length) / (
+			SELECT SUM(active_length) 
+			FROM sessions 
+			WHERE active_length IS NOT NULL 
+				AND organization_id=? 
+				AND identifier <> '' 
+				AND created_at >= NOW() - INTERVAL '? DAY' 
+				AND processed=true
+		) AS active_time_percentage
+		FROM (
+			SELECT identifier, active_length 
+			FROM sessions 
+			WHERE active_length IS NOT NULL 
+				AND organization_id=? 
+				AND identifier <> '' 
+				AND created_at >= NOW() - INTERVAL '? DAY' 
+				AND processed=true
+		) q1
+		GROUP BY identifier
+		ORDER BY total_active_time
+		LIMIT 50`,
+		organizationID, organizationID, lookBackPeriod, organizationID, lookBackPeriod).Scan(&topUsersPayload).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving top users")
 	}
 	topUsersSpan.Finish()
@@ -1626,7 +1713,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 
-	sessionsQueryPreamble := "SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, field_group"
+	sessionsQueryPreamble := "SELECT id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, field_group"
 	joinClause := "FROM sessions"
 
 	fieldFilters, err := r.getFieldFilters(ctx, organizationID, params)
@@ -1970,6 +2057,41 @@ func (r *queryResolver) SlackChannelSuggestion(ctx context.Context, organization
 		})
 	}
 	return ret, nil
+}
+
+func (r *queryResolver) SlackMembers(ctx context.Context, organizationID int) ([]*modelInputs.SanitizedSlackChannel, error) {
+	org, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting org")
+	}
+	chs, err := org.IntegratedSlackChannels()
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieving existing channels")
+	}
+
+	ret := []*modelInputs.SanitizedSlackChannel{}
+	for _, ch := range chs {
+		channel := ch.WebhookChannel
+		channelID := ch.WebhookChannelID
+
+		if strings.Contains(channel, "@") {
+			ret = append(ret, &modelInputs.SanitizedSlackChannel{
+				WebhookChannel:   &channel,
+				WebhookChannelID: &channelID,
+			})
+		}
+	}
+	return ret, nil
+}
+
+func (r *queryResolver) IsIntegratedWithSlack(ctx context.Context, organizationID int) (bool, error) {
+	org, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID)
+
+	if err != nil {
+		return false, e.Wrap(err, "error querying organization")
+	}
+
+	return org.SlackAccessToken != nil, nil
 }
 
 func (r *queryResolver) Organization(ctx context.Context, id int) (*model.Organization, error) {

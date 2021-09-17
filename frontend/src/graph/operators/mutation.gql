@@ -63,12 +63,12 @@ mutation OpenSlackConversation(
     )
 }
 
-mutation AddSlackIntegrationToWorkspace(
+mutation AddSlackBotIntegrationToOrganization(
     $organization_id: ID!
     $code: String!
     $redirect_path: String!
 ) {
-    addSlackIntegrationToWorkspace(
+    addSlackBotIntegrationToOrganization(
         organization_id: $organization_id
         code: $code
         redirect_path: $redirect_path
