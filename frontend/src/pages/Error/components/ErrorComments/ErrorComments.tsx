@@ -26,7 +26,10 @@ import {
 import CommentTextBody from '../../../Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody';
 import styles from '../../ErrorPage.module.scss';
 
-const ErrorComments = () => {
+interface Props {
+    parentRef?: React.RefObject<HTMLDivElement>;
+}
+const ErrorComments = ({ parentRef }: Props) => {
     const { error_id, organization_id } = useParams<{
         error_id: string;
         organization_id: string;
@@ -189,6 +192,9 @@ const ErrorComments = () => {
                                 placeholder={`Add a comment...`}
                                 suggestions={adminSuggestions}
                                 onDisplayTransformHandler={onDisplayTransform}
+                                suggestionsPortalHost={
+                                    parentRef?.current as Element
+                                }
                             />
                         </div>
                     </Form.Item>
