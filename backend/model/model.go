@@ -819,7 +819,7 @@ type SendSlackAlertInput struct {
 	Organization *Organization
 	// SessionID is a required parameter
 	SessionID int
-	// UserIdentifier is a required parameter for New User and Error alerts
+	// UserIdentifier is a required parameter for New User, Error, and SessionFeedback alerts
 	UserIdentifier string
 	// Group is a required parameter for Error alerts
 	Group *ErrorGroup
@@ -831,11 +831,9 @@ type SendSlackAlertInput struct {
 	MatchedFields []*Field
 	// UserProperties is a required parameter for User Properties alerts
 	UserProperties map[string]string
-	// CommentID is a required parameter for Session Feedback alerts
+	// CommentID is a required parameter for SessionFeedback alerts
 	CommentID *int
-	// CommentsCount is a required parameter for Session Feedback alerts
-	CommentsCount *int64
-	// CommentText is a required parameter for Session Feedback alerts
+	// CommentText is a required parameter for SessionFeedback alerts
 	CommentText string
 }
 
@@ -976,7 +974,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 		if len(input.CommentText) > 50 {
 			shortEvent = input.CommentText[:50] + "..."
 		}
-		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Highlight Session Feedback Alert: %d Recent Feedback Comments*\n\n%s", *input.CommentsCount, shortEvent), false, false)
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s Left Feedback*\n\n%s", input.UserIdentifier, shortEvent), false, false)
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}

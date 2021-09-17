@@ -205,12 +205,19 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 			return
 		}
 
+		identifier := "Someone"
+		if userName != nil {
+			identifier = *userName
+		} else if userEmail != nil {
+			identifier = *userEmail
+		}
+
 		if err := sessionFeedbackAlert.SendSlackAlert(&model.SendSlackAlertInput{
-			Organization:  &organization,
-			SessionID:     session.ID,
-			CommentID:     &feedbackComment.ID,
-			CommentsCount: &commentsCount,
-			CommentText:   feedbackComment.Text,
+			Organization:   &organization,
+			SessionID:      session.ID,
+			UserIdentifier: identifier,
+			CommentID:      &feedbackComment.ID,
+			CommentText:    feedbackComment.Text,
 		}); err != nil {
 			log.WithError(err).WithFields(log.Fields{"org_id": session.OrganizationID, "comment_id": feedbackComment.ID}).
 				Error(e.Wrapf(err, "error sending %s slack alert", model.AlertType.SESSION_FEEDBACK))
