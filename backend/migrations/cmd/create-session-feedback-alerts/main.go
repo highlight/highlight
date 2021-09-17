@@ -27,6 +27,7 @@ func main() {
 		alerts = append(alerts, model.SessionAlert{
 			Alert: model.Alert{
 				OrganizationID:       o.ID,
+				ProjectID:            o.ID,
 				ExcludedEnvironments: &emptiness,
 				CountThreshold:       1,
 				ThresholdWindow:      &thresholdWindow,
