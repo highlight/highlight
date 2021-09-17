@@ -1,11 +1,5 @@
 name: Deploy to AWS
 on: [push]
-    # push:
-    #     branches:
-    #         - 'master'
-    #     paths:
-    #         - 'backend/**'
-    #         - '.github/workflows/deploy.yml'
 jobs:
     deploy_backend:
         runs-on: ubuntu-latest
