@@ -149,6 +149,7 @@ mutation CreateSessionComment(
     $x_coordinate: Float!
     $y_coordinate: Float!
     $tagged_admins: [SanitizedAdminInput]!
+    $tagged_slack_users: [SanitizedSlackChannelInput]!
     $session_url: String!
     $time: Float!
     $author_name: String!
@@ -163,6 +164,7 @@ mutation CreateSessionComment(
         x_coordinate: $x_coordinate
         y_coordinate: $y_coordinate
         tagged_admins: $tagged_admins
+        tagged_slack_users: $tagged_slack_users
         session_url: $session_url
         time: $time
         author_name: $author_name
@@ -193,6 +195,7 @@ mutation CreateErrorComment(
     $text: String!
     $text_for_email: String!
     $tagged_admins: [SanitizedAdminInput]!
+    $tagged_slack_users: [SanitizedSlackChannelInput]!
     $error_url: String!
     $author_name: String!
 ) {
@@ -202,6 +205,7 @@ mutation CreateErrorComment(
         text: $text
         text_for_email: $text_for_email
         tagged_admins: $tagged_admins
+        tagged_slack_users: $tagged_slack_users
         error_url: $error_url
         author_name: $author_name
     ) {

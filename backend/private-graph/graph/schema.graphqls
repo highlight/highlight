@@ -141,7 +141,7 @@ type ErrorMetadata {
     error_id: Int!
     session_id: Int!
     environment: String
-    timestamp: Time!
+    timestamp: Time
     os: String
     browser: String
     visited_url: String
@@ -538,6 +538,7 @@ type Mutation {
         x_coordinate: Float!
         y_coordinate: Float!
         tagged_admins: [SanitizedAdminInput]!
+        tagged_slack_users: [SanitizedSlackChannelInput]!
         session_url: String!
         time: Float!
         author_name: String!
@@ -551,6 +552,7 @@ type Mutation {
         text: String!
         text_for_email: String!
         tagged_admins: [SanitizedAdminInput]!
+        tagged_slack_users: [SanitizedSlackChannelInput]!
         error_url: String!
         author_name: String!
     ): ErrorComment
