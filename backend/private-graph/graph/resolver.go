@@ -548,7 +548,11 @@ func (r *Resolver) SendSlackAlertToUser(org *model.Organization, admin *model.Ad
 	slackClient := slack.New(*org.SlackAccessToken)
 	for _, slackUser := range taggedSlackUsers {
 		if slackUser.WebhookChannelID != nil {
-			_, _, err := slackClient.PostMessage(*slackUser.WebhookChannelID, slack.MsgOptionBlocks(blockSet.BlockSet...))
+			_, _, _, err := slackClient.JoinConversation(*slackUser.WebhookChannelID)
+			if err != nil {
+				log.Error(e.Wrap(err, "failed to join slack channel"))
+			}
+			_, _, err = slackClient.PostMessage(*slackUser.WebhookChannelID, slack.MsgOptionBlocks(blockSet.BlockSet...))
 			if err != nil {
 				return e.Wrap(err, "error posting slack message via slack bot")
 			}
