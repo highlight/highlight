@@ -176,13 +176,40 @@ export const NewCommentForm = ({
         setCommentTextForEmail(newPlainTextValue);
 
         setMentionedAdmins(
-            mentions.map((mention) => {
-                const admin = adminsInOrganization?.admins?.find((admin) => {
-                    return admin?.id === mention.id;
-                });
-                return { id: mention.id, email: admin?.email || '' };
-            })
+            mentions
+                .filter((mention) => !mention.display.includes('@'))
+                .map((mention) => {
+                    const admin = adminsInOrganization?.admins?.find(
+                        (admin) => {
+                            return admin?.id === mention.id;
+                        }
+                    );
+                    return { id: mention.id, email: admin?.email || '' };
+                })
         );
+
+        if (mentionSuggestionsData?.slack_members) {
+            setMentionedSlackUsers(
+                mentions
+                    .filter((mention) => mention.display.includes('@'))
+                    .map<SanitizedSlackChannelInput>((mention) => {
+                        const matchingSlackUser = mentionSuggestionsData.slack_members.find(
+                            (slackUser) => {
+                                return (
+                                    slackUser?.webhook_channel_id === mention.id
+                                );
+                            }
+                        );
+
+                        return {
+                            webhook_channel_id:
+                                matchingSlackUser?.webhook_channel_id,
+                            webhook_channel_name:
+                                matchingSlackUser?.webhook_channel,
+                        };
+                    })
+            );
+        }
         setCommentText(e.target.value);
     };
 
