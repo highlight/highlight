@@ -79,7 +79,6 @@ mutation initializeSession(
         fingerprint: $id
     ) {
         id
-        user_id
         organization_id
     }
 }

@@ -10,7 +10,7 @@
         "@rehooks/local-storage": "^2.4.0",
         "@rehooks/window-size": "^1.0.2",
         "@stripe/stripe-js": "^1.11.0",
-        "@testing-library/jest-dom": "^4.2.4",
+        "@testing-library/jest-dom": "^5.1.0",
         "@types/classnames": "^2.2.11",
         "@types/lodash": "^4.14.168",
         "@types/react": "^16.9.49",

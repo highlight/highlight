@@ -1,4 +1,5 @@
 import { namedOperations } from '@graph/operations';
+import { getCommentMentionSuggestions } from '@util/comment/util';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import { Form, message } from 'antd';
@@ -15,6 +16,7 @@ import {
 import {
     useCreateSessionCommentMutation,
     useGetAdminsQuery,
+    useGetCommentMentionSuggestionsQuery,
 } from '../../../../graph/generated/hooks';
 import { SanitizedAdminInput } from '../../../../graph/generated/schemas';
 import { MillisToMinutesAndSeconds } from '../../../../util/time';
@@ -40,7 +42,7 @@ export const NewCommentForm = ({
 }: Props) => {
     const { time } = useReplayerContext();
     const [createComment] = useCreateSessionCommentMutation();
-    const { admin, isLoggedIn } = useAuthContext();
+    const { admin, isLoggedIn, isHighlightAdmin } = useAuthContext();
     const { session_id, organization_id } = useParams<{
         session_id: string;
         organization_id: string;
@@ -60,9 +62,19 @@ export const NewCommentForm = ({
     const { data: adminsInOrganization } = useGetAdminsQuery({
         variables: { organization_id },
     });
+    const {
+        data: mentionSuggestionsData,
+    } = useGetCommentMentionSuggestionsQuery({
+        variables: { organization_id },
+        skip: !isHighlightAdmin,
+    });
     const [mentionedAdmins, setMentionedAdmins] = useState<
         SanitizedAdminInput[]
     >([]);
+
+    if (isHighlightAdmin) {
+        console.log(getCommentMentionSuggestions(mentionSuggestionsData));
+    }
 
     const onFinish = async () => {
         H.track('Create Comment');

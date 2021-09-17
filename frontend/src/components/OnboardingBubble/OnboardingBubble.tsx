@@ -43,6 +43,10 @@ const OnboardingBubble = () => {
         `highlight-started-onboarding-${organization_id}`,
         false
     );
+    const [, setSetupType] = useLocalStorage<'' | 'Personal' | 'Organization'>(
+        'Highlight-slackBotSetupType',
+        ''
+    );
     const [
         temporarilyHideOnboardingBubble,
         setTemporarilyHideOnboardingBubble,
@@ -66,7 +70,10 @@ const OnboardingBubble = () => {
         fetchPolicy: 'network-only',
     });
 
-    const { slackUrl: slackBotUrl } = useSlackBot();
+    const { slackUrl: slackBotUrl } = useSlackBot({
+        type: 'Personal',
+        watch: false,
+    });
 
     useEffect(() => {
         if (data) {
@@ -117,6 +124,7 @@ const OnboardingBubble = () => {
                 displayName: 'Set up personal notifications',
                 action: () => {
                     window.location.href = slackBotUrl;
+                    setSetupType('Personal');
                 },
                 completed: !!data.admin?.slack_im_channel_id || false,
                 tooltip: `You will get a Slack DM anytime someone tags you in a Highlight comment!`,
@@ -160,6 +168,7 @@ const OnboardingBubble = () => {
         startPolling,
         stopPolling,
         slackBotUrl,
+        setSetupType,
     ]);
 
     if (rainConfetti) {

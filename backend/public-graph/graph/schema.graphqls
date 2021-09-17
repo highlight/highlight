@@ -6,7 +6,6 @@ scalar Int64
 
 type Session {
     id: ID!
-    user_id: ID!
     organization_id: ID!
 }
 
