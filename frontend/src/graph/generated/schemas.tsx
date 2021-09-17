@@ -816,6 +816,7 @@ export type MutationCreateSessionCommentArgs = {
     x_coordinate: Scalars['Float'];
     y_coordinate: Scalars['Float'];
     tagged_admins: Array<Maybe<SanitizedAdminInput>>;
+    tagged_slack_users: Array<Maybe<SanitizedSlackChannelInput>>;
     session_url: Scalars['String'];
     time: Scalars['Float'];
     author_name: Scalars['String'];

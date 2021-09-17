@@ -18,7 +18,10 @@ import {
     useGetAdminsQuery,
     useGetCommentMentionSuggestionsQuery,
 } from '../../../../graph/generated/hooks';
-import { SanitizedAdminInput } from '../../../../graph/generated/schemas';
+import {
+    SanitizedAdminInput,
+    SanitizedSlackChannelInput,
+} from '../../../../graph/generated/schemas';
 import { MillisToMinutesAndSeconds } from '../../../../util/time';
 import { Coordinates2D } from '../../PlayerCommentCanvas/PlayerCommentCanvas';
 import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration';
@@ -71,10 +74,9 @@ export const NewCommentForm = ({
     const [mentionedAdmins, setMentionedAdmins] = useState<
         SanitizedAdminInput[]
     >([]);
-
-    if (isHighlightAdmin) {
-        console.log(getCommentMentionSuggestions(mentionSuggestionsData));
-    }
+    const [mentionedSlackUsers, setMentionedSlackUsers] = useState<
+        SanitizedSlackChannelInput[]
+    >([]);
 
     const onFinish = async () => {
         H.track('Create Comment');
@@ -101,6 +103,7 @@ export const NewCommentForm = ({
                     y_coordinate: commentPosition?.y || 0,
                     session_url: `${window.location.origin}${window.location.pathname}`,
                     tagged_admins: mentionedAdmins,
+                    tagged_slack_users: mentionedSlackUsers,
                     time: time / 1000,
                     author_name: admin?.name || admin?.email || 'Someone',
                     // session_image: canvas
@@ -152,12 +155,12 @@ export const NewCommentForm = ({
             // Guests cannot @mention a admin.
             isLoggedIn
                 ? parseAdminSuggestions(
-                      adminsInOrganization,
+                      getCommentMentionSuggestions(mentionSuggestionsData),
                       admin,
                       mentionedAdmins
                   )
                 : [],
-        [admin, adminsInOrganization, isLoggedIn, mentionedAdmins]
+        [admin, isLoggedIn, mentionSuggestionsData, mentionedAdmins]
     );
 
     const onDisplayTransform = (_id: string, display: string): string => {

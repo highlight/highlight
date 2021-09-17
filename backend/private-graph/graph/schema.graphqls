@@ -538,6 +538,7 @@ type Mutation {
         x_coordinate: Float!
         y_coordinate: Float!
         tagged_admins: [SanitizedAdminInput]!
+        tagged_slack_users: [SanitizedSlackChannelInput]!
         session_url: String!
         time: Float!
         author_name: String!
