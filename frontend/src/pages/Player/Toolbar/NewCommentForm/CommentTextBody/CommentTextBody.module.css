@@ -36,9 +36,9 @@
 
 .mentions__suggestions__list {
     background: var(--color-primary-background);
-    border-radius: 2px;
-    box-shadow: 0 3px 6px -4px rgb(0 0 0 / 12%), 0 6px 16px 0 rgb(0 0 0 / 8%),
-        0 9px 28px 8px rgb(0 0 0 / 5%);
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--border-radius) !important;
+    box-shadow: var(--box-shadow-3);
     max-height: 400px;
     max-width: 300px;
     overflow-y: auto;
@@ -49,8 +49,12 @@
     padding: var(--size-xSmall) 12px;
 }
 
+.mentions__suggestions__item:not(:last-of-type) {
+    border-bottom: 1px solid var(--color-gray-300);
+}
+
 .mentions__suggestions__item--focused {
-    background: var(--color-blue-100);
+    background: var(--color-gray-300);
 }
 
 .mentions__mention {

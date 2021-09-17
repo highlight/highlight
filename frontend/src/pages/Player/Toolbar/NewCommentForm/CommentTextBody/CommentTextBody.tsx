@@ -44,6 +44,7 @@ const CommentTextBody = ({
             autoFocus
             disabled={!onChangeHandler}
             suggestionsPortalHost={suggestionsPortalHost}
+            allowSuggestionsAboveCursor
         >
             <Mention
                 className={commentTextBodyClassNames.mentions__mention}
