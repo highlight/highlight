@@ -1,6 +1,10 @@
+import {
+    Mention,
+    MentionsInput,
+    OnChangeHandlerFunc,
+} from '@highlight-run/react-mentions';
 import classNames from 'classnames';
 import React, { useEffect } from 'react';
-import { Mention, MentionsInput, OnChangeHandlerFunc } from 'react-mentions';
 
 import { AdminAvatar } from '../../../../../components/Avatar/Avatar';
 import { AdminSuggestion } from '../../../../../components/Comment/CommentHeader';
