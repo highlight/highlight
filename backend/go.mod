@@ -9,9 +9,12 @@ require (
 	github.com/99designs/gqlgen v0.13.0
 	github.com/DataDog/datadog-go v4.4.0+incompatible
 	github.com/Microsoft/go-winio v0.4.16 // indirect
-	github.com/aws/aws-sdk-go-v2 v1.3.1
+	github.com/andybalholm/brotli v1.0.3 // indirect
+	github.com/aws/aws-sdk-go v1.40.44 // indirect
+	github.com/aws/aws-sdk-go-v2 v1.9.0
 	github.com/aws/aws-sdk-go-v2/config v1.1.4
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.4.0
+	github.com/aws/aws-xray-sdk-go v1.6.0 // indirect
 	github.com/gammazero/workerpool v1.1.2 // indirect
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
@@ -21,6 +24,7 @@ require (
 	github.com/gorilla/sessions v1.2.1 // indirect
 	github.com/jackc/pgx/v4 v4.10.1
 	github.com/k0kubun/pp v3.0.1+incompatible
+	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/kylelemons/godebug v1.1.0
 	github.com/lib/pq v1.6.0 // indirect
@@ -38,11 +42,15 @@ require (
 	github.com/speps/go-hashids v2.0.0+incompatible
 	github.com/stretchr/testify v1.6.1 // indirect
 	github.com/stripe/stripe-go v70.15.0+incompatible
+	github.com/valyala/fasthttp v1.30.0 // indirect
 	github.com/vektah/gqlparser/v2 v2.1.0
-	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b // indirect
+	golang.org/x/net v0.0.0-20210916014120-12bc252f5db8 // indirect
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
-	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208
+	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
+	golang.org/x/sys v0.0.0-20210915083310-ed5796bab164 // indirect
+	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/api v0.31.0
+	google.golang.org/genproto v0.0.0-20210916144049-3192f974c780 // indirect
 	gopkg.in/DataDog/dd-trace-go.v1 v1.29.2
 	gopkg.in/kothar/brotli-go.v0 v0.0.0-20170728081549-771231d473d6 // indirect
 	gopkg.in/yaml.v2 v2.3.0 // indirect

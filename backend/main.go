@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/gammazero/workerpool"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -188,7 +189,9 @@ func main() {
 			privateServer.Use(util.NewTracer(util.PrivateGraph))
 			privateServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PrivateGraph)))
 			privateServer.SetRecoverFunc(util.GraphQLRecoverFunc())
-			r.Handle("/", privateServer)
+			r.Handle("/",
+				xray.Handler(xray.NewFixedSegmentNamer("private-graph"), privateServer),
+			)
 		})
 	}
 	if runtimeParsed == util.PublicGraph || runtimeParsed == util.All {

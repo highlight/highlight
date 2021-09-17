@@ -3,6 +3,19 @@
     "executionRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
     "containerDefinitions": [
         {
+            "name": "xray-daemon",
+            "image": "amazon/aws-xray-daemon",
+            "cpu": 32,
+            "memoryReservation": 256,
+            "portMappings": [
+                {
+                    "hostPort": 0,
+                    "containerPort": 2000,
+                    "protocol": "udp"
+                }
+            ]
+        },
+        {
             "name": "datadog-agent",
             "image": "datadog/agent:latest",
             "secrets": [
