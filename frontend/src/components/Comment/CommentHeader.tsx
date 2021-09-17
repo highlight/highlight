@@ -16,7 +16,7 @@ import styles from './CommentHeader.module.scss';
 
 export interface AdminSuggestion extends SuggestionDataItem {
     email?: string;
-    photo_url?: string | null;
+    photoUrl?: string | null;
     name?: string;
 }
 

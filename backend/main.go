@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gammazero/workerpool"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/highlight-run/highlight/backend/model"
@@ -162,7 +163,7 @@ func main() {
 	r.Use(cors.New(cors.Options{
 		AllowOriginRequestFunc: validateOrigin,
 		AllowCredentials:       true,
-		AllowedHeaders:         []string{"Content-Type", "Token", "Sentry-Trace"},
+		AllowedHeaders:         []string{"*"},
 	}).Handler)
 	r.MethodFunc(http.MethodGet, "/health", healthRouter(runtimeParsed))
 
@@ -200,8 +201,10 @@ func main() {
 			clientServer := ghandler.NewDefaultServer(publicgen.NewExecutableSchema(
 				publicgen.Config{
 					Resolvers: &public.Resolver{
-						DB:            db,
-						StorageClient: storage,
+						DB:                    db,
+						StorageClient:         storage,
+						PushPayloadWorkerPool: workerpool.New(80),
+						AlertWorkerPool:       workerpool.New(40),
 					},
 				}))
 			clientServer.Use(util.NewTracer(util.PublicGraph))
@@ -209,19 +212,6 @@ func main() {
 			clientServer.SetRecoverFunc(util.GraphQLRecoverFunc())
 			r.Handle("/", clientServer)
 		})
-	}
-
-	// make sure all sessions are visible for on-prem users
-	// TODO: remove this after behave health deploys
-	if util.IsOnPrem() {
-		go func() {
-			// don't log error bc this is on on-prem.
-			db.Raw(`
-				UPDATE sessions
-				SET within_billing_quota=true
-				WHERE NOT within_billing_quota=true
-			`)
-		}()
 	}
 
 	/*
