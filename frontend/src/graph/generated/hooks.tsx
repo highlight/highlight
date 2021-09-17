@@ -2633,6 +2633,7 @@ export const GetErrorGroupDocument = gql`
         error_group(id: $id) {
             created_at
             id
+            secure_id
             type
             organization_id
             event

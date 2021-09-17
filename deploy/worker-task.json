@@ -63,7 +63,7 @@
                 "logDriver": "awslogs",
                 "secretOptions": null,
                 "options": {
-                    "awslogs-group": "/ecs/public-graph-task",
+                    "awslogs-group": "/ecs/worker-task",
                     "awslogs-region": "us-east-2",
                     "awslogs-stream-prefix": "ecs"
                 }
@@ -81,7 +81,7 @@
                 "run",
                 "--",
                 "/bin/backend",
-                "-runtime=public-graph"
+                "-runtime=worker"
             ],
             "linuxParameters": null,
             "cpu": 0,
@@ -89,7 +89,13 @@
             "resourceRequirements": null,
             "ulimits": null,
             "dnsServers": null,
-            "mountPoints": [],
+            "mountPoints": [
+                {
+                    "readOnly": null,
+                    "containerPath": "/var/lib/data",
+                    "sourceVolume": "worker-volume"
+                }
+            ],
             "workingDirectory": null,
             "secrets": [
                 {
@@ -124,13 +130,30 @@
     ],
     "placementConstraints": [],
     "memory": "8192",
-    "taskRoleArn": null,
-    "family": "public-graph-task",
+    "taskRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
+    "family": "worker-task",
     "pidMode": null,
     "requiresCompatibilities": ["FARGATE"],
     "networkMode": "awsvpc",
     "cpu": "4096",
     "inferenceAccelerators": null,
     "proxyConfiguration": null,
-    "volumes": []
+    "volumes": [
+        {
+            "fsxWindowsFileServerVolumeConfiguration": null,
+            "efsVolumeConfiguration": {
+                "transitEncryptionPort": null,
+                "fileSystemId": "fs-976ab3ec",
+                "authorizationConfig": {
+                    "iam": "DISABLED",
+                    "accessPointId": null
+                },
+                "transitEncryption": "DISABLED",
+                "rootDirectory": "/"
+            },
+            "name": "worker-volume",
+            "host": null,
+            "dockerVolumeConfiguration": null
+        }
+    ]
 }
