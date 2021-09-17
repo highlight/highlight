@@ -145,7 +145,7 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 		return -1, e.Wrap(err, "error creating session feedback")
 	}
 
-	go func() {
+	r.AlertWorkerPool.Submit(func() {
 		// TODO: combine `error_alerts` and `session_alerts` tables and create unique composite index on (organization_id, type)
 
 		var sessionFeedbackAlert model.SessionAlert
@@ -218,7 +218,7 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 				Error(e.Wrapf(err, "error sending %s slack alert", model.AlertType.SESSION_FEEDBACK))
 			return
 		}
-	}()
+	})
 
 	return feedbackComment.ID, nil
 }
