@@ -268,6 +268,12 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			if err != nil {
 				return e.Wrap(err, "error getting active duration")
 			}
+			processEventChunk(&processEventChunkInput{
+				EventsChunk:         &eventsObject,
+				ClickEventQueue:     clickEventQueue,
+				FirstEventTimestamp: firstEventTimestamp,
+				LastEventTimestamp:  lastEventTimestamp,
+			})
 			activeDuration += tempDuration
 		}
 	}
