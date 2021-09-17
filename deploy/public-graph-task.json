@@ -123,13 +123,13 @@
         }
     ],
     "placementConstraints": [],
+    "memory": "8192",
     "taskRoleArn": null,
     "family": "public-graph-task",
     "pidMode": null,
     "requiresCompatibilities": ["FARGATE"],
     "networkMode": "awsvpc",
     "cpu": "4096",
-    "memory": "8192",
     "inferenceAccelerators": null,
     "proxyConfiguration": null,
     "volumes": []
