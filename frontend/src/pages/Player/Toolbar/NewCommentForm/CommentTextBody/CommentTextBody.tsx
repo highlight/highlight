@@ -1,3 +1,4 @@
+import SvgSlackLogo from '@components/icons/SlackLogo';
 import {
     Mention,
     MentionsInput,
@@ -113,14 +114,21 @@ const Suggestion = ({
 }) => {
     return (
         <div className={styles.suggestionContainer}>
-            <AdminAvatar
-                adminInfo={{
-                    name: suggestion.name,
-                    email: suggestion.email,
-                    photo_url: suggestion.photoUrl,
-                }}
-                size={35}
-            />
+            <div className={styles.avatarContainer}>
+                {['@', '#'].includes((suggestion?.name || '')[0]) && (
+                    <div className={styles.slackLogoContainer}>
+                        <SvgSlackLogo className={styles.slackLogo} />
+                    </div>
+                )}
+                <AdminAvatar
+                    adminInfo={{
+                        name: suggestion.name,
+                        email: suggestion.email,
+                        photo_url: suggestion.photoUrl,
+                    }}
+                    size={35}
+                />
+            </div>
             <div className={styles.adminText}>
                 <span className={styles.longValue}>{suggestion.display}</span>
                 {suggestion.display !== suggestion.id && (

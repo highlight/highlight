@@ -18,6 +18,29 @@
             width: 225px;
         }
     }
+
+    .slackLogo {
+        height: var(--size-medium);
+        width: var(--size-medium);
+    }
+
+    .slackLogoContainer {
+        align-items: center;
+        background: var(--color-primary-background);
+        border-radius: 50%;
+        box-shadow: var(--box-shadow-3);
+        display: flex;
+        height: calc(var(--size-medium) + var(--size-xxSmall));
+        justify-content: center;
+        left: calc(-1 * var(--size-xSmall));
+        position: absolute;
+        top: calc(-1 * var(--size-xSmall));
+        width: calc(var(--size-medium) + var(--size-xxSmall));
+    }
+
+    .avatarContainer {
+        position: relative;
+    }
 }
 
 .suggestionHeader {
