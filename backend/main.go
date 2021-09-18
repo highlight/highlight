@@ -213,7 +213,9 @@ func main() {
 			clientServer.Use(util.NewTracer(util.PublicGraph))
 			clientServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PublicGraph)))
 			clientServer.SetRecoverFunc(util.GraphQLRecoverFunc())
-			r.Handle("/", clientServer)
+			r.Handle("/",
+				xray.Handler(xray.NewFixedSegmentNamer("public-graph"), clientServer),
+			)
 		})
 	}
 
