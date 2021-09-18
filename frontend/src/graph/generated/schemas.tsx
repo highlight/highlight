@@ -166,6 +166,7 @@ export type ErrorMetadata = {
     __typename?: 'ErrorMetadata';
     error_id: Scalars['Int'];
     session_id: Scalars['Int'];
+    session_secure_id: Scalars['String'];
     environment?: Maybe<Scalars['String']>;
     timestamp?: Maybe<Scalars['Time']>;
     os?: Maybe<Scalars['String']>;

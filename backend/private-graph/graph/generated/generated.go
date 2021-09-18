@@ -130,15 +130,16 @@ type ComplexityRoot struct {
 	}
 
 	ErrorMetadata struct {
-		Browser     func(childComplexity int) int
-		Environment func(childComplexity int) int
-		ErrorID     func(childComplexity int) int
-		Fingerprint func(childComplexity int) int
-		Identifier  func(childComplexity int) int
-		Os          func(childComplexity int) int
-		SessionID   func(childComplexity int) int
-		Timestamp   func(childComplexity int) int
-		VisitedURL  func(childComplexity int) int
+		Browser         func(childComplexity int) int
+		Environment     func(childComplexity int) int
+		ErrorID         func(childComplexity int) int
+		Fingerprint     func(childComplexity int) int
+		Identifier      func(childComplexity int) int
+		Os              func(childComplexity int) int
+		SessionID       func(childComplexity int) int
+		SessionSecureID func(childComplexity int) int
+		Timestamp       func(childComplexity int) int
+		VisitedURL      func(childComplexity int) int
 	}
 
 	ErrorObject struct {
@@ -932,6 +933,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorMetadata.SessionID(childComplexity), true
+
+	case "ErrorMetadata.session_secure_id":
+		if e.complexity.ErrorMetadata.SessionSecureID == nil {
+			break
+		}
+
+		return e.complexity.ErrorMetadata.SessionSecureID(childComplexity), true
 
 	case "ErrorMetadata.timestamp":
 		if e.complexity.ErrorMetadata.Timestamp == nil {
@@ -2978,6 +2986,7 @@ type ErrorGroup {
 type ErrorMetadata {
     error_id: Int!
     session_id: Int!
+    session_secure_id: String!
     environment: String
     timestamp: Time
     os: String
@@ -7046,6 +7055,41 @@ func (ec *executionContext) _ErrorMetadata_session_id(ctx context.Context, field
 	res := resTmp.(int)
 	fc.Result = res
 	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorMetadata_session_secure_id(ctx context.Context, field graphql.CollectedField, obj *model.ErrorMetadata) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ErrorMetadata",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SessionSecureID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorMetadata_environment(ctx context.Context, field graphql.CollectedField, obj *model.ErrorMetadata) (ret graphql.Marshaler) {
@@ -16812,6 +16856,11 @@ func (ec *executionContext) _ErrorMetadata(ctx context.Context, sel ast.Selectio
 			}
 		case "session_id":
 			out.Values[i] = ec._ErrorMetadata_session_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "session_secure_id":
+			out.Values[i] = ec._ErrorMetadata_session_secure_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

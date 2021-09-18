@@ -92,7 +92,7 @@ func (r *errorGroupResolver) StackTrace(ctx context.Context, obj *model.ErrorGro
 func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorMetadata, error) {
 	var metadataLogs []*modelInputs.ErrorMetadata
 	r.DB.Raw(`
-		SELECT s.id AS session_id, e.id AS error_id, e.timestamp, s.os_name AS os, s.browser_name AS browser, e.url AS visited_url, s.fingerprint AS fingerprint, s.identifier AS identifier
+		SELECT s.id AS session_id, s.secure_id AS session_secure_id, e.id AS error_id, e.timestamp, s.os_name AS os, s.browser_name AS browser, e.url AS visited_url, s.fingerprint AS fingerprint, s.identifier AS identifier
 		FROM sessions AS s
 		INNER JOIN (
 			SELECT DISTINCT ON (session_id) session_id, id, timestamp, url
@@ -1243,7 +1243,7 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 	}
 
 	errorGroups := []model.ErrorGroup{}
-	selectPreamble := `SELECT id, organization_id, event, COALESCE(mapped_stack_trace, stack_trace) as stack_trace, metadata_log, created_at, deleted_at, updated_at, state`
+	selectPreamble := `SELECT id, secure_id, organization_id, event, COALESCE(mapped_stack_trace, stack_trace) as stack_trace, metadata_log, created_at, deleted_at, updated_at, state`
 	countPreamble := `SELECT COUNT(*)`
 
 	queryString := `FROM error_groups `
@@ -1727,7 +1727,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 
-	sessionsQueryPreamble := "SELECT id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, field_group"
+	sessionsQueryPreamble := "SELECT id, secure_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, field_group"
 	joinClause := "FROM sessions"
 
 	fieldFilters, err := r.getFieldFilters(ctx, organizationID, params)
