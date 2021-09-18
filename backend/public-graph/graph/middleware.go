@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/aws/aws-xray-sdk-go/xray"
-
 	"github.com/highlight-run/highlight/backend/model"
 )
 
@@ -28,10 +26,6 @@ func PublicMiddleware(next http.Handler) http.Handler {
 		if IPAddress == "" {
 			IPAddress = r.RemoteAddr
 		}
-
-		// Add annotations to search for traces
-		seg := xray.GetSegment(r.Context())
-		seg.AddAnnotation("host", r.Host) //nolint
 
 		// get user-agent string
 		UserAgent := r.Header.Get("user-agent")
