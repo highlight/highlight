@@ -24,6 +24,26 @@
             }
         },
         {
+            "name": "datadog-agent",
+            "image": "datadog/agent:latest",
+            "secrets": [
+                {
+                    "name": "DD_API_KEY",
+                    "valueFrom": "DD_API_KEY"
+                }
+            ],
+            "environment": [
+                {
+                    "name": "ECS_FARGATE",
+                    "value": "true"
+                },
+                {
+                    "name": "DD_APM_ENABLED",
+                    "value": "true"
+                }
+            ]
+        },
+        {
             "dnsSearchDomains": null,
             "environmentFiles": null,
             "logConfiguration": {
