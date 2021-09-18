@@ -56,5 +56,16 @@ export const getCommentMentionSuggestions = (
                 ? 'Slack Channel'
                 : 'Slack User',
         })),
-    ];
+    ].sort((suggestionA, suggestionB) =>
+        (['@', '#'].includes(suggestionA.name[0])
+            ? suggestionA.name.slice(1)
+            : suggestionA.name
+        ).toLowerCase() >
+        (['@', '#'].includes(suggestionB.name[0])
+            ? suggestionB.name.slice(1)
+            : suggestionB.name
+        ).toLowerCase()
+            ? 1
+            : -1
+    );
 };
