@@ -201,7 +201,7 @@ func main() {
 		}
 		r.Route(publicEndpoint, func(r chi.Router) {
 			r.Use(public.PublicMiddleware)
-			clientServer := ghandler.NewDefaultServer(publicgen.NewExecutableSchema(
+			publicServer := ghandler.NewDefaultServer(publicgen.NewExecutableSchema(
 				publicgen.Config{
 					Resolvers: &public.Resolver{
 						DB:                    db,
@@ -210,11 +210,11 @@ func main() {
 						AlertWorkerPool:       workerpool.New(40),
 					},
 				}))
-			clientServer.Use(util.NewTracer(util.PublicGraph))
-			clientServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PublicGraph)))
-			clientServer.SetRecoverFunc(util.GraphQLRecoverFunc())
+			publicServer.Use(util.NewTracer(util.PublicGraph))
+			publicServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PublicGraph)))
+			publicServer.SetRecoverFunc(util.GraphQLRecoverFunc())
 			r.Handle("/",
-				xray.Handler(xray.NewFixedSegmentNamer("public-graph"), clientServer),
+				xray.Handler(xray.NewFixedSegmentNamer("public-graph"), publicServer),
 			)
 		})
 	}
