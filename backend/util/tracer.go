@@ -63,7 +63,7 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 	span, ctx := tracer.StartSpanFromContext(ctx, "graphql.operation", tracer.ResourceName(opName))
 	span.SetTag("backend", t.serverType)
 	defer span.Finish()
-	_, seg := xray.BeginSubsegment(ctx, fmt.Sprintf("operation.%v", opName))
+	_, seg := xray.BeginSubsegment(ctx, fmt.Sprintf("operation.%v.%v", string(t.serverType), opName))
 	defer seg.Close(nil)
 	resp := next(ctx)
 	if resp.Errors != nil {
