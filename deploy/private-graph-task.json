@@ -3,16 +3,8 @@
     "executionRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
     "containerDefinitions": [
         {
-            "name": "xray-daemon",
-            "image": "amazon/aws-xray-daemon",
-            "cpu": 32,
-            "memoryReservation": 256,
-            "portMappings": [
-                {
-                    "containerPort": 2000,
-                    "protocol": "udp"
-                }
-            ],
+            "dnsSearchDomains": null,
+            "environmentFiles": null,
             "logConfiguration": {
                 "logDriver": "awslogs",
                 "secretOptions": null,
@@ -21,27 +13,102 @@
                     "awslogs-region": "us-east-2",
                     "awslogs-stream-prefix": "ecs"
                 }
-            }
-        },
-        {
-            "name": "datadog-agent",
-            "image": "datadog/agent:latest",
-            "secrets": [
+            },
+            "entryPoint": null,
+            "portMappings": [
                 {
-                    "name": "DD_API_KEY",
-                    "valueFrom": "DD_API_KEY"
+                    "hostPort": 2000,
+                    "protocol": "udp",
+                    "containerPort": 2000
                 }
             ],
+            "command": null,
+            "linuxParameters": null,
+            "cpu": 32,
+            "environment": [],
+            "resourceRequirements": null,
+            "ulimits": null,
+            "dnsServers": null,
+            "mountPoints": [],
+            "workingDirectory": null,
+            "secrets": null,
+            "dockerSecurityOptions": null,
+            "memory": null,
+            "memoryReservation": 256,
+            "volumesFrom": [],
+            "stopTimeout": null,
+            "image": "amazon/aws-xray-daemon",
+            "startTimeout": null,
+            "firelensConfiguration": null,
+            "dependsOn": null,
+            "disableNetworking": null,
+            "interactive": null,
+            "healthCheck": null,
+            "essential": true,
+            "links": null,
+            "hostname": null,
+            "extraHosts": null,
+            "pseudoTerminal": null,
+            "user": null,
+            "readonlyRootFilesystem": null,
+            "dockerLabels": null,
+            "systemControls": null,
+            "privileged": null,
+            "name": "xray-daemon"
+        },
+        {
+            "dnsSearchDomains": null,
+            "environmentFiles": null,
+            "logConfiguration": null,
+            "entryPoint": null,
+            "portMappings": [],
+            "command": null,
+            "linuxParameters": null,
+            "cpu": 0,
             "environment": [
-                {
-                    "name": "ECS_FARGATE",
-                    "value": "true"
-                },
                 {
                     "name": "DD_APM_ENABLED",
                     "value": "true"
+                },
+                {
+                    "name": "ECS_FARGATE",
+                    "value": "true"
                 }
-            ]
+            ],
+            "resourceRequirements": null,
+            "ulimits": null,
+            "dnsServers": null,
+            "mountPoints": [],
+            "workingDirectory": null,
+            "secrets": [
+                {
+                    "valueFrom": "DD_API_KEY",
+                    "name": "DD_API_KEY"
+                }
+            ],
+            "dockerSecurityOptions": null,
+            "memory": null,
+            "memoryReservation": null,
+            "volumesFrom": [],
+            "stopTimeout": null,
+            "image": "datadog/agent:latest",
+            "startTimeout": null,
+            "firelensConfiguration": null,
+            "dependsOn": null,
+            "disableNetworking": null,
+            "interactive": null,
+            "healthCheck": null,
+            "essential": true,
+            "links": null,
+            "hostname": null,
+            "extraHosts": null,
+            "pseudoTerminal": null,
+            "user": null,
+            "readonlyRootFilesystem": null,
+            "dockerLabels": null,
+            "systemControls": null,
+            "privileged": null,
+            "name": "datadog-agent"
         },
         {
             "dnsSearchDomains": null,
@@ -63,8 +130,9 @@
                     "containerPort": 8082
                 }
             ],
-            "command": [],
+            "command": null,
             "linuxParameters": null,
+            "cpu": 0,
             "environment": [],
             "resourceRequirements": null,
             "ulimits": null,
@@ -78,7 +146,6 @@
                 }
             ],
             "dockerSecurityOptions": null,
-            "cpu": null,
             "memory": null,
             "memoryReservation": null,
             "volumesFrom": [],
@@ -104,13 +171,79 @@
         }
     ],
     "placementConstraints": [],
-    "taskRoleArn": null,
+    "memory": "8192",
+    "taskRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
+    "compatibilities": ["EC2", "FARGATE"],
+    "taskDefinitionArn": "arn:aws:ecs:us-east-2:173971919437:task-definition/private-graph-task:96",
     "family": "private-graph-task",
+    "requiresAttributes": [
+        {
+            "targetId": null,
+            "targetType": null,
+            "value": null,
+            "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
+        },
+        {
+            "targetId": null,
+            "targetType": null,
+            "value": null,
+            "name": "ecs.capability.execution-role-awslogs"
+        },
+        {
+            "targetId": null,
+            "targetType": null,
+            "value": null,
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+        },
+        {
+            "targetId": null,
+            "targetType": null,
+            "value": null,
+            "name": "com.amazonaws.ecs.capability.ecr-auth"
+        },
+        {
+            "targetId": null,
+            "targetType": null,
+            "value": null,
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.21"
+        },
+        {
+            "targetId": null,
+            "targetType": null,
+            "value": null,
+            "name": "com.amazonaws.ecs.capability.task-iam-role"
+        },
+        {
+            "targetId": null,
+            "targetType": null,
+            "value": null,
+            "name": "ecs.capability.execution-role-ecr-pull"
+        },
+        {
+            "targetId": null,
+            "targetType": null,
+            "value": null,
+            "name": "ecs.capability.secrets.ssm.environment-variables"
+        },
+        {
+            "targetId": null,
+            "targetType": null,
+            "value": null,
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
+        },
+        {
+            "targetId": null,
+            "targetType": null,
+            "value": null,
+            "name": "ecs.capability.task-eni"
+        }
+    ],
     "pidMode": null,
     "requiresCompatibilities": ["FARGATE"],
     "networkMode": "awsvpc",
     "cpu": "4096",
-    "memory": "8192",
+    "revision": 96,
+    "status": "ACTIVE",
     "inferenceAccelerators": null,
     "proxyConfiguration": null,
     "volumes": []
