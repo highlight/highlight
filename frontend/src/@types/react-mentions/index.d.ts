@@ -66,6 +66,7 @@ declare module '@highlight-run/react-mentions' {
         classNames?: any;
         style?: any;
         suggestionsPortalHost?: Element | undefined;
+        listHeader?: React.ReactNode;
         inputRef?:
             | React.Ref<HTMLTextAreaElement>
             | React.Ref<HTMLInputElement>
