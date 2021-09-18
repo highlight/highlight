@@ -8,7 +8,9 @@ import (
 	"strings"
 
 	firebase "firebase.google.com/go"
+
 	"firebase.google.com/go/auth"
+	"github.com/aws/aws-xray-sdk-go/xray"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 
@@ -63,6 +65,13 @@ func PrivateMiddleware(next http.Handler) http.Handler {
 		}
 		ctx := context.WithValue(r.Context(), model.ContextKeys.UID, uid)
 		ctx = context.WithValue(ctx, model.ContextKeys.Email, email)
+
+		// Add annotations to search for traces
+		seg := xray.GetSegment(ctx)
+		seg.AddAnnotation("email", email) //nolint
+		seg.AddAnnotation("uid", uid)     //nolint
+		seg.AddAnnotation("host", r.Host) //nolint
+
 		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r)
 	})
