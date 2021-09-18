@@ -1,6 +1,7 @@
 {
     "ipcMode": null,
     "executionRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
+    "taskRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
     "containerDefinitions": [
         {
             "dnsSearchDomains": null,
@@ -124,7 +125,6 @@
     ],
     "placementConstraints": [],
     "memory": "8192",
-    "taskRoleArn": null,
     "family": "public-graph-task",
     "pidMode": null,
     "requiresCompatibilities": ["FARGATE"],
