@@ -5,6 +5,7 @@ on:
             - 'master'
         paths:
             - 'backend/**'
+            - 'deploy/**'
             - '.github/workflows/deploy.yml'
 jobs:
     deploy_backend:
