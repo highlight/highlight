@@ -12,27 +12,16 @@
                     "containerPort": 2000,
                     "protocol": "udp"
                 }
-            ]
-        },
-        {
-            "name": "datadog-agent",
-            "image": "datadog/agent:latest",
-            "secrets": [
-                {
-                    "name": "DD_API_KEY",
-                    "valueFrom": "DD_API_KEY"
-                }
             ],
-            "environment": [
-                {
-                    "name": "ECS_FARGATE",
-                    "value": "true"
-                },
-                {
-                    "name": "DD_APM_ENABLED",
-                    "value": "true"
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "secretOptions": null,
+                "options": {
+                    "awslogs-group": "/ecs/private-graph-task",
+                    "awslogs-region": "us-east-2",
+                    "awslogs-stream-prefix": "ecs"
                 }
-            ]
+            }
         },
         {
             "dnsSearchDomains": null,
