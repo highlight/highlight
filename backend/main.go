@@ -90,10 +90,38 @@ func main() {
 	log.SetReportCaller(true)
 
 	switch os.Getenv("DEPLOYMENT_KEY") {
-	case "HIGHLIGHT_ONPREM_BETA":
-		// default case, should only exist in main highlight prod
 	case "HIGHLIGHT_BEHAVE_HEALTH-i_fgQwbthAdqr9Aat_MzM7iU3!@fKr-_vopjXR@f":
 		go expireHighlightAfterDate(time.Date(2021, 10, 1, 0, 0, 0, 0, time.UTC))
+		fallthrough
+	case "HIGHLIGHT_ONPREM_BETA":
+		// default case, should only exist in main highlight prod
+		db, err := model.SetupDB(os.Getenv("PSQL_DB"))
+		if err != nil {
+			break
+		}
+		thresholdWindow := 30
+		emptiness := "[]"
+		db.FirstOrCreate(model.SessionAlert{
+			Alert: model.Alert{
+				OrganizationID: 1,
+				ProjectID:      1,
+				Type:           &model.AlertType.SESSION_FEEDBACK,
+			},
+		}).Attrs()
+		alert := model.SessionAlert{
+			Alert: model.Alert{
+				OrganizationID:       1,
+				ProjectID:            1,
+				ExcludedEnvironments: &emptiness,
+				CountThreshold:       1,
+				ThresholdWindow:      &thresholdWindow,
+				ChannelsToNotify:     &emptiness,
+				Type:                 &model.AlertType.SESSION_FEEDBACK,
+			},
+		}
+		if err := db.Create(&alert).Error; err != nil {
+			break
+		}
 	default:
 		log.Fatal("please specify a deploy key in order to run Highlight")
 	}
