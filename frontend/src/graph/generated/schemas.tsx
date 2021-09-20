@@ -430,6 +430,7 @@ export type SessionAlert = {
     CountThreshold: Scalars['Int'];
     TrackProperties: Array<Maybe<TrackProperty>>;
     UserProperties: Array<Maybe<UserProperty>>;
+    ThresholdWindow: Scalars['Int'];
 };
 
 export type Query = {
@@ -467,6 +468,7 @@ export type Query = {
     error_field_suggestion?: Maybe<Array<Maybe<ErrorField>>>;
     organizations?: Maybe<Array<Maybe<Organization>>>;
     error_alert?: Maybe<ErrorAlert>;
+    session_feedback_alert?: Maybe<SessionAlert>;
     new_user_alert?: Maybe<SessionAlert>;
     track_properties_alert?: Maybe<SessionAlert>;
     user_properties_alert?: Maybe<SessionAlert>;
@@ -632,6 +634,10 @@ export type QueryError_AlertArgs = {
     organization_id: Scalars['ID'];
 };
 
+export type QuerySession_Feedback_AlertArgs = {
+    organization_id: Scalars['ID'];
+};
+
 export type QueryNew_User_AlertArgs = {
     organization_id: Scalars['ID'];
 };
@@ -708,6 +714,7 @@ export type Mutation = {
     openSlackConversation?: Maybe<Scalars['Boolean']>;
     addSlackBotIntegrationToOrganization: Scalars['Boolean'];
     updateErrorAlert?: Maybe<ErrorAlert>;
+    updateSessionFeedbackAlert?: Maybe<SessionAlert>;
     updateNewUserAlert?: Maybe<SessionAlert>;
     updateTrackPropertiesAlert?: Maybe<SessionAlert>;
     updateUserPropertiesAlert?: Maybe<SessionAlert>;
@@ -859,6 +866,15 @@ export type MutationAddSlackBotIntegrationToOrganizationArgs = {
 export type MutationUpdateErrorAlertArgs = {
     organization_id: Scalars['ID'];
     error_alert_id: Scalars['ID'];
+    count_threshold: Scalars['Int'];
+    threshold_window: Scalars['Int'];
+    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+    environments: Array<Maybe<Scalars['String']>>;
+};
+
+export type MutationUpdateSessionFeedbackAlertArgs = {
+    organization_id: Scalars['ID'];
+    session_feedback_alert_id: Scalars['ID'];
     count_threshold: Scalars['Int'];
     threshold_window: Scalars['Int'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;

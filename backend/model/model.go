@@ -45,11 +45,13 @@ var AlertType = struct {
 	NEW_USER         string
 	TRACK_PROPERTIES string
 	USER_PROPERTIES  string
+	SESSION_FEEDBACK string
 }{
 	ERROR:            "ERROR_ALERT",
 	NEW_USER:         "NEW_USER_ALERT",
 	TRACK_PROPERTIES: "TRACK_PROPERTIES_ALERT",
 	USER_PROPERTIES:  "USER_PROPERTIES_ALERT",
+	SESSION_FEEDBACK: "SESSION_FEEDBACK_ALERT",
 }
 
 var ErrorGroupStates = struct {
@@ -822,7 +824,7 @@ type SendSlackAlertInput struct {
 	Organization *Organization
 	// SessionID is a required parameter
 	SessionID int
-	// UserIdentifier is a required parameter for New User and Error alerts
+	// UserIdentifier is a required parameter for New User, Error, and SessionFeedback alerts
 	UserIdentifier string
 	// Group is a required parameter for Error alerts
 	Group *ErrorGroup
@@ -834,9 +836,14 @@ type SendSlackAlertInput struct {
 	MatchedFields []*Field
 	// UserProperties is a required parameter for User Properties alerts
 	UserProperties map[string]string
+	// CommentID is a required parameter for SessionFeedback alerts
+	CommentID *int
+	// CommentText is a required parameter for SessionFeedback alerts
+	CommentText string
 }
 
 func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
+	// TODO: combine `error_alerts` and `session_alerts` tables and create unique composite index on (organization_id, type)
 	if obj == nil {
 		return e.New("alert is nil")
 	}
@@ -860,7 +867,11 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 	var messageBlock []*slack.TextBlockObject
 
 	frontendURL := os.Getenv("FRONTEND_URI")
-	sessionLink := fmt.Sprintf("<%s/%d/sessions/%d/>", frontendURL, obj.OrganizationID, input.SessionID)
+	suffix := "/"
+	if input.CommentID != nil {
+		suffix = fmt.Sprintf("?commentId=%d", *input.CommentID)
+	}
+	sessionLink := fmt.Sprintf("<%s/%d/sessions/%d%s>", frontendURL, obj.OrganizationID, input.SessionID, suffix)
 	messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false))
 
 	if obj.Type == nil {
@@ -960,6 +971,15 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 		// construct Slack message
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight User Properties Alert:*\n\n", false, false)
 		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Matched User Properties:*\n%+v", formattedFields), false, false))
+		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
+		blockSet = append(blockSet, slack.NewDividerBlock())
+		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
+	case AlertType.SESSION_FEEDBACK:
+		shortEvent := input.CommentText
+		if len(input.CommentText) > 50 {
+			shortEvent = input.CommentText[:50] + "..."
+		}
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s Left Feedback*\n\n%s", input.UserIdentifier, shortEvent), false, false)
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}

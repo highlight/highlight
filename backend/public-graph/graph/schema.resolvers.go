@@ -136,7 +136,7 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 	metadata["timestamp"] = timestamp
 
 	session := &model.Session{}
-	if err := r.DB.Select("organization_id").Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
+	if err := r.DB.Select("organization_id", "environment", "id").Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
 		return -1, e.Wrap(err, "error querying session by sessionID for adding session feedback")
 	}
 
@@ -144,6 +144,86 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 	if err := r.DB.Create(feedbackComment).Error; err != nil {
 		return -1, e.Wrap(err, "error creating session feedback")
 	}
+
+	r.AlertWorkerPool.Submit(func() {
+		var sessionFeedbackAlert model.SessionAlert
+		if err := r.DB.Raw(`
+			SELECT *
+			FROM session_alerts
+			WHERE organization_id = ?
+				AND type = ?
+		`, session.OrganizationID, model.AlertType.SESSION_FEEDBACK).Scan(&sessionFeedbackAlert).Error; err != nil {
+			log.WithError(err).
+				WithFields(log.Fields{"org_id": session.OrganizationID, "session_id": sessionID, "comment_id": feedbackComment.ID}).
+				Error(e.Wrapf(err, "error fetching %s alert", model.AlertType.SESSION_FEEDBACK))
+			return
+		}
+
+		excludedEnvironments, err := sessionFeedbackAlert.GetExcludedEnvironments()
+		if err != nil {
+			log.Error(e.Wrapf(err, "error getting excluded environments from %s alert", model.AlertType.SESSION_FEEDBACK))
+			return
+		}
+		for _, env := range excludedEnvironments {
+			if env != nil && *env == session.Environment {
+				return
+			}
+		}
+
+		commentsCount := int64(-1)
+		if sessionFeedbackAlert.ThresholdWindow == nil {
+			t := 30
+			sessionFeedbackAlert.ThresholdWindow = &t
+		}
+		if err := r.DB.Raw(`
+			SELECT COUNT(*)
+			FROM session_comments
+			WHERE organization_id = ?
+				AND type = ?
+				AND created_at > ?
+		`, session.OrganizationID, model.SessionCommentTypes.FEEDBACK,
+			time.Now().Add(-time.Duration(*sessionFeedbackAlert.ThresholdWindow)*time.Minute)).
+			Scan(&commentsCount).Error; err != nil {
+			log.WithError(err).
+				WithFields(log.Fields{"org_id": session.OrganizationID, "session_id": session.ID, "comment_id": feedbackComment.ID}).
+				Error(e.Wrapf(err, "error fetching %s alert count", model.AlertType.SESSION_FEEDBACK))
+			return
+		}
+		if commentsCount+1 < int64(sessionFeedbackAlert.CountThreshold) {
+			return
+		}
+
+		var organization model.Organization
+		if err := r.DB.Raw(`
+			SELECT *
+			FROM organizations
+			WHERE id = ?
+		`, session.OrganizationID).Scan(&organization).Error; err != nil {
+			log.WithError(err).
+				WithFields(log.Fields{"org_id": session.OrganizationID, "session_id": session.ID, "comment_id": feedbackComment.ID}).
+				Error(e.Wrapf(err, "error fetching %s alert", model.AlertType.SESSION_FEEDBACK))
+			return
+		}
+
+		identifier := "Someone"
+		if userName != nil {
+			identifier = *userName
+		} else if userEmail != nil {
+			identifier = *userEmail
+		}
+
+		if err := sessionFeedbackAlert.SendSlackAlert(&model.SendSlackAlertInput{
+			Organization:   &organization,
+			SessionID:      session.ID,
+			UserIdentifier: identifier,
+			CommentID:      &feedbackComment.ID,
+			CommentText:    feedbackComment.Text,
+		}); err != nil {
+			log.WithError(err).WithFields(log.Fields{"org_id": session.OrganizationID, "comment_id": feedbackComment.ID}).
+				Error(e.Wrapf(err, "error sending %s slack alert", model.AlertType.SESSION_FEEDBACK))
+			return
+		}
+	})
 
 	return feedbackComment.ID, nil
 }
