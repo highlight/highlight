@@ -62,6 +62,9 @@ export const DevToolsWindow = ({
                     tabs={TABS}
                     id="DevTools"
                     noPadding
+                    onChange={() => {
+                        setPanelContent(undefined);
+                    }}
                     tabBarExtraContent={
                         <>
                             <DOMInteractionsToggle />
