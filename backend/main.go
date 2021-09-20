@@ -102,25 +102,20 @@ func main() {
 		}
 		thresholdWindow := 30
 		emptiness := "[]"
-		db.FirstOrCreate(model.SessionAlert{
+		if err := db.FirstOrCreate(&model.SessionAlert{
 			Alert: model.Alert{
 				OrganizationID: 1,
 				ProjectID:      1,
 				Type:           &model.AlertType.SESSION_FEEDBACK,
 			},
-		}).Attrs()
-		alert := model.SessionAlert{
+		}).Attrs(&model.SessionAlert{
 			Alert: model.Alert{
-				OrganizationID:       1,
-				ProjectID:            1,
 				ExcludedEnvironments: &emptiness,
 				CountThreshold:       1,
 				ThresholdWindow:      &thresholdWindow,
 				ChannelsToNotify:     &emptiness,
-				Type:                 &model.AlertType.SESSION_FEEDBACK,
 			},
-		}
-		if err := db.Create(&alert).Error; err != nil {
+		}).Error; err != nil {
 			break
 		}
 	default:
