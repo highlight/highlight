@@ -90,38 +90,6 @@ func main() {
 	// initialize logger
 	log.SetReportCaller(true)
 
-	switch os.Getenv("DEPLOYMENT_KEY") {
-	case "HIGHLIGHT_BEHAVE_HEALTH-i_fgQwbthAdqr9Aat_MzM7iU3!@fKr-_vopjXR@f":
-		go expireHighlightAfterDate(time.Date(2021, 10, 1, 0, 0, 0, 0, time.UTC))
-		fallthrough
-	case "HIGHLIGHT_ONPREM_BETA":
-		// default case, should only exist in main highlight prod
-		db, err := model.SetupDB(os.Getenv("PSQL_DB"))
-		if err != nil {
-			break
-		}
-		thresholdWindow := 30
-		emptiness := "[]"
-		if err := db.FirstOrCreate(&model.SessionAlert{
-			Alert: model.Alert{
-				OrganizationID: 1,
-				ProjectID:      1,
-				Type:           &model.AlertType.SESSION_FEEDBACK,
-			},
-		}).Attrs(&model.SessionAlert{
-			Alert: model.Alert{
-				ExcludedEnvironments: &emptiness,
-				CountThreshold:       1,
-				ThresholdWindow:      &thresholdWindow,
-				ChannelsToNotify:     &emptiness,
-			},
-		}).Error; err != nil {
-			break
-		}
-	default:
-		log.Fatal("please specify a deploy key in order to run Highlight")
-	}
-
 	if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" && (os.Getenv("AWS_ACCESS_KEY_ID") == "" || os.Getenv("AWS_S3_BUCKET_NAME") == "" || os.Getenv("AWS_SECRET_ACCESS_KEY") == "") {
 		log.Fatalf("please specify object storage env variables in order to proceed")
 	}
@@ -157,6 +125,34 @@ func main() {
 	db, err := model.SetupDB(os.Getenv("PSQL_DB"))
 	if err != nil {
 		log.Fatalf("error setting up db: %v", err)
+	}
+
+	switch os.Getenv("DEPLOYMENT_KEY") {
+	case "HIGHLIGHT_BEHAVE_HEALTH-i_fgQwbthAdqr9Aat_MzM7iU3!@fKr-_vopjXR@f":
+		go expireHighlightAfterDate(time.Date(2021, 10, 1, 0, 0, 0, 0, time.UTC))
+		fallthrough
+	case "HIGHLIGHT_ONPREM_BETA":
+		// default case, should only exist in main highlight prod
+		thresholdWindow := 30
+		emptiness := "[]"
+		if err := db.FirstOrCreate(&model.SessionAlert{
+			Alert: model.Alert{
+				OrganizationID: 1,
+				ProjectID:      1,
+				Type:           &model.AlertType.SESSION_FEEDBACK,
+			},
+		}).Attrs(&model.SessionAlert{
+			Alert: model.Alert{
+				ExcludedEnvironments: &emptiness,
+				CountThreshold:       1,
+				ThresholdWindow:      &thresholdWindow,
+				ChannelsToNotify:     &emptiness,
+			},
+		}).Error; err != nil {
+			break
+		}
+	default:
+		log.Fatal("please specify a deploy key in order to run Highlight")
 	}
 
 	stripeClient := &client.API{}
