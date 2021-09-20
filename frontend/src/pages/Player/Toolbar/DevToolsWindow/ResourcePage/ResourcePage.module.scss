@@ -42,13 +42,15 @@ $right-padding: 12px;
 }
 
 .networkTopBar {
-    color: var(--color-gray-500);
+    border-bottom: 1px solid var(--color-gray-300);
+    color: var(--color-gray-500) !important;
     display: grid;
     font-size: 13px;
     grid-template-columns: $columns;
-    height: 40px;
+    padding-bottom: var(--size-xSmall);
     padding-left: 25px;
     padding-right: $right-padding;
+    padding-top: var(--size-xSmall);
     width: 100%;
 }
 
@@ -95,10 +97,11 @@ $canvas-width: calc(
 
 .networkColumn {
     align-items: center;
-    color: var(--text-primary);
+    color: var(--color-gray-500);
     display: flex;
     font-size: 12px;
     font-weight: 400;
+    line-height: normal;
 
     &.justifyEnd {
         justify-self: flex-end;
