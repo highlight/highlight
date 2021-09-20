@@ -1,3 +1,4 @@
+import Input from '@components/Input/Input';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
@@ -13,7 +14,6 @@ import Skeleton from 'react-loading-skeleton';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 import GoToButton from '../../../../../components/Button/GoToButton';
-import Input from '../../../../../components/Input/Input';
 import TextHighlighter from '../../../../../components/TextHighlighter/TextHighlighter';
 import Tooltip from '../../../../../components/Tooltip/Tooltip';
 import { useGetResourcesQuery } from '../../../../../graph/generated/hooks';
@@ -164,17 +164,19 @@ export const ResourcePage = ({
     return (
         <div className={styles.resourcePageWrapper}>
             <div className={devStyles.topBar}>
-                <div className={devStyles.optionsWrapper}>
-                    {options.map((o: string, i: number) => {
-                        return (
-                            <Option
-                                key={i.toString()}
-                                onSelect={() => setCurrentOption(o)}
-                                selected={o === currentOption}
-                                optionValue={o}
-                            />
-                        );
-                    })}
+                <div className={styles.optionsWrapper}>
+                    <div className={styles.optionsContainer}>
+                        {options.map((o: string, i: number) => {
+                            return (
+                                <Option
+                                    key={i.toString()}
+                                    onSelect={() => setCurrentOption(o)}
+                                    selected={o === currentOption}
+                                    optionValue={o}
+                                />
+                            );
+                        })}
+                    </div>
                     <div className={styles.filterContainer}>
                         <Input
                             allowClear
