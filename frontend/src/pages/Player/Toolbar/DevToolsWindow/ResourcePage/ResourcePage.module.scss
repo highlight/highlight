@@ -217,3 +217,9 @@ $canvas-width: calc(
         overflow-x: auto;
     }
 }
+
+.detailPanelTitle {
+    align-items: center !important;
+    column-gap: var(--size-medium);
+    display: flex;
+}

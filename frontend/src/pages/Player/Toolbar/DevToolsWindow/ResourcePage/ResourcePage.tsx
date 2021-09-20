@@ -1,6 +1,7 @@
 import Input from '@components/Input/Input';
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
 import { useDevToolsContext } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext';
+import DetailPanel from '@pages/Player/Toolbar/DevToolsWindow/DetailPanel/DetailPanel';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
@@ -34,7 +35,7 @@ export const ResourcePage = ({
     time: number;
     startTime: number;
 }) => {
-    const { state, session } = useReplayerContext();
+    const { state, session, pause } = useReplayerContext();
     const { setPanelContent } = useDevToolsContext();
     const { session_id } = useParams<{ session_id: string }>();
     const [options, setOptions] = useState<Array<string>>([]);
@@ -181,6 +182,7 @@ export const ResourcePage = ({
     return (
         <div className={styles.resourcePageWrapper}>
             <div className={devStyles.topBar}>
+                <DetailPanel />
                 <div className={styles.optionsWrapper}>
                     <div
                         className={styles.optionsContainer}
@@ -277,7 +279,32 @@ export const ResourcePage = ({
                                             searchTerm={filterSearchTerm}
                                             onClickHandler={() => {
                                                 setPanelContent({
-                                                    title: 'Network Request',
+                                                    title: (
+                                                        <div
+                                                            className={
+                                                                styles.detailPanelTitle
+                                                            }
+                                                        >
+                                                            <span>
+                                                                Network Request
+                                                            </span>
+                                                            <GoToButton
+                                                                onClick={() => {
+                                                                    pause(
+                                                                        resource.startTime
+                                                                    );
+
+                                                                    message.success(
+                                                                        `Changed player time to when ${getNetworkResourcesDisplayName(
+                                                                            resource.initiatorType
+                                                                        )} request started at ${MillisToMinutesAndSeconds(
+                                                                            resource.startTime
+                                                                        )}.`
+                                                                    );
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    ),
                                                     content: (
                                                         <>
                                                             <ResourceDetailsModal

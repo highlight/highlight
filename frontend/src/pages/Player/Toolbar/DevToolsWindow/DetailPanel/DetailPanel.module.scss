@@ -1,12 +1,16 @@
 .detailPanel {
     background: var(--color-primary-background);
+    border-left: 1px solid var(--color-gray-300);
     border-top-left-radius: var(--border-radius);
-    border-top-right-radius: var(--border-radius);
-    height: 100%;
-    padding: 0 var(--size-large);
-    padding-top: var(--size-medium);
+    box-shadow: var(--box-shadow-2);
+    display: flex;
+    flex-direction: column;
+    height: calc(100% - 46px);
+    padding: var(--size-medium) var(--size-large);
     position: absolute;
-    width: 100%;
+    right: 0;
+    // This panel should only take 2/3rds of the width.
+    width: calc((100% / 3) * 2);
     z-index: 2;
 }
 
@@ -19,11 +23,13 @@
     column-gap: var(--size-medium);
     display: flex;
 
-    h3 {
+    .title {
         margin-bottom: 0 !important;
+        width: 100%;
     }
 }
 
 .contentContainer {
+    overflow: auto;
     padding-top: var(--size-large);
 }

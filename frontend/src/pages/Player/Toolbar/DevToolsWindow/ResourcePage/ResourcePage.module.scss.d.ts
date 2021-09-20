@@ -1,5 +1,6 @@
 export const canvasNetworkWrapper: string;
 export const current: string;
+export const detailPanelTitle: string;
 export const failedResource: string;
 export const filterContainer: string;
 export const goToButton: string;

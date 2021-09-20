@@ -1,4 +1,3 @@
-import DetailPanel from '@pages/Player/Toolbar/DevToolsWindow/DetailPanel/DetailPanel';
 import React, { useEffect } from 'react';
 import ResizePanel from 'react-resize-panel-ts';
 
@@ -59,7 +58,6 @@ export const DevToolsWindow = ({
             borderClass={styles.resizeBorder}
         >
             <div className={styles.devToolsWrapper}>
-                <DetailPanel />
                 <Tabs
                     tabs={TABS}
                     id="DevTools"

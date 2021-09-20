@@ -4,11 +4,14 @@ interface DevToolsContext {
     openDevTools: boolean;
     setOpenDevTools: (val: boolean) => void;
     /** If set, this content will show up in the blade that's on top of the DevTools.   */
-    panelContent?: { title: string; content: React.ReactNode };
+    panelContent?: {
+        title: string | React.ReactNode;
+        content: React.ReactNode;
+    };
     setPanelContent: React.Dispatch<
         React.SetStateAction<
             | {
-                  title: string;
+                  title: string | React.ReactNode;
                   content: React.ReactNode;
               }
             | undefined
