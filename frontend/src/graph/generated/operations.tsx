@@ -217,6 +217,9 @@ export type CreateSessionCommentMutationVariables = Types.Exact<{
     tagged_admins:
         | Array<Types.Maybe<Types.SanitizedAdminInput>>
         | Types.Maybe<Types.SanitizedAdminInput>;
+    tagged_slack_users:
+        | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
+        | Types.Maybe<Types.SanitizedSlackChannelInput>;
     session_url: Types.Scalars['String'];
     time: Types.Scalars['Float'];
     author_name: Types.Scalars['String'];
@@ -262,6 +265,9 @@ export type CreateErrorCommentMutationVariables = Types.Exact<{
     tagged_admins:
         | Array<Types.Maybe<Types.SanitizedAdminInput>>
         | Types.Maybe<Types.SanitizedAdminInput>;
+    tagged_slack_users:
+        | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
+        | Types.Maybe<Types.SanitizedSlackChannelInput>;
     error_url: Types.Scalars['String'];
     author_name: Types.Scalars['String'];
 }>;
@@ -860,6 +866,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
             Types.ErrorGroup,
             | 'created_at'
             | 'id'
+            | 'secure_id'
             | 'type'
             | 'organization_id'
             | 'event'

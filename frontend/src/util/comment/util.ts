@@ -20,7 +20,7 @@ export const getFeedbackCommentSessionTimestamp = (
     return deltaMilliseconds;
 };
 
-interface CommentSuggestion {
+export interface CommentSuggestion {
     id: string;
     name: string;
     email?: string;
@@ -33,12 +33,14 @@ export const getCommentMentionSuggestions = (
     if (!suggestions) {
         return [];
     }
-    const mappedAdmins = suggestions.admins.map((admin) => ({
-        id: admin!.id,
-        email: admin!.email,
-        name: admin?.name || '',
-        photoUrl: admin!.photo_url as string,
-    }));
+    const mappedAdmins: CommentSuggestion[] = suggestions.admins.map(
+        (admin) => ({
+            id: admin!.id,
+            email: admin!.email,
+            name: admin?.name || '',
+            photoUrl: admin!.photo_url as string,
+        })
+    );
 
     if (suggestions.slack_members.length === 0) {
         return mappedAdmins;
@@ -46,10 +48,24 @@ export const getCommentMentionSuggestions = (
 
     return [
         ...mappedAdmins,
-        ...suggestions.slack_members.map((slackMember) => ({
+        ...suggestions.slack_members.map<CommentSuggestion>((slackMember) => ({
             id: slackMember!.webhook_channel_id as string,
             name: slackMember!.webhook_channel as string,
             photoUrl: '',
+            email: slackMember!.webhook_channel?.includes('#')
+                ? 'Slack Channel'
+                : 'Slack User',
         })),
-    ];
+    ].sort((suggestionA, suggestionB) =>
+        (['@', '#'].includes(suggestionA.name[0])
+            ? suggestionA.name.slice(1)
+            : suggestionA.name
+        ).toLowerCase() >
+        (['@', '#'].includes(suggestionB.name[0])
+            ? suggestionB.name.slice(1)
+            : suggestionB.name
+        ).toLowerCase()
+            ? 1
+            : -1
+    );
 };

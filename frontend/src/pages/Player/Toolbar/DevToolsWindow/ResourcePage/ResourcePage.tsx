@@ -1,3 +1,5 @@
+import Input from '@components/Input/Input';
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
@@ -13,7 +15,6 @@ import Skeleton from 'react-loading-skeleton';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 import GoToButton from '../../../../../components/Button/GoToButton';
-import Input from '../../../../../components/Input/Input';
 import TextHighlighter from '../../../../../components/TextHighlighter/TextHighlighter';
 import Tooltip from '../../../../../components/Tooltip/Tooltip';
 import { useGetResourcesQuery } from '../../../../../graph/generated/hooks';
@@ -43,9 +44,14 @@ export const ResourcePage = ({
     const [currentResource, setCurrentResource] = useState(0);
     const [networkRange, setNetworkRange] = useState(0);
     const [
+        networkOptionsContainerWidth,
+        setNetworkOptionsContainerWidth,
+    ] = useState<number | null>(null);
+    const [
         isInteractingWithResources,
         setIsInteractingWithResources,
     ] = useState(false);
+    const { showLeftPanel, showRightPanel } = usePlayerConfiguration();
     const [allResources, setAllResources] = useState<
         Array<NetworkResource> | undefined
     >([]);
@@ -98,6 +104,18 @@ export const ResourcePage = ({
             setNetworkRange(end - start);
         }
     }, [rawResources]);
+
+    useEffect(() => {
+        if (showLeftPanel && showRightPanel) {
+            if (window.innerWidth < 1600) {
+                setNetworkOptionsContainerWidth(350);
+            } else {
+                setNetworkOptionsContainerWidth(null);
+            }
+        } else {
+            setNetworkOptionsContainerWidth(null);
+        }
+    }, [showLeftPanel, showRightPanel]);
 
     useEffect(() => {
         if (allResources?.length) {
@@ -164,17 +182,24 @@ export const ResourcePage = ({
     return (
         <div className={styles.resourcePageWrapper}>
             <div className={devStyles.topBar}>
-                <div className={devStyles.optionsWrapper}>
-                    {options.map((o: string, i: number) => {
-                        return (
-                            <Option
-                                key={i.toString()}
-                                onSelect={() => setCurrentOption(o)}
-                                selected={o === currentOption}
-                                optionValue={o}
-                            />
-                        );
-                    })}
+                <div className={styles.optionsWrapper}>
+                    <div
+                        className={styles.optionsContainer}
+                        style={{
+                            width: networkOptionsContainerWidth || 'initial',
+                        }}
+                    >
+                        {options.map((o: string, i: number) => {
+                            return (
+                                <Option
+                                    key={i.toString()}
+                                    onSelect={() => setCurrentOption(o)}
+                                    selected={o === currentOption}
+                                    optionValue={o}
+                                />
+                            );
+                        })}
+                    </div>
                     <div className={styles.filterContainer}>
                         <Input
                             allowClear

@@ -18,7 +18,10 @@ import {
     useGetAdminsQuery,
     useGetCommentMentionSuggestionsQuery,
 } from '../../../../graph/generated/hooks';
-import { SanitizedAdminInput } from '../../../../graph/generated/schemas';
+import {
+    SanitizedAdminInput,
+    SanitizedSlackChannelInput,
+} from '../../../../graph/generated/schemas';
 import { MillisToMinutesAndSeconds } from '../../../../util/time';
 import { Coordinates2D } from '../../PlayerCommentCanvas/PlayerCommentCanvas';
 import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration';
@@ -42,7 +45,7 @@ export const NewCommentForm = ({
 }: Props) => {
     const { time } = useReplayerContext();
     const [createComment] = useCreateSessionCommentMutation();
-    const { admin, isLoggedIn, isHighlightAdmin } = useAuthContext();
+    const { admin, isLoggedIn } = useAuthContext();
     const { session_id, organization_id } = useParams<{
         session_id: string;
         organization_id: string;
@@ -66,15 +69,13 @@ export const NewCommentForm = ({
         data: mentionSuggestionsData,
     } = useGetCommentMentionSuggestionsQuery({
         variables: { organization_id },
-        skip: !isHighlightAdmin,
     });
     const [mentionedAdmins, setMentionedAdmins] = useState<
         SanitizedAdminInput[]
     >([]);
-
-    if (isHighlightAdmin) {
-        console.log(getCommentMentionSuggestions(mentionSuggestionsData));
-    }
+    const [mentionedSlackUsers, setMentionedSlackUsers] = useState<
+        SanitizedSlackChannelInput[]
+    >([]);
 
     const onFinish = async () => {
         H.track('Create Comment');
@@ -101,6 +102,7 @@ export const NewCommentForm = ({
                     y_coordinate: commentPosition?.y || 0,
                     session_url: `${window.location.origin}${window.location.pathname}`,
                     tagged_admins: mentionedAdmins,
+                    tagged_slack_users: mentionedSlackUsers,
                     time: time / 1000,
                     author_name: admin?.name || admin?.email || 'Someone',
                     // session_image: canvas
@@ -152,12 +154,12 @@ export const NewCommentForm = ({
             // Guests cannot @mention a admin.
             isLoggedIn
                 ? parseAdminSuggestions(
-                      adminsInOrganization,
+                      getCommentMentionSuggestions(mentionSuggestionsData),
                       admin,
                       mentionedAdmins
                   )
                 : [],
-        [admin, adminsInOrganization, isLoggedIn, mentionedAdmins]
+        [admin, isLoggedIn, mentionSuggestionsData, mentionedAdmins]
     );
 
     const onDisplayTransform = (_id: string, display: string): string => {
@@ -173,13 +175,48 @@ export const NewCommentForm = ({
         setCommentTextForEmail(newPlainTextValue);
 
         setMentionedAdmins(
-            mentions.map((mention) => {
-                const admin = adminsInOrganization?.admins?.find((admin) => {
-                    return admin?.id === mention.id;
-                });
-                return { id: mention.id, email: admin?.email || '' };
-            })
+            mentions
+                .filter(
+                    (mention) =>
+                        !mention.display.includes('@') &&
+                        !mention.display.includes('#')
+                )
+                .map((mention) => {
+                    const admin = adminsInOrganization?.admins?.find(
+                        (admin) => {
+                            return admin?.id === mention.id;
+                        }
+                    );
+                    return { id: mention.id, email: admin?.email || '' };
+                })
         );
+
+        if (mentionSuggestionsData?.slack_members) {
+            setMentionedSlackUsers(
+                mentions
+                    .filter(
+                        (mention) =>
+                            mention.display.includes('@') ||
+                            mention.display.includes('#')
+                    )
+                    .map<SanitizedSlackChannelInput>((mention) => {
+                        const matchingSlackUser = mentionSuggestionsData.slack_members.find(
+                            (slackUser) => {
+                                return (
+                                    slackUser?.webhook_channel_id === mention.id
+                                );
+                            }
+                        );
+
+                        return {
+                            webhook_channel_id:
+                                matchingSlackUser?.webhook_channel_id,
+                            webhook_channel_name:
+                                matchingSlackUser?.webhook_channel,
+                        };
+                    })
+            );
+        }
         setCommentText(e.target.value);
     };
 
