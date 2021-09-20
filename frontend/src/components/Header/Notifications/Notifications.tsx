@@ -77,6 +77,7 @@ const Notifications = () => {
                                                 'Get a slack DM anytime someone tags you in a Highlight comment!'
                                             }
                                             <PersonalNotificationButton
+                                                type="Personal"
                                                 text={'Enable Notifications'}
                                                 style={{
                                                     marginTop:
@@ -130,6 +131,7 @@ const Notifications = () => {
                                 <PersonalNotificationButton
                                     text="Get Slack Notifications"
                                     style={{ maxWidth: 'fit-content' }}
+                                    type="Personal"
                                 />
                             </div>
                         </>

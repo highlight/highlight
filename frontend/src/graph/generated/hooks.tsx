@@ -472,36 +472,36 @@ export type OpenSlackConversationMutationOptions = Apollo.BaseMutationOptions<
     Types.OpenSlackConversationMutation,
     Types.OpenSlackConversationMutationVariables
 >;
-export const AddSlackIntegrationToWorkspaceDocument = gql`
-    mutation AddSlackIntegrationToWorkspace(
+export const AddSlackBotIntegrationToOrganizationDocument = gql`
+    mutation AddSlackBotIntegrationToOrganization(
         $organization_id: ID!
         $code: String!
         $redirect_path: String!
     ) {
-        addSlackIntegrationToWorkspace(
+        addSlackBotIntegrationToOrganization(
             organization_id: $organization_id
             code: $code
             redirect_path: $redirect_path
         )
     }
 `;
-export type AddSlackIntegrationToWorkspaceMutationFn = Apollo.MutationFunction<
-    Types.AddSlackIntegrationToWorkspaceMutation,
-    Types.AddSlackIntegrationToWorkspaceMutationVariables
+export type AddSlackBotIntegrationToOrganizationMutationFn = Apollo.MutationFunction<
+    Types.AddSlackBotIntegrationToOrganizationMutation,
+    Types.AddSlackBotIntegrationToOrganizationMutationVariables
 >;
 
 /**
- * __useAddSlackIntegrationToWorkspaceMutation__
+ * __useAddSlackBotIntegrationToOrganizationMutation__
  *
- * To run a mutation, you first call `useAddSlackIntegrationToWorkspaceMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useAddSlackIntegrationToWorkspaceMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useAddSlackBotIntegrationToOrganizationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAddSlackBotIntegrationToOrganizationMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [addSlackIntegrationToWorkspaceMutation, { data, loading, error }] = useAddSlackIntegrationToWorkspaceMutation({
+ * const [addSlackBotIntegrationToOrganizationMutation, { data, loading, error }] = useAddSlackBotIntegrationToOrganizationMutation({
  *   variables: {
  *      organization_id: // value for 'organization_id'
  *      code: // value for 'code'
@@ -509,24 +509,24 @@ export type AddSlackIntegrationToWorkspaceMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useAddSlackIntegrationToWorkspaceMutation(
+export function useAddSlackBotIntegrationToOrganizationMutation(
     baseOptions?: Apollo.MutationHookOptions<
-        Types.AddSlackIntegrationToWorkspaceMutation,
-        Types.AddSlackIntegrationToWorkspaceMutationVariables
+        Types.AddSlackBotIntegrationToOrganizationMutation,
+        Types.AddSlackBotIntegrationToOrganizationMutationVariables
     >
 ) {
     return Apollo.useMutation<
-        Types.AddSlackIntegrationToWorkspaceMutation,
-        Types.AddSlackIntegrationToWorkspaceMutationVariables
-    >(AddSlackIntegrationToWorkspaceDocument, baseOptions);
+        Types.AddSlackBotIntegrationToOrganizationMutation,
+        Types.AddSlackBotIntegrationToOrganizationMutationVariables
+    >(AddSlackBotIntegrationToOrganizationDocument, baseOptions);
 }
-export type AddSlackIntegrationToWorkspaceMutationHookResult = ReturnType<
-    typeof useAddSlackIntegrationToWorkspaceMutation
+export type AddSlackBotIntegrationToOrganizationMutationHookResult = ReturnType<
+    typeof useAddSlackBotIntegrationToOrganizationMutation
 >;
-export type AddSlackIntegrationToWorkspaceMutationResult = Apollo.MutationResult<Types.AddSlackIntegrationToWorkspaceMutation>;
-export type AddSlackIntegrationToWorkspaceMutationOptions = Apollo.BaseMutationOptions<
-    Types.AddSlackIntegrationToWorkspaceMutation,
-    Types.AddSlackIntegrationToWorkspaceMutationVariables
+export type AddSlackBotIntegrationToOrganizationMutationResult = Apollo.MutationResult<Types.AddSlackBotIntegrationToOrganizationMutation>;
+export type AddSlackBotIntegrationToOrganizationMutationOptions = Apollo.BaseMutationOptions<
+    Types.AddSlackBotIntegrationToOrganizationMutation,
+    Types.AddSlackBotIntegrationToOrganizationMutationVariables
 >;
 export const CreateOrganizationDocument = gql`
     mutation CreateOrganization($name: String!) {
@@ -861,6 +861,7 @@ export const CreateSessionCommentDocument = gql`
         $x_coordinate: Float!
         $y_coordinate: Float!
         $tagged_admins: [SanitizedAdminInput]!
+        $tagged_slack_users: [SanitizedSlackChannelInput]!
         $session_url: String!
         $time: Float!
         $author_name: String!
@@ -875,6 +876,7 @@ export const CreateSessionCommentDocument = gql`
             x_coordinate: $x_coordinate
             y_coordinate: $y_coordinate
             tagged_admins: $tagged_admins
+            tagged_slack_users: $tagged_slack_users
             session_url: $session_url
             time: $time
             author_name: $author_name
@@ -921,6 +923,7 @@ export type CreateSessionCommentMutationFn = Apollo.MutationFunction<
  *      x_coordinate: // value for 'x_coordinate'
  *      y_coordinate: // value for 'y_coordinate'
  *      tagged_admins: // value for 'tagged_admins'
+ *      tagged_slack_users: // value for 'tagged_slack_users'
  *      session_url: // value for 'session_url'
  *      time: // value for 'time'
  *      author_name: // value for 'author_name'
@@ -1000,6 +1003,7 @@ export const CreateErrorCommentDocument = gql`
         $text: String!
         $text_for_email: String!
         $tagged_admins: [SanitizedAdminInput]!
+        $tagged_slack_users: [SanitizedSlackChannelInput]!
         $error_url: String!
         $author_name: String!
     ) {
@@ -1009,6 +1013,7 @@ export const CreateErrorCommentDocument = gql`
             text: $text
             text_for_email: $text_for_email
             tagged_admins: $tagged_admins
+            tagged_slack_users: $tagged_slack_users
             error_url: $error_url
             author_name: $author_name
         ) {
@@ -1047,6 +1052,7 @@ export type CreateErrorCommentMutationFn = Apollo.MutationFunction<
  *      text: // value for 'text'
  *      text_for_email: // value for 'text_for_email'
  *      tagged_admins: // value for 'tagged_admins'
+ *      tagged_slack_users: // value for 'tagged_slack_users'
  *      error_url: // value for 'error_url'
  *      author_name: // value for 'author_name'
  *   },
@@ -1761,7 +1767,6 @@ export const GetSessionDocument = gql`
             city
             state
             postal
-            user_id
             fingerprint
             created_at
             language
@@ -2314,7 +2319,6 @@ export const GetSessionsDocument = gql`
         ) {
             sessions {
                 id
-                user_id
                 fingerprint
                 identifier
                 os_name
@@ -2705,6 +2709,7 @@ export const GetErrorGroupDocument = gql`
         error_group(id: $id) {
             created_at
             id
+            secure_id
             type
             organization_id
             event
@@ -2724,6 +2729,8 @@ export const GetErrorGroupDocument = gql`
                 os
                 browser
                 visited_url
+                fingerprint
+                identifier
             }
             field_group {
                 name
@@ -4590,6 +4597,7 @@ export type GetSlackChannelSuggestionQueryResult = Apollo.QueryResult<
 >;
 export const GetAlertsPagePayloadDocument = gql`
     query GetAlertsPagePayload($organization_id: ID!) {
+        is_integrated_with_slack(organization_id: $organization_id)
         slack_channel_suggestion(organization_id: $organization_id) {
             webhook_channel
             webhook_channel_id
@@ -4705,4 +4713,67 @@ export type GetAlertsPagePayloadLazyQueryHookResult = ReturnType<
 export type GetAlertsPagePayloadQueryResult = Apollo.QueryResult<
     Types.GetAlertsPagePayloadQuery,
     Types.GetAlertsPagePayloadQueryVariables
+>;
+export const GetCommentMentionSuggestionsDocument = gql`
+    query GetCommentMentionSuggestions($organization_id: ID!) {
+        admins(organization_id: $organization_id) {
+            id
+            name
+            email
+            photo_url
+        }
+        slack_members(organization_id: $organization_id) {
+            webhook_channel
+            webhook_channel_id
+        }
+    }
+`;
+
+/**
+ * __useGetCommentMentionSuggestionsQuery__
+ *
+ * To run a query within a React component, call `useGetCommentMentionSuggestionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCommentMentionSuggestionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCommentMentionSuggestionsQuery({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *   },
+ * });
+ */
+export function useGetCommentMentionSuggestionsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetCommentMentionSuggestionsQuery,
+        Types.GetCommentMentionSuggestionsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetCommentMentionSuggestionsQuery,
+        Types.GetCommentMentionSuggestionsQueryVariables
+    >(GetCommentMentionSuggestionsDocument, baseOptions);
+}
+export function useGetCommentMentionSuggestionsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetCommentMentionSuggestionsQuery,
+        Types.GetCommentMentionSuggestionsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetCommentMentionSuggestionsQuery,
+        Types.GetCommentMentionSuggestionsQueryVariables
+    >(GetCommentMentionSuggestionsDocument, baseOptions);
+}
+export type GetCommentMentionSuggestionsQueryHookResult = ReturnType<
+    typeof useGetCommentMentionSuggestionsQuery
+>;
+export type GetCommentMentionSuggestionsLazyQueryHookResult = ReturnType<
+    typeof useGetCommentMentionSuggestionsLazyQuery
+>;
+export type GetCommentMentionSuggestionsQueryResult = Apollo.QueryResult<
+    Types.GetCommentMentionSuggestionsQuery,
+    Types.GetCommentMentionSuggestionsQueryVariables
 >;

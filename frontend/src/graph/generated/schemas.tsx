@@ -30,7 +30,7 @@ export type Field = {
 export type Session = {
     __typename?: 'Session';
     id: Scalars['ID'];
-    user_id: Scalars['ID'];
+    secure_id: Scalars['String'];
     fingerprint?: Maybe<Scalars['Int']>;
     os_name: Scalars['String'];
     os_version: Scalars['String'];
@@ -149,6 +149,7 @@ export type ErrorGroup = {
     __typename?: 'ErrorGroup';
     created_at: Scalars['Time'];
     id: Scalars['ID'];
+    secure_id: Scalars['String'];
     organization_id: Scalars['Int'];
     type: Scalars['String'];
     event: Array<Maybe<Scalars['String']>>;
@@ -165,11 +166,14 @@ export type ErrorMetadata = {
     __typename?: 'ErrorMetadata';
     error_id: Scalars['Int'];
     session_id: Scalars['Int'];
+    session_secure_id: Scalars['String'];
     environment?: Maybe<Scalars['String']>;
-    timestamp: Scalars['Time'];
+    timestamp?: Maybe<Scalars['Time']>;
     os?: Maybe<Scalars['String']>;
     browser?: Maybe<Scalars['String']>;
     visited_url?: Maybe<Scalars['String']>;
+    fingerprint: Scalars['String'];
+    identifier?: Maybe<Scalars['String']>;
 };
 
 export type ErrorTrace = {
@@ -444,7 +448,7 @@ export type Query = {
     error_comments: Array<Maybe<ErrorComment>>;
     error_comments_for_admin: Array<Maybe<ErrorComment>>;
     error_comments_for_organization: Array<Maybe<ErrorComment>>;
-    admins?: Maybe<Array<Maybe<Admin>>>;
+    admins: Array<Maybe<Admin>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
     unprocessedSessionsCount?: Maybe<Scalars['Int64']>;
     adminHasCreatedComment?: Maybe<Scalars['Boolean']>;
@@ -471,6 +475,8 @@ export type Query = {
     organizationSuggestion?: Maybe<Array<Maybe<Organization>>>;
     environment_suggestion?: Maybe<Array<Maybe<Field>>>;
     slack_channel_suggestion?: Maybe<Array<Maybe<SanitizedSlackChannel>>>;
+    slack_members: Array<Maybe<SanitizedSlackChannel>>;
+    is_integrated_with_slack: Scalars['Boolean'];
     organization?: Maybe<Organization>;
     admin?: Maybe<Admin>;
     segments?: Maybe<Array<Maybe<Segment>>>;
@@ -479,11 +485,13 @@ export type Query = {
 };
 
 export type QuerySessionArgs = {
-    id: Scalars['ID'];
+    id?: Maybe<Scalars['ID']>;
+    secure_id?: Maybe<Scalars['String']>;
 };
 
 export type QueryEventsArgs = {
-    session_id: Scalars['ID'];
+    session_id?: Maybe<Scalars['ID']>;
+    session_secure_id?: Maybe<Scalars['String']>;
 };
 
 export type QueryError_GroupsArgs = {
@@ -493,23 +501,28 @@ export type QueryError_GroupsArgs = {
 };
 
 export type QueryError_GroupArgs = {
-    id: Scalars['ID'];
+    id?: Maybe<Scalars['ID']>;
+    secure_id?: Maybe<Scalars['String']>;
 };
 
 export type QueryMessagesArgs = {
-    session_id: Scalars['ID'];
+    session_id?: Maybe<Scalars['ID']>;
+    session_secure_id?: Maybe<Scalars['String']>;
 };
 
 export type QueryErrorsArgs = {
-    session_id: Scalars['ID'];
+    session_id?: Maybe<Scalars['ID']>;
+    session_secure_id?: Maybe<Scalars['String']>;
 };
 
 export type QueryResourcesArgs = {
-    session_id: Scalars['ID'];
+    session_id?: Maybe<Scalars['ID']>;
+    session_secure_id?: Maybe<Scalars['String']>;
 };
 
 export type QuerySession_CommentsArgs = {
-    session_id: Scalars['ID'];
+    session_id?: Maybe<Scalars['ID']>;
+    session_secure_id?: Maybe<Scalars['String']>;
 };
 
 export type QuerySession_Comments_For_OrganizationArgs = {
@@ -517,7 +530,8 @@ export type QuerySession_Comments_For_OrganizationArgs = {
 };
 
 export type QueryError_CommentsArgs = {
-    error_group_id: Scalars['ID'];
+    error_group_id?: Maybe<Scalars['ID']>;
+    error_group_secure_id?: Maybe<Scalars['String']>;
 };
 
 export type QueryError_Comments_For_OrganizationArgs = {
@@ -556,7 +570,8 @@ export type QueryDailyErrorsCountArgs = {
 
 export type QueryDailyErrorFrequencyArgs = {
     organization_id: Scalars['ID'];
-    error_group_id: Scalars['ID'];
+    error_group_id?: Maybe<Scalars['ID']>;
+    error_group_secure_id?: Maybe<Scalars['String']>;
     date_offset: Scalars['Int'];
 };
 
@@ -648,6 +663,14 @@ export type QuerySlack_Channel_SuggestionArgs = {
     organization_id: Scalars['ID'];
 };
 
+export type QuerySlack_MembersArgs = {
+    organization_id: Scalars['ID'];
+};
+
+export type QueryIs_Integrated_With_SlackArgs = {
+    organization_id: Scalars['ID'];
+};
+
 export type QueryOrganizationArgs = {
     id: Scalars['ID'];
 };
@@ -675,7 +698,6 @@ export type Mutation = {
     sendAdminInvite?: Maybe<Scalars['String']>;
     addAdminToOrganization?: Maybe<Scalars['ID']>;
     deleteAdminFromOrganization?: Maybe<Scalars['ID']>;
-    addSlackIntegrationToWorkspace?: Maybe<Scalars['Boolean']>;
     createSegment?: Maybe<Segment>;
     emailSignup: Scalars['String'];
     editSegment?: Maybe<Scalars['Boolean']>;
@@ -690,6 +712,7 @@ export type Mutation = {
     createErrorComment?: Maybe<ErrorComment>;
     deleteErrorComment?: Maybe<Scalars['Boolean']>;
     openSlackConversation?: Maybe<Scalars['Boolean']>;
+    addSlackBotIntegrationToOrganization: Scalars['Boolean'];
     updateErrorAlert?: Maybe<ErrorAlert>;
     updateSessionFeedbackAlert?: Maybe<SessionAlert>;
     updateNewUserAlert?: Maybe<SessionAlert>;
@@ -709,17 +732,20 @@ export type MutationEditOrganizationArgs = {
 };
 
 export type MutationMarkSessionAsViewedArgs = {
-    id: Scalars['ID'];
+    id?: Maybe<Scalars['ID']>;
+    secure_id?: Maybe<Scalars['String']>;
     viewed?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationMarkSessionAsStarredArgs = {
-    id: Scalars['ID'];
+    id?: Maybe<Scalars['ID']>;
+    secure_id?: Maybe<Scalars['String']>;
     starred?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationUpdateErrorGroupStateArgs = {
-    id: Scalars['ID'];
+    id?: Maybe<Scalars['ID']>;
+    secure_id?: Maybe<Scalars['String']>;
     state: Scalars['String'];
 };
 
@@ -741,12 +767,6 @@ export type MutationAddAdminToOrganizationArgs = {
 export type MutationDeleteAdminFromOrganizationArgs = {
     organization_id: Scalars['ID'];
     admin_id: Scalars['ID'];
-};
-
-export type MutationAddSlackIntegrationToWorkspaceArgs = {
-    organization_id: Scalars['ID'];
-    code: Scalars['String'];
-    redirect_path: Scalars['String'];
 };
 
 export type MutationCreateSegmentArgs = {
@@ -796,13 +816,15 @@ export type MutationUpdateBillingDetailsArgs = {
 
 export type MutationCreateSessionCommentArgs = {
     organization_id: Scalars['ID'];
-    session_id: Scalars['ID'];
+    session_id?: Maybe<Scalars['ID']>;
+    session_secure_id?: Maybe<Scalars['String']>;
     session_timestamp: Scalars['Int'];
     text: Scalars['String'];
     text_for_email: Scalars['String'];
     x_coordinate: Scalars['Float'];
     y_coordinate: Scalars['Float'];
     tagged_admins: Array<Maybe<SanitizedAdminInput>>;
+    tagged_slack_users: Array<Maybe<SanitizedSlackChannelInput>>;
     session_url: Scalars['String'];
     time: Scalars['Float'];
     author_name: Scalars['String'];
@@ -815,10 +837,12 @@ export type MutationDeleteSessionCommentArgs = {
 
 export type MutationCreateErrorCommentArgs = {
     organization_id: Scalars['ID'];
-    error_group_id: Scalars['ID'];
+    error_group_id?: Maybe<Scalars['ID']>;
+    error_group_secure_id?: Maybe<Scalars['String']>;
     text: Scalars['String'];
     text_for_email: Scalars['String'];
     tagged_admins: Array<Maybe<SanitizedAdminInput>>;
+    tagged_slack_users: Array<Maybe<SanitizedSlackChannelInput>>;
     error_url: Scalars['String'];
     author_name: Scalars['String'];
 };
@@ -828,6 +852,12 @@ export type MutationDeleteErrorCommentArgs = {
 };
 
 export type MutationOpenSlackConversationArgs = {
+    organization_id: Scalars['ID'];
+    code: Scalars['String'];
+    redirect_path: Scalars['String'];
+};
+
+export type MutationAddSlackBotIntegrationToOrganizationArgs = {
     organization_id: Scalars['ID'];
     code: Scalars['String'];
     redirect_path: Scalars['String'];
@@ -876,6 +906,7 @@ export type MutationUpdateUserPropertiesAlertArgs = {
 };
 
 export type MutationUpdateSessionIsPublicArgs = {
-    session_id: Scalars['ID'];
+    session_id?: Maybe<Scalars['ID']>;
+    session_secure_id?: Maybe<Scalars['String']>;
     is_public: Scalars['Boolean'];
 };

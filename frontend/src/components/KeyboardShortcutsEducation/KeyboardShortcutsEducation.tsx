@@ -92,7 +92,9 @@ const KeyboardShortcutsEducation = () => {
                     [styles.hidden]: !showKeyboardShortcutsGuide,
                 })}
                 onClick={() => {
-                    toggleShowKeyboardShortcutsGuide();
+                    if (showKeyboardShortcutsGuide) {
+                        toggleShowKeyboardShortcutsGuide();
+                    }
                 }}
             ></div>
 

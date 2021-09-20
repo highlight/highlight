@@ -39,6 +39,7 @@ import { Toolbar } from '@pages/Player/Toolbar/Toolbar';
 import { usePlayerFullscreen } from '@pages/Player/utils/PlayerHooks';
 import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard';
 import { SessionSearchOption } from '@pages/Sessions/SessionsFeedV2/components/SessionSearch/SessionSearch';
+import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import _ from 'lodash';
@@ -254,20 +255,30 @@ const Player = ({ integrated }: Props) => {
                             }
                         >
                             <p>
-                                We need more time to process this session. If
-                                this looks like a bug, shoot us a message on{' '}
-                                <span
-                                    className={styles.intercomLink}
-                                    onClick={() => {
-                                        window.Intercom(
-                                            'showNewMessage',
-                                            `I'm seeing an empty session. This is the session ID: "${session_id}"`
-                                        );
-                                    }}
-                                >
-                                    Intercom
-                                </span>
-                                .
+                                We need more time to process this session.{' '}
+                                {!isOnPrem ? (
+                                    <>
+                                        If this looks like a bug, shoot us a
+                                        message on{' '}
+                                        <span
+                                            className={styles.intercomLink}
+                                            onClick={() => {
+                                                window.Intercom(
+                                                    'showNewMessage',
+                                                    `I'm seeing an empty session. This is the session ID: "${session_id}"`
+                                                );
+                                            }}
+                                        >
+                                            Intercom
+                                        </span>
+                                        .
+                                    </>
+                                ) : (
+                                    <>
+                                        If this looks like a bug, please reach
+                                        out to us!
+                                    </>
+                                )}
                             </p>
                         </ElevatedCard>
                     ) : (sessionViewability === SessionViewability.VIEWABLE &&

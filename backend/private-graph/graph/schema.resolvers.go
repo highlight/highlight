@@ -92,7 +92,7 @@ func (r *errorGroupResolver) StackTrace(ctx context.Context, obj *model.ErrorGro
 func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorMetadata, error) {
 	var metadataLogs []*modelInputs.ErrorMetadata
 	r.DB.Raw(`
-		SELECT s.id AS session_id, e.id AS error_id, e.timestamp, s.os_name AS os, s.browser_name AS browser, e.url AS visited_url
+		SELECT s.id AS session_id, s.secure_id AS session_secure_id, e.id AS error_id, e.timestamp, s.os_name AS os, s.browser_name AS browser, e.url AS visited_url, s.fingerprint AS fingerprint, s.identifier AS identifier
 		FROM sessions AS s
 		INNER JOIN (
 			SELECT DISTINCT ON (session_id) session_id, id, timestamp, url
@@ -143,7 +143,7 @@ func (r *errorGroupResolver) State(ctx context.Context, obj *model.ErrorGroup) (
 
 func (r *errorGroupResolver) ErrorFrequency(ctx context.Context, obj *model.ErrorGroup) ([]*int64, error) {
 	if obj != nil {
-		return r.Query().DailyErrorFrequency(ctx, obj.OrganizationID, obj.ID, 5)
+		return r.Query().DailyErrorFrequency(ctx, obj.OrganizationID, &obj.ID, &obj.SecureID, 5)
 	}
 	return nil, nil
 }
@@ -197,19 +197,19 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	if err := r.DB.Create(org).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")
 	}
-	if err := r.DB.Create(&model.ErrorAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.ERROR}}).Error; err != nil {
+	if err := r.DB.Create(&model.ErrorAlert{Alert: model.Alert{OrganizationID: org.ID, ProjectID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.ERROR}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating error alert for new org")
 	}
-	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.SESSION_FEEDBACK}}).Error; err != nil {
+	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ProjectID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.SESSION_FEEDBACK}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session feedback alert for new org")
 	}
-	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.NEW_USER}}).Error; err != nil {
+	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ProjectID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.NEW_USER}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session new user alert for new org")
 	}
-	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.TRACK_PROPERTIES}}).Error; err != nil {
+	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ProjectID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.TRACK_PROPERTIES}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session track properties alert for new org")
 	}
-	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.USER_PROPERTIES}}).Error; err != nil {
+	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ProjectID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.USER_PROPERTIES}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session user properties alert for new org")
 	}
 	return org, nil
@@ -229,13 +229,13 @@ func (r *mutationResolver) EditOrganization(ctx context.Context, id int, name *s
 	return org, nil
 }
 
-func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, id int, viewed *bool) (*model.Session, error) {
-	_, err := r.canAdminModifySession(ctx, id)
+func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, id *int, secureID *string, viewed *bool) (*model.Session, error) {
+	s, err := r.canAdminModifySession(ctx, id, secureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
 	session := &model.Session{}
-	if err := r.DB.Where(&model.Session{Model: model.Model{ID: id}}).First(&session).Updates(&model.Session{
+	if err := r.DB.Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&session).Updates(&model.Session{
 		Viewed: viewed,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing session as viewed")
@@ -244,13 +244,13 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, id int, view
 	return session, nil
 }
 
-func (r *mutationResolver) MarkSessionAsStarred(ctx context.Context, id int, starred *bool) (*model.Session, error) {
-	_, err := r.canAdminModifySession(ctx, id)
+func (r *mutationResolver) MarkSessionAsStarred(ctx context.Context, id *int, secureID *string, starred *bool) (*model.Session, error) {
+	s, err := r.canAdminModifySession(ctx, id, secureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
 	session := &model.Session{}
-	if err := r.DB.Where(&model.Session{Model: model.Model{ID: id}}).First(&session).Updates(&model.Session{
+	if err := r.DB.Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&session).Updates(&model.Session{
 		Starred: starred,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing session as starred")
@@ -259,14 +259,14 @@ func (r *mutationResolver) MarkSessionAsStarred(ctx context.Context, id int, sta
 	return session, nil
 }
 
-func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, id int, state string) (*model.ErrorGroup, error) {
-	_, err := r.isAdminErrorGroupOwner(ctx, id)
+func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, id *int, secureID *string, state string) (*model.ErrorGroup, error) {
+	errGroup, err := r.isAdminErrorGroupOwner(ctx, id, secureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not errorGroup owner")
 	}
 
 	errorGroup := &model.ErrorGroup{}
-	if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: id}}).First(&errorGroup).Updates(&model.ErrorGroup{
+	if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: errGroup.ID}}).First(&errorGroup).Updates(&model.ErrorGroup{
 		State: state,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing errorGroup state")
@@ -368,71 +368,6 @@ func (r *mutationResolver) DeleteAdminFromOrganization(ctx context.Context, orga
 	return &adminID, nil
 }
 
-func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, organizationID int, code string, redirectPath string) (*bool, error) {
-	var (
-		SLACK_CLIENT_ID     string
-		SLACK_CLIENT_SECRET string
-	)
-	org, err := r.isAdminInOrganization(ctx, organizationID)
-	if err != nil {
-		return nil, e.Wrap(err, "admin is not in organization")
-	}
-	redirect := os.Getenv("FRONTEND_URI")
-	redirect += "/" + strconv.Itoa(organizationID) + "/" + redirectPath
-	if tempSlackClientID, ok := os.LookupEnv("SLACK_CLIENT_ID"); ok && tempSlackClientID != "" {
-		SLACK_CLIENT_ID = tempSlackClientID
-	}
-	if tempSlackClientSecret, ok := os.LookupEnv("SLACK_CLIENT_SECRET"); ok && tempSlackClientSecret != "" {
-		SLACK_CLIENT_SECRET = tempSlackClientSecret
-	}
-	resp, err := slack.
-		GetOAuthV2Response(
-			&http.Client{},
-			SLACK_CLIENT_ID,
-			SLACK_CLIENT_SECRET,
-			code,
-			redirect,
-		)
-	if err != nil {
-		return nil, e.Wrap(err, "error getting slack oauth response")
-	}
-	existingChannels, err := org.IntegratedSlackChannels()
-	if err != nil {
-		return nil, e.Wrap(err, "error retrieving existing slack channels")
-	}
-	for _, ch := range existingChannels {
-		if ch.WebhookChannelID == resp.IncomingWebhook.ChannelID {
-			return nil, e.New("this channel has already been connected to your workspace")
-		}
-	}
-	existingChannels = append(existingChannels, model.SlackChannel{
-		WebhookAccessToken: resp.AccessToken,
-		WebhookURL:         resp.IncomingWebhook.URL,
-		WebhookChannelID:   resp.IncomingWebhook.ChannelID,
-		WebhookChannel:     resp.IncomingWebhook.Channel,
-	})
-	channelBytes, err := json.Marshal(existingChannels)
-	if err != nil {
-		return nil, e.Wrap(err, "error marshaling existing channels")
-	}
-	channelString := string(channelBytes)
-	if err := r.DB.Model(org).Updates(&model.Organization{
-		SlackChannels: &channelString,
-	}).Error; err != nil {
-		return nil, e.Wrap(err, "error updating org fields")
-	}
-
-	baseMessage := "👋 Hello from Highlight!"
-	if name := org.Name; name != nil {
-		baseMessage += fmt.Sprintf(" We'll send messages here based on your alert preferences for %v, which can be configured at https://app.highlight.run/%v/alerts.", *name, org.ID)
-	}
-	msg := slack.WebhookMessage{Text: baseMessage}
-	if err := slack.PostWebhook(resp.IncomingWebhook.URL, &msg); err != nil {
-		log.Error(e.Wrap(err, "failed to send hello alert slack message"))
-	}
-	return &model.T, nil
-}
-
 func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int, name string, params modelInputs.SearchParamsInput) (*model.Segment, error) {
 	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
@@ -449,6 +384,7 @@ func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int
 		Name:           &name,
 		Params:         &paramString,
 		OrganizationID: organizationID,
+		ProjectID:      organizationID,
 	}
 	if err := r.DB.Create(segment).Error; err != nil {
 		return nil, e.Wrap(err, "error creating segment")
@@ -529,6 +465,7 @@ func (r *mutationResolver) CreateErrorSegment(ctx context.Context, organizationI
 		Name:           &name,
 		Params:         &paramString,
 		OrganizationID: organizationID,
+		ProjectID:      organizationID,
 	}
 	if err := r.DB.Create(segment).Error; err != nil {
 		return nil, e.Wrap(err, "error creating segment")
@@ -673,7 +610,7 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, organizatio
 	return &model.T, nil
 }
 
-func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model.SessionComment, error) {
+func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, sessionID *int, sessionSecureID *string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model.SessionComment, error) {
 	admin, err := r.getCurrentAdmin(ctx)
 	isGuestCreatingSession := false
 	if admin == nil || err != nil {
@@ -687,7 +624,8 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 	}
 
 	// All viewers can leave a comment, including guests
-	if _, err := r.canAdminViewSession(ctx, sessionID); err != nil {
+	session, err := r.canAdminViewSession(ctx, sessionID, sessionSecureID)
+	if err != nil {
 		return nil, e.Wrap(err, "admin cannot leave a comment")
 	}
 
@@ -710,8 +648,9 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 	sessionComment := &model.SessionComment{
 		Admins:         admins,
 		OrganizationID: organizationID,
+		ProjectID:      organizationID,
 		AdminId:        admin.Model.ID,
-		SessionId:      sessionID,
+		SessionId:      session.ID,
 		Timestamp:      sessionTimestamp,
 		Text:           text,
 		XCoordinate:    xCoordinate,
@@ -724,6 +663,8 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 	}
 	createSessionCommentSpan.Finish()
 
+	viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
+
 	if len(taggedAdmins) > 0 && !isGuestCreatingSession {
 
 		tos := []*mail.Email{}
@@ -733,7 +674,6 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 			tos = append(tos, &mail.Email{Address: admin.Email})
 			adminIds = append(adminIds, admin.ID)
 		}
-		viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
 
 		go func() {
 			commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
@@ -751,11 +691,25 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 				tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(adminIds)))
 			defer commentMentionSlackSpan.Finish()
 
-			err := r.SendPersonalSlackAlert(&org, admin, adminIds, viewLink, sessionComment.Text, "session")
+			err := r.SendPersonalSlackAlert(&org, admin, adminIds, viewLink, textForEmail, "session")
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in session comment"))
 			}
 		}()
+	}
+
+	if len(taggedSlackUsers) > 0 && !isGuestCreatingSession {
+		go func() {
+			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
+				tracer.ResourceName("slackBot.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(taggedSlackUsers)))
+			defer commentMentionSlackSpan.Finish()
+
+			err := r.SendSlackAlertToUser(&org, admin, taggedSlackUsers, viewLink, textForEmail, "session")
+			if err != nil {
+				log.Error(e.Wrap(err, "error notifying tagged admins in session comment for slack bot"))
+			}
+		}()
+
 	}
 
 	return sessionComment, nil
@@ -766,7 +720,7 @@ func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*b
 	if err := r.DB.Where(model.SessionComment{Model: model.Model{ID: id}}).First(&sessionComment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session comment")
 	}
-	_, err := r.canAdminModifySession(ctx, sessionComment.SessionId)
+	_, err := r.canAdminModifySession(ctx, &sessionComment.SessionId, nil)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not session owner")
 	}
@@ -776,13 +730,14 @@ func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*b
 	return &model.T, nil
 }
 
-func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationID int, errorGroupID int, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, errorURL string, authorName string) (*model.ErrorComment, error) {
+func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationID int, errorGroupID *int, errorGroupSecureID *string, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, errorURL string, authorName string) (*model.ErrorComment, error) {
 	admin, err := r.getCurrentAdmin(ctx)
 	if admin == nil || err != nil {
 		return nil, e.Wrap(err, "Unable to retrieve admin info")
 	}
 
-	if _, err := r.isAdminErrorGroupOwner(ctx, errorGroupID); err != nil {
+	errorGroup, err := r.isAdminErrorGroupOwner(ctx, errorGroupID, errorGroupSecureID)
+	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
 
@@ -803,8 +758,9 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationI
 	errorComment := &model.ErrorComment{
 		Admins:         admins,
 		OrganizationID: organizationID,
+		ProjectID:      organizationID,
 		AdminId:        admin.Model.ID,
-		ErrorId:        errorGroupID,
+		ErrorId:        errorGroup.ID,
 		Text:           text,
 	}
 	createErrorCommentSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
@@ -814,6 +770,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationI
 	}
 	createErrorCommentSpan.Finish()
 
+	viewLink := fmt.Sprintf("%v", errorURL)
 	if len(taggedAdmins) > 0 {
 		tos := []*mail.Email{}
 		var adminIds []int
@@ -822,8 +779,6 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationI
 			tos = append(tos, &mail.Email{Address: admin.Email})
 			adminIds = append(adminIds, admin.ID)
 		}
-
-		viewLink := fmt.Sprintf("%v", errorURL)
 
 		go func() {
 			commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
@@ -841,7 +796,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationI
 				tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("org_id", organizationID), tracer.Tag("count", len(adminIds)))
 			defer commentMentionSlackSpan.Finish()
 
-			err = r.SendPersonalSlackAlert(&org, admin, adminIds, viewLink, errorComment.Text, "error")
+			err = r.SendPersonalSlackAlert(&org, admin, adminIds, viewLink, textForEmail, "error")
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in error comment"))
 			}
@@ -855,7 +810,7 @@ func (r *mutationResolver) DeleteErrorComment(ctx context.Context, id int) (*boo
 	if err := r.DB.Table("error_comments").Select("error_id").Where("id=?", id).Scan(&errorGroupID).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error comments")
 	}
-	_, err := r.isAdminErrorGroupOwner(ctx, errorGroupID)
+	_, err := r.isAdminErrorGroupOwner(ctx, &errorGroupID, nil)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not error group owner")
 	}
@@ -870,7 +825,7 @@ func (r *mutationResolver) OpenSlackConversation(ctx context.Context, organizati
 		SLACK_CLIENT_ID     string
 		SLACK_CLIENT_SECRET string
 	)
-	_, err := r.isAdminInOrganization(ctx, organizationID)
+	org, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
@@ -894,8 +849,10 @@ func (r *mutationResolver) OpenSlackConversation(ctx context.Context, organizati
 		return nil, e.Wrap(err, "error getting slack oauth response")
 	}
 
-	if err := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).Updates(&model.Organization{SlackAccessToken: &resp.AccessToken}).Error; err != nil {
-		return nil, e.Wrap(err, "error updating slack access token in org")
+	if org.SlackAccessToken == nil {
+		if err := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).Updates(&model.Organization{SlackAccessToken: &resp.AccessToken}).Error; err != nil {
+			return nil, e.Wrap(err, "error updating slack access token in org")
+		}
 	}
 
 	slackClient := slack.New(resp.AccessToken)
@@ -912,6 +869,126 @@ func (r *mutationResolver) OpenSlackConversation(ctx context.Context, organizati
 		return nil, e.Wrap(err, "error posting message to user")
 	}
 	return &model.T, nil
+}
+
+func (r *mutationResolver) AddSlackBotIntegrationToOrganization(ctx context.Context, organizationID int, code string, redirectPath string) (bool, error) {
+	var (
+		SLACK_CLIENT_ID     string
+		SLACK_CLIENT_SECRET string
+	)
+	org, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return false, e.Wrap(err, "admin is not in organization")
+	}
+	redirect := os.Getenv("FRONTEND_URI")
+	redirect += "/" + strconv.Itoa(organizationID) + "/" + redirectPath
+	if tempSlackClientID, ok := os.LookupEnv("SLACK_CLIENT_ID"); ok && tempSlackClientID != "" {
+		SLACK_CLIENT_ID = tempSlackClientID
+	}
+	if tempSlackClientSecret, ok := os.LookupEnv("SLACK_CLIENT_SECRET"); ok && tempSlackClientSecret != "" {
+		SLACK_CLIENT_SECRET = tempSlackClientSecret
+	}
+	resp, err := slack.
+		GetOAuthV2Response(
+			&http.Client{},
+			SLACK_CLIENT_ID,
+			SLACK_CLIENT_SECRET,
+			code,
+			redirect,
+		)
+	if err != nil {
+		return false, e.Wrap(err, "error getting slack oauth response")
+	}
+
+	if err := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).Updates(&model.Organization{SlackAccessToken: &resp.AccessToken}).Error; err != nil {
+		return false, e.Wrap(err, "error updating slack access token in org")
+	}
+
+	slackClient := slack.New(resp.AccessToken)
+
+	getConversationsParam := slack.GetConversationsParameters{
+		Limit: 1000,
+		// public_channel is for public channels in the Slack workspace
+		// im is for all individuals in the Slack workspace
+		Types: []string{"public_channel", "im"},
+	}
+	channels, _, err := slackClient.GetConversations(&getConversationsParam)
+	if err != nil {
+		return false, e.Wrap(err, "error getting Slack channels from Slack.")
+	}
+
+	// We need to get the users in the Slack channel in order to get their name.
+	// The conversations endpoint only returns the user's ID, we'll use the response from `GetUsers` to get the name.
+	users, err := slackClient.GetUsers()
+	if err != nil {
+		log.Error(e.Wrap(err, "failed to get users"))
+	}
+
+	newChannels := []model.SlackChannel{}
+	for _, channel := range channels {
+		newChannel := model.SlackChannel{}
+
+		// Slack channels' `User` will be an empty string and the user's ID if it's a user.
+		if channel.User != "" {
+			var userToFind *slack.User
+			for _, user := range users {
+				if user.ID == channel.User {
+					userToFind = &user
+					break
+				}
+			}
+
+			if userToFind != nil {
+				// Filter out Slack Bots.
+				if userToFind.IsBot || userToFind.Name == "slackbot" {
+					continue
+				}
+				newChannel.WebhookChannel = fmt.Sprintf("@%s", userToFind.Name)
+			}
+		} else {
+			newChannel.WebhookChannel = fmt.Sprintf("#%s", channel.Name)
+		}
+
+		newChannel.WebhookChannelID = channel.ID
+		newChannels = append(newChannels, newChannel)
+	}
+
+	existingChannels, err := org.IntegratedSlackChannels()
+
+	// Filter out `newChannels` that already exist in `existingChannels` so we don't have duplicates.
+	filteredNewChannels := []model.SlackChannel{}
+	for _, newChannel := range newChannels {
+		channelAlreadyExists := false
+
+		for _, existingChannel := range existingChannels {
+			if existingChannel.WebhookChannelID == newChannel.WebhookChannelID {
+				channelAlreadyExists = true
+				break
+			}
+		}
+
+		if !channelAlreadyExists {
+			filteredNewChannels = append(filteredNewChannels, newChannel)
+		}
+	}
+
+	if err != nil {
+		return false, e.Wrap(err, "error retrieving existing slack channels")
+	}
+
+	existingChannels = append(existingChannels, filteredNewChannels...)
+	channelBytes, err := json.Marshal(existingChannels)
+	if err != nil {
+		return false, e.Wrap(err, "error marshaling existing channels")
+	}
+	channelString := string(channelBytes)
+	if err := r.DB.Model(org).Updates(&model.Organization{
+		SlackChannels: &channelString,
+	}).Error; err != nil {
+		return false, e.Wrap(err, "error updating org fields")
+	}
+
+	return true, nil
 }
 
 func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.ErrorAlert, error) {
@@ -1130,8 +1207,8 @@ func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, organi
 	return alert, nil
 }
 
-func (r *mutationResolver) UpdateSessionIsPublic(ctx context.Context, sessionID int, isPublic bool) (*model.Session, error) {
-	session, err := r.canAdminModifySession(ctx, sessionID)
+func (r *mutationResolver) UpdateSessionIsPublic(ctx context.Context, sessionID *int, sessionSecureID *string, isPublic bool) (*model.Session, error) {
+	session, err := r.canAdminModifySession(ctx, sessionID, sessionSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
@@ -1144,20 +1221,21 @@ func (r *mutationResolver) UpdateSessionIsPublic(ctx context.Context, sessionID 
 	return session, nil
 }
 
-func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, error) {
-	if _, err := r.canAdminViewSession(ctx, id); err != nil {
+func (r *queryResolver) Session(ctx context.Context, id *int, secureID *string) (*model.Session, error) {
+	s, err := r.canAdminViewSession(ctx, id, secureID)
+	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
 	sessionObj := &model.Session{}
-	res := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: id}}).First(&sessionObj)
+	res := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&sessionObj)
 	if res.Error != nil {
 		return nil, fmt.Errorf("error reading from session: %v", res.Error)
 	}
 	return sessionObj, nil
 }
 
-func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{}, error) {
-	if util.IsDevEnv() && sessionID == 1 {
+func (r *queryResolver) Events(ctx context.Context, sessionID *int, sessionSecureID *string) ([]interface{}, error) {
+	if util.IsDevEnv() && sessionID != nil && *sessionID == 1 {
 		file, err := ioutil.ReadFile("./tmp/events.json")
 		if err != nil {
 			return nil, e.Wrap(err, "Failed to read temp file")
@@ -1169,7 +1247,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 		}
 		return data, nil
 	}
-	s, err := r.canAdminViewSession(ctx, sessionID)
+	s, err := r.canAdminViewSession(ctx, sessionID, sessionSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
@@ -1177,7 +1255,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("org_id", s.OrganizationID))
 		defer objectStorageSpan.Finish()
-		ret, err := r.StorageClient.ReadSessionsFromS3(sessionID, s.OrganizationID)
+		ret, err := r.StorageClient.ReadSessionsFromS3(s.ID, s.OrganizationID)
 		if err != nil {
 			return nil, err
 		}
@@ -1186,7 +1264,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 	eventsQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("db.eventsObjectsQuery"), tracer.Tag("org_id", s.OrganizationID))
 	eventObjs := []*model.EventsObject{}
-	if res := r.DB.Order("created_at desc").Where(&model.EventsObject{SessionID: sessionID}).Find(&eventObjs); res.Error != nil {
+	if res := r.DB.Order("created_at desc").Where(&model.EventsObject{SessionID: s.ID}).Find(&eventObjs); res.Error != nil {
 		return nil, fmt.Errorf("error reading from events: %v", res.Error)
 	}
 	eventsQuerySpan.Finish()
@@ -1211,7 +1289,7 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 	}
 
 	errorGroups := []model.ErrorGroup{}
-	selectPreamble := `SELECT id, organization_id, event, COALESCE(mapped_stack_trace, stack_trace) as stack_trace, metadata_log, created_at, deleted_at, updated_at, state`
+	selectPreamble := `SELECT id, secure_id, organization_id, event, COALESCE(mapped_stack_trace, stack_trace) as stack_trace, metadata_log, created_at, deleted_at, updated_at, state`
 	countPreamble := `SELECT COUNT(*)`
 
 	queryString := `FROM error_groups `
@@ -1309,12 +1387,12 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 	return errorResults, nil
 }
 
-func (r *queryResolver) ErrorGroup(ctx context.Context, id int) (*model.ErrorGroup, error) {
-	return r.isAdminErrorGroupOwner(ctx, id)
+func (r *queryResolver) ErrorGroup(ctx context.Context, id *int, secureID *string) (*model.ErrorGroup, error) {
+	return r.isAdminErrorGroupOwner(ctx, id, secureID)
 }
 
-func (r *queryResolver) Messages(ctx context.Context, sessionID int) ([]interface{}, error) {
-	s, err := r.canAdminViewSession(ctx, sessionID)
+func (r *queryResolver) Messages(ctx context.Context, sessionID *int, sessionSecureID *string) ([]interface{}, error) {
+	s, err := r.canAdminViewSession(ctx, sessionID, sessionSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
@@ -1322,14 +1400,14 @@ func (r *queryResolver) Messages(ctx context.Context, sessionID int) ([]interfac
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("org_id", s.OrganizationID))
 		defer objectStorageSpan.Finish()
-		ret, err := r.StorageClient.ReadMessagesFromS3(sessionID, s.OrganizationID)
+		ret, err := r.StorageClient.ReadMessagesFromS3(s.ID, s.OrganizationID)
 		if err != nil {
 			return nil, e.Wrap(err, "error pulling messages from s3")
 		}
 		return ret, nil
 	}
 	messagesObj := []*model.MessagesObject{}
-	if res := r.DB.Order("created_at desc").Where(&model.MessagesObject{SessionID: sessionID}).Find(&messagesObj); res.Error != nil {
+	if res := r.DB.Order("created_at desc").Where(&model.MessagesObject{SessionID: s.ID}).Find(&messagesObj); res.Error != nil {
 		return nil, fmt.Errorf("error reading from messages: %v", res.Error)
 	}
 	allEvents := make(map[string][]interface{})
@@ -1343,8 +1421,8 @@ func (r *queryResolver) Messages(ctx context.Context, sessionID int) ([]interfac
 	return allEvents["messages"], nil
 }
 
-func (r *queryResolver) Errors(ctx context.Context, sessionID int) ([]*model.ErrorObject, error) {
-	s, err := r.canAdminViewSession(ctx, sessionID)
+func (r *queryResolver) Errors(ctx context.Context, sessionID *int, sessionSecureID *string) ([]*model.ErrorObject, error) {
+	s, err := r.canAdminViewSession(ctx, sessionID, sessionSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
@@ -1352,14 +1430,14 @@ func (r *queryResolver) Errors(ctx context.Context, sessionID int) ([]*model.Err
 		tracer.ResourceName("db.errorObjectsQuery"), tracer.Tag("org_id", s.OrganizationID))
 	defer eventsQuerySpan.Finish()
 	errorsObj := []*model.ErrorObject{}
-	if res := r.DB.Order("created_at asc").Where(&model.ErrorObject{SessionID: sessionID}).Find(&errorsObj); res.Error != nil {
+	if res := r.DB.Order("created_at asc").Where(&model.ErrorObject{SessionID: s.ID}).Find(&errorsObj); res.Error != nil {
 		return nil, fmt.Errorf("error reading from errors: %v", res.Error)
 	}
 	return errorsObj, nil
 }
 
-func (r *queryResolver) Resources(ctx context.Context, sessionID int) ([]interface{}, error) {
-	s, err := r.canAdminViewSession(ctx, sessionID)
+func (r *queryResolver) Resources(ctx context.Context, sessionID *int, sessionSecureID *string) ([]interface{}, error) {
+	s, err := r.canAdminViewSession(ctx, sessionID, sessionSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
@@ -1367,14 +1445,14 @@ func (r *queryResolver) Resources(ctx context.Context, sessionID int) ([]interfa
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("org_id", s.OrganizationID))
 		defer objectStorageSpan.Finish()
-		ret, err := r.StorageClient.ReadResourcesFromS3(sessionID, s.OrganizationID)
+		ret, err := r.StorageClient.ReadResourcesFromS3(s.ID, s.OrganizationID)
 		if err != nil {
 			return nil, e.Wrap(err, "error pulling resources from s3")
 		}
 		return ret, nil
 	}
 	resourcesObject := []*model.ResourcesObject{}
-	if res := r.DB.Order("created_at desc").Where(&model.ResourcesObject{SessionID: sessionID}).Find(&resourcesObject); res.Error != nil {
+	if res := r.DB.Order("created_at desc").Where(&model.ResourcesObject{SessionID: s.ID}).Find(&resourcesObject); res.Error != nil {
 		return nil, fmt.Errorf("error reading from resources: %v", res.Error)
 	}
 	allResources := make(map[string][]interface{})
@@ -1388,13 +1466,14 @@ func (r *queryResolver) Resources(ctx context.Context, sessionID int) ([]interfa
 	return allResources["resources"], nil
 }
 
-func (r *queryResolver) SessionComments(ctx context.Context, sessionID int) ([]*model.SessionComment, error) {
-	if _, err := r.canAdminViewSession(ctx, sessionID); err != nil {
+func (r *queryResolver) SessionComments(ctx context.Context, sessionID *int, sessionSecureID *string) ([]*model.SessionComment, error) {
+	s, err := r.canAdminViewSession(ctx, sessionID, sessionSecureID)
+	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
 
 	sessionComments := []*model.SessionComment{}
-	if err := r.DB.Where(model.SessionComment{SessionId: sessionID}).Order("timestamp asc").Find(&sessionComments).Error; err != nil {
+	if err := r.DB.Where(model.SessionComment{SessionId: s.ID}).Order("timestamp asc").Find(&sessionComments).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session comments for session")
 	}
 	return sessionComments, nil
@@ -1426,13 +1505,14 @@ func (r *queryResolver) SessionCommentsForOrganization(ctx context.Context, orga
 	return sessionComments, nil
 }
 
-func (r *queryResolver) ErrorComments(ctx context.Context, errorGroupID int) ([]*model.ErrorComment, error) {
-	if _, err := r.isAdminErrorGroupOwner(ctx, errorGroupID); err != nil {
+func (r *queryResolver) ErrorComments(ctx context.Context, errorGroupID *int, errorGroupSecureID *string) ([]*model.ErrorComment, error) {
+	errorGroup, err := r.isAdminErrorGroupOwner(ctx, errorGroupID, errorGroupSecureID)
+	if err != nil {
 		return nil, e.Wrap(err, "admin not error owner")
 	}
 
 	errorComments := []*model.ErrorComment{}
-	if err := r.DB.Where(model.ErrorComment{ErrorId: errorGroupID}).Order("created_at asc").Find(&errorComments).Error; err != nil {
+	if err := r.DB.Where(model.ErrorComment{ErrorId: errorGroup.ID}).Order("created_at asc").Find(&errorComments).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error comments for error_group")
 	}
 	return errorComments, nil
@@ -1560,7 +1640,7 @@ func (r *queryResolver) DailyErrorsCount(ctx context.Context, organizationID int
 	return dailyErrors, nil
 }
 
-func (r *queryResolver) DailyErrorFrequency(ctx context.Context, organizationID int, errorGroupID int, dateOffset int) ([]*int64, error) {
+func (r *queryResolver) DailyErrorFrequency(ctx context.Context, organizationID int, errorGroupID *int, errorGroupSecureID *string, dateOffset int) ([]*int64, error) {
 	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
@@ -1620,11 +1700,37 @@ func (r *queryResolver) TopUsers(ctx context.Context, organizationID int, lookBa
 	var topUsersPayload = []*modelInputs.TopUsersPayload{}
 	topUsersSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("db.topUsers"), tracer.Tag("org_id", organizationID))
-	if err := r.DB.Raw(fmt.Sprintf(`SELECT identifier, (SELECT id FROM fields WHERE organization_id=%d AND type='user' AND name='identifier' AND value=identifier) AS id, SUM(active_length) as total_active_time, SUM(active_length) / (SELECT SUM(active_length) from sessions WHERE active_length IS NOT NULL AND organization_id=%d AND identifier <> '' AND created_at >= NOW() - INTERVAL '%d DAY' AND processed=true) as active_time_percentage
-	FROM (SELECT identifier, active_length from sessions WHERE active_length IS NOT NULL AND organization_id=%d AND identifier <> '' AND created_at >= NOW() - INTERVAL '%d DAY' AND processed=true) q1
-	GROUP BY identifier
-	ORDER BY total_active_time
-	LIMIT 50`, organizationID, organizationID, lookBackPeriod, organizationID, lookBackPeriod)).Scan(&topUsersPayload).Error; err != nil {
+	if err := r.DB.Raw(`
+		SELECT identifier, (
+			SELECT id
+			FROM fields
+			WHERE organization_id=?
+				AND type='user'
+				AND name='identifier'
+				AND value=identifier
+			LIMIT 1
+		) AS id, SUM(active_length) as total_active_time, SUM(active_length) / (
+			SELECT SUM(active_length)
+			FROM sessions
+			WHERE active_length IS NOT NULL
+				AND organization_id=?
+				AND identifier <> ''
+				AND created_at >= NOW() - (? * INTERVAL '1 DAY')
+				AND processed=true
+		) AS active_time_percentage
+		FROM (
+			SELECT identifier, active_length
+			FROM sessions
+			WHERE active_length IS NOT NULL
+				AND organization_id=?
+				AND identifier <> ''
+				AND created_at >= NOW() - (? * INTERVAL '1 DAY')
+				AND processed=true
+		) q1
+		GROUP BY identifier
+		ORDER BY total_active_time
+		LIMIT 50`,
+		organizationID, organizationID, lookBackPeriod, organizationID, lookBackPeriod).Scan(&topUsersPayload).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving top users")
 	}
 	topUsersSpan.Finish()
@@ -1667,7 +1773,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 
-	sessionsQueryPreamble := "SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, field_group"
+	sessionsQueryPreamble := "SELECT id, secure_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, field_group"
 	joinClause := "FROM sessions"
 
 	fieldFilters, err := r.getFieldFilters(ctx, organizationID, params)
@@ -2024,6 +2130,39 @@ func (r *queryResolver) SlackChannelSuggestion(ctx context.Context, organization
 		})
 	}
 	return ret, nil
+}
+
+func (r *queryResolver) SlackMembers(ctx context.Context, organizationID int) ([]*modelInputs.SanitizedSlackChannel, error) {
+	org, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting org")
+	}
+	chs, err := org.IntegratedSlackChannels()
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieving existing channels")
+	}
+
+	ret := []*modelInputs.SanitizedSlackChannel{}
+	for _, ch := range chs {
+		channel := ch.WebhookChannel
+		channelID := ch.WebhookChannelID
+
+		ret = append(ret, &modelInputs.SanitizedSlackChannel{
+			WebhookChannel:   &channel,
+			WebhookChannelID: &channelID,
+		})
+	}
+	return ret, nil
+}
+
+func (r *queryResolver) IsIntegratedWithSlack(ctx context.Context, organizationID int) (bool, error) {
+	org, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID)
+
+	if err != nil {
+		return false, e.Wrap(err, "error querying organization")
+	}
+
+	return org.SlackAccessToken != nil, nil
 }
 
 func (r *queryResolver) Organization(ctx context.Context, id int) (*model.Organization, error) {
