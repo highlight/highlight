@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { useAuthContext } from '../../../../../../../authentication/AuthContext';
 import DataCard from '../../../../../../../components/DataCard/DataCard';
 import KeyValueTable, {
     KeyValueTableRow,
@@ -23,8 +22,6 @@ const ResourceDetailsModal = ({
     onCloseHandler,
     networkRecordingEnabledForSession,
 }: Props) => {
-    const { isHighlightAdmin } = useAuthContext();
-
     const generalData: KeyValueTableRow[] = [
         {
             keyDisplayValue: 'Request URL',
@@ -205,8 +202,7 @@ const ResourceDetailsModal = ({
                         <KeyValueTable data={generalData} />
                     </DataCard>
 
-                    {((isHighlightAdmin &&
-                        selectedNetworkResource?.initiatorType === 'fetch') ||
+                    {(selectedNetworkResource?.initiatorType === 'fetch' ||
                         selectedNetworkResource?.initiatorType ===
                             'xmlhttprequest') &&
                         !selectedNetworkResource.requestResponsePairs
