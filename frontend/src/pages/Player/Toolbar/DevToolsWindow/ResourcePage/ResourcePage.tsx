@@ -1,4 +1,5 @@
 import Input from '@components/Input/Input';
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
@@ -43,9 +44,14 @@ export const ResourcePage = ({
     const [currentResource, setCurrentResource] = useState(0);
     const [networkRange, setNetworkRange] = useState(0);
     const [
+        networkOptionsContainerWidth,
+        setNetworkOptionsContainerWidth,
+    ] = useState<number | null>(null);
+    const [
         isInteractingWithResources,
         setIsInteractingWithResources,
     ] = useState(false);
+    const { showLeftPanel, showRightPanel } = usePlayerConfiguration();
     const [allResources, setAllResources] = useState<
         Array<NetworkResource> | undefined
     >([]);
@@ -98,6 +104,18 @@ export const ResourcePage = ({
             setNetworkRange(end - start);
         }
     }, [rawResources]);
+
+    useEffect(() => {
+        if (showLeftPanel && showRightPanel) {
+            if (window.innerWidth < 1600) {
+                setNetworkOptionsContainerWidth(350);
+            } else {
+                setNetworkOptionsContainerWidth(null);
+            }
+        } else {
+            setNetworkOptionsContainerWidth(null);
+        }
+    }, [showLeftPanel, showRightPanel]);
 
     useEffect(() => {
         if (allResources?.length) {
@@ -165,7 +183,12 @@ export const ResourcePage = ({
         <div className={styles.resourcePageWrapper}>
             <div className={devStyles.topBar}>
                 <div className={styles.optionsWrapper}>
-                    <div className={styles.optionsContainer}>
+                    <div
+                        className={styles.optionsContainer}
+                        style={{
+                            width: networkOptionsContainerWidth || 'initial',
+                        }}
+                    >
                         {options.map((o: string, i: number) => {
                             return (
                                 <Option
