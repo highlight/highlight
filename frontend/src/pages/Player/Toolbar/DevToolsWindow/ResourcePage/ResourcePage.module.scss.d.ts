@@ -14,6 +14,8 @@ export const networkTimingColumn: string;
 export const networkTimingHeader: string;
 export const networkTopBar: string;
 export const noDataContainer: string;
+export const optionsContainer: string;
+export const optionsWrapper: string;
 export const resourcePageWrapper: string;
 export const rightAlign: string;
 export const timingBar: string;

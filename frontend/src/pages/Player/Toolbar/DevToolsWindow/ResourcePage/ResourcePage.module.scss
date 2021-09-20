@@ -160,8 +160,9 @@ $canvas-width: calc(
 .filterContainer {
     align-items: center;
     display: flex;
+    flex-shrink: 0;
     margin-left: auto;
-    padding-right: var(--size-large);
+    padding-left: var(--size-large);
 }
 
 .rightAlign {
@@ -188,5 +189,18 @@ $canvas-width: calc(
         color: var(--color-gray-500);
         font-size: 12px;
         margin: 0;
+    }
+}
+
+.optionsWrapper {
+    display: flex;
+    font-family: var(--header-font-family) !important;
+    height: 100%;
+    padding: 0 var(--size-large);
+
+    .optionsContainer {
+        display: flex;
+        flex-shrink: 1;
+        overflow-x: auto;
     }
 }
