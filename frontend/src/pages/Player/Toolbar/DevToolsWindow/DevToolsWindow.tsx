@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from 'framer-motion';
 import React, { useEffect } from 'react';
 import ResizePanel from 'react-resize-panel-ts';
 
@@ -46,36 +47,46 @@ export const DevToolsWindow = ({
         }
     }, [openDevTools, setPanelContent]);
 
-    if (!openDevTools || isPlayerFullscreen) {
-        return null;
-    }
-
     return (
-        <ResizePanel
-            direction="n"
-            containerClass={styles.resizeContainer}
-            handleClass={styles.resizeHandle}
-            borderClass={styles.resizeBorder}
-        >
-            <div className={styles.devToolsWrapper}>
-                <Tabs
-                    tabs={TABS}
-                    id="DevTools"
-                    noPadding
-                    onChange={() => {
-                        setPanelContent(undefined);
-                    }}
-                    tabBarExtraContent={
-                        <>
-                            <DOMInteractionsToggle />
-                            <SvgXIcon
-                                className={styles.closeStyle}
-                                onClick={() => setOpenDevTools(false)}
+        <AnimatePresence>
+            {!openDevTools || isPlayerFullscreen ? null : (
+                <motion.div
+                    key="DevToolsWindow"
+                    initial={{ transform: 'translateY(100%)' }}
+                    animate={{ transform: 'translateY(0%)' }}
+                    exit={{ transform: 'translateY(100%)' }}
+                    layout
+                >
+                    <ResizePanel
+                        direction="n"
+                        containerClass={styles.resizeContainer}
+                        handleClass={styles.resizeHandle}
+                        borderClass={styles.resizeBorder}
+                    >
+                        <div className={styles.devToolsWrapper}>
+                            <Tabs
+                                tabs={TABS}
+                                id="DevTools"
+                                noPadding
+                                onChange={() => {
+                                    setPanelContent(undefined);
+                                }}
+                                tabBarExtraContent={
+                                    <>
+                                        <DOMInteractionsToggle />
+                                        <SvgXIcon
+                                            className={styles.closeStyle}
+                                            onClick={() =>
+                                                setOpenDevTools(false)
+                                            }
+                                        />
+                                    </>
+                                }
                             />
-                        </>
-                    }
-                />
-            </div>
-        </ResizePanel>
+                        </div>
+                    </ResizePanel>
+                </motion.div>
+            )}
+        </AnimatePresence>
     );
 };
