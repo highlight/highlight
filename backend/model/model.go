@@ -155,7 +155,7 @@ type Project struct {
 	Model
 	Name         *string
 	Secret       *string    `json:"-"`
-	Admins       []Admin    `gorm:"many2many:organization_admins;"`
+	Admins       []Admin    `gorm:"many2many:project_admins;"`
 	TrialEndDate *time.Time `json:"trial_end_date"`
 	// Slack API Interaction.
 	SlackAccessToken      *string
