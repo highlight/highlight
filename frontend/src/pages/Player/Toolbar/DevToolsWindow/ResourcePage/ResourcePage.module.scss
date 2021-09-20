@@ -99,6 +99,14 @@ $canvas-width: calc(
     display: flex;
     font-size: 12px;
     font-weight: 400;
+
+    &.justifyEnd {
+        justify-self: flex-end;
+    }
+
+    &.waterfall {
+        padding-left: var(--size-small);
+    }
 }
 
 .nameSection {

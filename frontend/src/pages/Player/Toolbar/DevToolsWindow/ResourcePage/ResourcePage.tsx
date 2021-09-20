@@ -229,9 +229,28 @@ export const ResourcePage = ({
                             <div className={styles.networkColumn}>Status</div>
                             <div className={styles.networkColumn}>Type</div>
                             <div className={styles.networkColumn}>Name</div>
-                            <div className={styles.networkColumn}>Time</div>
-                            <div className={styles.networkColumn}>Size</div>
-                            <div className={styles.networkColumn}>
+                            <div
+                                className={classNames(
+                                    styles.networkColumn,
+                                    styles.justifyEnd
+                                )}
+                            >
+                                Time
+                            </div>
+                            <div
+                                className={classNames(
+                                    styles.networkColumn,
+                                    styles.justifyEnd
+                                )}
+                            >
+                                Size
+                            </div>
+                            <div
+                                className={classNames(
+                                    styles.networkColumn,
+                                    styles.waterfall
+                                )}
+                            >
                                 Waterfall
                             </div>
                         </div>
