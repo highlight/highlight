@@ -410,7 +410,7 @@ export const Toolbar = () => {
 
                         <div className={styles.timeSection}>
                             {disableControls ? (
-                                <Skeleton count={1} width="100px" />
+                                <Skeleton count={1} width="60.13px" />
                             ) : (
                                 <>
                                     {MillisToMinutesAndSeconds(
