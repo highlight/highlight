@@ -25,6 +25,7 @@
         "craco-antd": "^1.19.0",
         "eslint-plugin-simple-import-sort": "^7.0.0",
         "firebase": "^7.19.1",
+        "framer-motion": "^4.1.17",
         "graphql": "^15.5.0",
         "highlight.run": "^2.7.2",
         "intro.js": "^4.1.0",

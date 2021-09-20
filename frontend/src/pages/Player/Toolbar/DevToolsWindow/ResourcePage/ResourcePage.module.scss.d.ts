@@ -1,9 +1,11 @@
 export const canvasNetworkWrapper: string;
 export const current: string;
+export const detailPanelTitle: string;
 export const failedResource: string;
 export const filterContainer: string;
 export const goToButton: string;
 export const icon: string;
+export const justifyEnd: string;
 export const nameSection: string;
 export const networkColumn: string;
 export const networkRow: string;
@@ -22,3 +24,4 @@ export const timingBar: string;
 export const timingBarEmptySection: string;
 export const timingBarWrapper: string;
 export const typeSection: string;
+export const waterfall: string;

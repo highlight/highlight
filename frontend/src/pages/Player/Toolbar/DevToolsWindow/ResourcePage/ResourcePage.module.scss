@@ -42,13 +42,15 @@ $right-padding: 12px;
 }
 
 .networkTopBar {
-    color: var(--color-gray-500);
+    border-bottom: 1px solid var(--color-gray-300);
+    color: var(--color-gray-500) !important;
     display: grid;
     font-size: 13px;
     grid-template-columns: $columns;
-    height: 40px;
+    padding-bottom: var(--size-xSmall);
     padding-left: 25px;
     padding-right: $right-padding;
+    padding-top: var(--size-xSmall);
     width: 100%;
 }
 
@@ -79,7 +81,9 @@ $canvas-width: calc(
     height: calc(100% - 40px);
     overflow-x: hidden;
     overflow-y: auto;
+    position: relative;
     word-wrap: break-word;
+    z-index: 0;
 }
 
 .networkTimingColumn {
@@ -95,10 +99,19 @@ $canvas-width: calc(
 
 .networkColumn {
     align-items: center;
-    color: var(--text-primary);
+    color: var(--color-gray-500);
     display: flex;
     font-size: 12px;
     font-weight: 400;
+    line-height: normal;
+
+    &.justifyEnd {
+        justify-self: flex-end;
+    }
+
+    &.waterfall {
+        padding-left: var(--size-small);
+    }
 }
 
 .nameSection {
@@ -203,4 +216,10 @@ $canvas-width: calc(
         flex-shrink: 1;
         overflow-x: auto;
     }
+}
+
+.detailPanelTitle {
+    align-items: center !important;
+    column-gap: var(--size-medium);
+    display: flex;
 }

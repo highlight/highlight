@@ -21,15 +21,16 @@ interface Props {
     searchQuery: string;
 }
 
-const ErrorCard = ({ error, state, setSelectedError, searchQuery }: Props) => {
+const ErrorCard = ({ error, setSelectedError, searchQuery, state }: Props) => {
     const { replayer, setTime } = useReplayerContext();
 
     return (
-        <div
+        <button
             key={error.id}
             className={classNames(styles.errorCard, {
-                [styles.inactive]: state === ErrorCardState.Inactive,
+                [styles.active]: state === ErrorCardState.Active,
             })}
+            onClick={setSelectedError}
         >
             <div>
                 <div className={styles.header}>
@@ -54,15 +55,12 @@ const ErrorCard = ({ error, state, setSelectedError, searchQuery }: Props) => {
                 </div>
             </div>
             <div className={styles.actions}>
-                <GoToButton
-                    className={styles.goToButton}
-                    onClick={setSelectedError}
-                    label="More"
-                />
                 {error.timestamp && (
                     <GoToButton
                         className={styles.goToButton}
-                        onClick={() => {
+                        onClick={(e) => {
+                            e.stopPropagation();
+
                             const dateTimeErrorCreated = new Date(
                                 error.timestamp
                             );
@@ -87,7 +85,7 @@ const ErrorCard = ({ error, state, setSelectedError, searchQuery }: Props) => {
                     />
                 )}
             </div>
-        </div>
+        </button>
     );
 };
 
