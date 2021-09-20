@@ -1,5 +1,6 @@
 import Input from '@components/Input/Input';
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
+import { useDevToolsContext } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
@@ -34,10 +35,8 @@ export const ResourcePage = ({
     startTime: number;
 }) => {
     const { state, session } = useReplayerContext();
+    const { setPanelContent } = useDevToolsContext();
     const { session_id } = useParams<{ session_id: string }>();
-    const [selectedNetworkResource, setSelectedNetworkResource] = useState<
-        undefined | NetworkResource
-    >(undefined);
     const [options, setOptions] = useState<Array<string>>([]);
     const [currentOption, setCurrentOption] = useState('All');
     const [filterSearchTerm, setFilterSearchTerm] = useState('');
@@ -277,9 +276,22 @@ export const ResourcePage = ({
                                             currentResource={currentResource}
                                             searchTerm={filterSearchTerm}
                                             onClickHandler={() => {
-                                                setSelectedNetworkResource(
-                                                    resource
-                                                );
+                                                setPanelContent({
+                                                    title: 'Network Request',
+                                                    content: (
+                                                        <>
+                                                            <ResourceDetailsModal
+                                                                selectedNetworkResource={
+                                                                    resource
+                                                                }
+                                                                networkRecordingEnabledForSession={
+                                                                    session?.enable_recording_network_contents ||
+                                                                    false
+                                                                }
+                                                            />
+                                                        </>
+                                                    ),
+                                                });
                                             }}
                                         />
                                     )}
@@ -317,15 +329,6 @@ export const ResourcePage = ({
                     </>
                 )}
             </div>
-            <ResourceDetailsModal
-                selectedNetworkResource={selectedNetworkResource}
-                onCloseHandler={() => {
-                    setSelectedNetworkResource(undefined);
-                }}
-                networkRecordingEnabledForSession={
-                    session?.enable_recording_network_contents || false
-                }
-            />
         </div>
     );
 };

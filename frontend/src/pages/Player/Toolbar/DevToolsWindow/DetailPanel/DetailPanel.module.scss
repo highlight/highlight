@@ -1,0 +1,29 @@
+.detailPanel {
+    background: var(--color-primary-background);
+    border-top-left-radius: var(--border-radius);
+    border-top-right-radius: var(--border-radius);
+    height: 100%;
+    padding: 0 var(--size-large);
+    padding-top: var(--size-medium);
+    position: absolute;
+    width: 100%;
+    z-index: 2;
+}
+
+.backButton {
+    color: var(--color-gray-500) !important;
+}
+
+.header {
+    align-items: center;
+    column-gap: var(--size-medium);
+    display: flex;
+
+    h3 {
+        margin-bottom: 0 !important;
+    }
+}
+
+.contentContainer {
+    padding-top: var(--size-large);
+}

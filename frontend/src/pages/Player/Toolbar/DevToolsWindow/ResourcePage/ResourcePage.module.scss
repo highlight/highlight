@@ -81,7 +81,9 @@ $canvas-width: calc(
     height: calc(100% - 40px);
     overflow-x: hidden;
     overflow-y: auto;
+    position: relative;
     word-wrap: break-word;
+    z-index: 0;
 }
 
 .networkTimingColumn {

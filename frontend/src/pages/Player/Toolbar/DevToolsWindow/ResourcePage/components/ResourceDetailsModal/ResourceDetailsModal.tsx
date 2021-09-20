@@ -4,7 +4,6 @@ import DataCard from '../../../../../../../components/DataCard/DataCard';
 import KeyValueTable, {
     KeyValueTableRow,
 } from '../../../../../../../components/KeyValueTable/KeyValueTable';
-import Modal from '../../../../../../../components/Modal/Modal';
 import Space from '../../../../../../../components/Space/Space';
 import { formatTime } from '../../../../../../Home/components/KeyPerformanceIndicators/utils/utils';
 import { getNetworkResourcesDisplayName } from '../../../Option/Option';
@@ -13,13 +12,11 @@ import styles from './ResourceDetailsModal.module.scss';
 
 interface Props {
     selectedNetworkResource?: NetworkResource;
-    onCloseHandler: () => void;
     networkRecordingEnabledForSession: boolean;
 }
 
 const ResourceDetailsModal = ({
     selectedNetworkResource,
-    onCloseHandler,
     networkRecordingEnabledForSession,
 }: Props) => {
     const generalData: KeyValueTableRow[] = [
@@ -190,72 +187,65 @@ const ResourceDetailsModal = ({
     }
 
     return (
-        <Modal
-            visible={!!selectedNetworkResource}
-            onCancel={onCloseHandler}
-            title="Network Request"
-            width={'90%'}
-        >
-            <section className={styles.modalContentContainer}>
-                <Space size="large" direction="vertical">
-                    <DataCard title="General" fullWidth>
-                        <KeyValueTable data={generalData} />
-                    </DataCard>
+        <section className={styles.modalContentContainer}>
+            <Space size="large" direction="vertical">
+                <DataCard title="General" fullWidth>
+                    <KeyValueTable data={generalData} />
+                </DataCard>
 
-                    {(selectedNetworkResource?.initiatorType === 'fetch' ||
-                        selectedNetworkResource?.initiatorType ===
-                            'xmlhttprequest') &&
-                        !selectedNetworkResource.requestResponsePairs
-                            ?.urlBlocked && (
-                            <>
-                                <DataCard title="Request Headers" fullWidth>
-                                    <KeyValueTable
-                                        data={requestHeadersData}
-                                        noDataMessage={
-                                            !networkRecordingEnabledForSession ? (
-                                                <NetworkRecordingEducationMessage />
-                                            ) : undefined
-                                        }
-                                    />
-                                </DataCard>
+                {(selectedNetworkResource?.initiatorType === 'fetch' ||
+                    selectedNetworkResource?.initiatorType ===
+                        'xmlhttprequest') &&
+                    !selectedNetworkResource.requestResponsePairs
+                        ?.urlBlocked && (
+                        <>
+                            <DataCard title="Request Headers" fullWidth>
+                                <KeyValueTable
+                                    data={requestHeadersData}
+                                    noDataMessage={
+                                        !networkRecordingEnabledForSession ? (
+                                            <NetworkRecordingEducationMessage />
+                                        ) : undefined
+                                    }
+                                />
+                            </DataCard>
 
-                                <DataCard title="Request Payload" fullWidth>
-                                    <KeyValueTable
-                                        data={requestPayloadData}
-                                        noDataMessage={
-                                            !networkRecordingEnabledForSession ? (
-                                                <NetworkRecordingEducationMessage />
-                                            ) : undefined
-                                        }
-                                    />
-                                </DataCard>
+                            <DataCard title="Request Payload" fullWidth>
+                                <KeyValueTable
+                                    data={requestPayloadData}
+                                    noDataMessage={
+                                        !networkRecordingEnabledForSession ? (
+                                            <NetworkRecordingEducationMessage />
+                                        ) : undefined
+                                    }
+                                />
+                            </DataCard>
 
-                                <DataCard title="Response Headers" fullWidth>
-                                    <KeyValueTable
-                                        data={responseHeadersData}
-                                        noDataMessage={
-                                            !networkRecordingEnabledForSession ? (
-                                                <NetworkRecordingEducationMessage />
-                                            ) : undefined
-                                        }
-                                    />
-                                </DataCard>
+                            <DataCard title="Response Headers" fullWidth>
+                                <KeyValueTable
+                                    data={responseHeadersData}
+                                    noDataMessage={
+                                        !networkRecordingEnabledForSession ? (
+                                            <NetworkRecordingEducationMessage />
+                                        ) : undefined
+                                    }
+                                />
+                            </DataCard>
 
-                                <DataCard title="Response Payload" fullWidth>
-                                    <KeyValueTable
-                                        data={responsePayloadData}
-                                        noDataMessage={
-                                            !networkRecordingEnabledForSession ? (
-                                                <NetworkRecordingEducationMessage />
-                                            ) : undefined
-                                        }
-                                    />
-                                </DataCard>
-                            </>
-                        )}
-                </Space>
-            </section>
-        </Modal>
+                            <DataCard title="Response Payload" fullWidth>
+                                <KeyValueTable
+                                    data={responsePayloadData}
+                                    noDataMessage={
+                                        !networkRecordingEnabledForSession ? (
+                                            <NetworkRecordingEducationMessage />
+                                        ) : undefined
+                                    }
+                                />
+                            </DataCard>
+                        </>
+                    )}
+            </Space>
+        </section>
     );
 };
 

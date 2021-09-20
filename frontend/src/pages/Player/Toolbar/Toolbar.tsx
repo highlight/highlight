@@ -93,6 +93,9 @@ export const Toolbar = () => {
     const [selectedError, setSelectedError] = useState<ErrorObject | undefined>(
         undefined
     );
+    const [devToolsPanelContent, setDevToolsPanelContent] = useState<
+        { title: string; content: React.ReactNode } | undefined
+    >(undefined);
     const wrapperWidth =
         sliderWrapperRef.current?.getBoundingClientRect().width ?? 1;
     const [sliderClientX, setSliderClientX] = useState<number>(-1);
@@ -229,6 +232,8 @@ export const Toolbar = () => {
                     value={{
                         openDevTools: showDevTools,
                         setOpenDevTools: setShowDevTools,
+                        panelContent: devToolsPanelContent,
+                        setPanelContent: setDevToolsPanelContent,
                     }}
                 >
                     {!isPlayerFullscreen && <TimelineIndicators />}
