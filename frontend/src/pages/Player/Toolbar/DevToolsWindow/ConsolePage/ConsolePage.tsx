@@ -1,3 +1,4 @@
+import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
 import { useParams } from '@util/react-router/useParams';
 import { message as AntDesignMessage } from 'antd';
 import _ from 'lodash';
@@ -9,12 +10,12 @@ import React, {
     useState,
 } from 'react';
 import ReactJson from 'react-json-view';
+import Linkify from 'react-linkify';
 import Skeleton from 'react-loading-skeleton';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 import GoToButton from '../../../../../components/Button/GoToButton';
 import Input from '../../../../../components/Input/Input';
-import TextHighlighter from '../../../../../components/TextHighlighter/TextHighlighter';
 import { useGetMessagesQuery } from '../../../../../graph/generated/hooks';
 import { ConsoleMessage } from '../../../../../util/shared-types';
 import { MillisToMinutesAndSeconds } from '../../../../../util/time';
@@ -113,11 +114,12 @@ export const ConsolePage = ({ time }: { time: number }) => {
                             .toLocaleLowerCase()
                             .includes(filterSearchTerm.toLocaleLowerCase());
                     case 'object':
-                        return message.value.some((line: string) =>
-                            line
+                        return message.value.some((line: string) => {
+                            return line
+                                .toString()
                                 .toLocaleLowerCase()
-                                .includes(filterSearchTerm.toLocaleLowerCase())
-                        );
+                                .includes(filterSearchTerm.toLocaleLowerCase());
+                        });
                     default:
                         return false;
                 }
@@ -287,16 +289,20 @@ const ConsoleRender = ({
                         displayDataTypes={false}
                     />
                 ) : typeof r === 'string' ? (
-                    <div className={styles.messageText}>
-                        <TextHighlighter
-                            searchWords={[searchTerm]}
-                            autoEscape={true}
-                            textToHighlight={r}
-                        />
-                    </div>
+                    searchTerm === '' ? (
+                        <Linkify>{r}</Linkify>
+                    ) : (
+                        <div className={styles.messageText}>
+                            <TextHighlighter
+                                searchWords={[searchTerm]}
+                                autoEscape={true}
+                                textToHighlight={r}
+                            />
+                        </div>
+                    )
                 ) : (
                     <div className={styles.messageText}>
-                        {JSON.stringify(r)}
+                        <Linkify>{JSON.stringify(r)}</Linkify>
                     </div>
                 )
             )}
