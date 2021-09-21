@@ -1647,7 +1647,6 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, organizationID 
 	}
 
 	if organizationID == 0 {
-		log.Info("here")
 		if errorGroupID != nil {
 			rand.Seed(int64(*errorGroupID))
 		}
