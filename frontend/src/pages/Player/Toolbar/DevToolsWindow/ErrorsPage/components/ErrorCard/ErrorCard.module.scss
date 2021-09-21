@@ -9,6 +9,7 @@
     justify-content: space-between;
     padding: var(--size-medium) var(--size-medium) var(--size-small)
         var(--size-large);
+    position: relative;
     text-align: left;
     width: 100%;
 
@@ -56,4 +57,19 @@
     display: flex;
     flex-direction: column;
     gap: var(--size-xSmall);
+}
+
+.currentIndicatorWrapper {
+    height: 100%;
+    left: var(--size-xSmall);
+    position: absolute;
+    top: var(--size-xLarge);
+    width: 100%;
+
+    .currentIndicator {
+        background-color: var(--color-blue-500);
+        border-radius: 50%;
+        height: 6px;
+        width: 6px;
+    }
 }
