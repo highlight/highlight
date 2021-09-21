@@ -32,6 +32,15 @@ const ErrorCard = ({ error, setSelectedError, searchQuery, state }: Props) => {
             })}
             onClick={setSelectedError}
         >
+            <div
+                className={styles.currentIndicatorWrapper}
+                style={{
+                    visibility:
+                        state === ErrorCardState.Active ? 'visible' : 'hidden',
+                }}
+            >
+                <div className={styles.currentIndicator} />
+            </div>
             <div>
                 <div className={styles.header}>
                     <h4>{error.type}</h4>

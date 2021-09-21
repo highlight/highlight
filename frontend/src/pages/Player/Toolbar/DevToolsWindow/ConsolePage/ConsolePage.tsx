@@ -1,4 +1,5 @@
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
+import Tooltip from '@components/Tooltip/Tooltip';
 import { useParams } from '@util/react-router/useParams';
 import { message as AntDesignMessage } from 'antd';
 import _ from 'lodash';
@@ -199,21 +200,26 @@ export const ConsolePage = ({ time }: { time: number }) => {
                         itemContent={(_index, message: ParsedMessage) => (
                             <div key={message.id.toString()}>
                                 <div className={styles.consoleMessage}>
-                                    <div
-                                        className={
-                                            styles.currentIndicatorWrapper
-                                        }
-                                        style={{
-                                            visibility:
-                                                message.id === currentMessage
-                                                    ? 'visible'
-                                                    : 'hidden',
-                                        }}
-                                    >
+                                    <Tooltip title="This is the last logged console message. This is based on the current session time.">
                                         <div
-                                            className={styles.currentIndicator}
-                                        />
-                                    </div>
+                                            className={
+                                                styles.currentIndicatorWrapper
+                                            }
+                                            style={{
+                                                visibility:
+                                                    message.id ===
+                                                    currentMessage
+                                                        ? 'visible'
+                                                        : 'hidden',
+                                            }}
+                                        >
+                                            <div
+                                                className={
+                                                    styles.currentIndicator
+                                                }
+                                            />
+                                        </div>
+                                    </Tooltip>
                                     <div className={styles.messageText}>
                                         {message.value && (
                                             <ConsoleRender
