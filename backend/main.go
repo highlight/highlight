@@ -167,6 +167,7 @@ func main() {
 		AllowedHeaders:         []string{"*"},
 	}).Handler)
 	r.MethodFunc(http.MethodGet, "/health", healthRouter(runtimeParsed))
+	r.MethodFunc(http.MethodPost, "/health", healthRouter(runtimeParsed))
 
 	/*
 		Selectively turn on backends depending on the input flag
