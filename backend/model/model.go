@@ -738,7 +738,6 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		return nil, e.Wrap(err, "error retrieving underlying sql db")
 	}
 	sqlDB.SetMaxOpenConns(15)
-	log.Printf("finished db migration. \n")
 
 	switch os.Getenv("DEPLOYMENT_KEY") {
 	case "HIGHLIGHT_BEHAVE_HEALTH-i_fgQwbthAdqr9Aat_MzM7iU3!@fKr-_vopjXR@f":
@@ -764,6 +763,8 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 			break
 		}
 	}
+
+	log.Printf("finished db migration. \n")
 	return DB, nil
 }
 
