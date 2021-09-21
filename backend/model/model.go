@@ -739,6 +739,31 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 	}
 	sqlDB.SetMaxOpenConns(15)
 	log.Printf("finished db migration. \n")
+
+	switch os.Getenv("DEPLOYMENT_KEY") {
+	case "HIGHLIGHT_BEHAVE_HEALTH-i_fgQwbthAdqr9Aat_MzM7iU3!@fKr-_vopjXR@f":
+		fallthrough
+	case "HIGHLIGHT_ONPREM_BETA":
+		// default case, should only exist in main highlight prod
+		thresholdWindow := 30
+		emptiness := "[]"
+		if err := DB.FirstOrCreate(&SessionAlert{
+			Alert: Alert{
+				OrganizationID: 1,
+				ProjectID:      1,
+				Type:           &AlertType.SESSION_FEEDBACK,
+			},
+		}).Attrs(&SessionAlert{
+			Alert: Alert{
+				ExcludedEnvironments: &emptiness,
+				CountThreshold:       1,
+				ThresholdWindow:      &thresholdWindow,
+				ChannelsToNotify:     &emptiness,
+			},
+		}).Error; err != nil {
+			break
+		}
+	}
 	return DB, nil
 }
 
