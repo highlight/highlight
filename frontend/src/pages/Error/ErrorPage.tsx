@@ -48,9 +48,9 @@ import styles from './ErrorPage.module.scss';
 import useErrorPageConfiguration from './utils/ErrorPageUIConfiguration';
 
 const ErrorPage = ({ integrated }: { integrated: boolean }) => {
-    const { error_id, organization_id } = useParams<{
+    const { error_id, project_id } = useParams<{
         error_id: string;
-        organization_id: string;
+        project_id: string;
     }>();
 
     const [getErrorGroupQuery, { data, loading }] = useGetErrorGroupLazyQuery({
@@ -61,7 +61,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
     const [cachedParams, setCachedParams] = useLocalStorage<ErrorSearchParams>(
         `cachedErrorParams-v2-${
             segmentName || 'no-selected-segment'
-        }-${organization_id}`,
+        }-${project_id}`,
         {}
     );
     const [searchParams, setSearchParams] = useState<ErrorSearchParams>(

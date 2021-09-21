@@ -44,7 +44,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
     const [selectedSegment, setSelectedSegment] = useLocalStorage<
         { value: string; id: string } | undefined
     >(
-        `highlightSegmentPickerForPlayerSelectedSegmentId-${organization_id}`,
+        `highlightSegmentPickerForPlayerSelectedSegmentId-${project_id}`,
         undefined
     );
     const [

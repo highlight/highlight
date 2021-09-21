@@ -43,7 +43,7 @@ const SegmentPickerForErrors = () => {
     const [selectedSegment, setSelectedSegment] = useLocalStorage<
         { value: string; id: string } | undefined
     >(
-        `highlightSegmentPickerForErrorsSelectedSegmentId-${organization_id}`,
+        `highlightSegmentPickerForErrorsSelectedSegmentId-${project_id}`,
         undefined
     );
     const [paramsIsDifferent, setParamsIsDifferent] = useState(false);
