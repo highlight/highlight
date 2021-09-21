@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
@@ -1643,6 +1644,19 @@ func (r *queryResolver) DailyErrorsCount(ctx context.Context, organizationID int
 func (r *queryResolver) DailyErrorFrequency(ctx context.Context, organizationID int, errorGroupID *int, errorGroupSecureID *string, dateOffset int) ([]*int64, error) {
 	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
+	}
+
+	if organizationID == 0 {
+		log.Info("here")
+		if errorGroupID != nil {
+			rand.Seed(int64(*errorGroupID))
+		}
+		var dists []*int64
+		for i := 0; i <= dateOffset; i++ {
+			t := int64(rand.Intn(10) + 1)
+			dists = append(dists, &t)
+		}
+		return dists, nil
 	}
 
 	var dailyErrors []*int64
