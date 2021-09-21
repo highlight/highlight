@@ -514,10 +514,11 @@ func (w *Worker) Start() {
 		type SessionLog struct {
 			SessionID      int
 			OrganizationID int
+			ProjectID      int
 		}
 		sessionIds := []SessionLog{}
 		for _, session := range sessions {
-			sessionIds = append(sessionIds, SessionLog{SessionID: session.ID, OrganizationID: session.OrganizationID})
+			sessionIds = append(sessionIds, SessionLog{SessionID: session.ID, OrganizationID: session.OrganizationID, ProjectID: session.OrganizationID})
 		}
 		if len(sessionIds) > 0 {
 			log.Infof("sessions that will be processed: %v", sessionIds)

@@ -36,7 +36,7 @@ const FullCommentList = ({
                         <h2>There are no comments yet</h2>
                         <p>{noCommentsMessage}</p>
                     </div>
-                    <PersonalNotificationButton />
+                    <PersonalNotificationButton type="Personal" />
                 </div>
             ) : (
                 <>
@@ -54,6 +54,7 @@ const FullCommentList = ({
                                         style={{
                                             marginTop: 'var(--size-medium)',
                                         }}
+                                        type="Personal"
                                     />
                                 </>
                             }

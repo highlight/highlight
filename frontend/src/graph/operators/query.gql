@@ -16,7 +16,6 @@ query GetSession($id: ID!) {
         city
         state
         postal
-        user_id
         fingerprint
         created_at
         language
@@ -179,7 +178,6 @@ query GetSessions(
     ) {
         sessions {
             id
-            user_id
             fingerprint
             identifier
             os_name
@@ -273,6 +271,7 @@ query GetErrorGroup($id: ID!) {
     error_group(id: $id) {
         created_at
         id
+        secure_id
         type
         organization_id
         event
@@ -699,6 +698,7 @@ query GetSlackChannelSuggestion($organization_id: ID!) {
 }
 
 query GetAlertsPagePayload($organization_id: ID!) {
+    is_integrated_with_slack(organization_id: $organization_id)
     slack_channel_suggestion(organization_id: $organization_id) {
         webhook_channel
         webhook_channel_id
@@ -753,5 +753,18 @@ query GetAlertsPagePayload($organization_id: ID!) {
         }
         ExcludedEnvironments
         CountThreshold
+    }
+}
+
+query GetCommentMentionSuggestions($organization_id: ID!) {
+    admins(organization_id: $organization_id) {
+        id
+        name
+        email
+        photo_url
+    }
+    slack_members(organization_id: $organization_id) {
+        webhook_channel
+        webhook_channel_id
     }
 }

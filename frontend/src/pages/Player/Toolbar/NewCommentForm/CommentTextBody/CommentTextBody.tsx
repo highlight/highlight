@@ -1,6 +1,13 @@
+import SvgSlackLogo from '@components/icons/SlackLogo';
+import {
+    Mention,
+    MentionsInput,
+    OnChangeHandlerFunc,
+} from '@highlight-run/react-mentions';
+import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import React, { useEffect } from 'react';
-import { Mention, MentionsInput, OnChangeHandlerFunc } from 'react-mentions';
+import { Link } from 'react-router-dom';
 
 import { AdminAvatar } from '../../../../../components/Avatar/Avatar';
 import { AdminSuggestion } from '../../../../../components/Comment/CommentHeader';
@@ -25,6 +32,10 @@ const CommentTextBody = ({
     onDisplayTransformHandler,
     suggestionsPortalHost,
 }: Props) => {
+    const { organization_id } = useParams<{
+        organization_id: string;
+    }>();
+
     useEffect(() => {
         const textarea = document.querySelector(
             `.${newCommentFormStyles.commentInputContainer} textarea`
@@ -33,6 +44,12 @@ const CommentTextBody = ({
             textarea.focus();
         }
     });
+
+    const isSlackIntegrated = suggestions.some(
+        (suggestion) =>
+            suggestion.display?.includes('#') ||
+            (suggestion.display && suggestion.display[0] == '@')
+    );
 
     return (
         <MentionsInput
@@ -44,6 +61,19 @@ const CommentTextBody = ({
             autoFocus
             disabled={!onChangeHandler}
             suggestionsPortalHost={suggestionsPortalHost}
+            allowSuggestionsAboveCursor
+            listHeader={
+                <div className={styles.suggestionHeader}>
+                    {isSlackIntegrated ? (
+                        <p>Tag a user or Slack account</p>
+                    ) : (
+                        <p>
+                            Tag a user (Enable Slack tags{' '}
+                            <Link to={`/${organization_id}/alerts`}>here</Link>)
+                        </p>
+                    )}
+                </div>
+            }
         >
             <Mention
                 className={commentTextBodyClassNames.mentions__mention}
@@ -84,14 +114,21 @@ const Suggestion = ({
 }) => {
     return (
         <div className={styles.suggestionContainer}>
-            <AdminAvatar
-                adminInfo={{
-                    name: suggestion.name,
-                    email: suggestion.email,
-                    photo_url: suggestion.photo_url,
-                }}
-                size={35}
-            />
+            <div className={styles.avatarContainer}>
+                {['@', '#'].includes((suggestion?.name || '')[0]) && (
+                    <div className={styles.slackLogoContainer}>
+                        <SvgSlackLogo className={styles.slackLogo} />
+                    </div>
+                )}
+                <AdminAvatar
+                    adminInfo={{
+                        name: suggestion.name,
+                        email: suggestion.email,
+                        photo_url: suggestion.photoUrl,
+                    }}
+                    size={35}
+                />
+            </div>
             <div className={styles.adminText}>
                 <span className={styles.longValue}>{suggestion.display}</span>
                 {suggestion.display !== suggestion.id && (

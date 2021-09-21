@@ -57,7 +57,11 @@
 
     --size-icon: 18px;
 
-    --box-shadow: 0 4px 4px rgba(0, 0, 0, 0.1);
+    --box-shadow: 0px 0.9px 1.4px rgba(0, 0, 0, 0.012),
+        0px 2.2px 3.6px rgba(0, 0, 0, 0.018),
+        0px 4.4px 7.4px rgba(0, 0, 0, 0.022),
+        0px 9.1px 15.3px rgba(0, 0, 0, 0.028), 0px 25px 42px rgba(0, 0, 0, 0.04);
+
     --box-shadow-2: 0 3px 6px -4px rgb(0 0 0 / 12%),
         0 6px 16px 0 rgb(0 0 0 / 8%), 0 9px 28px 8px rgb(0 0 0 / 5%);
     --box-shadow-3: 0 2.8px 2.2px rgba(0, 0, 0, 0.02),

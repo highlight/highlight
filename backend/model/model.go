@@ -45,11 +45,13 @@ var AlertType = struct {
 	NEW_USER         string
 	TRACK_PROPERTIES string
 	USER_PROPERTIES  string
+	SESSION_FEEDBACK string
 }{
 	ERROR:            "ERROR_ALERT",
 	NEW_USER:         "NEW_USER_ALERT",
 	TRACK_PROPERTIES: "TRACK_PROPERTIES_ALERT",
 	USER_PROPERTIES:  "USER_PROPERTIES_ALERT",
+	SESSION_FEEDBACK: "SESSION_FEEDBACK_ALERT",
 }
 
 var ErrorGroupStates = struct {
@@ -109,6 +111,7 @@ var Models = []interface{}{
 	&ErrorComment{},
 	&ErrorAlert{},
 	&SessionAlert{},
+	&Project{},
 }
 
 func init() {
@@ -148,8 +151,26 @@ type Organization struct {
 	MonthlySessionLimit *int
 }
 
+type Project struct {
+	Model
+	Name         *string
+	Secret       *string    `json:"-"`
+	Admins       []Admin    `gorm:"many2many:project_admins;"`
+	TrialEndDate *time.Time `json:"trial_end_date"`
+	// Slack API Interaction.
+	SlackAccessToken      *string
+	SlackWebhookURL       *string
+	SlackWebhookChannel   *string
+	SlackWebhookChannelID *string
+	SlackChannels         *string
+	// Manual monthly session limit override
+	MonthlySessionLimit *int
+	OrganizationID      int
+}
+
 type Alert struct {
 	OrganizationID       int
+	ProjectID            int
 	ExcludedEnvironments *string
 	CountThreshold       int
 	ThresholdWindow      *int
@@ -243,6 +264,8 @@ func (u *Organization) IntegratedSlackChannels() ([]SlackChannel, error) {
 		if err != nil {
 			return nil, e.Wrap(err, "error parsing details json")
 		}
+	} else {
+		return parsedChannels, nil
 	}
 	repeat := false
 	for _, c := range parsedChannels {
@@ -251,12 +274,15 @@ func (u *Organization) IntegratedSlackChannels() ([]SlackChannel, error) {
 		}
 	}
 	if u.SlackWebhookChannel != nil && !repeat {
-		parsedChannels = append(parsedChannels, SlackChannel{
-			WebhookAccessToken: *u.SlackAccessToken,
-			WebhookURL:         *u.SlackWebhookURL,
-			WebhookChannel:     *u.SlackWebhookChannel,
-			WebhookChannelID:   *u.SlackWebhookChannelID,
-		})
+		// Archived channels or users will not have a channel ID.
+		if u.SlackWebhookChannelID != nil {
+			parsedChannels = append(parsedChannels, SlackChannel{
+				WebhookAccessToken: *u.SlackAccessToken,
+				WebhookURL:         *u.SlackWebhookURL,
+				WebhookChannel:     *u.SlackWebhookChannel,
+				WebhookChannelID:   *u.SlackWebhookChannelID,
+			})
+		}
 	}
 	return parsedChannels, nil
 }
@@ -317,11 +343,11 @@ type Session struct {
 	Model
 	// The ID used publicly for the URL on the client; used for sharing
 	SecureID    string `json:"secure_id" gorm:"uniqueIndex;not null;default:secure_id_generator()"`
-	UserID      int    `json:"user_id"`
 	Fingerprint int    `json:"fingerprint"`
 	// User provided identifier (see IdentifySession)
 	Identifier     string `json:"identifier"`
 	OrganizationID int    `json:"organization_id"`
+	ProjectID      int    `json:"project_id"`
 	// Location data based off user ip (see InitializeSession)
 	City      string  `json:"city"`
 	State     string  `json:"state"`
@@ -426,6 +452,7 @@ type Field struct {
 	// 'email@email.com'
 	Value          string
 	OrganizationID int       `json:"organization_id"`
+	ProjectID      int       `json:"project_id"`
 	Sessions       []Session `gorm:"many2many:session_fields;"`
 }
 
@@ -458,6 +485,7 @@ type Segment struct {
 	Name           *string
 	Params         *string `json:"params"`
 	OrganizationID int
+	ProjectID      int `json:"project_id"`
 }
 
 type DailySessionCount struct {
@@ -465,6 +493,7 @@ type DailySessionCount struct {
 	Date           *time.Time `json:"date"`
 	Count          int64      `json:"count"`
 	OrganizationID int
+	ProjectID      int `json:"project_id"`
 }
 
 type DailyErrorCount struct {
@@ -472,6 +501,7 @@ type DailyErrorCount struct {
 	Date           *time.Time `json:"date"`
 	Count          int64      `json:"count"`
 	OrganizationID int
+	ProjectID      int `json:"project_id"`
 }
 
 func (s *SearchParams) GormDataType() string {
@@ -552,11 +582,13 @@ type ErrorSegment struct {
 	Name           *string
 	Params         *string `json:"params"`
 	OrganizationID int
+	ProjectID      int `json:"project_id"`
 }
 
 type ErrorObject struct {
 	Model
 	OrganizationID int
+	ProjectID      int `json:"project_id"`
 	SessionID      int
 	ErrorGroupID   int
 	Event          string
@@ -579,6 +611,7 @@ type ErrorGroup struct {
 	// The ID used publicly for the URL on the client; used for sharing
 	SecureID         string `json:"secure_id" gorm:"uniqueIndex;not null;default:secure_id_generator()"`
 	OrganizationID   int
+	ProjectID        int `json:"project_id"`
 	Event            string
 	Type             string
 	Trace            string //DEPRECATED, USE STACKTRACE INSTEAD
@@ -593,6 +626,7 @@ type ErrorGroup struct {
 type ErrorField struct {
 	Model
 	OrganizationID int
+	ProjectID      int `json:"project_id"`
 	Name           string
 	Value          string
 	ErrorGroups    []ErrorGroup `gorm:"many2many:error_group_fields;"`
@@ -602,6 +636,7 @@ type SessionComment struct {
 	Model
 	Admins         []Admin `gorm:"many2many:session_comment_admins;"`
 	OrganizationID int
+	ProjectID      int `json:"project_id"`
 	AdminId        int
 	SessionId      int
 	Timestamp      int
@@ -616,6 +651,7 @@ type ErrorComment struct {
 	Model
 	Admins         []Admin `gorm:"many2many:error_comment_admins;"`
 	OrganizationID int
+	ProjectID      int `json:"project_id"`
 	AdminId        int
 	ErrorId        int
 	Text           string
@@ -701,6 +737,32 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		return nil, e.Wrap(err, "error retrieving underlying sql db")
 	}
 	sqlDB.SetMaxOpenConns(15)
+
+	switch os.Getenv("DEPLOYMENT_KEY") {
+	case "HIGHLIGHT_BEHAVE_HEALTH-i_fgQwbthAdqr9Aat_MzM7iU3!@fKr-_vopjXR@f":
+		fallthrough
+	case "HIGHLIGHT_ONPREM_BETA":
+		// default case, should only exist in main highlight prod
+		thresholdWindow := 30
+		emptiness := "[]"
+		if err := DB.FirstOrCreate(&SessionAlert{
+			Alert: Alert{
+				OrganizationID: 1,
+				ProjectID:      1,
+				Type:           &AlertType.SESSION_FEEDBACK,
+			},
+		}).Attrs(&SessionAlert{
+			Alert: Alert{
+				ExcludedEnvironments: &emptiness,
+				CountThreshold:       1,
+				ThresholdWindow:      &thresholdWindow,
+				ChannelsToNotify:     &emptiness,
+			},
+		}).Error; err != nil {
+			break
+		}
+	}
+
 	log.Printf("finished db migration. \n")
 	return DB, nil
 }
@@ -787,7 +849,7 @@ type SendSlackAlertInput struct {
 	Organization *Organization
 	// SessionID is a required parameter
 	SessionID int
-	// UserIdentifier is a required parameter for New User and Error alerts
+	// UserIdentifier is a required parameter for New User, Error, and SessionFeedback alerts
 	UserIdentifier string
 	// Group is a required parameter for Error alerts
 	Group *ErrorGroup
@@ -799,9 +861,14 @@ type SendSlackAlertInput struct {
 	MatchedFields []*Field
 	// UserProperties is a required parameter for User Properties alerts
 	UserProperties map[string]string
+	// CommentID is a required parameter for SessionFeedback alerts
+	CommentID *int
+	// CommentText is a required parameter for SessionFeedback alerts
+	CommentText string
 }
 
 func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
+	// TODO: combine `error_alerts` and `session_alerts` tables and create unique composite index on (organization_id, type)
 	if obj == nil {
 		return e.New("alert is nil")
 	}
@@ -825,7 +892,11 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 	var messageBlock []*slack.TextBlockObject
 
 	frontendURL := os.Getenv("FRONTEND_URI")
-	sessionLink := fmt.Sprintf("<%s/%d/sessions/%d/>", frontendURL, obj.OrganizationID, input.SessionID)
+	suffix := "/"
+	if input.CommentID != nil {
+		suffix = fmt.Sprintf("?commentId=%d", *input.CommentID)
+	}
+	sessionLink := fmt.Sprintf("<%s/%d/sessions/%d%s>", frontendURL, obj.OrganizationID, input.SessionID, suffix)
 	messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false))
 
 	if obj.Type == nil {
@@ -928,32 +999,82 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
+	case AlertType.SESSION_FEEDBACK:
+		shortEvent := input.CommentText
+		if len(input.CommentText) > 50 {
+			shortEvent = input.CommentText[:50] + "..."
+		}
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s Left Feedback*\n\n%s", input.UserIdentifier, shortEvent), false, false)
+		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
+		blockSet = append(blockSet, slack.NewDividerBlock())
+		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
 	}
+
+	var slackClient *slack.Client
+	if input.Organization.SlackAccessToken != nil {
+		slackClient = slack.New(*input.Organization.SlackAccessToken)
+	}
+	log.Printf("Sending Slack Alert for org: %d session: %d", input.Organization.ID, input.SessionID)
 
 	// send message
 	for _, channel := range channels {
 		if channel.WebhookChannel != nil {
 			var slackWebhookURL string
+			isWebhookChannel := false
+
+			// Find the webhook URL
 			for _, ch := range integratedSlackChannels {
 				if id := channel.WebhookChannelID; id != nil && ch.WebhookChannelID == *id {
 					slackWebhookURL = ch.WebhookURL
+
+					if ch.WebhookAccessToken != "" {
+						isWebhookChannel = true
+					}
 					break
 				}
 			}
-			if slackWebhookURL == "" {
+
+			if slackWebhookURL == "" && isWebhookChannel {
 				log.WithFields(log.Fields{"org_id": input.Organization.ID}).
 					Error("requested channel has no matching slackWebhookURL")
 				continue
 			}
+
 			msg.Channel = *channel.WebhookChannel
+			slackChannelId := *channel.WebhookChannelID
+			slackChannelName := *channel.WebhookChannel
+
 			go func() {
-				err := slack.PostWebhook(
-					slackWebhookURL,
-					&msg,
-				)
-				if err != nil {
-					log.WithFields(log.Fields{"org_id": input.Organization.ID, "slack_webhook_url": slackWebhookURL, "message": fmt.Sprintf("%+v", msg)}).
-						Error(e.Wrap(err, "error sending slack msg"))
+				if isWebhookChannel {
+					log.Printf("Sending Slack Webhook")
+					err := slack.PostWebhook(
+						slackWebhookURL,
+						&msg,
+					)
+					if err != nil {
+						log.WithFields(log.Fields{"org_id": input.Organization.ID, "slack_webhook_url": slackWebhookURL, "message": fmt.Sprintf("%+v", msg)}).
+							Error(e.Wrap(err, "error sending slack msg via webhook"))
+					}
+				} else {
+					// The Highlight Slack bot needs to join the channel before it can send a message.
+					// Slack handles a bot trying to join a channel it already is a part of, we don't need to handle it.
+					log.Printf("Sending Slack Bot Message")
+					if slackClient != nil {
+						if strings.Contains(slackChannelName, "#") {
+							_, _, _, err := slackClient.JoinConversation(slackChannelId)
+							if err != nil {
+								log.Error(e.Wrap(err, "failed to join slack channel"))
+							}
+						}
+						_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionBlocks(blockSet...))
+						if err != nil {
+							log.WithFields(log.Fields{"org_id": input.Organization.ID, "message": fmt.Sprintf("%+v", msg)}).
+								Error(e.Wrap(err, "error sending slack msg via bot api"))
+						}
+
+					} else {
+						log.Printf("Slack Bot Client was not defined")
+					}
 				}
 			}()
 		}

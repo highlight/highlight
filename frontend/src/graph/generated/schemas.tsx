@@ -31,7 +31,6 @@ export type Session = {
     __typename?: 'Session';
     id: Scalars['ID'];
     secure_id: Scalars['String'];
-    user_id: Scalars['ID'];
     fingerprint?: Maybe<Scalars['Int']>;
     os_name: Scalars['String'];
     os_version: Scalars['String'];
@@ -167,8 +166,9 @@ export type ErrorMetadata = {
     __typename?: 'ErrorMetadata';
     error_id: Scalars['Int'];
     session_id: Scalars['Int'];
+    session_secure_id: Scalars['String'];
     environment?: Maybe<Scalars['String']>;
-    timestamp: Scalars['Time'];
+    timestamp?: Maybe<Scalars['Time']>;
     os?: Maybe<Scalars['String']>;
     browser?: Maybe<Scalars['String']>;
     visited_url?: Maybe<Scalars['String']>;
@@ -430,6 +430,7 @@ export type SessionAlert = {
     CountThreshold: Scalars['Int'];
     TrackProperties: Array<Maybe<TrackProperty>>;
     UserProperties: Array<Maybe<UserProperty>>;
+    ThresholdWindow: Scalars['Int'];
 };
 
 export type Query = {
@@ -447,7 +448,7 @@ export type Query = {
     error_comments: Array<Maybe<ErrorComment>>;
     error_comments_for_admin: Array<Maybe<ErrorComment>>;
     error_comments_for_organization: Array<Maybe<ErrorComment>>;
-    admins?: Maybe<Array<Maybe<Admin>>>;
+    admins: Array<Maybe<Admin>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
     unprocessedSessionsCount?: Maybe<Scalars['Int64']>;
     adminHasCreatedComment?: Maybe<Scalars['Boolean']>;
@@ -467,12 +468,15 @@ export type Query = {
     error_field_suggestion?: Maybe<Array<Maybe<ErrorField>>>;
     organizations?: Maybe<Array<Maybe<Organization>>>;
     error_alert?: Maybe<ErrorAlert>;
+    session_feedback_alert?: Maybe<SessionAlert>;
     new_user_alert?: Maybe<SessionAlert>;
     track_properties_alert?: Maybe<SessionAlert>;
     user_properties_alert?: Maybe<SessionAlert>;
     organizationSuggestion?: Maybe<Array<Maybe<Organization>>>;
     environment_suggestion?: Maybe<Array<Maybe<Field>>>;
     slack_channel_suggestion?: Maybe<Array<Maybe<SanitizedSlackChannel>>>;
+    slack_members: Array<Maybe<SanitizedSlackChannel>>;
+    is_integrated_with_slack: Scalars['Boolean'];
     organization?: Maybe<Organization>;
     admin?: Maybe<Admin>;
     segments?: Maybe<Array<Maybe<Segment>>>;
@@ -630,6 +634,10 @@ export type QueryError_AlertArgs = {
     organization_id: Scalars['ID'];
 };
 
+export type QuerySession_Feedback_AlertArgs = {
+    organization_id: Scalars['ID'];
+};
+
 export type QueryNew_User_AlertArgs = {
     organization_id: Scalars['ID'];
 };
@@ -652,6 +660,14 @@ export type QueryEnvironment_SuggestionArgs = {
 };
 
 export type QuerySlack_Channel_SuggestionArgs = {
+    organization_id: Scalars['ID'];
+};
+
+export type QuerySlack_MembersArgs = {
+    organization_id: Scalars['ID'];
+};
+
+export type QueryIs_Integrated_With_SlackArgs = {
     organization_id: Scalars['ID'];
 };
 
@@ -682,7 +698,6 @@ export type Mutation = {
     sendAdminInvite?: Maybe<Scalars['String']>;
     addAdminToOrganization?: Maybe<Scalars['ID']>;
     deleteAdminFromOrganization?: Maybe<Scalars['ID']>;
-    addSlackIntegrationToWorkspace?: Maybe<Scalars['Boolean']>;
     createSegment?: Maybe<Segment>;
     emailSignup: Scalars['String'];
     editSegment?: Maybe<Scalars['Boolean']>;
@@ -697,7 +712,9 @@ export type Mutation = {
     createErrorComment?: Maybe<ErrorComment>;
     deleteErrorComment?: Maybe<Scalars['Boolean']>;
     openSlackConversation?: Maybe<Scalars['Boolean']>;
+    addSlackBotIntegrationToOrganization: Scalars['Boolean'];
     updateErrorAlert?: Maybe<ErrorAlert>;
+    updateSessionFeedbackAlert?: Maybe<SessionAlert>;
     updateNewUserAlert?: Maybe<SessionAlert>;
     updateTrackPropertiesAlert?: Maybe<SessionAlert>;
     updateUserPropertiesAlert?: Maybe<SessionAlert>;
@@ -750,12 +767,6 @@ export type MutationAddAdminToOrganizationArgs = {
 export type MutationDeleteAdminFromOrganizationArgs = {
     organization_id: Scalars['ID'];
     admin_id: Scalars['ID'];
-};
-
-export type MutationAddSlackIntegrationToWorkspaceArgs = {
-    organization_id: Scalars['ID'];
-    code: Scalars['String'];
-    redirect_path: Scalars['String'];
 };
 
 export type MutationCreateSegmentArgs = {
@@ -813,6 +824,7 @@ export type MutationCreateSessionCommentArgs = {
     x_coordinate: Scalars['Float'];
     y_coordinate: Scalars['Float'];
     tagged_admins: Array<Maybe<SanitizedAdminInput>>;
+    tagged_slack_users: Array<Maybe<SanitizedSlackChannelInput>>;
     session_url: Scalars['String'];
     time: Scalars['Float'];
     author_name: Scalars['String'];
@@ -830,6 +842,7 @@ export type MutationCreateErrorCommentArgs = {
     text: Scalars['String'];
     text_for_email: Scalars['String'];
     tagged_admins: Array<Maybe<SanitizedAdminInput>>;
+    tagged_slack_users: Array<Maybe<SanitizedSlackChannelInput>>;
     error_url: Scalars['String'];
     author_name: Scalars['String'];
 };
@@ -844,9 +857,24 @@ export type MutationOpenSlackConversationArgs = {
     redirect_path: Scalars['String'];
 };
 
+export type MutationAddSlackBotIntegrationToOrganizationArgs = {
+    organization_id: Scalars['ID'];
+    code: Scalars['String'];
+    redirect_path: Scalars['String'];
+};
+
 export type MutationUpdateErrorAlertArgs = {
     organization_id: Scalars['ID'];
     error_alert_id: Scalars['ID'];
+    count_threshold: Scalars['Int'];
+    threshold_window: Scalars['Int'];
+    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+    environments: Array<Maybe<Scalars['String']>>;
+};
+
+export type MutationUpdateSessionFeedbackAlertArgs = {
+    organization_id: Scalars['ID'];
+    session_feedback_alert_id: Scalars['ID'];
     count_threshold: Scalars['Int'];
     threshold_window: Scalars['Int'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;

@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"math/rand"
 	"net/http"
 	"net/url"
 	"path"
@@ -99,7 +98,7 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 
 	modelFields := []*model.Field{}
 	for k, fv := range properties {
-		modelFields = append(modelFields, &model.Field{OrganizationID: session.OrganizationID, Name: k, Value: fv, Type: string(propType)})
+		modelFields = append(modelFields, &model.Field{OrganizationID: session.OrganizationID, ProjectID: session.OrganizationID, Name: k, Value: fv, Type: string(propType)})
 	}
 
 	err := r.AppendFields(modelFields, session)
@@ -186,6 +185,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *
 	}).First(&errorGroup).Error; err != nil {
 		newErrorGroup := &model.ErrorGroup{
 			OrganizationID: errorObj.OrganizationID,
+			ProjectID:      errorGroup.OrganizationID,
 			Event:          errorObj.Event,
 			StackTrace:     frameString,
 			Type:           errorObj.Type,
@@ -386,7 +386,6 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 	// Get the language from the request header
 	acceptLanguageString := ctx.Value(model.ContextKeys.AcceptLanguage).(string)
 	n := time.Now()
-	userId := 5000 + rand.Intn(5000)
 	var fingerprintInt int = 0
 	if val, err := strconv.Atoi(fingerprint); err == nil {
 		fingerprintInt = val
@@ -396,9 +395,9 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 	withinBillingQuota := r.isOrgWithinBillingQuota(organization, n)
 
 	session := &model.Session{
-		UserID:                         userId,
 		Fingerprint:                    fingerprintInt,
 		OrganizationID:                 organizationID,
+		ProjectID:                      organizationID,
 		City:                           location.City,
 		State:                          location.State,
 		Postal:                         location.Postal,
@@ -837,6 +836,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 
 			errorToInsert := &model.ErrorObject{
 				OrganizationID: organizationID,
+				ProjectID:      organizationID,
 				SessionID:      sessionID,
 				Environment:    sessionObj.Environment,
 				Event:          v.Event,
@@ -854,10 +854,10 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 
 			//create error fields array
 			metaFields := []*model.ErrorField{}
-			metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "browser", Value: sessionObj.BrowserName})
-			metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "os_name", Value: sessionObj.OSName})
-			metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "visited_url", Value: errorToInsert.URL})
-			metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "event", Value: errorToInsert.Event})
+			metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, ProjectID: organizationID, Name: "browser", Value: sessionObj.BrowserName})
+			metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, ProjectID: organizationID, Name: "os_name", Value: sessionObj.OSName})
+			metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, ProjectID: organizationID, Name: "visited_url", Value: errorToInsert.URL})
+			metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, ProjectID: organizationID, Name: "event", Value: errorToInsert.Event})
 			group, err := r.HandleErrorAndGroup(errorToInsert, v, metaFields, organizationID)
 			if err != nil {
 				log.Errorf("Error updating error group: %v", errorToInsert)

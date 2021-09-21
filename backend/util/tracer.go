@@ -5,8 +5,10 @@ package util
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/aws/aws-xray-sdk-go/xray"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
@@ -61,6 +63,8 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 	span, ctx := tracer.StartSpanFromContext(ctx, "graphql.operation", tracer.ResourceName(opName))
 	span.SetTag("backend", t.serverType)
 	defer span.Finish()
+	_, seg := xray.BeginSubsegment(ctx, fmt.Sprintf("operation.%v.%v", string(t.serverType), opName))
+	defer seg.Close(nil)
 	resp := next(ctx)
 	if resp.Errors != nil {
 		var errs []ddtrace.FinishOption

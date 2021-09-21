@@ -504,3 +504,60 @@ func (r *Resolver) SendPersonalSlackAlert(org *model.Organization, admin *model.
 
 	return nil
 }
+
+func (r *Resolver) SendSlackAlertToUser(org *model.Organization, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, viewLink, commentText, subjectScope string) error {
+	// this is needed for posting DMs
+	// if nil, user simply hasn't signed up for notifications, so return nil
+	if org.SlackAccessToken == nil {
+		return nil
+	}
+
+	var blockSet slack.Blocks
+	determiner := "a"
+	if subjectScope == "error" {
+		determiner = "an"
+	}
+	message := fmt.Sprintf("You were tagged in %s %s comment.", determiner, subjectScope)
+	if admin.Email != nil && *admin.Email != "" {
+		message = fmt.Sprintf("%s tagged you in %s %s comment.", *admin.Email, determiner, subjectScope)
+	}
+	if admin.Name != nil && *admin.Name != "" {
+		message = fmt.Sprintf("%s tagged you in %s %s comment.", *admin.Name, determiner, subjectScope)
+	}
+	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewHeaderBlock(&slack.TextBlockObject{Type: slack.PlainTextType, Text: message}))
+
+	button := slack.NewButtonBlockElement(
+		"",
+		"click",
+		slack.NewTextBlockObject(
+			slack.PlainTextType,
+			strings.Title(fmt.Sprintf("Visit %s", subjectScope)),
+			false,
+			false,
+		),
+	)
+	button.URL = viewLink
+	blockSet.BlockSet = append(blockSet.BlockSet,
+		slack.NewSectionBlock(
+			nil,
+			[]*slack.TextBlockObject{{Type: slack.MarkdownType, Text: fmt.Sprintf("> %s", commentText)}}, slack.NewAccessory(button),
+		),
+	)
+
+	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewDividerBlock())
+	slackClient := slack.New(*org.SlackAccessToken)
+	for _, slackUser := range taggedSlackUsers {
+		if slackUser.WebhookChannelID != nil {
+			_, _, _, err := slackClient.JoinConversation(*slackUser.WebhookChannelID)
+			if err != nil {
+				log.Error(e.Wrap(err, "failed to join slack channel"))
+			}
+			_, _, err = slackClient.PostMessage(*slackUser.WebhookChannelID, slack.MsgOptionBlocks(blockSet.BlockSet...))
+			if err != nil {
+				return e.Wrap(err, "error posting slack message via slack bot")
+			}
+		}
+	}
+
+	return nil
+}

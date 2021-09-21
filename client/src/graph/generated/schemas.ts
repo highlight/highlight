@@ -20,7 +20,6 @@ export type Scalars = {
 export type Session = {
   __typename?: 'Session';
   id: Scalars['ID'];
-  user_id: Scalars['ID'];
   organization_id: Scalars['ID'];
 };
 

@@ -19,8 +19,6 @@ import { useHistory } from 'react-router-dom';
 
 import { useAuthContext } from '../../../authentication/AuthContext';
 import Button from '../../../components/Button/Button/Button';
-import Modal from '../../../components/Modal/Modal';
-import { ErrorObject } from '../../../graph/generated/schemas';
 import SvgFullscreenIcon from '../../../static/FullscreenIcon';
 import SvgMinimize2Icon from '../../../static/Minimize2Icon';
 import SvgPauseIcon from '../../../static/PauseIcon';
@@ -50,8 +48,6 @@ import {
 import { usePlayerKeyboardShortcuts } from '../utils/PlayerHooks';
 import { DevToolsContextProvider } from './DevToolsContext/DevToolsContext';
 import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
-import ErrorModal from './DevToolsWindow/ErrorsPage/components/ErrorModal/ErrorModal';
-import { ErrorModalContextProvider } from './ErrorModalContext/ErrorModalContext';
 import TimelineIndicators from './TimelineIndicators/TimelineIndicators';
 import styles from './Toolbar.module.scss';
 
@@ -90,9 +86,10 @@ export const Toolbar = () => {
     const { setIsPlayerFullscreen, isPlayerFullscreen } = usePlayerUIContext();
     const max = replayer?.getMetaData().totalTime ?? 0;
     const sliderWrapperRef = useRef<HTMLButtonElement>(null);
-    const [selectedError, setSelectedError] = useState<ErrorObject | undefined>(
-        undefined
-    );
+    const [devToolsPanelContent, setDevToolsPanelContent] = useState<
+        | { title: string | React.ReactNode; content: React.ReactNode }
+        | undefined
+    >(undefined);
     const wrapperWidth =
         sliderWrapperRef.current?.getBoundingClientRect().width ?? 1;
     const [sliderClientX, setSliderClientX] = useState<number>(-1);
@@ -222,259 +219,240 @@ export const Toolbar = () => {
 
     return (
         <ToolbarItemsContextProvider value={toolbarItems}>
-            <ErrorModalContextProvider
-                value={{ selectedError, setSelectedError }}
+            <DevToolsContextProvider
+                value={{
+                    openDevTools: showDevTools,
+                    setOpenDevTools: setShowDevTools,
+                    panelContent: devToolsPanelContent,
+                    setPanelContent: setDevToolsPanelContent,
+                }}
             >
-                <DevToolsContextProvider
-                    value={{
-                        openDevTools: showDevTools,
-                        setOpenDevTools: setShowDevTools,
-                    }}
-                >
-                    {!isPlayerFullscreen && <TimelineIndicators />}
-                    <div id={PlayerPageProductTourSelectors.DevToolsPanel}>
-                        <DevToolsWindow
-                            time={
-                                (replayer?.getMetaData().startTime ?? 0) + time
-                            }
-                            startTime={replayer?.getMetaData().startTime ?? 0}
-                        />
-                    </div>
-                </DevToolsContextProvider>
-                <Modal
-                    visible={!!selectedError}
-                    onCancel={() => {
-                        setSelectedError(undefined);
-                    }}
-                    width={'fit-content'}
-                >
-                    <ErrorModal error={selectedError!} />
-                </Modal>
-                <div className={styles.playerRail}>
-                    <div
-                        className={styles.sliderRail}
-                        style={{
-                            position: 'absolute',
-                            display: 'flex',
-                            background:
-                                sessionIntervals.length > 0
-                                    ? 'none'
-                                    : '#e4e8eb',
-                        }}
-                    >
-                        {sessionIntervals.map((e, ind) => (
-                            <SessionSegment
-                                key={ind}
-                                interval={e}
-                                sliderClientX={sliderClientX}
-                                wrapperWidth={wrapperWidth}
-                                getSliderTime={getSliderTime}
-                            />
-                        ))}
-                    </div>
-                    <button
-                        disabled={disableControls}
-                        className={styles.sliderWrapper}
-                        ref={sliderWrapperRef}
-                        onMouseMove={(e: React.MouseEvent<HTMLButtonElement>) =>
-                            setSliderClientX(
-                                e.clientX -
-                                    staticSidebarWidth -
-                                    leftSidebarWidth
-                            )
-                        }
-                        onMouseLeave={() => setSliderClientX(-1)}
-                        onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-                            const ratio =
-                                (e.clientX -
-                                    staticSidebarWidth -
-                                    leftSidebarWidth) /
-                                wrapperWidth;
-                            setTime(getSliderTime(ratio));
-                        }}
-                    >
-                        <div className={styles.sliderRail}></div>
-
-                        <Draggable
-                            axis="x"
-                            bounds="parent"
-                            onStop={endLogger}
-                            onDrag={onDraggable}
-                            onStart={startDraggable}
-                            disabled={disableControls}
-                            position={{
-                                x: Math.max(
-                                    getSliderPercent(time) * wrapperWidth - 10,
-                                    0
-                                ),
-                                y: 0,
-                            }}
-                        >
-                            <div className={styles.indicatorParent}>
-                                <div className={styles.indicator} />
-                            </div>
-                        </Draggable>
-                    </button>
+                {!isPlayerFullscreen && <TimelineIndicators />}
+                <div id={PlayerPageProductTourSelectors.DevToolsPanel}>
+                    <DevToolsWindow
+                        time={(replayer?.getMetaData().startTime ?? 0) + time}
+                        startTime={replayer?.getMetaData().startTime ?? 0}
+                    />
                 </div>
-                <div className={styles.toolbarSection}>
-                    <div className={styles.toolbarLeftSection}>
-                        <button
-                            className={classNames(
-                                styles.undoSection,
-                                styles.button
-                            )}
-                            onClick={() => {
-                                H.track('PlayerSkipToPreviousSession');
-                                const nextSession = findPreviousSessionInList(
-                                    sessionResults.sessions,
-                                    session_id
-                                );
-                                changeSession(
-                                    organization_id,
-                                    history,
-                                    nextSession,
-                                    'Playing the previous session.'
-                                );
-                            }}
-                        >
-                            <SvgSkipBackIcon
-                                fill="inherit"
-                                className={classNames(
-                                    styles.skipButtonStyle,
-                                    styles.icon
-                                )}
-                            />
-                        </button>
+            </DevToolsContextProvider>
+            <div className={styles.playerRail}>
+                <div
+                    className={styles.sliderRail}
+                    style={{
+                        position: 'absolute',
+                        display: 'flex',
+                        background:
+                            sessionIntervals.length > 0 ? 'none' : '#e4e8eb',
+                    }}
+                >
+                    {sessionIntervals.map((e, ind) => (
+                        <SessionSegment
+                            key={ind}
+                            interval={e}
+                            sliderClientX={sliderClientX}
+                            wrapperWidth={wrapperWidth}
+                            getSliderTime={getSliderTime}
+                        />
+                    ))}
+                </div>
+                <button
+                    disabled={disableControls}
+                    className={styles.sliderWrapper}
+                    ref={sliderWrapperRef}
+                    onMouseMove={(e: React.MouseEvent<HTMLButtonElement>) =>
+                        setSliderClientX(
+                            e.clientX - staticSidebarWidth - leftSidebarWidth
+                        )
+                    }
+                    onMouseLeave={() => setSliderClientX(-1)}
+                    onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                        const ratio =
+                            (e.clientX -
+                                staticSidebarWidth -
+                                leftSidebarWidth) /
+                            wrapperWidth;
+                        setTime(getSliderTime(ratio));
+                    }}
+                >
+                    <div className={styles.sliderRail}></div>
 
-                        <button
-                            className={classNames(
-                                styles.playSection,
-                                styles.button
-                            )}
-                            disabled={disableControls || disablePlayButton}
-                            onClick={() => {
-                                H.track('Player Play/Pause Button');
-                                if (isPaused) {
-                                    play(time);
-                                } else {
-                                    pause(time);
-                                }
-                            }}
-                        >
-                            {isPaused ? (
-                                <SvgPlayIcon
-                                    fill="inherit"
-                                    className={classNames(
-                                        styles.playButtonStyle,
-                                        styles.icon
-                                    )}
-                                />
-                            ) : (
-                                <SvgPauseIcon
-                                    fill="inherit"
-                                    className={classNames(
-                                        styles.playButtonStyle,
-                                        styles.icon
-                                    )}
-                                />
-                            )}
-                        </button>
-
-                        <button
-                            className={classNames(
-                                styles.redoSection,
-                                styles.button
-                            )}
-                            onClick={() => {
-                                H.track('PlayerSkipToNextSession');
-
-                                const nextSession = findNextSessionInList(
-                                    sessionResults.sessions,
-                                    session_id
-                                );
-                                changeSession(
-                                    organization_id,
-                                    history,
-                                    nextSession
-                                );
-                            }}
-                        >
-                            <SvgSkipForwardIcon
-                                fill="inherit"
-                                className={classNames(
-                                    styles.skipButtonStyle,
-                                    styles.icon
-                                )}
-                            />
-                        </button>
-
-                        <div className={styles.timeSection}>
-                            {disableControls ? (
-                                <Skeleton count={1} width="100px" />
-                            ) : (
-                                <>
-                                    {MillisToMinutesAndSeconds(
-                                        //     Sometimes the replayer will report a higher time when the player has ended.
-                                        time >= max ? max : time
-                                    )}
-                                    &nbsp;/&nbsp;
-                                    {MillisToMinutesAndSeconds(max)}
-                                </>
-                            )}
+                    <Draggable
+                        axis="x"
+                        bounds="parent"
+                        onStop={endLogger}
+                        onDrag={onDraggable}
+                        onStart={startDraggable}
+                        disabled={disableControls}
+                        position={{
+                            x: Math.max(
+                                getSliderPercent(time) * wrapperWidth - 10,
+                                0
+                            ),
+                            y: 0,
+                        }}
+                    >
+                        <div className={styles.indicatorParent}>
+                            <div className={styles.indicator} />
                         </div>
-                    </div>
-                    <div className={styles.toolbarRightSection}>
-                        {!isPlayerFullscreen && (
+                    </Draggable>
+                </button>
+            </div>
+            <div className={styles.toolbarSection}>
+                <div className={styles.toolbarLeftSection}>
+                    <button
+                        className={classNames(
+                            styles.undoSection,
+                            styles.button
+                        )}
+                        onClick={() => {
+                            H.track('PlayerSkipToPreviousSession');
+                            const nextSession = findPreviousSessionInList(
+                                sessionResults.sessions,
+                                session_id
+                            );
+                            changeSession(
+                                organization_id,
+                                history,
+                                nextSession,
+                                'Playing the previous session.'
+                            );
+                        }}
+                    >
+                        <SvgSkipBackIcon
+                            fill="inherit"
+                            className={classNames(
+                                styles.skipButtonStyle,
+                                styles.icon
+                            )}
+                        />
+                    </button>
+
+                    <button
+                        className={classNames(
+                            styles.playSection,
+                            styles.button
+                        )}
+                        disabled={disableControls || disablePlayButton}
+                        onClick={() => {
+                            H.track('Player Play/Pause Button');
+                            if (isPaused) {
+                                play(time);
+                            } else {
+                                pause(time);
+                            }
+                        }}
+                    >
+                        {isPaused ? (
+                            <SvgPlayIcon
+                                fill="inherit"
+                                className={classNames(
+                                    styles.playButtonStyle,
+                                    styles.icon
+                                )}
+                            />
+                        ) : (
+                            <SvgPauseIcon
+                                fill="inherit"
+                                className={classNames(
+                                    styles.playButtonStyle,
+                                    styles.icon
+                                )}
+                            />
+                        )}
+                    </button>
+
+                    <button
+                        className={classNames(
+                            styles.redoSection,
+                            styles.button
+                        )}
+                        onClick={() => {
+                            H.track('PlayerSkipToNextSession');
+
+                            const nextSession = findNextSessionInList(
+                                sessionResults.sessions,
+                                session_id
+                            );
+                            changeSession(
+                                organization_id,
+                                history,
+                                nextSession
+                            );
+                        }}
+                    >
+                        <SvgSkipForwardIcon
+                            fill="inherit"
+                            className={classNames(
+                                styles.skipButtonStyle,
+                                styles.icon
+                            )}
+                        />
+                    </button>
+
+                    <div className={styles.timeSection}>
+                        {disableControls ? (
+                            <Skeleton count={1} width="60.13px" />
+                        ) : (
                             <>
-                                <PlaybackSpeedControlToolbarItem
-                                    loading={disableControls}
-                                    renderContext="toolbar"
-                                />
-                                <TimelineAnnotationsToolbarItem
-                                    loading={disableControls}
-                                    renderContext="toolbar"
-                                />
-                                <SkipInactiveToolbarItem
-                                    loading={disableControls}
-                                    renderContext="toolbar"
-                                />
-                                <AutoPlayToolbarItem
-                                    loading={disableControls}
-                                    renderContext="toolbar"
-                                />
-                                <MouseTrailToolbarItem
-                                    loading={disableControls}
-                                    renderContext="toolbar"
-                                />
-                                <DevToolsToolbarItem
-                                    loading={disableControls}
-                                    renderContext="toolbar"
-                                />
-                                <ToolbarMenu loading={disableControls} />
+                                {MillisToMinutesAndSeconds(
+                                    //     Sometimes the replayer will report a higher time when the player has ended.
+                                    time >= max ? max : time
+                                )}
+                                &nbsp;/&nbsp;
+                                {MillisToMinutesAndSeconds(max)}
                             </>
                         )}
-                        <Button
-                            trackingId="PlayerFullScreenButton"
-                            className={styles.settingsButton}
-                            onClick={() => {
-                                setIsPlayerFullscreen(
-                                    (previousValue) => !previousValue
-                                );
-                            }}
-                        >
-                            {isPlayerFullscreen ? (
-                                <SvgMinimize2Icon
-                                    className={styles.devToolsIcon}
-                                />
-                            ) : (
-                                <SvgFullscreenIcon
-                                    className={styles.devToolsIcon}
-                                />
-                            )}
-                        </Button>
                     </div>
                 </div>
-            </ErrorModalContextProvider>
+                <div className={styles.toolbarRightSection}>
+                    {!isPlayerFullscreen && (
+                        <>
+                            <PlaybackSpeedControlToolbarItem
+                                loading={disableControls}
+                                renderContext="toolbar"
+                            />
+                            <TimelineAnnotationsToolbarItem
+                                loading={disableControls}
+                                renderContext="toolbar"
+                            />
+                            <SkipInactiveToolbarItem
+                                loading={disableControls}
+                                renderContext="toolbar"
+                            />
+                            <AutoPlayToolbarItem
+                                loading={disableControls}
+                                renderContext="toolbar"
+                            />
+                            <MouseTrailToolbarItem
+                                loading={disableControls}
+                                renderContext="toolbar"
+                            />
+                            <DevToolsToolbarItem
+                                loading={disableControls}
+                                renderContext="toolbar"
+                            />
+                            <ToolbarMenu loading={disableControls} />
+                        </>
+                    )}
+                    <Button
+                        trackingId="PlayerFullScreenButton"
+                        className={styles.settingsButton}
+                        onClick={() => {
+                            setIsPlayerFullscreen(
+                                (previousValue) => !previousValue
+                            );
+                        }}
+                    >
+                        {isPlayerFullscreen ? (
+                            <SvgMinimize2Icon className={styles.devToolsIcon} />
+                        ) : (
+                            <SvgFullscreenIcon
+                                className={styles.devToolsIcon}
+                            />
+                        )}
+                    </Button>
+                </div>
+            </div>
         </ToolbarItemsContextProvider>
     );
 };

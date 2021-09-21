@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/gammazero/workerpool"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -44,7 +45,7 @@ var (
 	runtime            = flag.String("runtime", "all", "the runtime of the backend; either 1) dev (all runtimes) 2) worker 3) public-graph 4) private-graph")
 )
 
-// we inject this value at build time for on-prem
+//  we inject this value at build time for on-prem
 var SENDGRID_API_KEY string
 
 var runtimeParsed util.Runtime
@@ -165,8 +166,7 @@ func main() {
 		AllowCredentials:       true,
 		AllowedHeaders:         []string{"*"},
 	}).Handler)
-	r.MethodFunc(http.MethodGet, "/health", healthRouter(runtimeParsed))
-
+	r.HandleFunc("/health", healthRouter(runtimeParsed))
 	/*
 		Selectively turn on backends depending on the input flag
 		If type is 'all', we run public-graph on /public and private-graph on /private
@@ -188,7 +188,9 @@ func main() {
 			privateServer.Use(util.NewTracer(util.PrivateGraph))
 			privateServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PrivateGraph)))
 			privateServer.SetRecoverFunc(util.GraphQLRecoverFunc())
-			r.Handle("/", privateServer)
+			r.Handle("/",
+				xray.Handler(xray.NewFixedSegmentNamer("private-graph"), privateServer),
+			)
 		})
 	}
 	if runtimeParsed == util.PublicGraph || runtimeParsed == util.All {
@@ -198,7 +200,7 @@ func main() {
 		}
 		r.Route(publicEndpoint, func(r chi.Router) {
 			r.Use(public.PublicMiddleware)
-			clientServer := ghandler.NewDefaultServer(publicgen.NewExecutableSchema(
+			publicServer := ghandler.NewDefaultServer(publicgen.NewExecutableSchema(
 				publicgen.Config{
 					Resolvers: &public.Resolver{
 						DB:                    db,
@@ -207,24 +209,13 @@ func main() {
 						AlertWorkerPool:       workerpool.New(40),
 					},
 				}))
-			clientServer.Use(util.NewTracer(util.PublicGraph))
-			clientServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PublicGraph)))
-			clientServer.SetRecoverFunc(util.GraphQLRecoverFunc())
-			r.Handle("/", clientServer)
+			publicServer.Use(util.NewTracer(util.PublicGraph))
+			publicServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PublicGraph)))
+			publicServer.SetRecoverFunc(util.GraphQLRecoverFunc())
+			r.Handle("/",
+				xray.Handler(xray.NewFixedSegmentNamer("public-graph"), publicServer),
+			)
 		})
-	}
-
-	// make sure all sessions are visible for on-prem users
-	// TODO: remove this after behave health deploys
-	if util.IsOnPrem() {
-		go func() {
-			// don't log error bc this is on on-prem.
-			db.Raw(`
-				UPDATE sessions
-				SET within_billing_quota=true
-				WHERE NOT within_billing_quota=true
-			`)
-		}()
 	}
 
 	/*

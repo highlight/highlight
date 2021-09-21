@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import moment from 'moment';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useParams } from 'react-router';
 import AsyncSelect from 'react-select/async';
@@ -66,6 +66,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
     const [searchBarRef, setSearchBarRef] = useState<
         AsyncSelect<ErrorSearchOption, true> | undefined
     >(undefined);
+    const newCommentModalRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => setCachedParams(searchParams), [
         searchParams,
@@ -217,12 +218,18 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                                     </div>
                                 )}
                             </div>
-                            <div className={styles.errorPageRightColumn}>
+                            <div
+                                className={styles.errorPageRightColumn}
+                                ref={newCommentModalRef}
+                            >
                                 <ErrorAffectedUsers
                                     errorGroup={data}
                                     loading={loading}
                                 />
-                                <ErrorRightPanel errorGroup={data} />
+                                <ErrorRightPanel
+                                    errorGroup={data}
+                                    parentRef={newCommentModalRef}
+                                />
                             </div>
                         </>
                     ) : (

@@ -1,7 +1,29 @@
 {
     "ipcMode": null,
     "executionRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
+    "taskRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
     "containerDefinitions": [
+        {
+            "name": "xray-daemon",
+            "image": "amazon/aws-xray-daemon",
+            "cpu": 32,
+            "memoryReservation": 256,
+            "portMappings": [
+                {
+                    "containerPort": 2000,
+                    "protocol": "udp"
+                }
+            ],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "secretOptions": null,
+                "options": {
+                    "awslogs-group": "/ecs/private-graph-task",
+                    "awslogs-region": "us-east-2",
+                    "awslogs-stream-prefix": "ecs"
+                }
+            }
+        },
         {
             "name": "datadog-agent",
             "image": "datadog/agent:latest",
@@ -83,7 +105,6 @@
         }
     ],
     "placementConstraints": [],
-    "taskRoleArn": null,
     "family": "private-graph-task",
     "pidMode": null,
     "requiresCompatibilities": ["FARGATE"],

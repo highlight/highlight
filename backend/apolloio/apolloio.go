@@ -10,7 +10,7 @@ import (
 )
 
 var apiKey = os.Getenv("APOLLO_IO_API_KEY")
-var emailSenderAccountID = "6053cd5ef93cca00e498990f" // Represents jay@highlight.run
+var emailSenderAccountID = "611a948f244402011469a418" // Represents jay@hilite.run
 
 func Enrich(email string) (short *string, long *string, err error) {
 	type MatchRequest struct {
