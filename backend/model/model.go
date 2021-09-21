@@ -301,8 +301,8 @@ func (u *Project) VerboseID() string {
 
 func FromVerboseID(verboseId string) int {
 	// Try to convert the id to an integer in the case that the client is out of date.
-	if organizationID, err := strconv.Atoi(verboseId); err == nil {
-		return organizationID
+	if projectID, err := strconv.Atoi(verboseId); err == nil {
+		return projectID
 	}
 	// Otherwise, decode with HashID library
 	ints := HashID.Decode(verboseId)
@@ -834,7 +834,7 @@ func DecodeAndValidateParams(params []interface{}) ([]*Param, error) {
 func (s *Session) SetUserProperties(userProperties map[string]string) error {
 	user, err := json.Marshal(userProperties)
 	if err != nil {
-		return e.Wrapf(err, "[org_id: %d] error marshalling user properties map into bytes", s.ProjectID)
+		return e.Wrapf(err, "[project_id: %d] error marshalling user properties map into bytes", s.ProjectID)
 	}
 	s.UserProperties = string(user)
 	return nil
@@ -843,13 +843,12 @@ func (s *Session) SetUserProperties(userProperties map[string]string) error {
 func (s *Session) GetUserProperties() (map[string]string, error) {
 	var userProperties map[string]string
 	if err := json.Unmarshal([]byte(s.UserProperties), &userProperties); err != nil {
-		return nil, e.Wrapf(err, "[org_id: %d] error unmarshalling user properties map into bytes", s.ProjectID)
+		return nil, e.Wrapf(err, "[project_id: %d] error unmarshalling user properties map into bytes", s.ProjectID)
 	}
 	return userProperties, nil
 }
 
 type SendSlackAlertInput struct {
-	// Organization is a required parameter
 	Organization *Organization
 	// Project is a required parameter
 	Project *Project
@@ -874,7 +873,7 @@ type SendSlackAlertInput struct {
 }
 
 func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
-	// TODO: combine `error_alerts` and `session_alerts` tables and create unique composite index on (organization_id, type)
+	// TODO: combine `error_alerts` and `session_alerts` tables and create unique composite index on (project_id, type)
 	if obj == nil {
 		return e.New("alert is nil")
 	}
@@ -883,7 +882,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 	if err != nil {
 		return e.Wrap(err, "error getting channels to notify from user properties alert")
 	}
-	// get organization's channels
+	// get project's channels
 	integratedSlackChannels, err := input.Project.IntegratedSlackChannels()
 	if err != nil {
 		return e.Wrap(err, "error getting slack webhook url for alert")
@@ -1017,10 +1016,10 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 	}
 
 	var slackClient *slack.Client
-	if input.Organization.SlackAccessToken != nil {
-		slackClient = slack.New(*input.Organization.SlackAccessToken)
+	if input.Project.SlackAccessToken != nil {
+		slackClient = slack.New(*input.Project.SlackAccessToken)
 	}
-	log.Printf("Sending Slack Alert for org: %d session: %d", input.Organization.ID, input.SessionID)
+	log.Printf("Sending Slack Alert for project: %d session: %d", input.Project.ID, input.SessionID)
 
 	// send message
 	for _, channel := range channels {
@@ -1041,7 +1040,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 			}
 
 			if slackWebhookURL == "" && isWebhookChannel {
-				log.WithFields(log.Fields{"org_id": input.Organization.ID}).
+				log.WithFields(log.Fields{"project_id": input.Project.ID}).
 					Error("requested channel has no matching slackWebhookURL")
 				continue
 			}
@@ -1058,7 +1057,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 						&msg,
 					)
 					if err != nil {
-						log.WithFields(log.Fields{"org_id": input.Organization.ID, "slack_webhook_url": slackWebhookURL, "message": fmt.Sprintf("%+v", msg)}).
+						log.WithFields(log.Fields{"project_id": input.Project.ID, "slack_webhook_url": slackWebhookURL, "message": fmt.Sprintf("%+v", msg)}).
 							Error(e.Wrap(err, "error sending slack msg via webhook"))
 					}
 				} else {
@@ -1074,7 +1073,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 						}
 						_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionBlocks(blockSet...))
 						if err != nil {
-							log.WithFields(log.Fields{"org_id": input.Organization.ID, "message": fmt.Sprintf("%+v", msg)}).
+							log.WithFields(log.Fields{"project_id": input.Project.ID, "message": fmt.Sprintf("%+v", msg)}).
 								Error(e.Wrap(err, "error sending slack msg via bot api"))
 						}
 

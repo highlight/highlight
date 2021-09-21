@@ -195,30 +195,30 @@ func (r *mutationResolver) CreateProject(ctx context.Context, name string) (*mod
 		BillingEmail:     admin.Email,
 	}
 	if err := r.DB.Create(project).Error; err != nil {
-		return nil, e.Wrap(err, "error creating org")
+		return nil, e.Wrap(err, "error creating project")
 	}
 	if err := r.DB.Create(&model.ErrorAlert{Alert: model.Alert{ProjectID: project.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.ERROR}}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating error alert for new org")
+		return nil, e.Wrap(err, "error creating error alert for new project")
 	}
 	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{ProjectID: project.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.SESSION_FEEDBACK}}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session feedback alert for new org")
+		return nil, e.Wrap(err, "error creating session feedback alert for new project")
 	}
 	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{ProjectID: project.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.NEW_USER}}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session new user alert for new org")
+		return nil, e.Wrap(err, "error creating session new user alert for new project")
 	}
 	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{ProjectID: project.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.TRACK_PROPERTIES}}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session track properties alert for new org")
+		return nil, e.Wrap(err, "error creating session track properties alert for new project")
 	}
 	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{ProjectID: project.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.USER_PROPERTIES}}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session user properties alert for new org")
+		return nil, e.Wrap(err, "error creating session user properties alert for new project")
 	}
 	return project, nil
 }
 
 func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string) (*model.Project, error) {
-	project, err := r.isAdminInOrganization(ctx, id)
+	project, err := r.isAdminInProject(ctx, id)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying org")
+		return nil, e.Wrap(err, "error querying project")
 	}
 	if err := r.DB.Model(project).Updates(&model.Project{
 		Name:         name,
@@ -276,34 +276,34 @@ func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, id *int, s
 }
 
 func (r *mutationResolver) DeleteProject(ctx context.Context, id int) (*bool, error) {
-	_, err := r.isAdminInOrganization(ctx, id)
+	_, err := r.isAdminInProject(ctx, id)
 	if err != nil {
-		return nil, e.Wrap(err, "admin is not in organization")
+		return nil, e.Wrap(err, "admin is not in project")
 	}
 	if err := r.DB.Model(&model.Project{}).Delete("id = ?", id).Error; err != nil {
-		return nil, e.Wrap(err, "error deleting organization")
+		return nil, e.Wrap(err, "error deleting project")
 	}
 	return &model.T, nil
 }
 
 func (r *mutationResolver) SendAdminInvite(ctx context.Context, projectID int, email string, baseURL string) (*string, error) {
-	org, err := r.isAdminInOrganization(ctx, projectID)
+	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying org")
+		return nil, e.Wrap(err, "error querying project")
 	}
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying admin")
 	}
 	var secret string
-	if org.Secret == nil {
+	if project.Secret == nil {
 		uid := xid.New().String()
-		if err := r.DB.Model(org).Updates(&model.Organization{Secret: &uid}).Error; err != nil {
-			return nil, e.Wrap(err, "error updating uid in org secret")
+		if err := r.DB.Model(project).Updates(&model.Project{Secret: &uid}).Error; err != nil {
+			return nil, e.Wrap(err, "error updating uid in project secret")
 		}
 		secret = uid
 	} else {
-		secret = *org.Secret
+		secret = *project.Secret
 	}
 	inviteLink := baseURL + "/" + strconv.Itoa(projectID) + "/invite/" + secret
 	to := &mail.Email{Address: email}
@@ -316,7 +316,7 @@ func (r *mutationResolver) SendAdminInvite(ctx context.Context, projectID int, e
 	p := mail.NewPersonalization()
 	p.AddTos(to)
 	p.SetDynamicTemplateData("Admin_Invitor", admin.Name)
-	p.SetDynamicTemplateData("Organization_Name", org.Name)
+	p.SetDynamicTemplateData("Organization_Name", project.Name)
 	p.SetDynamicTemplateData("Invite_Link", inviteLink)
 
 	m.AddPersonalizations(p)
@@ -334,7 +334,7 @@ func (r *mutationResolver) SendAdminInvite(ctx context.Context, projectID int, e
 func (r *mutationResolver) AddAdminToProject(ctx context.Context, projectID int, inviteID string) (*int, error) {
 	project := &model.Project{}
 	if err := r.DB.Model(&model.Project{}).Where("id = ?", projectID).First(&project).Error; err != nil {
-		return nil, e.Wrap(err, "error querying org")
+		return nil, e.Wrap(err, "error querying project")
 	}
 	if project.Secret == nil || (project.Secret != nil && *project.Secret != inviteID) {
 		return nil, e.New("invalid invite id")
@@ -350,27 +350,27 @@ func (r *mutationResolver) AddAdminToProject(ctx context.Context, projectID int,
 }
 
 func (r *mutationResolver) DeleteAdminFromProject(ctx context.Context, projectID int, adminID int) (*int, error) {
-	if _, err := r.isAdminInOrganization(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin is not in organization")
+	if _, err := r.isAdminInProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "admin is not in project")
 	}
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
-		return nil, e.New("error querying admin while deleting admin from organization")
+		return nil, e.New("error querying admin while deleting admin from project")
 	}
 	if admin.ID == adminID {
-		return nil, e.New("Admin tried deleting themselves from the organization")
+		return nil, e.New("Admin tried deleting themselves from the project")
 	}
 
 	if err := r.DB.Model(&model.Project{Model: model.Model{ID: projectID}}).Association("Admins").Delete(model.Admin{Model: model.Model{ID: adminID}}); err != nil {
-		return nil, e.Wrap(err, "error deleting admin from organization")
+		return nil, e.Wrap(err, "error deleting admin from project")
 	}
 
 	return &adminID, nil
 }
 
 func (r *mutationResolver) CreateSegment(ctx context.Context, projectID int, name string, params modelInputs.SearchParamsInput) (*model.Segment, error) {
-	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin is not in organization")
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "admin is not in project")
 	}
 	modelParams := InputToParams(&params)
 	// Convert to json to store in the db.
@@ -419,8 +419,8 @@ func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (strin
 }
 
 func (r *mutationResolver) EditSegment(ctx context.Context, id int, projectID int, params modelInputs.SearchParamsInput) (*bool, error) {
-	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin is not in organization")
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "admin is not in project")
 	}
 	modelParams := InputToParams(&params)
 	// Convert to json to store in the db.
@@ -449,8 +449,8 @@ func (r *mutationResolver) DeleteSegment(ctx context.Context, segmentID int) (*b
 }
 
 func (r *mutationResolver) CreateErrorSegment(ctx context.Context, projectID int, name string, params modelInputs.ErrorSearchParamsInput) (*model.ErrorSegment, error) {
-	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin is not in organization")
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "admin is not in project")
 	}
 	modelParams := ErrorInputToParams(&params)
 	// Convert to json to store in the db.
@@ -472,8 +472,8 @@ func (r *mutationResolver) CreateErrorSegment(ctx context.Context, projectID int
 }
 
 func (r *mutationResolver) EditErrorSegment(ctx context.Context, id int, projectID int, params modelInputs.ErrorSearchParamsInput) (*bool, error) {
-	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin is not in organization")
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "admin is not in project")
 	}
 	modelParams := ErrorInputToParams(&params)
 	// Convert to json to store in the db.
@@ -502,30 +502,30 @@ func (r *mutationResolver) DeleteErrorSegment(ctx context.Context, segmentID int
 }
 
 func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context, projectID int, planType modelInputs.PlanType) (*string, error) {
-	org, err := r.isAdminInOrganization(ctx, projectID)
+	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin is not in organization")
+		return nil, e.Wrap(err, "admin is not in project")
 	}
 
 	// For older workspaces, if there's no customer ID, we create a StripeCustomer obj.
-	if org.StripeCustomerID == nil {
+	if project.StripeCustomerID == nil {
 		params := &stripe.CustomerParams{}
 		c, err := r.StripeClient.Customers.New(params)
 		if err != nil {
 			return nil, e.Wrap(err, "error creating stripe customer")
 		}
-		if err := r.DB.Model(org).Updates(&model.Organization{
+		if err := r.DB.Model(project).Updates(&model.Project{
 			StripeCustomerID: &c.ID,
 		}).Error; err != nil {
 			return nil, e.Wrap(err, "error updating org fields")
 		}
-		org.StripeCustomerID = &c.ID
+		project.StripeCustomerID = &c.ID
 	}
 
 	// Check if there's already a subscription on the user. If there is, we do an update and return early.
 	params := &stripe.CustomerParams{}
 	params.AddExpand("subscriptions")
-	c, err := r.StripeClient.Customers.Get(*org.StripeCustomerID, params)
+	c, err := r.StripeClient.Customers.Get(*project.StripeCustomerID, params)
 	if err != nil {
 		return nil, e.Wrap(err, "couldn't retrieve stripe customer data")
 	}
@@ -558,7 +558,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 		PaymentMethodTypes: stripe.StringSlice([]string{
 			"card",
 		}),
-		Customer: org.StripeCustomerID,
+		Customer: project.StripeCustomerID,
 		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
 			Items: []*stripe.CheckoutSessionSubscriptionDataItemsParams{
 				{
@@ -579,13 +579,13 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 }
 
 func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, projectID int) (*bool, error) {
-	org, err := r.isAdminInOrganization(ctx, projectID)
+	proj, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin is not in organization")
+		return nil, e.Wrap(err, "admin is not in project")
 	}
 	params := &stripe.CustomerParams{}
 	params.AddExpand("subscriptions")
-	c, err := r.StripeClient.Customers.Get(*org.StripeCustomerID, params)
+	c, err := r.StripeClient.Customers.Get(*proj.StripeCustomerID, params)
 	if err != nil {
 		return nil, e.Wrap(err, "couldn't retrieve stripe customer data")
 	}
@@ -596,9 +596,9 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, projectID i
 
 	planTypeId := c.Subscriptions.Data[0].Plan.ID
 
-	organization := model.Organization{Model: model.Model{ID: projectID}}
-	if err := r.DB.Model(&organization).Updates(model.Organization{StripePriceID: &planTypeId}).Error; err != nil {
-		return nil, e.Wrap(err, "error setting stripe_plan_id on organization")
+	project := model.Project{Model: model.Model{ID: projectID}}
+	if err := r.DB.Model(&project).Updates(model.Project{StripePriceID: &planTypeId}).Error; err != nil {
+		return nil, e.Wrap(err, "error setting stripe_plan_id on project")
 	}
 	// mark sessions as within billing quota on plan upgrade
 	// this code is repeated as the first time, the user already has a billing plan and the function returns early.
@@ -627,9 +627,9 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		return nil, e.Wrap(err, "admin cannot leave a comment")
 	}
 
-	var org model.Organization
-	if err := r.DB.Where(&model.Organization{Model: model.Model{ID: projectID}}).First(&org).Error; err != nil {
-		return nil, e.Wrap(err, "error querying organization")
+	var project model.Project
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
+		return nil, e.Wrap(err, "error querying project")
 	}
 
 	admins := []model.Admin{}
@@ -654,7 +654,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		YCoordinate: yCoordinate,
 	}
 	createSessionCommentSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
-		tracer.ResourceName("db.createSessionComment"), tracer.Tag("org_id", projectID))
+		tracer.ResourceName("db.createSessionComment"), tracer.Tag("project_id", projectID))
 	if err := r.DB.Create(sessionComment).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session comment")
 	}
@@ -674,7 +674,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 
 		go func() {
 			commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
-				tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("org_id", projectID), tracer.Tag("count", len(taggedAdmins)))
+				tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedAdmins)))
 			defer commentMentionEmailSpan.Finish()
 
 			err := r.SendEmailAlert(tos, authorName, viewLink, textForEmail, SendGridSessionCommentEmailTemplateID, sessionImage)
@@ -685,10 +685,10 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 
 		go func() {
 			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
-				tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("org_id", projectID), tracer.Tag("count", len(adminIds)))
+				tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(adminIds)))
 			defer commentMentionSlackSpan.Finish()
 
-			err := r.SendPersonalSlackAlert(&org, admin, adminIds, viewLink, textForEmail, "session")
+			err := r.SendPersonalSlackAlert(&project, admin, adminIds, viewLink, textForEmail, "session")
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in session comment"))
 			}
@@ -698,10 +698,10 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 	if len(taggedSlackUsers) > 0 && !isGuestCreatingSession {
 		go func() {
 			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
-				tracer.ResourceName("slackBot.sendCommentMention"), tracer.Tag("org_id", projectID), tracer.Tag("count", len(taggedSlackUsers)))
+				tracer.ResourceName("slackBot.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedSlackUsers)))
 			defer commentMentionSlackSpan.Finish()
 
-			err := r.SendSlackAlertToUser(&org, admin, taggedSlackUsers, viewLink, textForEmail, "session")
+			err := r.SendSlackAlertToUser(&project, admin, taggedSlackUsers, viewLink, textForEmail, "session")
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in session comment for slack bot"))
 			}
@@ -735,12 +735,12 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 
 	errorGroup, err := r.isAdminErrorGroupOwner(ctx, errorGroupID, errorGroupSecureID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin is not in organization")
+		return nil, e.Wrap(err, "admin is not in project")
 	}
 
-	var org model.Organization
-	if err := r.DB.Where(&model.Organization{Model: model.Model{ID: projectID}}).First(&org).Error; err != nil {
-		return nil, e.Wrap(err, "error querying organization")
+	var project model.Project
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
+		return nil, e.Wrap(err, "error querying project")
 	}
 
 	admins := []model.Admin{}
@@ -760,7 +760,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 		Text:      text,
 	}
 	createErrorCommentSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
-		tracer.ResourceName("db.createErrorComment"), tracer.Tag("org_id", projectID))
+		tracer.ResourceName("db.createErrorComment"), tracer.Tag("project_id", projectID))
 	if err := r.DB.Create(errorComment).Error; err != nil {
 		return nil, e.Wrap(err, "error creating error comment")
 	}
@@ -778,7 +778,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 
 		go func() {
 			commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
-				tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("org_id", projectID), tracer.Tag("count", len(taggedAdmins)))
+				tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedAdmins)))
 			defer commentMentionEmailSpan.Finish()
 
 			err := r.SendEmailAlert(tos, authorName, viewLink, textForEmail, SendGridErrorCommentEmailTemplateId, nil)
@@ -789,10 +789,10 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 
 		go func() {
 			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
-				tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("org_id", projectID), tracer.Tag("count", len(adminIds)))
+				tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(adminIds)))
 			defer commentMentionSlackSpan.Finish()
 
-			err = r.SendPersonalSlackAlert(&org, admin, adminIds, viewLink, textForEmail, "error")
+			err = r.SendPersonalSlackAlert(&project, admin, adminIds, viewLink, textForEmail, "error")
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in error comment"))
 			}
@@ -821,9 +821,9 @@ func (r *mutationResolver) OpenSlackConversation(ctx context.Context, projectID 
 		SLACK_CLIENT_ID     string
 		SLACK_CLIENT_SECRET string
 	)
-	org, err := r.isAdminInOrganization(ctx, projectID)
+	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin is not in organization")
+		return nil, e.Wrap(err, "admin is not in project")
 	}
 	redirect := os.Getenv("FRONTEND_URI")
 	redirect += "/" + strconv.Itoa(projectID) + "/" + redirectPath
@@ -845,9 +845,9 @@ func (r *mutationResolver) OpenSlackConversation(ctx context.Context, projectID 
 		return nil, e.Wrap(err, "error getting slack oauth response")
 	}
 
-	if org.SlackAccessToken == nil {
-		if err := r.DB.Where(&model.Organization{Model: model.Model{ID: projectID}}).Updates(&model.Organization{SlackAccessToken: &resp.AccessToken}).Error; err != nil {
-			return nil, e.Wrap(err, "error updating slack access token in org")
+	if project.SlackAccessToken == nil {
+		if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).Updates(&model.Project{SlackAccessToken: &resp.AccessToken}).Error; err != nil {
+			return nil, e.Wrap(err, "error updating slack access token in project")
 		}
 	}
 
@@ -872,9 +872,9 @@ func (r *mutationResolver) AddSlackBotIntegrationToProject(ctx context.Context, 
 		SLACK_CLIENT_ID     string
 		SLACK_CLIENT_SECRET string
 	)
-	project, err := r.isAdminInOrganization(ctx, projectID)
+	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
-		return false, e.Wrap(err, "admin is not in organization")
+		return false, e.Wrap(err, "admin is not in project")
 	}
 	redirect := os.Getenv("FRONTEND_URI")
 	redirect += "/" + strconv.Itoa(projectID) + "/" + redirectPath
@@ -897,7 +897,7 @@ func (r *mutationResolver) AddSlackBotIntegrationToProject(ctx context.Context, 
 	}
 
 	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).Updates(&model.Project{SlackAccessToken: &resp.AccessToken}).Error; err != nil {
-		return false, e.Wrap(err, "error updating slack access token in org")
+		return false, e.Wrap(err, "error updating slack access token in project")
 	}
 
 	slackClient := slack.New(resp.AccessToken)
@@ -978,19 +978,19 @@ func (r *mutationResolver) AddSlackBotIntegrationToProject(ctx context.Context, 
 		return false, e.Wrap(err, "error marshaling existing channels")
 	}
 	channelString := string(channelBytes)
-	if err := r.DB.Model(project).Updates(&model.Organization{
+	if err := r.DB.Model(project).Updates(&model.Project{
 		SlackChannels: &channelString,
 	}).Error; err != nil {
-		return false, e.Wrap(err, "error updating org fields")
+		return false, e.Wrap(err, "error updating project fields")
 	}
 
 	return true, nil
 }
 
 func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.ErrorAlert, error) {
-	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin is not in organization")
+		return nil, e.Wrap(err, "admin is not in project")
 	}
 
 	alert := &model.ErrorAlert{}
@@ -1031,9 +1031,9 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, 
 }
 
 func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, projectID int, sessionFeedbackAlertID int, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
-	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin is not in organization")
+		return nil, e.Wrap(err, "admin is not in project")
 	}
 
 	var alert *model.SessionAlert
@@ -1074,9 +1074,9 @@ func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, proje
 }
 
 func (r *mutationResolver) UpdateNewUserAlert(ctx context.Context, projectID int, sessionAlertID int, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
-	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin is not in organization")
+		return nil, e.Wrap(err, "admin is not in project")
 	}
 
 	alert := &model.SessionAlert{}
@@ -1116,9 +1116,9 @@ func (r *mutationResolver) UpdateNewUserAlert(ctx context.Context, projectID int
 }
 
 func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, projectID int, sessionAlertID int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, trackProperties []*modelInputs.TrackPropertyInput) (*model.SessionAlert, error) {
-	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin is not in organization")
+		return nil, e.Wrap(err, "admin is not in project")
 	}
 
 	envBytes, err := json.Marshal(environments)
@@ -1160,9 +1160,9 @@ func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, proje
 }
 
 func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, projectID int, sessionAlertID int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, userProperties []*modelInputs.UserPropertyInput) (*model.SessionAlert, error) {
-	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin is not in organization")
+		return nil, e.Wrap(err, "admin is not in project")
 	}
 
 	envBytes, err := json.Marshal(environments)
@@ -1249,7 +1249,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionID *int, sessionSecur
 	}
 	if en := s.ObjectStorageEnabled; en != nil && *en {
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("org_id", s.ProjectID))
+			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("project_id", s.ProjectID))
 		defer objectStorageSpan.Finish()
 		ret, err := r.StorageClient.ReadSessionsFromS3(s.ID, s.ProjectID)
 		if err != nil {
@@ -1258,14 +1258,14 @@ func (r *queryResolver) Events(ctx context.Context, sessionID *int, sessionSecur
 		return ret, nil
 	}
 	eventsQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-		tracer.ResourceName("db.eventsObjectsQuery"), tracer.Tag("org_id", s.ProjectID))
+		tracer.ResourceName("db.eventsObjectsQuery"), tracer.Tag("project_id", s.ProjectID))
 	eventObjs := []*model.EventsObject{}
 	if res := r.DB.Order("created_at desc").Where(&model.EventsObject{SessionID: s.ID}).Find(&eventObjs); res.Error != nil {
 		return nil, fmt.Errorf("error reading from events: %v", res.Error)
 	}
 	eventsQuerySpan.Finish()
 	eventsParseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-		tracer.ResourceName("parse.eventsObjects"), tracer.Tag("org_id", s.ProjectID))
+		tracer.ResourceName("parse.eventsObjects"), tracer.Tag("project_id", s.ProjectID))
 	allEvents := make(map[string][]interface{})
 	for _, eventObj := range eventObjs {
 		subEvents := make(map[string][]interface{})
@@ -1280,8 +1280,8 @@ func (r *queryResolver) Events(ctx context.Context, sessionID *int, sessionSecur
 
 func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count int, params *modelInputs.ErrorSearchParamsInput) (*model.ErrorResults, error) {
 	endpointStart := time.Now()
-	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in org")
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "admin not found in project")
 	}
 
 	errorGroups := []model.ErrorGroup{}
@@ -1330,10 +1330,10 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 	var g errgroup.Group
 	var queriedErrorGroupsCount int64
 
-	logTags := []string{fmt.Sprintf("org_id:%d", projectID)}
+	logTags := []string{fmt.Sprintf("project_id:%d", projectID)}
 	g.Go(func() error {
 		errorGroupSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-			tracer.ResourceName("db.errorGroups"), tracer.Tag("org_id", projectID))
+			tracer.ResourceName("db.errorGroups"), tracer.Tag("project_id", projectID))
 		start := time.Now()
 		query := fmt.Sprintf("%s %s ORDER BY updated_at DESC LIMIT %d", selectPreamble, queryString, count)
 		if err := r.DB.Raw(query).Scan(&errorGroups).Error; err != nil {
@@ -1350,7 +1350,7 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 
 	g.Go(func() error {
 		errorGroupCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-			tracer.ResourceName("db.errorGroupsCount"), tracer.Tag("org_id", projectID))
+			tracer.ResourceName("db.errorGroupsCount"), tracer.Tag("project_id", projectID))
 		start := time.Now()
 		query := fmt.Sprintf("%s %s", countPreamble, queryString)
 		if err := r.DB.Raw(query).Scan(&queriedErrorGroupsCount).Error; err != nil {
@@ -1378,7 +1378,7 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 	hlog.Timing("gql.errorGroups.duration", endpointDuration, logTags, 1)
 	hlog.Incr("gql.errorGroups.count", logTags, 1)
 	if endpointDuration.Milliseconds() > 3000 {
-		log.Error(e.New(fmt.Sprintf("gql.errorGroups took %dms: org_id: %d, params: %+v", endpointDuration.Milliseconds(), projectID, params)))
+		log.Error(e.New(fmt.Sprintf("gql.errorGroups took %dms: project_id: %d, params: %+v", endpointDuration.Milliseconds(), projectID, params)))
 	}
 	return errorResults, nil
 }
@@ -1394,7 +1394,7 @@ func (r *queryResolver) Messages(ctx context.Context, sessionID *int, sessionSec
 	}
 	if en := s.ObjectStorageEnabled; en != nil && *en {
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("org_id", s.ProjectID))
+			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("project_id", s.ProjectID))
 		defer objectStorageSpan.Finish()
 		ret, err := r.StorageClient.ReadMessagesFromS3(s.ID, s.ProjectID)
 		if err != nil {
@@ -1423,7 +1423,7 @@ func (r *queryResolver) Errors(ctx context.Context, sessionID *int, sessionSecur
 		return nil, e.Wrap(err, "admin not session owner")
 	}
 	eventsQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-		tracer.ResourceName("db.errorObjectsQuery"), tracer.Tag("org_id", s.ProjectID))
+		tracer.ResourceName("db.errorObjectsQuery"), tracer.Tag("project_id", s.ProjectID))
 	defer eventsQuerySpan.Finish()
 	errorsObj := []*model.ErrorObject{}
 	if res := r.DB.Order("created_at asc").Where(&model.ErrorObject{SessionID: s.ID}).Find(&errorsObj); res.Error != nil {
@@ -1439,7 +1439,7 @@ func (r *queryResolver) Resources(ctx context.Context, sessionID *int, sessionSe
 	}
 	if en := s.ObjectStorageEnabled; en != nil && *en {
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("org_id", s.ProjectID))
+			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("project_id", s.ProjectID))
 		defer objectStorageSpan.Finish()
 		ret, err := r.StorageClient.ReadResourcesFromS3(s.ID, s.ProjectID)
 		if err != nil {
@@ -1489,13 +1489,13 @@ func (r *queryResolver) SessionCommentsForAdmin(ctx context.Context) ([]*model.S
 }
 
 func (r *queryResolver) SessionCommentsForProject(ctx context.Context, projectID int) ([]*model.SessionComment, error) {
-	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID); err != nil {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org for session comments")
 	}
 
 	var sessionComments []*model.SessionComment
 	if err := r.DB.Model(model.SessionComment{}).Where("project_id = ?", projectID).Find(&sessionComments).Error; err != nil {
-		return nil, e.Wrap(err, "error getting session comments for organization")
+		return nil, e.Wrap(err, "error getting session comments for project")
 	}
 
 	return sessionComments, nil
@@ -1528,24 +1528,24 @@ func (r *queryResolver) ErrorCommentsForAdmin(ctx context.Context) ([]*model.Err
 }
 
 func (r *queryResolver) ErrorCommentsForProject(ctx context.Context, projectID int) ([]*model.ErrorComment, error) {
-	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID); err != nil {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org for error comments")
 	}
 
 	var errorComments []*model.ErrorComment
 	if err := r.DB.Model(model.ErrorComment{}).Where("project_id = ?", projectID).Find(&errorComments).Error; err != nil {
-		return nil, e.Wrap(err, "error getting error comments for organization")
+		return nil, e.Wrap(err, "error getting error comments for project")
 	}
 
 	return errorComments, nil
 }
 
 func (r *queryResolver) Admins(ctx context.Context, projectID int) ([]*model.Admin, error) {
-	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in org")
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "admin not found in project")
 	}
 	admins := []*model.Admin{}
-	err := r.DB.Raw("SELECT * FROM admins WHERE id IN (SELECT admin_id FROM organization_admins WHERE project_id = ?) ORDER BY created_at ASC", projectID).Find(&admins).Error
+	err := r.DB.Raw("SELECT * FROM admins WHERE id IN (SELECT admin_id FROM project_admins WHERE project_id = ?) ORDER BY created_at ASC", projectID).Find(&admins).Error
 	if err != nil {
 		return nil, e.Wrap(err, "error getting associated admins")
 	}
@@ -1553,8 +1553,8 @@ func (r *queryResolver) Admins(ctx context.Context, projectID int) ([]*model.Adm
 }
 
 func (r *queryResolver) IsIntegrated(ctx context.Context, projectID int) (*bool, error) {
-	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in org")
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "admin not found in project")
 	}
 	var count int64
 	err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).Count(&count).Error
@@ -1568,8 +1568,8 @@ func (r *queryResolver) IsIntegrated(ctx context.Context, projectID int) (*bool,
 }
 
 func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, projectID int) (*int64, error) {
-	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in org")
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "admin not found in project")
 	}
 
 	var count int64
@@ -1591,8 +1591,8 @@ func (r *queryResolver) AdminHasCreatedComment(ctx context.Context, adminID int)
 }
 
 func (r *queryResolver) ProjectHasViewedASession(ctx context.Context, projectID int) (*model.Session, error) {
-	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in org")
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "admin not found in project")
 	}
 
 	session := model.Session{}
@@ -1603,8 +1603,8 @@ func (r *queryResolver) ProjectHasViewedASession(ctx context.Context, projectID 
 }
 
 func (r *queryResolver) DailySessionsCount(ctx context.Context, projectID int, dateRange modelInputs.DateRangeInput) ([]*model.DailySessionCount, error) {
-	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in org")
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "admin not found in project")
 	}
 
 	dailySessions := []*model.DailySessionCount{}
@@ -1620,8 +1620,8 @@ func (r *queryResolver) DailySessionsCount(ctx context.Context, projectID int, d
 }
 
 func (r *queryResolver) DailyErrorsCount(ctx context.Context, projectID int, dateRange modelInputs.DateRangeInput) ([]*model.DailyErrorCount, error) {
-	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in org")
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "admin not found in project")
 	}
 
 	dailyErrors := []*model.DailyErrorCount{}
@@ -1637,8 +1637,8 @@ func (r *queryResolver) DailyErrorsCount(ctx context.Context, projectID int, dat
 }
 
 func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, errorGroupID *int, errorGroupSecureID *string, dateOffset int) ([]*int64, error) {
-	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in org")
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "admin not found in project")
 	}
 
 	var dailyErrors []*int64
@@ -1662,8 +1662,8 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, 
 }
 
 func (r *queryResolver) Referrers(ctx context.Context, projectID int, lookBackPeriod int) ([]*modelInputs.ReferrerTablePayload, error) {
-	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in org")
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "admin not found in project")
 	}
 
 	referrers := []*modelInputs.ReferrerTablePayload{}
@@ -1676,8 +1676,8 @@ func (r *queryResolver) Referrers(ctx context.Context, projectID int, lookBackPe
 }
 
 func (r *queryResolver) NewUsersCount(ctx context.Context, projectID int, lookBackPeriod int) (*modelInputs.NewUsersCount, error) {
-	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in org")
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "admin not found in project")
 	}
 
 	var count int64
@@ -1689,13 +1689,13 @@ func (r *queryResolver) NewUsersCount(ctx context.Context, projectID int, lookBa
 }
 
 func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPeriod int) ([]*modelInputs.TopUsersPayload, error) {
-	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in org")
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "admin not found in project")
 	}
 
 	var topUsersPayload = []*modelInputs.TopUsersPayload{}
 	topUsersSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-		tracer.ResourceName("db.topUsers"), tracer.Tag("org_id", projectID))
+		tracer.ResourceName("db.topUsers"), tracer.Tag("project_id", projectID))
 	if err := r.DB.Raw(`
 		SELECT identifier, (
 			SELECT id
@@ -1735,8 +1735,8 @@ func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPer
 }
 
 func (r *queryResolver) AverageSessionLength(ctx context.Context, projectID int, lookBackPeriod int) (*modelInputs.AverageSessionLength, error) {
-	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in org")
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "admin not found in project")
 	}
 	var length float64
 	query := fmt.Sprintf("SELECT avg(active_length) FROM sessions WHERE project_id=%d AND processed=true AND active_length IS NOT NULL AND created_at >= NOW() - INTERVAL '%d DAY';", projectID, lookBackPeriod)
@@ -1748,13 +1748,13 @@ func (r *queryResolver) AverageSessionLength(ctx context.Context, projectID int,
 }
 
 func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int, lookBackPeriod int) (*modelInputs.UserFingerprintCount, error) {
-	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in org")
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "admin not found in project")
 	}
 
 	var count int64
 	span, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-		tracer.ResourceName("db.userFingerprintCount"), tracer.Tag("org_id", projectID))
+		tracer.ResourceName("db.userFingerprintCount"), tracer.Tag("project_id", projectID))
 	if err := r.DB.Raw(fmt.Sprintf("SELECT count(DISTINCT fingerprint) from sessions WHERE identifier='' AND fingerprint IS NOT NULL AND created_at >= NOW() - INTERVAL '%d DAY' AND project_id=%d AND length >= 1000;", lookBackPeriod, projectID)).Scan(&count).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving user fingerprint count")
 	}
@@ -1765,8 +1765,8 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int,
 
 func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, lifecycle modelInputs.SessionLifecycle, starred bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
 	endpointStart := time.Now()
-	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in org")
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "admin not found in project")
 	}
 
 	sessionsQueryPreamble := "SELECT id, secure_id, project_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, field_group"
@@ -1839,7 +1839,7 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 	queriedSessions := []model.Session{}
 	var queriedSessionsCount int64
 	whereClauseSuffix := "AND NOT ((processed = true AND ((active_length IS NOT NULL AND active_length < 1000) OR (active_length IS NULL AND length < 1000)))) "
-	logTags := []string{fmt.Sprintf("org_id:%d", projectID), fmt.Sprintf("filtered:%t", fieldFilters != "")}
+	logTags := []string{fmt.Sprintf("project_id:%d", projectID), fmt.Sprintf("filtered:%t", fieldFilters != "")}
 
 	g.Go(func() error {
 		if params.LengthRange != nil {
@@ -1850,7 +1850,7 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 		}
 		whereClause += whereClauseSuffix
 		sessionsSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-			tracer.ResourceName("db.sessionsQuery"), tracer.Tag("org_id", projectID))
+			tracer.ResourceName("db.sessionsQuery"), tracer.Tag("project_id", projectID))
 		start := time.Now()
 		query := fmt.Sprintf("%s %s %s ORDER BY created_at DESC LIMIT %d", sessionsQueryPreamble, joinClause, whereClause, count)
 		if err := r.DB.Raw(query).Scan(&queriedSessions).Error; err != nil {
@@ -1867,7 +1867,7 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 
 	g.Go(func() error {
 		sessionCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-			tracer.ResourceName("db.sessionsCountQuery"), tracer.Tag("org_id", projectID))
+			tracer.ResourceName("db.sessionsCountQuery"), tracer.Tag("project_id", projectID))
 		start := time.Now()
 		query := fmt.Sprintf("SELECT count(*) %s %s %s", joinClause, whereClause, whereClauseSuffix)
 		if err := r.DB.Raw(query).Scan(&queriedSessionsCount).Error; err != nil {
@@ -1896,15 +1896,15 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 	hlog.Timing("gql.sessions.duration", endpointDuration, logTags, 1)
 	hlog.Incr("gql.sessions.count", logTags, 1)
 	if endpointDuration.Milliseconds() > 5000 {
-		log.Error(e.New(fmt.Sprintf("gql.sessions took %dms: org_id: %d, params: %+v", endpointDuration.Milliseconds(), projectID, params)))
+		log.Error(e.New(fmt.Sprintf("gql.sessions took %dms: project_id: %d, params: %+v", endpointDuration.Milliseconds(), projectID, params)))
 	}
 	return sessionList, nil
 }
 
 func (r *queryResolver) BillingDetails(ctx context.Context, projectID int) (*modelInputs.BillingDetails, error) {
-	org, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID)
+	org, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin not found in org")
+		return nil, e.Wrap(err, "admin not found in project")
 	}
 
 	stripePriceID := org.StripePriceID
@@ -1918,7 +1918,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, projectID int) (*mod
 	var queriedSessionsOutOfQuota int64
 
 	g.Go(func() error {
-		meter, err = pricing.GetOrgQuota(r.DB, projectID)
+		meter, err = pricing.GetProjectQuota(r.DB, projectID)
 		if err != nil {
 			return e.Wrap(err, "error from get quota")
 		}
@@ -1926,7 +1926,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, projectID int) (*mod
 	})
 
 	g.Go(func() error {
-		queriedSessionsOutOfQuota, err = pricing.GetOrgQuotaOverflow(ctx, r.DB, projectID)
+		queriedSessionsOutOfQuota, err = pricing.GetProjectQuotaOverflow(ctx, r.DB, projectID)
 		if err != nil {
 			return e.Wrap(err, "error from get quota overflow")
 		}
@@ -1955,8 +1955,8 @@ func (r *queryResolver) BillingDetails(ctx context.Context, projectID int) (*mod
 }
 
 func (r *queryResolver) FieldSuggestion(ctx context.Context, projectID int, name string, query string) ([]*model.Field, error) {
-	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "error querying organization")
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "error querying project")
 	}
 	fields := []*model.Field{}
 	res := r.DB.Where(&model.Field{Name: name}).
@@ -1972,8 +1972,8 @@ func (r *queryResolver) FieldSuggestion(ctx context.Context, projectID int, name
 }
 
 func (r *queryResolver) PropertySuggestion(ctx context.Context, projectID int, query string, typeArg string) ([]*model.Field, error) {
-	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "error querying organization")
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "error querying project")
 	}
 	fields := []*model.Field{}
 	res := r.DB.Where(&model.Field{Type: typeArg}).Where("project_id = ?", projectID).Where(r.DB.
@@ -1988,8 +1988,8 @@ func (r *queryResolver) PropertySuggestion(ctx context.Context, projectID int, q
 }
 
 func (r *queryResolver) ErrorFieldSuggestion(ctx context.Context, projectID int, name string, query string) ([]*model.ErrorField, error) {
-	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "error querying organization")
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "error querying project")
 	}
 	fields := []*model.ErrorField{}
 	res := r.DB.Where(&model.ErrorField{Name: name}).
@@ -2017,9 +2017,9 @@ func (r *queryResolver) Projects(ctx context.Context) ([]*model.Project, error) 
 }
 
 func (r *queryResolver) ErrorAlert(ctx context.Context, projectID int) (*model.ErrorAlert, error) {
-	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying organization")
+		return nil, e.Wrap(err, "error querying project")
 	}
 	alert := model.ErrorAlert{}
 	if err := r.DB.Model(&model.ErrorAlert{}).Where("project_id = ?", projectID).First(&alert).Error; err != nil {
@@ -2029,9 +2029,9 @@ func (r *queryResolver) ErrorAlert(ctx context.Context, projectID int) (*model.E
 }
 
 func (r *queryResolver) SessionFeedbackAlert(ctx context.Context, projectID int) (*model.SessionAlert, error) {
-	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying organization on session feedback alert")
+		return nil, e.Wrap(err, "error querying project on session feedback alert")
 	}
 	var alert model.SessionAlert
 	if err := r.DB.Model(&model.SessionAlert{}).Where("project_id = ?", projectID).
@@ -2042,9 +2042,9 @@ func (r *queryResolver) SessionFeedbackAlert(ctx context.Context, projectID int)
 }
 
 func (r *queryResolver) NewUserAlert(ctx context.Context, projectID int) (*model.SessionAlert, error) {
-	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying organization on new user alert")
+		return nil, e.Wrap(err, "error querying project on new user alert")
 	}
 	var alert model.SessionAlert
 	if err := r.DB.Model(&model.SessionAlert{}).Where("project_id = ?", projectID).
@@ -2055,9 +2055,9 @@ func (r *queryResolver) NewUserAlert(ctx context.Context, projectID int) (*model
 }
 
 func (r *queryResolver) TrackPropertiesAlert(ctx context.Context, projectID int) (*model.SessionAlert, error) {
-	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying organization")
+		return nil, e.Wrap(err, "error querying project")
 	}
 	var alert model.SessionAlert
 	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{Type: &model.AlertType.TRACK_PROPERTIES}}).
@@ -2068,9 +2068,9 @@ func (r *queryResolver) TrackPropertiesAlert(ctx context.Context, projectID int)
 }
 
 func (r *queryResolver) UserPropertiesAlert(ctx context.Context, projectID int) (*model.SessionAlert, error) {
-	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying organization")
+		return nil, e.Wrap(err, "error querying project")
 	}
 	var alert model.SessionAlert
 	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{Type: &model.AlertType.USER_PROPERTIES}}).
@@ -2091,8 +2091,8 @@ func (r *queryResolver) ProjectSuggestion(ctx context.Context, query string) ([]
 }
 
 func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, query string, projectID int) ([]*model.Field, error) {
-	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "error querying organization")
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "error querying project")
 	}
 	fields := []*model.Field{}
 	res := r.DB.Where(&model.Field{Type: "session", Name: "environment"}).
@@ -2108,9 +2108,9 @@ func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, query string,
 }
 
 func (r *queryResolver) SlackChannelSuggestion(ctx context.Context, projectID int) ([]*modelInputs.SanitizedSlackChannel, error) {
-	org, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID)
+	org, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error getting org")
+		return nil, e.Wrap(err, "error getting project")
 	}
 	chs, err := org.IntegratedSlackChannels()
 	if err != nil {
@@ -2129,9 +2129,9 @@ func (r *queryResolver) SlackChannelSuggestion(ctx context.Context, projectID in
 }
 
 func (r *queryResolver) SlackMembers(ctx context.Context, projectID int) ([]*modelInputs.SanitizedSlackChannel, error) {
-	org, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID)
+	org, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error getting org")
+		return nil, e.Wrap(err, "error getting project")
 	}
 	chs, err := org.IntegratedSlackChannels()
 	if err != nil {
@@ -2152,17 +2152,17 @@ func (r *queryResolver) SlackMembers(ctx context.Context, projectID int) ([]*mod
 }
 
 func (r *queryResolver) IsIntegratedWithSlack(ctx context.Context, projectID int) (bool, error) {
-	org, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID)
+	org, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 
 	if err != nil {
-		return false, e.Wrap(err, "error querying organization")
+		return false, e.Wrap(err, "error querying project")
 	}
 
 	return org.SlackAccessToken != nil, nil
 }
 
 func (r *queryResolver) Project(ctx context.Context, id int) (*model.Project, error) {
-	project, err := r.isAdminInOrganizationOrDemoOrg(ctx, id)
+	project, err := r.isAdminInProjectOrDemoProject(ctx, id)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
@@ -2236,35 +2236,35 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 }
 
 func (r *queryResolver) Segments(ctx context.Context, projectID int) ([]*model.Segment, error) {
-	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in org")
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "admin not found in project")
 	}
 	// list of maps, where each map represents a field query.
 	segments := []*model.Segment{}
 	if err := r.DB.Model(model.Segment{}).Where("project_id = ?", projectID).Find(&segments).Error; err != nil {
-		log.Errorf("error querying segments from organization: %v", err)
+		log.Errorf("error querying segments from project: %v", err)
 	}
 	return segments, nil
 }
 
 func (r *queryResolver) ErrorSegments(ctx context.Context, projectID int) ([]*model.ErrorSegment, error) {
-	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in org")
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "admin not found in project")
 	}
 	// list of maps, where each map represents a field query.
 	segments := []*model.ErrorSegment{}
 	if err := r.DB.Model(model.ErrorSegment{}).Where("project_id = ?", projectID).Find(&segments).Error; err != nil {
-		log.Errorf("error querying segments from organization: %v", err)
+		log.Errorf("error querying segments from project: %v", err)
 	}
 	return segments, nil
 }
 
 func (r *queryResolver) APIKeyToOrgID(ctx context.Context, apiKey string) (*int, error) {
-	var orgId int
-	if err := r.DB.Table("organizations").Select("id").Where("secret=?", apiKey).Scan(&orgId).Error; err != nil {
-		return nil, e.Wrap(err, "error getting org id from api key")
+	var projectId int
+	if err := r.DB.Table("projects").Select("id").Where("secret=?", apiKey).Scan(&projectId).Error; err != nil {
+		return nil, e.Wrap(err, "error getting project id from api key")
 	}
-	return &orgId, nil
+	return &projectId, nil
 }
 
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {

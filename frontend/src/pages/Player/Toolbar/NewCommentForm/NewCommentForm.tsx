@@ -62,7 +62,7 @@ export const NewCommentForm = ({
         selectedTimelineAnnotationTypes,
         setSelectedTimelineAnnotationTypes,
     } = usePlayerConfiguration();
-    const { data: adminsInOrganization } = useGetAdminsQuery({
+    const { data: adminsInProject } = useGetAdminsQuery({
         variables: { project_id },
     });
     const {
@@ -185,11 +185,9 @@ export const NewCommentForm = ({
                         !mention.display.includes('#')
                 )
                 .map((mention) => {
-                    const admin = adminsInOrganization?.admins?.find(
-                        (admin) => {
-                            return admin?.id === mention.id;
-                        }
-                    );
+                    const admin = adminsInProject?.admins?.find((admin) => {
+                        return admin?.id === mention.id;
+                    });
                     return { id: mention.id, email: admin?.email || '' };
                 })
         );

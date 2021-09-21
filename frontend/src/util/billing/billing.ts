@@ -1,6 +1,6 @@
-export const isProjectWithinTrial = (organization: any) => {
-    if (organization?.trial_end_date) {
-        return new Date(organization.trial_end_date) >= new Date();
+export const isProjectWithinTrial = (project: any) => {
+    if (project?.trial_end_date) {
+        return new Date(project.trial_end_date) >= new Date();
     }
     return false;
 };
