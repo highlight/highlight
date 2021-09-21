@@ -1,3 +1,4 @@
+import { useGetProjectSuggestionLazyQuery } from '@graph/hooks';
 import { useParams } from '@util/react-router/useParams';
 import React, { useEffect } from 'react';
 import CommandPalette, { Command } from 'react-command-palette';
@@ -5,7 +6,6 @@ import { RouteComponentProps } from 'react-router';
 import { withRouter } from 'react-router-dom';
 
 import { useAuthContext } from '../../../authentication/AuthContext';
-import { useGetOrganizationSuggestionLazyQuery } from '../../../graph/generated/hooks';
 import styles from './CommandBar.module.scss';
 import {
     CommandWithoutId,
@@ -36,45 +36,42 @@ const THEME = {
 const CommandPaletteComponent: React.FC<RouteComponentProps> = ({
     history,
 }) => {
-    const [
-        getOrganizations,
-        { data },
-    ] = useGetOrganizationSuggestionLazyQuery();
+    const [getProjects, { data }] = useGetProjectSuggestionLazyQuery();
     const { isHighlightAdmin } = useAuthContext();
-    const { organization_id } = useParams<{
-        organization_id: string;
+    const { project_id } = useParams<{
+        project_id: string;
     }>();
     const playerCommands = usePlayerCommands(isHighlightAdmin);
 
     useEffect(() => {
         if (isHighlightAdmin) {
-            getOrganizations({
+            getProjects({
                 variables: { query: '' },
             });
         }
-    }, [getOrganizations, isHighlightAdmin]);
+    }, [getProjects, isHighlightAdmin]);
 
-    const organizationCommands: CommandWithoutId[] =
-        data?.organizationSuggestion?.map((o, index) => {
+    const projectCommands: CommandWithoutId[] =
+        data?.projectSuggestion?.map((project, index) => {
             return {
-                category: 'Organizations',
-                id: o?.id ?? index,
-                name: `${o?.name ?? index.toString()}`,
+                category: 'Projects',
+                id: project?.id ?? index,
+                name: `${project?.name ?? index.toString()}`,
                 command() {
-                    history.push(`/${o?.id}/sessions`);
+                    history.push(`/${project?.id}/sessions`);
                 },
             };
         }) ?? [];
 
     const navigationCommands: CommandWithoutId[] = getNavigationCommands(
-        organization_id,
+        project_id,
         history
     );
 
     const commands: Command[] = [
         ...playerCommands,
         ...navigationCommands,
-        ...organizationCommands,
+        ...projectCommands,
     ].map((command, index) => ({ ...command, id: index }));
 
     return (

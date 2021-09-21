@@ -18,7 +18,7 @@ import inputStyles from './InputStyles.module.scss';
 import { ContainsLabel } from './SearchInputUtil';
 
 export const UserPropertyInput = ({ include }: { include: boolean }) => {
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { project_id } = useParams<{ project_id: string }>();
     const { searchParams, setSearchParams } = useSearchContext();
 
     const { refetch } = useGetUserSuggestionQuery({ skip: true });
@@ -27,7 +27,7 @@ export const UserPropertyInput = ({ include }: { include: boolean }) => {
         input: string
     ): Promise<OptionsType<OptionTypeBase> | void[]> => {
         const fetched = await refetch({
-            organization_id,
+            project_id,
             query: input,
         });
         const suggestions = (fetched?.data?.property_suggestion ?? []).map(

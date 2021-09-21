@@ -79,9 +79,9 @@ export const Toolbar = () => {
     const history = useHistory();
     const toolbarItems = useToolbarItems();
     const { isLoggedIn } = useAuthContext();
-    const { session_id, organization_id } = useParams<{
+    const { session_id, project_id } = useParams<{
         session_id: string;
-        organization_id: string;
+        project_id: string;
     }>();
     const { setIsPlayerFullscreen, isPlayerFullscreen } = usePlayerUIContext();
     const max = replayer?.getMetaData().totalTime ?? 0;
@@ -305,7 +305,7 @@ export const Toolbar = () => {
                                 session_id
                             );
                             changeSession(
-                                organization_id,
+                                project_id,
                                 history,
                                 nextSession,
                                 'Playing the previous session.'
@@ -367,11 +367,7 @@ export const Toolbar = () => {
                                 sessionResults.sessions,
                                 session_id
                             );
-                            changeSession(
-                                organization_id,
-                                history,
-                                nextSession
-                            );
+                            changeSession(project_id, history, nextSession);
                         }}
                     >
                         <SvgSkipForwardIcon

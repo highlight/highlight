@@ -38,8 +38,8 @@ query GetSession($id: ID!) {
     }
 }
 
-query GetAdmins($organization_id: ID!) {
-    admins(organization_id: $organization_id) {
+query GetAdmins($project_id: ID!) {
+    admins(project_id: $project_id) {
         id
         name
         email
@@ -54,7 +54,7 @@ query GetSessionComments($session_id: ID!) {
         session_id
         created_at
         updated_at
-        organization_id
+        project_id
         text
         author {
             id
@@ -69,8 +69,8 @@ query GetSessionComments($session_id: ID!) {
     }
 }
 
-query GetNotifications($organization_id: ID!) {
-    session_comments_for_organization(organization_id: $organization_id) {
+query GetNotifications($project_id: ID!) {
+    session_comments_for_project(project_id: $project_id) {
         id
         timestamp
         updated_at
@@ -85,10 +85,10 @@ query GetNotifications($organization_id: ID!) {
         type
         metadata
     }
-    error_comments_for_organization(organization_id: $organization_id) {
+    error_comments_for_project(project_id: $project_id) {
         id
         updated_at
-        organization_id
+        project_id
         text
         error_id
         author {
@@ -105,7 +105,7 @@ query GetSessionCommentsForAdmin {
         id
         timestamp
         created_at
-        organization_id
+        project_id
         updated_at
         text
         author {
@@ -123,7 +123,7 @@ query GetErrorComments($error_group_id: ID!) {
         created_at
         updated_at
         text
-        organization_id
+        project_id
         author {
             id
             name
@@ -133,16 +133,16 @@ query GetErrorComments($error_group_id: ID!) {
     }
 }
 
-query GetOnboardingSteps($organization_id: ID!, $admin_id: ID!) {
-    organization(id: $organization_id) {
+query GetOnboardingSteps($project_id: ID!, $admin_id: ID!) {
+    project(id: $project_id) {
         slack_channels
     }
-    admins(organization_id: $organization_id) {
+    admins(project_id: $project_id) {
         id
     }
-    isIntegrated(organization_id: $organization_id)
+    isIntegrated(project_id: $project_id)
     adminHasCreatedComment(admin_id: $admin_id)
-    organizationHasViewedASession(organization_id: $organization_id) {
+    projectHasViewedASession(project_id: $project_id) {
         id
     }
     admin {
@@ -151,26 +151,22 @@ query GetOnboardingSteps($organization_id: ID!, $admin_id: ID!) {
 }
 
 mutation SendAdminInvite(
-    $organization_id: ID!
+    $project_id: ID!
     $email: String!
     $base_url: String!
 ) {
-    sendAdminInvite(
-        organization_id: $organization_id
-        email: $email
-        base_url: $base_url
-    )
+    sendAdminInvite(project_id: $project_id, email: $email, base_url: $base_url)
 }
 
 query GetSessions(
-    $organization_id: ID!
+    $project_id: ID!
     $count: Int!
     $lifecycle: SessionLifecycle!
     $starred: Boolean!
     $params: SearchParamsInput
 ) {
     sessions(
-        organization_id: $organization_id
+        project_id: $project_id
         count: $count
         lifecycle: $lifecycle
         starred: $starred
@@ -208,8 +204,8 @@ query GetSessions(
     }
 }
 
-query GetOrganizations {
-    organizations {
+query GetProjects {
+    projects {
         id
         name
     }
@@ -217,11 +213,11 @@ query GetOrganizations {
 
 # Gets the current application and all applications the admin has access to.
 query GetApplications($id: ID!) {
-    organizations {
+    projects {
         id
         name
     }
-    organization(id: $id) {
+    project(id: $id) {
         id
         name
         verbose_id
@@ -241,8 +237,8 @@ query GetAdmin {
     }
 }
 
-query GetOrganization($id: ID!) {
-    organization(id: $id) {
+query GetProject($id: ID!) {
+    project(id: $id) {
         id
         name
         verbose_id
@@ -252,8 +248,8 @@ query GetOrganization($id: ID!) {
     }
 }
 
-query GetBillingDetails($organization_id: ID!) {
-    billingDetails(organization_id: $organization_id) {
+query GetBillingDetails($project_id: ID!) {
+    billingDetails(project_id: $project_id) {
         plan {
             type
             quota
@@ -261,7 +257,7 @@ query GetBillingDetails($organization_id: ID!) {
         meter
         sessionsOutOfQuota
     }
-    organization(id: $organization_id) {
+    project(id: $project_id) {
         id
         trial_end_date
     }
@@ -273,7 +269,7 @@ query GetErrorGroup($id: ID!) {
         id
         secure_id
         type
-        organization_id
+        project_id
         event
         state
         stack_trace {
@@ -303,15 +299,11 @@ query GetErrorGroup($id: ID!) {
 }
 
 query GetErrorGroups(
-    $organization_id: ID!
+    $project_id: ID!
     $count: Int!
     $params: ErrorSearchParamsInput
 ) {
-    error_groups(
-        organization_id: $organization_id
-        count: $count
-        params: $params
-    ) {
+    error_groups(project_id: $project_id, count: $count, params: $params) {
         error_groups {
             created_at
             id
@@ -357,35 +349,27 @@ fragment errorFields on ErrorObject {
     payload
 }
 
-query GetFieldSuggestion(
-    $organization_id: ID!
-    $name: String!
-    $query: String!
-) {
-    field_suggestion(
-        organization_id: $organization_id
-        name: $name
-        query: $query
-    ) {
+query GetFieldSuggestion($project_id: ID!, $name: String!, $query: String!) {
+    field_suggestion(project_id: $project_id, name: $name, query: $query) {
         name
         value
     }
 }
 
-query GetOrganizationSuggestion($query: String!) {
-    organizationSuggestion(query: $query) {
+query GetProjectSuggestion($query: String!) {
+    projectSuggestion(query: $query) {
         id
         name
     }
 }
 
 query GetErrorFieldSuggestion(
-    $organization_id: ID!
+    $project_id: ID!
     $name: String!
     $query: String!
 ) {
     error_field_suggestion(
-        organization_id: $organization_id
+        project_id: $project_id
         name: $name
         query: $query
     ) {
@@ -394,9 +378,9 @@ query GetErrorFieldSuggestion(
     }
 }
 
-query GetErrorSearchSuggestions($organization_id: ID!, $query: String!) {
+query GetErrorSearchSuggestions($project_id: ID!, $query: String!) {
     visitedUrls: error_field_suggestion(
-        organization_id: $organization_id
+        project_id: $project_id
         name: "visited_url"
         query: $query
     ) {
@@ -404,7 +388,7 @@ query GetErrorSearchSuggestions($organization_id: ID!, $query: String!) {
         value
     }
     fields: error_field_suggestion(
-        organization_id: $organization_id
+        project_id: $project_id
         name: "event"
         query: $query
     ) {
@@ -413,9 +397,9 @@ query GetErrorSearchSuggestions($organization_id: ID!, $query: String!) {
     }
 }
 
-query GetSessionSearchResults($organization_id: ID!, $query: String!) {
+query GetSessionSearchResults($project_id: ID!, $query: String!) {
     trackProperties: property_suggestion(
-        organization_id: $organization_id
+        project_id: $project_id
         query: $query
         type: "track"
     ) {
@@ -424,7 +408,7 @@ query GetSessionSearchResults($organization_id: ID!, $query: String!) {
         value
     }
     userProperties: property_suggestion(
-        organization_id: $organization_id
+        project_id: $project_id
         query: $query
         type: "user"
     ) {
@@ -433,7 +417,7 @@ query GetSessionSearchResults($organization_id: ID!, $query: String!) {
         value
     }
     visitedUrls: field_suggestion(
-        organization_id: $organization_id
+        project_id: $project_id
         name: "visited-url"
         query: $query
     ) {
@@ -442,7 +426,7 @@ query GetSessionSearchResults($organization_id: ID!, $query: String!) {
         value
     }
     referrers: field_suggestion(
-        organization_id: $organization_id
+        project_id: $project_id
         name: "referrer"
         query: $query
     ) {
@@ -452,32 +436,24 @@ query GetSessionSearchResults($organization_id: ID!, $query: String!) {
     }
 }
 
-query GetTrackSuggestion($organization_id: ID!, $query: String!) {
-    property_suggestion(
-        organization_id: $organization_id
-        query: $query
-        type: "track"
-    ) {
+query GetTrackSuggestion($project_id: ID!, $query: String!) {
+    property_suggestion(project_id: $project_id, query: $query, type: "track") {
         id
         name
         value
     }
 }
 
-query GetUserSuggestion($organization_id: ID!, $query: String!) {
-    property_suggestion(
-        organization_id: $organization_id
-        query: $query
-        type: "user"
-    ) {
+query GetUserSuggestion($project_id: ID!, $query: String!) {
+    property_suggestion(project_id: $project_id, query: $query, type: "user") {
         id
         name
         value
     }
 }
 
-query GetSegments($organization_id: ID!) {
-    segments(organization_id: $organization_id) {
+query GetSegments($project_id: ID!) {
+    segments(project_id: $project_id) {
         id
         name
         params {
@@ -512,8 +488,8 @@ query GetSegments($organization_id: ID!) {
     }
 }
 
-query GetErrorSegments($organization_id: ID!) {
-    error_segments(organization_id: $organization_id) {
+query GetErrorSegments($project_id: ID!) {
+    error_segments(project_id: $project_id) {
         id
         name
         params {
@@ -530,73 +506,58 @@ query GetErrorSegments($organization_id: ID!) {
     }
 }
 
-query IsIntegrated($organization_id: ID!) {
-    isIntegrated(organization_id: $organization_id)
+query IsIntegrated($project_id: ID!) {
+    isIntegrated(project_id: $project_id)
 }
 
-query UnprocessedSessionsCount($organization_id: ID!) {
-    unprocessedSessionsCount(organization_id: $organization_id)
+query UnprocessedSessionsCount($project_id: ID!) {
+    unprocessedSessionsCount(project_id: $project_id)
 }
 
-query GetKeyPerformanceIndicators(
-    $organization_id: ID!
-    $lookBackPeriod: Int!
-) {
-    unprocessedSessionsCount(organization_id: $organization_id)
-    newUsersCount(
-        organization_id: $organization_id
-        lookBackPeriod: $lookBackPeriod
-    ) {
+query GetKeyPerformanceIndicators($project_id: ID!, $lookBackPeriod: Int!) {
+    unprocessedSessionsCount(project_id: $project_id)
+    newUsersCount(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
         count
     }
     averageSessionLength(
-        organization_id: $organization_id
+        project_id: $project_id
         lookBackPeriod: $lookBackPeriod
     ) {
         length
     }
     userFingerprintCount(
-        organization_id: $organization_id
+        project_id: $project_id
         lookBackPeriod: $lookBackPeriod
     ) {
         count
     }
 }
 
-query GetReferrersCount($organization_id: ID!, $lookBackPeriod: Int!) {
-    referrers(
-        organization_id: $organization_id
-        lookBackPeriod: $lookBackPeriod
-    ) {
+query GetReferrersCount($project_id: ID!, $lookBackPeriod: Int!) {
+    referrers(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
         host
         count
         percent
     }
 }
 
-query GetNewUsersCount($organization_id: ID!, $lookBackPeriod: Int!) {
-    newUsersCount(
-        organization_id: $organization_id
-        lookBackPeriod: $lookBackPeriod
-    ) {
+query GetNewUsersCount($project_id: ID!, $lookBackPeriod: Int!) {
+    newUsersCount(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
         count
     }
 }
 
-query GetAverageSessionLength($organization_id: ID!, $lookBackPeriod: Int!) {
+query GetAverageSessionLength($project_id: ID!, $lookBackPeriod: Int!) {
     averageSessionLength(
-        organization_id: $organization_id
+        project_id: $project_id
         lookBackPeriod: $lookBackPeriod
     ) {
         length
     }
 }
 
-query GetTopUsers($organization_id: ID!, $lookBackPeriod: Int!) {
-    topUsers(
-        organization_id: $organization_id
-        lookBackPeriod: $lookBackPeriod
-    ) {
+query GetTopUsers($project_id: ID!, $lookBackPeriod: Int!) {
+    topUsers(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
         identifier
         total_active_time
         active_time_percentage
@@ -604,43 +565,34 @@ query GetTopUsers($organization_id: ID!, $lookBackPeriod: Int!) {
     }
 }
 
-query GetDailySessionsCount(
-    $organization_id: ID!
-    $date_range: DateRangeInput!
-) {
-    dailySessionsCount(
-        organization_id: $organization_id
-        date_range: $date_range
-    ) {
+query GetDailySessionsCount($project_id: ID!, $date_range: DateRangeInput!) {
+    dailySessionsCount(project_id: $project_id, date_range: $date_range) {
         date
         count
     }
 }
 
-query GetDailyErrorsCount($organization_id: ID!, $date_range: DateRangeInput!) {
-    dailyErrorsCount(
-        organization_id: $organization_id
-        date_range: $date_range
-    ) {
+query GetDailyErrorsCount($project_id: ID!, $date_range: DateRangeInput!) {
+    dailyErrorsCount(project_id: $project_id, date_range: $date_range) {
         date
         count
     }
 }
 
 query GetDailyErrorFrequency(
-    $organization_id: ID!
+    $project_id: ID!
     $error_group_id: ID!
     $date_offset: Int!
 ) {
     dailyErrorFrequency(
-        organization_id: $organization_id
+        project_id: $project_id
         error_group_id: $error_group_id
         date_offset: $date_offset
     )
 }
 
-query GetErrorAlert($organization_id: ID!) {
-    error_alert(organization_id: $organization_id) {
+query GetErrorAlert($project_id: ID!) {
+    error_alert(project_id: $project_id) {
         ChannelsToNotify {
             webhook_channel
             webhook_channel_id
@@ -650,8 +602,8 @@ query GetErrorAlert($organization_id: ID!) {
     }
 }
 
-query GetNewUserAlert($organization_id: ID!) {
-    new_user_alert(organization_id: $organization_id) {
+query GetNewUserAlert($project_id: ID!) {
+    new_user_alert(project_id: $project_id) {
         ChannelsToNotify {
             webhook_channel
             webhook_channel_id
@@ -661,8 +613,8 @@ query GetNewUserAlert($organization_id: ID!) {
     }
 }
 
-query GetTrackPropertiesAlert($organization_id: ID!) {
-    track_properties_alert(organization_id: $organization_id) {
+query GetTrackPropertiesAlert($project_id: ID!) {
+    track_properties_alert(project_id: $project_id) {
         ChannelsToNotify {
             webhook_channel
             webhook_channel_id
@@ -672,8 +624,8 @@ query GetTrackPropertiesAlert($organization_id: ID!) {
     }
 }
 
-query GetUserPropertiesAlert($organization_id: ID!) {
-    user_properties_alert(organization_id: $organization_id) {
+query GetUserPropertiesAlert($project_id: ID!) {
+    user_properties_alert(project_id: $project_id) {
         ChannelsToNotify {
             webhook_channel
             webhook_channel_id
@@ -683,31 +635,31 @@ query GetUserPropertiesAlert($organization_id: ID!) {
     }
 }
 
-query GetEnvironmentSuggestion($query: String!, $organization_id: ID!) {
-    environment_suggestion(query: $query, organization_id: $organization_id) {
+query GetEnvironmentSuggestion($query: String!, $project_id: ID!) {
+    environment_suggestion(query: $query, project_id: $project_id) {
         name
         value
     }
 }
 
-query GetSlackChannelSuggestion($organization_id: ID!) {
-    slack_channel_suggestion(organization_id: $organization_id) {
+query GetSlackChannelSuggestion($project_id: ID!) {
+    slack_channel_suggestion(project_id: $project_id) {
         webhook_channel
         webhook_channel_id
     }
 }
 
-query GetAlertsPagePayload($organization_id: ID!) {
-    is_integrated_with_slack(organization_id: $organization_id)
-    slack_channel_suggestion(organization_id: $organization_id) {
+query GetAlertsPagePayload($project_id: ID!) {
+    is_integrated_with_slack(project_id: $project_id)
+    slack_channel_suggestion(project_id: $project_id) {
         webhook_channel
         webhook_channel_id
     }
-    environment_suggestion(query: "q", organization_id: $organization_id) {
+    environment_suggestion(query: "q", project_id: $project_id) {
         name
         value
     }
-    error_alert(organization_id: $organization_id) {
+    error_alert(project_id: $project_id) {
         ChannelsToNotify {
             webhook_channel
             webhook_channel_id
@@ -717,7 +669,7 @@ query GetAlertsPagePayload($organization_id: ID!) {
         ThresholdWindow
         id
     }
-    new_user_alert(organization_id: $organization_id) {
+    new_user_alert(project_id: $project_id) {
         id
         ChannelsToNotify {
             webhook_channel
@@ -726,7 +678,7 @@ query GetAlertsPagePayload($organization_id: ID!) {
         ExcludedEnvironments
         CountThreshold
     }
-    track_properties_alert(organization_id: $organization_id) {
+    track_properties_alert(project_id: $project_id) {
         id
         ChannelsToNotify {
             webhook_channel
@@ -740,7 +692,7 @@ query GetAlertsPagePayload($organization_id: ID!) {
         ExcludedEnvironments
         CountThreshold
     }
-    user_properties_alert(organization_id: $organization_id) {
+    user_properties_alert(project_id: $project_id) {
         id
         ChannelsToNotify {
             webhook_channel
@@ -756,14 +708,14 @@ query GetAlertsPagePayload($organization_id: ID!) {
     }
 }
 
-query GetCommentMentionSuggestions($organization_id: ID!) {
-    admins(organization_id: $organization_id) {
+query GetCommentMentionSuggestions($project_id: ID!) {
+    admins(project_id: $project_id) {
         id
         name
         email
         photo_url
     }
-    slack_members(organization_id: $organization_id) {
+    slack_members(project_id: $project_id) {
         webhook_channel
         webhook_channel_id
     }

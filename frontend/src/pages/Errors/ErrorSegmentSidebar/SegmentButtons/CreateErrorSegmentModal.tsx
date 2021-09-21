@@ -34,8 +34,8 @@ const CreateErrorSegmentModal = ({
         refetchQueries: [namedOperations.Query.GetErrorSegments],
     });
     const { register, handleSubmit, errors, reset } = useForm<Inputs>();
-    const { organization_id } = useParams<{
-        organization_id: string;
+    const { project_id } = useParams<{
+        project_id: string;
         segment_id: string;
     }>();
     const { searchParams, setExistingParams } = useErrorSearchContext();
@@ -44,7 +44,7 @@ const CreateErrorSegmentModal = ({
     const onSubmit = (inputs: Inputs) => {
         createSegment({
             variables: {
-                organization_id,
+                project_id,
                 name: inputs.name,
                 params: searchParams,
             },
@@ -57,7 +57,7 @@ const CreateErrorSegmentModal = ({
                 );
             } else {
                 history.push(
-                    `/${organization_id}/errors/segment/${r.data?.createErrorSegment?.id}`
+                    `/${project_id}/errors/segment/${r.data?.createErrorSegment?.id}`
                 );
             }
             onHideModal();

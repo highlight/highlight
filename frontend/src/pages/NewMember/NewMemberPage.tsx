@@ -6,7 +6,7 @@ import commonStyles from '../../Common.module.scss';
 import Button from '../../components/Button/Button/Button';
 import { CircularSpinner, LoadingBar } from '../../components/Loading/Loading';
 import {
-    useAddAdminToOrganizationMutation,
+    useAddAdminToProjectMutation,
     useGetAdminQuery,
 } from '../../graph/generated/hooks';
 import { auth } from '../../util/auth';
@@ -14,18 +14,15 @@ import { client } from '../../util/graph';
 import styles from './NewMemberPage.module.scss';
 
 const NewMemberPage = () => {
-    const { invite_id, organization_id } = useParams<{
-        organization_id: string;
+    const { invite_id, project_id } = useParams<{
+        project_id: string;
         invite_id: string;
     }>();
     const [adminAdded, setAdminAdded] = useState(false);
-    const [
-        addAdmin,
-        { loading: addLoading },
-    ] = useAddAdminToOrganizationMutation();
+    const [addAdmin, { loading: addLoading }] = useAddAdminToProjectMutation();
     const { loading: adminLoading, data: adminData } = useGetAdminQuery();
     if (adminAdded) {
-        return <Redirect to={`/${organization_id}/setup`} />;
+        return <Redirect to={`/${project_id}/setup`} />;
     }
     if (adminLoading) {
         return <LoadingBar />;
@@ -33,9 +30,9 @@ const NewMemberPage = () => {
 
     return (
         <div className={styles.box}>
-            <h2>Accept workspace invite?</h2>
+            <h2>Accept project invite?</h2>
             <p className={styles.subTitle}>
-                Would you like to enter this workspace as '
+                Would you like to enter this project as '
                 {adminData?.admin?.email}' ?
             </p>
             <Button
@@ -45,7 +42,7 @@ const NewMemberPage = () => {
                 onClick={() => {
                     addAdmin({
                         variables: {
-                            organization_id: organization_id,
+                            project_id,
                             invite_id,
                         },
                     }).then(() => {
@@ -61,7 +58,7 @@ const NewMemberPage = () => {
                         }}
                     />
                 ) : (
-                    'Enter Workspace'
+                    'Join Project'
                 )}
             </Button>
             <Button

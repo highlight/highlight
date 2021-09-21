@@ -26,8 +26,8 @@ import { EmptyErrorsSearchParams } from '../../../Errors/ErrorsPage';
 import styles from './SegmentPickerForErrors.module.scss';
 
 const SegmentPickerForErrors = () => {
-    const { organization_id } = useParams<{
-        organization_id: string;
+    const { project_id } = useParams<{
+        project_id: string;
     }>();
     const {
         setSearchParams,
@@ -38,7 +38,7 @@ const SegmentPickerForErrors = () => {
         existingParams,
     } = useErrorSearchContext();
     const { loading, data } = useGetErrorSegmentsQuery({
-        variables: { organization_id },
+        variables: { project_id },
     });
     const [selectedSegment, setSelectedSegment] = useLocalStorage<
         { value: string; id: string } | undefined
@@ -168,7 +168,7 @@ const SegmentPickerForErrors = () => {
                         const { ...restOfSearchParams } = searchParams;
                         editSegment({
                             variables: {
-                                organization_id,
+                                project_id,
                                 id: selectedSegment.id,
                                 params: restOfSearchParams,
                             },

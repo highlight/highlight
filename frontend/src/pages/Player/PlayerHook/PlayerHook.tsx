@@ -52,9 +52,9 @@ export enum SessionViewability {
 
 export const usePlayer = (): ReplayerContextInterface => {
     const { isLoggedIn } = useAuthContext();
-    const { session_id, organization_id } = useParams<{
+    const { session_id, project_id } = useParams<{
         session_id: string;
-        organization_id: string;
+        project_id: string;
     }>();
     const history = useHistory();
 
@@ -400,7 +400,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                 setState(ReplayerState.Paused);
                 setTimeout(() => {
                     history.push(
-                        `/${organization_id}/sessions/${nextSessionInList.id}`
+                        `/${project_id}/sessions/${nextSessionInList.id}`
                     );
                     resetPlayer(ReplayerState.Empty);
                 }, 250);
@@ -409,7 +409,7 @@ export const usePlayer = (): ReplayerContextInterface => {
     }, [
         autoPlaySessions,
         history,
-        organization_id,
+        project_id,
         resetPlayer,
         sessionResults.sessions,
         session_id,
