@@ -47,9 +47,10 @@ const ALERT_CONFIGURATIONS = [
     },
     {
         name: 'Session Feedback Comments',
-        canControlThreshold: true,
+        canControlThreshold: false,
         type: ALERT_TYPE.SessionFeedbackComment,
-        description: 'Get alerted when a session feedback comment is created.',
+        description:
+            'Get alerted when a user submits a session feedback comment.',
     },
 ];
 
