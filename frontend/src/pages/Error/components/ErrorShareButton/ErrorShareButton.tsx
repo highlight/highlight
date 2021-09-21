@@ -6,7 +6,7 @@ import ShareButton from '../../../../components/Button/ShareButton/ShareButton';
 import { ErrorGroup } from '../../../../graph/generated/schemas';
 
 interface Props {
-    errorGroup: Maybe<ErrorGroup> | undefined;
+    errorGroup: Maybe<Pick<ErrorGroup, 'id'>> | undefined;
 }
 
 const ErrorShareButton = ({ errorGroup }: Props) => {

@@ -7,7 +7,7 @@ import ErrorShareButton from '../ErrorShareButton/ErrorShareButton';
 import styles from './ErrorTitle.module.scss';
 
 interface Props {
-    errorGroup: Maybe<ErrorGroup> | undefined;
+    errorGroup: Maybe<Pick<ErrorGroup, 'event' | 'type' | 'id'>> | undefined;
 }
 
 const ErrorTitle = ({ errorGroup }: Props) => {
