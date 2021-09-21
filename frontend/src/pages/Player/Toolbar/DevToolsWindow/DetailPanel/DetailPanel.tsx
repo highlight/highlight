@@ -1,41 +1,32 @@
-import Button from '@components/Button/Button/Button';
-import SvgArrowRightIcon from '@icons/ArrowRightIcon';
-import { useDevToolsContext } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext';
+import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import { AnimatePresence, motion } from 'framer-motion';
 import React from 'react';
 
 import styles from './DetailPanel.module.scss';
 
 const DetailPanel = () => {
-    const { setPanelContent, panelContent } = useDevToolsContext();
+    const { detailedPanel } = usePlayerUIContext();
 
     return (
         <AnimatePresence>
-            {!panelContent ? null : (
+            {!detailedPanel ? null : (
                 <motion.div
                     key="detailPanel"
                     className={styles.detailPanel}
-                    initial={{ transform: 'translateX(100%)' }}
+                    initial={{ transform: 'translateX(105%)' }}
                     animate={{ transform: 'translateX(0%)' }}
-                    exit={{ transform: 'translateX(100%)' }}
+                    exit={{ transform: 'translateX(105%)' }}
                 >
-                    <div className={styles.header}>
-                        <h3 className={styles.title}>{panelContent.title}</h3>
-                        <Button
-                            trackingId="DevToolsDetailsPanel"
-                            onClick={() => {
-                                setPanelContent(undefined);
-                            }}
-                            iconButton
-                            type="text"
-                            className={styles.backButton}
-                        >
-                            <SvgArrowRightIcon />
-                        </Button>
-                    </div>
+                    {!detailedPanel.options?.noHeader && (
+                        <div className={styles.header}>
+                            <h3 className={styles.title}>
+                                {detailedPanel.title}
+                            </h3>
+                        </div>
+                    )}
 
                     <div className={styles.contentContainer}>
-                        {panelContent.content}
+                        {detailedPanel.content}
                     </div>
                 </motion.div>
             )}
