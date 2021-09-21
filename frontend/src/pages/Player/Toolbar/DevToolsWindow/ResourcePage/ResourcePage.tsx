@@ -285,9 +285,6 @@ export const ResourcePage = ({
                                                                 styles.detailPanelTitle
                                                             }
                                                         >
-                                                            <span>
-                                                                Network Request
-                                                            </span>
                                                             <GoToButton
                                                                 onClick={() => {
                                                                     pause(
