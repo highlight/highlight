@@ -42,7 +42,10 @@ const SegmentPickerForErrors = () => {
     });
     const [selectedSegment, setSelectedSegment] = useLocalStorage<
         { value: string; id: string } | undefined
-    >('highlightSegmentPickerForErrorsSelectedSegmentId', undefined);
+    >(
+        `highlightSegmentPickerForErrorsSelectedSegmentId-${organization_id}`,
+        undefined
+    );
     const [paramsIsDifferent, setParamsIsDifferent] = useState(false);
     const [showCreateSegmentModal, setShowCreateSegmentModal] = useState(false);
     const [segmentToDelete, setSegmentToDelete] = useState<{
