@@ -29,14 +29,14 @@ type Inputs = {
 };
 
 const WorkspaceTeam = () => {
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { project_id } = useParams<{ project_id: string }>();
     const emailRef = useRef<null | HTMLInputElement>(null);
     const { register, handleSubmit, errors, reset } = useForm<Inputs>();
     const { data: orgData } = useGetOrganizationQuery({
-        variables: { id: organization_id },
+        variables: { id: project_id },
     });
     const { data, error, loading } = useGetAdminsQuery({
-        variables: { organization_id },
+        variables: { project_id },
     });
     const { admin } = useAuthContext();
     const [
@@ -62,7 +62,7 @@ const WorkspaceTeam = () => {
         },
     });
     const [, setHasStartedOnboarding] = useLocalStorage(
-        `highlight-started-onboarding-${organization_id}`,
+        `highlight-started-onboarding-${project_id}`,
         false
     );
 
@@ -79,7 +79,7 @@ const WorkspaceTeam = () => {
         setHasStartedOnboarding(true);
         sendInviteEmail({
             variables: {
-                organization_id,
+                project_id,
                 email: data.email,
                 base_url: window.location.origin,
             },
@@ -98,7 +98,7 @@ const WorkspaceTeam = () => {
         <LeadAlignLayout>
             <h2>Invite A Member</h2>
             <p className={layoutStyles.subTitle}>
-                Invite a your team to your Workspace.
+                Invite a your team to your Project.
             </p>
             <div className={styles.box}>
                 <form onSubmit={handleSubmit(onSubmit)}>
@@ -120,7 +120,7 @@ const WorkspaceTeam = () => {
                             }}
                         />
                         <Button
-                            trackingId="WorkspaceInviteMember"
+                            trackingId="ProjectInviteMember"
                             type="primary"
                             className={classNames(
                                 commonStyles.submitButton,
@@ -149,7 +149,7 @@ const WorkspaceTeam = () => {
                 <CopyText
                     text={getOrganizationInvitationLink(
                         orgData?.organization?.secret || '',
-                        organization_id
+                        project_id
                     )}
                 />
             </div>
@@ -192,7 +192,7 @@ const WorkspaceTeam = () => {
                                             deleteAdminFromOrganization({
                                                 variables: {
                                                     admin_id: a?.id,
-                                                    organization_id,
+                                                    project_id,
                                                 },
                                             });
                                         }
@@ -204,7 +204,7 @@ const WorkspaceTeam = () => {
                                         }
                                         iconButton
                                         trackingId="RemoveTeamMember"
-                                        // An Admin should not be able to delete themselves from an organization.
+                                        // An Admin should not be able to delete themselves from an project.
                                         disabled={a?.id === admin?.id}
                                     >
                                         <SvgTrash />

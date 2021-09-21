@@ -24,7 +24,7 @@ const OrganizationSlackScopes =
 export const useSlackBot = ({ type, watch }: UseSlackBotProps) => {
     let redirectPath = window.location.pathname;
     if (redirectPath.length > 3) {
-        // remove orgid and prepended slash
+        // remove project_id and prepended slash
         redirectPath = redirectPath.substring(redirectPath.indexOf('/', 1) + 1);
     }
     const [setupType] = useLocalStorage<'' | 'Personal' | 'Organization'>(
@@ -56,7 +56,7 @@ export const useSlackBot = ({ type, watch }: UseSlackBotProps) => {
                 if (setupType === 'Personal') {
                     await openSlackConversation({
                         variables: {
-                            organization_id: organization_id,
+                            project_id: organization_id,
                             code,
                             redirect_path: redirectPath,
                         },
@@ -68,7 +68,7 @@ export const useSlackBot = ({ type, watch }: UseSlackBotProps) => {
                 } else if (setupType === 'Organization') {
                     await addSlackBotIntegrationToOrganization({
                         variables: {
-                            organization_id: organization_id,
+                            project_id: organization_id,
                             code,
                             redirect_path: redirectPath,
                         },

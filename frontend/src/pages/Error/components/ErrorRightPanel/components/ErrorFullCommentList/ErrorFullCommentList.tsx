@@ -10,7 +10,7 @@ import styles from './ErrorFullCommentList.module.scss';
 const ErrorFullCommentList = () => {
     const { error_id } = useParams<{
         error_id: string;
-        organization_id: string;
+        project_id: string;
     }>();
     const { data: errorCommentsData, loading } = useGetErrorCommentsQuery({
         variables: {

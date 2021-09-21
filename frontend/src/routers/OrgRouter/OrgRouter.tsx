@@ -22,18 +22,18 @@ export const OrgRouter = () => {
         showKeyboardShortcutsGuide,
         toggleShowKeyboardShortcutsGuide,
     ] = useToggle(false);
-    const { organization_id } = useParams<{
-        organization_id: string;
+    const { project_id } = useParams<{
+        project_id: string;
     }>();
 
     const { data, loading, error } = useGetApplicationsQuery({
-        variables: { id: organization_id },
+        variables: { id: project_id },
         skip: !isLoggedIn, // Higher level routers decide when guests are allowed to hit this router
     });
 
     const { integrated, loading: integratedLoading } = useIntegrated();
     const [hasFinishedOnboarding] = useLocalStorage(
-        `highlight-finished-onboarding-${organization_id}`,
+        `highlight-finished-onboarding-${project_id}`,
         false
     );
 
@@ -87,7 +87,7 @@ export const OrgRouter = () => {
                         <ErrorState
                             message={`
                         Seems like you don’t have access to this page 😢. If you're
-                        part of a team, ask your workspace admin to send you an
+                        part of a team, ask your project admin to send you an
                         invite. Otherwise, feel free to make an account!
                         `}
                             errorString={

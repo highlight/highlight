@@ -26,7 +26,6 @@ func main() {
 	for _, o := range orgs {
 		alerts = append(alerts, model.SessionAlert{
 			Alert: model.Alert{
-				OrganizationID:       o.ID,
 				ProjectID:            o.ID,
 				ExcludedEnvironments: &emptiness,
 				CountThreshold:       1,

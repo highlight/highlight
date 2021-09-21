@@ -17,7 +17,7 @@ import (
 func GetOrgQuota(DB *gorm.DB, org_id int) (int64, error) {
 	year, month, _ := time.Now().Date()
 	var meter int64
-	if err := DB.Model(&model.Session{}).Where("organization_id = ?", org_id).Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Count(&meter).Error; err != nil {
+	if err := DB.Model(&model.Session{}).Where("project_id = ?", org_id).Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Count(&meter).Error; err != nil {
 		return 0, e.Wrap(err, "error querying for session meter")
 	}
 	return meter, nil
@@ -29,7 +29,7 @@ func GetOrgQuotaOverflow(ctx context.Context, DB *gorm.DB, org_id int) (int64, e
 	sessionsOverQuotaCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("db.sessionsOverQuotaCountQuery"), tracer.Tag("org_id", org_id))
 	defer sessionsOverQuotaCountSpan.Finish()
-	if err := DB.Model(&model.Session{}).Where("organization_id = ?", org_id).Where("within_billing_quota = false").Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Count(&queriedSessionsOverQuota).Error; err != nil {
+	if err := DB.Model(&model.Session{}).Where("project_id = ?", org_id).Where("within_billing_quota = false").Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Count(&queriedSessionsOverQuota).Error; err != nil {
 		return 0, e.Wrap(err, "error querying sessions over quota count")
 	}
 	return queriedSessionsOverQuota, nil

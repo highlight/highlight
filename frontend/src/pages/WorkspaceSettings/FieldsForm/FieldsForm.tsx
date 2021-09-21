@@ -20,10 +20,10 @@ type Inputs = {
 };
 
 export const FieldsForm = () => {
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { project_id } = useParams<{ project_id: string }>();
     const { register, handleSubmit, errors } = useForm<Inputs>();
     const { data } = useGetOrganizationQuery({
-        variables: { id: organization_id },
+        variables: { id: project_id },
     });
     const [
         editOrganization,
@@ -38,12 +38,12 @@ export const FieldsForm = () => {
     const onSubmit = (inputs: Inputs) => {
         editOrganization({
             variables: {
-                id: organization_id,
+                id: project_id,
                 name: inputs.name,
                 billing_email: inputs.email,
             },
         }).then(() => {
-            message.success('Updated workspace fields!', 5);
+            message.success('Updated project fields!', 5);
         });
     };
     return (
@@ -81,7 +81,7 @@ export const FieldsForm = () => {
             <div className={styles.fieldRow}>
                 <div className={styles.fieldKey} />
                 <Button
-                    trackingId="WorkspaceUpdate"
+                    trackingId="ProjectUpdate"
                     htmlType="submit"
                     type="primary"
                     className={classNames(

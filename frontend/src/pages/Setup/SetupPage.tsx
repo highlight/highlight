@@ -34,13 +34,13 @@ enum PlatformType {
 const SetupPage = ({ integrated }: { integrated: boolean }) => {
     const { admin } = useAuthContext();
     const [platform, setPlatform] = useState(PlatformType.React);
-    const { organization_id } = useParams<{ organization_id: string }>();
-    const organizationIdRemapped =
-        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+    const { project_id } = useParams<{ project_id: string }>();
+    const projectIdRemapped =
+        project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-            : organization_id;
+            : project_id;
     const { data, loading } = useGetOrganizationQuery({
-        variables: { id: organization_id },
+        variables: { id: project_id },
     });
 
     return (
@@ -77,7 +77,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                         />
                     ) : platform === PlatformType.Gatsby ? (
                         <GatsbySetup
-                            orgVerboseId={data?.organization?.verbose_id}
+                            projectVerboseId={data?.organization?.verbose_id}
                         />
                     ) : (
                         <JsAppInstructions
@@ -154,7 +154,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                         </p>
                         <div className={styles.integrationContainer}>
                             <ButtonLink
-                                to={`/${organizationIdRemapped}/alerts`}
+                                to={`/${projectIdRemapped}/alerts`}
                                 trackingId="ConfigureAlertsFromSetupPage"
                             >
                                 Configure Your Alerts
@@ -324,12 +324,12 @@ export const Section: FunctionComponent<SectionProps> = ({
 
 export default SetupPage;
 
-const getInitSnippet = (orgId: string, withOptions = false) =>
+const getInitSnippet = (projectId: string, withOptions = false) =>
     withOptions
-        ? `H.init('${orgId}', {
+        ? `H.init('${projectId}', {
   environment: 'production',
   enableStrictPrivacy: false,${
       isOnPrem ? '\n  backendUrl: "' + GetBaseURL() + '/public",' : ''
   }
 });`
-        : `H.init('${orgId}');`;
+        : `H.init('${projectId}');`;

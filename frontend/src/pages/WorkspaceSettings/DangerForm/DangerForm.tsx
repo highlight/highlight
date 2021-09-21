@@ -20,9 +20,9 @@ type Inputs = {
 };
 
 export const DangerForm = () => {
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { project_id } = useParams<{ project_id: string }>();
     const { loading, data } = useGetOrganizationQuery({
-        variables: { id: organization_id },
+        variables: { id: project_id },
     });
 
     const [
@@ -34,7 +34,7 @@ export const DangerForm = () => {
 
     const { register, handleSubmit, errors } = useForm<Inputs>();
     const onSubmit = () => {
-        deleteOrganization({ variables: { id: organization_id } });
+        deleteOrganization({ variables: { id: project_id } });
     };
     if (deleteData?.deleteOrganization) {
         return <Redirect to={`/`} />;

@@ -20,7 +20,7 @@ export const OrgRedirectionRouter = () => {
         return <LoadingPage />;
     }
 
-    // Redirects the user to their default organization when the URL does not have an organization ID.
+    // Redirects the user to their default project when the URL does not have an project ID.
     // For example, this allows linking to https://app.highlight.run/sessions for https://app.highlight.run/1/sessions
     return (
         <Redirect

@@ -33,7 +33,7 @@ interface Props {
 }
 
 const ApplicationRouter = ({ integrated }: Props) => {
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { project_id } = useParams<{ project_id: string }>();
     const [segmentName, setSegmentName] = useState<string | null>(null);
     const [showStarredSessions, setShowStarredSessions] = useState<boolean>(
         false
@@ -149,42 +149,42 @@ const ApplicationRouter = ({ integrated }: Props) => {
         >
             <KeyboardShortcutsEducation />
             <Switch>
-                <Route path="/:organization_id/sessions/:session_id?" exact>
+                <Route path="/:project_id/sessions/:session_id?" exact>
                     <Player integrated={integrated} />
                 </Route>
-                <Route path="/:organization_id/settings">
+                <Route path="/:project_id/settings">
                     <WorkspaceSettings />
                 </Route>
-                <Route path="/:organization_id/alerts">
+                <Route path="/:project_id/alerts">
                     <AlertsPage />
                 </Route>
-                <Route path="/:organization_id/team">
+                <Route path="/:project_id/team">
                     <WorkspaceTeam />
                 </Route>
-                <Route path="/:organization_id/billing">
+                <Route path="/:project_id/billing">
                     <Suspense fallback={null}>
                         <BillingPage />
                     </Suspense>
                 </Route>
-                <Route path="/:organization_id/setup">
+                <Route path="/:project_id/setup">
                     <SetupPage integrated={integrated} />
                 </Route>
-                <Route path="/:organization_id/errors/:error_id?">
+                <Route path="/:project_id/errors/:error_id?">
                     <ErrorPage integrated={integrated} />
                 </Route>
-                <Route path="/:organization_id/buttons">
+                <Route path="/:project_id/buttons">
                     <Suspense fallback={null}>
                         <Buttons />
                     </Suspense>
                 </Route>
-                <Route path="/:organization_id/home">
+                <Route path="/:project_id/home">
                     <HomePage />
                 </Route>
-                <Route path="/:organization_id">
+                <Route path="/:project_id">
                     {integrated ? (
-                        <Redirect to={`/${organization_id}/home`} />
+                        <Redirect to={`/${project_id}/home`} />
                     ) : (
-                        <Redirect to={`/${organization_id}/setup`} />
+                        <Redirect to={`/${project_id}/setup`} />
                     )}
                 </Route>
             </Switch>

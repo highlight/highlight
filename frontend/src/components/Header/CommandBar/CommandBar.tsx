@@ -41,8 +41,8 @@ const CommandPaletteComponent: React.FC<RouteComponentProps> = ({
         { data },
     ] = useGetOrganizationSuggestionLazyQuery();
     const { isHighlightAdmin } = useAuthContext();
-    const { organization_id } = useParams<{
-        organization_id: string;
+    const { project_id } = useParams<{
+        project_id: string;
     }>();
     const playerCommands = usePlayerCommands(isHighlightAdmin);
 
@@ -54,7 +54,7 @@ const CommandPaletteComponent: React.FC<RouteComponentProps> = ({
         }
     }, [getOrganizations, isHighlightAdmin]);
 
-    const organizationCommands: CommandWithoutId[] =
+    const projectCommands: CommandWithoutId[] =
         data?.organizationSuggestion?.map((o, index) => {
             return {
                 category: 'Organizations',
@@ -67,14 +67,14 @@ const CommandPaletteComponent: React.FC<RouteComponentProps> = ({
         }) ?? [];
 
     const navigationCommands: CommandWithoutId[] = getNavigationCommands(
-        organization_id,
+        project_id,
         history
     );
 
     const commands: Command[] = [
         ...playerCommands,
         ...navigationCommands,
-        ...organizationCommands,
+        ...projectCommands,
     ].map((command, index) => ({ ...command, id: index }));
 
     return (

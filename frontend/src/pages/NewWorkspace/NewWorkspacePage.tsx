@@ -42,9 +42,9 @@ const NewWorkspacePage = () => {
     return (
         <div className={styles.box}>
             <form onSubmit={handleSubmit(onSubmit)}>
-                <h2 className={styles.title}>Create a Workspace</h2>
+                <h2 className={styles.title}>Create a Project</h2>
                 <p className={styles.subTitle}>
-                    Enter the name of your workspace and you'll be good to go!
+                    Enter the name of your project and you'll be good to go!
                 </p>
                 <input
                     placeholder={'Workspace Name'}
@@ -54,10 +54,10 @@ const NewWorkspacePage = () => {
                 />
                 <div className={commonStyles.errorMessage}>
                     {errors.name &&
-                        'Error with workspace name ' + errors.name.message}
+                        'Error with project name ' + errors.name.message}
                 </div>
                 <Button
-                    trackingId="CreateWorkspace"
+                    trackingId="CreateProject"
                     type="primary"
                     className={commonStyles.submitButton}
                     htmlType="submit"
@@ -70,7 +70,7 @@ const NewWorkspacePage = () => {
                             }}
                         />
                     ) : (
-                        'Create Workspace'
+                        'Create Project'
                     )}
                 </Button>
             </form>

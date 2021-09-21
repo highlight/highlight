@@ -46,9 +46,9 @@ export const NewCommentForm = ({
     const { time } = useReplayerContext();
     const [createComment] = useCreateSessionCommentMutation();
     const { admin, isLoggedIn } = useAuthContext();
-    const { session_id, organization_id } = useParams<{
+    const { session_id, project_id } = useParams<{
         session_id: string;
-        organization_id: string;
+        project_id: string;
     }>();
     const [commentText, setCommentText] = useState('');
     /**
@@ -63,12 +63,12 @@ export const NewCommentForm = ({
         setSelectedTimelineAnnotationTypes,
     } = usePlayerConfiguration();
     const { data: adminsInOrganization } = useGetAdminsQuery({
-        variables: { organization_id },
+        variables: { project_id },
     });
     const {
         data: mentionSuggestionsData,
     } = useGetCommentMentionSuggestionsQuery({
-        variables: { organization_id },
+        variables: { project_id },
     });
     const [mentionedAdmins, setMentionedAdmins] = useState<
         SanitizedAdminInput[]
@@ -96,7 +96,7 @@ export const NewCommentForm = ({
         try {
             await createComment({
                 variables: {
-                    organization_id,
+                    project_id,
                     session_id,
                     session_timestamp: Math.floor(currentTime),
                     text: commentText.trim(),

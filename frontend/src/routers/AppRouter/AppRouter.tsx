@@ -17,7 +17,7 @@ export const AppRouter = () => {
         <div className={styles.appBody}>
             <Router>
                 <Switch>
-                    <Route path="/:organization_id(\d+)/invite/:invite_id">
+                    <Route path="/:project_id(\d+)/invite/:invite_id">
                         <Landing>
                             <NewMemberPage />
                         </Landing>
@@ -30,11 +30,11 @@ export const AppRouter = () => {
                     <Route path="/_internal">
                         <InternalRouter />
                     </Route>
-                    <Route path="/:organization_id(\d+)">
+                    <Route path="/:project_id(\d+)">
                         <OrgRouter />
                     </Route>
                     <Route
-                        path={`/:organization_id(${DEMO_WORKSPACE_PROXY_APPLICATION_ID})`}
+                        path={`/:project_id(${DEMO_WORKSPACE_PROXY_APPLICATION_ID})`}
                     >
                         <OrgRouter />
                     </Route>

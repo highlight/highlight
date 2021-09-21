@@ -748,9 +748,8 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		emptiness := "[]"
 		if err := DB.FirstOrCreate(&SessionAlert{
 			Alert: Alert{
-				OrganizationID: 1,
-				ProjectID:      1,
-				Type:           &AlertType.SESSION_FEEDBACK,
+				ProjectID: 1,
+				Type:      &AlertType.SESSION_FEEDBACK,
 			},
 		}).Attrs(&SessionAlert{
 			Alert: Alert{
@@ -831,7 +830,7 @@ func DecodeAndValidateParams(params []interface{}) ([]*Param, error) {
 func (s *Session) SetUserProperties(userProperties map[string]string) error {
 	user, err := json.Marshal(userProperties)
 	if err != nil {
-		return e.Wrapf(err, "[org_id: %d] error marshalling user properties map into bytes", s.OrganizationID)
+		return e.Wrapf(err, "[org_id: %d] error marshalling user properties map into bytes", s.ProjectID)
 	}
 	s.UserProperties = string(user)
 	return nil
@@ -840,7 +839,7 @@ func (s *Session) SetUserProperties(userProperties map[string]string) error {
 func (s *Session) GetUserProperties() (map[string]string, error) {
 	var userProperties map[string]string
 	if err := json.Unmarshal([]byte(s.UserProperties), &userProperties); err != nil {
-		return nil, e.Wrapf(err, "[org_id: %d] error unmarshalling user properties map into bytes", s.OrganizationID)
+		return nil, e.Wrapf(err, "[org_id: %d] error unmarshalling user properties map into bytes", s.ProjectID)
 	}
 	return userProperties, nil
 }
@@ -897,7 +896,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 	if input.CommentID != nil {
 		suffix = fmt.Sprintf("?commentId=%d", *input.CommentID)
 	}
-	sessionLink := fmt.Sprintf("<%s/%d/sessions/%d%s>", frontendURL, obj.OrganizationID, input.SessionID, suffix)
+	sessionLink := fmt.Sprintf("<%s/%d/sessions/%d%s>", frontendURL, obj.ProjectID, input.SessionID, suffix)
 	messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false))
 
 	if obj.Type == nil {
@@ -916,7 +915,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 		if len(input.Group.Event) > 50 {
 			shortEvent = input.Group.Event[:50] + "..."
 		}
-		errorLink := fmt.Sprintf("%s/%d/errors/%d", frontendURL, obj.OrganizationID, input.Group.ID)
+		errorLink := fmt.Sprintf("%s/%d/errors/%d", frontendURL, obj.ProjectID, input.Group.ID)
 		// construct Slack message
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Highlight Error Alert: %d Recent Occurrences*\n\n%s\n<%s/>", *input.ErrorsCount, shortEvent, errorLink), false, false)
 		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+input.UserIdentifier, false, false))

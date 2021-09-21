@@ -23,7 +23,7 @@ export type MarkSessionAsStarredMutation = { __typename?: 'Mutation' } & {
 };
 
 export type CreateOrUpdateStripeSubscriptionMutationVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
     plan_type: Types.PlanType;
 }>;
 
@@ -32,7 +32,7 @@ export type CreateOrUpdateStripeSubscriptionMutation = {
 } & Pick<Types.Mutation, 'createOrUpdateStripeSubscription'>;
 
 export type UpdateBillingDetailsMutationVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
 }>;
 
 export type UpdateBillingDetailsMutation = { __typename?: 'Mutation' } & Pick<
@@ -61,7 +61,7 @@ export type SendEmailSignupMutation = { __typename?: 'Mutation' } & Pick<
 >;
 
 export type AddAdminToOrganizationMutationVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
     invite_id: Types.Scalars['String'];
 }>;
 
@@ -71,7 +71,7 @@ export type AddAdminToOrganizationMutation = { __typename?: 'Mutation' } & Pick<
 >;
 
 export type DeleteAdminFromOrganizationMutationVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
     admin_id: Types.Scalars['ID'];
 }>;
 
@@ -80,7 +80,7 @@ export type DeleteAdminFromOrganizationMutation = {
 } & Pick<Types.Mutation, 'deleteAdminFromOrganization'>;
 
 export type OpenSlackConversationMutationVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
     code: Types.Scalars['String'];
     redirect_path: Types.Scalars['String'];
 }>;
@@ -91,7 +91,7 @@ export type OpenSlackConversationMutation = { __typename?: 'Mutation' } & Pick<
 >;
 
 export type AddSlackBotIntegrationToOrganizationMutationVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
     code: Types.Scalars['String'];
     redirect_path: Types.Scalars['String'];
 }>;
@@ -147,7 +147,7 @@ export type DeleteSegmentMutation = { __typename?: 'Mutation' } & Pick<
 >;
 
 export type EditSegmentMutationVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
     id: Types.Scalars['ID'];
     params: Types.SearchParamsInput;
 }>;
@@ -158,7 +158,7 @@ export type EditSegmentMutation = { __typename?: 'Mutation' } & Pick<
 >;
 
 export type CreateSegmentMutationVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
     name: Types.Scalars['String'];
     params: Types.SearchParamsInput;
 }>;
@@ -207,7 +207,7 @@ export type CreateSegmentMutation = { __typename?: 'Mutation' } & {
 };
 
 export type CreateSessionCommentMutationVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
     session_id: Types.Scalars['ID'];
     session_timestamp: Types.Scalars['Int'];
     text: Types.Scalars['String'];
@@ -258,7 +258,7 @@ export type DeleteSessionCommentMutation = { __typename?: 'Mutation' } & Pick<
 >;
 
 export type CreateErrorCommentMutationVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
     error_group_id: Types.Scalars['ID'];
     text: Types.Scalars['String'];
     text_for_email: Types.Scalars['String'];
@@ -305,7 +305,7 @@ export type DeleteErrorSegmentMutation = { __typename?: 'Mutation' } & Pick<
 >;
 
 export type EditErrorSegmentMutationVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
     id: Types.Scalars['ID'];
     params: Types.ErrorSearchParamsInput;
 }>;
@@ -316,7 +316,7 @@ export type EditErrorSegmentMutation = { __typename?: 'Mutation' } & Pick<
 >;
 
 export type CreateErrorSegmentMutationVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
     name: Types.Scalars['String'];
     params: Types.ErrorSearchParamsInput;
 }>;
@@ -343,7 +343,7 @@ export type CreateErrorSegmentMutation = { __typename?: 'Mutation' } & {
 };
 
 export type UpdateErrorAlertMutationVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
     error_alert_id: Types.Scalars['ID'];
     count_threshold: Types.Scalars['Int'];
     threshold_window: Types.Scalars['Int'];
@@ -374,7 +374,7 @@ export type UpdateErrorAlertMutation = { __typename?: 'Mutation' } & {
 };
 
 export type UpdateNewUserAlertMutationVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
     session_alert_id: Types.Scalars['ID'];
     count_threshold: Types.Scalars['Int'];
     slack_channels:
@@ -404,7 +404,7 @@ export type UpdateNewUserAlertMutation = { __typename?: 'Mutation' } & {
 };
 
 export type UpdateTrackPropertiesAlertMutationVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
     session_alert_id: Types.Scalars['ID'];
     slack_channels:
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
@@ -436,7 +436,7 @@ export type UpdateTrackPropertiesAlertMutation = { __typename?: 'Mutation' } & {
 };
 
 export type UpdateUserPropertiesAlertMutationVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
     session_alert_id: Types.Scalars['ID'];
     slack_channels:
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
@@ -542,7 +542,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
 };
 
 export type GetAdminsQueryVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
 }>;
 
 export type GetAdminsQuery = { __typename?: 'Query' } & {
@@ -570,7 +570,7 @@ export type GetSessionCommentsQuery = { __typename?: 'Query' } & {
                 | 'session_id'
                 | 'created_at'
                 | 'updated_at'
-                | 'organization_id'
+                | 'project_id'
                 | 'text'
                 | 'x_coordinate'
                 | 'y_coordinate'
@@ -589,7 +589,7 @@ export type GetSessionCommentsQuery = { __typename?: 'Query' } & {
 };
 
 export type GetNotificationsQueryVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
 }>;
 
 export type GetNotificationsQuery = { __typename?: 'Query' } & {
@@ -618,7 +618,7 @@ export type GetNotificationsQuery = { __typename?: 'Query' } & {
         Types.Maybe<
             { __typename?: 'ErrorComment' } & Pick<
                 Types.ErrorComment,
-                'id' | 'updated_at' | 'organization_id' | 'text' | 'error_id'
+                'id' | 'updated_at' | 'project_id' | 'text' | 'error_id'
             > & {
                     author: { __typename?: 'SanitizedAdmin' } & Pick<
                         Types.SanitizedAdmin,
@@ -641,7 +641,7 @@ export type GetSessionCommentsForAdminQuery = { __typename?: 'Query' } & {
                 | 'id'
                 | 'timestamp'
                 | 'created_at'
-                | 'organization_id'
+                | 'project_id'
                 | 'updated_at'
                 | 'text'
             > & {
@@ -665,7 +665,7 @@ export type GetErrorCommentsQuery = { __typename?: 'Query' } & {
         Types.Maybe<
             { __typename?: 'ErrorComment' } & Pick<
                 Types.ErrorComment,
-                'id' | 'created_at' | 'updated_at' | 'text' | 'organization_id'
+                'id' | 'created_at' | 'updated_at' | 'text' | 'project_id'
             > & {
                     author: { __typename?: 'SanitizedAdmin' } & Pick<
                         Types.SanitizedAdmin,
@@ -677,7 +677,7 @@ export type GetErrorCommentsQuery = { __typename?: 'Query' } & {
 };
 
 export type GetOnboardingStepsQueryVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
     admin_id: Types.Scalars['ID'];
 }>;
 
@@ -703,7 +703,7 @@ export type GetOnboardingStepsQuery = { __typename?: 'Query' } & Pick<
     };
 
 export type SendAdminInviteMutationVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
     email: Types.Scalars['String'];
     base_url: Types.Scalars['String'];
 }>;
@@ -714,7 +714,7 @@ export type SendAdminInviteMutation = { __typename?: 'Mutation' } & Pick<
 >;
 
 export type GetSessionsQueryVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
     count: Types.Scalars['Int'];
     lifecycle: Types.SessionLifecycle;
     starred: Types.Scalars['Boolean'];
@@ -840,7 +840,7 @@ export type GetOrganizationQuery = { __typename?: 'Query' } & {
 };
 
 export type GetBillingDetailsQueryVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
 }>;
 
 export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
@@ -868,7 +868,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
             | 'id'
             | 'secure_id'
             | 'type'
-            | 'organization_id'
+            | 'project_id'
             | 'event'
             | 'state'
             | 'mapped_stack_trace'
@@ -916,7 +916,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
 };
 
 export type GetErrorGroupsQueryVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
     count: Types.Scalars['Int'];
     params?: Types.Maybe<Types.ErrorSearchParamsInput>;
 }>;
@@ -995,7 +995,7 @@ export type ErrorFieldsFragment = { __typename?: 'ErrorObject' } & Pick<
 >;
 
 export type GetFieldSuggestionQueryVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
     name: Types.Scalars['String'];
     query: Types.Scalars['String'];
 }>;
@@ -1028,7 +1028,7 @@ export type GetOrganizationSuggestionQuery = { __typename?: 'Query' } & {
 };
 
 export type GetErrorFieldSuggestionQueryVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
     name: Types.Scalars['String'];
     query: Types.Scalars['String'];
 }>;
@@ -1047,7 +1047,7 @@ export type GetErrorFieldSuggestionQuery = { __typename?: 'Query' } & {
 };
 
 export type GetErrorSearchSuggestionsQueryVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
     query: Types.Scalars['String'];
 }>;
 
@@ -1075,7 +1075,7 @@ export type GetErrorSearchSuggestionsQuery = { __typename?: 'Query' } & {
 };
 
 export type GetSessionSearchResultsQueryVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
     query: Types.Scalars['String'];
 }>;
 
@@ -1123,7 +1123,7 @@ export type GetSessionSearchResultsQuery = { __typename?: 'Query' } & {
 };
 
 export type GetTrackSuggestionQueryVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
     query: Types.Scalars['String'];
 }>;
 
@@ -1141,7 +1141,7 @@ export type GetTrackSuggestionQuery = { __typename?: 'Query' } & {
 };
 
 export type GetUserSuggestionQueryVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
     query: Types.Scalars['String'];
 }>;
 
@@ -1159,7 +1159,7 @@ export type GetUserSuggestionQuery = { __typename?: 'Query' } & {
 };
 
 export type GetSegmentsQueryVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
 }>;
 
 export type GetSegmentsQuery = { __typename?: 'Query' } & {
@@ -1236,7 +1236,7 @@ export type GetSegmentsQuery = { __typename?: 'Query' } & {
 };
 
 export type GetErrorSegmentsQueryVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
 }>;
 
 export type GetErrorSegmentsQuery = { __typename?: 'Query' } & {
@@ -1265,7 +1265,7 @@ export type GetErrorSegmentsQuery = { __typename?: 'Query' } & {
 };
 
 export type IsIntegratedQueryVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
 }>;
 
 export type IsIntegratedQuery = { __typename?: 'Query' } & Pick<
@@ -1274,7 +1274,7 @@ export type IsIntegratedQuery = { __typename?: 'Query' } & Pick<
 >;
 
 export type UnprocessedSessionsCountQueryVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
 }>;
 
 export type UnprocessedSessionsCountQuery = { __typename?: 'Query' } & Pick<
@@ -1283,7 +1283,7 @@ export type UnprocessedSessionsCountQuery = { __typename?: 'Query' } & Pick<
 >;
 
 export type GetKeyPerformanceIndicatorsQueryVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
     lookBackPeriod: Types.Scalars['Int'];
 }>;
 
@@ -1312,7 +1312,7 @@ export type GetKeyPerformanceIndicatorsQuery = { __typename?: 'Query' } & Pick<
     };
 
 export type GetReferrersCountQueryVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
     lookBackPeriod: Types.Scalars['Int'];
 }>;
 
@@ -1328,7 +1328,7 @@ export type GetReferrersCountQuery = { __typename?: 'Query' } & {
 };
 
 export type GetNewUsersCountQueryVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
     lookBackPeriod: Types.Scalars['Int'];
 }>;
 
@@ -1339,7 +1339,7 @@ export type GetNewUsersCountQuery = { __typename?: 'Query' } & {
 };
 
 export type GetAverageSessionLengthQueryVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
     lookBackPeriod: Types.Scalars['Int'];
 }>;
 
@@ -1353,7 +1353,7 @@ export type GetAverageSessionLengthQuery = { __typename?: 'Query' } & {
 };
 
 export type GetTopUsersQueryVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
     lookBackPeriod: Types.Scalars['Int'];
 }>;
 
@@ -1372,7 +1372,7 @@ export type GetTopUsersQuery = { __typename?: 'Query' } & {
 };
 
 export type GetDailySessionsCountQueryVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
     date_range: Types.DateRangeInput;
 }>;
 
@@ -1388,7 +1388,7 @@ export type GetDailySessionsCountQuery = { __typename?: 'Query' } & {
 };
 
 export type GetDailyErrorsCountQueryVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
     date_range: Types.DateRangeInput;
 }>;
 
@@ -1404,7 +1404,7 @@ export type GetDailyErrorsCountQuery = { __typename?: 'Query' } & {
 };
 
 export type GetDailyErrorFrequencyQueryVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
     error_group_id: Types.Scalars['ID'];
     date_offset: Types.Scalars['Int'];
 }>;
@@ -1415,7 +1415,7 @@ export type GetDailyErrorFrequencyQuery = { __typename?: 'Query' } & Pick<
 >;
 
 export type GetErrorAlertQueryVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
 }>;
 
 export type GetErrorAlertQuery = { __typename?: 'Query' } & {
@@ -1437,7 +1437,7 @@ export type GetErrorAlertQuery = { __typename?: 'Query' } & {
 };
 
 export type GetNewUserAlertQueryVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
 }>;
 
 export type GetNewUserAlertQuery = { __typename?: 'Query' } & {
@@ -1459,7 +1459,7 @@ export type GetNewUserAlertQuery = { __typename?: 'Query' } & {
 };
 
 export type GetTrackPropertiesAlertQueryVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
 }>;
 
 export type GetTrackPropertiesAlertQuery = { __typename?: 'Query' } & {
@@ -1481,7 +1481,7 @@ export type GetTrackPropertiesAlertQuery = { __typename?: 'Query' } & {
 };
 
 export type GetUserPropertiesAlertQueryVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
 }>;
 
 export type GetUserPropertiesAlertQuery = { __typename?: 'Query' } & {
@@ -1504,7 +1504,7 @@ export type GetUserPropertiesAlertQuery = { __typename?: 'Query' } & {
 
 export type GetEnvironmentSuggestionQueryVariables = Types.Exact<{
     query: Types.Scalars['String'];
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
 }>;
 
 export type GetEnvironmentSuggestionQuery = { __typename?: 'Query' } & {
@@ -1518,7 +1518,7 @@ export type GetEnvironmentSuggestionQuery = { __typename?: 'Query' } & {
 };
 
 export type GetSlackChannelSuggestionQueryVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
 }>;
 
 export type GetSlackChannelSuggestionQuery = { __typename?: 'Query' } & {
@@ -1535,7 +1535,7 @@ export type GetSlackChannelSuggestionQuery = { __typename?: 'Query' } & {
 };
 
 export type GetAlertsPagePayloadQueryVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
 }>;
 
 export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
@@ -1644,7 +1644,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
     };
 
 export type GetCommentMentionSuggestionsQueryVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
+    project_id: Types.Scalars['ID'];
 }>;
 
 export type GetCommentMentionSuggestionsQuery = { __typename?: 'Query' } & {

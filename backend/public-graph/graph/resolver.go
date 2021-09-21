@@ -98,7 +98,7 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 
 	modelFields := []*model.Field{}
 	for k, fv := range properties {
-		modelFields = append(modelFields, &model.Field{OrganizationID: session.OrganizationID, ProjectID: session.OrganizationID, Name: k, Value: fv, Type: string(propType)})
+		modelFields = append(modelFields, &model.Field{ProjectID: session.ProjectID, Name: k, Value: fv, Type: string(propType)})
 	}
 
 	err := r.AppendFields(modelFields, session)
@@ -166,7 +166,7 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *model2.ErrorObjectInput, fields []*model.ErrorField, organizationID int) (*model.ErrorGroup, error) {
 	frames := errorInput.StackTrace
 	if frames != nil && frames[0] != nil && frames[0].Source != nil && strings.Contains(*frames[0].Source, "https://static.highlight.run/index.js") {
-		errorObj.OrganizationID = 1
+		errorObj.ProjectID = 1
 	}
 	firstFrameBytes, err := json.Marshal(frames)
 	if err != nil {
@@ -179,17 +179,16 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *
 	// Query the DB for errors w/ 1) the same events string and 2) the same trace string.
 	// If it doesn't exist, we create a new error group.
 	if err := r.DB.Where(&model.ErrorGroup{
-		OrganizationID: errorObj.OrganizationID,
-		Event:          errorObj.Event,
-		Type:           errorObj.Type,
+		ProjectID: errorObj.ProjectID,
+		Event:     errorObj.Event,
+		Type:      errorObj.Type,
 	}).First(&errorGroup).Error; err != nil {
 		newErrorGroup := &model.ErrorGroup{
-			OrganizationID: errorObj.OrganizationID,
-			ProjectID:      errorGroup.OrganizationID,
-			Event:          errorObj.Event,
-			StackTrace:     frameString,
-			Type:           errorObj.Type,
-			State:          modelInputs.ErrorStateOpen.String(),
+			ProjectID:  errorGroup.ProjectID,
+			Event:      errorObj.Event,
+			StackTrace: frameString,
+			Type:       errorObj.Type,
+			State:      modelInputs.ErrorStateOpen.String(),
 		}
 		if err := r.DB.Create(newErrorGroup).Error; err != nil {
 			return nil, e.Wrap(err, "Error creating new error group")
@@ -417,7 +416,6 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 
 	session := &model.Session{
 		Fingerprint:                    fingerprintInt,
-		OrganizationID:                 organizationID,
 		ProjectID:                      organizationID,
 		City:                           location.City,
 		State:                          location.State,
@@ -691,7 +689,7 @@ func (r *Resolver) isOrgWithinBillingQuota(organization *model.Organization, now
 	var monthToDateSessionCount int64
 	if err := r.DB.
 		Model(&model.DailySessionCount{}).
-		Where(&model.DailySessionCount{OrganizationID: organization.ID}).
+		Where(&model.DailySessionCount{ProjectID: organization.ID}).
 		Where("date > ?", time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)).
 		Select("SUM(count) as monthToDateSessionCount").
 		Scan(&monthToDateSessionCount).Error; err != nil {
@@ -717,15 +715,15 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 		log.Error(retErr)
 		return
 	}
-	querySessionSpan.SetTag("org_id", sessionObj.OrganizationID)
+	querySessionSpan.SetTag("org_id", sessionObj.ProjectID)
 	querySessionSpan.Finish()
 
 	var g errgroup.Group
 
-	organizationID := sessionObj.OrganizationID
+	projectID := sessionObj.ProjectID
 	g.Go(func() error {
 		parseEventsSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
-			tracer.ResourceName("go.parseEvents"), tracer.Tag("org_id", organizationID))
+			tracer.ResourceName("go.parseEvents"), tracer.Tag("org_id", projectID))
 		if evs := events.Events; len(evs) > 0 {
 			// TODO: this isn't very performant, as marshaling the whole event obj to a string is expensive;
 			// should fix at some point.
@@ -766,7 +764,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	// unmarshal messages
 	g.Go(func() error {
 		unmarshalMessagesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
-			tracer.ResourceName("go.unmarshal.messages"), tracer.Tag("org_id", organizationID))
+			tracer.ResourceName("go.unmarshal.messages"), tracer.Tag("org_id", projectID))
 		messagesParsed := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(messages), &messagesParsed); err != nil {
 			return fmt.Errorf("error decoding message data: %w", err)
@@ -784,7 +782,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	// unmarshal resources
 	g.Go(func() error {
 		unmarshalResourcesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
-			tracer.ResourceName("go.unmarshal.resources"), tracer.Tag("org_id", organizationID))
+			tracer.ResourceName("go.unmarshal.resources"), tracer.Tag("org_id", projectID))
 		resourcesParsed := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
 			return fmt.Errorf("error decoding resource data: %w", err)
@@ -814,7 +812,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 					objString = string(objBytes)
 				}
 				log.WithFields(log.Fields{
-					"org_id":       organizationID,
+					"org_id":       projectID,
 					"session_id":   sessionID,
 					"error_object": objString,
 				}).Warn("caught empty error, continuing...")
@@ -830,8 +828,8 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 			dailyError := &model.DailyErrorCount{}
 			currentDate := time.Date(n.UTC().Year(), n.UTC().Month(), n.UTC().Day(), 0, 0, 0, 0, time.UTC)
 			if err := r.DB.Where(&model.DailyErrorCount{
-				OrganizationID: organizationID,
-				Date:           &currentDate,
+				ProjectID: projectID,
+				Date:      &currentDate,
 			}).Attrs(&model.DailyErrorCount{
 				Count: 0,
 			}).FirstOrCreate(&dailyError).Error; err != nil {
@@ -839,14 +837,14 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 				return e.Wrap(err, "error getting or creating daily error count")
 			}
 
-			if err := r.DB.Exec("UPDATE daily_error_counts SET count = count + ? WHERE date = ? AND organization_id = ?", len(errors), currentDate, organizationID).Error; err != nil {
+			if err := r.DB.Exec("UPDATE daily_error_counts SET count = count + ? WHERE date = ? AND project_id = ?", len(errors), currentDate, projectID).Error; err != nil {
 				return e.Wrap(err, "error updating daily error count")
 			}
 		}
 
 		// put errors in db
 		putErrorsToDBSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
-			tracer.ResourceName("db.errors"), tracer.Tag("org_id", organizationID))
+			tracer.ResourceName("db.errors"), tracer.Tag("org_id", projectID))
 		for _, v := range errors {
 			traceBytes, err := json.Marshal(v.StackTrace)
 			if err != nil {
@@ -856,30 +854,29 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 			traceString := string(traceBytes)
 
 			errorToInsert := &model.ErrorObject{
-				OrganizationID: organizationID,
-				ProjectID:      organizationID,
-				SessionID:      sessionID,
-				Environment:    sessionObj.Environment,
-				Event:          v.Event,
-				Type:           v.Type,
-				URL:            v.URL,
-				Source:         v.Source,
-				LineNumber:     v.LineNumber,
-				ColumnNumber:   v.ColumnNumber,
-				OS:             sessionObj.OSName,
-				Browser:        sessionObj.BrowserName,
-				StackTrace:     &traceString,
-				Timestamp:      v.Timestamp,
-				Payload:        v.Payload,
+				ProjectID:    projectID,
+				SessionID:    sessionID,
+				Environment:  sessionObj.Environment,
+				Event:        v.Event,
+				Type:         v.Type,
+				URL:          v.URL,
+				Source:       v.Source,
+				LineNumber:   v.LineNumber,
+				ColumnNumber: v.ColumnNumber,
+				OS:           sessionObj.OSName,
+				Browser:      sessionObj.BrowserName,
+				StackTrace:   &traceString,
+				Timestamp:    v.Timestamp,
+				Payload:      v.Payload,
 			}
 
 			//create error fields array
 			metaFields := []*model.ErrorField{}
-			metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, ProjectID: organizationID, Name: "browser", Value: sessionObj.BrowserName})
-			metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, ProjectID: organizationID, Name: "os_name", Value: sessionObj.OSName})
-			metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, ProjectID: organizationID, Name: "visited_url", Value: errorToInsert.URL})
-			metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, ProjectID: organizationID, Name: "event", Value: errorToInsert.Event})
-			group, err := r.HandleErrorAndGroup(errorToInsert, v, metaFields, organizationID)
+			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "browser", Value: sessionObj.BrowserName})
+			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "os_name", Value: sessionObj.OSName})
+			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "visited_url", Value: errorToInsert.URL})
+			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "event", Value: errorToInsert.Event})
+			group, err := r.HandleErrorAndGroup(errorToInsert, v, metaFields, projectID)
 			if err != nil {
 				log.Errorf("Error updating error group: %v", errorToInsert)
 				continue
@@ -890,7 +887,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 			sessionObj := sessionObj
 			r.AlertWorkerPool.Submit(func() {
 				var errorAlert model.ErrorAlert
-				if err := r.DB.Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{Alert: model.Alert{OrganizationID: organizationID}}).First(&errorAlert).Error; err != nil {
+				if err := r.DB.Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{Alert: model.Alert{ProjectID: projectID}}).First(&errorAlert).Error; err != nil {
 					log.Error(e.Wrap(err, "error fetching ErrorAlert object"))
 					return
 				}
@@ -912,7 +909,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 					t := 30
 					errorAlert.ThresholdWindow = &t
 				}
-				if err := r.DB.Model(&model.ErrorObject{}).Where(&model.ErrorObject{OrganizationID: organizationID, ErrorGroupID: group.ID}).Where("created_at > ?", time.Now().Add(time.Duration(-(*errorAlert.ThresholdWindow))*time.Minute)).Count(&numErrors).Error; err != nil {
+				if err := r.DB.Model(&model.ErrorObject{}).Where(&model.ErrorObject{ProjectID: projectID, ErrorGroupID: group.ID}).Where("created_at > ?", time.Now().Add(time.Duration(-(*errorAlert.ThresholdWindow))*time.Minute)).Count(&numErrors).Error; err != nil {
 					log.Error(e.Wrapf(err, "error counting errors from past %d minutes", *errorAlert.ThresholdWindow))
 					return
 				}
@@ -920,7 +917,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 					return
 				}
 				var org model.Organization
-				if err := r.DB.Model(&model.Organization{}).Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&org).Error; err != nil {
+				if err := r.DB.Model(&model.Organization{}).Where(&model.Organization{Model: model.Model{ID: projectID}}).First(&org).Error; err != nil {
 					log.Error(e.Wrap(err, "error querying organization"))
 					return
 				}

@@ -6,9 +6,9 @@ import { generateRandomColor } from '../../../util/color';
 import styles from './WorkspaceDropdown.module.scss';
 
 export const MiniWorkspaceIcon = () => {
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { project_id } = useParams<{ project_id: string }>();
     const { data: currentOrg } = useGetOrganizationQuery({
-        variables: { id: organization_id },
+        variables: { id: project_id },
     });
     return (
         <div>

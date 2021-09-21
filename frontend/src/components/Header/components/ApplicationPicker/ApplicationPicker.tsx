@@ -15,7 +15,7 @@ const ApplicationPicker = () => {
         value: '-1',
         displayValue: (
             <span className={styles.createNewApplicationOption}>
-                <span>Create New Workspace</span>
+                <span>Create New Project</span>
                 <SvgPlusIcon />
             </span>
         ),

@@ -4,10 +4,10 @@ import { CodeBlock } from '../CodeBlock/CodeBlock';
 import { Section } from '../SetupPage';
 
 interface Props {
-    orgVerboseId: string;
+    projectVerboseId: string;
 }
 
-export const GatsbySetup = ({ orgVerboseId }: Props) => {
+export const GatsbySetup = ({ projectVerboseId }: Props) => {
     return (
         <>
             <Section title="Installing the SDK">
@@ -28,7 +28,7 @@ export const GatsbySetup = ({ orgVerboseId }: Props) => {
     {
       resolve: "@highlight-run/gatsby-plugin-highlight",
       options: {
-	orgID: "${orgVerboseId}",
+	orgID: "${projectVerboseId}",
         enableStrictPrivacy: false,
       }
     },

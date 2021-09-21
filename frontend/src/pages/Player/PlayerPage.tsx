@@ -67,14 +67,14 @@ interface Props {
 
 const Player = ({ integrated }: Props) => {
     const { isLoggedIn } = useAuthContext();
-    const { session_id, organization_id } = useParams<{
+    const { session_id, project_id } = useParams<{
         session_id: string;
-        organization_id: string;
+        project_id: string;
     }>();
-    const organizationIdRemapped =
-        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+    const projectIdRemapped =
+        project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-            : organization_id;
+            : project_id;
     const [resizeListener, sizes] = useResizeAware();
 
     const [searchBarRef, setSearchBarRef] = useState<
@@ -244,7 +244,7 @@ const Player = ({ integrated }: Props) => {
                                 session quota. To view it, upgrade your plan.
                             </p>
                             <ButtonLink
-                                to={`/${organizationIdRemapped}/billing`}
+                                to={`/${projectIdRemapped}/billing`}
                                 trackingId="PlayerPageUpgradePlan"
                                 className={styles.center}
                             >

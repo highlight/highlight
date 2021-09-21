@@ -211,7 +211,7 @@ func (r *Resolver) isAdminErrorGroupOwner(ctx context.Context, errorGroupID *int
 			return nil, e.Wrap(err, fmt.Sprintf("error querying error group by ID: %d", *errorGroupID))
 		}
 	}
-	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, errorGroup.OrganizationID)
+	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, errorGroup.ProjectID)
 	if err != nil {
 		return nil, e.Wrap(err, "error validating admin in organization")
 	}
@@ -233,7 +233,7 @@ func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_id *int, se
 		}
 	}
 
-	_, err = r.isAdminInOrganizationOrDemoOrg(ctx, session.OrganizationID)
+	_, err = r.isAdminInOrganizationOrDemoOrg(ctx, session.ProjectID)
 	if err != nil {
 		return session, false, e.Wrap(err, "error validating admin in organization")
 	}
@@ -264,7 +264,7 @@ func (r *Resolver) isAdminSegmentOwner(ctx context.Context, segment_id int) (*mo
 	if err := r.DB.Where(&model.Segment{Model: model.Model{ID: segment_id}}).First(&segment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying segment")
 	}
-	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, segment.OrganizationID)
+	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, segment.ProjectID)
 	if err != nil {
 		return nil, e.Wrap(err, "error validating admin in organization")
 	}
@@ -276,7 +276,7 @@ func (r *Resolver) isAdminErrorSegmentOwner(ctx context.Context, error_segment_i
 	if err := r.DB.Where(&model.ErrorSegment{Model: model.Model{ID: error_segment_id}}).First(&segment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error segment")
 	}
-	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, segment.OrganizationID)
+	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, segment.ProjectID)
 	if err != nil {
 		return nil, e.Wrap(err, "error validating admin in organization")
 	}
@@ -304,7 +304,7 @@ func (r *Resolver) UpdateSessionsVisibility(organizationID int, newPlan modelInp
 		}
 	}
 	if isPlanUpgrade {
-		if err := r.DB.Model(&model.Session{}).Where(&model.Session{OrganizationID: organizationID, WithinBillingQuota: &model.F}).Updates(model.Session{WithinBillingQuota: &model.T}).Error; err != nil {
+		if err := r.DB.Model(&model.Session{}).Where(&model.Session{ProjectID: organizationID, WithinBillingQuota: &model.F}).Updates(model.Session{WithinBillingQuota: &model.T}).Error; err != nil {
 			log.Error(e.Wrap(err, "error updating within_billing_quota on sessions upon plan upgrade"))
 		}
 	}
