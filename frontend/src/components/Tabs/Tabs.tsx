@@ -12,7 +12,10 @@ export interface TabItem {
     panelContent: React.ReactNode;
 }
 
-type Props = Pick<TabsProps, 'animated' | 'tabBarExtraContent' | 'centered'> & {
+type Props = Pick<
+    TabsProps,
+    'animated' | 'tabBarExtraContent' | 'centered' | 'onChange'
+> & {
     tabs: TabItem[];
     /** A unique value to distinguish this tab with other tabs. */
     id: string;
@@ -39,9 +42,13 @@ const Tabs = ({
 
     return (
         <AntDesignTabs
+            {...props}
             activeKey={activeTab}
             defaultActiveKey={activeTab}
             onChange={(activeKey) => {
+                if (props.onChange) {
+                    props.onChange(activeKey);
+                }
                 setActiveTab(activeKey);
             }}
             tabBarExtraContent={
@@ -53,7 +60,6 @@ const Tabs = ({
             }
             id={tabsHtmlId}
             className={classNames(styles.tabs, className)}
-            {...props}
         >
             {tabs.map(({ panelContent, title }) => (
                 <TabPane

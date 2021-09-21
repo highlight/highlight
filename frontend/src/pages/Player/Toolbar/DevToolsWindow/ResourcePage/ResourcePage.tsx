@@ -1,4 +1,5 @@
 import Input from '@components/Input/Input';
+import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
@@ -33,11 +34,9 @@ export const ResourcePage = ({
     time: number;
     startTime: number;
 }) => {
-    const { state, session } = useReplayerContext();
+    const { state, session, pause } = useReplayerContext();
+    const { setDetailedPanel } = usePlayerUIContext();
     const { session_id } = useParams<{ session_id: string }>();
-    const [selectedNetworkResource, setSelectedNetworkResource] = useState<
-        undefined | NetworkResource
-    >(undefined);
     const [options, setOptions] = useState<Array<string>>([]);
     const [currentOption, setCurrentOption] = useState('All');
     const [filterSearchTerm, setFilterSearchTerm] = useState('');
@@ -229,9 +228,28 @@ export const ResourcePage = ({
                             <div className={styles.networkColumn}>Status</div>
                             <div className={styles.networkColumn}>Type</div>
                             <div className={styles.networkColumn}>Name</div>
-                            <div className={styles.networkColumn}>Time</div>
-                            <div className={styles.networkColumn}>Size</div>
-                            <div className={styles.networkColumn}>
+                            <div
+                                className={classNames(
+                                    styles.networkColumn,
+                                    styles.justifyEnd
+                                )}
+                            >
+                                Time
+                            </div>
+                            <div
+                                className={classNames(
+                                    styles.networkColumn,
+                                    styles.justifyEnd
+                                )}
+                            >
+                                Size
+                            </div>
+                            <div
+                                className={classNames(
+                                    styles.networkColumn,
+                                    styles.waterfall
+                                )}
+                            >
                                 Waterfall
                             </div>
                         </div>
@@ -258,9 +276,48 @@ export const ResourcePage = ({
                                             currentResource={currentResource}
                                             searchTerm={filterSearchTerm}
                                             onClickHandler={() => {
-                                                setSelectedNetworkResource(
-                                                    resource
-                                                );
+                                                setDetailedPanel({
+                                                    title: (
+                                                        <div
+                                                            className={
+                                                                styles.detailPanelTitle
+                                                            }
+                                                        >
+                                                            <h3>
+                                                                Network Resource
+                                                            </h3>
+                                                            <GoToButton
+                                                                onClick={() => {
+                                                                    pause(
+                                                                        resource.startTime
+                                                                    );
+
+                                                                    message.success(
+                                                                        `Changed player time to when ${getNetworkResourcesDisplayName(
+                                                                            resource.initiatorType
+                                                                        )} request started at ${MillisToMinutesAndSeconds(
+                                                                            resource.startTime
+                                                                        )}.`
+                                                                    );
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    ),
+                                                    content: (
+                                                        <>
+                                                            <ResourceDetailsModal
+                                                                selectedNetworkResource={
+                                                                    resource
+                                                                }
+                                                                networkRecordingEnabledForSession={
+                                                                    session?.enable_recording_network_contents ||
+                                                                    false
+                                                                }
+                                                            />
+                                                        </>
+                                                    ),
+                                                    id: resource.id.toString(),
+                                                });
                                             }}
                                         />
                                     )}
@@ -298,15 +355,6 @@ export const ResourcePage = ({
                     </>
                 )}
             </div>
-            <ResourceDetailsModal
-                selectedNetworkResource={selectedNetworkResource}
-                onCloseHandler={() => {
-                    setSelectedNetworkResource(undefined);
-                }}
-                networkRecordingEnabledForSession={
-                    session?.enable_recording_network_contents || false
-                }
-            />
         </div>
     );
 };
@@ -341,6 +389,7 @@ const ResourceRow = ({
     onClickHandler: () => void;
 }) => {
     const { pause } = useReplayerContext();
+    const { detailedPanel } = usePlayerUIContext();
     const leftPaddingPercent = (resource.startTime / networkRange) * 100;
     const actualPercent = Math.max(
         ((resource.responseEnd - resource.startTime) / networkRange) * 100,
@@ -358,6 +407,8 @@ const ResourceRow = ({
                         (resource.requestResponsePairs.response.status === 0 ||
                             resource.requestResponsePairs.response.status >=
                                 400),
+                    [styles.showingDetails]:
+                        detailedPanel?.id === resource.id.toString(),
                 })}
             >
                 <div className={styles.typeSection}>

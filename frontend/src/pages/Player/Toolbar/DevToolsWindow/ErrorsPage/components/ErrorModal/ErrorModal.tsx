@@ -34,7 +34,9 @@ const ErrorModal = ({ error }: Props) => {
     return (
         <div className={styles.container}>
             {loading ? (
-                <LoadingBar />
+                <div className={styles.loadingBarContainer}>
+                    <LoadingBar />
+                </div>
             ) : (
                 <div>
                     {data && (

@@ -56,7 +56,10 @@ const ErrorComments = ({ parentRef }: Props) => {
     >([]);
 
     const onFinish = async () => {
-        H.track('Create Error Comment');
+        H.track('Create Error Comment', {
+            numHighlightAdminMentions: mentionedAdmins.length,
+            numSlackMentions: mentionedSlackUsers.length,
+        });
         setIsCreatingComment(true);
         try {
             await createComment({

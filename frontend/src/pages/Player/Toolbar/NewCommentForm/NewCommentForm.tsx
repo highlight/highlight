@@ -78,7 +78,10 @@ export const NewCommentForm = ({
     >([]);
 
     const onFinish = async () => {
-        H.track('Create Comment');
+        H.track('Create Comment', {
+            numHighlightAdminMentions: mentionedAdmins.length,
+            numSlackMentions: mentionedSlackUsers.length,
+        });
         setIsCreatingComment(true);
         // const canvas = await html2canvas(
         //     (document.querySelector(

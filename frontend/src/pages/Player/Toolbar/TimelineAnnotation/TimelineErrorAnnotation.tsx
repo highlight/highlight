@@ -1,3 +1,6 @@
+import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
+import ErrorModal from '@pages/Player/Toolbar/DevToolsWindow/ErrorsPage/components/ErrorModal/ErrorModal';
 import { message } from 'antd';
 import React, { ReactElement, useState } from 'react';
 import { useLocation } from 'react-router-dom';
@@ -8,7 +11,6 @@ import { MillisToMinutesAndSeconds } from '../../../../util/time';
 import { getHeaderFromError } from '../../../Error/ErrorPage';
 import { PlayerSearchParameters } from '../../PlayerHook/utils';
 import { ParsedErrorObject, useReplayerContext } from '../../ReplayerContext';
-import { useErrorModalContext } from '../ErrorModalContext/ErrorModalContext';
 import styles from '../Toolbar.module.scss';
 import TimelineAnnotation from './TimelineAnnotation';
 
@@ -21,8 +23,12 @@ function TimelineErrorAnnotation({ error }: Props): ReactElement {
     const errorId = new URLSearchParams(location.search).get(
         PlayerSearchParameters.errorId
     );
-    const { setSelectedError } = useErrorModalContext();
     const { pause, replayer } = useReplayerContext();
+    const {
+        setShowDevTools,
+        setSelectedDevToolsTab,
+    } = usePlayerConfiguration();
+    const { setDetailedPanel } = usePlayerUIContext();
 
     const [isTooltipOpen, setIsTooltipOpen] = useState(false);
 
@@ -36,7 +42,16 @@ function TimelineErrorAnnotation({ error }: Props): ReactElement {
                     <div className={styles.buttonContainer}>
                         <GoToButton
                             onClick={() => {
-                                setSelectedError(error);
+                                setShowDevTools(true);
+                                setSelectedDevToolsTab('Errors');
+                                setDetailedPanel({
+                                    title: null,
+                                    content: <ErrorModal error={error} />,
+                                    options: {
+                                        noHeader: true,
+                                    },
+                                    id: error.id,
+                                });
                             }}
                             label="More info"
                         />

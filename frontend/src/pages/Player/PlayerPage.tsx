@@ -102,6 +102,10 @@ const Player = ({ integrated }: Props) => {
         setIsPlayerFullscreen,
         playerCenterPanelRef,
     } = usePlayerFullscreen();
+    const [detailedPanel, setDetailedPanel] = useState<
+        | { title: string | React.ReactNode; content: React.ReactNode }
+        | undefined
+    >(undefined);
     const newCommentModalRef = useRef<HTMLDivElement>(null);
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
     const [commentModalPosition, setCommentModalPosition] = useState<
@@ -184,6 +188,8 @@ const Player = ({ integrated }: Props) => {
                 isPlayerFullscreen,
                 setIsPlayerFullscreen,
                 playerCenterPanelRef,
+                detailedPanel,
+                setDetailedPanel,
             }}
         >
             <ReplayerContextProvider value={player}>
