@@ -166,9 +166,7 @@ func main() {
 		AllowCredentials:       true,
 		AllowedHeaders:         []string{"*"},
 	}).Handler)
-	r.MethodFunc(http.MethodGet, "/health", healthRouter(runtimeParsed))
-	r.MethodFunc(http.MethodPost, "/health", healthRouter(runtimeParsed))
-
+	r.HandleFunc("/health", healthRouter(runtimeParsed))
 	/*
 		Selectively turn on backends depending on the input flag
 		If type is 'all', we run public-graph on /public and private-graph on /private
