@@ -48,7 +48,10 @@ import styles from './ErrorPage.module.scss';
 import useErrorPageConfiguration from './utils/ErrorPageUIConfiguration';
 
 const ErrorPage = ({ integrated }: { integrated: boolean }) => {
-    const { error_id } = useParams<{ error_id: string }>();
+    const { error_id, organization_id } = useParams<{
+        error_id: string;
+        organization_id: string;
+    }>();
 
     const [getErrorGroupQuery, { data, loading }] = useGetErrorGroupLazyQuery({
         variables: { id: error_id },
@@ -56,7 +59,9 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
     const { isLoggedIn } = useAuthContext();
     const [segmentName, setSegmentName] = useState<string | null>(null);
     const [cachedParams, setCachedParams] = useLocalStorage<ErrorSearchParams>(
-        `cachedErrorParams-v2-${segmentName || 'no-selected-segment'}`,
+        `cachedErrorParams-v2-${
+            segmentName || 'no-selected-segment'
+        }-${organization_id}`,
         {}
     );
     const [searchParams, setSearchParams] = useState<ErrorSearchParams>(
