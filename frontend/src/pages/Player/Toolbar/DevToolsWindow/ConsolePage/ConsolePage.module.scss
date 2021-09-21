@@ -31,7 +31,8 @@
     background-color: var(--color-primary-background);
     display: flex;
     flex-direction: column;
-    font-family: var(--body-font-family);
+    font-family: var(--monospace-font-family);
+    font-weight: 400;
     height: calc(100% - var(--player-toolbar-height));
     overflow-x: hidden;
     overflow-y: auto;

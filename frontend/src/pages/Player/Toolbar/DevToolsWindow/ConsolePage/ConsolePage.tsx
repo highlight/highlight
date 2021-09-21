@@ -196,19 +196,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
                         data={messagesToRender}
                         itemContent={(_index, message: ParsedMessage) => (
                             <div key={message.id.toString()}>
-                                <div
-                                    className={styles.consoleMessage}
-                                    style={{
-                                        color:
-                                            message.id === currentMessage
-                                                ? 'black'
-                                                : 'grey',
-                                        fontWeight:
-                                            message.id === currentMessage
-                                                ? 400
-                                                : 300,
-                                    }}
-                                >
+                                <div className={styles.consoleMessage}>
                                     <div
                                         className={
                                             styles.currentIndicatorWrapper
@@ -292,15 +280,11 @@ const ConsoleRender = ({
             {result.map((r) =>
                 typeof r === 'object' ? (
                     <ReactJson
-                        style={{
-                            fontFamily: 'Steradian',
-                            fontWeight: 300,
-                            margin: 10,
-                        }}
-                        name={false}
+                        name="Object"
                         collapsed
                         src={r}
-                        iconStyle="circle"
+                        iconStyle="square"
+                        displayDataTypes={false}
                     />
                 ) : typeof r === 'string' ? (
                     <div className={styles.messageText}>
