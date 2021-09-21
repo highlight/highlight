@@ -15,13 +15,13 @@ import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import { CircularSpinner } from '../../components/Loading/Loading';
 import PopConfirm from '../../components/PopConfirm/PopConfirm';
 import {
-    useDeleteAdminFromOrganizationMutation,
+    useDeleteAdminFromProjectMutation,
     useGetAdminsQuery,
-    useGetOrganizationQuery,
+    useGetProjectQuery,
     useSendAdminInviteMutation,
 } from '../../graph/generated/hooks';
 import SvgTrash from '../../static/Trash';
-import { getOrganizationInvitationLink } from './utils';
+import { getProjectInvitationLink } from './utils';
 import styles from './WorkspaceTeam.module.scss';
 
 type Inputs = {
@@ -32,25 +32,23 @@ const WorkspaceTeam = () => {
     const { project_id } = useParams<{ project_id: string }>();
     const emailRef = useRef<null | HTMLInputElement>(null);
     const { register, handleSubmit, errors, reset } = useForm<Inputs>();
-    const { data: orgData } = useGetOrganizationQuery({
+    const { data: projectData } = useGetProjectQuery({
         variables: { id: project_id },
     });
     const { data, error, loading } = useGetAdminsQuery({
         variables: { project_id },
     });
     const { admin } = useAuthContext();
-    const [
-        deleteAdminFromOrganization,
-    ] = useDeleteAdminFromOrganizationMutation({
+    const [deleteAdminFromProject] = useDeleteAdminFromProjectMutation({
         update(cache, { data }) {
             cache.modify({
                 fields: {
                     admins(existingAdmins, { readField }) {
-                        if (data?.deleteAdminFromOrganization !== undefined) {
+                        if (data?.deleteAdminFromProject !== undefined) {
                             message.success('Removed member');
                             return existingAdmins.filter(
                                 (admin: any) =>
-                                    data.deleteAdminFromOrganization !==
+                                    data.deleteAdminFromProject !==
                                     readField('id', admin)
                             );
                         }
@@ -105,7 +103,7 @@ const WorkspaceTeam = () => {
                     <h3>Invite Your Team</h3>
                     <p className={styles.boxSubTitle}>
                         Invite a team member to '
-                        {`${orgData?.organization?.name}`}' by entering an email
+                        {`${projectData?.project?.name}`}' by entering an email
                         below.
                     </p>
                     <div className={styles.buttonRow}>
@@ -147,8 +145,8 @@ const WorkspaceTeam = () => {
                 </form>
                 <p>Or invite your team by sharing this link.</p>
                 <CopyText
-                    text={getOrganizationInvitationLink(
-                        orgData?.organization?.secret || '',
+                    text={getProjectInvitationLink(
+                        projectData?.project?.secret || '',
                         project_id
                     )}
                 />
@@ -183,13 +181,13 @@ const WorkspaceTeam = () => {
                                     title={`Remove ${
                                         a?.name || a?.email
                                     } from ${
-                                        orgData?.organization?.name
+                                        projectData?.project?.name
                                     }? They will no longer have access to Highlight. You can invite them again if they need access.`}
                                     okText={`Remove ${a?.name || a?.email}`}
                                     cancelText="Cancel"
                                     onConfirm={() => {
                                         if (a?.id) {
-                                            deleteAdminFromOrganization({
+                                            deleteAdminFromProject({
                                                 variables: {
                                                     admin_id: a?.id,
                                                     project_id,

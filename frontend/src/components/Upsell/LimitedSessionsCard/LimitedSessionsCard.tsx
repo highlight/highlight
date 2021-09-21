@@ -30,7 +30,7 @@ const LimitedSessionCard = () => {
         1.0;
 
     /** An project is within a trial period by us setting an explicit trial end date on the project. */
-    const projectWithinTrialPeriod = isProjectWithinTrial(data?.organization);
+    const projectWithinTrialPeriod = isProjectWithinTrial(data?.project);
 
     if (!upsell || projectWithinTrialPeriod) {
         return null;

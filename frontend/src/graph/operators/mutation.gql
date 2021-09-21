@@ -37,12 +37,12 @@ mutation SendEmailSignup($email: String!) {
     emailSignup(email: $email)
 }
 
-mutation AddAdminToOrganization($project_id: ID!, $invite_id: String!) {
-    addAdminToOrganization(project_id: $project_id, invite_id: $invite_id)
+mutation AddAdminToProject($project_id: ID!, $invite_id: String!) {
+    addAdminToProject(project_id: $project_id, invite_id: $invite_id)
 }
 
-mutation DeleteAdminFromOrganization($project_id: ID!, $admin_id: ID!) {
-    deleteAdminFromOrganization(project_id: $project_id, admin_id: $admin_id)
+mutation DeleteAdminFromProject($project_id: ID!, $admin_id: ID!) {
+    deleteAdminFromProject(project_id: $project_id, admin_id: $admin_id)
 }
 
 mutation OpenSlackConversation(
@@ -57,34 +57,34 @@ mutation OpenSlackConversation(
     )
 }
 
-mutation AddSlackBotIntegrationToOrganization(
+mutation AddSlackBotIntegrationToProject(
     $project_id: ID!
     $code: String!
     $redirect_path: String!
 ) {
-    addSlackBotIntegrationToOrganization(
+    addSlackBotIntegrationToProject(
         project_id: $project_id
         code: $code
         redirect_path: $redirect_path
     )
 }
 
-mutation CreateOrganization($name: String!) {
-    createOrganization(name: $name) {
+mutation CreateProject($name: String!) {
+    createProject(name: $name) {
         id
         name
     }
 }
 
-mutation EditOrganization($id: ID!, $name: String, $billing_email: String) {
-    editOrganization(id: $id, name: $name, billing_email: $billing_email) {
+mutation EditProject($id: ID!, $name: String, $billing_email: String) {
+    editProject(id: $id, name: $name, billing_email: $billing_email) {
         name
         billing_email
     }
 }
 
-mutation DeleteOrganization($id: ID!) {
-    deleteOrganization(id: $id)
+mutation DeleteProject($id: ID!) {
+    deleteProject(id: $id)
 }
 
 mutation DeleteSegment($segment_id: ID!) {

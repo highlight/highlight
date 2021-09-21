@@ -1,13 +1,13 @@
+import { useGetProjectQuery } from '@graph/hooks';
 import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 
-import { useGetOrganizationQuery } from '../../../graph/generated/hooks';
 import { generateRandomColor } from '../../../util/color';
 import styles from './WorkspaceDropdown.module.scss';
 
 export const MiniWorkspaceIcon = () => {
     const { project_id } = useParams<{ project_id: string }>();
-    const { data: currentOrg } = useGetOrganizationQuery({
+    const { data: currentProject } = useGetProjectQuery({
         variables: { id: project_id },
     });
     return (
@@ -16,11 +16,11 @@ export const MiniWorkspaceIcon = () => {
                 className={styles.workspaceIcon}
                 style={{
                     backgroundColor: generateRandomColor(
-                        currentOrg?.organization?.name ?? ''
+                        currentProject?.project?.name ?? ''
                     ),
                 }}
             >
-                {currentOrg?.organization?.name[0]?.toUpperCase() ?? 'H'}
+                {currentProject?.project?.name[0]?.toUpperCase() ?? 'H'}
             </div>
         </div>
     );

@@ -74,7 +74,7 @@ enum SessionCommentType {
     FEEDBACK
 }
 
-type Organization {
+type Project {
     id: ID!
     verbose_id: String!
     name: String!
@@ -405,18 +405,18 @@ type Query {
         session_secure_id: String
     ): [SessionComment]!
     session_comments_for_admin: [SessionComment]!
-    session_comments_for_organization(project_id: ID!): [SessionComment]!
+    session_comments_for_project(project_id: ID!): [SessionComment]!
     error_comments(
         error_group_id: ID
         error_group_secure_id: String
     ): [ErrorComment]!
     error_comments_for_admin: [ErrorComment]!
-    error_comments_for_organization(project_id: ID!): [ErrorComment]!
+    error_comments_for_project(project_id: ID!): [ErrorComment]!
     admins(project_id: ID!): [Admin]!
     isIntegrated(project_id: ID!): Boolean
     unprocessedSessionsCount(project_id: ID!): Int64
     adminHasCreatedComment(admin_id: ID!): Boolean
-    organizationHasViewedASession(project_id: ID!): Session
+    projectHasViewedASession(project_id: ID!): Session
     dailySessionsCount(
         project_id: ID!
         date_range: DateRangeInput!
@@ -450,7 +450,7 @@ type Query {
         params: SearchParamsInput
     ): SessionResults!
     billingDetails(project_id: ID!): BillingDetails!
-    # gets all the organizations of a user
+    # gets all the projects of a user
     field_suggestion(project_id: ID!, name: String!, query: String!): [Field]
     property_suggestion(project_id: ID!, query: String!, type: String!): [Field]
     error_field_suggestion(
@@ -458,18 +458,18 @@ type Query {
         name: String!
         query: String!
     ): [ErrorField]
-    organizations: [Organization]
+    projects: [Project]
     error_alert(project_id: ID!): ErrorAlert
     session_feedback_alert(project_id: ID!): SessionAlert
     new_user_alert(project_id: ID!): SessionAlert
     track_properties_alert(project_id: ID!): SessionAlert
     user_properties_alert(project_id: ID!): SessionAlert
-    organizationSuggestion(query: String!): [Organization]
+    projectSuggestion(query: String!): [Project]
     environment_suggestion(query: String!, project_id: ID!): [Field]
     slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
     slack_members(project_id: ID!): [SanitizedSlackChannel]!
     is_integrated_with_slack(project_id: ID!): Boolean!
-    organization(id: ID!): Organization
+    project(id: ID!): Project
     admin: Admin
     segments(project_id: ID!): [Segment]
     error_segments(project_id: ID!): [ErrorSegment]
@@ -477,15 +477,15 @@ type Query {
 }
 
 type Mutation {
-    createOrganization(name: String!): Organization
-    editOrganization(id: ID!, name: String, billing_email: String): Organization
+    createProject(name: String!): Project
+    editProject(id: ID!, name: String, billing_email: String): Project
     markSessionAsViewed(id: ID, secure_id: String, viewed: Boolean): Session
     markSessionAsStarred(id: ID, secure_id: String, starred: Boolean): Session
     updateErrorGroupState(id: ID, secure_id: String, state: String!): ErrorGroup
-    deleteOrganization(id: ID!): Boolean
+    deleteProject(id: ID!): Boolean
     sendAdminInvite(project_id: ID!, email: String!, base_url: String!): String
-    addAdminToOrganization(project_id: ID!, invite_id: String!): ID
-    deleteAdminFromOrganization(project_id: ID!, admin_id: ID!): ID
+    addAdminToProject(project_id: ID!, invite_id: String!): ID
+    deleteAdminFromProject(project_id: ID!, admin_id: ID!): ID
     createSegment(
         project_id: ID!
         name: String!
@@ -546,7 +546,7 @@ type Mutation {
         code: String!
         redirect_path: String!
     ): Boolean
-    addSlackBotIntegrationToOrganization(
+    addSlackBotIntegrationToProject(
         project_id: ID!
         code: String!
         redirect_path: String!

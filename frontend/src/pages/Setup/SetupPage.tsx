@@ -2,6 +2,7 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { useGetProjectQuery } from '@graph/hooks';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import { H } from 'highlight.run';
@@ -16,7 +17,6 @@ import SvgSlackLogo from '../../components/icons/SlackLogo';
 import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import { RadioGroup } from '../../components/RadioGroup/RadioGroup';
-import { useGetOrganizationQuery } from '../../graph/generated/hooks';
 import { GetBaseURL } from '../../util/window';
 import { CodeBlock } from './CodeBlock/CodeBlock';
 import { GatsbySetup } from './Gatsby/GatsbySetup';
@@ -39,7 +39,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
         project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
             : project_id;
-    const { data, loading } = useGetOrganizationQuery({
+    const { data, loading } = useGetProjectQuery({
         variables: { id: project_id },
     });
 
@@ -63,7 +63,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                 ]}
                 onSelect={(p: PlatformType) => setPlatform(p)}
             />
-            {!data?.organization || loading ? (
+            {!data?.project || loading ? (
                 <Skeleton
                     height={75}
                     count={3}
@@ -73,15 +73,15 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                 <div className={styles.stepsContainer}>
                     {platform === PlatformType.Html ? (
                         <HtmlInstructions
-                            orgVerboseId={data?.organization?.verbose_id}
+                            projectVerboseId={data?.project?.verbose_id}
                         />
                     ) : platform === PlatformType.Gatsby ? (
                         <GatsbySetup
-                            projectVerboseId={data?.organization?.verbose_id}
+                            projectVerboseId={data?.project?.verbose_id}
                         />
                     ) : (
                         <JsAppInstructions
-                            orgVerboseId={data?.organization?.verbose_id}
+                            projectVerboseId={data?.project?.verbose_id}
                             platform={platform}
                         />
                     )}
@@ -136,7 +136,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                         title={
                             <span className={styles.sectionTitleWithIcon}>
                                 Enable Slack Alerts
-                                {data.organization.slack_webhook_channel ? (
+                                {data.project.slack_webhook_channel ? (
                                     <IntegrationDetector
                                         verbose={false}
                                         integrated={integrated}
@@ -167,7 +167,11 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
     );
 };
 
-const HtmlInstructions = ({ orgVerboseId }: { orgVerboseId: string }) => {
+const HtmlInstructions = ({
+    projectVerboseId,
+}: {
+    projectVerboseId: string;
+}) => {
     const { loading, error, data = '' } = useFetch<string>(
         'https://unpkg.com/highlight.run@latest',
         {},
@@ -196,7 +200,7 @@ const HtmlInstructions = ({ orgVerboseId }: { orgVerboseId: string }) => {
                         }}
                         text={`<script>
 ${codeStr}
-window.H.init('${orgVerboseId}'${
+window.H.init('${projectVerboseId}'${
                             isOnPrem
                                 ? ', {backendUrl: "' +
                                   GetBaseURL() +
@@ -213,10 +217,10 @@ window.H.init('${orgVerboseId}'${
 
 const JsAppInstructions = ({
     platform,
-    orgVerboseId,
+    projectVerboseId,
 }: {
     platform: PlatformType;
-    orgVerboseId: string;
+    projectVerboseId: string;
 }) => {
     return (
         <>
@@ -232,9 +236,10 @@ const JsAppInstructions = ({
                 <p>Initialize the SDK by importing Highlight like so: </p>
                 <CodeBlock text={`import { H } from 'highlight.run'`} />
                 <p>
-                    and then calling <code>{getInitSnippet(orgVerboseId)}</code>{' '}
-                    as soon as you can in your site's startup process. You can
-                    configure how Highlight records with the{' '}
+                    and then calling{' '}
+                    <code>{getInitSnippet(projectVerboseId)}</code> as soon as
+                    you can in your site's startup process. You can configure
+                    how Highlight records with the{' '}
                     <a
                         href="https://docs.highlight.run/reference#options"
                         target="_blank"
@@ -247,13 +252,13 @@ const JsAppInstructions = ({
                 <p>
                     {platform !== PlatformType.NextJs ? (
                         <CodeBlock
-                            text={`${getInitSnippet(orgVerboseId, true)}`}
+                            text={`${getInitSnippet(projectVerboseId, true)}`}
                         />
                     ) : (
                         <CodeBlock
                             text={`${getInitSnippet(
-                                orgVerboseId
-                            )} // ${orgVerboseId} is your ORG_ID`}
+                                projectVerboseId
+                            )} // ${projectVerboseId} is your ORG_ID`}
                         />
                     )}
                 </p>
@@ -273,7 +278,7 @@ const JsAppInstructions = ({
 import App from './App';
 import { H } from 'highlight.run'
 
-${getInitSnippet(orgVerboseId)}
+${getInitSnippet(projectVerboseId)}
 
 ReactDOM.render(<App />, document.getElementById('root'));`}
                     />
@@ -283,7 +288,7 @@ ReactDOM.render(<App />, document.getElementById('root'));`}
 import App from './App.vue';
 import { H } from 'highlight.run';
 
-${getInitSnippet(orgVerboseId, true)}
+${getInitSnippet(projectVerboseId, true)}
 
 createApp(App).mount('#app');`}
                     />
@@ -291,7 +296,7 @@ createApp(App).mount('#app');`}
                     <CodeBlock
                         text={`import { H } from 'highlight.run';
 
-${getInitSnippet(orgVerboseId)}
+${getInitSnippet(projectVerboseId)}
 
 function MyApp({ Component, pageProps }) {
   return <Component {...pageProps} />

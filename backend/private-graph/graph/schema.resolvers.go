@@ -173,7 +173,7 @@ func (r *errorSegmentResolver) Params(ctx context.Context, obj *model.ErrorSegme
 	return params, nil
 }
 
-func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) (*model.Organization, error) {
+func (r *mutationResolver) CreateProject(ctx context.Context, name string) (*model.Project, error) {
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting admin")
@@ -188,45 +188,45 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 		}
 	}
 
-	org := &model.Organization{
+	project := &model.Project{
 		StripeCustomerID: &c.ID,
 		Name:             &name,
 		Admins:           []model.Admin{*admin},
 		BillingEmail:     admin.Email,
 	}
-	if err := r.DB.Create(org).Error; err != nil {
+	if err := r.DB.Create(project).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")
 	}
-	if err := r.DB.Create(&model.ErrorAlert{Alert: model.Alert{ProjectID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.ERROR}}).Error; err != nil {
+	if err := r.DB.Create(&model.ErrorAlert{Alert: model.Alert{ProjectID: project.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.ERROR}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating error alert for new org")
 	}
-	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{ProjectID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.SESSION_FEEDBACK}}).Error; err != nil {
+	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{ProjectID: project.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.SESSION_FEEDBACK}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session feedback alert for new org")
 	}
-	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{ProjectID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.NEW_USER}}).Error; err != nil {
+	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{ProjectID: project.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.NEW_USER}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session new user alert for new org")
 	}
-	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{ProjectID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.TRACK_PROPERTIES}}).Error; err != nil {
+	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{ProjectID: project.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.TRACK_PROPERTIES}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session track properties alert for new org")
 	}
-	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{ProjectID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.USER_PROPERTIES}}).Error; err != nil {
+	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{ProjectID: project.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.USER_PROPERTIES}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session user properties alert for new org")
 	}
-	return org, nil
+	return project, nil
 }
 
-func (r *mutationResolver) EditOrganization(ctx context.Context, id int, name *string, billingEmail *string) (*model.Organization, error) {
-	org, err := r.isAdminInOrganization(ctx, id)
+func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string) (*model.Project, error) {
+	project, err := r.isAdminInOrganization(ctx, id)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying org")
 	}
-	if err := r.DB.Model(org).Updates(&model.Organization{
+	if err := r.DB.Model(project).Updates(&model.Project{
 		Name:         name,
 		BillingEmail: billingEmail,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error updating org fields")
 	}
-	return org, nil
+	return project, nil
 }
 
 func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, id *int, secureID *string, viewed *bool) (*model.Session, error) {
@@ -275,12 +275,12 @@ func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, id *int, s
 	return errorGroup, nil
 }
 
-func (r *mutationResolver) DeleteOrganization(ctx context.Context, id int) (*bool, error) {
+func (r *mutationResolver) DeleteProject(ctx context.Context, id int) (*bool, error) {
 	_, err := r.isAdminInOrganization(ctx, id)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
-	if err := r.DB.Model(&model.Organization{}).Delete("id = ?", id).Error; err != nil {
+	if err := r.DB.Model(&model.Project{}).Delete("id = ?", id).Error; err != nil {
 		return nil, e.Wrap(err, "error deleting organization")
 	}
 	return &model.T, nil
@@ -331,25 +331,25 @@ func (r *mutationResolver) SendAdminInvite(ctx context.Context, projectID int, e
 	return &email, nil
 }
 
-func (r *mutationResolver) AddAdminToOrganization(ctx context.Context, projectID int, inviteID string) (*int, error) {
-	org := &model.Organization{}
-	if err := r.DB.Model(&model.Organization{}).Where("id = ?", projectID).First(&org).Error; err != nil {
+func (r *mutationResolver) AddAdminToProject(ctx context.Context, projectID int, inviteID string) (*int, error) {
+	project := &model.Project{}
+	if err := r.DB.Model(&model.Project{}).Where("id = ?", projectID).First(&project).Error; err != nil {
 		return nil, e.Wrap(err, "error querying org")
 	}
-	if org.Secret == nil || (org.Secret != nil && *org.Secret != inviteID) {
+	if project.Secret == nil || (project.Secret != nil && *project.Secret != inviteID) {
 		return nil, e.New("invalid invite id")
 	}
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.New("error querying admin")
 	}
-	if err := r.DB.Model(org).Association("Admins").Append(admin); err != nil {
+	if err := r.DB.Model(project).Association("Admins").Append(admin); err != nil {
 		return nil, e.Wrap(err, "error adding admin to association")
 	}
-	return &org.ID, nil
+	return &project.ID, nil
 }
 
-func (r *mutationResolver) DeleteAdminFromOrganization(ctx context.Context, projectID int, adminID int) (*int, error) {
+func (r *mutationResolver) DeleteAdminFromProject(ctx context.Context, projectID int, adminID int) (*int, error) {
 	if _, err := r.isAdminInOrganization(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
@@ -361,7 +361,7 @@ func (r *mutationResolver) DeleteAdminFromOrganization(ctx context.Context, proj
 		return nil, e.New("Admin tried deleting themselves from the organization")
 	}
 
-	if err := r.DB.Model(&model.Organization{Model: model.Model{ID: projectID}}).Association("Admins").Delete(model.Admin{Model: model.Model{ID: adminID}}); err != nil {
+	if err := r.DB.Model(&model.Project{Model: model.Model{ID: projectID}}).Association("Admins").Delete(model.Admin{Model: model.Model{ID: adminID}}); err != nil {
 		return nil, e.Wrap(err, "error deleting admin from organization")
 	}
 
@@ -867,12 +867,12 @@ func (r *mutationResolver) OpenSlackConversation(ctx context.Context, projectID 
 	return &model.T, nil
 }
 
-func (r *mutationResolver) AddSlackBotIntegrationToOrganization(ctx context.Context, projectID int, code string, redirectPath string) (bool, error) {
+func (r *mutationResolver) AddSlackBotIntegrationToProject(ctx context.Context, projectID int, code string, redirectPath string) (bool, error) {
 	var (
 		SLACK_CLIENT_ID     string
 		SLACK_CLIENT_SECRET string
 	)
-	org, err := r.isAdminInOrganization(ctx, projectID)
+	project, err := r.isAdminInOrganization(ctx, projectID)
 	if err != nil {
 		return false, e.Wrap(err, "admin is not in organization")
 	}
@@ -896,7 +896,7 @@ func (r *mutationResolver) AddSlackBotIntegrationToOrganization(ctx context.Cont
 		return false, e.Wrap(err, "error getting slack oauth response")
 	}
 
-	if err := r.DB.Where(&model.Organization{Model: model.Model{ID: projectID}}).Updates(&model.Organization{SlackAccessToken: &resp.AccessToken}).Error; err != nil {
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).Updates(&model.Project{SlackAccessToken: &resp.AccessToken}).Error; err != nil {
 		return false, e.Wrap(err, "error updating slack access token in org")
 	}
 
@@ -949,7 +949,7 @@ func (r *mutationResolver) AddSlackBotIntegrationToOrganization(ctx context.Cont
 		newChannels = append(newChannels, newChannel)
 	}
 
-	existingChannels, err := org.IntegratedSlackChannels()
+	existingChannels, err := project.IntegratedSlackChannels()
 
 	// Filter out `newChannels` that already exist in `existingChannels` so we don't have duplicates.
 	filteredNewChannels := []model.SlackChannel{}
@@ -978,7 +978,7 @@ func (r *mutationResolver) AddSlackBotIntegrationToOrganization(ctx context.Cont
 		return false, e.Wrap(err, "error marshaling existing channels")
 	}
 	channelString := string(channelBytes)
-	if err := r.DB.Model(org).Updates(&model.Organization{
+	if err := r.DB.Model(project).Updates(&model.Organization{
 		SlackChannels: &channelString,
 	}).Error; err != nil {
 		return false, e.Wrap(err, "error updating org fields")
@@ -1488,7 +1488,7 @@ func (r *queryResolver) SessionCommentsForAdmin(ctx context.Context) ([]*model.S
 	return sessionComments, nil
 }
 
-func (r *queryResolver) SessionCommentsForOrganization(ctx context.Context, projectID int) ([]*model.SessionComment, error) {
+func (r *queryResolver) SessionCommentsForProject(ctx context.Context, projectID int) ([]*model.SessionComment, error) {
 	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org for session comments")
 	}
@@ -1527,7 +1527,7 @@ func (r *queryResolver) ErrorCommentsForAdmin(ctx context.Context) ([]*model.Err
 	return errorComments, nil
 }
 
-func (r *queryResolver) ErrorCommentsForOrganization(ctx context.Context, projectID int) ([]*model.ErrorComment, error) {
+func (r *queryResolver) ErrorCommentsForProject(ctx context.Context, projectID int) ([]*model.ErrorComment, error) {
 	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org for error comments")
 	}
@@ -1590,7 +1590,7 @@ func (r *queryResolver) AdminHasCreatedComment(ctx context.Context, adminID int)
 	return &model.T, nil
 }
 
-func (r *queryResolver) OrganizationHasViewedASession(ctx context.Context, projectID int) (*model.Session, error) {
+func (r *queryResolver) ProjectHasViewedASession(ctx context.Context, projectID int) (*model.Session, error) {
 	if _, err := r.isAdminInOrganizationOrDemoOrg(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
@@ -2004,16 +2004,16 @@ func (r *queryResolver) ErrorFieldSuggestion(ctx context.Context, projectID int,
 	return fields, nil
 }
 
-func (r *queryResolver) Organizations(ctx context.Context) ([]*model.Organization, error) {
+func (r *queryResolver) Projects(ctx context.Context) ([]*model.Project, error) {
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.Wrap(err, "error retrieiving user")
 	}
-	orgs := []*model.Organization{}
-	if err := r.DB.Order("name asc").Model(&admin).Association("Organizations").Find(&orgs); err != nil {
-		return nil, e.Wrap(err, "error getting associated organizations")
+	projects := []*model.Project{}
+	if err := r.DB.Order("name asc").Model(&admin).Association("Projects").Find(&projects); err != nil {
+		return nil, e.Wrap(err, "error getting associated projects")
 	}
-	return orgs, nil
+	return projects, nil
 }
 
 func (r *queryResolver) ErrorAlert(ctx context.Context, projectID int) (*model.ErrorAlert, error) {
@@ -2080,14 +2080,14 @@ func (r *queryResolver) UserPropertiesAlert(ctx context.Context, projectID int) 
 	return &alert, nil
 }
 
-func (r *queryResolver) OrganizationSuggestion(ctx context.Context, query string) ([]*model.Organization, error) {
-	orgs := []*model.Organization{}
+func (r *queryResolver) ProjectSuggestion(ctx context.Context, query string) ([]*model.Project, error) {
+	projects := []*model.Project{}
 	if r.isWhitelistedAccount(ctx) {
-		if err := r.DB.Model(&model.Organization{}).Where("name ILIKE ?", "%"+query+"%").Find(&orgs).Error; err != nil {
-			return nil, e.Wrap(err, "error getting associated organizations")
+		if err := r.DB.Model(&model.Project{}).Where("name ILIKE ?", "%"+query+"%").Find(&projects).Error; err != nil {
+			return nil, e.Wrap(err, "error getting associated projects")
 		}
 	}
-	return orgs, nil
+	return projects, nil
 }
 
 func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, query string, projectID int) ([]*model.Field, error) {
@@ -2161,12 +2161,12 @@ func (r *queryResolver) IsIntegratedWithSlack(ctx context.Context, projectID int
 	return org.SlackAccessToken != nil, nil
 }
 
-func (r *queryResolver) Organization(ctx context.Context, id int) (*model.Organization, error) {
-	org, err := r.isAdminInOrganizationOrDemoOrg(ctx, id)
+func (r *queryResolver) Project(ctx context.Context, id int) (*model.Project, error) {
+	project, err := r.isAdminInOrganizationOrDemoOrg(ctx, id)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying organization")
+		return nil, e.Wrap(err, "error querying project")
 	}
-	return org, nil
+	return project, nil
 }
 
 func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {

@@ -15,7 +15,7 @@ import { useSessionStorage } from 'react-use';
 
 import { useAuthContext } from '../../authentication/AuthContext';
 import { useGetBillingDetailsQuery } from '../../graph/generated/hooks';
-import { Maybe, Organization, PlanType } from '../../graph/generated/schemas';
+import { Maybe, PlanType, Project } from '../../graph/generated/schemas';
 import { ReactComponent as Banner } from '../../static/banner.svg';
 import { isProjectWithinTrial } from '../../util/billing/billing';
 import { HighlightLogo } from '../HighlightLogo/HighlightLogo';
@@ -112,10 +112,10 @@ const FreePlanBanner = () => {
     }
 
     let bannerMessage = `You've used ${data?.billingDetails.meter}/${data?.billingDetails.plan.quota} of your free sessions.`;
-    const hasTrial = isProjectWithinTrial(data?.organization);
+    const hasTrial = isProjectWithinTrial(data?.project);
     if (hasTrial) {
         bannerMessage = `You have unlimited sessions until ${moment(
-            data?.organization?.trial_end_date
+            data?.project?.trial_end_date
         ).format('MM/DD/YY')}. `;
     }
 
@@ -199,26 +199,24 @@ const DemoWorkspaceBanner = () => {
 };
 
 const getRedirectLink = (
-    allApplications: Maybe<
+    allProjects: Maybe<
         Maybe<
             {
-                __typename?: 'Organization' | undefined;
-            } & Pick<Organization, 'id' | 'name'>
+                __typename?: 'Project' | undefined;
+            } & Pick<Project, 'id' | 'name'>
         >[]
     >,
-    currentApplication: Organization | undefined,
+    currentProject: Project | undefined,
     pathname: string
 ): string => {
     const [, path] = pathname.split('/').filter((token) => token.length);
     let toVisit = `/new`;
 
-    if (allApplications) {
-        if (allApplications[0]?.id !== currentApplication?.id) {
-            toVisit = `/${allApplications[0]?.id}/${path}`;
+    if (allProjects) {
+        if (allProjects[0]?.id !== currentProject?.id) {
+            toVisit = `/${allProjects[0]?.id}/${path}`;
         } else {
-            toVisit = `/${
-                allApplications[allApplications.length - 1]?.id
-            }/${path}`;
+            toVisit = `/${allProjects[allProjects.length - 1]?.id}/${path}`;
         }
     }
 

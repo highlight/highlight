@@ -10,8 +10,8 @@ import commonStyles from '../../../Common.module.scss';
 import Button from '../../../components/Button/Button/Button';
 import { CircularSpinner } from '../../../components/Loading/Loading';
 import {
-    useDeleteOrganizationMutation,
-    useGetOrganizationQuery,
+    useDeleteProjectMutation,
+    useGetProjectQuery,
 } from '../../../graph/generated/hooks';
 import styles from './DangerForm.module.scss';
 
@@ -21,22 +21,22 @@ type Inputs = {
 
 export const DangerForm = () => {
     const { project_id } = useParams<{ project_id: string }>();
-    const { loading, data } = useGetOrganizationQuery({
+    const { loading, data } = useGetProjectQuery({
         variables: { id: project_id },
     });
 
     const [
-        deleteOrganization,
+        deleteProject,
         { loading: deleteLoading, data: deleteData },
-    ] = useDeleteOrganizationMutation({
-        refetchQueries: [namedOperations.Query.GetOrganizations],
+    ] = useDeleteProjectMutation({
+        refetchQueries: [namedOperations.Query.GetProjects],
     });
 
     const { register, handleSubmit, errors } = useForm<Inputs>();
     const onSubmit = () => {
-        deleteOrganization({ variables: { id: project_id } });
+        deleteProject({ variables: { id: project_id } });
     };
-    if (deleteData?.deleteOrganization) {
+    if (deleteData?.deleteProject) {
         return <Redirect to={`/`} />;
     }
     return (
@@ -48,17 +48,17 @@ export const DangerForm = () => {
                     <p className={styles.dangerSubTitle}>
                         This will immediately remove all team members and
                         projects, and cancel your subscription. Please type '
-                        {`${data?.organization?.name}`}' to confirm.
+                        {`${data?.project?.name}`}' to confirm.
                     </p>
                     <div className={styles.dangerRow}>
                         <input
-                            placeholder={`Please type '${data?.organization?.name}'`}
+                            placeholder={`Please type '${data?.project?.name}'`}
                             className={commonStyles.input}
                             name="text"
                             ref={register({
                                 required: true,
                                 validate: (value) =>
-                                    value === data?.organization?.name,
+                                    value === data?.project?.name,
                             })}
                         />
                         <Button

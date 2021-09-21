@@ -310,102 +310,99 @@ export type SendEmailSignupMutationOptions = Apollo.BaseMutationOptions<
     Types.SendEmailSignupMutation,
     Types.SendEmailSignupMutationVariables
 >;
-export const AddAdminToOrganizationDocument = gql`
-    mutation AddAdminToOrganization($project_id: ID!, $invite_id: String!) {
-        addAdminToOrganization(project_id: $project_id, invite_id: $invite_id)
+export const AddAdminToProjectDocument = gql`
+    mutation AddAdminToProject($project_id: ID!, $invite_id: String!) {
+        addAdminToProject(project_id: $project_id, invite_id: $invite_id)
     }
 `;
-export type AddAdminToOrganizationMutationFn = Apollo.MutationFunction<
-    Types.AddAdminToOrganizationMutation,
-    Types.AddAdminToOrganizationMutationVariables
+export type AddAdminToProjectMutationFn = Apollo.MutationFunction<
+    Types.AddAdminToProjectMutation,
+    Types.AddAdminToProjectMutationVariables
 >;
 
 /**
- * __useAddAdminToOrganizationMutation__
+ * __useAddAdminToProjectMutation__
  *
- * To run a mutation, you first call `useAddAdminToOrganizationMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useAddAdminToOrganizationMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useAddAdminToProjectMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAddAdminToProjectMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [addAdminToOrganizationMutation, { data, loading, error }] = useAddAdminToOrganizationMutation({
+ * const [addAdminToProjectMutation, { data, loading, error }] = useAddAdminToProjectMutation({
  *   variables: {
  *      project_id: // value for 'project_id'
  *      invite_id: // value for 'invite_id'
  *   },
  * });
  */
-export function useAddAdminToOrganizationMutation(
+export function useAddAdminToProjectMutation(
     baseOptions?: Apollo.MutationHookOptions<
-        Types.AddAdminToOrganizationMutation,
-        Types.AddAdminToOrganizationMutationVariables
+        Types.AddAdminToProjectMutation,
+        Types.AddAdminToProjectMutationVariables
     >
 ) {
     return Apollo.useMutation<
-        Types.AddAdminToOrganizationMutation,
-        Types.AddAdminToOrganizationMutationVariables
-    >(AddAdminToOrganizationDocument, baseOptions);
+        Types.AddAdminToProjectMutation,
+        Types.AddAdminToProjectMutationVariables
+    >(AddAdminToProjectDocument, baseOptions);
 }
-export type AddAdminToOrganizationMutationHookResult = ReturnType<
-    typeof useAddAdminToOrganizationMutation
+export type AddAdminToProjectMutationHookResult = ReturnType<
+    typeof useAddAdminToProjectMutation
 >;
-export type AddAdminToOrganizationMutationResult = Apollo.MutationResult<Types.AddAdminToOrganizationMutation>;
-export type AddAdminToOrganizationMutationOptions = Apollo.BaseMutationOptions<
-    Types.AddAdminToOrganizationMutation,
-    Types.AddAdminToOrganizationMutationVariables
+export type AddAdminToProjectMutationResult = Apollo.MutationResult<Types.AddAdminToProjectMutation>;
+export type AddAdminToProjectMutationOptions = Apollo.BaseMutationOptions<
+    Types.AddAdminToProjectMutation,
+    Types.AddAdminToProjectMutationVariables
 >;
-export const DeleteAdminFromOrganizationDocument = gql`
-    mutation DeleteAdminFromOrganization($project_id: ID!, $admin_id: ID!) {
-        deleteAdminFromOrganization(
-            project_id: $project_id
-            admin_id: $admin_id
-        )
+export const DeleteAdminFromProjectDocument = gql`
+    mutation DeleteAdminFromProject($project_id: ID!, $admin_id: ID!) {
+        deleteAdminFromProject(project_id: $project_id, admin_id: $admin_id)
     }
 `;
-export type DeleteAdminFromOrganizationMutationFn = Apollo.MutationFunction<
-    Types.DeleteAdminFromOrganizationMutation,
-    Types.DeleteAdminFromOrganizationMutationVariables
+export type DeleteAdminFromProjectMutationFn = Apollo.MutationFunction<
+    Types.DeleteAdminFromProjectMutation,
+    Types.DeleteAdminFromProjectMutationVariables
 >;
 
 /**
- * __useDeleteAdminFromOrganizationMutation__
+ * __useDeleteAdminFromProjectMutation__
  *
- * To run a mutation, you first call `useDeleteAdminFromOrganizationMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDeleteAdminFromOrganizationMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useDeleteAdminFromProjectMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteAdminFromProjectMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [deleteAdminFromOrganizationMutation, { data, loading, error }] = useDeleteAdminFromOrganizationMutation({
+ * const [deleteAdminFromProjectMutation, { data, loading, error }] = useDeleteAdminFromProjectMutation({
  *   variables: {
  *      project_id: // value for 'project_id'
  *      admin_id: // value for 'admin_id'
  *   },
  * });
  */
-export function useDeleteAdminFromOrganizationMutation(
+export function useDeleteAdminFromProjectMutation(
     baseOptions?: Apollo.MutationHookOptions<
-        Types.DeleteAdminFromOrganizationMutation,
-        Types.DeleteAdminFromOrganizationMutationVariables
+        Types.DeleteAdminFromProjectMutation,
+        Types.DeleteAdminFromProjectMutationVariables
     >
 ) {
     return Apollo.useMutation<
-        Types.DeleteAdminFromOrganizationMutation,
-        Types.DeleteAdminFromOrganizationMutationVariables
-    >(DeleteAdminFromOrganizationDocument, baseOptions);
+        Types.DeleteAdminFromProjectMutation,
+        Types.DeleteAdminFromProjectMutationVariables
+    >(DeleteAdminFromProjectDocument, baseOptions);
 }
-export type DeleteAdminFromOrganizationMutationHookResult = ReturnType<
-    typeof useDeleteAdminFromOrganizationMutation
+export type DeleteAdminFromProjectMutationHookResult = ReturnType<
+    typeof useDeleteAdminFromProjectMutation
 >;
-export type DeleteAdminFromOrganizationMutationResult = Apollo.MutationResult<Types.DeleteAdminFromOrganizationMutation>;
-export type DeleteAdminFromOrganizationMutationOptions = Apollo.BaseMutationOptions<
-    Types.DeleteAdminFromOrganizationMutation,
-    Types.DeleteAdminFromOrganizationMutationVariables
+export type DeleteAdminFromProjectMutationResult = Apollo.MutationResult<Types.DeleteAdminFromProjectMutation>;
+export type DeleteAdminFromProjectMutationOptions = Apollo.BaseMutationOptions<
+    Types.DeleteAdminFromProjectMutation,
+    Types.DeleteAdminFromProjectMutationVariables
 >;
 export const OpenSlackConversationDocument = gql`
     mutation OpenSlackConversation(
@@ -463,36 +460,36 @@ export type OpenSlackConversationMutationOptions = Apollo.BaseMutationOptions<
     Types.OpenSlackConversationMutation,
     Types.OpenSlackConversationMutationVariables
 >;
-export const AddSlackBotIntegrationToOrganizationDocument = gql`
-    mutation AddSlackBotIntegrationToOrganization(
+export const AddSlackBotIntegrationToProjectDocument = gql`
+    mutation AddSlackBotIntegrationToProject(
         $project_id: ID!
         $code: String!
         $redirect_path: String!
     ) {
-        addSlackBotIntegrationToOrganization(
+        addSlackBotIntegrationToProject(
             project_id: $project_id
             code: $code
             redirect_path: $redirect_path
         )
     }
 `;
-export type AddSlackBotIntegrationToOrganizationMutationFn = Apollo.MutationFunction<
-    Types.AddSlackBotIntegrationToOrganizationMutation,
-    Types.AddSlackBotIntegrationToOrganizationMutationVariables
+export type AddSlackBotIntegrationToProjectMutationFn = Apollo.MutationFunction<
+    Types.AddSlackBotIntegrationToProjectMutation,
+    Types.AddSlackBotIntegrationToProjectMutationVariables
 >;
 
 /**
- * __useAddSlackBotIntegrationToOrganizationMutation__
+ * __useAddSlackBotIntegrationToProjectMutation__
  *
- * To run a mutation, you first call `useAddSlackBotIntegrationToOrganizationMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useAddSlackBotIntegrationToOrganizationMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useAddSlackBotIntegrationToProjectMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAddSlackBotIntegrationToProjectMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [addSlackBotIntegrationToOrganizationMutation, { data, loading, error }] = useAddSlackBotIntegrationToOrganizationMutation({
+ * const [addSlackBotIntegrationToProjectMutation, { data, loading, error }] = useAddSlackBotIntegrationToProjectMutation({
  *   variables: {
  *      project_id: // value for 'project_id'
  *      code: // value for 'code'
@@ -500,99 +497,99 @@ export type AddSlackBotIntegrationToOrganizationMutationFn = Apollo.MutationFunc
  *   },
  * });
  */
-export function useAddSlackBotIntegrationToOrganizationMutation(
+export function useAddSlackBotIntegrationToProjectMutation(
     baseOptions?: Apollo.MutationHookOptions<
-        Types.AddSlackBotIntegrationToOrganizationMutation,
-        Types.AddSlackBotIntegrationToOrganizationMutationVariables
+        Types.AddSlackBotIntegrationToProjectMutation,
+        Types.AddSlackBotIntegrationToProjectMutationVariables
     >
 ) {
     return Apollo.useMutation<
-        Types.AddSlackBotIntegrationToOrganizationMutation,
-        Types.AddSlackBotIntegrationToOrganizationMutationVariables
-    >(AddSlackBotIntegrationToOrganizationDocument, baseOptions);
+        Types.AddSlackBotIntegrationToProjectMutation,
+        Types.AddSlackBotIntegrationToProjectMutationVariables
+    >(AddSlackBotIntegrationToProjectDocument, baseOptions);
 }
-export type AddSlackBotIntegrationToOrganizationMutationHookResult = ReturnType<
-    typeof useAddSlackBotIntegrationToOrganizationMutation
+export type AddSlackBotIntegrationToProjectMutationHookResult = ReturnType<
+    typeof useAddSlackBotIntegrationToProjectMutation
 >;
-export type AddSlackBotIntegrationToOrganizationMutationResult = Apollo.MutationResult<Types.AddSlackBotIntegrationToOrganizationMutation>;
-export type AddSlackBotIntegrationToOrganizationMutationOptions = Apollo.BaseMutationOptions<
-    Types.AddSlackBotIntegrationToOrganizationMutation,
-    Types.AddSlackBotIntegrationToOrganizationMutationVariables
+export type AddSlackBotIntegrationToProjectMutationResult = Apollo.MutationResult<Types.AddSlackBotIntegrationToProjectMutation>;
+export type AddSlackBotIntegrationToProjectMutationOptions = Apollo.BaseMutationOptions<
+    Types.AddSlackBotIntegrationToProjectMutation,
+    Types.AddSlackBotIntegrationToProjectMutationVariables
 >;
-export const CreateOrganizationDocument = gql`
-    mutation CreateOrganization($name: String!) {
-        createOrganization(name: $name) {
+export const CreateProjectDocument = gql`
+    mutation CreateProject($name: String!) {
+        createProject(name: $name) {
             id
             name
         }
     }
 `;
-export type CreateOrganizationMutationFn = Apollo.MutationFunction<
-    Types.CreateOrganizationMutation,
-    Types.CreateOrganizationMutationVariables
+export type CreateProjectMutationFn = Apollo.MutationFunction<
+    Types.CreateProjectMutation,
+    Types.CreateProjectMutationVariables
 >;
 
 /**
- * __useCreateOrganizationMutation__
+ * __useCreateProjectMutation__
  *
- * To run a mutation, you first call `useCreateOrganizationMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreateOrganizationMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useCreateProjectMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateProjectMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [createOrganizationMutation, { data, loading, error }] = useCreateOrganizationMutation({
+ * const [createProjectMutation, { data, loading, error }] = useCreateProjectMutation({
  *   variables: {
  *      name: // value for 'name'
  *   },
  * });
  */
-export function useCreateOrganizationMutation(
+export function useCreateProjectMutation(
     baseOptions?: Apollo.MutationHookOptions<
-        Types.CreateOrganizationMutation,
-        Types.CreateOrganizationMutationVariables
+        Types.CreateProjectMutation,
+        Types.CreateProjectMutationVariables
     >
 ) {
     return Apollo.useMutation<
-        Types.CreateOrganizationMutation,
-        Types.CreateOrganizationMutationVariables
-    >(CreateOrganizationDocument, baseOptions);
+        Types.CreateProjectMutation,
+        Types.CreateProjectMutationVariables
+    >(CreateProjectDocument, baseOptions);
 }
-export type CreateOrganizationMutationHookResult = ReturnType<
-    typeof useCreateOrganizationMutation
+export type CreateProjectMutationHookResult = ReturnType<
+    typeof useCreateProjectMutation
 >;
-export type CreateOrganizationMutationResult = Apollo.MutationResult<Types.CreateOrganizationMutation>;
-export type CreateOrganizationMutationOptions = Apollo.BaseMutationOptions<
-    Types.CreateOrganizationMutation,
-    Types.CreateOrganizationMutationVariables
+export type CreateProjectMutationResult = Apollo.MutationResult<Types.CreateProjectMutation>;
+export type CreateProjectMutationOptions = Apollo.BaseMutationOptions<
+    Types.CreateProjectMutation,
+    Types.CreateProjectMutationVariables
 >;
-export const EditOrganizationDocument = gql`
-    mutation EditOrganization($id: ID!, $name: String, $billing_email: String) {
-        editOrganization(id: $id, name: $name, billing_email: $billing_email) {
+export const EditProjectDocument = gql`
+    mutation EditProject($id: ID!, $name: String, $billing_email: String) {
+        editProject(id: $id, name: $name, billing_email: $billing_email) {
             name
             billing_email
         }
     }
 `;
-export type EditOrganizationMutationFn = Apollo.MutationFunction<
-    Types.EditOrganizationMutation,
-    Types.EditOrganizationMutationVariables
+export type EditProjectMutationFn = Apollo.MutationFunction<
+    Types.EditProjectMutation,
+    Types.EditProjectMutationVariables
 >;
 
 /**
- * __useEditOrganizationMutation__
+ * __useEditProjectMutation__
  *
- * To run a mutation, you first call `useEditOrganizationMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useEditOrganizationMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useEditProjectMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useEditProjectMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [editOrganizationMutation, { data, loading, error }] = useEditOrganizationMutation({
+ * const [editProjectMutation, { data, loading, error }] = useEditProjectMutation({
  *   variables: {
  *      id: // value for 'id'
  *      name: // value for 'name'
@@ -600,70 +597,70 @@ export type EditOrganizationMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useEditOrganizationMutation(
+export function useEditProjectMutation(
     baseOptions?: Apollo.MutationHookOptions<
-        Types.EditOrganizationMutation,
-        Types.EditOrganizationMutationVariables
+        Types.EditProjectMutation,
+        Types.EditProjectMutationVariables
     >
 ) {
     return Apollo.useMutation<
-        Types.EditOrganizationMutation,
-        Types.EditOrganizationMutationVariables
-    >(EditOrganizationDocument, baseOptions);
+        Types.EditProjectMutation,
+        Types.EditProjectMutationVariables
+    >(EditProjectDocument, baseOptions);
 }
-export type EditOrganizationMutationHookResult = ReturnType<
-    typeof useEditOrganizationMutation
+export type EditProjectMutationHookResult = ReturnType<
+    typeof useEditProjectMutation
 >;
-export type EditOrganizationMutationResult = Apollo.MutationResult<Types.EditOrganizationMutation>;
-export type EditOrganizationMutationOptions = Apollo.BaseMutationOptions<
-    Types.EditOrganizationMutation,
-    Types.EditOrganizationMutationVariables
+export type EditProjectMutationResult = Apollo.MutationResult<Types.EditProjectMutation>;
+export type EditProjectMutationOptions = Apollo.BaseMutationOptions<
+    Types.EditProjectMutation,
+    Types.EditProjectMutationVariables
 >;
-export const DeleteOrganizationDocument = gql`
-    mutation DeleteOrganization($id: ID!) {
-        deleteOrganization(id: $id)
+export const DeleteProjectDocument = gql`
+    mutation DeleteProject($id: ID!) {
+        deleteProject(id: $id)
     }
 `;
-export type DeleteOrganizationMutationFn = Apollo.MutationFunction<
-    Types.DeleteOrganizationMutation,
-    Types.DeleteOrganizationMutationVariables
+export type DeleteProjectMutationFn = Apollo.MutationFunction<
+    Types.DeleteProjectMutation,
+    Types.DeleteProjectMutationVariables
 >;
 
 /**
- * __useDeleteOrganizationMutation__
+ * __useDeleteProjectMutation__
  *
- * To run a mutation, you first call `useDeleteOrganizationMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDeleteOrganizationMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useDeleteProjectMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteProjectMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [deleteOrganizationMutation, { data, loading, error }] = useDeleteOrganizationMutation({
+ * const [deleteProjectMutation, { data, loading, error }] = useDeleteProjectMutation({
  *   variables: {
  *      id: // value for 'id'
  *   },
  * });
  */
-export function useDeleteOrganizationMutation(
+export function useDeleteProjectMutation(
     baseOptions?: Apollo.MutationHookOptions<
-        Types.DeleteOrganizationMutation,
-        Types.DeleteOrganizationMutationVariables
+        Types.DeleteProjectMutation,
+        Types.DeleteProjectMutationVariables
     >
 ) {
     return Apollo.useMutation<
-        Types.DeleteOrganizationMutation,
-        Types.DeleteOrganizationMutationVariables
-    >(DeleteOrganizationDocument, baseOptions);
+        Types.DeleteProjectMutation,
+        Types.DeleteProjectMutationVariables
+    >(DeleteProjectDocument, baseOptions);
 }
-export type DeleteOrganizationMutationHookResult = ReturnType<
-    typeof useDeleteOrganizationMutation
+export type DeleteProjectMutationHookResult = ReturnType<
+    typeof useDeleteProjectMutation
 >;
-export type DeleteOrganizationMutationResult = Apollo.MutationResult<Types.DeleteOrganizationMutation>;
-export type DeleteOrganizationMutationOptions = Apollo.BaseMutationOptions<
-    Types.DeleteOrganizationMutation,
-    Types.DeleteOrganizationMutationVariables
+export type DeleteProjectMutationResult = Apollo.MutationResult<Types.DeleteProjectMutation>;
+export type DeleteProjectMutationOptions = Apollo.BaseMutationOptions<
+    Types.DeleteProjectMutation,
+    Types.DeleteProjectMutationVariables
 >;
 export const DeleteSegmentDocument = gql`
     mutation DeleteSegment($segment_id: ID!) {
@@ -1877,7 +1874,7 @@ export type GetSessionCommentsQueryResult = Apollo.QueryResult<
 >;
 export const GetNotificationsDocument = gql`
     query GetNotifications($project_id: ID!) {
-        session_comments_for_organization(project_id: $project_id) {
+        session_comments_for_project(project_id: $project_id) {
             id
             timestamp
             updated_at
@@ -1892,7 +1889,7 @@ export const GetNotificationsDocument = gql`
             type
             metadata
         }
-        error_comments_for_organization(project_id: $project_id) {
+        error_comments_for_project(project_id: $project_id) {
             id
             updated_at
             project_id
@@ -2090,7 +2087,7 @@ export type GetErrorCommentsQueryResult = Apollo.QueryResult<
 >;
 export const GetOnboardingStepsDocument = gql`
     query GetOnboardingSteps($project_id: ID!, $admin_id: ID!) {
-        organization(id: $project_id) {
+        project(id: $project_id) {
             slack_channels
         }
         admins(project_id: $project_id) {
@@ -2098,7 +2095,7 @@ export const GetOnboardingStepsDocument = gql`
         }
         isIntegrated(project_id: $project_id)
         adminHasCreatedComment(admin_id: $admin_id)
-        organizationHasViewedASession(project_id: $project_id) {
+        projectHasViewedASession(project_id: $project_id) {
             id
         }
         admin {
@@ -2310,9 +2307,9 @@ export type GetSessionsQueryResult = Apollo.QueryResult<
     Types.GetSessionsQuery,
     Types.GetSessionsQueryVariables
 >;
-export const GetOrganizationsDocument = gql`
-    query GetOrganizations {
-        organizations {
+export const GetProjectsDocument = gql`
+    query GetProjects {
+        projects {
             id
             name
         }
@@ -2320,59 +2317,57 @@ export const GetOrganizationsDocument = gql`
 `;
 
 /**
- * __useGetOrganizationsQuery__
+ * __useGetProjectsQuery__
  *
- * To run a query within a React component, call `useGetOrganizationsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetOrganizationsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetProjectsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetProjectsQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetOrganizationsQuery({
+ * const { data, loading, error } = useGetProjectsQuery({
  *   variables: {
  *   },
  * });
  */
-export function useGetOrganizationsQuery(
+export function useGetProjectsQuery(
     baseOptions?: Apollo.QueryHookOptions<
-        Types.GetOrganizationsQuery,
-        Types.GetOrganizationsQueryVariables
+        Types.GetProjectsQuery,
+        Types.GetProjectsQueryVariables
     >
 ) {
     return Apollo.useQuery<
-        Types.GetOrganizationsQuery,
-        Types.GetOrganizationsQueryVariables
-    >(GetOrganizationsDocument, baseOptions);
+        Types.GetProjectsQuery,
+        Types.GetProjectsQueryVariables
+    >(GetProjectsDocument, baseOptions);
 }
-export function useGetOrganizationsLazyQuery(
+export function useGetProjectsLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
-        Types.GetOrganizationsQuery,
-        Types.GetOrganizationsQueryVariables
+        Types.GetProjectsQuery,
+        Types.GetProjectsQueryVariables
     >
 ) {
     return Apollo.useLazyQuery<
-        Types.GetOrganizationsQuery,
-        Types.GetOrganizationsQueryVariables
-    >(GetOrganizationsDocument, baseOptions);
+        Types.GetProjectsQuery,
+        Types.GetProjectsQueryVariables
+    >(GetProjectsDocument, baseOptions);
 }
-export type GetOrganizationsQueryHookResult = ReturnType<
-    typeof useGetOrganizationsQuery
+export type GetProjectsQueryHookResult = ReturnType<typeof useGetProjectsQuery>;
+export type GetProjectsLazyQueryHookResult = ReturnType<
+    typeof useGetProjectsLazyQuery
 >;
-export type GetOrganizationsLazyQueryHookResult = ReturnType<
-    typeof useGetOrganizationsLazyQuery
->;
-export type GetOrganizationsQueryResult = Apollo.QueryResult<
-    Types.GetOrganizationsQuery,
-    Types.GetOrganizationsQueryVariables
+export type GetProjectsQueryResult = Apollo.QueryResult<
+    Types.GetProjectsQuery,
+    Types.GetProjectsQueryVariables
 >;
 export const GetApplicationsDocument = gql`
     query GetApplications($id: ID!) {
-        organizations {
+        projects {
             id
             name
         }
-        organization(id: $id) {
+        project(id: $id) {
             id
             name
             verbose_id
@@ -2488,9 +2483,9 @@ export type GetAdminQueryResult = Apollo.QueryResult<
     Types.GetAdminQuery,
     Types.GetAdminQueryVariables
 >;
-export const GetOrganizationDocument = gql`
-    query GetOrganization($id: ID!) {
-        organization(id: $id) {
+export const GetProjectDocument = gql`
+    query GetProject($id: ID!) {
+        project(id: $id) {
             id
             name
             verbose_id
@@ -2502,52 +2497,50 @@ export const GetOrganizationDocument = gql`
 `;
 
 /**
- * __useGetOrganizationQuery__
+ * __useGetProjectQuery__
  *
- * To run a query within a React component, call `useGetOrganizationQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetOrganizationQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetProjectQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetProjectQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetOrganizationQuery({
+ * const { data, loading, error } = useGetProjectQuery({
  *   variables: {
  *      id: // value for 'id'
  *   },
  * });
  */
-export function useGetOrganizationQuery(
+export function useGetProjectQuery(
     baseOptions: Apollo.QueryHookOptions<
-        Types.GetOrganizationQuery,
-        Types.GetOrganizationQueryVariables
+        Types.GetProjectQuery,
+        Types.GetProjectQueryVariables
     >
 ) {
     return Apollo.useQuery<
-        Types.GetOrganizationQuery,
-        Types.GetOrganizationQueryVariables
-    >(GetOrganizationDocument, baseOptions);
+        Types.GetProjectQuery,
+        Types.GetProjectQueryVariables
+    >(GetProjectDocument, baseOptions);
 }
-export function useGetOrganizationLazyQuery(
+export function useGetProjectLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
-        Types.GetOrganizationQuery,
-        Types.GetOrganizationQueryVariables
+        Types.GetProjectQuery,
+        Types.GetProjectQueryVariables
     >
 ) {
     return Apollo.useLazyQuery<
-        Types.GetOrganizationQuery,
-        Types.GetOrganizationQueryVariables
-    >(GetOrganizationDocument, baseOptions);
+        Types.GetProjectQuery,
+        Types.GetProjectQueryVariables
+    >(GetProjectDocument, baseOptions);
 }
-export type GetOrganizationQueryHookResult = ReturnType<
-    typeof useGetOrganizationQuery
+export type GetProjectQueryHookResult = ReturnType<typeof useGetProjectQuery>;
+export type GetProjectLazyQueryHookResult = ReturnType<
+    typeof useGetProjectLazyQuery
 >;
-export type GetOrganizationLazyQueryHookResult = ReturnType<
-    typeof useGetOrganizationLazyQuery
->;
-export type GetOrganizationQueryResult = Apollo.QueryResult<
-    Types.GetOrganizationQuery,
-    Types.GetOrganizationQueryVariables
+export type GetProjectQueryResult = Apollo.QueryResult<
+    Types.GetProjectQuery,
+    Types.GetProjectQueryVariables
 >;
 export const GetBillingDetailsDocument = gql`
     query GetBillingDetails($project_id: ID!) {
@@ -2559,7 +2552,7 @@ export const GetBillingDetailsDocument = gql`
             meter
             sessionsOutOfQuota
         }
-        organization(id: $project_id) {
+        project(id: $project_id) {
             id
             trial_end_date
         }
@@ -2951,9 +2944,9 @@ export type GetFieldSuggestionQueryResult = Apollo.QueryResult<
     Types.GetFieldSuggestionQuery,
     Types.GetFieldSuggestionQueryVariables
 >;
-export const GetOrganizationSuggestionDocument = gql`
-    query GetOrganizationSuggestion($query: String!) {
-        organizationSuggestion(query: $query) {
+export const GetProjectSuggestionDocument = gql`
+    query GetProjectSuggestion($query: String!) {
+        projectSuggestion(query: $query) {
             id
             name
         }
@@ -2961,52 +2954,52 @@ export const GetOrganizationSuggestionDocument = gql`
 `;
 
 /**
- * __useGetOrganizationSuggestionQuery__
+ * __useGetProjectSuggestionQuery__
  *
- * To run a query within a React component, call `useGetOrganizationSuggestionQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetOrganizationSuggestionQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetProjectSuggestionQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetProjectSuggestionQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetOrganizationSuggestionQuery({
+ * const { data, loading, error } = useGetProjectSuggestionQuery({
  *   variables: {
  *      query: // value for 'query'
  *   },
  * });
  */
-export function useGetOrganizationSuggestionQuery(
+export function useGetProjectSuggestionQuery(
     baseOptions: Apollo.QueryHookOptions<
-        Types.GetOrganizationSuggestionQuery,
-        Types.GetOrganizationSuggestionQueryVariables
+        Types.GetProjectSuggestionQuery,
+        Types.GetProjectSuggestionQueryVariables
     >
 ) {
     return Apollo.useQuery<
-        Types.GetOrganizationSuggestionQuery,
-        Types.GetOrganizationSuggestionQueryVariables
-    >(GetOrganizationSuggestionDocument, baseOptions);
+        Types.GetProjectSuggestionQuery,
+        Types.GetProjectSuggestionQueryVariables
+    >(GetProjectSuggestionDocument, baseOptions);
 }
-export function useGetOrganizationSuggestionLazyQuery(
+export function useGetProjectSuggestionLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
-        Types.GetOrganizationSuggestionQuery,
-        Types.GetOrganizationSuggestionQueryVariables
+        Types.GetProjectSuggestionQuery,
+        Types.GetProjectSuggestionQueryVariables
     >
 ) {
     return Apollo.useLazyQuery<
-        Types.GetOrganizationSuggestionQuery,
-        Types.GetOrganizationSuggestionQueryVariables
-    >(GetOrganizationSuggestionDocument, baseOptions);
+        Types.GetProjectSuggestionQuery,
+        Types.GetProjectSuggestionQueryVariables
+    >(GetProjectSuggestionDocument, baseOptions);
 }
-export type GetOrganizationSuggestionQueryHookResult = ReturnType<
-    typeof useGetOrganizationSuggestionQuery
+export type GetProjectSuggestionQueryHookResult = ReturnType<
+    typeof useGetProjectSuggestionQuery
 >;
-export type GetOrganizationSuggestionLazyQueryHookResult = ReturnType<
-    typeof useGetOrganizationSuggestionLazyQuery
+export type GetProjectSuggestionLazyQueryHookResult = ReturnType<
+    typeof useGetProjectSuggestionLazyQuery
 >;
-export type GetOrganizationSuggestionQueryResult = Apollo.QueryResult<
-    Types.GetOrganizationSuggestionQuery,
-    Types.GetOrganizationSuggestionQueryVariables
+export type GetProjectSuggestionQueryResult = Apollo.QueryResult<
+    Types.GetProjectSuggestionQuery,
+    Types.GetProjectSuggestionQueryVariables
 >;
 export const GetErrorFieldSuggestionDocument = gql`
     query GetErrorFieldSuggestion(

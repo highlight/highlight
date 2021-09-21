@@ -60,24 +60,25 @@ export type SendEmailSignupMutation = { __typename?: 'Mutation' } & Pick<
     'emailSignup'
 >;
 
-export type AddAdminToOrganizationMutationVariables = Types.Exact<{
+export type AddAdminToProjectMutationVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     invite_id: Types.Scalars['String'];
 }>;
 
-export type AddAdminToOrganizationMutation = { __typename?: 'Mutation' } & Pick<
+export type AddAdminToProjectMutation = { __typename?: 'Mutation' } & Pick<
     Types.Mutation,
-    'addAdminToOrganization'
+    'addAdminToProject'
 >;
 
-export type DeleteAdminFromOrganizationMutationVariables = Types.Exact<{
+export type DeleteAdminFromProjectMutationVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     admin_id: Types.Scalars['ID'];
 }>;
 
-export type DeleteAdminFromOrganizationMutation = {
-    __typename?: 'Mutation';
-} & Pick<Types.Mutation, 'deleteAdminFromOrganization'>;
+export type DeleteAdminFromProjectMutation = { __typename?: 'Mutation' } & Pick<
+    Types.Mutation,
+    'deleteAdminFromProject'
+>;
 
 export type OpenSlackConversationMutationVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
@@ -90,51 +91,48 @@ export type OpenSlackConversationMutation = { __typename?: 'Mutation' } & Pick<
     'openSlackConversation'
 >;
 
-export type AddSlackBotIntegrationToOrganizationMutationVariables = Types.Exact<{
+export type AddSlackBotIntegrationToProjectMutationVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     code: Types.Scalars['String'];
     redirect_path: Types.Scalars['String'];
 }>;
 
-export type AddSlackBotIntegrationToOrganizationMutation = {
+export type AddSlackBotIntegrationToProjectMutation = {
     __typename?: 'Mutation';
-} & Pick<Types.Mutation, 'addSlackBotIntegrationToOrganization'>;
+} & Pick<Types.Mutation, 'addSlackBotIntegrationToProject'>;
 
-export type CreateOrganizationMutationVariables = Types.Exact<{
+export type CreateProjectMutationVariables = Types.Exact<{
     name: Types.Scalars['String'];
 }>;
 
-export type CreateOrganizationMutation = { __typename?: 'Mutation' } & {
-    createOrganization?: Types.Maybe<
-        { __typename?: 'Organization' } & Pick<
-            Types.Organization,
-            'id' | 'name'
-        >
+export type CreateProjectMutation = { __typename?: 'Mutation' } & {
+    createProject?: Types.Maybe<
+        { __typename?: 'Project' } & Pick<Types.Project, 'id' | 'name'>
     >;
 };
 
-export type EditOrganizationMutationVariables = Types.Exact<{
+export type EditProjectMutationVariables = Types.Exact<{
     id: Types.Scalars['ID'];
     name?: Types.Maybe<Types.Scalars['String']>;
     billing_email?: Types.Maybe<Types.Scalars['String']>;
 }>;
 
-export type EditOrganizationMutation = { __typename?: 'Mutation' } & {
-    editOrganization?: Types.Maybe<
-        { __typename?: 'Organization' } & Pick<
-            Types.Organization,
+export type EditProjectMutation = { __typename?: 'Mutation' } & {
+    editProject?: Types.Maybe<
+        { __typename?: 'Project' } & Pick<
+            Types.Project,
             'name' | 'billing_email'
         >
     >;
 };
 
-export type DeleteOrganizationMutationVariables = Types.Exact<{
+export type DeleteProjectMutationVariables = Types.Exact<{
     id: Types.Scalars['ID'];
 }>;
 
-export type DeleteOrganizationMutation = { __typename?: 'Mutation' } & Pick<
+export type DeleteProjectMutation = { __typename?: 'Mutation' } & Pick<
     Types.Mutation,
-    'deleteOrganization'
+    'deleteProject'
 >;
 
 export type DeleteSegmentMutationVariables = Types.Exact<{
@@ -593,7 +591,7 @@ export type GetNotificationsQueryVariables = Types.Exact<{
 }>;
 
 export type GetNotificationsQuery = { __typename?: 'Query' } & {
-    session_comments_for_organization: Array<
+    session_comments_for_project: Array<
         Types.Maybe<
             { __typename?: 'SessionComment' } & Pick<
                 Types.SessionComment,
@@ -614,7 +612,7 @@ export type GetNotificationsQuery = { __typename?: 'Query' } & {
                 }
         >
     >;
-    error_comments_for_organization: Array<
+    error_comments_for_project: Array<
         Types.Maybe<
             { __typename?: 'ErrorComment' } & Pick<
                 Types.ErrorComment,
@@ -685,16 +683,13 @@ export type GetOnboardingStepsQuery = { __typename?: 'Query' } & Pick<
     Types.Query,
     'isIntegrated' | 'adminHasCreatedComment'
 > & {
-        organization?: Types.Maybe<
-            { __typename?: 'Organization' } & Pick<
-                Types.Organization,
-                'slack_channels'
-            >
+        project?: Types.Maybe<
+            { __typename?: 'Project' } & Pick<Types.Project, 'slack_channels'>
         >;
         admins: Array<
             Types.Maybe<{ __typename?: 'Admin' } & Pick<Types.Admin, 'id'>>
         >;
-        organizationHasViewedASession?: Types.Maybe<
+        projectHasViewedASession?: Types.Maybe<
             { __typename?: 'Session' } & Pick<Types.Session, 'id'>
         >;
         admin?: Types.Maybe<
@@ -765,18 +760,13 @@ export type GetSessionsQuery = { __typename?: 'Query' } & {
         };
 };
 
-export type GetOrganizationsQueryVariables = Types.Exact<{
-    [key: string]: never;
-}>;
+export type GetProjectsQueryVariables = Types.Exact<{ [key: string]: never }>;
 
-export type GetOrganizationsQuery = { __typename?: 'Query' } & {
-    organizations?: Types.Maybe<
+export type GetProjectsQuery = { __typename?: 'Query' } & {
+    projects?: Types.Maybe<
         Array<
             Types.Maybe<
-                { __typename?: 'Organization' } & Pick<
-                    Types.Organization,
-                    'id' | 'name'
-                >
+                { __typename?: 'Project' } & Pick<Types.Project, 'id' | 'name'>
             >
         >
     >;
@@ -787,19 +777,16 @@ export type GetApplicationsQueryVariables = Types.Exact<{
 }>;
 
 export type GetApplicationsQuery = { __typename?: 'Query' } & {
-    organizations?: Types.Maybe<
+    projects?: Types.Maybe<
         Array<
             Types.Maybe<
-                { __typename?: 'Organization' } & Pick<
-                    Types.Organization,
-                    'id' | 'name'
-                >
+                { __typename?: 'Project' } & Pick<Types.Project, 'id' | 'name'>
             >
         >
     >;
-    organization?: Types.Maybe<
-        { __typename?: 'Organization' } & Pick<
-            Types.Organization,
+    project?: Types.Maybe<
+        { __typename?: 'Project' } & Pick<
+            Types.Project,
             | 'id'
             | 'name'
             | 'verbose_id'
@@ -821,14 +808,14 @@ export type GetAdminQuery = { __typename?: 'Query' } & {
     >;
 };
 
-export type GetOrganizationQueryVariables = Types.Exact<{
+export type GetProjectQueryVariables = Types.Exact<{
     id: Types.Scalars['ID'];
 }>;
 
-export type GetOrganizationQuery = { __typename?: 'Query' } & {
-    organization?: Types.Maybe<
-        { __typename?: 'Organization' } & Pick<
-            Types.Organization,
+export type GetProjectQuery = { __typename?: 'Query' } & {
+    project?: Types.Maybe<
+        { __typename?: 'Project' } & Pick<
+            Types.Project,
             | 'id'
             | 'name'
             | 'verbose_id'
@@ -848,9 +835,9 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
         Types.BillingDetails,
         'meter' | 'sessionsOutOfQuota'
     > & { plan: { __typename?: 'Plan' } & Pick<Types.Plan, 'type' | 'quota'> };
-    organization?: Types.Maybe<
-        { __typename?: 'Organization' } & Pick<
-            Types.Organization,
+    project?: Types.Maybe<
+        { __typename?: 'Project' } & Pick<
+            Types.Project,
             'id' | 'trial_end_date'
         >
     >;
@@ -1010,18 +997,15 @@ export type GetFieldSuggestionQuery = { __typename?: 'Query' } & {
     >;
 };
 
-export type GetOrganizationSuggestionQueryVariables = Types.Exact<{
+export type GetProjectSuggestionQueryVariables = Types.Exact<{
     query: Types.Scalars['String'];
 }>;
 
-export type GetOrganizationSuggestionQuery = { __typename?: 'Query' } & {
-    organizationSuggestion?: Types.Maybe<
+export type GetProjectSuggestionQuery = { __typename?: 'Query' } & {
+    projectSuggestion?: Types.Maybe<
         Array<
             Types.Maybe<
-                { __typename?: 'Organization' } & Pick<
-                    Types.Organization,
-                    'id' | 'name'
-                >
+                { __typename?: 'Project' } & Pick<Types.Project, 'id' | 'name'>
             >
         >
     >;
@@ -1677,17 +1661,17 @@ export const namedOperations = {
         GetErrorComments: 'GetErrorComments' as const,
         GetOnboardingSteps: 'GetOnboardingSteps' as const,
         GetSessions: 'GetSessions' as const,
-        GetOrganizations: 'GetOrganizations' as const,
+        GetProjects: 'GetProjects' as const,
         GetApplications: 'GetApplications' as const,
         GetAdmin: 'GetAdmin' as const,
-        GetOrganization: 'GetOrganization' as const,
+        GetProject: 'GetProject' as const,
         GetBillingDetails: 'GetBillingDetails' as const,
         GetErrorGroup: 'GetErrorGroup' as const,
         GetErrorGroups: 'GetErrorGroups' as const,
         GetMessages: 'GetMessages' as const,
         GetResources: 'GetResources' as const,
         GetFieldSuggestion: 'GetFieldSuggestion' as const,
-        GetOrganizationSuggestion: 'GetOrganizationSuggestion' as const,
+        GetProjectSuggestion: 'GetProjectSuggestion' as const,
         GetErrorFieldSuggestion: 'GetErrorFieldSuggestion' as const,
         GetErrorSearchSuggestions: 'GetErrorSearchSuggestions' as const,
         GetSessionSearchResults: 'GetSessionSearchResults' as const,
@@ -1721,13 +1705,13 @@ export const namedOperations = {
         UpdateBillingDetails: 'UpdateBillingDetails' as const,
         updateErrorGroupState: 'updateErrorGroupState' as const,
         SendEmailSignup: 'SendEmailSignup' as const,
-        AddAdminToOrganization: 'AddAdminToOrganization' as const,
-        DeleteAdminFromOrganization: 'DeleteAdminFromOrganization' as const,
+        AddAdminToProject: 'AddAdminToProject' as const,
+        DeleteAdminFromProject: 'DeleteAdminFromProject' as const,
         OpenSlackConversation: 'OpenSlackConversation' as const,
-        AddSlackBotIntegrationToOrganization: 'AddSlackBotIntegrationToOrganization' as const,
-        CreateOrganization: 'CreateOrganization' as const,
-        EditOrganization: 'EditOrganization' as const,
-        DeleteOrganization: 'DeleteOrganization' as const,
+        AddSlackBotIntegrationToProject: 'AddSlackBotIntegrationToProject' as const,
+        CreateProject: 'CreateProject' as const,
+        EditProject: 'EditProject' as const,
+        DeleteProject: 'DeleteProject' as const,
         DeleteSegment: 'DeleteSegment' as const,
         EditSegment: 'EditSegment' as const,
         CreateSegment: 'CreateSegment' as const,

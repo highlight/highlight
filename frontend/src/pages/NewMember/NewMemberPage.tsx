@@ -6,7 +6,7 @@ import commonStyles from '../../Common.module.scss';
 import Button from '../../components/Button/Button/Button';
 import { CircularSpinner, LoadingBar } from '../../components/Loading/Loading';
 import {
-    useAddAdminToOrganizationMutation,
+    useAddAdminToProjectMutation,
     useGetAdminQuery,
 } from '../../graph/generated/hooks';
 import { auth } from '../../util/auth';
@@ -19,10 +19,7 @@ const NewMemberPage = () => {
         invite_id: string;
     }>();
     const [adminAdded, setAdminAdded] = useState(false);
-    const [
-        addAdmin,
-        { loading: addLoading },
-    ] = useAddAdminToOrganizationMutation();
+    const [addAdmin, { loading: addLoading }] = useAddAdminToProjectMutation();
     const { loading: adminLoading, data: adminData } = useGetAdminQuery();
     if (adminAdded) {
         return <Redirect to={`/${project_id}/setup`} />;

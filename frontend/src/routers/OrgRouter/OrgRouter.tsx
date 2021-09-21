@@ -16,7 +16,7 @@ import { useIntegrated } from '../../util/integrated';
 import { ApplicationContextProvider } from './ApplicationContext';
 import ApplicationRouter from './ApplicationRouter';
 
-export const OrgRouter = () => {
+export const ProjectRouter = () => {
     const { isLoggedIn } = useAuthContext();
     const [
         showKeyboardShortcutsGuide,
@@ -75,15 +75,15 @@ export const OrgRouter = () => {
         >
             <ApplicationContextProvider
                 value={{
-                    currentApplication: data?.organization || undefined,
-                    allApplications: data?.organizations || [],
+                    currentApplication: data?.project || undefined,
+                    allApplications: data?.projects || [],
                 }}
             >
                 <Header />
                 {isLoggedIn && <Sidebar />}
                 <div className={commonStyles.bodyWrapper}>
-                    {/* Edge case: shareable links will still direct to this error page if you are logged in on a different org */}
-                    {isLoggedIn && (error || !data?.organization) ? (
+                    {/* Edge case: shareable links will still direct to this error page if you are logged in on a different project */}
+                    {isLoggedIn && (error || !data?.project) ? (
                         <ErrorState
                             message={`
                         Seems like you don’t have access to this page 😢. If you're
@@ -91,7 +91,7 @@ export const OrgRouter = () => {
                         invite. Otherwise, feel free to make an account!
                         `}
                             errorString={
-                                'OrgRouter Error: ' + JSON.stringify(error)
+                                'ProjectRouter Error: ' + JSON.stringify(error)
                             }
                         />
                     ) : (

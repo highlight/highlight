@@ -153,10 +153,13 @@ type Organization struct {
 
 type Project struct {
 	Model
-	Name         *string
-	Secret       *string    `json:"-"`
-	Admins       []Admin    `gorm:"many2many:project_admins;"`
-	TrialEndDate *time.Time `json:"trial_end_date"`
+	Name             *string
+	StripeCustomerID *string
+	StripePriceID    *string
+	BillingEmail     *string
+	Secret           *string    `json:"-"`
+	Admins           []Admin    `gorm:"many2many:project_admins;"`
+	TrialEndDate     *time.Time `json:"trial_end_date"`
 	// Slack API Interaction.
 	SlackAccessToken      *string
 	SlackWebhookURL       *string
@@ -257,7 +260,7 @@ type SlackChannel struct {
 	WebhookChannelID   string
 }
 
-func (u *Organization) IntegratedSlackChannels() ([]SlackChannel, error) {
+func (u *Project) IntegratedSlackChannels() ([]SlackChannel, error) {
 	parsedChannels := []SlackChannel{}
 	if u.SlackChannels != nil {
 		err := json.Unmarshal([]byte(*u.SlackChannels), &parsedChannels)
@@ -287,7 +290,7 @@ func (u *Organization) IntegratedSlackChannels() ([]SlackChannel, error) {
 	return parsedChannels, nil
 }
 
-func (u *Organization) VerboseID() string {
+func (u *Project) VerboseID() string {
 	str, err := HashID.Encode([]int{u.ID})
 	if err != nil {
 		log.Errorf("error generating hash id: %v", err)
@@ -309,7 +312,7 @@ func FromVerboseID(verboseId string) int {
 	return ints[0]
 }
 
-func (u *Organization) BeforeCreate(tx *gorm.DB) (err error) {
+func (u *Project) BeforeCreate(tx *gorm.DB) (err error) {
 	x := xid.New().String()
 	u.Secret = &x
 	return
@@ -322,6 +325,7 @@ type Admin struct {
 	PhotoURL         *string          `json:"photo_url"`
 	UID              *string          `gorm:"unique_index"`
 	Organizations    []Organization   `gorm:"many2many:organization_admins;"`
+	Projects         []Project        `gorm:"many2many:project_admins;"`
 	SessionComments  []SessionComment `gorm:"many2many:session_comment_admins;"`
 	ErrorComments    []ErrorComment   `gorm:"many2many:error_comment_admins;"`
 	SlackIMChannelID *string
@@ -847,6 +851,8 @@ func (s *Session) GetUserProperties() (map[string]string, error) {
 type SendSlackAlertInput struct {
 	// Organization is a required parameter
 	Organization *Organization
+	// Project is a required parameter
+	Project *Project
 	// SessionID is a required parameter
 	SessionID int
 	// UserIdentifier is a required parameter for New User, Error, and SessionFeedback alerts
@@ -878,7 +884,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 		return e.Wrap(err, "error getting channels to notify from user properties alert")
 	}
 	// get organization's channels
-	integratedSlackChannels, err := input.Organization.IntegratedSlackChannels()
+	integratedSlackChannels, err := input.Project.IntegratedSlackChannels()
 	if err != nil {
 		return e.Wrap(err, "error getting slack webhook url for alert")
 	}

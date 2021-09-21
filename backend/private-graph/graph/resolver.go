@@ -59,11 +59,11 @@ func (r *Resolver) isDemoOrg(org_id int) bool {
 
 // isAdminInOrganizationOrDemoOrg should be used for actions that you want admins in all organizations
 // and laymen in the demo org to have access to.
-func (r *Resolver) isAdminInOrganizationOrDemoOrg(ctx context.Context, org_id int) (*model.Organization, error) {
-	var org *model.Organization
+func (r *Resolver) isAdminInOrganizationOrDemoOrg(ctx context.Context, org_id int) (*model.Project, error) {
+	var org *model.Project
 	var err error
 	if r.isDemoOrg(org_id) {
-		if err = r.DB.Model(&model.Organization{}).Where("id = ?", 0).First(&org).Error; err != nil {
+		if err = r.DB.Model(&model.Project{}).Where("id = ?", 0).First(&org).Error; err != nil {
 			return nil, e.Wrap(err, "error querying demo org")
 		}
 	} else {
@@ -77,18 +77,18 @@ func (r *Resolver) isAdminInOrganizationOrDemoOrg(ctx context.Context, org_id in
 
 // isAdminInOrganization should be used for actions that you only want admins in all organizations to have access to.
 // Use this on actions that you don't want laymen in the demo org to have access to.
-func (r *Resolver) isAdminInOrganization(ctx context.Context, org_id int) (*model.Organization, error) {
+func (r *Resolver) isAdminInOrganization(ctx context.Context, org_id int) (*model.Project, error) {
 	if util.IsTestEnv() {
 		return nil, nil
 	}
 	if r.isWhitelistedAccount(ctx) {
-		org := &model.Organization{}
-		if err := r.DB.Where(&model.Organization{Model: model.Model{ID: org_id}}).First(&org).Error; err != nil {
+		org := &model.Project{}
+		if err := r.DB.Where(&model.Project{Model: model.Model{ID: org_id}}).First(&org).Error; err != nil {
 			return nil, e.Wrap(err, "error querying org")
 		}
 		return org, nil
 	}
-	orgs, err := r.Query().Organizations(ctx)
+	orgs, err := r.Query().Projects(ctx)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying orgs")
 	}

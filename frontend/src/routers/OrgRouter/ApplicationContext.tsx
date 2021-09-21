@@ -1,16 +1,16 @@
-import { Maybe, Organization } from '../../graph/generated/schemas';
+import { Maybe, Project } from '../../graph/generated/schemas';
 import { createContext } from '../../util/context/context';
 
 /**
  * Provides data about the current application and all applications the admin has access to.
  */
 interface ApplicationContext {
-    currentApplication?: Organization;
+    currentApplication?: Project;
     allApplications: Maybe<
         Maybe<
             {
-                __typename?: 'Organization' | undefined;
-            } & Pick<Organization, 'id' | 'name'>
+                __typename?: 'Project' | undefined;
+            } & Pick<Project, 'id' | 'name'>
         >[]
     >;
 }

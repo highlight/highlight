@@ -1,15 +1,15 @@
+import { useGetProjectsQuery } from '@graph/hooks';
 import React from 'react';
 import { Redirect, useHistory } from 'react-router-dom';
 
 import { LoadingPage } from '../../components/Loading/Loading';
-import { useGetOrganizationsQuery } from '../../graph/generated/hooks';
 
-export const OrgRedirectionRouter = () => {
+export const ProjectRedirectionRouter = () => {
     const {
         loading: o_loading,
         error: o_error,
         data: o_data,
-    } = useGetOrganizationsQuery();
+    } = useGetProjectsQuery();
     const history = useHistory();
 
     if (o_error) {
@@ -25,10 +25,8 @@ export const OrgRedirectionRouter = () => {
     return (
         <Redirect
             to={
-                o_data?.organizations?.length
-                    ? `/${o_data!.organizations[0]!.id}${
-                          history.location.pathname
-                      }`
+                o_data?.projects?.length
+                    ? `/${o_data!.projects[0]!.id}${history.location.pathname}`
                     : `/new`
             }
         />

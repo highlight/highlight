@@ -90,7 +90,7 @@ const OnboardingBubble = () => {
                 action: () => {
                     history.push(`/${project_id}/alerts`);
                 },
-                completed: !!data.organization?.slack_channels,
+                completed: !!data.project?.slack_channels,
             });
             STEPS.push({
                 displayName: 'Invite your team',
@@ -104,14 +104,14 @@ const OnboardingBubble = () => {
                 action: () => {
                     history.push(`/${project_id}/sessions`);
                 },
-                completed: !!data.organizationHasViewedASession || false,
+                completed: !!data.projectHasViewedASession || false,
             });
             STEPS.push({
                 displayName: 'Create your first comment',
                 action: () => {
-                    if (data.organizationHasViewedASession?.id !== '0') {
+                    if (data.projectHasViewedASession?.id !== '0') {
                         history.push(
-                            `/${project_id}/sessions/${data.organizationHasViewedASession?.id}`
+                            `/${project_id}/sessions/${data.projectHasViewedASession?.id}`
                         );
                     } else {
                         history.push(`/${project_id}/sessions`);

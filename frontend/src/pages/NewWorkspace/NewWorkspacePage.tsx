@@ -1,3 +1,4 @@
+import { useCreateProjectMutation } from '@graph/hooks';
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Redirect } from 'react-router-dom';
@@ -5,7 +6,6 @@ import { Redirect } from 'react-router-dom';
 import commonStyles from '../../Common.module.scss';
 import Button from '../../components/Button/Button/Button';
 import { CircularSpinner } from '../../components/Loading/Loading';
-import { useCreateOrganizationMutation } from '../../graph/generated/hooks';
 import { client } from '../../util/graph';
 import styles from './NewWorkspace.module.scss';
 
@@ -16,9 +16,9 @@ type Inputs = {
 const NewWorkspacePage = () => {
     const { register, handleSubmit, errors, setError } = useForm<Inputs>();
     const [
-        createOrganization,
+        createProject,
         { loading, data, error },
-    ] = useCreateOrganizationMutation();
+    ] = useCreateProjectMutation();
 
     useEffect(() => {
         if (error) {
@@ -30,13 +30,13 @@ const NewWorkspacePage = () => {
     }, [setError, error]);
 
     const onSubmit = (data: Inputs) => {
-        createOrganization({ variables: { name: data.name } }).then(() =>
+        createProject({ variables: { name: data.name } }).then(() =>
             client.cache.reset()
         );
     };
 
-    if (data?.createOrganization?.id) {
-        return <Redirect to={`/${data.createOrganization.id}/setup`} />;
+    if (data?.createProject?.id) {
+        return <Redirect to={`/${data.createProject.id}/setup`} />;
     }
 
     return (

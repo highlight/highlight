@@ -93,8 +93,8 @@ export enum SessionCommentType {
     Feedback = 'FEEDBACK',
 }
 
-export type Organization = {
-    __typename?: 'Organization';
+export type Project = {
+    __typename?: 'Project';
     id: Scalars['ID'];
     verbose_id: Scalars['String'];
     name: Scalars['String'];
@@ -444,15 +444,15 @@ export type Query = {
     resources?: Maybe<Array<Maybe<Scalars['Any']>>>;
     session_comments: Array<Maybe<SessionComment>>;
     session_comments_for_admin: Array<Maybe<SessionComment>>;
-    session_comments_for_organization: Array<Maybe<SessionComment>>;
+    session_comments_for_project: Array<Maybe<SessionComment>>;
     error_comments: Array<Maybe<ErrorComment>>;
     error_comments_for_admin: Array<Maybe<ErrorComment>>;
-    error_comments_for_organization: Array<Maybe<ErrorComment>>;
+    error_comments_for_project: Array<Maybe<ErrorComment>>;
     admins: Array<Maybe<Admin>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
     unprocessedSessionsCount?: Maybe<Scalars['Int64']>;
     adminHasCreatedComment?: Maybe<Scalars['Boolean']>;
-    organizationHasViewedASession?: Maybe<Session>;
+    projectHasViewedASession?: Maybe<Session>;
     dailySessionsCount: Array<Maybe<DailySessionCount>>;
     dailyErrorsCount: Array<Maybe<DailyErrorCount>>;
     dailyErrorFrequency: Array<Maybe<Scalars['Int64']>>;
@@ -466,18 +466,18 @@ export type Query = {
     field_suggestion?: Maybe<Array<Maybe<Field>>>;
     property_suggestion?: Maybe<Array<Maybe<Field>>>;
     error_field_suggestion?: Maybe<Array<Maybe<ErrorField>>>;
-    organizations?: Maybe<Array<Maybe<Organization>>>;
+    projects?: Maybe<Array<Maybe<Project>>>;
     error_alert?: Maybe<ErrorAlert>;
     session_feedback_alert?: Maybe<SessionAlert>;
     new_user_alert?: Maybe<SessionAlert>;
     track_properties_alert?: Maybe<SessionAlert>;
     user_properties_alert?: Maybe<SessionAlert>;
-    organizationSuggestion?: Maybe<Array<Maybe<Organization>>>;
+    projectSuggestion?: Maybe<Array<Maybe<Project>>>;
     environment_suggestion?: Maybe<Array<Maybe<Field>>>;
     slack_channel_suggestion?: Maybe<Array<Maybe<SanitizedSlackChannel>>>;
     slack_members: Array<Maybe<SanitizedSlackChannel>>;
     is_integrated_with_slack: Scalars['Boolean'];
-    organization?: Maybe<Organization>;
+    project?: Maybe<Project>;
     admin?: Maybe<Admin>;
     segments?: Maybe<Array<Maybe<Segment>>>;
     error_segments?: Maybe<Array<Maybe<ErrorSegment>>>;
@@ -525,7 +525,7 @@ export type QuerySession_CommentsArgs = {
     session_secure_id?: Maybe<Scalars['String']>;
 };
 
-export type QuerySession_Comments_For_OrganizationArgs = {
+export type QuerySession_Comments_For_ProjectArgs = {
     project_id: Scalars['ID'];
 };
 
@@ -534,7 +534,7 @@ export type QueryError_CommentsArgs = {
     error_group_secure_id?: Maybe<Scalars['String']>;
 };
 
-export type QueryError_Comments_For_OrganizationArgs = {
+export type QueryError_Comments_For_ProjectArgs = {
     project_id: Scalars['ID'];
 };
 
@@ -554,7 +554,7 @@ export type QueryAdminHasCreatedCommentArgs = {
     admin_id: Scalars['ID'];
 };
 
-export type QueryOrganizationHasViewedASessionArgs = {
+export type QueryProjectHasViewedASessionArgs = {
     project_id: Scalars['ID'];
 };
 
@@ -650,7 +650,7 @@ export type QueryUser_Properties_AlertArgs = {
     project_id: Scalars['ID'];
 };
 
-export type QueryOrganizationSuggestionArgs = {
+export type QueryProjectSuggestionArgs = {
     query: Scalars['String'];
 };
 
@@ -671,7 +671,7 @@ export type QueryIs_Integrated_With_SlackArgs = {
     project_id: Scalars['ID'];
 };
 
-export type QueryOrganizationArgs = {
+export type QueryProjectArgs = {
     id: Scalars['ID'];
 };
 
@@ -689,15 +689,15 @@ export type QueryApi_Key_To_Org_IdArgs = {
 
 export type Mutation = {
     __typename?: 'Mutation';
-    createOrganization?: Maybe<Organization>;
-    editOrganization?: Maybe<Organization>;
+    createProject?: Maybe<Project>;
+    editProject?: Maybe<Project>;
     markSessionAsViewed?: Maybe<Session>;
     markSessionAsStarred?: Maybe<Session>;
     updateErrorGroupState?: Maybe<ErrorGroup>;
-    deleteOrganization?: Maybe<Scalars['Boolean']>;
+    deleteProject?: Maybe<Scalars['Boolean']>;
     sendAdminInvite?: Maybe<Scalars['String']>;
-    addAdminToOrganization?: Maybe<Scalars['ID']>;
-    deleteAdminFromOrganization?: Maybe<Scalars['ID']>;
+    addAdminToProject?: Maybe<Scalars['ID']>;
+    deleteAdminFromProject?: Maybe<Scalars['ID']>;
     createSegment?: Maybe<Segment>;
     emailSignup: Scalars['String'];
     editSegment?: Maybe<Scalars['Boolean']>;
@@ -712,7 +712,7 @@ export type Mutation = {
     createErrorComment?: Maybe<ErrorComment>;
     deleteErrorComment?: Maybe<Scalars['Boolean']>;
     openSlackConversation?: Maybe<Scalars['Boolean']>;
-    addSlackBotIntegrationToOrganization: Scalars['Boolean'];
+    addSlackBotIntegrationToProject: Scalars['Boolean'];
     updateErrorAlert?: Maybe<ErrorAlert>;
     updateSessionFeedbackAlert?: Maybe<SessionAlert>;
     updateNewUserAlert?: Maybe<SessionAlert>;
@@ -721,11 +721,11 @@ export type Mutation = {
     updateSessionIsPublic?: Maybe<Session>;
 };
 
-export type MutationCreateOrganizationArgs = {
+export type MutationCreateProjectArgs = {
     name: Scalars['String'];
 };
 
-export type MutationEditOrganizationArgs = {
+export type MutationEditProjectArgs = {
     id: Scalars['ID'];
     name?: Maybe<Scalars['String']>;
     billing_email?: Maybe<Scalars['String']>;
@@ -749,7 +749,7 @@ export type MutationUpdateErrorGroupStateArgs = {
     state: Scalars['String'];
 };
 
-export type MutationDeleteOrganizationArgs = {
+export type MutationDeleteProjectArgs = {
     id: Scalars['ID'];
 };
 
@@ -759,12 +759,12 @@ export type MutationSendAdminInviteArgs = {
     base_url: Scalars['String'];
 };
 
-export type MutationAddAdminToOrganizationArgs = {
+export type MutationAddAdminToProjectArgs = {
     project_id: Scalars['ID'];
     invite_id: Scalars['String'];
 };
 
-export type MutationDeleteAdminFromOrganizationArgs = {
+export type MutationDeleteAdminFromProjectArgs = {
     project_id: Scalars['ID'];
     admin_id: Scalars['ID'];
 };
@@ -857,7 +857,7 @@ export type MutationOpenSlackConversationArgs = {
     redirect_path: Scalars['String'];
 };
 
-export type MutationAddSlackBotIntegrationToOrganizationArgs = {
+export type MutationAddSlackBotIntegrationToProjectArgs = {
     project_id: Scalars['ID'];
     code: Scalars['String'];
     redirect_path: Scalars['String'];

@@ -70,7 +70,7 @@ query GetSessionComments($session_id: ID!) {
 }
 
 query GetNotifications($project_id: ID!) {
-    session_comments_for_organization(project_id: $project_id) {
+    session_comments_for_project(project_id: $project_id) {
         id
         timestamp
         updated_at
@@ -85,7 +85,7 @@ query GetNotifications($project_id: ID!) {
         type
         metadata
     }
-    error_comments_for_organization(project_id: $project_id) {
+    error_comments_for_project(project_id: $project_id) {
         id
         updated_at
         project_id
@@ -134,7 +134,7 @@ query GetErrorComments($error_group_id: ID!) {
 }
 
 query GetOnboardingSteps($project_id: ID!, $admin_id: ID!) {
-    organization(id: $project_id) {
+    project(id: $project_id) {
         slack_channels
     }
     admins(project_id: $project_id) {
@@ -142,7 +142,7 @@ query GetOnboardingSteps($project_id: ID!, $admin_id: ID!) {
     }
     isIntegrated(project_id: $project_id)
     adminHasCreatedComment(admin_id: $admin_id)
-    organizationHasViewedASession(project_id: $project_id) {
+    projectHasViewedASession(project_id: $project_id) {
         id
     }
     admin {
@@ -204,8 +204,8 @@ query GetSessions(
     }
 }
 
-query GetOrganizations {
-    organizations {
+query GetProjects {
+    projects {
         id
         name
     }
@@ -213,11 +213,11 @@ query GetOrganizations {
 
 # Gets the current application and all applications the admin has access to.
 query GetApplications($id: ID!) {
-    organizations {
+    projects {
         id
         name
     }
-    organization(id: $id) {
+    project(id: $id) {
         id
         name
         verbose_id
@@ -237,8 +237,8 @@ query GetAdmin {
     }
 }
 
-query GetOrganization($id: ID!) {
-    organization(id: $id) {
+query GetProject($id: ID!) {
+    project(id: $id) {
         id
         name
         verbose_id
@@ -257,7 +257,7 @@ query GetBillingDetails($project_id: ID!) {
         meter
         sessionsOutOfQuota
     }
-    organization(id: $project_id) {
+    project(id: $project_id) {
         id
         trial_end_date
     }
@@ -356,8 +356,8 @@ query GetFieldSuggestion($project_id: ID!, $name: String!, $query: String!) {
     }
 }
 
-query GetOrganizationSuggestion($query: String!) {
-    organizationSuggestion(query: $query) {
+query GetProjectSuggestion($query: String!) {
+    projectSuggestion(query: $query) {
         id
         name
     }

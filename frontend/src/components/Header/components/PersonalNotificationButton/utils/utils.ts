@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { useHistory } from 'react-router';
 
 import {
-    useAddSlackBotIntegrationToOrganizationMutation,
+    useAddSlackBotIntegrationToProjectMutation,
     useOpenSlackConversationMutation,
 } from '../../../../../graph/generated/hooks';
 import { GetBaseURL } from '../../../../../util/window';
@@ -32,18 +32,18 @@ export const useSlackBot = ({ type, watch }: UseSlackBotProps) => {
         ''
     );
     const history = useHistory();
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { project_id } = useParams<{ project_id: string }>();
     const [openSlackConversation] = useOpenSlackConversationMutation({
-        refetchQueries: [namedOperations.Query.GetOrganization],
+        refetchQueries: [namedOperations.Query.GetProject],
     });
     const [
-        addSlackBotIntegrationToOrganization,
-    ] = useAddSlackBotIntegrationToOrganizationMutation({
+        addSlackBotIntegrationToProject,
+    ] = useAddSlackBotIntegrationToProjectMutation({
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
     const [loading, setLoading] = useState<boolean>(false);
 
-    const slackUrl = getSlackUrl(type, organization_id, redirectPath);
+    const slackUrl = getSlackUrl(type, project_id, redirectPath);
 
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
@@ -56,7 +56,7 @@ export const useSlackBot = ({ type, watch }: UseSlackBotProps) => {
                 if (setupType === 'Personal') {
                     await openSlackConversation({
                         variables: {
-                            project_id: organization_id,
+                            project_id: project_id,
                             code,
                             redirect_path: redirectPath,
                         },
@@ -66,9 +66,9 @@ export const useSlackBot = ({ type, watch }: UseSlackBotProps) => {
                         5
                     );
                 } else if (setupType === 'Organization') {
-                    await addSlackBotIntegrationToOrganization({
+                    await addSlackBotIntegrationToProject({
                         variables: {
-                            project_id: organization_id,
+                            project_id: project_id,
                             code,
                             redirect_path: redirectPath,
                         },
@@ -93,9 +93,9 @@ export const useSlackBot = ({ type, watch }: UseSlackBotProps) => {
         openSlackConversation,
         history,
         loading,
-        organization_id,
+        project_id,
         redirectPath,
-        addSlackBotIntegrationToOrganization,
+        addSlackBotIntegrationToProject,
         watch,
         setupType,
     ]);
@@ -108,12 +108,12 @@ export const useSlackBot = ({ type, watch }: UseSlackBotProps) => {
 
 export const getSlackUrl = (
     type: 'Personal' | 'Organization',
-    organizationId: string,
+    projectId: string,
     redirectPath: string
 ) => {
     const slackScopes =
         type === 'Personal' ? PersonalSlackScopes : OrganizationSlackScopes;
-    const redirectUriOrigin = `${GetBaseURL()}/${organizationId}`;
+    const redirectUriOrigin = `${GetBaseURL()}/${projectId}`;
 
     const slackUrl = `https://slack.com/oauth/v2/authorize?client_id=1354469824468.1868913469441&scope=${slackScopes}&redirect_uri=${redirectUriOrigin}/${redirectPath}`;
 
