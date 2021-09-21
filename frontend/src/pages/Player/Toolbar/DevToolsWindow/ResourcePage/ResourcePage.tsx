@@ -316,6 +316,7 @@ export const ResourcePage = ({
                                                             />
                                                         </>
                                                     ),
+                                                    id: resource.id.toString(),
                                                 });
                                             }}
                                         />
@@ -388,6 +389,7 @@ const ResourceRow = ({
     onClickHandler: () => void;
 }) => {
     const { pause } = useReplayerContext();
+    const { detailedPanel } = usePlayerUIContext();
     const leftPaddingPercent = (resource.startTime / networkRange) * 100;
     const actualPercent = Math.max(
         ((resource.responseEnd - resource.startTime) / networkRange) * 100,
@@ -405,6 +407,8 @@ const ResourceRow = ({
                         (resource.requestResponsePairs.response.status === 0 ||
                             resource.requestResponsePairs.response.status >=
                                 400),
+                    [styles.showingDetails]:
+                        detailedPanel?.id === resource.id.toString(),
                 })}
             >
                 <div className={styles.typeSection}>

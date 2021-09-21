@@ -144,6 +144,7 @@ const ErrorsPage = () => {
                                         options: {
                                             noHeader: true,
                                         },
+                                        id: error.id,
                                     });
                                 }}
                             />

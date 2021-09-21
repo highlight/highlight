@@ -8,6 +8,14 @@ interface DetailedPanelOptions {
     noHeader?: boolean;
 }
 
+interface DetailedPanel {
+    title: string | React.ReactNode;
+    content: React.ReactNode;
+    options?: DetailedPanelOptions;
+    /** The ID of the object that is being showed details for. */
+    id: string;
+}
+
 interface PlayerUIContext {
     searchBarRef: AsyncSelect<SessionSearchOption, true> | undefined;
     setSearchBarRef: React.Dispatch<
@@ -17,20 +25,9 @@ interface PlayerUIContext {
     setIsPlayerFullscreen: React.Dispatch<React.SetStateAction<boolean>>;
     playerCenterPanelRef: React.RefObject<HTMLDivElement>;
     /** Used to show detailed information. */
-    detailedPanel?: {
-        title: string | React.ReactNode;
-        content: React.ReactNode;
-        options?: DetailedPanelOptions;
-    };
+    detailedPanel?: DetailedPanel;
     setDetailedPanel: React.Dispatch<
-        React.SetStateAction<
-            | {
-                  title: string | React.ReactNode;
-                  content: React.ReactNode;
-                  options?: DetailedPanelOptions;
-              }
-            | undefined
-        >
+        React.SetStateAction<DetailedPanel | undefined>
     >;
 }
 

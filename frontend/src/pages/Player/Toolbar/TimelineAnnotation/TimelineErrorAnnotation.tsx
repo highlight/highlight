@@ -50,6 +50,7 @@ function TimelineErrorAnnotation({ error }: Props): ReactElement {
                                     options: {
                                         noHeader: true,
                                     },
+                                    id: error.id,
                                 });
                             }}
                             label="More info"

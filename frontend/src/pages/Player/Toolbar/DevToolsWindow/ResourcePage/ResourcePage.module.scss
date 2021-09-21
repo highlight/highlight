@@ -32,6 +32,10 @@ $right-padding: 12px;
         }
     }
 
+    &.showingDetails {
+        background: var(--color-gray-300);
+    }
+
     &:hover .goToButton {
         visibility: visible;
     }
