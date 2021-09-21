@@ -1,5 +1,5 @@
+import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
-import { useDevToolsContext } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext';
 import ErrorModal from '@pages/Player/Toolbar/DevToolsWindow/ErrorsPage/components/ErrorModal/ErrorModal';
 import { message } from 'antd';
 import React, { ReactElement, useState } from 'react';
@@ -28,7 +28,7 @@ function TimelineErrorAnnotation({ error }: Props): ReactElement {
         setShowDevTools,
         setSelectedDevToolsTab,
     } = usePlayerConfiguration();
-    const { setPanelContent } = useDevToolsContext();
+    const { setDetailedPanel } = usePlayerUIContext();
 
     const [isTooltipOpen, setIsTooltipOpen] = useState(false);
 
@@ -44,9 +44,12 @@ function TimelineErrorAnnotation({ error }: Props): ReactElement {
                             onClick={() => {
                                 setShowDevTools(true);
                                 setSelectedDevToolsTab('Errors');
-                                setPanelContent({
+                                setDetailedPanel({
                                     title: null,
                                     content: <ErrorModal error={error} />,
+                                    options: {
+                                        noHeader: true,
+                                    },
                                 });
                             }}
                             label="More info"

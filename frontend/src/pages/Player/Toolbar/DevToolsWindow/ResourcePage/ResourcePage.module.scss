@@ -222,4 +222,5 @@ $canvas-width: calc(
     align-items: center !important;
     column-gap: var(--size-medium);
     display: flex;
+    justify-content: space-between;
 }

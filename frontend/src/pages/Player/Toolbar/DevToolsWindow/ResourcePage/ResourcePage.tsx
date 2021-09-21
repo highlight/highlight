@@ -1,7 +1,6 @@
 import Input from '@components/Input/Input';
+import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
-import { useDevToolsContext } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext';
-import DetailPanel from '@pages/Player/Toolbar/DevToolsWindow/DetailPanel/DetailPanel';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
@@ -36,7 +35,7 @@ export const ResourcePage = ({
     startTime: number;
 }) => {
     const { state, session, pause } = useReplayerContext();
-    const { setPanelContent } = useDevToolsContext();
+    const { setDetailedPanel } = usePlayerUIContext();
     const { session_id } = useParams<{ session_id: string }>();
     const [options, setOptions] = useState<Array<string>>([]);
     const [currentOption, setCurrentOption] = useState('All');
@@ -182,7 +181,6 @@ export const ResourcePage = ({
     return (
         <div className={styles.resourcePageWrapper}>
             <div className={devStyles.topBar}>
-                <DetailPanel />
                 <div className={styles.optionsWrapper}>
                     <div
                         className={styles.optionsContainer}
@@ -278,13 +276,16 @@ export const ResourcePage = ({
                                             currentResource={currentResource}
                                             searchTerm={filterSearchTerm}
                                             onClickHandler={() => {
-                                                setPanelContent({
+                                                setDetailedPanel({
                                                     title: (
                                                         <div
                                                             className={
                                                                 styles.detailPanelTitle
                                                             }
                                                         >
+                                                            <h3>
+                                                                Network Resource
+                                                            </h3>
                                                             <GoToButton
                                                                 onClick={() => {
                                                                     pause(

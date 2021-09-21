@@ -1,5 +1,4 @@
-import { useDevToolsContext } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext';
-import DetailPanel from '@pages/Player/Toolbar/DevToolsWindow/DetailPanel/DetailPanel';
+import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import ErrorModal from '@pages/Player/Toolbar/DevToolsWindow/ErrorsPage/components/ErrorModal/ErrorModal';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
@@ -26,7 +25,7 @@ const ErrorsPage = () => {
     const [filterSearchTerm, setFilterSearchTerm] = useState('');
     const history = useHistory<ErrorsPageHistoryState>();
     const { errors: allErrors, state, time, replayer } = useReplayerContext();
-    const { setPanelContent } = useDevToolsContext();
+    const { setDetailedPanel } = usePlayerUIContext();
 
     const loading = state === ReplayerState.Loading;
 
@@ -84,7 +83,6 @@ const ErrorsPage = () => {
     return (
         <div className={styles.errorsPageWrapper}>
             <div className={devStyles.topBar}>
-                <DetailPanel />
                 <div className={devStyles.optionsWrapper}>
                     <div className={styles.filterContainer}>
                         <Input
@@ -136,13 +134,16 @@ const ErrorsPage = () => {
                                         : ErrorCardState.Unknown
                                 }
                                 setSelectedError={() => {
-                                    setPanelContent({
+                                    setDetailedPanel({
                                         title: null,
                                         content: (
                                             <>
                                                 <ErrorModal error={error} />
                                             </>
                                         ),
+                                        options: {
+                                            noHeader: true,
+                                        },
                                     });
                                 }}
                             />
