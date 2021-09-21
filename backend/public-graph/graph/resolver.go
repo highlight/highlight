@@ -184,7 +184,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *
 		Type:      errorObj.Type,
 	}).First(&errorGroup).Error; err != nil {
 		newErrorGroup := &model.ErrorGroup{
-			ProjectID:  errorGroup.ProjectID,
+			ProjectID:  errorObj.ProjectID,
 			Event:      errorObj.Event,
 			StackTrace: frameString,
 			Type:       errorObj.Type,
