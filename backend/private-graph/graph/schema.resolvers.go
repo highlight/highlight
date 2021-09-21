@@ -1289,7 +1289,7 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 	}
 
 	errorGroups := []model.ErrorGroup{}
-	selectPreamble := `SELECT id, secure_id, organization_id, event, COALESCE(mapped_stack_trace, stack_trace) as stack_trace, created_at, deleted_at, updated_at, state`
+	selectPreamble := `SELECT id, secure_id, organization_id, event, COALESCE(mapped_stack_trace, stack_trace) as stack_trace, metadata_log, created_at, deleted_at, updated_at, state`
 	countPreamble := `SELECT COUNT(*)`
 
 	queryString := `FROM error_groups `
