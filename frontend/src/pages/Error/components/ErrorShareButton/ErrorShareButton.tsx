@@ -7,7 +7,6 @@ import { useUpdateErrorGroupIsPublicMutation } from '@graph/hooks';
 import SvgShareIcon from '@icons/ShareIcon';
 import { message } from 'antd';
 import { Maybe } from 'graphql/jsutils/Maybe';
-import { H } from 'highlight.run';
 import React, { useState } from 'react';
 
 import ShareButton from '../../../../components/Button/ShareButton/ShareButton';
@@ -39,7 +38,6 @@ const ErrorShareButton = ({ errorGroup }: Props) => {
             <ShareButton
                 trackingId="errorShareButton"
                 onClick={() => {
-                    H.track('Clicked share button');
                     setShowModal(true);
                 }}
             >
@@ -70,7 +68,10 @@ const ErrorShareButton = ({ errorGroup }: Props) => {
 };
 
 const ExternalSharingToggle = ({ errorGroup }: Props) => {
-    const [updateErrorGroupIsPublic] = useUpdateErrorGroupIsPublicMutation({
+    const [
+        updateErrorGroupIsPublic,
+        { loading },
+    ] = useUpdateErrorGroupIsPublicMutation({
         update(cache, { data }) {
             const is_public =
                 data?.updateErrorGroupIsPublic?.is_public === true;
@@ -91,12 +92,9 @@ const ExternalSharingToggle = ({ errorGroup }: Props) => {
     return (
         <div className={styles.externalSharingToggle}>
             <Switch
-                loading={!errorGroup}
+                loading={loading}
                 checked={!!errorGroup?.is_public}
                 onChange={(checked: boolean) => {
-                    H.track('Toggled error group isPublic', {
-                        is_public: checked,
-                    });
                     updateErrorGroupIsPublic({
                         variables: {
                             error_group_id: errorGroup?.id || '',
@@ -104,7 +102,7 @@ const ExternalSharingToggle = ({ errorGroup }: Props) => {
                         },
                     });
                 }}
-                label="Allow anyone with the link to access this error."
+                label="Allow anyone with the link to view this error."
                 trackingId="ErrorSharingExternal"
             />
         </div>

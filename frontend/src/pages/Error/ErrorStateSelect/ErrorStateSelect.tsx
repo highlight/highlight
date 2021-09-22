@@ -46,9 +46,10 @@ export const ErrorStateSelect: React.FC<{
     }, [action, error_id, setAction, updateErrorGroupState]);
 
     // Add disabled state to each option if not logged in
-    const thisErrorStateOptions = ErrorStateOptions.map((opt) =>
-        Object.assign({ disabled: !isLoggedIn }, opt)
-    );
+    const thisErrorStateOptions = ErrorStateOptions.map((opt) => ({
+        ...opt,
+        disabled: !isLoggedIn,
+    }));
 
     return (
         <Select
