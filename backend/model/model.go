@@ -639,17 +639,18 @@ type ErrorField struct {
 
 type SessionComment struct {
 	Model
-	Admins         []Admin `gorm:"many2many:session_comment_admins;"`
-	OrganizationID int
-	ProjectID      int `json:"project_id"`
-	AdminId        int
-	SessionId      int
-	Timestamp      int
-	Text           string
-	XCoordinate    float64
-	YCoordinate    float64
-	Type           string `json:"type" gorm:"default:ADMIN"`
-	Metadata       JSONB  `json:"metadata" gorm:"type:jsonb"`
+	Admins          []Admin `gorm:"many2many:session_comment_admins;"`
+	OrganizationID  int
+	ProjectID       int `json:"project_id"`
+	AdminId         int
+	SessionId       int
+	SessionSecureId string `gorm:"index;not null;default:''"`
+	Timestamp       int
+	Text            string
+	XCoordinate     float64
+	YCoordinate     float64
+	Type            string `json:"type" gorm:"default:ADMIN"`
+	Metadata        JSONB  `json:"metadata" gorm:"type:jsonb"`
 }
 
 type ErrorComment struct {
@@ -659,6 +660,7 @@ type ErrorComment struct {
 	ProjectID      int `json:"project_id"`
 	AdminId        int
 	ErrorId        int
+	ErrorSecureId  string `gorm:"index;not null;default:''"`
 	Text           string
 }
 

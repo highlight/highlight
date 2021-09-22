@@ -350,6 +350,7 @@ export type SessionComment = {
     created_at: Scalars['Time'];
     updated_at: Scalars['Time'];
     session_id: Scalars['Int'];
+    session_secure_id: Scalars['String'];
     author?: Maybe<SanitizedAdmin>;
     text: Scalars['String'];
     x_coordinate?: Maybe<Scalars['Float']>;
@@ -364,6 +365,7 @@ export type ErrorComment = {
     project_id: Scalars['ID'];
     created_at: Scalars['Time'];
     error_id: Scalars['Int'];
+    error_secure_id: Scalars['String'];
     updated_at: Scalars['Time'];
     author: SanitizedAdmin;
     text: Scalars['String'];
