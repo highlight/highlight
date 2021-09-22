@@ -21,7 +21,7 @@ export interface AdminSuggestion extends SuggestionDataItem {
 }
 
 export const parseAdminSuggestions = (
-    /** A list of all admins in the organization. */
+    /** A list of all admins in the project. */
     suggestions: CommentSuggestion[],
     /** The current logged in admin. */
     currentAdmin: Admin | undefined,

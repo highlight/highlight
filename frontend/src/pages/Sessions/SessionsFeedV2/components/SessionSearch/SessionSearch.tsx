@@ -20,8 +20,8 @@ import SessionSearchFilters from '../../../SessionsFeed/components/SessionSearch
 import styles from './SessionSearch.module.scss';
 
 const SessionSearch = () => {
-    const { organization_id } = useParams<{
-        organization_id: string;
+    const { project_id } = useParams<{
+        project_id: string;
     }>();
     const [query, setQuery] = useState('');
     const [selectedProperties, setSelectedProperties] = useState<
@@ -90,14 +90,14 @@ const SessionSearch = () => {
 
     const { loading, data, refetch } = useGetSessionSearchResultsQuery({
         variables: {
-            organization_id,
+            project_id,
             query: '',
         },
     });
 
     const generateOptions = (input: string, callback: any) => {
         refetch({
-            organization_id,
+            project_id,
             query: input,
         }).then((fetched) => {
             callback(

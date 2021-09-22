@@ -119,8 +119,8 @@ func main() {
 		port = defaultPort
 	}
 
-	shouldStartDatadog := !util.IsDevOrTestEnv() && !util.IsOnPrem()
-	if shouldStartDatadog {
+	shouldLog := !util.IsDevOrTestEnv() && !util.IsOnPrem()
+	if shouldLog {
 		log.Info("Running dd client setup process...")
 		if err := dd.Start(); err != nil {
 			log.Fatal(e.Wrap(err, "error starting dd clients with error"))
@@ -129,6 +129,8 @@ func main() {
 		}
 	} else {
 		log.Info("Excluding dd client setup process...")
+		log.Info("Disabling AWS xray...")
+		os.Setenv("AWS_XRAY_SDK_DISABLED", "TRUE")
 	}
 
 	db, err := model.SetupDB(os.Getenv("PSQL_DB"))

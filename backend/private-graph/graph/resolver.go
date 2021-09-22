@@ -50,54 +50,54 @@ func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
 	return uid == WhitelistedUID || strings.Contains(email, "@highlight.run")
 }
 
-func (r *Resolver) isDemoOrg(org_id int) bool {
-	return org_id == 0
+func (r *Resolver) isDemoProject(project_id int) bool {
+	return project_id == 0
 }
 
 // These are authentication methods used to make sure that data is secured.
 // This'll probably get expensive at some point; they can probably be cached.
 
-// isAdminInOrganizationOrDemoOrg should be used for actions that you want admins in all organizations
-// and laymen in the demo org to have access to.
-func (r *Resolver) isAdminInOrganizationOrDemoOrg(ctx context.Context, org_id int) (*model.Organization, error) {
-	var org *model.Organization
+// isAdminInProjectOrDemoProject should be used for actions that you want admins in all projects
+// and laymen in the demo project to have access to.
+func (r *Resolver) isAdminInProjectOrDemoProject(ctx context.Context, project_id int) (*model.Project, error) {
+	var project *model.Project
 	var err error
-	if r.isDemoOrg(org_id) {
-		if err = r.DB.Model(&model.Organization{}).Where("id = ?", 0).First(&org).Error; err != nil {
-			return nil, e.Wrap(err, "error querying demo org")
+	if r.isDemoProject(project_id) {
+		if err = r.DB.Model(&model.Project{}).Where("id = ?", 0).First(&project).Error; err != nil {
+			return nil, e.Wrap(err, "error querying demo project")
 		}
 	} else {
-		org, err = r.isAdminInOrganization(ctx, org_id)
+		project, err = r.isAdminInProject(ctx, project_id)
 		if err != nil {
-			return nil, e.Wrap(err, "admin is not in organization or demo org")
+			return nil, e.Wrap(err, "admin is not in project or demo project")
 		}
 	}
-	return org, nil
+	return project, nil
 }
 
-// isAdminInOrganization should be used for actions that you only want admins in all organizations to have access to.
-// Use this on actions that you don't want laymen in the demo org to have access to.
-func (r *Resolver) isAdminInOrganization(ctx context.Context, org_id int) (*model.Organization, error) {
+// isAdminInProject should be used for actions that you only want admins in all projects to have access to.
+// Use this on actions that you don't want laymen in the demo project to have access to.
+func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model.Project, error) {
 	if util.IsTestEnv() {
 		return nil, nil
 	}
 	if r.isWhitelistedAccount(ctx) {
-		org := &model.Organization{}
-		if err := r.DB.Where(&model.Organization{Model: model.Model{ID: org_id}}).First(&org).Error; err != nil {
-			return nil, e.Wrap(err, "error querying org")
+		project := &model.Project{}
+		if err := r.DB.Where(&model.Project{Model: model.Model{ID: project_id}}).First(&project).Error; err != nil {
+			return nil, e.Wrap(err, "error querying project")
 		}
-		return org, nil
+		return project, nil
 	}
-	orgs, err := r.Query().Organizations(ctx)
+	projects, err := r.Query().Projects(ctx)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying orgs")
+		return nil, e.Wrap(err, "error querying projects")
 	}
-	for _, o := range orgs {
-		if o.ID == org_id {
-			return o, nil
+	for _, p := range projects {
+		if p.ID == project_id {
+			return p, nil
 		}
 	}
-	return nil, e.New("admin doesn't exist in organization")
+	return nil, e.New("admin doesn't exist in project")
 }
 
 func InputToParams(params *modelInputs.SearchParamsInput) *model.SearchParams {
@@ -211,9 +211,9 @@ func (r *Resolver) isAdminErrorGroupOwner(ctx context.Context, errorGroupID *int
 			return nil, e.Wrap(err, fmt.Sprintf("error querying error group by ID: %d", *errorGroupID))
 		}
 	}
-	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, errorGroup.OrganizationID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, errorGroup.ProjectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error validating admin in organization")
+		return nil, e.Wrap(err, "error validating admin in project")
 	}
 	return errorGroup, nil
 }
@@ -233,9 +233,9 @@ func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_id *int, se
 		}
 	}
 
-	_, err = r.isAdminInOrganizationOrDemoOrg(ctx, session.OrganizationID)
+	_, err = r.isAdminInProjectOrDemoProject(ctx, session.ProjectID)
 	if err != nil {
-		return session, false, e.Wrap(err, "error validating admin in organization")
+		return session, false, e.Wrap(err, "error validating admin in project")
 	}
 	return session, true, nil
 }
@@ -264,9 +264,9 @@ func (r *Resolver) isAdminSegmentOwner(ctx context.Context, segment_id int) (*mo
 	if err := r.DB.Where(&model.Segment{Model: model.Model{ID: segment_id}}).First(&segment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying segment")
 	}
-	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, segment.OrganizationID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, segment.ProjectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error validating admin in organization")
+		return nil, e.Wrap(err, "error validating admin in project")
 	}
 	return segment, nil
 }
@@ -276,14 +276,14 @@ func (r *Resolver) isAdminErrorSegmentOwner(ctx context.Context, error_segment_i
 	if err := r.DB.Where(&model.ErrorSegment{Model: model.Model{ID: error_segment_id}}).First(&segment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error segment")
 	}
-	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, segment.OrganizationID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, segment.ProjectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error validating admin in organization")
+		return nil, e.Wrap(err, "error validating admin in project")
 	}
 	return segment, nil
 }
 
-func (r *Resolver) UpdateSessionsVisibility(organizationID int, newPlan modelInputs.PlanType, originalPlan modelInputs.PlanType) {
+func (r *Resolver) UpdateSessionsVisibility(projectID int, newPlan modelInputs.PlanType, originalPlan modelInputs.PlanType) {
 	isPlanUpgrade := true
 	switch originalPlan {
 	case modelInputs.PlanTypeFree:
@@ -304,13 +304,13 @@ func (r *Resolver) UpdateSessionsVisibility(organizationID int, newPlan modelInp
 		}
 	}
 	if isPlanUpgrade {
-		if err := r.DB.Model(&model.Session{}).Where(&model.Session{OrganizationID: organizationID, WithinBillingQuota: &model.F}).Updates(model.Session{WithinBillingQuota: &model.T}).Error; err != nil {
+		if err := r.DB.Model(&model.Session{}).Where(&model.Session{ProjectID: projectID, WithinBillingQuota: &model.F}).Updates(model.Session{WithinBillingQuota: &model.T}).Error; err != nil {
 			log.Error(e.Wrap(err, "error updating within_billing_quota on sessions upon plan upgrade"))
 		}
 	}
 }
 
-func (r *queryResolver) getFieldFilters(ctx context.Context, organizationID int, params *modelInputs.SearchParamsInput) (whereClause string, err error) {
+func (r *queryResolver) getFieldFilters(ctx context.Context, projectID int, params *modelInputs.SearchParamsInput) (whereClause string, err error) {
 	if params.VisitedURL != nil {
 		whereClause += andSessionHasFieldsWhere("fields.name = 'visited-url' AND fields.value ILIKE '%" + *params.VisitedURL + "%'")
 	}
@@ -442,10 +442,10 @@ func (r *Resolver) SendEmailAlert(tos []*mail.Email, authorName, viewLink, textF
 	return nil
 }
 
-func (r *Resolver) SendPersonalSlackAlert(org *model.Organization, admin *model.Admin, adminIds []int, viewLink, commentText, subjectScope string) error {
+func (r *Resolver) SendPersonalSlackAlert(project *model.Project, admin *model.Admin, adminIds []int, viewLink, commentText, subjectScope string) error {
 	// this is needed for posting DMs
 	// if nil, user simply hasn't signed up for notifications, so return nil
-	if org.SlackAccessToken == nil {
+	if project.SlackAccessToken == nil {
 		return nil
 	}
 
@@ -492,7 +492,7 @@ func (r *Resolver) SendPersonalSlackAlert(org *model.Organization, admin *model.
 	)
 
 	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewDividerBlock())
-	slackClient := slack.New(*org.SlackAccessToken)
+	slackClient := slack.New(*project.SlackAccessToken)
 	for _, a := range admins {
 		if a.SlackIMChannelID != nil {
 			_, _, err := slackClient.PostMessage(*a.SlackIMChannelID, slack.MsgOptionBlocks(blockSet.BlockSet...))
@@ -505,10 +505,10 @@ func (r *Resolver) SendPersonalSlackAlert(org *model.Organization, admin *model.
 	return nil
 }
 
-func (r *Resolver) SendSlackAlertToUser(org *model.Organization, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, viewLink, commentText, subjectScope string) error {
+func (r *Resolver) SendSlackAlertToUser(project *model.Project, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, viewLink, commentText, subjectScope string) error {
 	// this is needed for posting DMs
 	// if nil, user simply hasn't signed up for notifications, so return nil
-	if org.SlackAccessToken == nil {
+	if project.SlackAccessToken == nil {
 		return nil
 	}
 
@@ -545,7 +545,7 @@ func (r *Resolver) SendSlackAlertToUser(org *model.Organization, admin *model.Ad
 	)
 
 	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewDividerBlock())
-	slackClient := slack.New(*org.SlackAccessToken)
+	slackClient := slack.New(*project.SlackAccessToken)
 	for _, slackUser := range taggedSlackUsers {
 		if slackUser.WebhookChannelID != nil {
 			_, _, _, err := slackClient.JoinConversation(*slackUser.WebhookChannelID)

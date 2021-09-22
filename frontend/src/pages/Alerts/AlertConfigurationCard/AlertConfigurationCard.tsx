@@ -52,7 +52,7 @@ export const AlertConfigurationCard = ({
     const [lookbackPeriod, setLookbackPeriod] = useState(
         getLookbackPeriodOption(alert?.ThresholdWindow).value
     );
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { project_id } = useParams<{ project_id: string }>();
     const [form] = Form.useForm();
     const [updateErrorAlert] = useUpdateErrorAlertMutation();
     const [updateNewUserAlert] = useUpdateNewUserAlertMutation();
@@ -68,7 +68,7 @@ export const AlertConfigurationCard = ({
         setLoading(true);
         try {
             const requestVariables = {
-                organization_id,
+                project_id,
                 environments: form.getFieldValue('excludedEnvironments'),
                 count_threshold: form.getFieldValue('threshold'),
                 slack_channels: form
@@ -181,7 +181,7 @@ export const AlertConfigurationCard = ({
         refetch: refetchUserSuggestions,
     } = useGetUserSuggestionQuery({
         variables: {
-            organization_id,
+            project_id,
             query: '',
         },
     });
@@ -192,7 +192,7 @@ export const AlertConfigurationCard = ({
         data: trackSuggestionsApiResponse,
     } = useGetTrackSuggestionQuery({
         variables: {
-            organization_id,
+            project_id,
             query: '',
         },
     });
@@ -229,11 +229,11 @@ export const AlertConfigurationCard = ({
 
     /** Searches for a user property  */
     const handleUserPropertiesSearch = (query = '') => {
-        refetchUserSuggestions({ query, organization_id });
+        refetchUserSuggestions({ query, project_id });
     };
 
     const handleTrackPropertiesSearch = (query = '') => {
-        refetchTrackSuggestions({ query, organization_id });
+        refetchTrackSuggestions({ query, project_id });
     };
 
     const onChannelsChange = (channels: string[]) => {
@@ -397,7 +397,7 @@ export const AlertConfigurationCard = ({
                                         <div className={styles.addContainer}>
                                             Can't find the channel or person
                                             here?{' '}
-                                            {organization_id !==
+                                            {project_id !==
                                                 DEMO_WORKSPACE_APPLICATION_ID && (
                                                 <a href={slackUrl}>
                                                     Sync Highlight with your

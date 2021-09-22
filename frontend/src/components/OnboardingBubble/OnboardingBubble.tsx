@@ -32,15 +32,15 @@ interface OnboardingStep {
 
 const OnboardingBubble = () => {
     const history = useHistory();
-    const { organization_id } = useParams<{
-        organization_id: string;
+    const { project_id } = useParams<{
+        project_id: string;
     }>();
     const [, setHasFinishedOnboarding] = useLocalStorage(
-        `highlight-finished-onboarding-${organization_id}`,
+        `highlight-finished-onboarding-${project_id}`,
         false
     );
     const [hasStartedOnboarding] = useLocalStorage(
-        `highlight-started-onboarding-${organization_id}`,
+        `highlight-started-onboarding-${project_id}`,
         false
     );
     const [, setSetupType] = useLocalStorage<'' | 'Personal' | 'Organization'>(
@@ -64,7 +64,7 @@ const OnboardingBubble = () => {
         data,
     } = useGetOnboardingStepsQuery({
         variables: {
-            organization_id,
+            project_id,
             admin_id: (admin_data?.admin?.id as string) || '',
         },
         fetchPolicy: 'network-only',
@@ -81,40 +81,40 @@ const OnboardingBubble = () => {
             STEPS.push({
                 displayName: 'Install the Highlight SDK',
                 action: () => {
-                    history.push(`/${organization_id}/setup`);
+                    history.push(`/${project_id}/setup`);
                 },
                 completed: data.isIntegrated || false,
             });
             STEPS.push({
                 displayName: 'Configure Alerts',
                 action: () => {
-                    history.push(`/${organization_id}/alerts`);
+                    history.push(`/${project_id}/alerts`);
                 },
-                completed: !!data.organization?.slack_channels,
+                completed: !!data.project?.slack_channels,
             });
             STEPS.push({
                 displayName: 'Invite your team',
                 action: () => {
-                    history.push(`/${organization_id}/team`);
+                    history.push(`/${project_id}/team`);
                 },
                 completed: (data.admins?.length || 0) > 1,
             });
             STEPS.push({
                 displayName: 'View your first session',
                 action: () => {
-                    history.push(`/${organization_id}/sessions`);
+                    history.push(`/${project_id}/sessions`);
                 },
-                completed: !!data.organizationHasViewedASession || false,
+                completed: !!data.projectHasViewedASession || false,
             });
             STEPS.push({
                 displayName: 'Create your first comment',
                 action: () => {
-                    if (data.organizationHasViewedASession?.id !== '0') {
+                    if (data.projectHasViewedASession?.id !== '0') {
                         history.push(
-                            `/${organization_id}/sessions/${data.organizationHasViewedASession?.id}`
+                            `/${project_id}/sessions/${data.projectHasViewedASession?.id}`
                         );
                     } else {
-                        history.push(`/${organization_id}/sessions`);
+                        history.push(`/${project_id}/sessions`);
                     }
                 },
                 completed: !!data.adminHasCreatedComment || false,
@@ -163,7 +163,7 @@ const OnboardingBubble = () => {
         data,
         hasStartedOnboarding,
         history,
-        organization_id,
+        project_id,
         setHasFinishedOnboarding,
         startPolling,
         stopPolling,
@@ -179,7 +179,7 @@ const OnboardingBubble = () => {
         loading ||
         stepsNotFinishedCount === -1 ||
         temporarilyHideOnboardingBubble ||
-        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+        project_id === DEMO_WORKSPACE_APPLICATION_ID
     ) {
         return null;
     }

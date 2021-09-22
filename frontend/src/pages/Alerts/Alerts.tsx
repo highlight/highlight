@@ -55,12 +55,12 @@ const ALERT_CONFIGURATIONS = [
 ];
 
 const AlertsPage = () => {
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { project_id } = useParams<{ project_id: string }>();
     const { data, loading } = useGetAlertsPagePayloadQuery({
-        variables: { organization_id: organization_id },
+        variables: { project_id },
     });
 
-    const slackUrl = getSlackUrl('Organization', organization_id, 'alerts');
+    const slackUrl = getSlackUrl('Organization', project_id, 'alerts');
 
     return (
         <LeadAlignLayout>

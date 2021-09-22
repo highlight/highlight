@@ -16,11 +16,11 @@ import styles from './KeyPerformanceIndicators.module.scss';
 import { formatLongNumber, formatShortTime } from './utils/utils';
 
 const KeyPerformanceIndicators = () => {
-    const { organization_id } = useParams<{ organization_id: string }>();
-    const organizationIdRemapped =
-        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+    const { project_id } = useParams<{ project_id: string }>();
+    const projectIdRemapped =
+        project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-            : organization_id;
+            : project_id;
     const { dateRangeLength } = useHomePageFiltersContext();
     const {
         setSearchParams,
@@ -28,7 +28,7 @@ const KeyPerformanceIndicators = () => {
         setSelectedSegment,
     } = useSearchContext();
     const { loading, data } = useGetKeyPerformanceIndicatorsQuery({
-        variables: { organization_id, lookBackPeriod: dateRangeLength },
+        variables: { project_id, lookBackPeriod: dateRangeLength },
     });
 
     return (
@@ -42,7 +42,7 @@ const KeyPerformanceIndicators = () => {
                             data?.newUsersCount?.count || 0
                         )}
                         title="New Users"
-                        route={`/${organizationIdRemapped}/sessions`}
+                        route={`/${projectIdRemapped}/sessions`}
                         onClick={() => {
                             message.success('Showing sessions for new users');
                             setSegmentName(null);

@@ -6,35 +6,33 @@ import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 
 import { useGetBillingDetailsQuery } from '../../../graph/generated/hooks';
-import { isOrganizationWithinTrial } from '../../../util/billing/billing';
+import { isProjectWithinTrial } from '../../../util/billing/billing';
 import ButtonLink from '../../Button/ButtonLink/ButtonLink';
 import Card from '../../Card/Card';
 import styles from './LimitedSessionsCard.module.scss';
 
 const LimitedSessionCard = () => {
-    const { organization_id } = useParams<{
-        organization_id: string;
+    const { project_id } = useParams<{
+        project_id: string;
     }>();
-    const organizationIdRemapped =
-        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+    const projectIdRemapped =
+        project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-            : organization_id;
+            : project_id;
     const { data } = useGetBillingDetailsQuery({
-        variables: { organization_id },
+        variables: { project_id },
     });
 
-    /** Show upsell when the current usage is 80% of the organization's plan. */
+    /** Show upsell when the current usage is 80% of the project's plan. */
     const upsell =
         (data?.billingDetails.meter ?? 0) /
             (data?.billingDetails.plan.quota ?? 1) >=
         1.0;
 
-    /** An organization is within a trial period by us setting an explicit trial end date on the organization. */
-    const organizationWithinTrialPeriod = isOrganizationWithinTrial(
-        data?.organization
-    );
+    /** An project is within a trial period by us setting an explicit trial end date on the project. */
+    const projectWithinTrialPeriod = isProjectWithinTrial(data?.project);
 
-    if (!upsell || organizationWithinTrialPeriod) {
+    if (!upsell || projectWithinTrialPeriod) {
         return null;
     }
 
@@ -49,7 +47,7 @@ const LimitedSessionCard = () => {
             </p>
             <ButtonLink
                 className={styles.center}
-                to={`/${organizationIdRemapped}/billing`}
+                to={`/${projectIdRemapped}/billing`}
                 trackingId="LimitedSessionsCardUpgradePlan"
             >
                 Upgrade Plan

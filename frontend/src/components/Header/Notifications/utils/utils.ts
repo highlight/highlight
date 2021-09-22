@@ -9,20 +9,20 @@ export enum NotificationType {
 }
 
 export const processNotifications = ({
-    error_comments_for_organization,
-    session_comments_for_organization,
+    error_comments_for_project,
+    session_comments_for_project,
 }: GetNotificationsQuery) => {
-    const errorCommentNotifications = error_comments_for_organization.map(
+    const errorCommentNotifications = error_comments_for_project.map(
         (errorComment) => ({
             ...errorComment,
             type: NotificationType.ErrorComment,
         })
     );
 
-    const sessionComments = session_comments_for_organization.filter(
+    const sessionComments = session_comments_for_project.filter(
         (comment) => comment?.type === SessionCommentType.Admin
     );
-    const sessionFeedback = session_comments_for_organization.filter(
+    const sessionFeedback = session_comments_for_project.filter(
         (comment) => comment?.type === SessionCommentType.Feedback
     );
     const sessionAdminCommentNotifications = sessionComments.map(

@@ -32,8 +32,8 @@ const CommentTextBody = ({
     onDisplayTransformHandler,
     suggestionsPortalHost,
 }: Props) => {
-    const { organization_id } = useParams<{
-        organization_id: string;
+    const { project_id } = useParams<{
+        project_id: string;
     }>();
 
     useEffect(() => {
@@ -69,7 +69,7 @@ const CommentTextBody = ({
                     ) : (
                         <p>
                             Tag a user (Enable Slack tags{' '}
-                            <Link to={`/${organization_id}/alerts`}>here</Link>)
+                            <Link to={`/${project_id}/alerts`}>here</Link>)
                         </p>
                     )}
                 </div>
