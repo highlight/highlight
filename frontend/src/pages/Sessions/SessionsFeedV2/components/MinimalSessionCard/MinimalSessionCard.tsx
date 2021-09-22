@@ -40,15 +40,15 @@ const MinimalSessionCard = ({
     linkDisabled,
 }: Props) => {
     const ref = useRef<HTMLDivElement | null>(null);
-    const { organization_id, segment_id, session_id } = useParams<{
-        organization_id: string;
+    const { project_id, segment_id, session_id } = useParams<{
+        project_id: string;
         segment_id: string;
         session_id: string;
     }>();
-    const organizationIdRemapped =
-        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+    const projectIdRemapped =
+        project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-            : organization_id;
+            : project_id;
     const {
         showDetailedSessionView: showDetailedSessionViewPlayerConfiguration,
         autoPlaySessions,
@@ -340,7 +340,7 @@ const MinimalSessionCard = ({
                 innerContent
             ) : (
                 <Link
-                    to={`/${organizationIdRemapped}/sessions/${session?.id}${
+                    to={`/${projectIdRemapped}/sessions/${session?.id}${
                         urlParams || ''
                     }`}
                 >

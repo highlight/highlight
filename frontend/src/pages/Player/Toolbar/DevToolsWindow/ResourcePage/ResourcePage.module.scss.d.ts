@@ -20,6 +20,7 @@ export const optionsContainer: string;
 export const optionsWrapper: string;
 export const resourcePageWrapper: string;
 export const rightAlign: string;
+export const showingDetails: string;
 export const timingBar: string;
 export const timingBarEmptySection: string;
 export const timingBarWrapper: string;

@@ -25,10 +25,10 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 	session, err := InitializeSessionImplementation(r, ctx, organizationVerboseID, enableStrictPrivacy, enableRecordingNetworkContents, firstloadVersion, clientVersion, clientConfig, environment, appVersion, fingerprint)
 	hlog.Incr("gql.initializeSession.count", []string{fmt.Sprintf("success:%t", err == nil)}, 1)
 
-	orgID := model.FromVerboseID(organizationVerboseID)
+	projectID := model.FromVerboseID(organizationVerboseID)
 	if !util.IsDevEnv() && err != nil {
 		msg := slack.WebhookMessage{Text: fmt.
-			Sprintf("Error in InitializeSession: %q\nOccurred for organization: {%d, %q}\nIs on-prem: %q", err, orgID, organizationVerboseID, os.Getenv("REACT_APP_ONPREM"))}
+			Sprintf("Error in InitializeSession: %q\nOccurred for project: {%d, %q}\nIs on-prem: %q", err, projectID, organizationVerboseID, os.Getenv("REACT_APP_ONPREM"))}
 		err := slack.PostWebhook(os.Getenv("SLACK_INITIALIZED_SESSION_FAILED_WEB_HOOK"), &msg)
 		if err != nil {
 			log.Error(e.Wrap(err, "failed to post webhook with error in InitializeSession"))
@@ -62,12 +62,12 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 	}
 	// set user properties to session in db
 	if err := session.SetUserProperties(userObj); err != nil {
-		return nil, e.Wrapf(err, "[org_id: %d] error appending user properties to session object {id: %d}", session.OrganizationID, sessionID)
+		return nil, e.Wrapf(err, "[project_id: %d] error appending user properties to session object {id: %d}", session.ProjectID, sessionID)
 	}
 
 	// Check if there is a session created by this user.
 	firstTime := &model.F
-	if err := r.DB.Where(&model.Session{Identifier: userIdentifier, OrganizationID: session.OrganizationID}).Take(&model.Session{}).Error; err != nil {
+	if err := r.DB.Where(&model.Session{Identifier: userIdentifier, ProjectID: session.ProjectID}).Take(&model.Session{}).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			firstTime = &model.T
 		} else {
@@ -136,11 +136,11 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 	metadata["timestamp"] = timestamp
 
 	session := &model.Session{}
-	if err := r.DB.Select("organization_id", "environment", "id").Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
+	if err := r.DB.Select("project_id", "environment", "id").Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
 		return -1, e.Wrap(err, "error querying session by sessionID for adding session feedback")
 	}
 
-	feedbackComment := &model.SessionComment{SessionId: sessionID, Text: verbatim, Metadata: metadata, Type: model.SessionCommentTypes.FEEDBACK, OrganizationID: session.OrganizationID, ProjectID: session.OrganizationID}
+	feedbackComment := &model.SessionComment{SessionId: sessionID, Text: verbatim, Metadata: metadata, Type: model.SessionCommentTypes.FEEDBACK, ProjectID: session.ProjectID}
 	if err := r.DB.Create(feedbackComment).Error; err != nil {
 		return -1, e.Wrap(err, "error creating session feedback")
 	}
@@ -150,11 +150,11 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 		if err := r.DB.Raw(`
 			SELECT *
 			FROM session_alerts
-			WHERE organization_id = ?
+			WHERE project_id = ?
 				AND type = ?
-		`, session.OrganizationID, model.AlertType.SESSION_FEEDBACK).Scan(&sessionFeedbackAlert).Error; err != nil {
+		`, session.ProjectID, model.AlertType.SESSION_FEEDBACK).Scan(&sessionFeedbackAlert).Error; err != nil {
 			log.WithError(err).
-				WithFields(log.Fields{"org_id": session.OrganizationID, "session_id": sessionID, "comment_id": feedbackComment.ID}).
+				WithFields(log.Fields{"project_id": session.ProjectID, "session_id": sessionID, "comment_id": feedbackComment.ID}).
 				Error(e.Wrapf(err, "error fetching %s alert", model.AlertType.SESSION_FEEDBACK))
 			return
 		}
@@ -178,14 +178,14 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 		if err := r.DB.Raw(`
 			SELECT COUNT(*)
 			FROM session_comments
-			WHERE organization_id = ?
+			WHERE project_id = ?
 				AND type = ?
 				AND created_at > ?
-		`, session.OrganizationID, model.SessionCommentTypes.FEEDBACK,
+		`, session.ProjectID, model.SessionCommentTypes.FEEDBACK,
 			time.Now().Add(-time.Duration(*sessionFeedbackAlert.ThresholdWindow)*time.Minute)).
 			Scan(&commentsCount).Error; err != nil {
 			log.WithError(err).
-				WithFields(log.Fields{"org_id": session.OrganizationID, "session_id": session.ID, "comment_id": feedbackComment.ID}).
+				WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "comment_id": feedbackComment.ID}).
 				Error(e.Wrapf(err, "error fetching %s alert count", model.AlertType.SESSION_FEEDBACK))
 			return
 		}
@@ -193,14 +193,14 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 			return
 		}
 
-		var organization model.Organization
+		var project model.Project
 		if err := r.DB.Raw(`
 			SELECT *
-			FROM organizations
+			FROM projects
 			WHERE id = ?
-		`, session.OrganizationID).Scan(&organization).Error; err != nil {
+		`, session.ProjectID).Scan(&project).Error; err != nil {
 			log.WithError(err).
-				WithFields(log.Fields{"org_id": session.OrganizationID, "session_id": session.ID, "comment_id": feedbackComment.ID}).
+				WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "comment_id": feedbackComment.ID}).
 				Error(e.Wrapf(err, "error fetching %s alert", model.AlertType.SESSION_FEEDBACK))
 			return
 		}
@@ -213,13 +213,13 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 		}
 
 		if err := sessionFeedbackAlert.SendSlackAlert(&model.SendSlackAlertInput{
-			Organization:   &organization,
+			Project:        &project,
 			SessionID:      session.ID,
 			UserIdentifier: identifier,
 			CommentID:      &feedbackComment.ID,
 			CommentText:    feedbackComment.Text,
 		}); err != nil {
-			log.WithError(err).WithFields(log.Fields{"org_id": session.OrganizationID, "comment_id": feedbackComment.ID}).
+			log.WithError(err).WithFields(log.Fields{"project_id": session.ProjectID, "comment_id": feedbackComment.ID}).
 				Error(e.Wrapf(err, "error sending %s slack alert", model.AlertType.SESSION_FEEDBACK))
 			return
 		}

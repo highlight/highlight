@@ -16,6 +16,7 @@ export enum ALERT_TYPE {
     FirstTimeUser,
     UserProperties,
     TrackProperties,
+    SessionFeedbackComment,
 }
 
 const ALERT_CONFIGURATIONS = [
@@ -44,15 +45,22 @@ const ALERT_CONFIGURATIONS = [
         type: ALERT_TYPE.TrackProperties,
         description: 'Get alerted when an action is done in your application.',
     },
+    {
+        name: 'Session Feedback Comments',
+        canControlThreshold: false,
+        type: ALERT_TYPE.SessionFeedbackComment,
+        description:
+            'Get alerted when a user submits a session feedback comment.',
+    },
 ];
 
 const AlertsPage = () => {
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { project_id } = useParams<{ project_id: string }>();
     const { data, loading } = useGetAlertsPagePayloadQuery({
-        variables: { organization_id: organization_id },
+        variables: { project_id },
     });
 
-    const slackUrl = getSlackUrl('Organization', organization_id, 'alerts');
+    const slackUrl = getSlackUrl('Organization', project_id, 'alerts');
 
     return (
         <LeadAlignLayout>
@@ -127,6 +135,21 @@ const AlertsPage = () => {
                                 }
                             />
                         ))} */}
+                        <AlertConfigurationCard
+                            configuration={ALERT_CONFIGURATIONS[4]}
+                            alert={
+                                data?.session_feedback_alert
+                                    ? data?.session_feedback_alert
+                                    : {}
+                            }
+                            environmentOptions={
+                                data?.environment_suggestion || []
+                            }
+                            channelSuggestions={
+                                data?.slack_channel_suggestion || []
+                            }
+                            slackUrl={slackUrl}
+                        />
                         <AlertConfigurationCard
                             configuration={ALERT_CONFIGURATIONS[0]}
                             alert={data?.error_alert ? data?.error_alert : {}}

@@ -25,7 +25,7 @@ import { useErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext'
 import styles from './ErrorFeedV2.module.scss';
 
 export const ErrorFeedV2 = () => {
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { project_id } = useParams<{ project_id: string }>();
     const [count, setCount] = useState(10);
     const [data, setData] = useState<ErrorResults>({
         error_groups: [],
@@ -35,7 +35,7 @@ export const ErrorFeedV2 = () => {
 
     const { loading, fetchMore, data: errorData } = useGetErrorGroupsQuery({
         variables: {
-            organization_id,
+            project_id,
             count: count + 10,
             params: searchParams,
         },
@@ -58,7 +58,7 @@ export const ErrorFeedV2 = () => {
                 variables: {
                     params: searchParams,
                     count,
-                    organization_id,
+                    project_id,
                 },
             });
         },
@@ -116,14 +116,14 @@ export const ErrorFeedV2 = () => {
 };
 
 const ErrorCardV2 = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
-    const { organization_id, error_id } = useParams<{
-        organization_id: string;
+    const { project_id, error_id } = useParams<{
+        project_id: string;
         error_id?: string;
     }>();
-    const organizationIdRemapped =
-        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+    const projectIdRemapped =
+        project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-            : organization_id;
+            : project_id;
     // Represents the last six days i.e. [5 days ago, 4 days ago, 3 days ago, etc..]
     const [errorDates, setErrorDates] = useState<Array<number>>(
         Array(6).fill(0)
@@ -136,7 +136,7 @@ const ErrorCardV2 = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
 
     return (
         <div className={styles.errorCardWrapper} key={errorGroup?.id}>
-            <Link to={`/${organizationIdRemapped}/errors/${errorGroup?.id}`}>
+            <Link to={`/${projectIdRemapped}/errors/${errorGroup?.id}`}>
                 <div
                     className={classNames(styles.errorCard, {
                         [styles.selected]: error_id === errorGroup?.id,

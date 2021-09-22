@@ -7,13 +7,13 @@ import { useIsIntegratedLazyQuery } from '../graph/generated/hooks';
 
 export const useIntegrated = (): { integrated: boolean; loading: boolean } => {
     const { isLoggedIn, isAuthLoading } = useAuthContext();
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { project_id } = useParams<{ project_id: string }>();
     const [query, { data, loading }] = useIsIntegratedLazyQuery({
-        variables: { organization_id: organization_id.toString() },
+        variables: { project_id: project_id.toString() },
         fetchPolicy: 'cache-and-network',
     });
     const [localStorageIntegrated, setLocalStorageIntegrated] = useLocalStorage(
-        `highlight-${organization_id}-integrated`,
+        `highlight-${project_id}-integrated`,
         false
     );
     const [integrated, setIntegrated] = useState<boolean | undefined>(

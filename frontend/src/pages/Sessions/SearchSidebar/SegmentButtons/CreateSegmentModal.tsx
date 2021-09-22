@@ -38,14 +38,14 @@ const CreateSegmentModal = ({
         refetchQueries: [namedOperations.Query.GetSegments],
     });
     const { register, handleSubmit, errors, reset } = useForm<Inputs>();
-    const { organization_id } = useParams<{
-        organization_id: string;
+    const { project_id } = useParams<{
+        project_id: string;
         segment_id: string;
     }>();
-    const organizationIdRemapped =
-        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+    const projectIdRemapped =
+        project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-            : organization_id;
+            : project_id;
     const { searchParams, setExistingParams } = useSearchContext();
     const history = useHistory();
 
@@ -54,7 +54,7 @@ const CreateSegmentModal = ({
         const { show_live_sessions, ...restOfSearchParams } = searchParams;
         createSegment({
             variables: {
-                organization_id,
+                project_id,
                 name: inputs.name,
                 params: restOfSearchParams,
             },
@@ -67,7 +67,7 @@ const CreateSegmentModal = ({
                 );
             } else {
                 history.push(
-                    `/${organizationIdRemapped}/sessions/segment/${r.data?.createSegment?.id}`
+                    `/${projectIdRemapped}/sessions/segment/${r.data?.createSegment?.id}`
                 );
             }
             onHideModal();

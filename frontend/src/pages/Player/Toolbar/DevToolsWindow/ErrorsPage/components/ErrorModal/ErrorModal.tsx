@@ -25,16 +25,18 @@ const ErrorModal = ({ error }: Props) => {
         variables: { id: error.error_group_id.toString() },
     });
     const history = useHistory();
-    const { organization_id } = useParams<{ organization_id: string }>();
-    const organizationIdRemapped =
-        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+    const { project_id } = useParams<{ project_id: string }>();
+    const projectIdRemapped =
+        project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-            : organization_id;
+            : project_id;
 
     return (
         <div className={styles.container}>
             {loading ? (
-                <LoadingBar />
+                <div className={styles.loadingBarContainer}>
+                    <LoadingBar />
+                </div>
             ) : (
                 <div>
                     {data && (
@@ -66,7 +68,7 @@ const ErrorModal = ({ error }: Props) => {
                             type="primary"
                             onClick={() => {
                                 history.push(
-                                    `/${organizationIdRemapped}/errors/${error.error_group_id}`
+                                    `/${projectIdRemapped}/errors/${error.error_group_id}`
                                 );
                             }}
                         >

@@ -7,7 +7,7 @@ import validator from 'validator';
  * Use this instead of using react-router's.
  *
  * Handles the following:
- * 1. If the organization_id is `'demo'`, then we set the `organization_id` to `'0'`. `'0'` is used in our backend to serve/handle the demo organization.
+ * 1. If the project_id is `'demo'`, then we set the `project_id` to `'0'`. `'0'` is used in our backend to serve/handle the demo project.
  */
 // @ts-expect-error
 export const useParams: typeof ReactRouterUseParams = () => {
@@ -15,17 +15,17 @@ export const useParams: typeof ReactRouterUseParams = () => {
         typeof ReactRouterUseParams
     > = ReactRouterUseParams();
 
-    if (matches?.organization_id) {
-        if (matches.organization_id === DEMO_WORKSPACE_PROXY_APPLICATION_ID) {
+    if (matches?.project_id) {
+        if (matches.project_id === DEMO_WORKSPACE_PROXY_APPLICATION_ID) {
             return {
                 ...matches,
-                organization_id: '0',
+                project_id: '0',
             };
         }
-        if (!validator.isNumeric(matches.organization_id)) {
+        if (!validator.isNumeric(matches.project_id)) {
             return {
                 ...matches,
-                organization_id: undefined,
+                project_id: undefined,
             };
         }
     }

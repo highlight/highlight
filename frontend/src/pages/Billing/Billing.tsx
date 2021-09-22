@@ -34,7 +34,7 @@ const getStripePromiseOrNull = () => {
 const stripePromiseOrNull = getStripePromiseOrNull();
 
 const BillingPage = () => {
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { project_id } = useParams<{ project_id: string }>();
     const { pathname } = useLocation();
     const [
         checkoutRedirectFailedMessage,
@@ -52,7 +52,7 @@ const BillingPage = () => {
         refetch,
     } = useGetBillingDetailsQuery({
         variables: {
-            organization_id: organization_id,
+            project_id,
         },
     });
 
@@ -66,12 +66,12 @@ const BillingPage = () => {
     useEffect(() => {
         const response = pathname.split('/')[3] ?? '';
         if (response === 'success') {
-            updateBillingDetails({ variables: { organization_id } }).then(
-                () => {
-                    message.success('Billing change applied!', 5);
-                    refetch();
-                }
-            );
+            updateBillingDetails({
+                variables: { project_id },
+            }).then(() => {
+                message.success('Billing change applied!', 5);
+                refetch();
+            });
         }
         if (checkoutRedirectFailedMessage) {
             message.error(checkoutRedirectFailedMessage, 5);
@@ -84,7 +84,7 @@ const BillingPage = () => {
         checkoutRedirectFailedMessage,
         billingError,
         updateBillingDetails,
-        organization_id,
+        project_id,
         refetch,
     ]);
 
@@ -93,13 +93,13 @@ const BillingPage = () => {
             setLoadingPlanType(newPlan);
             createOrUpdateStripeSubscription({
                 variables: {
-                    organization_id: organization_id,
+                    project_id,
                     plan_type: newPlan,
                 },
             }).then((r) => {
                 if (!r.data?.createOrUpdateStripeSubscription) {
                     updateBillingDetails({
-                        variables: { organization_id },
+                        variables: { project_id },
                     }).then(() => {
                         const previousPlan = billingData!.billingDetails!.plan
                             .type;
@@ -149,7 +149,7 @@ const BillingPage = () => {
         })();
     }
 
-    /** Show upsell when the current usage is 80% of the organization's plan. */
+    /** Show upsell when the current usage is 80% of the project's plan. */
     const upsell =
         (billingData?.billingDetails.meter ?? 0) /
             (billingData?.billingDetails.plan.quota ?? 1) >=
@@ -173,7 +173,7 @@ const BillingPage = () => {
                     id="planDetails"
                 >
                     <p>
-                        This workspace is on the{' '}
+                        This project is on the{' '}
                         <b>{billingData?.billingDetails.plan.type} Plan</b>{' '}
                         which has used{' '}
                         {formatNumberWithDelimiters(

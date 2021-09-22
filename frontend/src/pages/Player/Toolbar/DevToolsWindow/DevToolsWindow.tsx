@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import ResizePanel from 'react-resize-panel-ts';
 
 import Tabs, { TabItem } from '../../../../components/Tabs/Tabs';
@@ -18,11 +18,7 @@ export const DevToolsWindow = ({
     time: number;
     startTime: number;
 }) => {
-    const {
-        openDevTools,
-        setOpenDevTools,
-        setPanelContent,
-    } = useDevToolsContext();
+    const { openDevTools, setOpenDevTools } = useDevToolsContext();
     const { isPlayerFullscreen } = usePlayerUIContext();
 
     const TABS: TabItem[] = [
@@ -40,12 +36,6 @@ export const DevToolsWindow = ({
         },
     ];
 
-    useEffect(() => {
-        if (!openDevTools) {
-            setPanelContent(undefined);
-        }
-    }, [openDevTools, setPanelContent]);
-
     if (!openDevTools || isPlayerFullscreen) {
         return null;
     }
@@ -62,9 +52,6 @@ export const DevToolsWindow = ({
                     tabs={TABS}
                     id="DevTools"
                     noPadding
-                    onChange={() => {
-                        setPanelContent(undefined);
-                    }}
                     tabBarExtraContent={
                         <>
                             <DOMInteractionsToggle />

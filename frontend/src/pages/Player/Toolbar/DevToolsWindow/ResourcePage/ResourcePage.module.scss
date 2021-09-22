@@ -32,6 +32,10 @@ $right-padding: 12px;
         }
     }
 
+    &.showingDetails {
+        background: var(--color-gray-300);
+    }
+
     &:hover .goToButton {
         visibility: visible;
     }
@@ -222,4 +226,5 @@ $canvas-width: calc(
     align-items: center !important;
     column-gap: var(--size-medium);
     display: flex;
+    justify-content: space-between;
 }

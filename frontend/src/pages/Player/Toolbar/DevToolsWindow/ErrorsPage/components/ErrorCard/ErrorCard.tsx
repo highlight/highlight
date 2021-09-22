@@ -1,3 +1,4 @@
+import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import { message } from 'antd';
 import classNames from 'classnames';
 import React from 'react';
@@ -23,12 +24,13 @@ interface Props {
 
 const ErrorCard = ({ error, setSelectedError, searchQuery, state }: Props) => {
     const { replayer, setTime } = useReplayerContext();
+    const { detailedPanel } = usePlayerUIContext();
 
     return (
         <button
             key={error.id}
             className={classNames(styles.errorCard, {
-                [styles.active]: state === ErrorCardState.Active,
+                [styles.active]: detailedPanel?.id === error.id,
             })}
             onClick={setSelectedError}
         >
