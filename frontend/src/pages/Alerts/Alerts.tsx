@@ -16,6 +16,7 @@ export enum ALERT_TYPE {
     FirstTimeUser,
     UserProperties,
     TrackProperties,
+    SessionFeedbackComment,
 }
 
 const ALERT_CONFIGURATIONS = [
@@ -43,6 +44,13 @@ const ALERT_CONFIGURATIONS = [
         canControlThreshold: false,
         type: ALERT_TYPE.TrackProperties,
         description: 'Get alerted when an action is done in your application.',
+    },
+    {
+        name: 'Session Feedback Comments',
+        canControlThreshold: false,
+        type: ALERT_TYPE.SessionFeedbackComment,
+        description:
+            'Get alerted when a user submits a session feedback comment.',
     },
 ];
 
@@ -127,6 +135,21 @@ const AlertsPage = () => {
                                 }
                             />
                         ))} */}
+                        <AlertConfigurationCard
+                            configuration={ALERT_CONFIGURATIONS[4]}
+                            alert={
+                                data?.session_feedback_alert
+                                    ? data?.session_feedback_alert
+                                    : {}
+                            }
+                            environmentOptions={
+                                data?.environment_suggestion || []
+                            }
+                            channelSuggestions={
+                                data?.slack_channel_suggestion || []
+                            }
+                            slackUrl={slackUrl}
+                        />
                         <AlertConfigurationCard
                             configuration={ALERT_CONFIGURATIONS[0]}
                             alert={data?.error_alert ? data?.error_alert : {}}

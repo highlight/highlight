@@ -1347,6 +1347,79 @@ export type UpdateErrorAlertMutationOptions = Apollo.BaseMutationOptions<
     Types.UpdateErrorAlertMutation,
     Types.UpdateErrorAlertMutationVariables
 >;
+export const UpdateSessionFeedbackAlertDocument = gql`
+    mutation UpdateSessionFeedbackAlert(
+        $project_id: ID!
+        $session_feedback_alert_id: ID!
+        $count_threshold: Int!
+        $threshold_window: Int!
+        $slack_channels: [SanitizedSlackChannelInput]!
+        $environments: [String]!
+    ) {
+        updateSessionFeedbackAlert(
+            project_id: $project_id
+            session_feedback_alert_id: $session_feedback_alert_id
+            count_threshold: $count_threshold
+            slack_channels: $slack_channels
+            environments: $environments
+            threshold_window: $threshold_window
+        ) {
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            ExcludedEnvironments
+            CountThreshold
+            ThresholdWindow
+        }
+    }
+`;
+export type UpdateSessionFeedbackAlertMutationFn = Apollo.MutationFunction<
+    Types.UpdateSessionFeedbackAlertMutation,
+    Types.UpdateSessionFeedbackAlertMutationVariables
+>;
+
+/**
+ * __useUpdateSessionFeedbackAlertMutation__
+ *
+ * To run a mutation, you first call `useUpdateSessionFeedbackAlertMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateSessionFeedbackAlertMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateSessionFeedbackAlertMutation, { data, loading, error }] = useUpdateSessionFeedbackAlertMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      session_feedback_alert_id: // value for 'session_feedback_alert_id'
+ *      count_threshold: // value for 'count_threshold'
+ *      threshold_window: // value for 'threshold_window'
+ *      slack_channels: // value for 'slack_channels'
+ *      environments: // value for 'environments'
+ *   },
+ * });
+ */
+export function useUpdateSessionFeedbackAlertMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.UpdateSessionFeedbackAlertMutation,
+        Types.UpdateSessionFeedbackAlertMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.UpdateSessionFeedbackAlertMutation,
+        Types.UpdateSessionFeedbackAlertMutationVariables
+    >(UpdateSessionFeedbackAlertDocument, baseOptions);
+}
+export type UpdateSessionFeedbackAlertMutationHookResult = ReturnType<
+    typeof useUpdateSessionFeedbackAlertMutation
+>;
+export type UpdateSessionFeedbackAlertMutationResult = Apollo.MutationResult<Types.UpdateSessionFeedbackAlertMutation>;
+export type UpdateSessionFeedbackAlertMutationOptions = Apollo.BaseMutationOptions<
+    Types.UpdateSessionFeedbackAlertMutation,
+    Types.UpdateSessionFeedbackAlertMutationVariables
+>;
 export const UpdateNewUserAlertDocument = gql`
     mutation UpdateNewUserAlert(
         $project_id: ID!
@@ -4478,6 +4551,16 @@ export const GetAlertsPagePayloadDocument = gql`
             value
         }
         error_alert(project_id: $project_id) {
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            ExcludedEnvironments
+            CountThreshold
+            ThresholdWindow
+            id
+        }
+        session_feedback_alert(project_id: $project_id) {
             ChannelsToNotify {
                 webhook_channel
                 webhook_channel_id
