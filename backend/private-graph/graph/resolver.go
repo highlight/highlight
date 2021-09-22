@@ -230,9 +230,9 @@ func (r *Resolver) canAdminViewErrorGroup(ctx context.Context, errorGroupID *int
 }
 
 func (r *Resolver) canAdminModifyErrorGroup(ctx context.Context, errorGroupID *int, errorGroupSecureID *string) (*model.ErrorGroup, error) {
-	session, isOwner, err := r.doesAdminOwnErrorGroup(ctx, errorGroupID, errorGroupSecureID)
+	errorGroup, isOwner, err := r.doesAdminOwnErrorGroup(ctx, errorGroupID, errorGroupSecureID)
 	if err == nil && isOwner {
-		return session, nil
+		return errorGroup, nil
 	}
 	return nil, err
 }
