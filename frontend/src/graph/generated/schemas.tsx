@@ -160,6 +160,7 @@ export type ErrorGroup = {
     state: ErrorState;
     environments?: Maybe<Scalars['String']>;
     error_frequency: Array<Maybe<Scalars['Int64']>>;
+    is_public: Scalars['Boolean'];
 };
 
 export type ErrorMetadata = {
@@ -719,6 +720,7 @@ export type Mutation = {
     updateTrackPropertiesAlert?: Maybe<SessionAlert>;
     updateUserPropertiesAlert?: Maybe<SessionAlert>;
     updateSessionIsPublic?: Maybe<Session>;
+    updateErrorGroupIsPublic?: Maybe<ErrorGroup>;
 };
 
 export type MutationCreateOrganizationArgs = {
@@ -908,5 +910,11 @@ export type MutationUpdateUserPropertiesAlertArgs = {
 export type MutationUpdateSessionIsPublicArgs = {
     session_id?: Maybe<Scalars['ID']>;
     session_secure_id?: Maybe<Scalars['String']>;
+    is_public: Scalars['Boolean'];
+};
+
+export type MutationUpdateErrorGroupIsPublicArgs = {
+    error_group_id?: Maybe<Scalars['ID']>;
+    error_group_secure_id?: Maybe<Scalars['String']>;
     is_public: Scalars['Boolean'];
 };

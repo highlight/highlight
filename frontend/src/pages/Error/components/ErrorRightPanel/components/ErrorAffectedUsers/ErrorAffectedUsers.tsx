@@ -1,3 +1,4 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
@@ -21,6 +22,7 @@ interface Props {
 }
 
 const ErrorAffectedUsers = ({ loading, errorGroup }: Props) => {
+    const { isLoggedIn } = useAuthContext();
     const { organization_id } = useParams<{ organization_id: string }>();
     const organizationIdRemapped =
         organization_id === DEMO_WORKSPACE_APPLICATION_ID
@@ -112,6 +114,7 @@ const ErrorAffectedUsers = ({ loading, errorGroup }: Props) => {
                             }
                             fullWidth
                             className={styles.button}
+                            disabled={!isLoggedIn}
                         >
                             Most Recent Session
                         </ButtonLink>

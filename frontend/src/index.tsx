@@ -180,6 +180,13 @@ get in contact with us!
                         {/* Allow guests to access this route without being asked to log in */}
                         <AuthAdminRouter />
                     </Route>
+                    <Route
+                        path="/:organization_id(\d+)/errors/:error_id(\d+)"
+                        exact
+                    >
+                        {/* Allow guests to access this route without being asked to log in */}
+                        <AuthAdminRouter />
+                    </Route>
                     <Route path="/">
                         <LoginForm />
                     </Route>

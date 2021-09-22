@@ -1624,6 +1624,62 @@ export type UpdateSessionIsPublicMutationOptions = Apollo.BaseMutationOptions<
     Types.UpdateSessionIsPublicMutation,
     Types.UpdateSessionIsPublicMutationVariables
 >;
+export const UpdateErrorGroupIsPublicDocument = gql`
+    mutation UpdateErrorGroupIsPublic(
+        $error_group_id: ID!
+        $is_public: Boolean!
+    ) {
+        updateErrorGroupIsPublic(
+            error_group_id: $error_group_id
+            is_public: $is_public
+        ) {
+            id
+            is_public
+        }
+    }
+`;
+export type UpdateErrorGroupIsPublicMutationFn = Apollo.MutationFunction<
+    Types.UpdateErrorGroupIsPublicMutation,
+    Types.UpdateErrorGroupIsPublicMutationVariables
+>;
+
+/**
+ * __useUpdateErrorGroupIsPublicMutation__
+ *
+ * To run a mutation, you first call `useUpdateErrorGroupIsPublicMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateErrorGroupIsPublicMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateErrorGroupIsPublicMutation, { data, loading, error }] = useUpdateErrorGroupIsPublicMutation({
+ *   variables: {
+ *      error_group_id: // value for 'error_group_id'
+ *      is_public: // value for 'is_public'
+ *   },
+ * });
+ */
+export function useUpdateErrorGroupIsPublicMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.UpdateErrorGroupIsPublicMutation,
+        Types.UpdateErrorGroupIsPublicMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.UpdateErrorGroupIsPublicMutation,
+        Types.UpdateErrorGroupIsPublicMutationVariables
+    >(UpdateErrorGroupIsPublicDocument, baseOptions);
+}
+export type UpdateErrorGroupIsPublicMutationHookResult = ReturnType<
+    typeof useUpdateErrorGroupIsPublicMutation
+>;
+export type UpdateErrorGroupIsPublicMutationResult = Apollo.MutationResult<Types.UpdateErrorGroupIsPublicMutation>;
+export type UpdateErrorGroupIsPublicMutationOptions = Apollo.BaseMutationOptions<
+    Types.UpdateErrorGroupIsPublicMutation,
+    Types.UpdateErrorGroupIsPublicMutationVariables
+>;
 export const GetSessionPayloadDocument = gql`
     query GetSessionPayload($session_id: ID!) {
         events(session_id: $session_id)
@@ -2664,6 +2720,7 @@ export const GetErrorGroupDocument = gql`
                 value
             }
             error_frequency
+            is_public
         }
     }
 `;

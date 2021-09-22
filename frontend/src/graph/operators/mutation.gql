@@ -367,3 +367,13 @@ mutation UpdateSessionIsPublic($session_id: ID!, $is_public: Boolean!) {
         is_public
     }
 }
+
+mutation UpdateErrorGroupIsPublic($error_group_id: ID!, $is_public: Boolean!) {
+    updateErrorGroupIsPublic(
+        error_group_id: $error_group_id
+        is_public: $is_public
+    ) {
+        id
+        is_public
+    }
+}

@@ -299,6 +299,7 @@ query GetErrorGroup($id: ID!) {
             value
         }
         error_frequency
+        is_public
     }
 }
 

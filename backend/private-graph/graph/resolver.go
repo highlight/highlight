@@ -197,25 +197,44 @@ func ErrorInputToParams(params *modelInputs.ErrorSearchParamsInput) *model.Error
 	return modelParams
 }
 
-func (r *Resolver) isAdminErrorGroupOwner(ctx context.Context, errorGroupID *int, errorGroupSecureID *string) (*model.ErrorGroup, error) {
+func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupID *int, errorGroupSecureID *string) (eg *model.ErrorGroup, isOwner bool, err error) {
 	errorGroup := &model.ErrorGroup{}
 	if errorGroupID == nil && errorGroupSecureID == nil {
-		return nil, errors.New("No ID was specified for the error group")
+		return nil, false, errors.New("No ID was specified for the error group")
 	}
 	if errorGroupSecureID != nil {
 		if err := r.DB.Where(&model.ErrorGroup{SecureID: *errorGroupSecureID}).First(&errorGroup).Error; err != nil {
-			return nil, e.Wrap(err, "error querying error group by secureID: "+*errorGroupSecureID)
+			return nil, false, e.Wrap(err, "error querying error group by secureID: "+*errorGroupSecureID)
 		}
 	} else {
 		if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: *errorGroupID}}).First(&errorGroup).Error; err != nil {
-			return nil, e.Wrap(err, fmt.Sprintf("error querying error group by ID: %d", *errorGroupID))
+			return nil, false, e.Wrap(err, fmt.Sprintf("error querying error group by ID: %d", *errorGroupID))
 		}
 	}
-	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, errorGroup.OrganizationID)
+	_, err = r.isAdminInOrganizationOrDemoOrg(ctx, errorGroup.OrganizationID)
 	if err != nil {
-		return nil, e.Wrap(err, "error validating admin in organization")
+		return errorGroup, false, e.Wrap(err, "error validating admin in organization")
 	}
-	return errorGroup, nil
+	return errorGroup, true, nil
+}
+
+func (r *Resolver) canAdminViewErrorGroup(ctx context.Context, errorGroupID *int, errorGroupSecureID *string) (*model.ErrorGroup, error) {
+	errorGroup, isOwner, err := r.doesAdminOwnErrorGroup(ctx, errorGroupID, errorGroupSecureID)
+	if err == nil && isOwner {
+		return errorGroup, nil
+	}
+	if errorGroup != nil && errorGroup.IsPublic {
+		return errorGroup, nil
+	}
+	return nil, err
+}
+
+func (r *Resolver) canAdminModifyErrorGroup(ctx context.Context, errorGroupID *int, errorGroupSecureID *string) (*model.ErrorGroup, error) {
+	session, isOwner, err := r.doesAdminOwnErrorGroup(ctx, errorGroupID, errorGroupSecureID)
+	if err == nil && isOwner {
+		return session, nil
+	}
+	return nil, err
 }
 
 func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_id *int, session_secure_id *string) (session *model.Session, ownsSession bool, err error) {
@@ -560,4 +579,20 @@ func (r *Resolver) SendSlackAlertToUser(org *model.Organization, admin *model.Ad
 	}
 
 	return nil
+}
+
+// Returns the current Admin or an Admin with ID = 0 if the current Admin is a guest
+func (r *Resolver) getCurrentAdminOrGuest(ctx context.Context) (currentAdmin *model.Admin, isGuest bool) {
+	admin, err := r.getCurrentAdmin(ctx)
+	isGuest = false
+	if admin == nil || err != nil {
+		isGuest = true
+		admin = &model.Admin{
+			// An Admin record was created manually with an ID of 0.
+			Model: model.Model{
+				ID: 0,
+			},
+		}
+	}
+	return admin, isGuest
 }

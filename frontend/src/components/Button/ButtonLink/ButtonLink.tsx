@@ -1,3 +1,4 @@
+import Button from '@components/Button/Button/Button';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React from 'react';
@@ -15,6 +16,7 @@ interface Props {
     href?: string;
     icon?: React.ReactNode;
     fullWidth?: boolean;
+    disabled?: boolean;
 }
 
 const ButtonLink: React.FC<Props> = ({
@@ -26,7 +28,24 @@ const ButtonLink: React.FC<Props> = ({
     href,
     icon,
     fullWidth,
+    disabled,
 }) => {
+    if (disabled) {
+        return (
+            <Button
+                disabled
+                trackingId="ErrorGroupMostRecentSessionButton"
+                className={classNames(styles.link, className, {
+                    [styles.withIcon]: icon,
+                    [styles.fullWidth]: fullWidth,
+                })}
+            >
+                {icon}
+                {children}
+            </Button>
+        );
+    }
+
     if (anchor) {
         if (!href) {
             throw new Error('href needs to be defined.');
