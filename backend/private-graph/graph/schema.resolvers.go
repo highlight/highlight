@@ -1642,7 +1642,7 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, 
 		return nil, e.Wrap(err, "admin not found in project")
 	}
 
-	if organizationID == 0 {
+	if projectID == 0 {
 		if errorGroupID != nil {
 			rand.Seed(int64(*errorGroupID))
 		}
