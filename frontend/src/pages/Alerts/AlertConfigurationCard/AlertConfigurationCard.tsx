@@ -308,9 +308,10 @@ export const AlertConfigurationCard = ({
                 form={form}
                 initialValues={{
                     threshold: alert.CountThreshold,
-                    channels: alert.ChannelsToNotify.map(
-                        (channel: any) => channel.webhook_channel_id
-                    ),
+                    channels:
+                        alert.ChannelsToNotify?.map(
+                            (channel: any) => channel.webhook_channel_id
+                        ) || [],
                     excludedEnvironments: alert.ExcludedEnvironments,
                     lookbackPeriod: [lookbackPeriod],
                     userProperties: alert.UserProperties?.map(
