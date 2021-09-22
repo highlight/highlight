@@ -34,7 +34,7 @@ const ButtonLink: React.FC<Props> = ({
         return (
             <Button
                 disabled
-                trackingId="ErrorGroupMostRecentSessionButton"
+                trackingId={trackingId}
                 className={classNames(styles.link, className, {
                     [styles.withIcon]: icon,
                     [styles.fullWidth]: fullWidth,
