@@ -2991,10 +2991,10 @@
     "@types/react-dom" "^17.0.0"
     typescript "^4.1.2"
 
-"@highlight-run/rrweb@^0.12.10":
-  version "0.12.10"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-0.12.10.tgz#b7185380f3b241f01546fc3bfd62f465776765ed"
-  integrity sha512-kHsfCJIo3RYmFZ3MZ8irfXXcYVJY9N8Ht8xmYRMIXv0/ZHuZkS3oRL4FFv8xclNolitJ+xiJTLrmBNuH7OcjfA==
+"@highlight-run/rrweb@^0.12.11":
+  version "0.12.11"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-0.12.11.tgz#dc77188e5f2d63844d552427ea2bcd6d1f19c10d"
+  integrity sha512-2MtvjdIuPnBrVHk7Pva59pD39Fe8XJeRwZtyQUirKO5OZyfsW5epC/5N5HhxvekzEUr50cft0Z2eTGK/vPlniw==
   dependencies:
     "@types/css-font-loading-module" "0.0.4"
     "@xstate/fsm" "^1.4.0"
