@@ -25,4 +25,5 @@ export const timingBar: string;
 export const timingBarEmptySection: string;
 export const timingBarWrapper: string;
 export const typeSection: string;
+export const virtuoso: string;
 export const waterfall: string;
