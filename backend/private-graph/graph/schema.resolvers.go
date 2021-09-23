@@ -261,9 +261,9 @@ func (r *mutationResolver) MarkSessionAsStarred(ctx context.Context, id *int, se
 }
 
 func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, id *int, secureID *string, state string) (*model.ErrorGroup, error) {
-	errGroup, err := r.isAdminErrorGroupOwner(ctx, id, secureID)
+	errGroup, err := r.canAdminModifyErrorGroup(ctx, id, secureID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin not errorGroup owner")
+		return nil, e.Wrap(err, "admin is not authorized to modify error group")
 	}
 
 	errorGroup := &model.ErrorGroup{}
@@ -610,17 +610,7 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, projectID i
 }
 
 func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID int, sessionID *int, sessionSecureID *string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model.SessionComment, error) {
-	admin, err := r.getCurrentAdmin(ctx)
-	isGuestCreatingSession := false
-	if admin == nil || err != nil {
-		isGuestCreatingSession = true
-		admin = &model.Admin{
-			// An Admin record was created manually with an ID of 0.
-			Model: model.Model{
-				ID: 0,
-			},
-		}
-	}
+	admin, isGuestCreatingSession := r.getCurrentAdminOrGuest(ctx)
 
 	// All viewers can leave a comment, including guests
 	session, err := r.canAdminViewSession(ctx, sessionID, sessionSecureID)
@@ -729,14 +719,11 @@ func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*b
 }
 
 func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int, errorGroupID *int, errorGroupSecureID *string, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, errorURL string, authorName string) (*model.ErrorComment, error) {
-	admin, err := r.getCurrentAdmin(ctx)
-	if admin == nil || err != nil {
-		return nil, e.Wrap(err, "Unable to retrieve admin info")
-	}
+	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
 
-	errorGroup, err := r.isAdminErrorGroupOwner(ctx, errorGroupID, errorGroupSecureID)
+	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupID, errorGroupSecureID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin is not in project")
+		return nil, e.Wrap(err, "admin is not authorized to view error group")
 	}
 
 	var project model.Project
@@ -768,7 +755,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 	createErrorCommentSpan.Finish()
 
 	viewLink := fmt.Sprintf("%v", errorURL)
-	if len(taggedAdmins) > 0 {
+	if len(taggedAdmins) > 0 && !isGuest {
 		tos := []*mail.Email{}
 		var adminIds []int
 
@@ -807,9 +794,9 @@ func (r *mutationResolver) DeleteErrorComment(ctx context.Context, id int) (*boo
 	if err := r.DB.Table("error_comments").Select("error_id").Where("id=?", id).Scan(&errorGroupID).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error comments")
 	}
-	_, err := r.isAdminErrorGroupOwner(ctx, &errorGroupID, nil)
+	_, err := r.canAdminModifyErrorGroup(ctx, &errorGroupID, nil)
 	if err != nil {
-		return nil, e.Wrap(err, "admin is not error group owner")
+		return nil, e.Wrap(err, "admin is not authorized to modify error group")
 	}
 	if err := r.DB.Delete(&model.ErrorComment{Model: model.Model{ID: id}}).Error; err != nil {
 		return nil, e.Wrap(err, "error deleting error_comment")
@@ -1218,6 +1205,18 @@ func (r *mutationResolver) UpdateSessionIsPublic(ctx context.Context, sessionID 
 	return session, nil
 }
 
+func (r *mutationResolver) UpdateErrorGroupIsPublic(ctx context.Context, errorGroupID *int, errorGroupSecureID *string, isPublic bool) (*model.ErrorGroup, error) {
+	errorGroup, err := r.canAdminModifyErrorGroup(ctx, errorGroupID, errorGroupSecureID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not authorized to modify error group")
+	}
+	if err := r.DB.Model(errorGroup).Update("IsPublic", isPublic).Error; err != nil {
+		return nil, e.Wrap(err, "error updating error group is_public")
+	}
+
+	return errorGroup, nil
+}
+
 func (r *queryResolver) Session(ctx context.Context, id *int, secureID *string) (*model.Session, error) {
 	s, err := r.canAdminViewSession(ctx, id, secureID)
 	if err != nil {
@@ -1385,7 +1384,7 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 }
 
 func (r *queryResolver) ErrorGroup(ctx context.Context, id *int, secureID *string) (*model.ErrorGroup, error) {
-	return r.isAdminErrorGroupOwner(ctx, id, secureID)
+	return r.canAdminViewErrorGroup(ctx, id, secureID)
 }
 
 func (r *queryResolver) Messages(ctx context.Context, sessionID *int, sessionSecureID *string) ([]interface{}, error) {
@@ -1503,7 +1502,7 @@ func (r *queryResolver) SessionCommentsForProject(ctx context.Context, projectID
 }
 
 func (r *queryResolver) ErrorComments(ctx context.Context, errorGroupID *int, errorGroupSecureID *string) ([]*model.ErrorComment, error) {
-	errorGroup, err := r.isAdminErrorGroupOwner(ctx, errorGroupID, errorGroupSecureID)
+	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupID, errorGroupSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not error owner")
 	}
@@ -1638,8 +1637,9 @@ func (r *queryResolver) DailyErrorsCount(ctx context.Context, projectID int, dat
 }
 
 func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, errorGroupID *int, errorGroupSecureID *string, dateOffset int) ([]*int64, error) {
-	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in project")
+	_, err := r.canAdminViewErrorGroup(ctx, errorGroupID, errorGroupSecureID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not authorized to view error group")
 	}
 
 	if projectID == 0 {

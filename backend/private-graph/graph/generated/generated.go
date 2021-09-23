@@ -120,6 +120,7 @@ type ComplexityRoot struct {
 		Event            func(childComplexity int) int
 		FieldGroup       func(childComplexity int) int
 		ID               func(childComplexity int) int
+		IsPublic         func(childComplexity int) int
 		MappedStackTrace func(childComplexity int) int
 		MetadataLog      func(childComplexity int) int
 		ProjectID        func(childComplexity int) int
@@ -224,6 +225,7 @@ type ComplexityRoot struct {
 		SendAdminInvite                  func(childComplexity int, projectID int, email string, baseURL string) int
 		UpdateBillingDetails             func(childComplexity int, projectID int) int
 		UpdateErrorAlert                 func(childComplexity int, projectID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
+		UpdateErrorGroupIsPublic         func(childComplexity int, errorGroupID *int, errorGroupSecureID *string, isPublic bool) int
 		UpdateErrorGroupState            func(childComplexity int, id *int, secureID *string, state string) int
 		UpdateNewUserAlert               func(childComplexity int, projectID int, sessionAlertID int, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
 		UpdateSessionFeedbackAlert       func(childComplexity int, projectID int, sessionFeedbackAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
@@ -490,6 +492,7 @@ type MutationResolver interface {
 	UpdateTrackPropertiesAlert(ctx context.Context, projectID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, trackProperties []*model.TrackPropertyInput) (*model1.SessionAlert, error)
 	UpdateUserPropertiesAlert(ctx context.Context, projectID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, userProperties []*model.UserPropertyInput) (*model1.SessionAlert, error)
 	UpdateSessionIsPublic(ctx context.Context, sessionID *int, sessionSecureID *string, isPublic bool) (*model1.Session, error)
+	UpdateErrorGroupIsPublic(ctx context.Context, errorGroupID *int, errorGroupSecureID *string, isPublic bool) (*model1.ErrorGroup, error)
 }
 type QueryResolver interface {
 	Session(ctx context.Context, id *int, secureID *string) (*model1.Session, error)
@@ -840,6 +843,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorGroup.ID(childComplexity), true
+
+	case "ErrorGroup.is_public":
+		if e.complexity.ErrorGroup.IsPublic == nil {
+			break
+		}
+
+		return e.complexity.ErrorGroup.IsPublic(childComplexity), true
 
 	case "ErrorGroup.mapped_stack_trace":
 		if e.complexity.ErrorGroup.MappedStackTrace == nil {
@@ -1499,6 +1509,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateErrorAlert(childComplexity, args["project_id"].(int), args["error_alert_id"].(int), args["count_threshold"].(int), args["threshold_window"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["environments"].([]*string)), true
+
+	case "Mutation.updateErrorGroupIsPublic":
+		if e.complexity.Mutation.UpdateErrorGroupIsPublic == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateErrorGroupIsPublic_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateErrorGroupIsPublic(childComplexity, args["error_group_id"].(*int), args["error_group_secure_id"].(*string), args["is_public"].(bool)), true
 
 	case "Mutation.updateErrorGroupState":
 		if e.complexity.Mutation.UpdateErrorGroupState == nil {
@@ -3017,6 +3039,7 @@ type ErrorGroup {
     state: ErrorState!
     environments: String
     error_frequency: [Int64]!
+    is_public: Boolean!
 }
 
 type ErrorMetadata {
@@ -3475,6 +3498,11 @@ type Mutation {
         session_secure_id: String
         is_public: Boolean!
     ): Session
+    updateErrorGroupIsPublic(
+        error_group_id: ID
+        error_group_secure_id: String
+        is_public: Boolean!
+    ): ErrorGroup
 }
 `, BuiltIn: false},
 }
@@ -4282,6 +4310,39 @@ func (ec *executionContext) field_Mutation_updateErrorAlert_args(ctx context.Con
 		}
 	}
 	args["environments"] = arg5
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateErrorGroupIsPublic_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["error_group_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_group_id"))
+		arg0, err = ec.unmarshalOID2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["error_group_id"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["error_group_secure_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_group_secure_id"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["error_group_secure_id"] = arg1
+	var arg2 bool
+	if tmp, ok := rawArgs["is_public"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("is_public"))
+		arg2, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["is_public"] = arg2
 	return args, nil
 }
 
@@ -7089,6 +7150,41 @@ func (ec *executionContext) _ErrorGroup_error_frequency(ctx context.Context, fie
 	return ec.marshalNInt642ᚕᚖint64(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _ErrorGroup_is_public(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ErrorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsPublic, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _ErrorMetadata_error_id(ctx context.Context, field graphql.CollectedField, obj *model.ErrorMetadata) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -9795,6 +9891,45 @@ func (ec *executionContext) _Mutation_updateSessionIsPublic(ctx context.Context,
 	res := resTmp.(*model1.Session)
 	fc.Result = res
 	return ec.marshalOSession2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSession(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateErrorGroupIsPublic(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateErrorGroupIsPublic_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateErrorGroupIsPublic(rctx, args["error_group_id"].(*int), args["error_group_secure_id"].(*string), args["is_public"].(bool))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model1.ErrorGroup)
+	fc.Result = res
+	return ec.marshalOErrorGroup2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorGroup(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _NewUsersCount_count(ctx context.Context, field graphql.CollectedField, obj *model.NewUsersCount) (ret graphql.Marshaler) {
@@ -17042,6 +17177,11 @@ func (ec *executionContext) _ErrorGroup(ctx context.Context, sel ast.SelectionSe
 				}
 				return res
 			})
+		case "is_public":
+			out.Values[i] = ec._ErrorGroup_is_public(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -17489,6 +17629,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_updateUserPropertiesAlert(ctx, field)
 		case "updateSessionIsPublic":
 			out.Values[i] = ec._Mutation_updateSessionIsPublic(ctx, field)
+		case "updateErrorGroupIsPublic":
+			out.Values[i] = ec._Mutation_updateErrorGroupIsPublic(ctx, field)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
