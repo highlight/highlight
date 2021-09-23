@@ -73,7 +73,7 @@ func healthRouter(runtime util.Runtime) http.HandlerFunc {
 func addSpan(resourceName string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			handlerSpan, _ := tracer.StartSpanFromContext(r.Context(), resourceName,
+			handlerSpan, _ := tracer.StartSpanFromContext(r.Context(), "middleware.handler",
 				tracer.ResourceName(resourceName))
 			defer handlerSpan.Finish()
 			next.ServeHTTP(w, r)
