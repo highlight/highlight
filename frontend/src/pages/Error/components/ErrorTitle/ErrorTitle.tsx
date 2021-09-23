@@ -16,7 +16,11 @@ const ErrorTitle = ({ errorGroup, showShareButton = true }: Props) => {
         <header className={styles.header}>
             <div className={styles.topRow}>
                 <div>
-                    <h2>{getHeaderFromError(errorGroup?.event ?? [])}</h2>
+                    {!showShareButton ? (
+                        <h3>{getHeaderFromError(errorGroup?.event ?? [])}</h3>
+                    ) : (
+                        <h2>{getHeaderFromError(errorGroup?.event ?? [])}</h2>
+                    )}
                 </div>
                 {showShareButton && (
                     <ErrorShareButton errorGroup={errorGroup} />
