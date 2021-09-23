@@ -626,6 +626,7 @@ type ErrorGroup struct {
 	Fields           []*ErrorField `gorm:"many2many:error_group_fields;"`
 	FieldGroup       *string
 	Environments     string
+	IsPublic         bool `gorm:"default:false"`
 }
 
 type ErrorField struct {
