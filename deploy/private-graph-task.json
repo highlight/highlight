@@ -106,7 +106,7 @@
             "memoryReservation": null,
             "volumesFrom": [],
             "stopTimeout": null,
-            "image": "173971919437.dkr.ecr.us-east-2.amazonaws.com/highlight-production-ecr-repo:0b93357ebea4567f981617ba4a32f372fac14eb8",
+            "image": "--replaced-by-github-action--",
             "startTimeout": null,
             "firelensConfiguration": null,
             "dependsOn": null,
