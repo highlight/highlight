@@ -31,6 +31,7 @@ import (
 	public "github.com/highlight-run/highlight/backend/public-graph/graph"
 	publicgen "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	brotli_enc "gopkg.in/kothar/brotli-go.v0/enc"
 
 	_ "gorm.io/gorm"
@@ -66,6 +67,17 @@ func healthRouter(runtime util.Runtime) http.HandlerFunc {
 		if err != nil {
 			log.Error(e.Wrap(err, "error writing health response"))
 		}
+	}
+}
+
+func addSpan(resourceName string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			handlerSpan, _ := tracer.StartSpanFromContext(r.Context(), resourceName,
+				tracer.ResourceName(resourceName))
+			defer handlerSpan.Finish()
+			next.ServeHTTP(w, r)
+		})
 	}
 }
 
@@ -162,8 +174,8 @@ func main() {
 		params.SetQuality(level)
 		return brotli_enc.NewBrotliWriter(params, w)
 	})
-	r.Use(compressor.Handler)
-	r.Use(cors.New(cors.Options{
+	r.Use(addSpan("compressorHandler"), compressor.Handler)
+	r.Use(addSpan("corsHandler"), cors.New(cors.Options{
 		AllowOriginRequestFunc: validateOrigin,
 		AllowCredentials:       true,
 		AllowedHeaders:         []string{"*"},
@@ -181,7 +193,7 @@ func main() {
 			privateEndpoint = "/"
 		}
 		r.Route(privateEndpoint, func(r chi.Router) {
-			r.Use(private.PrivateMiddleware)
+			r.Use(addSpan("privateMiddleware"), private.PrivateMiddleware)
 			privateServer := ghandler.NewDefaultServer(privategen.NewExecutableSchema(
 				privategen.Config{
 					Resolvers: privateResolver,
@@ -201,7 +213,7 @@ func main() {
 			publicEndpoint = "/"
 		}
 		r.Route(publicEndpoint, func(r chi.Router) {
-			r.Use(public.PublicMiddleware)
+			r.Use(addSpan("publicMiddleware"), public.PublicMiddleware)
 			publicServer := ghandler.NewDefaultServer(publicgen.NewExecutableSchema(
 				publicgen.Config{
 					Resolvers: &public.Resolver{
