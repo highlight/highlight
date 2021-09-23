@@ -16,7 +16,9 @@
 }
 
 .keyLabel {
+    align-items: center;
     color: var(--color-gray-500);
+    display: flex;
     flex-shrink: 0;
     font-size: 12px;
     margin-left: auto;
