@@ -1,38 +1,81 @@
 {
     "ipcMode": null,
     "executionRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
-    "taskRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
     "containerDefinitions": [
         {
-            "name": "datadog-agent",
-            "image": "datadog/agent:latest",
-            "secrets": [
-                {
-                    "name": "DD_API_KEY",
-                    "valueFrom": "DD_API_KEY"
-                }
-            ],
+            "dnsSearchDomains": null,
+            "environmentFiles": null,
+            "logConfiguration": null,
+            "entryPoint": null,
+            "portMappings": [],
+            "command": null,
+            "linuxParameters": null,
+            "cpu": 0,
             "environment": [
-                {
-                    "name": "ECS_FARGATE",
-                    "value": "true"
-                },
                 {
                     "name": "DD_APM_ENABLED",
                     "value": "true"
+                },
+                {
+                    "name": "ECS_FARGATE",
+                    "value": "true"
                 }
-            ]
+            ],
+            "resourceRequirements": null,
+            "ulimits": null,
+            "dnsServers": null,
+            "mountPoints": [],
+            "workingDirectory": null,
+            "secrets": [
+                {
+                    "valueFrom": "DD_API_KEY",
+                    "name": "DD_API_KEY"
+                }
+            ],
+            "dockerSecurityOptions": null,
+            "memory": null,
+            "memoryReservation": null,
+            "volumesFrom": [],
+            "stopTimeout": null,
+            "image": "datadog/agent:latest",
+            "startTimeout": null,
+            "firelensConfiguration": null,
+            "dependsOn": null,
+            "disableNetworking": null,
+            "interactive": null,
+            "healthCheck": null,
+            "essential": true,
+            "links": null,
+            "hostname": null,
+            "extraHosts": null,
+            "pseudoTerminal": null,
+            "user": null,
+            "readonlyRootFilesystem": null,
+            "dockerLabels": null,
+            "systemControls": null,
+            "privileged": null,
+            "name": "datadog-agent"
         },
         {
             "dnsSearchDomains": null,
             "environmentFiles": null,
             "logConfiguration": {
-                "logDriver": "awslogs",
-                "secretOptions": null,
+                "logDriver": "awsfirelens",
+                "secretOptions": [
+                    {
+                        "valueFrom": "DD_API_KEY",
+                        "name": "apiKey"
+                    }
+                ],
                 "options": {
-                    "awslogs-group": "/ecs/private-graph-task",
-                    "awslogs-region": "us-east-2",
-                    "awslogs-stream-prefix": "ecs"
+                    "dd_message_key": "log",
+                    "provider": "ecs",
+                    "dd_service": "private-graph-service",
+                    "Host": "http-intake.logs.datadoghq.com",
+                    "TLS": "on",
+                    "dd_source": "private-graph",
+                    "dd_tags": "project:fluentbit",
+                    "Name": "datadog"
                 }
             },
             "entryPoint": null,
@@ -43,8 +86,9 @@
                     "containerPort": 8082
                 }
             ],
-            "command": [],
+            "command": null,
             "linuxParameters": null,
+            "cpu": 0,
             "environment": [],
             "resourceRequirements": null,
             "ulimits": null,
@@ -58,12 +102,11 @@
                 }
             ],
             "dockerSecurityOptions": null,
-            "cpu": null,
             "memory": null,
             "memoryReservation": null,
             "volumesFrom": [],
             "stopTimeout": null,
-            "image": "--replaced-by-github-action--",
+            "image": "173971919437.dkr.ecr.us-east-2.amazonaws.com/highlight-production-ecr-repo:0b93357ebea4567f981617ba4a32f372fac14eb8",
             "startTimeout": null,
             "firelensConfiguration": null,
             "dependsOn": null,
@@ -81,15 +124,151 @@
             "systemControls": null,
             "privileged": null,
             "name": "highlight-backend"
+        },
+        {
+            "dnsSearchDomains": null,
+            "environmentFiles": null,
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "secretOptions": null,
+                "options": {
+                    "awslogs-group": "/ecs/private-graph-task",
+                    "awslogs-region": "us-east-2",
+                    "awslogs-stream-prefix": "ecs"
+                }
+            },
+            "entryPoint": null,
+            "portMappings": [],
+            "command": null,
+            "linuxParameters": null,
+            "cpu": 0,
+            "environment": [],
+            "resourceRequirements": null,
+            "ulimits": null,
+            "dnsServers": null,
+            "mountPoints": [],
+            "workingDirectory": null,
+            "secrets": null,
+            "dockerSecurityOptions": null,
+            "memory": null,
+            "memoryReservation": null,
+            "volumesFrom": [],
+            "stopTimeout": null,
+            "image": "906394416424.dkr.ecr.us-east-2.amazonaws.com/aws-for-fluent-bit:stable",
+            "startTimeout": null,
+            "firelensConfiguration": {
+                "type": "fluentbit",
+                "options": null
+            },
+            "dependsOn": null,
+            "disableNetworking": null,
+            "interactive": null,
+            "healthCheck": null,
+            "essential": true,
+            "links": null,
+            "hostname": null,
+            "extraHosts": null,
+            "pseudoTerminal": null,
+            "user": "0",
+            "readonlyRootFilesystem": null,
+            "dockerLabels": null,
+            "systemControls": null,
+            "privileged": null,
+            "name": "log_router"
         }
     ],
     "placementConstraints": [],
+    "memory": "8192",
+    "taskRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
+    "compatibilities": ["EC2", "FARGATE"],
+    "taskDefinitionArn": "arn:aws:ecs:us-east-2:173971919437:task-definition/private-graph-task:114",
     "family": "private-graph-task",
+    "requiresAttributes": [
+        {
+            "targetId": null,
+            "targetType": null,
+            "value": null,
+            "name": "ecs.capability.execution-role-awslogs"
+        },
+        {
+            "targetId": null,
+            "targetType": null,
+            "value": null,
+            "name": "com.amazonaws.ecs.capability.ecr-auth"
+        },
+        {
+            "targetId": null,
+            "targetType": null,
+            "value": null,
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.17"
+        },
+        {
+            "targetId": null,
+            "targetType": null,
+            "value": null,
+            "name": "com.amazonaws.ecs.capability.logging-driver.awsfirelens"
+        },
+        {
+            "targetId": null,
+            "targetType": null,
+            "value": null,
+            "name": "ecs.capability.secrets.ssm.bootstrap.log-driver"
+        },
+        {
+            "targetId": null,
+            "targetType": null,
+            "value": null,
+            "name": "com.amazonaws.ecs.capability.task-iam-role"
+        },
+        {
+            "targetId": null,
+            "targetType": null,
+            "value": null,
+            "name": "ecs.capability.execution-role-ecr-pull"
+        },
+        {
+            "targetId": null,
+            "targetType": null,
+            "value": null,
+            "name": "ecs.capability.secrets.ssm.environment-variables"
+        },
+        {
+            "targetId": null,
+            "targetType": null,
+            "value": null,
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
+        },
+        {
+            "targetId": null,
+            "targetType": null,
+            "value": null,
+            "name": "ecs.capability.task-eni"
+        },
+        {
+            "targetId": null,
+            "targetType": null,
+            "value": null,
+            "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
+        },
+        {
+            "targetId": null,
+            "targetType": null,
+            "value": null,
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+        },
+        {
+            "targetId": null,
+            "targetType": null,
+            "value": null,
+            "name": "ecs.capability.firelens.fluentbit"
+        }
+    ],
     "pidMode": null,
     "requiresCompatibilities": ["FARGATE"],
     "networkMode": "awsvpc",
     "cpu": "4096",
-    "memory": "8192",
+    "revision": 114,
+    "status": "ACTIVE",
     "inferenceAccelerators": null,
     "proxyConfiguration": null,
     "volumes": []
