@@ -28,6 +28,10 @@
             width: 100%;
         }
     }
+
+    &:global(.ant-select-disabled .ant-select-selector) {
+        background: var(--color-gray-300) !important;
+    }
 }
 
 .dropdown {
