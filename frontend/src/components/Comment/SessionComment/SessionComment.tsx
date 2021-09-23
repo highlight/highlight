@@ -3,6 +3,7 @@ import Button from '@components/Button/Button/Button';
 import SplitButton from '@components/SplitButton/SplitButton';
 import SvgHeartIcon from '@icons/HeartIcon';
 import SvgSpeechBubbleIcon from '@icons/SpeechBubbleIcon';
+import { message } from 'antd';
 import Menu from 'antd/lib/menu';
 import classNames from 'classnames';
 import React from 'react';
@@ -76,6 +77,8 @@ interface SessionCommentFooterProps {
 const SessionCommentFooter: React.FC<SessionCommentFooterProps> = ({
     children,
 }) => {
+    const { admin } = useAuthContext();
+
     return (
         <footer className={styles.footer}>
             <div className={styles.actions}>
@@ -88,14 +91,41 @@ const SessionCommentFooter: React.FC<SessionCommentFooterProps> = ({
                     trackingId="SessionCommentReact"
                     overlay={
                         <Menu>
-                            <Menu.Item icon={<SvgHeartIcon />}>
+                            <Menu.Item
+                                icon={<SvgHeartIcon />}
+                                className={styles.iconLabel}
+                                onClick={() => {
+                                    message.success(
+                                        `Hi ${
+                                            admin?.name.split(' ')[0]
+                                        }, this doesn't do anything yet.`
+                                    );
+                                }}
+                            >
                                 Thumbs Up
                             </Menu.Item>
-                            <Menu.Item icon={<SvgHeartIcon />}>
+                            <Menu.Item
+                                icon={<SvgHeartIcon />}
+                                className={styles.iconLabel}
+                                onClick={() => {
+                                    message.success(
+                                        `Hi ${
+                                            admin?.name.split(' ')[0]
+                                        }, this doesn't do anything yet.`
+                                    );
+                                }}
+                            >
                                 Thumbs Down
                             </Menu.Item>
                         </Menu>
                     }
+                    onClick={() => {
+                        message.success(
+                            `Hi ${
+                                admin?.name.split(' ')[0]
+                            }, this doesn't do anything yet.`
+                        );
+                    }}
                 />
                 <Button
                     trackingId="SessionCommentReply"
@@ -104,6 +134,13 @@ const SessionCommentFooter: React.FC<SessionCommentFooterProps> = ({
                         styles.iconLabel,
                         styles.actionButton
                     )}
+                    onClick={() => {
+                        message.success(
+                            `Hi ${
+                                admin?.name.split(' ')[0]
+                            }, this doesn't do anything yet.`
+                        );
+                    }}
                 >
                     <SvgSpeechBubbleIcon /> Reply
                 </Button>

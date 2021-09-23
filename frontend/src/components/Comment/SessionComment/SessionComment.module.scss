@@ -51,12 +51,11 @@
         column-gap: var(--size-xxSmall);
         display: flex;
     }
-
-    .iconLabel {
-        align-items: center;
-        column-gap: var(--size-small);
-        display: flex;
-    }
+}
+.iconLabel {
+    align-items: center;
+    column-gap: var(--size-small);
+    display: flex !important;
 }
 
 .actionButton {
