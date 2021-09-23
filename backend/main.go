@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/gammazero/workerpool"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -129,8 +128,6 @@ func main() {
 		}
 	} else {
 		log.Info("Excluding dd client setup process...")
-		log.Info("Disabling AWS xray...")
-		os.Setenv("AWS_XRAY_SDK_DISABLED", "TRUE")
 	}
 
 	db, err := model.SetupDB(os.Getenv("PSQL_DB"))
@@ -191,7 +188,7 @@ func main() {
 			privateServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PrivateGraph)))
 			privateServer.SetRecoverFunc(util.GraphQLRecoverFunc())
 			r.Handle("/",
-				xray.Handler(xray.NewFixedSegmentNamer("private-graph"), privateServer),
+				privateServer,
 			)
 		})
 	}
@@ -215,7 +212,7 @@ func main() {
 			publicServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PublicGraph)))
 			publicServer.SetRecoverFunc(util.GraphQLRecoverFunc())
 			r.Handle("/",
-				xray.Handler(xray.NewFixedSegmentNamer("public-graph"), publicServer),
+				publicServer,
 			)
 		})
 	}
