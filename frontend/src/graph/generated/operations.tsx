@@ -507,6 +507,20 @@ export type UpdateSessionIsPublicMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
+export type UpdateErrorGroupIsPublicMutationVariables = Types.Exact<{
+    error_group_id: Types.Scalars['ID'];
+    is_public: Types.Scalars['Boolean'];
+}>;
+
+export type UpdateErrorGroupIsPublicMutation = { __typename?: 'Mutation' } & {
+    updateErrorGroupIsPublic?: Types.Maybe<
+        { __typename?: 'ErrorGroup' } & Pick<
+            Types.ErrorGroup,
+            'id' | 'is_public'
+        >
+    >;
+};
+
 export type GetSessionPayloadQueryVariables = Types.Exact<{
     session_id: Types.Scalars['ID'];
 }>;
@@ -891,6 +905,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
             | 'state'
             | 'mapped_stack_trace'
             | 'error_frequency'
+            | 'is_public'
         > & {
                 stack_trace: Array<
                     Types.Maybe<
@@ -1777,6 +1792,7 @@ export const namedOperations = {
         UpdateTrackPropertiesAlert: 'UpdateTrackPropertiesAlert' as const,
         UpdateUserPropertiesAlert: 'UpdateUserPropertiesAlert' as const,
         UpdateSessionIsPublic: 'UpdateSessionIsPublic' as const,
+        UpdateErrorGroupIsPublic: 'UpdateErrorGroupIsPublic' as const,
         SendAdminInvite: 'SendAdminInvite' as const,
     },
     Fragment: {
