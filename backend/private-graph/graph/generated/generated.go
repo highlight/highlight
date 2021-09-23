@@ -98,13 +98,14 @@ type ComplexityRoot struct {
 	}
 
 	ErrorComment struct {
-		Author    func(childComplexity int) int
-		CreatedAt func(childComplexity int) int
-		ErrorId   func(childComplexity int) int
-		ID        func(childComplexity int) int
-		ProjectID func(childComplexity int) int
-		Text      func(childComplexity int) int
-		UpdatedAt func(childComplexity int) int
+		Author        func(childComplexity int) int
+		CreatedAt     func(childComplexity int) int
+		ErrorId       func(childComplexity int) int
+		ErrorSecureId func(childComplexity int) int
+		ID            func(childComplexity int) int
+		ProjectID     func(childComplexity int) int
+		Text          func(childComplexity int) int
+		UpdatedAt     func(childComplexity int) int
 	}
 
 	ErrorField struct {
@@ -389,18 +390,19 @@ type ComplexityRoot struct {
 	}
 
 	SessionComment struct {
-		Author      func(childComplexity int) int
-		CreatedAt   func(childComplexity int) int
-		ID          func(childComplexity int) int
-		Metadata    func(childComplexity int) int
-		ProjectID   func(childComplexity int) int
-		SessionId   func(childComplexity int) int
-		Text        func(childComplexity int) int
-		Timestamp   func(childComplexity int) int
-		Type        func(childComplexity int) int
-		UpdatedAt   func(childComplexity int) int
-		XCoordinate func(childComplexity int) int
-		YCoordinate func(childComplexity int) int
+		Author          func(childComplexity int) int
+		CreatedAt       func(childComplexity int) int
+		ID              func(childComplexity int) int
+		Metadata        func(childComplexity int) int
+		ProjectID       func(childComplexity int) int
+		SessionId       func(childComplexity int) int
+		SessionSecureId func(childComplexity int) int
+		Text            func(childComplexity int) int
+		Timestamp       func(childComplexity int) int
+		Type            func(childComplexity int) int
+		UpdatedAt       func(childComplexity int) int
+		XCoordinate     func(childComplexity int) int
+		YCoordinate     func(childComplexity int) int
 	}
 
 	SessionResults struct {
@@ -752,6 +754,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorComment.ErrorId(childComplexity), true
+
+	case "ErrorComment.error_secure_id":
+		if e.complexity.ErrorComment.ErrorSecureId == nil {
+			break
+		}
+
+		return e.complexity.ErrorComment.ErrorSecureId(childComplexity), true
 
 	case "ErrorComment.id":
 		if e.complexity.ErrorComment.ID == nil {
@@ -2698,6 +2707,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SessionComment.SessionId(childComplexity), true
 
+	case "SessionComment.session_secure_id":
+		if e.complexity.SessionComment.SessionSecureId == nil {
+			break
+		}
+
+		return e.complexity.SessionComment.SessionSecureId(childComplexity), true
+
 	case "SessionComment.text":
 		if e.complexity.SessionComment.Text == nil {
 			break
@@ -3215,6 +3231,7 @@ type SessionComment {
     created_at: Time!
     updated_at: Time!
     session_id: Int!
+    session_secure_id: String!
     author: SanitizedAdmin
     text: String!
     x_coordinate: Float
@@ -3228,6 +3245,7 @@ type ErrorComment {
     project_id: ID!
     created_at: Time!
     error_id: Int!
+    error_secure_id: String!
     updated_at: Time!
     author: SanitizedAdmin!
     text: String!
@@ -6495,6 +6513,41 @@ func (ec *executionContext) _ErrorComment_error_id(ctx context.Context, field gr
 	res := resTmp.(int)
 	fc.Result = res
 	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorComment_error_secure_id(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorComment) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ErrorComment",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ErrorSecureId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorComment_updated_at(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorComment) (ret graphql.Marshaler) {
@@ -14530,6 +14583,41 @@ func (ec *executionContext) _SessionComment_session_id(ctx context.Context, fiel
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _SessionComment_session_secure_id(ctx context.Context, field graphql.CollectedField, obj *model1.SessionComment) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SessionComment",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SessionSecureId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _SessionComment_author(ctx context.Context, field graphql.CollectedField, obj *model1.SessionComment) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -16987,6 +17075,11 @@ func (ec *executionContext) _ErrorComment(ctx context.Context, sel ast.Selection
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "error_secure_id":
+			out.Values[i] = ec._ErrorComment_error_secure_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "updated_at":
 			out.Values[i] = ec._ErrorComment_updated_at(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -18793,6 +18886,11 @@ func (ec *executionContext) _SessionComment(ctx context.Context, sel ast.Selecti
 			}
 		case "session_id":
 			out.Values[i] = ec._SessionComment_session_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "session_secure_id":
+			out.Values[i] = ec._SessionComment_session_secure_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}

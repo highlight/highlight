@@ -311,6 +311,7 @@ type SessionComment {
     created_at: Time!
     updated_at: Time!
     session_id: Int!
+    session_secure_id: String!
     author: SanitizedAdmin
     text: String!
     x_coordinate: Float
@@ -324,6 +325,7 @@ type ErrorComment {
     project_id: ID!
     created_at: Time!
     error_id: Int!
+    error_secure_id: String!
     updated_at: Time!
     author: SanitizedAdmin!
     text: String!

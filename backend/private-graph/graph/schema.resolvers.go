@@ -635,14 +635,15 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 	}
 
 	sessionComment := &model.SessionComment{
-		Admins:      admins,
-		ProjectID:   projectID,
-		AdminId:     admin.Model.ID,
-		SessionId:   session.ID,
-		Timestamp:   sessionTimestamp,
-		Text:        text,
-		XCoordinate: xCoordinate,
-		YCoordinate: yCoordinate,
+		Admins:          admins,
+		ProjectID:       projectID,
+		AdminId:         admin.Model.ID,
+		SessionId:       session.ID,
+		SessionSecureId: session.SecureID,
+		Timestamp:       sessionTimestamp,
+		Text:            text,
+		XCoordinate:     xCoordinate,
+		YCoordinate:     yCoordinate,
 	}
 	createSessionCommentSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
 		tracer.ResourceName("db.createSessionComment"), tracer.Tag("project_id", projectID))
@@ -741,11 +742,12 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 	}
 
 	errorComment := &model.ErrorComment{
-		Admins:    admins,
-		ProjectID: projectID,
-		AdminId:   admin.Model.ID,
-		ErrorId:   errorGroup.ID,
-		Text:      text,
+		Admins:        admins,
+		ProjectID:     projectID,
+		AdminId:       admin.Model.ID,
+		ErrorId:       errorGroup.ID,
+		ErrorSecureId: errorGroup.SecureID,
+		Text:          text,
 	}
 	createErrorCommentSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
 		tracer.ResourceName("db.createErrorComment"), tracer.Tag("project_id", projectID))
