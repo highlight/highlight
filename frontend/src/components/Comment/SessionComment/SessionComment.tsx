@@ -1,3 +1,9 @@
+import { useAuthContext } from '@authentication/AuthContext';
+import Button from '@components/Button/Button/Button';
+import SplitButton from '@components/SplitButton/SplitButton';
+import SvgHeartIcon from '@icons/HeartIcon';
+import SvgSpeechBubbleIcon from '@icons/SpeechBubbleIcon';
+import Menu from 'antd/lib/menu';
 import classNames from 'classnames';
 import React from 'react';
 
@@ -23,6 +29,8 @@ export const SessionCommentCard = ({
     menuItems,
     footer,
 }: Props) => {
+    const { isHighlightAdmin } = useAuthContext();
+
     return (
         <div
             className={classNames(styles.container, {
@@ -34,7 +42,13 @@ export const SessionCommentCard = ({
                 comment={comment}
                 deepLinkedCommentId={deepLinkedCommentId}
                 menuItems={menuItems}
-                footer={footer}
+                footer={
+                    isHighlightAdmin ? (
+                        <SessionCommentFooter>{footer}</SessionCommentFooter>
+                    ) : (
+                        footer
+                    )
+                }
             />
         </div>
     );
@@ -54,3 +68,49 @@ export const SessionComment = ({ comment, menuItems, footer }: Props) => {
         </>
     );
 };
+
+interface SessionCommentFooterProps {
+    a?: any;
+}
+
+const SessionCommentFooter: React.FC<SessionCommentFooterProps> = ({
+    children,
+}) => {
+    return (
+        <footer className={styles.footer}>
+            <div className={styles.actions}>
+                <SplitButton
+                    buttonLabel={
+                        <span className={styles.iconLabel}>
+                            <SvgHeartIcon /> Like
+                        </span>
+                    }
+                    trackingId="SessionCommentReact"
+                    overlay={
+                        <Menu>
+                            <Menu.Item icon={<SvgHeartIcon />}>
+                                Thumbs Up
+                            </Menu.Item>
+                            <Menu.Item icon={<SvgHeartIcon />}>
+                                Thumbs Down
+                            </Menu.Item>
+                        </Menu>
+                    }
+                />
+                <Button
+                    trackingId="SessionCommentReply"
+                    type="text"
+                    className={classNames(
+                        styles.iconLabel,
+                        styles.actionButton
+                    )}
+                >
+                    <SvgSpeechBubbleIcon /> Reply
+                </Button>
+            </div>
+            {children}
+        </footer>
+    );
+};
+
+export default SessionComment;
