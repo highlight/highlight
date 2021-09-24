@@ -621,8 +621,7 @@ type ErrorGroup struct {
 	Trace            string //DEPRECATED, USE STACKTRACE INSTEAD
 	StackTrace       string
 	MappedStackTrace *string
-	State            string `json:"state" gorm:"default:OPEN"`
-	MetadataLog      *string
+	State            string        `json:"state" gorm:"default:OPEN"`
 	Fields           []*ErrorField `gorm:"many2many:error_group_fields;"`
 	FieldGroup       *string
 	Environments     string
