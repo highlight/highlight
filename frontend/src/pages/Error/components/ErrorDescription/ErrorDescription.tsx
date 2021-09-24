@@ -21,7 +21,6 @@ const ErrorDescription = ({ errorGroup }: Props) => {
     useEffect(() => {
         if (text) {
             try {
-                console.log(JSON.parse(text));
                 const json = JSON.parse(text);
                 setTextAsJson(json);
             } catch {
