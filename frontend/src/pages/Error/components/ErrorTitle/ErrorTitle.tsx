@@ -12,16 +12,16 @@ interface Props {
 }
 
 const ErrorTitle = ({ errorGroup, showShareButton = true }: Props) => {
+    const headerText = getHeaderFromError(errorGroup?.event ?? []);
+
     return (
         <header className={styles.header}>
             <div className={styles.topRow}>
-                <div>
-                    {!showShareButton ? (
-                        <h3>{getHeaderFromError(errorGroup?.event ?? [])}</h3>
-                    ) : (
-                        <h2>{getHeaderFromError(errorGroup?.event ?? [])}</h2>
-                    )}
-                </div>
+                {!showShareButton ? (
+                    <h3>{headerText}</h3>
+                ) : (
+                    <h2>{headerText}</h2>
+                )}
                 {showShareButton && (
                     <ErrorShareButton errorGroup={errorGroup} />
                 )}
