@@ -5,9 +5,15 @@ import styles from './Card.module.scss';
 
 type Props = React.HTMLAttributes<HTMLDivElement> & {
     noPadding?: boolean;
+    title?: string;
 };
 
-const Card: React.FC<Props> = ({ children, noPadding = false, ...props }) => {
+const Card: React.FC<Props> = ({
+    title,
+    children,
+    noPadding = false,
+    ...props
+}) => {
     return (
         <article
             {...props}
@@ -15,6 +21,11 @@ const Card: React.FC<Props> = ({ children, noPadding = false, ...props }) => {
                 [styles.noPadding]: noPadding,
             })}
         >
+            {title && (
+                <div className={styles.titleContainer}>
+                    <h3>{title}</h3>
+                </div>
+            )}
             {children}
         </article>
     );

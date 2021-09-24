@@ -30,7 +30,7 @@ const ErrorDescription = ({ errorGroup }: Props) => {
     }, [text]);
 
     return (
-        <>
+        <Card title={textAsJson === null ? 'Error Body' : 'Error Body as JSON'}>
             {textAsJson === null ? (
                 <>
                     <LinesEllipsis
@@ -53,11 +53,9 @@ const ErrorDescription = ({ errorGroup }: Props) => {
                     )}
                 </>
             ) : (
-                <Card>
-                    <JsonViewer src={textAsJson} collapsed={1} />
-                </Card>
+                <JsonViewer src={textAsJson} collapsed={1} />
             )}
-        </>
+        </Card>
     );
 };
 
