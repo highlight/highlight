@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { Field } from '../../../../components/Field/Field';
 import { ErrorGroup, Maybe } from '../../../../graph/generated/schemas';
@@ -12,15 +12,36 @@ interface Props {
 }
 
 const ErrorTitle = ({ errorGroup, showShareButton = true }: Props) => {
+    const [headerTextAsJson, setHeaderTextAsJson] = useState<null | any>(null);
+
     const headerText = getHeaderFromError(errorGroup?.event ?? []);
+
+    useEffect(() => {
+        if (headerText) {
+            try {
+                if (errorGroup?.event && errorGroup.event.length > 0) {
+                    const json = JSON.parse(errorGroup.event.toString() || '');
+                    console.log(json);
+
+                    if (Array.isArray(json)) {
+                        setHeaderTextAsJson(json[0]);
+                    }
+                }
+            } catch {
+                setHeaderTextAsJson(null);
+            }
+        }
+    }, [errorGroup?.event, headerText]);
+
+    console.log(headerTextAsJson);
 
     return (
         <header className={styles.header}>
             <div className={styles.topRow}>
                 {!showShareButton ? (
-                    <h3>{headerText}</h3>
+                    <h3>{headerTextAsJson || headerText}</h3>
                 ) : (
-                    <h2>{headerText}</h2>
+                    <h2>{headerTextAsJson || headerText}</h2>
                 )}
                 {showShareButton && (
                     <ErrorShareButton errorGroup={errorGroup} />
