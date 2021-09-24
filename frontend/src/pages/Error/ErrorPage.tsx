@@ -215,14 +215,13 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                                         />
                                     </h3>
                                 )}
-                                {!loading &&
-                                    data?.error_group?.organization_id && (
-                                        <div className={styles.fieldWrapper}>
-                                            <ErrorFrequencyGraph
-                                                errorGroup={data?.error_group}
-                                            />
-                                        </div>
-                                    )}
+                                {!loading && data?.error_group?.project_id && (
+                                    <div className={styles.fieldWrapper}>
+                                        <ErrorFrequencyGraph
+                                            errorGroup={data?.error_group}
+                                        />
+                                    </div>
+                                )}
                             </div>
                             <div
                                 className={styles.errorPageRightColumn}
@@ -248,7 +247,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 };
 
 type FrequencyGraphProps = {
-    errorGroup?: Maybe<Pick<ErrorGroup, 'id' | 'organization_id'>>;
+    errorGroup?: Maybe<Pick<ErrorGroup, 'id' | 'project_id'>>;
 };
 
 type ErrorFrequency = {
