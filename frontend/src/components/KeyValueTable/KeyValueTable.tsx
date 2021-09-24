@@ -1,5 +1,5 @@
+import JsonViewer from '@components/JsonViewer/JsonViewer';
 import React from 'react';
-import ReactJson from 'react-json-view';
 
 import InfoTooltip from '../InfoTooltip/InfoTooltip';
 import styles from './KeyValueTable.module.scss';
@@ -47,13 +47,9 @@ const KeyValueTable = ({ data, noDataMessage = <p>No data</p> }: Props) => {
                                           )}
                                       </>
                                   ) : !!valueDisplayValue ? (
-                                      <ReactJson
+                                      <JsonViewer
                                           src={valueDisplayValue as object}
                                           collapsed
-                                          displayDataTypes={false}
-                                          collapseStringsAfterLength={100}
-                                          quotesOnKeys={false}
-                                          name={null}
                                       />
                                   ) : (
                                       'undefined'

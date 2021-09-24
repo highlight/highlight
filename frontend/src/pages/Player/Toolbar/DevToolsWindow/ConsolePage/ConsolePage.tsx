@@ -1,3 +1,4 @@
+import JsonViewer from '@components/JsonViewer/JsonViewer';
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
 import Tooltip from '@components/Tooltip/Tooltip';
 import { useParams } from '@util/react-router/useParams';
@@ -10,7 +11,6 @@ import React, {
     useRef,
     useState,
 } from 'react';
-import ReactJson from 'react-json-view';
 import Linkify from 'react-linkify';
 import Skeleton from 'react-loading-skeleton';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
@@ -287,13 +287,7 @@ const ConsoleRender = ({
         <div>
             {result.map((r) =>
                 typeof r === 'object' ? (
-                    <ReactJson
-                        name="Object"
-                        collapsed
-                        src={r}
-                        iconStyle="square"
-                        displayDataTypes={false}
-                    />
+                    <JsonViewer name="Object" collapsed src={r} />
                 ) : typeof r === 'string' ? (
                     searchTerm === '' ? (
                         <Linkify>{r}</Linkify>
