@@ -85,7 +85,7 @@ const ResourceDetailsModal = ({
                             The URL matched one a URL that is known to contain
                             secrets/passwords. You can{' '}
                             <a
-                                href="https://docs.highlight.run/docs/recording-network-requests-and-responses#overview"
+                                href="https://docs.highlight.run/recording-network-requests-and-responses"
                                 target="_blank"
                                 rel="noreferrer"
                             >
@@ -264,7 +264,7 @@ const NetworkRecordingEducationMessage = () => (
             <a
                 target="_blank"
                 rel="noreferrer"
-                href="https://docs.highlight.run/docs/recording-network-requests-and-responses"
+                href="https://docs.highlight.run/recording-network-requests-and-responses"
             >
                 here
             </a>

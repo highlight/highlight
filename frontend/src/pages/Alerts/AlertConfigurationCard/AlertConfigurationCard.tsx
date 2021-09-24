@@ -422,7 +422,7 @@ export const AlertConfigurationCard = ({
                         created from localhost. Environments can be set by
                         passing the environment name when you{' '}
                         <a
-                            href="https://docs.highlight.run/reference#options"
+                            href="https://docs.highlight.run/api#w0-highlightoptions"
                             target="_blank"
                             rel="noreferrer"
                         >

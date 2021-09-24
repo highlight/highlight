@@ -328,7 +328,7 @@ const Player = ({ integrated }: Props) => {
                                                     <ElevatedCard title="Session recording manually stopped">
                                                         <p>
                                                             <a
-                                                                href="https://docs.highlight.run/reference#stop"
+                                                                href="https://docs.highlight.run/api/hstop"
                                                                 target="_blank"
                                                                 rel="noreferrer"
                                                             >
@@ -346,7 +346,7 @@ const Player = ({ integrated }: Props) => {
                                                             check where you are
                                                             calling{' '}
                                                             <a
-                                                                href="https://docs.highlight.run/reference#stop"
+                                                                href="https://docs.highlight.run/api/hstop"
                                                                 target="_blank"
                                                                 rel="noreferrer"
                                                             >

@@ -342,7 +342,7 @@ export const ResourcePage = ({
                                         make sure <code>networkRecording</code>{' '}
                                         is set to <code>true</code>. You can{' '}
                                         <a
-                                            href="https://docs.highlight.run/reference#options"
+                                            href="https://docs.highlight.run/api#w0-highlightoptions"
                                             target="_blank"
                                             rel="noreferrer"
                                         >

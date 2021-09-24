@@ -65,7 +65,7 @@ export const UserDropdown = () => {
         </div>
     );
     return (
-        <Dropdown overlay={menu} placement={'bottomRight'}>
+        <Dropdown overlay={menu} placement={'bottomRight'} trigger={['click']}>
             <div className={styles.accountIconWrapper}>
                 {a_data?.admin ? (
                     <AdminAvatar
