@@ -186,7 +186,6 @@ const SessionSearch = () => {
                     setQuery('');
                 }
             }}
-            menuIsOpen
             components={{
                 LoadingIndicator: null,
                 DropdownIndicator: () => (
