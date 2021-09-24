@@ -55,7 +55,7 @@ const MetadataPanel = () => {
                     You can set the environment based on where the session is
                     recorded.{' '}
                     <a
-                        href="https://docs.highlight.run/reference#options"
+                        href="https://docs.highlight.run/api#w0-highlightoptions"
                         target="_blank"
                         rel="noopener noreferrer"
                     >
@@ -74,7 +74,7 @@ const MetadataPanel = () => {
                     the version to help categorize what version of the app a
                     user was using.{' '}
                     <a
-                        href="https://docs.highlight.run/reference#options"
+                        href="https://docs.highlight.run/api#w0-highlightoptions"
                         target="_blank"
                         rel="noopener noreferrer"
                     >
@@ -96,7 +96,7 @@ const MetadataPanel = () => {
                         ? 'Text and images in this session are obfuscated.'
                         : 'This session is recording all content on the page.'}{' '}
                     <a
-                        href="https://docs.highlight.run/docs/privacy#overview"
+                        href="https://docs.highlight.run/privacy"
                         target="_blank"
                         rel="noreferrer"
                     >
@@ -116,7 +116,7 @@ const MetadataPanel = () => {
                     This specifies whether Highlight records the status codes,
                     headers, and bodies for XML/Fetch requests made in your app.{' '}
                     <a
-                        href="https://docs.highlight.run/docs/recording-network-requests-and-responses"
+                        href="https://docs.highlight.run/recording-network-requests-and-responses"
                         target="_blank"
                         rel="noopener noreferrer"
                     >
@@ -161,7 +161,7 @@ const MetadataPanel = () => {
                     Did you know that you can enrich sessions with additional
                     metadata? They'll show up here. You can{' '}
                     <a
-                        href="https://docs.highlight.run/docs/identifying-users"
+                        href="https://docs.highlight.run/identifying-users"
                         target="_blank"
                         rel="noreferrer"
                     >

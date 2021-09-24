@@ -133,7 +133,7 @@ const ActiveUsersTable = () => {
                             <code>identify()</code> in your app to identify
                             users during their sessions. You can{' '}
                             <a
-                                href="https://docs.highlight.run/docs/identifying-users"
+                                href="https://docs.highlight.run/identifying-users"
                                 target="_blank"
                                 rel="noreferrer"
                             >

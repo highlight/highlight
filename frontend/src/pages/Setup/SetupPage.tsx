@@ -95,6 +95,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                             method in your app. Here's an example:
                         </p>
                         <CodeBlock
+                            language="javascript"
                             onCopy={() => {
                                 H.track(
                                     'Copied Code Snippet (Highlight Event)',
@@ -266,6 +267,7 @@ const HtmlInstructions = ({
                     <Skeleton />
                 ) : (
                     <CodeBlock
+                        language="html"
                         onCopy={() => {
                             H.track('Copied Script (Highlight Event)', {
                                 copied: 'script',
@@ -301,13 +303,19 @@ const JsAppInstructions = ({
                 <p>
                     Install the <code>{'highlight.run'}</code> package.
                 </p>
-                <CodeBlock text={`npm install highlight.run`} />
+                <CodeBlock
+                    text={`npm install highlight.run`}
+                    language="shell"
+                />
                 <p>or with Yarn:</p>
-                <CodeBlock text={`yarn add highlight.run`} />
+                <CodeBlock text={`yarn add highlight.run`} language="shell" />
             </Section>
             <Section title="Initializing Highlight">
                 <p>Initialize the SDK by importing Highlight like so: </p>
-                <CodeBlock text={`import { H } from 'highlight.run'`} />
+                <CodeBlock
+                    text={`import { H } from 'highlight.run'`}
+                    language="javascript"
+                />
                 <p>
                     and then calling{' '}
                     <code>{getInitSnippet(projectVerboseId)}</code> as soon as
@@ -325,13 +333,15 @@ const JsAppInstructions = ({
                 <p>
                     {platform !== PlatformType.NextJs ? (
                         <CodeBlock
+                            language="javascript"
                             text={`${getInitSnippet(projectVerboseId, true)}`}
                         />
                     ) : (
                         <CodeBlock
+                            language="javascript"
                             text={`${getInitSnippet(
                                 projectVerboseId
-                            )} // ${projectVerboseId} is your ORG_ID`}
+                            )} // ${projectVerboseId} is your PROJECT_ID`}
                         />
                     )}
                 </p>
@@ -347,6 +357,7 @@ const JsAppInstructions = ({
                 </p>
                 {platform === PlatformType.React ? (
                     <CodeBlock
+                        language="javascript"
                         text={`import React from 'react';
 import App from './App';
 import { H } from 'highlight.run'
@@ -357,6 +368,7 @@ ReactDOM.render(<App />, document.getElementById('root'));`}
                     />
                 ) : platform === PlatformType.Vue ? (
                     <CodeBlock
+                        language="javascript"
                         text={`import { createApp } from 'vue';
 import App from './App.vue';
 import { H } from 'highlight.run';
@@ -367,6 +379,7 @@ createApp(App).mount('#app');`}
                     />
                 ) : (
                     <CodeBlock
+                        language="javascript"
                         text={`import { H } from 'highlight.run';
 
 ${getInitSnippet(projectVerboseId)}

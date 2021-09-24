@@ -425,7 +425,7 @@ const getSuggestions = (
                     happened in your application. These are set by you in your
                     application. You can{' '}
                     <a
-                        href="https://docs.highlight.run/docs/tracking-events"
+                        href="https://docs.highlight.run/tracking-events"
                         target="_blank"
                         rel="noopener noreferrer"
                     >
@@ -452,7 +452,7 @@ const getSuggestions = (
                     User Properties are properties related to the user. These
                     are set by you in your application. You can{' '}
                     <a
-                        href="https://docs.highlight.run/docs/identifying-users"
+                        href="https://docs.highlight.run/identifying-users"
                         target="_blank"
                         rel="noopener noreferrer"
                     >

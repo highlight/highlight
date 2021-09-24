@@ -12,9 +12,15 @@ export const GatsbySetup = ({ projectVerboseId }: Props) => {
         <>
             <Section title="Installing the SDK">
                 <p>Install the Highlight Gatsby plugin.</p>
-                <CodeBlock text="npm install @highlight-run/gatsby-plugin-highlight" />
+                <CodeBlock
+                    text="npm install @highlight-run/gatsby-plugin-highlight"
+                    language="shell"
+                />
                 <p>or with Yarn:</p>
-                <CodeBlock text="yarn add @highlight-run/gatsby-plugin-highlight" />
+                <CodeBlock
+                    text="yarn add @highlight-run/gatsby-plugin-highlight"
+                    language="shell"
+                />
             </Section>
 
             <Section title="Initializing Highlight">
@@ -23,6 +29,7 @@ export const GatsbySetup = ({ projectVerboseId }: Props) => {
                     In <code>gatsby-config.js</code>:
                 </p>
                 <CodeBlock
+                    language="javascript"
                     text={`module.exports = {
   plugins: [
     {
