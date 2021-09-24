@@ -8,10 +8,10 @@ import {
 function InternalPage(): ReactElement {
     const [value, setValue] = useState('foobar');
     const {} = useGetNewUsersCountQuery({
-        variables: { lookBackPeriod: 30, organization_id: '1' },
+        variables: { lookBackPeriod: 30, project_id: '1' },
     });
     const {} = useGetAverageSessionLengthQuery({
-        variables: { lookBackPeriod: 30, organization_id: '1' },
+        variables: { lookBackPeriod: 30, project_id: '1' },
     });
 
     return (

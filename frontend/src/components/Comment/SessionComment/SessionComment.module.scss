@@ -41,3 +41,23 @@
         opacity: 1;
     }
 }
+
+.footer {
+    display: flex;
+    justify-content: space-between;
+    padding-top: var(--size-medium);
+
+    .actions {
+        column-gap: var(--size-xxSmall);
+        display: flex;
+    }
+}
+.iconLabel {
+    align-items: center;
+    column-gap: var(--size-small);
+    display: flex !important;
+}
+
+.actionButton {
+    padding: var(--size-xxSmall) var(--size-medium);
+}

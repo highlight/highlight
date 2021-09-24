@@ -15,6 +15,7 @@ import {
     useGetUserSuggestionQuery,
     useUpdateErrorAlertMutation,
     useUpdateNewUserAlertMutation,
+    useUpdateSessionFeedbackAlertMutation,
     useUpdateTrackPropertiesAlertMutation,
     useUpdateUserPropertiesAlertMutation,
 } from '../../../graph/generated/hooks';
@@ -51,7 +52,7 @@ export const AlertConfigurationCard = ({
     const [lookbackPeriod, setLookbackPeriod] = useState(
         getLookbackPeriodOption(alert?.ThresholdWindow).value
     );
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { project_id } = useParams<{ project_id: string }>();
     const [form] = Form.useForm();
     const [updateErrorAlert] = useUpdateErrorAlertMutation();
     const [updateNewUserAlert] = useUpdateNewUserAlertMutation();
@@ -59,12 +60,15 @@ export const AlertConfigurationCard = ({
     const [
         updateTrackPropertiesAlert,
     ] = useUpdateTrackPropertiesAlertMutation();
+    const [
+        updateSessionFeedbackAlert,
+    ] = useUpdateSessionFeedbackAlertMutation();
 
     const onSubmit = async () => {
         setLoading(true);
         try {
             const requestVariables = {
-                organization_id,
+                project_id,
                 environments: form.getFieldValue('excludedEnvironments'),
                 count_threshold: form.getFieldValue('threshold'),
                 slack_channels: form
@@ -148,6 +152,16 @@ export const AlertConfigurationCard = ({
                         },
                     });
                     break;
+                case ALERT_TYPE.SessionFeedbackComment:
+                    await updateSessionFeedbackAlert({
+                        ...requestBody,
+                        variables: {
+                            ...requestVariables,
+                            session_feedback_alert_id: alert.id,
+                            threshold_window: lookbackPeriod,
+                        },
+                    });
+                    break;
                 default:
                     throw new Error(`Unsupported alert type: ${type}`);
             }
@@ -167,7 +181,7 @@ export const AlertConfigurationCard = ({
         refetch: refetchUserSuggestions,
     } = useGetUserSuggestionQuery({
         variables: {
-            organization_id,
+            project_id,
             query: '',
         },
     });
@@ -178,7 +192,7 @@ export const AlertConfigurationCard = ({
         data: trackSuggestionsApiResponse,
     } = useGetTrackSuggestionQuery({
         variables: {
-            organization_id,
+            project_id,
             query: '',
         },
     });
@@ -215,11 +229,11 @@ export const AlertConfigurationCard = ({
 
     /** Searches for a user property  */
     const handleUserPropertiesSearch = (query = '') => {
-        refetchUserSuggestions({ query, organization_id });
+        refetchUserSuggestions({ query, project_id });
     };
 
     const handleTrackPropertiesSearch = (query = '') => {
-        refetchTrackSuggestions({ query, organization_id });
+        refetchTrackSuggestions({ query, project_id });
     };
 
     const onChannelsChange = (channels: string[]) => {
@@ -294,9 +308,10 @@ export const AlertConfigurationCard = ({
                 form={form}
                 initialValues={{
                     threshold: alert.CountThreshold,
-                    channels: alert.ChannelsToNotify.map(
-                        (channel: any) => channel.webhook_channel_id
-                    ),
+                    channels:
+                        alert.ChannelsToNotify?.map(
+                            (channel: any) => channel.webhook_channel_id
+                        ) || [],
                     excludedEnvironments: alert.ExcludedEnvironments,
                     lookbackPeriod: [lookbackPeriod],
                     userProperties: alert.UserProperties?.map(
@@ -383,7 +398,7 @@ export const AlertConfigurationCard = ({
                                         <div className={styles.addContainer}>
                                             Can't find the channel or person
                                             here?{' '}
-                                            {organization_id !==
+                                            {project_id !==
                                                 DEMO_WORKSPACE_APPLICATION_ID && (
                                                 <a href={slackUrl}>
                                                     Sync Highlight with your
@@ -407,7 +422,7 @@ export const AlertConfigurationCard = ({
                         created from localhost. Environments can be set by
                         passing the environment name when you{' '}
                         <a
-                            href="https://docs.highlight.run/reference#options"
+                            href="https://docs.highlight.run/api#w0-highlightoptions"
                             target="_blank"
                             rel="noreferrer"
                         >

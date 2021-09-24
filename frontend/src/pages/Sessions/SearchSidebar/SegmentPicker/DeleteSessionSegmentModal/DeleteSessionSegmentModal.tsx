@@ -31,14 +31,14 @@ const DeleteSessionSegmentModal: React.FC<Props> = ({
     segmentToDelete,
     afterDeleteHandler,
 }) => {
-    const { segment_id, organization_id } = useParams<{
+    const { segment_id, project_id } = useParams<{
         segment_id: string;
-        organization_id: string;
+        project_id: string;
     }>();
-    const organizationIdRemapped =
-        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+    const projectIdRemapped =
+        project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-            : organization_id;
+            : project_id;
     const history = useHistory<SearchParams>();
     const [deleteSegment, { loading }] = useDeleteSegmentMutation({
         update(cache) {
@@ -95,7 +95,7 @@ const DeleteSessionSegmentModal: React.FC<Props> = ({
                                     hideModalHandler();
                                     if (segment_id === segmentToDelete?.id) {
                                         history.push(
-                                            `/${organizationIdRemapped}/sessions`
+                                            `/${projectIdRemapped}/sessions`
                                         );
                                     }
                                     if (afterDeleteHandler) {

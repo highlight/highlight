@@ -33,7 +33,7 @@
     }
 
     &.active {
-        background: inherit;
+        background: var(--color-gray-300);
     }
 }
 

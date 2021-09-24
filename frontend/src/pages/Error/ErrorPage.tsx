@@ -48,7 +48,10 @@ import styles from './ErrorPage.module.scss';
 import useErrorPageConfiguration from './utils/ErrorPageUIConfiguration';
 
 const ErrorPage = ({ integrated }: { integrated: boolean }) => {
-    const { error_id } = useParams<{ error_id: string }>();
+    const { error_id, project_id } = useParams<{
+        error_id: string;
+        project_id: string;
+    }>();
 
     const [getErrorGroupQuery, { data, loading }] = useGetErrorGroupLazyQuery({
         variables: { id: error_id },
@@ -56,7 +59,9 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
     const { isLoggedIn } = useAuthContext();
     const [segmentName, setSegmentName] = useState<string | null>(null);
     const [cachedParams, setCachedParams] = useLocalStorage<ErrorSearchParams>(
-        `cachedErrorParams-v2-${segmentName || 'no-selected-segment'}`,
+        `cachedErrorParams-v2-${
+            segmentName || 'no-selected-segment'
+        }-${project_id}`,
         {}
     );
     const [searchParams, setSearchParams] = useState<ErrorSearchParams>(
@@ -278,10 +283,11 @@ export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
 
     useGetDailyErrorFrequencyQuery({
         variables: {
-            organization_id: `${errorGroup?.organization_id}`,
+            project_id: `${errorGroup?.project_id}`,
             error_group_id: `${errorGroup?.id}`,
             date_offset: dateRangeLength - 1,
         },
+        skip: !errorGroup,
         onCompleted: (response) => {
             const errorData = response.dailyErrorFrequency.map((val, idx) => ({
                 date: moment()

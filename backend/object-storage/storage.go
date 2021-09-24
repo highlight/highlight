@@ -48,12 +48,12 @@ func NewStorageClient() (*StorageClient, error) {
 	}, nil
 }
 
-func (s *StorageClient) PushFileToS3(ctx context.Context, sessionId, organizationId int, file *os.File, bucket string, payloadType PayloadType) (*int64, error) {
+func (s *StorageClient) PushFileToS3(ctx context.Context, sessionId, projectId int, file *os.File, bucket string, payloadType PayloadType) (*int64, error) {
 	_, err := file.Seek(0, io.SeekStart)
 	if err != nil {
 		return nil, errors.Wrap(err, "error seeking to beginning of file")
 	}
-	key := s.bucketKey(sessionId, organizationId, payloadType)
+	key := s.bucketKey(sessionId, projectId, payloadType)
 	_, err = s.S3Client.PutObject(ctx, &s3.PutObjectInput{Bucket: &bucket,
 		Key: key, Body: file})
 	if err != nil {
@@ -70,9 +70,9 @@ func (s *StorageClient) PushFileToS3(ctx context.Context, sessionId, organizatio
 	return &result.ContentLength, nil
 }
 
-func (s *StorageClient) ReadSessionsFromS3(sessionId int, organizationId int) ([]interface{}, error) {
+func (s *StorageClient) ReadSessionsFromS3(sessionId int, projectId int) ([]interface{}, error) {
 	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: aws.String(S3SessionsPayloadBucketName),
-		Key: s.bucketKey(sessionId, organizationId, SessionContents)})
+		Key: s.bucketKey(sessionId, projectId, SessionContents)})
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting object from s3")
 	}
@@ -99,9 +99,9 @@ func (s *StorageClient) ReadSessionsFromS3(sessionId int, organizationId int) ([
 	return retEvents, nil
 }
 
-func (s *StorageClient) ReadResourcesFromS3(sessionId int, organizationId int) ([]interface{}, error) {
+func (s *StorageClient) ReadResourcesFromS3(sessionId int, projectId int) ([]interface{}, error) {
 	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: aws.String(S3SessionsPayloadBucketName),
-		Key: s.bucketKey(sessionId, organizationId, NetworkResources)})
+		Key: s.bucketKey(sessionId, projectId, NetworkResources)})
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting object from s3")
 	}
@@ -128,9 +128,9 @@ func (s *StorageClient) ReadResourcesFromS3(sessionId int, organizationId int) (
 	return retResources, nil
 }
 
-func (s *StorageClient) ReadMessagesFromS3(sessionId int, organizationId int) ([]interface{}, error) {
+func (s *StorageClient) ReadMessagesFromS3(sessionId int, projectId int) ([]interface{}, error) {
 	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: aws.String(S3SessionsPayloadBucketName),
-		Key: s.bucketKey(sessionId, organizationId, ConsoleMessages)})
+		Key: s.bucketKey(sessionId, projectId, ConsoleMessages)})
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting object from s3")
 	}
@@ -157,14 +157,14 @@ func (s *StorageClient) ReadMessagesFromS3(sessionId int, organizationId int) ([
 	return retMessages, nil
 }
 
-func (s *StorageClient) bucketKey(sessionId int, organizationId int, key PayloadType) *string {
+func (s *StorageClient) bucketKey(sessionId int, projectId int, key PayloadType) *string {
 	if util.IsDevEnv() {
-		return aws.String(fmt.Sprintf("dev/%v/%v/%v", organizationId, sessionId, string(key)))
+		return aws.String(fmt.Sprintf("dev/%v/%v/%v", projectId, sessionId, string(key)))
 	}
-	return aws.String(fmt.Sprintf("%v/%v/%v", organizationId, sessionId, string(key)))
+	return aws.String(fmt.Sprintf("%v/%v/%v", projectId, sessionId, string(key)))
 }
 
-func (s *StorageClient) sourceMapBucketKey(organizationId int, version *string, fileName string) *string {
+func (s *StorageClient) sourceMapBucketKey(projectId int, version *string, fileName string) *string {
 	var key string
 	if util.IsDevEnv() {
 		key = "dev/"
@@ -173,12 +173,12 @@ func (s *StorageClient) sourceMapBucketKey(organizationId int, version *string, 
 		unversioned := "unversioned"
 		version = &unversioned
 	}
-	key += fmt.Sprintf("%d/%s/%s", organizationId, *version, fileName)
+	key += fmt.Sprintf("%d/%s/%s", projectId, *version, fileName)
 	return aws.String(key)
 }
 
-func (s *StorageClient) PushSourceMapFileReaderToS3(organizationId int, version *string, fileName string, file io.Reader) (*int64, error) {
-	key := s.sourceMapBucketKey(organizationId, version, fileName)
+func (s *StorageClient) PushSourceMapFileReaderToS3(projectId int, version *string, fileName string, file io.Reader) (*int64, error) {
+	key := s.sourceMapBucketKey(projectId, version, fileName)
 	_, err := s.S3Client.PutObject(context.TODO(), &s3.PutObjectInput{
 		Bucket: aws.String(S3SourceMapBucketName), Key: key, Body: file,
 	})
@@ -196,14 +196,14 @@ func (s *StorageClient) PushSourceMapFileReaderToS3(organizationId int, version 
 	return &result.ContentLength, nil
 }
 
-func (s *StorageClient) PushSourceMapFileToS3(organizationId int, version *string, fileName string, fileBytes []byte) (*int64, error) {
+func (s *StorageClient) PushSourceMapFileToS3(projectId int, version *string, fileName string, fileBytes []byte) (*int64, error) {
 	body := bytes.NewReader(fileBytes)
-	return s.PushSourceMapFileReaderToS3(organizationId, version, fileName, body)
+	return s.PushSourceMapFileReaderToS3(projectId, version, fileName, body)
 }
 
-func (s *StorageClient) ReadSourceMapFileFromS3(organizationId int, version *string, fileName string) ([]byte, error) {
+func (s *StorageClient) ReadSourceMapFileFromS3(projectId int, version *string, fileName string) ([]byte, error) {
 	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: aws.String(S3SourceMapBucketName),
-		Key: s.sourceMapBucketKey(organizationId, version, fileName)})
+		Key: s.sourceMapBucketKey(projectId, version, fileName)})
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting object from s3")
 	}

@@ -22,4 +22,13 @@
         justify-content: center;
         width: 100%;
     }
+
+    &:disabled {
+        background: var(--color-purple);
+        color: var(--color-purple-200);
+
+        &:hover {
+            background: var(--color-purple);
+        }
+    }
 }

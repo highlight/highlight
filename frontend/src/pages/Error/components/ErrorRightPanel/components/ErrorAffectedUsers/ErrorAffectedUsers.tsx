@@ -1,3 +1,4 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
@@ -21,11 +22,12 @@ interface Props {
 }
 
 const ErrorAffectedUsers = ({ loading, errorGroup }: Props) => {
-    const { organization_id } = useParams<{ organization_id: string }>();
-    const organizationIdRemapped =
-        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+    const { isLoggedIn } = useAuthContext();
+    const { project_id } = useParams<{ project_id: string }>();
+    const projectIdRemapped =
+        project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-            : organization_id;
+            : project_id;
     let numberOfAffectedSessions;
     let mostRecentAffectedSession;
     let uniqueUsers: string[] = [];
@@ -104,7 +106,7 @@ const ErrorAffectedUsers = ({ loading, errorGroup }: Props) => {
                     <div className={styles.actionsContainer}>
                         <ButtonLink
                             trackingId="ErrorMostRecentSession"
-                            to={`/${organizationIdRemapped}/sessions/${mostRecentAffectedSession?.session_id}`}
+                            to={`/${projectIdRemapped}/sessions/${mostRecentAffectedSession?.session_id}`}
                             icon={
                                 <SvgPlaySolidIcon
                                     className={styles.playButton}
@@ -112,6 +114,7 @@ const ErrorAffectedUsers = ({ loading, errorGroup }: Props) => {
                             }
                             fullWidth
                             className={styles.button}
+                            disabled={!isLoggedIn}
                         >
                             Most Recent Session
                         </ButtonLink>

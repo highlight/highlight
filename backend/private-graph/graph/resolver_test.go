@@ -40,71 +40,71 @@ func TestHideViewedSessions(t *testing.T) {
 	}{
 		"Don't hide viewed sessions": {hideViewed: &model.F, expectedCount: 3,
 			sessionsToInsert: []model.Session{
-				{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.T},
-				{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.F},
-				{ActiveLength: 1000, OrganizationID: 1, Viewed: nil},
+				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.T},
+				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.F},
+				{ActiveLength: 1000, ProjectID: 1, Viewed: nil},
 			},
 			expectedSessions: []model.Session{
-				{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.T, FirstTime: &model.F},
-				{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.F, FirstTime: &model.F},
-				{ActiveLength: 1000, OrganizationID: 1, Viewed: nil, FirstTime: &model.F},
+				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.T, FirstTime: &model.F},
+				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.F, FirstTime: &model.F},
+				{ActiveLength: 1000, ProjectID: 1, Viewed: nil, FirstTime: &model.F},
 			},
 		},
 		"Hide viewed sessions": {hideViewed: &model.T, expectedCount: 2,
 			sessionsToInsert: []model.Session{
-				{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.T},
-				{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.F},
-				{ActiveLength: 1000, OrganizationID: 1, Viewed: nil},
+				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.T},
+				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.F},
+				{ActiveLength: 1000, ProjectID: 1, Viewed: nil},
 			},
 			expectedSessions: []model.Session{
-				{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.F, FirstTime: &model.F},
-				{ActiveLength: 1000, OrganizationID: 1, Viewed: nil, FirstTime: &model.F},
+				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.F, FirstTime: &model.F},
+				{ActiveLength: 1000, ProjectID: 1, Viewed: nil, FirstTime: &model.F},
 			},
 		},
 		"Don't hide single viewed sessions": {hideViewed: &model.F, expectedCount: 1,
 			sessionsToInsert: []model.Session{
-				{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.T},
+				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.T},
 			},
 			expectedSessions: []model.Session{
-				{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.T, FirstTime: &model.F},
+				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.T, FirstTime: &model.F},
 			},
 		},
 		"Hide single viewed sessions": {hideViewed: &model.T, expectedCount: 0,
 			sessionsToInsert: []model.Session{
-				{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.T},
+				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.T},
 			},
 			expectedSessions: []model.Session{},
 		},
 		"Don't hide single un-viewed sessions": {hideViewed: &model.F, expectedCount: 1,
 			sessionsToInsert: []model.Session{
-				{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.F},
+				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.F},
 			},
 			expectedSessions: []model.Session{
-				{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.F, FirstTime: &model.F},
+				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.F, FirstTime: &model.F},
 			},
 		},
 		"Hide single un-viewed sessions": {hideViewed: &model.T, expectedCount: 1,
 			sessionsToInsert: []model.Session{
-				{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.F},
+				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.F},
 			},
 			expectedSessions: []model.Session{
-				{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.F, FirstTime: &model.F},
+				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.F, FirstTime: &model.F},
 			},
 		},
 		"Don't hide single viewed=nil sessions": {hideViewed: &model.F, expectedCount: 1,
 			sessionsToInsert: []model.Session{
-				{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.F},
+				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.F},
 			},
 			expectedSessions: []model.Session{
-				{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.F, FirstTime: &model.F},
+				{ActiveLength: 1000, ProjectID: 1, Viewed: &model.F, FirstTime: &model.F},
 			},
 		},
 		"Hide single viewed=nil sessions": {hideViewed: &model.T, expectedCount: 1,
 			sessionsToInsert: []model.Session{
-				{ActiveLength: 1000, OrganizationID: 1, Viewed: nil},
+				{ActiveLength: 1000, ProjectID: 1, Viewed: nil},
 			},
 			expectedSessions: []model.Session{
-				{ActiveLength: 1000, OrganizationID: 1, Viewed: nil, FirstTime: &model.F},
+				{ActiveLength: 1000, ProjectID: 1, Viewed: nil, FirstTime: &model.F},
 			},
 		},
 	}
@@ -117,9 +117,9 @@ func TestHideViewedSessions(t *testing.T) {
 			}
 			fieldsToInsert := []model.Field{
 				{
-					Type:           "session",
-					OrganizationID: 1,
-					Sessions:       tc.sessionsToInsert,
+					Type:      "session",
+					ProjectID: 1,
+					Sessions:  tc.sessionsToInsert,
 				},
 			}
 			if err := DB.Create(&fieldsToInsert).Error; err != nil {

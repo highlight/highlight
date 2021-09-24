@@ -17,18 +17,18 @@ const NAVIGATION_COMMANDS = [
 ] as const;
 
 export const getNavigationCommands = (
-    organization_id: string,
+    project_id: string,
     history: History
 ): CommandWithoutId[] => {
-    const organizationIdRemapped =
-        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+    const projectIdRemapped =
+        project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-            : organization_id;
+            : project_id;
 
     return NAVIGATION_COMMANDS.map(({ name, route }) => ({
         category: 'Navigation',
         command() {
-            history.push(`/${organizationIdRemapped}/${route}`);
+            history.push(`/${projectIdRemapped}/${route}`);
         },
         name,
     }));

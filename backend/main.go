@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/gammazero/workerpool"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -31,6 +30,7 @@ import (
 	public "github.com/highlight-run/highlight/backend/public-graph/graph"
 	publicgen "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	brotli_enc "gopkg.in/kothar/brotli-go.v0/enc"
 
 	_ "gorm.io/gorm"
@@ -66,6 +66,17 @@ func healthRouter(runtime util.Runtime) http.HandlerFunc {
 		if err != nil {
 			log.Error(e.Wrap(err, "error writing health response"))
 		}
+	}
+}
+
+func addSpan(resourceName string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			handlerSpan, _ := tracer.StartSpanFromContext(r.Context(), "middleware.handler",
+				tracer.ResourceName(resourceName))
+			defer handlerSpan.Finish()
+			next.ServeHTTP(w, r)
+		})
 	}
 }
 
@@ -119,10 +130,10 @@ func main() {
 		port = defaultPort
 	}
 
-	shouldStartDatadog := !util.IsDevOrTestEnv() && !util.IsOnPrem()
-	if shouldStartDatadog {
+	shouldLog := !util.IsDevOrTestEnv() && !util.IsOnPrem()
+	if shouldLog {
 		log.Info("Running dd client setup process...")
-		if err := dd.Start(); err != nil {
+		if err := dd.Start(runtimeParsed); err != nil {
 			log.Fatal(e.Wrap(err, "error starting dd clients with error"))
 		} else {
 			defer dd.Stop()
@@ -160,8 +171,8 @@ func main() {
 		params.SetQuality(level)
 		return brotli_enc.NewBrotliWriter(params, w)
 	})
-	r.Use(compressor.Handler)
-	r.Use(cors.New(cors.Options{
+	r.Use(addSpan("compressorHandler"), compressor.Handler)
+	r.Use(addSpan("corsHandler"), cors.New(cors.Options{
 		AllowOriginRequestFunc: validateOrigin,
 		AllowCredentials:       true,
 		AllowedHeaders:         []string{"*"},
@@ -179,7 +190,7 @@ func main() {
 			privateEndpoint = "/"
 		}
 		r.Route(privateEndpoint, func(r chi.Router) {
-			r.Use(private.PrivateMiddleware)
+			r.Use(addSpan("privateMiddleware"), private.PrivateMiddleware)
 			privateServer := ghandler.NewDefaultServer(privategen.NewExecutableSchema(
 				privategen.Config{
 					Resolvers: privateResolver,
@@ -189,7 +200,7 @@ func main() {
 			privateServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PrivateGraph)))
 			privateServer.SetRecoverFunc(util.GraphQLRecoverFunc())
 			r.Handle("/",
-				xray.Handler(xray.NewFixedSegmentNamer("private-graph"), privateServer),
+				privateServer,
 			)
 		})
 	}
@@ -199,7 +210,7 @@ func main() {
 			publicEndpoint = "/"
 		}
 		r.Route(publicEndpoint, func(r chi.Router) {
-			r.Use(public.PublicMiddleware)
+			r.Use(addSpan("publicMiddleware"), public.PublicMiddleware)
 			publicServer := ghandler.NewDefaultServer(publicgen.NewExecutableSchema(
 				publicgen.Config{
 					Resolvers: &public.Resolver{
@@ -213,7 +224,7 @@ func main() {
 			publicServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PublicGraph)))
 			publicServer.SetRecoverFunc(util.GraphQLRecoverFunc())
 			r.Handle("/",
-				xray.Handler(xray.NewFixedSegmentNamer("public-graph"), publicServer),
+				publicServer,
 			)
 		})
 	}

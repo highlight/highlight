@@ -13,8 +13,8 @@ import { useErrorPageUIContext } from '../../context/ErrorPageUIContext';
 import styles from './ErrorSearch.module.scss';
 
 const ErrorSearch = () => {
-    const { organization_id } = useParams<{
-        organization_id: string;
+    const { project_id } = useParams<{
+        project_id: string;
     }>();
     const [query, setQuery] = useState('');
     const [selectedProperties, setSelectedProperties] = useState<
@@ -62,14 +62,14 @@ const ErrorSearch = () => {
 
     const { loading, data, refetch } = useGetErrorSearchSuggestionsQuery({
         variables: {
-            organization_id,
+            project_id,
             query: '',
         },
     });
 
     const generateOptions = async (input: string, callback: any) => {
         refetch({
-            organization_id,
+            project_id,
             query: input,
         }).then((fetched) => {
             callback(getSuggestions(fetched.data, query, 10));
@@ -198,6 +198,19 @@ const ErrorSearch = () => {
                 multiValue: (provided) => ({
                     ...provided,
                     backgroundColor: 'var(--color-purple-100)',
+                }),
+                option: (provided, state) => ({
+                    ...provided,
+                    paddingTop: 'var(--size-small)',
+                    paddingBottom: 'var(--size-small)',
+                    backgroundColor: state.isFocused
+                        ? 'var(--color-gray-200)'
+                        : state.isSelected
+                        ? 'var(--color-gray-300)'
+                        : 'var(--background-color-primary)',
+                    ':active': {
+                        backgroundColor: 'var(--color-gray-300)',
+                    },
                 }),
                 group: (provided) => ({
                     ...provided,

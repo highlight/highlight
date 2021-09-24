@@ -30,23 +30,23 @@ interface Props {
     parentRef?: React.RefObject<HTMLDivElement>;
 }
 const ErrorComments = ({ parentRef }: Props) => {
-    const { error_id, organization_id } = useParams<{
+    const { error_id, project_id } = useParams<{
         error_id: string;
-        organization_id: string;
+        project_id: string;
     }>();
     const { admin } = useAuthContext();
     const [createComment] = useCreateErrorCommentMutation();
     const {
         data: mentionSuggestionsData,
     } = useGetCommentMentionSuggestionsQuery({
-        variables: { organization_id },
+        variables: { project_id },
     });
     const [commentText, setCommentText] = useState('');
     const [commentTextForEmail, setCommentTextForEmail] = useState('');
     const [isCreatingComment, setIsCreatingComment] = useState(false);
     const [form] = Form.useForm<{ commentText: string }>();
     const { data } = useGetAdminsQuery({
-        variables: { organization_id },
+        variables: { project_id },
     });
     const [mentionedAdmins, setMentionedAdmins] = useState<
         SanitizedAdminInput[]
@@ -56,12 +56,15 @@ const ErrorComments = ({ parentRef }: Props) => {
     >([]);
 
     const onFinish = async () => {
-        H.track('Create Error Comment');
+        H.track('Create Error Comment', {
+            numHighlightAdminMentions: mentionedAdmins.length,
+            numSlackMentions: mentionedSlackUsers.length,
+        });
         setIsCreatingComment(true);
         try {
             await createComment({
                 variables: {
-                    organization_id,
+                    project_id,
                     error_group_id: error_id,
                     text: commentText.trim(),
                     text_for_email: commentTextForEmail.trim(),

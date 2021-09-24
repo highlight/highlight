@@ -79,17 +79,13 @@ export const Toolbar = () => {
     const history = useHistory();
     const toolbarItems = useToolbarItems();
     const { isLoggedIn } = useAuthContext();
-    const { session_id, organization_id } = useParams<{
+    const { session_id, project_id } = useParams<{
         session_id: string;
-        organization_id: string;
+        project_id: string;
     }>();
     const { setIsPlayerFullscreen, isPlayerFullscreen } = usePlayerUIContext();
     const max = replayer?.getMetaData().totalTime ?? 0;
     const sliderWrapperRef = useRef<HTMLButtonElement>(null);
-    const [devToolsPanelContent, setDevToolsPanelContent] = useState<
-        | { title: string | React.ReactNode; content: React.ReactNode }
-        | undefined
-    >(undefined);
     const wrapperWidth =
         sliderWrapperRef.current?.getBoundingClientRect().width ?? 1;
     const [sliderClientX, setSliderClientX] = useState<number>(-1);
@@ -223,8 +219,6 @@ export const Toolbar = () => {
                 value={{
                     openDevTools: showDevTools,
                     setOpenDevTools: setShowDevTools,
-                    panelContent: devToolsPanelContent,
-                    setPanelContent: setDevToolsPanelContent,
                 }}
             >
                 {!isPlayerFullscreen && <TimelineIndicators />}
@@ -311,7 +305,7 @@ export const Toolbar = () => {
                                 session_id
                             );
                             changeSession(
-                                organization_id,
+                                project_id,
                                 history,
                                 nextSession,
                                 'Playing the previous session.'
@@ -373,11 +367,7 @@ export const Toolbar = () => {
                                 sessionResults.sessions,
                                 session_id
                             );
-                            changeSession(
-                                organization_id,
-                                history,
-                                nextSession
-                            );
+                            changeSession(project_id, history, nextSession);
                         }}
                     >
                         <SvgSkipForwardIcon

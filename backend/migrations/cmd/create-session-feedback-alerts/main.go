@@ -15,18 +15,17 @@ func main() {
 		log.Fatalf("error setting up db: %+v", err)
 	}
 
-	var orgs []model.Organization
-	if err := db.Model(&model.Organization{}).Scan(&orgs).Error; err != nil {
-		log.Fatalf("error getting organizations: %v", err)
+	var projects []model.Project
+	if err := db.Model(&model.Project{}).Scan(&projects).Error; err != nil {
+		log.Fatalf("error getting projects: %v", err)
 	}
 
 	thresholdWindow := 30
 	emptiness := "[]"
 	var alerts []model.SessionAlert
-	for _, o := range orgs {
+	for _, o := range projects {
 		alerts = append(alerts, model.SessionAlert{
 			Alert: model.Alert{
-				OrganizationID:       o.ID,
 				ProjectID:            o.ID,
 				ExcludedEnvironments: &emptiness,
 				CountThreshold:       1,

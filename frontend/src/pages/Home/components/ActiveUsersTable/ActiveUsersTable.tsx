@@ -24,13 +24,13 @@ import styles from './ActiveUsersTable.module.scss';
 
 const ActiveUsersTable = () => {
     const [tableData, setTableData] = useState<any[]>([]);
-    const { organization_id } = useParams<{
-        organization_id: string;
+    const { project_id } = useParams<{
+        project_id: string;
     }>();
-    const organizationIdRemapped =
-        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+    const projectIdRemapped =
+        project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-            : organization_id;
+            : project_id;
 
     const {
         setSearchParams,
@@ -42,7 +42,7 @@ const ActiveUsersTable = () => {
     const [filterSearchTerm, setFilterSearchTerm] = useState('');
 
     const { loading } = useGetTopUsersQuery({
-        variables: { organization_id, lookBackPeriod: dateRangeLength },
+        variables: { project_id, lookBackPeriod: dateRangeLength },
         onCompleted: (data) => {
             if (data.topUsers) {
                 const transformedData = data.topUsers
@@ -116,7 +116,7 @@ const ActiveUsersTable = () => {
                     message.success(
                         `Showing sessions for ${record.identifier}`
                     );
-                    history.push(`/${organizationIdRemapped}/sessions`);
+                    history.push(`/${projectIdRemapped}/sessions`);
                 }}
                 noDataMessage={
                     filteredTableData.length === 0 &&
@@ -133,7 +133,7 @@ const ActiveUsersTable = () => {
                             <code>identify()</code> in your app to identify
                             users during their sessions. You can{' '}
                             <a
-                                href="https://docs.highlight.run/docs/identifying-users"
+                                href="https://docs.highlight.run/identifying-users"
                                 target="_blank"
                                 rel="noreferrer"
                             >

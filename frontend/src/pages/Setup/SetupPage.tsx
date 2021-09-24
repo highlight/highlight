@@ -2,6 +2,7 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { useGetProjectQuery } from '@graph/hooks';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import { H } from 'highlight.run';
@@ -16,7 +17,6 @@ import SvgSlackLogo from '../../components/icons/SlackLogo';
 import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import { RadioGroup } from '../../components/RadioGroup/RadioGroup';
-import { useGetOrganizationQuery } from '../../graph/generated/hooks';
 import { GetBaseURL } from '../../util/window';
 import { CodeBlock } from './CodeBlock/CodeBlock';
 import { GatsbySetup } from './Gatsby/GatsbySetup';
@@ -34,13 +34,13 @@ enum PlatformType {
 const SetupPage = ({ integrated }: { integrated: boolean }) => {
     const { admin } = useAuthContext();
     const [platform, setPlatform] = useState(PlatformType.React);
-    const { organization_id } = useParams<{ organization_id: string }>();
-    const organizationIdRemapped =
-        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+    const { project_id } = useParams<{ project_id: string }>();
+    const projectIdRemapped =
+        project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-            : organization_id;
-    const { data, loading } = useGetOrganizationQuery({
-        variables: { id: organization_id },
+            : project_id;
+    const { data, loading } = useGetProjectQuery({
+        variables: { id: project_id },
     });
 
     return (
@@ -63,7 +63,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                 ]}
                 onSelect={(p: PlatformType) => setPlatform(p)}
             />
-            {!data?.organization || loading ? (
+            {!data?.project || loading ? (
                 <Skeleton
                     height={75}
                     count={3}
@@ -73,15 +73,15 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                 <div className={styles.stepsContainer}>
                     {platform === PlatformType.Html ? (
                         <HtmlInstructions
-                            orgVerboseId={data?.organization?.verbose_id}
+                            projectVerboseId={data?.project?.verbose_id}
                         />
                     ) : platform === PlatformType.Gatsby ? (
                         <GatsbySetup
-                            orgVerboseId={data?.organization?.verbose_id}
+                            projectVerboseId={data?.project?.verbose_id}
                         />
                     ) : (
                         <JsAppInstructions
-                            orgVerboseId={data?.organization?.verbose_id}
+                            projectVerboseId={data?.project?.verbose_id}
                             platform={platform}
                         />
                     )}
@@ -95,6 +95,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                             method in your app. Here's an example:
                         </p>
                         <CodeBlock
+                            language="javascript"
                             onCopy={() => {
                                 H.track(
                                     'Copied Code Snippet (Highlight Event)',
@@ -136,7 +137,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                         title={
                             <span className={styles.sectionTitleWithIcon}>
                                 Enable Slack Alerts
-                                {data.organization.slack_webhook_channel ? (
+                                {data.project.slack_webhook_channel ? (
                                     <IntegrationDetector
                                         verbose={false}
                                         integrated={integrated}
@@ -154,10 +155,83 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                         </p>
                         <div className={styles.integrationContainer}>
                             <ButtonLink
-                                to={`/${organizationIdRemapped}/alerts`}
+                                to={`/${projectIdRemapped}/alerts`}
                                 trackingId="ConfigureAlertsFromSetupPage"
                             >
                                 Configure Your Alerts
+                            </ButtonLink>
+                        </div>
+                    </Section>
+                    <Section
+                        title={
+                            <span className={styles.sectionTitleWithIcon}>
+                                Read the Docs
+                            </span>
+                        }
+                        id="slackAlerts"
+                    >
+                        <p>
+                            Interested in learning how Highlight can help you
+                            move faster? Check out our docs!
+                        </p>
+                        <p>Some things you'll learn more about are:</p>
+                        <ul>
+                            <li>
+                                <a
+                                    href="https://docs.highlight.run/comments"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
+                                    Collaborating with comments
+                                </a>
+                            </li>
+                            <li>
+                                <a
+                                    href="https://docs.highlight.run/user-feedback"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
+                                    Collecting user feedback with retained
+                                    context
+                                </a>
+                            </li>
+                            <li>
+                                <a
+                                    href="https://docs.highlight.run/network-devtools"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
+                                    Debugging network requests
+                                </a>
+                            </li>
+                            <li>
+                                <a
+                                    href="https://docs.highlight.run/deployment-overview"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
+                                    On-prem
+                                </a>
+                            </li>
+                            <li>
+                                <a
+                                    href="https://docs.highlight.run/sourcemaps"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
+                                    Getting more useful error stack traces if
+                                    you don't ship sourcemap
+                                </a>
+                            </li>
+                        </ul>
+
+                        <div className={styles.integrationContainer}>
+                            <ButtonLink
+                                anchor
+                                href="https://docs.highlight.run/"
+                                trackingId="SetupPageDocs"
+                            >
+                                Read the Docs
                             </ButtonLink>
                         </div>
                     </Section>
@@ -167,7 +241,11 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
     );
 };
 
-const HtmlInstructions = ({ orgVerboseId }: { orgVerboseId: string }) => {
+const HtmlInstructions = ({
+    projectVerboseId,
+}: {
+    projectVerboseId: string;
+}) => {
     const { loading, error, data = '' } = useFetch<string>(
         'https://unpkg.com/highlight.run@latest',
         {},
@@ -189,6 +267,7 @@ const HtmlInstructions = ({ orgVerboseId }: { orgVerboseId: string }) => {
                     <Skeleton />
                 ) : (
                     <CodeBlock
+                        language="html"
                         onCopy={() => {
                             H.track('Copied Script (Highlight Event)', {
                                 copied: 'script',
@@ -196,7 +275,7 @@ const HtmlInstructions = ({ orgVerboseId }: { orgVerboseId: string }) => {
                         }}
                         text={`<script>
 ${codeStr}
-window.H.init('${orgVerboseId}'${
+window.H.init('${projectVerboseId}'${
                             isOnPrem
                                 ? ', {backendUrl: "' +
                                   GetBaseURL() +
@@ -213,10 +292,10 @@ window.H.init('${orgVerboseId}'${
 
 const JsAppInstructions = ({
     platform,
-    orgVerboseId,
+    projectVerboseId,
 }: {
     platform: PlatformType;
-    orgVerboseId: string;
+    projectVerboseId: string;
 }) => {
     return (
         <>
@@ -224,17 +303,24 @@ const JsAppInstructions = ({
                 <p>
                     Install the <code>{'highlight.run'}</code> package.
                 </p>
-                <CodeBlock text={`npm install highlight.run`} />
+                <CodeBlock
+                    text={`npm install highlight.run`}
+                    language="shell"
+                />
                 <p>or with Yarn:</p>
-                <CodeBlock text={`yarn add highlight.run`} />
+                <CodeBlock text={`yarn add highlight.run`} language="shell" />
             </Section>
             <Section title="Initializing Highlight">
                 <p>Initialize the SDK by importing Highlight like so: </p>
-                <CodeBlock text={`import { H } from 'highlight.run'`} />
+                <CodeBlock
+                    text={`import { H } from 'highlight.run'`}
+                    language="javascript"
+                />
                 <p>
-                    and then calling <code>{getInitSnippet(orgVerboseId)}</code>{' '}
-                    as soon as you can in your site's startup process. You can
-                    configure how Highlight records with the{' '}
+                    and then calling{' '}
+                    <code>{getInitSnippet(projectVerboseId)}</code> as soon as
+                    you can in your site's startup process. You can configure
+                    how Highlight records with the{' '}
                     <a
                         href="https://docs.highlight.run/reference#options"
                         target="_blank"
@@ -247,13 +333,15 @@ const JsAppInstructions = ({
                 <p>
                     {platform !== PlatformType.NextJs ? (
                         <CodeBlock
-                            text={`${getInitSnippet(orgVerboseId, true)}`}
+                            language="javascript"
+                            text={`${getInitSnippet(projectVerboseId, true)}`}
                         />
                     ) : (
                         <CodeBlock
+                            language="javascript"
                             text={`${getInitSnippet(
-                                orgVerboseId
-                            )} // ${orgVerboseId} is your ORG_ID`}
+                                projectVerboseId
+                            )} // ${projectVerboseId} is your PROJECT_ID`}
                         />
                     )}
                 </p>
@@ -269,29 +357,32 @@ const JsAppInstructions = ({
                 </p>
                 {platform === PlatformType.React ? (
                     <CodeBlock
+                        language="javascript"
                         text={`import React from 'react';
 import App from './App';
 import { H } from 'highlight.run'
 
-${getInitSnippet(orgVerboseId)}
+${getInitSnippet(projectVerboseId)}
 
 ReactDOM.render(<App />, document.getElementById('root'));`}
                     />
                 ) : platform === PlatformType.Vue ? (
                     <CodeBlock
+                        language="javascript"
                         text={`import { createApp } from 'vue';
 import App from './App.vue';
 import { H } from 'highlight.run';
 
-${getInitSnippet(orgVerboseId, true)}
+${getInitSnippet(projectVerboseId, true)}
 
 createApp(App).mount('#app');`}
                     />
                 ) : (
                     <CodeBlock
+                        language="javascript"
                         text={`import { H } from 'highlight.run';
 
-${getInitSnippet(orgVerboseId)}
+${getInitSnippet(projectVerboseId)}
 
 function MyApp({ Component, pageProps }) {
   return <Component {...pageProps} />
@@ -324,12 +415,12 @@ export const Section: FunctionComponent<SectionProps> = ({
 
 export default SetupPage;
 
-const getInitSnippet = (orgId: string, withOptions = false) =>
+const getInitSnippet = (projectId: string, withOptions = false) =>
     withOptions
-        ? `H.init('${orgId}', {
+        ? `H.init('${projectId}', {
   environment: 'production',
   enableStrictPrivacy: false,${
       isOnPrem ? '\n  backendUrl: "' + GetBaseURL() + '/public",' : ''
   }
 });`
-        : `H.init('${orgId}');`;
+        : `H.init('${projectId}');`;

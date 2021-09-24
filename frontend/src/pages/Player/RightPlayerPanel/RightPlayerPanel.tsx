@@ -1,5 +1,7 @@
+import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
+import DetailPanel from '@pages/Player/Toolbar/DevToolsWindow/DetailPanel/DetailPanel';
 import classNames from 'classnames';
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import Tabs from '../../../components/Tabs/Tabs';
 import PanelToggleButton from '../components/PanelToggleButton/PanelToggleButton';
@@ -19,8 +21,15 @@ const RightPlayerPanel = () => {
         setShowRightPanel,
     } = usePlayerConfiguration();
     const { canViewSession } = useReplayerContext();
+    const { detailedPanel, setDetailedPanel } = usePlayerUIContext();
 
     const showRightPanel = showRightPanelPreference && canViewSession;
+
+    useEffect(() => {
+        if (detailedPanel) {
+            setShowRightPanel(true);
+        }
+    }, [detailedPanel, setShowRightPanel]);
 
     return (
         <>
@@ -29,6 +38,7 @@ const RightPlayerPanel = () => {
                     [styles.hidden]: !showRightPanel,
                 })}
             >
+                <DetailPanel />
                 <PanelToggleButton
                     className={classNames(
                         playerPageStyles.panelToggleButton,
@@ -40,7 +50,11 @@ const RightPlayerPanel = () => {
                     direction="right"
                     isOpen={showRightPanel}
                     onClick={() => {
-                        setShowRightPanel(!showRightPanel);
+                        if (detailedPanel) {
+                            setDetailedPanel(undefined);
+                        } else {
+                            setShowRightPanel(!showRightPanel);
+                        }
                     }}
                 />
                 <div className={styles.playerRightPanelCollapsible}>

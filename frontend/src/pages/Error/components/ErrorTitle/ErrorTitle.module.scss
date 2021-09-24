@@ -9,6 +9,11 @@
         column-gap: var(--size-medium);
         display: flex;
         justify-content: space-between;
+
+        h3 {
+            margin-bottom: 0 !important;
+            overflow-wrap: anywhere;
+        }
     }
 
     > button {

@@ -42,18 +42,18 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
 	}
-	sessionPayloadSize, err := w.S3Client.PushFileToS3(ctx, s.ID, s.OrganizationID, eventsFile, storage.S3SessionsPayloadBucketName, storage.SessionContents)
+	sessionPayloadSize, err := w.S3Client.PushFileToS3(ctx, s.ID, s.ProjectID, eventsFile, storage.S3SessionsPayloadBucketName, storage.SessionContents)
 	// If this is unsucessful, return early (we treat this session as if it is stored in psql).
 	if err != nil {
 		return errors.Wrap(err, "error pushing session payload to s3")
 	}
 
-	resourcePayloadSize, err := w.S3Client.PushFileToS3(ctx, s.ID, s.OrganizationID, resourcesFile, storage.S3SessionsPayloadBucketName, storage.NetworkResources)
+	resourcePayloadSize, err := w.S3Client.PushFileToS3(ctx, s.ID, s.ProjectID, resourcesFile, storage.S3SessionsPayloadBucketName, storage.NetworkResources)
 	if err != nil {
 		return errors.Wrap(err, "error pushing network payload to s3")
 	}
 
-	messagePayloadSize, err := w.S3Client.PushFileToS3(ctx, s.ID, s.OrganizationID, messagesFile, storage.S3SessionsPayloadBucketName, storage.ConsoleMessages)
+	messagePayloadSize, err := w.S3Client.PushFileToS3(ctx, s.ID, s.ProjectID, messagesFile, storage.S3SessionsPayloadBucketName, storage.ConsoleMessages)
 	if err != nil {
 		return errors.Wrap(err, "error pushing network payload to s3")
 	}
@@ -223,7 +223,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	//Delete the session if there's no events.
 	if payloadManager.Events.Length == 0 {
-		log.WithFields(log.Fields{"session_id": s.ID, "org_id": s.OrganizationID}).Warn("there are no events for session")
+		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Warn("there are no events for session")
 		if err := w.Resolver.DB.Select(clause.Associations).Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
 			return errors.Wrap(err, "error trying to delete associations for session with no events")
 		}
@@ -275,7 +275,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// 1. Nothing happened in the session
 	// 2. A web crawler visited the page and produced no events
 	if activeDuration == 0 {
-		log.WithFields(log.Fields{"session_id": s.ID, "org_id": s.OrganizationID}).Warn("active duration is 0 for session, deleting...")
+		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Warn("active duration is 0 for session, deleting...")
 		if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Delete(&model.EventsObject{}).Error; err != nil {
 			return errors.Wrap(err, "error trying to delete events_object for session of length 0ms")
 		}
@@ -305,8 +305,8 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	dailySession := &model.DailySessionCount{}
 	if err := w.Resolver.DB.
 		Where(&model.DailySessionCount{
-			OrganizationID: s.OrganizationID,
-			Date:           &currentDate,
+			ProjectID: s.ProjectID,
+			Date:      &currentDate,
 		}).Attrs(&model.DailySessionCount{Count: 0}).
 		FirstOrCreate(&dailySession).Error; err != nil {
 		return e.Wrap(err, "Error creating new daily session")
@@ -319,10 +319,10 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	var g errgroup.Group
-	organizationID := s.OrganizationID
-	org := &model.Organization{}
-	if err := w.Resolver.DB.Where(&model.Organization{Model: model.Model{ID: s.OrganizationID}}).First(&org).Error; err != nil {
-		return e.Wrap(err, "error querying org")
+	projectID := s.ProjectID
+	project := &model.Project{}
+	if err := w.Resolver.DB.Where(&model.Project{Model: model.Model{ID: s.ProjectID}}).First(&project).Error; err != nil {
+		return e.Wrap(err, "error querying project")
 	}
 
 	g.Go(func() error {
@@ -332,14 +332,14 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			return nil
 		}
 		var sessionAlert model.SessionAlert
-		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type IS NULL OR type=?", model.AlertType.NEW_USER).First(&sessionAlert).Error; err != nil {
-			return e.Wrapf(err, "[org_id: %d] error fetching new user alert", organizationID)
+		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Where("type IS NULL OR type=?", model.AlertType.NEW_USER).First(&sessionAlert).Error; err != nil {
+			return e.Wrapf(err, "[project_id: %d] error fetching new user alert", projectID)
 		}
 
 		// check if session was produced from an excluded environment
 		excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
 		if err != nil {
-			return e.Wrapf(err, "[org_id: %d] error getting excluded environments from new user alert", organizationID)
+			return e.Wrapf(err, "[project_id: %d] error getting excluded environments from new user alert", projectID)
 		}
 		isExcludedEnvironment := false
 		for _, env := range excludedEnvironments {
@@ -355,13 +355,13 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		// get produced user properties from session
 		userProperties, err := s.GetUserProperties()
 		if err != nil {
-			return e.Wrapf(err, "[org_id: %d] error getting user properties from new user alert", s.OrganizationID)
+			return e.Wrapf(err, "[project_id: %d] error getting user properties from new user alert", s.ProjectID)
 		}
 
 		// send Slack message
-		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Organization: org, SessionID: s.ID, UserIdentifier: s.Identifier, UserProperties: userProperties})
+		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Project: project, SessionID: s.ID, UserIdentifier: s.Identifier, UserProperties: userProperties})
 		if err != nil {
-			return e.Wrapf(err, "[org_id: %d] error sending slack message for new user alert", organizationID)
+			return e.Wrapf(err, "[project_id: %d] error sending slack message for new user alert", projectID)
 		}
 		return nil
 	})
@@ -369,13 +369,13 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	g.Go(func() error {
 		// Sending Track Properties Alert
 		var sessionAlert model.SessionAlert
-		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type=?", model.AlertType.TRACK_PROPERTIES).First(&sessionAlert).Error; err != nil {
-			return e.Wrapf(err, "[org_id: %d] error fetching track properties alert", organizationID)
+		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Where("type=?", model.AlertType.TRACK_PROPERTIES).First(&sessionAlert).Error; err != nil {
+			return e.Wrapf(err, "[project_id: %d] error fetching track properties alert", projectID)
 		}
 
 		excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
 		if err != nil {
-			return e.Wrapf(err, "[org_id: %d] error getting excluded environments from track properties alert", organizationID)
+			return e.Wrapf(err, "[project_id: %d] error getting excluded environments from track properties alert", projectID)
 		}
 		isExcludedEnvironment := false
 		for _, env := range excludedEnvironments {
@@ -398,7 +398,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			trackPropertyIds = append(trackPropertyIds, trackProperty.ID)
 		}
 		stmt := w.Resolver.DB.Model(&model.Field{}).
-			Where(&model.Field{OrganizationID: organizationID, Type: "track"}).
+			Where(&model.Field{ProjectID: projectID, Type: "track"}).
 			Where("id IN (SELECT field_id FROM session_fields WHERE session_id=?)", s.ID).
 			Where("id IN ?", trackPropertyIds)
 		var matchedFields []*model.Field
@@ -410,7 +410,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 
 		// send Slack message
-		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Organization: org, SessionID: s.ID, UserIdentifier: s.Identifier, MatchedFields: matchedFields})
+		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Project: project, SessionID: s.ID, UserIdentifier: s.Identifier, MatchedFields: matchedFields})
 		if err != nil {
 			return e.Wrap(err, "error sending track properties alert slack message")
 		}
@@ -420,14 +420,14 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	g.Go(func() error {
 		// Sending User Properties Alert
 		var sessionAlert model.SessionAlert
-		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type=?", model.AlertType.USER_PROPERTIES).First(&sessionAlert).Error; err != nil {
-			return e.Wrapf(err, "[org_id: %d] error fetching user properties alert", organizationID)
+		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Where("type=?", model.AlertType.USER_PROPERTIES).First(&sessionAlert).Error; err != nil {
+			return e.Wrapf(err, "[project_id: %d] error fetching user properties alert", projectID)
 		}
 
 		// check if session was produced from an excluded environment
 		excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
 		if err != nil {
-			return e.Wrapf(err, "[org_id: %d] error getting excluded environments from user properties alert", organizationID)
+			return e.Wrapf(err, "[project_id: %d] error getting excluded environments from user properties alert", projectID)
 		}
 		isExcludedEnvironment := false
 		for _, env := range excludedEnvironments {
@@ -450,7 +450,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			userPropertyIds = append(userPropertyIds, userProperty.ID)
 		}
 		stmt := w.Resolver.DB.Model(&model.Field{}).
-			Where(&model.Field{OrganizationID: organizationID, Type: "user"}).
+			Where(&model.Field{ProjectID: projectID, Type: "user"}).
 			Where("id IN (SELECT field_id FROM session_fields WHERE session_id=?)", s.ID).
 			Where("id IN ?", userPropertyIds)
 		var matchedFields []*model.Field
@@ -462,7 +462,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 
 		// send Slack message
-		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Organization: org, SessionID: s.ID, UserIdentifier: s.Identifier, MatchedFields: matchedFields})
+		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Project: project, SessionID: s.ID, UserIdentifier: s.Identifier, MatchedFields: matchedFields})
 		if err != nil {
 			return e.Wrapf(err, "error sending user properties alert slack message")
 		}
@@ -471,14 +471,14 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	// Waits for all goroutines to finish, then returns the first non-nil error (if any).
 	if err := g.Wait(); err != nil {
-		log.WithFields(log.Fields{"session_id": s.ID, "org_id": s.OrganizationID}).Error(e.Wrap(err, "error sending slack alert"))
+		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Error(e.Wrap(err, "error sending slack alert"))
 	}
 
 	// Upload to s3 and wipe from the db.
 	if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" {
 		state := "normal"
 		if err := w.pushToObjectStorageAndWipe(ctx, s, &state, eventsFile, resourcesFile, messagesFile); err != nil {
-			log.WithFields(log.Fields{"session_id": s.ID, "org_id": s.OrganizationID}).Error(e.Wrap(err, "error pushing to object and wiping from db"))
+			log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Error(e.Wrap(err, "error pushing to object and wiping from db"))
 		}
 	}
 	return nil
@@ -512,13 +512,12 @@ func (w *Worker) Start() {
 		hlog.Histogram("worker.sessionsQuery.sessionCount", float64(len(sessions)), nil, 1) //nolint
 		sessionsSpan.Finish()
 		type SessionLog struct {
-			SessionID      int
-			OrganizationID int
-			ProjectID      int
+			SessionID int
+			ProjectID int
 		}
 		sessionIds := []SessionLog{}
 		for _, session := range sessions {
-			sessionIds = append(sessionIds, SessionLog{SessionID: session.ID, OrganizationID: session.OrganizationID, ProjectID: session.OrganizationID})
+			sessionIds = append(sessionIds, SessionLog{SessionID: session.ID, ProjectID: session.ProjectID})
 		}
 		if len(sessionIds) > 0 {
 			log.Infof("sessions that will be processed: %v", sessionIds)

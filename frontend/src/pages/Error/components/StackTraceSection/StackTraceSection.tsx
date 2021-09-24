@@ -52,7 +52,7 @@ const StackTraceSection = ({ errorGroup, loading }: Props) => {
                             <ButtonLink
                                 anchor
                                 trackingId="stackFrameLearnMoreAboutPrivateSourcemaps"
-                                href="https://docs.highlight.run/docs/sending-sourcemaps"
+                                href="https://docs.highlight.run/sourcemaps"
                             >
                                 Learn More
                             </ButtonLink>

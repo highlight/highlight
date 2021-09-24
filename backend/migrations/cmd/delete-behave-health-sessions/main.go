@@ -24,7 +24,7 @@ func main() {
 	if err := db.Debug().Raw(`
 		SELECT id
 		FROM sessions
-		WHERE organization_id=?
+		WHERE project_id=?
 		AND identifier ILIKE '%?%'
 	`, 1, "behavehealth.com").Scan(&ids).Error; err != nil {
 		log.Fatalf("epic fail lol gotem: %v", err)
@@ -49,7 +49,7 @@ func main() {
 
 	if err := db.Debug().Raw(`
 		DELETE FROM sessions
-		WHERE organization_id=?
+		WHERE project_id=?
 		AND identifier ILIKE '%?%'
 	`, 1, "behavehealth.com").Error; err != nil {
 		log.Fatalf("failed to delete behave health sessions: %v", err)
