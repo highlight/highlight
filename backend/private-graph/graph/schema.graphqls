@@ -140,7 +140,6 @@ type ErrorGroup {
 
 type ErrorMetadata {
     error_id: Int!
-    error_secure_id: String!
     session_id: Int!
     session_secure_id: String!
     environment: String
