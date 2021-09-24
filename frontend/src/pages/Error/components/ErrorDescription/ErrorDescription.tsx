@@ -1,6 +1,6 @@
 import Card from '@components/Card/Card';
+import JsonViewer from '@components/JsonViewer/JsonViewer';
 import React, { useEffect, useState } from 'react';
-import ReactJson from 'react-json-view';
 import LinesEllipsis from 'react-lines-ellipsis';
 
 import { ErrorGroup, Maybe } from '../../../../graph/generated/schemas';
@@ -55,15 +55,7 @@ const ErrorDescription = ({ errorGroup }: Props) => {
                 </>
             ) : (
                 <Card>
-                    <ReactJson
-                        src={textAsJson}
-                        collapsed={1}
-                        displayDataTypes={false}
-                        collapseStringsAfterLength={100}
-                        iconStyle="square"
-                        quotesOnKeys={false}
-                        name={null}
-                    />
+                    <JsonViewer src={textAsJson} collapsed={1} />
                 </Card>
             )}
         </>
