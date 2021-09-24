@@ -1,3 +1,4 @@
+import { ErrorState } from '@components/ErrorState/ErrorState';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import moment from 'moment';
@@ -53,7 +54,10 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
         project_id: string;
     }>();
 
-    const [getErrorGroupQuery, { data, loading }] = useGetErrorGroupLazyQuery({
+    const [
+        getErrorGroupQuery,
+        { data, loading, error: errorQueryingErrorGroup },
+    ] = useGetErrorGroupLazyQuery({
         variables: { id: error_id },
     });
     const { isLoggedIn } = useAuthContext();
@@ -86,6 +90,17 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
     }, [error_id, getErrorGroupQuery, isLoggedIn]);
 
     const { showLeftPanel } = useErrorPageConfiguration();
+
+    if (errorQueryingErrorGroup) {
+        return (
+            <ErrorState
+                message={`
+                This error is invalid or has not been made public.
+                `}
+                errorString={''}
+            />
+        );
+    }
 
     return (
         <ErrorSearchContextProvider
