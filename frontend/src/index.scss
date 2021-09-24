@@ -282,7 +282,6 @@ a {
 
 code {
     border-radius: 4px;
-    padding: 5px;
     line-height: 2;
     margin: 0;
     font-family: var(--monospace-font-family);
@@ -292,6 +291,7 @@ code:not([class]) {
     background-color: var(--color-secondary-background);
     border: 1px solid var(--color-gray-300);
     font-size: 87.5%;
+    padding: 1px 3px;
 }
 
 .ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input)
