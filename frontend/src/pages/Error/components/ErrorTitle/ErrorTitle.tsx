@@ -21,7 +21,6 @@ const ErrorTitle = ({ errorGroup, showShareButton = true }: Props) => {
             try {
                 if (errorGroup?.event && errorGroup.event.length > 0) {
                     const json = JSON.parse(errorGroup.event.toString() || '');
-                    console.log(json);
 
                     if (Array.isArray(json)) {
                         setHeaderTextAsJson(json[0]);
@@ -32,8 +31,6 @@ const ErrorTitle = ({ errorGroup, showShareButton = true }: Props) => {
             }
         }
     }, [errorGroup?.event, headerText]);
-
-    console.log(headerTextAsJson);
 
     return (
         <header className={styles.header}>
