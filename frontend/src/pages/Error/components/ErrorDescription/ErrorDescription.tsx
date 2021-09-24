@@ -14,7 +14,7 @@ interface Props {
 const ErrorDescription = ({ errorGroup }: Props) => {
     const [showExpandButton, setShowExpandButton] = useState(true);
     const [eventLineExpand, setEventLineExpand] = useState(false);
-    const [textAsJson, setTextAsJson] = useState<null | any>(false);
+    const [textAsJson, setTextAsJson] = useState<null | any>(null);
 
     const text = parseErrorDescription(errorGroup?.event);
 
