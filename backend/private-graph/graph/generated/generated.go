@@ -145,19 +145,20 @@ type ComplexityRoot struct {
 	}
 
 	ErrorObject struct {
-		ColumnNumber func(childComplexity int) int
-		ErrorGroupID func(childComplexity int) int
-		Event        func(childComplexity int) int
-		ID           func(childComplexity int) int
-		LineNumber   func(childComplexity int) int
-		Payload      func(childComplexity int) int
-		ProjectID    func(childComplexity int) int
-		SessionID    func(childComplexity int) int
-		Source       func(childComplexity int) int
-		StackTrace   func(childComplexity int) int
-		Timestamp    func(childComplexity int) int
-		Type         func(childComplexity int) int
-		URL          func(childComplexity int) int
+		ColumnNumber       func(childComplexity int) int
+		ErrorGroupID       func(childComplexity int) int
+		ErrorGroupSecureID func(childComplexity int) int
+		Event              func(childComplexity int) int
+		ID                 func(childComplexity int) int
+		LineNumber         func(childComplexity int) int
+		Payload            func(childComplexity int) int
+		ProjectID          func(childComplexity int) int
+		SessionID          func(childComplexity int) int
+		Source             func(childComplexity int) int
+		StackTrace         func(childComplexity int) int
+		Timestamp          func(childComplexity int) int
+		Type               func(childComplexity int) int
+		URL                func(childComplexity int) int
 	}
 
 	ErrorResults struct {
@@ -456,6 +457,7 @@ type ErrorGroupResolver interface {
 	ErrorFrequency(ctx context.Context, obj *model1.ErrorGroup) ([]*int64, error)
 }
 type ErrorObjectResolver interface {
+	ErrorGroupSecureID(ctx context.Context, obj *model1.ErrorObject) (string, error)
 	Event(ctx context.Context, obj *model1.ErrorObject) ([]*string, error)
 
 	StackTrace(ctx context.Context, obj *model1.ErrorObject) ([]interface{}, error)
@@ -992,6 +994,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorObject.ErrorGroupID(childComplexity), true
+
+	case "ErrorObject.error_group_secure_id":
+		if e.complexity.ErrorObject.ErrorGroupSecureID == nil {
+			break
+		}
+
+		return e.complexity.ErrorObject.ErrorGroupSecureID(childComplexity), true
 
 	case "ErrorObject.event":
 		if e.complexity.ErrorObject.Event == nil {
@@ -3024,6 +3033,7 @@ type ErrorObject {
     project_id: Int!
     session_id: Int!
     error_group_id: Int!
+    error_group_secure_id: String!
     event: [String]!
     type: String!
     url: String!
@@ -7708,6 +7718,41 @@ func (ec *executionContext) _ErrorObject_error_group_id(ctx context.Context, fie
 	res := resTmp.(int)
 	fc.Result = res
 	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorObject_error_group_secure_id(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ErrorObject",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ErrorObject().ErrorGroupSecureID(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorObject_event(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
@@ -17371,6 +17416,20 @@ func (ec *executionContext) _ErrorObject(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "error_group_secure_id":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ErrorObject_error_group_secure_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "event":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
