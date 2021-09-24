@@ -69,10 +69,14 @@
             "environmentFiles": null,
             "logConfiguration": {
                 "logDriver": "awsfirelens",
-                "secretOptions": null,
+                "secretOptions": [
+                    {
+                        "valueFrom": "DD_API_KEY",
+                        "name": "apiKey"
+                    }
+                ],
                 "options": {
                     "dd_message_key": "log",
-                    "apiKey": "DD_API_KEY",
                     "provider": "ecs",
                     "dd_service": "worker-service",
                     "Host": "http-intake.logs.datadoghq.com",
