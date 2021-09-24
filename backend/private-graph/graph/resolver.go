@@ -13,6 +13,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
 	"github.com/stripe/stripe-go/client"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/model"
@@ -60,6 +61,8 @@ func (r *Resolver) isDemoProject(project_id int) bool {
 // isAdminInProjectOrDemoProject should be used for actions that you want admins in all projects
 // and laymen in the demo project to have access to.
 func (r *Resolver) isAdminInProjectOrDemoProject(ctx context.Context, project_id int) (*model.Project, error) {
+	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("isAdminInProjectOrDemoProject"))
+	defer authSpan.Finish()
 	var project *model.Project
 	var err error
 	if r.isDemoProject(project_id) {
@@ -219,6 +222,8 @@ func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupID *int
 }
 
 func (r *Resolver) canAdminViewErrorGroup(ctx context.Context, errorGroupID *int, errorGroupSecureID *string) (*model.ErrorGroup, error) {
+	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminViewErrorGroup"))
+	defer authSpan.Finish()
 	errorGroup, isOwner, err := r.doesAdminOwnErrorGroup(ctx, errorGroupID, errorGroupSecureID)
 	if err == nil && isOwner {
 		return errorGroup, nil
@@ -230,6 +235,8 @@ func (r *Resolver) canAdminViewErrorGroup(ctx context.Context, errorGroupID *int
 }
 
 func (r *Resolver) canAdminModifyErrorGroup(ctx context.Context, errorGroupID *int, errorGroupSecureID *string) (*model.ErrorGroup, error) {
+	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminModifyErrorGroup"))
+	defer authSpan.Finish()
 	errorGroup, isOwner, err := r.doesAdminOwnErrorGroup(ctx, errorGroupID, errorGroupSecureID)
 	if err == nil && isOwner {
 		return errorGroup, nil
@@ -260,6 +267,8 @@ func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_id *int, se
 }
 
 func (r *Resolver) canAdminViewSession(ctx context.Context, session_id *int, session_secure_id *string) (*model.Session, error) {
+	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminViewSession"))
+	defer authSpan.Finish()
 	session, isOwner, err := r._doesAdminOwnSession(ctx, session_id, session_secure_id)
 	if err == nil && isOwner {
 		return session, nil
@@ -271,6 +280,8 @@ func (r *Resolver) canAdminViewSession(ctx context.Context, session_id *int, ses
 }
 
 func (r *Resolver) canAdminModifySession(ctx context.Context, session_id *int, session_secure_id *string) (*model.Session, error) {
+	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminModifySession"))
+	defer authSpan.Finish()
 	session, isOwner, err := r._doesAdminOwnSession(ctx, session_id, session_secure_id)
 	if err == nil && isOwner {
 		return session, nil
@@ -279,6 +290,8 @@ func (r *Resolver) canAdminModifySession(ctx context.Context, session_id *int, s
 }
 
 func (r *Resolver) isAdminSegmentOwner(ctx context.Context, segment_id int) (*model.Segment, error) {
+	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("isAdminSegmentOwner"))
+	defer authSpan.Finish()
 	segment := &model.Segment{}
 	if err := r.DB.Where(&model.Segment{Model: model.Model{ID: segment_id}}).First(&segment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying segment")
@@ -291,6 +304,8 @@ func (r *Resolver) isAdminSegmentOwner(ctx context.Context, segment_id int) (*mo
 }
 
 func (r *Resolver) isAdminErrorSegmentOwner(ctx context.Context, error_segment_id int) (*model.ErrorSegment, error) {
+	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("isAdminErrorSegmentOwner"))
+	defer authSpan.Finish()
 	segment := &model.ErrorSegment{}
 	if err := r.DB.Where(&model.ErrorSegment{Model: model.Model{ID: error_segment_id}}).First(&segment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error segment")
