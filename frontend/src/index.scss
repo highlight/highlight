@@ -267,11 +267,13 @@ a {
 }
 
 .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
-    background-color: var(--color-blue-100) !important;
+    background-color: var(--color-gray-200) !important;
 }
 
 .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
-    background-color: var(--color-blue-200) !important;
+    background-color: var(--color-purple) !important;
+    color: var(--text-primary-inverted) !important;
+    font-weight: normal !important;
 }
 
 .ant-select-item {
