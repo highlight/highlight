@@ -121,7 +121,7 @@ func main() {
 	shouldLog := !util.IsDevOrTestEnv() && !util.IsOnPrem()
 	if shouldLog {
 		log.Info("Running dd client setup process...")
-		if err := dd.Start(); err != nil {
+		if err := dd.Start(runtimeParsed); err != nil {
 			log.Fatal(e.Wrap(err, "error starting dd clients with error"))
 		} else {
 			defer dd.Stop()
