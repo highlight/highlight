@@ -61,6 +61,7 @@ $right-padding: 12px;
 .networkTableWrapper {
     height: calc(100% - var(--player-toolbar-height));
     margin-left: 1px;
+    overflow-x: auto;
     position: relative;
 }
 
@@ -227,4 +228,8 @@ $canvas-width: calc(
     column-gap: var(--size-medium);
     display: flex;
     justify-content: space-between;
+}
+
+.virtuoso {
+    overflow-x: hidden;
 }

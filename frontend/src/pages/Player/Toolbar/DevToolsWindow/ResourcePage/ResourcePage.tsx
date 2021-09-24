@@ -268,6 +268,7 @@ export const ResourcePage = ({
                                     ref={virtuoso}
                                     overscan={500}
                                     data={resourcesToRender}
+                                    className={styles.virtuoso}
                                     itemContent={(index, resource) => (
                                         <ResourceRow
                                             key={index.toString()}

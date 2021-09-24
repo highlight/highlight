@@ -166,6 +166,7 @@ export type ErrorGroup = {
 export type ErrorMetadata = {
     __typename?: 'ErrorMetadata';
     error_id: Scalars['Int'];
+    error_secure_id: Scalars['String'];
     session_id: Scalars['Int'];
     session_secure_id: Scalars['String'];
     environment?: Maybe<Scalars['String']>;
