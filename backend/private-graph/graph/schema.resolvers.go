@@ -693,7 +693,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 				tracer.ResourceName("slackBot.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedSlackUsers)))
 			defer commentMentionSlackSpan.Finish()
 
-			err := r.SendSlackAlertToUser(&project, admin, taggedSlackUsers, viewLink, textForEmail, "session")
+			err := r.SendSlackAlertToUser(&project, admin, taggedSlackUsers, viewLink, textForEmail, "session", sessionImage)
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in session comment for slack bot"))
 			}
@@ -785,6 +785,19 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 			err = r.SendPersonalSlackAlert(&project, admin, adminIds, viewLink, textForEmail, "error")
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in error comment"))
+			}
+		}()
+
+	}
+	if len(taggedSlackUsers) > 0 && !isGuest {
+		go func() {
+			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
+				tracer.ResourceName("slackBot.sendErrorCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedSlackUsers)))
+			defer commentMentionSlackSpan.Finish()
+
+			err := r.SendSlackAlertToUser(&project, admin, taggedSlackUsers, viewLink, textForEmail, "error", nil)
+			if err != nil {
+				log.Error(e.Wrap(err, "error notifying tagged admins in error comment for slack bot"))
 			}
 		}()
 	}

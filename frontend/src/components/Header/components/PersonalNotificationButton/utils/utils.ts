@@ -19,7 +19,7 @@ export interface UseSlackBotProps {
 const PersonalSlackScopes =
     'channels:manage,groups:write,im:write,mpim:write,chat:write';
 const OrganizationSlackScopes =
-    'channels:join,channels:manage,channels:read,chat:write,groups:read,groups:write,im:read,im:write,mpim:read,mpim:write,users:read';
+    'channels:join,channels:manage,channels:read,chat:write,groups:read,groups:write,im:read,im:write,mpim:read,mpim:write,users:read,files:write';
 
 export const useSlackBot = ({ type, watch }: UseSlackBotProps) => {
     let redirectPath = window.location.pathname;

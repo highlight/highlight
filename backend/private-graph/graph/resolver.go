@@ -2,10 +2,12 @@ package graph
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	e "github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
@@ -539,7 +541,7 @@ func (r *Resolver) SendPersonalSlackAlert(project *model.Project, admin *model.A
 	return nil
 }
 
-func (r *Resolver) SendSlackAlertToUser(project *model.Project, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, viewLink, commentText, subjectScope string) error {
+func (r *Resolver) SendSlackAlertToUser(project *model.Project, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, viewLink, commentText, subjectScope string, base64Image *string) error {
 	// this is needed for posting DMs
 	// if nil, user simply hasn't signed up for notifications, so return nil
 	if project.SlackAccessToken == nil {
@@ -589,6 +591,65 @@ func (r *Resolver) SendSlackAlertToUser(project *model.Project, admin *model.Adm
 			_, _, err = slackClient.PostMessage(*slackUser.WebhookChannelID, slack.MsgOptionBlocks(blockSet.BlockSet...))
 			if err != nil {
 				return e.Wrap(err, "error posting slack message via slack bot")
+			}
+		}
+	}
+
+	// Upload the screenshot to the user's Slack workspace.
+	// We do this instead of upload it to S3 or somewhere else to defer authorization checks to Slack.
+	// If we upload the image somewhere public, anyone with the link to the image will have access. The image could contain sensitive information.
+	// By uploading to the user's Slack workspace, we limit the authorization of the image to only Slack members of the user's workspace.
+	var uploadedFileKey string
+	if base64Image != nil {
+		var channels []string
+		for _, slackUser := range taggedSlackUsers {
+			channels = append(channels, *slackUser.WebhookChannelID)
+		}
+
+		// This key will be used as the file name for the file written to disk.
+		// This needs to be unique. The uniqueness is guaranteed by the project ID, the admin who created the comment's ID, and the current time
+		uploadedFileKey = fmt.Sprintf("slack-image-%d-%d-%d.png", project.ID, admin.ID, time.Now().UnixNano())
+
+		// We are writing the base64 string to disk as a png. We need to do this because the Slack Go client
+		// doesn't support uploading files as base64.
+		// This is something we'll need to revisit when we start getting larger traffic for comments.
+		// The reason for this is each task has disk space of 20GB, each image is around 200 KB. Ideally we do everything in memory without relying on disk.
+		dec, err := base64.StdEncoding.DecodeString(*base64Image)
+		if err != nil {
+			log.Error(e.Wrap(err, "Failed to decode base64 image"))
+		}
+		f, err := os.Create(uploadedFileKey)
+		if err != nil {
+			log.Error(e.Wrap(err, "Failed to create file on disk"))
+		}
+		defer f.Close()
+		if _, err := f.Write(dec); err != nil {
+			log.Error(e.Wrap(err, "Failed to write file on disk"))
+		}
+		if err := f.Sync(); err != nil {
+			log.Error("Failed to sync file on disk")
+		}
+
+		// We need to write the base64 image to disk, read the file, then upload it to Slack.
+		// We can't send Slack a base64 string.
+		fileUploadParams := slack.FileUploadParameters{
+			Filetype: "image/png",
+			Filename: fmt.Sprintf("Highlight %s Image.png", subjectScope),
+			// These are the channels that will have access to the uploaded file.
+			Channels: channels,
+			File:     uploadedFileKey,
+			Title:    fmt.Sprintf("File from Highlight uploaded on behalf of %s", *admin.Name),
+		}
+		_, err = slackClient.UploadFile(fileUploadParams)
+
+		if err != nil {
+			log.Error(e.Wrap(err, "failed to upload file to Slack"))
+		}
+
+		if uploadedFileKey != "" {
+			if err := os.Remove(uploadedFileKey); err != nil {
+				log.Error(e.Wrap(err, "Failed to remove temporary session screenshot"))
+
 			}
 		}
 	}
