@@ -161,6 +161,79 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                             </ButtonLink>
                         </div>
                     </Section>
+                    <Section
+                        title={
+                            <span className={styles.sectionTitleWithIcon}>
+                                Read the Docs
+                            </span>
+                        }
+                        id="slackAlerts"
+                    >
+                        <p>
+                            Interested in learning how Highlight can help you
+                            move faster? Check out our docs!
+                        </p>
+                        <p>Some things you'll learn more about are:</p>
+                        <ul>
+                            <li>
+                                <a
+                                    href="https://docs.highlight.run/comments"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
+                                    Collaborating with comments
+                                </a>
+                            </li>
+                            <li>
+                                <a
+                                    href="https://docs.highlight.run/user-feedback"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
+                                    Collecting user feedback with retained
+                                    context
+                                </a>
+                            </li>
+                            <li>
+                                <a
+                                    href="https://docs.highlight.run/network-devtools"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
+                                    Debugging network requests
+                                </a>
+                            </li>
+                            <li>
+                                <a
+                                    href="https://docs.highlight.run/deployment-overview"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
+                                    On-prem
+                                </a>
+                            </li>
+                            <li>
+                                <a
+                                    href="https://docs.highlight.run/sourcemaps"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
+                                    Getting more useful error stack traces if
+                                    you don't ship sourcemap
+                                </a>
+                            </li>
+                        </ul>
+
+                        <div className={styles.integrationContainer}>
+                            <ButtonLink
+                                anchor
+                                href="https://docs.highlight.run/"
+                                trackingId="SetupPageDocs"
+                            >
+                                Read the Docs
+                            </ButtonLink>
+                        </div>
+                    </Section>
                 </div>
             )}
         </LeadAlignLayout>
