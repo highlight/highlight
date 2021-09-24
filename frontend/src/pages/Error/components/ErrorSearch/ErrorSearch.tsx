@@ -199,6 +199,19 @@ const ErrorSearch = () => {
                     ...provided,
                     backgroundColor: 'var(--color-purple-100)',
                 }),
+                option: (provided, state) => ({
+                    ...provided,
+                    paddingTop: 'var(--size-small)',
+                    paddingBottom: 'var(--size-small)',
+                    backgroundColor: state.isFocused
+                        ? 'var(--color-gray-200)'
+                        : state.isSelected
+                        ? 'var(--color-gray-300)'
+                        : 'var(--background-color-primary)',
+                    ':active': {
+                        backgroundColor: 'var(--color-gray-300)',
+                    },
+                }),
                 group: (provided) => ({
                     ...provided,
                     paddingTop: 0,

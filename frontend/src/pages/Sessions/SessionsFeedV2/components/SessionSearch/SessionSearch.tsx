@@ -186,6 +186,7 @@ const SessionSearch = () => {
                     setQuery('');
                 }
             }}
+            menuIsOpen
             components={{
                 LoadingIndicator: null,
                 DropdownIndicator: () => (
@@ -294,6 +295,19 @@ const SessionSearch = () => {
                     ...provided,
                     paddingTop: 0,
                     paddingBottom: 0,
+                }),
+                option: (provided, state) => ({
+                    ...provided,
+                    paddingTop: 'var(--size-small)',
+                    paddingBottom: 'var(--size-small)',
+                    backgroundColor: state.isFocused
+                        ? 'var(--color-gray-200)'
+                        : state.isSelected
+                        ? 'var(--color-gray-300)'
+                        : 'var(--background-color-primary)',
+                    ':active': {
+                        backgroundColor: 'var(--color-gray-300)',
+                    },
                 }),
                 groupHeading: (provided) => ({
                     ...provided,
