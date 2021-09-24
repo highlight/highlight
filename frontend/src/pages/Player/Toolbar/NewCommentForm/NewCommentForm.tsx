@@ -4,6 +4,7 @@ import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import { Form, message } from 'antd';
 import { H } from 'highlight.run';
+import html2canvas from 'html2canvas';
 import React, { useMemo, useState } from 'react';
 import { OnChangeHandlerFunc } from 'react-mentions';
 
@@ -28,7 +29,6 @@ import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguratio
 import { useReplayerContext } from '../../ReplayerContext';
 import CommentTextBody from './CommentTextBody/CommentTextBody';
 import styles from './NewCommentForm.module.scss';
-// import html2canvas from 'html2canvas';
 
 interface Props {
     currentTime: number;
@@ -83,16 +83,16 @@ export const NewCommentForm = ({
             numSlackMentions: mentionedSlackUsers.length,
         });
         setIsCreatingComment(true);
-        // const canvas = await html2canvas(
-        //     (document.querySelector(
-        //         '.replayer-wrapper iframe'
-        //     ) as HTMLIFrameElement).contentDocument!.documentElement,
-        //     {
-        //         allowTaint: true,
-        //         logging: false,
-        //         backgroundColor: null,
-        //     }
-        // );
+        const canvas = await html2canvas(
+            (document.querySelector(
+                '.replayer-wrapper iframe'
+            ) as HTMLIFrameElement).contentDocument!.documentElement,
+            {
+                allowTaint: true,
+                logging: false,
+                backgroundColor: null,
+            }
+        );
         try {
             await createComment({
                 variables: {
@@ -108,9 +108,9 @@ export const NewCommentForm = ({
                     tagged_slack_users: mentionedSlackUsers,
                     time: time / 1000,
                     author_name: admin?.name || admin?.email || 'Someone',
-                    // session_image: canvas
-                    //     .toDataURL()
-                    //     .replace('data:image/png;base64,', ''),
+                    session_image: canvas
+                        .toDataURL()
+                        .replace('data:image/png;base64,', ''),
                 },
                 refetchQueries: [namedOperations.Query.GetSessionComments],
             });
