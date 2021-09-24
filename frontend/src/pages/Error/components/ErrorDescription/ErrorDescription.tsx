@@ -6,7 +6,7 @@ import styles from '../../ErrorPage.module.scss';
 import { parseErrorDescription } from './utils/utils';
 
 interface Props {
-    errorGroup: Maybe<ErrorGroup> | undefined;
+    errorGroup: Maybe<Pick<ErrorGroup, 'event'>> | undefined;
 }
 
 const ErrorDescription = ({ errorGroup }: Props) => {

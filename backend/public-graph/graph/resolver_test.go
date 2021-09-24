@@ -38,7 +38,6 @@ func TestMain(m *testing.M) {
 func TestHandleErrorAndGroup(t *testing.T) {
 	// construct table of sub-tests to run
 	nullStr := "null"
-	metaDataStr := `[{"timestamp":"2000-08-01T00:00:00Z","error_id":1,"session_id":0,"browser":"","os":"","visited_url":"","identifier":"","fingerprint":0},{"timestamp":"2000-08-01T00:00:00Z","error_id":2,"session_id":0,"browser":"","os":"","visited_url":"","identifier":"","fingerprint":0}]`
 	longTraceStr := `[{"functionName":"is","args":null,"fileName":null,"lineNumber":null,"columnNumber":null,"isEval":null,"isNative":null,"source":null},{"functionName":"longer","args":null,"fileName":null,"lineNumber":null,"columnNumber":null,"isEval":null,"isNative":null,"source":null},{"functionName":"trace","args":null,"fileName":null,"lineNumber":null,"columnNumber":null,"isEval":null,"isNative":null,"source":null}]`
 	shortTraceStr := `[{"functionName":"a","args":null,"fileName":null,"lineNumber":null,"columnNumber":null,"isEval":null,"isNative":null,"source":null},{"functionName":"short","args":null,"fileName":null,"lineNumber":null,"columnNumber":null,"isEval":null,"isNative":null,"source":null}]`
 	tests := map[string]struct {
@@ -63,7 +62,6 @@ func TestHandleErrorAndGroup(t *testing.T) {
 					ProjectID:    1,
 					StackTrace:   nullStr,
 					State:        model.ErrorGroupStates.OPEN,
-					MetadataLog:  &metaDataStr,
 					FieldGroup:   &nullStr,
 					Environments: `{"dev":2}`,
 				},
@@ -87,7 +85,6 @@ func TestHandleErrorAndGroup(t *testing.T) {
 					ProjectID:    1,
 					StackTrace:   nullStr,
 					State:        model.ErrorGroupStates.OPEN,
-					MetadataLog:  &metaDataStr,
 					FieldGroup:   &nullStr,
 					Environments: `{"dev":1,"prod":1}`,
 				},
@@ -110,7 +107,6 @@ func TestHandleErrorAndGroup(t *testing.T) {
 					ProjectID:    1,
 					StackTrace:   nullStr,
 					State:        model.ErrorGroupStates.OPEN,
-					MetadataLog:  &metaDataStr,
 					FieldGroup:   &nullStr,
 					Environments: `{"dev":1}`,
 				},
@@ -134,7 +130,6 @@ func TestHandleErrorAndGroup(t *testing.T) {
 					ProjectID:        1,
 					StackTrace:       shortTraceStr,
 					State:            model.ErrorGroupStates.OPEN,
-					MetadataLog:      &metaDataStr,
 					FieldGroup:       &nullStr,
 					Environments:     `{}`,
 					MappedStackTrace: util.MakeStringPointer("null"),
@@ -158,7 +153,6 @@ func TestHandleErrorAndGroup(t *testing.T) {
 				{
 					ProjectID:        1,
 					StackTrace:       longTraceStr,
-					MetadataLog:      &metaDataStr,
 					FieldGroup:       &nullStr,
 					Environments:     `{}`,
 					State:            model.ErrorGroupStates.OPEN,
