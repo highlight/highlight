@@ -54,7 +54,6 @@ const Select = ({
             menuItemSelectedIcon={null}
             defaultActiveFirstOption={false}
             dropdownClassName={styles.dropdown}
-            open
             suffixIcon={
                 props.loading ? undefined : (
                     <SvgChevronDownIcon
