@@ -637,10 +637,8 @@ func (r *Resolver) SendSlackAlertToUser(project *model.Project, admin *model.Adm
 			Filename: fmt.Sprintf("Highlight %s Image.png", subjectScope),
 			// These are the channels that will have access to the uploaded file.
 			Channels: channels,
-			// File:     uploadedFileKey,
-			Content: fmt.Sprintf("data:image/png;base64,%s", *base64Image),
-
-			Title: fmt.Sprintf("File from Highlight uploaded on behalf of %s", *admin.Name),
+			File:     uploadedFileKey,
+			Title:    fmt.Sprintf("File from Highlight uploaded on behalf of %s", *admin.Name),
 		}
 		_, err = slackClient.UploadFile(fileUploadParams)
 
