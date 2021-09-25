@@ -127,6 +127,7 @@ export type ErrorObject = {
     project_id: Scalars['Int'];
     session_id: Scalars['Int'];
     error_group_id: Scalars['Int'];
+    error_group_secure_id: Scalars['String'];
     event: Array<Maybe<Scalars['String']>>;
     type: Scalars['String'];
     url: Scalars['String'];

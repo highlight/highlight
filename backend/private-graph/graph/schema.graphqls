@@ -104,6 +104,7 @@ type ErrorObject {
     project_id: Int!
     session_id: Int!
     error_group_id: Int!
+    error_group_secure_id: String!
     event: [String]!
     type: String!
     url: String!
