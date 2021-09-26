@@ -28,16 +28,16 @@ const CommentNotification = ({
     onViewHandler,
     viewed,
 }: Props) => {
-    const { organization_id } = useParams<{ organization_id: string }>();
-    const organizationIdRemapped =
-        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+    const { project_id } = useParams<{ project_id: string }>();
+    const projectIdRemapped =
+        project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-            : organization_id;
+            : project_id;
 
     return (
         <Link
             className={notificationStyles.notification}
-            to={getLink(notification, organizationIdRemapped)}
+            to={getLink(notification, projectIdRemapped)}
             onClick={onViewHandler}
         >
             <div className={notificationStyles.notificationStartColumn}>
@@ -127,8 +127,8 @@ const getTitle = (notification: any): React.ReactNode => {
     );
 };
 
-const getLink = (notification: any, organization_id: string) => {
-    const baseUrl = `/${organization_id}`;
+const getLink = (notification: any, project_id: string) => {
+    const baseUrl = `/${project_id}`;
 
     switch (notification.type as NotificationType) {
         case NotificationType.ErrorComment:

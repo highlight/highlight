@@ -1,3 +1,5 @@
+import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
+import ErrorModal from '@pages/Player/Toolbar/DevToolsWindow/ErrorsPage/components/ErrorModal/ErrorModal';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router-dom';
@@ -5,7 +7,6 @@ import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 import Input from '../../../../../components/Input/Input';
 import { ReplayerState, useReplayerContext } from '../../../ReplayerContext';
-import { useErrorModalContext } from '../../ErrorModalContext/ErrorModalContext';
 import devStyles from '../DevToolsWindow.module.scss';
 import ErrorCard, { ErrorCardState } from './components/ErrorCard/ErrorCard';
 import styles from './ErrorsPage.module.scss';
@@ -24,7 +25,7 @@ const ErrorsPage = () => {
     const [filterSearchTerm, setFilterSearchTerm] = useState('');
     const history = useHistory<ErrorsPageHistoryState>();
     const { errors: allErrors, state, time, replayer } = useReplayerContext();
-    const { setSelectedError } = useErrorModalContext();
+    const { setDetailedPanel } = usePlayerUIContext();
 
     const loading = state === ReplayerState.Loading;
 
@@ -133,7 +134,18 @@ const ErrorsPage = () => {
                                         : ErrorCardState.Unknown
                                 }
                                 setSelectedError={() => {
-                                    setSelectedError(error);
+                                    setDetailedPanel({
+                                        title: null,
+                                        content: (
+                                            <>
+                                                <ErrorModal error={error} />
+                                            </>
+                                        ),
+                                        options: {
+                                            noHeader: true,
+                                        },
+                                        id: error.id,
+                                    });
                                 }}
                             />
                         )}

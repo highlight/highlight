@@ -21,13 +21,13 @@ import styles from './ReferrersTable.module.scss';
 
 const ReferrersTable = () => {
     const [tableData, setTableData] = useState<any[]>([]);
-    const { organization_id } = useParams<{
-        organization_id: string;
+    const { project_id } = useParams<{
+        project_id: string;
     }>();
-    const organizationIdRemapped =
-        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+    const projectIdRemapped =
+        project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-            : organization_id;
+            : project_id;
 
     const { dateRangeLength } = useHomePageFiltersContext();
     const history = useHistory();
@@ -38,7 +38,7 @@ const ReferrersTable = () => {
     } = useSearchContext();
 
     const { loading } = useGetReferrersCountQuery({
-        variables: { organization_id, lookBackPeriod: dateRangeLength },
+        variables: { project_id, lookBackPeriod: dateRangeLength },
         onCompleted: (data) => {
             if (data.referrers) {
                 const transformedData = data.referrers.map(
@@ -84,7 +84,7 @@ const ReferrersTable = () => {
                     message.success(
                         `Showing sessions that were referred by ${record.host}`
                     );
-                    history.push(`/${organizationIdRemapped}/sessions`);
+                    history.push(`/${projectIdRemapped}/sessions`);
                 }}
                 noDataTitle="No referrer data yet 😔"
                 noDataMessage="Doesn't look like your app has been referred to yet."

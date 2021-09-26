@@ -1,3 +1,4 @@
+import SvgChevronDownIcon from '@icons/ChevronDownIcon';
 import {
     // eslint-disable-next-line no-restricted-imports
     Select as AntDesignSelect,
@@ -6,7 +7,6 @@ import {
 import classNames from 'classnames';
 import React from 'react';
 
-import SvgChevronDownIcon from '../../static/ChevronDownIcon';
 import styles from './Select.module.scss';
 
 const { Option } = AntDesignSelect;
@@ -55,11 +55,13 @@ const Select = ({
             defaultActiveFirstOption={false}
             dropdownClassName={styles.dropdown}
             suffixIcon={
-                <SvgChevronDownIcon
-                    className={classNames({
-                        [styles.suffixIconActive]: !!props.value,
-                    })}
-                />
+                props.loading ? undefined : (
+                    <SvgChevronDownIcon
+                        className={classNames({
+                            [styles.suffixIconActive]: !!props.value,
+                        })}
+                    />
+                )
             }
         >
             {options?.map(({ displayValue, value, disabled, id }) => (

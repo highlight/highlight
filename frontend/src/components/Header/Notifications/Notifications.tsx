@@ -22,7 +22,7 @@ import NotificationItem from './NotificationItem/NotificationItem';
 import { processNotifications } from './utils/utils';
 
 const Notifications = () => {
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { project_id } = useParams<{ project_id: string }>();
     const [notifications, setNotifications] = useState<any[]>([]);
     const [showPopover, setShowPopover] = useState(false);
     const [
@@ -42,7 +42,7 @@ const Notifications = () => {
         },
         // pollInterval: 1000 * 30,
         variables: {
-            organization_id,
+            project_id,
         },
     });
 
@@ -77,6 +77,7 @@ const Notifications = () => {
                                                 'Get a slack DM anytime someone tags you in a Highlight comment!'
                                             }
                                             <PersonalNotificationButton
+                                                type="Personal"
                                                 text={'Enable Notifications'}
                                                 style={{
                                                     marginTop:
@@ -123,13 +124,14 @@ const Notifications = () => {
                                     className={styles.animation}
                                 />
                                 <p>
-                                    Comments made in your organization will show
-                                    up here. Get started by mentioning a team
+                                    Comments made in your project will show up
+                                    here. Get started by mentioning a team
                                     member on an error or a session.
                                 </p>
                                 <PersonalNotificationButton
                                     text="Get Slack Notifications"
                                     style={{ maxWidth: 'fit-content' }}
+                                    type="Personal"
                                 />
                             </div>
                         </>

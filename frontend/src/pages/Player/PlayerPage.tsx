@@ -39,6 +39,7 @@ import { Toolbar } from '@pages/Player/Toolbar/Toolbar';
 import { usePlayerFullscreen } from '@pages/Player/utils/PlayerHooks';
 import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard';
 import { SessionSearchOption } from '@pages/Sessions/SessionsFeedV2/components/SessionSearch/SessionSearch';
+import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import _ from 'lodash';
@@ -66,14 +67,14 @@ interface Props {
 
 const Player = ({ integrated }: Props) => {
     const { isLoggedIn } = useAuthContext();
-    const { session_id, organization_id } = useParams<{
+    const { session_id, project_id } = useParams<{
         session_id: string;
-        organization_id: string;
+        project_id: string;
     }>();
-    const organizationIdRemapped =
-        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+    const projectIdRemapped =
+        project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-            : organization_id;
+            : project_id;
     const [resizeListener, sizes] = useResizeAware();
 
     const [searchBarRef, setSearchBarRef] = useState<
@@ -101,6 +102,10 @@ const Player = ({ integrated }: Props) => {
         setIsPlayerFullscreen,
         playerCenterPanelRef,
     } = usePlayerFullscreen();
+    const [detailedPanel, setDetailedPanel] = useState<
+        | { title: string | React.ReactNode; content: React.ReactNode }
+        | undefined
+    >(undefined);
     const newCommentModalRef = useRef<HTMLDivElement>(null);
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
     const [commentModalPosition, setCommentModalPosition] = useState<
@@ -183,6 +188,8 @@ const Player = ({ integrated }: Props) => {
                 isPlayerFullscreen,
                 setIsPlayerFullscreen,
                 playerCenterPanelRef,
+                detailedPanel,
+                setDetailedPanel,
             }}
         >
             <ReplayerContextProvider value={player}>
@@ -237,7 +244,7 @@ const Player = ({ integrated }: Props) => {
                                 session quota. To view it, upgrade your plan.
                             </p>
                             <ButtonLink
-                                to={`/${organizationIdRemapped}/billing`}
+                                to={`/${projectIdRemapped}/billing`}
                                 trackingId="PlayerPageUpgradePlan"
                                 className={styles.center}
                             >
@@ -254,20 +261,30 @@ const Player = ({ integrated }: Props) => {
                             }
                         >
                             <p>
-                                We need more time to process this session. If
-                                this looks like a bug, shoot us a message on{' '}
-                                <span
-                                    className={styles.intercomLink}
-                                    onClick={() => {
-                                        window.Intercom(
-                                            'showNewMessage',
-                                            `I'm seeing an empty session. This is the session ID: "${session_id}"`
-                                        );
-                                    }}
-                                >
-                                    Intercom
-                                </span>
-                                .
+                                We need more time to process this session.{' '}
+                                {!isOnPrem ? (
+                                    <>
+                                        If this looks like a bug, shoot us a
+                                        message on{' '}
+                                        <span
+                                            className={styles.intercomLink}
+                                            onClick={() => {
+                                                window.Intercom(
+                                                    'showNewMessage',
+                                                    `I'm seeing an empty session. This is the session ID: "${session_id}"`
+                                                );
+                                            }}
+                                        >
+                                            Intercom
+                                        </span>
+                                        .
+                                    </>
+                                ) : (
+                                    <>
+                                        If this looks like a bug, please reach
+                                        out to us!
+                                    </>
+                                )}
                             </p>
                         </ElevatedCard>
                     ) : (sessionViewability === SessionViewability.VIEWABLE &&
@@ -311,7 +328,7 @@ const Player = ({ integrated }: Props) => {
                                                     <ElevatedCard title="Session recording manually stopped">
                                                         <p>
                                                             <a
-                                                                href="https://docs.highlight.run/reference#stop"
+                                                                href="https://docs.highlight.run/api/hstop"
                                                                 target="_blank"
                                                                 rel="noreferrer"
                                                             >
@@ -329,7 +346,7 @@ const Player = ({ integrated }: Props) => {
                                                             check where you are
                                                             calling{' '}
                                                             <a
-                                                                href="https://docs.highlight.run/reference#stop"
+                                                                href="https://docs.highlight.run/api/hstop"
                                                                 target="_blank"
                                                                 rel="noreferrer"
                                                             >

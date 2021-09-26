@@ -38,7 +38,6 @@ func TestMain(m *testing.M) {
 func TestHandleErrorAndGroup(t *testing.T) {
 	// construct table of sub-tests to run
 	nullStr := "null"
-	metaDataStr := `[{"timestamp":"2000-08-01T00:00:00Z","error_id":1,"session_id":0,"browser":"","os":"","visited_url":""},{"timestamp":"2000-08-01T00:00:00Z","error_id":2,"session_id":0,"browser":"","os":"","visited_url":""}]`
 	longTraceStr := `[{"functionName":"is","args":null,"fileName":null,"lineNumber":null,"columnNumber":null,"isEval":null,"isNative":null,"source":null},{"functionName":"longer","args":null,"fileName":null,"lineNumber":null,"columnNumber":null,"isEval":null,"isNative":null,"source":null},{"functionName":"trace","args":null,"fileName":null,"lineNumber":null,"columnNumber":null,"isEval":null,"isNative":null,"source":null}]`
 	shortTraceStr := `[{"functionName":"a","args":null,"fileName":null,"lineNumber":null,"columnNumber":null,"isEval":null,"isNative":null,"source":null},{"functionName":"short","args":null,"fileName":null,"lineNumber":null,"columnNumber":null,"isEval":null,"isNative":null,"source":null}]`
 	tests := map[string]struct {
@@ -48,93 +47,89 @@ func TestHandleErrorAndGroup(t *testing.T) {
 		"test two errors with same environment but different case": {
 			errorsToInsert: []model.ErrorObject{
 				{
-					OrganizationID: 1,
-					Environment:    "dev",
-					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
+					ProjectID:   1,
+					Environment: "dev",
+					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
 				},
 				{
-					OrganizationID: 1,
-					Environment:    "dEv",
-					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
+					ProjectID:   1,
+					Environment: "dEv",
+					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
 				},
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
-					OrganizationID: 1,
-					StackTrace:     nullStr,
-					State:          model.ErrorGroupStates.OPEN,
-					MetadataLog:    &metaDataStr,
-					FieldGroup:     &nullStr,
-					Environments:   `{"dev":2}`,
+					ProjectID:    1,
+					StackTrace:   nullStr,
+					State:        model.ErrorGroupStates.OPEN,
+					FieldGroup:   &nullStr,
+					Environments: `{"dev":2}`,
 				},
 			},
 		},
 		"test two errors with different environment": {
 			errorsToInsert: []model.ErrorObject{
 				{
-					OrganizationID: 1,
-					Environment:    "dev",
-					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
+					ProjectID:   1,
+					Environment: "dev",
+					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
 				},
 				{
-					OrganizationID: 1,
-					Environment:    "prod",
-					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
+					ProjectID:   1,
+					Environment: "prod",
+					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
 				},
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
-					OrganizationID: 1,
-					StackTrace:     nullStr,
-					State:          model.ErrorGroupStates.OPEN,
-					MetadataLog:    &metaDataStr,
-					FieldGroup:     &nullStr,
-					Environments:   `{"dev":1,"prod":1}`,
+					ProjectID:    1,
+					StackTrace:   nullStr,
+					State:        model.ErrorGroupStates.OPEN,
+					FieldGroup:   &nullStr,
+					Environments: `{"dev":1,"prod":1}`,
 				},
 			},
 		},
 		"two errors, one with empty environment": {
 			errorsToInsert: []model.ErrorObject{
 				{
-					OrganizationID: 1,
-					Environment:    "dev",
-					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
+					ProjectID:   1,
+					Environment: "dev",
+					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
 				},
 				{
-					OrganizationID: 1,
-					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
+					ProjectID: 1,
+					Model:     model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
 				},
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
-					OrganizationID: 1,
-					StackTrace:     nullStr,
-					State:          model.ErrorGroupStates.OPEN,
-					MetadataLog:    &metaDataStr,
-					FieldGroup:     &nullStr,
-					Environments:   `{"dev":1}`,
+					ProjectID:    1,
+					StackTrace:   nullStr,
+					State:        model.ErrorGroupStates.OPEN,
+					FieldGroup:   &nullStr,
+					Environments: `{"dev":1}`,
 				},
 			},
 		},
 		"test longer error stack first": {
 			errorsToInsert: []model.ErrorObject{
 				{
-					OrganizationID: 1,
-					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
-					StackTrace:     &longTraceStr,
+					ProjectID:  1,
+					Model:      model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
+					StackTrace: &longTraceStr,
 				},
 				{
-					OrganizationID: 1,
-					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
-					StackTrace:     &shortTraceStr,
+					ProjectID:  1,
+					Model:      model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
+					StackTrace: &shortTraceStr,
 				},
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
-					OrganizationID:   1,
+					ProjectID:        1,
 					StackTrace:       shortTraceStr,
 					State:            model.ErrorGroupStates.OPEN,
-					MetadataLog:      &metaDataStr,
 					FieldGroup:       &nullStr,
 					Environments:     `{}`,
 					MappedStackTrace: util.MakeStringPointer("null"),
@@ -144,21 +139,20 @@ func TestHandleErrorAndGroup(t *testing.T) {
 		"test shorter error stack first": {
 			errorsToInsert: []model.ErrorObject{
 				{
-					OrganizationID: 1,
-					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
-					StackTrace:     &shortTraceStr,
+					ProjectID:  1,
+					Model:      model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
+					StackTrace: &shortTraceStr,
 				},
 				{
-					OrganizationID: 1,
-					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
-					StackTrace:     &longTraceStr,
+					ProjectID:  1,
+					Model:      model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
+					StackTrace: &longTraceStr,
 				},
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
-					OrganizationID:   1,
+					ProjectID:        1,
 					StackTrace:       longTraceStr,
-					MetadataLog:      &metaDataStr,
 					FieldGroup:       &nullStr,
 					Environments:     `{}`,
 					State:            model.ErrorGroupStates.OPEN,

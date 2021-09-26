@@ -4,7 +4,7 @@ interface HomePageFiltersContext {
     /** This is the look back period from today in days. */
     dateRangeLength: number;
     setDateRangeLength: React.Dispatch<React.SetStateAction<number>>;
-    /** Whether this organization has data recorded already. If the organization hasn't recorded any sessions then this will be false. */
+    /** Whether this project has data recorded already. If the project hasn't recorded any sessions then this will be false. */
     hasData: boolean;
     setHasData: React.Dispatch<React.SetStateAction<boolean>>;
 }

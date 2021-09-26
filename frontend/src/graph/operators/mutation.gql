@@ -13,17 +13,17 @@ mutation MarkSessionAsStarred($id: ID!, $starred: Boolean!) {
 }
 
 mutation CreateOrUpdateStripeSubscription(
-    $organization_id: ID!
+    $project_id: ID!
     $plan_type: PlanType!
 ) {
     createOrUpdateStripeSubscription(
-        organization_id: $organization_id
+        project_id: $project_id
         plan_type: $plan_type
     )
 }
 
-mutation UpdateBillingDetails($organization_id: ID!) {
-    updateBillingDetails(organization_id: $organization_id)
+mutation UpdateBillingDetails($project_id: ID!) {
+    updateBillingDetails(project_id: $project_id)
 }
 
 mutation updateErrorGroupState($id: ID!, $state: String!) {
@@ -37,84 +37,70 @@ mutation SendEmailSignup($email: String!) {
     emailSignup(email: $email)
 }
 
-mutation AddAdminToOrganization($organization_id: ID!, $invite_id: String!) {
-    addAdminToOrganization(
-        organization_id: $organization_id
-        invite_id: $invite_id
-    )
+mutation AddAdminToProject($project_id: ID!, $invite_id: String!) {
+    addAdminToProject(project_id: $project_id, invite_id: $invite_id)
 }
 
-mutation DeleteAdminFromOrganization($organization_id: ID!, $admin_id: ID!) {
-    deleteAdminFromOrganization(
-        organization_id: $organization_id
-        admin_id: $admin_id
-    )
+mutation DeleteAdminFromProject($project_id: ID!, $admin_id: ID!) {
+    deleteAdminFromProject(project_id: $project_id, admin_id: $admin_id)
 }
 
 mutation OpenSlackConversation(
-    $organization_id: ID!
+    $project_id: ID!
     $code: String!
     $redirect_path: String!
 ) {
     openSlackConversation(
-        organization_id: $organization_id
+        project_id: $project_id
         code: $code
         redirect_path: $redirect_path
     )
 }
 
-mutation AddSlackIntegrationToWorkspace(
-    $organization_id: ID!
+mutation AddSlackBotIntegrationToProject(
+    $project_id: ID!
     $code: String!
     $redirect_path: String!
 ) {
-    addSlackIntegrationToWorkspace(
-        organization_id: $organization_id
+    addSlackBotIntegrationToProject(
+        project_id: $project_id
         code: $code
         redirect_path: $redirect_path
     )
 }
 
-mutation CreateOrganization($name: String!) {
-    createOrganization(name: $name) {
+mutation CreateProject($name: String!) {
+    createProject(name: $name) {
         id
         name
     }
 }
 
-mutation EditOrganization($id: ID!, $name: String, $billing_email: String) {
-    editOrganization(id: $id, name: $name, billing_email: $billing_email) {
+mutation EditProject($id: ID!, $name: String, $billing_email: String) {
+    editProject(id: $id, name: $name, billing_email: $billing_email) {
         name
         billing_email
     }
 }
 
-mutation DeleteOrganization($id: ID!) {
-    deleteOrganization(id: $id)
+mutation DeleteProject($id: ID!) {
+    deleteProject(id: $id)
 }
 
 mutation DeleteSegment($segment_id: ID!) {
     deleteSegment(segment_id: $segment_id)
 }
 
-mutation EditSegment(
-    $organization_id: ID!
-    $id: ID!
-    $params: SearchParamsInput!
-) {
-    editSegment(organization_id: $organization_id, id: $id, params: $params)
+mutation EditSegment($project_id: ID!, $id: ID!, $params: SearchParamsInput!) {
+    editSegment(project_id: $project_id, id: $id, params: $params)
 }
 
 mutation CreateSegment(
-    $organization_id: ID!
+    $project_id: ID!
     $name: String!
     $params: SearchParamsInput!
 ) {
-    createSegment(
-        organization_id: $organization_id
-        name: $name
-        params: $params
-    ) {
+    createSegment(project_id: $project_id, name: $name, params: $params) {
         name
         id
         params {
@@ -141,7 +127,7 @@ mutation CreateSegment(
 }
 
 mutation CreateSessionComment(
-    $organization_id: ID!
+    $project_id: ID!
     $session_id: ID!
     $session_timestamp: Int!
     $text: String!
@@ -149,13 +135,14 @@ mutation CreateSessionComment(
     $x_coordinate: Float!
     $y_coordinate: Float!
     $tagged_admins: [SanitizedAdminInput]!
+    $tagged_slack_users: [SanitizedSlackChannelInput]!
     $session_url: String!
     $time: Float!
     $author_name: String!
     $session_image: String
 ) {
     createSessionComment(
-        organization_id: $organization_id
+        project_id: $project_id
         session_id: $session_id
         session_timestamp: $session_timestamp
         text: $text
@@ -163,6 +150,7 @@ mutation CreateSessionComment(
         x_coordinate: $x_coordinate
         y_coordinate: $y_coordinate
         tagged_admins: $tagged_admins
+        tagged_slack_users: $tagged_slack_users
         session_url: $session_url
         time: $time
         author_name: $author_name
@@ -188,20 +176,22 @@ mutation DeleteSessionComment($id: ID!) {
 }
 
 mutation CreateErrorComment(
-    $organization_id: ID!
+    $project_id: ID!
     $error_group_id: ID!
     $text: String!
     $text_for_email: String!
     $tagged_admins: [SanitizedAdminInput]!
+    $tagged_slack_users: [SanitizedSlackChannelInput]!
     $error_url: String!
     $author_name: String!
 ) {
     createErrorComment(
-        organization_id: $organization_id
+        project_id: $project_id
         error_group_id: $error_group_id
         text: $text
         text_for_email: $text_for_email
         tagged_admins: $tagged_admins
+        tagged_slack_users: $tagged_slack_users
         error_url: $error_url
         author_name: $author_name
     ) {
@@ -226,27 +216,19 @@ mutation DeleteErrorSegment($segment_id: ID!) {
 }
 
 mutation EditErrorSegment(
-    $organization_id: ID!
+    $project_id: ID!
     $id: ID!
     $params: ErrorSearchParamsInput!
 ) {
-    editErrorSegment(
-        organization_id: $organization_id
-        id: $id
-        params: $params
-    )
+    editErrorSegment(project_id: $project_id, id: $id, params: $params)
 }
 
 mutation CreateErrorSegment(
-    $organization_id: ID!
+    $project_id: ID!
     $name: String!
     $params: ErrorSearchParamsInput!
 ) {
-    createErrorSegment(
-        organization_id: $organization_id
-        name: $name
-        params: $params
-    ) {
+    createErrorSegment(project_id: $project_id, name: $name, params: $params) {
         name
         id
         params {
@@ -263,7 +245,7 @@ mutation CreateErrorSegment(
 }
 
 mutation UpdateErrorAlert(
-    $organization_id: ID!
+    $project_id: ID!
     $error_alert_id: ID!
     $count_threshold: Int!
     $threshold_window: Int!
@@ -271,7 +253,7 @@ mutation UpdateErrorAlert(
     $environments: [String]!
 ) {
     updateErrorAlert(
-        organization_id: $organization_id
+        project_id: $project_id
         error_alert_id: $error_alert_id
         count_threshold: $count_threshold
         slack_channels: $slack_channels
@@ -288,15 +270,41 @@ mutation UpdateErrorAlert(
     }
 }
 
+mutation UpdateSessionFeedbackAlert(
+    $project_id: ID!
+    $session_feedback_alert_id: ID!
+    $count_threshold: Int!
+    $threshold_window: Int!
+    $slack_channels: [SanitizedSlackChannelInput]!
+    $environments: [String]!
+) {
+    updateSessionFeedbackAlert(
+        project_id: $project_id
+        session_feedback_alert_id: $session_feedback_alert_id
+        count_threshold: $count_threshold
+        slack_channels: $slack_channels
+        environments: $environments
+        threshold_window: $threshold_window
+    ) {
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        ExcludedEnvironments
+        CountThreshold
+        ThresholdWindow
+    }
+}
+
 mutation UpdateNewUserAlert(
-    $organization_id: ID!
+    $project_id: ID!
     $session_alert_id: ID!
     $count_threshold: Int!
     $slack_channels: [SanitizedSlackChannelInput]!
     $environments: [String]!
 ) {
     updateNewUserAlert(
-        organization_id: $organization_id
+        project_id: $project_id
         session_alert_id: $session_alert_id
         count_threshold: $count_threshold
         slack_channels: $slack_channels
@@ -312,14 +320,14 @@ mutation UpdateNewUserAlert(
 }
 
 mutation UpdateTrackPropertiesAlert(
-    $organization_id: ID!
+    $project_id: ID!
     $session_alert_id: ID!
     $slack_channels: [SanitizedSlackChannelInput]!
     $environments: [String]!
     $track_properties: [TrackPropertyInput]!
 ) {
     updateTrackPropertiesAlert(
-        organization_id: $organization_id
+        project_id: $project_id
         session_alert_id: $session_alert_id
         slack_channels: $slack_channels
         environments: $environments
@@ -335,14 +343,14 @@ mutation UpdateTrackPropertiesAlert(
 }
 
 mutation UpdateUserPropertiesAlert(
-    $organization_id: ID!
+    $project_id: ID!
     $session_alert_id: ID!
     $slack_channels: [SanitizedSlackChannelInput]!
     $environments: [String]!
     $user_properties: [UserPropertyInput]!
 ) {
     updateUserPropertiesAlert(
-        organization_id: $organization_id
+        project_id: $project_id
         session_alert_id: $session_alert_id
         slack_channels: $slack_channels
         environments: $environments
@@ -359,6 +367,16 @@ mutation UpdateUserPropertiesAlert(
 
 mutation UpdateSessionIsPublic($session_id: ID!, $is_public: Boolean!) {
     updateSessionIsPublic(session_id: $session_id, is_public: $is_public) {
+        id
+        is_public
+    }
+}
+
+mutation UpdateErrorGroupIsPublic($error_group_id: ID!, $is_public: Boolean!) {
+    updateErrorGroupIsPublic(
+        error_group_id: $error_group_id
+        is_public: $is_public
+    ) {
         id
         is_public
     }

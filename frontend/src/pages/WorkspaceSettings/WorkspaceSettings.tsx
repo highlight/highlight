@@ -10,12 +10,12 @@ import styles from './WorkspaceSettings.module.scss';
 const WorkspaceSettings = () => {
     return (
         <LeadAlignLayout>
-            <h2>Workspace Settings</h2>
+            <h2>Project Settings</h2>
             <p className={layoutStyles.subTitle}>
-                Manage your workspace details.
+                Manage your project details.
             </p>
             <div className={styles.fieldsBox}>
-                <h3>Workspace Fields</h3>
+                <h3>Project Fields</h3>
                 <FieldsForm />
             </div>
             <div className={styles.fieldsBox}>

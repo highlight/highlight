@@ -4,17 +4,23 @@ import { CodeBlock } from '../CodeBlock/CodeBlock';
 import { Section } from '../SetupPage';
 
 interface Props {
-    orgVerboseId: string;
+    projectVerboseId: string;
 }
 
-export const GatsbySetup = ({ orgVerboseId }: Props) => {
+export const GatsbySetup = ({ projectVerboseId }: Props) => {
     return (
         <>
             <Section title="Installing the SDK">
                 <p>Install the Highlight Gatsby plugin.</p>
-                <CodeBlock text="npm install @highlight-run/gatsby-plugin-highlight" />
+                <CodeBlock
+                    text="npm install @highlight-run/gatsby-plugin-highlight"
+                    language="shell"
+                />
                 <p>or with Yarn:</p>
-                <CodeBlock text="yarn add @highlight-run/gatsby-plugin-highlight" />
+                <CodeBlock
+                    text="yarn add @highlight-run/gatsby-plugin-highlight"
+                    language="shell"
+                />
             </Section>
 
             <Section title="Initializing Highlight">
@@ -23,12 +29,13 @@ export const GatsbySetup = ({ orgVerboseId }: Props) => {
                     In <code>gatsby-config.js</code>:
                 </p>
                 <CodeBlock
+                    language="javascript"
                     text={`module.exports = {
   plugins: [
     {
       resolve: "@highlight-run/gatsby-plugin-highlight",
       options: {
-	orgID: "${orgVerboseId}",
+	orgID: "${projectVerboseId}",
         enableStrictPrivacy: false,
       }
     },

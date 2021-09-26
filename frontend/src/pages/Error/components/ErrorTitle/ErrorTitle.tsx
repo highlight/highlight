@@ -7,17 +7,24 @@ import ErrorShareButton from '../ErrorShareButton/ErrorShareButton';
 import styles from './ErrorTitle.module.scss';
 
 interface Props {
-    errorGroup: Maybe<ErrorGroup> | undefined;
+    errorGroup: Maybe<Pick<ErrorGroup, 'event' | 'type' | 'id'>> | undefined;
+    showShareButton?: boolean;
 }
 
-const ErrorTitle = ({ errorGroup }: Props) => {
+const ErrorTitle = ({ errorGroup, showShareButton = true }: Props) => {
     return (
         <header className={styles.header}>
             <div className={styles.topRow}>
                 <div>
-                    <h2>{getHeaderFromError(errorGroup?.event ?? [])}</h2>
+                    {!showShareButton ? (
+                        <h3>{getHeaderFromError(errorGroup?.event ?? [])}</h3>
+                    ) : (
+                        <h2>{getHeaderFromError(errorGroup?.event ?? [])}</h2>
+                    )}
                 </div>
-                <ErrorShareButton errorGroup={errorGroup} />
+                {showShareButton && (
+                    <ErrorShareButton errorGroup={errorGroup} />
+                )}
             </div>
             <Field
                 k={'mechanism'}

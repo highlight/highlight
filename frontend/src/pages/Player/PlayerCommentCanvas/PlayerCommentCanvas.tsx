@@ -86,7 +86,11 @@ const PlayerCommentCanvas = ({
             buttonRef.current.style.width = `${playerBoundingClientRectWidth}px`;
             buttonRef.current.style.height = `${playerBoundingClientRectHeight}px`;
         }
-    }, [playerBoundingClientRectHeight, playerBoundingClientRectWidth]);
+    }, [
+        playerBoundingClientRectHeight,
+        playerBoundingClientRectWidth,
+        enableInspectElement,
+    ]);
 
     // Hide the indicator if there is no comment being created.
     useEffect(() => {

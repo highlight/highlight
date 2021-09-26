@@ -3,6 +3,7 @@ import {
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
+import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames/bind';
 import React from 'react';
@@ -54,7 +55,7 @@ const END_NAVIGATION_ITEMS: NavigationItem[] = [
     },
     {
         Icon: SvgBriefcase2Icon,
-        displayName: 'Workspace',
+        displayName: 'Project',
         route: 'settings',
     },
     {
@@ -62,7 +63,7 @@ const END_NAVIGATION_ITEMS: NavigationItem[] = [
         displayName: 'Team',
         route: 'team',
     },
-    ...(process.env.REACT_APP_ONPREM !== 'true'
+    ...(!isOnPrem
         ? [
               {
                   Icon: SvgCreditCardIcon,
@@ -139,19 +140,16 @@ const MiniSidebarItem: React.FC<{
     route: string;
     text: string;
 }> = ({ route, text, children }) => {
-    const { organization_id } = useParams<{ organization_id: string }>();
-    const organizationIdRemapped =
-        organization_id === DEMO_WORKSPACE_APPLICATION_ID
+    const { project_id } = useParams<{ project_id: string }>();
+    const projectIdRemapped =
+        project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-            : organization_id;
+            : project_id;
     const { pathname } = useLocation();
     const page = pathname.split('/')[2] ?? '';
 
     return (
-        <Link
-            className={styles.miniRow}
-            to={`/${organizationIdRemapped}/${route}`}
-        >
+        <Link className={styles.miniRow} to={`/${projectIdRemapped}/${route}`}>
             <Tooltip
                 title={text}
                 placement="right"

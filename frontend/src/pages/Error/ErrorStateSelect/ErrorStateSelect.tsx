@@ -1,3 +1,4 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
@@ -28,6 +29,7 @@ export const ErrorStateSelect: React.FC<{
         { loading: updateLoading },
     ] = useUpdateErrorGroupStateMutation();
     const [action, setAction] = useQueryParam('action', StringParam);
+    const { isLoggedIn } = useAuthContext();
 
     // Sets the state based on the query parameters. This is used for the Slack deep-linked messages.
     useEffect(() => {
@@ -43,9 +45,15 @@ export const ErrorStateSelect: React.FC<{
         }
     }, [action, error_id, setAction, updateErrorGroupState]);
 
+    // Add disabled state to each option if not logged in
+    const thisErrorStateOptions = ErrorStateOptions.map((opt) => ({
+        ...opt,
+        disabled: !isLoggedIn,
+    }));
+
     return (
         <Select
-            options={ErrorStateOptions}
+            options={thisErrorStateOptions}
             className={classNames(styles.select, {
                 [styles.resolved]: initialErrorState === ErrorState.Resolved,
                 [styles.open]: initialErrorState === ErrorState.Open,

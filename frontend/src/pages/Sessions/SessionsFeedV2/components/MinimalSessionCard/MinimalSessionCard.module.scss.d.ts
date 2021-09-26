@@ -6,6 +6,7 @@ export const cardAnnotationContainer: string;
 export const detailed: string;
 export const detailedSection: string;
 export const errorVersion: string;
+export const linkDisabled: string;
 export const middleText: string;
 export const readMarkerContainer: string;
 export const selected: string;

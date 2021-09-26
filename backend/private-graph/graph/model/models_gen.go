@@ -25,13 +25,17 @@ type DateRangeInput struct {
 }
 
 type ErrorMetadata struct {
-	ErrorID     int       `json:"error_id"`
-	SessionID   int       `json:"session_id"`
-	Environment *string   `json:"environment"`
-	Timestamp   time.Time `json:"timestamp"`
-	Os          *string   `json:"os"`
-	Browser     *string   `json:"browser"`
-	VisitedURL  *string   `json:"visited_url"`
+	ErrorID         int        `json:"error_id"`
+	ErrorSecureID   string     `json:"error_secure_id"`
+	SessionID       int        `json:"session_id"`
+	SessionSecureID string     `json:"session_secure_id"`
+	Environment     *string    `json:"environment"`
+	Timestamp       *time.Time `json:"timestamp"`
+	Os              *string    `json:"os"`
+	Browser         *string    `json:"browser"`
+	VisitedURL      *string    `json:"visited_url"`
+	Fingerprint     string     `json:"fingerprint"`
+	Identifier      *string    `json:"identifier"`
 }
 
 type ErrorSearchParamsInput struct {

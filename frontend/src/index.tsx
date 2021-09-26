@@ -4,6 +4,7 @@ import '@highlight-run/rrweb/dist/index.css';
 
 import { ApolloProvider } from '@apollo/client';
 import { ErrorBoundary } from '@highlight-run/react';
+import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { H, HighlightOptions } from 'highlight.run';
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
@@ -74,7 +75,7 @@ if (dev) {
     options.environment = 'Pull Request Preview';
 }
 H.init(process.env.REACT_APP_FRONTEND_ORG ?? 1, options);
-if (process.env.REACT_APP_ONPREM !== 'true') {
+if (!isOnPrem) {
     H.start();
 
     window.Intercom('boot', {
@@ -168,12 +169,19 @@ get in contact with us!
         >
             <Router>
                 <Switch>
-                    <Route path="/:organization_id(0)/*" exact>
+                    <Route path="/:project_id(0)/*" exact>
                         {/* Allow guests to access this route without being asked to log in */}
                         <AuthAdminRouter />
                     </Route>
                     <Route
-                        path="/:organization_id(\d+)/sessions/:session_id(\d+)"
+                        path="/:project_id(\d+)/sessions/:session_id(\d+)"
+                        exact
+                    >
+                        {/* Allow guests to access this route without being asked to log in */}
+                        <AuthAdminRouter />
+                    </Route>
+                    <Route
+                        path="/:organization_id(\d+)/errors/:error_id(\d+)"
                         exact
                     >
                         {/* Allow guests to access this route without being asked to log in */}

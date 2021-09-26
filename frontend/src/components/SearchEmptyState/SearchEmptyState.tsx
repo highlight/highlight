@@ -1,3 +1,4 @@
+import { isOnPrem } from '@util/onPrem/onPremUtils';
 import classNames from 'classnames';
 import React from 'react';
 
@@ -35,19 +36,28 @@ export const SearchEmptyState = ({
         </div>
         <h3 className={emptyTitle}>Couldn't find any relevant {item} 😔</h3>
         <p className={emptySubTitle}>
-            We couldn't find any {item} for your search. If you think
-            something's wrong, feel free to message us on{' '}
-            <span
-                className={styles.intercomButton}
-                onClick={() =>
-                    window.Intercom('update', {
-                        hide_default_launcher: false,
-                    })
-                }
-            >
-                Intercom
-            </span>
-            .
+            We couldn't find any {item} for your search.{' '}
+            {!isOnPrem ? (
+                <>
+                    If you think something's wrong, feel free to message us on{' '}
+                    <span
+                        className={styles.intercomButton}
+                        onClick={() =>
+                            window.Intercom('update', {
+                                hide_default_launcher: false,
+                            })
+                        }
+                    >
+                        Intercom
+                    </span>
+                    .
+                </>
+            ) : (
+                <>
+                    If you think something's wrong, feel free to reach out to
+                    us!
+                </>
+            )}
         </p>
     </div>
 );

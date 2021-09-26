@@ -27,9 +27,9 @@ const DeleteErrorSegmentModal: React.FC<Props> = ({
     segmentToDelete,
     afterDeleteHandler,
 }) => {
-    const { segment_id, organization_id } = useParams<{
+    const { segment_id, project_id } = useParams<{
         segment_id: string;
-        organization_id: string;
+        project_id: string;
     }>();
     const history = useHistory<ErrorSearchParams>();
     const [deleteSegment, { loading }] = useDeleteErrorSegmentMutation({
@@ -86,9 +86,7 @@ const DeleteErrorSegmentModal: React.FC<Props> = ({
                                     message.success('Deleted Segment!', 5);
                                     hideModalHandler();
                                     if (segment_id === segmentToDelete?.id) {
-                                        history.push(
-                                            `/${organization_id}/errors`
-                                        );
+                                        history.push(`/${project_id}/errors`);
                                     }
                                     if (afterDeleteHandler) {
                                         afterDeleteHandler();

@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import moment from 'moment';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useParams } from 'react-router';
 import AsyncSelect from 'react-select/async';
@@ -48,7 +48,10 @@ import styles from './ErrorPage.module.scss';
 import useErrorPageConfiguration from './utils/ErrorPageUIConfiguration';
 
 const ErrorPage = ({ integrated }: { integrated: boolean }) => {
-    const { error_id } = useParams<{ error_id: string }>();
+    const { error_id, project_id } = useParams<{
+        error_id: string;
+        project_id: string;
+    }>();
 
     const [getErrorGroupQuery, { data, loading }] = useGetErrorGroupLazyQuery({
         variables: { id: error_id },
@@ -56,7 +59,9 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
     const { isLoggedIn } = useAuthContext();
     const [segmentName, setSegmentName] = useState<string | null>(null);
     const [cachedParams, setCachedParams] = useLocalStorage<ErrorSearchParams>(
-        `cachedErrorParams-v2-${segmentName || 'no-selected-segment'}`,
+        `cachedErrorParams-v2-${
+            segmentName || 'no-selected-segment'
+        }-${project_id}`,
         {}
     );
     const [searchParams, setSearchParams] = useState<ErrorSearchParams>(
@@ -66,6 +71,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
     const [searchBarRef, setSearchBarRef] = useState<
         AsyncSelect<ErrorSearchOption, true> | undefined
     >(undefined);
+    const newCommentModalRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => setCachedParams(searchParams), [
         searchParams,
@@ -209,7 +215,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                                         />
                                     </h3>
                                 )}
-                                {!loading && (
+                                {!loading && data?.error_group?.project_id && (
                                     <div className={styles.fieldWrapper}>
                                         <ErrorFrequencyGraph
                                             errorGroup={data?.error_group}
@@ -217,12 +223,18 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                                     </div>
                                 )}
                             </div>
-                            <div className={styles.errorPageRightColumn}>
+                            <div
+                                className={styles.errorPageRightColumn}
+                                ref={newCommentModalRef}
+                            >
                                 <ErrorAffectedUsers
                                     errorGroup={data}
                                     loading={loading}
                                 />
-                                <ErrorRightPanel errorGroup={data} />
+                                <ErrorRightPanel
+                                    errorGroup={data}
+                                    parentRef={newCommentModalRef}
+                                />
                             </div>
                         </>
                     ) : (
@@ -235,7 +247,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 };
 
 type FrequencyGraphProps = {
-    errorGroup?: Maybe<ErrorGroup>;
+    errorGroup?: Maybe<Pick<ErrorGroup, 'id' | 'project_id'>>;
 };
 
 type ErrorFrequency = {
@@ -270,10 +282,11 @@ export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
 
     useGetDailyErrorFrequencyQuery({
         variables: {
-            organization_id: `${errorGroup?.organization_id}`,
+            project_id: `${errorGroup?.project_id}`,
             error_group_id: `${errorGroup?.id}`,
             date_offset: dateRangeLength - 1,
         },
+        skip: !errorGroup,
         onCompleted: (response) => {
             const errorData = response.dailyErrorFrequency.map((val, idx) => ({
                 date: moment()

@@ -26,7 +26,7 @@ const HeaderActions = () => {
             <div>
                 <Button
                     trackingId="HeaderDocumentation"
-                    href="https://docs.highlight.run/docs"
+                    href="https://docs.highlight.run"
                     type="text"
                     iconButton
                 >

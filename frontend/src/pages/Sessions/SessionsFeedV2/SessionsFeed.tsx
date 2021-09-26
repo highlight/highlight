@@ -1,3 +1,4 @@
+import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import React, { RefObject, useEffect, useMemo, useState } from 'react';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
@@ -21,8 +22,8 @@ import styles from './SessionsFeed.module.scss';
 
 export const SessionFeed = () => {
     const { setSessionResults, sessionResults } = useReplayerContext();
-    const { organization_id, segment_id, session_id } = useParams<{
-        organization_id: string;
+    const { project_id, segment_id, session_id } = useParams<{
+        project_id: string;
         segment_id: string;
         session_id: string;
     }>();
@@ -46,7 +47,7 @@ export const SessionFeed = () => {
         variables: {
             params: searchParamsExceptForShowLiveSessions,
             count: count + 10,
-            organization_id,
+            project_id,
             lifecycle:
                 segment_id === LIVE_SEGMENT_ID
                     ? SessionLifecycle.Live
@@ -79,7 +80,7 @@ export const SessionFeed = () => {
                 variables: {
                     params: searchParamsExceptForShowLiveSessions,
                     count,
-                    organization_id,
+                    project_id,
                     processed:
                         segment_id === LIVE_SEGMENT_ID
                             ? SessionLifecycle.Live
@@ -163,8 +164,7 @@ export const SessionFeed = () => {
                                 <SearchEmptyState item={'sessions'} newFeed />
                             ) : (
                                 <>
-                                    {process.env.REACT_APP_ONPREM !==
-                                        'true' && <LimitedSessionCard />}
+                                    {!isOnPrem && <LimitedSessionCard />}
                                     {filteredSessions.map((u) => (
                                         <MinimalSessionCard
                                             session={u}

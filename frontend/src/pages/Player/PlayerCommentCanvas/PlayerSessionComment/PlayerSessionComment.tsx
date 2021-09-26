@@ -28,7 +28,7 @@ interface Props {
             | 'text'
             | 'x_coordinate'
             | 'y_coordinate'
-            | 'organization_id'
+            | 'project_id'
             | 'type'
         > & {
                 author?: Maybe<

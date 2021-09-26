@@ -1,3 +1,6 @@
+import Input from '@components/Input/Input';
+import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
@@ -13,7 +16,6 @@ import Skeleton from 'react-loading-skeleton';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 import GoToButton from '../../../../../components/Button/GoToButton';
-import Input from '../../../../../components/Input/Input';
 import TextHighlighter from '../../../../../components/TextHighlighter/TextHighlighter';
 import Tooltip from '../../../../../components/Tooltip/Tooltip';
 import { useGetResourcesQuery } from '../../../../../graph/generated/hooks';
@@ -32,20 +34,23 @@ export const ResourcePage = ({
     time: number;
     startTime: number;
 }) => {
-    const { state, session } = useReplayerContext();
+    const { state, session, pause } = useReplayerContext();
+    const { setDetailedPanel } = usePlayerUIContext();
     const { session_id } = useParams<{ session_id: string }>();
-    const [selectedNetworkResource, setSelectedNetworkResource] = useState<
-        undefined | NetworkResource
-    >(undefined);
     const [options, setOptions] = useState<Array<string>>([]);
     const [currentOption, setCurrentOption] = useState('All');
     const [filterSearchTerm, setFilterSearchTerm] = useState('');
     const [currentResource, setCurrentResource] = useState(0);
     const [networkRange, setNetworkRange] = useState(0);
     const [
+        networkOptionsContainerWidth,
+        setNetworkOptionsContainerWidth,
+    ] = useState<number | null>(null);
+    const [
         isInteractingWithResources,
         setIsInteractingWithResources,
     ] = useState(false);
+    const { showLeftPanel, showRightPanel } = usePlayerConfiguration();
     const [allResources, setAllResources] = useState<
         Array<NetworkResource> | undefined
     >([]);
@@ -98,6 +103,18 @@ export const ResourcePage = ({
             setNetworkRange(end - start);
         }
     }, [rawResources]);
+
+    useEffect(() => {
+        if (showLeftPanel && showRightPanel) {
+            if (window.innerWidth < 1600) {
+                setNetworkOptionsContainerWidth(350);
+            } else {
+                setNetworkOptionsContainerWidth(null);
+            }
+        } else {
+            setNetworkOptionsContainerWidth(null);
+        }
+    }, [showLeftPanel, showRightPanel]);
 
     useEffect(() => {
         if (allResources?.length) {
@@ -164,17 +181,24 @@ export const ResourcePage = ({
     return (
         <div className={styles.resourcePageWrapper}>
             <div className={devStyles.topBar}>
-                <div className={devStyles.optionsWrapper}>
-                    {options.map((o: string, i: number) => {
-                        return (
-                            <Option
-                                key={i.toString()}
-                                onSelect={() => setCurrentOption(o)}
-                                selected={o === currentOption}
-                                optionValue={o}
-                            />
-                        );
-                    })}
+                <div className={styles.optionsWrapper}>
+                    <div
+                        className={styles.optionsContainer}
+                        style={{
+                            width: networkOptionsContainerWidth || 'initial',
+                        }}
+                    >
+                        {options.map((o: string, i: number) => {
+                            return (
+                                <Option
+                                    key={i.toString()}
+                                    onSelect={() => setCurrentOption(o)}
+                                    selected={o === currentOption}
+                                    optionValue={o}
+                                />
+                            );
+                        })}
+                    </div>
                     <div className={styles.filterContainer}>
                         <Input
                             allowClear
@@ -204,9 +228,28 @@ export const ResourcePage = ({
                             <div className={styles.networkColumn}>Status</div>
                             <div className={styles.networkColumn}>Type</div>
                             <div className={styles.networkColumn}>Name</div>
-                            <div className={styles.networkColumn}>Time</div>
-                            <div className={styles.networkColumn}>Size</div>
-                            <div className={styles.networkColumn}>
+                            <div
+                                className={classNames(
+                                    styles.networkColumn,
+                                    styles.justifyEnd
+                                )}
+                            >
+                                Time
+                            </div>
+                            <div
+                                className={classNames(
+                                    styles.networkColumn,
+                                    styles.justifyEnd
+                                )}
+                            >
+                                Size
+                            </div>
+                            <div
+                                className={classNames(
+                                    styles.networkColumn,
+                                    styles.waterfall
+                                )}
+                            >
                                 Waterfall
                             </div>
                         </div>
@@ -225,6 +268,7 @@ export const ResourcePage = ({
                                     ref={virtuoso}
                                     overscan={500}
                                     data={resourcesToRender}
+                                    className={styles.virtuoso}
                                     itemContent={(index, resource) => (
                                         <ResourceRow
                                             key={index.toString()}
@@ -233,9 +277,48 @@ export const ResourcePage = ({
                                             currentResource={currentResource}
                                             searchTerm={filterSearchTerm}
                                             onClickHandler={() => {
-                                                setSelectedNetworkResource(
-                                                    resource
-                                                );
+                                                setDetailedPanel({
+                                                    title: (
+                                                        <div
+                                                            className={
+                                                                styles.detailPanelTitle
+                                                            }
+                                                        >
+                                                            <h3>
+                                                                Network Resource
+                                                            </h3>
+                                                            <GoToButton
+                                                                onClick={() => {
+                                                                    pause(
+                                                                        resource.startTime
+                                                                    );
+
+                                                                    message.success(
+                                                                        `Changed player time to when ${getNetworkResourcesDisplayName(
+                                                                            resource.initiatorType
+                                                                        )} request started at ${MillisToMinutesAndSeconds(
+                                                                            resource.startTime
+                                                                        )}.`
+                                                                    );
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    ),
+                                                    content: (
+                                                        <>
+                                                            <ResourceDetailsModal
+                                                                selectedNetworkResource={
+                                                                    resource
+                                                                }
+                                                                networkRecordingEnabledForSession={
+                                                                    session?.enable_recording_network_contents ||
+                                                                    false
+                                                                }
+                                                            />
+                                                        </>
+                                                    ),
+                                                    id: resource.id.toString(),
+                                                });
                                             }}
                                         />
                                     )}
@@ -259,7 +342,7 @@ export const ResourcePage = ({
                                         make sure <code>networkRecording</code>{' '}
                                         is set to <code>true</code>. You can{' '}
                                         <a
-                                            href="https://docs.highlight.run/reference#options"
+                                            href="https://docs.highlight.run/api#w0-highlightoptions"
                                             target="_blank"
                                             rel="noreferrer"
                                         >
@@ -273,15 +356,6 @@ export const ResourcePage = ({
                     </>
                 )}
             </div>
-            <ResourceDetailsModal
-                selectedNetworkResource={selectedNetworkResource}
-                onCloseHandler={() => {
-                    setSelectedNetworkResource(undefined);
-                }}
-                networkRecordingEnabledForSession={
-                    session?.enable_recording_network_contents || false
-                }
-            />
         </div>
     );
 };
@@ -316,6 +390,7 @@ const ResourceRow = ({
     onClickHandler: () => void;
 }) => {
     const { pause } = useReplayerContext();
+    const { detailedPanel } = usePlayerUIContext();
     const leftPaddingPercent = (resource.startTime / networkRange) * 100;
     const actualPercent = Math.max(
         ((resource.responseEnd - resource.startTime) / networkRange) * 100,
@@ -333,6 +408,8 @@ const ResourceRow = ({
                         (resource.requestResponsePairs.response.status === 0 ||
                             resource.requestResponsePairs.response.status >=
                                 400),
+                    [styles.showingDetails]:
+                        detailedPanel?.id === resource.id.toString(),
                 })}
             >
                 <div className={styles.typeSection}>

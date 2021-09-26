@@ -26,7 +26,6 @@ export type Scalars = {
 export type Session = {
   __typename?: 'Session';
   id: Scalars['ID'];
-  user_id: Scalars['ID'];
   organization_id: Scalars['ID'];
 };
 
@@ -206,7 +205,7 @@ export type InitializeSessionMutation = (
   { __typename?: 'Mutation' }
   & { initializeSession?: Types.Maybe<(
     { __typename?: 'Session' }
-    & Pick<Types.Session, 'id' | 'user_id' | 'organization_id'>
+    & Pick<Types.Session, 'id' | 'organization_id'>
   )> }
 );
 
@@ -282,7 +281,6 @@ export const InitializeSessionDocument = gql`
     fingerprint: $id
   ) {
     id
-    user_id
     organization_id
   }
 }

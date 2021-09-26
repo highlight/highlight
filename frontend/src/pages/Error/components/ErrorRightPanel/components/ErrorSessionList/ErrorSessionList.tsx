@@ -1,3 +1,4 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import React, { useRef } from 'react';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
@@ -12,6 +13,7 @@ interface Props {
 
 const ErrorSessionList = ({ errorGroup }: Props) => {
     const virtuoso = useRef<VirtuosoHandle>(null);
+    const { isLoggedIn } = useAuthContext();
 
     if (!errorGroup?.error_group?.metadata_log) {
         return null;
@@ -28,7 +30,8 @@ const ErrorSessionList = ({ errorGroup }: Props) => {
                         ({
                             id: session?.session_id,
                             created_at: session?.timestamp,
-                            identifier: session?.visited_url,
+                            identifier: session?.identifier,
+                            fingerprint: session?.fingerprint,
                             browser_name: session?.browser,
                             os_name: session?.os,
                             environment: session?.environment || 'Production',
@@ -39,6 +42,7 @@ const ErrorSessionList = ({ errorGroup }: Props) => {
                     errorVersion
                     showDetailedViewOverride
                     urlParams={`?${PlayerSearchParameters.errorId}=${session?.error_id}`}
+                    linkDisabled={!isLoggedIn}
                 />
             )}
         />

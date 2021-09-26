@@ -2,7 +2,7 @@ import KeyboardShortcutsEducation from '@components/KeyboardShortcutsEducation/K
 import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import _ from 'lodash';
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { Redirect, Route, Switch } from 'react-router-dom';
 import {
     BooleanParam,
@@ -13,8 +13,9 @@ import {
 } from 'use-query-params';
 
 import AlertsPage from '../../pages/Alerts/Alerts';
-import BillingPage from '../../pages/Billing/Billing';
-import { Buttons } from '../../pages/Buttons/Buttons';
+const BillingPage = React.lazy(() => import('../../pages/Billing/Billing'));
+
+const Buttons = React.lazy(() => import('../../pages/Buttons/Buttons'));
 import ErrorPage from '../../pages/Error/ErrorPage';
 import HomePage from '../../pages/Home/HomePage';
 import Player from '../../pages/Player/PlayerPage';
@@ -32,7 +33,7 @@ interface Props {
 }
 
 const ApplicationRouter = ({ integrated }: Props) => {
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { project_id } = useParams<{ project_id: string }>();
     const [segmentName, setSegmentName] = useState<string | null>(null);
     const [showStarredSessions, setShowStarredSessions] = useState<boolean>(
         false
@@ -42,7 +43,10 @@ const ApplicationRouter = ({ integrated }: Props) => {
     );
     const [selectedSegment, setSelectedSegment] = useLocalStorage<
         { value: string; id: string } | undefined
-    >('highlightSegmentPickerForPlayerSelectedSegmentId', undefined);
+    >(
+        `highlightSegmentPickerForPlayerSelectedSegmentId-${project_id}`,
+        undefined
+    );
     const [
         searchParamsToUrlParams,
         setSearchParamsToUrlParams,
@@ -148,38 +152,42 @@ const ApplicationRouter = ({ integrated }: Props) => {
         >
             <KeyboardShortcutsEducation />
             <Switch>
-                <Route path="/:organization_id/sessions/:session_id?" exact>
+                <Route path="/:project_id/sessions/:session_id?" exact>
                     <Player integrated={integrated} />
                 </Route>
-                <Route path="/:organization_id/settings">
+                <Route path="/:project_id/settings">
                     <WorkspaceSettings />
                 </Route>
-                <Route path="/:organization_id/alerts">
+                <Route path="/:project_id/alerts">
                     <AlertsPage />
                 </Route>
-                <Route path="/:organization_id/team">
+                <Route path="/:project_id/team">
                     <WorkspaceTeam />
                 </Route>
-                <Route path="/:organization_id/billing">
-                    <BillingPage />
+                <Route path="/:project_id/billing">
+                    <Suspense fallback={null}>
+                        <BillingPage />
+                    </Suspense>
                 </Route>
-                <Route path="/:organization_id/setup">
+                <Route path="/:project_id/setup">
                     <SetupPage integrated={integrated} />
                 </Route>
-                <Route path="/:organization_id/errors/:error_id?">
+                <Route path="/:project_id/errors/:error_id?">
                     <ErrorPage integrated={integrated} />
                 </Route>
-                <Route path="/:organization_id/buttons">
-                    <Buttons />
+                <Route path="/:project_id/buttons">
+                    <Suspense fallback={null}>
+                        <Buttons />
+                    </Suspense>
                 </Route>
-                <Route path="/:organization_id/home">
+                <Route path="/:project_id/home">
                     <HomePage />
                 </Route>
-                <Route path="/:organization_id">
+                <Route path="/:project_id">
                     {integrated ? (
-                        <Redirect to={`/${organization_id}/home`} />
+                        <Redirect to={`/${project_id}/home`} />
                     ) : (
-                        <Redirect to={`/${organization_id}/setup`} />
+                        <Redirect to={`/${project_id}/setup`} />
                     )}
                 </Route>
             </Switch>
