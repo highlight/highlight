@@ -7,6 +7,7 @@ import {
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import ElevatedCard from '@components/ElevatedCard/ElevatedCard';
+import { ErrorState } from '@components/ErrorState/ErrorState';
 import FullBleedCard from '@components/FullBleedCard/FullBleedCard';
 import Modal from '@components/Modal/Modal';
 import { useMarkSessionAsViewedMutation } from '@graph/hooks';
@@ -179,6 +180,12 @@ const Player = ({ integrated }: Props) => {
     const showLeftPanel =
         showLeftPanelPreference &&
         sessionViewability !== SessionViewability.OVER_BILLING_QUOTA;
+
+    if (sessionViewability === SessionViewability.ERROR) {
+        return (
+            <ErrorState message="This session is invalid or has not been made public." />
+        );
+    }
 
     return (
         <PlayerUIContextProvider

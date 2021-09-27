@@ -48,6 +48,7 @@ export enum SessionViewability {
     VIEWABLE,
     EMPTY_SESSION,
     OVER_BILLING_QUOTA,
+    ERROR,
 }
 
 export const usePlayer = (): ReplayerContextInterface => {
@@ -128,6 +129,9 @@ export const usePlayer = (): ReplayerContextInterface => {
             } else {
                 setSessionViewability(SessionViewability.OVER_BILLING_QUOTA);
             }
+        },
+        onError: () => {
+            setSessionViewability(SessionViewability.ERROR);
         },
     });
     const [
