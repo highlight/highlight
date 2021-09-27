@@ -33,17 +33,21 @@ export const StreamElement = ({
     start,
     isCurrent,
     onGoToHandler,
+    searchQuery,
 }: {
     e: HighlightEvent;
     start: number;
     isCurrent: boolean;
     onGoToHandler: (event: string) => void;
+    searchQuery: string;
 }) => {
     const [debug] = useQueryParam('debug', BooleanParam);
     const [selected, setSelected] = useState(false);
     const details = getEventRenderDetails(e);
     const { pause } = useReplayerContext();
     const timeSinceStart = e?.timestamp - start;
+
+    const showExpandedView = searchQuery.length > 0 || selected;
 
     return (
         <RightPanelCard
@@ -65,14 +69,14 @@ export const StreamElement = ({
                 </div>
                 <div
                     className={
-                        selected
+                        showExpandedView
                             ? styles.eventContentVerbose
                             : styles.eventContent
                     }
                 >
                     <p
                         className={classNames(styles.eventText, {
-                            [styles.eventTextSelected]: selected,
+                            [styles.eventTextSelected]: showExpandedView,
                         })}
                     >
                         {/* Removes the starting and ending quotes */}
@@ -85,7 +89,7 @@ export const StreamElement = ({
                 <div className={classNames(styles.eventTime)}>
                     {MillisToMinutesAndSeconds(timeSinceStart)}
                 </div>
-                {selected && (
+                {showExpandedView && (
                     <>
                         {debug ? (
                             <div
@@ -118,6 +122,7 @@ export const StreamElement = ({
                                             ? JSON.stringify(details.payload)
                                             : details.payload
                                     }
+                                    searchQuery={searchQuery}
                                 />
                             </div>
                         )}

@@ -11,3 +11,42 @@
         display: none;
     }
 }
+
+.container {
+    display: flex;
+    flex-direction: column;
+    height: inherit;
+}
+
+.virtualList {
+    flex-grow: 1;
+    margin: var(--size-medium) 0 !important;
+    margin-top: 0;
+
+    > div {
+        margin: var(--size-medium) 0;
+
+        &:first-of-type {
+            margin-top: 0;
+        }
+
+        &:last-of-type {
+            padding-bottom: var(--size-large);
+        }
+    }
+}
+
+.header {
+    column-gap: var(--size-xxSmall);
+    display: flex;
+    margin-bottom: calc(-1 * var(--size-medium));
+    padding: var(--size-medium) var(--size-large);
+
+    .searchContainer {
+        flex-grow: 1;
+
+        .searchIcon {
+            color: var(--color-gray-500);
+        }
+    }
+}

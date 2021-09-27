@@ -2,6 +2,7 @@ import Button from '@components/Button/Button/Button';
 import Input from '@components/Input/Input';
 import { EventType } from '@highlight-run/rrweb';
 import { eventWithTime } from '@highlight-run/rrweb/dist/types';
+import SvgSearchIcon from '@icons/SearchIcon';
 import SvgSettingsIcon from '@icons/SettingsIcon';
 import { HighlightEvent } from '@pages/Player/HighlightEvent';
 import {
@@ -26,6 +27,7 @@ import styles from './EventStream.module.scss';
 const EventStream = () => {
     const [debug] = useQueryParam('debug', BooleanParam);
     const { replayer, time, events, state } = useReplayerContext();
+    const [searchQuery, setSearchQuery] = useState('');
     const [currEvent, setCurrEvent] = useState('');
     const [
         isInteractingWithStreamEvents,
@@ -46,6 +48,14 @@ const EventStream = () => {
     const usefulEvents = useMemo(
         () => (debug ? events : events.filter(usefulEvent)),
         [events, debug]
+    );
+
+    const filteredEvents = useMemo(
+        () =>
+            searchQuery === ''
+                ? usefulEvents
+                : getFilteredEvents(searchQuery, usefulEvents),
+        [searchQuery, usefulEvents]
     );
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -79,12 +89,12 @@ const EventStream = () => {
 
     useEffect(() => {
         if (!isInteractingWithStreamEvents) {
-            scrollFunction(currEvent, usefulEvents, state);
+            scrollFunction(currEvent, filteredEvents, state);
         }
     }, [
         currEvent,
         scrollFunction,
-        usefulEvents,
+        filteredEvents,
         isInteractingWithStreamEvents,
         state,
     ]);
@@ -108,13 +118,28 @@ const EventStream = () => {
                     </div>
                 ) : (
                     replayer && (
-                        <div>
-                            <div>
-                                <div>
-                                    <Input />
+                        <div className={styles.container}>
+                            <div className={styles.header}>
+                                <div className={styles.searchContainer}>
+                                    <Input
+                                        placeholder="Filter"
+                                        suffix={
+                                            <SvgSearchIcon
+                                                className={styles.searchIcon}
+                                            />
+                                        }
+                                        value={searchQuery}
+                                        onChange={(e) => {
+                                            setSearchQuery(e.target.value);
+                                        }}
+                                        allowClear
+                                    />
                                 </div>
                                 <div>
-                                    <Button trackingId="SessionEventStreamSettings">
+                                    <Button
+                                        trackingId="SessionEventStreamSettings"
+                                        type="text"
+                                    >
                                         <SvgSettingsIcon />
                                     </Button>
                                 </div>
@@ -129,7 +154,7 @@ const EventStream = () => {
                                 //     @ts-ignore
                                 components={{ List: VirtuosoList }}
                                 ref={virtuoso}
-                                data={usefulEvents}
+                                data={filteredEvents}
                                 overscan={500}
                                 itemContent={(index, event) => (
                                     <StreamElement
@@ -144,6 +169,7 @@ const EventStream = () => {
                                             event.identifier === currEvent
                                         }
                                         onGoToHandler={setCurrEvent}
+                                        searchQuery={searchQuery}
                                     />
                                 )}
                             />
@@ -173,3 +199,119 @@ const VirtuosoList = React.forwardRef((props, ref) => {
     // @ts-ignore
     return <div {...props} ref={ref} className={styles.virtualList} />;
 });
+
+const getFilteredEvents = (searchQuery: string, events: HighlightEvent[]) => {
+    if (searchQuery === '') {
+        return events;
+    }
+
+    const normalizedSearchQuery = searchQuery.toLocaleLowerCase();
+    const searchTokens = normalizedSearchQuery.split(' ');
+
+    return events.filter((event) => {
+        if (event.type === EventType.Custom) {
+            switch (event.data.tag) {
+                case 'Identify':
+                    try {
+                        const userObject = JSON.parse(
+                            event.data.payload as string
+                        );
+                        const keys = Object.keys(userObject);
+
+                        /**
+                         * For user properties, we allow for searching by the key.
+                         */
+                        const matchedKey = searchTokens.some((searchToken) => {
+                            return keys.some((key) =>
+                                key.toLocaleLowerCase().includes(searchToken)
+                            );
+                        });
+
+                        return (
+                            matchedKey ||
+                            keys.some((key) => {
+                                if (typeof userObject[key] === 'string') {
+                                    return searchTokens.some((searchToken) => {
+                                        return userObject[key]
+                                            .toLowerCase()
+                                            .includes(searchToken);
+                                    });
+                                }
+                                return false;
+                            })
+                        );
+                    } catch (e) {
+                        return false;
+                    }
+                case 'Track':
+                    try {
+                        const trackProperties = JSON.parse(
+                            event.data.payload as string
+                        );
+                        const keys = Object.keys(trackProperties);
+
+                        /**
+                         * For track properties, we allow for searching by the key.
+                         */
+                        const matchedKey = searchTokens.some((searchToken) => {
+                            return keys.some((key) =>
+                                key.toLocaleLowerCase().includes(searchToken)
+                            );
+                        });
+
+                        return (
+                            matchedKey ||
+                            keys.some((key) => {
+                                if (typeof trackProperties[key] === 'string') {
+                                    return searchTokens.some((searchToken) => {
+                                        return trackProperties[key]
+                                            .toLowerCase()
+                                            .includes(searchToken);
+                                    });
+                                }
+                                return false;
+                            })
+                        );
+                    } catch (e) {
+                        return false;
+                    }
+                case 'Viewport':
+                    return 'viewport'.includes(normalizedSearchQuery);
+                case 'Segment Identify':
+                    try {
+                        const userObject = JSON.parse(
+                            event.data.payload as string
+                        );
+                        const keys = Object.keys(userObject);
+
+                        return keys.some((key) => {
+                            if (typeof userObject[key] === 'string') {
+                                return searchTokens.some((searchToken) => {
+                                    return userObject[key]
+                                        .toLowerCase()
+                                        .includes(searchToken);
+                                });
+                            }
+                            return false;
+                        });
+                    } catch (e) {
+                        return false;
+                    }
+                case 'Focus':
+                case 'Navigate':
+                case 'Referrer':
+                case 'Click':
+                case 'Reload':
+                    return searchTokens.some((searchToken) => {
+                        return (event.data.payload as string)
+                            .toLowerCase()
+                            .includes(searchToken);
+                    });
+                default:
+                    return event.data.tag
+                        .toLocaleLowerCase()
+                        .includes(normalizedSearchQuery);
+            }
+        }
+    });
+};
