@@ -5,7 +5,6 @@ export const browserHeader: string;
 export const center: string;
 export const commentModal: string;
 export const emptySessionCard: string;
-export const eventStreamContainer: string;
 export const gridBackground: string;
 export const header: string;
 export const headerLink: string;

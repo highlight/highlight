@@ -1,0 +1,13 @@
+.eventStreamContainer {
+    box-sizing: border-box;
+    color: var(--color-primary-background);
+    height: 100%;
+    overflow-y: auto;
+    padding: 0;
+    position: relative;
+    width: 100%;
+
+    > div::-webkit-scrollbar {
+        display: none;
+    }
+}

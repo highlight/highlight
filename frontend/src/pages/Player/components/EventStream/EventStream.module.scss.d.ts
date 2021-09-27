@@ -1,0 +1,1 @@
+export const eventStreamContainer: string;
