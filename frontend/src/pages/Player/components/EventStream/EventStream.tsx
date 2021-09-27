@@ -122,7 +122,7 @@ const EventStream = () => {
                             <div className={styles.header}>
                                 <div className={styles.searchContainer}>
                                     <Input
-                                        placeholder="Filter"
+                                        placeholder="Search events"
                                         suffix={
                                             <SvgSearchIcon
                                                 className={styles.searchIcon}
@@ -139,6 +139,7 @@ const EventStream = () => {
                                     <Button
                                         trackingId="SessionEventStreamSettings"
                                         type="text"
+                                        iconButton
                                     >
                                         <SvgSettingsIcon />
                                     </Button>
