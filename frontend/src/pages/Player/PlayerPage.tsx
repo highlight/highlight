@@ -183,12 +183,7 @@ const Player = ({ integrated }: Props) => {
 
     if (sessionViewability === SessionViewability.ERROR) {
         return (
-            <ErrorState
-                message={`
-                    This session is invalid or has not been made public.
-                    `}
-                errorString={''}
-            />
+            <ErrorState message="This session is invalid or has not been made public." />
         );
     }
 

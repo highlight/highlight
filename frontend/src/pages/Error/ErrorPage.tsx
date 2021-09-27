@@ -93,12 +93,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 
     if (errorQueryingErrorGroup) {
         return (
-            <ErrorState
-                message={`
-                This error is invalid or has not been made public.
-                `}
-                errorString={''}
-            />
+            <ErrorState message="This error is invalid or has not been made public." />
         );
     }
 

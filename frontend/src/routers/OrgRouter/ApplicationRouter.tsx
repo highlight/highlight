@@ -1,3 +1,4 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import KeyboardShortcutsEducation from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation';
 import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
@@ -76,6 +77,8 @@ const ApplicationRouter = ({ integrated }: Props) => {
         EmptySessionsSearchParams
     );
 
+    const { isLoggedIn } = useAuthContext();
+
     useEffect(() => {
         const areAnySearchParamsSet = !_.isEqual(
             EmptySessionsSearchParams,
@@ -152,9 +155,19 @@ const ApplicationRouter = ({ integrated }: Props) => {
         >
             <KeyboardShortcutsEducation />
             <Switch>
+                {/* These two routes do not require login */}
                 <Route path="/:project_id/sessions/:session_id?" exact>
                     <Player integrated={integrated} />
                 </Route>
+                <Route path="/:project_id/errors/:error_id?" exact>
+                    <ErrorPage integrated={integrated} />
+                </Route>
+                {/* If not logged in and project id is numeric and nonzero, redirect to login */}
+                {!isLoggedIn && (
+                    <Route path="/:project_id([1-9]+[0-9]*)/*" exact>
+                        <Redirect to="/" />
+                    </Route>
+                )}
                 <Route path="/:project_id/settings">
                     <WorkspaceSettings />
                 </Route>
@@ -171,9 +184,6 @@ const ApplicationRouter = ({ integrated }: Props) => {
                 </Route>
                 <Route path="/:project_id/setup">
                     <SetupPage integrated={integrated} />
-                </Route>
-                <Route path="/:project_id/errors/:error_id?">
-                    <ErrorPage integrated={integrated} />
                 </Route>
                 <Route path="/:project_id/buttons">
                     <Suspense fallback={null}>
