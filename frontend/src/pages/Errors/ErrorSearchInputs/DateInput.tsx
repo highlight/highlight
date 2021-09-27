@@ -43,6 +43,18 @@ export const DateInput = () => {
     return (
         <div>
             <RangePicker
+                showTime
+                ranges={{
+                    Today: [moment().startOf('day'), moment().endOf('day')],
+                    'This Week': [
+                        moment().startOf('week'),
+                        moment().endOf('week'),
+                    ],
+                    'This Month': [
+                        moment().startOf('month'),
+                        moment().endOf('month'),
+                    ],
+                }}
                 value={
                     searchParams.date_range
                         ? [
