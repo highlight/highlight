@@ -1935,6 +1935,7 @@ export const GetSessionCommentsDocument = gql`
             id
             timestamp
             session_id
+            session_secure_id
             created_at
             updated_at
             project_id
@@ -2355,6 +2356,7 @@ export const GetSessionsDocument = gql`
         ) {
             sessions {
                 id
+                secure_id
                 fingerprint
                 identifier
                 os_name

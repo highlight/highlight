@@ -151,7 +151,7 @@ export const DevToolsToolbarItem = ({
             menuRender={
                 <Switch
                     label="Show DevTools"
-                    className={styles.switch}
+                    className={styles.switchElement}
                     labelFirst
                     justifySpaceBetween
                     noMarginAroundSwitch
@@ -296,7 +296,7 @@ export const MouseTrailToolbarItem = ({
             menuRender={
                 <Switch
                     label="Show mouse trail"
-                    className={styles.switch}
+                    className={styles.switchElement}
                     labelFirst
                     justifySpaceBetween
                     noMarginAroundSwitch
@@ -356,7 +356,7 @@ export const SkipInactiveToolbarItem = ({
             menuRender={
                 <Switch
                     label="Skip inactive"
-                    className={styles.switch}
+                    className={styles.switchElement}
                     labelFirst
                     justifySpaceBetween
                     noMarginAroundSwitch
@@ -416,7 +416,7 @@ export const AutoPlayToolbarItem = ({
             menuRender={
                 <Switch
                     label="Autoplay video"
-                    className={styles.switch}
+                    className={styles.switchElement}
                     labelFirst
                     justifySpaceBetween
                     noMarginAroundSwitch

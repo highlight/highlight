@@ -30,6 +30,7 @@ interface Props {
             | 'y_coordinate'
             | 'project_id'
             | 'type'
+            | 'session_secure_id'
         > & {
                 author?: Maybe<
                     { __typename?: 'SanitizedAdmin' } & Pick<
