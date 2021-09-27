@@ -1,6 +1,7 @@
 import Button from '@components/Button/Button/Button';
 import Input from '@components/Input/Input';
-import { EventType, eventWithTime } from '@highlight-run/rrweb/dist/types';
+import { EventType } from '@highlight-run/rrweb';
+import { eventWithTime } from '@highlight-run/rrweb/dist/types';
 import SvgSettingsIcon from '@icons/SettingsIcon';
 import { HighlightEvent } from '@pages/Player/HighlightEvent';
 import {
