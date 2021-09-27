@@ -34,12 +34,14 @@ export const StreamElement = ({
     isCurrent,
     onGoToHandler,
     searchQuery,
+    showDetails,
 }: {
     e: HighlightEvent;
     start: number;
     isCurrent: boolean;
     onGoToHandler: (event: string) => void;
     searchQuery: string;
+    showDetails: boolean;
 }) => {
     const [debug] = useQueryParam('debug', BooleanParam);
     const [selected, setSelected] = useState(false);
@@ -47,14 +49,18 @@ export const StreamElement = ({
     const { pause } = useReplayerContext();
     const timeSinceStart = e?.timestamp - start;
 
-    const showExpandedView = searchQuery.length > 0 || selected;
+    const showExpandedView = searchQuery.length > 0 || showDetails || selected;
 
     return (
         <RightPanelCard
             key={e.identifier}
-            className={styles.card}
+            className={classNames({ [styles.card]: !showDetails })}
             selected={isCurrent}
-            onClick={() => setSelected(!selected)}
+            onClick={() => {
+                if (!showDetails) {
+                    setSelected(!selected);
+                }
+            }}
             primaryColor={getAnnotationColor(details.title as any)}
         >
             <div
