@@ -228,18 +228,6 @@
     margin-top: var(--size-large);
 }
 
-.virtualList {
-    margin: var(--size-medium) 0 !important;
-
-    > div {
-        margin: var(--size-medium) 0;
-
-        &:last-of-type {
-            padding-bottom: 50px;
-        }
-    }
-}
-
 .panelToggleButton {
     position: absolute;
     transform: translateY(calc(112px + var(--size-medium) + 30px));

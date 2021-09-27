@@ -31,6 +31,5 @@ export const signinWrapper: string;
 export const urlAddressBar: string;
 export const urlAddressBarWrapper: string;
 export const urlText: string;
-export const virtualList: string;
 export const windowOptions: string;
 export const withLeftPanel: string;
