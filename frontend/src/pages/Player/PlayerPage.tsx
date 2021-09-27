@@ -10,7 +10,6 @@ import ElevatedCard from '@components/ElevatedCard/ElevatedCard';
 import { ErrorState } from '@components/ErrorState/ErrorState';
 import FullBleedCard from '@components/FullBleedCard/FullBleedCard';
 import Modal from '@components/Modal/Modal';
-import { useMarkSessionAsViewedMutation } from '@graph/hooks';
 import { EventType, Replayer } from '@highlight-run/rrweb';
 import { eventWithTime } from '@highlight-run/rrweb/dist/types';
 import NoActiveSessionCard from '@pages/Player/components/NoActiveSessionCard/NoActiveSessionCard';
@@ -108,21 +107,12 @@ const Player = ({ integrated }: Props) => {
         | undefined
     >(undefined);
     const newCommentModalRef = useRef<HTMLDivElement>(null);
-    const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
     const [commentModalPosition, setCommentModalPosition] = useState<
         Coordinates2D | undefined
     >(undefined);
     const [commentPosition, setCommentPosition] = useState<
         Coordinates2D | undefined
     >(undefined);
-
-    useEffect(() => {
-        if (session_id && isLoggedIn) {
-            markSessionAsViewed({
-                variables: { id: session_id, viewed: true },
-            });
-        }
-    }, [session_id, isLoggedIn, markSessionAsViewed]);
 
     useEffect(() => {
         if (!session_id) {
@@ -180,12 +170,6 @@ const Player = ({ integrated }: Props) => {
     const showLeftPanel =
         showLeftPanelPreference &&
         sessionViewability !== SessionViewability.OVER_BILLING_QUOTA;
-
-    if (sessionViewability === SessionViewability.ERROR) {
-        return (
-            <ErrorState message="This session is invalid or has not been made public." />
-        );
-    }
 
     return (
         <PlayerUIContextProvider
@@ -259,7 +243,10 @@ const Player = ({ integrated }: Props) => {
                             </ButtonLink>
                         </FullBleedCard>
                     )}
-                    {sessionViewability === SessionViewability.EMPTY_SESSION ? (
+                    {sessionViewability === SessionViewability.ERROR ? (
+                        <ErrorState message="This session does not exist or has not been made public." />
+                    ) : sessionViewability ===
+                      SessionViewability.EMPTY_SESSION ? (
                         <ElevatedCard
                             className={styles.emptySessionCard}
                             title="Session isn't ready to view yet 😔"
@@ -298,7 +285,8 @@ const Player = ({ integrated }: Props) => {
                           !!session) ||
                       replayerState !== ReplayerState.Empty ||
                       (replayerState === ReplayerState.Empty &&
-                          !!session_id) ? (
+                          !!session_id &&
+                          sessionViewability !== SessionViewability.ERROR) ? (
                         <div
                             id="playerCenterPanel"
                             className={classNames(styles.playerCenterPanel, {

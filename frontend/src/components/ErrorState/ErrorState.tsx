@@ -1,4 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext';
+import { H } from 'highlight.run';
 import React, { useState } from 'react';
 
 import { auth } from '../../util/auth';
@@ -51,12 +52,14 @@ export const ErrorState = ({
                                     try {
                                         auth.signOut();
                                     } catch (e) {
-                                        console.log(e);
+                                        H.consumeError(
+                                            new Error(JSON.stringify(e))
+                                        );
                                     }
                                     client.cache.reset();
                                 }}
                             >
-                                Login as a different User
+                                Sign in as a different User
                             </Button>
                         </>
                     ) : (

@@ -1,6 +1,5 @@
 import { ErrorState } from '@components/ErrorState/ErrorState';
 import classNames from 'classnames';
-import { H } from 'highlight.run';
 import moment from 'moment';
 import React, { useEffect, useRef, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
@@ -18,14 +17,13 @@ import {
     YAxis,
 } from 'recharts';
 
-import { useAuthContext } from '../../authentication/AuthContext';
 import Button from '../../components/Button/Button/Button';
 import { StandardDropdown } from '../../components/Dropdown/StandardDropdown/StandardDropdown';
 import { RechartTooltip } from '../../components/recharts/RechartTooltip/RechartTooltip';
 import Tooltip from '../../components/Tooltip/Tooltip';
 import {
     useGetDailyErrorFrequencyQuery,
-    useGetErrorGroupLazyQuery,
+    useGetErrorGroupQuery,
 } from '../../graph/generated/hooks';
 import { ErrorGroup, Maybe } from '../../graph/generated/schemas';
 import SvgDownloadIcon from '../../static/DownloadIcon';
@@ -54,13 +52,14 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
         project_id: string;
     }>();
 
-    const [
-        getErrorGroupQuery,
-        { data, loading, error: errorQueryingErrorGroup },
-    ] = useGetErrorGroupLazyQuery({
+    const {
+        data,
+        loading,
+        error: errorQueryingErrorGroup,
+    } = useGetErrorGroupQuery({
         variables: { id: error_id },
+        skip: !error_id,
     });
-    const { isLoggedIn } = useAuthContext();
     const [segmentName, setSegmentName] = useState<string | null>(null);
     const [cachedParams, setCachedParams] = useLocalStorage<ErrorSearchParams>(
         `cachedErrorParams-v2-${
@@ -82,20 +81,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
         setCachedParams,
     ]);
 
-    useEffect(() => {
-        if (error_id) {
-            getErrorGroupQuery();
-            H.track('Viewed error', { is_guest: !isLoggedIn });
-        }
-    }, [error_id, getErrorGroupQuery, isLoggedIn]);
-
     const { showLeftPanel } = useErrorPageConfiguration();
-
-    if (errorQueryingErrorGroup) {
-        return (
-            <ErrorState message="This error is invalid or has not been made public." />
-        );
-    }
 
     return (
         <ErrorSearchContextProvider
@@ -115,7 +101,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                 <div
                     className={classNames(styles.errorPage, {
                         [styles.withoutLeftPanel]: !showLeftPanel,
-                        [styles.empty]: !error_id,
+                        [styles.empty]: !error_id || errorQueryingErrorGroup,
                     })}
                 >
                     <div
@@ -125,8 +111,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                     >
                         <ErrorSearchPanel />
                     </div>
-
-                    {error_id ? (
+                    {error_id && !errorQueryingErrorGroup ? (
                         <>
                             <div
                                 className={classNames(
@@ -247,6 +232,8 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                                 />
                             </div>
                         </>
+                    ) : errorQueryingErrorGroup ? (
+                        <ErrorState message="This error does not exist or has not been made public." />
                     ) : (
                         <NoActiveErrorCard />
                     )}
