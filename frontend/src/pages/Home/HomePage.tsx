@@ -245,7 +245,10 @@ const SessionCountGraph = () => {
                     setSelectedSegment(undefined);
                     setSearchParams({
                         ...EmptySessionsSearchParams,
-                        date_range: getDateRangeForDateInput(date, date),
+                        date_range: getDateRangeForDateInput(
+                            date.startOf('day'),
+                            date.startOf('day')
+                        ),
                     });
 
                     message.success(

@@ -127,6 +127,7 @@ export type ErrorObject = {
     project_id: Scalars['Int'];
     session_id: Scalars['Int'];
     error_group_id: Scalars['Int'];
+    error_group_secure_id: Scalars['String'];
     event: Array<Maybe<Scalars['String']>>;
     type: Scalars['String'];
     url: Scalars['String'];
@@ -166,7 +167,6 @@ export type ErrorGroup = {
 export type ErrorMetadata = {
     __typename?: 'ErrorMetadata';
     error_id: Scalars['Int'];
-    error_secure_id: Scalars['String'];
     session_id: Scalars['Int'];
     session_secure_id: Scalars['String'];
     environment?: Maybe<Scalars['String']>;

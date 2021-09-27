@@ -103,7 +103,11 @@ const Player = ({ integrated }: Props) => {
         playerCenterPanelRef,
     } = usePlayerFullscreen();
     const [detailedPanel, setDetailedPanel] = useState<
-        | { title: string | React.ReactNode; content: React.ReactNode }
+        | {
+              title: string | React.ReactNode;
+              content: React.ReactNode;
+              id: string;
+          }
         | undefined
     >(undefined);
     const newCommentModalRef = useRef<HTMLDivElement>(null);

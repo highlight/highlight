@@ -104,6 +104,7 @@ type ErrorObject {
     project_id: Int!
     session_id: Int!
     error_group_id: Int!
+    error_group_secure_id: String!
     event: [String]!
     type: String!
     url: String!
@@ -140,7 +141,6 @@ type ErrorGroup {
 
 type ErrorMetadata {
     error_id: Int!
-    error_secure_id: String!
     session_id: Int!
     session_secure_id: String!
     environment: String

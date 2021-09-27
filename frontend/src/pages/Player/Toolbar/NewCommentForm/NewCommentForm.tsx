@@ -122,8 +122,10 @@ export const NewCommentForm = ({
                     'Comments',
                 ]);
             }
-        } catch (e) {
-            H.track('Create Comment Failed', { error: e });
+        } catch (_e) {
+            const e = _e as Error;
+
+            H.track('Create Comment Failed', { error: e.toString() });
             message.error(
                 <>
                     Failed to post a comment, please try again.{' '}

@@ -93,7 +93,7 @@ func (r *errorGroupResolver) StackTrace(ctx context.Context, obj *model.ErrorGro
 func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorMetadata, error) {
 	var metadataLogs []*modelInputs.ErrorMetadata
 	r.DB.Raw(`
-		SELECT s.id AS session_id, s.secure_id AS session_secure_id, e.id AS error_id, ? AS error_secure_id, e.timestamp, s.os_name AS os, s.browser_name AS browser, e.url AS visited_url, s.fingerprint AS fingerprint, s.identifier AS identifier
+		SELECT s.id AS session_id, s.secure_id AS session_secure_id, e.id AS error_id, e.timestamp, s.os_name AS os, s.browser_name AS browser, e.url AS visited_url, s.fingerprint AS fingerprint, s.identifier AS identifier
 		FROM sessions AS s
 		INNER JOIN (
 			SELECT DISTINCT ON (session_id) session_id, id, timestamp, url
@@ -105,7 +105,7 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 		ON s.id = e.session_id
 		ORDER BY s.updated_at DESC
 		LIMIT 20;
-	`, obj.SecureID, obj.ID).Scan(&metadataLogs)
+	`, obj.ID).Scan(&metadataLogs)
 	return metadataLogs, nil
 }
 
@@ -147,6 +147,17 @@ func (r *errorGroupResolver) ErrorFrequency(ctx context.Context, obj *model.Erro
 		return r.Query().DailyErrorFrequency(ctx, obj.ProjectID, &obj.ID, &obj.SecureID, 5)
 	}
 	return nil, nil
+}
+
+func (r *errorObjectResolver) ErrorGroupSecureID(ctx context.Context, obj *model.ErrorObject) (string, error) {
+	if obj != nil {
+		var secureID string
+		if err := r.DB.Raw(`SELECT secure_id FROM error_groups WHERE id = ? LIMIT 1`, obj.ErrorGroupID).Scan(&secureID); err != nil {
+			return "", fmt.Errorf("Failed to retrieve secure_id for error group: %v", err)
+		}
+		return secureID, nil
+	}
+	return "", nil
 }
 
 func (r *errorObjectResolver) Event(ctx context.Context, obj *model.ErrorObject) ([]*string, error) {
@@ -693,7 +704,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 				tracer.ResourceName("slackBot.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedSlackUsers)))
 			defer commentMentionSlackSpan.Finish()
 
-			err := r.SendSlackAlertToUser(&project, admin, taggedSlackUsers, viewLink, textForEmail, "session")
+			err := r.SendSlackAlertToUser(&project, admin, taggedSlackUsers, viewLink, textForEmail, "session", sessionImage)
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in session comment for slack bot"))
 			}
@@ -785,6 +796,19 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 			err = r.SendPersonalSlackAlert(&project, admin, adminIds, viewLink, textForEmail, "error")
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in error comment"))
+			}
+		}()
+
+	}
+	if len(taggedSlackUsers) > 0 && !isGuest {
+		go func() {
+			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
+				tracer.ResourceName("slackBot.sendErrorCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedSlackUsers)))
+			defer commentMentionSlackSpan.Finish()
+
+			err := r.SendSlackAlertToUser(&project, admin, taggedSlackUsers, viewLink, textForEmail, "error", nil)
+			if err != nil {
+				log.Error(e.Wrap(err, "error notifying tagged admins in error comment for slack bot"))
 			}
 		}()
 	}

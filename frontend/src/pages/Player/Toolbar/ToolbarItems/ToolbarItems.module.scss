@@ -23,7 +23,8 @@
     }
 }
 
-.switch {
+// We call this `switchElement` instead of `switch` because `switch` is a reserved word in Javascript.
+.switchElement {
     flex-grow: 1;
 }
 

@@ -31,4 +31,17 @@
             padding-bottom: var(--size-large);
         }
     }
+
+    .titleContainer {
+        border-bottom: 1px solid var(--color-gray-300);
+        margin: 0 calc(-1 * var(--size-large));
+        margin-bottom: var(--size-small);
+        margin-top: calc(-1 * var(--size-xSmall));
+        padding: 0 var(--size-large);
+
+        h3 {
+            font-size: 14px !important;
+            margin-bottom: var(--size-medium) !important;
+        }
+    }
 }

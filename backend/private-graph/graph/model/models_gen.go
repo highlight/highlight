@@ -26,7 +26,6 @@ type DateRangeInput struct {
 
 type ErrorMetadata struct {
 	ErrorID         int        `json:"error_id"`
-	ErrorSecureID   string     `json:"error_secure_id"`
 	SessionID       int        `json:"session_id"`
 	SessionSecureID string     `json:"session_secure_id"`
 	Environment     *string    `json:"environment"`

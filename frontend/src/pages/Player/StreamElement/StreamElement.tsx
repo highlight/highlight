@@ -1,9 +1,9 @@
+import JsonViewer from '@components/JsonViewer/JsonViewer';
 import { EventType } from '@highlight-run/rrweb';
 import { message } from 'antd';
 import classNames from 'classnames/bind';
 import React, { useState } from 'react';
 import { FaBug, FaRegStopCircle } from 'react-icons/fa';
-import ReactJson from 'react-json-view';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
 import GoToButton from '../../../components/Button/GoToButton';
@@ -93,12 +93,10 @@ export const StreamElement = ({
                                     event.stopPropagation();
                                 }}
                             >
-                                <ReactJson
-                                    style={{ wordBreak: 'break-word' }}
+                                <JsonViewer
                                     name={null}
                                     collapsed
                                     src={e.data}
-                                    iconStyle="circle"
                                 />
                             </div>
                         ) : (
