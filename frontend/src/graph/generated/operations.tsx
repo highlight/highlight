@@ -611,6 +611,7 @@ export type GetSessionCommentsQuery = { __typename?: 'Query' } & {
                 | 'id'
                 | 'timestamp'
                 | 'session_id'
+                | 'session_secure_id'
                 | 'created_at'
                 | 'updated_at'
                 | 'project_id'
@@ -770,6 +771,7 @@ export type GetSessionsQuery = { __typename?: 'Query' } & {
                 { __typename?: 'Session' } & Pick<
                     Types.Session,
                     | 'id'
+                    | 'secure_id'
                     | 'fingerprint'
                     | 'identifier'
                     | 'os_name'
