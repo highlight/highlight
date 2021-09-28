@@ -39,14 +39,36 @@
 .header {
     column-gap: var(--size-small);
     display: flex;
+    flex-direction: column;
     margin-bottom: calc(-1 * var(--size-medium));
     padding: var(--size-medium) var(--size-large);
+    row-gap: var(--size-medium);
 
     .searchContainer {
+        column-gap: var(--size-small);
+        display: flex;
         flex-grow: 1;
 
         .searchIcon {
             color: var(--color-gray-500);
         }
     }
+
+    .secondRow {
+        color: var(--color-gray-500);
+        display: flex;
+    }
+}
+
+.detailsSwitch {
+    margin-left: auto;
+}
+
+.emptyMessageContainer {
+    align-items: center;
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    justify-content: center;
 }

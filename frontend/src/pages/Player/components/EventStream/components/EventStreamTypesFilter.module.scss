@@ -1,0 +1,26 @@
+.filtersButton {
+    color: var(--color-gray-500);
+    column-gap: var(--size-xxSmall);
+    display: flex;
+    font-size: 12px;
+    height: var(--size-xLarge);
+}
+
+.popover {
+    max-width: 300px;
+    padding-bottom: var(--size-small);
+
+    p {
+        margin-top: 0 !important;
+    }
+
+    .optionsContainer {
+        display: grid;
+        gap: var(--size-small);
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    :global(.ant-checkbox-wrapper + .ant-checkbox-wrapper) {
+        margin-left: 0;
+    }
+}

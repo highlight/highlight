@@ -1,9 +1,10 @@
-import Button from '@components/Button/Button/Button';
 import Input from '@components/Input/Input';
+import Switch from '@components/Switch/Switch';
 import { EventType } from '@highlight-run/rrweb';
 import { eventWithTime } from '@highlight-run/rrweb/dist/types';
 import SvgSearchIcon from '@icons/SearchIcon';
-import SvgSettingsIcon from '@icons/SettingsIcon';
+import { EventStreamTypesFilter } from '@pages/Player/components/EventStream/components/EventStreamTypesFilter';
+import { useEventTypeFilters } from '@pages/Player/components/EventStream/hooks/useEventTypeFilters';
 import { HighlightEvent } from '@pages/Player/HighlightEvent';
 import {
     ReplayerState,
@@ -19,6 +20,7 @@ import React, {
     useState,
 } from 'react';
 import Skeleton from 'react-loading-skeleton';
+import TextTransition from 'react-text-transition';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
@@ -29,6 +31,8 @@ const EventStream = () => {
     const { replayer, time, events, state } = useReplayerContext();
     const [searchQuery, setSearchQuery] = useState('');
     const [currEvent, setCurrEvent] = useState('');
+    const [showDetails, setShowDetails] = useState(false);
+    const eventTypeFilters = useEventTypeFilters();
     const [
         isInteractingWithStreamEvents,
         setIsInteractingWithStreamEvents,
@@ -51,11 +55,8 @@ const EventStream = () => {
     );
 
     const filteredEvents = useMemo(
-        () =>
-            searchQuery === ''
-                ? usefulEvents
-                : getFilteredEvents(searchQuery, usefulEvents),
-        [searchQuery, usefulEvents]
+        () => getFilteredEvents(searchQuery, usefulEvents, eventTypeFilters),
+        [eventTypeFilters, searchQuery, usefulEvents]
     );
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -134,46 +135,68 @@ const EventStream = () => {
                                         }}
                                         allowClear
                                     />
+
+                                    <EventStreamTypesFilter />
                                 </div>
-                                <div>
-                                    <Button
-                                        trackingId="SessionEventStreamSettings"
-                                        type="text"
-                                        iconButton
-                                    >
-                                        <SvgSettingsIcon />
-                                    </Button>
+                                <div className={styles.secondRow}>
+                                    <span>
+                                        <TextTransition
+                                            inline
+                                            text={filteredEvents.length.toLocaleString()}
+                                        />{' '}
+                                        events
+                                    </span>
+                                    <Switch
+                                        label="Show Details"
+                                        trackingId="EventStreamShowDetails"
+                                        className={styles.detailsSwitch}
+                                        checked={showDetails}
+                                        onChange={(e) => {
+                                            setShowDetails(e);
+                                        }}
+                                    />
                                 </div>
                             </div>
-                            <Virtuoso
-                                onMouseEnter={() => {
-                                    setIsInteractingWithStreamEvents(true);
-                                }}
-                                onMouseLeave={() => {
-                                    setIsInteractingWithStreamEvents(false);
-                                }}
-                                //     @ts-ignore
-                                components={{ List: VirtuosoList }}
-                                ref={virtuoso}
-                                data={filteredEvents}
-                                overscan={500}
-                                itemContent={(index, event) => (
-                                    <StreamElement
-                                        e={event}
-                                        key={index}
-                                        start={replayer.getMetaData().startTime}
-                                        isCurrent={
-                                            event.timestamp -
-                                                replayer.getMetaData()
-                                                    .startTime ===
-                                                time ||
-                                            event.identifier === currEvent
-                                        }
-                                        onGoToHandler={setCurrEvent}
-                                        searchQuery={searchQuery}
-                                    />
-                                )}
-                            />
+                            {filteredEvents.length > 0 ? (
+                                <Virtuoso
+                                    onMouseEnter={() => {
+                                        setIsInteractingWithStreamEvents(true);
+                                    }}
+                                    onMouseLeave={() => {
+                                        setIsInteractingWithStreamEvents(false);
+                                    }}
+                                    //     @ts-ignore
+                                    components={{ List: VirtuosoList }}
+                                    ref={virtuoso}
+                                    data={filteredEvents}
+                                    overscan={500}
+                                    itemContent={(index, event) => (
+                                        <StreamElement
+                                            e={event}
+                                            key={index}
+                                            start={
+                                                replayer.getMetaData().startTime
+                                            }
+                                            isCurrent={
+                                                event.timestamp -
+                                                    replayer.getMetaData()
+                                                        .startTime ===
+                                                    time ||
+                                                event.identifier === currEvent
+                                            }
+                                            onGoToHandler={setCurrEvent}
+                                            searchQuery={searchQuery}
+                                            showDetails={showDetails}
+                                        />
+                                    )}
+                                />
+                            ) : (
+                                <div className={styles.emptyMessageContainer}>
+                                    {searchQuery === ''
+                                        ? 'There are no events matching your filters.'
+                                        : `There are no events that match "${searchQuery}".`}
+                                </div>
+                            )}
                         </div>
                     )
                 )}
@@ -201,11 +224,11 @@ const VirtuosoList = React.forwardRef((props, ref) => {
     return <div {...props} ref={ref} className={styles.virtualList} />;
 });
 
-const getFilteredEvents = (searchQuery: string, events: HighlightEvent[]) => {
-    if (searchQuery === '') {
-        return events;
-    }
-
+const getFilteredEvents = (
+    searchQuery: string,
+    events: HighlightEvent[],
+    eventTypeFilters: any
+) => {
     const normalizedSearchQuery = searchQuery.toLocaleLowerCase();
     const searchTokens = normalizedSearchQuery.split(' ');
 
@@ -213,6 +236,9 @@ const getFilteredEvents = (searchQuery: string, events: HighlightEvent[]) => {
         if (event.type === EventType.Custom) {
             switch (event.data.tag) {
                 case 'Identify':
+                    if (!eventTypeFilters.showIdentify) {
+                        return false;
+                    }
                     try {
                         const userObject = JSON.parse(
                             event.data.payload as string
@@ -245,6 +271,9 @@ const getFilteredEvents = (searchQuery: string, events: HighlightEvent[]) => {
                         return false;
                     }
                 case 'Track':
+                    if (!eventTypeFilters.showTrack) {
+                        return false;
+                    }
                     try {
                         const trackProperties = JSON.parse(
                             event.data.payload as string
@@ -277,8 +306,14 @@ const getFilteredEvents = (searchQuery: string, events: HighlightEvent[]) => {
                         return false;
                     }
                 case 'Viewport':
+                    if (!eventTypeFilters.showViewport) {
+                        return false;
+                    }
                     return 'viewport'.includes(normalizedSearchQuery);
                 case 'Segment Identify':
+                    if (!eventTypeFilters.showSegment) {
+                        return false;
+                    }
                     try {
                         const userObject = JSON.parse(
                             event.data.payload as string
@@ -299,10 +334,45 @@ const getFilteredEvents = (searchQuery: string, events: HighlightEvent[]) => {
                         return false;
                     }
                 case 'Focus':
+                    if (!eventTypeFilters.showFocus) {
+                        return false;
+                    }
+                    return searchTokens.some((searchToken) => {
+                        return (event.data.payload as string)
+                            .toLowerCase()
+                            .includes(searchToken);
+                    });
                 case 'Navigate':
+                    if (!eventTypeFilters.showNavigate) {
+                        return false;
+                    }
+                    return searchTokens.some((searchToken) => {
+                        return (event.data.payload as string)
+                            .toLowerCase()
+                            .includes(searchToken);
+                    });
                 case 'Referrer':
+                    if (!eventTypeFilters.showReferrer) {
+                        return false;
+                    }
+                    return searchTokens.some((searchToken) => {
+                        return (event.data.payload as string)
+                            .toLowerCase()
+                            .includes(searchToken);
+                    });
                 case 'Click':
+                    if (!eventTypeFilters.showClick) {
+                        return false;
+                    }
+                    return searchTokens.some((searchToken) => {
+                        return (event.data.payload as string)
+                            .toLowerCase()
+                            .includes(searchToken);
+                    });
                 case 'Reload':
+                    if (!eventTypeFilters.showReload) {
+                        return false;
+                    }
                     return searchTokens.some((searchToken) => {
                         return (event.data.payload as string)
                             .toLowerCase()
