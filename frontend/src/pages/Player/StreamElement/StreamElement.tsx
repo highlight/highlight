@@ -2,6 +2,7 @@ import JsonViewer from '@components/JsonViewer/JsonViewer';
 import { EventType } from '@highlight-run/rrweb';
 import { message } from 'antd';
 import classNames from 'classnames/bind';
+import moment from 'moment';
 import React, { useState } from 'react';
 import { FaBug, FaRegStopCircle } from 'react-icons/fa';
 import { BooleanParam, useQueryParam } from 'use-query-params';
@@ -132,6 +133,9 @@ export const StreamElement = ({
                                 />
                             </div>
                         )}
+                        <div className={styles.timestamp}>
+                            {moment(e.timestamp).format('h:mm:ss A')}
+                        </div>
                         <GoToButton
                             className={styles.goToButton}
                             onClick={(e) => {

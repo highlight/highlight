@@ -99,6 +99,11 @@
     min-width: 100%;
 }
 
+.timestamp {
+    grid-column-end: 3;
+    grid-column-start: 1;
+}
+
 .goToButton {
     color: var(--color-gray-500);
     grid-column-start: 3;
