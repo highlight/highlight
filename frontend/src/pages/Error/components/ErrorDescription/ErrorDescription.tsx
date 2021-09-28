@@ -22,7 +22,9 @@ const ErrorDescription = ({ errorGroup }: Props) => {
         if (text) {
             try {
                 const json = JSON.parse(text);
-                setTextAsJson(json);
+                if (typeof json === 'object') {
+                    setTextAsJson(json);
+                }
             } catch {
                 setTextAsJson(null);
             }
