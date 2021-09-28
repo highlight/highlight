@@ -165,7 +165,7 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 
 func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *model2.ErrorObjectInput, fields []*model.ErrorField, projectID int) (*model.ErrorGroup, error) {
 	frames := errorInput.StackTrace
-	if frames != nil && frames[0] != nil && frames[0].Source != nil && strings.Contains(*frames[0].Source, "https://static.highlight.run/index.js") {
+	if len(frames) > 0 && frames[0] != nil && frames[0].Source != nil && strings.Contains(*frames[0].Source, "https://static.highlight.run/index.js") {
 		errorObj.ProjectID = 1
 	}
 	firstFrameBytes, err := json.Marshal(frames)
@@ -501,7 +501,7 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, projectId,
 	}
 	var mappedStackTrace []modelInputs.ErrorTrace
 	for _, stackFrame := range input {
-		if stackFrame == nil || (stackFrame.FileName == nil || stackFrame.LineNumber == nil || stackFrame.ColumnNumber == nil) {
+		if stackFrame == nil || (stackFrame.FileName == nil || len(*stackFrame.FileName) < 1 || stackFrame.LineNumber == nil || stackFrame.ColumnNumber == nil) {
 			continue
 		}
 		mappedStackFrame, err := r.processStackFrame(projectId, sessionId, *stackFrame)
