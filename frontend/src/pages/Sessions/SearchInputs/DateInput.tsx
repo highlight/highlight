@@ -14,6 +14,18 @@ export const DateInput = () => {
     return (
         <div>
             <RangePicker
+                showTime
+                ranges={{
+                    Today: [moment().startOf('day'), moment().endOf('day')],
+                    'This Week': [
+                        moment().startOf('week'),
+                        moment().endOf('week'),
+                    ],
+                    'This Month': [
+                        moment().startOf('month'),
+                        moment().endOf('month'),
+                    ],
+                }}
                 value={
                     searchParams.date_range
                         ? [
@@ -57,9 +69,8 @@ export const getDateRangeForDateInput = (
     start_date?: moment.Moment,
     end_date?: moment.Moment
 ): { start_date: Date; end_date: Date } => {
-    // Move the end date to the end of the day so the range is end-inclusive.
-    const momentStartDate = moment(start_date).startOf('day');
-    const momentEndDate = moment(end_date).endOf('day');
+    const momentStartDate = moment(start_date);
+    const momentEndDate = moment(end_date);
 
     return {
         start_date: momentStartDate.toDate(),

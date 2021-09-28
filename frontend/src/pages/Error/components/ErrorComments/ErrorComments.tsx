@@ -77,8 +77,9 @@ const ErrorComments = ({ parentRef }: Props) => {
             });
             form.resetFields();
             setCommentText('');
-        } catch (e) {
-            H.track('Create Error Comment Failed', { error: e });
+        } catch (_e) {
+            const e = _e as Error;
+            H.track('Create Error Comment Failed', { error: e.toString() });
             message.error(
                 <>
                     Failed to post a comment, please try again. If this keeps

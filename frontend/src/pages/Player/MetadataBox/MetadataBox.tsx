@@ -89,13 +89,16 @@ export const MetadataBox = () => {
                 <div className={styles.headerWrapper}>
                     {!session ? (
                         <Skeleton
-                            count={2}
+                            count={3}
                             style={{ height: 20, marginBottom: 5 }}
                         />
                     ) : (
                         <>
                             <h4 className={styles.userIdHeader}>
-                                <UserIdentifier session={session} />
+                                <UserIdentifier
+                                    session={session}
+                                    className={styles.userIdentifier}
+                                />
                             </h4>
                             <p className={styles.userIdSubHeader}>
                                 {created.toLocaleString('en-us', {

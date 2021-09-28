@@ -7,7 +7,9 @@ import ErrorShareButton from '../ErrorShareButton/ErrorShareButton';
 import styles from './ErrorTitle.module.scss';
 
 interface Props {
-    errorGroup: Maybe<Pick<ErrorGroup, 'event' | 'type' | 'id'>> | undefined;
+    errorGroup:
+        | Maybe<Pick<ErrorGroup, 'event' | 'type' | 'id' | 'is_public'>>
+        | undefined;
     showShareButton?: boolean;
 }
 

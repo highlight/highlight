@@ -14,7 +14,7 @@ import { ErrorGroup } from '../../../../graph/generated/schemas';
 import styles from './ErrorShareButton.module.scss';
 
 interface Props {
-    errorGroup: Maybe<Pick<ErrorGroup, 'id'>> | undefined;
+    errorGroup: Maybe<Pick<ErrorGroup, 'id' | 'is_public'>> | undefined;
 }
 
 const ErrorShareButton = ({ errorGroup }: Props) => {

@@ -11,8 +11,16 @@ type Props = Pick<
 >;
 
 const InfoTooltip = ({ ...props }: Props) => {
+    if (props.title == undefined) {
+        return null;
+    }
+
     return (
-        <Tooltip {...props} overlayClassName={styles.tooltip}>
+        <Tooltip
+            {...props}
+            overlayClassName={styles.tooltip}
+            mouseEnterDelay={0}
+        >
             <SvgInformationIcon />
         </Tooltip>
     );

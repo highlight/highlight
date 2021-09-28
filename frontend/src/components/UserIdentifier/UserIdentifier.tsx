@@ -1,3 +1,4 @@
+import classNames from 'classnames';
 import React from 'react';
 
 import { Session } from '../../graph/generated/schemas';
@@ -8,16 +9,17 @@ import styles from './UserIdentifier.module.scss';
 
 interface Props {
     session: Session;
+    className?: string;
 }
 
-const UserIdentifier = ({ session }: Props) => {
+const UserIdentifier = ({ session, className }: Props) => {
     const { setSearchParams } = useSearchContext();
 
     const hasIdentifier = !!session?.identifier;
 
     return (
         <Button
-            className={styles.button}
+            className={classNames(styles.button, className)}
             trackingId="UserIdentifer"
             type="text"
             onClick={() => {
