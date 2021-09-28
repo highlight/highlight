@@ -1,5 +1,7 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import { ErrorState } from '@components/ErrorState/ErrorState';
 import classNames from 'classnames';
+import { H } from 'highlight.run';
 import moment from 'moment';
 import React, { useEffect, useRef, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
@@ -52,6 +54,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
         project_id: string;
     }>();
 
+    const { isLoggedIn } = useAuthContext();
     const {
         data,
         loading,
@@ -59,6 +62,9 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
     } = useGetErrorGroupQuery({
         variables: { id: error_id },
         skip: !error_id,
+        onCompleted: () => {
+            H.track('Viewed error', { is_guest: !isLoggedIn });
+        },
     });
     const [segmentName, setSegmentName] = useState<string | null>(null);
     const [cachedParams, setCachedParams] = useLocalStorage<ErrorSearchParams>(

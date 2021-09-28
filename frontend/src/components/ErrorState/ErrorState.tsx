@@ -52,9 +52,9 @@ export const ErrorState = ({
                                     try {
                                         auth.signOut();
                                     } catch (e) {
-                                        H.consumeError(
-                                            new Error(JSON.stringify(e))
-                                        );
+                                        if (e instanceof Error) {
+                                            H.consumeError(e);
+                                        }
                                     }
                                     client.cache.reset();
                                 }}
