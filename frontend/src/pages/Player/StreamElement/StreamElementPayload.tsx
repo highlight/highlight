@@ -1,3 +1,4 @@
+import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
 import React from 'react';
 import validator from 'validator';
 
@@ -7,9 +8,10 @@ import { isJson } from './utils';
 
 interface StreamElementProps {
     payload?: string;
+    searchQuery?: string;
 }
 
-const StreamElementPayload = ({ payload }: StreamElementProps) => {
+const StreamElementPayload = ({ payload, searchQuery }: StreamElementProps) => {
     if (!payload) {
         return null;
     }
@@ -30,7 +32,14 @@ const StreamElementPayload = ({ payload }: StreamElementProps) => {
                     rel="noopener noreferrer"
                     className={styles.anchor}
                 >
-                    {payload}
+                    {searchQuery ? (
+                        <TextHighlighter
+                            searchWords={searchQuery.split(' ')}
+                            textToHighlight={payload}
+                        />
+                    ) : (
+                        payload
+                    )}
                 </a>
             </div>
         );
@@ -46,13 +55,36 @@ const StreamElementPayload = ({ payload }: StreamElementProps) => {
             <div className={styles.objectList}>
                 {emptyValuesRemovedKeys.map((key) => (
                     <>
-                        <span className={styles.objectKey}>{key}</span>{' '}
+                        <span className={styles.objectKey}>
+                            {searchQuery ? (
+                                <TextHighlighter
+                                    searchWords={searchQuery.split(' ')}
+                                    textToHighlight={key}
+                                />
+                            ) : (
+                                key
+                            )}
+                        </span>{' '}
                         <span className={styles.objectValue}>
                             {validator.isURL(
                                 object[key]?.toString() || '',
                                 validatorUrlOptions
                             ) ? (
-                                <a href={object[key]}>{object[key]}</a>
+                                <a href={object[key]}>
+                                    {searchQuery ? (
+                                        <TextHighlighter
+                                            searchWords={searchQuery.split(' ')}
+                                            textToHighlight={object[key]}
+                                        />
+                                    ) : (
+                                        object[key]
+                                    )}
+                                </a>
+                            ) : searchQuery ? (
+                                <TextHighlighter
+                                    searchWords={searchQuery.split(' ')}
+                                    textToHighlight={object[key]?.toString()}
+                                />
                             ) : (
                                 object[key]?.toString() || (
                                     <>
@@ -72,7 +104,18 @@ const StreamElementPayload = ({ payload }: StreamElementProps) => {
         );
     }
 
-    return <div>{payload}</div>;
+    return (
+        <div>
+            {searchQuery ? (
+                <TextHighlighter
+                    searchWords={searchQuery.split(' ')}
+                    textToHighlight={payload}
+                />
+            ) : (
+                payload
+            )}
+        </div>
+    );
 };
 
 export default StreamElementPayload;

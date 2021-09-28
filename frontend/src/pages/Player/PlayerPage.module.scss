@@ -45,20 +45,6 @@
     width: 30px;
 }
 
-.eventStreamContainer {
-    box-sizing: border-box;
-    color: var(--color-primary-background);
-    height: 100%;
-    overflow-y: auto;
-    padding: 0;
-    position: relative;
-    width: 100%;
-
-    > div::-webkit-scrollbar {
-        display: none;
-    }
-}
-
 .appBody {
     display: flex;
     flex-direction: column;
@@ -240,18 +226,6 @@
     display: block;
     margin: 0 auto;
     margin-top: var(--size-large);
-}
-
-.virtualList {
-    margin: var(--size-medium) 0 !important;
-
-    > div {
-        margin: var(--size-medium) 0;
-
-        &:last-of-type {
-            padding-bottom: 50px;
-        }
-    }
 }
 
 .panelToggleButton {
