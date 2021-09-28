@@ -9,6 +9,7 @@ export const starredIcon: string;
 export const tagEllipsis: string;
 export const unstarredIcon: string;
 export const userAvatarWrapper: string;
+export const userIdentifier: string;
 export const userIdHeader: string;
 export const userIdSubHeader: string;
 export const userInfoWrapper: string;

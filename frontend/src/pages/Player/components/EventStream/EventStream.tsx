@@ -100,106 +100,108 @@ const EventStream = () => {
         state,
     ]);
 
+    const isLoading = events.length === 0;
+
     return (
         <>
             <div id="wrapper" className={styles.eventStreamContainer}>
-                {!events.length ? (
-                    <div>
-                        <Skeleton
-                            count={20}
-                            height={43}
-                            width="301px"
-                            style={{
-                                marginTop: 16,
-                                marginLeft: 24,
-                                marginRight: 24,
-                                borderRadius: 8,
-                            }}
-                        />
-                    </div>
-                ) : (
-                    replayer && (
-                        <div className={styles.container}>
-                            <div className={styles.header}>
-                                <div className={styles.searchContainer}>
-                                    <Input
-                                        placeholder="Search events"
-                                        suffix={
-                                            <SvgSearchIcon
-                                                className={styles.searchIcon}
-                                            />
-                                        }
-                                        value={searchQuery}
-                                        onChange={(e) => {
-                                            setSearchQuery(e.target.value);
-                                        }}
-                                        allowClear
+                <div className={styles.container}>
+                    <div className={styles.header}>
+                        <div className={styles.searchContainer}>
+                            <Input
+                                placeholder="Search events"
+                                suffix={
+                                    <SvgSearchIcon
+                                        className={styles.searchIcon}
                                     />
+                                }
+                                value={searchQuery}
+                                onChange={(e) => {
+                                    setSearchQuery(e.target.value);
+                                }}
+                                allowClear
+                            />
 
-                                    <EventStreamTypesFilter />
-                                </div>
-                                <div className={styles.secondRow}>
-                                    <span>
-                                        <TextTransition
-                                            inline
-                                            text={filteredEvents.length.toLocaleString()}
-                                        />{' '}
-                                        events
-                                    </span>
-                                    <Switch
-                                        label="Show Details"
-                                        trackingId="EventStreamShowDetails"
-                                        className={styles.detailsSwitch}
-                                        checked={showDetails}
-                                        onChange={(e) => {
-                                            setShowDetails(e);
-                                        }}
-                                    />
-                                </div>
-                            </div>
-                            {filteredEvents.length > 0 ? (
-                                <Virtuoso
-                                    onMouseEnter={() => {
-                                        setIsInteractingWithStreamEvents(true);
-                                    }}
-                                    onMouseLeave={() => {
-                                        setIsInteractingWithStreamEvents(false);
-                                    }}
-                                    //     @ts-ignore
-                                    components={{ List: VirtuosoList }}
-                                    ref={virtuoso}
-                                    data={filteredEvents}
-                                    overscan={500}
-                                    itemContent={(index, event) => (
-                                        <StreamElement
-                                            e={event}
-                                            key={index}
-                                            start={
-                                                replayer.getMetaData().startTime
-                                            }
-                                            isCurrent={
-                                                event.timestamp -
-                                                    replayer.getMetaData()
-                                                        .startTime ===
-                                                    time ||
-                                                event.identifier === currEvent
-                                            }
-                                            onGoToHandler={setCurrEvent}
-                                            searchQuery={searchQuery}
-                                            showDetails={showDetails}
-                                        />
-                                    )}
-                                />
-                            ) : (
-                                <div className={styles.emptyMessageContainer}>
-                                    {searchQuery === ''
-                                        ? 'There are no events matching your filters.'
-                                        : `There are no events that match "${searchQuery}".`}
-                                </div>
-                            )}
+                            <EventStreamTypesFilter />
                         </div>
-                    )
-                )}
+                        <div className={styles.secondRow}>
+                            <span>
+                                <>
+                                    <TextTransition
+                                        inline
+                                        text={
+                                            isLoading
+                                                ? '-'
+                                                : filteredEvents.length.toLocaleString()
+                                        }
+                                    />{' '}
+                                    events
+                                </>
+                            </span>
+                            <Switch
+                                label="Show Details"
+                                trackingId="EventStreamShowDetails"
+                                className={styles.detailsSwitch}
+                                checked={showDetails}
+                                onChange={(e) => {
+                                    setShowDetails(e);
+                                }}
+                            />
+                        </div>
+                    </div>
+                    {isLoading ? (
+                        <div>
+                            <Skeleton
+                                count={20}
+                                height={43}
+                                width="301px"
+                                style={{
+                                    marginTop: 16,
+                                    marginLeft: 24,
+                                    marginRight: 24,
+                                    borderRadius: 8,
+                                }}
+                            />
+                        </div>
+                    ) : replayer && filteredEvents.length > 0 ? (
+                        <Virtuoso
+                            onMouseEnter={() => {
+                                setIsInteractingWithStreamEvents(true);
+                            }}
+                            onMouseLeave={() => {
+                                setIsInteractingWithStreamEvents(false);
+                            }}
+                            //     @ts-ignore
+                            components={{ List: VirtuosoList }}
+                            ref={virtuoso}
+                            data={filteredEvents}
+                            overscan={500}
+                            itemContent={(index, event) => (
+                                <StreamElement
+                                    e={event}
+                                    key={index}
+                                    start={replayer.getMetaData().startTime}
+                                    isCurrent={
+                                        event.timestamp -
+                                            replayer.getMetaData().startTime ===
+                                            time ||
+                                        event.identifier === currEvent
+                                    }
+                                    onGoToHandler={setCurrEvent}
+                                    searchQuery={searchQuery}
+                                    showDetails={showDetails}
+                                />
+                            )}
+                        />
+                    ) : (
+                        <div className={styles.emptyMessageContainer}>
+                            {searchQuery === ''
+                                ? 'There are no events matching your filters.'
+                                : `There are no events that match "${searchQuery}".`}
+                        </div>
+                    )}
+                </div>
+                )
             </div>
         </>
     );
