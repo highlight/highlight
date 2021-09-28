@@ -36,7 +36,6 @@ import { formatNumber } from '../../util/numbers';
 import { SessionPageSearchParams } from '../Player/utils/utils';
 import { EmptySessionsSearchParams } from '../Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '../Sessions/SearchContext/SearchContext';
-import { getDateRangeForDateInput } from '../Sessions/SearchInputs/DateInput';
 import ActiveUsersTable from './components/ActiveUsersTable/ActiveUsersTable';
 import {
     HomePageFiltersContext,
@@ -245,10 +244,10 @@ const SessionCountGraph = () => {
                     setSelectedSegment(undefined);
                     setSearchParams({
                         ...EmptySessionsSearchParams,
-                        date_range: getDateRangeForDateInput(
-                            date.startOf('day'),
-                            date.startOf('day')
-                        ),
+                        date_range: {
+                            start_date: date.startOf('day').toDate(),
+                            end_date: date.endOf('day').toDate(),
+                        },
                     });
 
                     message.success(

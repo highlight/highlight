@@ -1,11 +1,13 @@
 import { useAuthContext } from '@authentication/AuthContext';
 import { ErrorState } from '@components/ErrorState/ErrorState';
+import { SessionPageSearchParams } from '@pages/Player/utils/utils';
+import { message } from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import moment from 'moment';
 import React, { useEffect, useRef, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { useParams } from 'react-router';
+import { useHistory, useParams } from 'react-router';
 import AsyncSelect from 'react-select/async';
 import { useLocalStorage } from 'react-use';
 import {
@@ -53,6 +55,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
         error_id: string;
         project_id: string;
     }>();
+    const history = useHistory();
 
     const { isLoggedIn } = useAuthContext();
     const {
@@ -81,11 +84,34 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
         AsyncSelect<ErrorSearchOption, true> | undefined
     >(undefined);
     const newCommentModalRef = useRef<HTMLDivElement>(null);
+    const dateFromSearchParams = new URLSearchParams(location.search).get(
+        SessionPageSearchParams.date
+    );
 
     useEffect(() => setCachedParams(searchParams), [
         searchParams,
         setCachedParams,
     ]);
+
+    useEffect(() => {
+        if (dateFromSearchParams) {
+            const start_date = moment(dateFromSearchParams);
+            const end_date = moment(dateFromSearchParams);
+
+            setSearchParams(() => ({
+                // We are explicitly clearing any existing search params so the only applied search param is the date range.
+                ...EmptyErrorsSearchParams,
+                date_range: {
+                    start_date: start_date.startOf('day').toDate(),
+                    end_date: end_date.endOf('day').toDate(),
+                },
+            }));
+            message.success(
+                `Showing errors that were thrown on ${dateFromSearchParams}`
+            );
+            history.replace({ search: '' });
+        }
+    }, [history, dateFromSearchParams, setSearchParams]);
 
     const { showLeftPanel } = useErrorPageConfiguration();
 
