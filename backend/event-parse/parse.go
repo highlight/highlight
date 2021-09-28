@@ -112,8 +112,8 @@ func (r *ReplayEvent) UnmarshalJSON(b []byte) error {
 
 // MouseInteractionEventData represents the data field for click events from the following parent events
 type MouseInteractionEventData struct {
-	X      *string            `json:"x"`
-	Y      *string            `json:"y"`
+	X      *float64           `json:"x"`
+	Y      *float64           `json:"y"`
 	Source *EventSource       `json:"source"`
 	Type   *MouseInteractions `json:"type"`
 }

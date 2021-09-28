@@ -1,6 +1,9 @@
 package worker
 
 import (
+	"container/list"
+	"io/ioutil"
+	"log"
 	"testing"
 	"time"
 
@@ -233,21 +236,39 @@ func TestGetActiveDuration(t *testing.T) {
 	}
 	for name, tt := range tables {
 		t.Run(name, func(t *testing.T) {
+			log.SetOutput(ioutil.Discard)
 			activeDuration := time.Duration(0)
 			var (
-				firstTimestamp time.Time
-				lastTimestamp  time.Time
+				firstEventTimestamp     time.Time
+				lastEventTimestamp      time.Time
+				rageClickSets           []*model.RageClickEvent
+				currentlyInRageClickSet bool
+				clickEventQueue         *list.List
 			)
+			clickEventQueue = list.New()
 			for _, event := range tt.events {
-				var tempD time.Duration
-				tempD, firstTimestamp, lastTimestamp, _ = getActiveDuration(&event, firstTimestamp, lastTimestamp)
-				activeDuration += tempD
+				o := processEventChunk(&processEventChunkInput{
+					EventsChunk:             &event,
+					ClickEventQueue:         clickEventQueue,
+					FirstEventTimestamp:     firstEventTimestamp,
+					LastEventTimestamp:      lastEventTimestamp,
+					RageClickSets:           rageClickSets,
+					CurrentlyInRageClickSet: currentlyInRageClickSet,
+				})
+				if o.Error != nil {
+				}
+				firstEventTimestamp = o.FirstEventTimestamp
+				lastEventTimestamp = o.LastEventTimestamp
+				activeDuration += o.CalculatedDuration
+				rageClickSets = o.RageClickSets
+				currentlyInRageClickSet = o.CurrentlyInRageClickSet
 			}
 
+			t.Log("")
 			if diff := deep.Equal(tt.wantActiveDuration, activeDuration); diff != nil {
 				t.Errorf("[active duration not equal to expected]: %v", diff)
 			}
-			if diff := deep.Equal(tt.expectedFirstTS, firstTimestamp); diff != nil {
+			if diff := deep.Equal(tt.expectedFirstTS, firstEventTimestamp); diff != nil {
 				t.Errorf("[expected first timestamp not equal to actual]: %v", diff)
 			}
 		})

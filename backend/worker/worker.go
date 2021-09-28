@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"math"
 	"math/rand"
 	"os"
 	"strconv"
@@ -251,7 +252,8 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	re := p.Reader()
 	hasNext := true
 	clickEventQueue := list.New()
-	processEventChunk(&processEventChunkInput{ClickEventQueue: clickEventQueue})
+	var rageClickSets []*model.RageClickEvent
+	var currentlyInRageClickSet bool
 	for hasNext {
 		se, err := re.Next()
 		if err != nil {
@@ -261,37 +263,27 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			hasNext = false
 		}
 		if se != nil && *se != "" {
-			log.Infof("events:\n %+v", *se)
 			eventsObject := model.EventsObject{Events: *se}
-			var tempDuration time.Duration
-			tempDuration, firstEventTimestamp, lastEventTimestamp, err = getActiveDuration(&eventsObject, firstEventTimestamp, lastEventTimestamp)
-			if err != nil {
+			log.Info("about to process events chunk")
+			o := processEventChunk(&processEventChunkInput{
+				EventsChunk:             &eventsObject,
+				ClickEventQueue:         clickEventQueue,
+				FirstEventTimestamp:     firstEventTimestamp,
+				LastEventTimestamp:      lastEventTimestamp,
+				RageClickSets:           rageClickSets,
+				CurrentlyInRageClickSet: currentlyInRageClickSet,
+			})
+			if o.Error != nil {
 				return e.Wrap(err, "error getting active duration")
 			}
-			processEventChunk(&processEventChunkInput{
-				EventsChunk:         &eventsObject,
-				ClickEventQueue:     clickEventQueue,
-				FirstEventTimestamp: firstEventTimestamp,
-				LastEventTimestamp:  lastEventTimestamp,
-			})
-			activeDuration += tempDuration
+			log.Infof("finished processing events chunk: %+v", o)
+			firstEventTimestamp = o.FirstEventTimestamp
+			lastEventTimestamp = o.LastEventTimestamp
+			activeDuration += o.CalculatedDuration
+			rageClickSets = o.RageClickSets
+			currentlyInRageClickSet = o.CurrentlyInRageClickSet
 		}
 	}
-	/*
-		for each event:
-			if event.type = parse.IncrementalSnapshot (3)
-				if last timestamp isn't zero:
-					diff := subtract last timestamp from current
-					if diff <= min inactive duration:
-						active duration += diff
-				last = current
-				if first timestamp is zero:
-					first = current
-				if event.data.source in (2, 4):
-					if event.data.type in (Click, DblClick, TouchStart):
-						if diff <= 0.5 sec && |xDiff| < 32 && |yDiff| < 32:
-
-	*/
 
 	// Calculate total session length and write the length to the session.
 	sessionTotalLength := CalculateSessionLength(firstEventTimestamp, lastEventTimestamp)
@@ -578,37 +570,16 @@ func CalculateSessionLength(first time.Time, last time.Time) (d time.Duration) {
 	return d
 }
 
-func getActiveDuration(event *model.EventsObject, firstEventTimestamp time.Time, lastEventTimestamp time.Time) (time.Duration, time.Time, time.Time, error) {
-	activeDuration := time.Duration(0)
-	// parses the events from EventObject
-	allEvents, err := parse.EventsFromString(event.Events)
-	if err != nil {
-		return time.Duration(0), firstEventTimestamp, lastEventTimestamp, err
-	}
-
-	// Iterate through all events and sum up time between interactions
-	for _, eventObj := range allEvents.Events {
-		if eventObj.Type == 3 {
-			if !lastEventTimestamp.IsZero() {
-				diff := eventObj.Timestamp.Sub(lastEventTimestamp)
-				if diff.Seconds() <= MIN_INACTIVE_DURATION {
-					activeDuration += diff
-				}
-			}
-			lastEventTimestamp = eventObj.Timestamp
-			if firstEventTimestamp.IsZero() {
-				firstEventTimestamp = eventObj.Timestamp
-			}
-		}
-	}
-	return activeDuration, firstEventTimestamp, lastEventTimestamp, nil
-}
-
 type processEventChunkInput struct {
+	SessionID int
 	// EventsChunk represents the chunk of events to be processed in this iteration of processEventChunk
 	EventsChunk *model.EventsObject
 	// ClickEventQueue is a queue containing the last 2 seconds worth of clustered click events
 	ClickEventQueue *list.List
+	// CurrentlyInRageClickSet denotes whether the currently parsed event is within a rage click set
+	CurrentlyInRageClickSet bool
+	// CurrentlyInRageClickSet denotes whether the currently parsed event is within a rage click set
+	RageClickSets []*model.RageClickEvent
 	// FirstEventTimestamp represents the timestamp for the first event
 	FirstEventTimestamp time.Time
 	// LastEventTimestamp represents the timestamp for the first event
@@ -618,17 +589,21 @@ type processEventChunkInput struct {
 type processEventChunkOutput struct {
 	// DidEventsChunkChange denotes whether the events chunk was altered and needs to be updated in the stored file
 	DidEventsChunkChange bool
-	// EventsChunk represents the chunk of events to be processed in this iteration of processEventChunk
-	EventsChunk *model.EventsObject
+	// CurrentlyInRageClickSet denotes whether the currently parsed event is within a rage click set
+	CurrentlyInRageClickSet bool
+	// CurrentlyInRageClickSet denotes whether the currently parsed event is within a rage click set
+	RageClickSets []*model.RageClickEvent
 	// FirstEventTimestamp represents the timestamp for the first event
 	FirstEventTimestamp time.Time
 	// LastEventTimestamp represents the timestamp for the first event
 	LastEventTimestamp time.Time
+	// CalculatedDuration represents the calculated active duration for the current event chunk
+	CalculatedDuration time.Duration
 	// Error
 	Error error
 }
 
-func processEventChunk(input *processEventChunkInput) *processEventChunkOutput {
+func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput) {
 	/*
 		for each event:
 			if event.type = parse.IncrementalSnapshot (3)
@@ -641,59 +616,127 @@ func processEventChunk(input *processEventChunkInput) *processEventChunkOutput {
 					first = current
 				if event.data.source in (2, 4):
 					if event.data.type in (Click, DblClick, TouchStart):
-						if diff <= 0.5 sec && |xDiff| < 32 && |yDiff| < 32:
-
+						remove events from queue which are out of time range
+						if
 	*/
+	log.Info("processing events chunk")
+	var events *parse.ReplayEvents
+	var err error
 	if input == nil {
-		return &processEventChunkOutput{Error: errors.New("processEventChunkInput cannot be nil")}
+		err = errors.New("processEventChunkInput cannot be nil")
+		goto Error
 	}
 	if input.EventsChunk == nil {
-		return &processEventChunkOutput{Error: errors.New("EventsChunk cannot be nil")}
+		err = errors.New("EventsChunk cannot be nil")
+		goto Error
 	}
 	if input.ClickEventQueue == nil {
-		return &processEventChunkOutput{Error: errors.New("ClickEventQueue cannot be nil")}
+		err = errors.New("ClickEventQueue cannot be nil")
+		goto Error
 	}
-	events, err := parse.EventsFromString(input.EventsChunk.Events)
+	events, err = parse.EventsFromString(input.EventsChunk.Events)
 	if err != nil {
-		return &processEventChunkOutput{Error: err}
+		goto Error
 	}
-	activeDuration := time.Duration(0)
+	o.FirstEventTimestamp = input.FirstEventTimestamp
+	o.LastEventTimestamp = input.LastEventTimestamp
+	o.CurrentlyInRageClickSet = input.CurrentlyInRageClickSet
+	o.RageClickSets = input.RageClickSets
 	for _, event := range events.Events {
 		if event == nil {
 			continue
 		}
 		if event.Type == parse.IncrementalSnapshot {
 			var diff time.Duration
-			if !input.LastEventTimestamp.IsZero() {
-				diff = event.Timestamp.Sub(input.LastEventTimestamp)
+			if !o.LastEventTimestamp.IsZero() {
+				diff = event.Timestamp.Sub(o.LastEventTimestamp)
 				if diff <= MIN_INACTIVE_DURATION {
-					activeDuration += diff
+					o.CalculatedDuration += diff
+				}
+			}
+			o.LastEventTimestamp = event.Timestamp
+			if o.FirstEventTimestamp.IsZero() {
+				o.FirstEventTimestamp = event.Timestamp
+			}
+
+			// purge old clicks
+			for element := input.ClickEventQueue.Front(); element != nil; element = element.Next() {
+				if event.Timestamp.Sub(element.Value.(*parse.ReplayEvent).Timestamp) > time.Second*5 {
+					input.ClickEventQueue.Remove(element)
+					continue
 				}
 			}
 
 			var mouseInteractionEventData parse.MouseInteractionEventData
-			err := json.Unmarshal(event.Data, &mouseInteractionEventData)
+			var shouldPushEvent bool
+			err = json.Unmarshal(event.Data, &mouseInteractionEventData)
 			if err != nil {
-				return &processEventChunkOutput{Error: err}
+				goto Error
 			}
 			if mouseInteractionEventData.X == nil || mouseInteractionEventData.Y == nil ||
 				mouseInteractionEventData.Type == nil || mouseInteractionEventData.Source == nil {
 				// all values must not be nil on a click/touch event
-				continue
+				goto HandleRageClickEvent
 			}
 			if *mouseInteractionEventData.Source != parse.MouseInteraction {
 				// Source must be MouseInteraction for a click/touch event
-				continue
+				goto HandleRageClickEvent
 			}
 			if _, ok := map[parse.MouseInteractions]bool{parse.Click: true,
 				parse.DblClick: true, parse.TouchStart: true}[*mouseInteractionEventData.Type]; !ok {
 				// Type must be a Click, Double Click, or Touch Start for a click/touch event
-				continue
+				goto HandleRageClickEvent
+			}
+
+			if input.ClickEventQueue.Len() == 0 {
+				shouldPushEvent = true
+			} else {
+				var prev *parse.MouseInteractionEventData
+				err = json.Unmarshal(input.ClickEventQueue.Back().Value.(*parse.ReplayEvent).Data, &prev)
+				if err != nil {
+					goto Error
+				}
+				first := math.Pow(*mouseInteractionEventData.X-*prev.X, 2)
+				second := math.Pow(*mouseInteractionEventData.Y-*prev.Y, 2)
+				if math.Sqrt(first+second) <= 32 {
+					shouldPushEvent = true
+				}
+			}
+
+			if shouldPushEvent {
+				// this is here so that we only push events in one place in the code
+				input.ClickEventQueue.PushBack(event)
+			}
+
+		HandleRageClickEvent:
+			// create rage click start or end event
+			if input.ClickEventQueue.Len() >= 5 && !o.CurrentlyInRageClickSet {
+				// create start of rage click set event
+				o.CurrentlyInRageClickSet = true
+				first := input.ClickEventQueue.Front().Value.(*parse.ReplayEvent)
+				// do something with this
+				log.Info("starting rage click event")
+				o.RageClickSets = append(o.RageClickSets, &model.RageClickEvent{
+					SessionID:      input.SessionID,
+					StartTimestamp: first.Timestamp,
+				})
+			} else if input.ClickEventQueue.Len() < 5 && o.CurrentlyInRageClickSet {
+				// create end of rage click set event
+				o.CurrentlyInRageClickSet = false
+				last := input.ClickEventQueue.Front().Value.(*parse.ReplayEvent)
+				// do something with this
+				log.Info("ending rage click event")
+				log.Infof("begin ts: %v", o.RageClickSets[len(o.RageClickSets)-1].EndTimestamp)
+				o.RageClickSets[len(o.RageClickSets)-1].EndTimestamp = last.Timestamp
+				log.Infof("end ts: %v", o.RageClickSets[len(o.RageClickSets)-1].EndTimestamp)
 			}
 		}
-		return &processEventChunkOutput{EventsChunk: input.EventsChunk, FirstEventTimestamp: input.FirstEventTimestamp,
-			LastEventTimestamp: input.LastEventTimestamp}
 	}
 
-	return nil
+	return o
+
+	// set error then return
+Error:
+	o.Error = err
+	return o
 }

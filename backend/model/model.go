@@ -112,6 +112,7 @@ var Models = []interface{}{
 	&ErrorAlert{},
 	&SessionAlert{},
 	&Project{},
+	&RageClickEvent{},
 }
 
 func init() {
@@ -662,6 +663,13 @@ type ErrorComment struct {
 	ErrorId        int
 	ErrorSecureId  string `gorm:"index;not null;default:''"`
 	Text           string
+}
+
+type RageClickEvent struct {
+	Model
+	SessionID      int
+	StartTimestamp time.Time
+	EndTimestamp   time.Time
 }
 
 func SetupDB(dbName string) (*gorm.DB, error) {
