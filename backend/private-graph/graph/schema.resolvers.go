@@ -152,9 +152,9 @@ func (r *errorGroupResolver) ErrorFrequency(ctx context.Context, obj *model.Erro
 func (r *errorObjectResolver) ErrorGroupSecureID(ctx context.Context, obj *model.ErrorObject) (string, error) {
 	if obj != nil {
 		var secureID string
-		if err := r.DB.Raw(`SELECT secure_id FROM error_groups WHERE id = ? LIMIT 1`,
-			obj.ErrorGroupID).Scan(&secureID).Error; err != nil {
-			return "", fmt.Errorf("Failed to retrieve secure_id for error group: %v, id: %d", err, obj.ErrorGroupID)
+		if result := r.DB.Raw(`SELECT secure_id FROM error_groups WHERE id = ? LIMIT 1`,
+			obj.ErrorGroupID).Scan(&secureID); result.Error != nil {
+			return "", fmt.Errorf("Failed to retrieve secure_id for error group: %v, id: %d", result.Error, obj.ErrorGroupID)
 		}
 		return secureID, nil
 	}
