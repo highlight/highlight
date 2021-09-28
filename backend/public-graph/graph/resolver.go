@@ -165,7 +165,7 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 
 func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *model2.ErrorObjectInput, fields []*model.ErrorField, projectID int) (*model.ErrorGroup, error) {
 	frames := errorInput.StackTrace
-	if frames != nil && len(frames) > 0 && frames[0] != nil && frames[0].Source != nil && strings.Contains(*frames[0].Source, "https://static.highlight.run/index.js") {
+	if len(frames) > 0 && frames[0] != nil && frames[0].Source != nil && strings.Contains(*frames[0].Source, "https://static.highlight.run/index.js") {
 		errorObj.ProjectID = 1
 	}
 	firstFrameBytes, err := json.Marshal(frames)
