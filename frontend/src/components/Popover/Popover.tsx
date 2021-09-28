@@ -20,7 +20,6 @@ type PopoverProps = Pick<
     | 'align'
     | 'visible'
 > & {
-    hasBorder?: boolean;
     isList?: boolean;
     popoverClassName?: string;
     large?: boolean;
@@ -32,7 +31,6 @@ type PopoverProps = Pick<
  */
 const Popover: React.FC<PopoverProps> = ({
     children,
-    hasBorder,
     title,
     isList,
     popoverClassName,
@@ -42,10 +40,7 @@ const Popover: React.FC<PopoverProps> = ({
 }) => {
     return (
         <AntDesignPopover
-            overlayClassName={classNames(
-                { [styles.popover]: hasBorder },
-                popoverClassName
-            )}
+            overlayClassName={classNames(styles.popover, popoverClassName)}
             {...props}
             content={
                 <div

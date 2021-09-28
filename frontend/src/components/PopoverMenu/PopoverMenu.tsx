@@ -33,7 +33,6 @@ const PopoverMenu = ({
     return (
         <Popover
             isList
-            hasBorder
             trigger={['click']}
             content={
                 content ? (

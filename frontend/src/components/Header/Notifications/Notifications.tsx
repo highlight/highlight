@@ -57,7 +57,6 @@ const Notifications = () => {
 
     return (
         <Popover
-            hasBorder
             isList
             visible={showPopover}
             trigger={['click']}
