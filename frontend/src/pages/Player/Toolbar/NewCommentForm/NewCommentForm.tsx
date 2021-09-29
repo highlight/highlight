@@ -91,6 +91,8 @@ export const NewCommentForm = ({
                 allowTaint: true,
                 logging: false,
                 backgroundColor: null,
+                foreignObjectRendering: true,
+                useCORS: true,
             }
         );
         try {
