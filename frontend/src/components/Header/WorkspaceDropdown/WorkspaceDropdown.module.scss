@@ -148,6 +148,9 @@
     font-size: 16px;
     height: 40px;
     justify-content: center;
-    padding: var(--size-xSmall) var(--size-small);
+    padding-bottom: var(--size-xSmall);
+    padding-left: var(--size-small);
+    padding-right: var(--size-small);
+    padding-top: var(--size-xSmall);
     width: 100%;
 }

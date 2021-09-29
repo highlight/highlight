@@ -114,8 +114,10 @@
     border-right: 1px solid var(--color-gray-300);
     box-shadow: var(--box-shadow-3);
     height: 100%;
-    padding: var(--size-large) var(--size-xLarge);
     padding-bottom: 0;
+    padding-left: var(--size-xLarge);
+    padding-right: var(--size-xLarge);
+    padding-top: var(--size-large);
     position: relative;
     top: 0;
     transform: translateX(0);

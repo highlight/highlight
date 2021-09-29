@@ -15,12 +15,17 @@
         display: flex;
         justify-content: space-between;
         margin-bottom: var(--size-large);
-        padding: 0 var(--size-large);
+        padding-bottom: 0;
+        padding-left: var(--size-large);
+        padding-right: var(--size-large);
         padding-top: var(--size-large);
 
         &.collapsed {
             margin-bottom: 0;
-            padding: var(--size-large);
+            padding-bottom: var(--size-large);
+            padding-left: var(--size-large);
+            padding-right: var(--size-large);
+            padding-top: var(--size-large);
         }
 
         > svg {
@@ -46,7 +51,9 @@
 
     .content {
         cursor: auto;
-        padding: var(--size-large);
+        padding-bottom: var(--size-large);
+        padding-left: var(--size-large);
+        padding-right: var(--size-large);
         padding-top: var(--size-xxSmall);
 
         p:first-of-type {
