@@ -92,6 +92,7 @@ export const NewCommentForm = ({
                 logging: false,
                 backgroundColor: null,
                 foreignObjectRendering: true,
+                useCORS: true,
             }
         );
         try {
