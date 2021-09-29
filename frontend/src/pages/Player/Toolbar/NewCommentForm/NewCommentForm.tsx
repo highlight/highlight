@@ -83,18 +83,26 @@ export const NewCommentForm = ({
             numSlackMentions: mentionedSlackUsers.length,
         });
         setIsCreatingComment(true);
-        const canvas = await html2canvas(
-            (document.querySelector(
-                '.replayer-wrapper iframe'
-            ) as HTMLIFrameElement).contentDocument!.documentElement,
-            {
-                allowTaint: true,
-                logging: false,
-                backgroundColor: null,
-                foreignObjectRendering: true,
-                useCORS: true,
-            }
-        );
+        let session_image: undefined | string = undefined;
+
+        if (mentionedAdmins.length > 0 || mentionedSlackUsers.length > 0) {
+            const canvas = await html2canvas(
+                (document.querySelector(
+                    '.replayer-wrapper iframe'
+                ) as HTMLIFrameElement).contentDocument!.documentElement,
+                {
+                    allowTaint: true,
+                    logging: false,
+                    backgroundColor: null,
+                    foreignObjectRendering: true,
+                    useCORS: true,
+                }
+            );
+            session_image = canvas
+                .toDataURL()
+                .replace('data:image/png;base64,', '');
+        }
+
         try {
             await createComment({
                 variables: {
@@ -110,9 +118,7 @@ export const NewCommentForm = ({
                     tagged_slack_users: mentionedSlackUsers,
                     time: time / 1000,
                     author_name: admin?.name || admin?.email || 'Someone',
-                    session_image: canvas
-                        .toDataURL()
-                        .replace('data:image/png;base64,', ''),
+                    session_image,
                 },
                 refetchQueries: [namedOperations.Query.GetSessionComments],
             });
