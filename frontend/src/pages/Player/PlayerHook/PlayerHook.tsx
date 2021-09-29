@@ -469,7 +469,6 @@ export const usePlayer = (): ReplayerContextInterface => {
         isPlayerReady:
             state !== ReplayerState.Loading &&
             state !== ReplayerState.Empty &&
-            scale !== 1 &&
             sessionViewability === SessionViewability.VIEWABLE,
         session,
         playerProgress: replayer
