@@ -446,6 +446,8 @@ export const usePlayer = (): ReplayerContextInterface => {
         }
     };
 
+    console.log('PlayerHook', state, scale, sessionViewability);
+
     return {
         scale,
         setScale,

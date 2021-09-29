@@ -161,6 +161,8 @@ const Player = ({ integrated }: Props) => {
         showLeftPanelPreference &&
         sessionViewability !== SessionViewability.OVER_BILLING_QUOTA;
 
+    console.log({ isPlayerReady });
+
     return (
         <PlayerUIContextProvider
             value={{
