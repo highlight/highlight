@@ -1,5 +1,5 @@
 import useLocalStorage from '@rehooks/local-storage';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useWindowSize } from 'react-use';
 
 import { EventsForTimeline } from '.';
@@ -23,10 +23,11 @@ const usePlayerConfiguration = () => {
     const [selectedDevToolsTab, setSelectedDevToolsTab] = useLocalStorage<
         'Errors' | 'Console' | 'Network'
     >('tabs-DevTools-active-tab', 'Errors');
-    const [autoPlayVideo, setAutoPlayVideo] = useLocalStorage(
+    const [_autoPlayVideo, setAutoPlayVideo] = useLocalStorage(
         'highlightMenuAutoPlayVideo',
         false
     );
+    const autoPlayVideo = useMemo(() => _autoPlayVideo, [_autoPlayVideo]);
     /** Whether to automatically play the next session when the current session is done. */
     const [autoPlaySessions, setAutoPlaySessions] = useLocalStorage(
         'highlightAutoPlaySessions',
@@ -62,9 +63,12 @@ const usePlayerConfiguration = () => {
         true
     );
     const [
-        showDetailedSessionView,
+        _showDetailedSessionView,
         setShowDetailedSessionView,
     ] = useLocalStorage('highlightShowDetailedSessionView', false);
+    const showDetailedSessionView = useMemo(() => _showDetailedSessionView, [
+        _showDetailedSessionView,
+    ]);
 
     const { width } = useWindowSize();
 
