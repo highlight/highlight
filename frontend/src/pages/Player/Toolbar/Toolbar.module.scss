@@ -288,8 +288,10 @@
 }
 
 .popoverContent {
+    max-height: 300px;
     overflow: hidden;
     overflow-wrap: anywhere;
+    overflow-y: auto;
     padding-bottom: var(--size-xSmall);
     text-overflow: ellipsis;
     width: 240px;
