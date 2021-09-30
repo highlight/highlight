@@ -1,4 +1,4 @@
-export const GetErrorGroupQueryMock = {
+export const GetErrorGroupQueryMock1 = {
     error_group: {
         field_group: [
             {
@@ -8557,5 +8557,1579 @@ export const GetErrorGroupQueryMock = {
                 __typename: 'ErrorField',
             },
         ],
+    },
+};
+
+export const GetErrorGroupQueryMock2 = {
+    error_group: {
+        created_at: '2021-08-21T01:46:01Z',
+        id: '40',
+        secure_id: 'iFBJFhR1NqN5JKQLp9wyTrJnvfge',
+        type: 'window.onerror',
+        project_id: 1,
+        event: [
+            "\"Uncaught SecurityError: Failed to execute 'sendBeacon' on 'Navigator': sendBeacon() with a Blob whose type is not any of the CORS-safelisted values for the Content-Type request header is disabled temporarily. See http://crbug.com/490015 for details.\"",
+        ],
+        state: 'IGNORED',
+        stack_trace: [
+            {
+                fileName: 'webpack://highlightLib/./src/index.tsx',
+                lineNumber: 550,
+                functionName: 'n',
+                columnNumber: 0,
+                __typename: 'ErrorTrace',
+            },
+            {
+                fileName: 'https://app.tributi.com/static/js/main.08e8c9d5.js',
+                lineNumber: 2024,
+                functionName: 'n',
+                columnNumber: 106031,
+                __typename: 'ErrorTrace',
+            },
+        ],
+        mapped_stack_trace:
+            '[{"fileName":"webpack://highlightLib/./src/index.tsx","lineNumber":550,"functionName":"n","columnNumber":0,"error":null},{"fileName":"https://app.tributi.com/static/js/main.08e8c9d5.js","lineNumber":2024,"functionName":"n","columnNumber":106031,"error":"minified source file over 5mb: https://app.tributi.com/static/js/main.08e8c9d5.js, size: 9366831"}]',
+        metadata_log: [
+            {
+                error_id: 707057,
+                session_id: 4792525,
+                environment: null,
+                timestamp: '2021-09-30T16:18:40Z',
+                os: 'Android',
+                browser: 'Android',
+                visited_url:
+                    'https://app.tributi.com/filings/ff8b8471-4141-4c40-a773-b0f7c54e04a6/onboarding',
+                fingerprint: '826859549',
+                identifier: 'danielzahori02@gmail.com',
+                __typename: 'ErrorMetadata',
+            },
+            {
+                error_id: 703816,
+                session_id: 4777116,
+                environment: null,
+                timestamp: '2021-09-30T12:45:08Z',
+                os: 'Windows',
+                browser: 'Chrome',
+                visited_url:
+                    'https://app.tributi.com/filings/c32b64ac-5e96-4083-be6f-0ef0324c06c9/onboarding',
+                fingerprint: '3649726453',
+                identifier: '',
+                __typename: 'ErrorMetadata',
+            },
+            {
+                error_id: 703350,
+                session_id: 4771802,
+                environment: null,
+                timestamp: '2021-09-30T10:01:25Z',
+                os: 'Android',
+                browser: 'Android',
+                visited_url:
+                    'https://app.marcoexperiences.com/experiences/haus-mixology-expedition-x-rebecca?_ga=2.262966092.1188226286.1632995964-1939012047.1632995964\u0026_gac=1.52576924.1632995964.EAIaIQobChMI95fV_rem8wIVYJlmAh10qQXGEAAYAiAAEgJ1U_D_BwE\u0026_gl=1*1n16r19*_ga*MTkzOTAxMjA0Ny4xNjMyOTk1OTY0*_ga_R7BC22HE79*MTYzMjk5NTk2My4xLjEuMTYzMjk5NjA3MC4w',
+                fingerprint: '2366903107',
+                identifier: '',
+                __typename: 'ErrorMetadata',
+            },
+            {
+                error_id: 703185,
+                session_id: 4770257,
+                environment: null,
+                timestamp: '2021-09-30T09:09:49Z',
+                os: 'Android',
+                browser: 'Chrome',
+                visited_url:
+                    'https://app.tributi.com/filings/bef5f871-c054-42e2-ad55-89189d017950/onboarding',
+                fingerprint: '3770604691',
+                identifier: '',
+                __typename: 'ErrorMetadata',
+            },
+            {
+                error_id: 700625,
+                session_id: 4753097,
+                environment: null,
+                timestamp: '2021-09-30T03:10:32Z',
+                os: 'Android',
+                browser: 'Android',
+                visited_url:
+                    'https://app.tributi.com/?_ga=2.233640983.841381682.1632971334-1508820651.1632971334\u0026_gl=1*l38dpo*_ga*MTUwODgyMDY1MS4xNjMyOTcxMzM0*_ga_5HPG5VDMQW*MTYzMjk3MTMzMi4xLjAuMTYzMjk3MTMzMi4w',
+                fingerprint: '1223471654',
+                identifier: '',
+                __typename: 'ErrorMetadata',
+            },
+            {
+                error_id: 693722,
+                session_id: 4719853,
+                environment: null,
+                timestamp: '2021-09-29T21:14:29Z',
+                os: 'Android',
+                browser: 'Chrome',
+                visited_url:
+                    'https://app.tributi.com/filings/fdec7344-72c0-4ba3-8a2d-e79edf6d63ca/onboarding',
+                fingerprint: '952473738',
+                identifier: 'edisonalejandroordonezcuartas@gmail.com',
+                __typename: 'ErrorMetadata',
+            },
+            {
+                error_id: 687670,
+                session_id: 4698550,
+                environment: null,
+                timestamp: '2021-09-29T15:45:00Z',
+                os: 'Linux',
+                browser: 'Chromium',
+                visited_url:
+                    'https://app.tributi.com/filings/d09567d3-5465-4c37-9ff8-3d5140fea748/onboarding',
+                fingerprint: '2116002679',
+                identifier: 'nquinte@gmail.com',
+                __typename: 'ErrorMetadata',
+            },
+            {
+                error_id: 686284,
+                session_id: 4693708,
+                environment: null,
+                timestamp: '2021-09-29T14:21:24Z',
+                os: 'Windows',
+                browser: 'Chrome',
+                visited_url:
+                    'https://app.tributi.com/?_ga=2.118764425.1291372546.1632925261-1058715588.1597108998\u0026_gl=1*1qhtxam*_ga*MTA1ODcxNTU4OC4xNTk3MTA4OTk4*_ga_5HPG5VDMQW*MTYzMjkyNTI2MS4xLjAuMTYzMjkyNTI2MS4w',
+                fingerprint: '2217177778',
+                identifier: '',
+                __typename: 'ErrorMetadata',
+            },
+            {
+                error_id: 684674,
+                session_id: 4683301,
+                environment: null,
+                timestamp: '2021-09-29T10:42:02Z',
+                os: 'Android',
+                browser: 'Android',
+                visited_url: 'https://www.duffl.com/404',
+                fingerprint: '928648711',
+                identifier: '30370d90-04f1-43da-8872-7839936ddba7',
+                __typename: 'ErrorMetadata',
+            },
+            {
+                error_id: 684133,
+                session_id: 4678061,
+                environment: null,
+                timestamp: '2021-09-29T07:49:43Z',
+                os: 'Android',
+                browser: 'Chrome',
+                visited_url: 'https://app.airplane.dev/runs/run20210910zx9v3uq',
+                fingerprint: '1883246710',
+                identifier: 'nhlong@tutanota.com',
+                __typename: 'ErrorMetadata',
+            },
+            {
+                error_id: 668313,
+                session_id: 4631892,
+                environment: null,
+                timestamp: '2021-09-28T21:42:43Z',
+                os: 'Android',
+                browser: 'Android',
+                visited_url:
+                    'https://app.tributi.com/filings/564c81c5-2dc4-43bd-8793-da3162e58f18/onboarding',
+                fingerprint: '451559097',
+                identifier: '',
+                __typename: 'ErrorMetadata',
+            },
+            {
+                error_id: 665028,
+                session_id: 4624592,
+                environment: null,
+                timestamp: '2021-09-28T20:48:50Z',
+                os: 'Android',
+                browser: 'Android',
+                visited_url:
+                    'https://app.tributi.com/filings/564c81c5-2dc4-43bd-8793-da3162e58f18/onboarding',
+                fingerprint: '451559097',
+                identifier: '',
+                __typename: 'ErrorMetadata',
+            },
+            {
+                error_id: 660923,
+                session_id: 4617349,
+                environment: null,
+                timestamp: '2021-09-28T19:42:20Z',
+                os: 'Windows',
+                browser: 'Chrome',
+                visited_url: 'https://app.tributi.com/payment/success',
+                fingerprint: '2701431637',
+                identifier: '',
+                __typename: 'ErrorMetadata',
+            },
+            {
+                error_id: 659179,
+                session_id: 4614396,
+                environment: null,
+                timestamp: '2021-09-28T19:03:34Z',
+                os: 'Windows',
+                browser: 'Chrome',
+                visited_url: 'https://alianzas.tributi.com/login',
+                fingerprint: '492327160',
+                identifier: 'patricia-gonzalezs@unilibre.edu.co',
+                __typename: 'ErrorMetadata',
+            },
+        ],
+        field_group: [
+            { name: 'browser', value: 'Android', __typename: 'ErrorField' },
+            { name: 'os_name', value: 'Android', __typename: 'ErrorField' },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*1vqpap7*_ga*MjEwNzYyNDAzMS4xNjI5NTA0OTQz*_ga_5HPG5VDMQW*MTYyOTUwNDk0MS4xLjAuMTYyOTUwNDk0MS4w\u0026_ga=2.240377091.1871380649.1629504943-2107624031.1629504943',
+                __typename: 'ErrorField',
+            },
+            { name: 'browser', value: 'Chrome', __typename: 'ErrorField' },
+            { name: 'os_name', value: 'Windows', __typename: 'ErrorField' },
+            {
+                name: 'visited_url',
+                value: 'https://app.tributi.com/filingstatus',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/900d1daf-271f-4e7c-9bbb-24c90bd95886/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/e793a335-aba1-4666-975e-e939e4575d80/assistantpayment',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*uzmaq5*_ga*MTQyODAyMTQyLjE2Mjk1Nzc5ODk.*_ga_5HPG5VDMQW*MTYyOTU3Nzk4OC4xLjAuMTYyOTU3Nzk4OC4w\u0026_ga=2.73995986.1195175961.1629577989-142802142.1629577989',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value: 'https://app.tributi.com/register/declarante',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*1nir2oi*_ga*MjExMzY3NzA3Ni4xNjI5NjM2NTIw*_ga_5HPG5VDMQW*MTYyOTYzNjUxOS4xLjAuMTYyOTYzNjUxOS4w\u0026_ga=2.44410598.350478291.1629636520-2113677076.1629636520',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*1la2c9e*_ga*NTI2MzM2MTE2LjE2Mjk2NTIxODM.*_ga_5HPG5VDMQW*MTYyOTY1MjE4MS4xLjEuMTYyOTY1MjI4OS4w\u0026_ga=2.259716942.53130020.1629652183-526336116.1629652183',
+                __typename: 'ErrorField',
+            },
+            { name: 'os_name', value: 'Linux', __typename: 'ErrorField' },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?utm_source=email\u0026utm_medium=boton\u0026utm_campaign=estacional-tu360-tributi-declaracion-renta\u0026utm_content=boton-registrarahora#utm_source=email\u0026utm_campaign=estacional-personas-tributi-declaraciones-2021\u0026utm_content=qLink17\u0026utm_medium=link',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?utm_source=sendinblue\u0026utm_campaign=Email_masivo_Whatsapp__Fecha__Registro_Todos\u0026utm_medium=email',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_ga=2.154966456.1096276089.1629700512-1488048328.1629700512\u0026_gl=1*4t2nol*_ga*MTQ4ODA0ODMyOC4xNjI5NzAwNTEy*_ga_5HPG5VDMQW*MTYyOTcwMDUxMS4xLjAuMTYyOTcwMDUxMS4w',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*1u30zx5*_ga*OTg0NDcwODk5LjE2Mjk3MjIyMjg.*_ga_5HPG5VDMQW*MTYyOTcyMjIyOC4xLjEuMTYyOTcyMjMzNC4w\u0026_ga=2.245201029.143651462.1629722228-984470899.1629722228',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/recoverpassword/NjU3ODYzNTctNDNmYi00MmNjLTgwMGQtYjMyZWEwYTAxZmM5/5tf-b4a08b06feb20f9e3be2',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*u4ooac*_ga*Njc2NjYyODc5LjE2Mjk3MzMwMjQ.*_ga_5HPG5VDMQW*MTYyOTczMzAyMy4xLjAuMTYyOTczMzAyMy4w\u0026_ga=2.11693044.1305346583.1629733024-676662879.1629733024',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*1mfjbdt*_ga*OTY4ODU0NTAwLjE2Mjk3MzUyNzk.*_ga_5HPG5VDMQW*MTYyOTczNTI3OC4xLjEuMTYyOTczNTM1NS4w\u0026_ga=2.163092671.2057813687.1629735279-968854500.1629735279',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/4dc5a911-4199-4790-9087-56c2ff2a83df/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/c4da09cb-aa4e-4a66-8b7a-4dd3f1281faa/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://alianzas.tributi.com/filings/3d59e55d-6ce1-4259-b60b-c1da74c35b8a/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value: 'https://alianzas.tributi.com/filingstatus',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/64cdd91e-8541-4b7c-9f97-28579b62648d/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/auth-callback#access_token=2WbZ99iRtvhyzikw5e2V47ywvW_wlXgM\u0026scope=openid%20profile%20email\u0026expires_in=7200\u0026token_type=Bearer\u0026state=Q4.awXf2OqcVoVZncRZqLX6II~_vFefk',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value: 'https://alianzas.tributi.com/payment/success',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/3eea1b25-f22f-4475-9801-d5a8e4aae5f4/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value: 'https://app.tributi.com/filings',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'os_name',
+                value: 'Mac OS X',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/fada757c-b6e6-44f5-88c0-90122fd5b497/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*oi820a*_ga*ODk2MjA5NzguMTYyOTgyMjY1Mw..*_ga_5HPG5VDMQW*MTYyOTgyMjY1MS4xLjAuMTYyOTgyMjY2My4w\u0026_ga=2.145564468.1608120095.1629822653-89620978.1629822653',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/auth-callback#access_token=xBs5a134DzqJ2iiCMQaidORNJch2W8_w\u0026scope=openid%20profile%20email\u0026expires_in=7200\u0026token_type=Bearer\u0026state=xzU5l0.YK_CuUcrOvuyvr9C-E8pwRc3d',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*p1x2gz*_ga*NzkxMTYxNzcyLjE2Mjk4NDAxMzM.*_ga_5HPG5VDMQW*MTYyOTg0MDEzMi4xLjEuMTYyOTg0MDM5OS4w\u0026_ga=2.253558927.744793263.1629840133-791161772.1629840133',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/6dd01e51-10e1-497b-9cb0-c5d12b437ff5/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value: 'https://app.tributi.com/plans',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'os_name',
+                value: 'CrOS x86_64',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value: 'https://app.tributi.com/login',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?utm_source=sendinblue\u0026utm_campaign=Push_-_nuevos_leads_email_gratis_Bancolombia\u0026utm_medium=email',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/6e0c4dce-8e7e-4d85-be64-7e0a3f45ea90/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*d4wbx1*_ga*MTgwMDU4MTc5Ni4xNjI5OTI0NTU4*_ga_5HPG5VDMQW*MTYyOTkyODQxOC4yLjAuMTYyOTkyODQxOC4w\u0026_ga=2.206566618.831011251.1629924558-1800581796.1629924558',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value: 'https://app.tributi.com/payment/success',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value: 'https://app.contadia.com/payment/success',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value: 'https://app.tributi.com/',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/61311f0e-df99-44b4-9c28-c080edb41e14/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/66087d77-7a48-499b-b11f-be8e48ad9846/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://alianzas.tributi.com/?_gl=1*154ue76*_ga*MjczODIyMDIxLjE2Mjg1OTU4MzQ.*_ga_5HPG5VDMQW*MTYzMDAzMjIzMi4zLjAuMTYzMDAzMjIzMi4w',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://alianzas.tributi.com/filings/94dd5515-0f52-4a98-82e6-74a5bb4dd27a/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/ed2e00dd-6639-47de-8d9e-d48a01d969b4/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*j0tg4*_ga*ODU4MDkzMjkyLjE2MzAwOTI1MTI.*_ga_5HPG5VDMQW*MTYzMDA5MjUxMS4xLjAuMTYzMDA5MjUxMS4w\u0026_ga=2.50889769.1669596863.1630092513-858093292.1630092512',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*1nso2br*_ga*NjMwNjU4ODk0LjE2MzAwOTQ0MjA.*_ga_5HPG5VDMQW*MTYzMDA5NDQxOS4xLjAuMTYzMDA5NDQxOS4w\u0026_ga=2.232034975.1810233938.1630094420-630658894.1630094420',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/5390ab2e-2b4b-4709-8548-6011c89f6447/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=446120\u0026countries=US\u0026states=NY\u0026cities=New%20York\u0026tab=patterns',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=722511\u0026countries=US\u0026states=NJ\u0026cities=Newark\u0026tab=patterns',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.impira.com/signup/?webSession=f599346f-6a78-4e54-83a4-61c961be06c2',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/9a3fa5fc-5d9a-4b4b-b0e8-2df27a5ca1c1/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=339950\u0026countries=US\u0026tab=core\u0026states=MN',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=444120\u0026countries=US\u0026states=SC\u0026cities=Columbia\u0026tab=patterns',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*ilhy7t*_ga*MTczMjM4NDY5Ny4xNjMwMjIwNTcz*_ga_5HPG5VDMQW*MTYzMDIyMDU3Mi4xLjEuMTYzMDIyMDcyNi4w\u0026_ga=2.4042547.2060125839.1630220573-1732384697.1630220573',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value: 'https://shop.safegraph.com/?tab=datasets',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=453220\u0026countries=US\u0026states=TX\u0026cities=San%20Antonio\u0026tab=patterns',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=447110\u0026countries=US\u0026states=MA\u0026cities=Quincy\u0026tab=patterns',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*1s21a90*_ga*MTI0Mzg1Mzc1OS4xNjMwMjU2MTI1*_ga_5HPG5VDMQW*MTYzMDI1NjEyNS4xLjAuMTYzMDI1NjEyNS4w\u0026_ga=2.262898316.1847098598.1630256125-1243853759.1630256125',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/b545fe58-c11c-4983-b83c-bfb3dec406b9/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*1p9ppk4*_ga*MTU1MjQ2OTE4My4xNjMwMjc4MjY1*_ga_5HPG5VDMQW*MTYzMDI3ODI2NC4xLjAuMTYzMDI3ODI2NC4w\u0026_ga=2.69516371.251445597.1630278265-1552469183.1630278265',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*10m4ju8*_ga*MjAyNzEzNTQ2Ny4xNjMwMjgzOTE2*_ga_5HPG5VDMQW*MTYzMDI4MzkxNS4xLjEuMTYzMDI4NDc4MC4w\u0026_ga=2.99504155.441463943.1630283916-2027135467.1630283916',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=444190\u0026countries=US\u0026tab=core\u0026states=AZ',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*q725lj*_ga*MTY5NjA3NDc3OC4xNjMwMzMwMjM3*_ga_5HPG5VDMQW*MTYzMDMzMDIzNS4xLjAuMTYzMDMzMDIzNS4w\u0026_ga=2.127886093.1622202606.1630330237-1696074778.1630330237',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/be9118dd-f4c5-4ddf-a4fa-657d9648052d/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*w3jqgu*_ga*NjUyNTg2MTIuMTYzMDM2MjIwNw..*_ga_5HPG5VDMQW*MTYzMDM2MjIwNi4xLjEuMTYzMDM2MjMyMy4w\u0026_ga=2.99408791.865165965.1630362207-65258612.1630362207',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/5c0cbfcb-c3f3-4ab4-a454-e219cdb99931/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?countries=US\u0026states=MN\u0026cities=Finland\u0026poi=ALL',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/4e111aa8-1ed6-44a4-b5e8-5663247b277e/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*3w3u47*_ga*MTg0MTM2MzQ3MS4xNjMwNDQwMDM2*_ga_5HPG5VDMQW*MTYzMDQ0MDAzNS4xLjEuMTYzMDQ0MDE3Ni4w\u0026_ga=2.156370619.1085875107.1630440036-1841363471.1630440036',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/recoverpassword/YWM3ZTA2NGEtOWNhOC00NTI1LTg2YzEtMGQ0YWNlYjUzOTBi/5to-f6986cdb7ff7125a7b21',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/a579f598-a1f9-411b-aa88-ac754928c398/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value: 'https://alianzas.tributi.com/login',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/0930d0ed-3ae8-48e2-98c0-228cb9f94b38/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*1a07jpr*_ga*MjA1ODYwODAwMC4xNjMwNDY3NDM4*_ga_5HPG5VDMQW*MTYzMDQ2NzQzNy4xLjAuMTYzMDQ2NzQzNy4w\u0026_ga=2.82915728.783074131.1630467438-2058608000.1630467438',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*1no752t*_ga*MTUxODY2NTgyNy4xNjMwNTA4OTA4*_ga_5HPG5VDMQW*MTYzMDUwODkwNi4xLjAuMTYzMDUwODkwNi4w\u0026_ga=2.34593513.979425043.1630508908-1518665827.1630508908',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/0f076d6c-aa83-4fd1-8c67-26c822762bb3/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*jizgw1*_ga*NjMwMDg1NDE4LjE2MzA1NTExNDY.*_ga_5HPG5VDMQW*MTYzMDU1MTE0NC4xLjEuMTYzMDU1MTU0OS4w\u0026_ga=2.198418857.780782434.1630551146-630085418.1630551146',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/0a4b627b-122f-482f-b47f-bbab3c61d2ba/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value: 'https://shop.safegraph.com/',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=811411\u0026countries=US\u0026states=NV\u0026cities=Pahrump\u0026tab=patterns',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/337b6a4f-a571-41da-b20f-d2d369ac3dc4/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=811111\u0026countries=US\u0026tab=core\u0026states=OR',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/5e40626b-d5aa-4558-9b04-2190972461ff/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.impira.com/signup/?webSession=e3005d4b-3915-4d62-88c4-8afecd8a63b3',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/6e2ff189-e445-4ace-bef1-aafef588a291/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*132xdoo*_ga*MTYzODQxMDgxMi4xNjMwODQwNTgy*_ga_5HPG5VDMQW*MTYzMDg0MDU4MS4xLjEuMTYzMDg0MDU5Ni4w\u0026_ga=2.78045779.616859490.1630840582-1638410812.1630840582',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value: 'https://app.contadia.com/filings',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/d2af4d7e-1243-4b32-baf2-ab398b331ac4/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/5079f870-deda-4ae0-8d16-467317c89b20/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/5a6fd120-53eb-4623-bf3b-999305c69241/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/18c29aed-ef90-480e-900a-2c258863dace/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.impira.com/signup/?webSession=bf1d01a3-fe72-4256-966e-849032ff8d09',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value: 'https://app.tributi.com/forgotpassword',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/27d70745-3d32-45fe-857d-26fea034bfd4/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.impira.com/signup/?webSession=564bd687-30cc-45b8-83f1-d7627191474d',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.impira.com/signup/?webSession=e3b58a67-cd48-4407-b967-b18efb318699',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/31d26ed6-1b45-41cb-8069-c09ea16ac5cb/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.impira.com/signup/?webSession=797e1226-7cf6-4528-86ef-4abac3ec3927',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value: 'https://alianzas.tributi.com/forgotpassword',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://alianzas.tributi.com/?_gl=1*vb6p4y*_ga*MTAwNjA0NzI5OC4xNjMxMTcyMDE4*_ga_5HPG5VDMQW*MTYzMTE3MjAxNi4xLjAuMTYzMTE3MjAxNi4w\u0026_ga=2.54105064.1511705942.1631172018-1006047298.1631172018',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.contadia.com/filings/779b7dcd-37f0-4ea2-919f-3ff8241da196/dashboard/ahorros-y-prestamos/5.2.6',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/dc1e073d-9abb-4999-aec4-a82b59a182bb/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/7e6df6d1-3644-4c4c-9752-7e50a65cb9c9/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=922120\u0026countries=US\u0026tab=core\u0026states=OR',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?utm_source=sendinblue\u0026utm_campaign=Push%20-%20nuevos%20leads%20email%20gratis%20Bancolombia\u0026utm_medium=email',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*j74fql*_ga*MTc1NjE2MzI0My4xNjMxMjc5NTQ1*_ga_5HPG5VDMQW*MTYzMTI3OTU0NC4xLjAuMTYzMTI3OTU0NC4w\u0026_ga=2.208391186.142713974.1631279545-1756163243.1631279545',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*12ojhjf*_ga*MTQwOTEzMjc1Mi4xNjMxMjgzMDA4*_ga_5HPG5VDMQW*MTYzMTI4MzAwNy4xLjEuMTYzMTI4MzE3My4w\u0026_ga=2.133533001.630049168.1631283008-1409132752.1631283008',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=453920\u0026countries=US\u0026tab=core\u0026states=IA',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*i5xsrq*_ga*MzcxMzEzOTY1LjE2MzEzNjAyMzc.*_ga_5HPG5VDMQW*MTYzMTM2MDIzNi4xLjAuMTYzMTM2MDIzNi4w\u0026_ga=2.131830023.947528931.1631360237-371313965.1631360237',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/470e87e6-6fbd-4ecf-9beb-58120a203357/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*143tffp*_ga*MTc5Nzg0NzQwLjE2MzEzOTMwOTg.*_ga_5HPG5VDMQW*MTYzMTM5MzA5Ni4xLjEuMTYzMTM5MzE3Ny4w\u0026_ga=2.223124184.2132285667.1631393098-179784740.1631393098',
+                __typename: 'ErrorField',
+            },
+            { name: 'browser', value: 'Android', __typename: 'ErrorField' },
+            {
+                name: 'visited_url',
+                value: 'https://www.duffl.com/404',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value: 'https://app.impira.com/login',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value: 'https://www.duffl.com/',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=452210\u0026countries=US\u0026states=TN\u0026cities=Murfreesboro\u0026tab=patterns',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.impira.com/signup/?webSession=f2d382ab-b7d0-4a3f-9f0e-053dc28d8478',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?brands=SG_BRAND_31a5f0e7c078767f\u0026tab=patterns',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.impira.com/signup/?webSession=40f25fc7-e198-49ff-b456-7ffd13c7d201',
+                __typename: 'ErrorField',
+            },
+            { name: 'browser', value: 'Safari', __typename: 'ErrorField' },
+            { name: 'os_name', value: 'Linux', __typename: 'ErrorField' },
+            {
+                name: 'visited_url',
+                value: 'https://www.cove.io/login',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=811122\u0026countries=US\u0026tab=core\u0026states=MI',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*s22bv9*_ga*MTcyNDM2NTA0LjE2MzE1MzMyNzI.*_ga_5HPG5VDMQW*MTYzMTUzMzI3MS4xLjAuMTYzMTUzMzI3MS4w\u0026_ga=2.69014930.2070152992.1631533272-172436504.1631533272',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*17cvpsv*_ga*ODIzMjUwMTk4LjE2MzE1MzQ3MjE.*_ga_5HPG5VDMQW*MTYzMTUzNDcxOS4xLjAuMTYzMTUzNDcxOS4w\u0026_ga=2.66406697.664127586.1631534721-823250198.1631534721',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=445230\u0026countries=US\u0026tab=core\u0026states=DE',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=423450\u0026countries=US\u0026tab=core\u0026states=TX',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=722515\u0026countries=US\u0026states=PA\u0026cities=Erie\u0026tab=patterns',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=446110\u0026countries=US\u0026states=KY\u0026cities=Lexington\u0026tab=patterns',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=519120\u0026countries=US\u0026tab=core\u0026states=AS',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.impira.com/signup/?webSession=2ce789ac-5abb-4059-bf60-2c656665ba8d',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=453310\u0026countries=US\u0026states=AL\u0026cities=Mobile\u0026tab=patterns',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=621210\u0026countries=US\u0026states=VT\u0026cities=Brattleboro\u0026tab=patterns',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/86c055bd-995d-49b5-9942-624da547125c/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/385eae74-c007-4721-a653-4403cefb424e/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=813110\u0026countries=US\u0026tab=core\u0026states=ND',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.impira.com/signup/?webSession=5345b8e4-2936-4706-860e-40afbdb87d30',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/40ee1860-0cc0-48b3-a924-c46a347d1b00/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=443142\u0026countries=US\u0026tab=core\u0026states=OK',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/af457a24-3eb8-4292-ab55-fcae1e3f9b42/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=441110\u0026countries=US\u0026states=CO\u0026cities=Lakewood\u0026tab=patterns',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=722511\u0026countries=US\u0026states=CA\u0026cities=San%20Jose\u0026tab=patterns',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*9xsueg*_ga*OTQ4NDg2NDc5LjE2MzE3OTY4Mjk.*_ga_5HPG5VDMQW*MTYzMTc5NjgyOC4xLjAuMTYzMTc5NjgyOC4w\u0026_ga=2.140150587.920558542.1631796829-948486479.1631796829',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*5zescn*_ga*MTExOTE0ODQwOS4xNjMxNzk4MTE4*_ga_5HPG5VDMQW*MTYzMTc5ODExNy4xLjAuMTYzMTc5ODExNy4w\u0026_ga=2.19736766.70410679.1631798118-1119148409.1631798118',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=561621\u0026countries=US\u0026tab=core\u0026states=ME',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=441110\u0026countries=US\u0026states=NM\u0026cities=Albuquerque\u0026tab=patterns',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=811192\u0026countries=US\u0026states=CT\u0026cities=Bridgeport\u0026tab=patterns',
+                __typename: 'ErrorField',
+            },
+            { name: 'browser', value: 'Firefox', __typename: 'ErrorField' },
+            {
+                name: 'visited_url',
+                value: 'https://www.basedash.com/',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*p98s8j*_ga*MTgyNDM1Njk5LjE2MzE4MzA1NDc.*_ga_5HPG5VDMQW*MTYzMTgzMDU0Ni4xLjAuMTYzMTgzMDU0Ni4w\u0026_ga=2.209736981.1877629722.1631830547-182435699.1631830547',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=922160\u0026countries=US\u0026tab=core\u0026states=NJ',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/08cf89da-4d06-473f-adc1-5e2c95ff9ab6/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.impira.com/signup/?webSession=6f137ee3-8a16-487e-a1cd-511c63a5f882',
+                __typename: 'ErrorField',
+            },
+            { name: 'browser', value: 'Chrome', __typename: 'ErrorField' },
+            { name: 'os_name', value: 'Android', __typename: 'ErrorField' },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/match/?utm_medium=email\u0026utm_source=marketo\u0026utm_campaign=sg-general\u0026utm_content=ongoing_match\u0026mkt_tok=MjY0LURCVi0xNzkAAAF_g5sxqqoEZdPI16gktyu9J9DG-437WgULCUwwutc1tmN6xTq1sVLJMBuX0Rt8GiCFd1zvP_QiVWB8OHmXXTFe_31Pg_0LM0suIXV2m6e8WA',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*1myqu3e*_ga*NjIxMTMzNjQ0LjE2MzE4ODEwNjk.*_ga_5HPG5VDMQW*MTYzMTg4MTA2OC4xLjEuMTYzMTg4MTI5MC4w\u0026_ga=2.191774634.1234600707.1631881069-621133644.1631881069',
+                __typename: 'ErrorField',
+            },
+            { name: 'browser', value: 'Chrome', __typename: 'ErrorField' },
+            { name: 'os_name', value: 'Windows', __typename: 'ErrorField' },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.impira.com/signup/?webSession=b9f136cb-9f3d-41c5-a296-f9835cd5a4d7',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filingstatus?_se=bmF2aTM4MHJhc2VjQGdtYWlsLmNvbQ%3D%3D',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*61hym4*_ga*MjEyOTQyNDY4OS4xNjMxODk2NTc2*_ga_5HPG5VDMQW*MTYzMTg5NjU3NS4xLjEuMTYzMTg5NjYwNi4w\u0026_ga=2.1205105.1167883708.1631896576-2129424689.1631896576',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value: 'https://gorillamind.com/',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?brands=SG_BRAND_3e83dfb420f261060adf01a8f7a92c3e\u0026tab=patterns',
+                __typename: 'ErrorField',
+            },
+            { name: 'browser', value: 'https:', __typename: 'ErrorField' },
+            { name: 'os_name', value: '', __typename: 'ErrorField' },
+            {
+                name: 'visited_url',
+                value: 'https://app.marcoexperiences.com/',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=453910\u0026countries=US\u0026states=PR\u0026cities=Caguas\u0026tab=patterns',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=811411\u0026countries=US\u0026states=IA\u0026cities=Davenport\u0026tab=patterns',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://cardif.tributi.com/filings/2fdd523f-378d-4254-969c-20235bbcfc5d/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=445120\u0026countries=US\u0026states=IA\u0026cities=Dubuque\u0026tab=patterns',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=811411\u0026countries=US\u0026states=VA\u0026cities=Chesapeake\u0026tab=patterns',
+                __typename: 'ErrorField',
+            },
+            { name: 'browser', value: 'Chrome', __typename: 'ErrorField' },
+            { name: 'os_name', value: 'Android', __typename: 'ErrorField' },
+            {
+                name: 'visited_url',
+                value: 'https://app.marcoexperiences.com/book/122',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*m0rx6m*_ga*MTc0OTI4OTY1Ni4xNjMxOTk5MzM4*_ga_5HPG5VDMQW*MTYzMTk5OTMzNi4xLjAuMTYzMTk5OTMzNi4w\u0026_ga=2.257819019.1062494568.1631999338-1749289656.1631999338',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value: 'https://www.duffl.com/404',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=453220\u0026countries=US\u0026states=OK\u0026cities=Norman\u0026tab=patterns',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=522110\u0026countries=US\u0026states=MI\u0026cities=Ann%20Arbor\u0026tab=patterns',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=621111\u0026countries=US\u0026states=DE\u0026cities=Lewes\u0026tab=patterns',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_ga=2.100419678.1748013671.1632067970-1406975200.1631462510\u0026_gl=1*43co9u*_ga*MTQwNjk3NTIwMC4xNjMxNDYyNTEw*_ga_5HPG5VDMQW*MTYzMjA3MTc1NC4zLjAuMTYzMjA3MTc1NC4w',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=812910\u0026countries=US\u0026states=FL\u0026cities=Miami\u0026tab=patterns',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*xy3xib*_ga*NjQxNjMwMTU1LjE2MzE5OTM5Mzk.*_ga_5HPG5VDMQW*MTYzMTk5MzkzNy4xLjAuMTYzMTk5MzkzNy4w\u0026_ga=2.83621458.57775841.1631993939-641630155.1631993939',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?brands=SG_BRAND_42caa3f5565190895ca23cffd7d99d47\u0026tab=patterns',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/1733e654-2e76-4847-9f7c-06204f7c02b0/assistantpayment',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/45d6d512-243b-48c9-9724-a74950b500b0/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.marcoexperiences.com/experiences/cook-along-x-assembly-co?_gl=1*axpdve*_ga*MTkxMTc4NDA1Mi4xNjMxODg2NDc2*_ga_R7BC22HE79*MTYzMjE2ODMwNC4yLjEuMTYzMjE2OTIwMi4w\u0026_ga=2.54051182.770897253.1632168306-1911784052.1631886476',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'os_name',
+                value: 'CrOS x86_64',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.impira.com/signup/?webSession=553860e8-63a7-425b-a546-86f1899b30f4',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*15aejsy*_ga*NTAwNzcyNDI1LjE2MzIyMjUwNzI.*_ga_5HPG5VDMQW*MTYzMjIyNTA3MS4xLjAuMTYzMjIyNTA3MS4w\u0026_ga=2.244333637.1738934715.1632225072-500772425.1632225072',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/b8c652fb-a697-4623-bea5-2c01d749402c/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/1bf520b9-9160-4c15-b4a9-92196a770d5f/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=448310\u0026countries=US\u0026states=AK\u0026cities=Anchorage\u0026tab=patterns',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=447110\u0026countries=US\u0026states=RI\u0026cities=Johnston\u0026tab=patterns',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://alianzas.tributi.com/?_gl=1*19ceo4a*_ga*MTUyOTk4ODEwOS4xNjMyMTgwNjkz*_ga_5HPG5VDMQW*MTYzMjI1Njk5NC4zLjAuMTYzMjI1Njk5NC4w\u0026_ga=2.179689056.575410065.1632180693-1529988109.1632180693',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value: 'https://alianzas.tributi.com/plans',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*1kz5zo9*_ga*MzA1ODMxNjg0LjE2MzIyNTc2NjA.*_ga_5HPG5VDMQW*MTYzMjI1NzY1OS4xLjAuMTYzMjI1NzY1OS4w\u0026_ga=2.194295597.1092806664.1632257670-305831684.1632257660',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=621310\u0026countries=US\u0026states=FL\u0026cities=Orlando\u0026tab=patterns',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/login?utm_source=facebook\u0026utm_medium=cpc\u0026utm_campaign=BANCOLOMBIA_PSN_EST_FB_CONS_CPC_TRAFICO_IMPUESTOS_TRIBUTI_836_USO101_006\u0026utm_content=_006_PPL',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*14z3hqf*_ga*MTIyMTU4NDI2OS4xNjMyMzU3MzM3*_ga_5HPG5VDMQW*MTYzMjM1NzMzNi4xLjEuMTYzMjM1Nzk2MS4w\u0026_ga=2.233945438.1919021872.1632357337-1221584269.1632357337',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/5ed8b95c-86fb-4f97-afc0-2797e7daf87e/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_ga=2.10051445.1157345365.1632382420-601068819.1632382420\u0026_gl=1*xn6yrr*_ga*NjAxMDY4ODE5LjE2MzIzODI0MjA.*_ga_5HPG5VDMQW*MTYzMjM4MjQxOC4xLjAuMTYzMjM4MjQxOC4w',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/749f9993-c473-477b-b070-7aa0f5d4729c/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/12cc180b-708b-4476-a0e7-f96ed2ff44fc/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/recoverpassword/MDVkYWU3NTktNjBkOC00OGFmLWIyZTUtY2RmNjE2YTZhYjll/5ua-3fe743f97b2fe10ee448',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/bef5f871-c054-42e2-ad55-89189d017950/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_ga=2.256429327.560837505.1632437538-1394111622.1632437538\u0026_gl=1*1ba9j3r*_ga*MTM5NDExMTYyMi4xNjMyNDM3NTM4*_ga_5HPG5VDMQW*MTYzMjQzNzUzNy4xLjAuMTYzMjQzNzUzNy4w',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/272982ee-b802-40bc-a145-22a2b8cf83be/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*9da7f7*_ga*NzUyNDQ0NTgxLjE2MzI1MTc2MjY.*_ga_5HPG5VDMQW*MTYzMjUxNzYyMy4xLjEuMTYzMjUxNzc0Ny4w',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*1kharhw*_ga*MzM5NTA1OTgwLjE2MzI1MjE0MTY.*_ga_5HPG5VDMQW*MTYzMjUyMTQxNS4xLjEuMTYzMjUyMTgwNC4w\u0026_ga=2.112743172.1011363040.1632521416-339505980.1632521416',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_ga=2.193469742.2074452574.1632565900-652825994.1632565900\u0026_gl=1*njml31*_ga*NjUyODI1OTk0LjE2MzI1NjU5MDA.*_ga_5HPG5VDMQW*MTYzMjU2NTg5OS4xLjEuMTYzMjU2NTkzMS4w',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/549f03aa-bca0-428b-8e3c-e8efdc021578/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/b53cbc18-aabd-41d6-8b5a-94841878c899/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/5247fb1b-2e81-4952-8e17-0f0508e93d34/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_ga=2.147929207.1935910530.1632695808-1049246903.1632695807\u0026_gl=1*1y9p3am*_ga*MTA0OTI0NjkwMy4xNjMyNjk1ODA3*_ga_5HPG5VDMQW*MTYzMjY5NTgwNS4xLjEuMTYzMjY5NTg0Ni4w',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/208c15cd-ef52-4cf4-8d15-c2de6aed9181/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value: 'https://www.hotplate.com/portal',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*1kdokmo*_ga*MTUwMzA0NDI1OC4xNjMyNzM5MDQ5*_ga_5HPG5VDMQW*MTYzMjczOTA0OS4xLjEuMTYzMjczOTE1MC4w\u0026_ga=2.239114307.1375506523.1632739049-1503044258.1632739049',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*ekjsl0*_ga*OTE2ODMwNjQ4LjE2MzI3MDg2MjE.*_ga_5HPG5VDMQW*MTYzMjcwODYyMC4xLjEuMTYzMjcwOTQ3Ny4w\u0026_ga=2.99009693.286007357.1632708621-916830648.1632708621',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_ga=2.237933574.763227818.1632761816-1150351178.1632761816\u0026_gl=1*uz9a9*_ga*MTE1MDM1MTE3OC4xNjMyNzYxODE2*_ga_5HPG5VDMQW*MTYzMjc2MTgxNC4xLjEuMTYzMjc2MTgyOC4w',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.impira.com/signup/?webSession=b698cf7e-7b60-46cd-8fe0-6d7f088e6444',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value: 'https://www.hotplate.com/bakesum',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/0ddc156e-00f8-44d0-860d-435c78d353db/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*s4ns8i*_ga*NzMzNjY4NzUyLjE2MzI3ODQ2MTE.*_ga_5HPG5VDMQW*MTYzMjc4NDYxMC4xLjAuMTYzMjc4NDYxMC4w\u0026_ga=2.133470798.1556284688.1632784612-733668752.1632784611',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value: 'https://app.contadia.com/',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://shop.safegraph.com/?categories=423330\u0026countries=US\u0026tab=core\u0026states=MT',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_gl=1*1y0noem*_ga*MTcwMDQ2MzM3MS4xNjMyODUzOTA1*_ga_5HPG5VDMQW*MTYzMjg1MzkwNC4xLjAuMTYzMjg1MzkwNC4w\u0026_ga=2.210509969.540337486.1632853905-1700463371.1632853905',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/564c81c5-2dc4-43bd-8793-da3162e58f18/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value: 'https://www.hotplate.com/HostBio?hostId=ILobIt',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value: 'https://app.airplane.dev/runs/run20210910zx9v3uq',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_ga=2.118764425.1291372546.1632925261-1058715588.1597108998\u0026_gl=1*1qhtxam*_ga*MTA1ODcxNTU4OC4xNTk3MTA4OTk4*_ga_5HPG5VDMQW*MTYzMjkyNTI2MS4xLjAuMTYzMjkyNTI2MS4w',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'browser',
+                value: 'Chromium',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/d09567d3-5465-4c37-9ff8-3d5140fea748/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/fdec7344-72c0-4ba3-8a2d-e79edf6d63ca/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_ga=2.84684825.1459753568.1632964995-1997652189.1632964995\u0026_gl=1*19aps91*_ga*MTk5NzY1MjE4OS4xNjMyOTY0OTk1*_ga_5HPG5VDMQW*MTYzMjk2NDk5NC4xLjAuMTYzMjk2NDk5NC4w',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_ga=2.233640983.841381682.1632971334-1508820651.1632971334\u0026_gl=1*l38dpo*_ga*MTUwODgyMDY1MS4xNjMyOTcxMzM0*_ga_5HPG5VDMQW*MTYzMjk3MTMzMi4xLjAuMTYzMjk3MTMzMi4w',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value: 'https://app.impira.com/robots.txt',
+                __typename: 'ErrorField',
+            },
+            { name: 'browser', value: 'https:', __typename: 'ErrorField' },
+            { name: 'browser', value: 'Android', __typename: 'ErrorField' },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.marcoexperiences.com/experiences/haus-mixology-expedition-x-rebecca?_ga=2.262966092.1188226286.1632995964-1939012047.1632995964\u0026_gac=1.52576924.1632995964.EAIaIQobChMI95fV_rem8wIVYJlmAh10qQXGEAAYAiAAEgJ1U_D_BwE\u0026_gl=1*1n16r19*_ga*MTkzOTAxMjA0Ny4xNjMyOTk1OTY0*_ga_R7BC22HE79*MTYzMjk5NTk2My4xLjEuMTYzMjk5NjA3MC4w',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/?_ga=2.57396906.1425884264.1633003331-1065836589.1633003331\u0026_gl=1*cxw83i*_ga*MTA2NTgzNjU4OS4xNjMzMDAzMzMx*_ga_5HPG5VDMQW*MTYzMzAwMzMzMC4xLjAuMTYzMzAwMzMzMC4w',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/c32b64ac-5e96-4083-be6f-0ef0324c06c9/onboarding',
+                __typename: 'ErrorField',
+            },
+            {
+                name: 'visited_url',
+                value:
+                    'https://app.tributi.com/filings/ff8b8471-4141-4c40-a773-b0f7c54e04a6/onboarding',
+                __typename: 'ErrorField',
+            },
+        ],
+        error_frequency: [14, 8, 14, 9, 8, 12],
+        is_public: true,
+        __typename: 'ErrorGroup',
     },
 };
