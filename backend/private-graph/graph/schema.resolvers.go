@@ -356,6 +356,17 @@ func (r *mutationResolver) AddAdminToProject(ctx context.Context, projectID int,
 	if err != nil {
 		return nil, e.New("error querying admin")
 	}
+
+	// For this Real Magic, set all new admins to normal role so they don't have access to billing.
+	// This should be removed when we implement RBAC.
+	if projectID == 388 {
+		if err := r.DB.Model(admin).Updates(model.Admin{
+			Role: &model.AdminRole.MEMBER,
+		}); err != nil {
+			log.Error("Failed to update admin when changing role to normal.")
+		}
+	}
+
 	if err := r.DB.Model(project).Association("Admins").Append(admin); err != nil {
 		return nil, e.Wrap(err, "error adding admin to association")
 	}

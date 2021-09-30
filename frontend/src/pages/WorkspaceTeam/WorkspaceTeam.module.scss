@@ -49,6 +49,16 @@
     white-space: nowrap;
 }
 
+.role {
+    color: var(--color-gray-500);
+    font-size: 13px;
+}
+
+.header {
+    column-gap: var(--size-small);
+    display: flex;
+}
+
 .buttonRow {
     display: grid;
     grid-template-columns: 1fr 120px;
