@@ -93,6 +93,11 @@ export enum SessionCommentType {
     Feedback = 'FEEDBACK',
 }
 
+export enum AdminRole {
+    Admin = 'ADMIN',
+    Normal = 'NORMAL',
+}
+
 export type Project = {
     __typename?: 'Project';
     id: Scalars['ID'];
@@ -316,6 +321,7 @@ export type Admin = {
     email: Scalars['String'];
     photo_url?: Maybe<Scalars['String']>;
     slack_im_channel_id?: Maybe<Scalars['String']>;
+    role: AdminRole;
 };
 
 export type SanitizedAdmin = {

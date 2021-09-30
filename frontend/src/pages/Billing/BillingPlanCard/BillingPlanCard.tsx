@@ -12,11 +12,13 @@ export const BillingPlanCard = ({
     onSelect,
     current,
     loading,
+    disabled,
 }: {
     current: boolean;
     billingPlan: BillingPlan;
     onSelect: () => void;
     loading: boolean;
+    disabled?: boolean;
 }) => {
     return (
         <div
@@ -46,7 +48,7 @@ export const BillingPlanCard = ({
 
             <Button
                 trackingId="ChangeBillingPlan"
-                disabled={current}
+                disabled={current || disabled}
                 onClick={onSelect}
                 className={styles.button}
                 loading={loading}

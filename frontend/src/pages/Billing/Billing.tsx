@@ -1,3 +1,5 @@
+import { useAuthContext } from '@authentication/AuthContext';
+import Alert from '@components/Alert/Alert';
 import { loadStripe } from '@stripe/stripe-js';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
@@ -13,9 +15,10 @@ import Progress from '../../components/Progress/Progress';
 import {
     useCreateOrUpdateStripeSubscriptionMutation,
     useGetBillingDetailsQuery,
+    useGetProjectQuery,
     useUpdateBillingDetailsMutation,
 } from '../../graph/generated/hooks';
-import { PlanType } from '../../graph/generated/schemas';
+import { AdminRole, PlanType } from '../../graph/generated/schemas';
 import SvgShieldWarningIcon from '../../static/ShieldWarningIcon';
 import { formatNumberWithDelimiters } from '../../util/numbers';
 import styles from './Billing.module.scss';
@@ -36,6 +39,9 @@ const stripePromiseOrNull = getStripePromiseOrNull();
 const BillingPage = () => {
     const { project_id } = useParams<{ project_id: string }>();
     const { pathname } = useLocation();
+    const { data: projectData } = useGetProjectQuery({
+        variables: { id: project_id },
+    });
     const [
         checkoutRedirectFailedMessage,
         setCheckoutRedirectFailedMessage,
@@ -55,6 +61,7 @@ const BillingPage = () => {
             project_id,
         },
     });
+    const { admin } = useAuthContext();
 
     const [
         createOrUpdateStripeSubscription,
@@ -204,26 +211,35 @@ const BillingPage = () => {
                 </Collapsible>
             </div>
             <div className={styles.billingPlanCardWrapper}>
-                {BILLING_PLANS.map((billingPlan) =>
-                    billingLoading ? (
-                        <Skeleton
-                            style={{ borderRadius: 8 }}
-                            count={1}
-                            height={325}
-                            width={275}
-                        />
-                    ) : (
-                        <BillingPlanCard
-                            key={billingPlan.type}
-                            current={
-                                billingData?.billingDetails.plan.type ===
-                                billingPlan.name
-                            }
-                            billingPlan={billingPlan}
-                            onSelect={createOnSelect(billingPlan.type)}
-                            loading={loadingPlanType === billingPlan.type}
-                        />
+                {admin?.role === AdminRole.Admin ? (
+                    BILLING_PLANS.map((billingPlan) =>
+                        billingLoading ? (
+                            <Skeleton
+                                style={{ borderRadius: 8 }}
+                                count={1}
+                                height={325}
+                                width={275}
+                            />
+                        ) : (
+                            <BillingPlanCard
+                                disabled={admin?.role !== AdminRole.Admin}
+                                key={billingPlan.type}
+                                current={
+                                    billingData?.billingDetails.plan.type ===
+                                    billingPlan.name
+                                }
+                                billingPlan={billingPlan}
+                                onSelect={createOnSelect(billingPlan.type)}
+                                loading={loadingPlanType === billingPlan.type}
+                            />
+                        )
                     )
+                ) : (
+                    <Alert
+                        trackingId="AdminNoAccessToBilling"
+                        message="You don't have access to billing."
+                        description={`You don't have permission to access the billing details for "${projectData?.project?.name}". Please contact ${projectData?.project?.billing_email} to make changes.`}
+                    />
                 )}
             </div>
         </LeadAlignLayout>
