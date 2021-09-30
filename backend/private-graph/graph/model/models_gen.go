@@ -141,6 +141,47 @@ type UserPropertyInput struct {
 	Value string `json:"value"`
 }
 
+type AdminRoles string
+
+const (
+	AdminRolesAdmin  AdminRoles = "ADMIN"
+	AdminRolesMember AdminRoles = "MEMBER"
+)
+
+var AllAdminRoles = []AdminRoles{
+	AdminRolesAdmin,
+	AdminRolesMember,
+}
+
+func (e AdminRoles) IsValid() bool {
+	switch e {
+	case AdminRolesAdmin, AdminRolesMember:
+		return true
+	}
+	return false
+}
+
+func (e AdminRoles) String() string {
+	return string(e)
+}
+
+func (e *AdminRoles) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AdminRoles(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AdminRoles", str)
+	}
+	return nil
+}
+
+func (e AdminRoles) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type ErrorState string
 
 const (

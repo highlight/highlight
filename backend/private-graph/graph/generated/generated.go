@@ -37,6 +37,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	Admin() AdminResolver
 	ErrorAlert() ErrorAlertResolver
 	ErrorComment() ErrorCommentResolver
 	ErrorGroup() ErrorGroupResolver
@@ -440,6 +441,9 @@ type ComplexityRoot struct {
 	}
 }
 
+type AdminResolver interface {
+	Role(ctx context.Context, obj *model1.Admin) (model.AdminRoles, error)
+}
 type ErrorAlertResolver interface {
 	ChannelsToNotify(ctx context.Context, obj *model1.ErrorAlert) ([]*model.SanitizedSlackChannel, error)
 	ExcludedEnvironments(ctx context.Context, obj *model1.ErrorAlert) ([]*string, error)
@@ -3006,14 +3010,14 @@ enum ErrorState {
     IGNORED
 }
 
-enum AdminRole {
-    ADMIN
-    MEMBER
-}
-
 enum SessionCommentType {
     Admin
     FEEDBACK
+}
+
+enum AdminRoles {
+    ADMIN
+    MEMBER
 }
 
 type Project {
@@ -3220,8 +3224,8 @@ type Admin {
     name: String!
     email: String!
     photo_url: String
-    role: String!
     slack_im_channel_id: String
+    role: AdminRoles!
 }
 
 # A subset of Admin. This type will contain fields that are allowed to be exposed to other users.
@@ -5781,41 +5785,6 @@ func (ec *executionContext) _Admin_photo_url(ctx context.Context, field graphql.
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Admin_role(ctx context.Context, field graphql.CollectedField, obj *model1.Admin) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Admin",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Role, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Admin_slack_im_channel_id(ctx context.Context, field graphql.CollectedField, obj *model1.Admin) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -5846,6 +5815,41 @@ func (ec *executionContext) _Admin_slack_im_channel_id(ctx context.Context, fiel
 	res := resTmp.(*string)
 	fc.Result = res
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Admin_role(ctx context.Context, field graphql.CollectedField, obj *model1.Admin) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Admin",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Admin().Role(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.AdminRoles)
+	fc.Result = res
+	return ec.marshalNAdminRoles2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAdminRoles(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _AverageSessionLength_length(ctx context.Context, field graphql.CollectedField, obj *model.AverageSessionLength) (ret graphql.Marshaler) {
@@ -16885,27 +16889,36 @@ func (ec *executionContext) _Admin(ctx context.Context, sel ast.SelectionSet, ob
 		case "id":
 			out.Values[i] = ec._Admin_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "name":
 			out.Values[i] = ec._Admin_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "email":
 			out.Values[i] = ec._Admin_email(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "photo_url":
 			out.Values[i] = ec._Admin_photo_url(ctx, field, obj)
-		case "role":
-			out.Values[i] = ec._Admin_role(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "slack_im_channel_id":
 			out.Values[i] = ec._Admin_slack_im_channel_id(ctx, field, obj)
+		case "role":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Admin_role(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -19545,6 +19558,16 @@ func (ec *executionContext) marshalNAdmin2ᚕᚖgithubᚗcomᚋhighlightᚑrun�
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) unmarshalNAdminRoles2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAdminRoles(ctx context.Context, v interface{}) (model.AdminRoles, error) {
+	var res model.AdminRoles
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNAdminRoles2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAdminRoles(ctx context.Context, sel ast.SelectionSet, v model.AdminRoles) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNBillingDetails2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐBillingDetails(ctx context.Context, sel ast.SelectionSet, v model.BillingDetails) graphql.Marshaler {

@@ -337,7 +337,7 @@ type Admin struct {
 	SessionComments  []SessionComment `gorm:"many2many:session_comment_admins;"`
 	ErrorComments    []ErrorComment   `gorm:"many2many:error_comment_admins;"`
 	SlackIMChannelID *string
-	Role             *string `json:"role" gorm:"default:ADMIN"`
+	Role             modelInputs.AdminRoles `json:"role" gorm:"default:ADMIN"`
 }
 
 type EmailSignup struct {

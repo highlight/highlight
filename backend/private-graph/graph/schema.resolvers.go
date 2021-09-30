@@ -32,6 +32,10 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
+func (r *adminResolver) Role(ctx context.Context, obj *model.Admin) (modelInputs.AdminRoles, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *errorAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.ErrorAlert) ([]*modelInputs.SanitizedSlackChannel, error) {
 	return obj.GetChannelsToNotify()
 }
@@ -361,7 +365,7 @@ func (r *mutationResolver) AddAdminToProject(ctx context.Context, projectID int,
 	// This should be removed when we implement RBAC.
 	if projectID == 388 {
 		if err := r.DB.Model(admin).Updates(model.Admin{
-			Role: &model.AdminRole.MEMBER,
+			Role: modelInputs.AdminRolesMember,
 		}); err != nil {
 			log.Error("Failed to update admin when changing role to normal.")
 		}
@@ -2424,6 +2428,9 @@ func (r *sessionCommentResolver) Metadata(ctx context.Context, obj *model.Sessio
 	return obj.Metadata, nil
 }
 
+// Admin returns generated.AdminResolver implementation.
+func (r *Resolver) Admin() generated.AdminResolver { return &adminResolver{r} }
+
 // ErrorAlert returns generated.ErrorAlertResolver implementation.
 func (r *Resolver) ErrorAlert() generated.ErrorAlertResolver { return &errorAlertResolver{r} }
 
@@ -2459,6 +2466,7 @@ func (r *Resolver) SessionComment() generated.SessionCommentResolver {
 	return &sessionCommentResolver{r}
 }
 
+type adminResolver struct{ *Resolver }
 type errorAlertResolver struct{ *Resolver }
 type errorCommentResolver struct{ *Resolver }
 type errorGroupResolver struct{ *Resolver }
