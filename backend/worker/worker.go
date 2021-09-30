@@ -650,7 +650,7 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 			var diff time.Duration
 			if !o.LastEventTimestamp.IsZero() {
 				diff = event.Timestamp.Sub(o.LastEventTimestamp)
-				if diff <= MIN_INACTIVE_DURATION {
+				if diff.Seconds() <= MIN_INACTIVE_DURATION {
 					o.CalculatedDuration += diff
 				}
 			}

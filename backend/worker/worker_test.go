@@ -256,6 +256,7 @@ func TestGetActiveDuration(t *testing.T) {
 					CurrentlyInRageClickSet: currentlyInRageClickSet,
 				})
 				if o.Error != nil {
+					t.Logf("error: %v", o.Error)
 				}
 				firstEventTimestamp = o.FirstEventTimestamp
 				lastEventTimestamp = o.LastEventTimestamp
@@ -264,7 +265,7 @@ func TestGetActiveDuration(t *testing.T) {
 				currentlyInRageClickSet = o.CurrentlyInRageClickSet
 			}
 
-			t.Log("")
+			t.Logf("want: %v, actual: %v", tt.wantActiveDuration, activeDuration)
 			if diff := deep.Equal(tt.wantActiveDuration, activeDuration); diff != nil {
 				t.Errorf("[active duration not equal to expected]: %v", diff)
 			}
