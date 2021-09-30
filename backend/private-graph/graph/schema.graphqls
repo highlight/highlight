@@ -69,14 +69,14 @@ enum ErrorState {
     IGNORED
 }
 
+enum AdminRole {
+    ADMIN
+    MEMBER
+}
+
 enum SessionCommentType {
     Admin
     FEEDBACK
-}
-
-enum AdminRole {
-    ADMIN
-    NORMAL
 }
 
 type Project {
@@ -283,8 +283,8 @@ type Admin {
     name: String!
     email: String!
     photo_url: String
+    role: String!
     slack_im_channel_id: String
-    role: AdminRole!
 }
 
 # A subset of Admin. This type will contain fields that are allowed to be exposed to other users.

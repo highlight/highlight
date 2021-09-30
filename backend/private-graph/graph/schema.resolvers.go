@@ -361,7 +361,7 @@ func (r *mutationResolver) AddAdminToProject(ctx context.Context, projectID int,
 	// This should be removed when we implement RBAC.
 	if projectID == 388 {
 		if err := r.DB.Model(admin).Updates(model.Admin{
-			Role: &model.AdminRole.NORMAL,
+			Role: &model.AdminRole.MEMBER,
 		}); err != nil {
 			log.Error("Failed to update admin when changing role to normal.")
 		}

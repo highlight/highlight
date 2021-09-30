@@ -9,5 +9,5 @@ export const getProjectInvitationLink = (
 
 export const roleToDisplayValueMapping = {
     [AdminRole.Admin]: 'Admin',
-    [AdminRole.Normal]: 'Member',
+    [AdminRole.Member]: 'Member',
 };

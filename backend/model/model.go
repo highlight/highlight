@@ -56,10 +56,10 @@ var AlertType = struct {
 
 var AdminRole = struct {
 	ADMIN  string
-	NORMAL string
+	MEMBER string
 }{
 	ADMIN:  "ADMIN",
-	NORMAL: "NORMAL",
+	MEMBER: "MEMBER",
 }
 
 var ErrorGroupStates = struct {

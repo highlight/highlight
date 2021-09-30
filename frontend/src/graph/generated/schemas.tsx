@@ -88,14 +88,14 @@ export enum ErrorState {
     Ignored = 'IGNORED',
 }
 
+export enum AdminRole {
+    Admin = 'ADMIN',
+    Member = 'MEMBER',
+}
+
 export enum SessionCommentType {
     Admin = 'Admin',
     Feedback = 'FEEDBACK',
-}
-
-export enum AdminRole {
-    Admin = 'ADMIN',
-    Normal = 'NORMAL',
 }
 
 export type Project = {
@@ -320,8 +320,8 @@ export type Admin = {
     name: Scalars['String'];
     email: Scalars['String'];
     photo_url?: Maybe<Scalars['String']>;
+    role: Scalars['String'];
     slack_im_channel_id?: Maybe<Scalars['String']>;
-    role: AdminRole;
 };
 
 export type SanitizedAdmin = {

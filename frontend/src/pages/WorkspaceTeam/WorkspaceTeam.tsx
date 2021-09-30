@@ -178,6 +178,7 @@ const WorkspaceTeam = () => {
                                             className={classNames(styles.role)}
                                         >
                                             {a?.role &&
+                                                //     @ts-expect-error
                                                 roleToDisplayValueMapping[
                                                     a?.role
                                                 ]}
