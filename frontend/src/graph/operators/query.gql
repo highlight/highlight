@@ -44,6 +44,7 @@ query GetAdmins($project_id: ID!) {
         name
         email
         photo_url
+        role
     }
 }
 

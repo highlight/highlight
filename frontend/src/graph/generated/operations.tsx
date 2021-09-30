@@ -593,7 +593,7 @@ export type GetAdminsQuery = { __typename?: 'Query' } & {
         Types.Maybe<
             { __typename?: 'Admin' } & Pick<
                 Types.Admin,
-                'id' | 'name' | 'email' | 'photo_url'
+                'id' | 'name' | 'email' | 'photo_url' | 'role'
             >
         >
     >;

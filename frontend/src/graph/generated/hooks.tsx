@@ -1879,6 +1879,7 @@ export const GetAdminsDocument = gql`
             name
             email
             photo_url
+            role
         }
     }
 `;
