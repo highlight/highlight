@@ -308,14 +308,8 @@ export const usePlayer = (): ReplayerContextInterface => {
                 cancelAnimationFrame(timerId);
             };
         }
-    }, [
-        errors,
-        events,
-        events.length,
-        hasSearchParam,
-        replayer,
-        setPlayerTimestamp,
-    ]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [errors, events, events.length, hasSearchParam, replayer]);
 
     useEffect(() => {
         if (
