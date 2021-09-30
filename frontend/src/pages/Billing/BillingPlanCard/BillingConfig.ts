@@ -42,7 +42,7 @@ const enterprisePlan: BillingPlan = {
     monthlyPrice: '500+',
     advertisedFeatures: [
         'Everything in Basic/Startup',
-        'User ACLS/Permissioning',
+        'User RBAC/Permissioning',
         'On-premise deployments',
         'SSO/SAML',
     ],
