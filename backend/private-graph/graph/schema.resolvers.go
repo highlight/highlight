@@ -152,8 +152,9 @@ func (r *errorGroupResolver) ErrorFrequency(ctx context.Context, obj *model.Erro
 func (r *errorObjectResolver) ErrorGroupSecureID(ctx context.Context, obj *model.ErrorObject) (string, error) {
 	if obj != nil {
 		var secureID string
-		if err := r.DB.Raw(`SELECT secure_id FROM error_groups WHERE id = ? LIMIT 1`, obj.ErrorGroupID).Scan(&secureID); err != nil {
-			return "", fmt.Errorf("Failed to retrieve secure_id for error group: %v", err)
+		if result := r.DB.Raw(`SELECT secure_id FROM error_groups WHERE id = ? LIMIT 1`,
+			obj.ErrorGroupID).Scan(&secureID); result.Error != nil {
+			return "", fmt.Errorf("Failed to retrieve secure_id for error group: %v, id: %d", result.Error, obj.ErrorGroupID)
 		}
 		return secureID, nil
 	}
@@ -355,6 +356,17 @@ func (r *mutationResolver) AddAdminToProject(ctx context.Context, projectID int,
 	if err != nil {
 		return nil, e.New("error querying admin")
 	}
+
+	// For this Real Magic, set all new admins to normal role so they don't have access to billing.
+	// This should be removed when we implement RBAC.
+	if projectID == 388 {
+		if err := r.DB.Model(admin).Updates(model.Admin{
+			Role: &model.AdminRole.MEMBER,
+		}); err != nil {
+			log.Error("Failed to update admin when changing role to normal.")
+		}
+	}
+
 	if err := r.DB.Model(project).Association("Admins").Append(admin); err != nil {
 		return nil, e.Wrap(err, "error adding admin to association")
 	}

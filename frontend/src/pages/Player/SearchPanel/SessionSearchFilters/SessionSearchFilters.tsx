@@ -67,7 +67,6 @@ const SessionSearchFilters = () => {
 
     return (
         <Popover
-            hasBorder
             large
             content={
                 <main className={styles.contentContainer}>

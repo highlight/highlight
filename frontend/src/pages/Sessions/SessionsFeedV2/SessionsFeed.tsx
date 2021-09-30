@@ -20,7 +20,7 @@ import styles from './SessionsFeed.module.scss';
 
 // const SESSIONS_FEED_POLL_INTERVAL = 1000 * 10;
 
-export const SessionFeed = () => {
+export const SessionFeed = React.memo(() => {
     const { setSessionResults, sessionResults } = useReplayerContext();
     const { project_id, segment_id, session_id } = useParams<{
         project_id: string;
@@ -170,6 +170,10 @@ export const SessionFeed = () => {
                                             session={u}
                                             key={u?.id}
                                             selected={session_id === u?.id}
+                                            autoPlaySessions={autoPlaySessions}
+                                            showDetailedSessionView={
+                                                showDetailedSessionView
+                                            }
                                         />
                                     ))}
                                 </>
@@ -190,4 +194,4 @@ export const SessionFeed = () => {
             </div>
         </>
     );
-};
+});

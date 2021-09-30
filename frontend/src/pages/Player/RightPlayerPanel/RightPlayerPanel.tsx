@@ -1,3 +1,4 @@
+import EventStream from '@pages/Player/components/EventStream/EventStream';
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import DetailPanel from '@pages/Player/Toolbar/DevToolsWindow/DetailPanel/DetailPanel';
 import classNames from 'classnames';
@@ -8,7 +9,6 @@ import PanelToggleButton from '../components/PanelToggleButton/PanelToggleButton
 import { MetadataBox } from '../MetadataBox/MetadataBox';
 import MetadataPanel from '../MetadataPanel/MetadataPanel';
 import usePlayerConfiguration from '../PlayerHook/utils/usePlayerConfiguration';
-import { EventStream } from '../PlayerPage';
 import playerPageStyles from '../PlayerPage.module.scss';
 import { PlayerPageProductTourSelectors } from '../PlayerPageProductTour/PlayerPageProductTour';
 import { useReplayerContext } from '../ReplayerContext';

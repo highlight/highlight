@@ -133,6 +133,47 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                             />
                         </div>
                     </Section>
+                    {platform === PlatformType.React && (
+                        <Section title="React Error Boundary">
+                            <p>
+                                Highlight's <code>@highlight-run/react</code>{' '}
+                                package includes React components to improve
+                                both the developer and customer experience. We
+                                recommend using our{' '}
+                                <code>{'<ErrorBoundary/>'}</code> to catch
+                                errors and provide an error recovery mechanism
+                                for your users.
+                            </p>
+                            <CodeBlock
+                                language="javascript"
+                                onCopy={() => {
+                                    H.track(
+                                        'Copied Code Snippet (Highlight Event)',
+                                        { copied: 'code snippet' }
+                                    );
+                                }}
+                                text={`import { ErrorBoundary } from '@highlight-run/react';
+
+const App = () => {
+	return (
+		<ErrorBoundary showDialog>
+			<YourMainAppComponent />
+		</ErrorBoundary>
+	)
+}`}
+                            />
+
+                            <div className={styles.integrationContainer}>
+                                <ButtonLink
+                                    anchor
+                                    href="https://docs.highlight.run/reactjs-integration"
+                                    trackingId="SetupPageDocsReact"
+                                >
+                                    Learn More about the React Package
+                                </ButtonLink>
+                            </div>
+                        </Section>
+                    )}
                     <Section
                         title={
                             <span className={styles.sectionTitleWithIcon}>
@@ -300,15 +341,38 @@ const JsAppInstructions = ({
     return (
         <>
             <Section title="Installing the SDK">
-                <p>
-                    Install the <code>{'highlight.run'}</code> package.
-                </p>
-                <CodeBlock
-                    text={`npm install highlight.run`}
-                    language="shell"
-                />
-                <p>or with Yarn:</p>
-                <CodeBlock text={`yarn add highlight.run`} language="shell" />
+                {platform === PlatformType.React ? (
+                    <>
+                        <p>
+                            Install the <code>highlight.run</code> and{' '}
+                            <code>@highlight-run/react</code> packages.
+                        </p>
+                        <CodeBlock
+                            text={`npm install highlight.run @highlight-run/react`}
+                            language="shell"
+                        />
+                        <p>or with Yarn:</p>
+                        <CodeBlock
+                            text={`yarn add highlight.run @highlight-run/react`}
+                            language="shell"
+                        />
+                    </>
+                ) : (
+                    <>
+                        <p>
+                            Install the <code>{'highlight.run'}</code> package.
+                        </p>
+                        <CodeBlock
+                            text={`npm install highlight.run`}
+                            language="shell"
+                        />
+                        <p>or with Yarn:</p>
+                        <CodeBlock
+                            text={`yarn add highlight.run`}
+                            language="shell"
+                        />
+                    </>
+                )}
             </Section>
             <Section title="Initializing Highlight">
                 <p>Initialize the SDK by importing Highlight like so: </p>

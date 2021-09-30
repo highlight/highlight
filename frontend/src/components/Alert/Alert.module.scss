@@ -1,6 +1,9 @@
 .alert {
     &:global(.ant-alert) {
-        padding: var(--size-medium) !important;
+        padding-bottom: var(--size-medium) !important;
+        padding-left: var(--size-medium) !important;
+        padding-right: var(--size-medium) !important;
+        padding-top: var(--size-medium) !important;
     }
 
     :global(.ant-alert-message) {

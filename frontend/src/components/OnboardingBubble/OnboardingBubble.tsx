@@ -196,7 +196,6 @@ const OnboardingBubble = () => {
                     }
                 }}
                 popoverClassName={styles.popover}
-                hasBorder
                 content={
                     <>
                         <div className={styles.onboardingBubblePopoverHeader}>

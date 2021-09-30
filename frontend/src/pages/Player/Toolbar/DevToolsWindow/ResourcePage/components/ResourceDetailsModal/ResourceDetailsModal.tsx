@@ -193,6 +193,12 @@ const ResourceDetailsModal = ({
                     <KeyValueTable data={generalData} />
                 </DataCard>
 
+                {selectedNetworkResource?.backendError && (
+                    <DataCard title="Backend Error" fullWidth>
+                        {selectedNetworkResource.backendError}
+                    </DataCard>
+                )}
+
                 {(selectedNetworkResource?.initiatorType === 'fetch' ||
                     selectedNetworkResource?.initiatorType ===
                         'xmlhttprequest') &&

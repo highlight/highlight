@@ -33,7 +33,10 @@
 }
 
 .ant-tabs-nav-wrap {
-    padding: 0 var(--size-large);
+    padding-bottom: 0;
+    padding-left: var(--size-large);
+    padding-right: var(--size-large);
+    padding-top: 0;
 }
 
 .ant-tabs-content {

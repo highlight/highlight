@@ -7,15 +7,13 @@ import {
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import ElevatedCard from '@components/ElevatedCard/ElevatedCard';
+import { ErrorState } from '@components/ErrorState/ErrorState';
 import FullBleedCard from '@components/FullBleedCard/FullBleedCard';
 import Modal from '@components/Modal/Modal';
-import { useMarkSessionAsViewedMutation } from '@graph/hooks';
-import { EventType, Replayer } from '@highlight-run/rrweb';
-import { eventWithTime } from '@highlight-run/rrweb/dist/types';
+import { Replayer } from '@highlight-run/rrweb';
 import NoActiveSessionCard from '@pages/Player/components/NoActiveSessionCard/NoActiveSessionCard';
 import PanelToggleButton from '@pages/Player/components/PanelToggleButton/PanelToggleButton';
 import { PlayerUIContextProvider } from '@pages/Player/context/PlayerUIContext';
-import { HighlightEvent } from '@pages/Player/HighlightEvent';
 import PlayerCommentCanvas, {
     Coordinates2D,
 } from '@pages/Player/PlayerCommentCanvas/PlayerCommentCanvas';
@@ -28,12 +26,10 @@ import PlayerPageProductTour from '@pages/Player/PlayerPageProductTour/PlayerPag
 import {
     ReplayerContextProvider,
     ReplayerState,
-    useReplayerContext,
 } from '@pages/Player/ReplayerContext';
 import RightPlayerPanel from '@pages/Player/RightPlayerPanel/RightPlayerPanel';
 import SearchPanel from '@pages/Player/SearchPanel/SearchPanel';
 import SessionLevelBar from '@pages/Player/SessionLevelBar/SessionLevelBar';
-import { StreamElement } from '@pages/Player/StreamElement/StreamElement';
 import { NewCommentForm } from '@pages/Player/Toolbar/NewCommentForm/NewCommentForm';
 import { Toolbar } from '@pages/Player/Toolbar/Toolbar';
 import { usePlayerFullscreen } from '@pages/Player/utils/PlayerHooks';
@@ -42,21 +38,11 @@ import { SessionSearchOption } from '@pages/Sessions/SessionsFeedV2/components/S
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
-import _ from 'lodash';
 import Lottie from 'lottie-react';
-import React, {
-    Suspense,
-    useCallback,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
-} from 'react';
+import React, { Suspense, useEffect, useRef, useState } from 'react';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import useResizeAware from 'react-resize-aware';
 import AsyncSelect from 'react-select/async';
-import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
-import { BooleanParam, useQueryParam } from 'use-query-params';
 
 import WaitingAnimation from '../../lottie/waiting.json';
 import styles from './PlayerPage.module.scss';
@@ -111,21 +97,12 @@ const Player = ({ integrated }: Props) => {
         | undefined
     >(undefined);
     const newCommentModalRef = useRef<HTMLDivElement>(null);
-    const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
     const [commentModalPosition, setCommentModalPosition] = useState<
         Coordinates2D | undefined
     >(undefined);
     const [commentPosition, setCommentPosition] = useState<
         Coordinates2D | undefined
     >(undefined);
-
-    useEffect(() => {
-        if (session_id && isLoggedIn) {
-            markSessionAsViewed({
-                variables: { id: session_id, viewed: true },
-            });
-        }
-    }, [session_id, isLoggedIn, markSessionAsViewed]);
 
     useEffect(() => {
         if (!session_id) {
@@ -256,7 +233,10 @@ const Player = ({ integrated }: Props) => {
                             </ButtonLink>
                         </FullBleedCard>
                     )}
-                    {sessionViewability === SessionViewability.EMPTY_SESSION ? (
+                    {sessionViewability === SessionViewability.ERROR ? (
+                        <ErrorState message="This session does not exist or has not been made public." />
+                    ) : sessionViewability ===
+                      SessionViewability.EMPTY_SESSION ? (
                         <ElevatedCard
                             className={styles.emptySessionCard}
                             title="Session isn't ready to view yet 😔"
@@ -468,125 +448,6 @@ const Player = ({ integrated }: Props) => {
     );
 };
 
-export const EventStream = () => {
-    const [debug] = useQueryParam('debug', BooleanParam);
-    const { replayer, time, events, state } = useReplayerContext();
-    const [currEvent, setCurrEvent] = useState('');
-    const [
-        isInteractingWithStreamEvents,
-        setIsInteractingWithStreamEvents,
-    ] = useState(false);
-    const virtuoso = useRef<VirtuosoHandle>(null);
-
-    useEffect(() => {
-        if (!replayer) return;
-        replayer.on('event-cast', (e: any) => {
-            const event = e as HighlightEvent;
-            if (usefulEvent(event) || debug) {
-                setCurrEvent(event.identifier);
-            }
-        });
-    }, [replayer, debug]);
-
-    const usefulEvents = useMemo(
-        () => (debug ? events : events.filter(usefulEvent)),
-        [events, debug]
-    );
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const scrollFunction = useCallback(
-        _.debounce(
-            (
-                currentEventId: string,
-                usefulEventsList: HighlightEvent[],
-                state
-            ) => {
-                if (virtuoso.current) {
-                    if (state === ReplayerState.Playing) {
-                        const matchingEventIndex = usefulEventsList.findIndex(
-                            (event) => event.identifier === currentEventId
-                        );
-
-                        if (matchingEventIndex > -1) {
-                            virtuoso.current.scrollToIndex({
-                                index: matchingEventIndex,
-                                align: 'center',
-                                behavior: 'smooth',
-                            });
-                        }
-                    }
-                }
-            },
-            1000 / 60
-        ),
-        []
-    );
-
-    useEffect(() => {
-        if (!isInteractingWithStreamEvents) {
-            scrollFunction(currEvent, usefulEvents, state);
-        }
-    }, [
-        currEvent,
-        scrollFunction,
-        usefulEvents,
-        isInteractingWithStreamEvents,
-        state,
-    ]);
-
-    return (
-        <>
-            <div id="wrapper" className={styles.eventStreamContainer}>
-                {!events.length ? (
-                    <div>
-                        <Skeleton
-                            count={20}
-                            height={43}
-                            width="301px"
-                            style={{
-                                marginTop: 16,
-                                marginLeft: 24,
-                                marginRight: 24,
-                                borderRadius: 8,
-                            }}
-                        />
-                    </div>
-                ) : (
-                    replayer && (
-                        <Virtuoso
-                            onMouseEnter={() => {
-                                setIsInteractingWithStreamEvents(true);
-                            }}
-                            onMouseLeave={() => {
-                                setIsInteractingWithStreamEvents(false);
-                            }}
-                            //     @ts-ignore
-                            components={{ List: VirtuosoList }}
-                            ref={virtuoso}
-                            data={usefulEvents}
-                            overscan={500}
-                            itemContent={(index, event) => (
-                                <StreamElement
-                                    e={event}
-                                    key={index}
-                                    start={replayer.getMetaData().startTime}
-                                    isCurrent={
-                                        event.timestamp -
-                                            replayer.getMetaData().startTime ===
-                                            time ||
-                                        event.identifier === currEvent
-                                    }
-                                    onGoToHandler={setCurrEvent}
-                                />
-                            )}
-                        />
-                    )
-                )}
-            </div>
-        </>
-    );
-};
-
 const PlayerSkeleton = ({
     width,
     showingLeftPanel,
@@ -621,21 +482,4 @@ const PlayerSkeleton = ({
     );
 };
 
-// used in filter() type methods to fetch events we want
-const usefulEvent = (e: eventWithTime): boolean => {
-    if (e.type === EventType.Custom) {
-        return !!e.data.tag;
-    }
-    // If its not an 'incrementalSnapshot', discard.
-    if ((e as eventWithTime).type !== EventType.IncrementalSnapshot)
-        return false;
-
-    return false;
-};
-
 export default Player;
-
-const VirtuosoList = React.forwardRef((props, ref) => {
-    // @ts-ignore
-    return <div {...props} ref={ref} className={styles.virtualList} />;
-});

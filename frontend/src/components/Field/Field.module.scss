@@ -14,12 +14,18 @@ $vert: 2px;
     border-top-left-radius: var(--size-xxSmall);
     display: flex;
     font-size: 12px;
-    padding: 0 var(--size-xSmall);
+    padding-bottom: 0;
+    padding-left: var(--size-xSmall);
+    padding-right: var(--size-xSmall);
+    padding-top: 0;
 }
 
 .value {
     font-size: 12px;
-    padding: $vert $side $vert $side;
+    padding-bottom: $vert;
+    padding-left: $side;
+    padding-right: $side;
+    padding-top: $vert;
 }
 
 .wrapper {
