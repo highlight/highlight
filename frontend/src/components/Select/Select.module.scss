@@ -10,7 +10,11 @@
     }
 
     :global(.ant-select-selection-placeholder) {
-        left: 14px;
+        left: 12px;
+    }
+
+    :global(.ant-select-selection-overflow) {
+        margin-left: -12px;
     }
 
     :global(.ant-select-arrow) {
