@@ -88,6 +88,11 @@ export enum ErrorState {
     Ignored = 'IGNORED',
 }
 
+export enum AdminRole {
+    Admin = 'ADMIN',
+    Member = 'MEMBER',
+}
+
 export enum SessionCommentType {
     Admin = 'Admin',
     Feedback = 'FEEDBACK',
@@ -315,6 +320,7 @@ export type Admin = {
     name: Scalars['String'];
     email: Scalars['String'];
     photo_url?: Maybe<Scalars['String']>;
+    role: Scalars['String'];
     slack_im_channel_id?: Maybe<Scalars['String']>;
 };
 

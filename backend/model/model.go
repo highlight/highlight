@@ -54,6 +54,14 @@ var AlertType = struct {
 	SESSION_FEEDBACK: "SESSION_FEEDBACK_ALERT",
 }
 
+var AdminRole = struct {
+	ADMIN  string
+	MEMBER string
+}{
+	ADMIN:  "ADMIN",
+	MEMBER: "MEMBER",
+}
+
 var ErrorGroupStates = struct {
 	OPEN     string
 	RESOLVED string
@@ -329,6 +337,7 @@ type Admin struct {
 	SessionComments  []SessionComment `gorm:"many2many:session_comment_admins;"`
 	ErrorComments    []ErrorComment   `gorm:"many2many:error_comment_admins;"`
 	SlackIMChannelID *string
+	Role             *string `json:"role" gorm:"default:ADMIN"`
 }
 
 type EmailSignup struct {

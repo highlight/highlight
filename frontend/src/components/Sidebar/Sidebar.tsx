@@ -1,7 +1,9 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { AdminRole } from '@graph/schemas';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
@@ -47,40 +49,42 @@ const LEAD_NAVIGATION_ITEMS: NavigationItem[] = [
     },
 ];
 
-const END_NAVIGATION_ITEMS: NavigationItem[] = [
-    {
-        Icon: SvgPlugIcon,
-        displayName: 'Setup',
-        route: 'setup',
-    },
-    {
-        Icon: SvgBriefcase2Icon,
-        displayName: 'Project',
-        route: 'settings',
-    },
-    {
-        Icon: SvgUsersIcon,
-        displayName: 'Team',
-        route: 'team',
-    },
-    ...(!isOnPrem
-        ? [
-              {
-                  Icon: SvgCreditCardIcon,
-                  displayName: 'Billing',
-                  route: 'billing',
-              },
-          ]
-        : []),
-    {
-        Icon: SvgAnnouncementIcon,
-        displayName: 'Alerts',
-        route: 'alerts',
-    },
-];
-
 export const Sidebar = () => {
     const { currentApplication } = useApplicationContext();
+    const { admin } = useAuthContext();
+
+    const END_NAVIGATION_ITEMS: NavigationItem[] = [
+        {
+            Icon: SvgPlugIcon,
+            displayName: 'Setup',
+            route: 'setup',
+        },
+        {
+            Icon: SvgBriefcase2Icon,
+            displayName: 'Project',
+            route: 'settings',
+        },
+        {
+            Icon: SvgUsersIcon,
+            displayName: 'Team',
+            route: 'team',
+        },
+        ...(!isOnPrem && admin?.role === AdminRole.Admin
+            ? [
+                  {
+                      Icon: SvgCreditCardIcon,
+                      displayName: 'Billing',
+                      route: 'billing',
+                  },
+              ]
+            : []),
+        {
+            Icon: SvgAnnouncementIcon,
+            displayName: 'Alerts',
+            route: 'alerts',
+        },
+    ];
+
     return (
         <>
             <div
