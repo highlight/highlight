@@ -40,7 +40,10 @@
 }
 
 .small {
-    padding: var(--size-xxSmall) var(--size-small);
+    padding-bottom: var(--size-xxSmall);
+    padding-left: var(--size-small);
+    padding-right: var(--size-small);
+    padding-top: var(--size-xxSmall);
 }
 
 .link {

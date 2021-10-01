@@ -41,7 +41,10 @@
     display: flex;
     flex-direction: column;
     margin-bottom: calc(-1 * var(--size-medium));
-    padding: var(--size-medium) var(--size-large);
+    padding-bottom: var(--size-medium);
+    padding-left: var(--size-large);
+    padding-right: var(--size-large);
+    padding-top: var(--size-medium);
     row-gap: var(--size-medium);
 
     .searchContainer {

@@ -7,8 +7,10 @@
     display: flex;
     height: 118px;
     max-width: var(--right-panel-width);
-    padding: var(--size-medium) 22px;
     padding-bottom: var(--size-medium);
+    padding-left: 22px;
+    padding-right: 22px;
+    padding-top: var(--size-medium);
     position: relative;
 }
 

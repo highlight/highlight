@@ -15,6 +15,7 @@
         "function-parentheses-space-inside": null,
         "prettier/prettier": true,
         "declaration-block-semicolon-newline-after": null,
-        "selector-no-qualifying-type": null
+        "selector-no-qualifying-type": null,
+        "declaration-block-no-duplicate-properties": true
     }
 }

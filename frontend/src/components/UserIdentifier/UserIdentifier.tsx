@@ -1,3 +1,4 @@
+import Tooltip from '@components/Tooltip/Tooltip';
 import classNames from 'classnames';
 import React from 'react';
 
@@ -16,34 +17,37 @@ const UserIdentifier = ({ session, className }: Props) => {
     const { setSearchParams } = useSearchContext();
 
     const hasIdentifier = !!session?.identifier;
+    const displayValue = hasIdentifier
+        ? session.identifier
+        : `Device#${session?.fingerprint}`;
 
     return (
-        <Button
-            className={classNames(styles.button, className)}
-            trackingId="UserIdentifer"
-            type="text"
-            onClick={() => {
-                const newSearchParams = { ...EmptySessionsSearchParams };
+        <Tooltip title={displayValue} mouseEnterDelay={0}>
+            <Button
+                className={classNames(styles.button, className)}
+                trackingId="UserIdentifer"
+                type="text"
+                onClick={() => {
+                    const newSearchParams = { ...EmptySessionsSearchParams };
 
-                if (hasIdentifier) {
-                    newSearchParams.user_properties = [
-                        {
-                            id: '-1',
-                            name: 'contains',
-                            value: session.identifier,
-                        },
-                    ];
-                } else if (session?.fingerprint) {
-                    newSearchParams.device_id = session.fingerprint.toString();
-                }
+                    if (hasIdentifier) {
+                        newSearchParams.user_properties = [
+                            {
+                                id: '-1',
+                                name: 'contains',
+                                value: session.identifier,
+                            },
+                        ];
+                    } else if (session?.fingerprint) {
+                        newSearchParams.device_id = session.fingerprint.toString();
+                    }
 
-                setSearchParams(newSearchParams);
-            }}
-        >
-            {hasIdentifier
-                ? session.identifier
-                : `Device#${session?.fingerprint}`}
-        </Button>
+                    setSearchParams(newSearchParams);
+                }}
+            >
+                {displayValue}
+            </Button>
+        </Tooltip>
     );
 };
 

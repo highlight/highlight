@@ -99,6 +99,7 @@ func (r *Resolver) addAdminMembership(ctx context.Context, obj model.HasSecret, 
 	if err != nil {
 		return nil, e.New("error querying admin")
 	}
+
 	if err := r.DB.Model(obj).Association("Admins").Append(admin); err != nil {
 		return nil, e.Wrap(err, "error adding admin to association")
 	}

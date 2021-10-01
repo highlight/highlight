@@ -1985,6 +1985,7 @@ export const GetProjectAdminsDocument = gql`
             name
             email
             photo_url
+            role
         }
     }
 `;
@@ -2743,6 +2744,7 @@ export const GetAdminDocument = gql`
             email
             photo_url
             slack_im_channel_id
+            role
         }
     }
 `;

@@ -91,7 +91,10 @@
             display: flex;
             font-size: 12px;
             height: var(--size-large);
-            padding: var(--size-xSmall) 0;
+            padding-bottom: var(--size-xSmall);
+            padding-left: 0;
+            padding-right: 0;
+            padding-top: var(--size-xSmall);
             width: 100%;
         }
     }

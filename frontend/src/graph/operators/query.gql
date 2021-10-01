@@ -44,6 +44,7 @@ query GetProjectAdmins($project_id: ID!) {
         name
         email
         photo_url
+        role
     }
 }
 
@@ -260,6 +261,7 @@ query GetAdmin {
         email
         photo_url
         slack_im_channel_id
+        role
     }
 }
 

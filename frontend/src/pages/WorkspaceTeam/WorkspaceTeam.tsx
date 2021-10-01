@@ -21,7 +21,7 @@ import {
     useSendAdminWorkspaceInviteMutation,
 } from '../../graph/generated/hooks';
 import SvgTrash from '../../static/Trash';
-import { getWorkspaceInvitationLink } from './utils';
+import { getWorkspaceInvitationLink, roleToDisplayValueMapping } from './utils';
 import styles from './WorkspaceTeam.module.scss';
 
 type Inputs = {
@@ -168,15 +168,27 @@ const WorkspaceTeam = () => {
                                     size={45}
                                 />
                                 <div className={styles.userDetails}>
-                                    <h4 className={styles.name}>
-                                        {a?.name
-                                            ? a?.name
-                                            : a?.email.split('@')[0]}
-                                    </h4>
+                                    <div className={styles.header}>
+                                        <h4 className={styles.name}>
+                                            {a?.name
+                                                ? a?.name
+                                                : a?.email.split('@')[0]}
+                                        </h4>
+                                        <span
+                                            className={classNames(styles.role)}
+                                        >
+                                            {a?.role &&
+                                                //     @ts-expect-error
+                                                roleToDisplayValueMapping[
+                                                    a?.role
+                                                ]}
+                                        </span>
+                                    </div>
                                     <div className={styles.email}>
                                         {a?.email}
                                     </div>
                                 </div>
+
                                 <PopConfirm
                                     title={`Remove ${
                                         a?.name || a?.email

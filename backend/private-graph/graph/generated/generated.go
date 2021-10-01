@@ -59,6 +59,7 @@ type ComplexityRoot struct {
 		ID               func(childComplexity int) int
 		Name             func(childComplexity int) int
 		PhotoURL         func(childComplexity int) int
+		Role             func(childComplexity int) int
 		SlackIMChannelID func(childComplexity int) int
 	}
 
@@ -629,6 +630,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Admin.PhotoURL(childComplexity), true
+
+	case "Admin.role":
+		if e.complexity.Admin.Role == nil {
+			break
+		}
+
+		return e.complexity.Admin.Role(childComplexity), true
 
 	case "Admin.slack_im_channel_id":
 		if e.complexity.Admin.SlackIMChannelID == nil {
@@ -3120,6 +3128,11 @@ enum ErrorState {
     IGNORED
 }
 
+enum AdminRole {
+    ADMIN
+    MEMBER
+}
+
 enum SessionCommentType {
     Admin
     FEEDBACK
@@ -3337,6 +3350,7 @@ type Admin {
     name: String!
     email: String!
     photo_url: String
+    role: String!
     slack_im_channel_id: String
 }
 
@@ -6042,6 +6056,41 @@ func (ec *executionContext) _Admin_photo_url(ctx context.Context, field graphql.
 	res := resTmp.(*string)
 	fc.Result = res
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Admin_role(ctx context.Context, field graphql.CollectedField, obj *model1.Admin) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Admin",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Role, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Admin_slack_im_channel_id(ctx context.Context, field graphql.CollectedField, obj *model1.Admin) (ret graphql.Marshaler) {
@@ -17526,6 +17575,11 @@ func (ec *executionContext) _Admin(ctx context.Context, sel ast.SelectionSet, ob
 			}
 		case "photo_url":
 			out.Values[i] = ec._Admin_photo_url(ctx, field, obj)
+		case "role":
+			out.Values[i] = ec._Admin_role(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "slack_im_channel_id":
 			out.Values[i] = ec._Admin_slack_im_channel_id(ctx, field, obj)
 		default:

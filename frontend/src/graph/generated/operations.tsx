@@ -616,7 +616,7 @@ export type GetProjectAdminsQuery = { __typename?: 'Query' } & {
         Types.Maybe<
             { __typename?: 'Admin' } & Pick<
                 Types.Admin,
-                'id' | 'name' | 'email' | 'photo_url'
+                'id' | 'name' | 'email' | 'photo_url' | 'role'
             >
         >
     >;
@@ -913,7 +913,12 @@ export type GetAdminQuery = { __typename?: 'Query' } & {
     admin?: Types.Maybe<
         { __typename?: 'Admin' } & Pick<
             Types.Admin,
-            'id' | 'name' | 'email' | 'photo_url' | 'slack_im_channel_id'
+            | 'id'
+            | 'name'
+            | 'email'
+            | 'photo_url'
+            | 'slack_im_channel_id'
+            | 'role'
         >
     >;
 };

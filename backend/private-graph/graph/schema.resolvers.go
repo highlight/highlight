@@ -388,6 +388,19 @@ func (r *mutationResolver) AddAdminToProject(ctx context.Context, projectID int,
 }
 
 func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID int, inviteID string) (*int, error) {
+	// For this Real Magic, set all new admins to normal role so they don't have access to billing.
+	// This should be removed when we implement RBAC.
+	if workspaceID == 388 { // ZANETODO: update this with Real Magic's workspaceID before merging
+		admin, err := r.getCurrentAdmin(ctx)
+		if err != nil {
+			log.Error("Failed get current admin.")
+		}
+		if err := r.DB.Model(admin).Updates(model.Admin{
+			Role: &model.AdminRole.MEMBER,
+		}); err != nil {
+			log.Error("Failed to update admin when changing role to normal.")
+		}
+	}
 	workspace := &model.Workspace{}
 	return r.addAdminMembership(ctx, workspace, workspaceID, inviteID)
 }
