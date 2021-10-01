@@ -1,9 +1,12 @@
 import Input from '@components/Input/Input';
+import { Session } from '@graph/schemas';
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
+import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils';
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
+import { H } from 'highlight.run';
 import _ from 'lodash';
 import React, {
     useCallback,
@@ -35,7 +38,7 @@ export const ResourcePage = ({
     startTime: number;
 }) => {
     const { state, session, pause } = useReplayerContext();
-    const { setDetailedPanel } = usePlayerUIContext();
+    const { setDetailedPanel, detailedPanel } = usePlayerUIContext();
     const { session_secure_id } = useParams<{ session_secure_id: string }>();
     const [options, setOptions] = useState<Array<string>>([]);
     const [currentOption, setCurrentOption] = useState('All');
@@ -65,6 +68,9 @@ export const ResourcePage = ({
     });
     const virtuoso = useRef<VirtuosoHandle>(null);
     const rawResources = data?.resources;
+    const resourceErrorRequestHeader = new URLSearchParams(location.search).get(
+        PlayerSearchParameters.resourceErrorRequestHeader
+    );
 
     useEffect(() => {
         const optionSet = new Set<string>();
@@ -137,6 +143,40 @@ export const ResourcePage = ({
             }
         }
     }, [allResources, startTime, time, currentResource]);
+
+    useEffect(() => {
+        if (
+            resourceErrorRequestHeader &&
+            !loading &&
+            !!session &&
+            !!allResources &&
+            !detailedPanel
+        ) {
+            const resource = findResourceWithMatchingHighlightHeader(
+                resourceErrorRequestHeader,
+                allResources
+            );
+            if (resource) {
+                setDetailedPanel(
+                    getDetailedPanel(
+                        { ...resource, backendError: 'NOT IMPLEMENTED' },
+                        pause,
+                        session
+                    )
+                );
+            } else {
+                H.track('FailedToMatchHighlightResourceHeaderWithResource');
+            }
+        }
+    }, [
+        allResources,
+        detailedPanel,
+        loading,
+        pause,
+        resourceErrorRequestHeader,
+        session,
+        setDetailedPanel,
+    ]);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const scrollFunction = useCallback(
@@ -257,7 +297,7 @@ export const ResourcePage = ({
                             id="networkStreamWrapper"
                             className={styles.networkStreamWrapper}
                         >
-                            {resourcesToRender.length > 0 ? (
+                            {resourcesToRender.length > 0 && session ? (
                                 <Virtuoso
                                     onMouseEnter={() => {
                                         setIsInteractingWithResources(true);
@@ -277,48 +317,13 @@ export const ResourcePage = ({
                                             currentResource={currentResource}
                                             searchTerm={filterSearchTerm}
                                             onClickHandler={() => {
-                                                setDetailedPanel({
-                                                    title: (
-                                                        <div
-                                                            className={
-                                                                styles.detailPanelTitle
-                                                            }
-                                                        >
-                                                            <h3>
-                                                                Network Resource
-                                                            </h3>
-                                                            <GoToButton
-                                                                onClick={() => {
-                                                                    pause(
-                                                                        resource.startTime
-                                                                    );
-
-                                                                    message.success(
-                                                                        `Changed player time to when ${getNetworkResourcesDisplayName(
-                                                                            resource.initiatorType
-                                                                        )} request started at ${MillisToMinutesAndSeconds(
-                                                                            resource.startTime
-                                                                        )}.`
-                                                                    );
-                                                                }}
-                                                            />
-                                                        </div>
-                                                    ),
-                                                    content: (
-                                                        <>
-                                                            <ResourceDetailsModal
-                                                                selectedNetworkResource={
-                                                                    resource
-                                                                }
-                                                                networkRecordingEnabledForSession={
-                                                                    session?.enable_recording_network_contents ||
-                                                                    false
-                                                                }
-                                                            />
-                                                        </>
-                                                    ),
-                                                    id: resource.id.toString(),
-                                                });
+                                                setDetailedPanel(
+                                                    getDetailedPanel(
+                                                        resource,
+                                                        pause,
+                                                        session
+                                                    )
+                                                );
                                             }}
                                         />
                                     )}
@@ -374,6 +379,7 @@ const TimingCanvas = () => {
 export type NetworkResource = PerformanceResourceTiming & {
     id: number;
     requestResponsePairs?: RequestResponsePair;
+    backendError?: any;
 };
 
 const ResourceRow = ({
@@ -535,4 +541,59 @@ export const formatSize = (bytes: number) => {
 const roundOff = (value: number, decimal = 1) => {
     const base = 10 ** decimal;
     return Math.round(value * base) / base;
+};
+
+const getDetailedPanel = (
+    resource: NetworkResource,
+    pause: (time: number) => void,
+    session: Session
+) => ({
+    title: (
+        <div className={styles.detailPanelTitle}>
+            <h3>Network Resource</h3>
+            <GoToButton
+                onClick={() => {
+                    pause(resource.startTime);
+
+                    message.success(
+                        `Changed player time to when ${getNetworkResourcesDisplayName(
+                            resource.initiatorType
+                        )} request started at ${MillisToMinutesAndSeconds(
+                            resource.startTime
+                        )}.`
+                    );
+                }}
+            />
+        </div>
+    ),
+    content: (
+        <>
+            <ResourceDetailsModal
+                selectedNetworkResource={resource}
+                networkRecordingEnabledForSession={
+                    session?.enable_recording_network_contents || false
+                }
+            />
+        </>
+    ),
+    id: resource.id.toString(),
+});
+
+const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request';
+
+const findResourceWithMatchingHighlightHeader = (
+    headerValue: string,
+    resources: NetworkResource[]
+) => {
+    const implemented = false;
+
+    if (!implemented) {
+        return resources[0];
+    }
+    return resources.find(
+        (resource) =>
+            resource.requestResponsePairs?.request?.headers.get(
+                HIGHLIGHT_REQUEST_HEADER
+            ) === headerValue
+    );
 };

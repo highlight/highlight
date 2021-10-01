@@ -22,12 +22,21 @@ export const getErrorGroupMetadata = (
         });
 
     const uniqueFieldsAsList = [...uniqueFields];
-    return uniqueFieldsAsList.map((fieldCombination) => {
+
+    const groupings: { [key: string]: string } = {};
+
+    uniqueFieldsAsList.forEach((fieldCombination) => {
         const [name, value] = fieldCombination.split(delimiter);
 
-        return {
-            name,
-            value,
-        };
+        if (!(name in groupings)) {
+            groupings[name] = `${value}`;
+        } else {
+            groupings[name] = `${groupings[name]}, ${value}`;
+        }
     });
+
+    return Object.keys(groupings).map((key) => ({
+        name: key,
+        value: groupings[key],
+    }));
 };

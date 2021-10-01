@@ -210,19 +210,69 @@ func (r *mutationResolver) CreateProject(ctx context.Context, name string) (*mod
 	if err := r.DB.Create(project).Error; err != nil {
 		return nil, e.Wrap(err, "error creating project")
 	}
-	if err := r.DB.Create(&model.ErrorAlert{Alert: model.Alert{ProjectID: project.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.ERROR}}).Error; err != nil {
+	if err := r.DB.Create(
+		&model.ErrorAlert{
+			Alert: model.Alert{
+				ProjectID:            project.ID,
+				ExcludedEnvironments: nil,
+				CountThreshold:       1,
+				ChannelsToNotify:     nil,
+				Type:                 &model.AlertType.ERROR,
+				ThresholdWindow:      util.MakeIntPointer(30),
+			},
+		}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating error alert for new project")
 	}
-	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{ProjectID: project.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.SESSION_FEEDBACK}}).Error; err != nil {
+	if err := r.DB.Create(
+		&model.SessionAlert{
+			Alert: model.Alert{
+				ProjectID:            project.ID,
+				ExcludedEnvironments: nil,
+				CountThreshold:       1,
+				ChannelsToNotify:     nil,
+				Type:                 &model.AlertType.SESSION_FEEDBACK,
+				ThresholdWindow:      util.MakeIntPointer(30),
+			},
+		}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session feedback alert for new project")
 	}
-	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{ProjectID: project.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.NEW_USER}}).Error; err != nil {
+	if err := r.DB.Create(
+		&model.SessionAlert{
+			Alert: model.Alert{
+				ProjectID:            project.ID,
+				ExcludedEnvironments: nil,
+				CountThreshold:       1,
+				ChannelsToNotify:     nil,
+				Type:                 &model.AlertType.NEW_USER,
+				ThresholdWindow:      util.MakeIntPointer(0),
+			},
+		}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session new user alert for new project")
 	}
-	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{ProjectID: project.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.TRACK_PROPERTIES}}).Error; err != nil {
+	if err := r.DB.Create(
+		&model.SessionAlert{
+			Alert: model.Alert{
+				ProjectID:            project.ID,
+				ExcludedEnvironments: nil,
+				CountThreshold:       1,
+				ChannelsToNotify:     nil,
+				Type:                 &model.AlertType.TRACK_PROPERTIES,
+				ThresholdWindow:      util.MakeIntPointer(0),
+			},
+		}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session track properties alert for new project")
 	}
-	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{ProjectID: project.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.USER_PROPERTIES}}).Error; err != nil {
+	if err := r.DB.Create(
+		&model.SessionAlert{
+			Alert: model.Alert{
+				ProjectID:            project.ID,
+				ExcludedEnvironments: nil,
+				CountThreshold:       1,
+				ChannelsToNotify:     nil,
+				Type:                 &model.AlertType.USER_PROPERTIES,
+				ThresholdWindow:      util.MakeIntPointer(0),
+			},
+		}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session user properties alert for new project")
 	}
 	return project, nil
@@ -356,6 +406,17 @@ func (r *mutationResolver) AddAdminToProject(ctx context.Context, projectID int,
 	if err != nil {
 		return nil, e.New("error querying admin")
 	}
+
+	// For this Real Magic, set all new admins to normal role so they don't have access to billing.
+	// This should be removed when we implement RBAC.
+	if projectID == 388 {
+		if err := r.DB.Model(admin).Updates(model.Admin{
+			Role: &model.AdminRole.MEMBER,
+		}); err != nil {
+			log.Error("Failed to update admin when changing role to normal.")
+		}
+	}
+
 	if err := r.DB.Model(project).Association("Admins").Append(admin); err != nil {
 		return nil, e.Wrap(err, "error adding admin to association")
 	}
@@ -1764,7 +1825,7 @@ func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPer
 				AND processed=true
 		) q1
 		GROUP BY identifier
-		ORDER BY total_active_time
+		ORDER BY total_active_time DESC
 		LIMIT 50`,
 		projectID, projectID, lookBackPeriod, projectID, lookBackPeriod).Scan(&topUsersPayload).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving top users")

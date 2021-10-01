@@ -10,7 +10,7 @@ interface Props {
     visible: boolean;
 }
 
-const SearchPanel = ({ visible }: Props) => {
+const SearchPanel = React.memo(({ visible }: Props) => {
     return (
         <div className={styles.searchPanel}>
             {visible && (
@@ -25,6 +25,6 @@ const SearchPanel = ({ visible }: Props) => {
             )}
         </div>
     );
-};
+});
 
 export default SearchPanel;

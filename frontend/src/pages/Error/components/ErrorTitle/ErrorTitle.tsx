@@ -25,7 +25,18 @@ const ErrorTitle = ({ errorGroup, showShareButton = true }: Props) => {
                     const json = JSON.parse(errorGroup.event.toString() || '');
 
                     if (Array.isArray(json)) {
-                        setHeaderTextAsJson(json[0]);
+                        const firstValue = json[0];
+                        if (typeof firstValue === 'string') {
+                            setHeaderTextAsJson(firstValue);
+                        } else if (typeof firstValue === 'object') {
+                            const values = Object.values(firstValue);
+
+                            if (values.length > 0) {
+                                if (typeof values[0] === 'string') {
+                                    setHeaderTextAsJson(values[0]);
+                                }
+                            }
+                        }
                     }
                 }
             } catch {

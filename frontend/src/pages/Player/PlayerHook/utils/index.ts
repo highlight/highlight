@@ -103,6 +103,8 @@ export enum PlayerSearchParameters {
     errorId = 'errorId',
     /** The comment ID for a comment in the current session. The player's time will be set to the comments's timestamp. */
     commentId = 'commentId',
+    /** The Request Header ID for an error's network resource. */
+    resourceErrorRequestHeader = 'resourceErrorRequestHeader',
 }
 
 /**

@@ -3,6 +3,7 @@ import './index.scss';
 import '@highlight-run/rrweb/dist/index.css';
 
 import { ApolloProvider } from '@apollo/client';
+import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { ErrorBoundary } from '@highlight-run/react';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { H, HighlightOptions } from 'highlight.run';
@@ -174,7 +175,14 @@ get in contact with us!
                         <AuthAdminRouter />
                     </Route>
                     <Route
-                        path="/:project_id(\d+)/sessions/:session_secure_id(\w+)"
+                        path={`/:project_id(${DEMO_WORKSPACE_PROXY_APPLICATION_ID})/*`}
+                        exact
+                    >
+                        {/* Allow guests to access this route without being asked to log in */}
+                        <AuthAdminRouter />
+                    </Route>
+                    <Route
+                        path="/:project_id(\d+)/sessions/:session_secure_id(\d+)"
                         exact
                     >
                         {/* Allow guests to access this route without being asked to log in */}

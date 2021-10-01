@@ -102,8 +102,10 @@
     justify-content: space-between;
     margin: 0 calc(var(--size-medium) * -1);
     margin-bottom: var(--size-medium);
-    padding: 0 var(--size-medium);
     padding-bottom: var(--size-small);
+    padding-left: var(--size-medium);
+    padding-right: var(--size-medium);
+    padding-top: 0;
 
     h3 {
         font-size: 13px;

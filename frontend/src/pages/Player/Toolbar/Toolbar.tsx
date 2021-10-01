@@ -36,6 +36,7 @@ import {
     EventsForTimelineKeys,
     findNextSessionInList,
     findPreviousSessionInList,
+    PlayerSearchParameters,
 } from '../PlayerHook/utils';
 import usePlayerConfiguration from '../PlayerHook/utils/usePlayerConfiguration';
 import { PlayerPageProductTourSelectors } from '../PlayerPageProductTour/PlayerPageProductTour';
@@ -89,6 +90,10 @@ export const Toolbar = () => {
     const wrapperWidth =
         sliderWrapperRef.current?.getBoundingClientRect().width ?? 1;
     const [sliderClientX, setSliderClientX] = useState<number>(-1);
+    const resourceErrorRequestHeader = new URLSearchParams(location.search).get(
+        PlayerSearchParameters.resourceErrorRequestHeader
+    );
+    const disableControls = state === ReplayerState.Loading || !canViewSession;
 
     const [lastCanvasPreview, setLastCanvasPreview] = useState(0);
     const isPaused = ReplayerPausedStates.includes(state);
@@ -134,6 +139,12 @@ export const Toolbar = () => {
         state,
         time,
     ]);
+
+    useEffect(() => {
+        if (!disableControls && resourceErrorRequestHeader) {
+            setShowDevTools(true);
+        }
+    }, [disableControls, resourceErrorRequestHeader, setShowDevTools]);
 
     const endLogger = (e: any) => {
         let newTime = (e.x / wrapperWidth) * max;
@@ -206,7 +217,6 @@ export const Toolbar = () => {
         return newTime;
     };
 
-    const disableControls = state === ReplayerState.Loading || !canViewSession;
     // The play button should be disabled if the player has reached the end.
     const disablePlayButton = time >= (replayer?.getMetaData().totalTime ?? 0);
     const leftSidebarWidth = showLeftPanel ? 475 : 0;

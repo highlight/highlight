@@ -7,9 +7,9 @@ import {
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import ElevatedCard from '@components/ElevatedCard/ElevatedCard';
+import { ErrorState } from '@components/ErrorState/ErrorState';
 import FullBleedCard from '@components/FullBleedCard/FullBleedCard';
 import Modal from '@components/Modal/Modal';
-import { useMarkSessionAsViewedMutation } from '@graph/hooks';
 import { Replayer } from '@highlight-run/rrweb';
 import NoActiveSessionCard from '@pages/Player/components/NoActiveSessionCard/NoActiveSessionCard';
 import PanelToggleButton from '@pages/Player/components/PanelToggleButton/PanelToggleButton';
@@ -97,21 +97,12 @@ const Player = ({ integrated }: Props) => {
         | undefined
     >(undefined);
     const newCommentModalRef = useRef<HTMLDivElement>(null);
-    const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
     const [commentModalPosition, setCommentModalPosition] = useState<
         Coordinates2D | undefined
     >(undefined);
     const [commentPosition, setCommentPosition] = useState<
         Coordinates2D | undefined
     >(undefined);
-
-    useEffect(() => {
-        if (session_secure_id && isLoggedIn) {
-            markSessionAsViewed({
-                variables: { secure_id: session_secure_id, viewed: true },
-            });
-        }
-    }, [session_secure_id, isLoggedIn, markSessionAsViewed]);
 
     useEffect(() => {
         if (!session_secure_id) {
@@ -242,7 +233,10 @@ const Player = ({ integrated }: Props) => {
                             </ButtonLink>
                         </FullBleedCard>
                     )}
-                    {sessionViewability === SessionViewability.EMPTY_SESSION ? (
+                    {sessionViewability === SessionViewability.ERROR ? (
+                        <ErrorState message="This session does not exist or has not been made public." />
+                    ) : sessionViewability ===
+                      SessionViewability.EMPTY_SESSION ? (
                         <ElevatedCard
                             className={styles.emptySessionCard}
                             title="Session isn't ready to view yet 😔"

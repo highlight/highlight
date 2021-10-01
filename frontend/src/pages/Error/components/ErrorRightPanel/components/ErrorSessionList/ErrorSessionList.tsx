@@ -41,7 +41,14 @@ const ErrorSessionList = ({ errorGroup }: Props) => {
                     key={`${session?.session_secure_id}-${index}`}
                     errorVersion
                     showDetailedViewOverride
-                    urlParams={`?${PlayerSearchParameters.errorId}=${session?.error_id}`}
+                    urlParams={`?${PlayerSearchParameters.errorId}=${
+                        session?.error_id
+                    }${
+                        //     Set the value based on the request header ID when backend error linking is implemented.
+                        false
+                            ? `&${PlayerSearchParameters.resourceErrorRequestHeader}=5`
+                            : ''
+                    }`}
                     linkDisabled={!isLoggedIn}
                 />
             )}

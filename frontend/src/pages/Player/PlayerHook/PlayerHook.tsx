@@ -8,9 +8,10 @@ import { BooleanParam, useQueryParam } from 'use-query-params';
 
 import { useAuthContext } from '../../../authentication/AuthContext';
 import {
-    useGetSessionCommentsLazyQuery,
-    useGetSessionLazyQuery,
+    useGetSessionCommentsQuery,
     useGetSessionPayloadLazyQuery,
+    useGetSessionQuery,
+    useMarkSessionAsViewedMutation,
 } from '../../../graph/generated/hooks';
 import {
     ErrorObject,
@@ -48,6 +49,7 @@ export enum SessionViewability {
     VIEWABLE,
     EMPTY_SESSION,
     OVER_BILLING_QUOTA,
+    ERROR,
 }
 
 export const usePlayer = (): ReplayerContextInterface => {
@@ -99,44 +101,49 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     const [
         getSessionPayloadQuery,
-        {
-            loading: eventsLoading,
-            data: eventsData,
-            called: getSessionPayloadQueryCalled,
-        },
-    ] = useGetSessionPayloadLazyQuery({
-        variables: {
-            session_secure_id,
-        },
-        fetchPolicy: 'no-cache',
-    });
+        { loading: eventsLoading, data: eventsData },
+    ] = useGetSessionPayloadLazyQuery({ fetchPolicy: 'no-cache' });
 
-    const [
-        getSessionQuery,
-        { data: sessionData, called: getSessionQueryCalled },
-    ] = useGetSessionLazyQuery({
+    const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
+
+    const { data: sessionData } = useGetSessionQuery({
         variables: {
             secure_id: session_secure_id,
         },
         onCompleted: (data) => {
             if (data.session?.within_billing_quota) {
-                if (!getSessionPayloadQueryCalled) {
-                    getSessionPayloadQuery();
+                if (isLoggedIn) {
+                    markSessionAsViewed({
+                        variables: {
+                            secure_id: session_secure_id,
+                            viewed: true,
+                        },
+                    });
                 }
+                getSessionPayloadQuery({
+                    variables: {
+                        session_secure_id,
+                    },
+                });
                 setSessionViewability(SessionViewability.VIEWABLE);
                 H.track('Viewed session', { is_guest: !isLoggedIn });
             } else {
                 setSessionViewability(SessionViewability.OVER_BILLING_QUOTA);
             }
         },
+        onError: () => {
+            setSessionViewability(SessionViewability.ERROR);
+        },
+        skip: !session_secure_id,
     });
-    const [
-        getSessionCommentsQuery,
-        { data: sessionCommentsData, loading: sessionCommentsLoading },
-    ] = useGetSessionCommentsLazyQuery({
+    const {
+        data: sessionCommentsData,
+        loading: sessionCommentsLoading,
+    } = useGetSessionCommentsQuery({
         variables: {
             session_secure_id,
         },
+        skip: !session_secure_id,
         // pollInterval: 1000 * 10,
     });
 
@@ -163,22 +170,11 @@ export const usePlayer = (): ReplayerContextInterface => {
         if (session_secure_id) {
             setState(ReplayerState.Loading);
             setSession(undefined);
-
-            if (!getSessionQueryCalled) {
-                getSessionQuery();
-            }
-            getSessionCommentsQuery();
         } else {
             // This case happens when no session is active.
             resetPlayer(ReplayerState.Empty);
         }
-    }, [
-        getSessionCommentsQuery,
-        getSessionQuery,
-        session_secure_id,
-        resetPlayer,
-        getSessionQueryCalled,
-    ]);
+    }, [session_secure_id, resetPlayer]);
 
     useEffect(() => {
         setSession(sessionData?.session as Session | undefined);
@@ -315,14 +311,8 @@ export const usePlayer = (): ReplayerContextInterface => {
                 cancelAnimationFrame(timerId);
             };
         }
-    }, [
-        errors,
-        events,
-        events.length,
-        hasSearchParam,
-        replayer,
-        setPlayerTimestamp,
-    ]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [errors, events, events.length, hasSearchParam, replayer]);
 
     useEffect(() => {
         if (
