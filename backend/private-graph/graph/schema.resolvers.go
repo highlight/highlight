@@ -563,9 +563,9 @@ func (r *mutationResolver) DeleteErrorSegment(ctx context.Context, segmentID int
 }
 
 func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context, projectID int, planType modelInputs.PlanType) (*string, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin is not in workspace")
+		return nil, e.Wrap(err, "admin is not in project")
 	}
 
 	// For older projects, if there's no customer ID, we create a StripeCustomer obj.
@@ -640,7 +640,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 }
 
 func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, projectID int) (*bool, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -2609,33 +2609,3 @@ type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
 type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *mutationResolver) SendAdminInvite(ctx context.Context, projectID int, email string, baseURL string) (*string, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
-	if err != nil {
-		return nil, e.Wrap(err, "error querying project")
-	}
-	admin, err := r.getCurrentAdmin(ctx)
-	if err != nil {
-		return nil, e.Wrap(err, "error querying admin")
-	}
-	var secret string
-	if project.Secret == nil {
-		uid := xid.New().String()
-		if err := r.DB.Model(project).Updates(&model.Project{Secret: &uid}).Error; err != nil {
-			return nil, e.Wrap(err, "error updating uid in project secret")
-		}
-		secret = uid
-	} else {
-		secret = *project.Secret
-	}
-
-	inviteLink := baseURL + "/w/" + strconv.Itoa(projectID) + "/invite/" + secret
-	return r.SendAdminInviteImpl(*admin.Name, *project.Name, inviteLink, email)
-}
