@@ -619,7 +619,6 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 						remove events from queue which are out of time range
 						if
 	*/
-	log.Info("processing events chunk")
 	var events *parse.ReplayEvents
 	var err error
 	if input == nil {
@@ -662,8 +661,8 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 			// purge old clicks
 			for element := input.ClickEventQueue.Front(); element != nil; element = element.Next() {
 				if event.Timestamp.Sub(element.Value.(*parse.ReplayEvent).Timestamp) > time.Second*5 {
+					// log.Infof("removing: %+v", element.Value)
 					input.ClickEventQueue.Remove(element)
-					continue
 				}
 			}
 
@@ -723,12 +722,11 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 			} else if input.ClickEventQueue.Len() < 5 && o.CurrentlyInRageClickSet {
 				// create end of rage click set event
 				o.CurrentlyInRageClickSet = false
-				last := input.ClickEventQueue.Front().Value.(*parse.ReplayEvent)
+				last := input.ClickEventQueue.Back().Value.(*parse.ReplayEvent)
 				// do something with this
 				log.Info("ending rage click event")
-				log.Infof("begin ts: %v", o.RageClickSets[len(o.RageClickSets)-1].EndTimestamp)
 				o.RageClickSets[len(o.RageClickSets)-1].EndTimestamp = last.Timestamp
-				log.Infof("end ts: %v", o.RageClickSets[len(o.RageClickSets)-1].EndTimestamp)
+				continue
 			}
 		}
 	}
