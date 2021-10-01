@@ -383,11 +383,17 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 }
 
 func (r *mutationResolver) AddAdminToProject(ctx context.Context, projectID int, inviteID string) (*int, error) {
+	if _, err := r.isAdminInProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "admin is not in project")
+	}
 	project := &model.Project{}
 	return r.addAdminMembership(ctx, project, projectID, inviteID)
 }
 
 func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID int, inviteID string) (*int, error) {
+	if _, err := r.isAdminInWorkspace(ctx, workspaceID); err != nil {
+		return nil, e.Wrap(err, "admin is not in workspace")
+	}
 	// For this Real Magic, set all new admins to normal role so they don't have access to billing.
 	// This should be removed when we implement RBAC.
 	if workspaceID == 388 { // ZANETODO: update this with Real Magic's workspaceID before merging
@@ -406,22 +412,21 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 }
 
 func (r *mutationResolver) DeleteAdminFromProject(ctx context.Context, projectID int, adminID int) (*int, error) {
-	if _, err := r.isAdminInProject(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin is not in project")
-	}
-	admin, err := r.getCurrentAdmin(ctx)
+	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
-		return nil, e.New("error querying admin while deleting admin from project")
-	}
-	if admin.ID == adminID {
-		return nil, e.New("Admin tried deleting themselves from the project")
+		return nil, e.Wrap(err, "current admin is not in project")
 	}
 
-	if err := r.DB.Model(&model.Project{Model: model.Model{ID: projectID}}).Association("Admins").Delete(model.Admin{Model: model.Model{ID: adminID}}); err != nil {
-		return nil, e.Wrap(err, "error deleting admin from project")
+	return r.DeleteAdminAssociation(ctx, project, adminID)
+}
+
+func (r *mutationResolver) DeleteAdminFromWorkspace(ctx context.Context, workspaceID int, adminID int) (*int, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "current admin is not in workspace")
 	}
 
-	return &adminID, nil
+	return r.DeleteAdminAssociation(ctx, workspace, adminID)
 }
 
 func (r *mutationResolver) CreateSegment(ctx context.Context, projectID int, name string, params modelInputs.SearchParamsInput) (*model.Segment, error) {

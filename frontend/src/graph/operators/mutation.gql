@@ -49,6 +49,10 @@ mutation DeleteAdminFromProject($project_id: ID!, $admin_id: ID!) {
     deleteAdminFromProject(project_id: $project_id, admin_id: $admin_id)
 }
 
+mutation DeleteAdminFromWorkspace($workspace_id: ID!, $admin_id: ID!) {
+    deleteAdminFromWorkspace(workspace_id: $workspace_id, admin_id: $admin_id)
+}
+
 mutation OpenSlackConversation(
     $project_id: ID!
     $code: String!

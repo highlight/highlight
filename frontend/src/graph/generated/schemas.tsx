@@ -731,6 +731,7 @@ export type Mutation = {
     addAdminToProject?: Maybe<Scalars['ID']>;
     addAdminToWorkspace?: Maybe<Scalars['ID']>;
     deleteAdminFromProject?: Maybe<Scalars['ID']>;
+    deleteAdminFromWorkspace?: Maybe<Scalars['ID']>;
     createSegment?: Maybe<Segment>;
     emailSignup: Scalars['String'];
     editSegment?: Maybe<Scalars['Boolean']>;
@@ -818,6 +819,11 @@ export type MutationAddAdminToWorkspaceArgs = {
 
 export type MutationDeleteAdminFromProjectArgs = {
     project_id: Scalars['ID'];
+    admin_id: Scalars['ID'];
+};
+
+export type MutationDeleteAdminFromWorkspaceArgs = {
+    workspace_id: Scalars['ID'];
     admin_id: Scalars['ID'];
 };
 

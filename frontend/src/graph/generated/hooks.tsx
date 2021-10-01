@@ -451,6 +451,56 @@ export type DeleteAdminFromProjectMutationOptions = Apollo.BaseMutationOptions<
     Types.DeleteAdminFromProjectMutation,
     Types.DeleteAdminFromProjectMutationVariables
 >;
+export const DeleteAdminFromWorkspaceDocument = gql`
+    mutation DeleteAdminFromWorkspace($workspace_id: ID!, $admin_id: ID!) {
+        deleteAdminFromWorkspace(
+            workspace_id: $workspace_id
+            admin_id: $admin_id
+        )
+    }
+`;
+export type DeleteAdminFromWorkspaceMutationFn = Apollo.MutationFunction<
+    Types.DeleteAdminFromWorkspaceMutation,
+    Types.DeleteAdminFromWorkspaceMutationVariables
+>;
+
+/**
+ * __useDeleteAdminFromWorkspaceMutation__
+ *
+ * To run a mutation, you first call `useDeleteAdminFromWorkspaceMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteAdminFromWorkspaceMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteAdminFromWorkspaceMutation, { data, loading, error }] = useDeleteAdminFromWorkspaceMutation({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *      admin_id: // value for 'admin_id'
+ *   },
+ * });
+ */
+export function useDeleteAdminFromWorkspaceMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.DeleteAdminFromWorkspaceMutation,
+        Types.DeleteAdminFromWorkspaceMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.DeleteAdminFromWorkspaceMutation,
+        Types.DeleteAdminFromWorkspaceMutationVariables
+    >(DeleteAdminFromWorkspaceDocument, baseOptions);
+}
+export type DeleteAdminFromWorkspaceMutationHookResult = ReturnType<
+    typeof useDeleteAdminFromWorkspaceMutation
+>;
+export type DeleteAdminFromWorkspaceMutationResult = Apollo.MutationResult<Types.DeleteAdminFromWorkspaceMutation>;
+export type DeleteAdminFromWorkspaceMutationOptions = Apollo.BaseMutationOptions<
+    Types.DeleteAdminFromWorkspaceMutation,
+    Types.DeleteAdminFromWorkspaceMutationVariables
+>;
 export const OpenSlackConversationDocument = gql`
     mutation OpenSlackConversation(
         $project_id: ID!

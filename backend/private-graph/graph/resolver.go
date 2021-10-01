@@ -106,6 +106,22 @@ func (r *Resolver) addAdminMembership(ctx context.Context, obj model.HasSecret, 
 	return &objId, nil
 }
 
+func (r *Resolver) DeleteAdminAssociation(ctx context.Context, obj interface{}, adminID int) (*int, error) {
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, e.New("error querying admin while deleting admin association")
+	}
+	if admin.ID == adminID {
+		return nil, e.New("Admin tried deleting their own association")
+	}
+
+	if err := r.DB.Model(obj).Association("Admins").Delete(model.Admin{Model: model.Model{ID: adminID}}); err != nil {
+		return nil, e.Wrap(err, "error deleting admin association")
+	}
+
+	return &adminID, nil
+}
+
 func (r *Resolver) isAdminInWorkspace(ctx context.Context, workspaceID int) (*model.Workspace, error) {
 	if r.isWhitelistedAccount(ctx) {
 		return r.GetWorkspace(workspaceID)

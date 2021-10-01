@@ -90,6 +90,15 @@ export type DeleteAdminFromProjectMutation = { __typename?: 'Mutation' } & Pick<
     'deleteAdminFromProject'
 >;
 
+export type DeleteAdminFromWorkspaceMutationVariables = Types.Exact<{
+    workspace_id: Types.Scalars['ID'];
+    admin_id: Types.Scalars['ID'];
+}>;
+
+export type DeleteAdminFromWorkspaceMutation = {
+    __typename?: 'Mutation';
+} & Pick<Types.Mutation, 'deleteAdminFromWorkspace'>;
+
 export type OpenSlackConversationMutationVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     code: Types.Scalars['String'];
@@ -1855,6 +1864,7 @@ export const namedOperations = {
         AddAdminToProject: 'AddAdminToProject' as const,
         AddAdminToWorkspace: 'AddAdminToWorkspace' as const,
         DeleteAdminFromProject: 'DeleteAdminFromProject' as const,
+        DeleteAdminFromWorkspace: 'DeleteAdminFromWorkspace' as const,
         OpenSlackConversation: 'OpenSlackConversation' as const,
         AddSlackBotIntegrationToProject: 'AddSlackBotIntegrationToProject' as const,
         CreateProject: 'CreateProject' as const,

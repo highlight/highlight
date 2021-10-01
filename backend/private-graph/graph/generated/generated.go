@@ -214,6 +214,7 @@ type ComplexityRoot struct {
 		CreateSegment                    func(childComplexity int, projectID int, name string, params model.SearchParamsInput) int
 		CreateSessionComment             func(childComplexity int, projectID int, sessionID *int, sessionSecureID *string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string) int
 		DeleteAdminFromProject           func(childComplexity int, projectID int, adminID int) int
+		DeleteAdminFromWorkspace         func(childComplexity int, workspaceID int, adminID int) int
 		DeleteErrorComment               func(childComplexity int, id int) int
 		DeleteErrorSegment               func(childComplexity int, segmentID int) int
 		DeleteProject                    func(childComplexity int, id int) int
@@ -493,6 +494,7 @@ type MutationResolver interface {
 	AddAdminToProject(ctx context.Context, projectID int, inviteID string) (*int, error)
 	AddAdminToWorkspace(ctx context.Context, workspaceID int, inviteID string) (*int, error)
 	DeleteAdminFromProject(ctx context.Context, projectID int, adminID int) (*int, error)
+	DeleteAdminFromWorkspace(ctx context.Context, workspaceID int, adminID int) (*int, error)
 	CreateSegment(ctx context.Context, projectID int, name string, params model.SearchParamsInput) (*model1.Segment, error)
 	EmailSignup(ctx context.Context, email string) (string, error)
 	EditSegment(ctx context.Context, id int, projectID int, params model.SearchParamsInput) (*bool, error)
@@ -1387,6 +1389,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteAdminFromProject(childComplexity, args["project_id"].(int), args["admin_id"].(int)), true
+
+	case "Mutation.deleteAdminFromWorkspace":
+		if e.complexity.Mutation.DeleteAdminFromWorkspace == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteAdminFromWorkspace_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteAdminFromWorkspace(childComplexity, args["workspace_id"].(int), args["admin_id"].(int)), true
 
 	case "Mutation.deleteErrorComment":
 		if e.complexity.Mutation.DeleteErrorComment == nil {
@@ -3581,6 +3595,7 @@ type Mutation {
     addAdminToProject(project_id: ID!, invite_id: String!): ID
     addAdminToWorkspace(workspace_id: ID!, invite_id: String!): ID
     deleteAdminFromProject(project_id: ID!, admin_id: ID!): ID
+    deleteAdminFromWorkspace(workspace_id: ID!, admin_id: ID!): ID
     createSegment(
         project_id: ID!
         name: String!
@@ -4137,6 +4152,30 @@ func (ec *executionContext) field_Mutation_deleteAdminFromProject_args(ctx conte
 		}
 	}
 	args["project_id"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["admin_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("admin_id"))
+		arg1, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["admin_id"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteAdminFromWorkspace_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["workspace_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["workspace_id"] = arg0
 	var arg1 int
 	if tmp, ok := rawArgs["admin_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("admin_id"))
@@ -9596,6 +9635,45 @@ func (ec *executionContext) _Mutation_deleteAdminFromProject(ctx context.Context
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().DeleteAdminFromProject(rctx, args["project_id"].(int), args["admin_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOID2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deleteAdminFromWorkspace(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteAdminFromWorkspace_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteAdminFromWorkspace(rctx, args["workspace_id"].(int), args["admin_id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -18469,6 +18547,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_addAdminToWorkspace(ctx, field)
 		case "deleteAdminFromProject":
 			out.Values[i] = ec._Mutation_deleteAdminFromProject(ctx, field)
+		case "deleteAdminFromWorkspace":
+			out.Values[i] = ec._Mutation_deleteAdminFromWorkspace(ctx, field)
 		case "createSegment":
 			out.Values[i] = ec._Mutation_createSegment(ctx, field)
 		case "emailSignup":
