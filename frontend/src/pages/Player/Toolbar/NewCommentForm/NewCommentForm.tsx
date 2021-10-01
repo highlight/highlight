@@ -16,8 +16,8 @@ import {
 } from '../../../../components/Comment/CommentHeader';
 import {
     useCreateSessionCommentMutation,
-    useGetAdminsQuery,
     useGetCommentMentionSuggestionsQuery,
+    useGetProjectAdminsQuery,
 } from '../../../../graph/generated/hooks';
 import {
     SanitizedAdminInput,
@@ -62,7 +62,7 @@ export const NewCommentForm = ({
         selectedTimelineAnnotationTypes,
         setSelectedTimelineAnnotationTypes,
     } = usePlayerConfiguration();
-    const { data: adminsInProject } = useGetAdminsQuery({
+    const { data: adminsInProject } = useGetProjectAdminsQuery({
         variables: { project_id },
     });
     const {

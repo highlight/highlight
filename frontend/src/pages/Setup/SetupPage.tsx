@@ -178,7 +178,7 @@ const App = () => {
                         title={
                             <span className={styles.sectionTitleWithIcon}>
                                 Enable Slack Alerts
-                                {data.project.slack_webhook_channel ? (
+                                {data.workspace!.slack_webhook_channel ? (
                                     <IntegrationDetector
                                         verbose={false}
                                         integrated={integrated}

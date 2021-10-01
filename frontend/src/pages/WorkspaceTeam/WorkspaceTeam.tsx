@@ -16,9 +16,9 @@ import { CircularSpinner } from '../../components/Loading/Loading';
 import PopConfirm from '../../components/PopConfirm/PopConfirm';
 import {
     useDeleteAdminFromProjectMutation,
-    useGetAdminsQuery,
+    useGetProjectAdminsQuery,
     useGetProjectQuery,
-    useSendAdminInviteMutation,
+    useSendAdminWorkspaceInviteMutation,
 } from '../../graph/generated/hooks';
 import SvgTrash from '../../static/Trash';
 import { getProjectInvitationLink } from './utils';
@@ -35,7 +35,7 @@ const WorkspaceTeam = () => {
     const { data: projectData } = useGetProjectQuery({
         variables: { id: project_id },
     });
-    const { data, error, loading } = useGetAdminsQuery({
+    const { data, error, loading } = useGetProjectAdminsQuery({
         variables: { project_id },
     });
     const { admin } = useAuthContext();
@@ -67,7 +67,7 @@ const WorkspaceTeam = () => {
     const [
         sendInviteEmail,
         { loading: sendLoading },
-    ] = useSendAdminInviteMutation();
+    ] = useSendAdminWorkspaceInviteMutation();
 
     useEffect(() => {
         reset();
@@ -77,7 +77,7 @@ const WorkspaceTeam = () => {
         setHasStartedOnboarding(true);
         sendInviteEmail({
             variables: {
-                project_id,
+                workspace_id: projectData?.workspace?.id || '',
                 email: data.email,
                 base_url: window.location.origin,
             },
@@ -147,7 +147,7 @@ const WorkspaceTeam = () => {
                 <CopyText
                     text={getProjectInvitationLink(
                         projectData?.project?.secret || '',
-                        project_id
+                        projectData?.workspace?.id || ''
                     )}
                 />
             </div>

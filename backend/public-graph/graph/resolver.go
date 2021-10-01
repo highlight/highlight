@@ -643,6 +643,14 @@ func (r *Resolver) processStackFrame(projectId, sessionId int, stackTrace model2
 	return mappedStackFrame, nil
 }
 
+func (r *Resolver) getWorkspace(workspaceID int) (*model.Workspace, error) {
+	var workspace model.Workspace
+	if err := r.DB.Where(&model.Workspace{Model: model.Model{ID: workspaceID}}).First(&workspace).Error; err != nil {
+		return nil, e.Wrap(err, "error querying workspace")
+	}
+	return &workspace, nil
+}
+
 func (r *Resolver) isProjectWithinBillingQuota(project *model.Project, now time.Time) bool {
 	if project.TrialEndDate != nil && project.TrialEndDate.After(now) {
 		return true
@@ -900,7 +908,13 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 					log.Error(e.Wrap(err, "error querying project"))
 					return
 				}
-				err = errorAlert.SendSlackAlert(&model.SendSlackAlertInput{Project: &project, SessionID: sessionID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &errorToInsert.URL, ErrorsCount: &numErrors})
+
+				workspace, err := r.getWorkspace(project.WorkspaceID)
+				if err != nil {
+					log.Error(err)
+				}
+
+				err = errorAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionID: sessionID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &errorToInsert.URL, ErrorsCount: &numErrors})
 				if err != nil {
 					log.Error(e.Wrap(err, "error sending slack error message"))
 					return

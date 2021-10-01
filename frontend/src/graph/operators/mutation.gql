@@ -41,6 +41,10 @@ mutation AddAdminToProject($project_id: ID!, $invite_id: String!) {
     addAdminToProject(project_id: $project_id, invite_id: $invite_id)
 }
 
+mutation AddAdminToWorkspace($workspace_id: ID!, $invite_id: String!) {
+    addAdminToWorkspace(workspace_id: $workspace_id, invite_id: $invite_id)
+}
+
 mutation DeleteAdminFromProject($project_id: ID!, $admin_id: ID!) {
     deleteAdminFromProject(project_id: $project_id, admin_id: $admin_id)
 }
@@ -69,8 +73,16 @@ mutation AddSlackBotIntegrationToProject(
     )
 }
 
-mutation CreateProject($name: String!) {
-    createProject(name: $name) {
+mutation CreateProject(
+    $project_name: String!
+    $workspace_id: ID
+    $workspace_name: String
+) {
+    createProject(
+        project_name: $project_name
+        workspace_id: $workspace_id
+        workspace_name: $workspace_name
+    ) {
         id
         name
     }
@@ -85,6 +97,12 @@ mutation EditProject($id: ID!, $name: String, $billing_email: String) {
 
 mutation DeleteProject($id: ID!) {
     deleteProject(id: $id)
+}
+
+mutation EditWorkspace($id: ID!, $name: String) {
+    editWorkspace(id: $id, name: $name) {
+        name
+    }
 }
 
 mutation DeleteSegment($segment_id: ID!) {

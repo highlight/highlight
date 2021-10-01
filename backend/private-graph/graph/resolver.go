@@ -80,10 +80,59 @@ func (r *Resolver) isAdminInProjectOrDemoProject(ctx context.Context, project_id
 	return project, nil
 }
 
+func (r *Resolver) GetWorkspace(workspaceID int) (*model.Workspace, error) {
+	var workspace model.Workspace
+	if err := r.DB.Where(&model.Workspace{Model: model.Model{ID: workspaceID}}).First(&workspace).Error; err != nil {
+		return nil, e.Wrap(err, "error querying workspace")
+	}
+	return &workspace, nil
+}
+
+func (r *Resolver) addAdminMembership(ctx context.Context, obj model.HasSecret, objId int, inviteID string) (*int, error) {
+	if err := r.DB.Model(obj).Where("id = ?", objId).First(obj).Error; err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+	if obj.GetSecret() == nil || (obj.GetSecret() != nil && *obj.GetSecret() != inviteID) {
+		return nil, e.New("invalid invite id")
+	}
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, e.New("error querying admin")
+	}
+	if err := r.DB.Model(obj).Association("Admins").Append(admin); err != nil {
+		return nil, e.Wrap(err, "error adding admin to association")
+	}
+	return &objId, nil
+}
+
+func (r *Resolver) isAdminInWorkspace(ctx context.Context, workspaceID int) (*model.Workspace, error) {
+	if r.isWhitelistedAccount(ctx) {
+		return r.GetWorkspace(workspaceID)
+	}
+
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieving user")
+	}
+
+	workspaces := []*model.Workspace{}
+	if err := r.DB.Order("name asc").Model(&admin).Association("Projects").Find(&workspaces); err != nil {
+		return nil, e.Wrap(err, "error getting associated workspaces")
+	}
+
+	for _, w := range workspaces {
+		if w.ID == workspaceID {
+			return w, nil
+		}
+	}
+
+	return nil, e.New("admin doesn't exist in workspace")
+}
+
 // isAdminInProject should be used for actions that you only want admins in all projects to have access to.
 // Use this on actions that you don't want laymen in the demo project to have access to.
 func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model.Project, error) {
-	if util.IsTestEnv() {
+	if util.IsTestEnv() { // Is this still relevant? seems like it would break because of nil project
 		return nil, nil
 	}
 	if r.isWhitelistedAccount(ctx) {
@@ -478,10 +527,10 @@ func (r *Resolver) SendEmailAlert(tos []*mail.Email, authorName, viewLink, textF
 	return nil
 }
 
-func (r *Resolver) SendPersonalSlackAlert(project *model.Project, admin *model.Admin, adminIds []int, viewLink, commentText, subjectScope string) error {
+func (r *Resolver) SendPersonalSlackAlert(workspace *model.Workspace, admin *model.Admin, adminIds []int, viewLink, commentText, subjectScope string) error {
 	// this is needed for posting DMs
 	// if nil, user simply hasn't signed up for notifications, so return nil
-	if project.SlackAccessToken == nil {
+	if workspace.SlackAccessToken == nil {
 		return nil
 	}
 
@@ -528,7 +577,7 @@ func (r *Resolver) SendPersonalSlackAlert(project *model.Project, admin *model.A
 	)
 
 	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewDividerBlock())
-	slackClient := slack.New(*project.SlackAccessToken)
+	slackClient := slack.New(*workspace.SlackAccessToken)
 	for _, a := range admins {
 		if a.SlackIMChannelID != nil {
 			_, _, err := slackClient.PostMessage(*a.SlackIMChannelID, slack.MsgOptionBlocks(blockSet.BlockSet...))
@@ -541,10 +590,10 @@ func (r *Resolver) SendPersonalSlackAlert(project *model.Project, admin *model.A
 	return nil
 }
 
-func (r *Resolver) SendSlackAlertToUser(project *model.Project, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, viewLink, commentText, subjectScope string, base64Image *string) error {
+func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, viewLink, commentText, subjectScope string, base64Image *string) error {
 	// this is needed for posting DMs
 	// if nil, user simply hasn't signed up for notifications, so return nil
-	if project.SlackAccessToken == nil {
+	if workspace.SlackAccessToken == nil {
 		return nil
 	}
 
@@ -581,7 +630,7 @@ func (r *Resolver) SendSlackAlertToUser(project *model.Project, admin *model.Adm
 	)
 
 	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewDividerBlock())
-	slackClient := slack.New(*project.SlackAccessToken)
+	slackClient := slack.New(*workspace.SlackAccessToken)
 	for _, slackUser := range taggedSlackUsers {
 		if slackUser.WebhookChannelID != nil {
 			_, _, _, err := slackClient.JoinConversation(*slackUser.WebhookChannelID)
@@ -608,7 +657,7 @@ func (r *Resolver) SendSlackAlertToUser(project *model.Project, admin *model.Adm
 
 		// This key will be used as the file name for the file written to disk.
 		// This needs to be unique. The uniqueness is guaranteed by the project ID, the admin who created the comment's ID, and the current time
-		uploadedFileKey = fmt.Sprintf("slack-image-%d-%d-%d.png", project.ID, admin.ID, time.Now().UnixNano())
+		uploadedFileKey = fmt.Sprintf("slack-image-%d-%d-%d.png", workspace.ID, admin.ID, time.Now().UnixNano())
 
 		// We are writing the base64 string to disk as a png. We need to do this because the Slack Go client
 		// doesn't support uploading files as base64.
@@ -671,4 +720,30 @@ func (r *Resolver) getCurrentAdminOrGuest(ctx context.Context) (currentAdmin *mo
 		}
 	}
 	return admin, isGuest
+}
+
+func (r *Resolver) SendAdminInviteImpl(adminName string, projectOrWorkspaceName string, inviteLink string, email string) (*string, error) {
+	to := &mail.Email{Address: email}
+
+	m := mail.NewV3Mail()
+	from := mail.NewEmail("Highlight", "notifications@highlight.run")
+	m.SetFrom(from)
+	m.SetTemplateID(SendAdminInviteEmailTemplateID)
+
+	p := mail.NewPersonalization()
+	p.AddTos(to)
+	p.SetDynamicTemplateData("Admin_Invitor", adminName)
+	p.SetDynamicTemplateData("Organization_Name", projectOrWorkspaceName)
+	p.SetDynamicTemplateData("Invite_Link", inviteLink)
+
+	m.AddPersonalizations(p)
+	if resp, sendGridErr := r.MailClient.Send(m); sendGridErr != nil || resp.StatusCode >= 300 {
+		estr := "error sending sendgrid email -> "
+		estr += fmt.Sprintf("resp-code: %v; ", resp)
+		if sendGridErr != nil {
+			estr += fmt.Sprintf("err: %v", sendGridErr.Error())
+		}
+		return nil, e.New(estr)
+	}
+	return &email, nil
 }

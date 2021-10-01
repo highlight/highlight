@@ -38,8 +38,8 @@ query GetSession($id: ID!) {
     }
 }
 
-query GetAdmins($project_id: ID!) {
-    admins(project_id: $project_id) {
+query GetProjectAdmins($project_id: ID!) {
+    admins: project_admins(project_id: $project_id) {
         id
         name
         email
@@ -135,10 +135,10 @@ query GetErrorComments($error_group_id: ID!) {
 }
 
 query GetOnboardingSteps($project_id: ID!, $admin_id: ID!) {
-    project(id: $project_id) {
+    workspace: workspace_for_project(project_id: $project_id) {
         slack_channels
     }
-    admins(project_id: $project_id) {
+    admins: project_admins(project_id: $project_id) {
         id
     }
     isIntegrated(project_id: $project_id)
@@ -151,12 +151,16 @@ query GetOnboardingSteps($project_id: ID!, $admin_id: ID!) {
     }
 }
 
-mutation SendAdminInvite(
-    $project_id: ID!
+mutation SendAdminWorkspaceInvite(
+    $workspace_id: ID!
     $email: String!
     $base_url: String!
 ) {
-    sendAdminInvite(project_id: $project_id, email: $email, base_url: $base_url)
+    sendAdminWorkspaceInvite(
+        workspace_id: $workspace_id
+        email: $email
+        base_url: $base_url
+    )
 }
 
 query GetSessions(
@@ -210,11 +214,28 @@ query GetProjects {
     projects {
         id
         name
+        workspace_id
+    }
+}
+
+query GetWorkspace($id: ID!) {
+    workspace(id: $id) {
+        id
+        name
+        projects {
+            id
+            name
+        }
     }
 }
 
 # Gets the current application and all applications the admin has access to.
 query GetApplications($id: ID!) {
+    # ZANETODO: rename query
+    workspaces {
+        id
+        name
+    }
     projects {
         id
         name
@@ -224,6 +245,10 @@ query GetApplications($id: ID!) {
         name
         verbose_id
         billing_email
+        secret
+        workspace_id
+    }
+    workspace: workspace_for_project(project_id: $id) {
         slack_webhook_channel
         secret
     }
@@ -245,8 +270,19 @@ query GetProject($id: ID!) {
         name
         verbose_id
         billing_email
+        secret
+    }
+    workspace: workspace_for_project(project_id: $id) {
+        id
         slack_webhook_channel
         secret
+    }
+}
+
+query GetWorkspaceForProject($project_id: ID!) {
+    workspace: workspace_for_project(project_id: $project_id) {
+        id
+        name
     }
 }
 
@@ -722,7 +758,7 @@ query GetAlertsPagePayload($project_id: ID!) {
 }
 
 query GetCommentMentionSuggestions($project_id: ID!) {
-    admins(project_id: $project_id) {
+    admins: project_admins(project_id: $project_id) {
         id
         name
         email
