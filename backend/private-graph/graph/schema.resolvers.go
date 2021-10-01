@@ -383,20 +383,20 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 }
 
 func (r *mutationResolver) AddAdminToProject(ctx context.Context, projectID int, inviteID string) (*int, error) {
-	if _, err := r.isAdminInProject(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin is not in project")
-	}
 	project := &model.Project{}
 	return r.addAdminMembership(ctx, project, projectID, inviteID)
 }
 
 func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID int, inviteID string) (*int, error) {
-	if _, err := r.isAdminInWorkspace(ctx, workspaceID); err != nil {
-		return nil, e.Wrap(err, "admin is not in workspace")
+	workspace := &model.Workspace{}
+	adminId, err := r.addAdminMembership(ctx, workspace, workspaceID, inviteID)
+	if err != nil {
+		log.Error("failed to add admin to workspace")
 	}
+
 	// For this Real Magic, set all new admins to normal role so they don't have access to billing.
 	// This should be removed when we implement RBAC.
-	if workspaceID == 388 { // ZANETODO: update this with Real Magic's workspaceID before merging
+	if workspaceID == 388 { // ZANETODO: update this workspaceID before merging
 		admin, err := r.getCurrentAdmin(ctx)
 		if err != nil {
 			log.Error("Failed get current admin.")
@@ -407,8 +407,8 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 			log.Error("Failed to update admin when changing role to normal.")
 		}
 	}
-	workspace := &model.Workspace{}
-	return r.addAdminMembership(ctx, workspace, workspaceID, inviteID)
+
+	return adminId, nil
 }
 
 func (r *mutationResolver) DeleteAdminFromProject(ctx context.Context, projectID int, adminID int) (*int, error) {
