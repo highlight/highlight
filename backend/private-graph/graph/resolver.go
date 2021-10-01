@@ -116,7 +116,7 @@ func (r *Resolver) isAdminInWorkspace(ctx context.Context, workspaceID int) (*mo
 	}
 
 	workspaces := []*model.Workspace{}
-	if err := r.DB.Order("name asc").Model(&admin).Association("Projects").Find(&workspaces); err != nil {
+	if err := r.DB.Order("name asc").Model(&admin).Association("Workspaces").Find(&workspaces); err != nil {
 		return nil, e.Wrap(err, "error getting associated workspaces")
 	}
 
@@ -132,7 +132,7 @@ func (r *Resolver) isAdminInWorkspace(ctx context.Context, workspaceID int) (*mo
 // isAdminInProject should be used for actions that you only want admins in all projects to have access to.
 // Use this on actions that you don't want laymen in the demo project to have access to.
 func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model.Project, error) {
-	if util.IsTestEnv() { // Is this still relevant? seems like it would break because of nil project
+	if util.IsTestEnv() {
 		return nil, nil
 	}
 	if r.isWhitelistedAccount(ctx) {

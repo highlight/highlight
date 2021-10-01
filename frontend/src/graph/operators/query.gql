@@ -230,8 +230,7 @@ query GetWorkspace($id: ID!) {
 }
 
 # Gets the current application and all applications the admin has access to.
-query GetApplications($id: ID!) {
-    # ZANETODO: rename query
+query GetVisibleProjectsAndWorkspaces($id: ID!) {
     workspaces {
         id
         name

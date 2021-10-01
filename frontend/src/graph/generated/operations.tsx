@@ -866,11 +866,11 @@ export type GetWorkspaceQuery = { __typename?: 'Query' } & {
     >;
 };
 
-export type GetApplicationsQueryVariables = Types.Exact<{
+export type GetVisibleProjectsAndWorkspacesQueryVariables = Types.Exact<{
     id: Types.Scalars['ID'];
 }>;
 
-export type GetApplicationsQuery = { __typename?: 'Query' } & {
+export type GetVisibleProjectsAndWorkspacesQuery = { __typename?: 'Query' } & {
     workspaces?: Types.Maybe<
         Array<
             Types.Maybe<
@@ -1803,7 +1803,7 @@ export const namedOperations = {
         GetSessions: 'GetSessions' as const,
         GetProjects: 'GetProjects' as const,
         GetWorkspace: 'GetWorkspace' as const,
-        GetApplications: 'GetApplications' as const,
+        GetVisibleProjectsAndWorkspaces: 'GetVisibleProjectsAndWorkspaces' as const,
         GetAdmin: 'GetAdmin' as const,
         GetProject: 'GetProject' as const,
         GetWorkspaceForProject: 'GetWorkspaceForProject' as const,

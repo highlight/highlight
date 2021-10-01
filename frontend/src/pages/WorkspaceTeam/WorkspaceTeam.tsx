@@ -21,7 +21,7 @@ import {
     useSendAdminWorkspaceInviteMutation,
 } from '../../graph/generated/hooks';
 import SvgTrash from '../../static/Trash';
-import { getProjectInvitationLink } from './utils';
+import { getWorkspaceInvitationLink } from './utils';
 import styles from './WorkspaceTeam.module.scss';
 
 type Inputs = {
@@ -145,7 +145,7 @@ const WorkspaceTeam = () => {
                 </form>
                 <p>Or invite your team by sharing this link.</p>
                 <CopyText
-                    text={getProjectInvitationLink(
+                    text={getWorkspaceInvitationLink(
                         projectData?.project?.secret || '',
                         projectData?.workspace?.id || ''
                     )}

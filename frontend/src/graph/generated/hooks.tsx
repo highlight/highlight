@@ -2662,8 +2662,8 @@ export type GetWorkspaceQueryResult = Apollo.QueryResult<
     Types.GetWorkspaceQuery,
     Types.GetWorkspaceQueryVariables
 >;
-export const GetApplicationsDocument = gql`
-    query GetApplications($id: ID!) {
+export const GetVisibleProjectsAndWorkspacesDocument = gql`
+    query GetVisibleProjectsAndWorkspaces($id: ID!) {
         workspaces {
             id
             name
@@ -2688,52 +2688,52 @@ export const GetApplicationsDocument = gql`
 `;
 
 /**
- * __useGetApplicationsQuery__
+ * __useGetVisibleProjectsAndWorkspacesQuery__
  *
- * To run a query within a React component, call `useGetApplicationsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetApplicationsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetVisibleProjectsAndWorkspacesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetVisibleProjectsAndWorkspacesQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetApplicationsQuery({
+ * const { data, loading, error } = useGetVisibleProjectsAndWorkspacesQuery({
  *   variables: {
  *      id: // value for 'id'
  *   },
  * });
  */
-export function useGetApplicationsQuery(
+export function useGetVisibleProjectsAndWorkspacesQuery(
     baseOptions: Apollo.QueryHookOptions<
-        Types.GetApplicationsQuery,
-        Types.GetApplicationsQueryVariables
+        Types.GetVisibleProjectsAndWorkspacesQuery,
+        Types.GetVisibleProjectsAndWorkspacesQueryVariables
     >
 ) {
     return Apollo.useQuery<
-        Types.GetApplicationsQuery,
-        Types.GetApplicationsQueryVariables
-    >(GetApplicationsDocument, baseOptions);
+        Types.GetVisibleProjectsAndWorkspacesQuery,
+        Types.GetVisibleProjectsAndWorkspacesQueryVariables
+    >(GetVisibleProjectsAndWorkspacesDocument, baseOptions);
 }
-export function useGetApplicationsLazyQuery(
+export function useGetVisibleProjectsAndWorkspacesLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
-        Types.GetApplicationsQuery,
-        Types.GetApplicationsQueryVariables
+        Types.GetVisibleProjectsAndWorkspacesQuery,
+        Types.GetVisibleProjectsAndWorkspacesQueryVariables
     >
 ) {
     return Apollo.useLazyQuery<
-        Types.GetApplicationsQuery,
-        Types.GetApplicationsQueryVariables
-    >(GetApplicationsDocument, baseOptions);
+        Types.GetVisibleProjectsAndWorkspacesQuery,
+        Types.GetVisibleProjectsAndWorkspacesQueryVariables
+    >(GetVisibleProjectsAndWorkspacesDocument, baseOptions);
 }
-export type GetApplicationsQueryHookResult = ReturnType<
-    typeof useGetApplicationsQuery
+export type GetVisibleProjectsAndWorkspacesQueryHookResult = ReturnType<
+    typeof useGetVisibleProjectsAndWorkspacesQuery
 >;
-export type GetApplicationsLazyQueryHookResult = ReturnType<
-    typeof useGetApplicationsLazyQuery
+export type GetVisibleProjectsAndWorkspacesLazyQueryHookResult = ReturnType<
+    typeof useGetVisibleProjectsAndWorkspacesLazyQuery
 >;
-export type GetApplicationsQueryResult = Apollo.QueryResult<
-    Types.GetApplicationsQuery,
-    Types.GetApplicationsQueryVariables
+export type GetVisibleProjectsAndWorkspacesQueryResult = Apollo.QueryResult<
+    Types.GetVisibleProjectsAndWorkspacesQuery,
+    Types.GetVisibleProjectsAndWorkspacesQueryVariables
 >;
 export const GetAdminDocument = gql`
     query GetAdmin {
