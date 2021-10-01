@@ -183,16 +183,9 @@ type Project struct {
 	Secret           *string    `json:"-"`
 	Admins           []Admin    `gorm:"many2many:project_admins;"`
 	TrialEndDate     *time.Time `json:"trial_end_date"`
-	// Slack API Interaction.
-	// SlackAccessToken      *string
-	// SlackWebhookURL       *string
-	// SlackWebhookChannel   *string
-	// SlackWebhookChannelID *string
-	// SlackChannels         *string
 	// Manual monthly session limit override
 	MonthlySessionLimit *int
-	// OrganizationID      int
-	WorkspaceID int
+	WorkspaceID         int
 }
 
 type HasSecret interface {
