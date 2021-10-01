@@ -2,6 +2,7 @@ import { useAuthContext } from '@authentication/AuthContext';
 import KeyboardShortcutsEducation from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation';
 import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
+import { FieldArrayParam } from '@util/url/params';
 import _ from 'lodash';
 import React, { Suspense, useEffect, useState } from 'react';
 import { Redirect, Route, Switch } from 'react-router-dom';
@@ -52,17 +53,17 @@ const ApplicationRouter = ({ integrated }: Props) => {
         searchParamsToUrlParams,
         setSearchParamsToUrlParams,
     ] = useQueryParams({
-        user_properties: JsonParam,
+        user_properties: FieldArrayParam,
         identified: BooleanParam,
         browser: StringParam,
         date_range: JsonParam,
-        excluded_properties: JsonParam,
+        excluded_properties: FieldArrayParam,
         hide_viewed: BooleanParam,
         length_range: JsonParam,
         os: StringParam,
         referrer: StringParam,
-        track_properties: JsonParam,
-        excluded_track_properties: JsonParam,
+        track_properties: FieldArrayParam,
+        excluded_track_properties: FieldArrayParam,
         visited_url: StringParam,
         first_time: BooleanParam,
         device_id: StringParam,
