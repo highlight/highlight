@@ -16,14 +16,20 @@ export const FieldArrayParam = {
         if (!properties) {
             return undefined;
         }
+
         const mappedPropertiesAsString = properties!.map(
             ({ id, name, value }) => {
                 const [valueKey] = value.split(':');
 
+                if (value.includes(`contains:`)) {
+                    return name;
+                }
+
                 // @ts-expect-error
-                if (id === -1 && name === 'contains') {
+                if ((id === -1 || id === '-1') && name === 'contains') {
                     return `${value}`;
                 }
+
                 return `${id}${FIELD_DELIMITER}${name}${FIELD_DELIMITER}${valueKey}`;
             }
         );
