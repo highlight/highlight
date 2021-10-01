@@ -884,8 +884,6 @@ func (s *Session) GetUserProperties() (map[string]string, error) {
 
 type SendSlackAlertInput struct {
 	Organization *Organization
-	// Project is a required parameter
-	// Project *Project
 	// Workspace is a required parameter
 	Workspace *Workspace
 	// SessionID is a required parameter
