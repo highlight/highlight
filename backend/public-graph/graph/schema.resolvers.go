@@ -216,7 +216,7 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 		if err != nil {
 			log.WithError(err).
 				WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "comment_id": feedbackComment.ID}).
-				Error(e.Wrapf(err, "error fetching %s alert count", model.AlertType.SESSION_FEEDBACK))
+				Error(e.Wrap(err, "error fetching workspace"))
 		}
 
 		if err := sessionFeedbackAlert.SendSlackAlert(&model.SendSlackAlertInput{

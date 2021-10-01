@@ -163,7 +163,7 @@ type Organization struct {
 type Workspace struct {
 	Model
 	Name                  *string
-	Secret                *string `json:"-"` // Needed for workspace-level team
+	Secret                *string // Needed for workspace-level team
 	Admins                []Admin `gorm:"many2many:workspace_admins;"`
 	SlackAccessToken      *string
 	SlackWebhookURL       *string
