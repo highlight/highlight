@@ -1,3 +1,4 @@
+import { getSlackUrl } from '@components/Header/components/PersonalNotificationButton/utils/utils';
 import SvgSlackLogo from '@components/icons/SlackLogo';
 import {
     Mention,
@@ -35,6 +36,7 @@ const CommentTextBody = ({
     const { project_id } = useParams<{
         project_id: string;
     }>();
+    const slackUrl = getSlackUrl('Organization', project_id, 'alerts');
 
     useEffect(() => {
         const textarea = document.querySelector(
@@ -73,6 +75,17 @@ const CommentTextBody = ({
                         </p>
                     )}
                 </div>
+            }
+            noResultsMessage={
+                <>
+                    <p className={styles.noResultsMessage}>
+                        Can't find the channel or person here?{' '}
+                        <a href={slackUrl}>
+                            Sync Highlight with your Slack Workspace
+                        </a>
+                        .
+                    </p>
+                </>
             }
         >
             <Mention
