@@ -68,7 +68,7 @@ const AlertsPage = () => {
             <p className={layoutStyles.subTitle}>
                 Configure the environments you want alerts for.
             </p>
-            {!loading && (
+            {!loading && !data?.is_integrated_with_slack ? (
                 <Alert
                     trackingId="AlertPageSlackBotIntegration"
                     message={
@@ -104,6 +104,12 @@ const AlertsPage = () => {
                         </>
                     }
                     className={styles.integrationAlert}
+                />
+            ) : (
+                <PersonalNotificationButton
+                    text="Connect Highlight with Slack"
+                    className={styles.hiddenSlackIntegrationButton}
+                    type="Organization"
                 />
             )}
 

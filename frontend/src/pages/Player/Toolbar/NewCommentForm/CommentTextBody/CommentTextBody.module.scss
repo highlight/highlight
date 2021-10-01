@@ -44,6 +44,7 @@
 }
 
 .suggestionHeader {
+    background: var(--color-primary-background);
     border: 1px solid var(--color-gray-300);
     border-bottom: 0;
     border-top-left-radius: var(--border-radius);
@@ -55,4 +56,14 @@
         font-weight: 400;
         margin: 0 !important;
     }
+}
+
+.noResultsMessage {
+    background: var(--color-primary-background);
+    border: 1px solid var(--color-gray-300);
+    border-bottom-left-radius: var(--border-radius);
+    border-bottom-right-radius: var(--border-radius);
+    margin: 0 !important;
+    max-width: 300px;
+    padding: var(--size-medium) var(--size-small);
 }

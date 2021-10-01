@@ -2971,10 +2971,10 @@
   dependencies:
     "@hapi/hoek" "^8.3.0"
 
-"@highlight-run/react-mentions@^4.4.0":
-  version "4.4.0"
-  resolved "https://registry.yarnpkg.com/@highlight-run/react-mentions/-/react-mentions-4.4.0.tgz#4b3eb653aa19afacd96dfd5a837e101ac6c43fb6"
-  integrity sha512-EtvxAVNqGh4W22KrRSLDMrsff2BGF8q7gPQwaRSmV6Rr3DXaKu11Hea1KdTpRxVWNssQ4h7UuRkJpkOpp7NVAw==
+"@highlight-run/react-mentions@4.4.1":
+  version "4.4.1"
+  resolved "https://registry.yarnpkg.com/@highlight-run/react-mentions/-/react-mentions-4.4.1.tgz#af1e25a95f603eedd5e6575ac892e9369757b723"
+  integrity sha512-3RHtVmZpNqqg6mE2WoTP5dnYA/ZQ/joZBBmhTo2fCH34AFeTd3yuFzzSdzYpvdzxmQdJc0Ox9Vm5fNjDjI7ETQ==
   dependencies:
     "@babel/runtime" "7.4.5"
     invariant "^2.2.4"

@@ -2,6 +2,7 @@ import { DEMO_WORKSPACE_APPLICATION_ID } from '@components/DemoWorkspaceButton/D
 import { namedOperations } from '@graph/operations';
 import { useParams } from '@util/react-router/useParams';
 import { Divider, Form, message } from 'antd';
+import classNames from 'classnames';
 import React, { useState } from 'react';
 import TextTransition from 'react-text-transition';
 
@@ -52,6 +53,7 @@ export const AlertConfigurationCard = ({
     const [lookbackPeriod, setLookbackPeriod] = useState(
         getLookbackPeriodOption(alert?.ThresholdWindow).value
     );
+    const [searchQuery, setSearchQuery] = useState('');
     const { project_id } = useParams<{ project_id: string }>();
     const [form] = Form.useForm();
     const [updateErrorAlert] = useUpdateErrorAlertMutation();
@@ -374,6 +376,9 @@ export const AlertConfigurationCard = ({
                                 className={styles.channelSelect}
                                 options={channels}
                                 mode="multiple"
+                                onSearch={(value) => {
+                                    setSearchQuery(value);
+                                }}
                                 filterOption={(searchValue, option) => {
                                     return option?.children
                                         .toLowerCase()
@@ -383,19 +388,27 @@ export const AlertConfigurationCard = ({
                                 onChange={onChannelsChange}
                                 notFoundContent={
                                     channelSuggestions?.length === 0 ? (
-                                        <div>Slack is not configured yet.</div>
+                                        <div
+                                            className={classNames(
+                                                styles.selectMessage,
+                                                styles.notFoundMessage
+                                            )}
+                                        >
+                                            Slack is not configured yet.{' '}
+                                            <a href={slackUrl}>
+                                                Click here to sync with Slack
+                                            </a>
+                                            . After syncing, you can pick the
+                                            channels or people to sent alerts
+                                            to.
+                                        </div>
                                     ) : (
-                                        <div>No channels found.</div>
-                                    )
-                                }
-                                defaultValue={alert?.ChannelsToNotify?.map(
-                                    (channel: any) => channel.webhook_channel_id
-                                )}
-                                dropdownRender={(menu) => (
-                                    <div>
-                                        {menu}
-                                        <Divider style={{ margin: '4px 0' }} />
-                                        <div className={styles.addContainer}>
+                                        <div
+                                            className={classNames(
+                                                styles.selectMessage,
+                                                styles.notFoundMessage
+                                            )}
+                                        >
                                             Can't find the channel or person
                                             here?{' '}
                                             {project_id !==
@@ -407,6 +420,41 @@ export const AlertConfigurationCard = ({
                                             )}
                                             .
                                         </div>
+                                    )
+                                }
+                                defaultValue={alert?.ChannelsToNotify?.map(
+                                    (channel: any) => channel.webhook_channel_id
+                                )}
+                                dropdownRender={(menu) => (
+                                    <div>
+                                        {menu}
+                                        {searchQuery.length === 0 &&
+                                            channelSuggestions.length > 0 && (
+                                                <>
+                                                    <Divider
+                                                        style={{
+                                                            margin: '4px 0',
+                                                        }}
+                                                    />
+                                                    <div
+                                                        className={
+                                                            styles.addContainer
+                                                        }
+                                                    >
+                                                        Can't find the channel
+                                                        or person here?{' '}
+                                                        {project_id !==
+                                                            DEMO_WORKSPACE_APPLICATION_ID && (
+                                                            <a href={slackUrl}>
+                                                                Sync Highlight
+                                                                with your Slack
+                                                                Workspace
+                                                            </a>
+                                                        )}
+                                                        .
+                                                    </div>
+                                                </>
+                                            )}
                                     </div>
                                 )}
                             />
