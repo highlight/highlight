@@ -120,6 +120,7 @@ var Models = []interface{}{
 	&ErrorAlert{},
 	&SessionAlert{},
 	&Project{},
+	&Workspace{},
 }
 
 func init() {
@@ -159,6 +160,20 @@ type Organization struct {
 	MonthlySessionLimit *int
 }
 
+type Workspace struct {
+	Model
+	Name                  *string
+	Secret                *string `json:"-"` // Needed for workspace-level team
+	Admins                []Admin `gorm:"many2many:workspace_admins;"`
+	SlackAccessToken      *string
+	SlackWebhookURL       *string
+	SlackWebhookChannel   *string
+	SlackWebhookChannelID *string
+	SlackChannels         *string
+	Projects              []Project
+	MigratedFromProjectID *int // Column can be removed after migration is done
+}
+
 type Project struct {
 	Model
 	Name             *string
@@ -177,6 +192,7 @@ type Project struct {
 	// Manual monthly session limit override
 	MonthlySessionLimit *int
 	OrganizationID      int
+	WorkspaceID         int
 }
 
 type Alert struct {
