@@ -1775,7 +1775,7 @@ func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPer
 				AND processed=true
 		) q1
 		GROUP BY identifier
-		ORDER BY total_active_time
+		ORDER BY total_active_time DESC
 		LIMIT 50`,
 		projectID, projectID, lookBackPeriod, projectID, lookBackPeriod).Scan(&topUsersPayload).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving top users")
