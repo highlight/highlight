@@ -102,9 +102,12 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                                     { copied: 'code snippet' }
                                 );
                             }}
-                            text={`H.identify(\n\t'${
+                            text={`H.identify('${
                                 admin?.email || 'eliza@gmail.com'
-                            }', \n\t{id: 'ajdf837dj', phone: '867-5309'}\n)`}
+                            }', {
+  id: '8909b017-c0d9-4cc2-90ae-fb519c9e028a',
+  phone: '867-5309'
+});`}
                         />
                     </Section>
                     <Section
@@ -155,12 +158,12 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                                 text={`import { ErrorBoundary } from '@highlight-run/react';
 
 const App = () => {
-	return (
-		<ErrorBoundary showDialog>
-			<YourMainAppComponent />
-		</ErrorBoundary>
-	)
-}`}
+  return (
+    <ErrorBoundary showDialog>
+      <YourMainAppComponent />
+    </ErrorBoundary>
+  );
+};`}
                             />
 
                             <div className={styles.integrationContainer}>
@@ -377,7 +380,7 @@ const JsAppInstructions = ({
             <Section title="Initializing Highlight">
                 <p>Initialize the SDK by importing Highlight like so: </p>
                 <CodeBlock
-                    text={`import { H } from 'highlight.run'`}
+                    text={`import { H } from 'highlight.run';`}
                     language="javascript"
                 />
                 <p>
@@ -424,7 +427,7 @@ const JsAppInstructions = ({
                         language="javascript"
                         text={`import React from 'react';
 import App from './App';
-import { H } from 'highlight.run'
+import { H } from 'highlight.run';
 import { ErrorBoundary } from '@highlight-run/react';
 
 ${getInitSnippet(projectVerboseId)}
