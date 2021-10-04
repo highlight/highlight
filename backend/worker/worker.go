@@ -264,7 +264,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 		if se != nil && *se != "" {
 			eventsObject := model.EventsObject{Events: *se}
-			log.Info("about to process events chunk")
 			o := processEventChunk(&processEventChunkInput{
 				EventsChunk:             &eventsObject,
 				ClickEventQueue:         clickEventQueue,
@@ -715,8 +714,6 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 				// create start of rage click set event
 				o.CurrentlyInRageClickSet = true
 				first := input.ClickEventQueue.Front().Value.(*parse.ReplayEvent)
-				// do something with this
-				log.Info("starting rage click event")
 				o.RageClickSets = append(o.RageClickSets, &model.RageClickEvent{
 					SessionID:      input.SessionID,
 					StartTimestamp: first.Timestamp,
