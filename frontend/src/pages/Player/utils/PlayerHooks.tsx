@@ -333,9 +333,41 @@ export const usePlayerFullscreen = () => {
     useEffect(() => {
         if (playerCenterPanelRef.current) {
             if (isPlayerFullscreen) {
-                playerCenterPanelRef.current.requestFullscreen();
+                const fullscreenBrowserFunctions = playerCenterPanelRef.current as HTMLDivElement & {
+                    mozRequestFullScreen(): Promise<void>;
+                    webkitRequestFullscreen(): Promise<void>;
+                    msRequestFullscreen(): Promise<void>;
+                };
+                if (fullscreenBrowserFunctions.requestFullscreen) {
+                    fullscreenBrowserFunctions.requestFullscreen();
+                } else if (fullscreenBrowserFunctions.mozRequestFullScreen) {
+                    /* Firefox */
+                    fullscreenBrowserFunctions.mozRequestFullScreen();
+                } else if (fullscreenBrowserFunctions.webkitRequestFullscreen) {
+                    /* Chrome, Safari and Opera */
+                    fullscreenBrowserFunctions.webkitRequestFullscreen();
+                } else if (fullscreenBrowserFunctions.msRequestFullscreen) {
+                    /* IE/Edge */
+                    fullscreenBrowserFunctions.msRequestFullscreen();
+                }
             } else if (document.fullscreenElement) {
-                document.exitFullscreen();
+                const docWithBrowsersExitFunctions = document as Document & {
+                    mozCancelFullScreen(): Promise<void>;
+                    webkitExitFullscreen(): Promise<void>;
+                    msExitFullscreen(): Promise<void>;
+                };
+                if (docWithBrowsersExitFunctions.exitFullscreen) {
+                    docWithBrowsersExitFunctions.exitFullscreen();
+                } else if (docWithBrowsersExitFunctions.mozCancelFullScreen) {
+                    /* Firefox */
+                    docWithBrowsersExitFunctions.mozCancelFullScreen();
+                } else if (docWithBrowsersExitFunctions.webkitExitFullscreen) {
+                    /* Chrome, Safari and Opera */
+                    docWithBrowsersExitFunctions.webkitExitFullscreen();
+                } else if (docWithBrowsersExitFunctions.msExitFullscreen) {
+                    /* IE/Edge */
+                    docWithBrowsersExitFunctions.msExitFullscreen();
+                }
             }
         }
     }, [isPlayerFullscreen]);

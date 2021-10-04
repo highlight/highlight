@@ -41,7 +41,16 @@
 }
 
 .addContainer {
+    color: var(--color-gray-500);
     padding: var(--size-small);
+}
+
+.selectMessage {
+    color: var(--color-gray-500);
+}
+
+.notFoundMessage {
+    padding: var(--size-small) 0;
 }
 
 .title {
