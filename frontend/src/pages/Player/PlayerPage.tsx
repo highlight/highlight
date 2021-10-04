@@ -35,6 +35,7 @@ import { Toolbar } from '@pages/Player/Toolbar/Toolbar';
 import { usePlayerFullscreen } from '@pages/Player/utils/PlayerHooks';
 import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard';
 import { SessionSearchOption } from '@pages/Sessions/SessionsFeedV2/components/SessionSearch/SessionSearch';
+import useLocalStorage from '@rehooks/local-storage';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
@@ -103,6 +104,9 @@ const Player = ({ integrated }: Props) => {
     const [commentPosition, setCommentPosition] = useState<
         Coordinates2D | undefined
     >(undefined);
+    const [selectedRightPanelTab, setSelectedRightPanelTab] = useLocalStorage<
+        'Events' | 'Comments' | 'Metadata'
+    >('tabs-PlayerRightPanel-active-tab', 'Events');
 
     useEffect(() => {
         if (!session_id) {
@@ -171,6 +175,8 @@ const Player = ({ integrated }: Props) => {
                 playerCenterPanelRef,
                 detailedPanel,
                 setDetailedPanel,
+                selectedRightPanelTab,
+                setSelectedRightPanelTab,
             }}
         >
             <ReplayerContextProvider value={player}>
