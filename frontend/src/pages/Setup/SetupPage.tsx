@@ -425,10 +425,16 @@ const JsAppInstructions = ({
                         text={`import React from 'react';
 import App from './App';
 import { H } from 'highlight.run'
+import { ErrorBoundary } from '@highlight-run/react';
 
 ${getInitSnippet(projectVerboseId)}
 
-ReactDOM.render(<App />, document.getElementById('root'));`}
+ReactDOM.render(
+  <ErrorBoundary showDialog>
+    <App />
+  </ErrorBoundary>,
+  document.getElementById('root')
+);`}
                     />
                 ) : platform === PlatformType.Vue ? (
                     <CodeBlock
