@@ -292,10 +292,10 @@ const assignEventToSessionInterval = (
 
 export const findNextSessionInList = (
     allSessions: Session[],
-    currentSessionId: string
+    currentSessionSecureId: string
 ): Session | null => {
     let currentSessionIndex = allSessions.findIndex(
-        (session) => session.secure_id === currentSessionId
+        (session) => session.secure_id === currentSessionSecureId
     );
 
     // This happens if the current session was removed from the session feed.
@@ -315,10 +315,10 @@ export const findNextSessionInList = (
 
 export const findPreviousSessionInList = (
     allSessions: Session[],
-    currentSessionId: string
+    currentSessionSecureId: string
 ): Session | null => {
     const currentSessionIndex = allSessions.findIndex(
-        (session) => session.secure_id === currentSessionId
+        (session) => session.secure_id === currentSessionSecureId
     );
 
     // This happens if the current session was removed from the session feed.
