@@ -274,9 +274,8 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 				CurrentlyInRageClickSet: currentlyInRageClickSet,
 			})
 			if o.Error != nil {
-				return e.Wrap(err, "error getting active duration")
+				return e.Wrap(err, "error processing event chunk")
 			}
-			log.Infof("finished processing events chunk: %+v", o)
 			firstEventTimestamp = o.FirstEventTimestamp
 			lastEventTimestamp = o.LastEventTimestamp
 			activeDuration += o.CalculatedDuration
@@ -601,7 +600,7 @@ type processEventChunkOutput struct {
 	DidEventsChunkChange bool
 	// CurrentlyInRageClickSet denotes whether the currently parsed event is within a rage click set
 	CurrentlyInRageClickSet bool
-	// CurrentlyInRageClickSet denotes whether the currently parsed event is within a rage click set
+	// RageClickSets contains all rage click sets that will be inserted into the db
 	RageClickSets []*model.RageClickEvent
 	// FirstEventTimestamp represents the timestamp for the first event
 	FirstEventTimestamp time.Time
@@ -614,21 +613,6 @@ type processEventChunkOutput struct {
 }
 
 func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput) {
-	/*
-		for each event:
-			if event.type = parse.IncrementalSnapshot (3)
-				if last timestamp isn't zero:
-					diff := subtract last timestamp from current
-					if diff <= min inactive duration:
-						active duration += diff
-				last = current
-				if first timestamp is zero:
-					first = current
-				if event.data.source in (2, 4):
-					if event.data.type in (Click, DblClick, TouchStart):
-						remove events from queue which are out of time range
-						if
-	*/
 	var events *parse.ReplayEvents
 	var err error
 	if input == nil {
