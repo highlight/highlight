@@ -2190,7 +2190,7 @@ func (r *queryResolver) ProjectSuggestion(ctx context.Context, query string) ([]
 	return projects, nil
 }
 
-func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, query string, projectID int) ([]*model.Field, error) {
+func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, projectID int) ([]*model.Field, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
@@ -2198,8 +2198,7 @@ func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, query string,
 	res := r.DB.Where(&model.Field{Type: "session", Name: "environment"}).
 		Where("project_id = ?", projectID).
 		Where("length(value) > ?", 0).
-		Where("value ILIKE ?", "%"+query+"%").
-		Limit(model.SUGGESTION_LIMIT_CONSTANT).
+		Distinct("value").
 		Find(&fields)
 	if err := res.Error; err != nil {
 		return nil, e.Wrap(err, "error querying field suggestion")
