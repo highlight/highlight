@@ -116,9 +116,9 @@ export const ErrorFeedV2 = () => {
 };
 
 const ErrorCardV2 = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
-    const { project_id, error_id } = useParams<{
+    const { project_id, error_secure_id } = useParams<{
         project_id: string;
-        error_id?: string;
+        error_secure_id?: string;
     }>();
     const projectIdRemapped =
         project_id === DEMO_WORKSPACE_APPLICATION_ID
@@ -135,11 +135,12 @@ const ErrorCardV2 = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
     }, [setErrorDates, errorGroup]);
 
     return (
-        <div className={styles.errorCardWrapper} key={errorGroup?.id}>
-            <Link to={`/${projectIdRemapped}/errors/${errorGroup?.id}`}>
+        <div className={styles.errorCardWrapper} key={errorGroup?.secure_id}>
+            <Link to={`/${projectIdRemapped}/errors/${errorGroup?.secure_id}`}>
                 <div
                     className={classNames(styles.errorCard, {
-                        [styles.selected]: error_id === errorGroup?.id,
+                        [styles.selected]:
+                            error_secure_id === errorGroup?.secure_id,
                     })}
                 >
                     <div className={styles.avatarWrapper}>

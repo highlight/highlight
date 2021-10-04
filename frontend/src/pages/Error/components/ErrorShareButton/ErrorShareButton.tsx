@@ -14,7 +14,7 @@ import { ErrorGroup } from '../../../../graph/generated/schemas';
 import styles from './ErrorShareButton.module.scss';
 
 interface Props {
-    errorGroup: Maybe<Pick<ErrorGroup, 'id' | 'is_public'>> | undefined;
+    errorGroup: Maybe<Pick<ErrorGroup, 'secure_id' | 'is_public'>> | undefined;
 }
 
 const ErrorShareButton = ({ errorGroup }: Props) => {
@@ -97,7 +97,7 @@ const ExternalSharingToggle = ({ errorGroup }: Props) => {
                 onChange={(checked: boolean) => {
                     updateErrorGroupIsPublic({
                         variables: {
-                            error_group_id: errorGroup?.id || '',
+                            error_group_secure_id: errorGroup?.secure_id || '',
                             is_public: checked,
                         },
                     });

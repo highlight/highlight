@@ -947,7 +947,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 		if len(input.Group.Event) > 50 {
 			shortEvent = input.Group.Event[:50] + "..."
 		}
-		errorLink := fmt.Sprintf("%s/%d/errors/%d", frontendURL, obj.ProjectID, input.Group.ID)
+		errorLink := fmt.Sprintf("%s/%d/errors/%s", frontendURL, obj.ProjectID, input.Group.SecureID)
 		// construct Slack message
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Highlight Error Alert: %d Recent Occurrences*\n\n%s\n<%s/>", *input.ErrorsCount, shortEvent, errorLink), false, false)
 		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+input.UserIdentifier, false, false))

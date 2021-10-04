@@ -54,8 +54,8 @@ interface Props {
 
 const Player = ({ integrated }: Props) => {
     const { isLoggedIn } = useAuthContext();
-    const { session_id, project_id } = useParams<{
-        session_id: string;
+    const { session_secure_id, project_id } = useParams<{
+        session_secure_id: string;
         project_id: string;
     }>();
     const projectIdRemapped =
@@ -109,10 +109,10 @@ const Player = ({ integrated }: Props) => {
     >('tabs-PlayerRightPanel-active-tab', 'Events');
 
     useEffect(() => {
-        if (!session_id) {
+        if (!session_secure_id) {
             setShowLeftPanel(true);
         }
-    }, [session_id, setShowLeftPanel]);
+    }, [session_secure_id, setShowLeftPanel]);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const resizePlayer = (replayer: Replayer): boolean => {
@@ -261,7 +261,7 @@ const Player = ({ integrated }: Props) => {
                                             onClick={() => {
                                                 window.Intercom(
                                                     'showNewMessage',
-                                                    `I'm seeing an empty session. This is the session ID: "${session_id}"`
+                                                    `I'm seeing an empty session. This is the session ID: "${session_secure_id}"`
                                                 );
                                             }}
                                         >
@@ -281,7 +281,7 @@ const Player = ({ integrated }: Props) => {
                           !!session) ||
                       replayerState !== ReplayerState.Empty ||
                       (replayerState === ReplayerState.Empty &&
-                          !!session_id) ? (
+                          !!session_secure_id) ? (
                         <div
                             id="playerCenterPanel"
                             className={classNames(styles.playerCenterPanel, {

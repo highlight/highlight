@@ -65,8 +65,8 @@ export const usePlayerKeyboardShortcuts = () => {
         showRightPanel,
         setShowRightPanel,
     } = usePlayerConfiguration();
-    const { session_id, project_id } = useParams<{
-        session_id: string;
+    const { session_secure_id, project_id } = useParams<{
+        session_secure_id: string;
         project_id: string;
     }>();
     const history = useHistory();
@@ -184,30 +184,30 @@ export const usePlayerKeyboardShortcuts = () => {
     useHotkeys(
         'shift+n',
         (e) => {
-            if (sessionResults.sessions.length > 0 && session_id) {
+            if (sessionResults.sessions.length > 0 && session_secure_id) {
                 H.track('PlayerSkipToNextSessionKeyboardShortcut');
                 moveFocusToDocument(e);
 
                 const nextSession = findNextSessionInList(
                     sessionResults.sessions,
-                    session_id
+                    session_secure_id
                 );
                 changeSession(project_id, history, nextSession);
             }
         },
-        [session_id, sessionResults]
+        [session_secure_id, sessionResults]
     );
 
     useHotkeys(
         'shift+p',
         (e) => {
-            if (sessionResults.sessions.length > 0 && session_id) {
+            if (sessionResults.sessions.length > 0 && session_secure_id) {
                 H.track('PlayerSkipToPreviousSessionKeyboardShortcut');
                 moveFocusToDocument(e);
 
                 const nextSession = findPreviousSessionInList(
                     sessionResults.sessions,
-                    session_id
+                    session_secure_id
                 );
                 changeSession(
                     project_id,
@@ -217,7 +217,7 @@ export const usePlayerKeyboardShortcuts = () => {
                 );
             }
         },
-        [session_id, sessionResults]
+        [session_secure_id, sessionResults]
     );
 
     useHotkeys(
