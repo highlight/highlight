@@ -482,7 +482,7 @@ export const AlertConfigurationCard = ({
                         <Select
                             className={styles.channelSelect}
                             options={environments}
-                            mode="multiple"
+                            mode="tags"
                             placeholder={`Select a environment(s) that should not trigger alerts.`}
                             onChange={onExcludedEnvironmentsChange}
                         />
