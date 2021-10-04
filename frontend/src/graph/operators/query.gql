@@ -640,13 +640,6 @@ query GetUserPropertiesAlert($project_id: ID!) {
     }
 }
 
-query GetEnvironmentSuggestion($query: String!, $project_id: ID!) {
-    environment_suggestion(query: $query, project_id: $project_id) {
-        name
-        value
-    }
-}
-
 query GetSlackChannelSuggestion($project_id: ID!) {
     slack_channel_suggestion(project_id: $project_id) {
         webhook_channel
@@ -660,7 +653,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         webhook_channel
         webhook_channel_id
     }
-    environment_suggestion(query: "q", project_id: $project_id) {
+    environment_suggestion(project_id: $project_id) {
         name
         value
     }

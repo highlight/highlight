@@ -1539,21 +1539,6 @@ export type GetUserPropertiesAlertQuery = { __typename?: 'Query' } & {
     >;
 };
 
-export type GetEnvironmentSuggestionQueryVariables = Types.Exact<{
-    query: Types.Scalars['String'];
-    project_id: Types.Scalars['ID'];
-}>;
-
-export type GetEnvironmentSuggestionQuery = { __typename?: 'Query' } & {
-    environment_suggestion?: Types.Maybe<
-        Array<
-            Types.Maybe<
-                { __typename?: 'Field' } & Pick<Types.Field, 'name' | 'value'>
-            >
-        >
-    >;
-};
-
 export type GetSlackChannelSuggestionQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
 }>;
@@ -1764,7 +1749,6 @@ export const namedOperations = {
         GetNewUserAlert: 'GetNewUserAlert' as const,
         GetTrackPropertiesAlert: 'GetTrackPropertiesAlert' as const,
         GetUserPropertiesAlert: 'GetUserPropertiesAlert' as const,
-        GetEnvironmentSuggestion: 'GetEnvironmentSuggestion' as const,
         GetSlackChannelSuggestion: 'GetSlackChannelSuggestion' as const,
         GetAlertsPagePayload: 'GetAlertsPagePayload' as const,
         GetCommentMentionSuggestions: 'GetCommentMentionSuggestions' as const,

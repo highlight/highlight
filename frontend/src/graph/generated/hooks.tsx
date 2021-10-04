@@ -4485,64 +4485,6 @@ export type GetUserPropertiesAlertQueryResult = Apollo.QueryResult<
     Types.GetUserPropertiesAlertQuery,
     Types.GetUserPropertiesAlertQueryVariables
 >;
-export const GetEnvironmentSuggestionDocument = gql`
-    query GetEnvironmentSuggestion($query: String!, $project_id: ID!) {
-        environment_suggestion(query: $query, project_id: $project_id) {
-            name
-            value
-        }
-    }
-`;
-
-/**
- * __useGetEnvironmentSuggestionQuery__
- *
- * To run a query within a React component, call `useGetEnvironmentSuggestionQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetEnvironmentSuggestionQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetEnvironmentSuggestionQuery({
- *   variables: {
- *      query: // value for 'query'
- *      project_id: // value for 'project_id'
- *   },
- * });
- */
-export function useGetEnvironmentSuggestionQuery(
-    baseOptions: Apollo.QueryHookOptions<
-        Types.GetEnvironmentSuggestionQuery,
-        Types.GetEnvironmentSuggestionQueryVariables
-    >
-) {
-    return Apollo.useQuery<
-        Types.GetEnvironmentSuggestionQuery,
-        Types.GetEnvironmentSuggestionQueryVariables
-    >(GetEnvironmentSuggestionDocument, baseOptions);
-}
-export function useGetEnvironmentSuggestionLazyQuery(
-    baseOptions?: Apollo.LazyQueryHookOptions<
-        Types.GetEnvironmentSuggestionQuery,
-        Types.GetEnvironmentSuggestionQueryVariables
-    >
-) {
-    return Apollo.useLazyQuery<
-        Types.GetEnvironmentSuggestionQuery,
-        Types.GetEnvironmentSuggestionQueryVariables
-    >(GetEnvironmentSuggestionDocument, baseOptions);
-}
-export type GetEnvironmentSuggestionQueryHookResult = ReturnType<
-    typeof useGetEnvironmentSuggestionQuery
->;
-export type GetEnvironmentSuggestionLazyQueryHookResult = ReturnType<
-    typeof useGetEnvironmentSuggestionLazyQuery
->;
-export type GetEnvironmentSuggestionQueryResult = Apollo.QueryResult<
-    Types.GetEnvironmentSuggestionQuery,
-    Types.GetEnvironmentSuggestionQueryVariables
->;
 export const GetSlackChannelSuggestionDocument = gql`
     query GetSlackChannelSuggestion($project_id: ID!) {
         slack_channel_suggestion(project_id: $project_id) {
@@ -4607,7 +4549,7 @@ export const GetAlertsPagePayloadDocument = gql`
             webhook_channel
             webhook_channel_id
         }
-        environment_suggestion(query: "q", project_id: $project_id) {
+        environment_suggestion(project_id: $project_id) {
             name
             value
         }
