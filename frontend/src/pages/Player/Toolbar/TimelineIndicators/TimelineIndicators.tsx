@@ -1,3 +1,4 @@
+import RageClickSpan from '@pages/Player/Toolbar/RageClickSpan/RageClickSpan';
 import classNames from 'classnames';
 import React, { useRef } from 'react';
 
@@ -17,6 +18,7 @@ const TimelineIndicators = () => {
         sessionComments,
         eventsForTimelineIndicator,
         playerProgress,
+        rageClicks,
     } = useReplayerContext();
     const { selectedTimelineAnnotationTypes } = usePlayerConfiguration();
     const { openDevTools } = useDevToolsContext();
@@ -49,6 +51,13 @@ const TimelineIndicators = () => {
             })}
             ref={refContainer}
         >
+            {rageClicks.length &&
+                rageClicks.map((rageClick) => (
+                    <RageClickSpan
+                        key={rageClick.startTimestamp}
+                        rageClick={rageClick}
+                    />
+                ))}
             {selectedTimelineAnnotationTypes.includes('Errors') &&
                 errorsWithTimestamps.map((error) => {
                     const relativeTimestamp =

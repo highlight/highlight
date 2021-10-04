@@ -1739,6 +1739,10 @@ export const GetSessionPayloadDocument = gql`
         errors(session_id: $session_id) {
             ...errorFields
         }
+        rage_clicks(session_id: $session_id) {
+            start_timestamp
+            end_timestamp
+        }
     }
     ${ErrorFieldsFragmentDoc}
 `;
