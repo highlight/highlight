@@ -676,6 +676,7 @@ type ErrorComment struct {
 
 type RageClickEvent struct {
 	Model
+	ProjectID      int
 	SessionID      int
 	StartTimestamp time.Time
 	EndTimestamp   time.Time

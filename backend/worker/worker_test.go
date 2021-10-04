@@ -549,6 +549,10 @@ func TestGetActiveDuration(t *testing.T) {
 				currentlyInRageClickSet = o.CurrentlyInRageClickSet
 			}
 
+			if tt.expectedNumRageClicks != len(rageClickSets) {
+				t.Errorf("expected num rage clicks not equal to actual rage clicks (%d != %d)", tt.expectedNumRageClicks, len(rageClickSets))
+			}
+
 			t.Logf("want: %v, actual: %v", tt.wantActiveDuration, activeDuration)
 			if diff := deep.Equal(tt.wantActiveDuration, activeDuration); diff != nil {
 				t.Errorf("[active duration not equal to expected]: %v", diff)

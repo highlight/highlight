@@ -284,6 +284,16 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			currentlyInRageClickSet = o.CurrentlyInRageClickSet
 		}
 	}
+	for i, r := range rageClickSets {
+		r.SessionID = s.ID
+		r.ProjectID = s.ProjectID
+		rageClickSets[i] = r
+	}
+	if len(rageClickSets) > 0 {
+		if err := w.Resolver.DB.Create(rageClickSets).Error; err != nil {
+			log.Error(e.Wrap(err, "error creating rage click sets"))
+		}
+	}
 
 	// Calculate total session length and write the length to the session.
 	sessionTotalLength := CalculateSessionLength(firstEventTimestamp, lastEventTimestamp)
@@ -659,11 +669,19 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 			}
 
 			// purge old clicks
+			var toRemove []*list.Element
 			for element := input.ClickEventQueue.Front(); element != nil; element = element.Next() {
 				if event.Timestamp.Sub(element.Value.(*parse.ReplayEvent).Timestamp) > time.Second*5 {
-					// log.Infof("removing: %+v", element.Value)
-					input.ClickEventQueue.Remove(element)
+					toRemove = append(toRemove, element)
 				}
+			}
+			if input.ClickEventQueue.Len()-len(toRemove) < 5 && o.CurrentlyInRageClickSet {
+				o.CurrentlyInRageClickSet = false
+				last := toRemove[len(toRemove)-1].Value.(*parse.ReplayEvent)
+				o.RageClickSets[len(o.RageClickSets)-1].EndTimestamp = last.Timestamp
+			}
+			for _, elem := range toRemove {
+				input.ClickEventQueue.Remove(elem)
 			}
 
 			var mouseInteractionEventData parse.MouseInteractionEventData
@@ -719,14 +737,16 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 					SessionID:      input.SessionID,
 					StartTimestamp: first.Timestamp,
 				})
-			} else if input.ClickEventQueue.Len() < 5 && o.CurrentlyInRageClickSet {
+			} else if input.ClickEventQueue.Len() < 5 && input.ClickEventQueue.Len() > 0 && o.CurrentlyInRageClickSet {
 				// create end of rage click set event
 				o.CurrentlyInRageClickSet = false
 				last := input.ClickEventQueue.Back().Value.(*parse.ReplayEvent)
-				// do something with this
-				log.Info("ending rage click event")
 				o.RageClickSets[len(o.RageClickSets)-1].EndTimestamp = last.Timestamp
 				continue
+			}
+			if input.ClickEventQueue.Len() > 0 && o.CurrentlyInRageClickSet {
+				last := input.ClickEventQueue.Back().Value.(*parse.ReplayEvent)
+				o.RageClickSets[len(o.RageClickSets)-1].EndTimestamp = last.Timestamp
 			}
 		}
 	}
