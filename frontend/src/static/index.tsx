@@ -1,4 +1,5 @@
 export { default as AnnotationDotsIcon } from './AnnotationDotsIcon';
+export { default as AnnotationWarningIcon } from './AnnotationWarningIcon';
 export { default as AnnouncementIcon } from './AnnouncementIcon';
 export { default as ArrowLeftIcon } from './ArrowLeftIcon';
 export { default as ArrowRight } from './ArrowRight';
