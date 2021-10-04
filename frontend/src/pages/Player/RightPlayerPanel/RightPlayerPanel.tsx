@@ -1,5 +1,6 @@
 import EventStream from '@pages/Player/components/EventStream/EventStream';
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
+import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils';
 import DetailPanel from '@pages/Player/Toolbar/DevToolsWindow/DetailPanel/DetailPanel';
 import classNames from 'classnames';
 import React, { useEffect } from 'react';
@@ -21,7 +22,11 @@ const RightPlayerPanel = () => {
         setShowRightPanel,
     } = usePlayerConfiguration();
     const { canViewSession } = useReplayerContext();
-    const { detailedPanel, setDetailedPanel } = usePlayerUIContext();
+    const {
+        detailedPanel,
+        setDetailedPanel,
+        setSelectedRightPanelTab,
+    } = usePlayerUIContext();
 
     const showRightPanel = showRightPanelPreference && canViewSession;
 
@@ -30,6 +35,17 @@ const RightPlayerPanel = () => {
             setShowRightPanel(true);
         }
     }, [detailedPanel, setShowRightPanel]);
+
+    useEffect(() => {
+        const commentId = new URLSearchParams(location.search).get(
+            PlayerSearchParameters.commentId
+        );
+
+        if (commentId) {
+            setShowRightPanel(true);
+            setSelectedRightPanelTab('Comments');
+        }
+    }, [setSelectedRightPanelTab, setShowRightPanel]);
 
     return (
         <>
