@@ -675,6 +675,7 @@ export type CreateProjectMutationOptions = Apollo.BaseMutationOptions<
 export const EditProjectDocument = gql`
     mutation EditProject($id: ID!, $name: String, $billing_email: String) {
         editProject(id: $id, name: $name, billing_email: $billing_email) {
+            id
             name
             billing_email
         }
@@ -772,6 +773,7 @@ export type DeleteProjectMutationOptions = Apollo.BaseMutationOptions<
 export const EditWorkspaceDocument = gql`
     mutation EditWorkspace($id: ID!, $name: String) {
         editWorkspace(id: $id, name: $name) {
+            id
             name
         }
     }

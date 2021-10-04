@@ -92,7 +92,7 @@ func (r *Resolver) addAdminMembership(ctx context.Context, obj model.HasSecret, 
 	if err := r.DB.Model(obj).Where("id = ?", objId).First(obj).Error; err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
-	if obj.GetSecret() == nil || (obj.GetSecret() != nil && *obj.GetSecret() != inviteID) {
+	if obj.GetSecret() == nil || *obj.GetSecret() != inviteID {
 		return nil, e.New("invalid invite id")
 	}
 	admin, err := r.getCurrentAdmin(ctx)
@@ -132,18 +132,12 @@ func (r *Resolver) isAdminInWorkspace(ctx context.Context, workspaceID int) (*mo
 		return nil, e.Wrap(err, "error retrieving user")
 	}
 
-	workspaces := []*model.Workspace{}
-	if err := r.DB.Order("name asc").Model(&admin).Association("Workspaces").Find(&workspaces); err != nil {
+	workspace := model.Workspace{Model: model.Model{ID: workspaceID}}
+	if err := r.DB.Order("name asc").Where(&workspace).Model(&admin).Association("Workspaces").Find(&workspace); err != nil {
 		return nil, e.Wrap(err, "error getting associated workspaces")
 	}
 
-	for _, w := range workspaces {
-		if w.ID == workspaceID {
-			return w, nil
-		}
-	}
-
-	return nil, e.New("admin doesn't exist in workspace")
+	return &workspace, nil
 }
 
 // isAdminInProject should be used for actions that you only want admins in all projects to have access to.

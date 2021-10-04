@@ -142,7 +142,7 @@ export type EditProjectMutation = { __typename?: 'Mutation' } & {
     editProject?: Types.Maybe<
         { __typename?: 'Project' } & Pick<
             Types.Project,
-            'name' | 'billing_email'
+            'id' | 'name' | 'billing_email'
         >
     >;
 };
@@ -163,7 +163,7 @@ export type EditWorkspaceMutationVariables = Types.Exact<{
 
 export type EditWorkspaceMutation = { __typename?: 'Mutation' } & {
     editWorkspace?: Types.Maybe<
-        { __typename?: 'Workspace' } & Pick<Types.Workspace, 'name'>
+        { __typename?: 'Workspace' } & Pick<Types.Workspace, 'id' | 'name'>
     >;
 };
 
