@@ -525,6 +525,13 @@ const getIncludesOption = (
 
 const transformSelectedProperties = (selectedProperties: any[]) => {
     return selectedProperties?.map((property) => {
+        if (property.value.includes('contains:')) {
+            return {
+                ...property,
+                name: 'contains',
+                value: property.name,
+            };
+        }
         if (property.name.includes('Contains:')) {
             if (
                 property.apiType === 'visitedUrls' ||
