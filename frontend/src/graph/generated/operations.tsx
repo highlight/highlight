@@ -566,6 +566,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
     session?: Types.Maybe<
         { __typename?: 'Session' } & Pick<
             Types.Session,
+            | 'secure_id'
             | 'os_name'
             | 'os_version'
             | 'browser_name'

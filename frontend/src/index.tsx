@@ -182,14 +182,14 @@ get in contact with us!
                         <AuthAdminRouter />
                     </Route>
                     <Route
-                        path="/:project_id(\d+)/sessions/:session_secure_id(\d+)"
+                        path="/:project_id(\d+)/sessions/:session_secure_id(\w+)"
                         exact
                     >
                         {/* Allow guests to access this route without being asked to log in */}
                         <AuthAdminRouter />
                     </Route>
                     <Route
-                        path="/:organization_id(\d+)/errors/:error_secure_id(\d+)"
+                        path="/:project_id(\d+)/errors/:error_secure_id(\w+)"
                         exact
                     >
                         {/* Allow guests to access this route without being asked to log in */}

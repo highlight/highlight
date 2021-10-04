@@ -1795,6 +1795,7 @@ export type GetSessionPayloadQueryResult = Apollo.QueryResult<
 export const GetSessionDocument = gql`
     query GetSession($secure_id: String!) {
         session(secure_id: $secure_id) {
+            secure_id
             os_name
             os_version
             browser_name
