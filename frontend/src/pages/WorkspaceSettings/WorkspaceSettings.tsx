@@ -7,7 +7,7 @@ import { DangerForm } from './DangerForm/DangerForm';
 import { FieldsForm } from './FieldsForm/FieldsForm';
 import styles from './WorkspaceSettings.module.scss';
 
-const WorkspaceSettings = () => {
+const ProjectSettings = () => {
     return (
         <LeadAlignLayout>
             <h2>Project Settings</h2>
@@ -26,4 +26,4 @@ const WorkspaceSettings = () => {
     );
 };
 
-export default WorkspaceSettings;
+export default ProjectSettings;

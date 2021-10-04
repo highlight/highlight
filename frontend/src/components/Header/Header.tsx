@@ -168,14 +168,10 @@ const OnPremiseBanner = () => {
 };
 
 const DemoWorkspaceBanner = () => {
-    const { currentApplication, allApplications } = useApplicationContext();
+    const { currentProject, allProjects } = useApplicationContext();
     const { pathname } = useLocation();
 
-    const redirectLink = getRedirectLink(
-        allApplications,
-        currentApplication,
-        pathname
-    );
+    const redirectLink = getRedirectLink(allProjects, currentProject, pathname);
 
     return (
         <div

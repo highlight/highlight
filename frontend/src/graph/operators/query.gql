@@ -231,16 +231,12 @@ query GetWorkspace($id: ID!) {
 }
 
 # Gets the current application and all applications the admin has access to.
-query GetVisibleProjectsAndWorkspaces($id: ID!) {
-    workspaces {
-        id
-        name
-    }
+query GetProjectDropdownOptions($project_id: ID!) {
     projects {
         id
         name
     }
-    project(id: $id) {
+    project(id: $project_id) {
         id
         name
         verbose_id
@@ -248,7 +244,22 @@ query GetVisibleProjectsAndWorkspaces($id: ID!) {
         secret
         workspace_id
     }
-    workspace: workspace_for_project(project_id: $id) {
+    workspace: workspace_for_project(project_id: $project_id) {
+        id
+        name
+        slack_webhook_channel
+        secret
+    }
+}
+
+query GetWorkspaceDropdownOptions($workspace_id: ID!) {
+    projects {
+        id
+        name
+    }
+    workspace(id: $workspace_id) {
+        id
+        name
         slack_webhook_channel
         secret
     }

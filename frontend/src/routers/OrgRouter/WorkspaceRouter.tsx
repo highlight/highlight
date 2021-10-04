@@ -1,41 +1,36 @@
-import useLocalStorage from '@rehooks/local-storage';
+import LoginForm from '@pages/Login/Login';
 import { GlobalContextProvider } from '@routers/OrgRouter/context/GlobalContext';
+import { WorkspaceRedirectionRouter } from '@routers/OrgRouter/WorkspaceRedirectionRouter';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import React, { useEffect } from 'react';
+import { Route, Switch } from 'react-router-dom';
 import { useToggle } from 'react-use';
 
 import { useAuthContext } from '../../authentication/AuthContext';
 import commonStyles from '../../Common.module.scss';
-import { ErrorState } from '../../components/ErrorState/ErrorState';
 import { Header } from '../../components/Header/Header';
-import OnboardingBubble from '../../components/OnboardingBubble/OnboardingBubble';
 import { Sidebar } from '../../components/Sidebar/Sidebar';
-import { useGetProjectDropdownOptionsQuery } from '../../graph/generated/hooks';
+import { useGetWorkspaceDropdownOptionsQuery } from '../../graph/generated/hooks';
 import { useIntegrated } from '../../util/integrated';
 import { ApplicationContextProvider } from './ApplicationContext';
-import ApplicationRouter from './ApplicationRouter';
 
-export const ProjectRouter = () => {
+export const WorkspaceRouter = () => {
     const { isLoggedIn } = useAuthContext();
     const [
         showKeyboardShortcutsGuide,
         toggleShowKeyboardShortcutsGuide,
     ] = useToggle(false);
-    const { project_id } = useParams<{
-        project_id: string;
+    const { workspace_id } = useParams<{
+        workspace_id: string;
     }>();
 
-    const { data, loading, error } = useGetProjectDropdownOptionsQuery({
-        variables: { project_id },
+    const { data, loading, error } = useGetWorkspaceDropdownOptionsQuery({
+        variables: { workspace_id },
         skip: !isLoggedIn, // Higher level routers decide when guests are allowed to hit this router
     });
 
     const { integrated, loading: integratedLoading } = useIntegrated();
-    const [hasFinishedOnboarding] = useLocalStorage(
-        `highlight-finished-onboarding-${project_id}`,
-        false
-    );
 
     useEffect(() => {
         if (!isOnPrem) {
@@ -75,7 +70,7 @@ export const ProjectRouter = () => {
         >
             <ApplicationContextProvider
                 value={{
-                    currentProject: data?.project || undefined,
+                    currentProject: undefined,
                     allProjects: data?.projects || [],
                     currentWorkspace: data?.workspace || undefined,
                 }}
@@ -83,28 +78,18 @@ export const ProjectRouter = () => {
                 <Header />
                 {isLoggedIn && <Sidebar />}
                 <div className={commonStyles.bodyWrapper}>
-                    {/* Edge case: shareable links will still direct to this error page if you are logged in on a different project */}
-                    {isLoggedIn && (error || !data?.project) ? (
-                        <ErrorState
-                            message={`
-                        Seems like you don’t have access to this page 😢. If you're
-                        part of a team, ask your project admin to send you an
-                        invite. Otherwise, feel free to make an account!
-                        `}
-                            errorString={
-                                'ProjectRouter Error: ' + JSON.stringify(error)
-                            }
-                        />
-                    ) : (
-                        <>
-                            {isLoggedIn && !hasFinishedOnboarding && (
-                                <>
-                                    <OnboardingBubble />
-                                </>
+                    <Switch>
+                        <Route path="/w/:workspace_id(\d+)/settings">
+                            <WorkspaceSettingsPage />
+                        </Route>
+                        <Route path="/w/:workspace_id(\d+)/">
+                            {isLoggedIn ? (
+                                <WorkspaceRedirectionRouter />
+                            ) : (
+                                <LoginForm />
                             )}
-                            <ApplicationRouter integrated={integrated} />
-                        </>
-                    )}
+                        </Route>
+                    </Switch>
                 </div>
             </ApplicationContextProvider>
         </GlobalContextProvider>

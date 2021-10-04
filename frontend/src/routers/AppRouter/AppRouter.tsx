@@ -4,7 +4,7 @@ import { useAuthContext } from '@authentication/AuthContext';
 import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import LoginForm from '@pages/Login/Login';
 import { ProjectRedirectionRouter } from '@routers/OrgRouter/OrgRedirectionRouter';
-import { WorkspaceRedirectionRouter } from '@routers/OrgRouter/WorkspaceRedirectionRouter';
+import { WorkspaceRouter } from '@routers/OrgRouter/WorkspaceRouter';
 import React from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 
@@ -49,11 +49,7 @@ export const AppRouter = () => {
                         <ProjectRouter />
                     </Route>
                     <Route path="/w/:workspace_id(\d+)/">
-                        {isLoggedIn ? (
-                            <WorkspaceRedirectionRouter />
-                        ) : (
-                            <LoginForm />
-                        )}
+                        <WorkspaceRouter />
                     </Route>
                     <Route path="/">
                         {isLoggedIn ? (

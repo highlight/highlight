@@ -20,7 +20,6 @@ import SvgPlugIcon from '../../static/PlugIcon';
 import SvgSessionsIcon from '../../static/SessionsIcon';
 import SvgUsersIcon from '../../static/UsersIcon';
 import Changelog from '../Changelog/Changelog';
-import { MiniWorkspaceIcon } from '../Header/WorkspaceDropdown/WorkspaceDropdown';
 import Tooltip from '../Tooltip/Tooltip';
 import styles from './Sidebar.module.scss';
 
@@ -50,7 +49,7 @@ const LEAD_NAVIGATION_ITEMS: NavigationItem[] = [
 ];
 
 export const Sidebar = () => {
-    const { currentApplication } = useApplicationContext();
+    const { currentProject } = useApplicationContext();
     const { admin } = useAuthContext();
 
     const END_NAVIGATION_ITEMS: NavigationItem[] = [
@@ -93,7 +92,6 @@ export const Sidebar = () => {
                     styles.sideBar
                 )}
             >
-                <MiniWorkspaceIcon />
                 {LEAD_NAVIGATION_ITEMS.map(
                     ({ Icon, displayName, route, className }) => (
                         <MiniSidebarItem
@@ -109,7 +107,7 @@ export const Sidebar = () => {
                         </MiniSidebarItem>
                     )
                 )}
-                {currentApplication?.id !== DEMO_WORKSPACE_APPLICATION_ID && (
+                {currentProject?.id !== DEMO_WORKSPACE_APPLICATION_ID && (
                     <>
                         <div className={styles.settingsDivider} />
                         {END_NAVIGATION_ITEMS.map(

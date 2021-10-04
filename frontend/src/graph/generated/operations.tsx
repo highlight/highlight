@@ -875,21 +875,11 @@ export type GetWorkspaceQuery = { __typename?: 'Query' } & {
     >;
 };
 
-export type GetVisibleProjectsAndWorkspacesQueryVariables = Types.Exact<{
-    id: Types.Scalars['ID'];
+export type GetProjectDropdownOptionsQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
 }>;
 
-export type GetVisibleProjectsAndWorkspacesQuery = { __typename?: 'Query' } & {
-    workspaces?: Types.Maybe<
-        Array<
-            Types.Maybe<
-                { __typename?: 'Workspace' } & Pick<
-                    Types.Workspace,
-                    'id' | 'name'
-                >
-            >
-        >
-    >;
+export type GetProjectDropdownOptionsQuery = { __typename?: 'Query' } & {
     projects?: Types.Maybe<
         Array<
             Types.Maybe<
@@ -911,7 +901,27 @@ export type GetVisibleProjectsAndWorkspacesQuery = { __typename?: 'Query' } & {
     workspace?: Types.Maybe<
         { __typename?: 'Workspace' } & Pick<
             Types.Workspace,
-            'slack_webhook_channel' | 'secret'
+            'id' | 'name' | 'slack_webhook_channel' | 'secret'
+        >
+    >;
+};
+
+export type GetWorkspaceDropdownOptionsQueryVariables = Types.Exact<{
+    workspace_id: Types.Scalars['ID'];
+}>;
+
+export type GetWorkspaceDropdownOptionsQuery = { __typename?: 'Query' } & {
+    projects?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Project' } & Pick<Types.Project, 'id' | 'name'>
+            >
+        >
+    >;
+    workspace?: Types.Maybe<
+        { __typename?: 'Workspace' } & Pick<
+            Types.Workspace,
+            'id' | 'name' | 'slack_webhook_channel' | 'secret'
         >
     >;
 };
@@ -1817,7 +1827,8 @@ export const namedOperations = {
         GetSessions: 'GetSessions' as const,
         GetProjects: 'GetProjects' as const,
         GetWorkspace: 'GetWorkspace' as const,
-        GetVisibleProjectsAndWorkspaces: 'GetVisibleProjectsAndWorkspaces' as const,
+        GetProjectDropdownOptions: 'GetProjectDropdownOptions' as const,
+        GetWorkspaceDropdownOptions: 'GetWorkspaceDropdownOptions' as const,
         GetAdmin: 'GetAdmin' as const,
         GetProject: 'GetProject' as const,
         GetWorkspaceForProject: 'GetWorkspaceForProject' as const,

@@ -26,7 +26,7 @@ import {
     SearchParams,
 } from '../../pages/Sessions/SearchContext/SearchContext';
 import SetupPage from '../../pages/Setup/SetupPage';
-import WorkspaceSettings from '../../pages/WorkspaceSettings/WorkspaceSettings';
+import ProjectSettings from '../../pages/WorkspaceSettings/WorkspaceSettings';
 import WorkspaceTeam from '../../pages/WorkspaceTeam/WorkspaceTeam';
 
 interface Props {
@@ -169,7 +169,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
                     </Route>
                 )}
                 <Route path="/:project_id/settings">
-                    <WorkspaceSettings />
+                    <ProjectSettings />
                 </Route>
                 <Route path="/:project_id/alerts">
                     <AlertsPage />
