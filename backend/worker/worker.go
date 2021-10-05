@@ -16,7 +16,6 @@ import (
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
-	"github.com/gammazero/workerpool"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
@@ -24,6 +23,7 @@ import (
 	"github.com/highlight-run/highlight/backend/payload"
 	mgraph "github.com/highlight-run/highlight/backend/private-graph/graph"
 	"github.com/highlight-run/highlight/backend/util"
+	"github.com/highlight-run/workerpool"
 )
 
 // Worker is a job runner that parses sessions
