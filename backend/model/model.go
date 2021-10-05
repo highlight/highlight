@@ -694,6 +694,7 @@ type RageClickEvent struct {
 	Model
 	ProjectID      int
 	SessionID      int
+	TotalClicks    int
 	StartTimestamp time.Time
 	EndTimestamp   time.Time
 }

@@ -286,10 +286,8 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		r.SessionID = s.ID
 		r.ProjectID = s.ProjectID
 		rageClickSets[i] = r
-		log.Info("here3")
 	}
 	if len(rageClickSets) > 0 {
-		log.Info("here2")
 		if err := w.Resolver.DB.Create(&rageClickSets).Error; err != nil {
 			log.Error(e.Wrap(err, "error creating rage click sets"))
 		}
@@ -557,7 +555,6 @@ func (w *Worker) Start() {
 			session := session
 			wp.Submit(func() {
 				span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"), tracer.Tag("session_id", strconv.Itoa(session.ID)))
-				log.Info("here")
 				if err := w.processSession(ctx, session); err != nil {
 					log.WithField("session_id", session.ID).Error(e.Wrap(err, "error processing main session"))
 					span.Finish(tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID)))
@@ -642,7 +639,6 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 			continue
 		}
 		if event.Type == parse.IncrementalSnapshot {
-			log.Infof("timestamp: %+v", event.Timestamp)
 			var diff time.Duration
 			if !o.LastEventTimestamp.IsZero() {
 				diff = event.Timestamp.Sub(o.LastEventTimestamp)
@@ -675,7 +671,12 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 
 			if input.ClickEventQueue.Len() < 5 && o.CurrentlyInRageClickSet {
 				o.CurrentlyInRageClickSet = false
-				log.Info("ending rage click set1")
+				if input.ClickEventQueue.Len() > 0 {
+					last := toRemove[len(toRemove)-1].Value.(*parse.ReplayEvent)
+					if last.Timestamp.After(o.RageClickSets[len(o.RageClickSets)-1].EndTimestamp) {
+						o.RageClickSets[len(o.RageClickSets)-1].EndTimestamp = last.Timestamp
+					}
+				}
 			}
 
 			var mouseInteractionEventData parse.MouseInteractionEventData
@@ -716,23 +717,25 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 
 			if shouldPushEvent {
 				// this is here so that we only push events in one place in the code
+				if o.CurrentlyInRageClickSet {
+					o.RageClickSets[len(o.RageClickSets)-1].TotalClicks += 1
+				}
 				input.ClickEventQueue.PushBack(event)
 			}
 
 		HandleRageClickEvent:
 			// create rage click start or end event
 			if input.ClickEventQueue.Len() >= 5 && !o.CurrentlyInRageClickSet {
-				log.Info("creating rage click set")
 				// create start of rage click set event
 				o.CurrentlyInRageClickSet = true
 				first := input.ClickEventQueue.Front().Value.(*parse.ReplayEvent)
 				o.RageClickSets = append(o.RageClickSets, &model.RageClickEvent{
 					SessionID:      input.SessionID,
 					StartTimestamp: first.Timestamp,
+					TotalClicks:    5, // the start of a rage click set happens at 5 clicks
 				})
 			} else if input.ClickEventQueue.Len() < 5 && input.ClickEventQueue.Len() > 0 && o.CurrentlyInRageClickSet {
 				// create end of rage click set event
-				log.Info("ending rage click set")
 				o.CurrentlyInRageClickSet = false
 				last := input.ClickEventQueue.Back().Value.(*parse.ReplayEvent)
 				o.RageClickSets[len(o.RageClickSets)-1].EndTimestamp = last.Timestamp
