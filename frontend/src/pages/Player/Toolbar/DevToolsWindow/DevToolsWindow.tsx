@@ -48,7 +48,6 @@ export const DevToolsWindow = ({
             borderClass={styles.resizeBorder}
         >
             <div className={styles.devToolsWrapper}>
-                <div className={styles.resizePlaceholder}></div>
                 <Tabs
                     tabs={TABS}
                     id="DevTools"

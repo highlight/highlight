@@ -8,7 +8,6 @@ export const optionsWrapper: string;
 export const resizeBorder: string;
 export const resizeContainer: string;
 export const resizeHandle: string;
-export const resizePlaceholder: string;
 export const selected: string;
 export const skeletonWrapper: string;
 export const toggleWrapper: string;
