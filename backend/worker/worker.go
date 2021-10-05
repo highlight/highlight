@@ -286,9 +286,11 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		r.SessionID = s.ID
 		r.ProjectID = s.ProjectID
 		rageClickSets[i] = r
+		log.Info("here3")
 	}
 	if len(rageClickSets) > 0 {
-		if err := w.Resolver.DB.Create(rageClickSets).Error; err != nil {
+		log.Info("here2")
+		if err := w.Resolver.DB.Create(&rageClickSets).Error; err != nil {
 			log.Error(e.Wrap(err, "error creating rage click sets"))
 		}
 	}
@@ -555,6 +557,7 @@ func (w *Worker) Start() {
 			session := session
 			wp.Submit(func() {
 				span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"), tracer.Tag("session_id", strconv.Itoa(session.ID)))
+				log.Info("here")
 				if err := w.processSession(ctx, session); err != nil {
 					log.WithField("session_id", session.ID).Error(e.Wrap(err, "error processing main session"))
 					span.Finish(tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID)))
@@ -639,6 +642,7 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 			continue
 		}
 		if event.Type == parse.IncrementalSnapshot {
+			log.Infof("timestamp: %+v", event.Timestamp)
 			var diff time.Duration
 			if !o.LastEventTimestamp.IsZero() {
 				diff = event.Timestamp.Sub(o.LastEventTimestamp)
@@ -658,13 +662,20 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 					toRemove = append(toRemove, element)
 				}
 			}
-			if input.ClickEventQueue.Len()-len(toRemove) < 5 && o.CurrentlyInRageClickSet {
-				o.CurrentlyInRageClickSet = false
-				last := toRemove[len(toRemove)-1].Value.(*parse.ReplayEvent)
-				o.RageClickSets[len(o.RageClickSets)-1].EndTimestamp = last.Timestamp
-			}
+
 			for _, elem := range toRemove {
 				input.ClickEventQueue.Remove(elem)
+				if o.CurrentlyInRageClickSet {
+					last := toRemove[len(toRemove)-1].Value.(*parse.ReplayEvent)
+					if last.Timestamp.After(o.RageClickSets[len(o.RageClickSets)-1].EndTimestamp) {
+						o.RageClickSets[len(o.RageClickSets)-1].EndTimestamp = last.Timestamp
+					}
+				}
+			}
+
+			if input.ClickEventQueue.Len() < 5 && o.CurrentlyInRageClickSet {
+				o.CurrentlyInRageClickSet = false
+				log.Info("ending rage click set1")
 			}
 
 			var mouseInteractionEventData parse.MouseInteractionEventData
@@ -711,6 +722,7 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 		HandleRageClickEvent:
 			// create rage click start or end event
 			if input.ClickEventQueue.Len() >= 5 && !o.CurrentlyInRageClickSet {
+				log.Info("creating rage click set")
 				// create start of rage click set event
 				o.CurrentlyInRageClickSet = true
 				first := input.ClickEventQueue.Front().Value.(*parse.ReplayEvent)
@@ -720,6 +732,7 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 				})
 			} else if input.ClickEventQueue.Len() < 5 && input.ClickEventQueue.Len() > 0 && o.CurrentlyInRageClickSet {
 				// create end of rage click set event
+				log.Info("ending rage click set")
 				o.CurrentlyInRageClickSet = false
 				last := input.ClickEventQueue.Back().Value.(*parse.ReplayEvent)
 				o.RageClickSets[len(o.RageClickSets)-1].EndTimestamp = last.Timestamp
