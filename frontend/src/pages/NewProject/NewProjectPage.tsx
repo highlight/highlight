@@ -6,7 +6,7 @@ import {
 import { useParams } from '@util/react-router/useParams';
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Redirect } from 'react-router-dom';
+import { Redirect, useHistory } from 'react-router-dom';
 
 import commonStyles from '../../Common.module.scss';
 import Button from '../../components/Button/Button/Button';
@@ -95,18 +95,14 @@ const NewProjectPage = () => {
                 <h2 className={styles.title}>{`Create a ${pageTypeCaps}`}</h2>
                 <p className={styles.subTitle}>
                     {isWorkspace &&
-                        `A workspace is a group of projects that can share team members. If you want to use an existing workspace that you have access to, you can `}
+                        `A workspace is a group of projects that can share team members. If you want to use an existing workspace instead, you can `}
                     {isWorkspace && (
-                                                               <span
-                        onClick={() => history.push('/switch'))}
-                        className={
-                            styles.loginStateSwitcher
-                        }
-                    >
-                        Create an account.
-                    </span> href="/switch" rel="noreferrer">
-                            Switch Workspaces
-                        </a>
+                        <span
+                            onClick={() => history.push('/switch')}
+                            className={styles.switchWorkspace}
+                        >
+                            Change Workspace.
+                        </span>
                     )}
                     {!isWorkspace &&
                         `This project will be added to the '${

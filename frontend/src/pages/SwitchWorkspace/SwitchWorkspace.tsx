@@ -40,10 +40,12 @@ const SwitchWorkspace = () => {
                 <h2 className={styles.title}>{`Select Workspace`}</h2>
                 <p className={styles.subTitle}>
                     You can choose a different workspace to switch to, or{' '}
-                    <a href="/new" rel="noreferrer">
-                        Create a New Workspace
-                    </a>
-                    .
+                    <span
+                        onClick={() => history.push('/new')}
+                        className={styles.newWorkspace}
+                    >
+                        Create a New Workspace.
+                    </span>
                 </p>
                 <Select
                     className={styles.fullWidth}
