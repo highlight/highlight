@@ -390,7 +390,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                 setState(ReplayerState.Paused);
                 setTimeout(() => {
                     history.push(
-                        `/${project_id}/sessions/${nextSessionInList.id}`
+                        `/${project_id}/sessions/${nextSessionInList.secure_id}`
                     );
                     resetPlayer(ReplayerState.Empty);
                 }, 250);
