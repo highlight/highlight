@@ -67,7 +67,7 @@ const NewMemberPage = () => {
                 style={{ marginTop: 16 }}
                 onClick={() => {
                     auth.signOut();
-                    client.cache.reset();
+                    client.clearStore();
                 }}
             >
                 Login as different User

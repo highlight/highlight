@@ -56,7 +56,7 @@ export const ErrorState = ({
                                             H.consumeError(e);
                                         }
                                     }
-                                    client.cache.reset();
+                                    client.clearStore();
                                 }}
                             >
                                 Sign in as a different User
