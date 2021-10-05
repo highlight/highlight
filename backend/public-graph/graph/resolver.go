@@ -546,7 +546,7 @@ func (r *Resolver) processStackFrame(projectId, sessionId int, stackTrace model2
 		return nil, err
 	}
 	stackTraceFilePath := u.Path
-	if stackTraceFilePath[0:1] == "/" {
+	if len(stackTraceFilePath) > 0 && stackTraceFilePath[0:1] == "/" {
 		stackTraceFilePath = stackTraceFilePath[1:]
 	}
 
