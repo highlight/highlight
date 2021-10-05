@@ -2,7 +2,14 @@
     align-items: center;
     color: var(--color-purple);
     display: flex;
-    justify-content: space-between;
+
+    svg {
+        margin: 6px;
+    }
+
+    span {
+        margin-left: 8px;
+    }
 }
 
 .selected {

@@ -137,6 +137,8 @@ const ApplicationRouter = ({ integrated }: Props) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    console.log('application router!', window.history.length);
+
     return (
         <SearchContextProvider
             value={{

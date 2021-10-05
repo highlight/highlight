@@ -29,9 +29,9 @@ const NewMemberPage = () => {
     const { loading: adminLoading, data: adminData } = useGetAdminQuery();
 
     if (adminAdded && isProject) {
-        return <Redirect to={`/${project_id}/setup`} />;
+        return <Redirect to={`/${project_id}`} />;
     } else if (adminAdded) {
-        return <Redirect to={`/w/${workspace_id}/setup`} />;
+        return <Redirect to={`/w/${workspace_id}`} />;
     }
 
     if (adminLoading) {

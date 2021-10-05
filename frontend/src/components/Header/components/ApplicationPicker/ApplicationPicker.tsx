@@ -28,8 +28,8 @@ const ApplicationPicker = () => {
         value: '-1',
         displayValue: (
             <span className={styles.createNewProjectOption}>
-                <span>Create New Project</span>
                 <SvgPlusIcon />
+                <span>Create New Project</span>
             </span>
         ),
         id: '-1',
@@ -39,8 +39,8 @@ const ApplicationPicker = () => {
         value: '-2',
         displayValue: (
             <span className={styles.createNewProjectOption}>
-                <span>Switch Workspace</span>
                 <SvgArrowRightIcon />
+                <span>Switch Workspace</span>
             </span>
         ),
         id: '-2',
@@ -54,8 +54,8 @@ const ApplicationPicker = () => {
                     [styles.selected]: isWorkspaceLevel,
                 })}
             >
-                <span>Workspace Settings</span>
                 <SvgSettingsIcon />
+                <span>Workspace Settings</span>
             </span>
         ),
         id: '-3',
@@ -99,16 +99,17 @@ const ApplicationPicker = () => {
                     if (projectId === newProjectOption.value) {
                         history.push(`/w/${currentWorkspace!.id}/new`);
                     } else if (projectId === workspaceSettingsOption.value) {
-                        history.push(`/w/${currentWorkspace!.id}/settings`);
+                        history.push(`/w/${currentWorkspace!.id}/team`);
                     } else if (projectId === switchWorkspaceOption.value) {
-                        history.push(`/switch`);
+                        history.push(
+                            `/switch?current_workspace=${currentWorkspace!.id}`
+                        );
                     } else {
                         const path = isWorkspaceLevel
-                            ? 'home'
+                            ? ''
                             : pathname
                                   .split('/')
                                   .filter((token) => token.length)[1];
-
                         history.push(`/${projectId}/${path}`);
                     }
                 }}

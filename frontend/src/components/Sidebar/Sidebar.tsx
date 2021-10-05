@@ -66,6 +66,12 @@ export const Sidebar = () => {
             hidden: isWorkspace,
         },
         {
+            Icon: SvgUsersIcon,
+            displayName: 'Team',
+            route: 'team',
+            hidden: !isWorkspace,
+        },
+        {
             Icon: SvgBriefcase2Icon,
             displayName: 'Project',
             route: 'settings',
@@ -75,12 +81,6 @@ export const Sidebar = () => {
             displayName: 'Billing',
             route: 'billing',
             hidden: isWorkspace || isOnPrem || admin?.role !== AdminRole.Admin,
-        },
-        {
-            Icon: SvgUsersIcon,
-            displayName: 'Team',
-            route: 'team',
-            hidden: !isWorkspace,
         },
         {
             Icon: SvgAnnouncementIcon,

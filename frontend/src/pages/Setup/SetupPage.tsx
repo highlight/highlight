@@ -43,6 +43,8 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
         variables: { id: project_id },
     });
 
+    console.log('setup page!', window.history.length);
+
     return (
         <LeadAlignLayout>
             <div className={styles.headingWrapper}>

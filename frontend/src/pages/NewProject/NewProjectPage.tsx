@@ -41,6 +41,8 @@ const NewProjectPage = () => {
         },
     ] = useCreateWorkspaceMutation();
 
+    const history = useHistory();
+
     useEffect(() => {
         if (projectError || workspaceError) {
             setError('name', {
@@ -93,7 +95,19 @@ const NewProjectPage = () => {
                 <h2 className={styles.title}>{`Create a ${pageTypeCaps}`}</h2>
                 <p className={styles.subTitle}>
                     {isWorkspace &&
-                        `A workspace is a group of projects that can share a common team.`}
+                        `A workspace is a group of projects that can share team members. If you want to use an existing workspace that you have access to, you can `}
+                    {isWorkspace && (
+                                                               <span
+                        onClick={() => history.push('/switch'))}
+                        className={
+                            styles.loginStateSwitcher
+                        }
+                    >
+                        Create an account.
+                    </span> href="/switch" rel="noreferrer">
+                            Switch Workspaces
+                        </a>
+                    )}
                     {!isWorkspace &&
                         `This project will be added to the '${
                             data?.workspace!.name
