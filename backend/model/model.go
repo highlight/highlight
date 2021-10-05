@@ -879,8 +879,8 @@ type SendSlackAlertInput struct {
 	Organization *Organization
 	// Project is a required parameter
 	Project *Project
-	// SessionID is a required parameter
-	SessionID int
+	// SessionSecureID is a required parameter
+	SessionSecureID string
 	// UserIdentifier is a required parameter for New User, Error, and SessionFeedback alerts
 	UserIdentifier string
 	// Group is a required parameter for Error alerts
@@ -928,7 +928,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 	if input.CommentID != nil {
 		suffix = fmt.Sprintf("?commentId=%d", *input.CommentID)
 	}
-	sessionLink := fmt.Sprintf("<%s/%d/sessions/%d%s>", frontendURL, obj.ProjectID, input.SessionID, suffix)
+	sessionLink := fmt.Sprintf("<%s/%d/sessions/%d%s>", frontendURL, obj.ProjectID, input.SessionSecureID, suffix)
 	messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false))
 
 	if obj.Type == nil {
@@ -1042,7 +1042,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 	if input.Project.SlackAccessToken != nil {
 		slackClient = slack.New(*input.Project.SlackAccessToken)
 	}
-	log.Printf("Sending Slack Alert for project: %d session: %d", input.Project.ID, input.SessionID)
+	log.Printf("Sending Slack Alert for project: %d session: %s", input.Project.ID, input.SessionSecureID)
 
 	// send message
 	for _, channel := range channels {
