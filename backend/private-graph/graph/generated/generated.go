@@ -210,9 +210,10 @@ type ComplexityRoot struct {
 		CreateErrorComment               func(childComplexity int, projectID int, errorGroupID *int, errorGroupSecureID *string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string) int
 		CreateErrorSegment               func(childComplexity int, projectID int, name string, params model.ErrorSearchParamsInput) int
 		CreateOrUpdateStripeSubscription func(childComplexity int, projectID int, planType model.PlanType) int
-		CreateProject                    func(childComplexity int, projectName string, workspaceID *int, workspaceName *string) int
+		CreateProject                    func(childComplexity int, name string, workspaceID int) int
 		CreateSegment                    func(childComplexity int, projectID int, name string, params model.SearchParamsInput) int
 		CreateSessionComment             func(childComplexity int, projectID int, sessionID *int, sessionSecureID *string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string) int
+		CreateWorkspace                  func(childComplexity int, name string) int
 		DeleteAdminFromProject           func(childComplexity int, projectID int, adminID int) int
 		DeleteAdminFromWorkspace         func(childComplexity int, workspaceID int, adminID int) int
 		DeleteErrorComment               func(childComplexity int, id int) int
@@ -309,6 +310,7 @@ type ComplexityRoot struct {
 		UserFingerprintCount      func(childComplexity int, projectID int, lookBackPeriod int) int
 		UserPropertiesAlert       func(childComplexity int, projectID int) int
 		Workspace                 func(childComplexity int, id int) int
+		WorkspaceAdmins           func(childComplexity int, workspaceID int) int
 		WorkspaceForProject       func(childComplexity int, projectID int) int
 		Workspaces                func(childComplexity int) int
 	}
@@ -482,7 +484,8 @@ type ErrorSegmentResolver interface {
 	Params(ctx context.Context, obj *model1.ErrorSegment) (*model1.ErrorSearchParams, error)
 }
 type MutationResolver interface {
-	CreateProject(ctx context.Context, projectName string, workspaceID *int, workspaceName *string) (*model1.Project, error)
+	CreateProject(ctx context.Context, name string, workspaceID int) (*model1.Project, error)
+	CreateWorkspace(ctx context.Context, name string) (*model1.Workspace, error)
 	EditProject(ctx context.Context, id int, name *string, billingEmail *string) (*model1.Project, error)
 	EditWorkspace(ctx context.Context, id int, name *string) (*model1.Workspace, error)
 	MarkSessionAsViewed(ctx context.Context, id *int, secureID *string, viewed *bool) (*model1.Session, error)
@@ -533,6 +536,7 @@ type QueryResolver interface {
 	ErrorCommentsForAdmin(ctx context.Context) ([]*model1.ErrorComment, error)
 	ErrorCommentsForProject(ctx context.Context, projectID int) ([]*model1.ErrorComment, error)
 	ProjectAdmins(ctx context.Context, projectID int) ([]*model1.Admin, error)
+	WorkspaceAdmins(ctx context.Context, workspaceID int) ([]*model1.Admin, error)
 	IsIntegrated(ctx context.Context, projectID int) (*bool, error)
 	UnprocessedSessionsCount(ctx context.Context, projectID int) (*int64, error)
 	AdminHasCreatedComment(ctx context.Context, adminID int) (*bool, error)
@@ -1352,7 +1356,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateProject(childComplexity, args["project_name"].(string), args["workspace_id"].(*int), args["workspace_name"].(*string)), true
+		return e.complexity.Mutation.CreateProject(childComplexity, args["name"].(string), args["workspace_id"].(int)), true
 
 	case "Mutation.createSegment":
 		if e.complexity.Mutation.CreateSegment == nil {
@@ -1377,6 +1381,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateSessionComment(childComplexity, args["project_id"].(int), args["session_id"].(*int), args["session_secure_id"].(*string), args["session_timestamp"].(int), args["text"].(string), args["text_for_email"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), args["session_url"].(string), args["time"].(float64), args["author_name"].(string), args["session_image"].(*string)), true
+
+	case "Mutation.createWorkspace":
+		if e.complexity.Mutation.CreateWorkspace == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createWorkspace_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateWorkspace(childComplexity, args["name"].(string)), true
 
 	case "Mutation.deleteAdminFromProject":
 		if e.complexity.Mutation.DeleteAdminFromProject == nil {
@@ -2315,6 +2331,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Workspace(childComplexity, args["id"].(int)), true
+
+	case "Query.workspace_admins":
+		if e.complexity.Query.WorkspaceAdmins == nil {
+			break
+		}
+
+		args, err := ec.field_Query_workspace_admins_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.WorkspaceAdmins(childComplexity, args["workspace_id"].(int)), true
 
 	case "Query.workspace_for_project":
 		if e.complexity.Query.WorkspaceForProject == nil {
@@ -3504,6 +3532,7 @@ type Query {
     error_comments_for_admin: [ErrorComment]!
     error_comments_for_project(project_id: ID!): [ErrorComment]!
     project_admins(project_id: ID!): [Admin]!
+    workspace_admins(workspace_id: ID!): [Admin]!
     isIntegrated(project_id: ID!): Boolean
     unprocessedSessionsCount(project_id: ID!): Int64
     adminHasCreatedComment(admin_id: ID!): Boolean
@@ -3550,7 +3579,7 @@ type Query {
         query: String!
     ): [ErrorField]
     projects: [Project]
-    workspaces: [Workspace]
+    workspaces: [Workspace!]
     error_alert(project_id: ID!): ErrorAlert
     session_feedback_alert(project_id: ID!): SessionAlert
     new_user_alert(project_id: ID!): SessionAlert
@@ -3571,11 +3600,8 @@ type Query {
 }
 
 type Mutation {
-    createProject(
-        project_name: String!
-        workspace_id: ID
-        workspace_name: String
-    ): Project
+    createProject(name: String!, workspace_id: ID!): Project
+    createWorkspace(name: String!): Workspace
     editProject(id: ID!, name: String, billing_email: String): Project
     editWorkspace(id: ID!, name: String): Workspace
     markSessionAsViewed(id: ID, secure_id: String, viewed: Boolean): Session
@@ -3946,32 +3972,23 @@ func (ec *executionContext) field_Mutation_createProject_args(ctx context.Contex
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["project_name"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_name"))
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["project_name"] = arg0
-	var arg1 *int
+	args["name"] = arg0
+	var arg1 int
 	if tmp, ok := rawArgs["workspace_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_id"))
-		arg1, err = ec.unmarshalOID2ᚖint(ctx, tmp)
+		arg1, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["workspace_id"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["workspace_name"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_name"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["workspace_name"] = arg2
 	return args, nil
 }
 
@@ -4137,6 +4154,21 @@ func (ec *executionContext) field_Mutation_createSessionComment_args(ctx context
 		}
 	}
 	args["session_image"] = arg13
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createWorkspace_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg0
 	return args, nil
 }
 
@@ -5889,6 +5921,21 @@ func (ec *executionContext) field_Query_user_properties_alert_args(ctx context.C
 		}
 	}
 	args["project_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_workspace_admins_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["workspace_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["workspace_id"] = arg0
 	return args, nil
 }
 
@@ -9205,7 +9252,7 @@ func (ec *executionContext) _Mutation_createProject(ctx context.Context, field g
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateProject(rctx, args["project_name"].(string), args["workspace_id"].(*int), args["workspace_name"].(*string))
+		return ec.resolvers.Mutation().CreateProject(rctx, args["name"].(string), args["workspace_id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9217,6 +9264,45 @@ func (ec *executionContext) _Mutation_createProject(ctx context.Context, field g
 	res := resTmp.(*model1.Project)
 	fc.Result = res
 	return ec.marshalOProject2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐProject(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_createWorkspace(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createWorkspace_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateWorkspace(rctx, args["name"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model1.Workspace)
+	fc.Result = res
+	return ec.marshalOWorkspace2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspace(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_editProject(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -11445,6 +11531,48 @@ func (ec *executionContext) _Query_project_admins(ctx context.Context, field gra
 	return ec.marshalNAdmin2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐAdmin(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_workspace_admins(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_workspace_admins_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().WorkspaceAdmins(rctx, args["workspace_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.Admin)
+	fc.Result = res
+	return ec.marshalNAdmin2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐAdmin(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_isIntegrated(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -12190,7 +12318,7 @@ func (ec *executionContext) _Query_workspaces(ctx context.Context, field graphql
 	}
 	res := resTmp.([]*model1.Workspace)
 	fc.Result = res
-	return ec.marshalOWorkspace2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspace(ctx, field.Selections, res)
+	return ec.marshalOWorkspace2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspaceᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_error_alert(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -18525,6 +18653,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = graphql.MarshalString("Mutation")
 		case "createProject":
 			out.Values[i] = ec._Mutation_createProject(ctx, field)
+		case "createWorkspace":
+			out.Values[i] = ec._Mutation_createWorkspace(ctx, field)
 		case "editProject":
 			out.Values[i] = ec._Mutation_editProject(ctx, field)
 		case "editWorkspace":
@@ -18902,6 +19032,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_project_admins(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "workspace_admins":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_workspace_admins(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -21359,6 +21503,16 @@ func (ec *executionContext) unmarshalNUserPropertyInput2ᚕᚖgithubᚗcomᚋhig
 	return res, nil
 }
 
+func (ec *executionContext) marshalNWorkspace2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspace(ctx context.Context, sel ast.SelectionSet, v *model1.Workspace) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Workspace(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
 	return ec.___Directive(ctx, sel, &v)
 }
@@ -22429,7 +22583,7 @@ func (ec *executionContext) unmarshalOUserPropertyInput2ᚖgithubᚗcomᚋhighli
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOWorkspace2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspace(ctx context.Context, sel ast.SelectionSet, v []*model1.Workspace) graphql.Marshaler {
+func (ec *executionContext) marshalOWorkspace2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspaceᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.Workspace) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -22456,7 +22610,7 @@ func (ec *executionContext) marshalOWorkspace2ᚕᚖgithubᚗcomᚋhighlightᚑr
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOWorkspace2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspace(ctx, sel, v[i])
+			ret[i] = ec.marshalNWorkspace2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspace(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)

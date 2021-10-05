@@ -28,7 +28,7 @@ type Inputs = {
     email: string;
 };
 
-const WorkspaceTeam = () => {
+const ProjectTeam = () => {
     const { project_id } = useParams<{ project_id: string }>();
     const emailRef = useRef<null | HTMLInputElement>(null);
     const { register, handleSubmit, errors, reset } = useForm<Inputs>();
@@ -103,7 +103,7 @@ const WorkspaceTeam = () => {
         <LeadAlignLayout>
             <h2>Invite A Member</h2>
             <p className={layoutStyles.subTitle}>
-                Invite a your team to your Project.
+                Invite your team to your Project.
             </p>
             <div className={styles.box}>
                 <form onSubmit={handleSubmit(onSubmit)}>
@@ -236,4 +236,4 @@ const WorkspaceTeam = () => {
     );
 };
 
-export default WorkspaceTeam;
+export default ProjectTeam;

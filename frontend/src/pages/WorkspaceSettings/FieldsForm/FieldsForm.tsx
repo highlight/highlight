@@ -43,14 +43,13 @@ export const FieldsForm = () => {
             message.success('Updated project fields!', 5);
         });
     };
+
     return (
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={handleSubmit(onSubmit)} key={project_id}>
             <div className={styles.fieldRow}>
                 <label className={styles.fieldKey}>Name</label>
                 <input
-                    defaultValue={
-                        editData?.editProject?.name || data?.project?.name
-                    }
+                    defaultValue={data?.project?.name}
                     className={commonStyles.input}
                     name="name"
                     ref={register({ required: true })}
@@ -59,11 +58,7 @@ export const FieldsForm = () => {
             <div className={styles.fieldRow}>
                 <label className={styles.fieldKey}>Billing Email</label>
                 <input
-                    defaultValue={
-                        (editData?.editProject?.billing_email ||
-                            data?.project?.billing_email) ??
-                        ''
-                    }
+                    defaultValue={data?.project?.billing_email ?? ''}
                     className={commonStyles.input}
                     placeholder={'Billing Email'}
                     type="email"

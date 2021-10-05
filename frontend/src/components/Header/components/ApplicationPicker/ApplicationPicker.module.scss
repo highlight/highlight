@@ -1,15 +1,23 @@
-.createNewApplicationOption {
+.createNewProjectOption {
     align-items: center;
     color: var(--color-purple);
     display: flex;
     justify-content: space-between;
 }
 
+.createNewProjectOptionSelected {
+    color: var(--text-primary-inverted);
+}
+
 .existingProjectOption {
     align-items: center;
     display: flex;
+
+    span {
+        margin-left: 8px;
+    }
 }
 
-.projectIcon {
-    margin: 8px 0;
+.subTitle {
+    color: var(--color-gray-500);
 }

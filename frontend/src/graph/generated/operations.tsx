@@ -121,14 +121,23 @@ export type AddSlackBotIntegrationToProjectMutation = {
 } & Pick<Types.Mutation, 'addSlackBotIntegrationToProject'>;
 
 export type CreateProjectMutationVariables = Types.Exact<{
-    project_name: Types.Scalars['String'];
-    workspace_id?: Types.Maybe<Types.Scalars['ID']>;
-    workspace_name?: Types.Maybe<Types.Scalars['String']>;
+    name: Types.Scalars['String'];
+    workspace_id: Types.Scalars['ID'];
 }>;
 
 export type CreateProjectMutation = { __typename?: 'Mutation' } & {
     createProject?: Types.Maybe<
         { __typename?: 'Project' } & Pick<Types.Project, 'id' | 'name'>
+    >;
+};
+
+export type CreateWorkspaceMutationVariables = Types.Exact<{
+    name: Types.Scalars['String'];
+}>;
+
+export type CreateWorkspaceMutation = { __typename?: 'Mutation' } & {
+    createWorkspace?: Types.Maybe<
+        { __typename?: 'Workspace' } & Pick<Types.Workspace, 'id' | 'name'>
     >;
 };
 
@@ -631,6 +640,21 @@ export type GetProjectAdminsQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetWorkspaceAdminsQueryVariables = Types.Exact<{
+    workspace_id: Types.Scalars['ID'];
+}>;
+
+export type GetWorkspaceAdminsQuery = { __typename?: 'Query' } & {
+    admins: Array<
+        Types.Maybe<
+            { __typename?: 'Admin' } & Pick<
+                Types.Admin,
+                'id' | 'name' | 'email' | 'photo_url' | 'role'
+            >
+        >
+    >;
+};
+
 export type GetSessionCommentsQueryVariables = Types.Exact<{
     session_id: Types.Scalars['ID'];
 }>;
@@ -764,7 +788,7 @@ export type GetOnboardingStepsQuery = { __typename?: 'Query' } & Pick<
         workspace?: Types.Maybe<
             { __typename?: 'Workspace' } & Pick<
                 Types.Workspace,
-                'slack_channels'
+                'id' | 'slack_channels'
             >
         >;
         admins: Array<
@@ -862,7 +886,10 @@ export type GetWorkspaceQueryVariables = Types.Exact<{
 
 export type GetWorkspaceQuery = { __typename?: 'Query' } & {
     workspace?: Types.Maybe<
-        { __typename?: 'Workspace' } & Pick<Types.Workspace, 'id' | 'name'> & {
+        { __typename?: 'Workspace' } & Pick<
+            Types.Workspace,
+            'id' | 'name' | 'secret'
+        > & {
                 projects: Array<
                     Types.Maybe<
                         { __typename?: 'Project' } & Pick<
@@ -872,6 +899,16 @@ export type GetWorkspaceQuery = { __typename?: 'Query' } & {
                     >
                 >;
             }
+    >;
+};
+
+export type GetWorkspacesQueryVariables = Types.Exact<{ [key: string]: never }>;
+
+export type GetWorkspacesQuery = { __typename?: 'Query' } & {
+    workspaces?: Types.Maybe<
+        Array<
+            { __typename?: 'Workspace' } & Pick<Types.Workspace, 'id' | 'name'>
+        >
     >;
 };
 
@@ -1819,6 +1856,7 @@ export const namedOperations = {
         GetSessionPayload: 'GetSessionPayload' as const,
         GetSession: 'GetSession' as const,
         GetProjectAdmins: 'GetProjectAdmins' as const,
+        GetWorkspaceAdmins: 'GetWorkspaceAdmins' as const,
         GetSessionComments: 'GetSessionComments' as const,
         GetNotifications: 'GetNotifications' as const,
         GetSessionCommentsForAdmin: 'GetSessionCommentsForAdmin' as const,
@@ -1827,6 +1865,7 @@ export const namedOperations = {
         GetSessions: 'GetSessions' as const,
         GetProjects: 'GetProjects' as const,
         GetWorkspace: 'GetWorkspace' as const,
+        GetWorkspaces: 'GetWorkspaces' as const,
         GetProjectDropdownOptions: 'GetProjectDropdownOptions' as const,
         GetWorkspaceDropdownOptions: 'GetWorkspaceDropdownOptions' as const,
         GetAdmin: 'GetAdmin' as const,
@@ -1879,6 +1918,7 @@ export const namedOperations = {
         OpenSlackConversation: 'OpenSlackConversation' as const,
         AddSlackBotIntegrationToProject: 'AddSlackBotIntegrationToProject' as const,
         CreateProject: 'CreateProject' as const,
+        CreateWorkspace: 'CreateWorkspace' as const,
         EditProject: 'EditProject' as const,
         DeleteProject: 'DeleteProject' as const,
         EditWorkspace: 'EditWorkspace' as const,

@@ -1,3 +1,4 @@
-export const createNewApplicationOption: string;
+export const createNewProjectOption: string;
+export const createNewProjectOptionSelected: string;
 export const existingProjectOption: string;
-export const projectIcon: string;
+export const subTitle: string;

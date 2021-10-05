@@ -27,7 +27,6 @@ import {
 } from '../../pages/Sessions/SearchContext/SearchContext';
 import SetupPage from '../../pages/Setup/SetupPage';
 import ProjectSettings from '../../pages/WorkspaceSettings/WorkspaceSettings';
-import WorkspaceTeam from '../../pages/WorkspaceTeam/WorkspaceTeam';
 
 interface Props {
     integrated: boolean;
@@ -174,9 +173,10 @@ const ApplicationRouter = ({ integrated }: Props) => {
                 <Route path="/:project_id/alerts">
                     <AlertsPage />
                 </Route>
-                <Route path="/:project_id/team">
-                    <WorkspaceTeam />
-                </Route>
+                {/* Migrated to workspace level */}
+                {/* <Route path="/:project_id/team">
+                    <ProjectTeam />
+                </Route> */}
                 <Route path="/:project_id/billing">
                     <Suspense fallback={null}>
                         <BillingPage />

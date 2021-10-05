@@ -48,6 +48,16 @@ query GetProjectAdmins($project_id: ID!) {
     }
 }
 
+query GetWorkspaceAdmins($workspace_id: ID!) {
+    admins: workspace_admins(workspace_id: $workspace_id) {
+        id
+        name
+        email
+        photo_url
+        role
+    }
+}
+
 query GetSessionComments($session_id: ID!) {
     session_comments(session_id: $session_id) {
         id
@@ -137,6 +147,7 @@ query GetErrorComments($error_group_id: ID!) {
 
 query GetOnboardingSteps($project_id: ID!, $admin_id: ID!) {
     workspace: workspace_for_project(project_id: $project_id) {
+        id
         slack_channels
     }
     admins: project_admins(project_id: $project_id) {
@@ -223,10 +234,18 @@ query GetWorkspace($id: ID!) {
     workspace(id: $id) {
         id
         name
+        secret
         projects {
             id
             name
         }
+    }
+}
+
+query GetWorkspaces {
+    workspaces {
+        id
+        name
     }
 }
 

@@ -1,4 +1,5 @@
 import LoginForm from '@pages/Login/Login';
+import WorkspaceTeam from '@pages/WorkspaceTeam/WorkspaceTeam';
 import { GlobalContextProvider } from '@routers/OrgRouter/context/GlobalContext';
 import { WorkspaceRedirectionRouter } from '@routers/OrgRouter/WorkspaceRedirectionRouter';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
@@ -12,7 +13,6 @@ import commonStyles from '../../Common.module.scss';
 import { Header } from '../../components/Header/Header';
 import { Sidebar } from '../../components/Sidebar/Sidebar';
 import { useGetWorkspaceDropdownOptionsQuery } from '../../graph/generated/hooks';
-import { useIntegrated } from '../../util/integrated';
 import { ApplicationContextProvider } from './ApplicationContext';
 
 export const WorkspaceRouter = () => {
@@ -29,8 +29,6 @@ export const WorkspaceRouter = () => {
         variables: { workspace_id },
         skip: !isLoggedIn, // Higher level routers decide when guests are allowed to hit this router
     });
-
-    const { integrated, loading: integratedLoading } = useIntegrated();
 
     useEffect(() => {
         if (!isOnPrem) {
@@ -58,9 +56,10 @@ export const WorkspaceRouter = () => {
         }
     }, [isLoggedIn]);
 
-    if (integratedLoading || loading) {
+    if (loading) {
         return null;
     }
+
     return (
         <GlobalContextProvider
             value={{
@@ -79,8 +78,8 @@ export const WorkspaceRouter = () => {
                 {isLoggedIn && <Sidebar />}
                 <div className={commonStyles.bodyWrapper}>
                     <Switch>
-                        <Route path="/w/:workspace_id(\d+)/settings">
-                            <WorkspaceSettingsPage />
+                        <Route path="/w/:workspace_id(\d+)/team">
+                            <WorkspaceTeam />
                         </Route>
                         <Route path="/w/:workspace_id(\d+)/">
                             {isLoggedIn ? (

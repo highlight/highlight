@@ -431,6 +431,7 @@ type Query {
     error_comments_for_admin: [ErrorComment]!
     error_comments_for_project(project_id: ID!): [ErrorComment]!
     project_admins(project_id: ID!): [Admin]!
+    workspace_admins(workspace_id: ID!): [Admin]!
     isIntegrated(project_id: ID!): Boolean
     unprocessedSessionsCount(project_id: ID!): Int64
     adminHasCreatedComment(admin_id: ID!): Boolean
@@ -477,7 +478,7 @@ type Query {
         query: String!
     ): [ErrorField]
     projects: [Project]
-    workspaces: [Workspace]
+    workspaces: [Workspace!]
     error_alert(project_id: ID!): ErrorAlert
     session_feedback_alert(project_id: ID!): SessionAlert
     new_user_alert(project_id: ID!): SessionAlert
@@ -498,11 +499,8 @@ type Query {
 }
 
 type Mutation {
-    createProject(
-        project_name: String!
-        workspace_id: ID
-        workspace_name: String
-    ): Project
+    createProject(name: String!, workspace_id: ID!): Project
+    createWorkspace(name: String!): Workspace
     editProject(id: ID!, name: String, billing_email: String): Project
     editWorkspace(id: ID!, name: String): Workspace
     markSessionAsViewed(id: ID, secure_id: String, viewed: Boolean): Session
