@@ -1366,6 +1366,21 @@ func (r *queryResolver) Events(ctx context.Context, sessionID *int, sessionSecur
 	return allEvents["events"], nil
 }
 
+func (r *queryResolver) RageClicks(ctx context.Context, sessionID int, sessionSecureID *string) ([]*model.RageClickEvent, error) {
+	_, err := r.canAdminViewSession(ctx, &sessionID, sessionSecureID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not session owner")
+	}
+
+	rageClicks := []*model.RageClickEvent{}
+
+	if res := r.DB.Where(&model.RageClickEvent{SessionID: sessionID}).Find(&rageClicks); res.Error != nil {
+		return nil, e.Wrap(res.Error, "failed to get rage clicks")
+	}
+
+	return rageClicks, nil
+}
+
 func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count int, params *modelInputs.ErrorSearchParamsInput) (*model.ErrorResults, error) {
 	endpointStart := time.Now()
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {

@@ -24,6 +24,7 @@ import {
     ParsedHighlightEvent,
     ParsedSessionComment,
     ParsedSessionInterval,
+    RageClick,
     ReplayerContextInterface,
     ReplayerState,
 } from '../ReplayerContext';
@@ -70,6 +71,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         eventsForTimelineIndicator,
         setEventsForTimelineIndicator,
     ] = useState<ParsedHighlightEvent[]>([]);
+    const [rageClicks, setRageClicks] = useState<RageClick[]>([]);
     const [sessionResults, setSessionResults] = useState<SessionResults>({
         sessions: [],
         totalCount: -1,
@@ -286,6 +288,42 @@ export const usePlayer = (): ReplayerContextInterface => {
                         )
                     );
                     setSessionEndTime(replayer.getMetaData().totalTime);
+                    if (eventsData?.rage_clicks) {
+                        const sessionStartTime = new Date(
+                            replayer?.getMetaData().startTime
+                        ).getTime();
+                        const sessionEndTime = new Date(
+                            replayer?.getMetaData().endTime
+                        ).getTime();
+                        const sessionDuration =
+                            sessionEndTime - sessionStartTime;
+
+                        const rageClicks = eventsData.rage_clicks.map(
+                            (rageClick) => {
+                                const start =
+                                    new Date(
+                                        rageClick.start_timestamp
+                                    ).getTime() - sessionStartTime;
+
+                                const startPercentage = start / sessionDuration;
+
+                                const end =
+                                    new Date(
+                                        rageClick.end_timestamp
+                                    ).getTime() - sessionStartTime;
+
+                                const endPercentage = end / sessionDuration;
+
+                                return {
+                                    startTimestamp: rageClick.start_timestamp,
+                                    startPercentage,
+                                    endTimestamp: rageClick.end_timestamp,
+                                    endPercentage,
+                                };
+                            }
+                        );
+                        setRageClicks(rageClicks);
+                    }
                     setState(
                         hasSearchParam
                             ? ReplayerState.LoadedWithDeepLink
@@ -448,6 +486,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         sessionIntervals,
         replayer,
         state,
+        rageClicks,
         events,
         play,
         pause,

@@ -3,6 +3,10 @@ query GetSessionPayload($session_id: ID!) {
     errors(session_id: $session_id) {
         ...errorFields
     }
+    rage_clicks(session_id: $session_id) {
+        start_timestamp
+        end_timestamp
+    }
 }
 
 query GetSession($id: ID!) {
