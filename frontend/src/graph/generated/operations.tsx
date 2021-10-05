@@ -653,6 +653,12 @@ export type GetWorkspaceAdminsQuery = { __typename?: 'Query' } & {
             >
         >
     >;
+    workspace?: Types.Maybe<
+        { __typename?: 'Workspace' } & Pick<
+            Types.Workspace,
+            'id' | 'name' | 'secret'
+        >
+    >;
 };
 
 export type GetSessionCommentsQueryVariables = Types.Exact<{
@@ -912,11 +918,11 @@ export type GetWorkspacesQuery = { __typename?: 'Query' } & {
     >;
 };
 
-export type GetProjectDropdownOptionsQueryVariables = Types.Exact<{
-    project_id: Types.Scalars['ID'];
+export type GetProjectsAndWorkspacesQueryVariables = Types.Exact<{
+    [key: string]: never;
 }>;
 
-export type GetProjectDropdownOptionsQuery = { __typename?: 'Query' } & {
+export type GetProjectsAndWorkspacesQuery = { __typename?: 'Query' } & {
     projects?: Types.Maybe<
         Array<
             Types.Maybe<
@@ -924,6 +930,36 @@ export type GetProjectDropdownOptionsQuery = { __typename?: 'Query' } & {
             >
         >
     >;
+    workspaces?: Types.Maybe<
+        Array<
+            { __typename?: 'Workspace' } & Pick<Types.Workspace, 'id' | 'name'>
+        >
+    >;
+};
+
+export type GetProjectOrWorkspaceQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    workspace_id: Types.Scalars['ID'];
+    is_workspace: Types.Scalars['Boolean'];
+}>;
+
+export type GetProjectOrWorkspaceQuery = { __typename?: 'Query' } & {
+    project?: Types.Maybe<
+        { __typename?: 'Project' } & Pick<
+            Types.Project,
+            'id' | 'name' | 'billing_email'
+        >
+    >;
+    workspace?: Types.Maybe<
+        { __typename?: 'Workspace' } & Pick<Types.Workspace, 'id' | 'name'>
+    >;
+};
+
+export type GetProjectDropdownOptionsQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+}>;
+
+export type GetProjectDropdownOptionsQuery = { __typename?: 'Query' } & {
     project?: Types.Maybe<
         { __typename?: 'Project' } & Pick<
             Types.Project,
@@ -936,10 +972,16 @@ export type GetProjectDropdownOptionsQuery = { __typename?: 'Query' } & {
         >
     >;
     workspace?: Types.Maybe<
-        { __typename?: 'Workspace' } & Pick<
-            Types.Workspace,
-            'id' | 'name' | 'slack_webhook_channel' | 'secret'
-        >
+        { __typename?: 'Workspace' } & Pick<Types.Workspace, 'id' | 'name'> & {
+                projects: Array<
+                    Types.Maybe<
+                        { __typename?: 'Project' } & Pick<
+                            Types.Project,
+                            'id' | 'name'
+                        >
+                    >
+                >;
+            }
     >;
 };
 
@@ -948,18 +990,17 @@ export type GetWorkspaceDropdownOptionsQueryVariables = Types.Exact<{
 }>;
 
 export type GetWorkspaceDropdownOptionsQuery = { __typename?: 'Query' } & {
-    projects?: Types.Maybe<
-        Array<
-            Types.Maybe<
-                { __typename?: 'Project' } & Pick<Types.Project, 'id' | 'name'>
-            >
-        >
-    >;
     workspace?: Types.Maybe<
-        { __typename?: 'Workspace' } & Pick<
-            Types.Workspace,
-            'id' | 'name' | 'slack_webhook_channel' | 'secret'
-        >
+        { __typename?: 'Workspace' } & Pick<Types.Workspace, 'id' | 'name'> & {
+                projects: Array<
+                    Types.Maybe<
+                        { __typename?: 'Project' } & Pick<
+                            Types.Project,
+                            'id' | 'name'
+                        >
+                    >
+                >;
+            }
     >;
 };
 
@@ -987,24 +1028,14 @@ export type GetProjectQuery = { __typename?: 'Query' } & {
     project?: Types.Maybe<
         { __typename?: 'Project' } & Pick<
             Types.Project,
-            'id' | 'name' | 'verbose_id' | 'billing_email' | 'secret'
+            'id' | 'name' | 'verbose_id' | 'billing_email'
         >
     >;
     workspace?: Types.Maybe<
         { __typename?: 'Workspace' } & Pick<
             Types.Workspace,
-            'id' | 'slack_webhook_channel' | 'secret'
+            'id' | 'slack_webhook_channel'
         >
-    >;
-};
-
-export type GetWorkspaceForProjectQueryVariables = Types.Exact<{
-    project_id: Types.Scalars['ID'];
-}>;
-
-export type GetWorkspaceForProjectQuery = { __typename?: 'Query' } & {
-    workspace?: Types.Maybe<
-        { __typename?: 'Workspace' } & Pick<Types.Workspace, 'id' | 'name'>
     >;
 };
 
@@ -1866,11 +1897,12 @@ export const namedOperations = {
         GetProjects: 'GetProjects' as const,
         GetWorkspace: 'GetWorkspace' as const,
         GetWorkspaces: 'GetWorkspaces' as const,
+        GetProjectsAndWorkspaces: 'GetProjectsAndWorkspaces' as const,
+        GetProjectOrWorkspace: 'GetProjectOrWorkspace' as const,
         GetProjectDropdownOptions: 'GetProjectDropdownOptions' as const,
         GetWorkspaceDropdownOptions: 'GetWorkspaceDropdownOptions' as const,
         GetAdmin: 'GetAdmin' as const,
         GetProject: 'GetProject' as const,
-        GetWorkspaceForProject: 'GetWorkspaceForProject' as const,
         GetBillingDetails: 'GetBillingDetails' as const,
         GetErrorGroup: 'GetErrorGroup' as const,
         GetErrorGroups: 'GetErrorGroups' as const,

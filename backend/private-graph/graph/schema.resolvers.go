@@ -2445,7 +2445,21 @@ func (r *queryResolver) WorkspaceForProject(ctx context.Context, projectID int) 
 		return nil, e.Wrap(err, "error querying project")
 	}
 
-	return r.GetWorkspace(project.WorkspaceID)
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying workspace")
+	}
+
+	// workspace secret should not be visible unless the admin has workspace access
+	workspace.Secret = new(string)
+
+	projects := []model.Project{}
+	if err := r.DB.Model(&workspace).Association("Projects").Find(&projects); err != nil {
+		return nil, e.Wrap(err, "error querying associated projects")
+	}
+
+	workspace.Projects = projects
+	return workspace, nil
 }
 
 func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {

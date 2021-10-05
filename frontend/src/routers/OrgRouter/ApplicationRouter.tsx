@@ -173,10 +173,6 @@ const ApplicationRouter = ({ integrated }: Props) => {
                 <Route path="/:project_id/alerts">
                     <AlertsPage />
                 </Route>
-                {/* Migrated to workspace level */}
-                {/* <Route path="/:project_id/team">
-                    <ProjectTeam />
-                </Route> */}
                 <Route path="/:project_id/billing">
                     <Suspense fallback={null}>
                         <BillingPage />

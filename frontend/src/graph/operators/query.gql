@@ -56,6 +56,11 @@ query GetWorkspaceAdmins($workspace_id: ID!) {
         photo_url
         role
     }
+    workspace(id: $workspace_id) {
+        id
+        name
+        secret
+    }
 }
 
 query GetSessionComments($session_id: ID!) {
@@ -249,12 +254,34 @@ query GetWorkspaces {
     }
 }
 
-# Gets the current application and all applications the admin has access to.
-query GetProjectDropdownOptions($project_id: ID!) {
+query GetProjectsAndWorkspaces {
     projects {
         id
         name
     }
+    workspaces {
+        id
+        name
+    }
+}
+
+query GetProjectOrWorkspace(
+    $project_id: ID!
+    $workspace_id: ID!
+    $is_workspace: Boolean!
+) {
+    project(id: $project_id) @skip(if: $is_workspace) {
+        id
+        name
+        billing_email
+    }
+    workspace(id: $workspace_id) @include(if: $is_workspace) {
+        id
+        name
+    }
+}
+
+query GetProjectDropdownOptions($project_id: ID!) {
     project(id: $project_id) {
         id
         name
@@ -266,21 +293,21 @@ query GetProjectDropdownOptions($project_id: ID!) {
     workspace: workspace_for_project(project_id: $project_id) {
         id
         name
-        slack_webhook_channel
-        secret
+        projects {
+            id
+            name
+        }
     }
 }
 
 query GetWorkspaceDropdownOptions($workspace_id: ID!) {
-    projects {
-        id
-        name
-    }
     workspace(id: $workspace_id) {
         id
         name
-        slack_webhook_channel
-        secret
+        projects {
+            id
+            name
+        }
     }
 }
 
@@ -301,19 +328,10 @@ query GetProject($id: ID!) {
         name
         verbose_id
         billing_email
-        secret
     }
     workspace: workspace_for_project(project_id: $id) {
         id
         slack_webhook_channel
-        secret
-    }
-}
-
-query GetWorkspaceForProject($project_id: ID!) {
-    workspace: workspace_for_project(project_id: $project_id) {
-        id
-        name
     }
 }
 

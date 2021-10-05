@@ -1,4 +1,8 @@
-import { useEditProjectMutation, useGetProjectQuery } from '@graph/hooks';
+import {
+    useEditProjectMutation,
+    useEditWorkspaceMutation,
+    useGetProjectOrWorkspaceQuery,
+} from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
@@ -8,7 +12,10 @@ import { useForm } from 'react-hook-form';
 
 import commonStyles from '../../../Common.module.scss';
 import Button from '../../../components/Button/Button/Button';
-import { CircularSpinner } from '../../../components/Loading/Loading';
+import {
+    CircularSpinner,
+    LoadingBar,
+} from '../../../components/Loading/Loading';
 import styles from './FieldsForm.module.scss';
 
 type Inputs = {
@@ -17,14 +24,23 @@ type Inputs = {
 };
 
 export const FieldsForm = () => {
-    const { project_id } = useParams<{ project_id: string }>();
+    const { project_id, workspace_id } = useParams<{
+        project_id: string;
+        workspace_id: string;
+    }>();
+    const isWorkspace = !!workspace_id;
     const { register, handleSubmit, errors } = useForm<Inputs>();
-    const { data } = useGetProjectQuery({
-        variables: { id: project_id },
+    const { data, loading } = useGetProjectOrWorkspaceQuery({
+        variables: {
+            project_id,
+            workspace_id,
+            is_workspace: isWorkspace,
+        },
     });
+
     const [
         editProject,
-        { data: editData, loading: editLoading },
+        { loading: editProjectLoading },
     ] = useEditProjectMutation({
         refetchQueries: [
             namedOperations.Query.GetProjects,
@@ -32,47 +48,76 @@ export const FieldsForm = () => {
         ],
     });
 
+    const [
+        editWorkspace,
+        { loading: editWorkspaceLoading },
+    ] = useEditWorkspaceMutation();
+
     const onSubmit = (inputs: Inputs) => {
-        editProject({
-            variables: {
-                id: project_id,
-                name: inputs.name,
-                billing_email: inputs.email,
-            },
-        }).then(() => {
-            message.success('Updated project fields!', 5);
-        });
+        if (isWorkspace) {
+            editWorkspace({
+                variables: {
+                    id: workspace_id,
+                    name: inputs.name,
+                },
+            }).then(() => {
+                message.success('Updated workspace fields!', 5);
+            });
+        } else {
+            editProject({
+                variables: {
+                    id: project_id,
+                    name: inputs.name,
+                    billing_email: inputs.email,
+                },
+            }).then(() => {
+                message.success('Updated project fields!', 5);
+            });
+        }
     };
+
+    if (loading) {
+        return <LoadingBar />;
+    }
+
+    const editingObj = isWorkspace ? data?.workspace : data?.project;
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} key={project_id}>
             <div className={styles.fieldRow}>
                 <label className={styles.fieldKey}>Name</label>
                 <input
-                    defaultValue={data?.project?.name}
+                    defaultValue={editingObj?.name}
                     className={commonStyles.input}
                     name="name"
                     ref={register({ required: true })}
                 />
             </div>
-            <div className={styles.fieldRow}>
-                <label className={styles.fieldKey}>Billing Email</label>
-                <input
-                    defaultValue={data?.project?.billing_email ?? ''}
-                    className={commonStyles.input}
-                    placeholder={'Billing Email'}
-                    type="email"
-                    name="email"
-                    ref={register({ required: true })}
-                />
-            </div>
-            <div className={commonStyles.errorMessage}>
-                {errors.email && 'Enter an email yo!'}
-            </div>
+            {isWorkspace ? null : (
+                <>
+                    {' '}
+                    <div className={styles.fieldRow}>
+                        <label className={styles.fieldKey}>Billing Email</label>
+                        <input
+                            defaultValue={data?.project?.billing_email ?? ''}
+                            className={commonStyles.input}
+                            placeholder={'Billing Email'}
+                            type="email"
+                            name="email"
+                            ref={register({ required: true })}
+                        />
+                    </div>
+                    <div className={commonStyles.errorMessage}>
+                        {errors.email && 'Enter an email yo!'}
+                    </div>
+                </>
+            )}
             <div className={styles.fieldRow}>
                 <div className={styles.fieldKey} />
                 <Button
-                    trackingId="ProjectUpdate"
+                    trackingId={`${
+                        isWorkspace ? 'Workspace' : 'Project'
+                    }Update`}
                     htmlType="submit"
                     type="primary"
                     className={classNames(
@@ -80,7 +125,7 @@ export const FieldsForm = () => {
                         styles.saveButton
                     )}
                 >
-                    {editLoading ? (
+                    {editProjectLoading || editWorkspaceLoading ? (
                         <CircularSpinner
                             style={{
                                 fontSize: 18,

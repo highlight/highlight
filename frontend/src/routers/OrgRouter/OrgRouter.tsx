@@ -76,7 +76,7 @@ export const ProjectRouter = () => {
             <ApplicationContextProvider
                 value={{
                     currentProject: data?.project || undefined,
-                    allProjects: data?.projects || [],
+                    allProjects: data?.workspace?.projects || [],
                     currentWorkspace: data?.workspace || undefined,
                 }}
             >

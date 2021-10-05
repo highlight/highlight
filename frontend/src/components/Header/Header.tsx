@@ -42,7 +42,7 @@ export const Header = () => {
                     [styles.guest]: !isLoggedIn,
                 })}
             >
-                {getBanner(project_id)}
+                {!!project_id && getBanner(project_id)}
 
                 <div className={styles.headerContent}>
                     {isLoggedIn ? (

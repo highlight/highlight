@@ -1,4 +1,5 @@
 import LoginForm from '@pages/Login/Login';
+import WorkspaceSettings from '@pages/WorkspaceSettings/WorkspaceSettings';
 import WorkspaceTeam from '@pages/WorkspaceTeam/WorkspaceTeam';
 import { GlobalContextProvider } from '@routers/OrgRouter/context/GlobalContext';
 import { WorkspaceRedirectionRouter } from '@routers/OrgRouter/WorkspaceRedirectionRouter';
@@ -70,7 +71,7 @@ export const WorkspaceRouter = () => {
             <ApplicationContextProvider
                 value={{
                     currentProject: undefined,
-                    allProjects: data?.projects || [],
+                    allProjects: data?.workspace?.projects || [],
                     currentWorkspace: data?.workspace || undefined,
                 }}
             >
@@ -81,7 +82,10 @@ export const WorkspaceRouter = () => {
                         <Route path="/w/:workspace_id(\d+)/team">
                             <WorkspaceTeam />
                         </Route>
-                        <Route path="/w/:workspace_id(\d+)/">
+                        <Route path="/w/:workspace_id(\d+)/settings">
+                            <WorkspaceSettings />
+                        </Route>
+                        <Route path="/w/:workspace_id(\d+)">
                             {isLoggedIn ? (
                                 <WorkspaceRedirectionRouter />
                             ) : (

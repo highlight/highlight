@@ -44,6 +44,7 @@ const Notifications = () => {
         variables: {
             project_id,
         },
+        skip: !project_id,
     });
 
     const { admin } = useAuthContext();

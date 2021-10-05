@@ -14,10 +14,7 @@ interface ApplicationContext {
         >[]
     >;
     currentWorkspace?: Maybe<
-        { __typename?: 'Workspace' } & Pick<
-            Workspace,
-            'id' | 'name' | 'slack_webhook_channel' | 'secret'
-        >
+        { __typename?: 'Workspace' } & Pick<Workspace, 'id' | 'name'>
     >;
 }
 

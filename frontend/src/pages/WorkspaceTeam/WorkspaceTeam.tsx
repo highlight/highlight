@@ -16,7 +16,6 @@ import PopConfirm from '../../components/PopConfirm/PopConfirm';
 import {
     useDeleteAdminFromWorkspaceMutation,
     useGetWorkspaceAdminsQuery,
-    useGetWorkspaceQuery,
     useSendAdminWorkspaceInviteMutation,
 } from '../../graph/generated/hooks';
 import SvgTrash from '../../static/Trash';
@@ -31,12 +30,6 @@ const WorkspaceTeam = () => {
     const { workspace_id } = useParams<{ workspace_id: string }>();
     const emailRef = useRef<null | HTMLInputElement>(null);
     const { register, handleSubmit, errors, reset } = useForm<Inputs>();
-    const {
-        data: workspaceData,
-        loading: workspaceLoading,
-    } = useGetWorkspaceQuery({
-        variables: { id: workspace_id },
-    });
     const { data, error, loading } = useGetWorkspaceAdminsQuery({
         variables: { workspace_id },
     });
@@ -72,10 +65,6 @@ const WorkspaceTeam = () => {
         reset();
     }, [reset]);
 
-    if (workspaceLoading) {
-        return <LoadingBar />;
-    }
-
     const onSubmit = (data: Inputs) => {
         sendInviteEmail({
             variables: {
@@ -89,6 +78,10 @@ const WorkspaceTeam = () => {
             emailRef.current?.focus();
         });
     };
+
+    if (loading) {
+        return <LoadingBar />;
+    }
 
     if (error) {
         return <div>{JSON.stringify(error)}</div>;
@@ -104,9 +97,8 @@ const WorkspaceTeam = () => {
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <h3>Invite Your Team</h3>
                     <p className={styles.boxSubTitle}>
-                        Invite a team member to '
-                        {`${workspaceData?.workspace?.name}`}' by entering an
-                        email below.
+                        Invite a team member to '{`${data?.workspace?.name}`}'
+                        by entering an email below.
                     </p>
                     <div className={styles.buttonRow}>
                         <input
@@ -148,7 +140,7 @@ const WorkspaceTeam = () => {
                 <p>Or invite your team by sharing this link.</p>
                 <CopyText
                     text={getWorkspaceInvitationLink(
-                        workspaceData?.workspace?.secret || '',
+                        data?.workspace?.secret || '',
                         workspace_id
                     )}
                 />
@@ -195,7 +187,7 @@ const WorkspaceTeam = () => {
                                     title={`Remove ${
                                         a?.name || a?.email
                                     } from ${
-                                        workspaceData?.workspace?.name
+                                        data?.workspace?.name
                                     }? They will no longer have access to Highlight. You can invite them again if they need access.`}
                                     okText={`Remove ${a?.name || a?.email}`}
                                     cancelText="Cancel"

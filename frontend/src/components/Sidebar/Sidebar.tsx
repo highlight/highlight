@@ -3,6 +3,7 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { MiniWorkspaceIcon } from '@components/Header/WorkspaceDropdown/WorkspaceDropdown';
 import { AdminRole } from '@graph/schemas';
 import SvgUsersIcon from '@icons/UsersIcon';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
@@ -34,24 +35,26 @@ interface NavigationItem {
 export const Sidebar = () => {
     const { currentProject } = useApplicationContext();
     const { admin } = useAuthContext();
+    const isWorkspace = !currentProject;
 
     const LEAD_NAVIGATION_ITEMS: NavigationItem[] = [
         {
             Icon: SvgHomeIcon,
             displayName: 'Home',
             route: 'home',
+            hidden: isWorkspace,
         },
         {
             Icon: SvgSessionsIcon,
             displayName: 'Sessions',
             route: 'sessions',
-            hidden: !currentProject,
+            hidden: isWorkspace,
         },
         {
             Icon: SvgBugIcon,
             displayName: 'Errors',
             route: 'errors',
-            hidden: !currentProject,
+            hidden: isWorkspace,
         },
     ];
 
@@ -60,32 +63,30 @@ export const Sidebar = () => {
             Icon: SvgPlugIcon,
             displayName: 'Setup',
             route: 'setup',
-            hidden: !currentProject,
+            hidden: isWorkspace,
         },
         {
             Icon: SvgBriefcase2Icon,
             displayName: 'Project',
             route: 'settings',
-            hidden: !currentProject,
         },
         {
             Icon: SvgCreditCardIcon,
             displayName: 'Billing',
             route: 'billing',
-            hidden:
-                !currentProject || isOnPrem || admin?.role !== AdminRole.Admin,
+            hidden: isWorkspace || isOnPrem || admin?.role !== AdminRole.Admin,
         },
         {
             Icon: SvgUsersIcon,
             displayName: 'Team',
             route: 'team',
-            hidden: !!currentProject, // Show only on workspace-level pages
+            hidden: !isWorkspace,
         },
         {
             Icon: SvgAnnouncementIcon,
             displayName: 'Alerts',
             route: 'alerts',
-            hidden: !currentProject,
+            hidden: isWorkspace,
         },
     ];
 
@@ -97,6 +98,9 @@ export const Sidebar = () => {
                     styles.sideBar
                 )}
             >
+                {!isWorkspace && (
+                    <MiniWorkspaceIcon projectName={currentProject.name} />
+                )}
                 {LEAD_NAVIGATION_ITEMS.filter(({ hidden }) => !hidden).map(
                     ({ Icon, displayName, route, className }) => (
                         <MiniSidebarItem
@@ -114,7 +118,9 @@ export const Sidebar = () => {
                 )}
                 {currentProject?.id !== DEMO_WORKSPACE_APPLICATION_ID && (
                     <>
-                        <div className={styles.settingsDivider} />
+                        {!isWorkspace && (
+                            <div className={styles.settingsDivider} />
+                        )}
                         {END_NAVIGATION_ITEMS.filter(
                             ({ hidden }) => !hidden
                         ).map(({ Icon, displayName, route, className }) => (

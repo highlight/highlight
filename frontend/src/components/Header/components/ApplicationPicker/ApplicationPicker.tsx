@@ -35,31 +35,27 @@ const ApplicationPicker = () => {
         id: '-1',
     };
 
-    const workspaceSettingsOption = {
+    const switchWorkspaceOption = {
         value: '-2',
         displayValue: (
-            <span
-                className={classNames(styles.createNewProjectOption, {
-                    [styles.createNewProjectOptionSelected]: isWorkspaceLevel,
-                })}
-            >
-                <span>Workspace Settings</span>
-                <SvgSettingsIcon />
+            <span className={styles.createNewProjectOption}>
+                <span>Switch Workspace</span>
+                <SvgArrowRightIcon />
             </span>
         ),
         id: '-2',
     };
 
-    const switchWorkspaceOption = {
+    const workspaceSettingsOption = {
         value: '-3',
         displayValue: (
             <span
                 className={classNames(styles.createNewProjectOption, {
-                    [styles.createNewProjectOptionSelected]: isWorkspaceLevel,
+                    [styles.selected]: isWorkspaceLevel,
                 })}
             >
-                <span>Switch Workspace</span>
-                <SvgArrowRightIcon />
+                <span>Workspace Settings</span>
+                <SvgSettingsIcon />
             </span>
         ),
         id: '-3',
@@ -81,8 +77,8 @@ const ApplicationPicker = () => {
               }))
             : []),
         newProjectOption,
-        workspaceSettingsOption,
         switchWorkspaceOption,
+        workspaceSettingsOption,
     ];
 
     return (
@@ -101,11 +97,11 @@ const ApplicationPicker = () => {
                 options={applicationOptions}
                 onChange={(projectId) => {
                     if (projectId === newProjectOption.value) {
-                        history.push('/new');
+                        history.push(`/w/${currentWorkspace!.id}/new`);
                     } else if (projectId === workspaceSettingsOption.value) {
-                        history.push(`/w/${currentWorkspace!.id}/team`);
+                        history.push(`/w/${currentWorkspace!.id}/settings`);
                     } else if (projectId === switchWorkspaceOption.value) {
-                        history.push(`/w/${currentWorkspace!.id}/switch`);
+                        history.push(`/switch`);
                     } else {
                         const path = isWorkspaceLevel
                             ? 'home'

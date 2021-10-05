@@ -1,6 +1,7 @@
 import {
     useCreateProjectMutation,
     useCreateWorkspaceMutation,
+    useGetWorkspaceQuery,
 } from '@graph/hooks';
 import { useParams } from '@util/react-router/useParams';
 import React, { useEffect } from 'react';
@@ -9,7 +10,7 @@ import { Redirect } from 'react-router-dom';
 
 import commonStyles from '../../Common.module.scss';
 import Button from '../../components/Button/Button/Button';
-import { CircularSpinner } from '../../components/Loading/Loading';
+import { CircularSpinner, LoadingBar } from '../../components/Loading/Loading';
 import { client } from '../../util/graph';
 import styles from './NewProject.module.scss';
 
@@ -19,8 +20,12 @@ type Inputs = {
 
 const NewProjectPage = () => {
     const { workspace_id } = useParams<{ workspace_id: string }>();
-    // User is creating a workspace if workspace is not specified in the URL
-    const isWorkspace = !workspace_id;
+    const { data, loading } = useGetWorkspaceQuery({
+        variables: {
+            id: workspace_id,
+        },
+        skip: !workspace_id,
+    });
 
     const { register, handleSubmit, errors, setError } = useForm<Inputs>();
     const [
@@ -44,6 +49,9 @@ const NewProjectPage = () => {
             });
         }
     }, [setError, projectError, workspaceError]);
+
+    // User is creating a workspace if workspace is not specified in the URL
+    const isWorkspace = !workspace_id;
 
     const onSubmit = (data: Inputs) => {
         if (isWorkspace) {
@@ -75,12 +83,21 @@ const NewProjectPage = () => {
     const pageType = isWorkspace ? 'workspace' : 'project';
     const pageTypeCaps = isWorkspace ? 'Workspace' : 'Project';
 
+    if (loading) {
+        return <LoadingBar />;
+    }
+
     return (
         <div className={styles.box} key={workspace_id}>
             <form onSubmit={handleSubmit(onSubmit)}>
                 <h2 className={styles.title}>{`Create a ${pageTypeCaps}`}</h2>
                 <p className={styles.subTitle}>
-                    {`Enter the name of your ${pageType} and you'll be good to go!`}
+                    {isWorkspace &&
+                        `A workspace is a group of projects that can share a common team.`}
+                    {!isWorkspace &&
+                        `This project will be added to the '${
+                            data?.workspace!.name
+                        }' workspace. Enter the name of your project and you'll be good to go!`}
                 </p>
                 <div className={commonStyles.errorMessage}>
                     {errors.name &&
