@@ -140,7 +140,7 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 		return -1, e.Wrap(err, "error querying session by sessionID for adding session feedback")
 	}
 
-	feedbackComment := &model.SessionComment{SessionId: sessionID, Text: verbatim, Metadata: metadata, Type: model.SessionCommentTypes.FEEDBACK, ProjectID: session.ProjectID}
+	feedbackComment := &model.SessionComment{SessionId: sessionID, Text: verbatim, Metadata: metadata, Type: model.SessionCommentTypes.FEEDBACK, ProjectID: session.ProjectID, SessionSecureId: session.SecureID}
 	if err := r.DB.Create(feedbackComment).Error; err != nil {
 		return -1, e.Wrap(err, "error creating session feedback")
 	}
