@@ -434,6 +434,37 @@ func TestGetActiveDuration(t *testing.T) {
 				{
 					Events: `
 					{
+						"events": [
+						{
+							"data": {"source": 5},
+							"timestamp": 200445,
+							"type": 2
+						},
+						{
+							"data": {"source": 5},
+							"timestamp": 200446,
+							"type": 2
+						},
+						{
+							"data": {"source": 5},
+							"timestamp": 200447,
+							"type": 2
+						},
+						{
+							"data": {"source": 5},
+							"timestamp": 200448,
+							"type": 2
+						},
+						{
+							"data": {"source": 5},
+							"timestamp": 200449,
+							"type": 2
+						}]
+					}`,
+				},
+				{
+					Events: `
+					{
 						"events": [{
 							"data": {"source": 2, "x": 1, "y": 1, "type": 2},
 							"timestamp": 200450,
