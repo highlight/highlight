@@ -111,6 +111,20 @@
               "InputNumber"
             ],
             "message": "Please use InputNumber from /src/components/InputNumber instead."
+          },
+          {
+            "name": "react-router-dom",
+            "importNames": [
+              "useParams"
+            ],
+            "message": "Please use useParams from @util/react-router/useParams instead."
+          },
+          {
+            "name": "react-json-view",
+            "importNames": [
+              "ReactJson"
+            ],
+            "message": "Please use JsonViewer from @components/JsonViewer instead."
           }
         ]
       }

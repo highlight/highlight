@@ -4,7 +4,10 @@
     height: calc(100% - (2 * var(--size-medium)));
     opacity: 1;
     overflow-y: auto;
-    padding: var(--size-small) var(--size-large);
+    padding-bottom: var(--size-small);
+    padding-left: var(--size-large);
+    padding-right: var(--size-large);
+    padding-top: var(--size-small);
     position: fixed;
     right: var(--size-medium);
     top: var(--size-medium);
@@ -81,7 +84,10 @@
     font-size: 11px;
     justify-content: center;
     min-width: 20px;
-    padding: var(--size-xxSmall);
+    padding-bottom: var(--size-xxSmall);
+    padding-left: var(--size-xxSmall);
+    padding-right: var(--size-xxSmall);
+    padding-top: var(--size-xxSmall);
     text-transform: capitalize;
 
     &.symbol {
@@ -128,7 +134,10 @@
     display: flex;
     font-size: 12px;
     margin-left: auto;
-    padding: var(--size-xSmall) var(--size-small);
+    padding-bottom: var(--size-xSmall);
+    padding-left: var(--size-small);
+    padding-right: var(--size-small);
+    padding-top: var(--size-xSmall);
 
     &:hover {
         color: var(--text-primary);

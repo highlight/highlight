@@ -13,7 +13,7 @@ type Field {
 
 type Session {
     id: ID!
-    user_id: ID!
+    secure_id: String!
     fingerprint: Int
     os_name: String!
     os_version: String!
@@ -69,7 +69,17 @@ enum ErrorState {
     IGNORED
 }
 
-type Organization {
+enum AdminRole {
+    ADMIN
+    MEMBER
+}
+
+enum SessionCommentType {
+    Admin
+    FEEDBACK
+}
+
+type Project {
     id: ID!
     verbose_id: String!
     name: String!
@@ -84,21 +94,22 @@ type Segment {
     id: ID!
     name: String!
     params: SearchParams!
-    organization_id: ID!
+    project_id: ID!
 }
 
 type ErrorSegment {
     id: ID!
     name: String!
     params: ErrorSearchParams!
-    organization_id: ID!
+    project_id: ID!
 }
 
 type ErrorObject {
     id: ID!
-    organization_id: Int!
+    project_id: Int!
     session_id: Int!
     error_group_id: Int!
+    error_group_secure_id: String!
     event: [String]!
     type: String!
     url: String!
@@ -111,14 +122,16 @@ type ErrorObject {
 }
 
 type ErrorField {
-    organization_id: Int
+    project_id: Int
     name: String!
     value: String!
 }
 
 type ErrorGroup {
+    created_at: Time!
     id: ID!
-    organization_id: Int!
+    secure_id: String!
+    project_id: Int!
     type: String!
     event: [String]!
     stack_trace: [ErrorTrace]!
@@ -127,16 +140,21 @@ type ErrorGroup {
     field_group: [ErrorField]
     state: ErrorState!
     environments: String
+    error_frequency: [Int64]!
+    is_public: Boolean!
 }
 
 type ErrorMetadata {
     error_id: Int!
     session_id: Int!
+    session_secure_id: String!
     environment: String
-    timestamp: Time!
+    timestamp: Time
     os: String
     browser: String
     visited_url: String
+    fingerprint: String!
+    identifier: String
 }
 
 type ErrorTrace {
@@ -265,6 +283,7 @@ type Admin {
     name: String!
     email: String!
     photo_url: String
+    role: String!
     slack_im_channel_id: String
 }
 
@@ -294,22 +313,26 @@ type ErrorResults {
 
 type SessionComment {
     id: ID!
-    organization_id: ID!
-    timestamp: Int!
+    project_id: ID!
+    timestamp: Int
     created_at: Time!
     updated_at: Time!
     session_id: Int!
-    author: SanitizedAdmin!
+    session_secure_id: String!
+    author: SanitizedAdmin
     text: String!
-    x_coordinate: Float!
-    y_coordinate: Float!
+    x_coordinate: Float
+    y_coordinate: Float
+    type: SessionCommentType!
+    metadata: Any
 }
 
 type ErrorComment {
     id: ID!
-    organization_id: ID!
+    project_id: ID!
     created_at: Time!
     error_id: Int!
+    error_secure_id: String!
     updated_at: Time!
     author: SanitizedAdmin!
     text: String!
@@ -322,13 +345,13 @@ enum SessionLifecycle {
 }
 
 type DailySessionCount {
-    organization_id: ID!
+    project_id: ID!
     date: Time!
     count: Int64!
 }
 
 type DailyErrorCount {
-    organization_id: ID!
+    project_id: ID!
     date: Time!
     count: Int64!
 }
@@ -370,152 +393,146 @@ type SessionAlert {
     CountThreshold: Int!
     TrackProperties: [TrackProperty]!
     UserProperties: [UserProperty]!
+    ThresholdWindow: Int!
 }
 
 scalar Upload
 
 type Query {
-    session(id: ID!): Session
-    events(session_id: ID!): [Any]
+    session(id: ID, secure_id: String): Session
+    events(session_id: ID, session_secure_id: String): [Any]
     error_groups(
-        organization_id: ID!
+        project_id: ID!
         count: Int!
         params: ErrorSearchParamsInput
     ): ErrorResults
-    error_group(id: ID!): ErrorGroup
-    messages(session_id: ID!): [Any]
-    errors(session_id: ID!): [ErrorObject]
-    resources(session_id: ID!): [Any]
-    session_comments(session_id: ID!): [SessionComment]!
+    error_group(id: ID, secure_id: String): ErrorGroup
+    messages(session_id: ID, session_secure_id: String): [Any]
+    errors(session_id: ID, session_secure_id: String): [ErrorObject]
+    resources(session_id: ID, session_secure_id: String): [Any]
+    session_comments(
+        session_id: ID
+        session_secure_id: String
+    ): [SessionComment]!
     session_comments_for_admin: [SessionComment]!
-    session_comments_for_organization(organization_id: ID!): [SessionComment]!
-    error_comments(error_group_id: ID!): [ErrorComment]!
+    session_comments_for_project(project_id: ID!): [SessionComment]!
+    error_comments(
+        error_group_id: ID
+        error_group_secure_id: String
+    ): [ErrorComment]!
     error_comments_for_admin: [ErrorComment]!
-    error_comments_for_organization(organization_id: ID!): [ErrorComment]!
-    admins(organization_id: ID!): [Admin]
-    isIntegrated(organization_id: ID!): Boolean
-    unprocessedSessionsCount(organization_id: ID!): Int64
+    error_comments_for_project(project_id: ID!): [ErrorComment]!
+    admins(project_id: ID!): [Admin]!
+    isIntegrated(project_id: ID!): Boolean
+    unprocessedSessionsCount(project_id: ID!): Int64
     adminHasCreatedComment(admin_id: ID!): Boolean
-    organizationHasViewedASession(organization_id: ID!): Session
+    projectHasViewedASession(project_id: ID!): Session
     dailySessionsCount(
-        organization_id: ID!
+        project_id: ID!
         date_range: DateRangeInput!
     ): [DailySessionCount]!
     dailyErrorsCount(
-        organization_id: ID!
+        project_id: ID!
         date_range: DateRangeInput!
     ): [DailyErrorCount]!
-    referrers(
-        organization_id: ID!
-        lookBackPeriod: Int!
-    ): [ReferrerTablePayload]!
-    newUsersCount(organization_id: ID!, lookBackPeriod: Int!): NewUsersCount
-    topUsers(organization_id: ID!, lookBackPeriod: Int!): [TopUsersPayload]!
+    dailyErrorFrequency(
+        project_id: ID!
+        error_group_id: ID
+        error_group_secure_id: String
+        date_offset: Int!
+    ): [Int64]!
+    referrers(project_id: ID!, lookBackPeriod: Int!): [ReferrerTablePayload]!
+    newUsersCount(project_id: ID!, lookBackPeriod: Int!): NewUsersCount
+    topUsers(project_id: ID!, lookBackPeriod: Int!): [TopUsersPayload]!
     averageSessionLength(
-        organization_id: ID!
+        project_id: ID!
         lookBackPeriod: Int!
     ): AverageSessionLength
     userFingerprintCount(
-        organization_id: ID!
+        project_id: ID!
         lookBackPeriod: Int!
     ): UserFingerprintCount
     sessions(
-        organization_id: ID!
+        project_id: ID!
         count: Int!
         lifecycle: SessionLifecycle!
         starred: Boolean!
         params: SearchParamsInput
     ): SessionResults!
-    billingDetails(organization_id: ID!): BillingDetails!
-    # gets all the organizations of a user
-    field_suggestion(
-        organization_id: ID!
-        name: String!
-        query: String!
-    ): [Field]
-    property_suggestion(
-        organization_id: ID!
-        query: String!
-        type: String!
-    ): [Field]
+    billingDetails(project_id: ID!): BillingDetails!
+    # gets all the projects of a user
+    field_suggestion(project_id: ID!, name: String!, query: String!): [Field]
+    property_suggestion(project_id: ID!, query: String!, type: String!): [Field]
     error_field_suggestion(
-        organization_id: ID!
+        project_id: ID!
         name: String!
         query: String!
     ): [ErrorField]
-    organizations: [Organization]
-    error_alert(organization_id: ID!): ErrorAlert
-    new_user_alert(organization_id: ID!): SessionAlert
-    track_properties_alert(organization_id: ID!): SessionAlert
-    user_properties_alert(organization_id: ID!): SessionAlert
-    organizationSuggestion(query: String!): [Organization]
-    environment_suggestion(query: String!, organization_id: ID!): [Field]
-    slack_channel_suggestion(organization_id: ID!): [SanitizedSlackChannel]
-    organization(id: ID!): Organization
+    projects: [Project]
+    error_alert(project_id: ID!): ErrorAlert
+    session_feedback_alert(project_id: ID!): SessionAlert
+    new_user_alert(project_id: ID!): SessionAlert
+    track_properties_alert(project_id: ID!): SessionAlert
+    user_properties_alert(project_id: ID!): SessionAlert
+    projectSuggestion(query: String!): [Project]
+    environment_suggestion(project_id: ID!): [Field]
+    slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
+    slack_members(project_id: ID!): [SanitizedSlackChannel]!
+    is_integrated_with_slack(project_id: ID!): Boolean!
+    project(id: ID!): Project
     admin: Admin
-    segments(organization_id: ID!): [Segment]
-    error_segments(organization_id: ID!): [ErrorSegment]
+    segments(project_id: ID!): [Segment]
+    error_segments(project_id: ID!): [ErrorSegment]
     api_key_to_org_id(api_key: String!): ID
 }
 
 type Mutation {
-    createOrganization(name: String!): Organization
-    editOrganization(id: ID!, name: String, billing_email: String): Organization
-    markSessionAsViewed(id: ID!, viewed: Boolean): Session
-    markSessionAsStarred(id: ID!, starred: Boolean): Session
-    updateErrorGroupState(id: ID!, state: String!): ErrorGroup
-    deleteOrganization(id: ID!): Boolean
-    sendAdminInvite(
-        organization_id: ID!
-        email: String!
-        base_url: String!
-    ): String
-    addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
-    deleteAdminFromOrganization(organization_id: ID!, admin_id: ID!): ID
-    addSlackIntegrationToWorkspace(
-        organization_id: ID!
-        code: String!
-        redirect_path: String!
-    ): Boolean
+    createProject(name: String!): Project
+    editProject(id: ID!, name: String, billing_email: String): Project
+    markSessionAsViewed(id: ID, secure_id: String, viewed: Boolean): Session
+    markSessionAsStarred(id: ID, secure_id: String, starred: Boolean): Session
+    updateErrorGroupState(id: ID, secure_id: String, state: String!): ErrorGroup
+    deleteProject(id: ID!): Boolean
+    sendAdminInvite(project_id: ID!, email: String!, base_url: String!): String
+    addAdminToProject(project_id: ID!, invite_id: String!): ID
+    deleteAdminFromProject(project_id: ID!, admin_id: ID!): ID
     createSegment(
-        organization_id: ID!
+        project_id: ID!
         name: String!
         params: SearchParamsInput!
     ): Segment
     emailSignup(email: String!): String!
-    editSegment(
-        id: ID!
-        organization_id: ID!
-        params: SearchParamsInput!
-    ): Boolean
+    editSegment(id: ID!, project_id: ID!, params: SearchParamsInput!): Boolean
     deleteSegment(segment_id: ID!): Boolean
     createErrorSegment(
-        organization_id: ID!
+        project_id: ID!
         name: String!
         params: ErrorSearchParamsInput!
     ): ErrorSegment
     editErrorSegment(
         id: ID!
-        organization_id: ID!
+        project_id: ID!
         params: ErrorSearchParamsInput!
     ): Boolean
     deleteErrorSegment(segment_id: ID!): Boolean
     # If this endpoint returns a checkout_id, we initiate a stripe checkout.
     # Otherwise, we simply update the subscription.
     createOrUpdateStripeSubscription(
-        organization_id: ID!
+        project_id: ID!
         plan_type: PlanType!
     ): String
-    updateBillingDetails(organization_id: ID!): Boolean
+    updateBillingDetails(project_id: ID!): Boolean
     createSessionComment(
-        organization_id: ID!
-        session_id: ID!
+        project_id: ID!
+        session_id: ID
+        session_secure_id: String
         session_timestamp: Int!
         text: String!
         text_for_email: String!
         x_coordinate: Float!
         y_coordinate: Float!
         tagged_admins: [SanitizedAdminInput]!
+        tagged_slack_users: [SanitizedSlackChannelInput]!
         session_url: String!
         time: Float!
         author_name: String!
@@ -523,48 +540,72 @@ type Mutation {
     ): SessionComment
     deleteSessionComment(id: ID!): Boolean
     createErrorComment(
-        organization_id: ID!
-        error_group_id: ID!
+        project_id: ID!
+        error_group_id: ID
+        error_group_secure_id: String
         text: String!
         text_for_email: String!
         tagged_admins: [SanitizedAdminInput]!
+        tagged_slack_users: [SanitizedSlackChannelInput]!
         error_url: String!
         author_name: String!
     ): ErrorComment
     deleteErrorComment(id: ID!): Boolean
     openSlackConversation(
-        organization_id: ID!
+        project_id: ID!
         code: String!
         redirect_path: String!
     ): Boolean
+    addSlackBotIntegrationToProject(
+        project_id: ID!
+        code: String!
+        redirect_path: String!
+    ): Boolean!
     updateErrorAlert(
-        organization_id: ID!
+        project_id: ID!
         error_alert_id: ID!
         count_threshold: Int!
         threshold_window: Int!
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
     ): ErrorAlert
+    updateSessionFeedbackAlert(
+        project_id: ID!
+        session_feedback_alert_id: ID!
+        count_threshold: Int!
+        threshold_window: Int!
+        slack_channels: [SanitizedSlackChannelInput]!
+        environments: [String]!
+    ): SessionAlert
     updateNewUserAlert(
-        organization_id: ID!
+        project_id: ID!
         session_alert_id: ID!
         count_threshold: Int!
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
     ): SessionAlert
     updateTrackPropertiesAlert(
-        organization_id: ID!
+        project_id: ID!
         session_alert_id: ID!
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
         track_properties: [TrackPropertyInput]!
     ): SessionAlert
     updateUserPropertiesAlert(
-        organization_id: ID!
+        project_id: ID!
         session_alert_id: ID!
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
         user_properties: [UserPropertyInput]!
     ): SessionAlert
-    updateSessionIsPublic(session_id: ID!, is_public: Boolean!): Session
+    updateSessionIsPublic(
+        session_id: ID
+        session_secure_id: String
+        is_public: Boolean!
+    ): Session
+    updateErrorGroupIsPublic(
+        error_group_id: ID
+        error_group_secure_id: String
+        is_public: Boolean!
+    ): ErrorGroup
 }

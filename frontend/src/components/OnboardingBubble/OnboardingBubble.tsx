@@ -1,11 +1,13 @@
+import { DEMO_WORKSPACE_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { useSlackBot } from '@components/Header/components/PersonalNotificationButton/utils/utils';
 import useLocalStorage from '@rehooks/local-storage';
+import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React, { useEffect, useState } from 'react';
 import Confetti from 'react-confetti';
 import { useHistory } from 'react-router';
-import { useParams } from 'react-router-dom';
 import useSessionStorage from 'react-use/lib/useSessionStorage';
 
 import {
@@ -30,16 +32,20 @@ interface OnboardingStep {
 
 const OnboardingBubble = () => {
     const history = useHistory();
-    const { organization_id } = useParams<{
-        organization_id: string;
+    const { project_id } = useParams<{
+        project_id: string;
     }>();
     const [, setHasFinishedOnboarding] = useLocalStorage(
-        `highlight-finished-onboarding-${organization_id}`,
+        `highlight-finished-onboarding-${project_id}`,
         false
     );
     const [hasStartedOnboarding] = useLocalStorage(
-        `highlight-started-onboarding-${organization_id}`,
+        `highlight-started-onboarding-${project_id}`,
         false
+    );
+    const [, setSetupType] = useLocalStorage<'' | 'Personal' | 'Organization'>(
+        'Highlight-slackBotSetupType',
+        ''
     );
     const [
         temporarilyHideOnboardingBubble,
@@ -58,10 +64,15 @@ const OnboardingBubble = () => {
         data,
     } = useGetOnboardingStepsQuery({
         variables: {
-            organization_id,
+            project_id,
             admin_id: (admin_data?.admin?.id as string) || '',
         },
         fetchPolicy: 'network-only',
+    });
+
+    const { slackUrl: slackBotUrl } = useSlackBot({
+        type: 'Personal',
+        watch: false,
     });
 
     useEffect(() => {
@@ -70,44 +81,53 @@ const OnboardingBubble = () => {
             STEPS.push({
                 displayName: 'Install the Highlight SDK',
                 action: () => {
-                    history.push(`/${organization_id}/setup`);
+                    history.push(`/${project_id}/setup`);
                 },
                 completed: data.isIntegrated || false,
             });
             STEPS.push({
                 displayName: 'Configure Alerts',
                 action: () => {
-                    history.push(`/${organization_id}/alerts`);
+                    history.push(`/${project_id}/alerts`);
                 },
-                completed: !!data.organization?.slack_channels,
+                completed: !!data.project?.slack_channels,
             });
             STEPS.push({
                 displayName: 'Invite your team',
                 action: () => {
-                    history.push(`/${organization_id}/team`);
+                    history.push(`/${project_id}/team`);
                 },
                 completed: (data.admins?.length || 0) > 1,
             });
             STEPS.push({
                 displayName: 'View your first session',
                 action: () => {
-                    history.push(`/${organization_id}/sessions`);
+                    history.push(`/${project_id}/sessions`);
                 },
-                completed: !!data.organizationHasViewedASession || false,
+                completed: !!data.projectHasViewedASession || false,
             });
             STEPS.push({
                 displayName: 'Create your first comment',
                 action: () => {
-                    if (data.organizationHasViewedASession?.id !== '0') {
+                    if (data.projectHasViewedASession?.secure_id !== '') {
                         history.push(
-                            `/${organization_id}/sessions/${data.organizationHasViewedASession?.id}`
+                            `/${project_id}/sessions/${data.projectHasViewedASession?.secure_id}`
                         );
                     } else {
-                        history.push(`/${organization_id}/sessions`);
+                        history.push(`/${project_id}/sessions`);
                     }
                 },
                 completed: !!data.adminHasCreatedComment || false,
                 tooltip: `You can create a comment on a session by clicking on the session player. You can also tag your team by @'ing them.`,
+            });
+            STEPS.push({
+                displayName: 'Set up personal notifications',
+                action: () => {
+                    window.location.href = slackBotUrl;
+                    setSetupType('Personal');
+                },
+                completed: !!data.admin?.slack_im_channel_id || false,
+                tooltip: `You will get a Slack DM anytime someone tags you in a Highlight comment!`,
             });
             setSteps(STEPS);
             const stepsNotFinishedCount = STEPS.reduce((prev, curr) => {
@@ -143,10 +163,12 @@ const OnboardingBubble = () => {
         data,
         hasStartedOnboarding,
         history,
-        organization_id,
+        project_id,
         setHasFinishedOnboarding,
         startPolling,
         stopPolling,
+        slackBotUrl,
+        setSetupType,
     ]);
 
     if (rainConfetti) {
@@ -156,7 +178,8 @@ const OnboardingBubble = () => {
     if (
         loading ||
         stepsNotFinishedCount === -1 ||
-        temporarilyHideOnboardingBubble
+        temporarilyHideOnboardingBubble ||
+        project_id === DEMO_WORKSPACE_APPLICATION_ID
     ) {
         return null;
     }
@@ -173,7 +196,6 @@ const OnboardingBubble = () => {
                     }
                 }}
                 popoverClassName={styles.popover}
-                hasBorder
                 content={
                     <>
                         <div className={styles.onboardingBubblePopoverHeader}>

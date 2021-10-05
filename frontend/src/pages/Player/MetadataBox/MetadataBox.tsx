@@ -1,7 +1,7 @@
+import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { useParams } from 'react-router-dom';
 
 import { useAuthContext } from '../../../authentication/AuthContext';
 import { Avatar } from '../../../components/Avatar/Avatar';
@@ -17,7 +17,7 @@ import { getMajorVersion } from './utils/utils';
 
 export const MetadataBox = () => {
     const { isLoggedIn } = useAuthContext();
-    const { session_id } = useParams<{ session_id: string }>();
+    const { session_secure_id } = useParams<{ session_secure_id: string }>();
     const { session } = useReplayerContext();
 
     const [markSessionAsStarred] = useMarkSessionAsStarredMutation({
@@ -49,7 +49,7 @@ export const MetadataBox = () => {
                         onClick={() => {
                             markSessionAsStarred({
                                 variables: {
-                                    id: session_id,
+                                    secure_id: session_secure_id,
                                     starred: !session?.starred,
                                 },
                             })
@@ -89,13 +89,16 @@ export const MetadataBox = () => {
                 <div className={styles.headerWrapper}>
                     {!session ? (
                         <Skeleton
-                            count={2}
+                            count={3}
                             style={{ height: 20, marginBottom: 5 }}
                         />
                     ) : (
                         <>
                             <h4 className={styles.userIdHeader}>
-                                <UserIdentifier session={session} />
+                                <UserIdentifier
+                                    session={session}
+                                    className={styles.userIdentifier}
+                                />
                             </h4>
                             <p className={styles.userIdSubHeader}>
                                 {created.toLocaleString('en-us', {

@@ -1,7 +1,11 @@
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { useParams } from 'react-router-dom';
 
 import { useGetKeyPerformanceIndicatorsQuery } from '../../../../graph/generated/hooks';
 import { EmptySessionsSearchParams } from '../../../Sessions/EmptySessionsSearchParams';
@@ -12,7 +16,11 @@ import styles from './KeyPerformanceIndicators.module.scss';
 import { formatLongNumber, formatShortTime } from './utils/utils';
 
 const KeyPerformanceIndicators = () => {
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { project_id } = useParams<{ project_id: string }>();
+    const projectIdRemapped =
+        project_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : project_id;
     const { dateRangeLength } = useHomePageFiltersContext();
     const {
         setSearchParams,
@@ -20,7 +28,7 @@ const KeyPerformanceIndicators = () => {
         setSelectedSegment,
     } = useSearchContext();
     const { loading, data } = useGetKeyPerformanceIndicatorsQuery({
-        variables: { organization_id, lookBackPeriod: dateRangeLength },
+        variables: { project_id, lookBackPeriod: dateRangeLength },
     });
 
     return (
@@ -34,7 +42,7 @@ const KeyPerformanceIndicators = () => {
                             data?.newUsersCount?.count || 0
                         )}
                         title="New Users"
-                        route={`/${organization_id}/sessions`}
+                        route={`/${projectIdRemapped}/sessions`}
                         onClick={() => {
                             message.success('Showing sessions for new users');
                             setSegmentName(null);

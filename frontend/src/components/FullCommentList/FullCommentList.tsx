@@ -1,3 +1,6 @@
+import { useAuthContext } from '@authentication/AuthContext';
+import Alert from '@components/Alert/Alert';
+import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
 import React, { useRef } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
@@ -18,6 +21,7 @@ const FullCommentList = ({
     noCommentsMessage,
 }: Props) => {
     const virtuoso = useRef<VirtuosoHandle>(null);
+    const { admin, isLoggedIn } = useAuthContext();
 
     return (
         <div className={styles.commentStream}>
@@ -28,23 +32,49 @@ const FullCommentList = ({
             )}
             {!loading && comments.length === 0 ? (
                 <div className={styles.noCommentsContainer}>
-                    <h2>There are no comments yet</h2>
-                    <p>{noCommentsMessage}</p>
+                    <div className={styles.noCommentsTextContainer}>
+                        <h2>There are no comments yet</h2>
+                        <p>{noCommentsMessage}</p>
+                    </div>
+                    <PersonalNotificationButton type="Personal" />
                 </div>
             ) : (
-                <Virtuoso
-                    ref={virtuoso}
-                    overscan={500}
-                    data={comments}
-                    itemContent={(index, comment: any) => (
-                        <div
-                            key={comment.id || index}
+                <>
+                    {!loading && isLoggedIn && !admin?.slack_im_channel_id && (
+                        <Alert
+                            trackingId={'PersonalNotificationCTA'}
+                            message={'Get Comment Notifications'}
+                            description={
+                                <>
+                                    {
+                                        'Get a slack DM anytime someone tags you in a Highlight comment!'
+                                    }
+                                    <PersonalNotificationButton
+                                        text={'Enable Notifications'}
+                                        style={{
+                                            marginTop: 'var(--size-medium)',
+                                        }}
+                                        type="Personal"
+                                    />
+                                </>
+                            }
                             className={styles.comment}
-                        >
-                            {commentRender(comment)}
-                        </div>
+                        />
                     )}
-                />
+                    <Virtuoso
+                        ref={virtuoso}
+                        overscan={500}
+                        data={comments}
+                        itemContent={(index, comment: any) => (
+                            <div
+                                key={comment.id || index}
+                                className={styles.comment}
+                            >
+                                {commentRender(comment)}
+                            </div>
+                        )}
+                    />
+                </>
             )}
         </div>
     );

@@ -16,3 +16,4 @@ export const playIcon: string;
 export const selectedIcon: string;
 export const streamElement: string;
 export const tiltedIcon: string;
+export const timestamp: string;

@@ -1,5 +1,5 @@
+import { useParams } from '@util/react-router/useParams';
 import React from 'react';
-import { useParams } from 'react-router-dom';
 
 import FullCommentList from '../../../../../../components/FullCommentList/FullCommentList';
 import { useGetErrorCommentsQuery } from '../../../../../../graph/generated/hooks';
@@ -8,13 +8,13 @@ import { ErrorCommentCard } from '../../../ErrorComments/ErrorComments';
 import styles from './ErrorFullCommentList.module.scss';
 
 const ErrorFullCommentList = () => {
-    const { error_id } = useParams<{
-        error_id: string;
-        organization_id: string;
+    const { error_secure_id } = useParams<{
+        error_secure_id: string;
+        project_id: string;
     }>();
     const { data: errorCommentsData, loading } = useGetErrorCommentsQuery({
         variables: {
-            error_group_id: error_id,
+            error_group_secure_id: error_secure_id,
         },
     });
 

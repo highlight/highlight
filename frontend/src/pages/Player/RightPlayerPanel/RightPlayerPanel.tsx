@@ -1,12 +1,15 @@
+import EventStream from '@pages/Player/components/EventStream/EventStream';
+import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
+import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils';
+import DetailPanel from '@pages/Player/Toolbar/DevToolsWindow/DetailPanel/DetailPanel';
 import classNames from 'classnames';
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import Tabs from '../../../components/Tabs/Tabs';
 import PanelToggleButton from '../components/PanelToggleButton/PanelToggleButton';
 import { MetadataBox } from '../MetadataBox/MetadataBox';
 import MetadataPanel from '../MetadataPanel/MetadataPanel';
 import usePlayerConfiguration from '../PlayerHook/utils/usePlayerConfiguration';
-import { EventStream } from '../PlayerPage';
 import playerPageStyles from '../PlayerPage.module.scss';
 import { PlayerPageProductTourSelectors } from '../PlayerPageProductTour/PlayerPageProductTour';
 import { useReplayerContext } from '../ReplayerContext';
@@ -19,8 +22,30 @@ const RightPlayerPanel = () => {
         setShowRightPanel,
     } = usePlayerConfiguration();
     const { canViewSession } = useReplayerContext();
+    const {
+        detailedPanel,
+        setDetailedPanel,
+        setSelectedRightPanelTab,
+    } = usePlayerUIContext();
 
     const showRightPanel = showRightPanelPreference && canViewSession;
+
+    useEffect(() => {
+        if (detailedPanel) {
+            setShowRightPanel(true);
+        }
+    }, [detailedPanel, setShowRightPanel]);
+
+    useEffect(() => {
+        const commentId = new URLSearchParams(location.search).get(
+            PlayerSearchParameters.commentId
+        );
+
+        if (commentId) {
+            setShowRightPanel(true);
+            setSelectedRightPanelTab('Comments');
+        }
+    }, [setSelectedRightPanelTab, setShowRightPanel]);
 
     return (
         <>
@@ -29,6 +54,7 @@ const RightPlayerPanel = () => {
                     [styles.hidden]: !showRightPanel,
                 })}
             >
+                <DetailPanel />
                 <PanelToggleButton
                     className={classNames(
                         playerPageStyles.panelToggleButton,
@@ -40,7 +66,11 @@ const RightPlayerPanel = () => {
                     direction="right"
                     isOpen={showRightPanel}
                     onClick={() => {
-                        setShowRightPanel(!showRightPanel);
+                        if (detailedPanel) {
+                            setDetailedPanel(undefined);
+                        } else {
+                            setShowRightPanel(!showRightPanel);
+                        }
                     }}
                 />
                 <div className={styles.playerRightPanelCollapsible}>

@@ -103,6 +103,8 @@ export enum PlayerSearchParameters {
     errorId = 'errorId',
     /** The comment ID for a comment in the current session. The player's time will be set to the comments's timestamp. */
     commentId = 'commentId',
+    /** The Request Header ID for an error's network resource. */
+    resourceErrorRequestHeader = 'resourceErrorRequestHeader',
 }
 
 /**
@@ -290,10 +292,10 @@ const assignEventToSessionInterval = (
 
 export const findNextSessionInList = (
     allSessions: Session[],
-    currentSessionId: string
+    currentSessionSecureId: string
 ): Session | null => {
     let currentSessionIndex = allSessions.findIndex(
-        (session) => session.id === currentSessionId
+        (session) => session.secure_id === currentSessionSecureId
     );
 
     // This happens if the current session was removed from the session feed.
@@ -313,10 +315,10 @@ export const findNextSessionInList = (
 
 export const findPreviousSessionInList = (
     allSessions: Session[],
-    currentSessionId: string
+    currentSessionSecureId: string
 ): Session | null => {
     const currentSessionIndex = allSessions.findIndex(
-        (session) => session.id === currentSessionId
+        (session) => session.secure_id === currentSessionSecureId
     );
 
     // This happens if the current session was removed from the session feed.
@@ -335,16 +337,18 @@ export const findPreviousSessionInList = (
 };
 
 export const changeSession = (
-    organizationId: string,
+    projectId: string,
     history: H.History,
     session: Session | null,
     successMessageText = 'Playing the next session.'
 ) => {
+    const projectIdRemapped = projectId === '0' ? 'demo' : projectId;
+
     if (!session) {
         message.success('No more sessions to play.');
         return;
     }
 
-    history.push(`/${organizationId}/sessions/${session.id}`);
+    history.push(`/${projectIdRemapped}/sessions/${session.secure_id}`);
     message.success(successMessageText);
 };

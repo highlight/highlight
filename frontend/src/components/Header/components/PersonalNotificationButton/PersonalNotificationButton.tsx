@@ -1,35 +1,58 @@
+import useLocalStorage from '@rehooks/local-storage';
+import classNames from 'classnames';
 import React from 'react';
 
-import Button from '../../../Button/Button/Button';
+import Button, {
+    GenericHighlightButtonProps,
+} from '../../../Button/Button/Button';
 import { useAuthContext } from './../../../../authentication/AuthContext';
 import styles from './PersonalNotificationButton.module.scss';
-import { useSlackBot } from './utils/utils';
+import { useSlackBot, UseSlackBotProps } from './utils/utils';
 
-const PersonalNotificationButton = () => {
-    const { isHighlightAdmin, admin } = useAuthContext();
+type Props = { text?: string } & Pick<
+    GenericHighlightButtonProps,
+    'className' | 'style'
+> &
+    Pick<UseSlackBotProps, 'type'>;
 
-    let redirectUrl = window.location.pathname;
-    // this doesn't work if we redirect to /alerts
-    redirectUrl = redirectUrl.replace('alerts', 'home');
-    if (redirectUrl.length > 3) {
-        // remove orgid and prepended slash
-        redirectUrl = redirectUrl.substring(redirectUrl.indexOf('/', 1) + 1);
-    }
-    const { slackUrl: slackBotUrl } = useSlackBot(redirectUrl);
+const PersonalNotificationButton = ({
+    className,
+    style,
+    text,
+    type,
+}: Props) => {
+    const { admin, isLoggedIn } = useAuthContext();
+    const [, setSetupType] = useLocalStorage<'' | 'Personal' | 'Organization'>(
+        'Highlight-slackBotSetupType',
+        ''
+    );
 
-    if (!isHighlightAdmin) return null;
+    const { slackUrl: slackBotUrl } = useSlackBot({ type, watch: true });
+
+    if (!isLoggedIn) return null;
 
     // personal notifications are already setup
-    if (!!admin?.slack_im_channel_id) return null;
+    if (type === 'Personal' && !!admin?.slack_im_channel_id) return null;
 
     return (
         <Button
-            className={styles.personalNotificationButton}
+            className={classNames(className, styles.personalNotificationButton)}
             type="primary"
             trackingId="EnablePersonalNotificationButton"
             href={slackBotUrl}
+            style={style}
+            onClick={() => {
+                switch (type) {
+                    case 'Organization':
+                        setSetupType('Organization');
+                        break;
+                    case 'Personal':
+                        setSetupType('Personal');
+                        break;
+                }
+            }}
         >
-            Enable Personal Notifications?
+            {text || 'Get Comment Notifications'}
         </Button>
     );
 };

@@ -1,7 +1,8 @@
+import { isOnPrem } from '@util/onPrem/onPremUtils';
+import { useParams } from '@util/react-router/useParams';
 import React, { RefObject, useEffect, useMemo, useState } from 'react';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
 import Skeleton from 'react-loading-skeleton';
-import { useParams } from 'react-router-dom';
 import TextTransition from 'react-text-transition';
 
 import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
@@ -19,12 +20,12 @@ import styles from './SessionsFeed.module.scss';
 
 // const SESSIONS_FEED_POLL_INTERVAL = 1000 * 10;
 
-export const SessionFeed = () => {
+export const SessionFeed = React.memo(() => {
     const { setSessionResults, sessionResults } = useReplayerContext();
-    const { organization_id, segment_id, session_id } = useParams<{
-        organization_id: string;
+    const { project_id, segment_id, session_secure_id } = useParams<{
+        project_id: string;
         segment_id: string;
-        session_id: string;
+        session_secure_id: string;
     }>();
     const [count, setCount] = useState(10);
     const {
@@ -46,7 +47,7 @@ export const SessionFeed = () => {
         variables: {
             params: searchParamsExceptForShowLiveSessions,
             count: count + 10,
-            organization_id,
+            project_id,
             lifecycle:
                 segment_id === LIVE_SEGMENT_ID
                     ? SessionLifecycle.Live
@@ -79,7 +80,7 @@ export const SessionFeed = () => {
                 variables: {
                     params: searchParamsExceptForShowLiveSessions,
                     count,
-                    organization_id,
+                    project_id,
                     processed:
                         segment_id === LIVE_SEGMENT_ID
                             ? SessionLifecycle.Live
@@ -128,6 +129,7 @@ export const SessionFeed = () => {
                                         onChange={(checked) => {
                                             setAutoPlaySessions(checked);
                                         }}
+                                        trackingId="SessionFeedAutoplay"
                                     />
                                     <Switch
                                         label="Show Details"
@@ -135,6 +137,7 @@ export const SessionFeed = () => {
                                         onChange={(checked) => {
                                             setShowDetailedSessionView(checked);
                                         }}
+                                        trackingId="SessionFeedShowDetails"
                                     />
                                 </div>
                             </div>
@@ -161,12 +164,19 @@ export const SessionFeed = () => {
                                 <SearchEmptyState item={'sessions'} newFeed />
                             ) : (
                                 <>
-                                    <LimitedSessionCard />
+                                    {!isOnPrem && <LimitedSessionCard />}
                                     {filteredSessions.map((u) => (
                                         <MinimalSessionCard
                                             session={u}
-                                            key={u?.id}
-                                            selected={session_id === u?.id}
+                                            key={u?.secure_id}
+                                            selected={
+                                                session_secure_id ===
+                                                u?.secure_id
+                                            }
+                                            autoPlaySessions={autoPlaySessions}
+                                            showDetailedSessionView={
+                                                showDetailedSessionView
+                                            }
                                         />
                                     ))}
                                 </>
@@ -187,4 +197,4 @@ export const SessionFeed = () => {
             </div>
         </>
     );
-};
+});

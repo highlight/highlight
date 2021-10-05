@@ -2,6 +2,7 @@ import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { BooleanParam, useQueryParam } from 'use-query-params';
 
 import { useAuthContext } from '../../authentication/AuthContext';
 import commonStyles from '../../Common.module.scss';
@@ -26,7 +27,6 @@ export const AuthAdminRouter = () => {
                 id,
                 name,
             };
-            window.analytics.identify(email, identifyMetadata);
 
             if (admin.photo_url) {
                 identifyMetadata = {
@@ -60,7 +60,9 @@ const LoginForm = () => {
         reset,
         setError,
     } = useForm<Inputs>();
-    const [signIn, setSignIn] = useState<boolean>(true);
+    const [signUpParam] = useQueryParam('sign_up', BooleanParam);
+    // Show sign in state if the sign_up param is false or undefined
+    const [signIn, setSignIn] = useState<boolean>(!signUpParam);
     const { isAuthLoading, isLoggedIn } = useAuthContext();
     const [firebaseError, setFirebaseError] = useState('');
 

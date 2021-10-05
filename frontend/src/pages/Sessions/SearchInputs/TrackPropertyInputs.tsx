@@ -1,5 +1,5 @@
+import { useParams } from '@util/react-router/useParams';
 import React from 'react';
-import { useParams } from 'react-router-dom';
 import { OptionsType, OptionTypeBase } from 'react-select';
 import AsyncCreatableSelect from 'react-select/async-creatable';
 
@@ -19,7 +19,7 @@ export const TrackPropertyInput = ({
 }: {
     include?: boolean;
 }) => {
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { project_id } = useParams<{ project_id: string }>();
     const { searchParams, setSearchParams } = useSearchContext();
 
     const { refetch } = useGetTrackSuggestionQuery({ skip: true });
@@ -28,7 +28,7 @@ export const TrackPropertyInput = ({
         input: string
     ): Promise<OptionsType<OptionTypeBase> | void[]> => {
         const fetched = await refetch({
-            organization_id,
+            project_id,
             query: input,
         });
         const suggestions = (fetched?.data?.property_suggestion ?? []).map(

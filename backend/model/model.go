@@ -45,11 +45,21 @@ var AlertType = struct {
 	NEW_USER         string
 	TRACK_PROPERTIES string
 	USER_PROPERTIES  string
+	SESSION_FEEDBACK string
 }{
 	ERROR:            "ERROR_ALERT",
 	NEW_USER:         "NEW_USER_ALERT",
 	TRACK_PROPERTIES: "TRACK_PROPERTIES_ALERT",
 	USER_PROPERTIES:  "USER_PROPERTIES_ALERT",
+	SESSION_FEEDBACK: "SESSION_FEEDBACK_ALERT",
+}
+
+var AdminRole = struct {
+	ADMIN  string
+	MEMBER string
+}{
+	ADMIN:  "ADMIN",
+	MEMBER: "MEMBER",
 }
 
 var ErrorGroupStates = struct {
@@ -60,6 +70,16 @@ var ErrorGroupStates = struct {
 	OPEN:     "OPEN",
 	RESOLVED: "RESOLVED",
 	IGNORED:  "IGNORED",
+}
+
+var SessionCommentTypes = struct {
+	// Comments created by a Highlight user on the Highlight app.
+	ADMIN string
+	// Comments created by a Highlight customer, comes from feedback from their app.
+	FEEDBACK string
+}{
+	ADMIN:    "ADMIN",
+	FEEDBACK: "FEEDBACK",
 }
 
 type contextString string
@@ -99,6 +119,8 @@ var Models = []interface{}{
 	&ErrorComment{},
 	&ErrorAlert{},
 	&SessionAlert{},
+	&Project{},
+	&Workspace{},
 }
 
 func init() {
@@ -138,8 +160,44 @@ type Organization struct {
 	MonthlySessionLimit *int
 }
 
+type Workspace struct {
+	Model
+	Name                  *string
+	Secret                *string `json:"-"` // Needed for workspace-level team
+	Admins                []Admin `gorm:"many2many:workspace_admins;"`
+	SlackAccessToken      *string
+	SlackWebhookURL       *string
+	SlackWebhookChannel   *string
+	SlackWebhookChannelID *string
+	SlackChannels         *string
+	Projects              []Project
+	MigratedFromProjectID *int // Column can be removed after migration is done
+}
+
+type Project struct {
+	Model
+	Name             *string
+	StripeCustomerID *string
+	StripePriceID    *string
+	BillingEmail     *string
+	Secret           *string    `json:"-"`
+	Admins           []Admin    `gorm:"many2many:project_admins;"`
+	TrialEndDate     *time.Time `json:"trial_end_date"`
+	// Slack API Interaction.
+	SlackAccessToken      *string
+	SlackWebhookURL       *string
+	SlackWebhookChannel   *string
+	SlackWebhookChannelID *string
+	SlackChannels         *string
+	// Manual monthly session limit override
+	MonthlySessionLimit *int
+	OrganizationID      int
+	WorkspaceID         int
+}
+
 type Alert struct {
 	OrganizationID       int
+	ProjectID            int
 	ExcludedEnvironments *string
 	CountThreshold       int
 	ThresholdWindow      *int
@@ -226,13 +284,15 @@ type SlackChannel struct {
 	WebhookChannelID   string
 }
 
-func (u *Organization) IntegratedSlackChannels() ([]SlackChannel, error) {
+func (u *Project) IntegratedSlackChannels() ([]SlackChannel, error) {
 	parsedChannels := []SlackChannel{}
 	if u.SlackChannels != nil {
 		err := json.Unmarshal([]byte(*u.SlackChannels), &parsedChannels)
 		if err != nil {
 			return nil, e.Wrap(err, "error parsing details json")
 		}
+	} else {
+		return parsedChannels, nil
 	}
 	repeat := false
 	for _, c := range parsedChannels {
@@ -241,17 +301,20 @@ func (u *Organization) IntegratedSlackChannels() ([]SlackChannel, error) {
 		}
 	}
 	if u.SlackWebhookChannel != nil && !repeat {
-		parsedChannels = append(parsedChannels, SlackChannel{
-			WebhookAccessToken: *u.SlackAccessToken,
-			WebhookURL:         *u.SlackWebhookURL,
-			WebhookChannel:     *u.SlackWebhookChannel,
-			WebhookChannelID:   *u.SlackWebhookChannelID,
-		})
+		// Archived channels or users will not have a channel ID.
+		if u.SlackWebhookChannelID != nil {
+			parsedChannels = append(parsedChannels, SlackChannel{
+				WebhookAccessToken: *u.SlackAccessToken,
+				WebhookURL:         *u.SlackWebhookURL,
+				WebhookChannel:     *u.SlackWebhookChannel,
+				WebhookChannelID:   *u.SlackWebhookChannelID,
+			})
+		}
 	}
 	return parsedChannels, nil
 }
 
-func (u *Organization) VerboseID() string {
+func (u *Project) VerboseID() string {
 	str, err := HashID.Encode([]int{u.ID})
 	if err != nil {
 		log.Errorf("error generating hash id: %v", err)
@@ -262,8 +325,8 @@ func (u *Organization) VerboseID() string {
 
 func FromVerboseID(verboseId string) int {
 	// Try to convert the id to an integer in the case that the client is out of date.
-	if organizationID, err := strconv.Atoi(verboseId); err == nil {
-		return organizationID
+	if projectID, err := strconv.Atoi(verboseId); err == nil {
+		return projectID
 	}
 	// Otherwise, decode with HashID library
 	ints := HashID.Decode(verboseId)
@@ -273,7 +336,7 @@ func FromVerboseID(verboseId string) int {
 	return ints[0]
 }
 
-func (u *Organization) BeforeCreate(tx *gorm.DB) (err error) {
+func (u *Project) BeforeCreate(tx *gorm.DB) (err error) {
 	x := xid.New().String()
 	u.Secret = &x
 	return
@@ -286,9 +349,11 @@ type Admin struct {
 	PhotoURL         *string          `json:"photo_url"`
 	UID              *string          `gorm:"unique_index"`
 	Organizations    []Organization   `gorm:"many2many:organization_admins;"`
+	Projects         []Project        `gorm:"many2many:project_admins;"`
 	SessionComments  []SessionComment `gorm:"many2many:session_comment_admins;"`
 	ErrorComments    []ErrorComment   `gorm:"many2many:error_comment_admins;"`
 	SlackIMChannelID *string
+	Role             *string `json:"role" gorm:"default:ADMIN"`
 }
 
 type EmailSignup struct {
@@ -305,11 +370,13 @@ type SessionResults struct {
 
 type Session struct {
 	Model
-	UserID      int `json:"user_id"`
-	Fingerprint int `json:"fingerprint"`
+	// The ID used publicly for the URL on the client; used for sharing
+	SecureID    string `json:"secure_id" gorm:"uniqueIndex;not null;default:secure_id_generator()"`
+	Fingerprint int    `json:"fingerprint"`
 	// User provided identifier (see IdentifySession)
 	Identifier     string `json:"identifier"`
 	OrganizationID int    `json:"organization_id"`
+	ProjectID      int    `json:"project_id"`
 	// Location data based off user ip (see InitializeSession)
 	City      string  `json:"city"`
 	State     string  `json:"state"`
@@ -357,7 +424,7 @@ type Session struct {
 	MigrationState       *string `json:"migration_state"`
 }
 
-// AreModelsWeaklyEqual compares two structs of the same type while ignoring the Model field
+// AreModelsWeaklyEqual compares two structs of the same type while ignoring the Model and SecureID field
 // a and b MUST be pointers, otherwise this won't work
 func AreModelsWeaklyEqual(a, b interface{}) (bool, []string, error) {
 	if reflect.TypeOf(a) != reflect.TypeOf(b) {
@@ -370,7 +437,8 @@ func AreModelsWeaklyEqual(a, b interface{}) (bool, []string, error) {
 		return false, nil, e.New("`a` is not a pointer")
 	}
 	// 'dereference' with Elem() and get the field by name
-	aField := aReflection.Elem().FieldByName("Model")
+	aModelField := aReflection.Elem().FieldByName("Model")
+	aSecureIDField := aReflection.Elem().FieldByName("SecureID")
 
 	bReflection := reflect.ValueOf(b)
 	// Check if the passed interface is a pointer
@@ -378,14 +446,23 @@ func AreModelsWeaklyEqual(a, b interface{}) (bool, []string, error) {
 		return false, nil, e.New("`b` is not a pointer")
 	}
 	// 'dereference' with Elem() and get the field by name
-	bField := bReflection.Elem().FieldByName("Model")
+	bModelField := bReflection.Elem().FieldByName("Model")
+	bSecureIDField := bReflection.Elem().FieldByName("SecureID")
 
-	if aField.IsValid() && bField.IsValid() {
+	if aModelField.IsValid() && bModelField.IsValid() {
 		// override Model on b with a's model
-		bField.Set(aField)
-	} else if aField.IsValid() || bField.IsValid() {
+		bModelField.Set(aModelField)
+	} else if aModelField.IsValid() || bModelField.IsValid() {
 		// return error if one has a model and the other doesn't
 		return false, nil, e.New("one interface has a model and the other doesn't")
+	}
+
+	if aSecureIDField.IsValid() && bSecureIDField.IsValid() {
+		// override SecureID on b with a's SecureID
+		bSecureIDField.Set(aSecureIDField)
+	} else if aSecureIDField.IsValid() || bSecureIDField.IsValid() {
+		// return error if one has a SecureID and the other doesn't
+		return false, nil, e.New("one interface has a SecureID and the other doesn't")
 	}
 
 	// get diff
@@ -404,6 +481,7 @@ type Field struct {
 	// 'email@email.com'
 	Value          string
 	OrganizationID int       `json:"organization_id"`
+	ProjectID      int       `json:"project_id"`
 	Sessions       []Session `gorm:"many2many:session_fields;"`
 }
 
@@ -436,6 +514,7 @@ type Segment struct {
 	Name           *string
 	Params         *string `json:"params"`
 	OrganizationID int
+	ProjectID      int `json:"project_id"`
 }
 
 type DailySessionCount struct {
@@ -443,6 +522,7 @@ type DailySessionCount struct {
 	Date           *time.Time `json:"date"`
 	Count          int64      `json:"count"`
 	OrganizationID int
+	ProjectID      int `json:"project_id"`
 }
 
 type DailyErrorCount struct {
@@ -450,6 +530,7 @@ type DailyErrorCount struct {
 	Date           *time.Time `json:"date"`
 	Count          int64      `json:"count"`
 	OrganizationID int
+	ProjectID      int `json:"project_id"`
 }
 
 func (s *SearchParams) GormDataType() string {
@@ -530,11 +611,13 @@ type ErrorSegment struct {
 	Name           *string
 	Params         *string `json:"params"`
 	OrganizationID int
+	ProjectID      int `json:"project_id"`
 }
 
 type ErrorObject struct {
 	Model
 	OrganizationID int
+	ProjectID      int `json:"project_id"`
 	SessionID      int
 	ErrorGroupID   int
 	Event          string
@@ -554,22 +637,26 @@ type ErrorObject struct {
 
 type ErrorGroup struct {
 	Model
+	// The ID used publicly for the URL on the client; used for sharing
+	SecureID         string `json:"secure_id" gorm:"uniqueIndex;not null;default:secure_id_generator()"`
 	OrganizationID   int
+	ProjectID        int `json:"project_id"`
 	Event            string
 	Type             string
 	Trace            string //DEPRECATED, USE STACKTRACE INSTEAD
 	StackTrace       string
 	MappedStackTrace *string
-	State            string `json:"state" gorm:"default:OPEN"`
-	MetadataLog      *string
+	State            string        `json:"state" gorm:"default:OPEN"`
 	Fields           []*ErrorField `gorm:"many2many:error_group_fields;"`
 	FieldGroup       *string
 	Environments     string
+	IsPublic         bool `gorm:"default:false"`
 }
 
 type ErrorField struct {
 	Model
 	OrganizationID int
+	ProjectID      int `json:"project_id"`
 	Name           string
 	Value          string
 	ErrorGroups    []ErrorGroup `gorm:"many2many:error_group_fields;"`
@@ -577,22 +664,28 @@ type ErrorField struct {
 
 type SessionComment struct {
 	Model
-	Admins         []Admin `gorm:"many2many:session_comment_admins;"`
-	OrganizationID int
-	AdminId        int
-	SessionId      int
-	Timestamp      int
-	Text           string
-	XCoordinate    float64
-	YCoordinate    float64
+	Admins          []Admin `gorm:"many2many:session_comment_admins;"`
+	OrganizationID  int
+	ProjectID       int `json:"project_id"`
+	AdminId         int
+	SessionId       int
+	SessionSecureId string `gorm:"index;not null;default:''"`
+	Timestamp       int
+	Text            string
+	XCoordinate     float64
+	YCoordinate     float64
+	Type            string `json:"type" gorm:"default:ADMIN"`
+	Metadata        JSONB  `json:"metadata" gorm:"type:jsonb"`
 }
 
 type ErrorComment struct {
 	Model
 	Admins         []Admin `gorm:"many2many:error_comment_admins;"`
 	OrganizationID int
+	ProjectID      int `json:"project_id"`
 	AdminId        int
 	ErrorId        int
+	ErrorSecureId  string `gorm:"index;not null;default:''"`
 	Text           string
 }
 
@@ -650,6 +743,22 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 	}
 
 	log.Printf("running db migration ... \n")
+	if err := DB.Exec("CREATE EXTENSION IF NOT EXISTS pgcrypto;").Error; err != nil {
+		return nil, e.Wrap(err, "Error installing pgcrypto")
+	}
+	// Unguessable, cryptographically random url-safe ID for users to share links
+	if err := DB.Exec(`
+		CREATE OR REPLACE FUNCTION secure_id_generator(OUT result text) AS $$
+		BEGIN
+			result := encode(gen_random_bytes(21), 'base64');
+			result := replace(result, '+', '0');
+			result := replace(result, '/', '1');
+			result := replace(result, '=', '');
+		END;
+		$$ LANGUAGE PLPGSQL;
+	`).Error; err != nil {
+		return nil, e.Wrap(err, "Error creating secure_id_generator")
+	}
 	if err := DB.AutoMigrate(
 		Models...,
 	); err != nil {
@@ -660,6 +769,31 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		return nil, e.Wrap(err, "error retrieving underlying sql db")
 	}
 	sqlDB.SetMaxOpenConns(15)
+
+	switch os.Getenv("DEPLOYMENT_KEY") {
+	case "HIGHLIGHT_BEHAVE_HEALTH-i_fgQwbthAdqr9Aat_MzM7iU3!@fKr-_vopjXR@f":
+		fallthrough
+	case "HIGHLIGHT_ONPREM_BETA":
+		// default case, should only exist in main highlight prod
+		thresholdWindow := 30
+		emptiness := "[]"
+		if err := DB.FirstOrCreate(&SessionAlert{
+			Alert: Alert{
+				ProjectID: 1,
+				Type:      &AlertType.SESSION_FEEDBACK,
+			},
+		}).Attrs(&SessionAlert{
+			Alert: Alert{
+				ExcludedEnvironments: &emptiness,
+				CountThreshold:       1,
+				ThresholdWindow:      &thresholdWindow,
+				ChannelsToNotify:     &emptiness,
+			},
+		}).Error; err != nil {
+			break
+		}
+	}
+
 	log.Printf("finished db migration. \n")
 	return DB, nil
 }
@@ -727,7 +861,7 @@ func DecodeAndValidateParams(params []interface{}) ([]*Param, error) {
 func (s *Session) SetUserProperties(userProperties map[string]string) error {
 	user, err := json.Marshal(userProperties)
 	if err != nil {
-		return e.Wrapf(err, "[org_id: %d] error marshalling user properties map into bytes", s.OrganizationID)
+		return e.Wrapf(err, "[project_id: %d] error marshalling user properties map into bytes", s.ProjectID)
 	}
 	s.UserProperties = string(user)
 	return nil
@@ -736,12 +870,37 @@ func (s *Session) SetUserProperties(userProperties map[string]string) error {
 func (s *Session) GetUserProperties() (map[string]string, error) {
 	var userProperties map[string]string
 	if err := json.Unmarshal([]byte(s.UserProperties), &userProperties); err != nil {
-		return nil, e.Wrapf(err, "[org_id: %d] error unmarshalling user properties map into bytes", s.OrganizationID)
+		return nil, e.Wrapf(err, "[project_id: %d] error unmarshalling user properties map into bytes", s.ProjectID)
 	}
 	return userProperties, nil
 }
 
-func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, userIdentifier string, group *ErrorGroup, url *string, matchedFields []*Field, userProperties map[string]string, numErrors *int64) error {
+type SendSlackAlertInput struct {
+	Organization *Organization
+	// Project is a required parameter
+	Project *Project
+	// SessionID is a required parameter
+	SessionID int
+	// UserIdentifier is a required parameter for New User, Error, and SessionFeedback alerts
+	UserIdentifier string
+	// Group is a required parameter for Error alerts
+	Group *ErrorGroup
+	// URL is an optional parameter for Error alerts
+	URL *string
+	// ErrorsCount is a required parameter for Error alerts
+	ErrorsCount *int64
+	// MatchedFields is a required parameter for Track Properties and User Properties alerts
+	MatchedFields []*Field
+	// UserProperties is a required parameter for User Properties alerts
+	UserProperties map[string]string
+	// CommentID is a required parameter for SessionFeedback alerts
+	CommentID *int
+	// CommentText is a required parameter for SessionFeedback alerts
+	CommentText string
+}
+
+func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
+	// TODO: combine `error_alerts` and `session_alerts` tables and create unique composite index on (project_id, type)
 	if obj == nil {
 		return e.New("alert is nil")
 	}
@@ -750,8 +909,8 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 	if err != nil {
 		return e.Wrap(err, "error getting channels to notify from user properties alert")
 	}
-	// get organization's channels
-	integratedSlackChannels, err := organization.IntegratedSlackChannels()
+	// get project's channels
+	integratedSlackChannels, err := input.Project.IntegratedSlackChannels()
 	if err != nil {
 		return e.Wrap(err, "error getting slack webhook url for alert")
 	}
@@ -765,11 +924,15 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 	var messageBlock []*slack.TextBlockObject
 
 	frontendURL := os.Getenv("FRONTEND_URI")
-	sessionLink := fmt.Sprintf("<%s/%d/sessions/%d/>", frontendURL, obj.OrganizationID, sessionId)
+	suffix := "/"
+	if input.CommentID != nil {
+		suffix = fmt.Sprintf("?commentId=%d", *input.CommentID)
+	}
+	sessionLink := fmt.Sprintf("<%s/%d/sessions/%d%s>", frontendURL, obj.ProjectID, input.SessionID, suffix)
 	messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false))
 
 	if obj.Type == nil {
-		if group != nil {
+		if input.Group != nil {
 			obj.Type = &AlertType.ERROR
 		} else {
 			obj.Type = &AlertType.NEW_USER
@@ -777,24 +940,24 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 	}
 	switch *obj.Type {
 	case AlertType.ERROR:
-		if group == nil || group.State == ErrorGroupStates.IGNORED {
+		if input.Group == nil || input.Group.State == ErrorGroupStates.IGNORED {
 			return nil
 		}
-		shortEvent := group.Event
-		if len(group.Event) > 50 {
-			shortEvent = group.Event[:50] + "..."
+		shortEvent := input.Group.Event
+		if len(input.Group.Event) > 50 {
+			shortEvent = input.Group.Event[:50] + "..."
 		}
-		errorLink := fmt.Sprintf("%s/%d/errors/%d", frontendURL, obj.OrganizationID, group.ID)
-		// construct slack message
-		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Highlight Error Alert: %d Recent Occurrences*\n\n%s\n<%s/>", *numErrors, shortEvent, errorLink), false, false)
-		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+userIdentifier, false, false))
-		if url != nil {
-			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Visited Url:*\n"+*url, false, false))
+		errorLink := fmt.Sprintf("%s/%d/errors/%s", frontendURL, obj.ProjectID, input.Group.SecureID)
+		// construct Slack message
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Highlight Error Alert: %d Recent Occurrences*\n\n%s\n<%s/>", *input.ErrorsCount, shortEvent, errorLink), false, false)
+		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+input.UserIdentifier, false, false))
+		if input.URL != nil {
+			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Visited Url:*\n"+*input.URL, false, false))
 		}
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		var actionBlock []slack.BlockElement
 		for _, action := range modelInputs.AllErrorState {
-			if group.State == string(action) {
+			if input.Group.State == string(action) {
 				continue
 			}
 
@@ -827,12 +990,12 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 			},
 		}
 	case AlertType.NEW_USER:
-		// construct slack message
+		// construct Slack message
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight New User Alert:*\n\n", false, false)
-		if userIdentifier != "" {
-			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+userIdentifier, false, false))
+		if input.UserIdentifier != "" {
+			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+input.UserIdentifier, false, false))
 		}
-		for k, v := range userProperties {
+		for k, v := range input.UserProperties {
 			if k == "" {
 				continue
 			}
@@ -847,10 +1010,10 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 	case AlertType.TRACK_PROPERTIES:
 		// format matched properties
 		var formattedFields []string
-		for _, addr := range matchedFields {
+		for _, addr := range input.MatchedFields {
 			formattedFields = append(formattedFields, fmt.Sprintf("{name: %s, value: %s}", addr.Name, addr.Value))
 		}
-		// construct slack message
+		// construct Slack message
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight Track Properties Alert:*\n\n", false, false)
 		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Matched Track Properties:*\n%+v", formattedFields), false, false))
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
@@ -859,41 +1022,87 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 	case AlertType.USER_PROPERTIES:
 		// format matched properties
 		var formattedFields []string
-		for _, addr := range matchedFields {
+		for _, addr := range input.MatchedFields {
 			formattedFields = append(formattedFields, fmt.Sprintf("{name: %s, value: %s}", addr.Name, addr.Value))
 		}
-		// construct slack message
+		// construct Slack message
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight User Properties Alert:*\n\n", false, false)
 		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Matched User Properties:*\n%+v", formattedFields), false, false))
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
+	case AlertType.SESSION_FEEDBACK:
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s Left Feedback*\n\n%s", input.UserIdentifier, input.CommentText), false, false)
+		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
+		blockSet = append(blockSet, slack.NewDividerBlock())
+		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
 	}
+
+	var slackClient *slack.Client
+	if input.Project.SlackAccessToken != nil {
+		slackClient = slack.New(*input.Project.SlackAccessToken)
+	}
+	log.Printf("Sending Slack Alert for project: %d session: %d", input.Project.ID, input.SessionID)
 
 	// send message
 	for _, channel := range channels {
 		if channel.WebhookChannel != nil {
 			var slackWebhookURL string
+			isWebhookChannel := false
+
+			// Find the webhook URL
 			for _, ch := range integratedSlackChannels {
 				if id := channel.WebhookChannelID; id != nil && ch.WebhookChannelID == *id {
 					slackWebhookURL = ch.WebhookURL
+
+					if ch.WebhookAccessToken != "" {
+						isWebhookChannel = true
+					}
 					break
 				}
 			}
-			if slackWebhookURL == "" {
-				log.WithFields(log.Fields{"org_id": organization.ID}).
+
+			if slackWebhookURL == "" && isWebhookChannel {
+				log.WithFields(log.Fields{"project_id": input.Project.ID}).
 					Error("requested channel has no matching slackWebhookURL")
 				continue
 			}
+
 			msg.Channel = *channel.WebhookChannel
+			slackChannelId := *channel.WebhookChannelID
+			slackChannelName := *channel.WebhookChannel
+
 			go func() {
-				err := slack.PostWebhook(
-					slackWebhookURL,
-					&msg,
-				)
-				if err != nil {
-					log.WithFields(log.Fields{"org_id": organization.ID, "slack_webhook_url": slackWebhookURL, "message": fmt.Sprintf("%+v", msg)}).
-						Error(e.Wrap(err, "error sending slack msg"))
+				if isWebhookChannel {
+					log.Printf("Sending Slack Webhook")
+					err := slack.PostWebhook(
+						slackWebhookURL,
+						&msg,
+					)
+					if err != nil {
+						log.WithFields(log.Fields{"project_id": input.Project.ID, "slack_webhook_url": slackWebhookURL, "message": fmt.Sprintf("%+v", msg)}).
+							Error(e.Wrap(err, "error sending slack msg via webhook"))
+					}
+				} else {
+					// The Highlight Slack bot needs to join the channel before it can send a message.
+					// Slack handles a bot trying to join a channel it already is a part of, we don't need to handle it.
+					log.Printf("Sending Slack Bot Message")
+					if slackClient != nil {
+						if strings.Contains(slackChannelName, "#") {
+							_, _, _, err := slackClient.JoinConversation(slackChannelId)
+							if err != nil {
+								log.Error(e.Wrap(err, "failed to join slack channel"))
+							}
+						}
+						_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionBlocks(blockSet...))
+						if err != nil {
+							log.WithFields(log.Fields{"project_id": input.Project.ID, "message": fmt.Sprintf("%+v", msg)}).
+								Error(e.Wrap(err, "error sending slack msg via bot api"))
+						}
+
+					} else {
+						log.Printf("Slack Bot Client was not defined")
+					}
 				}
 			}()
 		}

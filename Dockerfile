@@ -1,5 +1,5 @@
 FROM golang:alpine as backend-builder
-RUN apk update && apk add git
+RUN apk update && apk add git build-base
 RUN mkdir /build-backend
 WORKDIR /build-backend
 COPY ./backend .
@@ -28,6 +28,7 @@ COPY ./.prettierrc ./
 RUN CI=false yarn build
 
 FROM alpine
+RUN apk update && apk add build-base
 ENV ONPREM_STATIC_FRONTEND_PATH="./build"
 ENV ENABLE_OBJECT_STORAGE=true
 WORKDIR /root/

@@ -1,17 +1,14 @@
+import { useEditProjectMutation, useGetProjectQuery } from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
+import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames/bind';
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { useParams } from 'react-router-dom';
 
 import commonStyles from '../../../Common.module.scss';
 import Button from '../../../components/Button/Button/Button';
 import { CircularSpinner } from '../../../components/Loading/Loading';
-import {
-    useEditOrganizationMutation,
-    useGetOrganizationQuery,
-} from '../../../graph/generated/hooks';
 import styles from './FieldsForm.module.scss';
 
 type Inputs = {
@@ -20,30 +17,30 @@ type Inputs = {
 };
 
 export const FieldsForm = () => {
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { project_id } = useParams<{ project_id: string }>();
     const { register, handleSubmit, errors } = useForm<Inputs>();
-    const { data } = useGetOrganizationQuery({
-        variables: { id: organization_id },
+    const { data } = useGetProjectQuery({
+        variables: { id: project_id },
     });
     const [
-        editOrganization,
+        editProject,
         { data: editData, loading: editLoading },
-    ] = useEditOrganizationMutation({
+    ] = useEditProjectMutation({
         refetchQueries: [
-            namedOperations.Query.GetOrganizations,
-            namedOperations.Query.GetOrganization,
+            namedOperations.Query.GetProjects,
+            namedOperations.Query.GetProject,
         ],
     });
 
     const onSubmit = (inputs: Inputs) => {
-        editOrganization({
+        editProject({
             variables: {
-                id: organization_id,
+                id: project_id,
                 name: inputs.name,
                 billing_email: inputs.email,
             },
         }).then(() => {
-            message.success('Updated workspace fields!', 5);
+            message.success('Updated project fields!', 5);
         });
     };
     return (
@@ -52,8 +49,7 @@ export const FieldsForm = () => {
                 <label className={styles.fieldKey}>Name</label>
                 <input
                     defaultValue={
-                        editData?.editOrganization?.name ||
-                        data?.organization?.name
+                        editData?.editProject?.name || data?.project?.name
                     }
                     className={commonStyles.input}
                     name="name"
@@ -64,8 +60,8 @@ export const FieldsForm = () => {
                 <label className={styles.fieldKey}>Billing Email</label>
                 <input
                     defaultValue={
-                        (editData?.editOrganization?.billing_email ||
-                            data?.organization?.billing_email) ??
+                        (editData?.editProject?.billing_email ||
+                            data?.project?.billing_email) ??
                         ''
                     }
                     className={commonStyles.input}
@@ -81,7 +77,7 @@ export const FieldsForm = () => {
             <div className={styles.fieldRow}>
                 <div className={styles.fieldKey} />
                 <Button
-                    trackingId="WorkspaceUpdate"
+                    trackingId="ProjectUpdate"
                     htmlType="submit"
                     type="primary"
                     className={classNames(

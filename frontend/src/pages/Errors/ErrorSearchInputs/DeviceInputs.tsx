@@ -1,5 +1,5 @@
+import { useParams } from '@util/react-router/useParams';
 import React from 'react';
-import { useParams } from 'react-router-dom';
 import { OptionsType, OptionTypeBase, ValueType } from 'react-select';
 import AsyncSelect from 'react-select/async';
 
@@ -11,7 +11,7 @@ import { SharedSelectStyleProps } from '../../Sessions/SearchInputs/SearchInputU
 import { useErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
 
 export const OperatingSystemInput = () => {
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { project_id } = useParams<{ project_id: string }>();
     const { searchParams, setSearchParams } = useErrorSearchContext();
 
     const { refetch } = useGetErrorFieldSuggestionQuery({ skip: true });
@@ -20,7 +20,7 @@ export const OperatingSystemInput = () => {
         input: string
     ): Promise<OptionsType<OptionTypeBase> | void[]> => {
         const fetched = await refetch({
-            organization_id: organization_id,
+            project_id,
             query: input,
             name: 'os_name',
         });
@@ -68,7 +68,7 @@ export const OperatingSystemInput = () => {
 };
 
 export const BrowserInput = () => {
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { project_id } = useParams<{ project_id: string }>();
     const { searchParams, setSearchParams } = useErrorSearchContext();
 
     const { refetch } = useGetErrorFieldSuggestionQuery({ skip: true });
@@ -77,7 +77,7 @@ export const BrowserInput = () => {
         input: string
     ): Promise<OptionsType<OptionTypeBase> | void[]> => {
         const fetched = await refetch({
-            organization_id: organization_id,
+            project_id,
             query: input,
             name: 'browser',
         });

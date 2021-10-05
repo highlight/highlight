@@ -8,7 +8,9 @@ import ErrorPageStyles from '../../ErrorPage.module.scss';
 import styles from './StackTraceSection.module.scss';
 
 interface Props {
-    errorGroup: Maybe<ErrorGroup> | undefined;
+    errorGroup:
+        | Maybe<Pick<ErrorGroup, 'stack_trace' | 'mapped_stack_trace'>>
+        | undefined;
     loading: boolean;
 }
 
@@ -50,7 +52,7 @@ const StackTraceSection = ({ errorGroup, loading }: Props) => {
                             <ButtonLink
                                 anchor
                                 trackingId="stackFrameLearnMoreAboutPrivateSourcemaps"
-                                href="https://docs.highlight.run/docs/sending-sourcemaps"
+                                href="https://docs.highlight.run/sourcemaps"
                             >
                                 Learn More
                             </ButtonLink>

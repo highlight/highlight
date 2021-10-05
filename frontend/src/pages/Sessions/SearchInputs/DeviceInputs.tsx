@@ -1,6 +1,6 @@
+import { useParams } from '@util/react-router/useParams';
 import { H } from 'highlight.run';
 import React from 'react';
-import { useParams } from 'react-router-dom';
 import { OptionsType, OptionTypeBase, ValueType } from 'react-select';
 import AsyncSelect from 'react-select/async';
 
@@ -13,7 +13,7 @@ import inputStyles from './InputStyles.module.scss';
 import { SharedSelectStyleProps } from './SearchInputUtil';
 
 export const OperatingSystemInput = () => {
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { project_id } = useParams<{ project_id: string }>();
     const { searchParams, setSearchParams } = useSearchContext();
 
     const { refetch } = useGetFieldSuggestionQuery({ skip: true });
@@ -22,7 +22,7 @@ export const OperatingSystemInput = () => {
         input: string
     ): Promise<OptionsType<OptionTypeBase> | void[]> => {
         const fetched = await refetch({
-            organization_id: organization_id,
+            project_id,
             query: input,
             name: 'os_name',
         });
@@ -70,7 +70,7 @@ export const OperatingSystemInput = () => {
 };
 
 export const BrowserInput = () => {
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { project_id } = useParams<{ project_id: string }>();
     const { searchParams, setSearchParams } = useSearchContext();
 
     const { refetch } = useGetFieldSuggestionQuery({ skip: true });
@@ -79,7 +79,7 @@ export const BrowserInput = () => {
         input: string
     ): Promise<OptionsType<OptionTypeBase> | void[]> => {
         const fetched = await refetch({
-            organization_id: organization_id,
+            project_id,
             query: input,
             name: 'browser_name',
         });
@@ -131,7 +131,7 @@ export const BrowserInput = () => {
 };
 
 export const DeviceIdInput = () => {
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { project_id } = useParams<{ project_id: string }>();
     const { searchParams, setSearchParams } = useSearchContext();
 
     const { refetch } = useGetFieldSuggestionQuery({ skip: true });
@@ -140,7 +140,7 @@ export const DeviceIdInput = () => {
         input: string
     ): Promise<OptionsType<OptionTypeBase> | void[]> => {
         const fetched = await refetch({
-            organization_id: organization_id,
+            project_id,
             query: input,
             name: 'device_id',
         });

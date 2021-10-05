@@ -32,6 +32,10 @@ $right-padding: 12px;
         }
     }
 
+    &.showingDetails {
+        background: var(--color-gray-300);
+    }
+
     &:hover .goToButton {
         visibility: visible;
     }
@@ -42,19 +46,22 @@ $right-padding: 12px;
 }
 
 .networkTopBar {
-    color: var(--color-gray-500);
+    border-bottom: 1px solid var(--color-gray-300);
+    color: var(--color-gray-500) !important;
     display: grid;
     font-size: 13px;
     grid-template-columns: $columns;
-    height: 40px;
+    padding-bottom: var(--size-xSmall);
     padding-left: 25px;
     padding-right: $right-padding;
+    padding-top: var(--size-xSmall);
     width: 100%;
 }
 
 .networkTableWrapper {
     height: calc(100% - var(--player-toolbar-height));
     margin-left: 1px;
+    overflow-x: auto;
     position: relative;
 }
 
@@ -79,7 +86,9 @@ $canvas-width: calc(
     height: calc(100% - 40px);
     overflow-x: hidden;
     overflow-y: auto;
+    position: relative;
     word-wrap: break-word;
+    z-index: 0;
 }
 
 .networkTimingColumn {
@@ -95,10 +104,19 @@ $canvas-width: calc(
 
 .networkColumn {
     align-items: center;
-    color: var(--text-primary);
+    color: var(--color-gray-500);
     display: flex;
     font-size: 12px;
     font-weight: 400;
+    line-height: normal;
+
+    &.justifyEnd {
+        justify-self: flex-end;
+    }
+
+    &.waterfall {
+        padding-left: var(--size-small);
+    }
 }
 
 .nameSection {
@@ -160,8 +178,9 @@ $canvas-width: calc(
 .filterContainer {
     align-items: center;
     display: flex;
+    flex-shrink: 0;
     margin-left: auto;
-    padding-right: var(--size-large);
+    padding-left: var(--size-large);
 }
 
 .rightAlign {
@@ -189,4 +208,28 @@ $canvas-width: calc(
         font-size: 12px;
         margin: 0;
     }
+}
+
+.optionsWrapper {
+    display: flex;
+    font-family: var(--header-font-family) !important;
+    height: 100%;
+    padding: 0 var(--size-large);
+
+    .optionsContainer {
+        display: flex;
+        flex-shrink: 1;
+        overflow-x: auto;
+    }
+}
+
+.detailPanelTitle {
+    align-items: center !important;
+    column-gap: var(--size-medium);
+    display: flex;
+    justify-content: space-between;
+}
+
+.virtuoso {
+    overflow-x: hidden;
 }

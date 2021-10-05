@@ -10,11 +10,12 @@ import {
     PLAYBACK_MIN_SPEED,
     PLAYBACK_SPEED_INCREMENT,
 } from '@pages/Player/Toolbar/SpeedControl/SpeedControl';
+import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import { H } from 'highlight.run';
 import { useEffect, useRef, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { useHistory, useParams } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 
 import { ReplayerState, useReplayerContext } from '../ReplayerContext';
 
@@ -64,9 +65,9 @@ export const usePlayerKeyboardShortcuts = () => {
         showRightPanel,
         setShowRightPanel,
     } = usePlayerConfiguration();
-    const { session_id, organization_id } = useParams<{
-        session_id: string;
-        organization_id: string;
+    const { session_secure_id, project_id } = useParams<{
+        session_secure_id: string;
+        project_id: string;
     }>();
     const history = useHistory();
     message.config({
@@ -183,40 +184,40 @@ export const usePlayerKeyboardShortcuts = () => {
     useHotkeys(
         'shift+n',
         (e) => {
-            if (sessionResults.sessions.length > 0 && session_id) {
+            if (sessionResults.sessions.length > 0 && session_secure_id) {
                 H.track('PlayerSkipToNextSessionKeyboardShortcut');
                 moveFocusToDocument(e);
 
                 const nextSession = findNextSessionInList(
                     sessionResults.sessions,
-                    session_id
+                    session_secure_id
                 );
-                changeSession(organization_id, history, nextSession);
+                changeSession(project_id, history, nextSession);
             }
         },
-        [session_id, sessionResults]
+        [session_secure_id, sessionResults]
     );
 
     useHotkeys(
         'shift+p',
         (e) => {
-            if (sessionResults.sessions.length > 0 && session_id) {
+            if (sessionResults.sessions.length > 0 && session_secure_id) {
                 H.track('PlayerSkipToPreviousSessionKeyboardShortcut');
                 moveFocusToDocument(e);
 
                 const nextSession = findPreviousSessionInList(
                     sessionResults.sessions,
-                    session_id
+                    session_secure_id
                 );
                 changeSession(
-                    organization_id,
+                    project_id,
                     history,
                     nextSession,
                     'Playing the previous session.'
                 );
             }
         },
-        [session_id, sessionResults]
+        [session_secure_id, sessionResults]
     );
 
     useHotkeys(
@@ -332,9 +333,41 @@ export const usePlayerFullscreen = () => {
     useEffect(() => {
         if (playerCenterPanelRef.current) {
             if (isPlayerFullscreen) {
-                playerCenterPanelRef.current.requestFullscreen();
+                const fullscreenBrowserFunctions = playerCenterPanelRef.current as HTMLDivElement & {
+                    mozRequestFullScreen(): Promise<void>;
+                    webkitRequestFullscreen(): Promise<void>;
+                    msRequestFullscreen(): Promise<void>;
+                };
+                if (fullscreenBrowserFunctions.requestFullscreen) {
+                    fullscreenBrowserFunctions.requestFullscreen();
+                } else if (fullscreenBrowserFunctions.mozRequestFullScreen) {
+                    /* Firefox */
+                    fullscreenBrowserFunctions.mozRequestFullScreen();
+                } else if (fullscreenBrowserFunctions.webkitRequestFullscreen) {
+                    /* Chrome, Safari and Opera */
+                    fullscreenBrowserFunctions.webkitRequestFullscreen();
+                } else if (fullscreenBrowserFunctions.msRequestFullscreen) {
+                    /* IE/Edge */
+                    fullscreenBrowserFunctions.msRequestFullscreen();
+                }
             } else if (document.fullscreenElement) {
-                document.exitFullscreen();
+                const docWithBrowsersExitFunctions = document as Document & {
+                    mozCancelFullScreen(): Promise<void>;
+                    webkitExitFullscreen(): Promise<void>;
+                    msExitFullscreen(): Promise<void>;
+                };
+                if (docWithBrowsersExitFunctions.exitFullscreen) {
+                    docWithBrowsersExitFunctions.exitFullscreen();
+                } else if (docWithBrowsersExitFunctions.mozCancelFullScreen) {
+                    /* Firefox */
+                    docWithBrowsersExitFunctions.mozCancelFullScreen();
+                } else if (docWithBrowsersExitFunctions.webkitExitFullscreen) {
+                    /* Chrome, Safari and Opera */
+                    docWithBrowsersExitFunctions.webkitExitFullscreen();
+                } else if (docWithBrowsersExitFunctions.msExitFullscreen) {
+                    /* IE/Edge */
+                    docWithBrowsersExitFunctions.msExitFullscreen();
+                }
             }
         }
     }, [isPlayerFullscreen]);

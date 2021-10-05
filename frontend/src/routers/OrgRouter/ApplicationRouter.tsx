@@ -1,8 +1,11 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import KeyboardShortcutsEducation from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation';
 import useLocalStorage from '@rehooks/local-storage';
+import { useParams } from '@util/react-router/useParams';
+import { FieldArrayParam } from '@util/url/params';
 import _ from 'lodash';
-import React, { useEffect, useState } from 'react';
-import { Redirect, Route, Switch, useParams } from 'react-router-dom';
+import React, { Suspense, useEffect, useState } from 'react';
+import { Redirect, Route, Switch } from 'react-router-dom';
 import {
     BooleanParam,
     JsonParam,
@@ -12,8 +15,9 @@ import {
 } from 'use-query-params';
 
 import AlertsPage from '../../pages/Alerts/Alerts';
-import BillingPage from '../../pages/Billing/Billing';
-import { Buttons } from '../../pages/Buttons/Buttons';
+const BillingPage = React.lazy(() => import('../../pages/Billing/Billing'));
+
+const Buttons = React.lazy(() => import('../../pages/Buttons/Buttons'));
 import ErrorPage from '../../pages/Error/ErrorPage';
 import HomePage from '../../pages/Home/HomePage';
 import Player from '../../pages/Player/PlayerPage';
@@ -31,7 +35,7 @@ interface Props {
 }
 
 const ApplicationRouter = ({ integrated }: Props) => {
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { project_id } = useParams<{ project_id: string }>();
     const [segmentName, setSegmentName] = useState<string | null>(null);
     const [showStarredSessions, setShowStarredSessions] = useState<boolean>(
         false
@@ -41,22 +45,25 @@ const ApplicationRouter = ({ integrated }: Props) => {
     );
     const [selectedSegment, setSelectedSegment] = useLocalStorage<
         { value: string; id: string } | undefined
-    >('highlightSegmentPickerForPlayerSelectedSegmentId', undefined);
+    >(
+        `highlightSegmentPickerForPlayerSelectedSegmentId-${project_id}`,
+        undefined
+    );
     const [
         searchParamsToUrlParams,
         setSearchParamsToUrlParams,
     ] = useQueryParams({
-        user_properties: JsonParam,
+        user_properties: FieldArrayParam,
         identified: BooleanParam,
         browser: StringParam,
         date_range: JsonParam,
-        excluded_properties: JsonParam,
+        excluded_properties: FieldArrayParam,
         hide_viewed: BooleanParam,
         length_range: JsonParam,
         os: StringParam,
         referrer: StringParam,
-        track_properties: JsonParam,
-        excluded_track_properties: JsonParam,
+        track_properties: FieldArrayParam,
+        excluded_track_properties: FieldArrayParam,
         visited_url: StringParam,
         first_time: BooleanParam,
         device_id: StringParam,
@@ -70,6 +77,8 @@ const ApplicationRouter = ({ integrated }: Props) => {
     const [existingParams, setExistingParams] = useState<SearchParams>(
         EmptySessionsSearchParams
     );
+
+    const { isLoggedIn } = useAuthContext();
 
     useEffect(() => {
         const areAnySearchParamsSet = !_.isEqual(
@@ -147,38 +156,49 @@ const ApplicationRouter = ({ integrated }: Props) => {
         >
             <KeyboardShortcutsEducation />
             <Switch>
-                <Route path="/:organization_id/sessions/:session_id?" exact>
+                {/* These two routes do not require login */}
+                <Route path="/:project_id/sessions/:session_secure_id?" exact>
                     <Player integrated={integrated} />
                 </Route>
-                <Route path="/:organization_id/settings">
-                    <WorkspaceSettings />
-                </Route>
-                <Route path="/:organization_id/alerts">
-                    <AlertsPage />
-                </Route>
-                <Route path="/:organization_id/team">
-                    <WorkspaceTeam />
-                </Route>
-                <Route path="/:organization_id/billing">
-                    <BillingPage />
-                </Route>
-                <Route path="/:organization_id/setup">
-                    <SetupPage integrated={integrated} />
-                </Route>
-                <Route path="/:organization_id/errors/:error_id?">
+                <Route path="/:project_id/errors/:error_secure_id?" exact>
                     <ErrorPage integrated={integrated} />
                 </Route>
-                <Route path="/:organization_id/buttons">
-                    <Buttons />
+                {/* If not logged in and project id is numeric and nonzero, redirect to login */}
+                {!isLoggedIn && (
+                    <Route path="/:project_id([1-9]+[0-9]*)/*" exact>
+                        <Redirect to="/" />
+                    </Route>
+                )}
+                <Route path="/:project_id/settings">
+                    <WorkspaceSettings />
                 </Route>
-                <Route path="/:organization_id/home">
+                <Route path="/:project_id/alerts">
+                    <AlertsPage />
+                </Route>
+                <Route path="/:project_id/team">
+                    <WorkspaceTeam />
+                </Route>
+                <Route path="/:project_id/billing">
+                    <Suspense fallback={null}>
+                        <BillingPage />
+                    </Suspense>
+                </Route>
+                <Route path="/:project_id/setup">
+                    <SetupPage integrated={integrated} />
+                </Route>
+                <Route path="/:project_id/buttons">
+                    <Suspense fallback={null}>
+                        <Buttons />
+                    </Suspense>
+                </Route>
+                <Route path="/:project_id/home">
                     <HomePage />
                 </Route>
-                <Route path="/:organization_id">
+                <Route path="/:project_id">
                     {integrated ? (
-                        <Redirect to={`/${organization_id}/home`} />
+                        <Redirect to={`/${project_id}/home`} />
                     ) : (
-                        <Redirect to={`/${organization_id}/setup`} />
+                        <Redirect to={`/${project_id}/setup`} />
                     )}
                 </Route>
             </Switch>

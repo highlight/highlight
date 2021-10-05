@@ -35,7 +35,7 @@ export default CommandBarCommand;
 
 const CATEGORY_ICON_MAPPING: { [key: string]: React.ReactNode } = {
     Navigation: <VscArrowRight />,
-    Organizations: <SvgUsersIcon />,
+    Projects: <SvgUsersIcon />,
     Player: <VscDeviceCameraVideo />,
 };
 

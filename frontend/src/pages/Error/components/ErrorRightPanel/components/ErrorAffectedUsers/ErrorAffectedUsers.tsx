@@ -1,6 +1,11 @@
+import { useAuthContext } from '@authentication/AuthContext';
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { useParams } from 'react-router-dom';
 
 import { Avatar } from '../../../../../../components/Avatar/Avatar';
 import ButtonLink from '../../../../../../components/Button/ButtonLink/ButtonLink';
@@ -17,9 +22,15 @@ interface Props {
 }
 
 const ErrorAffectedUsers = ({ loading, errorGroup }: Props) => {
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { isLoggedIn } = useAuthContext();
+    const { project_id } = useParams<{ project_id: string }>();
+    const projectIdRemapped =
+        project_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : project_id;
     let numberOfAffectedSessions;
     let mostRecentAffectedSession;
+    let uniqueUsers: string[] = [];
 
     if (errorGroup?.error_group && errorGroup.error_group.metadata_log.length) {
         numberOfAffectedSessions = errorGroup.error_group.metadata_log.length;
@@ -42,6 +53,15 @@ const ErrorAffectedUsers = ({ loading, errorGroup }: Props) => {
 
         mostRecentAffectedSession =
             errorGroup.error_group.metadata_log[mostRecentAffectedSessionIndex];
+
+        uniqueUsers = new Array(
+            ...new Set(
+                errorGroup.error_group.metadata_log.map(
+                    (session) =>
+                        (session?.identifier || session?.fingerprint) as string
+                )
+            )
+        );
     }
 
     return (
@@ -52,21 +72,27 @@ const ErrorAffectedUsers = ({ loading, errorGroup }: Props) => {
                 <>
                     <div className={styles.metadata}>
                         <div className={styles.avatarContainer}>
-                            {errorGroup?.error_group?.metadata_log
+                            {uniqueUsers
                                 ?.slice(0, 3)
-                                .map((session, index) => (
+                                .map((identifier, index) => (
                                     <Avatar
                                         key={index}
                                         style={{ left: `${index * 15}px` }}
-                                        seed={session?.timestamp || ''}
+                                        seed={identifier || ''}
                                         shape="rounded"
                                         className={styles.avatar}
                                     />
                                 ))}
                         </div>
                         <div className={styles.textContainer}>
-                            <h3>34 Affected Users</h3>
-                            <p>{numberOfAffectedSessions} Total Sessions</p>
+                            <h3>
+                                {uniqueUsers.length} Affected User
+                                {uniqueUsers.length === 1 ? '' : 's'}
+                            </h3>
+                            <p>
+                                {numberOfAffectedSessions} Total Session
+                                {numberOfAffectedSessions === 1 ? '' : 's'}
+                            </p>
                             <p>
                                 Recency:{' '}
                                 {RelativeTime({
@@ -80,7 +106,7 @@ const ErrorAffectedUsers = ({ loading, errorGroup }: Props) => {
                     <div className={styles.actionsContainer}>
                         <ButtonLink
                             trackingId="ErrorMostRecentSession"
-                            to={`/${organization_id}/sessions/${mostRecentAffectedSession?.session_id}`}
+                            to={`/${projectIdRemapped}/sessions/${mostRecentAffectedSession?.session_secure_id}`}
                             icon={
                                 <SvgPlaySolidIcon
                                     className={styles.playButton}
@@ -88,6 +114,7 @@ const ErrorAffectedUsers = ({ loading, errorGroup }: Props) => {
                             }
                             fullWidth
                             className={styles.button}
+                            disabled={!isLoggedIn}
                         >
                             Most Recent Session
                         </ButtonLink>

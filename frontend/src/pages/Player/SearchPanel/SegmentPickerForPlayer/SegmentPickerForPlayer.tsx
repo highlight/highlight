@@ -3,9 +3,9 @@ import SvgXIcon from '@icons/XIcon';
 import { message, Select as AntDesignSelect } from 'antd';
 import classNames from 'classnames';
 const { Option } = AntDesignSelect;
+import { useParams } from '@util/react-router/useParams';
 import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
 import TextTransition from 'react-text-transition';
 
 import Button from '../../../../components/Button/Button/Button';
@@ -26,8 +26,8 @@ import { STARRED_SEGMENT_ID } from '../../../Sessions/SearchSidebar/SegmentPicke
 import styles from './SegmentPickerForPlayer.module.scss';
 
 const SegmentPickerForPlayer = () => {
-    const { organization_id } = useParams<{
-        organization_id: string;
+    const { project_id } = useParams<{
+        project_id: string;
     }>();
     const {
         setSearchParams,
@@ -41,7 +41,7 @@ const SegmentPickerForPlayer = () => {
         setSelectedSegment,
     } = useSearchContext();
     const { loading, data } = useGetSegmentsQuery({
-        variables: { organization_id },
+        variables: { project_id },
     });
     const [paramsIsDifferent, setParamsIsDifferent] = useState(false);
     const [showCreateSegmentModal, setShowCreateSegmentModal] = useState(false);
@@ -195,7 +195,7 @@ const SegmentPickerForPlayer = () => {
                         } = searchParams;
                         editSegment({
                             variables: {
-                                organization_id,
+                                project_id,
                                 id: selectedSegment.id,
                                 params: restOfSearchParams,
                             },

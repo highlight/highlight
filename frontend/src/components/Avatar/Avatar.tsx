@@ -125,14 +125,22 @@ export const AdminAvatar = ({
     adminInfo?: { name?: string; photo_url?: string | null; email?: string };
     size: number;
 }) => {
-    const identifier = adminInfo?.name
-        ? adminInfo.name
+    let isSlackEntity = false;
+    let name = adminInfo?.name;
+    if (name && (name[0] === '@' || name[0] === '#')) {
+        name = name.slice(1);
+        isSlackEntity = true;
+    }
+
+    const identifier = name
+        ? name
               .split(' ')
               .map((e) => e[0].toUpperCase())
               .join('')
         : adminInfo?.email
         ? adminInfo.email[0].toUpperCase()
         : 'JK';
+
     return (
         <div className={userAvatarWrapper}>
             {adminInfo?.photo_url ? (
@@ -147,21 +155,16 @@ export const AdminAvatar = ({
             ) : (
                 <div
                     style={{
-                        backgroundColor: generateRandomColor(identifier),
+                        backgroundColor: isSlackEntity
+                            ? SLACK_BRAND_COLOR
+                            : generateRandomColor(identifier),
                         color: 'var(--text-primary-inverted)',
                         height: size,
                         width: size,
                     }}
                     className={userAvatarText}
                 >
-                    {adminInfo?.name
-                        ? adminInfo.name
-                              .split(' ')
-                              .map((e) => e[0].toUpperCase())
-                              .join('')
-                        : adminInfo?.email
-                        ? adminInfo.email[0].toUpperCase()
-                        : 'JK'}
+                    {identifier}
                 </div>
             )}
         </div>
@@ -180,3 +183,5 @@ const getAvatarHash = (str: string) => {
     }
     return hash + 2147483647 + 1;
 };
+
+const SLACK_BRAND_COLOR = '#471547';

@@ -1,3 +1,4 @@
+import { getErrorGroupMetadata } from '@pages/Error/utils/ErrorPageUtils';
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
 
@@ -12,15 +13,13 @@ interface Props {
 }
 
 const ErrorMetadata = ({ errorGroup }: Props) => {
-    const fieldsData: KeyValueTableRow[] = (
-        errorGroup?.error_group?.field_group || []
-    )
-        .filter((field) => field?.name !== 'visited_url')
-        .map((field) => ({
-            keyDisplayValue: field?.name || '',
-            renderType: 'string',
-            valueDisplayValue: field?.value || '',
-        }));
+    const fieldsData: KeyValueTableRow[] = getErrorGroupMetadata(
+        errorGroup
+    ).map((field) => ({
+        keyDisplayValue: field?.name || '',
+        renderType: 'string',
+        valueDisplayValue: field?.value || '',
+    }));
 
     return (
         <div>

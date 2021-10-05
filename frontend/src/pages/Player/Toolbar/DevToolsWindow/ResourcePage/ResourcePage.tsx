@@ -1,5 +1,12 @@
+import Input from '@components/Input/Input';
+import { Session } from '@graph/schemas';
+import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
+import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils';
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
+import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
+import { H } from 'highlight.run';
 import _ from 'lodash';
 import React, {
     useCallback,
@@ -9,11 +16,9 @@ import React, {
     useState,
 } from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { useParams } from 'react-router-dom';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 import GoToButton from '../../../../../components/Button/GoToButton';
-import Input from '../../../../../components/Input/Input';
 import TextHighlighter from '../../../../../components/TextHighlighter/TextHighlighter';
 import Tooltip from '../../../../../components/Tooltip/Tooltip';
 import { useGetResourcesQuery } from '../../../../../graph/generated/hooks';
@@ -32,20 +37,23 @@ export const ResourcePage = ({
     time: number;
     startTime: number;
 }) => {
-    const { state, session } = useReplayerContext();
-    const { session_id } = useParams<{ session_id: string }>();
-    const [selectedNetworkResource, setSelectedNetworkResource] = useState<
-        undefined | NetworkResource
-    >(undefined);
+    const { state, session, pause } = useReplayerContext();
+    const { setDetailedPanel, detailedPanel } = usePlayerUIContext();
+    const { session_secure_id } = useParams<{ session_secure_id: string }>();
     const [options, setOptions] = useState<Array<string>>([]);
     const [currentOption, setCurrentOption] = useState('All');
     const [filterSearchTerm, setFilterSearchTerm] = useState('');
     const [currentResource, setCurrentResource] = useState(0);
     const [networkRange, setNetworkRange] = useState(0);
     const [
+        networkOptionsContainerWidth,
+        setNetworkOptionsContainerWidth,
+    ] = useState<number | null>(null);
+    const [
         isInteractingWithResources,
         setIsInteractingWithResources,
     ] = useState(false);
+    const { showLeftPanel, showRightPanel } = usePlayerConfiguration();
     const [allResources, setAllResources] = useState<
         Array<NetworkResource> | undefined
     >([]);
@@ -54,12 +62,15 @@ export const ResourcePage = ({
     >(undefined);
     const { data, loading } = useGetResourcesQuery({
         variables: {
-            session_id,
+            session_secure_id,
         },
         fetchPolicy: 'no-cache',
     });
     const virtuoso = useRef<VirtuosoHandle>(null);
     const rawResources = data?.resources;
+    const resourceErrorRequestHeader = new URLSearchParams(location.search).get(
+        PlayerSearchParameters.resourceErrorRequestHeader
+    );
 
     useEffect(() => {
         const optionSet = new Set<string>();
@@ -100,6 +111,18 @@ export const ResourcePage = ({
     }, [rawResources]);
 
     useEffect(() => {
+        if (showLeftPanel && showRightPanel) {
+            if (window.innerWidth < 1600) {
+                setNetworkOptionsContainerWidth(350);
+            } else {
+                setNetworkOptionsContainerWidth(null);
+            }
+        } else {
+            setNetworkOptionsContainerWidth(null);
+        }
+    }, [showLeftPanel, showRightPanel]);
+
+    useEffect(() => {
         if (allResources?.length) {
             let msgIndex = 0;
             const relativeTime = time - startTime;
@@ -120,6 +143,40 @@ export const ResourcePage = ({
             }
         }
     }, [allResources, startTime, time, currentResource]);
+
+    useEffect(() => {
+        if (
+            resourceErrorRequestHeader &&
+            !loading &&
+            !!session &&
+            !!allResources &&
+            !detailedPanel
+        ) {
+            const resource = findResourceWithMatchingHighlightHeader(
+                resourceErrorRequestHeader,
+                allResources
+            );
+            if (resource) {
+                setDetailedPanel(
+                    getDetailedPanel(
+                        { ...resource, backendError: 'NOT IMPLEMENTED' },
+                        pause,
+                        session
+                    )
+                );
+            } else {
+                H.track('FailedToMatchHighlightResourceHeaderWithResource');
+            }
+        }
+    }, [
+        allResources,
+        detailedPanel,
+        loading,
+        pause,
+        resourceErrorRequestHeader,
+        session,
+        setDetailedPanel,
+    ]);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const scrollFunction = useCallback(
@@ -164,17 +221,24 @@ export const ResourcePage = ({
     return (
         <div className={styles.resourcePageWrapper}>
             <div className={devStyles.topBar}>
-                <div className={devStyles.optionsWrapper}>
-                    {options.map((o: string, i: number) => {
-                        return (
-                            <Option
-                                key={i.toString()}
-                                onSelect={() => setCurrentOption(o)}
-                                selected={o === currentOption}
-                                optionValue={o}
-                            />
-                        );
-                    })}
+                <div className={styles.optionsWrapper}>
+                    <div
+                        className={styles.optionsContainer}
+                        style={{
+                            width: networkOptionsContainerWidth || 'initial',
+                        }}
+                    >
+                        {options.map((o: string, i: number) => {
+                            return (
+                                <Option
+                                    key={i.toString()}
+                                    onSelect={() => setCurrentOption(o)}
+                                    selected={o === currentOption}
+                                    optionValue={o}
+                                />
+                            );
+                        })}
+                    </div>
                     <div className={styles.filterContainer}>
                         <Input
                             allowClear
@@ -204,9 +268,28 @@ export const ResourcePage = ({
                             <div className={styles.networkColumn}>Status</div>
                             <div className={styles.networkColumn}>Type</div>
                             <div className={styles.networkColumn}>Name</div>
-                            <div className={styles.networkColumn}>Time</div>
-                            <div className={styles.networkColumn}>Size</div>
-                            <div className={styles.networkColumn}>
+                            <div
+                                className={classNames(
+                                    styles.networkColumn,
+                                    styles.justifyEnd
+                                )}
+                            >
+                                Time
+                            </div>
+                            <div
+                                className={classNames(
+                                    styles.networkColumn,
+                                    styles.justifyEnd
+                                )}
+                            >
+                                Size
+                            </div>
+                            <div
+                                className={classNames(
+                                    styles.networkColumn,
+                                    styles.waterfall
+                                )}
+                            >
                                 Waterfall
                             </div>
                         </div>
@@ -214,7 +297,7 @@ export const ResourcePage = ({
                             id="networkStreamWrapper"
                             className={styles.networkStreamWrapper}
                         >
-                            {resourcesToRender.length > 0 ? (
+                            {resourcesToRender.length > 0 && session ? (
                                 <Virtuoso
                                     onMouseEnter={() => {
                                         setIsInteractingWithResources(true);
@@ -225,6 +308,7 @@ export const ResourcePage = ({
                                     ref={virtuoso}
                                     overscan={500}
                                     data={resourcesToRender}
+                                    className={styles.virtuoso}
                                     itemContent={(index, resource) => (
                                         <ResourceRow
                                             key={index.toString()}
@@ -233,8 +317,12 @@ export const ResourcePage = ({
                                             currentResource={currentResource}
                                             searchTerm={filterSearchTerm}
                                             onClickHandler={() => {
-                                                setSelectedNetworkResource(
-                                                    resource
+                                                setDetailedPanel(
+                                                    getDetailedPanel(
+                                                        resource,
+                                                        pause,
+                                                        session
+                                                    )
                                                 );
                                             }}
                                         />
@@ -259,7 +347,7 @@ export const ResourcePage = ({
                                         make sure <code>networkRecording</code>{' '}
                                         is set to <code>true</code>. You can{' '}
                                         <a
-                                            href="https://docs.highlight.run/reference#options"
+                                            href="https://docs.highlight.run/api#w0-highlightoptions"
                                             target="_blank"
                                             rel="noreferrer"
                                         >
@@ -273,15 +361,6 @@ export const ResourcePage = ({
                     </>
                 )}
             </div>
-            <ResourceDetailsModal
-                selectedNetworkResource={selectedNetworkResource}
-                onCloseHandler={() => {
-                    setSelectedNetworkResource(undefined);
-                }}
-                networkRecordingEnabledForSession={
-                    session?.enable_recording_network_contents || false
-                }
-            />
         </div>
     );
 };
@@ -300,6 +379,7 @@ const TimingCanvas = () => {
 export type NetworkResource = PerformanceResourceTiming & {
     id: number;
     requestResponsePairs?: RequestResponsePair;
+    backendError?: any;
 };
 
 const ResourceRow = ({
@@ -316,6 +396,7 @@ const ResourceRow = ({
     onClickHandler: () => void;
 }) => {
     const { pause } = useReplayerContext();
+    const { detailedPanel } = usePlayerUIContext();
     const leftPaddingPercent = (resource.startTime / networkRange) * 100;
     const actualPercent = Math.max(
         ((resource.responseEnd - resource.startTime) / networkRange) * 100,
@@ -333,6 +414,8 @@ const ResourceRow = ({
                         (resource.requestResponsePairs.response.status === 0 ||
                             resource.requestResponsePairs.response.status >=
                                 400),
+                    [styles.showingDetails]:
+                        detailedPanel?.id === resource.id.toString(),
                 })}
             >
                 <div className={styles.typeSection}>
@@ -371,7 +454,8 @@ const ResourceRow = ({
                         formatSize(resource.requestResponsePairs.response.size)
                     ) : resource.requestResponsePairs?.response.status === 0 ? (
                         '-'
-                    ) : resource.requestResponsePairs?.urlBlocked ? (
+                    ) : resource.requestResponsePairs?.urlBlocked ||
+                      resource.transferSize == null ? (
                         '-'
                     ) : resource.transferSize === 0 ? (
                         'Cached'
@@ -457,4 +541,59 @@ export const formatSize = (bytes: number) => {
 const roundOff = (value: number, decimal = 1) => {
     const base = 10 ** decimal;
     return Math.round(value * base) / base;
+};
+
+const getDetailedPanel = (
+    resource: NetworkResource,
+    pause: (time: number) => void,
+    session: Session
+) => ({
+    title: (
+        <div className={styles.detailPanelTitle}>
+            <h3>Network Resource</h3>
+            <GoToButton
+                onClick={() => {
+                    pause(resource.startTime);
+
+                    message.success(
+                        `Changed player time to when ${getNetworkResourcesDisplayName(
+                            resource.initiatorType
+                        )} request started at ${MillisToMinutesAndSeconds(
+                            resource.startTime
+                        )}.`
+                    );
+                }}
+            />
+        </div>
+    ),
+    content: (
+        <>
+            <ResourceDetailsModal
+                selectedNetworkResource={resource}
+                networkRecordingEnabledForSession={
+                    session?.enable_recording_network_contents || false
+                }
+            />
+        </>
+    ),
+    id: resource.id.toString(),
+});
+
+const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request';
+
+const findResourceWithMatchingHighlightHeader = (
+    headerValue: string,
+    resources: NetworkResource[]
+) => {
+    const implemented = false;
+
+    if (!implemented) {
+        return resources[0];
+    }
+    return resources.find(
+        (resource) =>
+            resource.requestResponsePairs?.request?.headers.get(
+                HIGHLIGHT_REQUEST_HEADER
+            ) === headerValue
+    );
 };

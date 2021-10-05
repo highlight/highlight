@@ -1,7 +1,8 @@
 import useLocalStorage from '@rehooks/local-storage';
 import { GlobalContextProvider } from '@routers/OrgRouter/context/GlobalContext';
+import { isOnPrem } from '@util/onPrem/onPremUtils';
+import { useParams } from '@util/react-router/useParams';
 import React, { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
 import { useToggle } from 'react-use';
 
 import { useAuthContext } from '../../authentication/AuthContext';
@@ -15,35 +16,39 @@ import { useIntegrated } from '../../util/integrated';
 import { ApplicationContextProvider } from './ApplicationContext';
 import ApplicationRouter from './ApplicationRouter';
 
-export const OrgRouter = () => {
+export const ProjectRouter = () => {
     const { isLoggedIn } = useAuthContext();
     const [
         showKeyboardShortcutsGuide,
         toggleShowKeyboardShortcutsGuide,
     ] = useToggle(false);
-    const { organization_id } = useParams<{
-        organization_id: string;
+    const { project_id } = useParams<{
+        project_id: string;
     }>();
 
     const { data, loading, error } = useGetApplicationsQuery({
-        variables: { id: organization_id },
+        variables: { id: project_id },
         skip: !isLoggedIn, // Higher level routers decide when guests are allowed to hit this router
     });
 
     const { integrated, loading: integratedLoading } = useIntegrated();
     const [hasFinishedOnboarding] = useLocalStorage(
-        `highlight-finished-onboarding-${organization_id}`,
+        `highlight-finished-onboarding-${project_id}`,
         false
     );
 
     useEffect(() => {
-        window.Intercom('update', {
-            hide_default_launcher: true,
-        });
-        return () => {
+        if (!isOnPrem) {
             window.Intercom('update', {
-                hide_default_launcher: false,
+                hide_default_launcher: true,
             });
+        }
+        return () => {
+            if (!isOnPrem) {
+                window.Intercom('update', {
+                    hide_default_launcher: false,
+                });
+            }
         };
     }, []);
 
@@ -70,23 +75,23 @@ export const OrgRouter = () => {
         >
             <ApplicationContextProvider
                 value={{
-                    currentApplication: data?.organization || undefined,
-                    allApplications: data?.organizations || [],
+                    currentApplication: data?.project || undefined,
+                    allApplications: data?.projects || [],
                 }}
             >
                 <Header />
                 {isLoggedIn && <Sidebar />}
                 <div className={commonStyles.bodyWrapper}>
-                    {/* Edge case: shareable links will still direct to this error page if you are logged in on a different org */}
-                    {isLoggedIn && (error || !data?.organization) ? (
+                    {/* Edge case: shareable links will still direct to this error page if you are logged in on a different project */}
+                    {isLoggedIn && (error || !data?.project) ? (
                         <ErrorState
                             message={`
                         Seems like you don’t have access to this page 😢. If you're
-                        part of a team, ask your workspace admin to send you an
+                        part of a team, ask your project admin to send you an
                         invite. Otherwise, feel free to make an account!
                         `}
                             errorString={
-                                'OrgRouter Error: ' + JSON.stringify(error)
+                                'ProjectRouter Error: ' + JSON.stringify(error)
                             }
                         />
                     ) : (

@@ -10,7 +10,7 @@ import (
 )
 
 func logIfError(name string, err error) {
-	if err != nil && !util.IsDevOrTestEnv() {
+	if err != nil && !util.IsDevOrTestEnv() && !util.IsOnPrem() {
 		log.Error(e.Wrap(err, "dd error tracking: "+name))
 	}
 }

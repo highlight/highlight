@@ -1,7 +1,7 @@
+import { useParams } from '@util/react-router/useParams';
 import { ButtonProps, message } from 'antd';
 import { H } from 'highlight.run';
 import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
 
 import { useAuthContext } from '../../../authentication/AuthContext';
 import ShareButton from '../../../components/Button/ShareButton/ShareButton';
@@ -75,6 +75,7 @@ const SessionShareButton = (props: ButtonProps) => {
                             setShareTimestamp(checked);
                         }}
                         label="Include current timestamp"
+                        trackingId="SessionShareURLIncludeTimestamp"
                     />
                 </ModalBody>
             </Modal>
@@ -84,8 +85,8 @@ const SessionShareButton = (props: ButtonProps) => {
 
 const ExternalSharingToggle = () => {
     const { session } = useReplayerContext();
-    const { session_id } = useParams<{
-        session_id: string;
+    const { session_secure_id } = useParams<{
+        session_secure_id: string;
     }>();
     const [updateSessionIsPublic] = useUpdateSessionIsPublicMutation({
         update(cache, { data }) {
@@ -114,12 +115,13 @@ const ExternalSharingToggle = () => {
                     });
                     updateSessionIsPublic({
                         variables: {
-                            session_id: session_id,
+                            session_secure_id: session_secure_id,
                             is_public: checked,
                         },
                     });
                 }}
                 label="Allow anyone with the link to access this session."
+                trackingId="SessionSharingExternal"
             />
         </div>
     );

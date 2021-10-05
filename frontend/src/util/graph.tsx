@@ -2,6 +2,7 @@ import 'firebase/auth';
 
 import { ApolloClient, createHttpLink, InMemoryCache } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
+import { isOnPrem } from '@util/onPrem/onPremUtils';
 import * as firebase from 'firebase/app';
 
 const uri =
@@ -12,7 +13,7 @@ const highlightGraph = createHttpLink({
     credentials: 'include',
 });
 
-if (process.env.REACT_APP_ONPREM === 'true') {
+if (isOnPrem) {
     console.log('Private Graph URI: ', uri);
 }
 
@@ -27,7 +28,16 @@ const authLink = setContext((_, { headers }) => {
 
 export const client = new ApolloClient({
     link: authLink.concat(highlightGraph),
-    cache: new InMemoryCache(),
+    cache: new InMemoryCache({
+        typePolicies: {
+            Session: {
+                keyFields: ['secure_id'],
+            },
+            ErrorGroup: {
+                keyFields: ['secure_id'],
+            },
+        },
+    }),
     assumeImmutableResults: true,
     connectToDevTools:
         process.env.REACT_APP_ENVIRONMENT === 'dev' ? true : false,

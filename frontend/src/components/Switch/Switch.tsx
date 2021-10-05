@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-restricted-imports
 import { Switch as AntDesignSwitch, SwitchProps } from 'antd';
 import classNames from 'classnames';
+import { H } from 'highlight.run';
 import React from 'react';
 
 import styles from './Switch.module.scss';
@@ -15,6 +16,7 @@ type Props = Pick<
     /** Renders the label and the switch with space-between. */
     justifySpaceBetween?: boolean;
     noMarginAroundSwitch?: boolean;
+    trackingId: string;
 };
 
 const Switch = ({
@@ -23,6 +25,7 @@ const Switch = ({
     justifySpaceBetween,
     noMarginAroundSwitch,
     className,
+    trackingId,
     ...props
 }: Props) => {
     const labelToRender = <span>{label}</span>;
@@ -36,7 +39,18 @@ const Switch = ({
             })}
         >
             {labelFirst && labelToRender}
-            <AntDesignSwitch {...props} size="small" />
+            <AntDesignSwitch
+                {...props}
+                size="small"
+                onChange={(checked, event) => {
+                    if (props.onChange) {
+                        H.track(`Switch-${trackingId}`, {
+                            checked,
+                        });
+                        props.onChange(checked, event);
+                    }
+                }}
+            />
             {!labelFirst && labelToRender}
         </label>
     );

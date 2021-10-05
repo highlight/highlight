@@ -40,6 +40,22 @@ mutation addTrackProperties($session_id: ID!, $properties_object: Any) {
     )
 }
 
+mutation addSessionFeedback(
+    $session_id: ID!
+    $user_name: String
+    $user_email: String
+    $verbatim: String!
+    $timestamp: Time!
+) {
+    addSessionFeedback(
+        session_id: $session_id
+        user_name: $user_name
+        user_email: $user_email
+        verbatim: $verbatim
+        timestamp: $timestamp
+    )
+}
+
 mutation initializeSession(
     $organization_verbose_id: String!
     $enable_strict_privacy: Boolean!
@@ -63,7 +79,6 @@ mutation initializeSession(
         fingerprint: $id
     ) {
         id
-        user_id
         organization_id
     }
 }

@@ -1,52 +1,52 @@
 import { useAuthContext } from '@authentication/AuthContext';
-import { GetAdminsQuery } from '@graph/operations';
+import { CommentSuggestion } from '@util/comment/util';
 import classNames from 'classnames';
 import React, { PropsWithChildren } from 'react';
 import { SuggestionDataItem } from 'react-mentions';
 
-import { Admin, SanitizedAdminInput } from '../../graph/generated/schemas';
-import { AdminAvatar } from '../Avatar/Avatar';
+import {
+    Admin,
+    SanitizedAdminInput,
+    SessionCommentType,
+} from '../../graph/generated/schemas';
+import { AdminAvatar, Avatar } from '../Avatar/Avatar';
 import DotsMenu from '../DotsMenu/DotsMenu';
 import RelativeTime from '../RelativeTime/RelativeTime';
 import styles from './CommentHeader.module.scss';
 
 export interface AdminSuggestion extends SuggestionDataItem {
     email?: string;
-    photo_url?: string | null;
+    photoUrl?: string;
     name?: string;
 }
 
 export const parseAdminSuggestions = (
-    /** A list of all admins in the organization. */
-    data: GetAdminsQuery | undefined,
+    /** A list of all admins in the project. */
+    suggestions: CommentSuggestion[],
     /** The current logged in admin. */
     currentAdmin: Admin | undefined,
     /** A list of admins that have already been mentioned. */
     mentionedAdmins: SanitizedAdminInput[]
 ): AdminSuggestion[] => {
-    if (!data?.admins || !currentAdmin) {
-        return [];
-    }
-
     return (
-        data.admins
+        suggestions
             // Filter out these admins
             .filter(
-                (admin) =>
+                (suggestion) =>
                     // 1. The admin that is creating the comment
-                    admin!.email !== currentAdmin!.email &&
+                    suggestion?.email !== currentAdmin!.email &&
                     // 2. Admins that are already mentioned
                     !mentionedAdmins.some(
-                        (mentionedAdmin) => mentionedAdmin.id === admin?.id
+                        (mentionedAdmin) => mentionedAdmin.id === suggestion?.id
                     )
             )
-            .map((admin) => {
+            .map((suggestion) => {
                 return {
-                    id: admin!.id,
-                    email: admin!.email,
-                    photo_url: admin!.photo_url,
-                    display: admin?.name || admin!.email,
-                    name: admin?.name,
+                    id: suggestion!.id,
+                    email: suggestion!.email,
+                    photo_url: suggestion!.photoUrl,
+                    display: suggestion?.name || suggestion!.email || '',
+                    name: suggestion?.name,
                 };
             })
     );
@@ -67,11 +67,26 @@ export const CommentHeader = ({
     return (
         <>
             <div className={classNames(styles.commentHeader)}>
-                <AdminAvatar adminInfo={comment.author} size={30} />
+                {comment?.type === SessionCommentType.Feedback ? (
+                    <Avatar
+                        seed={
+                            comment?.metadata?.name ||
+                            comment?.metadata?.email ||
+                            'Anonymous'
+                        }
+                        style={{ height: 30, width: 30 }}
+                    />
+                ) : (
+                    <AdminAvatar adminInfo={comment.author} size={30} />
+                )}
                 <div className={styles.textContainer}>
                     <p className={styles.commentAuthor}>
-                        {comment.author.name ||
-                            comment.author.email.split('@')[0]}
+                        {comment?.type === SessionCommentType.Feedback
+                            ? comment?.metadata?.name ||
+                              comment?.metadata?.email?.split('@')[0] ||
+                              'Anonymous'
+                            : comment.author.name ||
+                              comment.author.email.split('@')[0]}
                     </p>
                     <span className={styles.commentUpdatedTime}>
                         <RelativeTime datetime={comment.updated_at} />

@@ -214,10 +214,6 @@
     padding: 0 15px;
     transition: 0.3s;
     user-select: none;
-    user-select: none;
-    user-select: none;
-    user-select: none;
-    user-select: none;
 }
 
 .skipInactivity:hover {
@@ -288,8 +284,10 @@
 }
 
 .popoverContent {
+    max-height: 300px;
     overflow: hidden;
     overflow-wrap: anywhere;
+    overflow-y: auto;
     padding-bottom: var(--size-xSmall);
     text-overflow: ellipsis;
     width: 240px;

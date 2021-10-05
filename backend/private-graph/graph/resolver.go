@@ -2,9 +2,12 @@ package graph
 
 import (
 	"context"
+	"encoding/base64"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	e "github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
@@ -12,6 +15,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
 	"github.com/stripe/stripe-go/client"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/model"
@@ -49,54 +53,56 @@ func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
 	return uid == WhitelistedUID || strings.Contains(email, "@highlight.run")
 }
 
-func (r *Resolver) isDemoOrg(org_id int) bool {
-	return org_id == 0
+func (r *Resolver) isDemoProject(project_id int) bool {
+	return project_id == 0
 }
 
 // These are authentication methods used to make sure that data is secured.
 // This'll probably get expensive at some point; they can probably be cached.
 
-// isAdminInOrganizationOrDemoOrg should be used for actions that you want admins in all organizations
-// and laymen in the demo org to have access to.
-func (r *Resolver) isAdminInOrganizationOrDemoOrg(ctx context.Context, org_id int) (*model.Organization, error) {
-	var org *model.Organization
+// isAdminInProjectOrDemoProject should be used for actions that you want admins in all projects
+// and laymen in the demo project to have access to.
+func (r *Resolver) isAdminInProjectOrDemoProject(ctx context.Context, project_id int) (*model.Project, error) {
+	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("isAdminInProjectOrDemoProject"))
+	defer authSpan.Finish()
+	var project *model.Project
 	var err error
-	if r.isDemoOrg(org_id) {
-		if err = r.DB.Model(&model.Organization{}).Where("id = ?", 0).First(&org).Error; err != nil {
-			return nil, e.Wrap(err, "error querying demo org")
+	if r.isDemoProject(project_id) {
+		if err = r.DB.Model(&model.Project{}).Where("id = ?", 0).First(&project).Error; err != nil {
+			return nil, e.Wrap(err, "error querying demo project")
 		}
 	} else {
-		org, err = r.isAdminInOrganization(ctx, org_id)
+		project, err = r.isAdminInProject(ctx, project_id)
 		if err != nil {
-			return nil, e.Wrap(err, "admin is not in organization or demo org")
+			return nil, e.Wrap(err, "admin is not in project or demo project")
 		}
 	}
-	return org, nil
+	return project, nil
 }
 
-// isAdminInOrganization should be used for actions that you only want admins in all organizations to have access to.
-// Use this on actions that you don't want laymen in the demo org to have access to.
-func (r *Resolver) isAdminInOrganization(ctx context.Context, org_id int) (*model.Organization, error) {
+// isAdminInProject should be used for actions that you only want admins in all projects to have access to.
+// Use this on actions that you don't want laymen in the demo project to have access to.
+func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model.Project, error) {
 	if util.IsTestEnv() {
 		return nil, nil
 	}
 	if r.isWhitelistedAccount(ctx) {
-		org := &model.Organization{}
-		if err := r.DB.Where(&model.Organization{Model: model.Model{ID: org_id}}).First(&org).Error; err != nil {
-			return nil, e.Wrap(err, "error querying org")
+		project := &model.Project{}
+		if err := r.DB.Where(&model.Project{Model: model.Model{ID: project_id}}).First(&project).Error; err != nil {
+			return nil, e.Wrap(err, "error querying project")
 		}
-		return org, nil
+		return project, nil
 	}
-	orgs, err := r.Query().Organizations(ctx)
+	projects, err := r.Query().Projects(ctx)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying orgs")
+		return nil, e.Wrap(err, "error querying projects")
 	}
-	for _, o := range orgs {
-		if o.ID == org_id {
-			return o, nil
+	for _, p := range projects {
+		if p.ID == project_id {
+			return p, nil
 		}
 	}
-	return nil, e.New("admin doesn't exist in organization")
+	return nil, e.New("admin doesn't exist in project")
 }
 
 func InputToParams(params *modelInputs.SearchParamsInput) *model.SearchParams {
@@ -196,33 +202,76 @@ func ErrorInputToParams(params *modelInputs.ErrorSearchParamsInput) *model.Error
 	return modelParams
 }
 
-func (r *Resolver) isAdminErrorGroupOwner(ctx context.Context, errorGroupID int) (*model.ErrorGroup, error) {
+func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupID *int, errorGroupSecureID *string) (eg *model.ErrorGroup, isOwner bool, err error) {
 	errorGroup := &model.ErrorGroup{}
-	if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: errorGroupID}}).First(&errorGroup).Error; err != nil {
-		return nil, e.Wrap(err, "error querying session")
+	if errorGroupID == nil && errorGroupSecureID == nil {
+		return nil, false, errors.New("No ID was specified for the error group")
 	}
-	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, errorGroup.OrganizationID)
+	if errorGroupSecureID != nil {
+		if err := r.DB.Where(&model.ErrorGroup{SecureID: *errorGroupSecureID}).First(&errorGroup).Error; err != nil {
+			return nil, false, e.Wrap(err, "error querying error group by secureID: "+*errorGroupSecureID)
+		}
+	} else {
+		if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: *errorGroupID}}).First(&errorGroup).Error; err != nil {
+			return nil, false, e.Wrap(err, fmt.Sprintf("error querying error group by ID: %d", *errorGroupID))
+		}
+	}
+	_, err = r.isAdminInProjectOrDemoProject(ctx, errorGroup.ProjectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error validating admin in organization")
+		return errorGroup, false, e.Wrap(err, "error validating admin in project")
 	}
-	return errorGroup, nil
+	return errorGroup, true, nil
 }
 
-func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_id int) (session *model.Session, ownsSession bool, err error) {
+func (r *Resolver) canAdminViewErrorGroup(ctx context.Context, errorGroupID *int, errorGroupSecureID *string) (*model.ErrorGroup, error) {
+	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminViewErrorGroup"))
+	defer authSpan.Finish()
+	errorGroup, isOwner, err := r.doesAdminOwnErrorGroup(ctx, errorGroupID, errorGroupSecureID)
+	if err == nil && isOwner {
+		return errorGroup, nil
+	}
+	if errorGroup != nil && errorGroup.IsPublic {
+		return errorGroup, nil
+	}
+	return nil, err
+}
+
+func (r *Resolver) canAdminModifyErrorGroup(ctx context.Context, errorGroupID *int, errorGroupSecureID *string) (*model.ErrorGroup, error) {
+	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminModifyErrorGroup"))
+	defer authSpan.Finish()
+	errorGroup, isOwner, err := r.doesAdminOwnErrorGroup(ctx, errorGroupID, errorGroupSecureID)
+	if err == nil && isOwner {
+		return errorGroup, nil
+	}
+	return nil, err
+}
+
+func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_id *int, session_secure_id *string) (session *model.Session, ownsSession bool, err error) {
 	session = &model.Session{}
-	if err = r.DB.Where(&model.Session{Model: model.Model{ID: session_id}}).First(&session).Error; err != nil {
-		return nil, false, e.Wrap(err, "error querying session")
+	if session_id == nil && session_secure_id == nil {
+		return nil, false, errors.New("No ID was specified for the session")
+	}
+	if session_secure_id != nil {
+		if err = r.DB.Where(&model.Session{SecureID: *session_secure_id}).First(&session).Error; err != nil {
+			return nil, false, e.Wrap(err, "error querying session by secure_id: "+*session_secure_id)
+		}
+	} else {
+		if err = r.DB.Where(&model.Session{Model: model.Model{ID: *session_id}}).First(&session).Error; err != nil {
+			return nil, false, e.Wrap(err, fmt.Sprintf("error querying session by id: %d", *session_id))
+		}
 	}
 
-	_, err = r.isAdminInOrganizationOrDemoOrg(ctx, session.OrganizationID)
+	_, err = r.isAdminInProjectOrDemoProject(ctx, session.ProjectID)
 	if err != nil {
-		return session, false, e.Wrap(err, "error validating admin in organization")
+		return session, false, e.Wrap(err, "error validating admin in project")
 	}
 	return session, true, nil
 }
 
-func (r *Resolver) canAdminViewSession(ctx context.Context, session_id int) (*model.Session, error) {
-	session, isOwner, err := r._doesAdminOwnSession(ctx, session_id)
+func (r *Resolver) canAdminViewSession(ctx context.Context, session_id *int, session_secure_id *string) (*model.Session, error) {
+	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminViewSession"))
+	defer authSpan.Finish()
+	session, isOwner, err := r._doesAdminOwnSession(ctx, session_id, session_secure_id)
 	if err == nil && isOwner {
 		return session, nil
 	}
@@ -232,8 +281,10 @@ func (r *Resolver) canAdminViewSession(ctx context.Context, session_id int) (*mo
 	return nil, err
 }
 
-func (r *Resolver) canAdminModifySession(ctx context.Context, session_id int) (*model.Session, error) {
-	session, isOwner, err := r._doesAdminOwnSession(ctx, session_id)
+func (r *Resolver) canAdminModifySession(ctx context.Context, session_id *int, session_secure_id *string) (*model.Session, error) {
+	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminModifySession"))
+	defer authSpan.Finish()
+	session, isOwner, err := r._doesAdminOwnSession(ctx, session_id, session_secure_id)
 	if err == nil && isOwner {
 		return session, nil
 	}
@@ -241,30 +292,34 @@ func (r *Resolver) canAdminModifySession(ctx context.Context, session_id int) (*
 }
 
 func (r *Resolver) isAdminSegmentOwner(ctx context.Context, segment_id int) (*model.Segment, error) {
+	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("isAdminSegmentOwner"))
+	defer authSpan.Finish()
 	segment := &model.Segment{}
 	if err := r.DB.Where(&model.Segment{Model: model.Model{ID: segment_id}}).First(&segment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying segment")
 	}
-	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, segment.OrganizationID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, segment.ProjectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error validating admin in organization")
+		return nil, e.Wrap(err, "error validating admin in project")
 	}
 	return segment, nil
 }
 
 func (r *Resolver) isAdminErrorSegmentOwner(ctx context.Context, error_segment_id int) (*model.ErrorSegment, error) {
+	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("isAdminErrorSegmentOwner"))
+	defer authSpan.Finish()
 	segment := &model.ErrorSegment{}
 	if err := r.DB.Where(&model.ErrorSegment{Model: model.Model{ID: error_segment_id}}).First(&segment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error segment")
 	}
-	_, err := r.isAdminInOrganizationOrDemoOrg(ctx, segment.OrganizationID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, segment.ProjectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error validating admin in organization")
+		return nil, e.Wrap(err, "error validating admin in project")
 	}
 	return segment, nil
 }
 
-func (r *Resolver) UpdateSessionsVisibility(organizationID int, newPlan modelInputs.PlanType, originalPlan modelInputs.PlanType) {
+func (r *Resolver) UpdateSessionsVisibility(projectID int, newPlan modelInputs.PlanType, originalPlan modelInputs.PlanType) {
 	isPlanUpgrade := true
 	switch originalPlan {
 	case modelInputs.PlanTypeFree:
@@ -285,13 +340,13 @@ func (r *Resolver) UpdateSessionsVisibility(organizationID int, newPlan modelInp
 		}
 	}
 	if isPlanUpgrade {
-		if err := r.DB.Model(&model.Session{}).Where(&model.Session{OrganizationID: organizationID, WithinBillingQuota: &model.F}).Updates(model.Session{WithinBillingQuota: &model.T}).Error; err != nil {
+		if err := r.DB.Model(&model.Session{}).Where(&model.Session{ProjectID: projectID, WithinBillingQuota: &model.F}).Updates(model.Session{WithinBillingQuota: &model.T}).Error; err != nil {
 			log.Error(e.Wrap(err, "error updating within_billing_quota on sessions upon plan upgrade"))
 		}
 	}
 }
 
-func (r *queryResolver) getFieldFilters(ctx context.Context, organizationID int, params *modelInputs.SearchParamsInput) (whereClause string, err error) {
+func (r *queryResolver) getFieldFilters(ctx context.Context, projectID int, params *modelInputs.SearchParamsInput) (whereClause string, err error) {
 	if params.VisitedURL != nil {
 		whereClause += andSessionHasFieldsWhere("fields.name = 'visited-url' AND fields.value ILIKE '%" + *params.VisitedURL + "%'")
 	}
@@ -423,10 +478,10 @@ func (r *Resolver) SendEmailAlert(tos []*mail.Email, authorName, viewLink, textF
 	return nil
 }
 
-func (r *Resolver) SendPersonalSlackAlert(org *model.Organization, admin *model.Admin, adminIds []int, viewLink, commentText, subjectScope string) error {
+func (r *Resolver) SendPersonalSlackAlert(project *model.Project, admin *model.Admin, adminIds []int, viewLink, commentText, subjectScope string) error {
 	// this is needed for posting DMs
 	// if nil, user simply hasn't signed up for notifications, so return nil
-	if org.SlackAccessToken == nil {
+	if project.SlackAccessToken == nil {
 		return nil
 	}
 
@@ -473,7 +528,7 @@ func (r *Resolver) SendPersonalSlackAlert(org *model.Organization, admin *model.
 	)
 
 	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewDividerBlock())
-	slackClient := slack.New(*org.SlackAccessToken)
+	slackClient := slack.New(*project.SlackAccessToken)
 	for _, a := range admins {
 		if a.SlackIMChannelID != nil {
 			_, _, err := slackClient.PostMessage(*a.SlackIMChannelID, slack.MsgOptionBlocks(blockSet.BlockSet...))
@@ -484,4 +539,136 @@ func (r *Resolver) SendPersonalSlackAlert(org *model.Organization, admin *model.
 	}
 
 	return nil
+}
+
+func (r *Resolver) SendSlackAlertToUser(project *model.Project, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, viewLink, commentText, subjectScope string, base64Image *string) error {
+	// this is needed for posting DMs
+	// if nil, user simply hasn't signed up for notifications, so return nil
+	if project.SlackAccessToken == nil {
+		return nil
+	}
+
+	var blockSet slack.Blocks
+	determiner := "a"
+	if subjectScope == "error" {
+		determiner = "an"
+	}
+	message := fmt.Sprintf("You were tagged in %s %s comment.", determiner, subjectScope)
+	if admin.Email != nil && *admin.Email != "" {
+		message = fmt.Sprintf("%s tagged you in %s %s comment.", *admin.Email, determiner, subjectScope)
+	}
+	if admin.Name != nil && *admin.Name != "" {
+		message = fmt.Sprintf("%s tagged you in %s %s comment.", *admin.Name, determiner, subjectScope)
+	}
+	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewHeaderBlock(&slack.TextBlockObject{Type: slack.PlainTextType, Text: message}))
+
+	button := slack.NewButtonBlockElement(
+		"",
+		"click",
+		slack.NewTextBlockObject(
+			slack.PlainTextType,
+			strings.Title(fmt.Sprintf("Visit %s", subjectScope)),
+			false,
+			false,
+		),
+	)
+	button.URL = viewLink
+	blockSet.BlockSet = append(blockSet.BlockSet,
+		slack.NewSectionBlock(
+			nil,
+			[]*slack.TextBlockObject{{Type: slack.MarkdownType, Text: fmt.Sprintf("> %s", commentText)}}, slack.NewAccessory(button),
+		),
+	)
+
+	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewDividerBlock())
+	slackClient := slack.New(*project.SlackAccessToken)
+	for _, slackUser := range taggedSlackUsers {
+		if slackUser.WebhookChannelID != nil {
+			_, _, _, err := slackClient.JoinConversation(*slackUser.WebhookChannelID)
+			if err != nil {
+				log.Error(e.Wrap(err, "failed to join slack channel"))
+			}
+			_, _, err = slackClient.PostMessage(*slackUser.WebhookChannelID, slack.MsgOptionBlocks(blockSet.BlockSet...))
+			if err != nil {
+				return e.Wrap(err, "error posting slack message via slack bot")
+			}
+		}
+	}
+
+	// Upload the screenshot to the user's Slack workspace.
+	// We do this instead of upload it to S3 or somewhere else to defer authorization checks to Slack.
+	// If we upload the image somewhere public, anyone with the link to the image will have access. The image could contain sensitive information.
+	// By uploading to the user's Slack workspace, we limit the authorization of the image to only Slack members of the user's workspace.
+	var uploadedFileKey string
+	if base64Image != nil {
+		var channels []string
+		for _, slackUser := range taggedSlackUsers {
+			channels = append(channels, *slackUser.WebhookChannelID)
+		}
+
+		// This key will be used as the file name for the file written to disk.
+		// This needs to be unique. The uniqueness is guaranteed by the project ID, the admin who created the comment's ID, and the current time
+		uploadedFileKey = fmt.Sprintf("slack-image-%d-%d-%d.png", project.ID, admin.ID, time.Now().UnixNano())
+
+		// We are writing the base64 string to disk as a png. We need to do this because the Slack Go client
+		// doesn't support uploading files as base64.
+		// This is something we'll need to revisit when we start getting larger traffic for comments.
+		// The reason for this is each task has disk space of 20GB, each image is around 200 KB. Ideally we do everything in memory without relying on disk.
+		dec, err := base64.StdEncoding.DecodeString(*base64Image)
+		if err != nil {
+			log.Error(e.Wrap(err, "Failed to decode base64 image"))
+		}
+		f, err := os.Create(uploadedFileKey)
+		if err != nil {
+			log.Error(e.Wrap(err, "Failed to create file on disk"))
+		}
+		defer f.Close()
+		if _, err := f.Write(dec); err != nil {
+			log.Error(e.Wrap(err, "Failed to write file on disk"))
+		}
+		if err := f.Sync(); err != nil {
+			log.Error("Failed to sync file on disk")
+		}
+
+		// We need to write the base64 image to disk, read the file, then upload it to Slack.
+		// We can't send Slack a base64 string.
+		fileUploadParams := slack.FileUploadParameters{
+			Filetype: "image/png",
+			Filename: fmt.Sprintf("Highlight %s Image.png", subjectScope),
+			// These are the channels that will have access to the uploaded file.
+			Channels: channels,
+			File:     uploadedFileKey,
+			Title:    fmt.Sprintf("File from Highlight uploaded on behalf of %s", *admin.Name),
+		}
+		_, err = slackClient.UploadFile(fileUploadParams)
+
+		if err != nil {
+			log.Error(e.Wrap(err, "failed to upload file to Slack"))
+		}
+
+		if uploadedFileKey != "" {
+			if err := os.Remove(uploadedFileKey); err != nil {
+				log.Error(e.Wrap(err, "Failed to remove temporary session screenshot"))
+
+			}
+		}
+	}
+
+	return nil
+}
+
+// Returns the current Admin or an Admin with ID = 0 if the current Admin is a guest
+func (r *Resolver) getCurrentAdminOrGuest(ctx context.Context) (currentAdmin *model.Admin, isGuest bool) {
+	admin, err := r.getCurrentAdmin(ctx)
+	isGuest = false
+	if admin == nil || err != nil {
+		isGuest = true
+		admin = &model.Admin{
+			// An Admin record was created manually with an ID of 0.
+			Model: model.Model{
+				ID: 0,
+			},
+		}
+	}
+	return admin, isGuest
 }

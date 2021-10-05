@@ -1,7 +1,9 @@
+import { DEMO_WORKSPACE_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { namedOperations } from '@graph/operations';
+import { useParams } from '@util/react-router/useParams';
 import { Divider, Form, message } from 'antd';
+import classNames from 'classnames';
 import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
 import TextTransition from 'react-text-transition';
 
 import Button from '../../../components/Button/Button/Button';
@@ -14,6 +16,7 @@ import {
     useGetUserSuggestionQuery,
     useUpdateErrorAlertMutation,
     useUpdateNewUserAlertMutation,
+    useUpdateSessionFeedbackAlertMutation,
     useUpdateTrackPropertiesAlertMutation,
     useUpdateUserPropertiesAlertMutation,
 } from '../../../graph/generated/hooks';
@@ -50,7 +53,8 @@ export const AlertConfigurationCard = ({
     const [lookbackPeriod, setLookbackPeriod] = useState(
         getLookbackPeriodOption(alert?.ThresholdWindow).value
     );
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const [searchQuery, setSearchQuery] = useState('');
+    const { project_id } = useParams<{ project_id: string }>();
     const [form] = Form.useForm();
     const [updateErrorAlert] = useUpdateErrorAlertMutation();
     const [updateNewUserAlert] = useUpdateNewUserAlertMutation();
@@ -58,12 +62,15 @@ export const AlertConfigurationCard = ({
     const [
         updateTrackPropertiesAlert,
     ] = useUpdateTrackPropertiesAlertMutation();
+    const [
+        updateSessionFeedbackAlert,
+    ] = useUpdateSessionFeedbackAlertMutation();
 
     const onSubmit = async () => {
         setLoading(true);
         try {
             const requestVariables = {
-                organization_id,
+                project_id,
                 environments: form.getFieldValue('excludedEnvironments'),
                 count_threshold: form.getFieldValue('threshold'),
                 slack_channels: form
@@ -147,6 +154,16 @@ export const AlertConfigurationCard = ({
                         },
                     });
                     break;
+                case ALERT_TYPE.SessionFeedbackComment:
+                    await updateSessionFeedbackAlert({
+                        ...requestBody,
+                        variables: {
+                            ...requestVariables,
+                            session_feedback_alert_id: alert.id,
+                            threshold_window: lookbackPeriod,
+                        },
+                    });
+                    break;
                 default:
                     throw new Error(`Unsupported alert type: ${type}`);
             }
@@ -166,7 +183,7 @@ export const AlertConfigurationCard = ({
         refetch: refetchUserSuggestions,
     } = useGetUserSuggestionQuery({
         variables: {
-            organization_id,
+            project_id,
             query: '',
         },
     });
@@ -177,7 +194,7 @@ export const AlertConfigurationCard = ({
         data: trackSuggestionsApiResponse,
     } = useGetTrackSuggestionQuery({
         variables: {
-            organization_id,
+            project_id,
             query: '',
         },
     });
@@ -214,11 +231,11 @@ export const AlertConfigurationCard = ({
 
     /** Searches for a user property  */
     const handleUserPropertiesSearch = (query = '') => {
-        refetchUserSuggestions({ query, organization_id });
+        refetchUserSuggestions({ query, project_id });
     };
 
     const handleTrackPropertiesSearch = (query = '') => {
-        refetchTrackSuggestions({ query, organization_id });
+        refetchTrackSuggestions({ query, project_id });
     };
 
     const onChannelsChange = (channels: string[]) => {
@@ -293,9 +310,10 @@ export const AlertConfigurationCard = ({
                 form={form}
                 initialValues={{
                     threshold: alert.CountThreshold,
-                    channels: alert.ChannelsToNotify.map(
-                        (channel: any) => channel.webhook_channel_id
-                    ),
+                    channels:
+                        alert.ChannelsToNotify?.map(
+                            (channel: any) => channel.webhook_channel_id
+                        ) || [],
                     excludedEnvironments: alert.ExcludedEnvironments,
                     lookbackPeriod: [lookbackPeriod],
                     userProperties: alert.UserProperties?.map(
@@ -358,6 +376,9 @@ export const AlertConfigurationCard = ({
                                 className={styles.channelSelect}
                                 options={channels}
                                 mode="multiple"
+                                onSearch={(value) => {
+                                    setSearchQuery(value);
+                                }}
                                 filterOption={(searchValue, option) => {
                                     return option?.children
                                         .toLowerCase()
@@ -367,9 +388,38 @@ export const AlertConfigurationCard = ({
                                 onChange={onChannelsChange}
                                 notFoundContent={
                                     channelSuggestions?.length === 0 ? (
-                                        <div>Slack is not configured yet.</div>
+                                        <div
+                                            className={classNames(
+                                                styles.selectMessage,
+                                                styles.notFoundMessage
+                                            )}
+                                        >
+                                            Slack is not configured yet.{' '}
+                                            <a href={slackUrl}>
+                                                Click here to sync with Slack
+                                            </a>
+                                            . After syncing, you can pick the
+                                            channels or people to sent alerts
+                                            to.
+                                        </div>
                                     ) : (
-                                        <div>No channels found.</div>
+                                        <div
+                                            className={classNames(
+                                                styles.selectMessage,
+                                                styles.notFoundMessage
+                                            )}
+                                        >
+                                            Can't find the channel or person
+                                            here?{' '}
+                                            {project_id !==
+                                                DEMO_WORKSPACE_APPLICATION_ID && (
+                                                <a href={slackUrl}>
+                                                    Sync Highlight with your
+                                                    Slack Workspace
+                                                </a>
+                                            )}
+                                            .
+                                        </div>
                                     )
                                 }
                                 defaultValue={alert?.ChannelsToNotify?.map(
@@ -378,17 +428,33 @@ export const AlertConfigurationCard = ({
                                 dropdownRender={(menu) => (
                                     <div>
                                         {menu}
-                                        <Divider style={{ margin: '4px 0' }} />
-                                        <div className={styles.addContainer}>
-                                            Can't find the channel or person
-                                            here?{' '}
-                                            {organization_id !== '0' && (
-                                                <a href={slackUrl}>
-                                                    Add a Slack Channel
-                                                </a>
+                                        {searchQuery.length === 0 &&
+                                            channelSuggestions.length > 0 && (
+                                                <>
+                                                    <Divider
+                                                        style={{
+                                                            margin: '4px 0',
+                                                        }}
+                                                    />
+                                                    <div
+                                                        className={
+                                                            styles.addContainer
+                                                        }
+                                                    >
+                                                        Can't find the channel
+                                                        or person here?{' '}
+                                                        {project_id !==
+                                                            DEMO_WORKSPACE_APPLICATION_ID && (
+                                                            <a href={slackUrl}>
+                                                                Sync Highlight
+                                                                with your Slack
+                                                                Workspace
+                                                            </a>
+                                                        )}
+                                                        .
+                                                    </div>
+                                                </>
                                             )}
-                                            .
-                                        </div>
                                     </div>
                                 )}
                             />
@@ -404,7 +470,7 @@ export const AlertConfigurationCard = ({
                         created from localhost. Environments can be set by
                         passing the environment name when you{' '}
                         <a
-                            href="https://docs.highlight.run/reference#options"
+                            href="https://docs.highlight.run/api#w0-highlightoptions"
                             target="_blank"
                             rel="noreferrer"
                         >
@@ -416,7 +482,7 @@ export const AlertConfigurationCard = ({
                         <Select
                             className={styles.channelSelect}
                             options={environments}
-                            mode="multiple"
+                            mode="tags"
                             placeholder={`Select a environment(s) that should not trigger alerts.`}
                             onChange={onExcludedEnvironmentsChange}
                         />

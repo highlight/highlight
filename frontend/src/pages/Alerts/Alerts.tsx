@@ -1,19 +1,22 @@
+import Alert from '@components/Alert/Alert';
+import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
+import { getSlackUrl } from '@components/Header/components/PersonalNotificationButton/utils/utils';
+import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { useParams } from 'react-router-dom';
 
 import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import { useGetAlertsPagePayloadQuery } from '../../graph/generated/hooks';
 import { AlertConfigurationCard } from './AlertConfigurationCard/AlertConfigurationCard';
 import styles from './Alerts.module.scss';
-import { useSlack } from './SlackIntegration/SlackIntegration';
 
 export enum ALERT_TYPE {
     Error,
     FirstTimeUser,
     UserProperties,
     TrackProperties,
+    SessionFeedbackComment,
 }
 
 const ALERT_CONFIGURATIONS = [
@@ -42,14 +45,22 @@ const ALERT_CONFIGURATIONS = [
         type: ALERT_TYPE.TrackProperties,
         description: 'Get alerted when an action is done in your application.',
     },
+    {
+        name: 'Session Feedback Comments',
+        canControlThreshold: false,
+        type: ALERT_TYPE.SessionFeedbackComment,
+        description:
+            'Get alerted when a user submits a session feedback comment.',
+    },
 ];
 
 const AlertsPage = () => {
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { project_id } = useParams<{ project_id: string }>();
     const { data, loading } = useGetAlertsPagePayloadQuery({
-        variables: { organization_id: organization_id },
+        variables: { project_id },
     });
-    const { slackUrl } = useSlack('alerts', ['GetAlertsPagePayload']);
+
+    const slackUrl = getSlackUrl('Organization', project_id, 'alerts');
 
     return (
         <LeadAlignLayout>
@@ -57,6 +68,50 @@ const AlertsPage = () => {
             <p className={layoutStyles.subTitle}>
                 Configure the environments you want alerts for.
             </p>
+            {!loading && !data?.is_integrated_with_slack ? (
+                <Alert
+                    trackingId="AlertPageSlackBotIntegration"
+                    message={
+                        !data?.is_integrated_with_slack
+                            ? "Slack isn't connected"
+                            : "Can't find a Slack channel or person?"
+                    }
+                    type={!data?.is_integrated_with_slack ? 'error' : 'info'}
+                    description={
+                        <>
+                            {!data?.is_integrated_with_slack ? (
+                                <>
+                                    Highlight needs to be connected with Slack
+                                    in order to send you and your team messages.
+                                    <PersonalNotificationButton
+                                        text="Connect Highlight with Slack"
+                                        className={styles.integrationButton}
+                                        type="Organization"
+                                    />
+                                </>
+                            ) : (
+                                <>
+                                    Channels created and people joined after the
+                                    last Highlight and Slack sync will not show
+                                    up automatically.
+                                    <PersonalNotificationButton
+                                        text="Sync Highlight with Slack"
+                                        className={styles.integrationButton}
+                                        type="Organization"
+                                    />
+                                </>
+                            )}
+                        </>
+                    }
+                    className={styles.integrationAlert}
+                />
+            ) : (
+                <PersonalNotificationButton
+                    text="Connect Highlight with Slack"
+                    className={styles.hiddenSlackIntegrationButton}
+                    type="Organization"
+                />
+            )}
 
             <div className={styles.configurationContainer}>
                 {loading ? (
@@ -86,6 +141,21 @@ const AlertsPage = () => {
                                 }
                             />
                         ))} */}
+                        <AlertConfigurationCard
+                            configuration={ALERT_CONFIGURATIONS[4]}
+                            alert={
+                                data?.session_feedback_alert
+                                    ? data?.session_feedback_alert
+                                    : {}
+                            }
+                            environmentOptions={
+                                data?.environment_suggestion || []
+                            }
+                            channelSuggestions={
+                                data?.slack_channel_suggestion || []
+                            }
+                            slackUrl={slackUrl}
+                        />
                         <AlertConfigurationCard
                             configuration={ALERT_CONFIGURATIONS[0]}
                             alert={data?.error_alert ? data?.error_alert : {}}

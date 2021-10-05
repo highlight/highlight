@@ -10,7 +10,7 @@
     }
 
     :global(.ant-select-selection-placeholder) {
-        left: 14px;
+        left: 24px;
     }
 
     :global(.ant-select-arrow) {
@@ -28,11 +28,25 @@
             width: 100%;
         }
     }
+
+    &:global(.ant-select-disabled .ant-select-selector) {
+        background: var(--color-gray-300) !important;
+    }
 }
 
 .dropdown {
     border: 1px solid var(--color-gray-300);
     border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding-bottom: 0 !important;
+    padding-top: 0 !important;
+
+    :global(.ant-select-item) {
+        padding-bottom: var(--size-small);
+        padding-left: var(--size-xSmall);
+        padding-right: var(--size-xSmall);
+        padding-top: var(--size-small);
+    }
 }
 
 .suffixIconActive {

@@ -1,9 +1,12 @@
+import { useAuthContext } from '@authentication/AuthContext';
+import Alert from '@components/Alert/Alert';
 import { loadStripe } from '@stripe/stripe-js';
+import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import Confetti from 'react-confetti';
 import Skeleton from 'react-loading-skeleton';
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 import Collapsible from '../../components/Collapsible/Collapsible';
 import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
@@ -12,9 +15,10 @@ import Progress from '../../components/Progress/Progress';
 import {
     useCreateOrUpdateStripeSubscriptionMutation,
     useGetBillingDetailsQuery,
+    useGetProjectQuery,
     useUpdateBillingDetailsMutation,
 } from '../../graph/generated/hooks';
-import { PlanType } from '../../graph/generated/schemas';
+import { AdminRole, PlanType } from '../../graph/generated/schemas';
 import SvgShieldWarningIcon from '../../static/ShieldWarningIcon';
 import { formatNumberWithDelimiters } from '../../util/numbers';
 import styles from './Billing.module.scss';
@@ -33,8 +37,11 @@ const getStripePromiseOrNull = () => {
 const stripePromiseOrNull = getStripePromiseOrNull();
 
 const BillingPage = () => {
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { project_id } = useParams<{ project_id: string }>();
     const { pathname } = useLocation();
+    const { data: projectData } = useGetProjectQuery({
+        variables: { id: project_id },
+    });
     const [
         checkoutRedirectFailedMessage,
         setCheckoutRedirectFailedMessage,
@@ -51,9 +58,10 @@ const BillingPage = () => {
         refetch,
     } = useGetBillingDetailsQuery({
         variables: {
-            organization_id: organization_id,
+            project_id,
         },
     });
+    const { admin } = useAuthContext();
 
     const [
         createOrUpdateStripeSubscription,
@@ -65,12 +73,12 @@ const BillingPage = () => {
     useEffect(() => {
         const response = pathname.split('/')[3] ?? '';
         if (response === 'success') {
-            updateBillingDetails({ variables: { organization_id } }).then(
-                () => {
-                    message.success('Billing change applied!', 5);
-                    refetch();
-                }
-            );
+            updateBillingDetails({
+                variables: { project_id },
+            }).then(() => {
+                message.success('Billing change applied!', 5);
+                refetch();
+            });
         }
         if (checkoutRedirectFailedMessage) {
             message.error(checkoutRedirectFailedMessage, 5);
@@ -83,7 +91,7 @@ const BillingPage = () => {
         checkoutRedirectFailedMessage,
         billingError,
         updateBillingDetails,
-        organization_id,
+        project_id,
         refetch,
     ]);
 
@@ -92,13 +100,13 @@ const BillingPage = () => {
             setLoadingPlanType(newPlan);
             createOrUpdateStripeSubscription({
                 variables: {
-                    organization_id: organization_id,
+                    project_id,
                     plan_type: newPlan,
                 },
             }).then((r) => {
                 if (!r.data?.createOrUpdateStripeSubscription) {
                     updateBillingDetails({
-                        variables: { organization_id },
+                        variables: { project_id },
                     }).then(() => {
                         const previousPlan = billingData!.billingDetails!.plan
                             .type;
@@ -148,7 +156,7 @@ const BillingPage = () => {
         })();
     }
 
-    /** Show upsell when the current usage is 80% of the organization's plan. */
+    /** Show upsell when the current usage is 80% of the project's plan. */
     const upsell =
         (billingData?.billingDetails.meter ?? 0) /
             (billingData?.billingDetails.plan.quota ?? 1) >=
@@ -172,7 +180,7 @@ const BillingPage = () => {
                     id="planDetails"
                 >
                     <p>
-                        This workspace is on the{' '}
+                        This project is on the{' '}
                         <b>{billingData?.billingDetails.plan.type} Plan</b>{' '}
                         which has used{' '}
                         {formatNumberWithDelimiters(
@@ -203,26 +211,35 @@ const BillingPage = () => {
                 </Collapsible>
             </div>
             <div className={styles.billingPlanCardWrapper}>
-                {BILLING_PLANS.map((billingPlan) =>
-                    billingLoading ? (
-                        <Skeleton
-                            style={{ borderRadius: 8 }}
-                            count={1}
-                            height={325}
-                            width={275}
-                        />
-                    ) : (
-                        <BillingPlanCard
-                            key={billingPlan.type}
-                            current={
-                                billingData?.billingDetails.plan.type ===
-                                billingPlan.name
-                            }
-                            billingPlan={billingPlan}
-                            onSelect={createOnSelect(billingPlan.type)}
-                            loading={loadingPlanType === billingPlan.type}
-                        />
+                {admin?.role === AdminRole.Admin ? (
+                    BILLING_PLANS.map((billingPlan) =>
+                        billingLoading ? (
+                            <Skeleton
+                                style={{ borderRadius: 8 }}
+                                count={1}
+                                height={325}
+                                width={275}
+                            />
+                        ) : (
+                            <BillingPlanCard
+                                disabled={admin?.role !== AdminRole.Admin}
+                                key={billingPlan.type}
+                                current={
+                                    billingData?.billingDetails.plan.type ===
+                                    billingPlan.name
+                                }
+                                billingPlan={billingPlan}
+                                onSelect={createOnSelect(billingPlan.type)}
+                                loading={loadingPlanType === billingPlan.type}
+                            />
+                        )
                     )
+                ) : (
+                    <Alert
+                        trackingId="AdminNoAccessToBilling"
+                        message="You don't have access to billing."
+                        description={`You don't have permission to access the billing details for "${projectData?.project?.name}". Please contact ${projectData?.project?.billing_email} to make changes.`}
+                    />
                 )}
             </div>
         </LeadAlignLayout>

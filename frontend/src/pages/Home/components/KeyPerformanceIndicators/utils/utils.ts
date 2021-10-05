@@ -20,12 +20,12 @@ function parseTime(val: number) {
  **/
 export const formatTime = (time: number) => {
     if (time < 1000) {
-        return `${Math.round(time)}ms`;
+        return `${Math.round(time)} ms`;
     }
     if (time < 60000) {
-        return `${Math.ceil(time / 10) / 100}s`;
+        return `${Math.ceil(time / 10) / 100} s`;
     }
-    return `${(Math.ceil(time / 60000) * 100) / 100}m`;
+    return `${(Math.ceil(time / 60000) * 100) / 100} m`;
 };
 
 export function formatShortTime(

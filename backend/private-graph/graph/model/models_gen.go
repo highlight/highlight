@@ -25,13 +25,16 @@ type DateRangeInput struct {
 }
 
 type ErrorMetadata struct {
-	ErrorID     int       `json:"error_id"`
-	SessionID   int       `json:"session_id"`
-	Environment *string   `json:"environment"`
-	Timestamp   time.Time `json:"timestamp"`
-	Os          *string   `json:"os"`
-	Browser     *string   `json:"browser"`
-	VisitedURL  *string   `json:"visited_url"`
+	ErrorID         int        `json:"error_id"`
+	SessionID       int        `json:"session_id"`
+	SessionSecureID string     `json:"session_secure_id"`
+	Environment     *string    `json:"environment"`
+	Timestamp       *time.Time `json:"timestamp"`
+	Os              *string    `json:"os"`
+	Browser         *string    `json:"browser"`
+	VisitedURL      *string    `json:"visited_url"`
+	Fingerprint     string     `json:"fingerprint"`
+	Identifier      *string    `json:"identifier"`
 }
 
 type ErrorSearchParamsInput struct {
@@ -223,6 +226,47 @@ func (e *PlanType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e PlanType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type SessionCommentType string
+
+const (
+	SessionCommentTypeAdmin    SessionCommentType = "Admin"
+	SessionCommentTypeFeedback SessionCommentType = "FEEDBACK"
+)
+
+var AllSessionCommentType = []SessionCommentType{
+	SessionCommentTypeAdmin,
+	SessionCommentTypeFeedback,
+}
+
+func (e SessionCommentType) IsValid() bool {
+	switch e {
+	case SessionCommentTypeAdmin, SessionCommentTypeFeedback:
+		return true
+	}
+	return false
+}
+
+func (e SessionCommentType) String() string {
+	return string(e)
+}
+
+func (e *SessionCommentType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SessionCommentType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SessionCommentType", str)
+	}
+	return nil
+}
+
+func (e SessionCommentType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

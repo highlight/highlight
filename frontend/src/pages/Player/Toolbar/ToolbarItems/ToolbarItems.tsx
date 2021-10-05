@@ -151,7 +151,7 @@ export const DevToolsToolbarItem = ({
             menuRender={
                 <Switch
                     label="Show DevTools"
-                    className={styles.switch}
+                    className={styles.switchElement}
                     labelFirst
                     justifySpaceBetween
                     noMarginAroundSwitch
@@ -159,6 +159,7 @@ export const DevToolsToolbarItem = ({
                     onChange={(checked) => {
                         setShowDevTools(checked);
                     }}
+                    trackingId="ToolbarDevTools"
                 />
             }
             onPinToggle={() => {
@@ -295,7 +296,7 @@ export const MouseTrailToolbarItem = ({
             menuRender={
                 <Switch
                     label="Show mouse trail"
-                    className={styles.switch}
+                    className={styles.switchElement}
                     labelFirst
                     justifySpaceBetween
                     noMarginAroundSwitch
@@ -303,6 +304,7 @@ export const MouseTrailToolbarItem = ({
                     onChange={(checked) => {
                         setShowPlayerMouseTail(checked);
                     }}
+                    trackingId="ToolbarMouseTrail"
                 />
             }
             onPinToggle={() => {
@@ -354,7 +356,7 @@ export const SkipInactiveToolbarItem = ({
             menuRender={
                 <Switch
                     label="Skip inactive"
-                    className={styles.switch}
+                    className={styles.switchElement}
                     labelFirst
                     justifySpaceBetween
                     noMarginAroundSwitch
@@ -362,6 +364,7 @@ export const SkipInactiveToolbarItem = ({
                     onChange={(checked) => {
                         setSkipInactive(checked);
                     }}
+                    trackingId="ToolbarSkipInactive"
                 />
             }
             onPinToggle={() => {
@@ -413,7 +416,7 @@ export const AutoPlayToolbarItem = ({
             menuRender={
                 <Switch
                     label="Autoplay video"
-                    className={styles.switch}
+                    className={styles.switchElement}
                     labelFirst
                     justifySpaceBetween
                     noMarginAroundSwitch
@@ -421,6 +424,7 @@ export const AutoPlayToolbarItem = ({
                     onChange={(checked) => {
                         setAutoPlayVideo(checked);
                     }}
+                    trackingId="ToolbarAutoPlay"
                 />
             }
             onPinToggle={() => {

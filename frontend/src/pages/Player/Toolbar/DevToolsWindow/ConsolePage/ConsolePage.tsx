@@ -1,3 +1,7 @@
+import JsonViewer from '@components/JsonViewer/JsonViewer';
+import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
+import Tooltip from '@components/Tooltip/Tooltip';
+import { useParams } from '@util/react-router/useParams';
 import { message as AntDesignMessage } from 'antd';
 import _ from 'lodash';
 import React, {
@@ -7,14 +11,12 @@ import React, {
     useRef,
     useState,
 } from 'react';
-import ReactJson from 'react-json-view';
+import Linkify from 'react-linkify';
 import Skeleton from 'react-loading-skeleton';
-import { useParams } from 'react-router-dom';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 import GoToButton from '../../../../../components/Button/GoToButton';
 import Input from '../../../../../components/Input/Input';
-import TextHighlighter from '../../../../../components/TextHighlighter/TextHighlighter';
 import { useGetMessagesQuery } from '../../../../../graph/generated/hooks';
 import { ConsoleMessage } from '../../../../../util/shared-types';
 import { MillisToMinutesAndSeconds } from '../../../../../util/time';
@@ -40,10 +42,10 @@ export const ConsolePage = ({ time }: { time: number }) => {
     const [isInteractingWithMessages, setIsInteractingWithMessages] = useState(
         false
     );
-    const { session_id } = useParams<{ session_id: string }>();
+    const { session_secure_id } = useParams<{ session_secure_id: string }>();
     const { data, loading } = useGetMessagesQuery({
         variables: {
-            session_id,
+            session_secure_id,
         },
         fetchPolicy: 'no-cache',
     });
@@ -113,11 +115,12 @@ export const ConsolePage = ({ time }: { time: number }) => {
                             .toLocaleLowerCase()
                             .includes(filterSearchTerm.toLocaleLowerCase());
                     case 'object':
-                        return message.value.some((line: string) =>
-                            line
+                        return message.value.some((line: string) => {
+                            return line
+                                .toString()
                                 .toLocaleLowerCase()
-                                .includes(filterSearchTerm.toLocaleLowerCase())
-                        );
+                                .includes(filterSearchTerm.toLocaleLowerCase());
+                        });
                     default:
                         return false;
                 }
@@ -196,34 +199,27 @@ export const ConsolePage = ({ time }: { time: number }) => {
                         data={messagesToRender}
                         itemContent={(_index, message: ParsedMessage) => (
                             <div key={message.id.toString()}>
-                                <div
-                                    className={styles.consoleMessage}
-                                    style={{
-                                        color:
-                                            message.id === currentMessage
-                                                ? 'black'
-                                                : 'grey',
-                                        fontWeight:
-                                            message.id === currentMessage
-                                                ? 400
-                                                : 300,
-                                    }}
-                                >
-                                    <div
-                                        className={
-                                            styles.currentIndicatorWrapper
-                                        }
-                                        style={{
-                                            visibility:
-                                                message.id === currentMessage
-                                                    ? 'visible'
-                                                    : 'hidden',
-                                        }}
-                                    >
+                                <div className={styles.consoleMessage}>
+                                    <Tooltip title="This is the last logged console message. This is based on the current session time.">
                                         <div
-                                            className={styles.currentIndicator}
-                                        />
-                                    </div>
+                                            className={
+                                                styles.currentIndicatorWrapper
+                                            }
+                                            style={{
+                                                visibility:
+                                                    message.id ===
+                                                    currentMessage
+                                                        ? 'visible'
+                                                        : 'hidden',
+                                            }}
+                                        >
+                                            <div
+                                                className={
+                                                    styles.currentIndicator
+                                                }
+                                            />
+                                        </div>
+                                    </Tooltip>
                                     <div className={styles.messageText}>
                                         {message.value && (
                                             <ConsoleRender
@@ -291,28 +287,22 @@ const ConsoleRender = ({
         <div>
             {result.map((r) =>
                 typeof r === 'object' ? (
-                    <ReactJson
-                        style={{
-                            fontFamily: 'Steradian',
-                            fontWeight: 300,
-                            margin: 10,
-                        }}
-                        name={false}
-                        collapsed
-                        src={r}
-                        iconStyle="circle"
-                    />
+                    <JsonViewer name="Object" collapsed src={r} />
                 ) : typeof r === 'string' ? (
-                    <div className={styles.messageText}>
-                        <TextHighlighter
-                            searchWords={[searchTerm]}
-                            autoEscape={true}
-                            textToHighlight={r}
-                        />
-                    </div>
+                    searchTerm === '' ? (
+                        <Linkify>{r}</Linkify>
+                    ) : (
+                        <div className={styles.messageText}>
+                            <TextHighlighter
+                                searchWords={[searchTerm]}
+                                autoEscape={true}
+                                textToHighlight={r}
+                            />
+                        </div>
+                    )
                 ) : (
                     <div className={styles.messageText}>
-                        {JSON.stringify(r)}
+                        <Linkify>{JSON.stringify(r)}</Linkify>
                     </div>
                 )
             )}

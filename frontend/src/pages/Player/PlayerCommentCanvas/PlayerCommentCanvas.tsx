@@ -1,6 +1,6 @@
+import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import React, { useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
 
 import { useGetSessionCommentsQuery } from '../../../graph/generated/hooks';
 import CommentPinIcon from '../../../static/comment-pin.png';
@@ -32,10 +32,10 @@ const PlayerCommentCanvas = ({
     modalPosition,
     setCommentPosition,
 }: Props) => {
-    const { session_id } = useParams<{ session_id: string }>();
+    const { session_secure_id } = useParams<{ session_secure_id: string }>();
     const { data: sessionCommentsData } = useGetSessionCommentsQuery({
         variables: {
-            session_id: session_id,
+            session_secure_id: session_secure_id,
         },
     });
     const {
@@ -86,7 +86,11 @@ const PlayerCommentCanvas = ({
             buttonRef.current.style.width = `${playerBoundingClientRectWidth}px`;
             buttonRef.current.style.height = `${playerBoundingClientRectHeight}px`;
         }
-    }, [playerBoundingClientRectHeight, playerBoundingClientRectWidth]);
+    }, [
+        playerBoundingClientRectHeight,
+        playerBoundingClientRectWidth,
+        enableInspectElement,
+    ]);
 
     // Hide the indicator if there is no comment being created.
     useEffect(() => {

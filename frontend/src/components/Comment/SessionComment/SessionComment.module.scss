@@ -3,7 +3,10 @@
     border: 1px solid var(--color-gray-300);
     border-radius: var(--size-xSmall);
     overflow: hidden;
-    padding: var(--size-small) calc(var(--size-xSmall) + 11px);
+    padding-bottom: var(--size-small);
+    padding-left: calc(var(--size-xSmall) + 11px);
+    padding-right: calc(var(--size-xSmall) + 11px);
+    padding-top: var(--size-small);
     position: relative;
     text-align: left;
     transition: box-shadow 0.1s ease-in;
@@ -40,4 +43,27 @@
     &::before {
         opacity: 1;
     }
+}
+
+.footer {
+    display: flex;
+    justify-content: space-between;
+    padding-top: var(--size-medium);
+
+    .actions {
+        column-gap: var(--size-xxSmall);
+        display: flex;
+    }
+}
+.iconLabel {
+    align-items: center;
+    column-gap: var(--size-small);
+    display: flex !important;
+}
+
+.actionButton {
+    padding-bottom: var(--size-xxSmall);
+    padding-left: var(--size-medium);
+    padding-right: var(--size-medium);
+    padding-top: var(--size-xxSmall);
 }

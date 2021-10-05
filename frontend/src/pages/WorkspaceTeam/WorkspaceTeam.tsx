@@ -1,9 +1,9 @@
 import useLocalStorage from '@rehooks/local-storage';
+import { useParams } from '@util/react-router/useParams';
 import { message, Skeleton } from 'antd';
 import classNames from 'classnames/bind';
 import React, { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
-import { useParams } from 'react-router-dom';
 
 import { useAuthContext } from '../../authentication/AuthContext';
 import commonStyles from '../../Common.module.scss';
@@ -15,13 +15,13 @@ import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import { CircularSpinner } from '../../components/Loading/Loading';
 import PopConfirm from '../../components/PopConfirm/PopConfirm';
 import {
-    useDeleteAdminFromOrganizationMutation,
+    useDeleteAdminFromProjectMutation,
     useGetAdminsQuery,
-    useGetOrganizationQuery,
+    useGetProjectQuery,
     useSendAdminInviteMutation,
 } from '../../graph/generated/hooks';
 import SvgTrash from '../../static/Trash';
-import { getOrganizationInvitationLink } from './utils';
+import { getProjectInvitationLink, roleToDisplayValueMapping } from './utils';
 import styles from './WorkspaceTeam.module.scss';
 
 type Inputs = {
@@ -29,28 +29,26 @@ type Inputs = {
 };
 
 const WorkspaceTeam = () => {
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { project_id } = useParams<{ project_id: string }>();
     const emailRef = useRef<null | HTMLInputElement>(null);
     const { register, handleSubmit, errors, reset } = useForm<Inputs>();
-    const { data: orgData } = useGetOrganizationQuery({
-        variables: { id: organization_id },
+    const { data: projectData } = useGetProjectQuery({
+        variables: { id: project_id },
     });
     const { data, error, loading } = useGetAdminsQuery({
-        variables: { organization_id },
+        variables: { project_id },
     });
     const { admin } = useAuthContext();
-    const [
-        deleteAdminFromOrganization,
-    ] = useDeleteAdminFromOrganizationMutation({
+    const [deleteAdminFromProject] = useDeleteAdminFromProjectMutation({
         update(cache, { data }) {
             cache.modify({
                 fields: {
                     admins(existingAdmins, { readField }) {
-                        if (data?.deleteAdminFromOrganization !== undefined) {
+                        if (data?.deleteAdminFromProject !== undefined) {
                             message.success('Removed member');
                             return existingAdmins.filter(
                                 (admin: any) =>
-                                    data.deleteAdminFromOrganization !==
+                                    data.deleteAdminFromProject !==
                                     readField('id', admin)
                             );
                         }
@@ -62,7 +60,7 @@ const WorkspaceTeam = () => {
         },
     });
     const [, setHasStartedOnboarding] = useLocalStorage(
-        `highlight-started-onboarding-${organization_id}`,
+        `highlight-started-onboarding-${project_id}`,
         false
     );
 
@@ -79,7 +77,7 @@ const WorkspaceTeam = () => {
         setHasStartedOnboarding(true);
         sendInviteEmail({
             variables: {
-                organization_id,
+                project_id,
                 email: data.email,
                 base_url: window.location.origin,
             },
@@ -98,14 +96,14 @@ const WorkspaceTeam = () => {
         <LeadAlignLayout>
             <h2>Invite A Member</h2>
             <p className={layoutStyles.subTitle}>
-                Invite a your team to your Workspace.
+                Invite a your team to your Project.
             </p>
             <div className={styles.box}>
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <h3>Invite Your Team</h3>
                     <p className={styles.boxSubTitle}>
                         Invite a team member to '
-                        {`${orgData?.organization?.name}`}' by entering an email
+                        {`${projectData?.project?.name}`}' by entering an email
                         below.
                     </p>
                     <div className={styles.buttonRow}>
@@ -120,7 +118,7 @@ const WorkspaceTeam = () => {
                             }}
                         />
                         <Button
-                            trackingId="WorkspaceInviteMember"
+                            trackingId="ProjectInviteMember"
                             type="primary"
                             className={classNames(
                                 commonStyles.submitButton,
@@ -147,9 +145,9 @@ const WorkspaceTeam = () => {
                 </form>
                 <p>Or invite your team by sharing this link.</p>
                 <CopyText
-                    text={getOrganizationInvitationLink(
-                        orgData?.organization?.secret || '',
-                        organization_id
+                    text={getProjectInvitationLink(
+                        projectData?.project?.secret || '',
+                        project_id
                     )}
                 />
             </div>
@@ -170,29 +168,41 @@ const WorkspaceTeam = () => {
                                     size={45}
                                 />
                                 <div className={styles.userDetails}>
-                                    <h4 className={styles.name}>
-                                        {a?.name
-                                            ? a?.name
-                                            : a?.email.split('@')[0]}
-                                    </h4>
+                                    <div className={styles.header}>
+                                        <h4 className={styles.name}>
+                                            {a?.name
+                                                ? a?.name
+                                                : a?.email.split('@')[0]}
+                                        </h4>
+                                        <span
+                                            className={classNames(styles.role)}
+                                        >
+                                            {a?.role &&
+                                                //     @ts-expect-error
+                                                roleToDisplayValueMapping[
+                                                    a?.role
+                                                ]}
+                                        </span>
+                                    </div>
                                     <div className={styles.email}>
                                         {a?.email}
                                     </div>
                                 </div>
+
                                 <PopConfirm
                                     title={`Remove ${
                                         a?.name || a?.email
                                     } from ${
-                                        orgData?.organization?.name
+                                        projectData?.project?.name
                                     }? They will no longer have access to Highlight. You can invite them again if they need access.`}
                                     okText={`Remove ${a?.name || a?.email}`}
                                     cancelText="Cancel"
                                     onConfirm={() => {
                                         if (a?.id) {
-                                            deleteAdminFromOrganization({
+                                            deleteAdminFromProject({
                                                 variables: {
                                                     admin_id: a?.id,
-                                                    organization_id,
+                                                    project_id,
                                                 },
                                             });
                                         }
@@ -204,7 +214,7 @@ const WorkspaceTeam = () => {
                                         }
                                         iconButton
                                         trackingId="RemoveTeamMember"
-                                        // An Admin should not be able to delete themselves from an organization.
+                                        // An Admin should not be able to delete themselves from an project.
                                         disabled={a?.id === admin?.id}
                                     >
                                         <SvgTrash />

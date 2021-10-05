@@ -95,15 +95,17 @@
 }
 
 .popoverTitle {
-    align-items: baseline;
+    align-items: center;
     border-bottom: 1px solid var(--color-gray-300);
     column-gap: var(--size-xSmall);
     display: flex;
     justify-content: space-between;
     margin: 0 calc(var(--size-medium) * -1);
     margin-bottom: var(--size-medium);
-    padding: 0 var(--size-medium);
     padding-bottom: var(--size-small);
+    padding-left: var(--size-medium);
+    padding-right: var(--size-medium);
+    padding-top: 0;
 
     h3 {
         font-size: 13px;
@@ -116,7 +118,7 @@
     align-items: center;
     display: flex;
     flex-direction: column;
-    height: 280px;
+    height: 320px;
     margin: 0 auto;
     text-align: center;
     width: 80%;
@@ -124,4 +126,8 @@
 
 .animation {
     width: 100%;
+}
+
+.personalNotificationAlert {
+    margin-bottom: var(--size-large);
 }

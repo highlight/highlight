@@ -1,10 +1,16 @@
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState';
+import { parseErrorDescription } from '@pages/Error/components/ErrorDescription/utils/utils';
+import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames/bind';
 import React, { RefObject, useEffect, useState } from 'react';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
 import Skeleton from 'react-loading-skeleton';
-import { Link, useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
-import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
 import Tooltip from '../../../components/Tooltip/Tooltip';
 import { useGetErrorGroupsQuery } from '../../../graph/generated/hooks';
 import {
@@ -13,15 +19,13 @@ import {
     ErrorState,
     Maybe,
 } from '../../../graph/generated/schemas';
-import { frequencyTimeData } from '../../../util/errorCalculations';
 import { gqlSanitize } from '../../../util/gqlSanitize';
 import { formatNumberWithDelimiters } from '../../../util/numbers';
-import { parseErrorDescription } from '../../Error/components/ErrorDescription/utils/utils';
 import { useErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
 import styles from './ErrorFeedV2.module.scss';
 
 export const ErrorFeedV2 = () => {
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { project_id } = useParams<{ project_id: string }>();
     const [count, setCount] = useState(10);
     const [data, setData] = useState<ErrorResults>({
         error_groups: [],
@@ -31,7 +35,7 @@ export const ErrorFeedV2 = () => {
 
     const { loading, fetchMore, data: errorData } = useGetErrorGroupsQuery({
         variables: {
-            organization_id,
+            project_id,
             count: count + 10,
             params: searchParams,
         },
@@ -54,7 +58,7 @@ export const ErrorFeedV2 = () => {
                 variables: {
                     params: searchParams,
                     count,
-                    organization_id,
+                    project_id,
                 },
             });
         },
@@ -112,25 +116,31 @@ export const ErrorFeedV2 = () => {
 };
 
 const ErrorCardV2 = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
-    const { organization_id, error_id } = useParams<{
-        organization_id: string;
-        error_id?: string;
+    const { project_id, error_secure_id } = useParams<{
+        project_id: string;
+        error_secure_id?: string;
     }>();
+    const projectIdRemapped =
+        project_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : project_id;
     // Represents the last six days i.e. [5 days ago, 4 days ago, 3 days ago, etc..]
     const [errorDates, setErrorDates] = useState<Array<number>>(
         Array(6).fill(0)
     );
 
     useEffect(() => {
-        setErrorDates(frequencyTimeData(errorGroup, 6));
-    }, [errorGroup]);
+        if (errorGroup?.error_frequency)
+            setErrorDates(errorGroup.error_frequency);
+    }, [setErrorDates, errorGroup]);
 
     return (
-        <div className={styles.errorCardWrapper} key={errorGroup?.id}>
-            <Link to={`/${organization_id}/errors/${errorGroup?.id}`}>
+        <div className={styles.errorCardWrapper} key={errorGroup?.secure_id}>
+            <Link to={`/${projectIdRemapped}/errors/${errorGroup?.secure_id}`}>
                 <div
                     className={classNames(styles.errorCard, {
-                        [styles.selected]: error_id === errorGroup?.id,
+                        [styles.selected]:
+                            error_secure_id === errorGroup?.secure_id,
                     })}
                 >
                     <div className={styles.avatarWrapper}>
@@ -177,11 +187,11 @@ const ErrorCardV2 = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                             </div>
                         </div>
                         <div className={styles.errorTextSection}>
-                            {errorGroup?.metadata_log[0] ? (
+                            {errorGroup?.created_at ? (
                                 <>
                                     <div className={styles.bottomText}>
                                         {`Since ${new Date(
-                                            errorGroup.metadata_log[0].timestamp
+                                            errorGroup.created_at
                                         ).toLocaleString('en-us', {
                                             day: 'numeric',
                                             month: 'long',

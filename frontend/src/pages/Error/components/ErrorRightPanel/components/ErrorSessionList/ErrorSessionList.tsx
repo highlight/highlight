@@ -1,3 +1,4 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import React, { useRef } from 'react';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
@@ -12,6 +13,7 @@ interface Props {
 
 const ErrorSessionList = ({ errorGroup }: Props) => {
     const virtuoso = useRef<VirtuosoHandle>(null);
+    const { isLoggedIn } = useAuthContext();
 
     if (!errorGroup?.error_group?.metadata_log) {
         return null;
@@ -26,19 +28,28 @@ const ErrorSessionList = ({ errorGroup }: Props) => {
                 <MinimalSessionCard
                     session={
                         ({
-                            id: session?.session_id,
+                            secure_id: session?.session_secure_id,
                             created_at: session?.timestamp,
-                            identifier: session?.visited_url,
+                            identifier: session?.identifier,
+                            fingerprint: session?.fingerprint,
                             browser_name: session?.browser,
                             os_name: session?.os,
                             environment: session?.environment || 'Production',
                         } as Partial<Session>) as Session
                     }
                     selected={false}
-                    key={`${session?.session_id}-${index}`}
+                    key={`${session?.session_secure_id}-${index}`}
                     errorVersion
                     showDetailedViewOverride
-                    urlParams={`?${PlayerSearchParameters.errorId}=${session?.error_id}`}
+                    urlParams={`?${PlayerSearchParameters.errorId}=${
+                        session?.error_id
+                    }${
+                        //     Set the value based on the request header ID when backend error linking is implemented.
+                        false
+                            ? `&${PlayerSearchParameters.resourceErrorRequestHeader}=5`
+                            : ''
+                    }`}
+                    linkDisabled={!isLoggedIn}
                 />
             )}
         />

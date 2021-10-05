@@ -1,6 +1,10 @@
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 import { useHistory } from 'react-router';
-import { useParams } from 'react-router-dom';
 
 import Button from '../../../../../../../components/Button/Button/Button';
 import { LoadingBar } from '../../../../../../../components/Loading/Loading';
@@ -18,21 +22,30 @@ interface Props {
 
 const ErrorModal = ({ error }: Props) => {
     const { data, loading } = useGetErrorGroupQuery({
-        variables: { id: error.error_group_id.toString() },
+        variables: { secure_id: error.error_group_secure_id },
     });
     const history = useHistory();
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { project_id } = useParams<{ project_id: string }>();
+    const projectIdRemapped =
+        project_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : project_id;
 
     return (
         <div className={styles.container}>
             {loading ? (
-                <LoadingBar />
+                <div className={styles.loadingBarContainer}>
+                    <LoadingBar />
+                </div>
             ) : (
                 <div>
                     {data && (
                         <>
                             <div className={styles.titleContainer}>
-                                <ErrorTitle errorGroup={data.error_group} />
+                                <ErrorTitle
+                                    errorGroup={data.error_group}
+                                    showShareButton={false}
+                                />
                             </div>
 
                             <div className={styles.errorDescriptionContainer}>
@@ -58,7 +71,7 @@ const ErrorModal = ({ error }: Props) => {
                             type="primary"
                             onClick={() => {
                                 history.push(
-                                    `/${organization_id}/errors/${error.error_group_id}`
+                                    `/${projectIdRemapped}/errors/${error.error_group_secure_id}`
                                 );
                             }}
                         >

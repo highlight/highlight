@@ -1,9 +1,13 @@
+import { useAuthContext } from '@authentication/AuthContext';
+import { ErrorState } from '@components/ErrorState/ErrorState';
+import { SessionPageSearchParams } from '@pages/Player/utils/utils';
+import { message } from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import moment from 'moment';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { useParams } from 'react-router';
+import { useHistory, useParams } from 'react-router';
 import AsyncSelect from 'react-select/async';
 import { useLocalStorage } from 'react-use';
 import {
@@ -17,15 +21,16 @@ import {
     YAxis,
 } from 'recharts';
 
-import { useAuthContext } from '../../authentication/AuthContext';
 import Button from '../../components/Button/Button/Button';
 import { StandardDropdown } from '../../components/Dropdown/StandardDropdown/StandardDropdown';
 import { RechartTooltip } from '../../components/recharts/RechartTooltip/RechartTooltip';
 import Tooltip from '../../components/Tooltip/Tooltip';
-import { useGetErrorGroupLazyQuery } from '../../graph/generated/hooks';
+import {
+    useGetDailyErrorFrequencyQuery,
+    useGetErrorGroupQuery,
+} from '../../graph/generated/hooks';
 import { ErrorGroup, Maybe } from '../../graph/generated/schemas';
 import SvgDownloadIcon from '../../static/DownloadIcon';
-import { frequencyTimeData } from '../../util/errorCalculations';
 import {
     ErrorSearchContextProvider,
     ErrorSearchParams,
@@ -46,15 +51,29 @@ import styles from './ErrorPage.module.scss';
 import useErrorPageConfiguration from './utils/ErrorPageUIConfiguration';
 
 const ErrorPage = ({ integrated }: { integrated: boolean }) => {
-    const { error_id } = useParams<{ error_id: string }>();
+    const { error_secure_id, project_id } = useParams<{
+        error_secure_id: string;
+        project_id: string;
+    }>();
+    const history = useHistory();
 
-    const [getErrorGroupQuery, { data, loading }] = useGetErrorGroupLazyQuery({
-        variables: { id: error_id },
-    });
     const { isLoggedIn } = useAuthContext();
+    const {
+        data,
+        loading,
+        error: errorQueryingErrorGroup,
+    } = useGetErrorGroupQuery({
+        variables: { secure_id: error_secure_id },
+        skip: !error_secure_id,
+        onCompleted: () => {
+            H.track('Viewed error', { is_guest: !isLoggedIn });
+        },
+    });
     const [segmentName, setSegmentName] = useState<string | null>(null);
     const [cachedParams, setCachedParams] = useLocalStorage<ErrorSearchParams>(
-        `cachedErrorParams-v2-${segmentName || 'no-selected-segment'}`,
+        `cachedErrorParams-v2-${
+            segmentName || 'no-selected-segment'
+        }-${project_id}`,
         {}
     );
     const [searchParams, setSearchParams] = useState<ErrorSearchParams>(
@@ -64,6 +83,10 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
     const [searchBarRef, setSearchBarRef] = useState<
         AsyncSelect<ErrorSearchOption, true> | undefined
     >(undefined);
+    const newCommentModalRef = useRef<HTMLDivElement>(null);
+    const dateFromSearchParams = new URLSearchParams(location.search).get(
+        SessionPageSearchParams.date
+    );
 
     useEffect(() => setCachedParams(searchParams), [
         searchParams,
@@ -71,11 +94,24 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
     ]);
 
     useEffect(() => {
-        if (error_id) {
-            getErrorGroupQuery();
-            H.track('Viewed error', { is_guest: !isLoggedIn });
+        if (dateFromSearchParams) {
+            const start_date = moment(dateFromSearchParams);
+            const end_date = moment(dateFromSearchParams);
+
+            setSearchParams(() => ({
+                // We are explicitly clearing any existing search params so the only applied search param is the date range.
+                ...EmptyErrorsSearchParams,
+                date_range: {
+                    start_date: start_date.startOf('day').toDate(),
+                    end_date: end_date.endOf('day').toDate(),
+                },
+            }));
+            message.success(
+                `Showing errors that were thrown on ${dateFromSearchParams}`
+            );
+            history.replace({ search: '' });
         }
-    }, [error_id, getErrorGroupQuery, isLoggedIn]);
+    }, [history, dateFromSearchParams, setSearchParams]);
 
     const { showLeftPanel } = useErrorPageConfiguration();
 
@@ -97,7 +133,8 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                 <div
                     className={classNames(styles.errorPage, {
                         [styles.withoutLeftPanel]: !showLeftPanel,
-                        [styles.empty]: !error_id,
+                        [styles.empty]:
+                            !error_secure_id || errorQueryingErrorGroup,
                     })}
                 >
                     <div
@@ -107,8 +144,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                     >
                         <ErrorSearchPanel />
                     </div>
-
-                    {error_id ? (
+                    {error_secure_id && !errorQueryingErrorGroup ? (
                         <>
                             <div
                                 className={classNames(
@@ -181,7 +217,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                                                     a.href = URL.createObjectURL(
                                                         file
                                                     );
-                                                    a.download = `stack-trace-for-error-${error_id}.json`;
+                                                    a.download = `stack-trace-for-error-${error_secure_id}.json`;
                                                     a.click();
 
                                                     URL.revokeObjectURL(a.href);
@@ -207,20 +243,30 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                                         />
                                     </h3>
                                 )}
-                                <div className={styles.fieldWrapper}>
-                                    <ErrorFrequencyGraph
-                                        errorGroup={data?.error_group}
-                                    />
-                                </div>
+                                {!loading && data?.error_group?.project_id && (
+                                    <div className={styles.fieldWrapper}>
+                                        <ErrorFrequencyGraph
+                                            errorGroup={data?.error_group}
+                                        />
+                                    </div>
+                                )}
                             </div>
-                            <div className={styles.errorPageRightColumn}>
+                            <div
+                                className={styles.errorPageRightColumn}
+                                ref={newCommentModalRef}
+                            >
                                 <ErrorAffectedUsers
                                     errorGroup={data}
                                     loading={loading}
                                 />
-                                <ErrorRightPanel errorGroup={data} />
+                                <ErrorRightPanel
+                                    errorGroup={data}
+                                    parentRef={newCommentModalRef}
+                                />
                             </div>
                         </>
+                    ) : errorQueryingErrorGroup ? (
+                        <ErrorState message="This error does not exist or has not been made public." />
                     ) : (
                         <NoActiveErrorCard />
                     )}
@@ -231,7 +277,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 };
 
 type FrequencyGraphProps = {
-    errorGroup?: Maybe<ErrorGroup>;
+    errorGroup?: Maybe<Pick<ErrorGroup, 'secure_id' | 'project_id'>>;
 };
 
 type ErrorFrequency = {
@@ -264,18 +310,28 @@ export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
         setErrorDates(Array(dateRangeLength).fill(0));
     }, [dateRangeLength]);
 
-    useEffect(() => {
-        const errorDatesCopy = frequencyTimeData(errorGroup, dateRangeLength);
-        const errorData = errorDatesCopy.map((val, idx) => ({
-            date: moment()
-                .startOf('day')
-                .subtract(dateRangeLength - 1 - idx, 'days')
-                .format('D MMM YYYY'),
-            occurrences: val,
-        }));
-        setTotalErrors(errorDatesCopy.reduce((acc, val) => acc + val, 0));
-        setErrorDates(errorData);
-    }, [errorGroup, dateRangeLength]);
+    useGetDailyErrorFrequencyQuery({
+        variables: {
+            project_id: `${errorGroup?.project_id}`,
+            error_group_secure_id: `${errorGroup?.secure_id}`,
+            date_offset: dateRangeLength - 1,
+        },
+        skip: !errorGroup,
+        onCompleted: (response) => {
+            const errorData = response.dailyErrorFrequency.map((val, idx) => ({
+                date: moment()
+                    .startOf('day')
+                    .subtract(dateRangeLength - 1 - idx, 'days')
+                    .format('D MMM YYYY'),
+                occurrences: val,
+            }));
+            setTotalErrors(
+                response.dailyErrorFrequency.reduce((acc, val) => acc + val, 0)
+            );
+            setErrorDates(errorData);
+        },
+    });
+
     return (
         <>
             <div

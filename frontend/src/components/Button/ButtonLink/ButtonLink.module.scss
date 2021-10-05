@@ -4,7 +4,10 @@
     color: var(--text-primary-inverted);
     display: block;
     font-family: var(--header-font-family);
-    padding: var(--size-xSmall) var(--size-medium);
+    padding-bottom: var(--size-xSmall);
+    padding-left: var(--size-medium);
+    padding-right: var(--size-medium);
+    padding-top: var(--size-xSmall);
     text-align: center;
     width: max-content;
 
@@ -21,5 +24,14 @@
     &.fullWidth {
         justify-content: center;
         width: 100%;
+    }
+
+    &:disabled {
+        background: var(--color-purple);
+        color: var(--color-purple-200);
+
+        &:hover {
+            background: var(--color-purple);
+        }
     }
 }

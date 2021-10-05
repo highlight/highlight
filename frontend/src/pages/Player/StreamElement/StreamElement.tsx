@@ -1,9 +1,10 @@
+import JsonViewer from '@components/JsonViewer/JsonViewer';
 import { EventType } from '@highlight-run/rrweb';
 import { message } from 'antd';
 import classNames from 'classnames/bind';
+import moment from 'moment';
 import React, { useState } from 'react';
 import { FaBug, FaRegStopCircle } from 'react-icons/fa';
-import ReactJson from 'react-json-view';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
 import GoToButton from '../../../components/Button/GoToButton';
@@ -33,11 +34,15 @@ export const StreamElement = ({
     start,
     isCurrent,
     onGoToHandler,
+    searchQuery,
+    showDetails,
 }: {
     e: HighlightEvent;
     start: number;
     isCurrent: boolean;
     onGoToHandler: (event: string) => void;
+    searchQuery: string;
+    showDetails: boolean;
 }) => {
     const [debug] = useQueryParam('debug', BooleanParam);
     const [selected, setSelected] = useState(false);
@@ -45,12 +50,18 @@ export const StreamElement = ({
     const { pause } = useReplayerContext();
     const timeSinceStart = e?.timestamp - start;
 
+    const showExpandedView = searchQuery.length > 0 || showDetails || selected;
+
     return (
         <RightPanelCard
             key={e.identifier}
-            className={styles.card}
+            className={classNames({ [styles.card]: !showDetails })}
             selected={isCurrent}
-            onClick={() => setSelected(!selected)}
+            onClick={() => {
+                if (!showDetails) {
+                    setSelected(!selected);
+                }
+            }}
             primaryColor={getAnnotationColor(details.title as any)}
         >
             <div
@@ -65,14 +76,14 @@ export const StreamElement = ({
                 </div>
                 <div
                     className={
-                        selected
+                        showExpandedView
                             ? styles.eventContentVerbose
                             : styles.eventContent
                     }
                 >
                     <p
                         className={classNames(styles.eventText, {
-                            [styles.eventTextSelected]: selected,
+                            [styles.eventTextSelected]: showExpandedView,
                         })}
                     >
                         {/* Removes the starting and ending quotes */}
@@ -85,7 +96,7 @@ export const StreamElement = ({
                 <div className={classNames(styles.eventTime)}>
                     {MillisToMinutesAndSeconds(timeSinceStart)}
                 </div>
-                {selected && (
+                {showExpandedView && (
                     <>
                         {debug ? (
                             <div
@@ -93,12 +104,10 @@ export const StreamElement = ({
                                     event.stopPropagation();
                                 }}
                             >
-                                <ReactJson
-                                    style={{ wordBreak: 'break-word' }}
+                                <JsonViewer
                                     name={null}
                                     collapsed
                                     src={e.data}
-                                    iconStyle="circle"
                                 />
                             </div>
                         ) : (
@@ -120,9 +129,13 @@ export const StreamElement = ({
                                             ? JSON.stringify(details.payload)
                                             : details.payload
                                     }
+                                    searchQuery={searchQuery}
                                 />
                             </div>
                         )}
+                        <div className={styles.timestamp}>
+                            {moment(e.timestamp).format('h:mm:ss A')}
+                        </div>
                         <GoToButton
                             className={styles.goToButton}
                             onClick={(e) => {

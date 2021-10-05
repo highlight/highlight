@@ -1,7 +1,8 @@
+import { useAuthContext } from '@authentication/AuthContext';
+import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
 import React, { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
 import { StringParam, useQueryParam } from 'use-query-params';
 
 import Select from '../../../components/Select/Select';
@@ -22,12 +23,13 @@ export const ErrorStateSelect: React.FC<{
     state?: ErrorState;
     loading: boolean;
 }> = ({ state: initialErrorState, loading }) => {
-    const { error_id } = useParams<{ error_id: string }>();
+    const { error_secure_id } = useParams<{ error_secure_id: string }>();
     const [
         updateErrorGroupState,
         { loading: updateLoading },
     ] = useUpdateErrorGroupStateMutation();
     const [action, setAction] = useQueryParam('action', StringParam);
+    const { isLoggedIn } = useAuthContext();
 
     // Sets the state based on the query parameters. This is used for the Slack deep-linked messages.
     useEffect(() => {
@@ -35,17 +37,26 @@ export const ErrorStateSelect: React.FC<{
             const castedAction = action.toUpperCase() as ErrorState;
             if (Object.values(ErrorState).includes(castedAction)) {
                 updateErrorGroupState({
-                    variables: { id: error_id, state: castedAction },
+                    variables: {
+                        secure_id: error_secure_id,
+                        state: castedAction,
+                    },
                 });
                 showStateUpdateMessage(castedAction);
             }
             setAction(undefined);
         }
-    }, [action, error_id, setAction, updateErrorGroupState]);
+    }, [action, error_secure_id, setAction, updateErrorGroupState]);
+
+    // Add disabled state to each option if not logged in
+    const thisErrorStateOptions = ErrorStateOptions.map((opt) => ({
+        ...opt,
+        disabled: !isLoggedIn,
+    }));
 
     return (
         <Select
-            options={ErrorStateOptions}
+            options={thisErrorStateOptions}
             className={classNames(styles.select, {
                 [styles.resolved]: initialErrorState === ErrorState.Resolved,
                 [styles.open]: initialErrorState === ErrorState.Open,
@@ -54,7 +65,7 @@ export const ErrorStateSelect: React.FC<{
             value={initialErrorState}
             onChange={async (newState: ErrorState) => {
                 await updateErrorGroupState({
-                    variables: { id: error_id, state: newState },
+                    variables: { secure_id: error_secure_id, state: newState },
                 });
 
                 showStateUpdateMessage(newState);

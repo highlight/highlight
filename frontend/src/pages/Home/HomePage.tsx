@@ -1,11 +1,15 @@
-import DemoWorkspaceButton from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import DemoWorkspaceButton, {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
 import Lottie from 'lottie-react';
 import moment from 'moment';
 import React, { useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { Link, useHistory, useParams } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 import {
     Area,
     CartesianGrid,
@@ -32,7 +36,6 @@ import { formatNumber } from '../../util/numbers';
 import { SessionPageSearchParams } from '../Player/utils/utils';
 import { EmptySessionsSearchParams } from '../Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '../Sessions/SearchContext/SearchContext';
-import { getDateRangeForDateInput } from '../Sessions/SearchInputs/DateInput';
 import ActiveUsersTable from './components/ActiveUsersTable/ActiveUsersTable';
 import {
     HomePageFiltersContext,
@@ -52,7 +55,11 @@ const HomePage = () => {
     const { loading: adminLoading, data: adminData } = useGetAdminQuery({
         skip: false,
     });
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { project_id } = useParams<{ project_id: string }>();
+    const projectIdRemapped =
+        project_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : project_id;
     const [dateRangeLength, setDateRangeLength] = useState<number>(
         timeFilter[1].value
     );
@@ -127,7 +134,7 @@ const HomePage = () => {
                                         <>
                                             Please follow the{' '}
                                             <Link
-                                                to={`/${organization_id}/setup`}
+                                                to={`/${projectIdRemapped}/setup`}
                                             >
                                                 setup instructions
                                             </Link>{' '}
@@ -164,9 +171,14 @@ const timeFilter = [
 ] as const;
 
 const SessionCountGraph = () => {
-    const { organization_id } = useParams<{
-        organization_id: string;
+    const { project_id } = useParams<{
+        project_id: string;
     }>();
+    const projectIdRemapped =
+        project_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : project_id;
+
     const {
         setSearchParams,
         setSegmentName,
@@ -180,7 +192,7 @@ const SessionCountGraph = () => {
 
     const { loading, refetch } = useGetDailySessionsCountQuery({
         variables: {
-            organization_id,
+            project_id,
             date_range: {
                 start_date: moment
                     .utc()
@@ -210,11 +222,11 @@ const SessionCountGraph = () => {
         },
     });
 
-    // Refetch when the organization changes to handle the scenario where a user is a part of multiple organizations.
-    // Without this, the data shown would be for the previous organization.
+    // Refetch when the project changes to handle the scenario where a user is a part of multiple projects.
+    // Without this, the data shown would be for the previous project.
     useEffect(() => {
         refetch();
-    }, [refetch, organization_id]);
+    }, [refetch, project_id]);
 
     return loading ? (
         <Skeleton count={1} style={{ width: '100%', height: 334 }} />
@@ -232,13 +244,16 @@ const SessionCountGraph = () => {
                     setSelectedSegment(undefined);
                     setSearchParams({
                         ...EmptySessionsSearchParams,
-                        date_range: getDateRangeForDateInput(date, date),
+                        date_range: {
+                            start_date: date.startOf('day').toDate(),
+                            end_date: date.endOf('day').toDate(),
+                        },
                     });
 
                     message.success(
                         `Showing sessions that were recorded on ${payload.activeLabel}`
                     );
-                    history.push(`/${organization_id}/sessions`);
+                    history.push(`/${projectIdRemapped}/sessions`);
                 }}
             />
         </div>
@@ -246,16 +261,21 @@ const SessionCountGraph = () => {
 };
 
 const ErrorCountGraph = () => {
-    const { organization_id } = useParams<{
-        organization_id: string;
+    const { project_id } = useParams<{
+        project_id: string;
     }>();
+    const projectIdRemapped =
+        project_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : project_id;
+
     const { dateRangeLength } = useHomePageFiltersContext();
     const [errorCountData, setErrorCountData] = useState<Array<DailyCount>>([]);
     const history = useHistory();
 
     const { loading } = useGetDailyErrorsCountQuery({
         variables: {
-            organization_id,
+            project_id,
             date_range: {
                 start_date: moment
                     .utc()
@@ -297,7 +317,7 @@ const ErrorCountGraph = () => {
                 name="Errors"
                 onClickHandler={(payload: any) => {
                     history.push(
-                        `/${organization_id}/errors?${SessionPageSearchParams.date}=${payload.activeLabel}`
+                        `/${projectIdRemapped}/errors?${SessionPageSearchParams.date}=${payload.activeLabel}`
                     );
                 }}
             />

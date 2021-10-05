@@ -26,7 +26,6 @@ export type Scalars = {
 export type Session = {
   __typename?: 'Session';
   id: Scalars['ID'];
-  user_id: Scalars['ID'];
   organization_id: Scalars['ID'];
 };
 
@@ -64,6 +63,7 @@ export type Mutation = {
   addTrackProperties?: Maybe<Scalars['ID']>;
   addSessionProperties?: Maybe<Scalars['ID']>;
   pushPayload?: Maybe<Scalars['ID']>;
+  addSessionFeedback: Scalars['ID'];
 };
 
 
@@ -105,6 +105,15 @@ export type MutationPushPayloadArgs = {
   messages: Scalars['String'];
   resources: Scalars['String'];
   errors: Array<Maybe<ErrorObjectInput>>;
+};
+
+
+export type MutationAddSessionFeedbackArgs = {
+  session_id: Scalars['ID'];
+  user_name?: Maybe<Scalars['String']>;
+  user_email?: Maybe<Scalars['String']>;
+  verbatim: Scalars['String'];
+  timestamp: Scalars['Time'];
 };
 
 export type Query = {
@@ -165,6 +174,20 @@ export type AddTrackPropertiesMutation = (
   & Pick<Types.Mutation, 'addTrackProperties'>
 );
 
+export type AddSessionFeedbackMutationVariables = Types.Exact<{
+  session_id: Types.Scalars['ID'];
+  user_name?: Types.Maybe<Types.Scalars['String']>;
+  user_email?: Types.Maybe<Types.Scalars['String']>;
+  verbatim: Types.Scalars['String'];
+  timestamp: Types.Scalars['Time'];
+}>;
+
+
+export type AddSessionFeedbackMutation = (
+  { __typename?: 'Mutation' }
+  & Pick<Types.Mutation, 'addSessionFeedback'>
+);
+
 export type InitializeSessionMutationVariables = Types.Exact<{
   organization_verbose_id: Types.Scalars['String'];
   enable_strict_privacy: Types.Scalars['Boolean'];
@@ -182,7 +205,7 @@ export type InitializeSessionMutation = (
   { __typename?: 'Mutation' }
   & { initializeSession?: Types.Maybe<(
     { __typename?: 'Session' }
-    & Pick<Types.Session, 'id' | 'user_id' | 'organization_id'>
+    & Pick<Types.Session, 'id' | 'organization_id'>
   )> }
 );
 
@@ -233,6 +256,17 @@ export const AddTrackPropertiesDocument = gql`
   )
 }
     `;
+export const AddSessionFeedbackDocument = gql`
+    mutation addSessionFeedback($session_id: ID!, $user_name: String, $user_email: String, $verbatim: String!, $timestamp: Time!) {
+  addSessionFeedback(
+    session_id: $session_id
+    user_name: $user_name
+    user_email: $user_email
+    verbatim: $verbatim
+    timestamp: $timestamp
+  )
+}
+    `;
 export const InitializeSessionDocument = gql`
     mutation initializeSession($organization_verbose_id: String!, $enable_strict_privacy: Boolean!, $enable_recording_network_contents: Boolean!, $clientVersion: String!, $firstloadVersion: String!, $clientConfig: String!, $environment: String!, $id: String!, $appVersion: String) {
   initializeSession(
@@ -247,7 +281,6 @@ export const InitializeSessionDocument = gql`
     fingerprint: $id
   ) {
     id
-    user_id
     organization_id
   }
 }
@@ -275,6 +308,9 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     addTrackProperties(variables: AddTrackPropertiesMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<AddTrackPropertiesMutation> {
       return withWrapper(() => client.request<AddTrackPropertiesMutation>(print(AddTrackPropertiesDocument), variables, requestHeaders));
+    },
+    addSessionFeedback(variables: AddSessionFeedbackMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<AddSessionFeedbackMutation> {
+      return withWrapper(() => client.request<AddSessionFeedbackMutation>(print(AddSessionFeedbackDocument), variables, requestHeaders));
     },
     initializeSession(variables: InitializeSessionMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InitializeSessionMutation> {
       return withWrapper(() => client.request<InitializeSessionMutation>(print(InitializeSessionDocument), variables, requestHeaders));

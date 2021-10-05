@@ -3,6 +3,9 @@ import './index.scss';
 import '@highlight-run/rrweb/dist/index.css';
 
 import { ApolloProvider } from '@apollo/client';
+import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { ErrorBoundary } from '@highlight-run/react';
+import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { H, HighlightOptions } from 'highlight.run';
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
@@ -25,7 +28,6 @@ import * as serviceWorker from './serviceWorker';
 import { auth } from './util/auth';
 import { showHiringMessage } from './util/console/hiringMessage';
 import { client } from './util/graph';
-import { SimpleErrorBoundary } from './util/simpleErrorBoundary';
 
 const dev = process.env.NODE_ENV === 'development' ? true : false;
 const options: HighlightOptions = {
@@ -74,18 +76,21 @@ if (dev) {
     options.environment = 'Pull Request Preview';
 }
 H.init(process.env.REACT_APP_FRONTEND_ORG ?? 1, options);
-H.start();
+if (!isOnPrem) {
+    H.start();
 
-window.Intercom('boot', {
-    app_id: 'gm6369ty',
-    alignment: 'right',
-    hide_default_launcher: true,
-});
+    window.Intercom('boot', {
+        app_id: 'gm6369ty',
+        alignment: 'right',
+        hide_default_launcher: true,
+    });
+}
+
 showHiringMessage();
 
 const App = () => {
     return (
-        <SimpleErrorBoundary>
+        <ErrorBoundary showDialog>
             <ApolloProvider client={client}>
                 <QueryParamProvider>
                     <SkeletonTheme color={'#F5F5F5'} highlightColor={'#FCFCFC'}>
@@ -93,7 +98,7 @@ const App = () => {
                     </SkeletonTheme>
                 </QueryParamProvider>
             </ApolloProvider>
-        </SimpleErrorBoundary>
+        </ErrorBoundary>
     );
 };
 
@@ -165,12 +170,26 @@ get in contact with us!
         >
             <Router>
                 <Switch>
-                    <Route path="/:organization_id(0)/*" exact>
+                    <Route path="/:project_id(0)/*" exact>
                         {/* Allow guests to access this route without being asked to log in */}
                         <AuthAdminRouter />
                     </Route>
                     <Route
-                        path="/:organization_id(\d+)/sessions/:session_id(\d+)"
+                        path={`/:project_id(${DEMO_WORKSPACE_PROXY_APPLICATION_ID})/*`}
+                        exact
+                    >
+                        {/* Allow guests to access this route without being asked to log in */}
+                        <AuthAdminRouter />
+                    </Route>
+                    <Route
+                        path="/:project_id(\d+)/sessions/:session_secure_id(\w+)"
+                        exact
+                    >
+                        {/* Allow guests to access this route without being asked to log in */}
+                        <AuthAdminRouter />
+                    </Route>
+                    <Route
+                        path="/:project_id(\d+)/errors/:error_secure_id(\w+)"
                         exact
                     >
                         {/* Allow guests to access this route without being asked to log in */}

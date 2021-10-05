@@ -20,7 +20,10 @@
         font-size: 12px !important;
         margin: 0;
         margin-bottom: var(--size-xxSmall) !important;
-        padding: var(--size-small);
+        padding-bottom: var(--size-small);
+        padding-left: var(--size-small);
+        padding-right: var(--size-small);
+        padding-top: var(--size-small);
     }
 
     &:hover {
@@ -29,7 +32,10 @@
     }
 
     .content {
-        padding: var(--size-small);
+        padding-bottom: var(--size-small);
+        padding-left: var(--size-small);
+        padding-right: var(--size-small);
+        padding-top: var(--size-small);
     }
 }
 

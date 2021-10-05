@@ -1,8 +1,8 @@
+import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { useMemo } from 'react';
-import { useParams } from 'react-router-dom';
 import { components } from 'react-select';
 import AsyncSelect from 'react-select/async';
 
@@ -20,8 +20,8 @@ import SessionSearchFilters from '../../../SessionsFeed/components/SessionSearch
 import styles from './SessionSearch.module.scss';
 
 const SessionSearch = () => {
-    const { organization_id } = useParams<{
-        organization_id: string;
+    const { project_id } = useParams<{
+        project_id: string;
     }>();
     const [query, setQuery] = useState('');
     const [selectedProperties, setSelectedProperties] = useState<
@@ -90,14 +90,14 @@ const SessionSearch = () => {
 
     const { loading, data, refetch } = useGetSessionSearchResultsQuery({
         variables: {
-            organization_id,
+            project_id,
             query: '',
         },
     });
 
     const generateOptions = (input: string, callback: any) => {
         refetch({
-            organization_id,
+            project_id,
             query: input,
         }).then((fetched) => {
             callback(
@@ -295,6 +295,19 @@ const SessionSearch = () => {
                     paddingTop: 0,
                     paddingBottom: 0,
                 }),
+                option: (provided, state) => ({
+                    ...provided,
+                    paddingTop: 'var(--size-small)',
+                    paddingBottom: 'var(--size-small)',
+                    backgroundColor: state.isFocused
+                        ? 'var(--color-gray-200)'
+                        : state.isSelected
+                        ? 'var(--color-gray-300)'
+                        : 'var(--background-color-primary)',
+                    ':active': {
+                        backgroundColor: 'var(--color-gray-300)',
+                    },
+                }),
                 groupHeading: (provided) => ({
                     ...provided,
                     color: 'var(--text-primary)',
@@ -412,7 +425,7 @@ const getSuggestions = (
                     happened in your application. These are set by you in your
                     application. You can{' '}
                     <a
-                        href="https://docs.highlight.run/docs/tracking-events"
+                        href="https://docs.highlight.run/tracking-events"
                         target="_blank"
                         rel="noopener noreferrer"
                     >
@@ -439,7 +452,7 @@ const getSuggestions = (
                     User Properties are properties related to the user. These
                     are set by you in your application. You can{' '}
                     <a
-                        href="https://docs.highlight.run/docs/identifying-users"
+                        href="https://docs.highlight.run/identifying-users"
                         target="_blank"
                         rel="noopener noreferrer"
                     >
@@ -512,6 +525,13 @@ const getIncludesOption = (
 
 const transformSelectedProperties = (selectedProperties: any[]) => {
     return selectedProperties?.map((property) => {
+        if (property.value.includes('contains:')) {
+            return {
+                ...property,
+                name: 'contains',
+                value: property.name,
+            };
+        }
         if (property.name.includes('Contains:')) {
             if (
                 property.apiType === 'visitedUrls' ||

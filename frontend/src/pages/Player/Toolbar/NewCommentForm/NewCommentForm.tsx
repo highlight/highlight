@@ -1,9 +1,12 @@
 import { namedOperations } from '@graph/operations';
+import { getCommentMentionSuggestions } from '@util/comment/util';
+import { isOnPrem } from '@util/onPrem/onPremUtils';
+import { useParams } from '@util/react-router/useParams';
 import { Form, message } from 'antd';
 import { H } from 'highlight.run';
+import html2canvas from 'html2canvas';
 import React, { useMemo, useState } from 'react';
 import { OnChangeHandlerFunc } from 'react-mentions';
-import { useParams } from 'react-router-dom';
 
 import { useAuthContext } from '../../../../authentication/AuthContext';
 import Button from '../../../../components/Button/Button/Button';
@@ -14,15 +17,18 @@ import {
 import {
     useCreateSessionCommentMutation,
     useGetAdminsQuery,
+    useGetCommentMentionSuggestionsQuery,
 } from '../../../../graph/generated/hooks';
-import { SanitizedAdminInput } from '../../../../graph/generated/schemas';
+import {
+    SanitizedAdminInput,
+    SanitizedSlackChannelInput,
+} from '../../../../graph/generated/schemas';
 import { MillisToMinutesAndSeconds } from '../../../../util/time';
 import { Coordinates2D } from '../../PlayerCommentCanvas/PlayerCommentCanvas';
 import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration';
 import { useReplayerContext } from '../../ReplayerContext';
 import CommentTextBody from './CommentTextBody/CommentTextBody';
 import styles from './NewCommentForm.module.scss';
-// import html2canvas from 'html2canvas';
 
 interface Props {
     currentTime: number;
@@ -40,9 +46,9 @@ export const NewCommentForm = ({
     const { time } = useReplayerContext();
     const [createComment] = useCreateSessionCommentMutation();
     const { admin, isLoggedIn } = useAuthContext();
-    const { session_id, organization_id } = useParams<{
-        session_id: string;
-        organization_id: string;
+    const { session_secure_id, project_id } = useParams<{
+        session_secure_id: string;
+        project_id: string;
     }>();
     const [commentText, setCommentText] = useState('');
     /**
@@ -56,31 +62,52 @@ export const NewCommentForm = ({
         selectedTimelineAnnotationTypes,
         setSelectedTimelineAnnotationTypes,
     } = usePlayerConfiguration();
-    const { data: adminsInOrganization } = useGetAdminsQuery({
-        variables: { organization_id },
+    const { data: adminsInProject } = useGetAdminsQuery({
+        variables: { project_id },
+    });
+    const {
+        data: mentionSuggestionsData,
+    } = useGetCommentMentionSuggestionsQuery({
+        variables: { project_id },
     });
     const [mentionedAdmins, setMentionedAdmins] = useState<
         SanitizedAdminInput[]
     >([]);
+    const [mentionedSlackUsers, setMentionedSlackUsers] = useState<
+        SanitizedSlackChannelInput[]
+    >([]);
 
     const onFinish = async () => {
-        H.track('Create Comment');
+        H.track('Create Comment', {
+            numHighlightAdminMentions: mentionedAdmins.length,
+            numSlackMentions: mentionedSlackUsers.length,
+        });
         setIsCreatingComment(true);
-        // const canvas = await html2canvas(
-        //     (document.querySelector(
-        //         '.replayer-wrapper iframe'
-        //     ) as HTMLIFrameElement).contentDocument!.documentElement,
-        //     {
-        //         allowTaint: true,
-        //         logging: false,
-        //         backgroundColor: null,
-        //     }
-        // );
+        let session_image: undefined | string = undefined;
+
+        if (mentionedAdmins.length > 0 || mentionedSlackUsers.length > 0) {
+            const canvas = await html2canvas(
+                (document.querySelector(
+                    '.replayer-wrapper iframe'
+                ) as HTMLIFrameElement).contentDocument!.documentElement,
+                {
+                    allowTaint: true,
+                    logging: false,
+                    backgroundColor: null,
+                    foreignObjectRendering: true,
+                    useCORS: true,
+                }
+            );
+            session_image = canvas
+                .toDataURL()
+                .replace('data:image/png;base64,', '');
+        }
+
         try {
             await createComment({
                 variables: {
-                    organization_id,
-                    session_id,
+                    project_id,
+                    session_secure_id,
                     session_timestamp: Math.floor(currentTime),
                     text: commentText.trim(),
                     text_for_email: commentTextForEmail.trim(),
@@ -88,11 +115,10 @@ export const NewCommentForm = ({
                     y_coordinate: commentPosition?.y || 0,
                     session_url: `${window.location.origin}${window.location.pathname}`,
                     tagged_admins: mentionedAdmins,
+                    tagged_slack_users: mentionedSlackUsers,
                     time: time / 1000,
                     author_name: admin?.name || admin?.email || 'Someone',
-                    // session_image: canvas
-                    //     .toDataURL()
-                    //     .replace('data:image/png;base64,', ''),
+                    session_image,
                 },
                 refetchQueries: [namedOperations.Query.GetSessionComments],
             });
@@ -104,24 +130,32 @@ export const NewCommentForm = ({
                     'Comments',
                 ]);
             }
-        } catch (e) {
-            H.track('Create Comment Failed', { error: e });
+        } catch (_e) {
+            const e = _e as Error;
+
+            H.track('Create Comment Failed', { error: e.toString() });
             message.error(
                 <>
-                    Failed to post a comment, please try again. If this keeps
-                    failing please message us on{' '}
-                    <span
-                        className={styles.intercomLink}
-                        onClick={() => {
-                            window.Intercom(
-                                'showNewMessage',
-                                `I can't create a comment. This is the error I'm getting: "${e}"`
-                            );
-                        }}
-                    >
-                        Intercom
-                    </span>
-                    .
+                    Failed to post a comment, please try again.{' '}
+                    {!isOnPrem ? (
+                        <>
+                            If this keeps failing please message us on{' '}
+                            <span
+                                className={styles.intercomLink}
+                                onClick={() => {
+                                    window.Intercom(
+                                        'showNewMessage',
+                                        `I can't create a comment. This is the error I'm getting: "${e}"`
+                                    );
+                                }}
+                            >
+                                Intercom
+                            </span>
+                            .
+                        </>
+                    ) : (
+                        <>If this keeps failing please reach out to us!</>
+                    )}
                 </>
             );
         }
@@ -133,12 +167,12 @@ export const NewCommentForm = ({
             // Guests cannot @mention a admin.
             isLoggedIn
                 ? parseAdminSuggestions(
-                      adminsInOrganization,
+                      getCommentMentionSuggestions(mentionSuggestionsData),
                       admin,
                       mentionedAdmins
                   )
                 : [],
-        [admin, adminsInOrganization, isLoggedIn, mentionedAdmins]
+        [admin, isLoggedIn, mentionSuggestionsData, mentionedAdmins]
     );
 
     const onDisplayTransform = (_id: string, display: string): string => {
@@ -154,13 +188,46 @@ export const NewCommentForm = ({
         setCommentTextForEmail(newPlainTextValue);
 
         setMentionedAdmins(
-            mentions.map((mention) => {
-                const admin = adminsInOrganization?.admins?.find((admin) => {
-                    return admin?.id === mention.id;
-                });
-                return { id: mention.id, email: admin?.email || '' };
-            })
+            mentions
+                .filter(
+                    (mention) =>
+                        !mention.display.includes('@') &&
+                        !mention.display.includes('#')
+                )
+                .map((mention) => {
+                    const admin = adminsInProject?.admins?.find((admin) => {
+                        return admin?.id === mention.id;
+                    });
+                    return { id: mention.id, email: admin?.email || '' };
+                })
         );
+
+        if (mentionSuggestionsData?.slack_members) {
+            setMentionedSlackUsers(
+                mentions
+                    .filter(
+                        (mention) =>
+                            mention.display.includes('@') ||
+                            mention.display.includes('#')
+                    )
+                    .map<SanitizedSlackChannelInput>((mention) => {
+                        const matchingSlackUser = mentionSuggestionsData.slack_members.find(
+                            (slackUser) => {
+                                return (
+                                    slackUser?.webhook_channel_id === mention.id
+                                );
+                            }
+                        );
+
+                        return {
+                            webhook_channel_id:
+                                matchingSlackUser?.webhook_channel_id,
+                            webhook_channel_name:
+                                matchingSlackUser?.webhook_channel,
+                        };
+                    })
+            );
+        }
         setCommentText(e.target.value);
     };
 

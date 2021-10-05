@@ -1,7 +1,12 @@
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { namedOperations } from '@graph/operations';
+import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import React from 'react';
-import { useHistory, useParams } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 
 import Button from '../../../../../components/Button/Button/Button';
 import { CircularSpinner } from '../../../../../components/Loading/Loading';
@@ -26,10 +31,14 @@ const DeleteSessionSegmentModal: React.FC<Props> = ({
     segmentToDelete,
     afterDeleteHandler,
 }) => {
-    const { segment_id, organization_id } = useParams<{
+    const { segment_id, project_id } = useParams<{
         segment_id: string;
-        organization_id: string;
+        project_id: string;
     }>();
+    const projectIdRemapped =
+        project_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : project_id;
     const history = useHistory<SearchParams>();
     const [deleteSegment, { loading }] = useDeleteSegmentMutation({
         update(cache) {
@@ -86,7 +95,7 @@ const DeleteSessionSegmentModal: React.FC<Props> = ({
                                     hideModalHandler();
                                     if (segment_id === segmentToDelete?.id) {
                                         history.push(
-                                            `/${organization_id}/sessions`
+                                            `/${projectIdRemapped}/sessions`
                                         );
                                     }
                                     if (afterDeleteHandler) {

@@ -1,29 +1,37 @@
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import SvgXIcon from '@icons/XIcon';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
+import { isOnPrem } from '@util/onPrem/onPremUtils';
+import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames/bind';
 import { H } from 'highlight.run';
 import moment from 'moment';
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useParams } from 'react-router-dom';
 import { useSessionStorage } from 'react-use';
 
 import { useAuthContext } from '../../authentication/AuthContext';
 import { useGetBillingDetailsQuery } from '../../graph/generated/hooks';
-import { Maybe, Organization, PlanType } from '../../graph/generated/schemas';
+import { Maybe, PlanType, Project } from '../../graph/generated/schemas';
 import { ReactComponent as Banner } from '../../static/banner.svg';
-import { isOrganizationWithinTrial } from '../../util/billing/billing';
+import { isProjectWithinTrial } from '../../util/billing/billing';
 import { HighlightLogo } from '../HighlightLogo/HighlightLogo';
 import { CommandBar } from './CommandBar/CommandBar';
 import ApplicationPicker from './components/ApplicationPicker/ApplicationPicker';
 import FeedbackButton from './components/FeedbackButton/FeedbackButton';
 import HeaderActions from './components/HeaderActions';
-import PersonalNotificationButton from './components/PersonalNotificationButton/PersonalNotificationButton';
 import styles from './Header.module.scss';
 import { UserDropdown } from './UserDropdown/UserDropdown';
 
 export const Header = () => {
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { project_id } = useParams<{ project_id: string }>();
+    const projectIdRemapped =
+        project_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : project_id;
     const { isLoggedIn } = useAuthContext();
 
     return (
@@ -34,7 +42,7 @@ export const Header = () => {
                     [styles.guest]: !isLoggedIn,
                 })}
             >
-                {getBanner(organization_id)}
+                {getBanner(project_id)}
 
                 <div className={styles.headerContent}>
                     {isLoggedIn ? (
@@ -45,7 +53,7 @@ export const Header = () => {
                         <div className={styles.logoWrapper}>
                             <Link
                                 className={styles.homeLink}
-                                to={`/${organization_id}/home`}
+                                to={`/${projectIdRemapped}/home`}
                             >
                                 <HighlightLogo />
                             </Link>
@@ -54,7 +62,6 @@ export const Header = () => {
 
                     <div className={styles.rightHeader}>
                         <HeaderActions />
-                        <PersonalNotificationButton />
                         <FeedbackButton />
                         {isLoggedIn && <UserDropdown />}
                     </div>
@@ -64,10 +71,10 @@ export const Header = () => {
     );
 };
 
-const getBanner = (organization_id: string) => {
-    if (process.env.REACT_APP_ENV === 'true') {
+const getBanner = (project_id: string) => {
+    if (isOnPrem) {
         return <OnPremiseBanner />;
-    } else if (organization_id === '0') {
+    } else if (project_id === DEMO_WORKSPACE_APPLICATION_ID) {
         return <DemoWorkspaceBanner />;
     } else {
         return <FreePlanBanner />;
@@ -79,9 +86,13 @@ const FreePlanBanner = () => {
         'highlightHideFreePlanBanner',
         false
     );
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { project_id } = useParams<{ project_id: string }>();
+    const projectIdRemapped =
+        project_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : project_id;
     const { data, loading } = useGetBillingDetailsQuery({
-        variables: { organization_id },
+        variables: { project_id },
     });
 
     if (loading) {
@@ -92,7 +103,7 @@ const FreePlanBanner = () => {
         return null;
     }
 
-    if (organization_id === '0') {
+    if (project_id === DEMO_WORKSPACE_APPLICATION_ID) {
         return null;
     }
 
@@ -101,10 +112,10 @@ const FreePlanBanner = () => {
     }
 
     let bannerMessage = `You've used ${data?.billingDetails.meter}/${data?.billingDetails.plan.quota} of your free sessions.`;
-    const hasTrial = isOrganizationWithinTrial(data?.organization);
+    const hasTrial = isProjectWithinTrial(data?.project);
     if (hasTrial) {
         bannerMessage = `You have unlimited sessions until ${moment(
-            data?.organization?.trial_end_date
+            data?.project?.trial_end_date
         ).format('MM/DD/YY')}. `;
     }
 
@@ -115,7 +126,7 @@ const FreePlanBanner = () => {
                 {bannerMessage + ' '} Upgrade{' '}
                 <Link
                     className={styles.trialLink}
-                    to={`/${organization_id}/billing`}
+                    to={`/${projectIdRemapped}/billing`}
                 >
                     here!
                 </Link>
@@ -178,9 +189,9 @@ const DemoWorkspaceBanner = () => {
                 style={{ fill: 'var(--color-primary-inverted-background)' }}
             />
             <div className={classNames(styles.trialTimeText)}>
-                Viewing Demo Workspace.{' '}
+                Viewing Demo Project.{' '}
                 <Link className={styles.demoLink} to={redirectLink}>
-                    Click here!
+                    Go back to your project.
                 </Link>
             </div>
         </div>
@@ -188,26 +199,24 @@ const DemoWorkspaceBanner = () => {
 };
 
 const getRedirectLink = (
-    allApplications: Maybe<
+    allProjects: Maybe<
         Maybe<
             {
-                __typename?: 'Organization' | undefined;
-            } & Pick<Organization, 'id' | 'name'>
+                __typename?: 'Project' | undefined;
+            } & Pick<Project, 'id' | 'name'>
         >[]
     >,
-    currentApplication: Organization | undefined,
+    currentProject: Project | undefined,
     pathname: string
 ): string => {
     const [, path] = pathname.split('/').filter((token) => token.length);
     let toVisit = `/new`;
 
-    if (allApplications) {
-        if (allApplications[0]?.id !== currentApplication?.id) {
-            toVisit = `/${allApplications[0]?.id}/${path}`;
+    if (allProjects) {
+        if (allProjects[0]?.id !== currentProject?.id) {
+            toVisit = `/${allProjects[0]?.id}/${path}`;
         } else {
-            toVisit = `/${
-                allApplications[allApplications.length - 1]?.id
-            }/${path}`;
+            toVisit = `/${allProjects[allProjects.length - 1]?.id}/${path}`;
         }
     }
 

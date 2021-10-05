@@ -22,7 +22,6 @@ const SessionSearchFilters = () => {
     return (
         <Popover
             placement="bottomLeft"
-            hasBorder
             content={
                 <div className={styles.filterOptionsContainer}>
                     <Checkbox.Group
