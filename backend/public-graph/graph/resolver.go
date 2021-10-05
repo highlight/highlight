@@ -900,7 +900,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 					log.Error(e.Wrap(err, "error querying project"))
 					return
 				}
-				err = errorAlert.SendSlackAlert(&model.SendSlackAlertInput{Project: &project, SessionID: sessionID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &errorToInsert.URL, ErrorsCount: &numErrors})
+				err = errorAlert.SendSlackAlert(&model.SendSlackAlertInput{Project: &project, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &errorToInsert.URL, ErrorsCount: &numErrors})
 				if err != nil {
 					log.Error(e.Wrap(err, "error sending slack error message"))
 					return
