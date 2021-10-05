@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gammazero/workerpool"
 	"github.com/go-sourcemap/sourcemap"
+	"github.com/highlight-run/workerpool"
 	"github.com/mssola/user_agent"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
