@@ -136,10 +136,10 @@ func init() {
 }
 
 type Model struct {
-	ID        int        `gorm:"primary_key;type:serial" json:"id"`
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
-	DeletedAt *time.Time `json:"deleted_at"`
+	ID        int        `gorm:"primary_key;type:serial" json:"id" deep:"-"`
+	CreatedAt time.Time  `json:"created_at" deep:"-"`
+	UpdatedAt time.Time  `json:"updated_at" deep:"-"`
+	DeletedAt *time.Time `json:"deleted_at" deep:"-"`
 }
 
 type Organization struct {
@@ -692,11 +692,11 @@ type ErrorComment struct {
 
 type RageClickEvent struct {
 	Model
-	ProjectID      int
-	SessionID      int
+	ProjectID      int `deep:"-"`
+	SessionID      int `deep:"-"`
 	TotalClicks    int
-	StartTimestamp time.Time
-	EndTimestamp   time.Time
+	StartTimestamp time.Time `deep:"-"`
+	EndTimestamp   time.Time `deep:"-"`
 }
 
 func SetupDB(dbName string) (*gorm.DB, error) {

@@ -112,10 +112,10 @@ func TestGetActiveDuration(t *testing.T) {
 	zeroTime := time.Date(1, 1, 1, 0, 0, 0, 0, time.UTC)
 	beginningOfTime := time.Unix(0, 1000000).UTC()
 	tables := map[string]struct {
-		events                []model.EventsObject
-		wantActiveDuration    time.Duration
-		expectedFirstTS       time.Time
-		expectedNumRageClicks int
+		events             []model.EventsObject
+		wantActiveDuration time.Duration
+		expectedFirstTS    time.Time
+		expectedRageClicks []*model.RageClickEvent
 	}{
 		"one event": {
 			[]model.EventsObject{{
@@ -130,13 +130,13 @@ func TestGetActiveDuration(t *testing.T) {
 				`}},
 			time.Duration(0 * time.Hour),
 			zeroTime,
-			0,
+			nil,
 		},
 		"no events": {
 			[]model.EventsObject{},
 			time.Duration(0 * time.Hour),
 			zeroTime,
-			0,
+			nil,
 		},
 		"two events, active duration": {
 			[]model.EventsObject{{
@@ -161,7 +161,7 @@ func TestGetActiveDuration(t *testing.T) {
 					`}},
 			time.Duration(5 * time.Second),
 			beginningOfTime,
-			0,
+			nil,
 		},
 		"two events, no duration": {
 			[]model.EventsObject{{
@@ -185,7 +185,7 @@ func TestGetActiveDuration(t *testing.T) {
 					`}},
 			time.Duration(0 * time.Second),
 			beginningOfTime,
-			0,
+			nil,
 		},
 		"multiple events, active duration": {
 			[]model.EventsObject{
@@ -237,7 +237,7 @@ func TestGetActiveDuration(t *testing.T) {
 					`}},
 			time.Duration(2 * time.Second),
 			beginningOfTime,
-			0,
+			nil,
 		},
 		"multiple events, rage click": {
 			[]model.EventsObject{
@@ -514,7 +514,7 @@ func TestGetActiveDuration(t *testing.T) {
 			},
 			time.Duration(4 * time.Second),
 			beginningOfTime,
-			2,
+			[]*model.RageClickEvent{{TotalClicks: 12}, {TotalClicks: 13}},
 		},
 	}
 	for name, tt := range tables {
@@ -549,8 +549,10 @@ func TestGetActiveDuration(t *testing.T) {
 				currentlyInRageClickSet = o.CurrentlyInRageClickSet
 			}
 
-			if tt.expectedNumRageClicks != len(rageClickSets) {
-				t.Errorf("expected num rage clicks not equal to actual rage clicks (%d != %d)", tt.expectedNumRageClicks, len(rageClickSets))
+			if tt.expectedRageClicks != nil {
+				if diff := deep.Equal(tt.expectedRageClicks, rageClickSets); len(diff) > 0 {
+					t.Errorf("expected rage clicks not equal to actual rage clicks (%+v)", diff)
+				}
 			}
 
 			t.Logf("want: %v, actual: %v", tt.wantActiveDuration, activeDuration)
