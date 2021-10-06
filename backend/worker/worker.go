@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"time"
 
+	"gorm.io/gorm"
+
 	"gorm.io/gorm/clause"
 
 	"github.com/pkg/errors"
@@ -526,6 +528,8 @@ func (w *Worker) Start() {
 			log.Infof("sessions that will be processed: %v", sessionIds)
 		}
 
+		go reportProcessSessionCount(w.Resolver.DB)
+
 		// process 80 sessions at a time.
 		wp := workerpool.New(160)
 		for _, session := range sessions {
@@ -582,4 +586,24 @@ func getActiveDuration(event *model.EventsObject, firstEventTimestamp time.Time,
 		}
 	}
 	return activeDuration, firstEventTimestamp, lastEventTimestamp, nil
+}
+
+func reportProcessSessionCount(db *gorm.DB) {
+	for {
+		time.Sleep(5 * time.Second)
+		var count int64
+		if err := db.Raw(`
+			SELECT COUNT(*)
+			FROM sessions
+			WHERE (
+				payload_updated_at < (now() - 8* interval '1 second') 
+				OR payload_updated_at IS NULL
+			) 
+			AND processed=false;
+		`).Scan(&count).Error; err != nil {
+			log.Error("error getting count of sessions to process")
+			continue
+		}
+		hlog.Histogram("processSessionsCount", float64(count), nil, 1)
+	}
 }
