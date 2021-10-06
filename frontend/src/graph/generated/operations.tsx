@@ -727,6 +727,23 @@ export type GetSessionCommentsForAdminQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetSocialLinksQueryVariables = Types.Exact<{
+    session_secure_id: Types.Scalars['String'];
+}>;
+
+export type GetSocialLinksQuery = { __typename?: 'Query' } & {
+    social_links?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'SocialLink' } & Pick<
+                    Types.SocialLink,
+                    'type' | 'link'
+                >
+            >
+        >
+    >;
+};
+
 export type GetErrorCommentsQueryVariables = Types.Exact<{
     error_group_secure_id: Types.Scalars['String'];
 }>;
@@ -1731,6 +1748,7 @@ export const namedOperations = {
         GetSessionComments: 'GetSessionComments' as const,
         GetNotifications: 'GetNotifications' as const,
         GetSessionCommentsForAdmin: 'GetSessionCommentsForAdmin' as const,
+        GetSocialLinks: 'GetSocialLinks' as const,
         GetErrorComments: 'GetErrorComments' as const,
         GetOnboardingSteps: 'GetOnboardingSteps' as const,
         GetSessions: 'GetSessions' as const,

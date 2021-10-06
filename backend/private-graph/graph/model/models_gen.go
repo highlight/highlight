@@ -114,6 +114,11 @@ type SearchParamsInput struct {
 	FirstTime               *bool                `json:"first_time"`
 }
 
+type SocialLink struct {
+	Type SocialType `json:"type"`
+	Link *string    `json:"link"`
+}
+
 type TopUsersPayload struct {
 	ID                   int     `json:"id"`
 	Identifier           string  `json:"identifier"`
@@ -310,5 +315,54 @@ func (e *SessionLifecycle) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SessionLifecycle) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type SocialType string
+
+const (
+	SocialTypeGithub   SocialType = "Github"
+	SocialTypeLinkedIn SocialType = "LinkedIn"
+	SocialTypeTwitter  SocialType = "Twitter"
+	SocialTypeFacebook SocialType = "Facebook"
+	SocialTypeSite     SocialType = "Site"
+	SocialTypeAvatar   SocialType = "Avatar"
+)
+
+var AllSocialType = []SocialType{
+	SocialTypeGithub,
+	SocialTypeLinkedIn,
+	SocialTypeTwitter,
+	SocialTypeFacebook,
+	SocialTypeSite,
+	SocialTypeAvatar,
+}
+
+func (e SocialType) IsValid() bool {
+	switch e {
+	case SocialTypeGithub, SocialTypeLinkedIn, SocialTypeTwitter, SocialTypeFacebook, SocialTypeSite, SocialTypeAvatar:
+		return true
+	}
+	return false
+}
+
+func (e SocialType) String() string {
+	return string(e)
+}
+
+func (e *SocialType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SocialType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SocialType", str)
+	}
+	return nil
+}
+
+func (e SocialType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

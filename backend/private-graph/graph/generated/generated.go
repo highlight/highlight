@@ -300,6 +300,7 @@ type ComplexityRoot struct {
 		Sessions                  func(childComplexity int, projectID int, count int, lifecycle model.SessionLifecycle, starred bool, params *model.SearchParamsInput) int
 		SlackChannelSuggestion    func(childComplexity int, projectID int) int
 		SlackMembers              func(childComplexity int, projectID int) int
+		SocialLinks               func(childComplexity int, sessionID *int, sessionSecureID *string) int
 		TopUsers                  func(childComplexity int, projectID int, lookBackPeriod int) int
 		TrackPropertiesAlert      func(childComplexity int, projectID int) int
 		UnprocessedSessionsCount  func(childComplexity int, projectID int) int
@@ -412,6 +413,11 @@ type ComplexityRoot struct {
 		TotalCount func(childComplexity int) int
 	}
 
+	SocialLink struct {
+		Link func(childComplexity int) int
+		Type func(childComplexity int) int
+	}
+
 	TopUsersPayload struct {
 		ActiveTimePercentage func(childComplexity int) int
 		ID                   func(childComplexity int) int
@@ -505,6 +511,7 @@ type QueryResolver interface {
 	ErrorGroups(ctx context.Context, projectID int, count int, params *model.ErrorSearchParamsInput) (*model1.ErrorResults, error)
 	ErrorGroup(ctx context.Context, id *int, secureID *string) (*model1.ErrorGroup, error)
 	Messages(ctx context.Context, sessionID *int, sessionSecureID *string) ([]interface{}, error)
+	SocialLinks(ctx context.Context, sessionID *int, sessionSecureID *string) ([]*model.SocialLink, error)
 	Errors(ctx context.Context, sessionID *int, sessionSecureID *string) ([]*model1.ErrorObject, error)
 	Resources(ctx context.Context, sessionID *int, sessionSecureID *string) ([]interface{}, error)
 	SessionComments(ctx context.Context, sessionID *int, sessionSecureID *string) ([]*model1.SessionComment, error)
@@ -2181,6 +2188,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.SlackMembers(childComplexity, args["project_id"].(int)), true
 
+	case "Query.social_links":
+		if e.complexity.Query.SocialLinks == nil {
+			break
+		}
+
+		args, err := ec.field_Query_social_links_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SocialLinks(childComplexity, args["session_id"].(*int), args["session_secure_id"].(*string)), true
+
 	case "Query.topUsers":
 		if e.complexity.Query.TopUsers == nil {
 			break
@@ -2787,6 +2806,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SessionResults.TotalCount(childComplexity), true
 
+	case "SocialLink.link":
+		if e.complexity.SocialLink.Link == nil {
+			break
+		}
+
+		return e.complexity.SocialLink.Link(childComplexity), true
+
+	case "SocialLink.type":
+		if e.complexity.SocialLink.Type == nil {
+			break
+		}
+
+		return e.complexity.SocialLink.Type(childComplexity), true
+
 	case "TopUsersPayload.active_time_percentage":
 		if e.complexity.TopUsersPayload.ActiveTimePercentage == nil {
 			break
@@ -2998,6 +3031,20 @@ enum PlanType {
     Basic
     Startup
     Enterprise
+}
+
+type SocialLink {
+    type: SocialType!
+    link: String
+}
+
+enum SocialType {
+    Github
+    LinkedIn
+    Twitter
+    Facebook
+    Site
+    Avatar
 }
 
 enum ErrorState {
@@ -3345,6 +3392,7 @@ type Query {
     ): ErrorResults
     error_group(id: ID, secure_id: String): ErrorGroup
     messages(session_id: ID, session_secure_id: String): [Any]
+    social_links(session_id: ID, session_secure_id: String): [SocialLink]
     errors(session_id: ID, session_secure_id: String): [ErrorObject]
     resources(session_id: ID, session_secure_id: String): [Any]
     session_comments(
@@ -5501,6 +5549,30 @@ func (ec *executionContext) field_Query_slack_members_args(ctx context.Context, 
 		}
 	}
 	args["project_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_social_links_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["session_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_id"))
+		arg0, err = ec.unmarshalOID2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["session_id"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["session_secure_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_secure_id"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["session_secure_id"] = arg1
 	return args, nil
 }
 
@@ -10635,6 +10707,45 @@ func (ec *executionContext) _Query_messages(ctx context.Context, field graphql.C
 	return ec.marshalOAny2ᚕinterface(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_social_links(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_social_links_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SocialLinks(rctx, args["session_id"].(*int), args["session_secure_id"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.SocialLink)
+	fc.Result = res
+	return ec.marshalOSocialLink2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSocialLink(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_errors(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -14971,6 +15082,73 @@ func (ec *executionContext) _SessionResults_totalCount(ctx context.Context, fiel
 	return ec.marshalNInt642int64(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _SocialLink_type(ctx context.Context, field graphql.CollectedField, obj *model.SocialLink) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SocialLink",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.SocialType)
+	fc.Result = res
+	return ec.marshalNSocialType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSocialType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SocialLink_link(ctx context.Context, field graphql.CollectedField, obj *model.SocialLink) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SocialLink",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Link, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _TopUsersPayload_id(ctx context.Context, field graphql.CollectedField, obj *model.TopUsersPayload) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -18015,6 +18193,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_messages(ctx, field)
 				return res
 			})
+		case "social_links":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_social_links(ctx, field)
+				return res
+			})
 		case "errors":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -19075,6 +19264,35 @@ func (ec *executionContext) _SessionResults(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var socialLinkImplementors = []string{"SocialLink"}
+
+func (ec *executionContext) _SocialLink(ctx context.Context, sel ast.SelectionSet, obj *model.SocialLink) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, socialLinkImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SocialLink")
+		case "type":
+			out.Values[i] = ec._SocialLink_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "link":
+			out.Values[i] = ec._SocialLink_link(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -20217,6 +20435,16 @@ func (ec *executionContext) marshalNSessionResults2ᚖgithubᚗcomᚋhighlight�
 		return graphql.Null
 	}
 	return ec._SessionResults(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNSocialType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSocialType(ctx context.Context, v interface{}) (model.SocialType, error) {
+	var res model.SocialType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNSocialType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSocialType(ctx context.Context, sel ast.SelectionSet, v model.SocialType) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
@@ -21382,6 +21610,53 @@ func (ec *executionContext) marshalOSessionComment2ᚖgithubᚗcomᚋhighlight�
 		return graphql.Null
 	}
 	return ec._SessionComment(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOSocialLink2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSocialLink(ctx context.Context, sel ast.SelectionSet, v []*model.SocialLink) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOSocialLink2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSocialLink(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalOSocialLink2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSocialLink(ctx context.Context, sel ast.SelectionSet, v *model.SocialLink) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._SocialLink(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {

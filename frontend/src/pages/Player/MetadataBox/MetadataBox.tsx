@@ -1,12 +1,21 @@
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import React from 'react';
+import {
+    FaExternalLinkSquareAlt,
+    FaFacebookSquare,
+    FaGithubSquare,
+    FaLinkedin,
+} from 'react-icons/fa';
 import Skeleton from 'react-loading-skeleton';
 
 import { useAuthContext } from '../../../authentication/AuthContext';
 import { Avatar } from '../../../components/Avatar/Avatar';
 import UserIdentifier from '../../../components/UserIdentifier/UserIdentifier';
-import { useMarkSessionAsStarredMutation } from '../../../graph/generated/hooks';
+import {
+    useGetSocialLinksQuery,
+    useMarkSessionAsStarredMutation,
+} from '../../../graph/generated/hooks';
 import { Maybe, Session } from '../../../graph/generated/schemas';
 import { ReactComponent as StarIcon } from '../../../static/star.svg';
 import { ReactComponent as FilledStarIcon } from '../../../static/star-filled.svg';
@@ -19,6 +28,9 @@ export const MetadataBox = () => {
     const { isLoggedIn } = useAuthContext();
     const { session_secure_id } = useParams<{ session_secure_id: string }>();
     const { session } = useReplayerContext();
+    const { loading, data } = useGetSocialLinksQuery({
+        variables: { session_secure_id },
+    });
 
     const [markSessionAsStarred] = useMarkSessionAsStarredMutation({
         update(cache) {
@@ -41,7 +53,7 @@ export const MetadataBox = () => {
     );
 
     return (
-        <div className={styles.locationBox}>
+        <div className={styles.userBox}>
             <>
                 {isLoggedIn && (
                     <div
@@ -135,6 +147,22 @@ export const MetadataBox = () => {
                                     </>
                                 )}
                             </p>
+                            {loading ? (
+                                'loading'
+                            ) : (
+                                <div className={styles.socialIcons}>
+                                    <FaFacebookSquare
+                                        className={styles.socialIcon}
+                                    />
+                                    <FaLinkedin className={styles.socialIcon} />
+                                    <FaGithubSquare
+                                        className={styles.socialIcon}
+                                    />
+                                    <FaExternalLinkSquareAlt
+                                        className={styles.socialIcon}
+                                    />
+                                </div>
+                            )}
                         </>
                     )}
                 </div>

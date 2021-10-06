@@ -63,6 +63,20 @@ enum PlanType {
     Enterprise
 }
 
+type SocialLink {
+    type: SocialType!
+    link: String
+}
+
+enum SocialType {
+    Github
+    LinkedIn
+    Twitter
+    Facebook
+    Site
+    Avatar
+}
+
 enum ErrorState {
     OPEN
     RESOLVED
@@ -408,6 +422,7 @@ type Query {
     ): ErrorResults
     error_group(id: ID, secure_id: String): ErrorGroup
     messages(session_id: ID, session_secure_id: String): [Any]
+    social_links(session_id: ID, session_secure_id: String): [SocialLink]
     errors(session_id: ID, session_secure_id: String): [ErrorObject]
     resources(session_id: ID, session_secure_id: String): [Any]
     session_comments(

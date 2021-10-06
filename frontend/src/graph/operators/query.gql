@@ -130,6 +130,13 @@ query GetSessionCommentsForAdmin {
     }
 }
 
+query GetSocialLinks($session_secure_id: String!) {
+    social_links(session_secure_id: $session_secure_id) {
+        type
+        link
+    }
+}
+
 query GetErrorComments($error_group_secure_id: String!) {
     error_comments(error_group_secure_id: $error_group_secure_id) {
         id

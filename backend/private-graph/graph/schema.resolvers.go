@@ -11,10 +11,12 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
@@ -22,6 +24,7 @@ import (
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
+	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -1503,6 +1506,58 @@ func (r *queryResolver) Messages(ctx context.Context, sessionID *int, sessionSec
 		allEvents["messages"] = append(subMessage["messages"], allEvents["messages"]...)
 	}
 	return allEvents["messages"], nil
+}
+
+func (r *queryResolver) SocialLinks(ctx context.Context, sessionID *int, sessionSecureID *string) ([]*modelInputs.SocialLink, error) {
+	s, err := r.canAdminViewSession(ctx, sessionID, sessionSecureID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not session owner")
+	}
+	sessionObj := &model.Session{}
+	res := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&sessionObj)
+	if res.Error != nil {
+		return nil, fmt.Errorf("error reading from session: %v", res.Error)
+	}
+	links := []*modelInputs.SocialLink{}
+	// We don't know what key is used for the user's email so we do a regex match
+	// on all 'user' type fields to find it.
+	var email string
+	for _, f := range sessionObj.Fields {
+		if f.Type == "user" && regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`).MatchString(f.Value) {
+			email = f.Value
+		}
+		if f.Type == "user" && f.Name == "email" {
+			email = f.Value
+		}
+	}
+	if email != "" {
+		pc, _, err := r.ClearbitClient.Person.FindCombined(clearbit.PersonFindParams{Email: email})
+		if err != nil {
+			log.Println("Error clearbit:", err)
+		}
+		p := pc.Person
+		if twitterHandle := p.Twitter.Handle; twitterHandle != "" {
+			twitterLink := fmt.Sprintf("https://twitter.com/%v", twitterHandle)
+			links = append(links, &modelInputs.SocialLink{Link: &twitterLink, Type: modelInputs.SocialTypeTwitter})
+		}
+		if fbHandle := p.Facebook.Handle; fbHandle != "" {
+			fbLink := fmt.Sprintf("https://www.facebook.com/%v", fbHandle)
+			links = append(links, &modelInputs.SocialLink{Link: &fbLink, Type: modelInputs.SocialTypeFacebook})
+		}
+		if gHandle := p.GitHub.Handle; gHandle != "" {
+			ghLink := fmt.Sprintf("https://www.github.com/%v", gHandle)
+			links = append(links, &modelInputs.SocialLink{Link: &ghLink, Type: modelInputs.SocialTypeGithub})
+		}
+		if liHandle := p.LinkedIn.Handle; liHandle != "" {
+			fbLink := fmt.Sprintf("https://www.linkedin.com/in/%v", liHandle)
+			links = append(links, &modelInputs.SocialLink{Link: &fbLink, Type: modelInputs.SocialTypeLinkedIn})
+		}
+		if avatarLink := p.Avatar; avatarLink != "" {
+			links = append(links, &modelInputs.SocialLink{Link: &avatarLink, Type: modelInputs.SocialTypeAvatar})
+		}
+	}
+	pp.Println(links)
+	return links, nil
 }
 
 func (r *queryResolver) Errors(ctx context.Context, sessionID *int, sessionSecureID *string) ([]*model.ErrorObject, error) {
