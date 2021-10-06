@@ -136,11 +136,11 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 	metadata["timestamp"] = timestamp
 
 	session := &model.Session{}
-	if err := r.DB.Select("project_id", "environment", "id").Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
+	if err := r.DB.Select("project_id", "environment", "id", "secure_id").Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
 		return -1, e.Wrap(err, "error querying session by sessionID for adding session feedback")
 	}
 
-	feedbackComment := &model.SessionComment{SessionId: sessionID, Text: verbatim, Metadata: metadata, Type: model.SessionCommentTypes.FEEDBACK, ProjectID: session.ProjectID}
+	feedbackComment := &model.SessionComment{SessionId: sessionID, Text: verbatim, Metadata: metadata, Type: model.SessionCommentTypes.FEEDBACK, ProjectID: session.ProjectID, SessionSecureId: session.SecureID}
 	if err := r.DB.Create(feedbackComment).Error; err != nil {
 		return -1, e.Wrap(err, "error creating session feedback")
 	}
@@ -185,7 +185,7 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 			time.Now().Add(-time.Duration(*sessionFeedbackAlert.ThresholdWindow)*time.Minute)).
 			Scan(&commentsCount).Error; err != nil {
 			log.WithError(err).
-				WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "comment_id": feedbackComment.ID}).
+				WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "session_secure_id": session.SecureID, "comment_id": feedbackComment.ID}).
 				Error(e.Wrapf(err, "error fetching %s alert count", model.AlertType.SESSION_FEEDBACK))
 			return
 		}
@@ -200,7 +200,7 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 			WHERE id = ?
 		`, session.ProjectID).Scan(&project).Error; err != nil {
 			log.WithError(err).
-				WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "comment_id": feedbackComment.ID}).
+				WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "session_secure_id": session.SecureID, "comment_id": feedbackComment.ID}).
 				Error(e.Wrapf(err, "error fetching %s alert", model.AlertType.SESSION_FEEDBACK))
 			return
 		}
@@ -213,11 +213,11 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 		}
 
 		if err := sessionFeedbackAlert.SendSlackAlert(&model.SendSlackAlertInput{
-			Project:        &project,
-			SessionID:      session.ID,
-			UserIdentifier: identifier,
-			CommentID:      &feedbackComment.ID,
-			CommentText:    feedbackComment.Text,
+			Project:         &project,
+			SessionSecureID: session.SecureID,
+			UserIdentifier:  identifier,
+			CommentID:       &feedbackComment.ID,
+			CommentText:     feedbackComment.Text,
 		}); err != nil {
 			log.WithError(err).WithFields(log.Fields{"project_id": session.ProjectID, "comment_id": feedbackComment.ID}).
 				Error(e.Wrapf(err, "error sending %s slack alert", model.AlertType.SESSION_FEEDBACK))

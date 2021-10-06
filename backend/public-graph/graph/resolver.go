@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gammazero/workerpool"
 	"github.com/go-sourcemap/sourcemap"
+	"github.com/highlight-run/workerpool"
 	"github.com/mssola/user_agent"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -546,7 +546,7 @@ func (r *Resolver) processStackFrame(projectId, sessionId int, stackTrace model2
 		return nil, err
 	}
 	stackTraceFilePath := u.Path
-	if stackTraceFilePath[0:1] == "/" {
+	if len(stackTraceFilePath) > 0 && stackTraceFilePath[0:1] == "/" {
 		stackTraceFilePath = stackTraceFilePath[1:]
 	}
 
@@ -900,7 +900,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 					log.Error(e.Wrap(err, "error querying project"))
 					return
 				}
-				err = errorAlert.SendSlackAlert(&model.SendSlackAlertInput{Project: &project, SessionID: sessionID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &errorToInsert.URL, ErrorsCount: &numErrors})
+				err = errorAlert.SendSlackAlert(&model.SendSlackAlertInput{Project: &project, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &errorToInsert.URL, ErrorsCount: &numErrors})
 				if err != nil {
 					log.Error(e.Wrap(err, "error sending slack error message"))
 					return

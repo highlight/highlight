@@ -51,7 +51,7 @@ export const UserDropdown = () => {
                                 } catch (e) {
                                     console.log(e);
                                 }
-                                client.cache.reset();
+                                client.clearStore();
                             }}
                         >
                             <span className={styles.dropdownLogoutText}>

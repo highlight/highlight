@@ -28,7 +28,16 @@ const authLink = setContext((_, { headers }) => {
 
 export const client = new ApolloClient({
     link: authLink.concat(highlightGraph),
-    cache: new InMemoryCache(),
+    cache: new InMemoryCache({
+        typePolicies: {
+            Session: {
+                keyFields: ['secure_id'],
+            },
+            ErrorGroup: {
+                keyFields: ['secure_id'],
+            },
+        },
+    }),
     assumeImmutableResults: true,
     connectToDevTools:
         process.env.REACT_APP_ENVIRONMENT === 'dev' ? true : false,

@@ -267,7 +267,7 @@ type ComplexityRoot struct {
 		DailyErrorFrequency       func(childComplexity int, projectID int, errorGroupID *int, errorGroupSecureID *string, dateOffset int) int
 		DailyErrorsCount          func(childComplexity int, projectID int, dateRange model.DateRangeInput) int
 		DailySessionsCount        func(childComplexity int, projectID int, dateRange model.DateRangeInput) int
-		EnvironmentSuggestion     func(childComplexity int, query string, projectID int) int
+		EnvironmentSuggestion     func(childComplexity int, projectID int) int
 		ErrorAlert                func(childComplexity int, projectID int) int
 		ErrorComments             func(childComplexity int, errorGroupID *int, errorGroupSecureID *string) int
 		ErrorCommentsForAdmin     func(childComplexity int) int
@@ -548,7 +548,7 @@ type QueryResolver interface {
 	TrackPropertiesAlert(ctx context.Context, projectID int) (*model1.SessionAlert, error)
 	UserPropertiesAlert(ctx context.Context, projectID int) (*model1.SessionAlert, error)
 	ProjectSuggestion(ctx context.Context, query string) ([]*model1.Project, error)
-	EnvironmentSuggestion(ctx context.Context, query string, projectID int) ([]*model1.Field, error)
+	EnvironmentSuggestion(ctx context.Context, projectID int) ([]*model1.Field, error)
 	SlackChannelSuggestion(ctx context.Context, projectID int) ([]*model.SanitizedSlackChannel, error)
 	SlackMembers(ctx context.Context, projectID int) ([]*model.SanitizedSlackChannel, error)
 	IsIntegratedWithSlack(ctx context.Context, projectID int) (bool, error)
@@ -1820,7 +1820,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.EnvironmentSuggestion(childComplexity, args["query"].(string), args["project_id"].(int)), true
+		return e.complexity.Query.EnvironmentSuggestion(childComplexity, args["project_id"].(int)), true
 
 	case "Query.error_alert":
 		if e.complexity.Query.ErrorAlert == nil {
@@ -2995,7 +2995,7 @@ var sources = []*ast.Source{
 	{Name: "graph/schema.graphqls", Input: `# MAIN GRAPH
 
 scalar Any
-scalar Time
+scalar Timestamp
 scalar Int64
 
 type Field {
@@ -3021,7 +3021,7 @@ type Session {
     client_version: String
     language: String!
     identifier: String!
-    created_at: Time
+    created_at: Timestamp
     length: Int
     active_length: Int
     user_object: Any
@@ -3086,7 +3086,7 @@ type Project {
     verbose_id: String!
     name: String!
     billing_email: String
-    trial_end_date: Time
+    trial_end_date: Timestamp
     slack_webhook_channel: String
     slack_channels: String
     secret: String
@@ -3119,7 +3119,7 @@ type ErrorObject {
     lineNumber: Int
     columnNumber: Int
     stack_trace: [Any]
-    timestamp: Time
+    timestamp: Timestamp
     payload: String
 }
 
@@ -3130,7 +3130,7 @@ type ErrorField {
 }
 
 type ErrorGroup {
-    created_at: Time!
+    created_at: Timestamp!
     id: ID!
     secure_id: String!
     project_id: Int!
@@ -3151,7 +3151,7 @@ type ErrorMetadata {
     session_id: Int!
     session_secure_id: String!
     environment: String
-    timestamp: Time
+    timestamp: Timestamp
     os: String
     browser: String
     visited_url: String
@@ -3245,13 +3245,13 @@ type ErrorSearchParams {
 }
 
 type DateRange {
-    start_date: Time
-    end_date: Time
+    start_date: Timestamp
+    end_date: Timestamp
 }
 
 input DateRangeInput {
-    start_date: Time
-    end_date: Time
+    start_date: Timestamp
+    end_date: Timestamp
 }
 
 type LengthRange {
@@ -3317,8 +3317,8 @@ type SessionComment {
     id: ID!
     project_id: ID!
     timestamp: Int
-    created_at: Time!
-    updated_at: Time!
+    created_at: Timestamp!
+    updated_at: Timestamp!
     session_id: Int!
     session_secure_id: String!
     author: SanitizedAdmin
@@ -3332,10 +3332,10 @@ type SessionComment {
 type ErrorComment {
     id: ID!
     project_id: ID!
-    created_at: Time!
+    created_at: Timestamp!
     error_id: Int!
     error_secure_id: String!
-    updated_at: Time!
+    updated_at: Timestamp!
     author: SanitizedAdmin!
     text: String!
 }
@@ -3348,13 +3348,13 @@ enum SessionLifecycle {
 
 type DailySessionCount {
     project_id: ID!
-    date: Time!
+    date: Timestamp!
     count: Int64!
 }
 
 type DailyErrorCount {
     project_id: ID!
-    date: Time!
+    date: Timestamp!
     count: Int64!
 }
 
@@ -3478,7 +3478,7 @@ type Query {
     track_properties_alert(project_id: ID!): SessionAlert
     user_properties_alert(project_id: ID!): SessionAlert
     projectSuggestion(query: String!): [Project]
-    environment_suggestion(query: String!, project_id: ID!): [Field]
+    environment_suggestion(project_id: ID!): [Field]
     slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
     slack_members(project_id: ID!): [SanitizedSlackChannel]!
     is_integrated_with_slack(project_id: ID!): Boolean!
@@ -4925,24 +4925,15 @@ func (ec *executionContext) field_Query_dailySessionsCount_args(ctx context.Cont
 func (ec *executionContext) field_Query_environment_suggestion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["query"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["query"] = arg0
-	var arg1 int
+	var arg0 int
 	if tmp, ok := rawArgs["project_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg1, err = ec.unmarshalNID2int(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["project_id"] = arg1
+	args["project_id"] = arg0
 	return args, nil
 }
 
@@ -6145,7 +6136,7 @@ func (ec *executionContext) _DailyErrorCount_date(ctx context.Context, field gra
 	}
 	res := resTmp.(*time.Time)
 	fc.Result = res
-	return ec.marshalNTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+	return ec.marshalNTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _DailyErrorCount_count(ctx context.Context, field graphql.CollectedField, obj *model1.DailyErrorCount) (ret graphql.Marshaler) {
@@ -6250,7 +6241,7 @@ func (ec *executionContext) _DailySessionCount_date(ctx context.Context, field g
 	}
 	res := resTmp.(*time.Time)
 	fc.Result = res
-	return ec.marshalNTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+	return ec.marshalNTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _DailySessionCount_count(ctx context.Context, field graphql.CollectedField, obj *model1.DailySessionCount) (ret graphql.Marshaler) {
@@ -6317,7 +6308,7 @@ func (ec *executionContext) _DateRange_start_date(ctx context.Context, field gra
 	}
 	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTimestamp2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _DateRange_end_date(ctx context.Context, field graphql.CollectedField, obj *model1.DateRange) (ret graphql.Marshaler) {
@@ -6349,7 +6340,7 @@ func (ec *executionContext) _DateRange_end_date(ctx context.Context, field graph
 	}
 	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTimestamp2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorAlert_id(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorAlert) (ret graphql.Marshaler) {
@@ -6626,7 +6617,7 @@ func (ec *executionContext) _ErrorComment_created_at(ctx context.Context, field 
 	}
 	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorComment_error_id(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorComment) (ret graphql.Marshaler) {
@@ -6731,7 +6722,7 @@ func (ec *executionContext) _ErrorComment_updated_at(ctx context.Context, field 
 	}
 	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorComment_author(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorComment) (ret graphql.Marshaler) {
@@ -6938,7 +6929,7 @@ func (ec *executionContext) _ErrorGroup_created_at(ctx context.Context, field gr
 	}
 	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorGroup_id(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
@@ -7553,7 +7544,7 @@ func (ec *executionContext) _ErrorMetadata_timestamp(ctx context.Context, field 
 	}
 	res := resTmp.(*time.Time)
 	fc.Result = res
-	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorMetadata_os(ctx context.Context, field graphql.CollectedField, obj *model.ErrorMetadata) (ret graphql.Marshaler) {
@@ -8156,7 +8147,7 @@ func (ec *executionContext) _ErrorObject_timestamp(ctx context.Context, field gr
 	}
 	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTimestamp2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorObject_payload(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
@@ -10440,7 +10431,7 @@ func (ec *executionContext) _Project_trial_end_date(ctx context.Context, field g
 	}
 	res := resTmp.(*time.Time)
 	fc.Result = res
-	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Project_slack_webhook_channel(ctx context.Context, field graphql.CollectedField, obj *model1.Project) (ret graphql.Marshaler) {
@@ -12109,7 +12100,7 @@ func (ec *executionContext) _Query_environment_suggestion(ctx context.Context, f
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().EnvironmentSuggestion(rctx, args["query"].(string), args["project_id"].(int))
+		return ec.resolvers.Query().EnvironmentSuggestion(rctx, args["project_id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14049,7 +14040,7 @@ func (ec *executionContext) _Session_created_at(ctx context.Context, field graph
 	}
 	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTimestamp2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Session_length(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
@@ -14911,7 +14902,7 @@ func (ec *executionContext) _SessionComment_created_at(ctx context.Context, fiel
 	}
 	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SessionComment_updated_at(ctx context.Context, field graphql.CollectedField, obj *model1.SessionComment) (ret graphql.Marshaler) {
@@ -14946,7 +14937,7 @@ func (ec *executionContext) _SessionComment_updated_at(ctx context.Context, fiel
 	}
 	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SessionComment_session_id(ctx context.Context, field graphql.CollectedField, obj *model1.SessionComment) (ret graphql.Marshaler) {
@@ -16804,7 +16795,7 @@ func (ec *executionContext) unmarshalInputDateRangeInput(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start_date"))
-			it.StartDate, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			it.StartDate, err = ec.unmarshalOTimestamp2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -16812,7 +16803,7 @@ func (ec *executionContext) unmarshalInputDateRangeInput(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end_date"))
-			it.EndDate, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			it.EndDate, err = ec.unmarshalOTimestamp2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -20709,13 +20700,13 @@ func (ec *executionContext) marshalNString2ᚖstring(ctx context.Context, sel as
 	return res
 }
 
-func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
-	res, err := graphql.UnmarshalTime(v)
+func (ec *executionContext) unmarshalNTimestamp2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
+	res, err := model1.UnmarshalTimestamp(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
-	res := graphql.MarshalTime(v)
+func (ec *executionContext) marshalNTimestamp2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
+	res := model1.MarshalTimestamp(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -20724,19 +20715,19 @@ func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel as
 	return res
 }
 
-func (ec *executionContext) unmarshalNTime2ᚖtimeᚐTime(ctx context.Context, v interface{}) (*time.Time, error) {
-	res, err := graphql.UnmarshalTime(v)
+func (ec *executionContext) unmarshalNTimestamp2ᚖtimeᚐTime(ctx context.Context, v interface{}) (*time.Time, error) {
+	res, err := model1.UnmarshalTimestamp(v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNTime2ᚖtimeᚐTime(ctx context.Context, sel ast.SelectionSet, v *time.Time) graphql.Marshaler {
+func (ec *executionContext) marshalNTimestamp2ᚖtimeᚐTime(ctx context.Context, sel ast.SelectionSet, v *time.Time) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
 		}
 		return graphql.Null
 	}
-	res := graphql.MarshalTime(*v)
+	res := model1.MarshalTimestamp(*v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -21832,28 +21823,28 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	return graphql.MarshalString(*v)
 }
 
-func (ec *executionContext) unmarshalOTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
-	res, err := graphql.UnmarshalTime(v)
+func (ec *executionContext) unmarshalOTimestamp2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
+	res, err := model1.UnmarshalTimestamp(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
-	return graphql.MarshalTime(v)
+func (ec *executionContext) marshalOTimestamp2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
+	return model1.MarshalTimestamp(v)
 }
 
-func (ec *executionContext) unmarshalOTime2ᚖtimeᚐTime(ctx context.Context, v interface{}) (*time.Time, error) {
+func (ec *executionContext) unmarshalOTimestamp2ᚖtimeᚐTime(ctx context.Context, v interface{}) (*time.Time, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := graphql.UnmarshalTime(v)
+	res, err := model1.UnmarshalTimestamp(v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOTime2ᚖtimeᚐTime(ctx context.Context, sel ast.SelectionSet, v *time.Time) graphql.Marshaler {
+func (ec *executionContext) marshalOTimestamp2ᚖtimeᚐTime(ctx context.Context, sel ast.SelectionSet, v *time.Time) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	return graphql.MarshalTime(*v)
+	return model1.MarshalTimestamp(*v)
 }
 
 func (ec *executionContext) marshalOTopUsersPayload2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTopUsersPayload(ctx context.Context, sel ast.SelectionSet, v *model.TopUsersPayload) graphql.Marshaler {

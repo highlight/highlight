@@ -157,10 +157,10 @@ const ApplicationRouter = ({ integrated }: Props) => {
             <KeyboardShortcutsEducation />
             <Switch>
                 {/* These two routes do not require login */}
-                <Route path="/:project_id/sessions/:session_id?" exact>
+                <Route path="/:project_id/sessions/:session_secure_id?" exact>
                     <Player integrated={integrated} />
                 </Route>
-                <Route path="/:project_id/errors/:error_id?" exact>
+                <Route path="/:project_id/errors/:error_secure_id?" exact>
                     <ErrorPage integrated={integrated} />
                 </Route>
                 {/* If not logged in and project id is numeric and nonzero, redirect to login */}

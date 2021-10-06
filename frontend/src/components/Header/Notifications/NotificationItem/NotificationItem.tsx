@@ -132,11 +132,11 @@ const getLink = (notification: any, project_id: string) => {
 
     switch (notification.type as NotificationType) {
         case NotificationType.ErrorComment:
-            return `${baseUrl}/errors/${notification.error_id}`;
+            return `${baseUrl}/errors/${notification.error_secure_id}`;
         case NotificationType.SessionComment:
-            return `${baseUrl}/sessions/${notification.session_id}?${PlayerSearchParameters.commentId}=${notification.id}&${PlayerSearchParameters.ts}=${notification.timestamp}`;
+            return `${baseUrl}/sessions/${notification.session_secure_id}?${PlayerSearchParameters.commentId}=${notification.id}&${PlayerSearchParameters.ts}=${notification.timestamp}`;
         case NotificationType.SessionFeedback:
-            return `${baseUrl}/sessions/${notification.session_id}?${PlayerSearchParameters.commentId}=${notification.id}`;
+            return `${baseUrl}/sessions/${notification.session_secure_id}?${PlayerSearchParameters.commentId}=${notification.id}`;
         default:
             return `/`;
     }

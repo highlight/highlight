@@ -1740,15 +1740,14 @@ func (r *queryResolver) DailyErrorsCount(ctx context.Context, projectID int, dat
 }
 
 func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, errorGroupID *int, errorGroupSecureID *string, dateOffset int) ([]*int64, error) {
-	_, err := r.canAdminViewErrorGroup(ctx, errorGroupID, errorGroupSecureID)
+	errGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupID, errorGroupSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not authorized to view error group")
 	}
 
 	if projectID == 0 {
-		if errorGroupID != nil {
-			rand.Seed(int64(*errorGroupID))
-		}
+		// Make error distribution random for demo org so it looks pretty
+		rand.Seed(int64(errGroup.ID))
 		var dists []*int64
 		for i := 0; i <= dateOffset; i++ {
 			t := int64(rand.Intn(10) + 1)
@@ -1770,7 +1769,7 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, 
 		ON d.date = to_char(date_trunc('day', e.updated_at), 'YYYY-MM-DD')
 		AND e.error_group_id = ? AND e.project_id = ?
 		GROUP BY d.date;
-	`, dateOffset, errorGroupID, projectID).Scan(&dailyErrors).Error; err != nil {
+	`, dateOffset, errGroup.ID, projectID).Scan(&dailyErrors).Error; err != nil {
 		return nil, e.Wrap(err, "error querying daily frequency")
 	}
 
@@ -2206,7 +2205,7 @@ func (r *queryResolver) ProjectSuggestion(ctx context.Context, query string) ([]
 	return projects, nil
 }
 
-func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, query string, projectID int) ([]*model.Field, error) {
+func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, projectID int) ([]*model.Field, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
@@ -2214,8 +2213,7 @@ func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, query string,
 	res := r.DB.Where(&model.Field{Type: "session", Name: "environment"}).
 		Where("project_id = ?", projectID).
 		Where("length(value) > ?", 0).
-		Where("value ILIKE ?", "%"+query+"%").
-		Limit(model.SUGGESTION_LIMIT_CONSTANT).
+		Distinct("value").
 		Find(&fields)
 	if err := res.Error; err != nil {
 		return nil, e.Wrap(err, "error querying field suggestion")

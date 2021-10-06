@@ -29,6 +29,10 @@ interface PlayerUIContext {
     setDetailedPanel: React.Dispatch<
         React.SetStateAction<DetailedPanel | undefined>
     >;
+    selectedRightPanelTab: 'Events' | 'Comments' | 'Metadata';
+    setSelectedRightPanelTab: (
+        newValue: 'Events' | 'Comments' | 'Metadata'
+    ) => void;
 }
 
 export const [

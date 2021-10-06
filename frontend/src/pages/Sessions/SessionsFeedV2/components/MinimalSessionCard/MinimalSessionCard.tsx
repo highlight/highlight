@@ -44,10 +44,10 @@ const MinimalSessionCard = React.memo(
         showDetailedSessionView: showDetailedSessionViewPlayerConfiguration = false,
     }: Props) => {
         const ref = useRef<HTMLDivElement | null>(null);
-        const { project_id, segment_id, session_id } = useParams<{
+        const { project_id, segment_id, session_secure_id } = useParams<{
             project_id: string;
             segment_id: string;
-            session_id: string;
+            session_secure_id: string;
         }>();
         const projectIdRemapped =
             project_id === DEMO_WORKSPACE_APPLICATION_ID
@@ -60,15 +60,15 @@ const MinimalSessionCard = React.memo(
         const [viewed, setViewed] = useState(session?.viewed || false);
 
         useEffect(() => {
-            if (session_id === session?.id) {
+            if (session_secure_id === session?.secure_id) {
                 setViewed(true);
             }
-        }, [session?.id, session_id]);
+        }, [session?.secure_id, session_secure_id]);
 
         useEffect(() => {
             if (
                 autoPlaySessions &&
-                session_id === session?.id &&
+                session_secure_id === session?.secure_id &&
                 ref?.current
             ) {
                 ref.current.scrollIntoView({
@@ -76,7 +76,7 @@ const MinimalSessionCard = React.memo(
                     block: 'center',
                 });
             }
-        }, [autoPlaySessions, session?.id, session_id]);
+        }, [autoPlaySessions, session?.secure_id, session_secure_id]);
 
         const customAvatarImage = getIdentifiedUserProfileImage(session);
 
@@ -353,16 +353,16 @@ const MinimalSessionCard = React.memo(
         return (
             <div
                 className={styles.sessionCardWrapper}
-                key={session?.id}
+                key={session?.secure_id}
                 ref={ref}
             >
                 {linkDisabled ? (
                     innerContent
                 ) : (
                     <Link
-                        to={`/${projectIdRemapped}/sessions/${session?.id}${
-                            urlParams || ''
-                        }`}
+                        to={`/${projectIdRemapped}/sessions/${
+                            session?.secure_id
+                        }${urlParams || ''}`}
                     >
                         {innerContent}
                     </Link>

@@ -175,7 +175,7 @@ export const usePlayerCommands = (
     ] as const;
 
     const pathNameTokens = location.pathname.split('/');
-    // We don't have access to the session_id URL parameter on all routes so we manually parse/check for the session_id.
+    // We don't have access to the session URL parameter on all routes so we manually parse/check for the session.
     const isOnPlayerPage =
         pathNameTokens[pathNameTokens.length - 2] === 'sessions' &&
         !Number.isNaN(parseInt(pathNameTokens[pathNameTokens.length - 1]));

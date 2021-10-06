@@ -1,24 +1,27 @@
 import * as Types from './schemas';
 
 export type MarkSessionAsViewedMutationVariables = Types.Exact<{
-    id: Types.Scalars['ID'];
+    secure_id: Types.Scalars['String'];
     viewed: Types.Scalars['Boolean'];
 }>;
 
 export type MarkSessionAsViewedMutation = { __typename?: 'Mutation' } & {
     markSessionAsViewed?: Types.Maybe<
-        { __typename?: 'Session' } & Pick<Types.Session, 'id' | 'viewed'>
+        { __typename?: 'Session' } & Pick<Types.Session, 'secure_id' | 'viewed'>
     >;
 };
 
 export type MarkSessionAsStarredMutationVariables = Types.Exact<{
-    id: Types.Scalars['ID'];
+    secure_id: Types.Scalars['String'];
     starred: Types.Scalars['Boolean'];
 }>;
 
 export type MarkSessionAsStarredMutation = { __typename?: 'Mutation' } & {
     markSessionAsStarred?: Types.Maybe<
-        { __typename?: 'Session' } & Pick<Types.Session, 'id' | 'starred'>
+        { __typename?: 'Session' } & Pick<
+            Types.Session,
+            'secure_id' | 'starred'
+        >
     >;
 };
 
@@ -41,13 +44,16 @@ export type UpdateBillingDetailsMutation = { __typename?: 'Mutation' } & Pick<
 >;
 
 export type UpdateErrorGroupStateMutationVariables = Types.Exact<{
-    id: Types.Scalars['ID'];
+    secure_id: Types.Scalars['String'];
     state: Types.Scalars['String'];
 }>;
 
 export type UpdateErrorGroupStateMutation = { __typename?: 'Mutation' } & {
     updateErrorGroupState?: Types.Maybe<
-        { __typename?: 'ErrorGroup' } & Pick<Types.ErrorGroup, 'id' | 'state'>
+        { __typename?: 'ErrorGroup' } & Pick<
+            Types.ErrorGroup,
+            'secure_id' | 'state'
+        >
     >;
 };
 
@@ -206,7 +212,7 @@ export type CreateSegmentMutation = { __typename?: 'Mutation' } & {
 
 export type CreateSessionCommentMutationVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
-    session_id: Types.Scalars['ID'];
+    session_secure_id: Types.Scalars['String'];
     session_timestamp: Types.Scalars['Int'];
     text: Types.Scalars['String'];
     text_for_email: Types.Scalars['String'];
@@ -257,7 +263,7 @@ export type DeleteSessionCommentMutation = { __typename?: 'Mutation' } & Pick<
 
 export type CreateErrorCommentMutationVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
-    error_group_id: Types.Scalars['ID'];
+    error_group_secure_id: Types.Scalars['String'];
     text: Types.Scalars['String'];
     text_for_email: Types.Scalars['String'];
     tagged_admins:
@@ -497,18 +503,21 @@ export type UpdateUserPropertiesAlertMutation = { __typename?: 'Mutation' } & {
 };
 
 export type UpdateSessionIsPublicMutationVariables = Types.Exact<{
-    session_id: Types.Scalars['ID'];
+    session_secure_id: Types.Scalars['String'];
     is_public: Types.Scalars['Boolean'];
 }>;
 
 export type UpdateSessionIsPublicMutation = { __typename?: 'Mutation' } & {
     updateSessionIsPublic?: Types.Maybe<
-        { __typename?: 'Session' } & Pick<Types.Session, 'id' | 'is_public'>
+        { __typename?: 'Session' } & Pick<
+            Types.Session,
+            'secure_id' | 'is_public'
+        >
     >;
 };
 
 export type UpdateErrorGroupIsPublicMutationVariables = Types.Exact<{
-    error_group_id: Types.Scalars['ID'];
+    error_group_secure_id: Types.Scalars['String'];
     is_public: Types.Scalars['Boolean'];
 }>;
 
@@ -516,13 +525,13 @@ export type UpdateErrorGroupIsPublicMutation = { __typename?: 'Mutation' } & {
     updateErrorGroupIsPublic?: Types.Maybe<
         { __typename?: 'ErrorGroup' } & Pick<
             Types.ErrorGroup,
-            'id' | 'is_public'
+            'secure_id' | 'is_public'
         >
     >;
 };
 
 export type GetSessionPayloadQueryVariables = Types.Exact<{
-    session_id: Types.Scalars['ID'];
+    session_secure_id: Types.Scalars['String'];
 }>;
 
 export type GetSessionPayloadQuery = { __typename?: 'Query' } & Pick<
@@ -532,7 +541,18 @@ export type GetSessionPayloadQuery = { __typename?: 'Query' } & Pick<
         errors?: Types.Maybe<
             Array<
                 Types.Maybe<
-                    { __typename?: 'ErrorObject' } & ErrorFieldsFragment
+                    { __typename?: 'ErrorObject' } & Pick<
+                        Types.ErrorObject,
+                        | 'id'
+                        | 'error_group_secure_id'
+                        | 'event'
+                        | 'type'
+                        | 'url'
+                        | 'source'
+                        | 'stack_trace'
+                        | 'timestamp'
+                        | 'payload'
+                    >
                 >
             >
         >;
@@ -545,13 +565,14 @@ export type GetSessionPayloadQuery = { __typename?: 'Query' } & Pick<
     };
 
 export type GetSessionQueryVariables = Types.Exact<{
-    id: Types.Scalars['ID'];
+    secure_id: Types.Scalars['String'];
 }>;
 
 export type GetSessionQuery = { __typename?: 'Query' } & {
     session?: Types.Maybe<
         { __typename?: 'Session' } & Pick<
             Types.Session,
+            | 'secure_id'
             | 'os_name'
             | 'os_version'
             | 'browser_name'
@@ -606,7 +627,7 @@ export type GetAdminsQuery = { __typename?: 'Query' } & {
 };
 
 export type GetSessionCommentsQueryVariables = Types.Exact<{
-    session_id: Types.Scalars['ID'];
+    session_secure_id: Types.Scalars['String'];
 }>;
 
 export type GetSessionCommentsQuery = { __typename?: 'Query' } & {
@@ -651,6 +672,7 @@ export type GetNotificationsQuery = { __typename?: 'Query' } & {
                 | 'timestamp'
                 | 'updated_at'
                 | 'session_id'
+                | 'session_secure_id'
                 | 'text'
                 | 'type'
                 | 'metadata'
@@ -668,7 +690,12 @@ export type GetNotificationsQuery = { __typename?: 'Query' } & {
         Types.Maybe<
             { __typename?: 'ErrorComment' } & Pick<
                 Types.ErrorComment,
-                'id' | 'updated_at' | 'project_id' | 'text' | 'error_id'
+                | 'id'
+                | 'updated_at'
+                | 'project_id'
+                | 'text'
+                | 'error_id'
+                | 'error_secure_id'
             > & {
                     author: { __typename?: 'SanitizedAdmin' } & Pick<
                         Types.SanitizedAdmin,
@@ -707,7 +734,7 @@ export type GetSessionCommentsForAdminQuery = { __typename?: 'Query' } & {
 };
 
 export type GetErrorCommentsQueryVariables = Types.Exact<{
-    error_group_id: Types.Scalars['ID'];
+    error_group_secure_id: Types.Scalars['String'];
 }>;
 
 export type GetErrorCommentsQuery = { __typename?: 'Query' } & {
@@ -742,7 +769,7 @@ export type GetOnboardingStepsQuery = { __typename?: 'Query' } & Pick<
             Types.Maybe<{ __typename?: 'Admin' } & Pick<Types.Admin, 'id'>>
         >;
         projectHasViewedASession?: Types.Maybe<
-            { __typename?: 'Session' } & Pick<Types.Session, 'id'>
+            { __typename?: 'Session' } & Pick<Types.Session, 'secure_id'>
         >;
         admin?: Types.Maybe<
             { __typename?: 'Admin' } & Pick<Types.Admin, 'slack_im_channel_id'>
@@ -902,7 +929,7 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 };
 
 export type GetErrorGroupQueryVariables = Types.Exact<{
-    id: Types.Scalars['ID'];
+    secure_id: Types.Scalars['String'];
 }>;
 
 export type GetErrorGroupQuery = { __typename?: 'Query' } & {
@@ -936,7 +963,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
                         { __typename?: 'ErrorMetadata' } & Pick<
                             Types.ErrorMetadata,
                             | 'error_id'
-                            | 'session_id'
+                            | 'session_secure_id'
                             | 'environment'
                             | 'timestamp'
                             | 'os'
@@ -978,6 +1005,7 @@ export type GetErrorGroupsQuery = { __typename?: 'Query' } & {
                         Types.ErrorGroup,
                         | 'created_at'
                         | 'id'
+                        | 'secure_id'
                         | 'type'
                         | 'event'
                         | 'state'
@@ -999,7 +1027,9 @@ export type GetErrorGroupsQuery = { __typename?: 'Query' } & {
                                 Types.Maybe<
                                     { __typename?: 'ErrorMetadata' } & Pick<
                                         Types.ErrorMetadata,
-                                        'error_id' | 'session_id' | 'timestamp'
+                                        | 'error_id'
+                                        | 'session_secure_id'
+                                        | 'timestamp'
                                     >
                                 >
                             >;
@@ -1010,7 +1040,7 @@ export type GetErrorGroupsQuery = { __typename?: 'Query' } & {
 };
 
 export type GetMessagesQueryVariables = Types.Exact<{
-    session_id: Types.Scalars['ID'];
+    session_secure_id: Types.Scalars['String'];
 }>;
 
 export type GetMessagesQuery = { __typename?: 'Query' } & Pick<
@@ -1019,25 +1049,12 @@ export type GetMessagesQuery = { __typename?: 'Query' } & Pick<
 >;
 
 export type GetResourcesQueryVariables = Types.Exact<{
-    session_id: Types.Scalars['ID'];
+    session_secure_id: Types.Scalars['String'];
 }>;
 
 export type GetResourcesQuery = { __typename?: 'Query' } & Pick<
     Types.Query,
     'resources'
->;
-
-export type ErrorFieldsFragment = { __typename?: 'ErrorObject' } & Pick<
-    Types.ErrorObject,
-    | 'id'
-    | 'error_group_id'
-    | 'event'
-    | 'type'
-    | 'url'
-    | 'source'
-    | 'stack_trace'
-    | 'timestamp'
-    | 'payload'
 >;
 
 export type GetFieldSuggestionQueryVariables = Types.Exact<{
@@ -1448,7 +1465,7 @@ export type GetDailyErrorsCountQuery = { __typename?: 'Query' } & {
 
 export type GetDailyErrorFrequencyQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
-    error_group_id: Types.Scalars['ID'];
+    error_group_secure_id: Types.Scalars['String'];
     date_offset: Types.Scalars['Int'];
 }>;
 
@@ -1542,21 +1559,6 @@ export type GetUserPropertiesAlertQuery = { __typename?: 'Query' } & {
                     >
                 >;
             }
-    >;
-};
-
-export type GetEnvironmentSuggestionQueryVariables = Types.Exact<{
-    query: Types.Scalars['String'];
-    project_id: Types.Scalars['ID'];
-}>;
-
-export type GetEnvironmentSuggestionQuery = { __typename?: 'Query' } & {
-    environment_suggestion?: Types.Maybe<
-        Array<
-            Types.Maybe<
-                { __typename?: 'Field' } & Pick<Types.Field, 'name' | 'value'>
-            >
-        >
     >;
 };
 
@@ -1770,7 +1772,6 @@ export const namedOperations = {
         GetNewUserAlert: 'GetNewUserAlert' as const,
         GetTrackPropertiesAlert: 'GetTrackPropertiesAlert' as const,
         GetUserPropertiesAlert: 'GetUserPropertiesAlert' as const,
-        GetEnvironmentSuggestion: 'GetEnvironmentSuggestion' as const,
         GetSlackChannelSuggestion: 'GetSlackChannelSuggestion' as const,
         GetAlertsPagePayload: 'GetAlertsPagePayload' as const,
         GetCommentMentionSuggestions: 'GetCommentMentionSuggestions' as const,
@@ -1807,8 +1808,5 @@ export const namedOperations = {
         UpdateSessionIsPublic: 'UpdateSessionIsPublic' as const,
         UpdateErrorGroupIsPublic: 'UpdateErrorGroupIsPublic' as const,
         SendAdminInvite: 'SendAdminInvite' as const,
-    },
-    Fragment: {
-        errorFields: 'errorFields' as const,
     },
 };

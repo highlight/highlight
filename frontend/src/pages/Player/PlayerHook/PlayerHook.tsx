@@ -55,8 +55,8 @@ export enum SessionViewability {
 
 export const usePlayer = (): ReplayerContextInterface => {
     const { isLoggedIn } = useAuthContext();
-    const { session_id, project_id } = useParams<{
-        session_id: string;
+    const { session_secure_id, project_id } = useParams<{
+        session_secure_id: string;
         project_id: string;
     }>();
     const history = useHistory();
@@ -110,18 +110,21 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     const { data: sessionData } = useGetSessionQuery({
         variables: {
-            id: session_id,
+            secure_id: session_secure_id,
         },
         onCompleted: (data) => {
             if (data.session?.within_billing_quota) {
                 if (isLoggedIn) {
                     markSessionAsViewed({
-                        variables: { id: session_id, viewed: true },
+                        variables: {
+                            secure_id: session_secure_id,
+                            viewed: true,
+                        },
                     });
                 }
                 getSessionPayloadQuery({
                     variables: {
-                        session_id,
+                        session_secure_id,
                     },
                 });
                 setSessionViewability(SessionViewability.VIEWABLE);
@@ -133,16 +136,16 @@ export const usePlayer = (): ReplayerContextInterface => {
         onError: () => {
             setSessionViewability(SessionViewability.ERROR);
         },
-        skip: !session_id,
+        skip: !session_secure_id,
     });
     const {
         data: sessionCommentsData,
         loading: sessionCommentsLoading,
     } = useGetSessionCommentsQuery({
         variables: {
-            session_id,
+            session_secure_id,
         },
-        skip: !session_id,
+        skip: !session_secure_id,
         // pollInterval: 1000 * 10,
     });
 
@@ -166,14 +169,14 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     // Initializes the session state and fetches the session data
     useEffect(() => {
-        if (session_id) {
+        if (session_secure_id) {
             setState(ReplayerState.Loading);
             setSession(undefined);
         } else {
             // This case happens when no session is active.
             resetPlayer(ReplayerState.Empty);
         }
-    }, [session_id, resetPlayer]);
+    }, [session_secure_id, resetPlayer]);
 
     useEffect(() => {
         setSession(sessionData?.session as Session | undefined);
@@ -195,12 +198,12 @@ export const usePlayer = (): ReplayerContextInterface => {
             });
 
             a.href = URL.createObjectURL(file);
-            a.download = `session-${session_id}.json`;
+            a.download = `session-${session_secure_id}.json`;
             a.click();
 
             URL.revokeObjectURL(a.href);
         }
-    }, [download, eventsData, session_id]);
+    }, [download, eventsData, session_secure_id]);
 
     // Handle data in playback mode.
     useEffect(() => {
@@ -404,10 +407,10 @@ export const usePlayer = (): ReplayerContextInterface => {
     }, [setPlayerTimeToPersistance, time]);
 
     useEffect(() => {
-        if (!session_id) {
+        if (!session_secure_id) {
             setState(ReplayerState.Empty);
         }
-    }, [session_id]);
+    }, [session_secure_id]);
 
     // Finds the next session in the session feed to play if autoplay is enabled.
     useEffect(() => {
@@ -418,14 +421,14 @@ export const usePlayer = (): ReplayerContextInterface => {
         ) {
             const nextSessionInList = findNextSessionInList(
                 sessionResults.sessions,
-                session_id
+                session_secure_id
             );
 
             if (nextSessionInList) {
                 setState(ReplayerState.Paused);
                 setTimeout(() => {
                     history.push(
-                        `/${project_id}/sessions/${nextSessionInList.id}`
+                        `/${project_id}/sessions/${nextSessionInList.secure_id}`
                     );
                     resetPlayer(ReplayerState.Empty);
                 }, 250);
@@ -437,7 +440,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         project_id,
         resetPlayer,
         sessionResults.sessions,
-        session_id,
+        session_secure_id,
         state,
     ]);
 
