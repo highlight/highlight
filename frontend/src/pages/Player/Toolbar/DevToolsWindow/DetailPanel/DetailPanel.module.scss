@@ -58,7 +58,7 @@
     margin-top: calc(50vh - 42px);
     opacity: 1;
     padding: 3px 0;
-    position: relative;
+    position: absolute;
     transform: translateX(12px);
     transition: opacity 0.2s ease-in;
     width: var(--size-xxSmall);
