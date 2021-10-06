@@ -1,7 +1,7 @@
 import PanelToggleButton from '@pages/Player/components/PanelToggleButton/PanelToggleButton';
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import classNames from 'classnames';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useIsPresent } from 'framer-motion';
 import { Resizable } from 're-resizable';
 import React from 'react';
 
@@ -11,7 +11,7 @@ const DetailPanel = () => {
     const { detailedPanel, setDetailedPanel } = usePlayerUIContext();
 
     return (
-        <AnimatePresence>
+        <AnimatePresence presenceAffectsLayout>
             {!detailedPanel ? null : (
                 <Resizable
                     enable={{ left: true }}
@@ -23,11 +23,7 @@ const DetailPanel = () => {
                     minWidth="300"
                     maxWidth="90vw"
                     handleComponent={{
-                        left: (
-                            <div
-                                className={classNames(styles.dragHandle)}
-                            ></div>
-                        ),
+                        left: <DragHandle />,
                     }}
                     handleWrapperClass={classNames(styles.dragHandleWrapper)}
                 >
@@ -65,3 +61,15 @@ const DetailPanel = () => {
 };
 
 export default DetailPanel;
+
+const DragHandle = () => {
+    const isPresent = useIsPresent();
+
+    return (
+        <div
+            className={classNames(styles.dragHandle, {
+                [styles.hidden]: !isPresent,
+            })}
+        ></div>
+    );
+};

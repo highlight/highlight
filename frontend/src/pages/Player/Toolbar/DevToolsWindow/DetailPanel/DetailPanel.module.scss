@@ -63,4 +63,9 @@
     transition: opacity 0.2s ease-in;
     width: var(--size-xxSmall);
     z-index: 99;
+
+    &.hidden {
+        opacity: 0;
+        transition: opacity 0.1s ease;
+    }
 }
