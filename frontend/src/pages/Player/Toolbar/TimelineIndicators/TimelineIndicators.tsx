@@ -51,7 +51,7 @@ const TimelineIndicators = () => {
             })}
             ref={refContainer}
         >
-            {rageClicks.length &&
+            {rageClicks.length > 0 &&
                 rageClicks.map((rageClick) => (
                     <RageClickSpan
                         key={rageClick.startTimestamp}
