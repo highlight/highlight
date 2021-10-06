@@ -542,7 +542,7 @@ func (w *Worker) Start() {
 			log.Infof("sessions that will be processed: %v", sessionIds)
 		}
 
-		wp := workerpool.New(80)
+		wp := workerpool.New(40)
 		wp.SetPanicHandler(func() {
 			if rec := recover(); rec != nil {
 				buf := make([]byte, 64<<10)
