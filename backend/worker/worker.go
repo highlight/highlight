@@ -541,7 +541,7 @@ func (w *Worker) Start() {
 			log.Infof("sessions that will be processed: %v", sessionIds)
 		}
 
-		wp := workerpool.New(160)
+		wp := workerpool.New(80)
 		// process 80 sessions at a time.
 		for _, session := range sessions {
 			session := session
