@@ -5,7 +5,6 @@ import (
 	"io"
 	"math/rand"
 	"os"
-	"runtime"
 	"strconv"
 	"time"
 
@@ -616,10 +615,4 @@ func reportProcessSessionCount(db *gorm.DB) {
 		}
 		hlog.Histogram("processSessionsCount", float64(count), nil, 1)
 	}
-}
-
-func collectStack() []byte {
-	buf := make([]byte, 64<<10)
-	buf = buf[:runtime.Stack(buf, false)]
-	return buf
 }
