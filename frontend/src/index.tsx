@@ -105,7 +105,7 @@ const App = () => {
 const AuthenticationRouter = () => {
     const [
         getAdminQuery,
-        { error: adminError, data: adminData },
+        { error: adminError, data: adminData, called, refetch },
     ] = useGetAdminLazyQuery();
 
     const [authRole, setAuthRole] = useState<AuthRole>(AuthRole.LOADING);
@@ -114,7 +114,11 @@ const AuthenticationRouter = () => {
         const unsubscribeFirebase = auth.onAuthStateChanged(
             (user) => {
                 if (user) {
-                    getAdminQuery();
+                    if (!called) {
+                        getAdminQuery();
+                    } else {
+                        refetch!();
+                    }
                 } else {
                     setAuthRole(AuthRole.UNAUTHENTICATED);
                 }
@@ -128,7 +132,7 @@ const AuthenticationRouter = () => {
         return () => {
             unsubscribeFirebase();
         };
-    }, [getAdminQuery, adminData]);
+    }, [getAdminQuery, adminData, called, refetch]);
 
     useEffect(() => {
         if (adminData) {
