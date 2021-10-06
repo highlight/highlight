@@ -5,12 +5,12 @@
     box-shadow: var(--box-shadow-2);
     display: flex;
     flex-direction: column;
-    height: 100%;
+    height: calc(100vh - 80px - var(--size-medium) - var(--size-medium));
     padding: var(--size-medium) var(--size-large);
     position: absolute;
-    right: 0;
-    width: 100%;
-    z-index: 2;
+    right: var(--size-medium);
+    width: var(--right-panel-width);
+    z-index: 99;
 }
 
 .header {
@@ -28,4 +28,11 @@
 .contentContainer {
     height: 100%;
     overflow: auto;
+}
+
+.toggleButton {
+    left: calc(-1 * var(--size-medium));
+    position: absolute;
+    transform: translateY(calc(95px + var(--size-medium) + 30px));
+    z-index: 999;
 }
