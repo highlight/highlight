@@ -69,6 +69,7 @@ export type RageClickEvent = {
     session_id: Scalars['ID'];
     start_timestamp: Scalars['Time'];
     end_timestamp: Scalars['Time'];
+    total_clicks: Scalars['Int'];
 };
 
 export type BillingDetails = {

@@ -20,7 +20,7 @@ const RageClickSpan = ({ rageClick }: Props) => {
                 }%`,
             }}
         >
-            <Popover content={<>Duration:</>}>
+            <Popover content={<>Clicks of Rage: {rageClick.totalClicks}</>}>
                 <div className={styles.icon}>
                     <SvgAnnotationWarningIcon />
                 </div>

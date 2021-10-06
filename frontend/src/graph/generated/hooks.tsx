@@ -1742,6 +1742,7 @@ export const GetSessionPayloadDocument = gql`
         rage_clicks(session_id: $session_id) {
             start_timestamp
             end_timestamp
+            total_clicks
         }
     }
     ${ErrorFieldsFragmentDoc}

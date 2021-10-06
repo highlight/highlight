@@ -103,4 +103,5 @@ export interface RageClick {
     startPercentage: number;
     endTimestamp: string;
     endPercentage: number;
+    totalClicks: number;
 }

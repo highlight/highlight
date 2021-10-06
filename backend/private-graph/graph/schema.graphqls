@@ -51,6 +51,7 @@ type RageClickEvent {
     session_id: ID!
     start_timestamp: Time!
     end_timestamp: Time!
+    total_clicks: Int!
 }
 
 type BillingDetails {
