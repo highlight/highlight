@@ -6,6 +6,9 @@ import (
 	"strconv"
 	"time"
 
+	e "github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/99designs/gqlgen/graphql"
 )
 
@@ -15,7 +18,10 @@ func MarshalTimestamp(t time.Time) graphql.Marshaler {
 	}
 
 	return graphql.WriterFunc(func(w io.Writer) {
-		io.WriteString(w, strconv.Quote(t.Format(time.RFC3339Nano)))
+		_, err := io.WriteString(w, strconv.Quote(t.Format(time.RFC3339Nano)))
+		if err != nil {
+			log.Error(e.Wrap(err, "error marshaling timestamp"))
+		}
 	})
 }
 
