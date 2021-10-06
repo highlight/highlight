@@ -11,6 +11,7 @@ import { DateInput } from '../../../Sessions/SearchInputs/DateInput';
 import {
     BrowserInput,
     DeviceIdInput,
+    EnvironmentInput,
     OperatingSystemInput,
 } from '../../../Sessions/SearchInputs/DeviceInputs';
 import { LengthInput } from '../../../Sessions/SearchInputs/LengthInput';
@@ -108,7 +109,10 @@ const SessionSearchFilters = () => {
                             <span>Device ID</span>
                             <DeviceIdInput />
                         </label>
-                        <div></div>
+                        <label>
+                            <span>Environments</span>
+                            <EnvironmentInput />
+                        </label>
                         <div></div>
                         <div></div>
                         <LengthInput />

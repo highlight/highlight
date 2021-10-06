@@ -2021,6 +2021,20 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 		whereClause += fmt.Sprintf("AND (fingerprint = '%s') ", *deviceId)
 	}
 
+	if environments := params.Environments; len(environments) > 0 {
+		environmentsClause := ""
+
+		for index, environment := range environments {
+			environmentsClause += fmt.Sprintf("environment = '%s'", *environment)
+
+			if index < len(environments)-1 {
+				environmentsClause += " OR "
+			}
+		}
+
+		whereClause += fmt.Sprintf("AND (%s)", environmentsClause)
+	}
+
 	// user shouldn't see sessions that are not within billing quota
 	whereClause += "AND (within_billing_quota IS NULL OR within_billing_quota=true) "
 

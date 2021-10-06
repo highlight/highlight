@@ -1150,6 +1150,20 @@ export type GetFieldSuggestionQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetEnvironmentsQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+}>;
+
+export type GetEnvironmentsQuery = { __typename?: 'Query' } & {
+    environment_suggestion?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Field' } & Pick<Types.Field, 'name' | 'value'>
+            >
+        >
+    >;
+};
+
 export type GetProjectSuggestionQueryVariables = Types.Exact<{
     query: Types.Scalars['String'];
 }>;
@@ -1829,6 +1843,7 @@ export const namedOperations = {
         GetMessages: 'GetMessages' as const,
         GetResources: 'GetResources' as const,
         GetFieldSuggestion: 'GetFieldSuggestion' as const,
+        GetEnvironments: 'GetEnvironments' as const,
         GetProjectSuggestion: 'GetProjectSuggestion' as const,
         GetErrorFieldSuggestion: 'GetErrorFieldSuggestion' as const,
         GetErrorSearchSuggestions: 'GetErrorSearchSuggestions' as const,

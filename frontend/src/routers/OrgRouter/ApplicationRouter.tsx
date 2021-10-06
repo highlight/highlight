@@ -7,6 +7,7 @@ import _ from 'lodash';
 import React, { Suspense, useEffect, useState } from 'react';
 import { Redirect, Route, Switch } from 'react-router-dom';
 import {
+    ArrayParam,
     BooleanParam,
     JsonParam,
     StringParam,
@@ -68,6 +69,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
         first_time: BooleanParam,
         device_id: StringParam,
         show_live_sessions: BooleanParam,
+        environments: ArrayParam,
     });
     const [activeSegmentUrlParam, setActiveSegmentUrlParam] = useQueryParam(
         'segment',

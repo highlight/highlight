@@ -1,10 +1,14 @@
+import Select from '@components/Select/Select';
 import { useParams } from '@util/react-router/useParams';
 import { H } from 'highlight.run';
 import React from 'react';
 import { OptionsType, OptionTypeBase, ValueType } from 'react-select';
 import AsyncSelect from 'react-select/async';
 
-import { useGetFieldSuggestionQuery } from '../../../graph/generated/hooks';
+import {
+    useGetEnvironmentsQuery,
+    useGetFieldSuggestionQuery,
+} from '../../../graph/generated/hooks';
 import SvgBrowser from '../../../static/Browser';
 import SvgMonitorIcon from '../../../static/MonitorIcon';
 import SvgOs from '../../../static/Os';
@@ -186,6 +190,41 @@ export const DeviceIdInput = () => {
                 }}
                 loadOptions={generateOptions}
                 defaultOptions
+                onChange={onChange}
+            />
+        </div>
+    );
+};
+
+export const EnvironmentInput = () => {
+    const { project_id } = useParams<{ project_id: string }>();
+    const { searchParams, setSearchParams } = useSearchContext();
+
+    const { data } = useGetEnvironmentsQuery({
+        variables: {
+            project_id,
+        },
+    });
+
+    const onChange = (current: string[]) => {
+        setSearchParams((params) => ({ ...params, environments: current }));
+        H.track('EnvironmentsFilter');
+    };
+
+    return (
+        <div>
+            <Select
+                className={inputStyles.select}
+                mode="multiple"
+                placeholder={'Environments'}
+                value={searchParams.environments}
+                options={(data?.environment_suggestion || []).map(
+                    (suggestion) => ({
+                        value: suggestion?.value || '',
+                        displayValue: suggestion?.value || '',
+                        id: suggestion?.value || '',
+                    })
+                )}
                 onChange={onChange}
             />
         </div>

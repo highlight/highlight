@@ -236,6 +236,7 @@ export type SearchParamsInput = {
     excluded_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
     track_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
     excluded_track_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
+    environments?: Maybe<Array<Maybe<Scalars['String']>>>;
     date_range?: Maybe<DateRangeInput>;
     length_range?: Maybe<LengthRangeInput>;
     os?: Maybe<Scalars['String']>;

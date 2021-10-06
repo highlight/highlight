@@ -4,5 +4,6 @@ export const datePicker: string;
 export const fill: string;
 export const iconWrapper: string;
 export const searchInput: string;
+export const select: string;
 export const subTitle: string;
 export const switchSpan: string;
