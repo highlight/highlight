@@ -488,6 +488,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 // Start begins the worker's tasks.
 func (w *Worker) Start() {
 	ctx := context.Background()
+	go reportProcessSessionCount(w.Resolver.DB)
 	for {
 		time.Sleep(1 * time.Second)
 		now := time.Now()
@@ -524,8 +525,6 @@ func (w *Worker) Start() {
 		if len(sessionIds) > 0 {
 			log.Infof("sessions that will be processed: %v", sessionIds)
 		}
-
-		go reportProcessSessionCount(w.Resolver.DB)
 
 		// process 80 sessions at a time.
 		wp := workerpool.New(160)
