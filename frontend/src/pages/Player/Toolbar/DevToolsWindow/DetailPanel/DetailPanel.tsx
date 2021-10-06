@@ -18,7 +18,7 @@ const DetailPanel = () => {
                     className={styles.resizeContainer}
                     defaultSize={{
                         width: '350',
-                        height: '100%',
+                        height: 'fit-content',
                     }}
                     minWidth="300"
                     maxWidth="90vw"
