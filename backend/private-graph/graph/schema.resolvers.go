@@ -186,27 +186,15 @@ func (r *errorSegmentResolver) Params(ctx context.Context, obj *model.ErrorSegme
 	return params, nil
 }
 
-func (r *mutationResolver) CreateProject(ctx context.Context, projectName string, workspaceID *int, workspaceName *string) (*model.Project, error) {
+func (r *mutationResolver) CreateProject(ctx context.Context, name string, workspaceID int) (*model.Project, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in the workspace")
+	}
+
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting admin")
-	}
-
-	var workspace *model.Workspace
-	if workspaceID != nil {
-		workspace, err = r.GetWorkspace(*workspaceID)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		workspace = &model.Workspace{
-			Admins: []model.Admin{*admin},
-			Name:   workspaceName,
-		}
-
-		if err := r.DB.Create(workspace).Error; err != nil {
-			return nil, e.Wrap(err, "error creating workspace")
-		}
 	}
 
 	c := &stripe.Customer{}
@@ -219,7 +207,7 @@ func (r *mutationResolver) CreateProject(ctx context.Context, projectName string
 	}
 
 	project := &model.Project{
-		Name:             &projectName,
+		Name:             &name,
 		BillingEmail:     admin.Email,
 		WorkspaceID:      workspace.ID,
 		StripeCustomerID: &c.ID,
@@ -294,6 +282,24 @@ func (r *mutationResolver) CreateProject(ctx context.Context, projectName string
 		return nil, e.Wrap(err, "error creating session user properties alert for new project")
 	}
 	return project, nil
+}
+
+func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*model.Workspace, error) {
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting admin")
+	}
+
+	workspace := &model.Workspace{
+		Admins: []model.Admin{*admin},
+		Name:   &name,
+	}
+
+	if err := r.DB.Create(workspace).Error; err != nil {
+		return nil, e.Wrap(err, "error creating workspace")
+	}
+
+	return workspace, nil
 }
 
 func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string) (*model.Project, error) {
@@ -1729,6 +1735,20 @@ func (r *queryResolver) ProjectAdmins(ctx context.Context, projectID int) ([]*mo
 	return admins, nil
 }
 
+func (r *queryResolver) WorkspaceAdmins(ctx context.Context, workspaceID int) ([]*model.Admin, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "current admin not in the workspace")
+	}
+
+	admins := []*model.Admin{}
+	if err := r.DB.Order("created_at ASC").Model(workspace).Association("Admins").Find(&admins); err != nil {
+		return nil, e.Wrap(err, "error getting admins for the workspace")
+	}
+
+	return admins, nil
+}
+
 func (r *queryResolver) IsIntegrated(ctx context.Context, projectID int) (*bool, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin not found in project")
@@ -2450,7 +2470,7 @@ func (r *queryResolver) Workspace(ctx context.Context, id int) (*model.Workspace
 	}
 
 	projects := []model.Project{}
-	if err := r.DB.Model(&workspace).Association("Projects").Find(&projects); err != nil {
+	if err := r.DB.Order("name ASC").Model(&workspace).Association("Projects").Find(&projects); err != nil {
 		return nil, e.Wrap(err, "error querying associated projects")
 	}
 
@@ -2464,7 +2484,21 @@ func (r *queryResolver) WorkspaceForProject(ctx context.Context, projectID int) 
 		return nil, e.Wrap(err, "error querying project")
 	}
 
-	return r.GetWorkspace(project.WorkspaceID)
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying workspace")
+	}
+
+	// workspace secret should not be visible unless the admin has workspace access
+	workspace.Secret = new(string)
+
+	projects := []model.Project{}
+	if err := r.DB.Order("name ASC").Model(&workspace).Association("Projects").Find(&projects); err != nil {
+		return nil, e.Wrap(err, "error querying associated projects")
+	}
+
+	workspace.Projects = projects
+	return workspace, nil
 }
 
 func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {

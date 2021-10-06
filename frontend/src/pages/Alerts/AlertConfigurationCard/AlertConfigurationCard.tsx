@@ -325,6 +325,7 @@ export const AlertConfigurationCard = ({
                             getPropertiesOption(trackProperty).value
                     ),
                 }}
+                key={project_id}
             >
                 {type === ALERT_TYPE.UserProperties && (
                     <section>

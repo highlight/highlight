@@ -1,4 +1,3 @@
-import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import { message, Skeleton } from 'antd';
 import classNames from 'classnames/bind';
@@ -16,8 +15,7 @@ import { CircularSpinner, LoadingBar } from '../../components/Loading/Loading';
 import PopConfirm from '../../components/PopConfirm/PopConfirm';
 import {
     useDeleteAdminFromWorkspaceMutation,
-    useGetProjectAdminsQuery,
-    useGetProjectQuery,
+    useGetWorkspaceAdminsQuery,
     useSendAdminWorkspaceInviteMutation,
 } from '../../graph/generated/hooks';
 import SvgTrash from '../../static/Trash';
@@ -29,14 +27,11 @@ type Inputs = {
 };
 
 const WorkspaceTeam = () => {
-    const { project_id } = useParams<{ project_id: string }>();
+    const { workspace_id } = useParams<{ workspace_id: string }>();
     const emailRef = useRef<null | HTMLInputElement>(null);
     const { register, handleSubmit, errors, reset } = useForm<Inputs>();
-    const { data: projectData, loading: projectLoading } = useGetProjectQuery({
-        variables: { id: project_id },
-    });
-    const { data, error, loading } = useGetProjectAdminsQuery({
-        variables: { project_id },
+    const { data, error, loading } = useGetWorkspaceAdminsQuery({
+        variables: { workspace_id },
     });
 
     const { admin } = useAuthContext();
@@ -60,10 +55,6 @@ const WorkspaceTeam = () => {
             });
         },
     });
-    const [, setHasStartedOnboarding] = useLocalStorage(
-        `highlight-started-onboarding-${project_id}`,
-        false
-    );
 
     const [
         sendInviteEmail,
@@ -74,17 +65,10 @@ const WorkspaceTeam = () => {
         reset();
     }, [reset]);
 
-    if (projectLoading) {
-        return <LoadingBar />;
-    }
-
-    const workspaceId = projectData!.workspace!.id;
-
     const onSubmit = (data: Inputs) => {
-        setHasStartedOnboarding(true);
         sendInviteEmail({
             variables: {
-                workspace_id: workspaceId,
+                workspace_id,
                 email: data.email,
                 base_url: window.location.origin,
             },
@@ -95,6 +79,10 @@ const WorkspaceTeam = () => {
         });
     };
 
+    if (loading) {
+        return <LoadingBar />;
+    }
+
     if (error) {
         return <div>{JSON.stringify(error)}</div>;
     }
@@ -103,15 +91,14 @@ const WorkspaceTeam = () => {
         <LeadAlignLayout>
             <h2>Invite A Member</h2>
             <p className={layoutStyles.subTitle}>
-                Invite a your team to your Project.
+                Invite your team to your Workspace.
             </p>
             <div className={styles.box}>
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <h3>Invite Your Team</h3>
                     <p className={styles.boxSubTitle}>
-                        Invite a team member to '
-                        {`${projectData?.project?.name}`}' by entering an email
-                        below.
+                        Invite a team member to '{`${data?.workspace?.name}`}'
+                        by entering an email below.
                     </p>
                     <div className={styles.buttonRow}>
                         <input
@@ -125,7 +112,7 @@ const WorkspaceTeam = () => {
                             }}
                         />
                         <Button
-                            trackingId="ProjectInviteMember"
+                            trackingId="WorkspaceInviteMember"
                             type="primary"
                             className={classNames(
                                 commonStyles.submitButton,
@@ -153,8 +140,8 @@ const WorkspaceTeam = () => {
                 <p>Or invite your team by sharing this link.</p>
                 <CopyText
                     text={getWorkspaceInvitationLink(
-                        projectData?.project?.secret || '',
-                        workspaceId
+                        data?.workspace?.secret || '',
+                        workspace_id
                     )}
                 />
             </div>
@@ -200,7 +187,7 @@ const WorkspaceTeam = () => {
                                     title={`Remove ${
                                         a?.name || a?.email
                                     } from ${
-                                        projectData?.project?.name
+                                        data?.workspace?.name
                                     }? They will no longer have access to Highlight. You can invite them again if they need access.`}
                                     okText={`Remove ${a?.name || a?.email}`}
                                     cancelText="Cancel"
@@ -209,7 +196,7 @@ const WorkspaceTeam = () => {
                                             deleteAdminFromWorkspace({
                                                 variables: {
                                                     admin_id: a?.id,
-                                                    workspace_id: workspaceId,
+                                                    workspace_id,
                                                 },
                                             });
                                         }

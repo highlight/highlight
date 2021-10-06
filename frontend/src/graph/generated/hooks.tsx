@@ -602,16 +602,8 @@ export type AddSlackBotIntegrationToProjectMutationOptions = Apollo.BaseMutation
     Types.AddSlackBotIntegrationToProjectMutationVariables
 >;
 export const CreateProjectDocument = gql`
-    mutation CreateProject(
-        $project_name: String!
-        $workspace_id: ID
-        $workspace_name: String
-    ) {
-        createProject(
-            project_name: $project_name
-            workspace_id: $workspace_id
-            workspace_name: $workspace_name
-        ) {
+    mutation CreateProject($name: String!, $workspace_id: ID!) {
+        createProject(name: $name, workspace_id: $workspace_id) {
             id
             name
         }
@@ -635,9 +627,8 @@ export type CreateProjectMutationFn = Apollo.MutationFunction<
  * @example
  * const [createProjectMutation, { data, loading, error }] = useCreateProjectMutation({
  *   variables: {
- *      project_name: // value for 'project_name'
+ *      name: // value for 'name'
  *      workspace_id: // value for 'workspace_id'
- *      workspace_name: // value for 'workspace_name'
  *   },
  * });
  */
@@ -659,6 +650,55 @@ export type CreateProjectMutationResult = Apollo.MutationResult<Types.CreateProj
 export type CreateProjectMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateProjectMutation,
     Types.CreateProjectMutationVariables
+>;
+export const CreateWorkspaceDocument = gql`
+    mutation CreateWorkspace($name: String!) {
+        createWorkspace(name: $name) {
+            id
+            name
+        }
+    }
+`;
+export type CreateWorkspaceMutationFn = Apollo.MutationFunction<
+    Types.CreateWorkspaceMutation,
+    Types.CreateWorkspaceMutationVariables
+>;
+
+/**
+ * __useCreateWorkspaceMutation__
+ *
+ * To run a mutation, you first call `useCreateWorkspaceMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateWorkspaceMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createWorkspaceMutation, { data, loading, error }] = useCreateWorkspaceMutation({
+ *   variables: {
+ *      name: // value for 'name'
+ *   },
+ * });
+ */
+export function useCreateWorkspaceMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.CreateWorkspaceMutation,
+        Types.CreateWorkspaceMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.CreateWorkspaceMutation,
+        Types.CreateWorkspaceMutationVariables
+    >(CreateWorkspaceDocument, baseOptions);
+}
+export type CreateWorkspaceMutationHookResult = ReturnType<
+    typeof useCreateWorkspaceMutation
+>;
+export type CreateWorkspaceMutationResult = Apollo.MutationResult<Types.CreateWorkspaceMutation>;
+export type CreateWorkspaceMutationOptions = Apollo.BaseMutationOptions<
+    Types.CreateWorkspaceMutation,
+    Types.CreateWorkspaceMutationVariables
 >;
 export const EditProjectDocument = gql`
     mutation EditProject($id: ID!, $name: String, $billing_email: String) {
@@ -2094,6 +2134,71 @@ export type GetProjectAdminsQueryResult = Apollo.QueryResult<
     Types.GetProjectAdminsQuery,
     Types.GetProjectAdminsQueryVariables
 >;
+export const GetWorkspaceAdminsDocument = gql`
+    query GetWorkspaceAdmins($workspace_id: ID!) {
+        admins: workspace_admins(workspace_id: $workspace_id) {
+            id
+            name
+            email
+            photo_url
+            role
+        }
+        workspace(id: $workspace_id) {
+            id
+            name
+            secret
+        }
+    }
+`;
+
+/**
+ * __useGetWorkspaceAdminsQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspaceAdminsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspaceAdminsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspaceAdminsQuery({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *   },
+ * });
+ */
+export function useGetWorkspaceAdminsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetWorkspaceAdminsQuery,
+        Types.GetWorkspaceAdminsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetWorkspaceAdminsQuery,
+        Types.GetWorkspaceAdminsQueryVariables
+    >(GetWorkspaceAdminsDocument, baseOptions);
+}
+export function useGetWorkspaceAdminsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetWorkspaceAdminsQuery,
+        Types.GetWorkspaceAdminsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetWorkspaceAdminsQuery,
+        Types.GetWorkspaceAdminsQueryVariables
+    >(GetWorkspaceAdminsDocument, baseOptions);
+}
+export type GetWorkspaceAdminsQueryHookResult = ReturnType<
+    typeof useGetWorkspaceAdminsQuery
+>;
+export type GetWorkspaceAdminsLazyQueryHookResult = ReturnType<
+    typeof useGetWorkspaceAdminsLazyQuery
+>;
+export type GetWorkspaceAdminsQueryResult = Apollo.QueryResult<
+    Types.GetWorkspaceAdminsQuery,
+    Types.GetWorkspaceAdminsQueryVariables
+>;
 export const GetSessionCommentsDocument = gql`
     query GetSessionComments($session_secure_id: String!) {
         session_comments(session_secure_id: $session_secure_id) {
@@ -2385,6 +2490,7 @@ export type GetErrorCommentsQueryResult = Apollo.QueryResult<
 export const GetOnboardingStepsDocument = gql`
     query GetOnboardingSteps($project_id: ID!, $admin_id: ID!) {
         workspace: workspace_for_project(project_id: $project_id) {
+            id
             slack_channels
         }
         admins: project_admins(project_id: $project_id) {
@@ -2665,6 +2771,7 @@ export const GetWorkspaceDocument = gql`
         workspace(id: $id) {
             id
             name
+            secret
             projects {
                 id
                 name
@@ -2721,17 +2828,193 @@ export type GetWorkspaceQueryResult = Apollo.QueryResult<
     Types.GetWorkspaceQuery,
     Types.GetWorkspaceQueryVariables
 >;
-export const GetVisibleProjectsAndWorkspacesDocument = gql`
-    query GetVisibleProjectsAndWorkspaces($id: ID!) {
+export const GetWorkspacesDocument = gql`
+    query GetWorkspaces {
         workspaces {
             id
             name
         }
+    }
+`;
+
+/**
+ * __useGetWorkspacesQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspacesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspacesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspacesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetWorkspacesQuery(
+    baseOptions?: Apollo.QueryHookOptions<
+        Types.GetWorkspacesQuery,
+        Types.GetWorkspacesQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetWorkspacesQuery,
+        Types.GetWorkspacesQueryVariables
+    >(GetWorkspacesDocument, baseOptions);
+}
+export function useGetWorkspacesLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetWorkspacesQuery,
+        Types.GetWorkspacesQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetWorkspacesQuery,
+        Types.GetWorkspacesQueryVariables
+    >(GetWorkspacesDocument, baseOptions);
+}
+export type GetWorkspacesQueryHookResult = ReturnType<
+    typeof useGetWorkspacesQuery
+>;
+export type GetWorkspacesLazyQueryHookResult = ReturnType<
+    typeof useGetWorkspacesLazyQuery
+>;
+export type GetWorkspacesQueryResult = Apollo.QueryResult<
+    Types.GetWorkspacesQuery,
+    Types.GetWorkspacesQueryVariables
+>;
+export const GetProjectsAndWorkspacesDocument = gql`
+    query GetProjectsAndWorkspaces {
         projects {
             id
             name
         }
-        project(id: $id) {
+        workspaces {
+            id
+            name
+        }
+    }
+`;
+
+/**
+ * __useGetProjectsAndWorkspacesQuery__
+ *
+ * To run a query within a React component, call `useGetProjectsAndWorkspacesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetProjectsAndWorkspacesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetProjectsAndWorkspacesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetProjectsAndWorkspacesQuery(
+    baseOptions?: Apollo.QueryHookOptions<
+        Types.GetProjectsAndWorkspacesQuery,
+        Types.GetProjectsAndWorkspacesQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetProjectsAndWorkspacesQuery,
+        Types.GetProjectsAndWorkspacesQueryVariables
+    >(GetProjectsAndWorkspacesDocument, baseOptions);
+}
+export function useGetProjectsAndWorkspacesLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetProjectsAndWorkspacesQuery,
+        Types.GetProjectsAndWorkspacesQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetProjectsAndWorkspacesQuery,
+        Types.GetProjectsAndWorkspacesQueryVariables
+    >(GetProjectsAndWorkspacesDocument, baseOptions);
+}
+export type GetProjectsAndWorkspacesQueryHookResult = ReturnType<
+    typeof useGetProjectsAndWorkspacesQuery
+>;
+export type GetProjectsAndWorkspacesLazyQueryHookResult = ReturnType<
+    typeof useGetProjectsAndWorkspacesLazyQuery
+>;
+export type GetProjectsAndWorkspacesQueryResult = Apollo.QueryResult<
+    Types.GetProjectsAndWorkspacesQuery,
+    Types.GetProjectsAndWorkspacesQueryVariables
+>;
+export const GetProjectOrWorkspaceDocument = gql`
+    query GetProjectOrWorkspace(
+        $project_id: ID!
+        $workspace_id: ID!
+        $is_workspace: Boolean!
+    ) {
+        project(id: $project_id) @skip(if: $is_workspace) {
+            id
+            name
+            billing_email
+        }
+        workspace(id: $workspace_id) @include(if: $is_workspace) {
+            id
+            name
+        }
+    }
+`;
+
+/**
+ * __useGetProjectOrWorkspaceQuery__
+ *
+ * To run a query within a React component, call `useGetProjectOrWorkspaceQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetProjectOrWorkspaceQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetProjectOrWorkspaceQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      workspace_id: // value for 'workspace_id'
+ *      is_workspace: // value for 'is_workspace'
+ *   },
+ * });
+ */
+export function useGetProjectOrWorkspaceQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetProjectOrWorkspaceQuery,
+        Types.GetProjectOrWorkspaceQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetProjectOrWorkspaceQuery,
+        Types.GetProjectOrWorkspaceQueryVariables
+    >(GetProjectOrWorkspaceDocument, baseOptions);
+}
+export function useGetProjectOrWorkspaceLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetProjectOrWorkspaceQuery,
+        Types.GetProjectOrWorkspaceQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetProjectOrWorkspaceQuery,
+        Types.GetProjectOrWorkspaceQueryVariables
+    >(GetProjectOrWorkspaceDocument, baseOptions);
+}
+export type GetProjectOrWorkspaceQueryHookResult = ReturnType<
+    typeof useGetProjectOrWorkspaceQuery
+>;
+export type GetProjectOrWorkspaceLazyQueryHookResult = ReturnType<
+    typeof useGetProjectOrWorkspaceLazyQuery
+>;
+export type GetProjectOrWorkspaceQueryResult = Apollo.QueryResult<
+    Types.GetProjectOrWorkspaceQuery,
+    Types.GetProjectOrWorkspaceQueryVariables
+>;
+export const GetProjectDropdownOptionsDocument = gql`
+    query GetProjectDropdownOptions($project_id: ID!) {
+        project(id: $project_id) {
             id
             name
             verbose_id
@@ -2739,60 +3022,125 @@ export const GetVisibleProjectsAndWorkspacesDocument = gql`
             secret
             workspace_id
         }
-        workspace: workspace_for_project(project_id: $id) {
-            slack_webhook_channel
-            secret
+        workspace: workspace_for_project(project_id: $project_id) {
+            id
+            name
+            projects {
+                id
+                name
+            }
         }
     }
 `;
 
 /**
- * __useGetVisibleProjectsAndWorkspacesQuery__
+ * __useGetProjectDropdownOptionsQuery__
  *
- * To run a query within a React component, call `useGetVisibleProjectsAndWorkspacesQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetVisibleProjectsAndWorkspacesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetProjectDropdownOptionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetProjectDropdownOptionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetVisibleProjectsAndWorkspacesQuery({
+ * const { data, loading, error } = useGetProjectDropdownOptionsQuery({
  *   variables: {
- *      id: // value for 'id'
+ *      project_id: // value for 'project_id'
  *   },
  * });
  */
-export function useGetVisibleProjectsAndWorkspacesQuery(
+export function useGetProjectDropdownOptionsQuery(
     baseOptions: Apollo.QueryHookOptions<
-        Types.GetVisibleProjectsAndWorkspacesQuery,
-        Types.GetVisibleProjectsAndWorkspacesQueryVariables
+        Types.GetProjectDropdownOptionsQuery,
+        Types.GetProjectDropdownOptionsQueryVariables
     >
 ) {
     return Apollo.useQuery<
-        Types.GetVisibleProjectsAndWorkspacesQuery,
-        Types.GetVisibleProjectsAndWorkspacesQueryVariables
-    >(GetVisibleProjectsAndWorkspacesDocument, baseOptions);
+        Types.GetProjectDropdownOptionsQuery,
+        Types.GetProjectDropdownOptionsQueryVariables
+    >(GetProjectDropdownOptionsDocument, baseOptions);
 }
-export function useGetVisibleProjectsAndWorkspacesLazyQuery(
+export function useGetProjectDropdownOptionsLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
-        Types.GetVisibleProjectsAndWorkspacesQuery,
-        Types.GetVisibleProjectsAndWorkspacesQueryVariables
+        Types.GetProjectDropdownOptionsQuery,
+        Types.GetProjectDropdownOptionsQueryVariables
     >
 ) {
     return Apollo.useLazyQuery<
-        Types.GetVisibleProjectsAndWorkspacesQuery,
-        Types.GetVisibleProjectsAndWorkspacesQueryVariables
-    >(GetVisibleProjectsAndWorkspacesDocument, baseOptions);
+        Types.GetProjectDropdownOptionsQuery,
+        Types.GetProjectDropdownOptionsQueryVariables
+    >(GetProjectDropdownOptionsDocument, baseOptions);
 }
-export type GetVisibleProjectsAndWorkspacesQueryHookResult = ReturnType<
-    typeof useGetVisibleProjectsAndWorkspacesQuery
+export type GetProjectDropdownOptionsQueryHookResult = ReturnType<
+    typeof useGetProjectDropdownOptionsQuery
 >;
-export type GetVisibleProjectsAndWorkspacesLazyQueryHookResult = ReturnType<
-    typeof useGetVisibleProjectsAndWorkspacesLazyQuery
+export type GetProjectDropdownOptionsLazyQueryHookResult = ReturnType<
+    typeof useGetProjectDropdownOptionsLazyQuery
 >;
-export type GetVisibleProjectsAndWorkspacesQueryResult = Apollo.QueryResult<
-    Types.GetVisibleProjectsAndWorkspacesQuery,
-    Types.GetVisibleProjectsAndWorkspacesQueryVariables
+export type GetProjectDropdownOptionsQueryResult = Apollo.QueryResult<
+    Types.GetProjectDropdownOptionsQuery,
+    Types.GetProjectDropdownOptionsQueryVariables
+>;
+export const GetWorkspaceDropdownOptionsDocument = gql`
+    query GetWorkspaceDropdownOptions($workspace_id: ID!) {
+        workspace(id: $workspace_id) {
+            id
+            name
+            projects {
+                id
+                name
+            }
+        }
+    }
+`;
+
+/**
+ * __useGetWorkspaceDropdownOptionsQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspaceDropdownOptionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspaceDropdownOptionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspaceDropdownOptionsQuery({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *   },
+ * });
+ */
+export function useGetWorkspaceDropdownOptionsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetWorkspaceDropdownOptionsQuery,
+        Types.GetWorkspaceDropdownOptionsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetWorkspaceDropdownOptionsQuery,
+        Types.GetWorkspaceDropdownOptionsQueryVariables
+    >(GetWorkspaceDropdownOptionsDocument, baseOptions);
+}
+export function useGetWorkspaceDropdownOptionsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetWorkspaceDropdownOptionsQuery,
+        Types.GetWorkspaceDropdownOptionsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetWorkspaceDropdownOptionsQuery,
+        Types.GetWorkspaceDropdownOptionsQueryVariables
+    >(GetWorkspaceDropdownOptionsDocument, baseOptions);
+}
+export type GetWorkspaceDropdownOptionsQueryHookResult = ReturnType<
+    typeof useGetWorkspaceDropdownOptionsQuery
+>;
+export type GetWorkspaceDropdownOptionsLazyQueryHookResult = ReturnType<
+    typeof useGetWorkspaceDropdownOptionsLazyQuery
+>;
+export type GetWorkspaceDropdownOptionsQueryResult = Apollo.QueryResult<
+    Types.GetWorkspaceDropdownOptionsQuery,
+    Types.GetWorkspaceDropdownOptionsQueryVariables
 >;
 export const GetAdminDocument = gql`
     query GetAdmin {
@@ -2859,12 +3207,10 @@ export const GetProjectDocument = gql`
             name
             verbose_id
             billing_email
-            secret
         }
         workspace: workspace_for_project(project_id: $id) {
             id
             slack_webhook_channel
-            secret
         }
     }
 `;
@@ -2914,63 +3260,6 @@ export type GetProjectLazyQueryHookResult = ReturnType<
 export type GetProjectQueryResult = Apollo.QueryResult<
     Types.GetProjectQuery,
     Types.GetProjectQueryVariables
->;
-export const GetWorkspaceForProjectDocument = gql`
-    query GetWorkspaceForProject($project_id: ID!) {
-        workspace: workspace_for_project(project_id: $project_id) {
-            id
-            name
-        }
-    }
-`;
-
-/**
- * __useGetWorkspaceForProjectQuery__
- *
- * To run a query within a React component, call `useGetWorkspaceForProjectQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetWorkspaceForProjectQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetWorkspaceForProjectQuery({
- *   variables: {
- *      project_id: // value for 'project_id'
- *   },
- * });
- */
-export function useGetWorkspaceForProjectQuery(
-    baseOptions: Apollo.QueryHookOptions<
-        Types.GetWorkspaceForProjectQuery,
-        Types.GetWorkspaceForProjectQueryVariables
-    >
-) {
-    return Apollo.useQuery<
-        Types.GetWorkspaceForProjectQuery,
-        Types.GetWorkspaceForProjectQueryVariables
-    >(GetWorkspaceForProjectDocument, baseOptions);
-}
-export function useGetWorkspaceForProjectLazyQuery(
-    baseOptions?: Apollo.LazyQueryHookOptions<
-        Types.GetWorkspaceForProjectQuery,
-        Types.GetWorkspaceForProjectQueryVariables
-    >
-) {
-    return Apollo.useLazyQuery<
-        Types.GetWorkspaceForProjectQuery,
-        Types.GetWorkspaceForProjectQueryVariables
-    >(GetWorkspaceForProjectDocument, baseOptions);
-}
-export type GetWorkspaceForProjectQueryHookResult = ReturnType<
-    typeof useGetWorkspaceForProjectQuery
->;
-export type GetWorkspaceForProjectLazyQueryHookResult = ReturnType<
-    typeof useGetWorkspaceForProjectLazyQuery
->;
-export type GetWorkspaceForProjectQueryResult = Apollo.QueryResult<
-    Types.GetWorkspaceForProjectQuery,
-    Types.GetWorkspaceForProjectQueryVariables
 >;
 export const GetBillingDetailsDocument = gql`
     query GetBillingDetails($project_id: ID!) {
