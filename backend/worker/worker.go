@@ -206,17 +206,14 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	if err != nil {
 		return errors.Wrap(err, "error creating events file")
 	}
-	defer eventsClose()
 	resourcesClose, resourcesFile, err := CreateFile(sessionIdString + ".resources.txt")
 	if err != nil {
 		return errors.Wrap(err, "error creating events file")
 	}
-	defer resourcesClose()
 	messagesClose, messagesFile, err := CreateFile(sessionIdString + ".messages.txt")
 	if err != nil {
 		return errors.Wrap(err, "error creating events file")
 	}
-	defer messagesClose()
 
 	payloadManager, err := w.scanSessionPayload(ctx, s, eventsFile, resourcesFile, messagesFile)
 	if err != nil {
@@ -268,6 +265,10 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			activeDuration += tempDuration
 		}
 	}
+
+	eventsClose()
+	resourcesClose()
+	messagesClose()
 
 	// Calculate total session length and write the length to the session.
 	sessionTotalLength := CalculateSessionLength(firstEventTimestamp, lastEventTimestamp)
