@@ -490,8 +490,6 @@ func (w *Worker) Start() {
 	ctx := context.Background()
 	for {
 		time.Sleep(1 * time.Second)
-		workerSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.unit"))
-		workerSpan.SetTag("backend", util.Worker)
 		now := time.Now()
 		seconds := 30
 		if util.IsDevEnv() {
@@ -548,7 +546,6 @@ func (w *Worker) Start() {
 		}
 		// wait for all workers to finish so we don't query sessions that are still being processed
 		wp.StopWait()
-		workerSpan.Finish()
 	}
 }
 
