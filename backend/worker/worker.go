@@ -527,10 +527,10 @@ func (w *Worker) Start() {
 		}
 
 		// process 80 sessions at a time.
-		wp := workerpool.New(160)
+		wp := workerpool.New(len(sessions))
 		for _, session := range sessions {
 			session := session
-			wp.Submit(func() {
+			wp.SubmitRecover(func() {
 				span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"), tracer.Tag("session_id", strconv.Itoa(session.ID)))
 				log.Infof("beginning to process session: %d", session.ID)
 				if err := w.processSession(ctx, session); err != nil {
