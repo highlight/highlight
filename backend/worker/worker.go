@@ -2,10 +2,13 @@ package worker
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"math/rand"
 	"os"
+	"runtime"
 	"strconv"
+	"sync"
 	"time"
 
 	"gorm.io/gorm"
@@ -24,7 +27,6 @@ import (
 	"github.com/highlight-run/highlight/backend/payload"
 	mgraph "github.com/highlight-run/highlight/backend/private-graph/graph"
 	"github.com/highlight-run/highlight/backend/util"
-	"github.com/highlight-run/workerpool"
 )
 
 // Worker is a job runner that parses sessions
@@ -499,7 +501,7 @@ func (w *Worker) Start() {
 		processSessionLimit := 10000
 		someSecondsAgo := now.Add(time.Duration(-1*seconds) * time.Second)
 		sessions := []*model.Session{}
-		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName(now.String()))
+		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName("worker.sessionsQuery"))
 		if err := w.Resolver.DB.
 			Where("(payload_updated_at < ? OR payload_updated_at IS NULL) AND (processed = ?)", someSecondsAgo, false).
 			Limit(processSessionLimit).Find(&sessions).Error; err != nil {
@@ -527,11 +529,19 @@ func (w *Worker) Start() {
 		}
 
 		// process 80 sessions at a time.
-		wp := workerpool.New(len(sessions))
+		var wg sync.WaitGroup
 		for _, session := range sessions {
 			session := session
-			wp.SubmitRecover(func() {
-				span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"), tracer.Tag("session_id", strconv.Itoa(session.ID)))
+			ctx := ctx
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				defer func() {
+					if rec := recover(); rec != nil {
+						log.Error(fmt.Errorf("panic: %+v\n%s", rec, collectStack()))
+					}
+				}()
+				span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"))
 				log.Infof("beginning to process session: %d", session.ID)
 				if err := w.processSession(ctx, session); err != nil {
 					log.WithField("session_id", session.ID).Error(e.Wrap(err, "error processing main session"))
@@ -541,10 +551,9 @@ func (w *Worker) Start() {
 				hlog.Incr("sessionsProcessed", nil, 1)
 				log.Infof("finished processing session: %d", session.ID)
 				span.Finish()
-			})
+			}()
 		}
-		// wait for all workers to finish so we don't query sessions that are still being processed
-		wp.StopWait()
+		wg.Wait()
 	}
 }
 
@@ -601,4 +610,10 @@ func reportProcessSessionCount(db *gorm.DB) {
 		}
 		hlog.Histogram("processSessionsCount", float64(count), nil, 1)
 	}
+}
+
+func collectStack() []byte {
+	buf := make([]byte, 64<<10)
+	buf = buf[:runtime.Stack(buf, false)]
+	return buf
 }
