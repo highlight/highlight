@@ -527,7 +527,7 @@ func (w *Worker) Start() {
 		}
 
 		// process 80 sessions at a time.
-		wp := workerpool.New(80)
+		wp := workerpool.New(160)
 		for _, session := range sessions {
 			session := session
 			wp.Submit(func() {
