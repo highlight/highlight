@@ -5,6 +5,7 @@ import (
 	"io"
 	"math/rand"
 	"os"
+	"runtime"
 	"strconv"
 	"time"
 
@@ -541,7 +542,14 @@ func (w *Worker) Start() {
 			log.Infof("sessions that will be processed: %v", sessionIds)
 		}
 
-		wp := workerpool.New(80)
+		wp := workerpool.New(40)
+		wp.SetPanicHandler(func() {
+			if rec := recover(); rec != nil {
+				buf := make([]byte, 64<<10)
+				buf = buf[:runtime.Stack(buf, false)]
+				log.Errorf("panic: %+v\n%s", rec, buf)
+			}
+		})
 		// process 80 sessions at a time.
 		for _, session := range sessions {
 			session := session
