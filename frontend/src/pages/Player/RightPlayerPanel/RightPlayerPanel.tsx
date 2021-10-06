@@ -1,7 +1,6 @@
 import EventStream from '@pages/Player/components/EventStream/EventStream';
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils';
-import DetailPanel from '@pages/Player/Toolbar/DevToolsWindow/DetailPanel/DetailPanel';
 import classNames from 'classnames';
 import React, { useEffect } from 'react';
 
@@ -22,19 +21,9 @@ const RightPlayerPanel = () => {
         setShowRightPanel,
     } = usePlayerConfiguration();
     const { canViewSession } = useReplayerContext();
-    const {
-        detailedPanel,
-        setDetailedPanel,
-        setSelectedRightPanelTab,
-    } = usePlayerUIContext();
+    const { setSelectedRightPanelTab, detailedPanel } = usePlayerUIContext();
 
     const showRightPanel = showRightPanelPreference && canViewSession;
-
-    useEffect(() => {
-        if (detailedPanel) {
-            setShowRightPanel(true);
-        }
-    }, [detailedPanel, setShowRightPanel]);
 
     useEffect(() => {
         const commentId = new URLSearchParams(location.search).get(
@@ -54,23 +43,19 @@ const RightPlayerPanel = () => {
                     [styles.hidden]: !showRightPanel,
                 })}
             >
-                <DetailPanel />
                 <PanelToggleButton
                     className={classNames(
                         playerPageStyles.panelToggleButton,
                         playerPageStyles.panelToggleButtonRight,
                         {
                             [playerPageStyles.panelShown]: showRightPanel,
+                            [styles.toggleButtonHidden]: !!detailedPanel,
                         }
                     )}
                     direction="right"
                     isOpen={showRightPanel}
                     onClick={() => {
-                        if (detailedPanel) {
-                            setDetailedPanel(undefined);
-                        } else {
-                            setShowRightPanel(!showRightPanel);
-                        }
+                        setShowRightPanel(!showRightPanel);
                     }}
                 />
                 <div className={styles.playerRightPanelCollapsible}>

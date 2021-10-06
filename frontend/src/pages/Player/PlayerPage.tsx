@@ -30,6 +30,7 @@ import {
 import RightPlayerPanel from '@pages/Player/RightPlayerPanel/RightPlayerPanel';
 import SearchPanel from '@pages/Player/SearchPanel/SearchPanel';
 import SessionLevelBar from '@pages/Player/SessionLevelBar/SessionLevelBar';
+import DetailPanel from '@pages/Player/Toolbar/DevToolsWindow/DetailPanel/DetailPanel';
 import { NewCommentForm } from '@pages/Player/Toolbar/NewCommentForm/NewCommentForm';
 import { Toolbar } from '@pages/Player/Toolbar/Toolbar';
 import { usePlayerFullscreen } from '@pages/Player/utils/PlayerHooks';
@@ -396,7 +397,10 @@ const Player = ({ integrated }: Props) => {
                                     </div>
 
                                     {!isPlayerFullscreen && (
-                                        <RightPlayerPanel />
+                                        <>
+                                            <RightPlayerPanel />
+                                            <DetailPanel />
+                                        </>
                                     )}
                                 </div>
                             </div>
