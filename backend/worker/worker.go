@@ -538,7 +538,7 @@ func (w *Worker) Start() {
 					span.Finish(tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID)))
 					return
 				}
-				hlog.Incr("processSession", nil, 1)
+				hlog.Incr("sessionsProcessed", nil, 1)
 				log.Infof("finished processing session: %d", session.ID)
 				span.Finish()
 			})
