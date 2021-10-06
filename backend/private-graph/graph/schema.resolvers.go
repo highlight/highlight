@@ -465,7 +465,7 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 
 	// For this Real Magic, set all new admins to normal role so they don't have access to billing.
 	// This should be removed when we implement RBAC.
-	if workspaceID == 231 {
+	if workspaceID == 388 {
 		admin, err := r.getCurrentAdmin(ctx)
 		if err != nil {
 			log.Error("Failed get current admin.")
