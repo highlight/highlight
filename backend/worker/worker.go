@@ -615,20 +615,21 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 	var events *parse.ReplayEvents
 	var err error
 	if input == nil {
-		err = errors.New("processEventChunkInput cannot be nil")
-		goto Error
+		o.Error = errors.New("processEventChunkInput cannot be nil")
+		return o
 	}
 	if input.EventsChunk == nil {
-		err = errors.New("EventsChunk cannot be nil")
-		goto Error
+		o.Error = errors.New("EventsChunk cannot be nil")
+		return o
 	}
 	if input.ClickEventQueue == nil {
-		err = errors.New("ClickEventQueue cannot be nil")
-		goto Error
+		o.Error = errors.New("ClickEventQueue cannot be nil")
+		return o
 	}
 	events, err = parse.EventsFromString(input.EventsChunk.Events)
 	if err != nil {
-		goto Error
+		o.Error = err
+		return o
 	}
 	o.FirstEventTimestamp = input.FirstEventTimestamp
 	o.LastEventTimestamp = input.LastEventTimestamp
@@ -661,97 +662,71 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 
 			for _, elem := range toRemove {
 				input.ClickEventQueue.Remove(elem)
-				if o.CurrentlyInRageClickSet {
-					last := toRemove[len(toRemove)-1].Value.(*parse.ReplayEvent)
-					if last.Timestamp.After(o.RageClickSets[len(o.RageClickSets)-1].EndTimestamp) {
-						o.RageClickSets[len(o.RageClickSets)-1].EndTimestamp = last.Timestamp
-					}
-				}
 			}
 
 			if input.ClickEventQueue.Len() < 5 && o.CurrentlyInRageClickSet {
 				o.CurrentlyInRageClickSet = false
-				if input.ClickEventQueue.Len() > 0 {
-					last := toRemove[len(toRemove)-1].Value.(*parse.ReplayEvent)
-					if last.Timestamp.After(o.RageClickSets[len(o.RageClickSets)-1].EndTimestamp) {
-						o.RageClickSets[len(o.RageClickSets)-1].EndTimestamp = last.Timestamp
-					}
-				}
 			}
 
 			var mouseInteractionEventData parse.MouseInteractionEventData
-			var shouldPushEvent bool
 			err = json.Unmarshal(event.Data, &mouseInteractionEventData)
 			if err != nil {
-				goto Error
+				o.Error = err
+				return o
 			}
 			if mouseInteractionEventData.X == nil || mouseInteractionEventData.Y == nil ||
 				mouseInteractionEventData.Type == nil || mouseInteractionEventData.Source == nil {
 				// all values must not be nil on a click/touch event
-				goto HandleRageClickEvent
+				continue
 			}
 			if *mouseInteractionEventData.Source != parse.MouseInteraction {
 				// Source must be MouseInteraction for a click/touch event
-				goto HandleRageClickEvent
+				continue
 			}
 			if _, ok := map[parse.MouseInteractions]bool{parse.Click: true,
 				parse.DblClick: true, parse.TouchStart: true}[*mouseInteractionEventData.Type]; !ok {
 				// Type must be a Click, Double Click, or Touch Start for a click/touch event
-				goto HandleRageClickEvent
+				continue
 			}
 
-			if input.ClickEventQueue.Len() == 0 {
-				shouldPushEvent = true
-			} else {
+			// save all new click events
+			input.ClickEventQueue.PushBack(event)
+
+			numTotal := 0
+			rageClick := model.RageClickEvent{
+				SessionID:   input.SessionID,
+				TotalClicks: 5,
+			}
+			for element := input.ClickEventQueue.Front(); element != nil; element = element.Next() {
+				el := element.Value.(*parse.ReplayEvent)
 				var prev *parse.MouseInteractionEventData
-				err = json.Unmarshal(input.ClickEventQueue.Back().Value.(*parse.ReplayEvent).Data, &prev)
+				err = json.Unmarshal(el.Data, &prev)
 				if err != nil {
-					goto Error
+					o.Error = err
+					return o
 				}
 				first := math.Pow(*mouseInteractionEventData.X-*prev.X, 2)
 				second := math.Pow(*mouseInteractionEventData.Y-*prev.Y, 2)
 				if math.Sqrt(first+second) <= 32 {
-					shouldPushEvent = true
+					numTotal += 1
+					if !o.CurrentlyInRageClickSet && rageClick.StartTimestamp.IsZero() {
+						rageClick.StartTimestamp = event.Timestamp
+					}
 				}
 			}
-
-			if shouldPushEvent {
-				// this is here so that we only push events in one place in the code
+			if numTotal >= 5 {
 				if o.CurrentlyInRageClickSet {
 					o.RageClickSets[len(o.RageClickSets)-1].TotalClicks += 1
+					o.RageClickSets[len(o.RageClickSets)-1].EndTimestamp = event.Timestamp
+				} else {
+					o.CurrentlyInRageClickSet = true
+					rageClick.EndTimestamp = event.Timestamp
+					rageClick.TotalClicks = numTotal
+					o.RageClickSets = append(o.RageClickSets, &rageClick)
 				}
-				input.ClickEventQueue.PushBack(event)
-			}
-
-		HandleRageClickEvent:
-			// create rage click start or end event
-			if input.ClickEventQueue.Len() >= 5 && !o.CurrentlyInRageClickSet {
-				// create start of rage click set event
-				o.CurrentlyInRageClickSet = true
-				first := input.ClickEventQueue.Front().Value.(*parse.ReplayEvent)
-				o.RageClickSets = append(o.RageClickSets, &model.RageClickEvent{
-					SessionID:      input.SessionID,
-					StartTimestamp: first.Timestamp,
-					TotalClicks:    5, // the start of a rage click set happens at 5 clicks
-				})
-			} else if input.ClickEventQueue.Len() < 5 && input.ClickEventQueue.Len() > 0 && o.CurrentlyInRageClickSet {
-				// create end of rage click set event
-				o.CurrentlyInRageClickSet = false
-				last := input.ClickEventQueue.Back().Value.(*parse.ReplayEvent)
-				o.RageClickSets[len(o.RageClickSets)-1].EndTimestamp = last.Timestamp
-				continue
-			}
-			if input.ClickEventQueue.Len() > 0 && o.CurrentlyInRageClickSet {
-				last := input.ClickEventQueue.Back().Value.(*parse.ReplayEvent)
-				o.RageClickSets[len(o.RageClickSets)-1].EndTimestamp = last.Timestamp
 			}
 		}
 	}
 
-	return o
-
-	// set error then return
-Error:
-	o.Error = err
 	return o
 }
