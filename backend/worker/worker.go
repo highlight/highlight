@@ -523,17 +523,19 @@ func (w *Worker) Start() {
 			log.Infof("sessions that will be processed: %v", sessionIds)
 		}
 
-		// process 4 sessions at a time. this number was chosen arbitrarily.
-		wp := workerpool.New(40)
+		// process 80 sessions at a time. this number was chosen arbitrarily.
+		wp := workerpool.New(80)
 		for _, session := range sessions {
 			session := session
 			wp.Submit(func() {
 				span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"), tracer.Tag("session_id", strconv.Itoa(session.ID)))
+				log.Infof("beginning to process session: %d", session.ID)
 				if err := w.processSession(ctx, session); err != nil {
 					log.WithField("session_id", session.ID).Error(e.Wrap(err, "error processing main session"))
 					span.Finish(tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID)))
 					return
 				}
+				log.Infof("finished processing session: %d", session.ID)
 				span.Finish()
 			})
 		}
