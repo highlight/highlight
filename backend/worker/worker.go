@@ -533,8 +533,9 @@ func (w *Worker) Start() {
 		for _, session := range sessions {
 			session := session
 			ctx := ctx
+			wg.Add(1)
 			go func() {
-				wg.Add(1)
+				defer wg.Done()
 				defer func() {
 					if rec := recover(); rec != nil {
 						log.Error(fmt.Errorf("panic: %+v\n%s", rec, collectStack()))
@@ -550,7 +551,6 @@ func (w *Worker) Start() {
 				hlog.Incr("sessionsProcessed", nil, 1)
 				log.Infof("finished processing session: %d", session.ID)
 				span.Finish()
-				wg.Done()
 			}()
 		}
 		wg.Wait()
