@@ -180,6 +180,7 @@
 .playerBody {
     --left-panel-width: 475px;
     --right-panel-width: 350px;
+    --right-panel-width-no-units: 350;
 
     display: grid;
     grid-template-columns: 1fr;
