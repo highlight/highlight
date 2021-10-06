@@ -1,3 +1,4 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import { MiniWorkspaceIcon } from '@components/Header/WorkspaceDropdown/WorkspaceDropdown';
 import SvgArrowRightIcon from '@icons/ArrowRightIcon';
 import { useParams } from '@util/react-router/useParams';
@@ -23,6 +24,7 @@ const ApplicationPicker = () => {
     const isWorkspaceLevel = workspace_id !== undefined;
     const history = useHistory();
     const { pathname } = useLocation();
+    const { isHighlightAdmin } = useAuthContext();
 
     const newProjectOption = {
         value: '-1',
@@ -77,7 +79,7 @@ const ApplicationPicker = () => {
               }))
             : []),
         newProjectOption,
-        switchWorkspaceOption,
+        ...(isHighlightAdmin ? [switchWorkspaceOption] : []),
         workspaceSettingsOption,
     ];
 
@@ -103,9 +105,7 @@ const ApplicationPicker = () => {
                     } else if (projectId === workspaceSettingsOption.value) {
                         history.push(`/w/${currentWorkspace!.id}/team`);
                     } else if (projectId === switchWorkspaceOption.value) {
-                        history.push(
-                            `/switch?current_workspace=${currentWorkspace!.id}`
-                        );
+                        history.push(`/switch`);
                     } else {
                         const path = isWorkspaceLevel
                             ? ''

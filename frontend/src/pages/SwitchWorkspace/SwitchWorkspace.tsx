@@ -7,10 +7,6 @@ import { StringParam, useQueryParam } from 'use-query-params';
 
 import styles from './SwitchWorkspace.module.scss';
 
-type Inputs = {
-    name: string;
-};
-
 const SwitchWorkspace = () => {
     const [currentWorkspaceId] = useQueryParam(
         'current_workspace',
@@ -38,15 +34,7 @@ const SwitchWorkspace = () => {
         <div className={styles.box}>
             <form>
                 <h2 className={styles.title}>{`Select Workspace`}</h2>
-                <p className={styles.subTitle}>
-                    You can choose a different workspace to switch to or{' '}
-                    <span
-                        onClick={() => history.push('/new')}
-                        className={styles.newWorkspace}
-                    >
-                        Create a New Workspace.
-                    </span>
-                </p>
+                <p className={styles.subTitle}>Choose a workspace to use.</p>
                 <Select
                     className={styles.fullWidth}
                     options={workspaceOptions}

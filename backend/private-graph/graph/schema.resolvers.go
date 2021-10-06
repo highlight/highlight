@@ -2431,7 +2431,7 @@ func (r *queryResolver) Workspace(ctx context.Context, id int) (*model.Workspace
 	}
 
 	projects := []model.Project{}
-	if err := r.DB.Model(&workspace).Association("Projects").Find(&projects); err != nil {
+	if err := r.DB.Order("name ASC").Model(&workspace).Association("Projects").Find(&projects); err != nil {
 		return nil, e.Wrap(err, "error querying associated projects")
 	}
 
@@ -2454,7 +2454,7 @@ func (r *queryResolver) WorkspaceForProject(ctx context.Context, projectID int) 
 	workspace.Secret = new(string)
 
 	projects := []model.Project{}
-	if err := r.DB.Model(&workspace).Association("Projects").Find(&projects); err != nil {
+	if err := r.DB.Order("name ASC").Model(&workspace).Association("Projects").Find(&projects); err != nil {
 		return nil, e.Wrap(err, "error querying associated projects")
 	}
 

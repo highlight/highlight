@@ -95,19 +95,9 @@ const NewProjectPage = () => {
                 <h2 className={styles.title}>{`Create a ${pageTypeCaps}`}</h2>
                 <p className={styles.subTitle}>
                     {isWorkspace &&
-                        `A workspace is a group of projects that can share team members. If you want to use an existing workspace instead, you can `}
-                    {isWorkspace && (
-                        <span
-                            onClick={() => history.push('/switch')}
-                            className={styles.switchWorkspace}
-                        >
-                            Switch Workspace.
-                        </span>
-                    )}
+                        `Let's create a workspace! This is usually your company name. On the next step, we will add a project to your workspace.`}
                     {!isWorkspace &&
-                        `This project will be added to the '${
-                            data?.workspace!.name
-                        }' workspace. Enter the name of your project and you'll be good to go!`}
+                        `Enter the name of your project and you'll be good to go!`}
                 </p>
                 <div className={commonStyles.errorMessage}>
                     {errors.name &&
