@@ -45,6 +45,7 @@ const SessionSearchFilters = () => {
                 !!searchParams.date_range?.start_date,
             !!searchParams.excluded_properties?.length,
             !!searchParams.excluded_track_properties?.length,
+            !!searchParams.show_live_sessions,
         ];
 
         setFiltersSetCount(
@@ -63,6 +64,7 @@ const SessionSearchFilters = () => {
         searchParams.length_range?.max,
         searchParams.length_range?.min,
         searchParams.os,
+        searchParams.show_live_sessions,
     ]);
 
     return (
