@@ -101,7 +101,7 @@ const NewProjectPage = () => {
                             onClick={() => history.push('/switch')}
                             className={styles.switchWorkspace}
                         >
-                            Change Workspace.
+                            Switch Workspace.
                         </span>
                     )}
                     {!isWorkspace &&

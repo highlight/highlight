@@ -96,7 +96,9 @@ const ApplicationPicker = () => {
                 }
                 options={applicationOptions}
                 onChange={(projectId) => {
-                    if (projectId === newProjectOption.value) {
+                    if (!currentWorkspace) {
+                        history.push('/');
+                    } else if (projectId === newProjectOption.value) {
                         history.push(`/w/${currentWorkspace!.id}/new`);
                     } else if (projectId === workspaceSettingsOption.value) {
                         history.push(`/w/${currentWorkspace!.id}/team`);

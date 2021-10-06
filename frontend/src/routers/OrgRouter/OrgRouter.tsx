@@ -63,7 +63,7 @@ export const ProjectRouter = () => {
         }
     }, [isLoggedIn]);
 
-    if (integratedLoading || loading) {
+    if (loading) {
         return null;
     }
     return (

@@ -39,7 +39,7 @@ const SwitchWorkspace = () => {
             <form>
                 <h2 className={styles.title}>{`Select Workspace`}</h2>
                 <p className={styles.subTitle}>
-                    You can choose a different workspace to switch to, or{' '}
+                    You can choose a different workspace to switch to or{' '}
                     <span
                         onClick={() => history.push('/new')}
                         className={styles.newWorkspace}
