@@ -2,13 +2,11 @@ package worker
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"math/rand"
 	"os"
 	"runtime"
 	"strconv"
-	"sync"
 	"time"
 
 	"gorm.io/gorm"
@@ -27,6 +25,7 @@ import (
 	"github.com/highlight-run/highlight/backend/payload"
 	mgraph "github.com/highlight-run/highlight/backend/private-graph/graph"
 	"github.com/highlight-run/highlight/backend/util"
+	"github.com/highlight-run/workerpool"
 )
 
 // Worker is a job runner that parses sessions
@@ -543,19 +542,12 @@ func (w *Worker) Start() {
 			log.Infof("sessions that will be processed: %v", sessionIds)
 		}
 
+		wp := workerpool.New(160)
 		// process 80 sessions at a time.
-		var wg sync.WaitGroup
 		for _, session := range sessions {
 			session := session
 			ctx := ctx
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				defer func() {
-					if rec := recover(); rec != nil {
-						log.Error(fmt.Errorf("panic: %+v\n%s", rec, collectStack()))
-					}
-				}()
+			wp.SubmitRecover(func() {
 				span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"))
 				log.Infof("beginning to process session: %d", session.ID)
 				if err := w.processSession(ctx, session); err != nil {
@@ -566,9 +558,8 @@ func (w *Worker) Start() {
 				hlog.Incr("sessionsProcessed", nil, 1)
 				log.Infof("finished processing session: %d", session.ID)
 				span.Finish()
-			}()
+			})
 		}
-		wg.Wait()
 	}
 }
 
