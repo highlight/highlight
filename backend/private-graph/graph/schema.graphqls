@@ -1,7 +1,7 @@
 # MAIN GRAPH
 
 scalar Any
-scalar Time
+scalar Timestamp
 scalar Int64
 
 type Field {
@@ -27,7 +27,7 @@ type Session {
     client_version: String
     language: String!
     identifier: String!
-    created_at: Time
+    created_at: Timestamp
     length: Int
     active_length: Int
     user_object: Any
@@ -84,7 +84,7 @@ type Project {
     verbose_id: String!
     name: String!
     billing_email: String
-    trial_end_date: Time
+    trial_end_date: Timestamp
     slack_webhook_channel: String
     slack_channels: String
     secret: String
@@ -117,7 +117,7 @@ type ErrorObject {
     lineNumber: Int
     columnNumber: Int
     stack_trace: [Any]
-    timestamp: Time
+    timestamp: Timestamp
     payload: String
 }
 
@@ -128,7 +128,7 @@ type ErrorField {
 }
 
 type ErrorGroup {
-    created_at: Time!
+    created_at: Timestamp!
     id: ID!
     secure_id: String!
     project_id: Int!
@@ -149,7 +149,7 @@ type ErrorMetadata {
     session_id: Int!
     session_secure_id: String!
     environment: String
-    timestamp: Time
+    timestamp: Timestamp
     os: String
     browser: String
     visited_url: String
@@ -243,13 +243,13 @@ type ErrorSearchParams {
 }
 
 type DateRange {
-    start_date: Time
-    end_date: Time
+    start_date: Timestamp
+    end_date: Timestamp
 }
 
 input DateRangeInput {
-    start_date: Time
-    end_date: Time
+    start_date: Timestamp
+    end_date: Timestamp
 }
 
 type LengthRange {
@@ -315,8 +315,8 @@ type SessionComment {
     id: ID!
     project_id: ID!
     timestamp: Int
-    created_at: Time!
-    updated_at: Time!
+    created_at: Timestamp!
+    updated_at: Timestamp!
     session_id: Int!
     session_secure_id: String!
     author: SanitizedAdmin
@@ -330,10 +330,10 @@ type SessionComment {
 type ErrorComment {
     id: ID!
     project_id: ID!
-    created_at: Time!
+    created_at: Timestamp!
     error_id: Int!
     error_secure_id: String!
-    updated_at: Time!
+    updated_at: Timestamp!
     author: SanitizedAdmin!
     text: String!
 }
@@ -346,13 +346,13 @@ enum SessionLifecycle {
 
 type DailySessionCount {
     project_id: ID!
-    date: Time!
+    date: Timestamp!
     count: Int64!
 }
 
 type DailyErrorCount {
     project_id: ID!
-    date: Time!
+    date: Timestamp!
     count: Int64!
 }
 
