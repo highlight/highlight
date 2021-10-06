@@ -496,7 +496,7 @@ func (w *Worker) Start() {
 		if util.IsDevEnv() {
 			seconds = 8
 		}
-		processSessionLimit := 2048
+		processSessionLimit := 10000
 		someSecondsAgo := now.Add(time.Duration(-1*seconds) * time.Second)
 		sessions := []*model.Session{}
 		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName(now.String()))
