@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
 	"github.com/pkg/errors"
@@ -487,16 +488,15 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 // Start begins the worker's tasks.
 func (w *Worker) Start() {
 	ctx := context.Background()
+	go reportProcessSessionCount(w.Resolver.DB)
 	for {
 		time.Sleep(1 * time.Second)
-		workerSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.unit"))
-		workerSpan.SetTag("backend", util.Worker)
 		now := time.Now()
 		seconds := 30
 		if util.IsDevEnv() {
 			seconds = 8
 		}
-		processSessionLimit := 2048
+		processSessionLimit := 10000
 		someSecondsAgo := now.Add(time.Duration(-1*seconds) * time.Second)
 		sessions := []*model.Session{}
 		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName(now.String()))
@@ -527,7 +527,7 @@ func (w *Worker) Start() {
 		}
 
 		// process 80 sessions at a time.
-		wp := workerpool.New(80)
+		wp := workerpool.New(160)
 		for _, session := range sessions {
 			session := session
 			wp.Submit(func() {
@@ -545,7 +545,6 @@ func (w *Worker) Start() {
 		}
 		// wait for all workers to finish so we don't query sessions that are still being processed
 		wp.StopWait()
-		workerSpan.Finish()
 	}
 }
 
@@ -582,4 +581,24 @@ func getActiveDuration(event *model.EventsObject, firstEventTimestamp time.Time,
 		}
 	}
 	return activeDuration, firstEventTimestamp, lastEventTimestamp, nil
+}
+
+func reportProcessSessionCount(db *gorm.DB) {
+	for {
+		time.Sleep(5 * time.Second)
+		var count int64
+		if err := db.Raw(`
+			SELECT COUNT(*)
+			FROM sessions
+			WHERE (
+				payload_updated_at < (now() - 8* interval '1 second') 
+				OR payload_updated_at IS NULL
+			) 
+			AND processed=false;
+		`).Scan(&count).Error; err != nil {
+			log.Error("error getting count of sessions to process")
+			continue
+		}
+		hlog.Histogram("processSessionsCount", float64(count), nil, 1)
+	}
 }
