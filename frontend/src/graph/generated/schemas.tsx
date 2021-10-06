@@ -105,9 +105,18 @@ export type Project = {
     name: Scalars['String'];
     billing_email?: Maybe<Scalars['String']>;
     trial_end_date?: Maybe<Scalars['Time']>;
+    secret?: Maybe<Scalars['String']>;
+    workspace_id: Scalars['ID'];
+};
+
+export type Workspace = {
+    __typename?: 'Workspace';
+    id: Scalars['ID'];
+    name: Scalars['String'];
     slack_webhook_channel?: Maybe<Scalars['String']>;
     slack_channels?: Maybe<Scalars['String']>;
     secret?: Maybe<Scalars['String']>;
+    projects: Array<Maybe<Project>>;
 };
 
 export type Segment = {
@@ -458,7 +467,7 @@ export type Query = {
     error_comments: Array<Maybe<ErrorComment>>;
     error_comments_for_admin: Array<Maybe<ErrorComment>>;
     error_comments_for_project: Array<Maybe<ErrorComment>>;
-    admins: Array<Maybe<Admin>>;
+    project_admins: Array<Maybe<Admin>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
     unprocessedSessionsCount?: Maybe<Scalars['Int64']>;
     adminHasCreatedComment?: Maybe<Scalars['Boolean']>;
@@ -477,6 +486,7 @@ export type Query = {
     property_suggestion?: Maybe<Array<Maybe<Field>>>;
     error_field_suggestion?: Maybe<Array<Maybe<ErrorField>>>;
     projects?: Maybe<Array<Maybe<Project>>>;
+    workspaces?: Maybe<Array<Maybe<Workspace>>>;
     error_alert?: Maybe<ErrorAlert>;
     session_feedback_alert?: Maybe<SessionAlert>;
     new_user_alert?: Maybe<SessionAlert>;
@@ -488,6 +498,8 @@ export type Query = {
     slack_members: Array<Maybe<SanitizedSlackChannel>>;
     is_integrated_with_slack: Scalars['Boolean'];
     project?: Maybe<Project>;
+    workspace?: Maybe<Workspace>;
+    workspace_for_project?: Maybe<Workspace>;
     admin?: Maybe<Admin>;
     segments?: Maybe<Array<Maybe<Segment>>>;
     error_segments?: Maybe<Array<Maybe<ErrorSegment>>>;
@@ -548,7 +560,7 @@ export type QueryError_Comments_For_ProjectArgs = {
     project_id: Scalars['ID'];
 };
 
-export type QueryAdminsArgs = {
+export type QueryProject_AdminsArgs = {
     project_id: Scalars['ID'];
 };
 
@@ -684,6 +696,14 @@ export type QueryProjectArgs = {
     id: Scalars['ID'];
 };
 
+export type QueryWorkspaceArgs = {
+    id: Scalars['ID'];
+};
+
+export type QueryWorkspace_For_ProjectArgs = {
+    project_id: Scalars['ID'];
+};
+
 export type QuerySegmentsArgs = {
     project_id: Scalars['ID'];
 };
@@ -700,13 +720,17 @@ export type Mutation = {
     __typename?: 'Mutation';
     createProject?: Maybe<Project>;
     editProject?: Maybe<Project>;
+    editWorkspace?: Maybe<Workspace>;
     markSessionAsViewed?: Maybe<Session>;
     markSessionAsStarred?: Maybe<Session>;
     updateErrorGroupState?: Maybe<ErrorGroup>;
     deleteProject?: Maybe<Scalars['Boolean']>;
-    sendAdminInvite?: Maybe<Scalars['String']>;
+    sendAdminProjectInvite?: Maybe<Scalars['String']>;
+    sendAdminWorkspaceInvite?: Maybe<Scalars['String']>;
     addAdminToProject?: Maybe<Scalars['ID']>;
+    addAdminToWorkspace?: Maybe<Scalars['ID']>;
     deleteAdminFromProject?: Maybe<Scalars['ID']>;
+    deleteAdminFromWorkspace?: Maybe<Scalars['ID']>;
     createSegment?: Maybe<Segment>;
     emailSignup: Scalars['String'];
     editSegment?: Maybe<Scalars['Boolean']>;
@@ -732,13 +756,20 @@ export type Mutation = {
 };
 
 export type MutationCreateProjectArgs = {
-    name: Scalars['String'];
+    project_name: Scalars['String'];
+    workspace_id?: Maybe<Scalars['ID']>;
+    workspace_name?: Maybe<Scalars['String']>;
 };
 
 export type MutationEditProjectArgs = {
     id: Scalars['ID'];
     name?: Maybe<Scalars['String']>;
     billing_email?: Maybe<Scalars['String']>;
+};
+
+export type MutationEditWorkspaceArgs = {
+    id: Scalars['ID'];
+    name?: Maybe<Scalars['String']>;
 };
 
 export type MutationMarkSessionAsViewedArgs = {
@@ -763,8 +794,14 @@ export type MutationDeleteProjectArgs = {
     id: Scalars['ID'];
 };
 
-export type MutationSendAdminInviteArgs = {
+export type MutationSendAdminProjectInviteArgs = {
     project_id: Scalars['ID'];
+    email: Scalars['String'];
+    base_url: Scalars['String'];
+};
+
+export type MutationSendAdminWorkspaceInviteArgs = {
+    workspace_id: Scalars['ID'];
     email: Scalars['String'];
     base_url: Scalars['String'];
 };
@@ -774,8 +811,18 @@ export type MutationAddAdminToProjectArgs = {
     invite_id: Scalars['String'];
 };
 
+export type MutationAddAdminToWorkspaceArgs = {
+    workspace_id: Scalars['ID'];
+    invite_id: Scalars['String'];
+};
+
 export type MutationDeleteAdminFromProjectArgs = {
     project_id: Scalars['ID'];
+    admin_id: Scalars['ID'];
+};
+
+export type MutationDeleteAdminFromWorkspaceArgs = {
+    workspace_id: Scalars['ID'];
     admin_id: Scalars['ID'];
 };
 

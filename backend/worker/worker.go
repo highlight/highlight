@@ -361,8 +361,13 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			return e.Wrapf(err, "[project_id: %d] error getting user properties from new user alert", s.ProjectID)
 		}
 
+		workspace, err := w.Resolver.GetWorkspace(project.WorkspaceID)
+		if err != nil {
+			return e.Wrapf(err, "[project_id: %d] error querying workspace", s.ProjectID)
+		}
+
 		// send Slack message
-		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Project: project, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, UserProperties: userProperties})
+		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, UserProperties: userProperties})
 		if err != nil {
 			return e.Wrapf(err, "[project_id: %d] error sending slack message for new user alert", projectID)
 		}
@@ -412,8 +417,13 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			return nil
 		}
 
+		workspace, err := w.Resolver.GetWorkspace(project.WorkspaceID)
+		if err != nil {
+			return e.Wrap(err, "error querying workspace")
+		}
+
 		// send Slack message
-		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Project: project, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, MatchedFields: matchedFields})
+		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, MatchedFields: matchedFields})
 		if err != nil {
 			return e.Wrap(err, "error sending track properties alert slack message")
 		}
@@ -464,8 +474,13 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			return nil
 		}
 
+		workspace, err := w.Resolver.GetWorkspace(project.WorkspaceID)
+		if err != nil {
+			return e.Wrap(err, "error querying workspace")
+		}
+
 		// send Slack message
-		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Project: project, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, MatchedFields: matchedFields})
+		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, MatchedFields: matchedFields})
 		if err != nil {
 			return e.Wrapf(err, "error sending user properties alert slack message")
 		}

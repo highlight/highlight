@@ -30,9 +30,9 @@ const NewWorkspacePage = () => {
     }, [setError, error]);
 
     const onSubmit = (data: Inputs) => {
-        createProject({ variables: { name: data.name } }).then(() =>
-            client.cache.reset()
-        );
+        createProject({
+            variables: { project_name: data.name, workspace_name: data.name },
+        }).then(() => client.cache.reset());
     };
 
     if (data?.createProject?.id) {

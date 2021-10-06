@@ -212,8 +212,15 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 			identifier = *userEmail
 		}
 
+		workspace, err := r.getWorkspace(project.WorkspaceID)
+		if err != nil {
+			log.WithError(err).
+				WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "comment_id": feedbackComment.ID}).
+				Error(e.Wrap(err, "error fetching workspace"))
+		}
+
 		if err := sessionFeedbackAlert.SendSlackAlert(&model.SendSlackAlertInput{
-			Project:         &project,
+			Workspace:       workspace,
 			SessionSecureID: session.SecureID,
 			UserIdentifier:  identifier,
 			CommentID:       &feedbackComment.ID,

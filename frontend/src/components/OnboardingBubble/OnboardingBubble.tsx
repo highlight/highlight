@@ -90,7 +90,7 @@ const OnboardingBubble = () => {
                 action: () => {
                     history.push(`/${project_id}/alerts`);
                 },
-                completed: !!data.project?.slack_channels,
+                completed: !!data.workspace?.slack_channels,
             });
             STEPS.push({
                 displayName: 'Invite your team',
