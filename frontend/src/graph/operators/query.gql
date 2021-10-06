@@ -1,12 +1,21 @@
-query GetSessionPayload($session_id: ID!) {
-    events(session_id: $session_id)
-    errors(session_id: $session_id) {
-        ...errorFields
+query GetSessionPayload($session_secure_id: String!) {
+    events(session_secure_id: $session_secure_id)
+    errors(session_secure_id: $session_secure_id) {
+        id
+        error_group_secure_id
+        event
+        type
+        url
+        source
+        stack_trace
+        timestamp
+        payload
     }
 }
 
-query GetSession($id: ID!) {
-    session(id: $id) {
+query GetSession($secure_id: String!) {
+    session(secure_id: $secure_id) {
+        secure_id
         os_name
         os_version
         browser_name
@@ -48,8 +57,8 @@ query GetProjectAdmins($project_id: ID!) {
     }
 }
 
-query GetSessionComments($session_id: ID!) {
-    session_comments(session_id: $session_id) {
+query GetSessionComments($session_secure_id: String!) {
+    session_comments(session_secure_id: $session_secure_id) {
         id
         timestamp
         session_id
@@ -77,6 +86,7 @@ query GetNotifications($project_id: ID!) {
         timestamp
         updated_at
         session_id
+        session_secure_id
         text
         author {
             id
@@ -93,6 +103,7 @@ query GetNotifications($project_id: ID!) {
         project_id
         text
         error_id
+        error_secure_id
         author {
             id
             name
@@ -119,8 +130,8 @@ query GetSessionCommentsForAdmin {
     }
 }
 
-query GetErrorComments($error_group_id: ID!) {
-    error_comments(error_group_id: $error_group_id) {
+query GetErrorComments($error_group_secure_id: String!) {
+    error_comments(error_group_secure_id: $error_group_secure_id) {
         id
         created_at
         updated_at
@@ -145,7 +156,7 @@ query GetOnboardingSteps($project_id: ID!, $admin_id: ID!) {
     isIntegrated(project_id: $project_id)
     adminHasCreatedComment(admin_id: $admin_id)
     projectHasViewedASession(project_id: $project_id) {
-        id
+        secure_id
     }
     admin {
         slack_im_channel_id
@@ -302,8 +313,8 @@ query GetBillingDetails($project_id: ID!) {
     }
 }
 
-query GetErrorGroup($id: ID!) {
-    error_group(id: $id) {
+query GetErrorGroup($secure_id: String!) {
+    error_group(secure_id: $secure_id) {
         created_at
         id
         secure_id
@@ -320,7 +331,7 @@ query GetErrorGroup($id: ID!) {
         mapped_stack_trace
         metadata_log {
             error_id
-            session_id
+            session_secure_id
             environment
             timestamp
             os
@@ -347,6 +358,7 @@ query GetErrorGroups(
         error_groups {
             created_at
             id
+            secure_id
             type
             event
             state
@@ -360,7 +372,7 @@ query GetErrorGroups(
             }
             metadata_log {
                 error_id
-                session_id
+                session_secure_id
                 timestamp
             }
             error_frequency
@@ -369,24 +381,12 @@ query GetErrorGroups(
     }
 }
 
-query GetMessages($session_id: ID!) {
-    messages(session_id: $session_id)
+query GetMessages($session_secure_id: String!) {
+    messages(session_secure_id: $session_secure_id)
 }
 
-query GetResources($session_id: ID!) {
-    resources(session_id: $session_id)
-}
-
-fragment errorFields on ErrorObject {
-    id
-    error_group_id
-    event
-    type
-    url
-    source
-    stack_trace
-    timestamp
-    payload
+query GetResources($session_secure_id: String!) {
+    resources(session_secure_id: $session_secure_id)
 }
 
 query GetFieldSuggestion($project_id: ID!, $name: String!, $query: String!) {
@@ -621,12 +621,12 @@ query GetDailyErrorsCount($project_id: ID!, $date_range: DateRangeInput!) {
 
 query GetDailyErrorFrequency(
     $project_id: ID!
-    $error_group_id: ID!
+    $error_group_secure_id: String!
     $date_offset: Int!
 ) {
     dailyErrorFrequency(
         project_id: $project_id
-        error_group_id: $error_group_id
+        error_group_secure_id: $error_group_secure_id
         date_offset: $date_offset
     )
 }
@@ -675,13 +675,6 @@ query GetUserPropertiesAlert($project_id: ID!) {
     }
 }
 
-query GetEnvironmentSuggestion($query: String!, $project_id: ID!) {
-    environment_suggestion(query: $query, project_id: $project_id) {
-        name
-        value
-    }
-}
-
 query GetSlackChannelSuggestion($project_id: ID!) {
     slack_channel_suggestion(project_id: $project_id) {
         webhook_channel
@@ -695,7 +688,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         webhook_channel
         webhook_channel_id
     }
-    environment_suggestion(query: "q", project_id: $project_id) {
+    environment_suggestion(project_id: $project_id) {
         name
         value
     }

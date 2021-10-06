@@ -1,13 +1,13 @@
-mutation MarkSessionAsViewed($id: ID!, $viewed: Boolean!) {
-    markSessionAsViewed(id: $id, viewed: $viewed) {
-        id
+mutation MarkSessionAsViewed($secure_id: String!, $viewed: Boolean!) {
+    markSessionAsViewed(secure_id: $secure_id, viewed: $viewed) {
+        secure_id
         viewed
     }
 }
 
-mutation MarkSessionAsStarred($id: ID!, $starred: Boolean!) {
-    markSessionAsStarred(id: $id, starred: $starred) {
-        id
+mutation MarkSessionAsStarred($secure_id: String!, $starred: Boolean!) {
+    markSessionAsStarred(secure_id: $secure_id, starred: $starred) {
+        secure_id
         starred
     }
 }
@@ -26,9 +26,9 @@ mutation UpdateBillingDetails($project_id: ID!) {
     updateBillingDetails(project_id: $project_id)
 }
 
-mutation updateErrorGroupState($id: ID!, $state: String!) {
-    updateErrorGroupState(id: $id, state: $state) {
-        id
+mutation updateErrorGroupState($secure_id: String!, $state: String!) {
+    updateErrorGroupState(secure_id: $secure_id, state: $state) {
+        secure_id
         state
     }
 }
@@ -152,7 +152,7 @@ mutation CreateSegment(
 
 mutation CreateSessionComment(
     $project_id: ID!
-    $session_id: ID!
+    $session_secure_id: String!
     $session_timestamp: Int!
     $text: String!
     $text_for_email: String!
@@ -167,7 +167,7 @@ mutation CreateSessionComment(
 ) {
     createSessionComment(
         project_id: $project_id
-        session_id: $session_id
+        session_secure_id: $session_secure_id
         session_timestamp: $session_timestamp
         text: $text
         text_for_email: $text_for_email
@@ -201,7 +201,7 @@ mutation DeleteSessionComment($id: ID!) {
 
 mutation CreateErrorComment(
     $project_id: ID!
-    $error_group_id: ID!
+    $error_group_secure_id: String!
     $text: String!
     $text_for_email: String!
     $tagged_admins: [SanitizedAdminInput]!
@@ -211,7 +211,7 @@ mutation CreateErrorComment(
 ) {
     createErrorComment(
         project_id: $project_id
-        error_group_id: $error_group_id
+        error_group_secure_id: $error_group_secure_id
         text: $text
         text_for_email: $text_for_email
         tagged_admins: $tagged_admins
@@ -389,19 +389,28 @@ mutation UpdateUserPropertiesAlert(
     }
 }
 
-mutation UpdateSessionIsPublic($session_id: ID!, $is_public: Boolean!) {
-    updateSessionIsPublic(session_id: $session_id, is_public: $is_public) {
-        id
+mutation UpdateSessionIsPublic(
+    $session_secure_id: String!
+    $is_public: Boolean!
+) {
+    updateSessionIsPublic(
+        session_secure_id: $session_secure_id
+        is_public: $is_public
+    ) {
+        secure_id
         is_public
     }
 }
 
-mutation UpdateErrorGroupIsPublic($error_group_id: ID!, $is_public: Boolean!) {
+mutation UpdateErrorGroupIsPublic(
+    $error_group_secure_id: String!
+    $is_public: Boolean!
+) {
     updateErrorGroupIsPublic(
-        error_group_id: $error_group_id
+        error_group_secure_id: $error_group_secure_id
         is_public: $is_public
     ) {
-        id
+        secure_id
         is_public
     }
 }

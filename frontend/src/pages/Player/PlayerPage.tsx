@@ -35,6 +35,7 @@ import { Toolbar } from '@pages/Player/Toolbar/Toolbar';
 import { usePlayerFullscreen } from '@pages/Player/utils/PlayerHooks';
 import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard';
 import { SessionSearchOption } from '@pages/Sessions/SessionsFeedV2/components/SessionSearch/SessionSearch';
+import useLocalStorage from '@rehooks/local-storage';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
@@ -53,8 +54,8 @@ interface Props {
 
 const Player = ({ integrated }: Props) => {
     const { isLoggedIn } = useAuthContext();
-    const { session_id, project_id } = useParams<{
-        session_id: string;
+    const { session_secure_id, project_id } = useParams<{
+        session_secure_id: string;
         project_id: string;
     }>();
     const projectIdRemapped =
@@ -103,12 +104,15 @@ const Player = ({ integrated }: Props) => {
     const [commentPosition, setCommentPosition] = useState<
         Coordinates2D | undefined
     >(undefined);
+    const [selectedRightPanelTab, setSelectedRightPanelTab] = useLocalStorage<
+        'Events' | 'Comments' | 'Metadata'
+    >('tabs-PlayerRightPanel-active-tab', 'Events');
 
     useEffect(() => {
-        if (!session_id) {
+        if (!session_secure_id) {
             setShowLeftPanel(true);
         }
-    }, [session_id, setShowLeftPanel]);
+    }, [session_secure_id, setShowLeftPanel]);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const resizePlayer = (replayer: Replayer): boolean => {
@@ -171,6 +175,8 @@ const Player = ({ integrated }: Props) => {
                 playerCenterPanelRef,
                 detailedPanel,
                 setDetailedPanel,
+                selectedRightPanelTab,
+                setSelectedRightPanelTab,
             }}
         >
             <ReplayerContextProvider value={player}>
@@ -255,7 +261,7 @@ const Player = ({ integrated }: Props) => {
                                             onClick={() => {
                                                 window.Intercom(
                                                     'showNewMessage',
-                                                    `I'm seeing an empty session. This is the session ID: "${session_id}"`
+                                                    `I'm seeing an empty session. This is the session ID: "${session_secure_id}"`
                                                 );
                                             }}
                                         >
@@ -275,7 +281,7 @@ const Player = ({ integrated }: Props) => {
                           !!session) ||
                       replayerState !== ReplayerState.Empty ||
                       (replayerState === ReplayerState.Empty &&
-                          !!session_id) ? (
+                          !!session_secure_id) ? (
                         <div
                             id="playerCenterPanel"
                             className={classNames(styles.playerCenterPanel, {

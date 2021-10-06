@@ -149,6 +149,8 @@ const SEND_FREQUENCY = 1000 * 5;
  */
 const MAX_SESSION_LENGTH = 4 * 60 * 60 * 1000;
 
+const MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS = 5;
+
 export class Highlight {
     /** Determines if the client is running on a Highlight property (e.g. frontend). */
     isRunningOnHighlight: boolean;
@@ -165,6 +167,10 @@ export class Highlight {
     /** @deprecated Use state instead. Ready should be removed when Highlight releases 2.0. */
     ready: boolean;
     state: 'NotRecording' | 'Recording';
+    /**
+     * The number of requests to public graph that have failed in a row.
+     */
+    numberOfFailedRequests = 0;
     logger: Logger;
     disableNetworkRecording: boolean | undefined;
     enableRecordingNetworkContents: boolean;
@@ -231,7 +237,11 @@ export class Highlight {
 
         this.ready = false;
         this.state = 'NotRecording';
-        this.disableConsoleRecording = options.disableConsoleRecording;
+        this.disableConsoleRecording =
+            // Disable recording the console on localhost.
+            // We're doing this because on some development builds, the console ends up in an infinite loop.
+            window.location.hostname === 'localhost' ||
+            options.disableConsoleRecording;
         this.enableSegmentIntegration = options.enableSegmentIntegration;
         this.enableStrictPrivacy = options.enableStrictPrivacy || false;
         this.logger = new Logger(this.debugOptions.clientInteractions);
@@ -271,6 +281,9 @@ export class Highlight {
     }
 
     async identify(user_identifier: string, user_object = {}, source?: Source) {
+        if (!this._shouldSendRequest()) {
+            return;
+        }
         if (source === 'segment') {
             addCustomEvent(
                 'Segment Identify',
@@ -296,10 +309,12 @@ export class Highlight {
                     user_object
                 )} @ ${process.env.PUBLIC_GRAPH_URI}`
             );
+            this.numberOfFailedRequests = 0;
         } catch (e) {
             if (this._isOnLocalHost) {
                 console.error(e);
             }
+            this.numberOfFailedRequests += 1;
         }
     }
 
@@ -342,6 +357,9 @@ export class Highlight {
     }
 
     async addProperties(properties_obj = {}, typeArg?: PropertyType) {
+        if (!this._shouldSendRequest()) {
+            return;
+        }
         // Session properties are custom properties that the Highlight snippet adds (visited-url, referrer, etc.)
         if (typeArg?.type === 'session') {
             try {
@@ -356,10 +374,12 @@ export class Highlight {
                         process.env.PUBLIC_GRAPH_URI
                     }`
                 );
+                this.numberOfFailedRequests = 0;
             } catch (e) {
                 if (this._isOnLocalHost) {
                     console.error(e);
                 }
+                this.numberOfFailedRequests += 1;
             }
         }
         // Track properties are properties that users define; rn, either through segment or manually.
@@ -386,10 +406,12 @@ export class Highlight {
                         properties_obj
                     )} @ ${process.env.PUBLIC_GRAPH_URI}`
                 );
+                this.numberOfFailedRequests = 0;
             } catch (e) {
                 if (this._isOnLocalHost) {
                     console.error(e);
                 }
+                this.numberOfFailedRequests += 1;
             }
         }
     }
@@ -471,10 +493,12 @@ export class Highlight {
                             this.sessionData.userObject
                         );
                     }
+                    this.numberOfFailedRequests = 0;
                 } catch (e) {
                     if (this._isOnLocalHost) {
                         console.error(e);
                     }
+                    this.numberOfFailedRequests += 1;
                 }
             }
             setTimeout(() => {
@@ -677,17 +701,32 @@ export class Highlight {
         user_name?: string;
         user_email?: string;
     }) {
-        this.graphqlSDK.addSessionFeedback({
-            session_id: this.sessionData.sessionID.toString(),
-            timestamp,
-            verbatim,
-            user_email,
-            user_name,
-        });
+        if (!this._shouldSendRequest()) {
+            return;
+        }
+        try {
+            this.graphqlSDK.addSessionFeedback({
+                session_id: this.sessionData.sessionID.toString(),
+                timestamp,
+                verbatim,
+                user_email,
+                user_name,
+            });
+
+            this.numberOfFailedRequests = 0;
+        } catch (e) {
+            if (this._isOnLocalHost) {
+                console.error(e);
+            }
+            this.numberOfFailedRequests += 1;
+        }
     }
 
     // Reset the events array and push to a backend.
     async _save() {
+        if (!this._shouldSendRequest()) {
+            return;
+        }
         try {
             if (!this.sessionData.sessionID) {
                 return;
@@ -695,6 +734,7 @@ export class Highlight {
             try {
                 const payload = this._getPayload();
                 await this.graphqlSDK.PushPayload(payload);
+                this.numberOfFailedRequests = 0;
                 // Listeners are cleared when the user calls stop() manually.
                 if (this.listeners.length === 0) {
                     return;
@@ -714,6 +754,7 @@ export class Highlight {
                 if (this._isOnLocalHost) {
                     console.error(e);
                 }
+                this.numberOfFailedRequests += 1;
             }
         } catch (e) {
             if (this._isOnLocalHost) {
@@ -726,6 +767,13 @@ export class Highlight {
                 this._save();
             }, SEND_FREQUENCY);
         }
+    }
+
+    _shouldSendRequest(): boolean {
+        return (
+            this.numberOfFailedRequests < MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS &&
+            this.sessionData.sessionID !== 0
+        );
     }
 
     _getPayload(): PushPayloadMutationVariables {

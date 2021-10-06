@@ -269,7 +269,7 @@ type ComplexityRoot struct {
 		DailyErrorFrequency       func(childComplexity int, projectID int, errorGroupID *int, errorGroupSecureID *string, dateOffset int) int
 		DailyErrorsCount          func(childComplexity int, projectID int, dateRange model.DateRangeInput) int
 		DailySessionsCount        func(childComplexity int, projectID int, dateRange model.DateRangeInput) int
-		EnvironmentSuggestion     func(childComplexity int, query string, projectID int) int
+		EnvironmentSuggestion     func(childComplexity int, projectID int) int
 		ErrorAlert                func(childComplexity int, projectID int) int
 		ErrorComments             func(childComplexity int, errorGroupID *int, errorGroupSecureID *string) int
 		ErrorCommentsForAdmin     func(childComplexity int) int
@@ -558,7 +558,7 @@ type QueryResolver interface {
 	TrackPropertiesAlert(ctx context.Context, projectID int) (*model1.SessionAlert, error)
 	UserPropertiesAlert(ctx context.Context, projectID int) (*model1.SessionAlert, error)
 	ProjectSuggestion(ctx context.Context, query string) ([]*model1.Project, error)
-	EnvironmentSuggestion(ctx context.Context, query string, projectID int) ([]*model1.Field, error)
+	EnvironmentSuggestion(ctx context.Context, projectID int) ([]*model1.Field, error)
 	SlackChannelSuggestion(ctx context.Context, projectID int) ([]*model.SanitizedSlackChannel, error)
 	SlackMembers(ctx context.Context, projectID int) ([]*model.SanitizedSlackChannel, error)
 	IsIntegratedWithSlack(ctx context.Context, projectID int) (bool, error)
@@ -1861,7 +1861,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.EnvironmentSuggestion(childComplexity, args["query"].(string), args["project_id"].(int)), true
+		return e.complexity.Query.EnvironmentSuggestion(childComplexity, args["project_id"].(int)), true
 
 	case "Query.error_alert":
 		if e.complexity.Query.ErrorAlert == nil {
@@ -3557,7 +3557,7 @@ type Query {
     track_properties_alert(project_id: ID!): SessionAlert
     user_properties_alert(project_id: ID!): SessionAlert
     projectSuggestion(query: String!): [Project]
-    environment_suggestion(query: String!, project_id: ID!): [Field]
+    environment_suggestion(project_id: ID!): [Field]
     slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
     slack_members(project_id: ID!): [SanitizedSlackChannel]!
     is_integrated_with_slack(project_id: ID!): Boolean!
@@ -5130,24 +5130,15 @@ func (ec *executionContext) field_Query_dailySessionsCount_args(ctx context.Cont
 func (ec *executionContext) field_Query_environment_suggestion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["query"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["query"] = arg0
-	var arg1 int
+	var arg0 int
 	if tmp, ok := rawArgs["project_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg1, err = ec.unmarshalNID2int(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["project_id"] = arg1
+	args["project_id"] = arg0
 	return args, nil
 }
 
@@ -12452,7 +12443,7 @@ func (ec *executionContext) _Query_environment_suggestion(ctx context.Context, f
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().EnvironmentSuggestion(rctx, args["query"].(string), args["project_id"].(int))
+		return ec.resolvers.Query().EnvironmentSuggestion(rctx, args["project_id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

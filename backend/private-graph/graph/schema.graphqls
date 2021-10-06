@@ -484,7 +484,7 @@ type Query {
     track_properties_alert(project_id: ID!): SessionAlert
     user_properties_alert(project_id: ID!): SessionAlert
     projectSuggestion(query: String!): [Project]
-    environment_suggestion(query: String!, project_id: ID!): [Field]
+    environment_suggestion(project_id: ID!): [Field]
     slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
     slack_members(project_id: ID!): [SanitizedSlackChannel]!
     is_integrated_with_slack(project_id: ID!): Boolean!

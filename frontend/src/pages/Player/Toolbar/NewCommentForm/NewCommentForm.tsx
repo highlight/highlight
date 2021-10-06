@@ -46,8 +46,8 @@ export const NewCommentForm = ({
     const { time } = useReplayerContext();
     const [createComment] = useCreateSessionCommentMutation();
     const { admin, isLoggedIn } = useAuthContext();
-    const { session_id, project_id } = useParams<{
-        session_id: string;
+    const { session_secure_id, project_id } = useParams<{
+        session_secure_id: string;
         project_id: string;
     }>();
     const [commentText, setCommentText] = useState('');
@@ -107,7 +107,7 @@ export const NewCommentForm = ({
             await createComment({
                 variables: {
                     project_id,
-                    session_id,
+                    session_secure_id,
                     session_timestamp: Math.floor(currentTime),
                     text: commentText.trim(),
                     text_for_email: commentTextForEmail.trim(),

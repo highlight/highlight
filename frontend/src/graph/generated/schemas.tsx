@@ -677,7 +677,6 @@ export type QueryProjectSuggestionArgs = {
 };
 
 export type QueryEnvironment_SuggestionArgs = {
-    query: Scalars['String'];
     project_id: Scalars['ID'];
 };
 

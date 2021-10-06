@@ -23,7 +23,7 @@ export const ErrorStateSelect: React.FC<{
     state?: ErrorState;
     loading: boolean;
 }> = ({ state: initialErrorState, loading }) => {
-    const { error_id } = useParams<{ error_id: string }>();
+    const { error_secure_id } = useParams<{ error_secure_id: string }>();
     const [
         updateErrorGroupState,
         { loading: updateLoading },
@@ -37,13 +37,16 @@ export const ErrorStateSelect: React.FC<{
             const castedAction = action.toUpperCase() as ErrorState;
             if (Object.values(ErrorState).includes(castedAction)) {
                 updateErrorGroupState({
-                    variables: { id: error_id, state: castedAction },
+                    variables: {
+                        secure_id: error_secure_id,
+                        state: castedAction,
+                    },
                 });
                 showStateUpdateMessage(castedAction);
             }
             setAction(undefined);
         }
-    }, [action, error_id, setAction, updateErrorGroupState]);
+    }, [action, error_secure_id, setAction, updateErrorGroupState]);
 
     // Add disabled state to each option if not logged in
     const thisErrorStateOptions = ErrorStateOptions.map((opt) => ({
@@ -62,7 +65,7 @@ export const ErrorStateSelect: React.FC<{
             value={initialErrorState}
             onChange={async (newState: ErrorState) => {
                 await updateErrorGroupState({
-                    variables: { id: error_id, state: newState },
+                    variables: { secure_id: error_secure_id, state: newState },
                 });
 
                 showStateUpdateMessage(newState);

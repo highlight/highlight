@@ -30,8 +30,8 @@ interface Props {
     parentRef?: React.RefObject<HTMLDivElement>;
 }
 const ErrorComments = ({ parentRef }: Props) => {
-    const { error_id, project_id } = useParams<{
-        error_id: string;
+    const { error_secure_id, project_id } = useParams<{
+        error_secure_id: string;
         project_id: string;
     }>();
     const { admin } = useAuthContext();
@@ -65,7 +65,7 @@ const ErrorComments = ({ parentRef }: Props) => {
             await createComment({
                 variables: {
                     project_id,
-                    error_group_id: error_id,
+                    error_group_secure_id: error_secure_id,
                     text: commentText.trim(),
                     text_for_email: commentTextForEmail.trim(),
                     error_url: `${window.location.origin}${window.location.pathname}`,
