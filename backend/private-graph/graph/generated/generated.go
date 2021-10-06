@@ -309,11 +309,12 @@ type ComplexityRoot struct {
 	}
 
 	RageClickEvent struct {
-		EndTimestamp   func(childComplexity int) int
-		ID             func(childComplexity int) int
-		ProjectID      func(childComplexity int) int
-		SessionID      func(childComplexity int) int
-		StartTimestamp func(childComplexity int) int
+		EndTimestamp    func(childComplexity int) int
+		ID              func(childComplexity int) int
+		ProjectID       func(childComplexity int) int
+		SessionSecureID func(childComplexity int) int
+		StartTimestamp  func(childComplexity int) int
+		TotalClicks     func(childComplexity int) int
 	}
 
 	ReferrerTablePayload struct {
@@ -2284,12 +2285,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.RageClickEvent.ProjectID(childComplexity), true
 
-	case "RageClickEvent.session_id":
-		if e.complexity.RageClickEvent.SessionID == nil {
+	case "RageClickEvent.session_secure_id":
+		if e.complexity.RageClickEvent.SessionSecureID == nil {
 			break
 		}
 
-		return e.complexity.RageClickEvent.SessionID(childComplexity), true
+		return e.complexity.RageClickEvent.SessionSecureID(childComplexity), true
 
 	case "RageClickEvent.start_timestamp":
 		if e.complexity.RageClickEvent.StartTimestamp == nil {
@@ -2297,6 +2298,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.RageClickEvent.StartTimestamp(childComplexity), true
+
+	case "RageClickEvent.total_clicks":
+		if e.complexity.RageClickEvent.TotalClicks == nil {
+			break
+		}
+
+		return e.complexity.RageClickEvent.TotalClicks(childComplexity), true
 
 	case "ReferrerTablePayload.count":
 		if e.complexity.ReferrerTablePayload.Count == nil {
@@ -3042,9 +3050,10 @@ type Session {
 type RageClickEvent {
     id: ID!
     project_id: ID!
-    session_id: ID!
-    start_timestamp: Time!
-    end_timestamp: Time!
+    session_secure_id: String!
+    start_timestamp: Timestamp!
+    end_timestamp: Timestamp!
+    total_clicks: Int!
 }
 
 type BillingDetails {
@@ -12566,7 +12575,7 @@ func (ec *executionContext) _RageClickEvent_project_id(ctx context.Context, fiel
 	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _RageClickEvent_session_id(ctx context.Context, field graphql.CollectedField, obj *model1.RageClickEvent) (ret graphql.Marshaler) {
+func (ec *executionContext) _RageClickEvent_session_secure_id(ctx context.Context, field graphql.CollectedField, obj *model1.RageClickEvent) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -12584,7 +12593,7 @@ func (ec *executionContext) _RageClickEvent_session_id(ctx context.Context, fiel
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.SessionID, nil
+		return obj.SessionSecureID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12596,9 +12605,9 @@ func (ec *executionContext) _RageClickEvent_session_id(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNID2int(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _RageClickEvent_start_timestamp(ctx context.Context, field graphql.CollectedField, obj *model1.RageClickEvent) (ret graphql.Marshaler) {
@@ -12633,7 +12642,7 @@ func (ec *executionContext) _RageClickEvent_start_timestamp(ctx context.Context,
 	}
 	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _RageClickEvent_end_timestamp(ctx context.Context, field graphql.CollectedField, obj *model1.RageClickEvent) (ret graphql.Marshaler) {
@@ -12668,7 +12677,42 @@ func (ec *executionContext) _RageClickEvent_end_timestamp(ctx context.Context, f
 	}
 	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RageClickEvent_total_clicks(ctx context.Context, field graphql.CollectedField, obj *model1.RageClickEvent) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RageClickEvent",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalClicks, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ReferrerTablePayload_host(ctx context.Context, field graphql.CollectedField, obj *model.ReferrerTablePayload) (ret graphql.Marshaler) {
@@ -18882,8 +18926,8 @@ func (ec *executionContext) _RageClickEvent(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "session_id":
-			out.Values[i] = ec._RageClickEvent_session_id(ctx, field, obj)
+		case "session_secure_id":
+			out.Values[i] = ec._RageClickEvent_session_secure_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -18894,6 +18938,11 @@ func (ec *executionContext) _RageClickEvent(ctx context.Context, sel ast.Selecti
 			}
 		case "end_timestamp":
 			out.Values[i] = ec._RageClickEvent_end_timestamp(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "total_clicks":
+			out.Values[i] = ec._RageClickEvent_total_clicks(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

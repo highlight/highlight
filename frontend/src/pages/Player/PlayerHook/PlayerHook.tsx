@@ -322,7 +322,8 @@ export const usePlayer = (): ReplayerContextInterface => {
                                     startPercentage,
                                     endTimestamp: rageClick.end_timestamp,
                                     endPercentage,
-                                };
+                                    totalClicks: rageClick.total_clicks,
+                                } as RageClick;
                             }
                         );
                         setRageClicks(rageClicks);

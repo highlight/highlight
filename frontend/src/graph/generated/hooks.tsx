@@ -1741,7 +1741,7 @@ export const GetSessionPayloadDocument = gql`
             timestamp
             payload
         }
-        rage_clicks(session_id: $session_id) {
+        rage_clicks(session_secure_id: $session_secure_id) {
             start_timestamp
             end_timestamp
             total_clicks

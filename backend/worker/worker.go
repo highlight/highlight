@@ -283,7 +283,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 	}
 	for i, r := range rageClickSets {
-		r.SessionID = s.ID
+		r.SessionSecureID = s.SecureID
 		r.ProjectID = s.ProjectID
 		rageClickSets[i] = r
 	}
@@ -579,7 +579,6 @@ func CalculateSessionLength(first time.Time, last time.Time) (d time.Duration) {
 }
 
 type processEventChunkInput struct {
-	SessionID int
 	// EventsChunk represents the chunk of events to be processed in this iteration of processEventChunk
 	EventsChunk *model.EventsObject
 	// ClickEventQueue is a queue containing the last 2 seconds worth of clustered click events
@@ -694,7 +693,6 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 
 			numTotal := 0
 			rageClick := model.RageClickEvent{
-				SessionID:   input.SessionID,
 				TotalClicks: 5,
 			}
 			for element := input.ClickEventQueue.Front(); element != nil; element = element.Next() {

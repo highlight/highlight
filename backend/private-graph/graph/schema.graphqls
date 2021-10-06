@@ -48,9 +48,9 @@ type Session {
 type RageClickEvent {
     id: ID!
     project_id: ID!
-    session_id: ID!
-    start_timestamp: Time!
-    end_timestamp: Time!
+    session_secure_id: String!
+    start_timestamp: Timestamp!
+    end_timestamp: Timestamp!
     total_clicks: Int!
 }
 
@@ -410,7 +410,7 @@ scalar Upload
 type Query {
     session(id: ID, secure_id: String): Session
     events(session_id: ID, session_secure_id: String): [Any]
-    rage_clicks(session_id: ID!, session_secure_id: String): [RageClickEvent!]!
+    rage_clicks(session_secure_id: String): [RageClickEvent!]!
     error_groups(
         project_id: ID!
         count: Int!

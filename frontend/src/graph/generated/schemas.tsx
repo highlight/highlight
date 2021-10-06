@@ -66,9 +66,9 @@ export type RageClickEvent = {
     __typename?: 'RageClickEvent';
     id: Scalars['ID'];
     project_id: Scalars['ID'];
-    session_id: Scalars['ID'];
-    start_timestamp: Scalars['Time'];
-    end_timestamp: Scalars['Time'];
+    session_secure_id: Scalars['String'];
+    start_timestamp: Scalars['Timestamp'];
+    end_timestamp: Scalars['Timestamp'];
     total_clicks: Scalars['Int'];
 };
 
@@ -516,7 +516,6 @@ export type QueryEventsArgs = {
 };
 
 export type QueryRage_ClicksArgs = {
-    session_id: Scalars['ID'];
     session_secure_id?: Maybe<Scalars['String']>;
 };
 

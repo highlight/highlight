@@ -1367,14 +1367,13 @@ func (r *queryResolver) Events(ctx context.Context, sessionID *int, sessionSecur
 }
 
 func (r *queryResolver) RageClicks(ctx context.Context, sessionID int, sessionSecureID *string) ([]*model.RageClickEvent, error) {
-	_, err := r.canAdminViewSession(ctx, &sessionID, sessionSecureID)
+	_, err := r.canAdminViewSession(ctx, nil, sessionSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
 
-	rageClicks := []*model.RageClickEvent{}
-
-	if res := r.DB.Where(&model.RageClickEvent{SessionID: sessionID}).Find(&rageClicks); res.Error != nil {
+	var rageClicks []*model.RageClickEvent
+	if res := r.DB.Where(&model.RageClickEvent{SessionSecureID: *sessionSecureID}).Find(&rageClicks); res.Error != nil {
 		return nil, e.Wrap(res.Error, "failed to get rage clicks")
 	}
 

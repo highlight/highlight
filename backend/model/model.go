@@ -692,11 +692,11 @@ type ErrorComment struct {
 
 type RageClickEvent struct {
 	Model
-	ProjectID      int `deep:"-"`
-	SessionID      int `deep:"-"`
-	TotalClicks    int
-	StartTimestamp time.Time `deep:"-"`
-	EndTimestamp   time.Time `deep:"-"`
+	ProjectID       int    `deep:"-"`
+	SessionSecureID string `deep:"-"`
+	TotalClicks     int
+	StartTimestamp  time.Time `deep:"-"`
+	EndTimestamp    time.Time `deep:"-"`
 }
 
 func SetupDB(dbName string) (*gorm.DB, error) {
