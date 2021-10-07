@@ -936,6 +936,8 @@ export const CreateSegmentDocument = gql`
                 hide_viewed
                 app_versions
                 environments
+                device_id
+                show_live_sessions
             }
         }
     }
@@ -3932,6 +3934,8 @@ export const GetSegmentsDocument = gql`
                 first_time
                 app_versions
                 environments
+                device_id
+                show_live_sessions
             }
         }
     }

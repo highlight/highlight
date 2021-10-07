@@ -537,6 +537,8 @@ query GetSegments($project_id: ID!) {
             first_time
             app_versions
             environments
+            device_id
+            show_live_sessions
         }
     }
 }

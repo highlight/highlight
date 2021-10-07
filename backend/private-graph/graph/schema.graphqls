@@ -217,12 +217,14 @@ input SearchParamsInput {
     identified: Boolean
     hide_viewed: Boolean
     first_time: Boolean
+    show_live_sessions: Boolean
 }
 
 type SearchParams {
     user_properties: [UserProperty]
     excluded_properties: [UserProperty]
     track_properties: [UserProperty]
+    excluded_track_properties: [UserProperty]
     environments: [String]
     app_versions: [String]
     date_range: DateRange
@@ -230,10 +232,12 @@ type SearchParams {
     os: String
     browser: String
     visited_url: String
+    device_id: String
     referrer: String
     identified: Boolean
     hide_viewed: Boolean
     first_time: Boolean
+    show_live_sessions: Boolean
 }
 
 input ErrorSearchParamsInput {

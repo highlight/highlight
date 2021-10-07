@@ -248,6 +248,7 @@ export type SearchParamsInput = {
     identified?: Maybe<Scalars['Boolean']>;
     hide_viewed?: Maybe<Scalars['Boolean']>;
     first_time?: Maybe<Scalars['Boolean']>;
+    show_live_sessions?: Maybe<Scalars['Boolean']>;
 };
 
 export type SearchParams = {
@@ -255,6 +256,7 @@ export type SearchParams = {
     user_properties?: Maybe<Array<Maybe<UserProperty>>>;
     excluded_properties?: Maybe<Array<Maybe<UserProperty>>>;
     track_properties?: Maybe<Array<Maybe<UserProperty>>>;
+    excluded_track_properties?: Maybe<Array<Maybe<UserProperty>>>;
     environments?: Maybe<Array<Maybe<Scalars['String']>>>;
     app_versions?: Maybe<Array<Maybe<Scalars['String']>>>;
     date_range?: Maybe<DateRange>;
@@ -262,10 +264,12 @@ export type SearchParams = {
     os?: Maybe<Scalars['String']>;
     browser?: Maybe<Scalars['String']>;
     visited_url?: Maybe<Scalars['String']>;
+    device_id?: Maybe<Scalars['String']>;
     referrer?: Maybe<Scalars['String']>;
     identified?: Maybe<Scalars['Boolean']>;
     hide_viewed?: Maybe<Scalars['Boolean']>;
     first_time?: Maybe<Scalars['Boolean']>;
+    show_live_sessions?: Maybe<Scalars['Boolean']>;
 };
 
 export type ErrorSearchParamsInput = {

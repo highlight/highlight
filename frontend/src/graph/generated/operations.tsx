@@ -212,6 +212,8 @@ export type CreateSegmentMutation = { __typename?: 'Mutation' } & {
                     | 'hide_viewed'
                     | 'app_versions'
                     | 'environments'
+                    | 'device_id'
+                    | 'show_live_sessions'
                 > & {
                         user_properties?: Types.Maybe<
                             Array<
@@ -1343,6 +1345,8 @@ export type GetSegmentsQuery = { __typename?: 'Query' } & {
                             | 'first_time'
                             | 'app_versions'
                             | 'environments'
+                            | 'device_id'
+                            | 'show_live_sessions'
                         > & {
                                 user_properties?: Types.Maybe<
                                     Array<

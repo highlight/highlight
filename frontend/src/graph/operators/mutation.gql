@@ -148,6 +148,8 @@ mutation CreateSegment(
             hide_viewed
             app_versions
             environments
+            device_id
+            show_live_sessions
         }
     }
 }
