@@ -210,6 +210,8 @@ export type CreateSegmentMutation = { __typename?: 'Mutation' } & {
                     | 'referrer'
                     | 'identified'
                     | 'hide_viewed'
+                    | 'app_versions'
+                    | 'environments'
                 > & {
                         user_properties?: Types.Maybe<
                             Array<
@@ -1150,6 +1152,29 @@ export type GetFieldSuggestionQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetEnvironmentsQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+}>;
+
+export type GetEnvironmentsQuery = { __typename?: 'Query' } & {
+    environment_suggestion?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Field' } & Pick<Types.Field, 'name' | 'value'>
+            >
+        >
+    >;
+};
+
+export type GetAppVersionsQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+}>;
+
+export type GetAppVersionsQuery = { __typename?: 'Query' } & Pick<
+    Types.Query,
+    'app_version_suggestion'
+>;
+
 export type GetProjectSuggestionQueryVariables = Types.Exact<{
     query: Types.Scalars['String'];
 }>;
@@ -1316,6 +1341,8 @@ export type GetSegmentsQuery = { __typename?: 'Query' } & {
                             | 'identified'
                             | 'hide_viewed'
                             | 'first_time'
+                            | 'app_versions'
+                            | 'environments'
                         > & {
                                 user_properties?: Types.Maybe<
                                     Array<
@@ -1829,6 +1856,8 @@ export const namedOperations = {
         GetMessages: 'GetMessages' as const,
         GetResources: 'GetResources' as const,
         GetFieldSuggestion: 'GetFieldSuggestion' as const,
+        GetEnvironments: 'GetEnvironments' as const,
+        GetAppVersions: 'GetAppVersions' as const,
         GetProjectSuggestion: 'GetProjectSuggestion' as const,
         GetErrorFieldSuggestion: 'GetErrorFieldSuggestion' as const,
         GetErrorSearchSuggestions: 'GetErrorSearchSuggestions' as const,

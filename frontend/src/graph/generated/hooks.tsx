@@ -934,6 +934,8 @@ export const CreateSegmentDocument = gql`
                 referrer
                 identified
                 hide_viewed
+                app_versions
+                environments
             }
         }
     }
@@ -3374,6 +3376,117 @@ export type GetFieldSuggestionQueryResult = Apollo.QueryResult<
     Types.GetFieldSuggestionQuery,
     Types.GetFieldSuggestionQueryVariables
 >;
+export const GetEnvironmentsDocument = gql`
+    query GetEnvironments($project_id: ID!) {
+        environment_suggestion(project_id: $project_id) {
+            name
+            value
+        }
+    }
+`;
+
+/**
+ * __useGetEnvironmentsQuery__
+ *
+ * To run a query within a React component, call `useGetEnvironmentsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetEnvironmentsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetEnvironmentsQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetEnvironmentsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetEnvironmentsQuery,
+        Types.GetEnvironmentsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetEnvironmentsQuery,
+        Types.GetEnvironmentsQueryVariables
+    >(GetEnvironmentsDocument, baseOptions);
+}
+export function useGetEnvironmentsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetEnvironmentsQuery,
+        Types.GetEnvironmentsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetEnvironmentsQuery,
+        Types.GetEnvironmentsQueryVariables
+    >(GetEnvironmentsDocument, baseOptions);
+}
+export type GetEnvironmentsQueryHookResult = ReturnType<
+    typeof useGetEnvironmentsQuery
+>;
+export type GetEnvironmentsLazyQueryHookResult = ReturnType<
+    typeof useGetEnvironmentsLazyQuery
+>;
+export type GetEnvironmentsQueryResult = Apollo.QueryResult<
+    Types.GetEnvironmentsQuery,
+    Types.GetEnvironmentsQueryVariables
+>;
+export const GetAppVersionsDocument = gql`
+    query GetAppVersions($project_id: ID!) {
+        app_version_suggestion(project_id: $project_id)
+    }
+`;
+
+/**
+ * __useGetAppVersionsQuery__
+ *
+ * To run a query within a React component, call `useGetAppVersionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAppVersionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAppVersionsQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetAppVersionsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetAppVersionsQuery,
+        Types.GetAppVersionsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetAppVersionsQuery,
+        Types.GetAppVersionsQueryVariables
+    >(GetAppVersionsDocument, baseOptions);
+}
+export function useGetAppVersionsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetAppVersionsQuery,
+        Types.GetAppVersionsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetAppVersionsQuery,
+        Types.GetAppVersionsQueryVariables
+    >(GetAppVersionsDocument, baseOptions);
+}
+export type GetAppVersionsQueryHookResult = ReturnType<
+    typeof useGetAppVersionsQuery
+>;
+export type GetAppVersionsLazyQueryHookResult = ReturnType<
+    typeof useGetAppVersionsLazyQuery
+>;
+export type GetAppVersionsQueryResult = Apollo.QueryResult<
+    Types.GetAppVersionsQuery,
+    Types.GetAppVersionsQueryVariables
+>;
 export const GetProjectSuggestionDocument = gql`
     query GetProjectSuggestion($query: String!) {
         projectSuggestion(query: $query) {
@@ -3817,6 +3930,8 @@ export const GetSegmentsDocument = gql`
                 identified
                 hide_viewed
                 first_time
+                app_versions
+                environments
             }
         }
     }

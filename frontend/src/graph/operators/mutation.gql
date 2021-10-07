@@ -146,6 +146,8 @@ mutation CreateSegment(
             referrer
             identified
             hide_viewed
+            app_versions
+            environments
         }
     }
 }

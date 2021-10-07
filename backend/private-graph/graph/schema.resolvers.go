@@ -2021,6 +2021,34 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 		whereClause += fmt.Sprintf("AND (fingerprint = '%s') ", *deviceId)
 	}
 
+	if environments := params.Environments; len(environments) > 0 {
+		environmentsClause := ""
+
+		for index, environment := range environments {
+			environmentsClause += fmt.Sprintf("environment = '%s'", *environment)
+
+			if index < len(environments)-1 {
+				environmentsClause += " OR "
+			}
+		}
+
+		whereClause += fmt.Sprintf("AND (%s)", environmentsClause)
+	}
+
+	if appVersions := params.AppVersions; len(appVersions) > 0 {
+		appVersionsClause := ""
+
+		for index, appVersion := range appVersions {
+			appVersionsClause += fmt.Sprintf("app_version = '%s'", *appVersion)
+
+			if index < len(appVersions)-1 {
+				appVersionsClause += " OR "
+			}
+		}
+
+		whereClause += fmt.Sprintf("AND (%s)", appVersionsClause)
+	}
+
 	// user shouldn't see sessions that are not within billing quota
 	whereClause += "AND (within_billing_quota IS NULL OR within_billing_quota=true) "
 
@@ -2321,6 +2349,19 @@ func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, projectID int
 		return nil, e.Wrap(err, "error querying field suggestion")
 	}
 	return fields, nil
+}
+
+func (r *queryResolver) AppVersionSuggestion(ctx context.Context, projectID int) ([]*string, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+	appVersions := []*string{}
+
+	if err := r.DB.Raw("SELECT DISTINCT app_version FROM sessions WHERE app_version IS NOT NULL AND project_id = ?", projectID).Find(&appVersions).Error; err != nil {
+		return nil, e.Wrap(err, "error getting app version suggestions")
+	}
+
+	return appVersions, nil
 }
 
 func (r *queryResolver) SlackChannelSuggestion(ctx context.Context, projectID int) ([]*modelInputs.SanitizedSlackChannel, error) {
