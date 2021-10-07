@@ -14,7 +14,7 @@ export type Scalars = {
     Int: number;
     Float: number;
     Any: any;
-    Time: any;
+    Timestamp: any;
     Int64: any;
     Upload: any;
 };
@@ -44,7 +44,7 @@ export type Session = {
     client_version?: Maybe<Scalars['String']>;
     language: Scalars['String'];
     identifier: Scalars['String'];
-    created_at?: Maybe<Scalars['Time']>;
+    created_at?: Maybe<Scalars['Timestamp']>;
     length?: Maybe<Scalars['Int']>;
     active_length?: Maybe<Scalars['Int']>;
     user_object?: Maybe<Scalars['Any']>;
@@ -104,7 +104,7 @@ export type Project = {
     verbose_id: Scalars['String'];
     name: Scalars['String'];
     billing_email?: Maybe<Scalars['String']>;
-    trial_end_date?: Maybe<Scalars['Time']>;
+    trial_end_date?: Maybe<Scalars['Timestamp']>;
     secret?: Maybe<Scalars['String']>;
     workspace_id: Scalars['ID'];
 };
@@ -149,7 +149,7 @@ export type ErrorObject = {
     lineNumber?: Maybe<Scalars['Int']>;
     columnNumber?: Maybe<Scalars['Int']>;
     stack_trace?: Maybe<Array<Maybe<Scalars['Any']>>>;
-    timestamp?: Maybe<Scalars['Time']>;
+    timestamp?: Maybe<Scalars['Timestamp']>;
     payload?: Maybe<Scalars['String']>;
 };
 
@@ -162,7 +162,7 @@ export type ErrorField = {
 
 export type ErrorGroup = {
     __typename?: 'ErrorGroup';
-    created_at: Scalars['Time'];
+    created_at: Scalars['Timestamp'];
     id: Scalars['ID'];
     secure_id: Scalars['String'];
     project_id: Scalars['Int'];
@@ -184,7 +184,7 @@ export type ErrorMetadata = {
     session_id: Scalars['Int'];
     session_secure_id: Scalars['String'];
     environment?: Maybe<Scalars['String']>;
-    timestamp?: Maybe<Scalars['Time']>;
+    timestamp?: Maybe<Scalars['Timestamp']>;
     os?: Maybe<Scalars['String']>;
     browser?: Maybe<Scalars['String']>;
     visited_url?: Maybe<Scalars['String']>;
@@ -293,13 +293,13 @@ export type ErrorSearchParams = {
 
 export type DateRange = {
     __typename?: 'DateRange';
-    start_date?: Maybe<Scalars['Time']>;
-    end_date?: Maybe<Scalars['Time']>;
+    start_date?: Maybe<Scalars['Timestamp']>;
+    end_date?: Maybe<Scalars['Timestamp']>;
 };
 
 export type DateRangeInput = {
-    start_date?: Maybe<Scalars['Time']>;
-    end_date?: Maybe<Scalars['Time']>;
+    start_date?: Maybe<Scalars['Timestamp']>;
+    end_date?: Maybe<Scalars['Timestamp']>;
 };
 
 export type LengthRange = {
@@ -372,8 +372,8 @@ export type SessionComment = {
     id: Scalars['ID'];
     project_id: Scalars['ID'];
     timestamp?: Maybe<Scalars['Int']>;
-    created_at: Scalars['Time'];
-    updated_at: Scalars['Time'];
+    created_at: Scalars['Timestamp'];
+    updated_at: Scalars['Timestamp'];
     session_id: Scalars['Int'];
     session_secure_id: Scalars['String'];
     author?: Maybe<SanitizedAdmin>;
@@ -388,10 +388,10 @@ export type ErrorComment = {
     __typename?: 'ErrorComment';
     id: Scalars['ID'];
     project_id: Scalars['ID'];
-    created_at: Scalars['Time'];
+    created_at: Scalars['Timestamp'];
     error_id: Scalars['Int'];
     error_secure_id: Scalars['String'];
-    updated_at: Scalars['Time'];
+    updated_at: Scalars['Timestamp'];
     author: SanitizedAdmin;
     text: Scalars['String'];
 };
@@ -405,14 +405,14 @@ export enum SessionLifecycle {
 export type DailySessionCount = {
     __typename?: 'DailySessionCount';
     project_id: Scalars['ID'];
-    date: Scalars['Time'];
+    date: Scalars['Timestamp'];
     count: Scalars['Int64'];
 };
 
 export type DailyErrorCount = {
     __typename?: 'DailyErrorCount';
     project_id: Scalars['ID'];
-    date: Scalars['Time'];
+    date: Scalars['Timestamp'];
     count: Scalars['Int64'];
 };
 

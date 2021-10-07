@@ -45,7 +45,7 @@ mutation addSessionFeedback(
     $user_name: String
     $user_email: String
     $verbatim: String!
-    $timestamp: Time!
+    $timestamp: Timestamp!
 ) {
     addSessionFeedback(
         session_id: $session_id

@@ -10,7 +10,7 @@ export type Scalars = {
   Int: number;
   Float: number;
   Any: any;
-  Time: any;
+  Timestamp: any;
   Int64: any;
 };
 
@@ -42,7 +42,7 @@ export type ErrorObjectInput = {
   lineNumber: Scalars['Int'];
   columnNumber: Scalars['Int'];
   stackTrace: Array<Maybe<StackFrameInput>>;
-  timestamp: Scalars['Time'];
+  timestamp: Scalars['Timestamp'];
   payload?: Maybe<Scalars['String']>;
 };
 
@@ -107,7 +107,7 @@ export type MutationAddSessionFeedbackArgs = {
   user_name?: Maybe<Scalars['String']>;
   user_email?: Maybe<Scalars['String']>;
   verbatim: Scalars['String'];
-  timestamp: Scalars['Time'];
+  timestamp: Scalars['Timestamp'];
 };
 
 export type Query = {

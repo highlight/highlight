@@ -255,7 +255,7 @@ var sources = []*ast.Source{
 	{Name: "graph/schema.graphqls", Input: `# CLIENT GRAPH
 
 scalar Any
-scalar Time
+scalar Timestamp
 scalar Int64
 
 type Session {
@@ -282,7 +282,7 @@ input ErrorObjectInput {
     lineNumber: Int!
     columnNumber: Int!
     stackTrace: [StackFrameInput]!
-    timestamp: Time!
+    timestamp: Timestamp!
     payload: String
 }
 
@@ -321,7 +321,7 @@ type Mutation {
         user_name: String
         user_email: String
         verbatim: String!
-        timestamp: Time!
+        timestamp: Timestamp!
     ): ID!
 }
 
@@ -378,7 +378,7 @@ func (ec *executionContext) field_Mutation_addSessionFeedback_args(ctx context.C
 	var arg4 time.Time
 	if tmp, ok := rawArgs["timestamp"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timestamp"))
-		arg4, err = ec.unmarshalNTime2timeᚐTime(ctx, tmp)
+		arg4, err = ec.unmarshalNTimestamp2timeᚐTime(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2244,7 +2244,7 @@ func (ec *executionContext) unmarshalInputErrorObjectInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timestamp"))
-			it.Timestamp, err = ec.unmarshalNTime2timeᚐTime(ctx, v)
+			it.Timestamp, err = ec.unmarshalNTimestamp2timeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2862,13 +2862,13 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
-func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
-	res, err := graphql.UnmarshalTime(v)
+func (ec *executionContext) unmarshalNTimestamp2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
+	res, err := model1.UnmarshalTimestamp(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
-	res := graphql.MarshalTime(v)
+func (ec *executionContext) marshalNTimestamp2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
+	res := model1.MarshalTimestamp(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
