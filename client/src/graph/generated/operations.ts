@@ -26,7 +26,9 @@ export type Scalars = {
 export type Session = {
   __typename?: 'Session';
   id: Scalars['ID'];
+  secure_id: Scalars['String'];
   organization_id: Scalars['ID'];
+  project_id: Scalars['ID'];
 };
 
 export type StackFrameInput = {
@@ -205,7 +207,7 @@ export type InitializeSessionMutation = (
   { __typename?: 'Mutation' }
   & { initializeSession?: Types.Maybe<(
     { __typename?: 'Session' }
-    & Pick<Types.Session, 'id' | 'organization_id'>
+    & Pick<Types.Session, 'id' | 'secure_id' | 'organization_id' | 'project_id'>
   )> }
 );
 
@@ -281,7 +283,9 @@ export const InitializeSessionDocument = gql`
     fingerprint: $id
   ) {
     id
+    secure_id
     organization_id
+    project_id
   }
 }
     `;
