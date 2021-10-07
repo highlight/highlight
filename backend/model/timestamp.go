@@ -1,7 +1,6 @@
 package model
 
 import (
-	"errors"
 	"io"
 	"strconv"
 	"time"
@@ -29,5 +28,5 @@ func UnmarshalTimestamp(v interface{}) (time.Time, error) {
 	if tmpStr, ok := v.(string); ok {
 		return time.Parse(time.RFC3339Nano, tmpStr)
 	}
-	return time.Time{}, errors.New("time should be RFC3339Nano formatted string")
+	return time.Time{}, e.New("time should be RFC3339Nano formatted string")
 }

@@ -11,7 +11,7 @@ import { ErrorState } from '../../components/ErrorState/ErrorState';
 import { Header } from '../../components/Header/Header';
 import OnboardingBubble from '../../components/OnboardingBubble/OnboardingBubble';
 import { Sidebar } from '../../components/Sidebar/Sidebar';
-import { useGetApplicationsQuery } from '../../graph/generated/hooks';
+import { useGetVisibleProjectsAndWorkspacesQuery } from '../../graph/generated/hooks';
 import { useIntegrated } from '../../util/integrated';
 import { ApplicationContextProvider } from './ApplicationContext';
 import ApplicationRouter from './ApplicationRouter';
@@ -26,7 +26,7 @@ export const ProjectRouter = () => {
         project_id: string;
     }>();
 
-    const { data, loading, error } = useGetApplicationsQuery({
+    const { data, loading, error } = useGetVisibleProjectsAndWorkspacesQuery({
         variables: { id: project_id },
         skip: !isLoggedIn, // Higher level routers decide when guests are allowed to hit this router
     });

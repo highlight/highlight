@@ -164,7 +164,7 @@ type Organization struct {
 type Workspace struct {
 	Model
 	Name                  *string
-	Secret                *string `json:"-"` // Needed for workspace-level team
+	Secret                *string // Needed for workspace-level team
 	Admins                []Admin `gorm:"many2many:workspace_admins;"`
 	SlackAccessToken      *string
 	SlackWebhookURL       *string
@@ -184,17 +184,17 @@ type Project struct {
 	Secret           *string    `json:"-"`
 	Admins           []Admin    `gorm:"many2many:project_admins;"`
 	TrialEndDate     *time.Time `json:"trial_end_date"`
-	// Slack API Interaction.
-	SlackAccessToken      *string
-	SlackWebhookURL       *string
-	SlackWebhookChannel   *string
-	SlackWebhookChannelID *string
-	SlackChannels         *string
 	// Manual monthly session limit override
 	MonthlySessionLimit *int
-	OrganizationID      int
 	WorkspaceID         int
 }
+
+type HasSecret interface {
+	GetSecret() *string
+}
+
+func (project *Project) GetSecret() *string     { return project.Secret }
+func (workspace *Workspace) GetSecret() *string { return workspace.Secret }
 
 type Alert struct {
 	OrganizationID       int
@@ -285,7 +285,7 @@ type SlackChannel struct {
 	WebhookChannelID   string
 }
 
-func (u *Project) IntegratedSlackChannels() ([]SlackChannel, error) {
+func (u *Workspace) IntegratedSlackChannels() ([]SlackChannel, error) {
 	parsedChannels := []SlackChannel{}
 	if u.SlackChannels != nil {
 		err := json.Unmarshal([]byte(*u.SlackChannels), &parsedChannels)
@@ -343,6 +343,12 @@ func (u *Project) BeforeCreate(tx *gorm.DB) (err error) {
 	return
 }
 
+func (u *Workspace) BeforeCreate(tx *gorm.DB) (err error) {
+	x := xid.New().String()
+	u.Secret = &x
+	return
+}
+
 type Admin struct {
 	Model
 	Name             *string
@@ -353,6 +359,7 @@ type Admin struct {
 	Projects         []Project        `gorm:"many2many:project_admins;"`
 	SessionComments  []SessionComment `gorm:"many2many:session_comment_admins;"`
 	ErrorComments    []ErrorComment   `gorm:"many2many:error_comment_admins;"`
+	Workspaces       []Workspace      `gorm:"many2many:workspace_admins;"`
 	SlackIMChannelID *string
 	Role             *string `json:"role" gorm:"default:ADMIN"`
 }
@@ -497,18 +504,23 @@ func (r *ResourcesObject) Contents() string {
 }
 
 type SearchParams struct {
-	UserProperties     []*UserProperty `json:"user_properties"`
-	ExcludedProperties []*UserProperty `json:"excluded_properties"`
-	TrackProperties    []*UserProperty `json:"track_properties"`
-	DateRange          *DateRange      `json:"date_range"`
-	LengthRange        *LengthRange    `json:"length_range"`
-	Browser            *string         `json:"browser"`
-	OS                 *string         `json:"os"`
-	VisitedURL         *string         `json:"visited_url"`
-	Referrer           *string         `json:"referrer"`
-	Identified         bool            `json:"identified"`
-	HideViewed         bool            `json:"hide_viewed"`
-	FirstTime          bool            `json:"first_time"`
+	UserProperties          []*UserProperty `json:"user_properties"`
+	ExcludedProperties      []*UserProperty `json:"excluded_properties"`
+	TrackProperties         []*UserProperty `json:"track_properties"`
+	ExcludedTrackProperties []*UserProperty `json:"excluded_track_properties"`
+	DateRange               *DateRange      `json:"date_range"`
+	LengthRange             *LengthRange    `json:"length_range"`
+	Browser                 *string         `json:"browser"`
+	OS                      *string         `json:"os"`
+	Environments            []*string       `json:"environments"`
+	AppVersions             []*string       `json:"app_versions"`
+	DeviceID                *string         `json:"device_id"`
+	VisitedURL              *string         `json:"visited_url"`
+	Referrer                *string         `json:"referrer"`
+	Identified              bool            `json:"identified"`
+	HideViewed              bool            `json:"hide_viewed"`
+	FirstTime               bool            `json:"first_time"`
+	ShowLiveSessions        bool            `json:"show_live_sessions"`
 }
 type Segment struct {
 	Model
@@ -887,8 +899,8 @@ func (s *Session) GetUserProperties() (map[string]string, error) {
 
 type SendSlackAlertInput struct {
 	Organization *Organization
-	// Project is a required parameter
-	Project *Project
+	// Workspace is a required parameter
+	Workspace *Workspace
 	// SessionSecureID is a required parameter
 	SessionSecureID string
 	// UserIdentifier is a required parameter for New User, Error, and SessionFeedback alerts
@@ -920,7 +932,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 		return e.Wrap(err, "error getting channels to notify from user properties alert")
 	}
 	// get project's channels
-	integratedSlackChannels, err := input.Project.IntegratedSlackChannels()
+	integratedSlackChannels, err := input.Workspace.IntegratedSlackChannels()
 	if err != nil {
 		return e.Wrap(err, "error getting slack webhook url for alert")
 	}
@@ -934,7 +946,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 	var messageBlock []*slack.TextBlockObject
 
 	frontendURL := os.Getenv("FRONTEND_URI")
-	suffix := "/"
+	suffix := ""
 	if input.CommentID != nil {
 		suffix = fmt.Sprintf("?commentId=%d", *input.CommentID)
 	}
@@ -1049,10 +1061,10 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 	}
 
 	var slackClient *slack.Client
-	if input.Project.SlackAccessToken != nil {
-		slackClient = slack.New(*input.Project.SlackAccessToken)
+	if input.Workspace.SlackAccessToken != nil {
+		slackClient = slack.New(*input.Workspace.SlackAccessToken)
 	}
-	log.Printf("Sending Slack Alert for project: %d session: %s", input.Project.ID, input.SessionSecureID)
+	log.Printf("Sending Slack Alert for project: %d session: %s", input.Workspace.ID, input.SessionSecureID)
 
 	// send message
 	for _, channel := range channels {
@@ -1073,7 +1085,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 			}
 
 			if slackWebhookURL == "" && isWebhookChannel {
-				log.WithFields(log.Fields{"project_id": input.Project.ID}).
+				log.WithFields(log.Fields{"workspace_id": input.Workspace.ID}).
 					Error("requested channel has no matching slackWebhookURL")
 				continue
 			}
@@ -1090,7 +1102,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 						&msg,
 					)
 					if err != nil {
-						log.WithFields(log.Fields{"project_id": input.Project.ID, "slack_webhook_url": slackWebhookURL, "message": fmt.Sprintf("%+v", msg)}).
+						log.WithFields(log.Fields{"workspace_id": input.Workspace.ID, "slack_webhook_url": slackWebhookURL, "message": fmt.Sprintf("%+v", msg)}).
 							Error(e.Wrap(err, "error sending slack msg via webhook"))
 					}
 				} else {
@@ -1106,7 +1118,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 						}
 						_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionBlocks(blockSet...))
 						if err != nil {
-							log.WithFields(log.Fields{"project_id": input.Project.ID, "message": fmt.Sprintf("%+v", msg)}).
+							log.WithFields(log.Fields{"workspace_id": input.Workspace.ID, "message": fmt.Sprintf("%+v", msg)}).
 								Error(e.Wrap(err, "error sending slack msg via bot api"))
 						}
 

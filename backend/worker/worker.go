@@ -8,9 +8,11 @@ import (
 	"math"
 	"math/rand"
 	"os"
+	"runtime"
 	"strconv"
 	"time"
 
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
 	"github.com/pkg/errors"
@@ -384,8 +386,13 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			return e.Wrapf(err, "[project_id: %d] error getting user properties from new user alert", s.ProjectID)
 		}
 
+		workspace, err := w.Resolver.GetWorkspace(project.WorkspaceID)
+		if err != nil {
+			return e.Wrapf(err, "[project_id: %d] error querying workspace", s.ProjectID)
+		}
+
 		// send Slack message
-		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Project: project, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, UserProperties: userProperties})
+		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, UserProperties: userProperties})
 		if err != nil {
 			return e.Wrapf(err, "[project_id: %d] error sending slack message for new user alert", projectID)
 		}
@@ -435,8 +442,13 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			return nil
 		}
 
+		workspace, err := w.Resolver.GetWorkspace(project.WorkspaceID)
+		if err != nil {
+			return e.Wrap(err, "error querying workspace")
+		}
+
 		// send Slack message
-		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Project: project, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, MatchedFields: matchedFields})
+		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, MatchedFields: matchedFields})
 		if err != nil {
 			return e.Wrap(err, "error sending track properties alert slack message")
 		}
@@ -487,8 +499,13 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			return nil
 		}
 
+		workspace, err := w.Resolver.GetWorkspace(project.WorkspaceID)
+		if err != nil {
+			return e.Wrap(err, "error querying workspace")
+		}
+
 		// send Slack message
-		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Project: project, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, MatchedFields: matchedFields})
+		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, MatchedFields: matchedFields})
 		if err != nil {
 			return e.Wrapf(err, "error sending user properties alert slack message")
 		}
@@ -513,19 +530,21 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 // Start begins the worker's tasks.
 func (w *Worker) Start() {
 	ctx := context.Background()
+	go reportProcessSessionCount(w.Resolver.DB)
 	for {
 		time.Sleep(1 * time.Second)
-		workerSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.unit"))
-		workerSpan.SetTag("backend", util.Worker)
 		now := time.Now()
 		seconds := 30
 		if util.IsDevEnv() {
 			seconds = 8
 		}
+		processSessionLimit := 10000
 		someSecondsAgo := now.Add(time.Duration(-1*seconds) * time.Second)
 		sessions := []*model.Session{}
-		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName(now.String()))
-		if err := w.Resolver.DB.Where("(payload_updated_at < ? OR payload_updated_at IS NULL) AND (processed = ?)", someSecondsAgo, false).Find(&sessions).Error; err != nil {
+		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName("worker.sessionsQuery"))
+		if err := w.Resolver.DB.
+			Where("(payload_updated_at < ? OR payload_updated_at IS NULL) AND (processed = ?)", someSecondsAgo, false).
+			Limit(processSessionLimit).Find(&sessions).Error; err != nil {
 			log.Errorf("error querying unparsed, outdated sessions: %v", err)
 			sessionsSpan.Finish()
 			continue
@@ -549,23 +568,29 @@ func (w *Worker) Start() {
 			log.Infof("sessions that will be processed: %v", sessionIds)
 		}
 
-		// process 4 sessions at a time. this number was chosen arbitrarily.
 		wp := workerpool.New(40)
+		wp.SetPanicHandler(func() {
+			if rec := recover(); rec != nil {
+				buf := make([]byte, 64<<10)
+				buf = buf[:runtime.Stack(buf, false)]
+				log.Errorf("panic: %+v\n%s", rec, buf)
+			}
+		})
+		// process 80 sessions at a time.
 		for _, session := range sessions {
 			session := session
-			wp.Submit(func() {
-				span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"), tracer.Tag("session_id", strconv.Itoa(session.ID)))
+			ctx := ctx
+			wp.SubmitRecover(func() {
+				span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"))
 				if err := w.processSession(ctx, session); err != nil {
 					log.WithField("session_id", session.ID).Error(e.Wrap(err, "error processing main session"))
 					span.Finish(tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID)))
 					return
 				}
+				hlog.Incr("sessionsProcessed", nil, 1)
 				span.Finish()
 			})
 		}
-		// wait for all workers to finish so we don't query sessions that are still being processed
-		wp.StopWait()
-		workerSpan.Finish()
 	}
 }
 
@@ -727,4 +752,24 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 	}
 
 	return o
+}
+
+func reportProcessSessionCount(db *gorm.DB) {
+	for {
+		time.Sleep(5 * time.Second)
+		var count int64
+		if err := db.Raw(`
+			SELECT COUNT(*)
+			FROM sessions
+			WHERE (
+				payload_updated_at < (now() - 8* interval '1 second') 
+				OR payload_updated_at IS NULL
+			) 
+			AND processed=false;
+		`).Scan(&count).Error; err != nil {
+			log.Error("error getting count of sessions to process")
+			continue
+		}
+		hlog.Histogram("processSessionsCount", float64(count), nil, 1)
+	}
 }

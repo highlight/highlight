@@ -50,13 +50,11 @@ const CreateSegmentModal = ({
     const history = useHistory();
 
     const onSubmit = (inputs: Inputs) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { show_live_sessions, ...restOfSearchParams } = searchParams;
         createSegment({
             variables: {
                 project_id,
                 name: inputs.name,
-                params: restOfSearchParams,
+                params: searchParams,
             },
         }).then((r) => {
             setExistingParams(searchParams);

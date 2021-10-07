@@ -41,7 +41,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, userIdentifier string, userObject interface{}) (*int, error) {
 	obj, ok := userObject.(map[string]interface{})
 	if !ok {
-		return nil, fmt.Errorf("error converting userObject interface type")
+		return nil, fmt.Errorf("[IdentifySession] error converting userObject interface type")
 	}
 
 	userProperties := map[string]string{
@@ -53,16 +53,16 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 		userObj[k] = fmt.Sprintf("%v", v)
 	}
 	if err := r.AppendProperties(sessionID, userProperties, PropertyType.USER); err != nil {
-		log.Error(e.Wrap(err, "error adding set of properties to db"))
+		log.Error(e.Wrapf(err, "[IdentifySession] error adding set of identify properties to db: session: %d", sessionID))
 	}
 
 	session := &model.Session{}
 	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
-		return nil, e.Wrap(err, "error querying session by sessionID")
+		return nil, e.Wrap(err, "[IdentifySession] error querying session by sessionID")
 	}
 	// set user properties to session in db
 	if err := session.SetUserProperties(userObj); err != nil {
-		return nil, e.Wrapf(err, "[project_id: %d] error appending user properties to session object {id: %d}", session.ProjectID, sessionID)
+		return nil, e.Wrapf(err, "[IdentifySession] [project_id: %d] error appending user properties to session object {id: %d}", session.ProjectID, sessionID)
 	}
 
 	// Check if there is a session created by this user.
@@ -71,7 +71,7 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			firstTime = &model.T
 		} else {
-			return nil, e.Wrap(err, "error querying session with past identifier")
+			return nil, e.Wrap(err, "[IdentifySession] error querying session with past identifier")
 		}
 	}
 
@@ -79,7 +79,7 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 	session.Identifier = userIdentifier
 
 	if err := r.DB.Save(&session).Error; err != nil {
-		return nil, e.Wrap(err, "failed to update session")
+		return nil, e.Wrap(err, "[IdentifySession] failed to update session")
 	}
 
 	return &sessionID, nil
@@ -212,8 +212,15 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 			identifier = *userEmail
 		}
 
+		workspace, err := r.getWorkspace(project.WorkspaceID)
+		if err != nil {
+			log.WithError(err).
+				WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "comment_id": feedbackComment.ID}).
+				Error(e.Wrap(err, "error fetching workspace"))
+		}
+
 		if err := sessionFeedbackAlert.SendSlackAlert(&model.SendSlackAlertInput{
-			Project:         &project,
+			Workspace:       workspace,
 			SessionSecureID: session.SecureID,
 			UserIdentifier:  identifier,
 			CommentID:       &feedbackComment.ID,

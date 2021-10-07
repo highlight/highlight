@@ -7,12 +7,20 @@ export const SharedSelectStyleProps: Styles<
     control: (provided) => ({
         ...provided,
         borderColor: 'var(--color-gray-300)',
-        borderRadius: 8,
+        borderRadius: 'var(--border-radius)',
         minHeight: 45,
     }),
     singleValue: (provided) => ({
         ...provided,
         maxWidth: 'calc(90% - 8px)',
+    }),
+    valueContainer: (provided) => ({
+        ...provided,
+        padding: 'var(--size-xSmall) var(--size-medium)',
+    }),
+    placeholder: (provided) => ({
+        ...provided,
+        color: '#bfbfbf',
     }),
     menu: (provided) => ({ ...provided, zIndex: 100 }),
     option: (provided) => ({

@@ -1,3 +1,4 @@
+import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
 import classNames from 'classnames';
 import React from 'react';
 import { useEffect } from 'react';
@@ -9,8 +10,10 @@ import SvgFilterIcon from '../../../../static/FilterIcon';
 import { useSearchContext } from '../../../Sessions/SearchContext/SearchContext';
 import { DateInput } from '../../../Sessions/SearchInputs/DateInput';
 import {
+    AppVersionInput,
     BrowserInput,
     DeviceIdInput,
+    EnvironmentInput,
     OperatingSystemInput,
 } from '../../../Sessions/SearchInputs/DeviceInputs';
 import { LengthInput } from '../../../Sessions/SearchInputs/LengthInput';
@@ -28,7 +31,7 @@ import segmentPickerStyles from '../SegmentPickerForPlayer/SegmentPickerForPlaye
 import styles from './SessionSearchFilters.module.scss';
 
 const SessionSearchFilters = () => {
-    const { searchParams } = useSearchContext();
+    const { searchParams, setSearchParams } = useSearchContext();
     const [filtersSetCount, setFiltersSetCount] = useState(0);
 
     useEffect(() => {
@@ -45,16 +48,21 @@ const SessionSearchFilters = () => {
                 !!searchParams.date_range?.start_date,
             !!searchParams.excluded_properties?.length,
             !!searchParams.excluded_track_properties?.length,
+            !!searchParams.show_live_sessions,
+            !!searchParams.app_versions?.length,
+            !!searchParams.environments?.length,
         ];
 
         setFiltersSetCount(
             filterOptions.reduce((prev, cur) => (cur ? prev + 1 : prev), 0)
         );
     }, [
+        searchParams.app_versions?.length,
         searchParams.browser,
         searchParams.date_range?.end_date,
         searchParams.date_range?.start_date,
         searchParams.device_id,
+        searchParams.environments?.length,
         searchParams.excluded_properties?.length,
         searchParams.excluded_track_properties?.length,
         searchParams.first_time,
@@ -63,6 +71,7 @@ const SessionSearchFilters = () => {
         searchParams.length_range?.max,
         searchParams.length_range?.min,
         searchParams.os,
+        searchParams.show_live_sessions,
     ]);
 
     return (
@@ -106,14 +115,35 @@ const SessionSearchFilters = () => {
                             <span>Device ID</span>
                             <DeviceIdInput />
                         </label>
+                        <label>
+                            <span>Environments</span>
+                            <EnvironmentInput />
+                        </label>
                         <div></div>
                         <div></div>
-                        <div></div>
+                        <label>
+                            <span>App Version</span>
+                            <AppVersionInput />
+                        </label>
                         <LengthInput />
                         <label>
                             <span>Date Range</span>
                             <DateInput />
                         </label>
+
+                        <div className={styles.clearFiltersContainer}>
+                            <Button
+                                disabled={filtersSetCount === 0}
+                                size="small"
+                                trackingId="ClearSessionFilters"
+                                className={styles.clearFilters}
+                                onClick={() => {
+                                    setSearchParams(EmptySessionsSearchParams);
+                                }}
+                            >
+                                Clear Filters
+                            </Button>
+                        </div>
                     </section>
                 </main>
             }
