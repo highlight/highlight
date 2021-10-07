@@ -504,16 +504,16 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 // Start begins the worker's tasks.
 func (w *Worker) Start() {
 	ctx := context.Background()
-	go reportProcessSessionCount(w.Resolver.DB)
+	payloadLookbackPeriod := 60 // a session must be stale for at least this long to be processed
+	if util.IsDevEnv() {
+		payloadLookbackPeriod = 8
+	}
+	go reportProcessSessionCount(w.Resolver.DB, payloadLookbackPeriod)
 	for {
 		time.Sleep(1 * time.Second)
 		now := time.Now()
-		seconds := 60
-		if util.IsDevEnv() {
-			seconds = 8
-		}
 		processSessionLimit := 10000
-		someSecondsAgo := now.Add(time.Duration(-1*seconds) * time.Second)
+		someSecondsAgo := now.Add(time.Duration(-1*payloadLookbackPeriod) * time.Second)
 		sessions := []*model.Session{}
 		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName("worker.sessionsQuery"))
 		if err := w.Resolver.DB.
@@ -603,7 +603,7 @@ func getActiveDuration(event *model.EventsObject, firstEventTimestamp time.Time,
 	return activeDuration, firstEventTimestamp, lastEventTimestamp, nil
 }
 
-func reportProcessSessionCount(db *gorm.DB) {
+func reportProcessSessionCount(db *gorm.DB, lookbackPeriod int) {
 	for {
 		time.Sleep(5 * time.Second)
 		var count int64
@@ -611,11 +611,11 @@ func reportProcessSessionCount(db *gorm.DB) {
 			SELECT COUNT(*)
 			FROM sessions
 			WHERE (
-				payload_updated_at < (now() - 8* interval '1 second')
+				payload_updated_at < (NOW() - ? * INTERVAL '1 SECOND')
 				OR payload_updated_at IS NULL
 			)
 			AND processed=false;
-		`).Scan(&count).Error; err != nil {
+		`, lookbackPeriod).Scan(&count).Error; err != nil {
 			log.Error("error getting count of sessions to process")
 			continue
 		}
