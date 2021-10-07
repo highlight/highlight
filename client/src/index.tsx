@@ -490,8 +490,8 @@ export class Highlight {
                     this.logger.log(
                         `Loaded Highlight
   Remote: ${process.env.PUBLIC_GRAPH_URI}
-  Org ID: ${organization_id}
-  Verbose Org ID: ${this.organizationID}
+  Friendly Project ID: ${this.organizationID}
+  Short Project ID: ${this.sessionData.projectID}
   SessionID: ${this.sessionData.sessionID}
   Session Data:
   `,
