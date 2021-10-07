@@ -936,7 +936,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 	var messageBlock []*slack.TextBlockObject
 
 	frontendURL := os.Getenv("FRONTEND_URI")
-	suffix := "/"
+	suffix := ""
 	if input.CommentID != nil {
 		suffix = fmt.Sprintf("?commentId=%d", *input.CommentID)
 	}
