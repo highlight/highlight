@@ -225,7 +225,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	//Delete the session if there's no events.
 	if payloadManager.Events.Length == 0 {
-		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Warn("there are no events for session")
+		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Warnf("there are no events for session: %d", s.ID)
 		if err := w.Resolver.DB.Select(clause.Associations).Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
 			return errors.Wrap(err, "error trying to delete associations for session with no events")
 		}
@@ -508,7 +508,7 @@ func (w *Worker) Start() {
 	for {
 		time.Sleep(1 * time.Second)
 		now := time.Now()
-		seconds := 30
+		seconds := 60
 		if util.IsDevEnv() {
 			seconds = 8
 		}
@@ -611,9 +611,9 @@ func reportProcessSessionCount(db *gorm.DB) {
 			SELECT COUNT(*)
 			FROM sessions
 			WHERE (
-				payload_updated_at < (now() - 8* interval '1 second') 
+				payload_updated_at < (now() - 8* interval '1 second')
 				OR payload_updated_at IS NULL
-			) 
+			)
 			AND processed=false;
 		`).Scan(&count).Error; err != nil {
 			log.Error("error getting count of sessions to process")
