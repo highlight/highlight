@@ -105,7 +105,9 @@
             "cpu": 0,
             "environment": [],
             "resourceRequirements": null,
-            "ulimits": null,
+            "ulimits": [
+                { "name": "nofile", "softLimit": 65535, "hardLimit": 65535 }
+            ],
             "dnsServers": null,
             "mountPoints": [
                 {
@@ -198,7 +200,7 @@
         }
     ],
     "placementConstraints": [],
-    "memory": "8192",
+    "memory": "16384",
     "taskRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
     "compatibilities": ["EC2", "FARGATE"],
     "taskDefinitionArn": "arn:aws:ecs:us-east-2:173971919437:task-definition/worker-task:40",

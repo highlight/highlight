@@ -2,10 +2,10 @@ import { AdminRole } from '@graph/schemas';
 
 import { GetBaseURL } from '../../util/window';
 
-export const getProjectInvitationLink = (
-    projectSecret: string,
-    projectId: string
-) => `${GetBaseURL()}/${projectId}/invite/${projectSecret}`;
+export const getWorkspaceInvitationLink = (
+    workspaceSecret: string,
+    workspaceId: string
+) => `${GetBaseURL()}/w/${workspaceId}/invite/${workspaceSecret}`;
 
 export const roleToDisplayValueMapping = {
     [AdminRole.Admin]: 'Admin',

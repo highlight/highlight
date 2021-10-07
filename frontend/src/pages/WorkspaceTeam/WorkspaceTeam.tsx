@@ -12,16 +12,16 @@ import Button from '../../components/Button/Button/Button';
 import CopyText from '../../components/CopyText/CopyText';
 import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
-import { CircularSpinner } from '../../components/Loading/Loading';
+import { CircularSpinner, LoadingBar } from '../../components/Loading/Loading';
 import PopConfirm from '../../components/PopConfirm/PopConfirm';
 import {
-    useDeleteAdminFromProjectMutation,
-    useGetAdminsQuery,
+    useDeleteAdminFromWorkspaceMutation,
+    useGetProjectAdminsQuery,
     useGetProjectQuery,
-    useSendAdminInviteMutation,
+    useSendAdminWorkspaceInviteMutation,
 } from '../../graph/generated/hooks';
 import SvgTrash from '../../static/Trash';
-import { getProjectInvitationLink, roleToDisplayValueMapping } from './utils';
+import { getWorkspaceInvitationLink, roleToDisplayValueMapping } from './utils';
 import styles from './WorkspaceTeam.module.scss';
 
 type Inputs = {
@@ -32,23 +32,24 @@ const WorkspaceTeam = () => {
     const { project_id } = useParams<{ project_id: string }>();
     const emailRef = useRef<null | HTMLInputElement>(null);
     const { register, handleSubmit, errors, reset } = useForm<Inputs>();
-    const { data: projectData } = useGetProjectQuery({
+    const { data: projectData, loading: projectLoading } = useGetProjectQuery({
         variables: { id: project_id },
     });
-    const { data, error, loading } = useGetAdminsQuery({
+    const { data, error, loading } = useGetProjectAdminsQuery({
         variables: { project_id },
     });
+
     const { admin } = useAuthContext();
-    const [deleteAdminFromProject] = useDeleteAdminFromProjectMutation({
+    const [deleteAdminFromWorkspace] = useDeleteAdminFromWorkspaceMutation({
         update(cache, { data }) {
             cache.modify({
                 fields: {
                     admins(existingAdmins, { readField }) {
-                        if (data?.deleteAdminFromProject !== undefined) {
+                        if (data?.deleteAdminFromWorkspace !== undefined) {
                             message.success('Removed member');
                             return existingAdmins.filter(
                                 (admin: any) =>
-                                    data.deleteAdminFromProject !==
+                                    data.deleteAdminFromWorkspace !==
                                     readField('id', admin)
                             );
                         }
@@ -67,17 +68,23 @@ const WorkspaceTeam = () => {
     const [
         sendInviteEmail,
         { loading: sendLoading },
-    ] = useSendAdminInviteMutation();
+    ] = useSendAdminWorkspaceInviteMutation();
 
     useEffect(() => {
         reset();
     }, [reset]);
 
+    if (projectLoading) {
+        return <LoadingBar />;
+    }
+
+    const workspaceId = projectData!.workspace!.id;
+
     const onSubmit = (data: Inputs) => {
         setHasStartedOnboarding(true);
         sendInviteEmail({
             variables: {
-                project_id,
+                workspace_id: workspaceId,
                 email: data.email,
                 base_url: window.location.origin,
             },
@@ -145,9 +152,9 @@ const WorkspaceTeam = () => {
                 </form>
                 <p>Or invite your team by sharing this link.</p>
                 <CopyText
-                    text={getProjectInvitationLink(
+                    text={getWorkspaceInvitationLink(
                         projectData?.project?.secret || '',
-                        project_id
+                        workspaceId
                     )}
                 />
             </div>
@@ -199,10 +206,10 @@ const WorkspaceTeam = () => {
                                     cancelText="Cancel"
                                     onConfirm={() => {
                                         if (a?.id) {
-                                            deleteAdminFromProject({
+                                            deleteAdminFromWorkspace({
                                                 variables: {
                                                     admin_id: a?.id,
-                                                    project_id,
+                                                    workspace_id: workspaceId,
                                                 },
                                             });
                                         }

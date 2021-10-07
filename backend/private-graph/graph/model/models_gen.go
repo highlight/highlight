@@ -102,6 +102,8 @@ type SearchParamsInput struct {
 	ExcludedProperties      []*UserPropertyInput `json:"excluded_properties"`
 	TrackProperties         []*UserPropertyInput `json:"track_properties"`
 	ExcludedTrackProperties []*UserPropertyInput `json:"excluded_track_properties"`
+	Environments            []*string            `json:"environments"`
+	AppVersions             []*string            `json:"app_versions"`
 	DateRange               *DateRangeInput      `json:"date_range"`
 	LengthRange             *LengthRangeInput    `json:"length_range"`
 	Os                      *string              `json:"os"`
