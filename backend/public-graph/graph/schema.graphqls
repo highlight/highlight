@@ -1,7 +1,7 @@
 # CLIENT GRAPH
 
 scalar Any
-scalar Time
+scalar Timestamp
 scalar Int64
 
 type Session {
@@ -28,7 +28,7 @@ input ErrorObjectInput {
     lineNumber: Int!
     columnNumber: Int!
     stackTrace: [StackFrameInput]!
-    timestamp: Time!
+    timestamp: Timestamp!
     payload: String
 }
 
@@ -67,7 +67,7 @@ type Mutation {
         user_name: String
         user_email: String
         verbatim: String!
-        timestamp: Time!
+        timestamp: Timestamp!
     ): ID!
 }
 
