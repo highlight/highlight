@@ -87,7 +87,7 @@ const HighlightWarning = (context: string, msg: any) => {
 };
 
 export interface HighlightPublicInterface {
-    init: (orgID?: number | string, debug?: HighlightOptions) => void;
+    init: (projectID?: string | number, debug?: HighlightOptions) => void;
     /**
      * Calling this will assign an identifier to the session.
      * @example identify('teresa@acme.com', { accountAge: 3, cohort: 8 })
@@ -140,15 +140,13 @@ interface HighlightWindow extends Window {
     amplitude?: AmplitudeAPI;
 }
 
-const HIGHLIGHT_URL = 'app.highlight.run';
-
 declare var window: HighlightWindow;
 
 var script: HTMLScriptElement;
 var highlight_obj: Highlight;
 export const H: HighlightPublicInterface = {
     options: undefined,
-    init: (orgID?: number | string, options?: HighlightOptions) => {
+    init: (projectID?: string | number, options?: HighlightOptions) => {
         try {
             H.options = options;
 
@@ -160,10 +158,10 @@ export const H: HighlightPublicInterface = {
                 return;
             }
 
-            // Don't initialize if an orgID is not set.
-            if (!orgID) {
+            // Don't initialize if an projectID is not set.
+            if (!projectID) {
                 console.info(
-                    'Highlight is not initializing because orgID was passed undefined.'
+                    'Highlight is not initializing because projectID was passed undefined.'
                 );
                 return;
             }
@@ -180,7 +178,7 @@ export const H: HighlightPublicInterface = {
             document.getElementsByTagName('head')[0].appendChild(script);
             script.addEventListener('load', () => {
                 highlight_obj = new window.Highlight({
-                    organizationID: orgID,
+                    organizationID: projectID,
                     debug: options?.debug,
                     backendUrl: options?.backendUrl,
                     disableNetworkRecording: options?.disableNetworkRecording,
@@ -193,7 +191,7 @@ export const H: HighlightPublicInterface = {
                     appVersion: options?.version,
                 });
                 if (!options?.manualStart) {
-                    highlight_obj.initialize(orgID);
+                    highlight_obj.initialize(projectID);
                 }
             });
 
@@ -258,11 +256,7 @@ export const H: HighlightPublicInterface = {
             H.onHighlightReady(() =>
                 highlight_obj.addProperties({ ...metadata, event: event })
             );
-            const sessionID = highlight_obj?.sessionData.sessionID;
-            let highlightUrl;
-            if (sessionID) {
-                highlightUrl = `https://${HIGHLIGHT_URL}/sessions/${sessionID}`;
-            }
+            const highlightUrl = highlight_obj?.getCurrentSessionURL();
 
             if (window.mixpanel?.track) {
                 window.mixpanel.track(event, {
@@ -345,13 +339,11 @@ export const H: HighlightPublicInterface = {
     getSessionURL: () => {
         return new Promise<string>((resolve, reject) => {
             H.onHighlightReady(() => {
-                const orgID = highlight_obj.organizationID;
-                const sessionID = highlight_obj.sessionData.sessionID;
-                if (orgID && sessionID) {
-                    const res = `${HIGHLIGHT_URL}/${orgID}/sessions/${sessionID}`;
+                const res = highlight_obj.getCurrentSessionURL();
+                if (res) {
                     resolve(res);
                 } else {
-                    reject(new Error('org ID or session ID is empty'));
+                    reject(new Error('Unable to get session URL'));
                 }
             });
         });
@@ -359,15 +351,11 @@ export const H: HighlightPublicInterface = {
     getSessionDetails: () => {
         return new Promise<SessionDetails>((resolve, reject) => {
             H.onHighlightReady(() => {
-                const orgID = highlight_obj.organizationID;
-                const sessionID = highlight_obj.sessionData.sessionID;
-                if (orgID && sessionID) {
+                const baseUrl = highlight_obj.getCurrentSessionURL();
+                if (baseUrl) {
                     const currentSessionTimestamp = highlight_obj.getCurrentSessionTimestamp();
                     const now = new Date().getTime();
-
-                    const baseUrl = `https://${HIGHLIGHT_URL}/${orgID}/sessions/${sessionID}`;
                     const url = new URL(baseUrl);
-
                     const urlWithTimestamp = new URL(baseUrl);
                     urlWithTimestamp.searchParams.set(
                         'ts',
@@ -380,7 +368,7 @@ export const H: HighlightPublicInterface = {
                         urlWithTimestamp: urlWithTimestamp.toString(),
                     });
                 } else {
-                    reject(new Error('org ID or session ID is empty'));
+                    reject(new Error('Could not get session URL'));
                 }
             });
         });

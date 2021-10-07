@@ -6,7 +6,9 @@ scalar Int64
 
 type Session {
     id: ID!
+    secure_id: String!
     organization_id: ID!
+    project_id: ID!
 }
 
 input StackFrameInput {
