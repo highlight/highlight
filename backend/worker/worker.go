@@ -542,7 +542,7 @@ func (w *Worker) Start() {
 			log.Infof("sessions that will be processed: %v", sessionIds)
 		}
 
-		wp := workerpool.New(16)
+		wp := workerpool.New(40)
 		wp.SetPanicHandler(func() {
 			if rec := recover(); rec != nil {
 				buf := make([]byte, 64<<10)
@@ -556,14 +556,12 @@ func (w *Worker) Start() {
 			ctx := ctx
 			wp.SubmitRecover(func() {
 				span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"))
-				log.Infof("beginning to process session: %d", session.ID)
 				if err := w.processSession(ctx, session); err != nil {
 					log.WithField("session_id", session.ID).Error(e.Wrap(err, "error processing main session"))
 					span.Finish(tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID)))
 					return
 				}
 				hlog.Incr("sessionsProcessed", nil, 1)
-				log.Infof("finished processing session: %d", session.ID)
 				span.Finish()
 			})
 		}
