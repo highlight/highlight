@@ -1,24 +1,73 @@
 .rageClick {
-    background: rgba(255, 117, 117, 15%);
+    --background-color: rgba(255, 109, 109, 0.15);
+    --border-color: var(--color-red);
+
+    background: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
     display: flex;
     height: 100%;
     justify-content: center;
     min-width: 20px;
     position: absolute;
     top: 0;
+    transition: background-color 0.2s ease-in-out, border-width 0.1s ease-in-out;
+
+    &:hover,
+    &.hover {
+        --background-color: rgba(255, 109, 109, 0.5);
+        border-width: 2px;
+        transition-delay: 0.2s;
+    }
 
     .icon {
         align-items: center;
-        background: var(--color-primary-background);
-        border: 1px solid var(--color-gray-400);
-        border-radius: 50%;
+        background: var(--border-color);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
         box-shadow: var(--box-shadow);
         color: var(--color-red);
         display: flex;
-        height: var(--size-large);
+        height: var(--size-medium);
         justify-content: center;
-        position: absolute;
-        transform: translateY(-125%);
-        width: var(--size-large);
+        max-width: 50%;
+        min-width: 32px;
+        position: fixed;
+        top: -16px;
+        width: 10%;
     }
+}
+
+.title {
+    align-items: center;
+    column-gap: var(--size-xSmall);
+    display: flex;
+    font-weight: 700;
+    margin-bottom: var(--size-small);
+}
+
+.iconContainer {
+    align-items: center;
+    background: var(--color-red);
+    border-radius: 50%;
+    color: var(--text-primary-inverted);
+    display: flex;
+    justify-content: center;
+    padding: var(--size-xxSmall);
+}
+
+.popoverContent {
+    max-height: 300px;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    overflow-y: auto;
+    padding-bottom: var(--size-xSmall);
+    text-overflow: ellipsis;
+    width: 240px;
+}
+
+.table {
+    grid-template-columns: 140px 1fr;
 }
