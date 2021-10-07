@@ -333,20 +333,23 @@ type ComplexityRoot struct {
 	}
 
 	SearchParams struct {
-		AppVersions        func(childComplexity int) int
-		Browser            func(childComplexity int) int
-		DateRange          func(childComplexity int) int
-		Environments       func(childComplexity int) int
-		ExcludedProperties func(childComplexity int) int
-		FirstTime          func(childComplexity int) int
-		HideViewed         func(childComplexity int) int
-		Identified         func(childComplexity int) int
-		LengthRange        func(childComplexity int) int
-		OS                 func(childComplexity int) int
-		Referrer           func(childComplexity int) int
-		TrackProperties    func(childComplexity int) int
-		UserProperties     func(childComplexity int) int
-		VisitedURL         func(childComplexity int) int
+		AppVersions             func(childComplexity int) int
+		Browser                 func(childComplexity int) int
+		DateRange               func(childComplexity int) int
+		DeviceID                func(childComplexity int) int
+		Environments            func(childComplexity int) int
+		ExcludedProperties      func(childComplexity int) int
+		ExcludedTrackProperties func(childComplexity int) int
+		FirstTime               func(childComplexity int) int
+		HideViewed              func(childComplexity int) int
+		Identified              func(childComplexity int) int
+		LengthRange             func(childComplexity int) int
+		OS                      func(childComplexity int) int
+		Referrer                func(childComplexity int) int
+		ShowLiveSessions        func(childComplexity int) int
+		TrackProperties         func(childComplexity int) int
+		UserProperties          func(childComplexity int) int
+		VisitedURL              func(childComplexity int) int
 	}
 
 	Segment struct {
@@ -2435,6 +2438,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SearchParams.DateRange(childComplexity), true
 
+	case "SearchParams.device_id":
+		if e.complexity.SearchParams.DeviceID == nil {
+			break
+		}
+
+		return e.complexity.SearchParams.DeviceID(childComplexity), true
+
 	case "SearchParams.environments":
 		if e.complexity.SearchParams.Environments == nil {
 			break
@@ -2448,6 +2458,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.SearchParams.ExcludedProperties(childComplexity), true
+
+	case "SearchParams.excluded_track_properties":
+		if e.complexity.SearchParams.ExcludedTrackProperties == nil {
+			break
+		}
+
+		return e.complexity.SearchParams.ExcludedTrackProperties(childComplexity), true
 
 	case "SearchParams.first_time":
 		if e.complexity.SearchParams.FirstTime == nil {
@@ -2490,6 +2507,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.SearchParams.Referrer(childComplexity), true
+
+	case "SearchParams.show_live_sessions":
+		if e.complexity.SearchParams.ShowLiveSessions == nil {
+			break
+		}
+
+		return e.complexity.SearchParams.ShowLiveSessions(childComplexity), true
 
 	case "SearchParams.track_properties":
 		if e.complexity.SearchParams.TrackProperties == nil {
@@ -3320,12 +3344,14 @@ input SearchParamsInput {
     identified: Boolean
     hide_viewed: Boolean
     first_time: Boolean
+    show_live_sessions: Boolean
 }
 
 type SearchParams {
     user_properties: [UserProperty]
     excluded_properties: [UserProperty]
     track_properties: [UserProperty]
+    excluded_track_properties: [UserProperty]
     environments: [String]
     app_versions: [String]
     date_range: DateRange
@@ -3333,10 +3359,12 @@ type SearchParams {
     os: String
     browser: String
     visited_url: String
+    device_id: String
     referrer: String
     identified: Boolean
     hide_viewed: Boolean
     first_time: Boolean
+    show_live_sessions: Boolean
 }
 
 input ErrorSearchParamsInput {
@@ -13408,6 +13436,38 @@ func (ec *executionContext) _SearchParams_track_properties(ctx context.Context, 
 	return ec.marshalOUserProperty2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐUserProperty(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _SearchParams_excluded_track_properties(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SearchParams",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ExcludedTrackProperties, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.UserProperty)
+	fc.Result = res
+	return ec.marshalOUserProperty2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐUserProperty(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _SearchParams_environments(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -13632,6 +13692,38 @@ func (ec *executionContext) _SearchParams_visited_url(ctx context.Context, field
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _SearchParams_device_id(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SearchParams",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DeviceID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _SearchParams_referrer(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -13747,6 +13839,38 @@ func (ec *executionContext) _SearchParams_first_time(ctx context.Context, field 
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.FirstTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SearchParams_show_live_sessions(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SearchParams",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ShowLiveSessions, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -17702,6 +17826,14 @@ func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context,
 			if err != nil {
 				return it, err
 			}
+		case "show_live_sessions":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("show_live_sessions"))
+			it.ShowLiveSessions, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -19638,6 +19770,8 @@ func (ec *executionContext) _SearchParams(ctx context.Context, sel ast.Selection
 			out.Values[i] = ec._SearchParams_excluded_properties(ctx, field, obj)
 		case "track_properties":
 			out.Values[i] = ec._SearchParams_track_properties(ctx, field, obj)
+		case "excluded_track_properties":
+			out.Values[i] = ec._SearchParams_excluded_track_properties(ctx, field, obj)
 		case "environments":
 			out.Values[i] = ec._SearchParams_environments(ctx, field, obj)
 		case "app_versions":
@@ -19652,6 +19786,8 @@ func (ec *executionContext) _SearchParams(ctx context.Context, sel ast.Selection
 			out.Values[i] = ec._SearchParams_browser(ctx, field, obj)
 		case "visited_url":
 			out.Values[i] = ec._SearchParams_visited_url(ctx, field, obj)
+		case "device_id":
+			out.Values[i] = ec._SearchParams_device_id(ctx, field, obj)
 		case "referrer":
 			out.Values[i] = ec._SearchParams_referrer(ctx, field, obj)
 		case "identified":
@@ -19660,6 +19796,8 @@ func (ec *executionContext) _SearchParams(ctx context.Context, sel ast.Selection
 			out.Values[i] = ec._SearchParams_hide_viewed(ctx, field, obj)
 		case "first_time":
 			out.Values[i] = ec._SearchParams_first_time(ctx, field, obj)
+		case "show_live_sessions":
+			out.Values[i] = ec._SearchParams_show_live_sessions(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

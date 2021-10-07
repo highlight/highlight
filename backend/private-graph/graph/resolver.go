@@ -182,6 +182,12 @@ func InputToParams(params *modelInputs.SearchParamsInput) *model.SearchParams {
 	if params.HideViewed != nil {
 		modelParams.HideViewed = *params.HideViewed
 	}
+	if params.DeviceID != nil {
+		modelParams.DeviceID = params.DeviceID
+	}
+	if params.ShowLiveSessions != nil {
+		modelParams.ShowLiveSessions = *params.ShowLiveSessions
+	}
 	if params.DateRange != nil {
 		modelParams.DateRange = &model.DateRange{}
 		if params.DateRange.StartDate != nil {
