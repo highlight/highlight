@@ -556,14 +556,12 @@ func (w *Worker) Start() {
 			ctx := ctx
 			wp.SubmitRecover(func() {
 				span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"))
-				log.Infof("beginning to process session: %d", session.ID)
 				if err := w.processSession(ctx, session); err != nil {
 					log.WithField("session_id", session.ID).Error(e.Wrap(err, "error processing main session"))
 					span.Finish(tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID)))
 					return
 				}
 				hlog.Incr("sessionsProcessed", nil, 1)
-				log.Infof("finished processing session: %d", session.ID)
 				span.Finish()
 			})
 		}
