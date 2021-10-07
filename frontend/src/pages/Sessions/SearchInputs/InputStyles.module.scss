@@ -53,3 +53,17 @@
 .select {
     width: 100%;
 }
+
+.selectWithIconContainer {
+    position: relative;
+    width: 100%;
+}
+
+.icon {
+    color: var(--color-gray-400);
+    height: var(--size-medium);
+    position: absolute;
+    right: 10px;
+    top: 15px;
+    width: var(--size-medium);
+}

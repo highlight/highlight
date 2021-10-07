@@ -1,4 +1,6 @@
 import Select from '@components/Select/Select';
+import SvgHashtagIcon from '@icons/HashtagIcon';
+import SvgMapIcon from '@icons/MapIcon';
 import { useParams } from '@util/react-router/useParams';
 import { H } from 'highlight.run';
 import React from 'react';
@@ -213,7 +215,7 @@ export const EnvironmentInput = () => {
     };
 
     return (
-        <div>
+        <div className={inputStyles.selectWithIconContainer}>
             <Select
                 className={inputStyles.select}
                 mode="multiple"
@@ -228,6 +230,7 @@ export const EnvironmentInput = () => {
                 )}
                 onChange={onChange}
             />
+            <SvgMapIcon className={inputStyles.icon} />
         </div>
     );
 };
@@ -248,7 +251,7 @@ export const AppVersionInput = () => {
     };
 
     return (
-        <div>
+        <div className={inputStyles.selectWithIconContainer}>
             <Select
                 className={inputStyles.select}
                 mode="multiple"
@@ -263,6 +266,7 @@ export const AppVersionInput = () => {
                 )}
                 onChange={onChange}
             />
+            <SvgHashtagIcon className={inputStyles.icon} />
         </div>
     );
 };
