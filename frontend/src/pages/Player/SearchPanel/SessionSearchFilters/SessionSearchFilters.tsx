@@ -76,6 +76,7 @@ const SessionSearchFilters = () => {
     return (
         <Popover
             large
+            visible
             content={
                 <main className={styles.contentContainer}>
                     <section className={styles.groupContainer}>
