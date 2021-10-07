@@ -403,6 +403,10 @@ query GetEnvironments($project_id: ID!) {
     }
 }
 
+query GetAppVersions($project_id: ID!) {
+    app_version_suggestion(project_id: $project_id)
+}
+
 query GetProjectSuggestion($query: String!) {
     projectSuggestion(query: $query) {
         id
@@ -531,6 +535,8 @@ query GetSegments($project_id: ID!) {
             identified
             hide_viewed
             first_time
+            app_versions
+            environments
         }
     }
 }

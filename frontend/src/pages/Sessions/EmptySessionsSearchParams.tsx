@@ -17,5 +17,6 @@ export const EmptySessionsSearchParams: Complete<SearchParams> = {
     first_time: false,
     device_id: undefined,
     environments: [],
+    app_versions: [],
     show_live_sessions: false,
 };

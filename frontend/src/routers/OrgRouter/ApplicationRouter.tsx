@@ -70,6 +70,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
         device_id: StringParam,
         show_live_sessions: BooleanParam,
         environments: ArrayParam,
+        app_versions: ArrayParam,
     });
     const [activeSegmentUrlParam, setActiveSegmentUrlParam] = useQueryParam(
         'segment',

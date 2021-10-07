@@ -237,6 +237,7 @@ export type SearchParamsInput = {
     track_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
     excluded_track_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
     environments?: Maybe<Array<Maybe<Scalars['String']>>>;
+    app_versions?: Maybe<Array<Maybe<Scalars['String']>>>;
     date_range?: Maybe<DateRangeInput>;
     length_range?: Maybe<LengthRangeInput>;
     os?: Maybe<Scalars['String']>;
@@ -254,6 +255,8 @@ export type SearchParams = {
     user_properties?: Maybe<Array<Maybe<UserProperty>>>;
     excluded_properties?: Maybe<Array<Maybe<UserProperty>>>;
     track_properties?: Maybe<Array<Maybe<UserProperty>>>;
+    environments?: Maybe<Array<Maybe<Scalars['String']>>>;
+    app_versions?: Maybe<Array<Maybe<Scalars['String']>>>;
     date_range?: Maybe<DateRange>;
     length_range?: Maybe<LengthRange>;
     os?: Maybe<Scalars['String']>;
@@ -495,6 +498,7 @@ export type Query = {
     user_properties_alert?: Maybe<SessionAlert>;
     projectSuggestion?: Maybe<Array<Maybe<Project>>>;
     environment_suggestion?: Maybe<Array<Maybe<Field>>>;
+    app_version_suggestion: Array<Maybe<Scalars['String']>>;
     slack_channel_suggestion?: Maybe<Array<Maybe<SanitizedSlackChannel>>>;
     slack_members: Array<Maybe<SanitizedSlackChannel>>;
     is_integrated_with_slack: Scalars['Boolean'];
@@ -678,6 +682,10 @@ export type QueryProjectSuggestionArgs = {
 };
 
 export type QueryEnvironment_SuggestionArgs = {
+    project_id: Scalars['ID'];
+};
+
+export type QueryApp_Version_SuggestionArgs = {
     project_id: Scalars['ID'];
 };
 

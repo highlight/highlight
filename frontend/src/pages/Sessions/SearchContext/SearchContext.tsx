@@ -14,6 +14,7 @@ export type SearchParams = {
     track_properties?: Array<UserProperty>;
     excluded_track_properties?: Array<UserProperty>;
     environments?: string[];
+    app_versions?: string[];
     date_range?: { start_date: Date; end_date: Date };
     length_range?: { min: number; max: number };
     os?: string;

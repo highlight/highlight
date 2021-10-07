@@ -9,6 +9,7 @@ import SvgFilterIcon from '../../../../static/FilterIcon';
 import { useSearchContext } from '../../../Sessions/SearchContext/SearchContext';
 import { DateInput } from '../../../Sessions/SearchInputs/DateInput';
 import {
+    AppVersionInput,
     BrowserInput,
     DeviceIdInput,
     EnvironmentInput,
@@ -47,16 +48,20 @@ const SessionSearchFilters = () => {
             !!searchParams.excluded_properties?.length,
             !!searchParams.excluded_track_properties?.length,
             !!searchParams.show_live_sessions,
+            !!searchParams.app_versions?.length,
+            !!searchParams.environments?.length,
         ];
 
         setFiltersSetCount(
             filterOptions.reduce((prev, cur) => (cur ? prev + 1 : prev), 0)
         );
     }, [
+        searchParams.app_versions?.length,
         searchParams.browser,
         searchParams.date_range?.end_date,
         searchParams.date_range?.start_date,
         searchParams.device_id,
+        searchParams.environments?.length,
         searchParams.excluded_properties?.length,
         searchParams.excluded_track_properties?.length,
         searchParams.first_time,
@@ -115,6 +120,10 @@ const SessionSearchFilters = () => {
                         </label>
                         <div></div>
                         <div></div>
+                        <label>
+                            <span>App Version</span>
+                            <AppVersionInput />
+                        </label>
                         <LengthInput />
                         <label>
                             <span>Date Range</span>

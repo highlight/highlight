@@ -206,6 +206,7 @@ input SearchParamsInput {
     track_properties: [UserPropertyInput]
     excluded_track_properties: [UserPropertyInput]
     environments: [String]
+    app_versions: [String]
     date_range: DateRangeInput
     length_range: LengthRangeInput
     os: String
@@ -222,6 +223,8 @@ type SearchParams {
     user_properties: [UserProperty]
     excluded_properties: [UserProperty]
     track_properties: [UserProperty]
+    environments: [String]
+    app_versions: [String]
     date_range: DateRange
     length_range: LengthRange
     os: String
@@ -486,6 +489,7 @@ type Query {
     user_properties_alert(project_id: ID!): SessionAlert
     projectSuggestion(query: String!): [Project]
     environment_suggestion(project_id: ID!): [Field]
+    app_version_suggestion(project_id: ID!): [String]!
     slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
     slack_members(project_id: ID!): [SanitizedSlackChannel]!
     is_integrated_with_slack(project_id: ID!): Boolean!

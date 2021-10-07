@@ -264,6 +264,7 @@ type ComplexityRoot struct {
 		APIKeyToOrgID             func(childComplexity int, apiKey string) int
 		Admin                     func(childComplexity int) int
 		AdminHasCreatedComment    func(childComplexity int, adminID int) int
+		AppVersionSuggestion      func(childComplexity int, projectID int) int
 		AverageSessionLength      func(childComplexity int, projectID int, lookBackPeriod int) int
 		BillingDetails            func(childComplexity int, projectID int) int
 		DailyErrorFrequency       func(childComplexity int, projectID int, errorGroupID *int, errorGroupSecureID *string, dateOffset int) int
@@ -332,8 +333,10 @@ type ComplexityRoot struct {
 	}
 
 	SearchParams struct {
+		AppVersions        func(childComplexity int) int
 		Browser            func(childComplexity int) int
 		DateRange          func(childComplexity int) int
+		Environments       func(childComplexity int) int
 		ExcludedProperties func(childComplexity int) int
 		FirstTime          func(childComplexity int) int
 		HideViewed         func(childComplexity int) int
@@ -559,6 +562,7 @@ type QueryResolver interface {
 	UserPropertiesAlert(ctx context.Context, projectID int) (*model1.SessionAlert, error)
 	ProjectSuggestion(ctx context.Context, query string) ([]*model1.Project, error)
 	EnvironmentSuggestion(ctx context.Context, projectID int) ([]*model1.Field, error)
+	AppVersionSuggestion(ctx context.Context, projectID int) ([]*string, error)
 	SlackChannelSuggestion(ctx context.Context, projectID int) ([]*model.SanitizedSlackChannel, error)
 	SlackMembers(ctx context.Context, projectID int) ([]*model.SanitizedSlackChannel, error)
 	IsIntegratedWithSlack(ctx context.Context, projectID int) (bool, error)
@@ -1791,6 +1795,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.AdminHasCreatedComment(childComplexity, args["admin_id"].(int)), true
 
+	case "Query.app_version_suggestion":
+		if e.complexity.Query.AppVersionSuggestion == nil {
+			break
+		}
+
+		args, err := ec.field_Query_app_version_suggestion_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.AppVersionSuggestion(childComplexity, args["project_id"].(int)), true
+
 	case "Query.averageSessionLength":
 		if e.complexity.Query.AverageSessionLength == nil {
 			break
@@ -2398,6 +2414,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SanitizedSlackChannel.WebhookChannelID(childComplexity), true
 
+	case "SearchParams.app_versions":
+		if e.complexity.SearchParams.AppVersions == nil {
+			break
+		}
+
+		return e.complexity.SearchParams.AppVersions(childComplexity), true
+
 	case "SearchParams.browser":
 		if e.complexity.SearchParams.Browser == nil {
 			break
@@ -2411,6 +2434,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.SearchParams.DateRange(childComplexity), true
+
+	case "SearchParams.environments":
+		if e.complexity.SearchParams.Environments == nil {
+			break
+		}
+
+		return e.complexity.SearchParams.Environments(childComplexity), true
 
 	case "SearchParams.excluded_properties":
 		if e.complexity.SearchParams.ExcludedProperties == nil {
@@ -3279,6 +3309,7 @@ input SearchParamsInput {
     track_properties: [UserPropertyInput]
     excluded_track_properties: [UserPropertyInput]
     environments: [String]
+    app_versions: [String]
     date_range: DateRangeInput
     length_range: LengthRangeInput
     os: String
@@ -3295,6 +3326,8 @@ type SearchParams {
     user_properties: [UserProperty]
     excluded_properties: [UserProperty]
     track_properties: [UserProperty]
+    environments: [String]
+    app_versions: [String]
     date_range: DateRange
     length_range: LengthRange
     os: String
@@ -3559,6 +3592,7 @@ type Query {
     user_properties_alert(project_id: ID!): SessionAlert
     projectSuggestion(query: String!): [Project]
     environment_suggestion(project_id: ID!): [Field]
+    app_version_suggestion(project_id: ID!): [String]!
     slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
     slack_members(project_id: ID!): [SanitizedSlackChannel]!
     is_integrated_with_slack(project_id: ID!): Boolean!
@@ -4996,6 +5030,21 @@ func (ec *executionContext) field_Query_api_key_to_org_id_args(ctx context.Conte
 		}
 	}
 	args["api_key"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_app_version_suggestion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
 	return args, nil
 }
 
@@ -12458,6 +12507,48 @@ func (ec *executionContext) _Query_environment_suggestion(ctx context.Context, f
 	return ec.marshalOField2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐField(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_app_version_suggestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_app_version_suggestion_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().AppVersionSuggestion(rctx, args["project_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*string)
+	fc.Result = res
+	return ec.marshalNString2ᚕᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_slack_channel_suggestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -13315,6 +13406,70 @@ func (ec *executionContext) _SearchParams_track_properties(ctx context.Context, 
 	res := resTmp.([]*model1.UserProperty)
 	fc.Result = res
 	return ec.marshalOUserProperty2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐUserProperty(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SearchParams_environments(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SearchParams",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Environments, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*string)
+	fc.Result = res
+	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SearchParams_app_versions(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SearchParams",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AppVersions, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*string)
+	fc.Result = res
+	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SearchParams_date_range(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
@@ -17459,6 +17614,14 @@ func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context,
 			if err != nil {
 				return it, err
 			}
+		case "app_versions":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("app_versions"))
+			it.AppVersions, err = ec.unmarshalOString2ᚕᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "date_range":
 			var err error
 
@@ -19214,6 +19377,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_environment_suggestion(ctx, field)
 				return res
 			})
+		case "app_version_suggestion":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_app_version_suggestion(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "slack_channel_suggestion":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -19461,6 +19638,10 @@ func (ec *executionContext) _SearchParams(ctx context.Context, sel ast.Selection
 			out.Values[i] = ec._SearchParams_excluded_properties(ctx, field, obj)
 		case "track_properties":
 			out.Values[i] = ec._SearchParams_track_properties(ctx, field, obj)
+		case "environments":
+			out.Values[i] = ec._SearchParams_environments(ctx, field, obj)
+		case "app_versions":
+			out.Values[i] = ec._SearchParams_app_versions(ctx, field, obj)
 		case "date_range":
 			out.Values[i] = ec._SearchParams_date_range(ctx, field, obj)
 		case "length_range":

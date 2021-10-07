@@ -6,6 +6,7 @@ import { OptionsType, OptionTypeBase, ValueType } from 'react-select';
 import AsyncSelect from 'react-select/async';
 
 import {
+    useGetAppVersionsQuery,
     useGetEnvironmentsQuery,
     useGetFieldSuggestionQuery,
 } from '../../../graph/generated/hooks';
@@ -223,6 +224,41 @@ export const EnvironmentInput = () => {
                         value: suggestion?.value || '',
                         displayValue: suggestion?.value || '',
                         id: suggestion?.value || '',
+                    })
+                )}
+                onChange={onChange}
+            />
+        </div>
+    );
+};
+
+export const AppVersionInput = () => {
+    const { project_id } = useParams<{ project_id: string }>();
+    const { searchParams, setSearchParams } = useSearchContext();
+
+    const { data } = useGetAppVersionsQuery({
+        variables: {
+            project_id,
+        },
+    });
+
+    const onChange = (current: string[]) => {
+        setSearchParams((params) => ({ ...params, app_versions: current }));
+        H.track('AppVersionFilter');
+    };
+
+    return (
+        <div>
+            <Select
+                className={inputStyles.select}
+                mode="multiple"
+                placeholder={'5.2.2, 4.3.1'}
+                value={searchParams.app_versions}
+                options={(data?.app_version_suggestion || []).map(
+                    (suggestion) => ({
+                        value: suggestion || '',
+                        displayValue: suggestion || '',
+                        id: suggestion || '',
                     })
                 )}
                 onChange={onChange}

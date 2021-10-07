@@ -510,6 +510,8 @@ type SearchParams struct {
 	LengthRange        *LengthRange    `json:"length_range"`
 	Browser            *string         `json:"browser"`
 	OS                 *string         `json:"os"`
+	Environments       []*string       `json:"environments"`
+	AppVersions        []*string       `json:"app_versions"`
 	VisitedURL         *string         `json:"visited_url"`
 	Referrer           *string         `json:"referrer"`
 	Identified         bool            `json:"identified"`
