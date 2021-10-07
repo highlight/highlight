@@ -1443,7 +1443,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionID *int, sessionSecur
 	return allEvents["events"], nil
 }
 
-func (r *queryResolver) RageClicks(ctx context.Context, sessionID int, sessionSecureID *string) ([]*model.RageClickEvent, error) {
+func (r *queryResolver) RageClicks(ctx context.Context, sessionSecureID *string) ([]*model.RageClickEvent, error) {
 	_, err := r.canAdminViewSession(ctx, nil, sessionSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
