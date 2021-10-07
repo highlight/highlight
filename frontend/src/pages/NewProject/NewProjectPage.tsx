@@ -1,16 +1,15 @@
 import {
     useCreateProjectMutation,
     useCreateWorkspaceMutation,
-    useGetWorkspaceQuery,
 } from '@graph/hooks';
 import { useParams } from '@util/react-router/useParams';
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Redirect, useHistory } from 'react-router-dom';
+import { Redirect } from 'react-router-dom';
 
 import commonStyles from '../../Common.module.scss';
 import Button from '../../components/Button/Button/Button';
-import { CircularSpinner, LoadingBar } from '../../components/Loading/Loading';
+import { CircularSpinner } from '../../components/Loading/Loading';
 import { client } from '../../util/graph';
 import styles from './NewProject.module.scss';
 
@@ -20,12 +19,6 @@ type Inputs = {
 
 const NewProjectPage = () => {
     const { workspace_id } = useParams<{ workspace_id: string }>();
-    const { data, loading } = useGetWorkspaceQuery({
-        variables: {
-            id: workspace_id,
-        },
-        skip: !workspace_id,
-    });
 
     const { register, handleSubmit, errors, setError } = useForm<Inputs>();
     const [
@@ -40,8 +33,6 @@ const NewProjectPage = () => {
             error: workspaceError,
         },
     ] = useCreateWorkspaceMutation();
-
-    const history = useHistory();
 
     useEffect(() => {
         if (projectError || workspaceError) {
@@ -84,10 +75,6 @@ const NewProjectPage = () => {
 
     const pageType = isWorkspace ? 'workspace' : 'project';
     const pageTypeCaps = isWorkspace ? 'Workspace' : 'Project';
-
-    if (loading) {
-        return <LoadingBar />;
-    }
 
     return (
         <div className={styles.box} key={workspace_id}>

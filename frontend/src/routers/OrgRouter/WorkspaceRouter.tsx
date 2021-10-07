@@ -26,7 +26,7 @@ export const WorkspaceRouter = () => {
         workspace_id: string;
     }>();
 
-    const { data, loading, error } = useGetWorkspaceDropdownOptionsQuery({
+    const { data, loading } = useGetWorkspaceDropdownOptionsQuery({
         variables: { workspace_id },
         skip: !isLoggedIn, // Higher level routers decide when guests are allowed to hit this router
     });
