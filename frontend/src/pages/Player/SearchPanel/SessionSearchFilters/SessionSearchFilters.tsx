@@ -1,3 +1,4 @@
+import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
 import classNames from 'classnames';
 import React from 'react';
 import { useEffect } from 'react';
@@ -30,7 +31,7 @@ import segmentPickerStyles from '../SegmentPickerForPlayer/SegmentPickerForPlaye
 import styles from './SessionSearchFilters.module.scss';
 
 const SessionSearchFilters = () => {
-    const { searchParams } = useSearchContext();
+    const { searchParams, setSearchParams } = useSearchContext();
     const [filtersSetCount, setFiltersSetCount] = useState(0);
 
     useEffect(() => {
@@ -76,7 +77,6 @@ const SessionSearchFilters = () => {
     return (
         <Popover
             large
-            visible
             content={
                 <main className={styles.contentContainer}>
                     <section className={styles.groupContainer}>
@@ -130,6 +130,20 @@ const SessionSearchFilters = () => {
                             <span>Date Range</span>
                             <DateInput />
                         </label>
+
+                        <div className={styles.clearFiltersContainer}>
+                            <Button
+                                disabled={filtersSetCount === 0}
+                                size="small"
+                                trackingId="ClearSessionFilters"
+                                className={styles.clearFilters}
+                                onClick={() => {
+                                    setSearchParams(EmptySessionsSearchParams);
+                                }}
+                            >
+                                Clear Filters
+                            </Button>
+                        </div>
                     </section>
                 </main>
             }
