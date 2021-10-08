@@ -16,6 +16,7 @@ import {
     useGetUserSuggestionQuery,
     useUpdateErrorAlertMutation,
     useUpdateNewUserAlertMutation,
+    useUpdateRageClickAlertMutation,
     useUpdateSessionFeedbackAlertMutation,
     useUpdateTrackPropertiesAlertMutation,
     useUpdateUserPropertiesAlertMutation,
@@ -65,6 +66,7 @@ export const AlertConfigurationCard = ({
     const [
         updateSessionFeedbackAlert,
     ] = useUpdateSessionFeedbackAlertMutation();
+    const [updateRageClickAlert] = useUpdateRageClickAlertMutation();
 
     const onSubmit = async () => {
         setLoading(true);
@@ -160,6 +162,16 @@ export const AlertConfigurationCard = ({
                         variables: {
                             ...requestVariables,
                             session_feedback_alert_id: alert.id,
+                            threshold_window: lookbackPeriod,
+                        },
+                    });
+                    break;
+                case ALERT_TYPE.RageClick:
+                    await updateRageClickAlert({
+                        ...requestBody,
+                        variables: {
+                            ...requestVariables,
+                            rage_click_alert_id: alert.id,
                             threshold_window: lookbackPeriod,
                         },
                     });

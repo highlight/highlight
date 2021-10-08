@@ -17,6 +17,7 @@ export enum ALERT_TYPE {
     UserProperties,
     TrackProperties,
     SessionFeedbackComment,
+    RageClick,
 }
 
 const ALERT_CONFIGURATIONS = [
@@ -51,6 +52,13 @@ const ALERT_CONFIGURATIONS = [
         type: ALERT_TYPE.SessionFeedbackComment,
         description:
             'Get alerted when a user submits a session feedback comment.',
+    },
+    {
+        name: 'Rage Clicks',
+        canControlThreshold: true,
+        type: ALERT_TYPE.RageClick,
+        description:
+            'Get alerted when a user clicks more than usual in a confined area.',
     },
 ];
 
@@ -141,6 +149,21 @@ const AlertsPage = () => {
                                 }
                             />
                         ))} */}
+                        <AlertConfigurationCard
+                            configuration={ALERT_CONFIGURATIONS[5]}
+                            alert={
+                                data?.rage_click_alert
+                                    ? data?.rage_click_alert
+                                    : {}
+                            }
+                            environmentOptions={
+                                data?.environment_suggestion || []
+                            }
+                            channelSuggestions={
+                                data?.slack_channel_suggestion || []
+                            }
+                            slackUrl={slackUrl}
+                        />
                         <AlertConfigurationCard
                             configuration={ALERT_CONFIGURATIONS[4]}
                             alert={

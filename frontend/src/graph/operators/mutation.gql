@@ -323,6 +323,32 @@ mutation UpdateSessionFeedbackAlert(
     }
 }
 
+mutation UpdateRageClickAlert(
+    $project_id: ID!
+    $rage_click_alert_id: ID!
+    $count_threshold: Int!
+    $threshold_window: Int!
+    $slack_channels: [SanitizedSlackChannelInput]!
+    $environments: [String]!
+) {
+    updateRageClickAlert(
+        project_id: $project_id
+        rage_click_alert_id: $rage_click_alert_id
+        count_threshold: $count_threshold
+        slack_channels: $slack_channels
+        environments: $environments
+        threshold_window: $threshold_window
+    ) {
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        ExcludedEnvironments
+        CountThreshold
+        ThresholdWindow
+    }
+}
+
 mutation UpdateNewUserAlert(
     $project_id: ID!
     $session_alert_id: ID!
