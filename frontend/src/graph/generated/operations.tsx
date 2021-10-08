@@ -592,6 +592,12 @@ export type GetSessionPayloadQuery = { __typename?: 'Query' } & Pick<
                 >
             >
         >;
+        rage_clicks: Array<
+            { __typename?: 'RageClickEvent' } & Pick<
+                Types.RageClickEvent,
+                'start_timestamp' | 'end_timestamp' | 'total_clicks'
+            >
+        >;
     };
 
 export type GetSessionQueryVariables = Types.Exact<{

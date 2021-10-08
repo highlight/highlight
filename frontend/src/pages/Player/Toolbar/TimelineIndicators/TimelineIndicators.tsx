@@ -1,5 +1,7 @@
+import { useAuthContext } from '@authentication/AuthContext';
+import RageClickSpan from '@pages/Player/Toolbar/RageClickSpan/RageClickSpan';
 import classNames from 'classnames';
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration';
 import { ReplayerState, useReplayerContext } from '../../ReplayerContext';
@@ -17,10 +19,38 @@ const TimelineIndicators = () => {
         sessionComments,
         eventsForTimelineIndicator,
         playerProgress,
+        rageClicks,
     } = useReplayerContext();
-    const { selectedTimelineAnnotationTypes } = usePlayerConfiguration();
+    const {
+        selectedTimelineAnnotationTypes,
+        setSelectedTimelineAnnotationTypes,
+    } = usePlayerConfiguration();
     const { openDevTools } = useDevToolsContext();
     const refContainer = useRef<HTMLDivElement>(null);
+
+    const { isHighlightAdmin } = useAuthContext();
+
+    useEffect(() => {
+        if (
+            isHighlightAdmin &&
+            rageClicks.length > 0 &&
+            !selectedTimelineAnnotationTypes.includes('Click') &&
+            (state === ReplayerState.LoadedWithDeepLink ||
+                state === ReplayerState.Empty ||
+                state === ReplayerState.LoadedAndUntouched)
+        ) {
+            setSelectedTimelineAnnotationTypes([
+                ...selectedTimelineAnnotationTypes,
+                'Click',
+            ]);
+        }
+    }, [
+        isHighlightAdmin,
+        rageClicks.length,
+        selectedTimelineAnnotationTypes,
+        setSelectedTimelineAnnotationTypes,
+        state,
+    ]);
 
     if (
         selectedTimelineAnnotationTypes.length === 0 ||
@@ -49,6 +79,15 @@ const TimelineIndicators = () => {
             })}
             ref={refContainer}
         >
+            {isHighlightAdmin &&
+                selectedTimelineAnnotationTypes.includes('Click') &&
+                rageClicks.length > 0 &&
+                rageClicks.map((rageClick) => (
+                    <RageClickSpan
+                        key={rageClick.startTimestamp}
+                        rageClick={rageClick}
+                    />
+                ))}
             {selectedTimelineAnnotationTypes.includes('Errors') &&
                 errorsWithTimestamps.map((error) => {
                     const relativeTimestamp =

@@ -62,6 +62,16 @@ export type Session = {
     is_public?: Maybe<Scalars['Boolean']>;
 };
 
+export type RageClickEvent = {
+    __typename?: 'RageClickEvent';
+    id: Scalars['ID'];
+    project_id: Scalars['ID'];
+    session_secure_id: Scalars['String'];
+    start_timestamp: Scalars['Timestamp'];
+    end_timestamp: Scalars['Timestamp'];
+    total_clicks: Scalars['Int'];
+};
+
 export type BillingDetails = {
     __typename?: 'BillingDetails';
     plan: Plan;
@@ -464,6 +474,7 @@ export type Query = {
     __typename?: 'Query';
     session?: Maybe<Session>;
     events?: Maybe<Array<Maybe<Scalars['Any']>>>;
+    rage_clicks: Array<RageClickEvent>;
     error_groups?: Maybe<ErrorResults>;
     error_group?: Maybe<ErrorGroup>;
     messages?: Maybe<Array<Maybe<Scalars['Any']>>>;
@@ -522,6 +533,10 @@ export type QuerySessionArgs = {
 
 export type QueryEventsArgs = {
     session_id?: Maybe<Scalars['ID']>;
+    session_secure_id?: Maybe<Scalars['String']>;
+};
+
+export type QueryRage_ClicksArgs = {
     session_secure_id?: Maybe<Scalars['String']>;
 };
 

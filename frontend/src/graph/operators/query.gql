@@ -11,6 +11,11 @@ query GetSessionPayload($session_secure_id: String!) {
         timestamp
         payload
     }
+    rage_clicks(session_secure_id: $session_secure_id) {
+        start_timestamp
+        end_timestamp
+        total_clicks
+    }
 }
 
 query GetSession($secure_id: String!) {

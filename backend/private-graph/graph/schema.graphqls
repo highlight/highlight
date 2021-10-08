@@ -45,6 +45,15 @@ type Session {
     is_public: Boolean
 }
 
+type RageClickEvent {
+    id: ID!
+    project_id: ID!
+    session_secure_id: String!
+    start_timestamp: Timestamp!
+    end_timestamp: Timestamp!
+    total_clicks: Int!
+}
+
 type BillingDetails {
     plan: Plan!
     meter: Int64!
@@ -417,6 +426,7 @@ scalar Upload
 type Query {
     session(id: ID, secure_id: String): Session
     events(session_id: ID, session_secure_id: String): [Any]
+    rage_clicks(session_secure_id: String): [RageClickEvent!]!
     error_groups(
         project_id: ID!
         count: Int!
