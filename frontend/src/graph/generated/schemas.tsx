@@ -48,6 +48,7 @@ export type Session = {
     length?: Maybe<Scalars['Int']>;
     active_length?: Maybe<Scalars['Int']>;
     user_object?: Maybe<Scalars['Any']>;
+    user_properties?: Maybe<Scalars['String']>;
     fields?: Maybe<Array<Maybe<Field>>>;
     viewed?: Maybe<Scalars['Boolean']>;
     starred?: Maybe<Scalars['Boolean']>;
@@ -200,6 +201,7 @@ export type ErrorMetadata = {
     visited_url?: Maybe<Scalars['String']>;
     fingerprint: Scalars['String'];
     identifier?: Maybe<Scalars['String']>;
+    user_properties?: Maybe<Scalars['String']>;
 };
 
 export type ErrorTrace = {

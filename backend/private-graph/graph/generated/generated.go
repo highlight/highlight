@@ -142,6 +142,7 @@ type ComplexityRoot struct {
 		SessionID       func(childComplexity int) int
 		SessionSecureID func(childComplexity int) int
 		Timestamp       func(childComplexity int) int
+		UserProperties  func(childComplexity int) int
 		VisitedURL      func(childComplexity int) int
 	}
 
@@ -401,6 +402,7 @@ type ComplexityRoot struct {
 		Starred                        func(childComplexity int) int
 		State                          func(childComplexity int) int
 		UserObject                     func(childComplexity int) int
+		UserProperties                 func(childComplexity int) int
 		Viewed                         func(childComplexity int) int
 		WithinBillingQuota             func(childComplexity int) int
 	}
@@ -1025,6 +1027,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorMetadata.Timestamp(childComplexity), true
+
+	case "ErrorMetadata.user_properties":
+		if e.complexity.ErrorMetadata.UserProperties == nil {
+			break
+		}
+
+		return e.complexity.ErrorMetadata.UserProperties(childComplexity), true
 
 	case "ErrorMetadata.visited_url":
 		if e.complexity.ErrorMetadata.VisitedURL == nil {
@@ -2860,6 +2869,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.UserObject(childComplexity), true
 
+	case "Session.user_properties":
+		if e.complexity.Session.UserProperties == nil {
+			break
+		}
+
+		return e.complexity.Session.UserProperties(childComplexity), true
+
 	case "Session.viewed":
 		if e.complexity.Session.Viewed == nil {
 			break
@@ -3251,6 +3267,7 @@ type Session {
     length: Int
     active_length: Int
     user_object: Any
+    user_properties: String
     fields: [Field]
     viewed: Boolean
     starred: Boolean
@@ -3392,6 +3409,7 @@ type ErrorMetadata {
     visited_url: String
     fingerprint: String!
     identifier: String
+    user_properties: String
 }
 
 type ErrorTrace {
@@ -8138,6 +8156,38 @@ func (ec *executionContext) _ErrorMetadata_identifier(ctx context.Context, field
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Identifier, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorMetadata_user_properties(ctx context.Context, field graphql.CollectedField, obj *model.ErrorMetadata) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ErrorMetadata",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserProperties, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15135,6 +15185,38 @@ func (ec *executionContext) _Session_user_object(ctx context.Context, field grap
 	return ec.marshalOAny2interface(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Session_user_properties(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserProperties, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Session_fields(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -18947,6 +19029,8 @@ func (ec *executionContext) _ErrorMetadata(ctx context.Context, sel ast.Selectio
 			}
 		case "identifier":
 			out.Values[i] = ec._ErrorMetadata_identifier(ctx, field, obj)
+		case "user_properties":
+			out.Values[i] = ec._ErrorMetadata_user_properties(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -20503,6 +20587,8 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 				res = ec._Session_user_object(ctx, field, obj)
 				return res
 			})
+		case "user_properties":
+			out.Values[i] = ec._Session_user_properties(ctx, field, obj)
 		case "fields":
 			out.Values[i] = ec._Session_fields(ctx, field, obj)
 		case "viewed":

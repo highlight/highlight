@@ -2662,6 +2662,7 @@ export const GetSessionsDocument = gql`
                     id
                 }
                 first_time
+                user_properties
             }
             totalCount
         }
@@ -3368,6 +3369,7 @@ export const GetErrorGroupDocument = gql`
                 visited_url
                 fingerprint
                 identifier
+                user_properties
             }
             field_group {
                 name

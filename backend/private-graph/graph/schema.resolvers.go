@@ -93,7 +93,16 @@ func (r *errorGroupResolver) StackTrace(ctx context.Context, obj *model.ErrorGro
 func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorMetadata, error) {
 	var metadataLogs []*modelInputs.ErrorMetadata
 	r.DB.Raw(`
-		SELECT s.id AS session_id, s.secure_id AS session_secure_id, e.id AS error_id, e.timestamp, s.os_name AS os, s.browser_name AS browser, e.url AS visited_url, s.fingerprint AS fingerprint, s.identifier AS identifier
+		SELECT s.id AS session_id, 
+			s.secure_id AS session_secure_id, 
+			e.id AS error_id, 
+			e.timestamp, 
+			s.os_name AS os, 
+			s.browser_name AS browser, 
+			e.url AS visited_url, 
+			s.fingerprint AS fingerprint, 
+			s.identifier AS identifier, 
+			s.user_properties
 		FROM sessions AS s
 		INNER JOIN (
 			SELECT DISTINCT ON (session_id) session_id, id, timestamp, url
@@ -1992,7 +2001,7 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 		return nil, e.Wrap(err, "admin not found in project")
 	}
 
-	sessionsQueryPreamble := "SELECT id, secure_id, project_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, field_group"
+	sessionsQueryPreamble := "SELECT id, secure_id, project_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, field_group, user_properties"
 	joinClause := "FROM sessions"
 
 	fieldFilters, err := r.getFieldFilters(ctx, projectID, params)
@@ -2765,3 +2774,13 @@ type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
 type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *sessionResolver) UserProperties(ctx context.Context, obj *model.Session) (interface{}, error) {
+	return obj.UserProperties, nil
+}

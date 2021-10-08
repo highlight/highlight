@@ -892,6 +892,7 @@ export type GetSessionsQuery = { __typename?: 'Query' } & {
                     | 'processed'
                     | 'field_group'
                     | 'first_time'
+                    | 'user_properties'
                 > & {
                         fields?: Types.Maybe<
                             Array<
@@ -1146,6 +1147,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
                             | 'visited_url'
                             | 'fingerprint'
                             | 'identifier'
+                            | 'user_properties'
                         >
                     >
                 >;
