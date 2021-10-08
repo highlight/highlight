@@ -1064,7 +1064,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
 	case AlertType.NEW_SESSION:
-		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s User Active*\n\n", input.UserIdentifier), false, false)
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*New Session Created By User: %s*\n\n", input.UserIdentifier), false, false)
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
