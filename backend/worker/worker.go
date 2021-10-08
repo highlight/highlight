@@ -512,6 +512,43 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return nil
 	})
 
+	g.Go(func() error {
+		// Sending session init alert
+		var sessionAlert model.SessionAlert
+		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).
+			Where("type=?", model.AlertType.NEW_SESSION).First(&sessionAlert).Error; err != nil {
+			return e.Wrapf(err, "[project_id: %d] error fetching new session alert", projectID)
+		}
+
+		// check if session was produced from an excluded environment
+		excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
+		if err != nil {
+			return e.Wrapf(err, "[project_id: %d] error getting excluded environments from new session alert", projectID)
+		}
+		isExcludedEnvironment := false
+		for _, env := range excludedEnvironments {
+			if env != nil && *env == s.Environment {
+				isExcludedEnvironment = true
+				break
+			}
+		}
+		if isExcludedEnvironment {
+			return nil
+		}
+
+		workspace, err := w.Resolver.GetWorkspace(project.WorkspaceID)
+		if err != nil {
+			return e.Wrap(err, "error querying workspace")
+		}
+
+		// send Slack message
+		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier})
+		if err != nil {
+			return e.Wrapf(err, "[project_id: %d] error sending slack message for new session alert", projectID)
+		}
+		return nil
+	})
+
 	// Waits for all goroutines to finish, then returns the first non-nil error (if any).
 	if err := g.Wait(); err != nil {
 		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Error(e.Wrap(err, "error sending slack alert"))

@@ -290,6 +290,19 @@ func (r *mutationResolver) CreateProject(ctx context.Context, name string, works
 		}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session user properties alert for new project")
 	}
+	if err := r.DB.Create(
+		&model.SessionAlert{
+			Alert: model.Alert{
+				ProjectID:            project.ID,
+				ExcludedEnvironments: nil,
+				CountThreshold:       1,
+				ChannelsToNotify:     nil,
+				Type:                 &model.AlertType.NEW_SESSION,
+				ThresholdWindow:      util.MakeIntPointer(0),
+			},
+		}).Error; err != nil {
+		return nil, e.Wrap(err, "error creating session user properties alert for new project")
+	}
 	return project, nil
 }
 
