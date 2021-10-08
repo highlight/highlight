@@ -922,7 +922,10 @@ type SendSlackAlertInput struct {
 	// CommentText is a required parameter for SessionFeedback alerts
 	CommentText string
 	// QueryParams is a slice of query params to be appended to the suffix
+	// - tsAbs is required for rage click alerts
 	QueryParams map[string]string
+	// RageClicksCount is a required parameter for Rage Click Alerts
+	RageClicksCount *int64
 	// Timestamp is an optional value for all session alerts.
 	Timestamp *time.Time
 }
@@ -1075,7 +1078,10 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
 	case AlertType.RAGE_CLICK:
-		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s Got Angry...*\n\n", input.UserIdentifier), false, false)
+		if input.RageClicksCount == nil {
+			return nil
+		}
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Rage Clicks Detected:* %d Recent Occurrences\n\n", *input.RageClicksCount), false, false)
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
