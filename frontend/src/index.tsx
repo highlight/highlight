@@ -33,7 +33,7 @@ const dev = process.env.NODE_ENV === 'development' ? true : false;
 const options: HighlightOptions = {
     debug: { clientInteractions: true, domRecording: true },
     manualStart: true,
-    enableStrictPrivacy: Math.floor(Math.random() * 2) === 0,
+    enableStrictPrivacy: Math.floor(Math.random() * 8) === 0,
     version: packageJson['version'],
     networkRecording: {
         enabled: true,
