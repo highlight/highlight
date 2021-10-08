@@ -124,6 +124,13 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	return &sessionID, nil
 }
 
+func (r *mutationResolver) PushBackendPayload(ctx context.Context, errors []*customModels.BackendErrorObjectInput) (interface{}, error) {
+	r.PushPayloadWorkerPool.Submit(func() {
+		r.processBackendPayload(ctx, errors)
+	})
+	return nil, nil
+}
+
 func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int, userName *string, userEmail *string, verbatim string, timestamp time.Time) (int, error) {
 	metadata := make(map[string]interface{})
 

@@ -32,6 +32,18 @@ input ErrorObjectInput {
     payload: String
 }
 
+input BackendErrorObjectInput {
+    session_id: String!
+    request_id: String!
+    event: String!
+    type: String!
+    url: String!
+    source: String!
+    stackTrace: [StackFrameInput!]
+    timestamp: Timestamp!
+    payload: String
+}
+
 input ReplayEventsInput {
     events: [Any]!
 }
@@ -62,6 +74,7 @@ type Mutation {
         resources: String!
         errors: [ErrorObjectInput]!
     ): ID
+    pushBackendPayload(errors: [BackendErrorObjectInput]!): Any
     addSessionFeedback(
         session_id: ID!
         user_name: String

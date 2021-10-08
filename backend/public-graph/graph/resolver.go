@@ -163,8 +163,8 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 	return nil
 }
 
-func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *model2.ErrorObjectInput, fields []*model.ErrorField, projectID int) (*model.ErrorGroup, error) {
-	frames := errorInput.StackTrace
+func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTrace []*model2.StackFrameInput, fields []*model.ErrorField, projectID int) (*model.ErrorGroup, error) {
+	frames := stackTrace
 	if len(frames) > 0 && frames[0] != nil && frames[0].Source != nil && strings.Contains(*frames[0].Source, "https://static.highlight.run/index.js") {
 		errorObj.ProjectID = 1
 	}
@@ -202,7 +202,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *
 
 	var newMappedStackTraceString *string
 	newFrameString := frameString
-	mappedStackTrace, err := r.EnhanceStackTrace(errorInput.StackTrace, projectID, errorObj.SessionID)
+	mappedStackTrace, err := r.EnhanceStackTrace(stackTrace, projectID, errorObj.SessionID)
 	if err != nil {
 		log.Error(e.Wrapf(err, "error group: %+v error object: %+v", errorGroup, errorObj))
 	} else {
@@ -688,6 +688,207 @@ func (r *Resolver) isProjectWithinBillingQuota(project *model.Project, now time.
 	return withinBillingQuota
 }
 
+func (r *Resolver) submitAlertWorkerPoolTask(projectID int, sessionObj *model.Session, group *model.ErrorGroup, errorToInsert *model.ErrorObject) {
+	r.AlertWorkerPool.Submit(func() {
+		var errorAlert model.ErrorAlert
+		if err := r.DB.Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{Alert: model.Alert{ProjectID: projectID}}).First(&errorAlert).Error; err != nil {
+			log.Error(e.Wrap(err, "error fetching ErrorAlert object"))
+			return
+		}
+		if errorAlert.CountThreshold < 1 {
+			return
+		}
+		excludedEnvironments, err := errorAlert.GetExcludedEnvironments()
+		if err != nil {
+			log.Error(e.Wrap(err, "error getting excluded environments from ErrorAlert"))
+			return
+		}
+		for _, env := range excludedEnvironments {
+			if env != nil && *env == sessionObj.Environment {
+				return
+			}
+		}
+		numErrors := int64(-1)
+		if errorAlert.ThresholdWindow == nil {
+			t := 30
+			errorAlert.ThresholdWindow = &t
+		}
+		if err := r.DB.Model(&model.ErrorObject{}).Where(&model.ErrorObject{ProjectID: projectID, ErrorGroupID: group.ID}).Find("created_at > ?", time.Now().Add(time.Duration(-(*errorAlert.ThresholdWindow))*time.Minute)).Count(&numErrors).Error; err != nil {
+			log.Error(e.Wrapf(err, "error counting errors from past %d minutes", *errorAlert.ThresholdWindow))
+			return
+		}
+		if numErrors+1 < int64(errorAlert.CountThreshold) {
+			return
+		}
+		var project model.Project
+		if err := r.DB.Model(&model.Project{}).Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
+			log.Error(e.Wrap(err, "error querying project"))
+			return
+		}
+
+		workspace, err := r.getWorkspace(project.WorkspaceID)
+		if err != nil {
+			log.Error(err)
+		}
+
+		err = errorAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &errorToInsert.URL, ErrorsCount: &numErrors})
+		if err != nil {
+			log.Error(e.Wrap(err, "error sending slack error message"))
+			return
+		}
+	})
+}
+
+func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customModels.BackendErrorObjectInput) {
+	// Get a list of unique session ids to query
+	sessionIdSet := make(map[string]bool)
+	for _, errInput := range errors {
+		sessionIdSet[errInput.SessionID] = true
+	}
+	sessionIds := make([]string, 0, len(sessionIdSet))
+	for sId := range sessionIdSet {
+		sessionIds = append(sessionIds, sId)
+	}
+
+	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload", tracer.ResourceName("db.querySessions"))
+	querySessionSpan.SetTag("numberOfErrors", len(errors))
+	querySessionSpan.SetTag("numberOfSessions", len(sessionIds))
+
+	// Query all sessions related to the current batch of error objects
+	sessions := []*model.Session{}
+	if err := r.DB.Model(&model.Session{}).Where("id IN ?", sessionIds).Scan(&sessions).Error; err != nil {
+		retErr := e.Wrapf(err, "error reading from sessionIds")
+		querySessionSpan.Finish(tracer.WithError(retErr))
+		log.Error(retErr)
+		return
+	}
+
+	querySessionSpan.Finish()
+
+	// Index sessions by id
+	sessionLookup := make(map[string]*model.Session)
+	for _, session := range sessions {
+		sessionLookup[strconv.Itoa(session.ID)] = session
+	}
+
+	// Filter out empty errors
+	var filteredErrors []*customModels.BackendErrorObjectInput
+	for _, errorObject := range errors {
+		if errorObject.Event == "[{}]" {
+			var objString string
+			objBytes, err := json.Marshal(errorObject)
+			if err != nil {
+				log.Error(e.Wrap(err, "error marshalling error object when filtering"))
+				objString = ""
+			} else {
+				objString = string(objBytes)
+			}
+			log.WithFields(log.Fields{
+				"project_id":   sessionLookup[errorObject.SessionID],
+				"session_id":   errorObject.SessionID,
+				"error_object": objString,
+			}).Warn("caught empty error, continuing...")
+		} else {
+			filteredErrors = append(filteredErrors, errorObject)
+		}
+	}
+	errors = filteredErrors
+
+	// Count the number of errors for each project
+	errorsByProject := make(map[int]int)
+	for _, err := range errors {
+		projectID := sessionLookup[err.SessionID].ProjectID
+		errorsByProject[projectID] += 1
+	}
+
+	dailyErrorCountSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload", tracer.ResourceName("db.updateDailyErrorCounts"))
+	dailyErrorCountSpan.SetTag("numberOfErrors", len(errors))
+	dailyErrorCountSpan.SetTag("numberOfProjects", len(errorsByProject))
+
+	// For each project, increment daily error count by the current error count
+	// TODO: daily_error_counts should be migrated to have composite PK (project_id, date)
+	// this way, we can use an ON CONFLICT statement to upsert
+	n := time.Now()
+	currentDate := time.Date(n.UTC().Year(), n.UTC().Month(), n.UTC().Day(), 0, 0, 0, 0, time.UTC)
+	for projectID, errorCount := range errorsByProject {
+		dailyError := &model.DailyErrorCount{}
+
+		if err := r.DB.Where(&model.DailyErrorCount{
+			ProjectID: projectID,
+			Date:      &currentDate,
+		}).Attrs(&model.DailyErrorCount{
+			Count: 0,
+		}).FirstOrCreate(&dailyError).Error; err != nil {
+			wrapped := e.Wrap(err, "error getting or creating daily error count")
+			dailyErrorCountSpan.Finish(tracer.WithError(wrapped))
+			log.Error(wrapped)
+			return
+		}
+
+		if err := r.DB.Exec("UPDATE daily_error_counts SET count = count + ? WHERE date = ? AND project_id = ?", errorCount, currentDate, projectID).Error; err != nil {
+			wrapped := e.Wrap(err, "error updating daily error count")
+			dailyErrorCountSpan.Finish(tracer.WithError(wrapped))
+			log.Error(wrapped)
+			return
+		}
+	}
+
+	dailyErrorCountSpan.Finish()
+
+	// put errors in db
+	putErrorsToDBSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload",
+		tracer.ResourceName("db.errors"))
+	for _, v := range errors {
+		traceBytes, err := json.Marshal(v.StackTrace)
+		if err != nil {
+			log.Errorf("Error marshaling trace: %v", v.StackTrace)
+			continue
+		}
+		traceString := string(traceBytes)
+
+		sessionObj := sessionLookup[v.SessionID]
+		projectID := sessionObj.ProjectID
+
+		errorToInsert := &model.ErrorObject{
+			ProjectID:   projectID,
+			SessionID:   sessionObj.ID,
+			Environment: sessionObj.Environment,
+			Event:       v.Event,
+			Type:        v.Type,
+			URL:         v.URL,
+			Source:      v.Source,
+			OS:          sessionObj.OSName,
+			Browser:     sessionObj.BrowserName,
+			StackTrace:  &traceString,
+			Timestamp:   v.Timestamp,
+			Payload:     v.Payload,
+			RequestID:   &v.RequestID,
+		}
+
+		//create error fields array
+		metaFields := []*model.ErrorField{}
+		metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "browser", Value: sessionObj.BrowserName})
+		metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "os_name", Value: sessionObj.OSName})
+		metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "visited_url", Value: errorToInsert.URL})
+		metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "event", Value: errorToInsert.Event})
+		group, err := r.HandleErrorAndGroup(errorToInsert, v.StackTrace, metaFields, projectID)
+		if err != nil {
+			log.Errorf("Error updating error group: %v", errorToInsert)
+			continue
+		}
+
+		r.submitAlertWorkerPoolTask(projectID, sessionObj, group, errorToInsert)
+	}
+
+	putErrorsToDBSpan.Finish()
+
+	now := time.Now()
+	if err := r.DB.Model(&model.Session{}).Where("id IN ?", sessionIds).Updates(&model.Session{PayloadUpdatedAt: &now}).Error; err != nil {
+		log.Error(e.Wrap(err, "error updating session payload time"))
+		return
+	}
+}
+
 func (r *Resolver) processPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput) {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.querySession"))
 	querySessionSpan.SetTag("sessionID", sessionID)
@@ -855,6 +1056,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 				StackTrace:   &traceString,
 				Timestamp:    v.Timestamp,
 				Payload:      v.Payload,
+				RequestID:    nil,
 			}
 
 			//create error fields array
@@ -863,63 +1065,13 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "os_name", Value: sessionObj.OSName})
 			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "visited_url", Value: errorToInsert.URL})
 			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "event", Value: errorToInsert.Event})
-			group, err := r.HandleErrorAndGroup(errorToInsert, v, metaFields, projectID)
+			group, err := r.HandleErrorAndGroup(errorToInsert, v.StackTrace, metaFields, projectID)
 			if err != nil {
 				log.Errorf("Error updating error group: %v", errorToInsert)
 				continue
 			}
 
-			// Get ErrorAlert object and send respective alert
-			r := r
-			sessionObj := sessionObj
-			r.AlertWorkerPool.Submit(func() {
-				var errorAlert model.ErrorAlert
-				if err := r.DB.Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{Alert: model.Alert{ProjectID: projectID}}).First(&errorAlert).Error; err != nil {
-					log.Error(e.Wrap(err, "error fetching ErrorAlert object"))
-					return
-				}
-				if errorAlert.CountThreshold < 1 {
-					return
-				}
-				excludedEnvironments, err := errorAlert.GetExcludedEnvironments()
-				if err != nil {
-					log.Error(e.Wrap(err, "error getting excluded environments from ErrorAlert"))
-					return
-				}
-				for _, env := range excludedEnvironments {
-					if env != nil && *env == sessionObj.Environment {
-						return
-					}
-				}
-				numErrors := int64(-1)
-				if errorAlert.ThresholdWindow == nil {
-					t := 30
-					errorAlert.ThresholdWindow = &t
-				}
-				if err := r.DB.Model(&model.ErrorObject{}).Where(&model.ErrorObject{ProjectID: projectID, ErrorGroupID: group.ID}).Where("created_at > ?", time.Now().Add(time.Duration(-(*errorAlert.ThresholdWindow))*time.Minute)).Count(&numErrors).Error; err != nil {
-					log.Error(e.Wrapf(err, "error counting errors from past %d minutes", *errorAlert.ThresholdWindow))
-					return
-				}
-				if numErrors+1 < int64(errorAlert.CountThreshold) {
-					return
-				}
-				var project model.Project
-				if err := r.DB.Model(&model.Project{}).Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
-					log.Error(e.Wrap(err, "error querying project"))
-					return
-				}
-
-				workspace, err := r.getWorkspace(project.WorkspaceID)
-				if err != nil {
-					log.Error(err)
-				}
-
-				err = errorAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &errorToInsert.URL, ErrorsCount: &numErrors})
-				if err != nil {
-					log.Error(e.Wrap(err, "error sending slack error message"))
-					return
-				}
-			})
+			r.submitAlertWorkerPoolTask(projectID, sessionObj, group, errorToInsert)
 		}
 
 		putErrorsToDBSpan.Finish()

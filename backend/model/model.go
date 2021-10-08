@@ -539,10 +539,10 @@ type DailySessionCount struct {
 
 type DailyErrorCount struct {
 	Model
-	Date           *time.Time `json:"date"`
+	Date           *time.Time `gorm:"unique_index:idx_date_project_id" json:"date"`
 	Count          int64      `json:"count"`
 	OrganizationID int
-	ProjectID      int `json:"project_id"`
+	ProjectID      int `gorm:"unique_index:idx_date_project_id" json:"project_id"`
 }
 
 func (s *SearchParams) GormDataType() string {
@@ -645,6 +645,7 @@ type ErrorObject struct {
 	Timestamp      time.Time `json:"timestamp"`
 	Payload        *string   `json:"payload"`
 	Environment    string
+	RequestID      *string // From X-Highlight-Request header
 }
 
 type ErrorGroup struct {
