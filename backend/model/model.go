@@ -921,7 +921,8 @@ type SendSlackAlertInput struct {
 	CommentID *int
 	// CommentText is a required parameter for SessionFeedback alerts
 	CommentText string
-	// QueryParams is a slice of query params to be appended to the suffix
+	// QueryParams is a map of query params to be appended to the url suffix
+	// `key:value` will be converted to `key=value` in the url with the appropriate separator (`?` or `&`)
 	// - tsAbs is required for rage click alerts
 	QueryParams map[string]string
 	// RageClicksCount is a required parameter for Rage Click Alerts
