@@ -120,6 +120,7 @@ var Models = []interface{}{
 	&ErrorAlert{},
 	&SessionAlert{},
 	&Project{},
+	&RageClickEvent{},
 	&Workspace{},
 }
 
@@ -135,10 +136,10 @@ func init() {
 }
 
 type Model struct {
-	ID        int        `gorm:"primary_key;type:serial" json:"id"`
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
-	DeletedAt *time.Time `json:"deleted_at"`
+	ID        int        `gorm:"primary_key;type:serial" json:"id" deep:"-"`
+	CreatedAt time.Time  `json:"created_at" deep:"-"`
+	UpdatedAt time.Time  `json:"updated_at" deep:"-"`
+	DeletedAt *time.Time `json:"deleted_at" deep:"-"`
 }
 
 type Organization struct {
@@ -700,6 +701,15 @@ type ErrorComment struct {
 	ErrorId        int
 	ErrorSecureId  string `gorm:"index;not null;default:''"`
 	Text           string
+}
+
+type RageClickEvent struct {
+	Model
+	ProjectID       int    `deep:"-"`
+	SessionSecureID string `deep:"-"`
+	TotalClicks     int
+	StartTimestamp  time.Time `deep:"-"`
+	EndTimestamp    time.Time `deep:"-"`
 }
 
 func SetupDB(dbName string) (*gorm.DB, error) {

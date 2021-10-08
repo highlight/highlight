@@ -20,7 +20,9 @@ export type Scalars = {
 export type Session = {
   __typename?: 'Session';
   id: Scalars['ID'];
+  secure_id: Scalars['String'];
   organization_id: Scalars['ID'];
+  project_id: Scalars['ID'];
 };
 
 export type StackFrameInput = {

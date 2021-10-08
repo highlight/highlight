@@ -62,6 +62,16 @@ export type Session = {
     is_public?: Maybe<Scalars['Boolean']>;
 };
 
+export type RageClickEvent = {
+    __typename?: 'RageClickEvent';
+    id: Scalars['ID'];
+    project_id: Scalars['ID'];
+    session_secure_id: Scalars['String'];
+    start_timestamp: Scalars['Timestamp'];
+    end_timestamp: Scalars['Timestamp'];
+    total_clicks: Scalars['Int'];
+};
+
 export type BillingDetails = {
     __typename?: 'BillingDetails';
     plan: Plan;
@@ -464,6 +474,7 @@ export type Query = {
     __typename?: 'Query';
     session?: Maybe<Session>;
     events?: Maybe<Array<Maybe<Scalars['Any']>>>;
+    rage_clicks: Array<RageClickEvent>;
     error_groups?: Maybe<ErrorResults>;
     error_group?: Maybe<ErrorGroup>;
     messages?: Maybe<Array<Maybe<Scalars['Any']>>>;
@@ -476,6 +487,7 @@ export type Query = {
     error_comments_for_admin: Array<Maybe<ErrorComment>>;
     error_comments_for_project: Array<Maybe<ErrorComment>>;
     project_admins: Array<Maybe<Admin>>;
+    workspace_admins: Array<Maybe<Admin>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
     unprocessedSessionsCount?: Maybe<Scalars['Int64']>;
     adminHasCreatedComment?: Maybe<Scalars['Boolean']>;
@@ -494,7 +506,7 @@ export type Query = {
     property_suggestion?: Maybe<Array<Maybe<Field>>>;
     error_field_suggestion?: Maybe<Array<Maybe<ErrorField>>>;
     projects?: Maybe<Array<Maybe<Project>>>;
-    workspaces?: Maybe<Array<Maybe<Workspace>>>;
+    workspaces?: Maybe<Array<Workspace>>;
     error_alert?: Maybe<ErrorAlert>;
     session_feedback_alert?: Maybe<SessionAlert>;
     new_user_alert?: Maybe<SessionAlert>;
@@ -522,6 +534,10 @@ export type QuerySessionArgs = {
 
 export type QueryEventsArgs = {
     session_id?: Maybe<Scalars['ID']>;
+    session_secure_id?: Maybe<Scalars['String']>;
+};
+
+export type QueryRage_ClicksArgs = {
     session_secure_id?: Maybe<Scalars['String']>;
 };
 
@@ -571,6 +587,10 @@ export type QueryError_Comments_For_ProjectArgs = {
 
 export type QueryProject_AdminsArgs = {
     project_id: Scalars['ID'];
+};
+
+export type QueryWorkspace_AdminsArgs = {
+    workspace_id: Scalars['ID'];
 };
 
 export type QueryIsIntegratedArgs = {
@@ -732,6 +752,7 @@ export type QueryApi_Key_To_Org_IdArgs = {
 export type Mutation = {
     __typename?: 'Mutation';
     createProject?: Maybe<Project>;
+    createWorkspace?: Maybe<Workspace>;
     editProject?: Maybe<Project>;
     editWorkspace?: Maybe<Workspace>;
     markSessionAsViewed?: Maybe<Session>;
@@ -769,9 +790,12 @@ export type Mutation = {
 };
 
 export type MutationCreateProjectArgs = {
-    project_name: Scalars['String'];
-    workspace_id?: Maybe<Scalars['ID']>;
-    workspace_name?: Maybe<Scalars['String']>;
+    name: Scalars['String'];
+    workspace_id: Scalars['ID'];
+};
+
+export type MutationCreateWorkspaceArgs = {
+    name: Scalars['String'];
 };
 
 export type MutationEditProjectArgs = {

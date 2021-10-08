@@ -44,7 +44,7 @@
 }
 
 .trialWrapper {
-    --banner-height: 15px;
+    --banner-height: 5px;
 
     align-items: center;
     animation: enter-viewport 1s forwards;
@@ -102,7 +102,7 @@
 .bannerSvg {
     fill: var(--color-purple);
     position: absolute;
-    top: 17px;
+    top: 7px;
     transform: scale(2.5, 2);
 }
 

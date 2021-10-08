@@ -79,7 +79,9 @@ mutation initializeSession(
         fingerprint: $id
     ) {
         id
+        secure_id
         organization_id
+        project_id
     }
 }
 

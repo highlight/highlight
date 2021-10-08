@@ -11,6 +11,11 @@ query GetSessionPayload($session_secure_id: String!) {
         timestamp
         payload
     }
+    rage_clicks(session_secure_id: $session_secure_id) {
+        start_timestamp
+        end_timestamp
+        total_clicks
+    }
 }
 
 query GetSession($secure_id: String!) {
@@ -54,6 +59,21 @@ query GetProjectAdmins($project_id: ID!) {
         email
         photo_url
         role
+    }
+}
+
+query GetWorkspaceAdmins($workspace_id: ID!) {
+    admins: workspace_admins(workspace_id: $workspace_id) {
+        id
+        name
+        email
+        photo_url
+        role
+    }
+    workspace(id: $workspace_id) {
+        id
+        name
+        secret
     }
 }
 
@@ -148,6 +168,7 @@ query GetErrorComments($error_group_secure_id: String!) {
 
 query GetOnboardingSteps($project_id: ID!, $admin_id: ID!) {
     workspace: workspace_for_project(project_id: $project_id) {
+        id
         slack_channels
     }
     admins: project_admins(project_id: $project_id) {
@@ -234,6 +255,7 @@ query GetWorkspace($id: ID!) {
     workspace(id: $id) {
         id
         name
+        secret
         projects {
             id
             name
@@ -241,17 +263,42 @@ query GetWorkspace($id: ID!) {
     }
 }
 
-# Gets the current application and all applications the admin has access to.
-query GetVisibleProjectsAndWorkspaces($id: ID!) {
+query GetWorkspaces {
     workspaces {
         id
         name
     }
+}
+
+query GetProjectsAndWorkspaces {
     projects {
         id
         name
     }
-    project(id: $id) {
+    workspaces {
+        id
+        name
+    }
+}
+
+query GetProjectOrWorkspace(
+    $project_id: ID!
+    $workspace_id: ID!
+    $is_workspace: Boolean!
+) {
+    project(id: $project_id) @skip(if: $is_workspace) {
+        id
+        name
+        billing_email
+    }
+    workspace(id: $workspace_id) @include(if: $is_workspace) {
+        id
+        name
+    }
+}
+
+query GetProjectDropdownOptions($project_id: ID!) {
+    project(id: $project_id) {
         id
         name
         verbose_id
@@ -259,9 +306,32 @@ query GetVisibleProjectsAndWorkspaces($id: ID!) {
         secret
         workspace_id
     }
-    workspace: workspace_for_project(project_id: $id) {
-        slack_webhook_channel
-        secret
+    workspace: workspace_for_project(project_id: $project_id) {
+        id
+        name
+        projects {
+            id
+            name
+        }
+    }
+    workspaces {
+        id
+        name
+    }
+}
+
+query GetWorkspaceDropdownOptions($workspace_id: ID!) {
+    workspace(id: $workspace_id) {
+        id
+        name
+        projects {
+            id
+            name
+        }
+    }
+    workspaces {
+        id
+        name
     }
 }
 
@@ -282,19 +352,10 @@ query GetProject($id: ID!) {
         name
         verbose_id
         billing_email
-        secret
     }
     workspace: workspace_for_project(project_id: $id) {
         id
         slack_webhook_channel
-        secret
-    }
-}
-
-query GetWorkspaceForProject($project_id: ID!) {
-    workspace: workspace_for_project(project_id: $project_id) {
-        id
-        name
     }
 }
 
