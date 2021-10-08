@@ -1,3 +1,4 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import RageClickSpan from '@pages/Player/Toolbar/RageClickSpan/RageClickSpan';
 import classNames from 'classnames';
 import React, { useEffect, useRef } from 'react';
@@ -27,8 +28,11 @@ const TimelineIndicators = () => {
     const { openDevTools } = useDevToolsContext();
     const refContainer = useRef<HTMLDivElement>(null);
 
+    const { isHighlightAdmin } = useAuthContext();
+
     useEffect(() => {
         if (
+            isHighlightAdmin &&
             rageClicks.length > 0 &&
             !selectedTimelineAnnotationTypes.includes('Click') &&
             (state === ReplayerState.LoadedWithDeepLink ||
@@ -41,6 +45,7 @@ const TimelineIndicators = () => {
             ]);
         }
     }, [
+        isHighlightAdmin,
         rageClicks.length,
         selectedTimelineAnnotationTypes,
         setSelectedTimelineAnnotationTypes,
@@ -74,7 +79,8 @@ const TimelineIndicators = () => {
             })}
             ref={refContainer}
         >
-            {selectedTimelineAnnotationTypes.includes('Click') &&
+            {isHighlightAdmin &&
+                selectedTimelineAnnotationTypes.includes('Click') &&
                 rageClicks.length > 0 &&
                 rageClicks.map((rageClick) => (
                     <RageClickSpan
