@@ -308,6 +308,9 @@ export const AlertConfigurationCard = ({
     if (!alert) {
         return null;
     }
+    const excludedEnvironmentsFormName = `${
+        alert.Name || defaultName
+    }-excludedEnvironments`;
 
     return (
         <Collapsible
@@ -329,7 +332,7 @@ export const AlertConfigurationCard = ({
                         alert.ChannelsToNotify?.map(
                             (channel: any) => channel.webhook_channel_id
                         ) || [],
-                    excludedEnvironments: alert.ExcludedEnvironments,
+                    [excludedEnvironmentsFormName]: alert.ExcludedEnvironments,
                     lookbackPeriod: [lookbackPeriod],
                     userProperties: alert.UserProperties?.map(
                         (userProperty: any) =>
@@ -493,11 +496,7 @@ export const AlertConfigurationCard = ({
                         </a>
                         .
                     </p>
-                    <Form.Item
-                        name={`${
-                            alert.Name || defaultName
-                        }-excludedEnvironments`}
-                    >
+                    <Form.Item name={excludedEnvironmentsFormName}>
                         <Select
                             className={styles.channelSelect}
                             options={environments}
