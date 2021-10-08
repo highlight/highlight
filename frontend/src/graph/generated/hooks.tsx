@@ -5049,7 +5049,7 @@ export const GetAlertsPagePayloadDocument = gql`
             id
             Name
         }
-        session_feedback_alert(project_id: $project_id) {
+        session_feedback_alerts(project_id: $project_id) {
             ChannelsToNotify {
                 webhook_channel
                 webhook_channel_id
@@ -5059,7 +5059,7 @@ export const GetAlertsPagePayloadDocument = gql`
             ThresholdWindow
             id
         }
-        new_user_alert(project_id: $project_id) {
+        new_user_alerts(project_id: $project_id) {
             id
             ChannelsToNotify {
                 webhook_channel
@@ -5068,7 +5068,7 @@ export const GetAlertsPagePayloadDocument = gql`
             ExcludedEnvironments
             CountThreshold
         }
-        track_properties_alert(project_id: $project_id) {
+        track_properties_alerts(project_id: $project_id) {
             id
             ChannelsToNotify {
                 webhook_channel
@@ -5082,7 +5082,7 @@ export const GetAlertsPagePayloadDocument = gql`
             ExcludedEnvironments
             CountThreshold
         }
-        user_properties_alert(project_id: $project_id) {
+        user_properties_alerts(project_id: $project_id) {
             id
             ChannelsToNotify {
                 webhook_channel

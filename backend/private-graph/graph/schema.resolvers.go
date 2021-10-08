@@ -2314,72 +2314,56 @@ func (r *queryResolver) ErrorAlerts(ctx context.Context, projectID int) ([]*mode
 	return alerts, nil
 }
 
-func (r *queryResolver) SessionFeedbackAlert(ctx context.Context, projectID int) (*model.SessionAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return nil, e.Wrap(err, "error querying project on session feedback alert")
-	}
-	var alert model.SessionAlert
-	if err := r.DB.Model(&model.SessionAlert{}).Where("project_id = ?", projectID).
-		Where("type=?", model.AlertType.SESSION_FEEDBACK).First(&alert).Error; err != nil {
-		return nil, e.Wrap(err, "error querying session feedback alert")
-	}
-	return &alert, nil
-}
-
 func (r *queryResolver) SessionFeedbackAlerts(ctx context.Context, projectID int) ([]*model.SessionAlert, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *queryResolver) NewUserAlert(ctx context.Context, projectID int) (*model.SessionAlert, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying project on new user alert")
+		return nil, e.Wrap(err, "error querying project on session feedback alerts")
 	}
-	var alert model.SessionAlert
+	var alerts []*model.SessionAlert
 	if err := r.DB.Model(&model.SessionAlert{}).Where("project_id = ?", projectID).
-		Where("type IS NULL OR type=?", model.AlertType.NEW_USER).First(&alert).Error; err != nil {
-		return nil, e.Wrap(err, "error querying  new user alert")
+		Where("type=?", model.AlertType.SESSION_FEEDBACK).Find(&alerts).Error; err != nil {
+		return nil, e.Wrap(err, "error querying session feedback alerts")
 	}
-	return &alert, nil
+	return alerts, nil
 }
 
 func (r *queryResolver) NewUserAlerts(ctx context.Context, projectID int) ([]*model.SessionAlert, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *queryResolver) TrackPropertiesAlert(ctx context.Context, projectID int) (*model.SessionAlert, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying project")
+		return nil, e.Wrap(err, "error querying project on new user alerts")
 	}
-	var alert model.SessionAlert
-	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{Type: &model.AlertType.TRACK_PROPERTIES}}).
-		Where("project_id = ?", projectID).First(&alert).Error; err != nil {
-		return nil, e.Wrap(err, "error querying track properties alert")
+	var alerts []*model.SessionAlert
+	if err := r.DB.Model(&model.SessionAlert{}).Where("project_id = ?", projectID).
+		Where("type IS NULL OR type=?", model.AlertType.NEW_USER).Find(&alerts).Error; err != nil {
+		return nil, e.Wrap(err, "error querying new user alerts")
 	}
-	return &alert, nil
+	return alerts, nil
 }
 
 func (r *queryResolver) TrackPropertiesAlerts(ctx context.Context, projectID int) ([]*model.SessionAlert, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *queryResolver) UserPropertiesAlert(ctx context.Context, projectID int) (*model.SessionAlert, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
-	var alert model.SessionAlert
-	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{Type: &model.AlertType.USER_PROPERTIES}}).
-		Where("project_id = ?", projectID).First(&alert).Error; err != nil {
-		return nil, e.Wrap(err, "error querying user properties alert")
+	var alerts []*model.SessionAlert
+	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{Type: &model.AlertType.TRACK_PROPERTIES}}).
+		Where("project_id = ?", projectID).Find(&alerts).Error; err != nil {
+		return nil, e.Wrap(err, "error querying track properties alerts")
 	}
-	return &alert, nil
+	return alerts, nil
 }
 
 func (r *queryResolver) UserPropertiesAlerts(ctx context.Context, projectID int) ([]*model.SessionAlert, error) {
-	panic(fmt.Errorf("not implemented"))
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+	var alerts []*model.SessionAlert
+	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{Type: &model.AlertType.USER_PROPERTIES}}).
+		Where("project_id = ?", projectID).Find(&alerts).Error; err != nil {
+		return nil, e.Wrap(err, "error querying user properties alerts")
+	}
+	return alerts, nil
 }
 
 func (r *queryResolver) ProjectSuggestion(ctx context.Context, query string) ([]*model.Project, error) {

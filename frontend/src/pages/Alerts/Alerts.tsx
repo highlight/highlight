@@ -155,76 +155,6 @@ const AlertsPage = () => {
                         ))
                 ) : (
                     <>
-                        {/* {ALERT_CONFIGURATIONS.map((configuration) => (
-                            <AlertConfigurationCard
-                                key={configuration.name}
-                                configuration={configuration}
-                                environmentOptions={
-                                    data?.environment_suggestion || []
-                                }
-                                channelSuggestions={
-                                    data?.slack_channel_suggestion || []
-                                }
-                            />
-                        ))} */}
-                        <AlertConfigurationCard
-                            configuration={ALERT_CONFIGURATIONS[4]}
-                            alert={
-                                data?.session_feedback_alert
-                                    ? data?.session_feedback_alert
-                                    : {}
-                            }
-                            environmentOptions={
-                                data?.environment_suggestion || []
-                            }
-                            channelSuggestions={
-                                data?.slack_channel_suggestion || []
-                            }
-                            slackUrl={slackUrl}
-                        />
-                        <AlertConfigurationCard
-                            configuration={ALERT_CONFIGURATIONS[1]}
-                            alert={
-                                data?.new_user_alert ? data?.new_user_alert : {}
-                            }
-                            environmentOptions={
-                                data?.environment_suggestion || []
-                            }
-                            channelSuggestions={
-                                data?.slack_channel_suggestion || []
-                            }
-                            slackUrl={slackUrl}
-                        />
-                        <AlertConfigurationCard
-                            configuration={ALERT_CONFIGURATIONS[2]}
-                            alert={
-                                data?.user_properties_alert
-                                    ? data?.user_properties_alert
-                                    : {}
-                            }
-                            environmentOptions={
-                                data?.environment_suggestion || []
-                            }
-                            channelSuggestions={
-                                data?.slack_channel_suggestion || []
-                            }
-                            slackUrl={slackUrl}
-                        />
-                        <AlertConfigurationCard
-                            configuration={ALERT_CONFIGURATIONS[3]}
-                            alert={
-                                data?.track_properties_alert
-                                    ? data?.track_properties_alert
-                                    : {}
-                            }
-                            environmentOptions={
-                                data?.environment_suggestion || []
-                            }
-                            channelSuggestions={
-                                data?.slack_channel_suggestion || []
-                            }
-                            slackUrl={slackUrl}
-                        />
                         {data?.error_alerts.map((errorAlert) => (
                             <AlertConfigurationCard
                                 key={errorAlert?.id}
@@ -247,6 +177,68 @@ const AlertsPage = () => {
                                 }}
                             />
                         ))}
+                        {data?.session_feedback_alerts.map(
+                            (sessionFeedbackAlert) => (
+                                <AlertConfigurationCard
+                                    key={sessionFeedbackAlert?.id}
+                                    configuration={ALERT_CONFIGURATIONS[4]}
+                                    alert={sessionFeedbackAlert || {}}
+                                    environmentOptions={
+                                        data?.environment_suggestion || []
+                                    }
+                                    channelSuggestions={
+                                        data?.slack_channel_suggestion || []
+                                    }
+                                    slackUrl={slackUrl}
+                                />
+                            )
+                        )}
+                        {data?.new_user_alerts?.map((newUserAlert) => (
+                            <AlertConfigurationCard
+                                key={newUserAlert?.id || ''}
+                                configuration={ALERT_CONFIGURATIONS[1]}
+                                alert={newUserAlert || {}}
+                                environmentOptions={
+                                    data?.environment_suggestion || []
+                                }
+                                channelSuggestions={
+                                    data?.slack_channel_suggestion || []
+                                }
+                                slackUrl={slackUrl}
+                            />
+                        ))}
+                        {data?.user_properties_alerts.map(
+                            (userPropertiesAlert) => (
+                                <AlertConfigurationCard
+                                    key={userPropertiesAlert?.id}
+                                    configuration={ALERT_CONFIGURATIONS[2]}
+                                    alert={userPropertiesAlert || {}}
+                                    environmentOptions={
+                                        data?.environment_suggestion || []
+                                    }
+                                    channelSuggestions={
+                                        data?.slack_channel_suggestion || []
+                                    }
+                                    slackUrl={slackUrl}
+                                />
+                            )
+                        )}
+                        {data?.track_properties_alerts.map(
+                            (trackPropertiesAlert) => (
+                                <AlertConfigurationCard
+                                    key={trackPropertiesAlert?.id}
+                                    configuration={ALERT_CONFIGURATIONS[3]}
+                                    alert={trackPropertiesAlert || {}}
+                                    environmentOptions={
+                                        data?.environment_suggestion || []
+                                    }
+                                    channelSuggestions={
+                                        data?.slack_channel_suggestion || []
+                                    }
+                                    slackUrl={slackUrl}
+                                />
+                            )
+                        )}
                     </>
                 )}
             </div>

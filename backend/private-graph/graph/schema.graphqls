@@ -489,13 +489,9 @@ type Query {
     projects: [Project]
     workspaces: [Workspace]
     error_alerts(project_id: ID!): [ErrorAlert]!
-    session_feedback_alert(project_id: ID!): SessionAlert
     session_feedback_alerts(project_id: ID!): [SessionAlert]!
-    new_user_alert(project_id: ID!): SessionAlert
     new_user_alerts(project_id: ID!): [SessionAlert]
-    track_properties_alert(project_id: ID!): SessionAlert
     track_properties_alerts(project_id: ID!): [SessionAlert]!
-    user_properties_alert(project_id: ID!): SessionAlert
     user_properties_alerts(project_id: ID!): [SessionAlert]!
     projectSuggestion(query: String!): [Project]
     environment_suggestion(project_id: ID!): [Field]

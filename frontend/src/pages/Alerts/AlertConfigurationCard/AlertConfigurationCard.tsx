@@ -482,7 +482,9 @@ export const AlertConfigurationCard = ({
                         </a>
                         .
                     </p>
-                    <Form.Item name="excludedEnvironments">
+                    <Form.Item
+                        name={`${alert.Name || name}-excludedEnvironments`}
+                    >
                         <Select
                             className={styles.channelSelect}
                             options={environments}

@@ -288,7 +288,6 @@ type ComplexityRoot struct {
 		IsIntegrated              func(childComplexity int, projectID int) int
 		IsIntegratedWithSlack     func(childComplexity int, projectID int) int
 		Messages                  func(childComplexity int, sessionID *int, sessionSecureID *string) int
-		NewUserAlert              func(childComplexity int, projectID int) int
 		NewUserAlerts             func(childComplexity int, projectID int) int
 		NewUsersCount             func(childComplexity int, projectID int, lookBackPeriod int) int
 		Project                   func(childComplexity int, id int) int
@@ -304,17 +303,14 @@ type ComplexityRoot struct {
 		SessionComments           func(childComplexity int, sessionID *int, sessionSecureID *string) int
 		SessionCommentsForAdmin   func(childComplexity int) int
 		SessionCommentsForProject func(childComplexity int, projectID int) int
-		SessionFeedbackAlert      func(childComplexity int, projectID int) int
 		SessionFeedbackAlerts     func(childComplexity int, projectID int) int
 		Sessions                  func(childComplexity int, projectID int, count int, lifecycle model.SessionLifecycle, starred bool, params *model.SearchParamsInput) int
 		SlackChannelSuggestion    func(childComplexity int, projectID int) int
 		SlackMembers              func(childComplexity int, projectID int) int
 		TopUsers                  func(childComplexity int, projectID int, lookBackPeriod int) int
-		TrackPropertiesAlert      func(childComplexity int, projectID int) int
 		TrackPropertiesAlerts     func(childComplexity int, projectID int) int
 		UnprocessedSessionsCount  func(childComplexity int, projectID int) int
 		UserFingerprintCount      func(childComplexity int, projectID int, lookBackPeriod int) int
-		UserPropertiesAlert       func(childComplexity int, projectID int) int
 		UserPropertiesAlerts      func(childComplexity int, projectID int) int
 		Workspace                 func(childComplexity int, id int) int
 		WorkspaceForProject       func(childComplexity int, projectID int) int
@@ -569,13 +565,9 @@ type QueryResolver interface {
 	Projects(ctx context.Context) ([]*model1.Project, error)
 	Workspaces(ctx context.Context) ([]*model1.Workspace, error)
 	ErrorAlerts(ctx context.Context, projectID int) ([]*model1.ErrorAlert, error)
-	SessionFeedbackAlert(ctx context.Context, projectID int) (*model1.SessionAlert, error)
 	SessionFeedbackAlerts(ctx context.Context, projectID int) ([]*model1.SessionAlert, error)
-	NewUserAlert(ctx context.Context, projectID int) (*model1.SessionAlert, error)
 	NewUserAlerts(ctx context.Context, projectID int) ([]*model1.SessionAlert, error)
-	TrackPropertiesAlert(ctx context.Context, projectID int) (*model1.SessionAlert, error)
 	TrackPropertiesAlerts(ctx context.Context, projectID int) ([]*model1.SessionAlert, error)
-	UserPropertiesAlert(ctx context.Context, projectID int) (*model1.SessionAlert, error)
 	UserPropertiesAlerts(ctx context.Context, projectID int) ([]*model1.SessionAlert, error)
 	ProjectSuggestion(ctx context.Context, query string) ([]*model1.Project, error)
 	EnvironmentSuggestion(ctx context.Context, projectID int) ([]*model1.Field, error)
@@ -2090,18 +2082,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Messages(childComplexity, args["session_id"].(*int), args["session_secure_id"].(*string)), true
 
-	case "Query.new_user_alert":
-		if e.complexity.Query.NewUserAlert == nil {
-			break
-		}
-
-		args, err := ec.field_Query_new_user_alert_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.NewUserAlert(childComplexity, args["project_id"].(int)), true
-
 	case "Query.new_user_alerts":
 		if e.complexity.Query.NewUserAlerts == nil {
 			break
@@ -2272,18 +2252,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.SessionCommentsForProject(childComplexity, args["project_id"].(int)), true
 
-	case "Query.session_feedback_alert":
-		if e.complexity.Query.SessionFeedbackAlert == nil {
-			break
-		}
-
-		args, err := ec.field_Query_session_feedback_alert_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.SessionFeedbackAlert(childComplexity, args["project_id"].(int)), true
-
 	case "Query.session_feedback_alerts":
 		if e.complexity.Query.SessionFeedbackAlerts == nil {
 			break
@@ -2344,18 +2312,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.TopUsers(childComplexity, args["project_id"].(int), args["lookBackPeriod"].(int)), true
 
-	case "Query.track_properties_alert":
-		if e.complexity.Query.TrackPropertiesAlert == nil {
-			break
-		}
-
-		args, err := ec.field_Query_track_properties_alert_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.TrackPropertiesAlert(childComplexity, args["project_id"].(int)), true
-
 	case "Query.track_properties_alerts":
 		if e.complexity.Query.TrackPropertiesAlerts == nil {
 			break
@@ -2391,18 +2347,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.UserFingerprintCount(childComplexity, args["project_id"].(int), args["lookBackPeriod"].(int)), true
-
-	case "Query.user_properties_alert":
-		if e.complexity.Query.UserPropertiesAlert == nil {
-			break
-		}
-
-		args, err := ec.field_Query_user_properties_alert_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.UserPropertiesAlert(childComplexity, args["project_id"].(int)), true
 
 	case "Query.user_properties_alerts":
 		if e.complexity.Query.UserPropertiesAlerts == nil {
@@ -3716,13 +3660,9 @@ type Query {
     projects: [Project]
     workspaces: [Workspace]
     error_alerts(project_id: ID!): [ErrorAlert]!
-    session_feedback_alert(project_id: ID!): SessionAlert
     session_feedback_alerts(project_id: ID!): [SessionAlert]!
-    new_user_alert(project_id: ID!): SessionAlert
     new_user_alerts(project_id: ID!): [SessionAlert]
-    track_properties_alert(project_id: ID!): SessionAlert
     track_properties_alerts(project_id: ID!): [SessionAlert]!
-    user_properties_alert(project_id: ID!): SessionAlert
     user_properties_alerts(project_id: ID!): [SessionAlert]!
     projectSuggestion(query: String!): [Project]
     environment_suggestion(project_id: ID!): [Field]
@@ -5747,21 +5687,6 @@ func (ec *executionContext) field_Query_newUsersCount_args(ctx context.Context, 
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_new_user_alert_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Query_new_user_alerts_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -5996,21 +5921,6 @@ func (ec *executionContext) field_Query_session_comments_for_project_args(ctx co
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_session_feedback_alert_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Query_session_feedback_alerts_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -6131,21 +6041,6 @@ func (ec *executionContext) field_Query_topUsers_args(ctx context.Context, rawAr
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_track_properties_alert_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Query_track_properties_alerts_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -6197,21 +6092,6 @@ func (ec *executionContext) field_Query_userFingerprintCount_args(ctx context.Co
 		}
 	}
 	args["lookBackPeriod"] = arg1
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_user_properties_alert_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
 	return args, nil
 }
 
@@ -12683,45 +12563,6 @@ func (ec *executionContext) _Query_error_alerts(ctx context.Context, field graph
 	return ec.marshalNErrorAlert2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorAlert(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_session_feedback_alert(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_session_feedback_alert_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SessionFeedbackAlert(rctx, args["project_id"].(int))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model1.SessionAlert)
-	fc.Result = res
-	return ec.marshalOSessionAlert2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionAlert(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Query_session_feedback_alerts(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -12764,45 +12605,6 @@ func (ec *executionContext) _Query_session_feedback_alerts(ctx context.Context, 
 	return ec.marshalNSessionAlert2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionAlert(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_new_user_alert(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_new_user_alert_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().NewUserAlert(rctx, args["project_id"].(int))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model1.SessionAlert)
-	fc.Result = res
-	return ec.marshalOSessionAlert2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionAlert(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Query_new_user_alerts(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -12840,45 +12642,6 @@ func (ec *executionContext) _Query_new_user_alerts(ctx context.Context, field gr
 	res := resTmp.([]*model1.SessionAlert)
 	fc.Result = res
 	return ec.marshalOSessionAlert2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionAlert(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_track_properties_alert(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_track_properties_alert_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().TrackPropertiesAlert(rctx, args["project_id"].(int))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model1.SessionAlert)
-	fc.Result = res
-	return ec.marshalOSessionAlert2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionAlert(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_track_properties_alerts(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -12921,45 +12684,6 @@ func (ec *executionContext) _Query_track_properties_alerts(ctx context.Context, 
 	res := resTmp.([]*model1.SessionAlert)
 	fc.Result = res
 	return ec.marshalNSessionAlert2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionAlert(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_user_properties_alert(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_user_properties_alert_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().UserPropertiesAlert(rctx, args["project_id"].(int))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model1.SessionAlert)
-	fc.Result = res
-	return ec.marshalOSessionAlert2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionAlert(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_user_properties_alerts(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -20031,17 +19755,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
-		case "session_feedback_alert":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_session_feedback_alert(ctx, field)
-				return res
-			})
 		case "session_feedback_alerts":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -20056,17 +19769,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
-		case "new_user_alert":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_new_user_alert(ctx, field)
-				return res
-			})
 		case "new_user_alerts":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -20076,17 +19778,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_new_user_alerts(ctx, field)
-				return res
-			})
-		case "track_properties_alert":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_track_properties_alert(ctx, field)
 				return res
 			})
 		case "track_properties_alerts":
@@ -20101,17 +19792,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
-				return res
-			})
-		case "user_properties_alert":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_user_properties_alert(ctx, field)
 				return res
 			})
 		case "user_properties_alerts":
