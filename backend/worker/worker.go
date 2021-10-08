@@ -688,10 +688,6 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 				input.ClickEventQueue.Remove(elem)
 			}
 
-			if input.ClickEventQueue.Len() < 5 && o.CurrentlyInRageClickSet {
-				o.CurrentlyInRageClickSet = false
-			}
-
 			var mouseInteractionEventData parse.MouseInteractionEventData
 			err = json.Unmarshal(event.Data, &mouseInteractionEventData)
 			if err != nil {

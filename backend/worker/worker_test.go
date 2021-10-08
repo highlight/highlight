@@ -570,7 +570,7 @@ func TestGetActiveDuration(t *testing.T) {
 			},
 			time.Duration(4 * time.Second),
 			beginningOfTime,
-			[]*model.RageClickEvent{{TotalClicks: 12}, {TotalClicks: 13}},
+			[]*model.RageClickEvent{{TotalClicks: 11}, {TotalClicks: 12}},
 		},
 	}
 	for name, tt := range tables {
