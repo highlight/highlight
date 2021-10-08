@@ -3030,6 +3030,10 @@ export const GetProjectDropdownOptionsDocument = gql`
                 name
             }
         }
+        workspaces {
+            id
+            name
+        }
     }
 `;
 
@@ -3090,6 +3094,10 @@ export const GetWorkspaceDropdownOptionsDocument = gql`
                 id
                 name
             }
+        }
+        workspaces {
+            id
+            name
         }
     }
 `;

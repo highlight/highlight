@@ -82,16 +82,18 @@ const NewProjectPage = () => {
                 <h2 className={styles.title}>{`Create a ${pageTypeCaps}`}</h2>
                 <p className={styles.subTitle}>
                     {isWorkspace &&
-                        `Let's create a workspace! This is usually your company name. On the next step, we will add a project to your workspace.`}
+                        `Let's create a workspace! This is usually your company name and can contain multiple projects (e.g. web frontend, landing page, etc).`}
                     {!isWorkspace &&
-                        `Enter the name of your project and you'll be good to go!`}
+                        `Let's create a project! This is usually a single application (e.g. web frontend, landing page, etc).`}
                 </p>
                 <div className={commonStyles.errorMessage}>
                     {errors.name &&
                         `Error with ${pageType} name ` + errors.name.message}
                 </div>
                 <input
-                    placeholder={`${pageTypeCaps} Name`}
+                    placeholder={
+                        isWorkspace ? 'Pied Piper, Inc' : 'Web Frontend'
+                    }
                     name="name"
                     ref={register({ required: true })}
                     className={commonStyles.input}

@@ -309,6 +309,10 @@ query GetProjectDropdownOptions($project_id: ID!) {
             name
         }
     }
+    workspaces {
+        id
+        name
+    }
 }
 
 query GetWorkspaceDropdownOptions($workspace_id: ID!) {
@@ -319,6 +323,10 @@ query GetWorkspaceDropdownOptions($workspace_id: ID!) {
             id
             name
         }
+    }
+    workspaces {
+        id
+        name
     }
 }
 

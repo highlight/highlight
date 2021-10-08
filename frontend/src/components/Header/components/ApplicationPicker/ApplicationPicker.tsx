@@ -1,4 +1,3 @@
-import { useAuthContext } from '@authentication/AuthContext';
 import { MiniWorkspaceIcon } from '@components/Header/WorkspaceDropdown/WorkspaceDropdown';
 import SvgArrowRightIcon from '@icons/ArrowRightIcon';
 import { useParams } from '@util/react-router/useParams';
@@ -17,6 +16,7 @@ const ApplicationPicker = () => {
         allProjects,
         currentProject,
         currentWorkspace,
+        workspaces,
     } = useApplicationContext();
     const { workspace_id } = useParams<{
         workspace_id: string;
@@ -24,7 +24,6 @@ const ApplicationPicker = () => {
     const isWorkspaceLevel = workspace_id !== undefined;
     const history = useHistory();
     const { pathname } = useLocation();
-    const { isHighlightAdmin } = useAuthContext();
 
     const newProjectOption = {
         value: '-1',
@@ -79,7 +78,7 @@ const ApplicationPicker = () => {
               }))
             : []),
         newProjectOption,
-        ...(isHighlightAdmin ? [switchWorkspaceOption] : []),
+        ...(workspaces.length > 1 ? [switchWorkspaceOption] : []), // Show "Switch Workspace" if user is in multiple workspaces
         workspaceSettingsOption,
     ];
 

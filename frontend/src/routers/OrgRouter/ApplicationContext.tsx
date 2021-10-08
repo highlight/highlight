@@ -16,6 +16,9 @@ interface ApplicationContext {
     currentWorkspace?: Maybe<
         { __typename?: 'Workspace' } & Pick<Workspace, 'id' | 'name'>
     >;
+    workspaces: Maybe<
+        { __typename?: 'Workspace' } & Pick<Workspace, 'id' | 'name'>
+    >[];
 }
 
 export const [

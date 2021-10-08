@@ -78,6 +78,7 @@ export const ProjectRouter = () => {
                     currentProject: data?.project || undefined,
                     allProjects: data?.workspace?.projects || [],
                     currentWorkspace: data?.workspace || undefined,
+                    workspaces: data?.workspaces || [],
                 }}
             >
                 <Header />

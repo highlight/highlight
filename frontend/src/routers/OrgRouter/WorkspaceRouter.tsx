@@ -73,6 +73,7 @@ export const WorkspaceRouter = () => {
                     currentProject: undefined,
                     allProjects: data?.workspace?.projects || [],
                     currentWorkspace: data?.workspace || undefined,
+                    workspaces: data?.workspaces || [],
                 }}
             >
                 <Header />
