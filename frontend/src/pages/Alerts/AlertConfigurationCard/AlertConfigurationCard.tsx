@@ -73,12 +73,16 @@ export const AlertConfigurationCard = ({
         updateSessionFeedbackAlert,
     ] = useUpdateSessionFeedbackAlertMutation();
 
+    const excludedEnvironmentsFormName = `${
+        alert.Name || defaultName
+    }-excludedEnvironments`;
+
     const onSubmit = async () => {
         setLoading(true);
         try {
             const requestVariables = {
                 project_id,
-                environments: form.getFieldValue('excludedEnvironments'),
+                environments: form.getFieldValue(excludedEnvironmentsFormName),
                 count_threshold: form.getFieldValue('threshold'),
                 slack_channels: form
                     .getFieldValue('channels')
@@ -308,9 +312,6 @@ export const AlertConfigurationCard = ({
     if (!alert) {
         return null;
     }
-    const excludedEnvironmentsFormName = `${
-        alert.Name || defaultName
-    }-excludedEnvironments`;
 
     return (
         <Collapsible
