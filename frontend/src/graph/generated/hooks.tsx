@@ -2016,6 +2016,7 @@ export const GetSessionDocument = gql`
             created_at
             language
             user_object
+            user_properties
             identifier
             starred
             enable_strict_privacy
