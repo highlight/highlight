@@ -791,6 +791,16 @@ query GetAlertsPagePayload($project_id: ID!) {
         ThresholdWindow
         id
     }
+    new_session_alert(project_id: $project_id) {
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        ExcludedEnvironments
+        CountThreshold
+        ThresholdWindow
+        id
+    }
     new_user_alert(project_id: $project_id) {
         id
         ChannelsToNotify {
