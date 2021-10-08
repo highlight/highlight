@@ -21,6 +21,7 @@ import (
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/model"
@@ -794,8 +795,12 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 	}
 	errors = filteredErrors
 
+	if len(errors) == 0 {
+		return
+	}
+
 	// Count the number of errors for each project
-	errorsByProject := make(map[int]int)
+	errorsByProject := make(map[int]int64)
 	for _, err := range errors {
 		projectID := sessionLookup[err.SessionID].ProjectID
 		errorsByProject[projectID] += 1
@@ -806,31 +811,29 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 	dailyErrorCountSpan.SetTag("numberOfProjects", len(errorsByProject))
 
 	// For each project, increment daily error count by the current error count
-	// TODO: daily_error_counts should be migrated to have composite PK (project_id, date)
-	// this way, we can use an ON CONFLICT statement to upsert
 	n := time.Now()
 	currentDate := time.Date(n.UTC().Year(), n.UTC().Month(), n.UTC().Day(), 0, 0, 0, 0, time.UTC)
-	for projectID, errorCount := range errorsByProject {
-		dailyError := &model.DailyErrorCount{}
 
-		if err := r.DB.Where(&model.DailyErrorCount{
-			ProjectID: projectID,
+	dailyErrorCounts := make([]*model.DailyErrorCount, 0)
+	for projectId, count := range errorsByProject {
+		errorCount := model.DailyErrorCount{
+			ProjectID: projectId,
 			Date:      &currentDate,
-		}).Attrs(&model.DailyErrorCount{
-			Count: 0,
-		}).FirstOrCreate(&dailyError).Error; err != nil {
-			wrapped := e.Wrap(err, "error getting or creating daily error count")
-			dailyErrorCountSpan.Finish(tracer.WithError(wrapped))
-			log.Error(wrapped)
-			return
+			Count:     count,
+			ErrorType: model.ErrorType.BACKEND,
 		}
+		dailyErrorCounts = append(dailyErrorCounts, &errorCount)
+	}
 
-		if err := r.DB.Exec("UPDATE daily_error_counts SET count = count + ? WHERE date = ? AND project_id = ?", errorCount, currentDate, projectID).Error; err != nil {
-			wrapped := e.Wrap(err, "error updating daily error count")
-			dailyErrorCountSpan.Finish(tracer.WithError(wrapped))
-			log.Error(wrapped)
-			return
-		}
+	// Upsert error counts into daily_error_counts
+	if err := r.DB.Table(model.DAILY_ERROR_COUNTS_TBL).Clauses(clause.OnConflict{
+		OnConstraint: model.DAILY_ERROR_COUNTS_UNIQ,
+		DoUpdates:    clause.Assignments(map[string]interface{}{"count": gorm.Expr("daily_error_counts.count + excluded.count")}),
+	}).Create(&dailyErrorCounts).Error; err != nil {
+		wrapped := e.Wrap(err, "error updating daily error count")
+		dailyErrorCountSpan.Finish(tracer.WithError(wrapped))
+		log.Error(wrapped)
+		return
 	}
 
 	dailyErrorCountSpan.Finish()
@@ -863,6 +866,7 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 			Timestamp:   v.Timestamp,
 			Payload:     v.Payload,
 			RequestID:   &v.RequestID,
+			ErrorType:   model.ErrorType.BACKEND,
 		}
 
 		//create error fields array
@@ -1013,20 +1017,20 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 		// increment daily error table
 		if len(errors) > 0 {
 			n := time.Now()
-			dailyError := &model.DailyErrorCount{}
 			currentDate := time.Date(n.UTC().Year(), n.UTC().Month(), n.UTC().Day(), 0, 0, 0, 0, time.UTC)
-			if err := r.DB.Where(&model.DailyErrorCount{
+			dailyErrorCount := model.DailyErrorCount{
 				ProjectID: projectID,
 				Date:      &currentDate,
-			}).Attrs(&model.DailyErrorCount{
-				Count: 0,
-			}).FirstOrCreate(&dailyError).Error; err != nil {
-
-				return e.Wrap(err, "error getting or creating daily error count")
+				Count:     int64(len(errors)),
+				ErrorType: model.ErrorType.FRONTEND,
 			}
 
-			if err := r.DB.Exec("UPDATE daily_error_counts SET count = count + ? WHERE date = ? AND project_id = ?", len(errors), currentDate, projectID).Error; err != nil {
-				return e.Wrap(err, "error updating daily error count")
+			// Upsert error counts into daily_error_counts
+			if err := r.DB.Table(model.DAILY_ERROR_COUNTS_TBL).Clauses(clause.OnConflict{
+				OnConstraint: model.DAILY_ERROR_COUNTS_UNIQ,
+				DoUpdates:    clause.Assignments(map[string]interface{}{"count": gorm.Expr("daily_error_counts.count + excluded.count")}),
+			}).Create(&dailyErrorCount).Error; err != nil {
+				return e.Wrap(err, "error getting or creating daily error count")
 			}
 		}
 
@@ -1057,6 +1061,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 				Timestamp:    v.Timestamp,
 				Payload:      v.Payload,
 				RequestID:    nil,
+				ErrorType:    model.ErrorType.FRONTEND,
 			}
 
 			//create error fields array

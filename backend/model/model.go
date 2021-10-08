@@ -82,6 +82,14 @@ var SessionCommentTypes = struct {
 	FEEDBACK: "FEEDBACK",
 }
 
+var ErrorType = struct {
+	FRONTEND string
+	BACKEND  string
+}{
+	FRONTEND: "FRONTEND",
+	BACKEND:  "BACKEND",
+}
+
 type contextString string
 
 var ContextKeys = struct {
@@ -538,12 +546,16 @@ type DailySessionCount struct {
 	ProjectID      int `json:"project_id"`
 }
 
+const DAILY_ERROR_COUNTS_TBL = "daily_error_counts"
+const DAILY_ERROR_COUNTS_UNIQ = "daily_error_counts_date_project_id_error_type_uniq"
+
 type DailyErrorCount struct {
 	Model
-	Date           *time.Time `gorm:"unique_index:idx_date_project_id" json:"date"`
+	Date           *time.Time `json:"date"`
 	Count          int64      `json:"count"`
 	OrganizationID int
-	ProjectID      int `gorm:"unique_index:idx_date_project_id" json:"project_id"`
+	ProjectID      int    `json:"project_id"`
+	ErrorType      string `gorm:"default:FRONTEND"`
 }
 
 func (s *SearchParams) GormDataType() string {
@@ -647,6 +659,7 @@ type ErrorObject struct {
 	Payload        *string   `json:"payload"`
 	Environment    string
 	RequestID      *string // From X-Highlight-Request header
+	ErrorType      string  `gorm:"default:FRONTEND"`
 }
 
 type ErrorGroup struct {
@@ -781,6 +794,16 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		$$ LANGUAGE PLPGSQL;
 	`).Error; err != nil {
 		return nil, e.Wrap(err, "Error creating secure_id_generator")
+	}
+	if err := DB.Raw(`
+		ALTER TABLE daily_error_counts
+		DROP CONSTRAINT IF EXISTS daily_error_counts_date_project_id_error_type_uniq;
+
+		ALTER TABLE daily_error_counts
+		ADD CONSTRAINT daily_error_counts_date_project_id_error_type_uniq
+			UNIQUE (date, project_id, error_type);
+	`).Error; err != nil {
+		return nil, e.Wrap(err, "Error adding unique constraint on daily_error_counts")
 	}
 	if err := DB.AutoMigrate(
 		Models...,
