@@ -722,6 +722,9 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 			}
 			for element := input.ClickEventQueue.Front(); element != nil; element = element.Next() {
 				el := element.Value.(*parse.ReplayEvent)
+				if el == event {
+					continue
+				}
 				var prev *parse.MouseInteractionEventData
 				err = json.Unmarshal(el.Data, &prev)
 				if err != nil {
@@ -733,7 +736,7 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 				if math.Sqrt(first+second) <= 32 {
 					numTotal += 1
 					if !o.CurrentlyInRageClickSet && rageClick.StartTimestamp.IsZero() {
-						rageClick.StartTimestamp = event.Timestamp
+						rageClick.StartTimestamp = el.Timestamp
 					}
 				}
 			}
@@ -747,6 +750,8 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 					rageClick.TotalClicks = numTotal
 					o.RageClickSets = append(o.RageClickSets, &rageClick)
 				}
+			} else if o.CurrentlyInRageClickSet {
+				o.CurrentlyInRageClickSet = false
 			}
 		}
 	}
