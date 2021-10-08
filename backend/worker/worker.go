@@ -550,7 +550,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 				sessionAlert.ThresholdWindow = util.MakeIntPointer(30)
 			}
 			var count int
-			if err := w.Resolver.DB.Debug().Raw(`
+			if err := w.Resolver.DB.Raw(`
 				SELECT COUNT(*)
 				FROM rage_click_events
 				WHERE
