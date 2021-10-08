@@ -631,6 +631,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'created_at'
             | 'language'
             | 'user_object'
+            | 'user_properties'
             | 'identifier'
             | 'starred'
             | 'enable_strict_privacy'
