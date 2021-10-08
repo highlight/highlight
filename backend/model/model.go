@@ -46,12 +46,14 @@ var AlertType = struct {
 	TRACK_PROPERTIES string
 	USER_PROPERTIES  string
 	SESSION_FEEDBACK string
+	RAGE_CLICK       string
 }{
 	ERROR:            "ERROR_ALERT",
 	NEW_USER:         "NEW_USER_ALERT",
 	TRACK_PROPERTIES: "TRACK_PROPERTIES_ALERT",
 	USER_PROPERTIES:  "USER_PROPERTIES_ALERT",
 	SESSION_FEEDBACK: "SESSION_FEEDBACK_ALERT",
+	RAGE_CLICK:       "RAGE_CLICK_ALERT",
 }
 
 var AdminRole = struct {
@@ -919,10 +921,14 @@ type SendSlackAlertInput struct {
 	CommentID *int
 	// CommentText is a required parameter for SessionFeedback alerts
 	CommentText string
+	// QueryParams is a slice of query params to be appended to the suffix
+	QueryParams map[string]string
+	// Timestamp is an optional value for all session alerts.
+	Timestamp *time.Time
 }
 
 func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
-	// TODO: combine `error_alerts` and `session_alerts` tables and create unique composite index on (project_id, type)
+	// TODO: combine `error_alerts` and `session_alerts` tables and create composite index on (project_id, type)
 	if obj == nil {
 		return e.New("alert is nil")
 	}
@@ -948,7 +954,17 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 	frontendURL := os.Getenv("FRONTEND_URI")
 	suffix := ""
 	if input.CommentID != nil {
-		suffix = fmt.Sprintf("?commentId=%d", *input.CommentID)
+		input.QueryParams["commentId"] = fmt.Sprintf("%d", *input.CommentID)
+	}
+	if len(input.QueryParams) > 0 {
+		for k, v := range input.QueryParams {
+			if len(suffix) == 0 {
+				suffix += "?"
+			} else {
+				suffix += "&"
+			}
+			suffix += fmt.Sprintf("%s=%s", k, v)
+		}
 	}
 	sessionLink := fmt.Sprintf("<%s/%d/sessions/%s%s>", frontendURL, obj.ProjectID, input.SessionSecureID, suffix)
 	messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false))
@@ -1055,6 +1071,11 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
 	case AlertType.SESSION_FEEDBACK:
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s Left Feedback*\n\n%s", input.UserIdentifier, input.CommentText), false, false)
+		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
+		blockSet = append(blockSet, slack.NewDividerBlock())
+		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
+	case AlertType.RAGE_CLICK:
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s Got Angry...*\n\n", input.UserIdentifier), false, false)
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
