@@ -143,6 +143,7 @@ export const AlertConfigurationCard = ({
                                 }),
                             session_alert_id: alert.id,
                             name: defaultName,
+                            threshold_window: 1,
                         },
                     });
                     break;

@@ -1844,7 +1844,9 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                 { __typename?: 'ErrorAlert' } & Pick<
                     Types.ErrorAlert,
                     | 'ExcludedEnvironments'
+                    | 'updated_at'
                     | 'CountThreshold'
+                    | 'LastAdminToEditID'
                     | 'ThresholdWindow'
                     | 'id'
                     | 'Name'
@@ -1864,9 +1866,11 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
             Types.Maybe<
                 { __typename?: 'SessionAlert' } & Pick<
                     Types.SessionAlert,
+                    | 'updated_at'
                     | 'ExcludedEnvironments'
                     | 'CountThreshold'
                     | 'ThresholdWindow'
+                    | 'LastAdminToEditID'
                     | 'id'
                     | 'Name'
                 > & {
@@ -1889,6 +1893,8 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                         | 'id'
                         | 'ExcludedEnvironments'
                         | 'CountThreshold'
+                        | 'updated_at'
+                        | 'LastAdminToEditID'
                         | 'Name'
                     > & {
                             ChannelsToNotify: Array<
@@ -1909,7 +1915,12 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
             Types.Maybe<
                 { __typename?: 'SessionAlert' } & Pick<
                     Types.SessionAlert,
-                    'id' | 'ExcludedEnvironments' | 'CountThreshold' | 'Name'
+                    | 'id'
+                    | 'ExcludedEnvironments'
+                    | 'updated_at'
+                    | 'LastAdminToEditID'
+                    | 'CountThreshold'
+                    | 'Name'
                 > & {
                         ChannelsToNotify: Array<
                             Types.Maybe<
@@ -1934,7 +1945,12 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
             Types.Maybe<
                 { __typename?: 'SessionAlert' } & Pick<
                     Types.SessionAlert,
-                    'id' | 'ExcludedEnvironments' | 'CountThreshold' | 'Name'
+                    | 'id'
+                    | 'ExcludedEnvironments'
+                    | 'updated_at'
+                    | 'LastAdminToEditID'
+                    | 'CountThreshold'
+                    | 'Name'
                 > & {
                         ChannelsToNotify: Array<
                             Types.Maybe<

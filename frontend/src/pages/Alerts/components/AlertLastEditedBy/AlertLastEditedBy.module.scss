@@ -1,0 +1,26 @@
+.container {
+    align-items: center;
+    column-gap: var(--size-xSmall);
+    display: flex;
+
+    svg,
+    img {
+        border-radius: 50%;
+        flex-shrink: 0;
+        height: var(--size-xLarge);
+        width: var(--size-xLarge);
+    }
+
+    .adminContainer {
+        display: flex;
+        flex-direction: column;
+
+        .secondary {
+            color: var(--color-gray-500);
+        }
+
+        .primary {
+            font-weight: 500;
+        }
+    }
+}

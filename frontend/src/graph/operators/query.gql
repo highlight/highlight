@@ -669,7 +669,9 @@ query GetAlertsPagePayload($project_id: ID!) {
             webhook_channel_id
         }
         ExcludedEnvironments
+        updated_at
         CountThreshold
+        LastAdminToEditID
         ThresholdWindow
         id
         Name
@@ -679,9 +681,11 @@ query GetAlertsPagePayload($project_id: ID!) {
             webhook_channel
             webhook_channel_id
         }
+        updated_at
         ExcludedEnvironments
         CountThreshold
         ThresholdWindow
+        LastAdminToEditID
         id
         Name
     }
@@ -693,6 +697,8 @@ query GetAlertsPagePayload($project_id: ID!) {
         }
         ExcludedEnvironments
         CountThreshold
+        updated_at
+        LastAdminToEditID
         Name
     }
     track_properties_alerts(project_id: $project_id) {
@@ -707,6 +713,8 @@ query GetAlertsPagePayload($project_id: ID!) {
             value
         }
         ExcludedEnvironments
+        updated_at
+        LastAdminToEditID
         CountThreshold
         Name
     }
@@ -722,6 +730,8 @@ query GetAlertsPagePayload($project_id: ID!) {
             value
         }
         ExcludedEnvironments
+        updated_at
+        LastAdminToEditID
         CountThreshold
         Name
     }

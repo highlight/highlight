@@ -1,8 +1,14 @@
 import Alert from '@components/Alert/Alert';
 import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
 import { getSlackUrl } from '@components/Header/components/PersonalNotificationButton/utils/utils';
+import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
+import Table from '@components/Table/Table';
+import Tag from '@components/Tag/Tag';
 import { namedOperations } from '@graph/operations';
+import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy';
+import { getAlertTypeColor } from '@pages/Alerts/utils/AlertsUtils';
 import { useParams } from '@util/react-router/useParams';
+import moment from 'moment';
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
 
@@ -43,7 +49,7 @@ const ALERT_CONFIGURATIONS = {
             'Get alerted when a new user starts their first journey in your application.',
     },
     'user properties': {
-        name: 'Identified Users',
+        name: 'User Properties',
         canControlThreshold: false,
         type: ALERT_TYPE.UserProperties,
         description:
@@ -56,13 +62,50 @@ const ALERT_CONFIGURATIONS = {
         description: 'Get alerted when an action is done in your application.',
     },
     'session feedback comments': {
-        name: 'Session Feedback Comments',
+        name: 'Feedback',
         canControlThreshold: false,
         type: ALERT_TYPE.SessionFeedbackComment,
         description:
             'Get alerted when a user submits a session feedback comment.',
     },
 };
+
+const TABLE_COLUMNS = [
+    {
+        title: 'Name',
+        dataIndex: 'Name',
+        key: 'Name',
+        ellipsis: true,
+    },
+    {
+        title: 'Type',
+        dataIndex: 'type',
+        key: 'type',
+        width: 160,
+        render: (type: string, record: any) => {
+            return (
+                <span className={styles.cellWithTooltip}>
+                    <Tag backgroundColor={getAlertTypeColor(type)}>{type}</Tag>{' '}
+                    <InfoTooltip title={record.configuration.description} />
+                </span>
+            );
+        },
+    },
+    {
+        title: 'Updated',
+        dataIndex: 'updated_at',
+        key: 'updated_at',
+        render: (timestamp: string) => moment(timestamp).format('D MMM YYYY'),
+        width: 120,
+    },
+    {
+        title: 'Last Edited',
+        dataIndex: 'LastAdminToEditID',
+        key: 'LastAdminToEditID',
+        render: (id: string) => <AlertLastEditedBy adminId={id} />,
+        ellipsis: true,
+    },
+];
 
 const AlertsPage = () => {
     const { project_id } = useParams<{ project_id: string }>();
@@ -149,10 +192,37 @@ const AlertsPage = () => {
         },
     });
     const slackUrl = getSlackUrl('Organization', project_id, 'alerts');
+    const alertsAsTableRows = [
+        ...(data?.error_alerts || []).map((alert) => ({
+            ...alert,
+            configuration: ALERT_CONFIGURATIONS['errors'],
+            type: ALERT_CONFIGURATIONS['errors'].name,
+        })),
+        ...(data?.new_user_alerts || []).map((alert) => ({
+            ...alert,
+            configuration: ALERT_CONFIGURATIONS['new users'],
+            type: ALERT_CONFIGURATIONS['new users'].name,
+        })),
+        ...(data?.session_feedback_alerts || []).map((alert) => ({
+            ...alert,
+            configuration: ALERT_CONFIGURATIONS['session feedback comments'],
+            type: ALERT_CONFIGURATIONS['session feedback comments'].name,
+        })),
+        ...(data?.track_properties_alerts || []).map((alert) => ({
+            ...alert,
+            configuration: ALERT_CONFIGURATIONS['track properties'],
+            type: ALERT_CONFIGURATIONS['track properties'].name,
+        })),
+        ...(data?.user_properties_alerts || []).map((alert) => ({
+            ...alert,
+            configuration: ALERT_CONFIGURATIONS['user properties'],
+            type: ALERT_CONFIGURATIONS['user properties'].name,
+        })),
+    ];
 
     return (
-        <LeadAlignLayout>
-            <h2>Configure Your Alerts</h2>
+        <LeadAlignLayout fullWidth>
+            <h2>Alerts</h2>
             <button
                 onClick={() => {
                     createErrorAlert();
@@ -236,6 +306,12 @@ const AlertsPage = () => {
                 />
             )}
 
+            <Table
+                columns={TABLE_COLUMNS}
+                loading={loading}
+                dataSource={alertsAsTableRows}
+                pagination={false}
+            />
             <div className={styles.configurationContainer}>
                 {loading ? (
                     Array(2)

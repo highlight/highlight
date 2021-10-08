@@ -430,11 +430,13 @@ export type SanitizedSlackChannelInput = {
 export type ErrorAlert = {
     __typename?: 'ErrorAlert';
     id: Scalars['ID'];
+    updated_at: Scalars['Timestamp'];
     Name?: Maybe<Scalars['String']>;
     ChannelsToNotify: Array<Maybe<SanitizedSlackChannel>>;
     ExcludedEnvironments: Array<Maybe<Scalars['String']>>;
     CountThreshold: Scalars['Int'];
     ThresholdWindow?: Maybe<Scalars['Int']>;
+    LastAdminToEditID?: Maybe<Scalars['ID']>;
 };
 
 export type TrackProperty = {
@@ -453,6 +455,7 @@ export type TrackPropertyInput = {
 export type SessionAlert = {
     __typename?: 'SessionAlert';
     id: Scalars['ID'];
+    updated_at: Scalars['Timestamp'];
     Name?: Maybe<Scalars['String']>;
     ChannelsToNotify: Array<Maybe<SanitizedSlackChannel>>;
     ExcludedEnvironments: Array<Maybe<Scalars['String']>>;
@@ -460,6 +463,7 @@ export type SessionAlert = {
     TrackProperties: Array<Maybe<TrackProperty>>;
     UserProperties: Array<Maybe<UserProperty>>;
     ThresholdWindow: Scalars['Int'];
+    LastAdminToEditID?: Maybe<Scalars['ID']>;
 };
 
 export type Query = {

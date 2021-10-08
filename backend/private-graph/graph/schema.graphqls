@@ -384,11 +384,13 @@ input SanitizedSlackChannelInput {
 
 type ErrorAlert {
     id: ID!
+    updated_at: Timestamp!
     Name: String
     ChannelsToNotify: [SanitizedSlackChannel]!
     ExcludedEnvironments: [String]!
     CountThreshold: Int!
     ThresholdWindow: Int
+    LastAdminToEditID: ID
 }
 
 type TrackProperty {
@@ -405,6 +407,7 @@ input TrackPropertyInput {
 
 type SessionAlert {
     id: ID!
+    updated_at: Timestamp!
     Name: String
     ChannelsToNotify: [SanitizedSlackChannel]!
     ExcludedEnvironments: [String]!
@@ -412,6 +415,7 @@ type SessionAlert {
     TrackProperties: [TrackProperty]!
     UserProperties: [UserProperty]!
     ThresholdWindow: Int!
+    LastAdminToEditID: ID
 }
 
 scalar Upload

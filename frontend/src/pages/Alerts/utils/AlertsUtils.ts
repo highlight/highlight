@@ -22,3 +22,20 @@ export const DEFAULT_HIGHLIGHT_ENVIRONMENTS = [
     'staging',
     'development',
 ];
+
+export const getAlertTypeColor = (type: string) => {
+    switch (type) {
+        case 'Errors':
+            return '#eb5757';
+        case 'Feedback':
+            return '#6fcf97';
+        case 'Track Events':
+            return '#56ccf2';
+        case 'User Properties':
+            return '#ffb038';
+        case 'New Users':
+            return '#937ccc';
+        default:
+            return '#bdbdbd';
+    }
+};

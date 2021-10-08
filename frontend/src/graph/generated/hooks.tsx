@@ -5238,7 +5238,9 @@ export const GetAlertsPagePayloadDocument = gql`
                 webhook_channel_id
             }
             ExcludedEnvironments
+            updated_at
             CountThreshold
+            LastAdminToEditID
             ThresholdWindow
             id
             Name
@@ -5248,9 +5250,11 @@ export const GetAlertsPagePayloadDocument = gql`
                 webhook_channel
                 webhook_channel_id
             }
+            updated_at
             ExcludedEnvironments
             CountThreshold
             ThresholdWindow
+            LastAdminToEditID
             id
             Name
         }
@@ -5262,6 +5266,8 @@ export const GetAlertsPagePayloadDocument = gql`
             }
             ExcludedEnvironments
             CountThreshold
+            updated_at
+            LastAdminToEditID
             Name
         }
         track_properties_alerts(project_id: $project_id) {
@@ -5276,6 +5282,8 @@ export const GetAlertsPagePayloadDocument = gql`
                 value
             }
             ExcludedEnvironments
+            updated_at
+            LastAdminToEditID
             CountThreshold
             Name
         }
@@ -5291,6 +5299,8 @@ export const GetAlertsPagePayloadDocument = gql`
                 value
             }
             ExcludedEnvironments
+            updated_at
+            LastAdminToEditID
             CountThreshold
             Name
         }

@@ -204,6 +204,7 @@ type Alert struct {
 	ChannelsToNotify     *string
 	Name                 *string
 	Type                 *string `gorm:"index"`
+	LastAdminToEditID    int     `gorm:"last_admin_to_edit_id"`
 }
 
 type ErrorAlert struct {

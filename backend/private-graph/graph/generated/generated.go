@@ -95,8 +95,10 @@ type ComplexityRoot struct {
 		CountThreshold       func(childComplexity int) int
 		ExcludedEnvironments func(childComplexity int) int
 		ID                   func(childComplexity int) int
+		LastAdminToEditID    func(childComplexity int) int
 		Name                 func(childComplexity int) int
 		ThresholdWindow      func(childComplexity int) int
+		UpdatedAt            func(childComplexity int) int
 	}
 
 	ErrorComment struct {
@@ -406,9 +408,11 @@ type ComplexityRoot struct {
 		CountThreshold       func(childComplexity int) int
 		ExcludedEnvironments func(childComplexity int) int
 		ID                   func(childComplexity int) int
+		LastAdminToEditID    func(childComplexity int) int
 		Name                 func(childComplexity int) int
 		ThresholdWindow      func(childComplexity int) int
 		TrackProperties      func(childComplexity int) int
+		UpdatedAt            func(childComplexity int) int
 		UserProperties       func(childComplexity int) int
 	}
 
@@ -782,6 +786,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorAlert.ID(childComplexity), true
 
+	case "ErrorAlert.LastAdminToEditID":
+		if e.complexity.ErrorAlert.LastAdminToEditID == nil {
+			break
+		}
+
+		return e.complexity.ErrorAlert.LastAdminToEditID(childComplexity), true
+
 	case "ErrorAlert.Name":
 		if e.complexity.ErrorAlert.Name == nil {
 			break
@@ -795,6 +806,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorAlert.ThresholdWindow(childComplexity), true
+
+	case "ErrorAlert.updated_at":
+		if e.complexity.ErrorAlert.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.ErrorAlert.UpdatedAt(childComplexity), true
 
 	case "ErrorComment.author":
 		if e.complexity.ErrorComment.Author == nil {
@@ -2916,6 +2934,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SessionAlert.ID(childComplexity), true
 
+	case "SessionAlert.LastAdminToEditID":
+		if e.complexity.SessionAlert.LastAdminToEditID == nil {
+			break
+		}
+
+		return e.complexity.SessionAlert.LastAdminToEditID(childComplexity), true
+
 	case "SessionAlert.Name":
 		if e.complexity.SessionAlert.Name == nil {
 			break
@@ -2936,6 +2961,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.SessionAlert.TrackProperties(childComplexity), true
+
+	case "SessionAlert.updated_at":
+		if e.complexity.SessionAlert.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.SessionAlert.UpdatedAt(childComplexity), true
 
 	case "SessionAlert.UserProperties":
 		if e.complexity.SessionAlert.UserProperties == nil {
@@ -3625,11 +3657,13 @@ input SanitizedSlackChannelInput {
 
 type ErrorAlert {
     id: ID!
+    updated_at: Timestamp!
     Name: String
     ChannelsToNotify: [SanitizedSlackChannel]!
     ExcludedEnvironments: [String]!
     CountThreshold: Int!
     ThresholdWindow: Int
+    LastAdminToEditID: ID
 }
 
 type TrackProperty {
@@ -3646,6 +3680,7 @@ input TrackPropertyInput {
 
 type SessionAlert {
     id: ID!
+    updated_at: Timestamp!
     Name: String
     ChannelsToNotify: [SanitizedSlackChannel]!
     ExcludedEnvironments: [String]!
@@ -3653,6 +3688,7 @@ type SessionAlert {
     TrackProperties: [TrackProperty]!
     UserProperties: [UserProperty]!
     ThresholdWindow: Int!
+    LastAdminToEditID: ID
 }
 
 scalar Upload
@@ -7268,6 +7304,41 @@ func (ec *executionContext) _ErrorAlert_id(ctx context.Context, field graphql.Co
 	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _ErrorAlert_updated_at(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorAlert) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ErrorAlert",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _ErrorAlert_Name(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorAlert) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -7435,6 +7506,38 @@ func (ec *executionContext) _ErrorAlert_ThresholdWindow(ctx context.Context, fie
 	res := resTmp.(*int)
 	fc.Result = res
 	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorAlert_LastAdminToEditID(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorAlert) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ErrorAlert",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastAdminToEditID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalOID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorComment_id(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorComment) (ret graphql.Marshaler) {
@@ -15987,6 +16090,41 @@ func (ec *executionContext) _SessionAlert_id(ctx context.Context, field graphql.
 	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _SessionAlert_updated_at(ctx context.Context, field graphql.CollectedField, obj *model1.SessionAlert) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SessionAlert",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _SessionAlert_Name(ctx context.Context, field graphql.CollectedField, obj *model1.SessionAlert) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -16227,6 +16365,38 @@ func (ec *executionContext) _SessionAlert_ThresholdWindow(ctx context.Context, f
 	res := resTmp.(*int)
 	fc.Result = res
 	return ec.marshalNInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SessionAlert_LastAdminToEditID(ctx context.Context, field graphql.CollectedField, obj *model1.SessionAlert) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SessionAlert",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastAdminToEditID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalOID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SessionComment_id(ctx context.Context, field graphql.CollectedField, obj *model1.SessionComment) (ret graphql.Marshaler) {
@@ -19081,6 +19251,11 @@ func (ec *executionContext) _ErrorAlert(ctx context.Context, sel ast.SelectionSe
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "updated_at":
+			out.Values[i] = ec._ErrorAlert_updated_at(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "Name":
 			out.Values[i] = ec._ErrorAlert_Name(ctx, field, obj)
 		case "ChannelsToNotify":
@@ -19118,6 +19293,8 @@ func (ec *executionContext) _ErrorAlert(ctx context.Context, sel ast.SelectionSe
 			}
 		case "ThresholdWindow":
 			out.Values[i] = ec._ErrorAlert_ThresholdWindow(ctx, field, obj)
+		case "LastAdminToEditID":
+			out.Values[i] = ec._ErrorAlert_LastAdminToEditID(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -20965,6 +21142,11 @@ func (ec *executionContext) _SessionAlert(ctx context.Context, sel ast.Selection
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "updated_at":
+			out.Values[i] = ec._SessionAlert_updated_at(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "Name":
 			out.Values[i] = ec._SessionAlert_Name(ctx, field, obj)
 		case "ChannelsToNotify":
@@ -21033,6 +21215,8 @@ func (ec *executionContext) _SessionAlert(ctx context.Context, sel ast.Selection
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "LastAdminToEditID":
+			out.Values[i] = ec._SessionAlert_LastAdminToEditID(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -23340,6 +23524,15 @@ func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel as
 		return graphql.Null
 	}
 	return graphql.MarshalFloat(*v)
+}
+
+func (ec *executionContext) unmarshalOID2int(ctx context.Context, v interface{}) (int, error) {
+	res, err := graphql.UnmarshalIntID(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOID2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	return graphql.MarshalIntID(v)
 }
 
 func (ec *executionContext) unmarshalOID2ᚖint(ctx context.Context, v interface{}) (*int, error) {

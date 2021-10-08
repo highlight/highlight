@@ -1141,7 +1141,7 @@ func (r *mutationResolver) AddSlackBotIntegrationToProject(ctx context.Context, 
 }
 
 func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.ErrorAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1166,6 +1166,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 			Type:                 &model.AlertType.ERROR,
 			ChannelsToNotify:     channelsString,
 			Name:                 &name,
+			LastAdminToEditID:    admin.ID,
 		},
 	}
 
@@ -1177,7 +1178,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 }
 
 func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, name string, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.ErrorAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1202,6 +1203,7 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, 
 	alert.CountThreshold = countThreshold
 	alert.ThresholdWindow = &thresholdWindow
 	alert.Name = &name
+	alert.LastAdminToEditID = admin.ID
 	if err := r.DB.Model(&model.ErrorAlert{
 		Model: model.Model{
 			ID: errorAlertID,
@@ -1231,7 +1233,7 @@ func (r *mutationResolver) DeleteErrorAlert(ctx context.Context, projectID int, 
 }
 
 func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, projectID int, sessionFeedbackAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1264,6 +1266,7 @@ func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, proje
 	alert.CountThreshold = countThreshold
 	alert.ThresholdWindow = &thresholdWindow
 	alert.Name = &name
+	alert.LastAdminToEditID = admin.ID
 	if err := r.DB.Model(&model.SessionAlert{
 		Model: model.Model{
 			ID: sessionFeedbackAlertID,
@@ -1275,7 +1278,7 @@ func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, proje
 }
 
 func (r *mutationResolver) CreateSessionFeedbackAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1300,6 +1303,7 @@ func (r *mutationResolver) CreateSessionFeedbackAlert(ctx context.Context, proje
 			Type:                 &model.AlertType.SESSION_FEEDBACK,
 			ChannelsToNotify:     channelsString,
 			Name:                 &name,
+			LastAdminToEditID:    admin.ID,
 		},
 	}
 
@@ -1311,7 +1315,7 @@ func (r *mutationResolver) CreateSessionFeedbackAlert(ctx context.Context, proje
 }
 
 func (r *mutationResolver) UpdateNewUserAlert(ctx context.Context, projectID int, sessionAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1343,6 +1347,7 @@ func (r *mutationResolver) UpdateNewUserAlert(ctx context.Context, projectID int
 	alert.ExcludedEnvironments = &envString
 	alert.CountThreshold = countThreshold
 	alert.Name = &name
+	alert.LastAdminToEditID = admin.ID
 	if err := r.DB.Model(&model.SessionAlert{
 		Model: model.Model{
 			ID: sessionAlertID,
@@ -1354,7 +1359,7 @@ func (r *mutationResolver) UpdateNewUserAlert(ctx context.Context, projectID int
 }
 
 func (r *mutationResolver) CreateNewUserAlert(ctx context.Context, projectID int, name string, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, thresholdWindow int) (*model.SessionAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1379,6 +1384,7 @@ func (r *mutationResolver) CreateNewUserAlert(ctx context.Context, projectID int
 			Type:                 &model.AlertType.NEW_USER,
 			ChannelsToNotify:     channelsString,
 			Name:                 &name,
+			LastAdminToEditID:    admin.ID,
 		},
 	}
 
@@ -1390,7 +1396,7 @@ func (r *mutationResolver) CreateNewUserAlert(ctx context.Context, projectID int
 }
 
 func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, projectID int, sessionAlertID int, name string, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, trackProperties []*modelInputs.TrackPropertyInput, thresholdWindow int) (*model.SessionAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1424,6 +1430,7 @@ func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, proje
 	alert.ChannelsToNotify = &channelsString
 	alert.TrackProperties = &trackPropertiesString
 	alert.Name = &name
+	alert.LastAdminToEditID = admin.ID
 	if err := r.DB.Model(&model.SessionAlert{
 		Model: model.Model{
 			ID: sessionAlertID,
@@ -1435,7 +1442,7 @@ func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, proje
 }
 
 func (r *mutationResolver) CreateTrackPropertiesAlert(ctx context.Context, projectID int, name string, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, trackProperties []*modelInputs.TrackPropertyInput, thresholdWindow int) (*model.SessionAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1459,6 +1466,7 @@ func (r *mutationResolver) CreateTrackPropertiesAlert(ctx context.Context, proje
 			ChannelsToNotify:     channelsString,
 			Name:                 &name,
 			ThresholdWindow:      &thresholdWindow,
+			LastAdminToEditID:    admin.ID,
 		},
 	}
 
@@ -1470,7 +1478,7 @@ func (r *mutationResolver) CreateTrackPropertiesAlert(ctx context.Context, proje
 }
 
 func (r *mutationResolver) CreateUserPropertiesAlert(ctx context.Context, projectID int, name string, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, userProperties []*modelInputs.UserPropertyInput, thresholdWindow int) (*model.SessionAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1494,6 +1502,7 @@ func (r *mutationResolver) CreateUserPropertiesAlert(ctx context.Context, projec
 			ChannelsToNotify:     channelsString,
 			Name:                 &name,
 			ThresholdWindow:      &thresholdWindow,
+			LastAdminToEditID:    admin.ID,
 		},
 	}
 
@@ -1523,7 +1532,7 @@ func (r *mutationResolver) DeleteSessionAlert(ctx context.Context, projectID int
 }
 
 func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, projectID int, sessionAlertID int, name string, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, userProperties []*modelInputs.UserPropertyInput, thresholdWindow int) (*model.SessionAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1557,6 +1566,7 @@ func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, projec
 	alert.ChannelsToNotify = &channelsString
 	alert.UserProperties = &userPropertiesString
 	alert.Name = &name
+	alert.LastAdminToEditID = admin.ID
 	if err := r.DB.Model(&model.SessionAlert{
 		Model: model.Model{
 			ID: sessionAlertID,
@@ -2928,3 +2938,16 @@ type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
 type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *errorAlertResolver) LastedAdminToEditID(ctx context.Context, obj *model.ErrorAlert) (*int, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+func (r *sessionAlertResolver) LastedAdminToEditID(ctx context.Context, obj *model.SessionAlert) (*int, error) {
+	panic(fmt.Errorf("not implemented"))
+}

@@ -19,3 +19,8 @@
 .hiddenSlackIntegrationButton {
     display: none;
 }
+
+.cellWithTooltip {
+    column-gap: var(--size-xxSmall);
+    display: flex;
+}
