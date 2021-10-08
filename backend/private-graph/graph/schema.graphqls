@@ -31,6 +31,7 @@ type Session {
     length: Int
     active_length: Int
     user_object: Any
+    user_properties: String
     fields: [Field]
     viewed: Boolean
     starred: Boolean
@@ -172,6 +173,7 @@ type ErrorMetadata {
     visited_url: String
     fingerprint: String!
     identifier: String
+    user_properties: String
 }
 
 type ErrorTrace {

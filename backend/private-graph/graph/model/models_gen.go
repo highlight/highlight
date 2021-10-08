@@ -35,6 +35,7 @@ type ErrorMetadata struct {
 	VisitedURL      *string    `json:"visited_url"`
 	Fingerprint     string     `json:"fingerprint"`
 	Identifier      *string    `json:"identifier"`
+	UserProperties  *string    `json:"user_properties"`
 }
 
 type ErrorSearchParamsInput struct {

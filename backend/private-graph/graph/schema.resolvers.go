@@ -93,7 +93,16 @@ func (r *errorGroupResolver) StackTrace(ctx context.Context, obj *model.ErrorGro
 func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorMetadata, error) {
 	var metadataLogs []*modelInputs.ErrorMetadata
 	r.DB.Raw(`
-		SELECT s.id AS session_id, s.secure_id AS session_secure_id, e.id AS error_id, e.timestamp, s.os_name AS os, s.browser_name AS browser, e.url AS visited_url, s.fingerprint AS fingerprint, s.identifier AS identifier
+		SELECT s.id AS session_id, 
+			s.secure_id AS session_secure_id, 
+			e.id AS error_id, 
+			e.timestamp, 
+			s.os_name AS os, 
+			s.browser_name AS browser, 
+			e.url AS visited_url, 
+			s.fingerprint AS fingerprint, 
+			s.identifier AS identifier, 
+			s.user_properties
 		FROM sessions AS s
 		INNER JOIN (
 			SELECT DISTINCT ON (session_id) session_id, id, timestamp, url
@@ -1992,7 +2001,7 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 		return nil, e.Wrap(err, "admin not found in project")
 	}
 
-	sessionsQueryPreamble := "SELECT id, secure_id, project_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, field_group"
+	sessionsQueryPreamble := "SELECT id, secure_id, project_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, field_group, user_properties"
 	joinClause := "FROM sessions"
 
 	fieldFilters, err := r.getFieldFilters(ctx, projectID, params)

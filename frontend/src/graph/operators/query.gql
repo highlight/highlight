@@ -238,6 +238,7 @@ query GetSessions(
                 id
             }
             first_time
+            user_properties
         }
         totalCount
     }
@@ -400,6 +401,7 @@ query GetErrorGroup($secure_id: String!) {
             visited_url
             fingerprint
             identifier
+            user_properties
         }
         field_group {
             name

@@ -35,6 +35,7 @@ const ErrorSessionList = ({ errorGroup }: Props) => {
                             browser_name: session?.browser,
                             os_name: session?.os,
                             environment: session?.environment || 'Production',
+                            user_properties: session?.user_properties || {},
                         } as Partial<Session>) as Session
                     }
                     selected={false}
