@@ -323,6 +323,27 @@ mutation UpdateSessionFeedbackAlert(
     }
 }
 
+mutation UpdateNewSessionAlert(
+    $project_id: ID!
+    $session_alert_id: ID!
+    $slack_channels: [SanitizedSlackChannelInput]!
+    $environments: [String]!
+) {
+    updateNewSessionAlert(
+        project_id: $project_id
+        session_alert_id: $session_alert_id
+        slack_channels: $slack_channels
+        environments: $environments
+    ) {
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        ExcludedEnvironments
+        CountThreshold
+    }
+}
+
 mutation UpdateNewUserAlert(
     $project_id: ID!
     $session_alert_id: ID!

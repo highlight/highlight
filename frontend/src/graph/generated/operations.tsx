@@ -453,6 +453,35 @@ export type UpdateSessionFeedbackAlertMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
+export type UpdateNewSessionAlertMutationVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    session_alert_id: Types.Scalars['ID'];
+    slack_channels:
+        | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
+        | Types.Maybe<Types.SanitizedSlackChannelInput>;
+    environments:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
+}>;
+
+export type UpdateNewSessionAlertMutation = { __typename?: 'Mutation' } & {
+    updateNewSessionAlert?: Types.Maybe<
+        { __typename?: 'SessionAlert' } & Pick<
+            Types.SessionAlert,
+            'ExcludedEnvironments' | 'CountThreshold'
+        > & {
+                ChannelsToNotify: Array<
+                    Types.Maybe<
+                        { __typename?: 'SanitizedSlackChannel' } & Pick<
+                            Types.SanitizedSlackChannel,
+                            'webhook_channel' | 'webhook_channel_id'
+                        >
+                    >
+                >;
+            }
+    >;
+};
+
 export type UpdateNewUserAlertMutationVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     session_alert_id: Types.Scalars['ID'];
@@ -1847,6 +1876,24 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     >;
                 }
         >;
+        new_session_alert?: Types.Maybe<
+            { __typename?: 'SessionAlert' } & Pick<
+                Types.SessionAlert,
+                | 'ExcludedEnvironments'
+                | 'CountThreshold'
+                | 'ThresholdWindow'
+                | 'id'
+            > & {
+                    ChannelsToNotify: Array<
+                        Types.Maybe<
+                            { __typename?: 'SanitizedSlackChannel' } & Pick<
+                                Types.SanitizedSlackChannel,
+                                'webhook_channel' | 'webhook_channel_id'
+                            >
+                        >
+                    >;
+                }
+        >;
         new_user_alert?: Types.Maybe<
             { __typename?: 'SessionAlert' } & Pick<
                 Types.SessionAlert,
@@ -2018,6 +2065,7 @@ export const namedOperations = {
         CreateErrorSegment: 'CreateErrorSegment' as const,
         UpdateErrorAlert: 'UpdateErrorAlert' as const,
         UpdateSessionFeedbackAlert: 'UpdateSessionFeedbackAlert' as const,
+        UpdateNewSessionAlert: 'UpdateNewSessionAlert' as const,
         UpdateNewUserAlert: 'UpdateNewUserAlert' as const,
         UpdateTrackPropertiesAlert: 'UpdateTrackPropertiesAlert' as const,
         UpdateUserPropertiesAlert: 'UpdateUserPropertiesAlert' as const,

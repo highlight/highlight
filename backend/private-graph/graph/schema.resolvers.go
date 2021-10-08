@@ -1384,6 +1384,43 @@ func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, projec
 	return alert, nil
 }
 
+func (r *mutationResolver) UpdateNewSessionAlert(ctx context.Context, projectID int, sessionAlertID int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in project")
+	}
+
+	envBytes, err := json.Marshal(environments)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing environments for new session alert")
+	}
+	envString := string(envBytes)
+
+	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
+	// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
+	for _, ch := range slackChannels {
+		sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
+	}
+
+	channelsBytes, err := json.Marshal(sanitizedChannels)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing channels for new session alert")
+	}
+	channelsString := string(channelsBytes)
+
+	alert := &model.SessionAlert{}
+	alert.ExcludedEnvironments = &envString
+	alert.ChannelsToNotify = &channelsString
+	if err := r.DB.Model(&model.SessionAlert{
+		Model: model.Model{
+			ID: sessionAlertID,
+		},
+	}).Where("project_id = ?", projectID).Updates(alert).Error; err != nil {
+		return nil, e.Wrap(err, "error updating org fields for new session alert")
+	}
+	return alert, nil
+}
+
 func (r *mutationResolver) UpdateSessionIsPublic(ctx context.Context, sessionID *int, sessionSecureID *string, isPublic bool) (*model.Session, error) {
 	session, err := r.canAdminModifySession(ctx, sessionID, sessionSecureID)
 	if err != nil {
@@ -2379,6 +2416,10 @@ func (r *queryResolver) UserPropertiesAlert(ctx context.Context, projectID int) 
 		return nil, e.Wrap(err, "error querying user properties alert")
 	}
 	return &alert, nil
+}
+
+func (r *queryResolver) NewSessionAlert(ctx context.Context, projectID int) (*model.SessionAlert, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *queryResolver) ProjectSuggestion(ctx context.Context, query string) ([]*model.Project, error) {
