@@ -335,10 +335,48 @@ mutation DeleteErrorAlert($project_id: ID!, $error_alert_id: ID!) {
     }
 }
 
+mutation DeleteSessionAlert($project_id: ID!, $session_alert_id: ID!) {
+    deleteSessionAlert(
+        project_id: $project_id
+        session_alert_id: $session_alert_id
+    ) {
+        id
+    }
+}
+
+mutation CreateSessionFeedbackAlert(
+    $project_id: ID!
+    $name: String!
+    $count_threshold: Int!
+    $threshold_window: Int!
+    $slack_channels: [SanitizedSlackChannelInput]!
+    $environments: [String]!
+) {
+    createSessionFeedbackAlert(
+        project_id: $project_id
+        count_threshold: $count_threshold
+        name: $name
+        slack_channels: $slack_channels
+        environments: $environments
+        threshold_window: $threshold_window
+    ) {
+        id
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        Name
+        ExcludedEnvironments
+        CountThreshold
+        ThresholdWindow
+    }
+}
+
 mutation UpdateSessionFeedbackAlert(
     $project_id: ID!
     $session_feedback_alert_id: ID!
     $count_threshold: Int!
+    $name: String!
     $threshold_window: Int!
     $slack_channels: [SanitizedSlackChannelInput]!
     $environments: [String]!
@@ -348,9 +386,11 @@ mutation UpdateSessionFeedbackAlert(
         session_feedback_alert_id: $session_feedback_alert_id
         count_threshold: $count_threshold
         slack_channels: $slack_channels
+        name: $name
         environments: $environments
         threshold_window: $threshold_window
     ) {
+        id
         ChannelsToNotify {
             webhook_channel
             webhook_channel_id
@@ -361,20 +401,52 @@ mutation UpdateSessionFeedbackAlert(
     }
 }
 
+mutation CreateNewUserAlert(
+    $project_id: ID!
+    $name: String!
+    $count_threshold: Int!
+    $slack_channels: [SanitizedSlackChannelInput]!
+    $environments: [String]!
+    $threshold_window: Int!
+) {
+    createNewUserAlert(
+        project_id: $project_id
+        count_threshold: $count_threshold
+        name: $name
+        slack_channels: $slack_channels
+        environments: $environments
+        threshold_window: $threshold_window
+    ) {
+        id
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        Name
+        ExcludedEnvironments
+        CountThreshold
+        ThresholdWindow
+    }
+}
 mutation UpdateNewUserAlert(
     $project_id: ID!
     $session_alert_id: ID!
     $count_threshold: Int!
+    $name: String!
     $slack_channels: [SanitizedSlackChannelInput]!
     $environments: [String]!
+    $threshold_window: Int!
 ) {
     updateNewUserAlert(
         project_id: $project_id
         session_alert_id: $session_alert_id
         count_threshold: $count_threshold
+        name: $name
         slack_channels: $slack_channels
         environments: $environments
+        threshold_window: $threshold_window
     ) {
+        id
         ChannelsToNotify {
             webhook_channel
             webhook_channel_id
@@ -384,20 +456,52 @@ mutation UpdateNewUserAlert(
     }
 }
 
-mutation UpdateTrackPropertiesAlert(
+mutation CreateTrackPropertiesAlert(
     $project_id: ID!
-    $session_alert_id: ID!
+    $name: String!
     $slack_channels: [SanitizedSlackChannelInput]!
     $environments: [String]!
     $track_properties: [TrackPropertyInput]!
+    $threshold_window: Int!
+) {
+    createTrackPropertiesAlert(
+        project_id: $project_id
+        name: $name
+        slack_channels: $slack_channels
+        environments: $environments
+        track_properties: $track_properties
+        threshold_window: $threshold_window
+    ) {
+        id
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        Name
+        ExcludedEnvironments
+        CountThreshold
+        ThresholdWindow
+    }
+}
+mutation UpdateTrackPropertiesAlert(
+    $project_id: ID!
+    $session_alert_id: ID!
+    $name: String!
+    $slack_channels: [SanitizedSlackChannelInput]!
+    $environments: [String]!
+    $track_properties: [TrackPropertyInput]!
+    $threshold_window: Int!
 ) {
     updateTrackPropertiesAlert(
         project_id: $project_id
         session_alert_id: $session_alert_id
         slack_channels: $slack_channels
         environments: $environments
+        name: $name
         track_properties: $track_properties
+        threshold_window: $threshold_window
     ) {
+        id
         ChannelsToNotify {
             webhook_channel
             webhook_channel_id
@@ -407,20 +511,53 @@ mutation UpdateTrackPropertiesAlert(
     }
 }
 
-mutation UpdateUserPropertiesAlert(
+mutation CreateUserPropertiesAlert(
     $project_id: ID!
-    $session_alert_id: ID!
+    $name: String!
     $slack_channels: [SanitizedSlackChannelInput]!
     $environments: [String]!
     $user_properties: [UserPropertyInput]!
+    $threshold_window: Int!
+) {
+    createUserPropertiesAlert(
+        project_id: $project_id
+        name: $name
+        slack_channels: $slack_channels
+        environments: $environments
+        user_properties: $user_properties
+        threshold_window: $threshold_window
+    ) {
+        id
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        Name
+        ExcludedEnvironments
+        CountThreshold
+        ThresholdWindow
+    }
+}
+
+mutation UpdateUserPropertiesAlert(
+    $project_id: ID!
+    $session_alert_id: ID!
+    $name: String!
+    $slack_channels: [SanitizedSlackChannelInput]!
+    $environments: [String]!
+    $user_properties: [UserPropertyInput]!
+    $threshold_window: Int!
 ) {
     updateUserPropertiesAlert(
         project_id: $project_id
         session_alert_id: $session_alert_id
         slack_channels: $slack_channels
         environments: $environments
+        name: $name
         user_properties: $user_properties
+        threshold_window: $threshold_window
     ) {
+        id
         ChannelsToNotify {
             webhook_channel
             webhook_channel_id

@@ -498,13 +498,9 @@ export type Query = {
     projects?: Maybe<Array<Maybe<Project>>>;
     workspaces?: Maybe<Array<Maybe<Workspace>>>;
     error_alerts: Array<Maybe<ErrorAlert>>;
-    session_feedback_alert?: Maybe<SessionAlert>;
     session_feedback_alerts: Array<Maybe<SessionAlert>>;
-    new_user_alert?: Maybe<SessionAlert>;
     new_user_alerts?: Maybe<Array<Maybe<SessionAlert>>>;
-    track_properties_alert?: Maybe<SessionAlert>;
     track_properties_alerts: Array<Maybe<SessionAlert>>;
-    user_properties_alert?: Maybe<SessionAlert>;
     user_properties_alerts: Array<Maybe<SessionAlert>>;
     projectSuggestion?: Maybe<Array<Maybe<Project>>>;
     environment_suggestion?: Maybe<Array<Maybe<Field>>>;
@@ -671,15 +667,7 @@ export type QueryError_AlertsArgs = {
     project_id: Scalars['ID'];
 };
 
-export type QuerySession_Feedback_AlertArgs = {
-    project_id: Scalars['ID'];
-};
-
 export type QuerySession_Feedback_AlertsArgs = {
-    project_id: Scalars['ID'];
-};
-
-export type QueryNew_User_AlertArgs = {
     project_id: Scalars['ID'];
 };
 
@@ -687,15 +675,7 @@ export type QueryNew_User_AlertsArgs = {
     project_id: Scalars['ID'];
 };
 
-export type QueryTrack_Properties_AlertArgs = {
-    project_id: Scalars['ID'];
-};
-
 export type QueryTrack_Properties_AlertsArgs = {
-    project_id: Scalars['ID'];
-};
-
-export type QueryUser_Properties_AlertArgs = {
     project_id: Scalars['ID'];
 };
 
@@ -785,8 +765,13 @@ export type Mutation = {
     updateErrorAlert?: Maybe<ErrorAlert>;
     deleteErrorAlert?: Maybe<ErrorAlert>;
     updateSessionFeedbackAlert?: Maybe<SessionAlert>;
+    createSessionFeedbackAlert?: Maybe<SessionAlert>;
     updateNewUserAlert?: Maybe<SessionAlert>;
+    createNewUserAlert?: Maybe<SessionAlert>;
     updateTrackPropertiesAlert?: Maybe<SessionAlert>;
+    createTrackPropertiesAlert?: Maybe<SessionAlert>;
+    createUserPropertiesAlert?: Maybe<SessionAlert>;
+    deleteSessionAlert?: Maybe<SessionAlert>;
     updateUserPropertiesAlert?: Maybe<SessionAlert>;
     updateSessionIsPublic?: Maybe<Session>;
     updateErrorGroupIsPublic?: Maybe<ErrorGroup>;
@@ -984,6 +969,16 @@ export type MutationDeleteErrorAlertArgs = {
 export type MutationUpdateSessionFeedbackAlertArgs = {
     project_id: Scalars['ID'];
     session_feedback_alert_id: Scalars['ID'];
+    name: Scalars['String'];
+    count_threshold: Scalars['Int'];
+    threshold_window: Scalars['Int'];
+    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+    environments: Array<Maybe<Scalars['String']>>;
+};
+
+export type MutationCreateSessionFeedbackAlertArgs = {
+    project_id: Scalars['ID'];
+    name: Scalars['String'];
     count_threshold: Scalars['Int'];
     threshold_window: Scalars['Int'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
@@ -993,25 +988,63 @@ export type MutationUpdateSessionFeedbackAlertArgs = {
 export type MutationUpdateNewUserAlertArgs = {
     project_id: Scalars['ID'];
     session_alert_id: Scalars['ID'];
+    name: Scalars['String'];
+    count_threshold: Scalars['Int'];
+    threshold_window: Scalars['Int'];
+    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+    environments: Array<Maybe<Scalars['String']>>;
+};
+
+export type MutationCreateNewUserAlertArgs = {
+    project_id: Scalars['ID'];
+    name: Scalars['String'];
     count_threshold: Scalars['Int'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;
+    threshold_window: Scalars['Int'];
 };
 
 export type MutationUpdateTrackPropertiesAlertArgs = {
     project_id: Scalars['ID'];
     session_alert_id: Scalars['ID'];
+    name: Scalars['String'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;
     track_properties: Array<Maybe<TrackPropertyInput>>;
+    threshold_window: Scalars['Int'];
+};
+
+export type MutationCreateTrackPropertiesAlertArgs = {
+    project_id: Scalars['ID'];
+    name: Scalars['String'];
+    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+    environments: Array<Maybe<Scalars['String']>>;
+    track_properties: Array<Maybe<TrackPropertyInput>>;
+    threshold_window: Scalars['Int'];
+};
+
+export type MutationCreateUserPropertiesAlertArgs = {
+    project_id: Scalars['ID'];
+    name: Scalars['String'];
+    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+    environments: Array<Maybe<Scalars['String']>>;
+    user_properties: Array<Maybe<UserPropertyInput>>;
+    threshold_window: Scalars['Int'];
+};
+
+export type MutationDeleteSessionAlertArgs = {
+    project_id: Scalars['ID'];
+    session_alert_id: Scalars['ID'];
 };
 
 export type MutationUpdateUserPropertiesAlertArgs = {
     project_id: Scalars['ID'];
     session_alert_id: Scalars['ID'];
+    name: Scalars['String'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;
     user_properties: Array<Maybe<UserPropertyInput>>;
+    threshold_window: Scalars['Int'];
 };
 
 export type MutationUpdateSessionIsPublicArgs = {

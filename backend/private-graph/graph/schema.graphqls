@@ -620,6 +620,15 @@ type Mutation {
     updateSessionFeedbackAlert(
         project_id: ID!
         session_feedback_alert_id: ID!
+        name: String!
+        count_threshold: Int!
+        threshold_window: Int!
+        slack_channels: [SanitizedSlackChannelInput]!
+        environments: [String]!
+    ): SessionAlert
+    createSessionFeedbackAlert(
+        project_id: ID!
+        name: String!
         count_threshold: Int!
         threshold_window: Int!
         slack_channels: [SanitizedSlackChannelInput]!
@@ -628,23 +637,54 @@ type Mutation {
     updateNewUserAlert(
         project_id: ID!
         session_alert_id: ID!
+        name: String!
+        count_threshold: Int!
+        threshold_window: Int!
+        slack_channels: [SanitizedSlackChannelInput]!
+        environments: [String]!
+    ): SessionAlert
+    createNewUserAlert(
+        project_id: ID!
+        name: String!
         count_threshold: Int!
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
+        threshold_window: Int!
     ): SessionAlert
     updateTrackPropertiesAlert(
         project_id: ID!
         session_alert_id: ID!
+        name: String!
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
         track_properties: [TrackPropertyInput]!
+        threshold_window: Int!
     ): SessionAlert
-    updateUserPropertiesAlert(
+    createTrackPropertiesAlert(
         project_id: ID!
-        session_alert_id: ID!
+        name: String!
+        slack_channels: [SanitizedSlackChannelInput]!
+        environments: [String]!
+        track_properties: [TrackPropertyInput]!
+        threshold_window: Int!
+    ): SessionAlert
+    createUserPropertiesAlert(
+        project_id: ID!
+        name: String!
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
         user_properties: [UserPropertyInput]!
+        threshold_window: Int!
+    ): SessionAlert
+    deleteSessionAlert(project_id: ID!, session_alert_id: ID!): SessionAlert
+    updateUserPropertiesAlert(
+        project_id: ID!
+        session_alert_id: ID!
+        name: String!
+        slack_channels: [SanitizedSlackChannelInput]!
+        environments: [String]!
+        user_properties: [UserPropertyInput]!
+        threshold_window: Int!
     ): SessionAlert
     updateSessionIsPublic(
         session_id: ID

@@ -42,7 +42,12 @@ interface Props {
 
 export const AlertConfigurationCard = ({
     alert,
-    configuration: { name, canControlThreshold, type, description },
+    configuration: {
+        name: defaultName,
+        canControlThreshold,
+        type,
+        description,
+    },
     environmentOptions,
     channelSuggestions,
     slackUrl,
@@ -108,6 +113,8 @@ export const AlertConfigurationCard = ({
                         variables: {
                             ...requestVariables,
                             session_alert_id: alert.id,
+                            name: defaultName,
+                            threshold_window: 1,
                         },
                     });
                     break;
@@ -131,6 +138,7 @@ export const AlertConfigurationCard = ({
                                     };
                                 }),
                             session_alert_id: alert.id,
+                            name: defaultName,
                         },
                     });
                     break;
@@ -154,6 +162,8 @@ export const AlertConfigurationCard = ({
                                     };
                                 }),
                             session_alert_id: alert.id,
+                            name: defaultName,
+                            threshold_window: 1,
                         },
                     });
                     break;
@@ -164,17 +174,18 @@ export const AlertConfigurationCard = ({
                             ...requestVariables,
                             session_feedback_alert_id: alert.id,
                             threshold_window: lookbackPeriod,
+                            name: defaultName,
                         },
                     });
                     break;
                 default:
                     throw new Error(`Unsupported alert type: ${type}`);
             }
-            message.success(`Updated ${name}!`);
+            message.success(`Updated ${defaultName}!`);
             setFormTouched(false);
         } catch (e) {
             message.error(
-                `There was a problem updating ${name}. Please try again.`
+                `There was a problem updating ${defaultName}. Please try again.`
             );
         }
         setLoading(false);
@@ -302,11 +313,11 @@ export const AlertConfigurationCard = ({
         <Collapsible
             title={
                 <span className={styles.title}>
-                    {alert?.Name || name}{' '}
+                    {alert?.Name || defaultName}{' '}
                     {description && <InfoTooltip title={description} />}
                 </span>
             }
-            id={`${alert.id}${name}`}
+            id={`${alert.id}${defaultName}`}
             contentClassName={styles.alertConfigurationCard}
         >
             <Form
@@ -388,7 +399,7 @@ export const AlertConfigurationCard = ({
                                         .toLowerCase()
                                         .includes(searchValue.toLowerCase());
                                 }}
-                                placeholder={`Select a channel(s) or person(s) to send ${name} to.`}
+                                placeholder={`Select a channel(s) or person(s) to send ${defaultName} to.`}
                                 onChange={onChannelsChange}
                                 notFoundContent={
                                     channelSuggestions?.length === 0 ? (
@@ -483,7 +494,9 @@ export const AlertConfigurationCard = ({
                         .
                     </p>
                     <Form.Item
-                        name={`${alert.Name || name}-excludedEnvironments`}
+                        name={`${
+                            alert.Name || defaultName
+                        }-excludedEnvironments`}
                     >
                         <Select
                             className={styles.channelSelect}
@@ -510,7 +523,7 @@ export const AlertConfigurationCard = ({
                                                 text={`${threshold}`}
                                                 inline
                                             />{' '}
-                                            {name.toLocaleLowerCase()}
+                                            {defaultName.toLocaleLowerCase()}
                                         </b>{' '}
                                         happens in a{' '}
                                         <b>

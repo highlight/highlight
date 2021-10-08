@@ -646,39 +646,6 @@ query GetDailyErrorFrequency(
     )
 }
 
-query GetNewUserAlert($project_id: ID!) {
-    new_user_alert(project_id: $project_id) {
-        ChannelsToNotify {
-            webhook_channel
-            webhook_channel_id
-        }
-        ExcludedEnvironments
-        CountThreshold
-    }
-}
-
-query GetTrackPropertiesAlert($project_id: ID!) {
-    track_properties_alert(project_id: $project_id) {
-        ChannelsToNotify {
-            webhook_channel
-            webhook_channel_id
-        }
-        ExcludedEnvironments
-        CountThreshold
-    }
-}
-
-query GetUserPropertiesAlert($project_id: ID!) {
-    user_properties_alert(project_id: $project_id) {
-        ChannelsToNotify {
-            webhook_channel
-            webhook_channel_id
-        }
-        ExcludedEnvironments
-        CountThreshold
-    }
-}
-
 query GetSlackChannelSuggestion($project_id: ID!) {
     slack_channel_suggestion(project_id: $project_id) {
         webhook_channel
@@ -716,6 +683,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         CountThreshold
         ThresholdWindow
         id
+        Name
     }
     new_user_alerts(project_id: $project_id) {
         id
@@ -725,6 +693,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         }
         ExcludedEnvironments
         CountThreshold
+        Name
     }
     track_properties_alerts(project_id: $project_id) {
         id
@@ -739,6 +708,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         }
         ExcludedEnvironments
         CountThreshold
+        Name
     }
     user_properties_alerts(project_id: $project_id) {
         id
@@ -753,6 +723,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         }
         ExcludedEnvironments
         CountThreshold
+        Name
     }
 }
 

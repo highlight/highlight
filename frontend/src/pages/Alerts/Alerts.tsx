@@ -10,7 +10,12 @@ import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import {
     useCreateErrorAlertMutation,
+    useCreateNewUserAlertMutation,
+    useCreateSessionFeedbackAlertMutation,
+    useCreateTrackPropertiesAlertMutation,
+    useCreateUserPropertiesAlertMutation,
     useDeleteErrorAlertMutation,
+    useDeleteSessionAlertMutation,
     useGetAlertsPagePayloadQuery,
 } from '../../graph/generated/hooks';
 import { AlertConfigurationCard } from './AlertConfigurationCard/AlertConfigurationCard';
@@ -24,40 +29,40 @@ export enum ALERT_TYPE {
     SessionFeedbackComment,
 }
 
-const ALERT_CONFIGURATIONS = [
-    {
+const ALERT_CONFIGURATIONS = {
+    errors: {
         name: 'Errors',
         canControlThreshold: true,
         type: ALERT_TYPE.Error,
     },
-    {
+    'new users': {
         name: 'New Users',
         canControlThreshold: false,
         type: ALERT_TYPE.FirstTimeUser,
         description:
             'Get alerted when a new user starts their first journey in your application.',
     },
-    {
+    'user properties': {
         name: 'Identified Users',
         canControlThreshold: false,
         type: ALERT_TYPE.UserProperties,
         description:
             'Get alerted when users you want to track record a session.',
     },
-    {
+    'track properties': {
         name: 'Track Events',
         canControlThreshold: false,
         type: ALERT_TYPE.TrackProperties,
         description: 'Get alerted when an action is done in your application.',
     },
-    {
+    'session feedback comments': {
         name: 'Session Feedback Comments',
         canControlThreshold: false,
         type: ALERT_TYPE.SessionFeedbackComment,
         description:
             'Get alerted when a user submits a session feedback comment.',
     },
-];
+};
 
 const AlertsPage = () => {
     const { project_id } = useParams<{ project_id: string }>();
@@ -72,12 +77,76 @@ const AlertsPage = () => {
             environments: [],
             slack_channels: [],
             threshold_window: 30,
-            name: 'Boba',
+            name: 'Error',
+        },
+        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+    });
+    const [
+        createSessionFeedbackAlert,
+        {},
+    ] = useCreateSessionFeedbackAlertMutation({
+        variables: {
+            project_id,
+            count_threshold: 1,
+            environments: [],
+            slack_channels: [],
+            threshold_window: 30,
+            name: 'Session Feedback',
+        },
+        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+    });
+    const [createNewUserAlert, {}] = useCreateNewUserAlertMutation({
+        variables: {
+            project_id,
+            count_threshold: 1,
+            environments: [],
+            slack_channels: [],
+            name: 'New User Alert',
+            threshold_window: 1,
+        },
+        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+    });
+    const [
+        createTrackPropertiesAlert,
+        {},
+    ] = useCreateTrackPropertiesAlertMutation({
+        variables: {
+            project_id,
+            environments: [],
+            slack_channels: [],
+            name: 'Track',
+            track_properties: [],
+            threshold_window: 1,
+        },
+        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+    });
+    const [
+        createUserPropertiesAlert,
+        {},
+    ] = useCreateUserPropertiesAlertMutation({
+        variables: {
+            project_id,
+            environments: [],
+            slack_channels: [],
+            name: 'User',
+            user_properties: [],
+            threshold_window: 1,
         },
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
     const [deleteErrorAlert, {}] = useDeleteErrorAlertMutation({
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+    });
+    const [deleteSessionAlert, {}] = useDeleteSessionAlertMutation({
+        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+        update(cache, data) {
+            const normalizedId = cache.identify({
+                id: data.data?.deleteSessionAlert?.id,
+                __typename: data.data?.__typename,
+            });
+            cache.evict({ id: normalizedId });
+            cache.gc();
+        },
     });
     const slackUrl = getSlackUrl('Organization', project_id, 'alerts');
 
@@ -89,7 +158,35 @@ const AlertsPage = () => {
                     createErrorAlert();
                 }}
             >
-                Create
+                Create Error
+            </button>
+            <button
+                onClick={() => {
+                    createSessionFeedbackAlert();
+                }}
+            >
+                Create Session Feedback
+            </button>
+            <button
+                onClick={() => {
+                    createNewUserAlert();
+                }}
+            >
+                Create New Users
+            </button>
+            <button
+                onClick={() => {
+                    createUserPropertiesAlert();
+                }}
+            >
+                Create User Properties
+            </button>
+            <button
+                onClick={() => {
+                    createTrackPropertiesAlert();
+                }}
+            >
+                Create Track Properties
             </button>
             <p className={layoutStyles.subTitle}>
                 Configure the environments you want alerts for.
@@ -158,7 +255,7 @@ const AlertsPage = () => {
                         {data?.error_alerts.map((errorAlert) => (
                             <AlertConfigurationCard
                                 key={errorAlert?.id}
-                                configuration={ALERT_CONFIGURATIONS[0]}
+                                configuration={ALERT_CONFIGURATIONS['errors']}
                                 alert={errorAlert || {}}
                                 environmentOptions={
                                     data?.environment_suggestion || []
@@ -181,7 +278,11 @@ const AlertsPage = () => {
                             (sessionFeedbackAlert) => (
                                 <AlertConfigurationCard
                                     key={sessionFeedbackAlert?.id}
-                                    configuration={ALERT_CONFIGURATIONS[4]}
+                                    configuration={
+                                        ALERT_CONFIGURATIONS[
+                                            'session feedback comments'
+                                        ]
+                                    }
                                     alert={sessionFeedbackAlert || {}}
                                     environmentOptions={
                                         data?.environment_suggestion || []
@@ -190,13 +291,23 @@ const AlertsPage = () => {
                                         data?.slack_channel_suggestion || []
                                     }
                                     slackUrl={slackUrl}
+                                    onDeleteHandler={(alertId) => {
+                                        deleteSessionAlert({
+                                            variables: {
+                                                session_alert_id: alertId,
+                                                project_id,
+                                            },
+                                        });
+                                    }}
                                 />
                             )
                         )}
                         {data?.new_user_alerts?.map((newUserAlert) => (
                             <AlertConfigurationCard
                                 key={newUserAlert?.id || ''}
-                                configuration={ALERT_CONFIGURATIONS[1]}
+                                configuration={
+                                    ALERT_CONFIGURATIONS['new users']
+                                }
                                 alert={newUserAlert || {}}
                                 environmentOptions={
                                     data?.environment_suggestion || []
@@ -205,13 +316,23 @@ const AlertsPage = () => {
                                     data?.slack_channel_suggestion || []
                                 }
                                 slackUrl={slackUrl}
+                                onDeleteHandler={(alertId) => {
+                                    deleteSessionAlert({
+                                        variables: {
+                                            session_alert_id: alertId,
+                                            project_id,
+                                        },
+                                    });
+                                }}
                             />
                         ))}
                         {data?.user_properties_alerts.map(
                             (userPropertiesAlert) => (
                                 <AlertConfigurationCard
                                     key={userPropertiesAlert?.id}
-                                    configuration={ALERT_CONFIGURATIONS[2]}
+                                    configuration={
+                                        ALERT_CONFIGURATIONS['user properties']
+                                    }
                                     alert={userPropertiesAlert || {}}
                                     environmentOptions={
                                         data?.environment_suggestion || []
@@ -220,6 +341,14 @@ const AlertsPage = () => {
                                         data?.slack_channel_suggestion || []
                                     }
                                     slackUrl={slackUrl}
+                                    onDeleteHandler={(alertId) => {
+                                        deleteSessionAlert({
+                                            variables: {
+                                                session_alert_id: alertId,
+                                                project_id,
+                                            },
+                                        });
+                                    }}
                                 />
                             )
                         )}
@@ -227,7 +356,9 @@ const AlertsPage = () => {
                             (trackPropertiesAlert) => (
                                 <AlertConfigurationCard
                                     key={trackPropertiesAlert?.id}
-                                    configuration={ALERT_CONFIGURATIONS[3]}
+                                    configuration={
+                                        ALERT_CONFIGURATIONS['track properties']
+                                    }
                                     alert={trackPropertiesAlert || {}}
                                     environmentOptions={
                                         data?.environment_suggestion || []
@@ -236,6 +367,14 @@ const AlertsPage = () => {
                                         data?.slack_channel_suggestion || []
                                     }
                                     slackUrl={slackUrl}
+                                    onDeleteHandler={(alertId) => {
+                                        deleteSessionAlert({
+                                            variables: {
+                                                session_alert_id: alertId,
+                                                project_id,
+                                            },
+                                        });
+                                    }}
                                 />
                             )
                         )}
