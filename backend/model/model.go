@@ -202,6 +202,7 @@ type Alert struct {
 	CountThreshold       int
 	ThresholdWindow      *int
 	ChannelsToNotify     *string
+	Name                 *string
 	Type                 *string `gorm:"index"`
 }
 

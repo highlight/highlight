@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -765,4 +766,29 @@ func (r *Resolver) SendAdminInviteImpl(adminName string, projectOrWorkspaceName 
 		return nil, e.New(estr)
 	}
 	return &email, nil
+}
+
+func (r *Resolver) MarshalEnvironments(environments []*string) (*string, error) {
+	envBytes, err := json.Marshal(environments)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing environments")
+	}
+	envString := string(envBytes)
+
+	return &envString, nil
+}
+
+func (r *Resolver) MarshalSlackChannelsToSanitizedSlackChannels(slackChannels []*modelInputs.SanitizedSlackChannelInput) (*string, error) {
+	sanitizedChannels := []*modelInputs.SanitizedSlackChannel{}
+	// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
+	for _, ch := range slackChannels {
+		sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
+	}
+	channelsBytes, err := json.Marshal(sanitizedChannels)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing channels")
+	}
+	channelsString := string(channelsBytes)
+
+	return &channelsString, nil
 }

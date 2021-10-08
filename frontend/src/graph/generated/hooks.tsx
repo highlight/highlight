@@ -1424,9 +1424,85 @@ export type CreateErrorSegmentMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateErrorSegmentMutation,
     Types.CreateErrorSegmentMutationVariables
 >;
+export const CreateErrorAlertDocument = gql`
+    mutation CreateErrorAlert(
+        $project_id: ID!
+        $name: String!
+        $count_threshold: Int!
+        $threshold_window: Int!
+        $slack_channels: [SanitizedSlackChannelInput]!
+        $environments: [String]!
+    ) {
+        createErrorAlert(
+            project_id: $project_id
+            count_threshold: $count_threshold
+            name: $name
+            slack_channels: $slack_channels
+            environments: $environments
+            threshold_window: $threshold_window
+        ) {
+            id
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            Name
+            ExcludedEnvironments
+            CountThreshold
+            ThresholdWindow
+        }
+    }
+`;
+export type CreateErrorAlertMutationFn = Apollo.MutationFunction<
+    Types.CreateErrorAlertMutation,
+    Types.CreateErrorAlertMutationVariables
+>;
+
+/**
+ * __useCreateErrorAlertMutation__
+ *
+ * To run a mutation, you first call `useCreateErrorAlertMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateErrorAlertMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createErrorAlertMutation, { data, loading, error }] = useCreateErrorAlertMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      name: // value for 'name'
+ *      count_threshold: // value for 'count_threshold'
+ *      threshold_window: // value for 'threshold_window'
+ *      slack_channels: // value for 'slack_channels'
+ *      environments: // value for 'environments'
+ *   },
+ * });
+ */
+export function useCreateErrorAlertMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.CreateErrorAlertMutation,
+        Types.CreateErrorAlertMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.CreateErrorAlertMutation,
+        Types.CreateErrorAlertMutationVariables
+    >(CreateErrorAlertDocument, baseOptions);
+}
+export type CreateErrorAlertMutationHookResult = ReturnType<
+    typeof useCreateErrorAlertMutation
+>;
+export type CreateErrorAlertMutationResult = Apollo.MutationResult<Types.CreateErrorAlertMutation>;
+export type CreateErrorAlertMutationOptions = Apollo.BaseMutationOptions<
+    Types.CreateErrorAlertMutation,
+    Types.CreateErrorAlertMutationVariables
+>;
 export const UpdateErrorAlertDocument = gql`
     mutation UpdateErrorAlert(
         $project_id: ID!
+        $name: String!
         $error_alert_id: ID!
         $count_threshold: Int!
         $threshold_window: Int!
@@ -1436,11 +1512,13 @@ export const UpdateErrorAlertDocument = gql`
         updateErrorAlert(
             project_id: $project_id
             error_alert_id: $error_alert_id
+            name: $name
             count_threshold: $count_threshold
             slack_channels: $slack_channels
             environments: $environments
             threshold_window: $threshold_window
         ) {
+            Name
             ChannelsToNotify {
                 webhook_channel
                 webhook_channel_id
@@ -1470,6 +1548,7 @@ export type UpdateErrorAlertMutationFn = Apollo.MutationFunction<
  * const [updateErrorAlertMutation, { data, loading, error }] = useUpdateErrorAlertMutation({
  *   variables: {
  *      project_id: // value for 'project_id'
+ *      name: // value for 'name'
  *      error_alert_id: // value for 'error_alert_id'
  *      count_threshold: // value for 'count_threshold'
  *      threshold_window: // value for 'threshold_window'
@@ -1496,6 +1575,58 @@ export type UpdateErrorAlertMutationResult = Apollo.MutationResult<Types.UpdateE
 export type UpdateErrorAlertMutationOptions = Apollo.BaseMutationOptions<
     Types.UpdateErrorAlertMutation,
     Types.UpdateErrorAlertMutationVariables
+>;
+export const DeleteErrorAlertDocument = gql`
+    mutation DeleteErrorAlert($project_id: ID!, $error_alert_id: ID!) {
+        deleteErrorAlert(
+            project_id: $project_id
+            error_alert_id: $error_alert_id
+        ) {
+            id
+        }
+    }
+`;
+export type DeleteErrorAlertMutationFn = Apollo.MutationFunction<
+    Types.DeleteErrorAlertMutation,
+    Types.DeleteErrorAlertMutationVariables
+>;
+
+/**
+ * __useDeleteErrorAlertMutation__
+ *
+ * To run a mutation, you first call `useDeleteErrorAlertMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteErrorAlertMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteErrorAlertMutation, { data, loading, error }] = useDeleteErrorAlertMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      error_alert_id: // value for 'error_alert_id'
+ *   },
+ * });
+ */
+export function useDeleteErrorAlertMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.DeleteErrorAlertMutation,
+        Types.DeleteErrorAlertMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.DeleteErrorAlertMutation,
+        Types.DeleteErrorAlertMutationVariables
+    >(DeleteErrorAlertDocument, baseOptions);
+}
+export type DeleteErrorAlertMutationHookResult = ReturnType<
+    typeof useDeleteErrorAlertMutation
+>;
+export type DeleteErrorAlertMutationResult = Apollo.MutationResult<Types.DeleteErrorAlertMutation>;
+export type DeleteErrorAlertMutationOptions = Apollo.BaseMutationOptions<
+    Types.DeleteErrorAlertMutation,
+    Types.DeleteErrorAlertMutationVariables
 >;
 export const UpdateSessionFeedbackAlertDocument = gql`
     mutation UpdateSessionFeedbackAlert(
@@ -4656,67 +4787,6 @@ export type GetDailyErrorFrequencyQueryResult = Apollo.QueryResult<
     Types.GetDailyErrorFrequencyQuery,
     Types.GetDailyErrorFrequencyQueryVariables
 >;
-export const GetErrorAlertDocument = gql`
-    query GetErrorAlert($project_id: ID!) {
-        error_alert(project_id: $project_id) {
-            ChannelsToNotify {
-                webhook_channel
-                webhook_channel_id
-            }
-            ExcludedEnvironments
-            CountThreshold
-        }
-    }
-`;
-
-/**
- * __useGetErrorAlertQuery__
- *
- * To run a query within a React component, call `useGetErrorAlertQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetErrorAlertQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetErrorAlertQuery({
- *   variables: {
- *      project_id: // value for 'project_id'
- *   },
- * });
- */
-export function useGetErrorAlertQuery(
-    baseOptions: Apollo.QueryHookOptions<
-        Types.GetErrorAlertQuery,
-        Types.GetErrorAlertQueryVariables
-    >
-) {
-    return Apollo.useQuery<
-        Types.GetErrorAlertQuery,
-        Types.GetErrorAlertQueryVariables
-    >(GetErrorAlertDocument, baseOptions);
-}
-export function useGetErrorAlertLazyQuery(
-    baseOptions?: Apollo.LazyQueryHookOptions<
-        Types.GetErrorAlertQuery,
-        Types.GetErrorAlertQueryVariables
-    >
-) {
-    return Apollo.useLazyQuery<
-        Types.GetErrorAlertQuery,
-        Types.GetErrorAlertQueryVariables
-    >(GetErrorAlertDocument, baseOptions);
-}
-export type GetErrorAlertQueryHookResult = ReturnType<
-    typeof useGetErrorAlertQuery
->;
-export type GetErrorAlertLazyQueryHookResult = ReturnType<
-    typeof useGetErrorAlertLazyQuery
->;
-export type GetErrorAlertQueryResult = Apollo.QueryResult<
-    Types.GetErrorAlertQuery,
-    Types.GetErrorAlertQueryVariables
->;
 export const GetNewUserAlertDocument = gql`
     query GetNewUserAlert($project_id: ID!) {
         new_user_alert(project_id: $project_id) {
@@ -4968,7 +5038,7 @@ export const GetAlertsPagePayloadDocument = gql`
             name
             value
         }
-        error_alert(project_id: $project_id) {
+        error_alerts(project_id: $project_id) {
             ChannelsToNotify {
                 webhook_channel
                 webhook_channel_id
@@ -4977,6 +5047,7 @@ export const GetAlertsPagePayloadDocument = gql`
             CountThreshold
             ThresholdWindow
             id
+            Name
         }
         session_feedback_alert(project_id: $project_id) {
             ChannelsToNotify {

@@ -382,8 +382,44 @@ export type CreateErrorSegmentMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
+export type CreateErrorAlertMutationVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    name: Types.Scalars['String'];
+    count_threshold: Types.Scalars['Int'];
+    threshold_window: Types.Scalars['Int'];
+    slack_channels:
+        | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
+        | Types.Maybe<Types.SanitizedSlackChannelInput>;
+    environments:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
+}>;
+
+export type CreateErrorAlertMutation = { __typename?: 'Mutation' } & {
+    createErrorAlert?: Types.Maybe<
+        { __typename?: 'ErrorAlert' } & Pick<
+            Types.ErrorAlert,
+            | 'id'
+            | 'Name'
+            | 'ExcludedEnvironments'
+            | 'CountThreshold'
+            | 'ThresholdWindow'
+        > & {
+                ChannelsToNotify: Array<
+                    Types.Maybe<
+                        { __typename?: 'SanitizedSlackChannel' } & Pick<
+                            Types.SanitizedSlackChannel,
+                            'webhook_channel' | 'webhook_channel_id'
+                        >
+                    >
+                >;
+            }
+    >;
+};
+
 export type UpdateErrorAlertMutationVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
+    name: Types.Scalars['String'];
     error_alert_id: Types.Scalars['ID'];
     count_threshold: Types.Scalars['Int'];
     threshold_window: Types.Scalars['Int'];
@@ -399,7 +435,10 @@ export type UpdateErrorAlertMutation = { __typename?: 'Mutation' } & {
     updateErrorAlert?: Types.Maybe<
         { __typename?: 'ErrorAlert' } & Pick<
             Types.ErrorAlert,
-            'ExcludedEnvironments' | 'CountThreshold' | 'ThresholdWindow'
+            | 'Name'
+            | 'ExcludedEnvironments'
+            | 'CountThreshold'
+            | 'ThresholdWindow'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -410,6 +449,17 @@ export type UpdateErrorAlertMutation = { __typename?: 'Mutation' } & {
                     >
                 >;
             }
+    >;
+};
+
+export type DeleteErrorAlertMutationVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    error_alert_id: Types.Scalars['ID'];
+}>;
+
+export type DeleteErrorAlertMutation = { __typename?: 'Mutation' } & {
+    deleteErrorAlert?: Types.Maybe<
+        { __typename?: 'ErrorAlert' } & Pick<Types.ErrorAlert, 'id'>
     >;
 };
 
@@ -1582,28 +1632,6 @@ export type GetDailyErrorFrequencyQuery = { __typename?: 'Query' } & Pick<
     'dailyErrorFrequency'
 >;
 
-export type GetErrorAlertQueryVariables = Types.Exact<{
-    project_id: Types.Scalars['ID'];
-}>;
-
-export type GetErrorAlertQuery = { __typename?: 'Query' } & {
-    error_alert?: Types.Maybe<
-        { __typename?: 'ErrorAlert' } & Pick<
-            Types.ErrorAlert,
-            'ExcludedEnvironments' | 'CountThreshold'
-        > & {
-                ChannelsToNotify: Array<
-                    Types.Maybe<
-                        { __typename?: 'SanitizedSlackChannel' } & Pick<
-                            Types.SanitizedSlackChannel,
-                            'webhook_channel' | 'webhook_channel_id'
-                        >
-                    >
-                >;
-            }
-    >;
-};
-
 export type GetNewUserAlertQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
 }>;
@@ -1715,23 +1743,26 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                 >
             >
         >;
-        error_alert?: Types.Maybe<
-            { __typename?: 'ErrorAlert' } & Pick<
-                Types.ErrorAlert,
-                | 'ExcludedEnvironments'
-                | 'CountThreshold'
-                | 'ThresholdWindow'
-                | 'id'
-            > & {
-                    ChannelsToNotify: Array<
-                        Types.Maybe<
-                            { __typename?: 'SanitizedSlackChannel' } & Pick<
-                                Types.SanitizedSlackChannel,
-                                'webhook_channel' | 'webhook_channel_id'
+        error_alerts: Array<
+            Types.Maybe<
+                { __typename?: 'ErrorAlert' } & Pick<
+                    Types.ErrorAlert,
+                    | 'ExcludedEnvironments'
+                    | 'CountThreshold'
+                    | 'ThresholdWindow'
+                    | 'id'
+                    | 'Name'
+                > & {
+                        ChannelsToNotify: Array<
+                            Types.Maybe<
+                                { __typename?: 'SanitizedSlackChannel' } & Pick<
+                                    Types.SanitizedSlackChannel,
+                                    'webhook_channel' | 'webhook_channel_id'
+                                >
                             >
-                        >
-                    >;
-                }
+                        >;
+                    }
+            >
         >;
         session_feedback_alert?: Types.Maybe<
             { __typename?: 'SessionAlert' } & Pick<
@@ -1880,7 +1911,6 @@ export const namedOperations = {
         GetDailySessionsCount: 'GetDailySessionsCount' as const,
         GetDailyErrorsCount: 'GetDailyErrorsCount' as const,
         GetDailyErrorFrequency: 'GetDailyErrorFrequency' as const,
-        GetErrorAlert: 'GetErrorAlert' as const,
         GetNewUserAlert: 'GetNewUserAlert' as const,
         GetTrackPropertiesAlert: 'GetTrackPropertiesAlert' as const,
         GetUserPropertiesAlert: 'GetUserPropertiesAlert' as const,
@@ -1915,7 +1945,9 @@ export const namedOperations = {
         DeleteErrorSegment: 'DeleteErrorSegment' as const,
         EditErrorSegment: 'EditErrorSegment' as const,
         CreateErrorSegment: 'CreateErrorSegment' as const,
+        CreateErrorAlert: 'CreateErrorAlert' as const,
         UpdateErrorAlert: 'UpdateErrorAlert' as const,
+        DeleteErrorAlert: 'DeleteErrorAlert' as const,
         UpdateSessionFeedbackAlert: 'UpdateSessionFeedbackAlert' as const,
         UpdateNewUserAlert: 'UpdateNewUserAlert' as const,
         UpdateTrackPropertiesAlert: 'UpdateTrackPropertiesAlert' as const,

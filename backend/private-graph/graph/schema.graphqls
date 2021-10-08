@@ -384,6 +384,7 @@ input SanitizedSlackChannelInput {
 
 type ErrorAlert {
     id: ID!
+    Name: String
     ChannelsToNotify: [SanitizedSlackChannel]!
     ExcludedEnvironments: [String]!
     CountThreshold: Int!
@@ -404,6 +405,7 @@ input TrackPropertyInput {
 
 type SessionAlert {
     id: ID!
+    Name: String
     ChannelsToNotify: [SanitizedSlackChannel]!
     ExcludedEnvironments: [String]!
     CountThreshold: Int!
@@ -486,11 +488,15 @@ type Query {
     ): [ErrorField]
     projects: [Project]
     workspaces: [Workspace]
-    error_alert(project_id: ID!): ErrorAlert
+    error_alerts(project_id: ID!): [ErrorAlert]!
     session_feedback_alert(project_id: ID!): SessionAlert
+    session_feedback_alerts(project_id: ID!): [SessionAlert]!
     new_user_alert(project_id: ID!): SessionAlert
+    new_user_alerts(project_id: ID!): [SessionAlert]
     track_properties_alert(project_id: ID!): SessionAlert
+    track_properties_alerts(project_id: ID!): [SessionAlert]!
     user_properties_alert(project_id: ID!): SessionAlert
+    user_properties_alerts(project_id: ID!): [SessionAlert]!
     projectSuggestion(query: String!): [Project]
     environment_suggestion(project_id: ID!): [Field]
     app_version_suggestion(project_id: ID!): [String]!
@@ -597,14 +603,24 @@ type Mutation {
         code: String!
         redirect_path: String!
     ): Boolean!
+    createErrorAlert(
+        project_id: ID!
+        name: String!
+        count_threshold: Int!
+        threshold_window: Int!
+        slack_channels: [SanitizedSlackChannelInput]!
+        environments: [String]!
+    ): ErrorAlert
     updateErrorAlert(
         project_id: ID!
+        name: String!
         error_alert_id: ID!
         count_threshold: Int!
         threshold_window: Int!
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
     ): ErrorAlert
+    deleteErrorAlert(project_id: ID!, error_alert_id: ID!): ErrorAlert
     updateSessionFeedbackAlert(
         project_id: ID!
         session_feedback_alert_id: ID!

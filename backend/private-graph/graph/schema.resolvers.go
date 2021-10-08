@@ -1140,7 +1140,38 @@ func (r *mutationResolver) AddSlackBotIntegrationToProject(ctx context.Context, 
 	return true, nil
 }
 
-func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.ErrorAlert, error) {
+func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.ErrorAlert, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in project")
+	}
+
+	envString, err := r.MarshalEnvironments(environments)
+	if err != nil {
+		return nil, err
+	}
+
+	newAlert := &model.ErrorAlert{
+		Alert: model.Alert{
+			ProjectID:            projectID,
+			OrganizationID:       projectID,
+			ExcludedEnvironments: envString,
+			CountThreshold:       countThreshold,
+			ThresholdWindow:      &thresholdWindow,
+			Type:                 &model.AlertType.ERROR,
+			ChannelsToNotify:     envString,
+			Name:                 &name,
+		},
+	}
+
+	if err := r.DB.Create(newAlert).Error; err != nil {
+		return nil, e.Wrap(err, "error creating a new error alert")
+	}
+
+	return newAlert, nil
+}
+
+func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, name string, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.ErrorAlert, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
@@ -1151,26 +1182,18 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, 
 		return nil, e.Wrap(err, "error querying error alert")
 	}
 
-	sanitizedChannels := []*modelInputs.SanitizedSlackChannel{}
-	// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
-	for _, ch := range slackChannels {
-		sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
-	}
-
-	envBytes, err := json.Marshal(environments)
+	envString, err := r.MarshalEnvironments(environments)
 	if err != nil {
-		return nil, e.Wrap(err, "error parsing environments")
+		return nil, err
 	}
-	envString := string(envBytes)
 
-	channelsBytes, err := json.Marshal(sanitizedChannels)
+	channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
 	if err != nil {
-		return nil, e.Wrap(err, "error parsing channels")
+		return nil, err
 	}
-	channelsString := string(channelsBytes)
 
-	alert.ChannelsToNotify = &channelsString
-	alert.ExcludedEnvironments = &envString
+	alert.ChannelsToNotify = channelsString
+	alert.ExcludedEnvironments = envString
 	alert.CountThreshold = countThreshold
 	alert.ThresholdWindow = &thresholdWindow
 	if err := r.DB.Model(&model.ErrorAlert{
@@ -1180,6 +1203,24 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, 
 	}).Where("project_id = ?", projectID).Updates(alert).Error; err != nil {
 		return nil, e.Wrap(err, "error updating org fields")
 	}
+	return alert, nil
+}
+
+func (r *mutationResolver) DeleteErrorAlert(ctx context.Context, projectID int, errorAlertID int) (*model.ErrorAlert, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in project")
+	}
+
+	alert := &model.ErrorAlert{}
+	if err := r.DB.Where(&model.ErrorAlert{Model: model.Model{ID: errorAlertID}, Alert: model.Alert{ProjectID: projectID}}).Find(&alert).Error; err != nil {
+		return nil, e.Wrap(err, "this error alert does not exist in this project.")
+	}
+
+	if err := r.DB.Delete(alert).Error; err != nil {
+		return nil, e.Wrap(err, "error trying to delete error alert")
+	}
+
 	return alert, nil
 }
 
@@ -2261,16 +2302,16 @@ func (r *queryResolver) Workspaces(ctx context.Context) ([]*model.Workspace, err
 	return workspaces, nil
 }
 
-func (r *queryResolver) ErrorAlert(ctx context.Context, projectID int) (*model.ErrorAlert, error) {
+func (r *queryResolver) ErrorAlerts(ctx context.Context, projectID int) ([]*model.ErrorAlert, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
-	alert := model.ErrorAlert{}
-	if err := r.DB.Model(&model.ErrorAlert{}).Where("project_id = ?", projectID).First(&alert).Error; err != nil {
+	alerts := []*model.ErrorAlert{}
+	if err := r.DB.Order("created_at asc").Model(&model.ErrorAlert{}).Where("project_id = ?", projectID).Find(&alerts).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error alerts")
 	}
-	return &alert, nil
+	return alerts, nil
 }
 
 func (r *queryResolver) SessionFeedbackAlert(ctx context.Context, projectID int) (*model.SessionAlert, error) {
@@ -2286,6 +2327,10 @@ func (r *queryResolver) SessionFeedbackAlert(ctx context.Context, projectID int)
 	return &alert, nil
 }
 
+func (r *queryResolver) SessionFeedbackAlerts(ctx context.Context, projectID int) ([]*model.SessionAlert, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *queryResolver) NewUserAlert(ctx context.Context, projectID int) (*model.SessionAlert, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
@@ -2297,6 +2342,10 @@ func (r *queryResolver) NewUserAlert(ctx context.Context, projectID int) (*model
 		return nil, e.Wrap(err, "error querying  new user alert")
 	}
 	return &alert, nil
+}
+
+func (r *queryResolver) NewUserAlerts(ctx context.Context, projectID int) ([]*model.SessionAlert, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *queryResolver) TrackPropertiesAlert(ctx context.Context, projectID int) (*model.SessionAlert, error) {
@@ -2312,6 +2361,10 @@ func (r *queryResolver) TrackPropertiesAlert(ctx context.Context, projectID int)
 	return &alert, nil
 }
 
+func (r *queryResolver) TrackPropertiesAlerts(ctx context.Context, projectID int) ([]*model.SessionAlert, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *queryResolver) UserPropertiesAlert(ctx context.Context, projectID int) (*model.SessionAlert, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
@@ -2323,6 +2376,10 @@ func (r *queryResolver) UserPropertiesAlert(ctx context.Context, projectID int) 
 		return nil, e.Wrap(err, "error querying user properties alert")
 	}
 	return &alert, nil
+}
+
+func (r *queryResolver) UserPropertiesAlerts(ctx context.Context, projectID int) ([]*model.SessionAlert, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *queryResolver) ProjectSuggestion(ctx context.Context, query string) ([]*model.Project, error) {

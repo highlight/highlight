@@ -1,13 +1,18 @@
 import Alert from '@components/Alert/Alert';
 import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
 import { getSlackUrl } from '@components/Header/components/PersonalNotificationButton/utils/utils';
+import { namedOperations } from '@graph/operations';
 import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
 
 import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
-import { useGetAlertsPagePayloadQuery } from '../../graph/generated/hooks';
+import {
+    useCreateErrorAlertMutation,
+    useDeleteErrorAlertMutation,
+    useGetAlertsPagePayloadQuery,
+} from '../../graph/generated/hooks';
 import { AlertConfigurationCard } from './AlertConfigurationCard/AlertConfigurationCard';
 import styles from './Alerts.module.scss';
 
@@ -60,11 +65,32 @@ const AlertsPage = () => {
         variables: { project_id },
     });
 
+    const [createErrorAlert, {}] = useCreateErrorAlertMutation({
+        variables: {
+            project_id,
+            count_threshold: 1,
+            environments: [],
+            slack_channels: [],
+            threshold_window: 30,
+            name: 'Boba',
+        },
+        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+    });
+    const [deleteErrorAlert, {}] = useDeleteErrorAlertMutation({
+        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+    });
     const slackUrl = getSlackUrl('Organization', project_id, 'alerts');
 
     return (
         <LeadAlignLayout>
             <h2>Configure Your Alerts</h2>
+            <button
+                onClick={() => {
+                    createErrorAlert();
+                }}
+            >
+                Create
+            </button>
             <p className={layoutStyles.subTitle}>
                 Configure the environments you want alerts for.
             </p>
@@ -157,17 +183,6 @@ const AlertsPage = () => {
                             slackUrl={slackUrl}
                         />
                         <AlertConfigurationCard
-                            configuration={ALERT_CONFIGURATIONS[0]}
-                            alert={data?.error_alert ? data?.error_alert : {}}
-                            environmentOptions={
-                                data?.environment_suggestion || []
-                            }
-                            channelSuggestions={
-                                data?.slack_channel_suggestion || []
-                            }
-                            slackUrl={slackUrl}
-                        />
-                        <AlertConfigurationCard
                             configuration={ALERT_CONFIGURATIONS[1]}
                             alert={
                                 data?.new_user_alert ? data?.new_user_alert : {}
@@ -210,6 +225,28 @@ const AlertsPage = () => {
                             }
                             slackUrl={slackUrl}
                         />
+                        {data?.error_alerts.map((errorAlert) => (
+                            <AlertConfigurationCard
+                                key={errorAlert?.id}
+                                configuration={ALERT_CONFIGURATIONS[0]}
+                                alert={errorAlert || {}}
+                                environmentOptions={
+                                    data?.environment_suggestion || []
+                                }
+                                channelSuggestions={
+                                    data?.slack_channel_suggestion || []
+                                }
+                                slackUrl={slackUrl}
+                                onDeleteHandler={(alertId) => {
+                                    deleteErrorAlert({
+                                        variables: {
+                                            error_alert_id: alertId,
+                                            project_id,
+                                        },
+                                    });
+                                }}
+                            />
+                        ))}
                     </>
                 )}
             </div>

@@ -272,8 +272,37 @@ mutation CreateErrorSegment(
     }
 }
 
+mutation CreateErrorAlert(
+    $project_id: ID!
+    $name: String!
+    $count_threshold: Int!
+    $threshold_window: Int!
+    $slack_channels: [SanitizedSlackChannelInput]!
+    $environments: [String]!
+) {
+    createErrorAlert(
+        project_id: $project_id
+        count_threshold: $count_threshold
+        name: $name
+        slack_channels: $slack_channels
+        environments: $environments
+        threshold_window: $threshold_window
+    ) {
+        id
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        Name
+        ExcludedEnvironments
+        CountThreshold
+        ThresholdWindow
+    }
+}
+
 mutation UpdateErrorAlert(
     $project_id: ID!
+    $name: String!
     $error_alert_id: ID!
     $count_threshold: Int!
     $threshold_window: Int!
@@ -283,11 +312,13 @@ mutation UpdateErrorAlert(
     updateErrorAlert(
         project_id: $project_id
         error_alert_id: $error_alert_id
+        name: $name
         count_threshold: $count_threshold
         slack_channels: $slack_channels
         environments: $environments
         threshold_window: $threshold_window
     ) {
+        Name
         ChannelsToNotify {
             webhook_channel
             webhook_channel_id
@@ -295,6 +326,12 @@ mutation UpdateErrorAlert(
         ExcludedEnvironments
         CountThreshold
         ThresholdWindow
+    }
+}
+
+mutation DeleteErrorAlert($project_id: ID!, $error_alert_id: ID!) {
+    deleteErrorAlert(project_id: $project_id, error_alert_id: $error_alert_id) {
+        id
     }
 }
 

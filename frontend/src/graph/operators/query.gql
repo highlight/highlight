@@ -646,17 +646,6 @@ query GetDailyErrorFrequency(
     )
 }
 
-query GetErrorAlert($project_id: ID!) {
-    error_alert(project_id: $project_id) {
-        ChannelsToNotify {
-            webhook_channel
-            webhook_channel_id
-        }
-        ExcludedEnvironments
-        CountThreshold
-    }
-}
-
 query GetNewUserAlert($project_id: ID!) {
     new_user_alert(project_id: $project_id) {
         ChannelsToNotify {
@@ -707,7 +696,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         name
         value
     }
-    error_alert(project_id: $project_id) {
+    error_alerts(project_id: $project_id) {
         ChannelsToNotify {
             webhook_channel
             webhook_channel_id
@@ -716,6 +705,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         CountThreshold
         ThresholdWindow
         id
+        Name
     }
     session_feedback_alert(project_id: $project_id) {
         ChannelsToNotify {

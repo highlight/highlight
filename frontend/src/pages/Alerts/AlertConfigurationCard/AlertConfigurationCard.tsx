@@ -37,6 +37,7 @@ interface Props {
     environmentOptions: any[];
     channelSuggestions: any[];
     slackUrl: string;
+    onDeleteHandler?: (alertId: string) => void;
 }
 
 export const AlertConfigurationCard = ({
@@ -45,6 +46,7 @@ export const AlertConfigurationCard = ({
     environmentOptions,
     channelSuggestions,
     slackUrl,
+    onDeleteHandler,
 }: Props) => {
     const [loading, setLoading] = useState(false);
     const [formTouched, setFormTouched] = useState(false);
@@ -96,6 +98,7 @@ export const AlertConfigurationCard = ({
                             ...requestVariables,
                             error_alert_id: alert.id,
                             threshold_window: lookbackPeriod,
+                            name: 'Error Alert',
                         },
                     });
                     break;
@@ -299,10 +302,11 @@ export const AlertConfigurationCard = ({
         <Collapsible
             title={
                 <span className={styles.title}>
-                    {name} {description && <InfoTooltip title={description} />}
+                    {alert?.Name || name}{' '}
+                    {description && <InfoTooltip title={description} />}
                 </span>
             }
-            id={name}
+            id={`${alert.id}${name}`}
             contentClassName={styles.alertConfigurationCard}
         >
             <Form
@@ -546,16 +550,34 @@ export const AlertConfigurationCard = ({
 
                 <Form.Item shouldUpdate>
                     {() => (
-                        <Button
-                            trackingId="SaveAlertConfiguration"
-                            type="primary"
-                            className={styles.saveButton}
-                            htmlType="submit"
-                            disabled={!formTouched}
-                            loading={loading}
-                        >
-                            Save
-                        </Button>
+                        <>
+                            {onDeleteHandler && (
+                                <Button
+                                    trackingId="DeleteAlertConfiguration"
+                                    type="primary"
+                                    className={styles.saveButton}
+                                    htmlType="button"
+                                    loading={loading}
+                                    onClick={() => {
+                                        if (alert.id) {
+                                            onDeleteHandler(alert.id);
+                                        }
+                                    }}
+                                >
+                                    Delete
+                                </Button>
+                            )}
+                            <Button
+                                trackingId="SaveAlertConfiguration"
+                                type="primary"
+                                className={styles.saveButton}
+                                htmlType="submit"
+                                disabled={!formTouched}
+                                loading={loading}
+                            >
+                                Save
+                            </Button>
+                        </>
                     )}
                 </Form.Item>
             </Form>
