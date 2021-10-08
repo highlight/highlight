@@ -82,9 +82,9 @@ const NewProjectPage = () => {
                 <h2 className={styles.title}>{`Create a ${pageTypeCaps}`}</h2>
                 <p className={styles.subTitle}>
                     {isWorkspace &&
-                        `Let's create a workspace! This is usually your company name and can contain multiple projects (e.g. web frontend, landing page, etc).`}
+                        `Let's create a workspace! This is usually your company name and can contain multiple projects (e.g. web front end, landing page, etc).`}
                     {!isWorkspace &&
-                        `Let's create a project! This is usually a single application (e.g. web frontend, landing page, etc).`}
+                        `Let's create a project! This is usually a single application (e.g. web front end, landing page, etc).`}
                 </p>
                 <div className={commonStyles.errorMessage}>
                     {errors.name &&
@@ -92,7 +92,7 @@ const NewProjectPage = () => {
                 </div>
                 <input
                     placeholder={
-                        isWorkspace ? 'Pied Piper, Inc' : 'Web Frontend'
+                        isWorkspace ? 'Pied Piper, Inc' : 'Web Front End'
                     }
                     name="name"
                     ref={register({ required: true })}
