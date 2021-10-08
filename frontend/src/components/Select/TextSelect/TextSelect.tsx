@@ -5,7 +5,7 @@ import {
 } from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
-import React, { useState } from 'react';
+import React from 'react';
 
 import SvgChevronDownIcon from '../../../static/ChevronDownIcon';
 import styles from './TextSelect.module.scss';
@@ -42,11 +42,9 @@ const TextSelect = ({
     options,
     className,
     children,
-    displayValue: propsDisplayValue,
+    displayValue,
     ...props
 }: Props) => {
-    const [displayValue, setDisplayValue] = useState(propsDisplayValue);
-
     return (
         <div className={styles.textSelectContainer}>
             <h2
@@ -61,8 +59,6 @@ const TextSelect = ({
                 {...props}
                 disabled={props.loading}
                 onChange={(applicationId, newOption) => {
-                    setDisplayValue((newOption as any).props.children);
-
                     if (props.onChange) {
                         props.onChange(applicationId, newOption);
                     }

@@ -1,0 +1,24 @@
+.box {
+    background-color: var(--color-primary-background);
+    border: 1px solid var(--color-gray-300);
+    border-radius: 8px;
+    padding: 30px;
+    width: 350px;
+}
+
+.title {
+    margin-bottom: 10px;
+}
+
+.subTitle {
+    margin-bottom: 10px;
+}
+
+.fullWidth {
+    width: 100%;
+}
+
+.newWorkspace {
+    color: var(--color-purple);
+    cursor: pointer;
+}
