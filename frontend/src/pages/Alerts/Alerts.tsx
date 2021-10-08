@@ -148,21 +148,23 @@ const AlertsPage = () => {
                                 }
                             />
                         ))} */}
-                        <AlertConfigurationCard
-                            configuration={ALERT_CONFIGURATIONS[5]}
-                            alert={
-                                data?.new_session_alert
-                                    ? data?.new_session_alert
-                                    : {}
-                            }
-                            environmentOptions={
-                                data?.environment_suggestion || []
-                            }
-                            channelSuggestions={
-                                data?.slack_channel_suggestion || []
-                            }
-                            slackUrl={slackUrl}
-                        />
+                        {project_id === '1' && (
+                            <AlertConfigurationCard
+                                configuration={ALERT_CONFIGURATIONS[5]}
+                                alert={
+                                    data?.new_session_alert
+                                        ? data?.new_session_alert
+                                        : {}
+                                }
+                                environmentOptions={
+                                    data?.environment_suggestion || []
+                                }
+                                channelSuggestions={
+                                    data?.slack_channel_suggestion || []
+                                }
+                                slackUrl={slackUrl}
+                            />
+                        )}
                         <AlertConfigurationCard
                             configuration={ALERT_CONFIGURATIONS[4]}
                             alert={
