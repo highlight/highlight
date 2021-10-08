@@ -2419,7 +2419,16 @@ func (r *queryResolver) UserPropertiesAlert(ctx context.Context, projectID int) 
 }
 
 func (r *queryResolver) NewSessionAlert(ctx context.Context, projectID int) (*model.SessionAlert, error) {
-	panic(fmt.Errorf("not implemented"))
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+	var alert model.SessionAlert
+	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{Type: &model.AlertType.NEW_SESSION}}).
+		Where("project_id = ?", projectID).First(&alert).Error; err != nil {
+		return nil, e.Wrap(err, "error querying new session alert")
+	}
+	return &alert, nil
 }
 
 func (r *queryResolver) ProjectSuggestion(ctx context.Context, query string) ([]*model.Project, error) {
