@@ -1,7 +1,10 @@
+import GoToButton from '@components/Button/GoToButton';
 import KeyValueTable from '@components/KeyValueTable/KeyValueTable';
 import Popover from '@components/Popover/Popover';
 import SvgAnnotationWarningIcon from '@icons/AnnotationWarningIcon';
-import { RageClick } from '@pages/Player/ReplayerContext';
+import { RageClick, useReplayerContext } from '@pages/Player/ReplayerContext';
+import { MillisToMinutesAndSeconds } from '@util/time';
+import message from 'antd/lib/message';
 import classNames from 'classnames';
 import moment from 'moment';
 import React, { useState } from 'react';
@@ -14,6 +17,7 @@ interface Props {
 
 const RageClickSpan = ({ rageClick }: Props) => {
     const [isHovered, setIsHovered] = useState(false);
+    const { pause, replayer } = useReplayerContext();
 
     return (
         <Popover
@@ -44,8 +48,36 @@ const RageClickSpan = ({ rageClick }: Props) => {
                                     'seconds'
                                 )} seconds`,
                             },
+                            {
+                                keyDisplayValue: 'Start Time',
+                                renderType: 'string',
+                                valueDisplayValue: moment(
+                                    rageClick.startTimestamp
+                                )
+                                    .format('h:mm:ss A')
+                                    .toString(),
+                            },
                         ]}
                     />
+                    <div className={styles.goToButtonContainer}>
+                        <GoToButton
+                            className={styles.goToButton}
+                            onClick={() => {
+                                if (replayer) {
+                                    const newTime = moment(
+                                        rageClick.startTimestamp
+                                    ).diff(replayer.getMetaData().startTime);
+
+                                    pause(newTime);
+                                    message.success(
+                                        `Changed player time to where rage click set starts at ${MillisToMinutesAndSeconds(
+                                            newTime
+                                        )}.`
+                                    );
+                                }
+                            }}
+                        />
+                    </div>
                 </div>
             }
             align={{ offset: [0, -24] }}

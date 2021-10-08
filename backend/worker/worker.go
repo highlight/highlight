@@ -704,7 +704,7 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 				continue
 			}
 			if _, ok := map[parse.MouseInteractions]bool{parse.Click: true,
-				parse.DblClick: true, parse.TouchStart: true}[*mouseInteractionEventData.Type]; !ok {
+				parse.DblClick: true}[*mouseInteractionEventData.Type]; !ok {
 				// Type must be a Click, Double Click, or Touch Start for a click/touch event
 				continue
 			}
