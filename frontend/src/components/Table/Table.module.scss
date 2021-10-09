@@ -14,4 +14,8 @@
         padding-bottom: var(--size-medium) !important;
         padding-top: var(--size-medium) !important;
     }
+
+    :global(.ant-table-tbody > tr.ant-table-row:hover > td) {
+        background: var(--color-gray-100) !important;
+    }
 }

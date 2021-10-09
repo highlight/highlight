@@ -1,5 +1,9 @@
 .tag {
+    align-items: center;
     border: 1px solid;
-    border-radius: var(--size-xxSmall);
-    padding: var(--size-xxSmall) var(--size-xxSmall);
+    border-radius: var(--size-large);
+    column-gap: var(--size-xxSmall);
+    display: flex;
+    height: var(--size-large);
+    padding: var(--size-xxSmall) var(--size-small);
 }

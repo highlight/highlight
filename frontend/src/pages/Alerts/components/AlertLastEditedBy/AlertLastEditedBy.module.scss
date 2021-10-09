@@ -3,23 +3,11 @@
     column-gap: var(--size-xSmall);
     display: flex;
 
-    svg,
-    img {
-        border-radius: 50%;
-        flex-shrink: 0;
-        height: var(--size-xLarge);
-        width: var(--size-xLarge);
-    }
-
     .adminContainer {
-        display: flex;
-        flex-direction: column;
+        color: var(--color-gray-500);
 
-        .secondary {
-            color: var(--color-gray-500);
-        }
-
-        .primary {
+        .value {
+            color: var(--color-gray-600);
             font-weight: 500;
         }
     }

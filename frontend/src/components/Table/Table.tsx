@@ -9,7 +9,13 @@ type Props = Pick<
 >;
 
 const Table = (props: Props) => {
-    return <AntDesignTable {...props} className={styles.table} />;
+    return (
+        <AntDesignTable
+            {...props}
+            className={styles.table}
+            showHeader={false}
+        />
+    );
 };
 
 export default Table;

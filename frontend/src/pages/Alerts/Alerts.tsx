@@ -8,7 +8,6 @@ import { namedOperations } from '@graph/operations';
 import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy';
 import { getAlertTypeColor } from '@pages/Alerts/utils/AlertsUtils';
 import { useParams } from '@util/react-router/useParams';
-import moment from 'moment';
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
 
@@ -75,7 +74,19 @@ const TABLE_COLUMNS = [
         title: 'Name',
         dataIndex: 'Name',
         key: 'Name',
-        ellipsis: true,
+        render: (name: string, record: any) => {
+            return (
+                <div className={styles.nameCell}>
+                    <div className={styles.primary}>{name}</div>
+                    <div>
+                        <AlertLastEditedBy
+                            adminId={record.LastAdminToEditID}
+                            lastEditedTimestamp={record.updated_at}
+                        />
+                    </div>
+                </div>
+            );
+        },
     },
     {
         title: 'Type',
@@ -85,25 +96,13 @@ const TABLE_COLUMNS = [
         render: (type: string, record: any) => {
             return (
                 <span className={styles.cellWithTooltip}>
-                    <Tag backgroundColor={getAlertTypeColor(type)}>{type}</Tag>{' '}
-                    <InfoTooltip title={record.configuration.description} />
+                    <Tag backgroundColor={getAlertTypeColor(type)}>
+                        {type}
+                        <InfoTooltip title={record.configuration.description} />
+                    </Tag>
                 </span>
             );
         },
-    },
-    {
-        title: 'Updated',
-        dataIndex: 'updated_at',
-        key: 'updated_at',
-        render: (timestamp: string) => moment(timestamp).format('D MMM YYYY'),
-        width: 120,
-    },
-    {
-        title: 'Last Edited',
-        dataIndex: 'LastAdminToEditID',
-        key: 'LastAdminToEditID',
-        render: (id: string) => <AlertLastEditedBy adminId={id} />,
-        ellipsis: true,
     },
 ];
 
