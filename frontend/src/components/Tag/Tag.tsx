@@ -9,7 +9,7 @@ interface Props {
 
 const Tag: React.FC<Props> = ({ children, backgroundColor }) => {
     const borderColor = adjustColorBrightness(backgroundColor, -50);
-    const backgroundColorWithOpacity = convertHexToRGBA(backgroundColor, 30);
+    const backgroundColorWithOpacity = convertHexToRGBA(backgroundColor, 10);
 
     return (
         <div
