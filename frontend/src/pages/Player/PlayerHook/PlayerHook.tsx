@@ -108,7 +108,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
 
-    useGetSessionQuery({
+    const { data: sessionData } = useGetSessionQuery({
         variables: {
             secure_id: session_secure_id,
         },
@@ -122,7 +122,6 @@ export const usePlayer = (): ReplayerContextInterface => {
                         },
                     });
                 }
-                setSession(data?.session as Session | undefined);
                 getSessionPayloadQuery({
                     variables: {
                         session_secure_id,
@@ -178,6 +177,10 @@ export const usePlayer = (): ReplayerContextInterface => {
             resetPlayer(ReplayerState.Empty);
         }
     }, [session_secure_id, resetPlayer]);
+
+    useEffect(() => {
+        setSession(sessionData?.session as Session | undefined);
+    }, [sessionData?.session]);
 
     // Reset all state when loading events.
     useEffect(() => {
