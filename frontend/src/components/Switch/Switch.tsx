@@ -16,6 +16,7 @@ type Props = Pick<
     /** Renders the label and the switch with space-between. */
     justifySpaceBetween?: boolean;
     noMarginAroundSwitch?: boolean;
+    setMarginForAnimation?: boolean;
     trackingId: string;
 };
 
@@ -24,6 +25,7 @@ const Switch = ({
     labelFirst,
     justifySpaceBetween,
     noMarginAroundSwitch,
+    setMarginForAnimation,
     className,
     trackingId,
     ...props
@@ -36,6 +38,7 @@ const Switch = ({
                 [styles.checked]: props.checked,
                 [styles.spaceBetween]: justifySpaceBetween,
                 [styles.noMarginAroundSwitch]: noMarginAroundSwitch,
+                [styles.setMarginForAnimation]: setMarginForAnimation,
             })}
         >
             {labelFirst && labelToRender}
