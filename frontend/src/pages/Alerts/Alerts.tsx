@@ -310,6 +310,7 @@ const AlertsPage = () => {
                 loading={loading}
                 dataSource={alertsAsTableRows}
                 pagination={false}
+                showHeader={false}
             />
             <div className={styles.configurationContainer}>
                 {loading ? (
