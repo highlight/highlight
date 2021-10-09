@@ -5,7 +5,7 @@ import styles from './Table.module.scss';
 
 type Props = Pick<
     TableProps<any>,
-    'columns' | 'dataSource' | 'loading' | 'pagination' | 'showHeader'
+    'columns' | 'dataSource' | 'loading' | 'pagination' | 'showHeader' | 'onRow'
 >;
 
 const Table = (props: Props) => {

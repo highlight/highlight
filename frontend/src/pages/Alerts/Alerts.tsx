@@ -1,18 +1,20 @@
 import Alert from '@components/Alert/Alert';
+import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
 import { getSlackUrl } from '@components/Header/components/PersonalNotificationButton/utils/utils';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Table from '@components/Table/Table';
 import Tag from '@components/Tag/Tag';
 import { namedOperations } from '@graph/operations';
+import SvgChevronRightIcon from '@icons/ChevronRightIcon';
 import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy';
 import { getAlertTypeColor } from '@pages/Alerts/utils/AlertsUtils';
 import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
+import { Link, useHistory } from 'react-router-dom';
 
 import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
-import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import {
     useCreateErrorAlertMutation,
     useCreateNewUserAlertMutation,
@@ -104,6 +106,22 @@ const TABLE_COLUMNS = [
             );
         },
     },
+    {
+        title: 'Configure',
+        dataIndex: 'configure',
+        key: 'configure',
+        render: (_: any, record: any) => (
+            <Link
+                to={`alerts/${record.id}`}
+                className={styles.configureButton}
+                onClick={(e) => {
+                    e.stopPropagation();
+                }}
+            >
+                Configure <SvgChevronRightIcon />
+            </Link>
+        ),
+    },
 ];
 
 const AlertsPage = () => {
@@ -179,6 +197,7 @@ const AlertsPage = () => {
     const [deleteErrorAlert, {}] = useDeleteErrorAlertMutation({
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
+    const history = useHistory();
     const [deleteSessionAlert, {}] = useDeleteSessionAlertMutation({
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
         update(cache, data) {
@@ -220,9 +239,9 @@ const AlertsPage = () => {
     ];
 
     return (
-        <LeadAlignLayout fullWidth>
+        <LeadAlignLayout>
             <h2>Alerts</h2>
-            <button
+            {/* <button
                 onClick={() => {
                     createErrorAlert();
                 }}
@@ -256,10 +275,17 @@ const AlertsPage = () => {
                 }}
             >
                 Create Track Properties
-            </button>
-            <p className={layoutStyles.subTitle}>
-                Configure the environments you want alerts for.
-            </p>
+            </button> */}
+            <div className={styles.subTitleContainer}>
+                <p>Configure the environments you want alerts for.</p>
+                <ButtonLink
+                    trackingId="NewAlert"
+                    className={styles.callToAction}
+                    to={`/${project_id}/alerts/new`}
+                >
+                    New Alert
+                </ButtonLink>
+            </div>
             {!loading && !data?.is_integrated_with_slack ? (
                 <Alert
                     trackingId="AlertPageSlackBotIntegration"
@@ -311,6 +337,12 @@ const AlertsPage = () => {
                 dataSource={alertsAsTableRows}
                 pagination={false}
                 showHeader={false}
+                onRow={(record) => ({
+                    onClick: (e) => {
+                        console.log(e, record);
+                        history.push(`alerts/${record.id}`);
+                    },
+                })}
             />
             <div className={styles.configurationContainer}>
                 {loading ? (
