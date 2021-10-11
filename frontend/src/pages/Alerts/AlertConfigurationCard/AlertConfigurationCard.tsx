@@ -360,7 +360,7 @@ export const AlertConfigurationCard = ({
                         (trackProperty: any) =>
                             getPropertiesOption(trackProperty).value
                     ),
-                    name: alert.Name,
+                    name: alert.Name || defaultName,
                 }}
                 key={project_id}
             >
