@@ -164,57 +164,7 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 	return nil
 }
 
-func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTrace []*model2.StackFrameInput, fields []*model.ErrorField, projectID int) (*model.ErrorGroup, error) {
-	frames := stackTrace
-	if len(frames) > 0 && frames[0] != nil && frames[0].Source != nil && strings.Contains(*frames[0].Source, "https://static.highlight.run/index.js") {
-		errorObj.ProjectID = 1
-	}
-	firstFrameBytes, err := json.Marshal(frames)
-	if err != nil {
-		return nil, e.Wrap(err, "Error marshalling first frame")
-	}
-	frameString := string(firstFrameBytes)
-
-	errorGroup := &model.ErrorGroup{}
-
-	// Query the DB for errors w/ 1) the same events string and 2) the same trace string.
-	// If it doesn't exist, we create a new error group.
-	if err := r.DB.Where(&model.ErrorGroup{
-		ProjectID: errorObj.ProjectID,
-		Event:     errorObj.Event,
-		Type:      errorObj.Type,
-	}).First(&errorGroup).Error; err != nil {
-		newErrorGroup := &model.ErrorGroup{
-			ProjectID:  errorObj.ProjectID,
-			Event:      errorObj.Event,
-			StackTrace: frameString,
-			Type:       errorObj.Type,
-			State:      modelInputs.ErrorStateOpen.String(),
-		}
-		if err := r.DB.Create(newErrorGroup).Error; err != nil {
-			return nil, e.Wrap(err, "Error creating new error group")
-		}
-		errorGroup = newErrorGroup
-	}
-	errorObj.ErrorGroupID = errorGroup.ID
-	if err := r.DB.Create(errorObj).Error; err != nil {
-		return nil, e.Wrap(err, "Error performing error insert for error")
-	}
-
-	var newMappedStackTraceString *string
-	newFrameString := frameString
-	mappedStackTrace, err := r.EnhanceStackTrace(stackTrace, projectID, errorObj.SessionID)
-	if err != nil {
-		log.Error(e.Wrapf(err, "error group: %+v error object: %+v", errorGroup, errorObj))
-	} else {
-		mappedStackTraceBytes, err := json.Marshal(mappedStackTrace)
-		if err != nil {
-			return nil, e.Wrap(err, "error marshalling mapped stack trace")
-		}
-		mappedStackTraceString := string(mappedStackTraceBytes)
-		newMappedStackTraceString = &mappedStackTraceString
-	}
-
+func (r *Resolver) getIncrementedEnvironmentCount(errorGroup *model.ErrorGroup, errorObj *model.ErrorObject) string {
 	environmentsMap := make(map[string]int)
 	if errorGroup.Environments != "" {
 		err := json.Unmarshal([]byte(errorGroup.Environments), &environmentsMap)
@@ -235,11 +185,85 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTrace [
 	}
 	environmentsString := string(environmentsBytes)
 
+	return environmentsString
+}
+
+func (r *Resolver) getMappedStackTraceString(stackTrace []*model2.StackFrameInput, projectID int, errorGroup *model.ErrorGroup, errorObj *model.ErrorObject) (*string, error) {
+	var newMappedStackTraceString *string
+	mappedStackTrace, err := r.EnhanceStackTrace(stackTrace, projectID, errorObj.SessionID)
+	if err != nil {
+		log.Error(e.Wrapf(err, "error group: %+v error object: %+v", errorGroup, errorObj))
+	} else {
+		mappedStackTraceBytes, err := json.Marshal(mappedStackTrace)
+		if err != nil {
+			return nil, e.Wrap(err, "error marshalling mapped stack trace")
+		}
+		mappedStackTraceString := string(mappedStackTraceBytes)
+		newMappedStackTraceString = &mappedStackTraceString
+	}
+	return newMappedStackTraceString, nil
+}
+
+// Matches the ErrorObject with an existing ErrorGroup, or creates a new one if the group does not exist
+// The input can include the stack trace as a string or []*StackFrameInput
+// If stackTrace is non-nil, it will be marshalled into a string and saved with the ErrorObject
+func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceString string, stackTrace []*model2.StackFrameInput, fields []*model.ErrorField, projectID int) (*model.ErrorGroup, error) {
+	if stackTrace != nil {
+		frames := stackTrace
+		if len(frames) > 0 && frames[0] != nil && frames[0].Source != nil && strings.Contains(*frames[0].Source, "https://static.highlight.run/index.js") {
+			errorObj.ProjectID = 1
+		}
+		firstFrameBytes, err := json.Marshal(frames)
+		if err != nil {
+			return nil, e.Wrap(err, "Error marshalling first frame")
+		}
+		stackTraceString = string(firstFrameBytes)
+	}
+
+	errorGroup := &model.ErrorGroup{}
+
+	// Query the DB for errors w/ 1) the same events string and 2) the same trace string.
+	// If it doesn't exist, we create a new error group.
+	if err := r.DB.Where(&model.ErrorGroup{
+		ProjectID: errorObj.ProjectID,
+		Event:     errorObj.Event,
+		Type:      errorObj.Type,
+	}).First(&errorGroup).Error; err != nil {
+		newErrorGroup := &model.ErrorGroup{
+			ProjectID:  errorObj.ProjectID,
+			Event:      errorObj.Event,
+			StackTrace: stackTraceString,
+			Type:       errorObj.Type,
+			State:      modelInputs.ErrorStateOpen.String(),
+		}
+		if err := r.DB.Create(newErrorGroup).Error; err != nil {
+			return nil, e.Wrap(err, "Error creating new error group")
+		}
+		errorGroup = newErrorGroup
+	}
+	errorObj.ErrorGroupID = errorGroup.ID
+	if err := r.DB.Create(errorObj).Error; err != nil {
+		return nil, e.Wrap(err, "Error performing error insert for error")
+	}
+
+	// If stackTrace is non-nil, use the project's source map; else, MappedStackTrace will not be set on the ErrorObject
+	newFrameString := stackTraceString
+	var newMappedStackTraceString *string
+	if stackTrace != nil {
+		mappedStackTraceString, err := r.getMappedStackTraceString(stackTrace, projectID, errorGroup, errorObj)
+		if err != nil {
+			return nil, e.Wrap(err, "Error mapping stack trace string")
+		}
+		newMappedStackTraceString = mappedStackTraceString
+	}
+
+	environmentsString := r.getIncrementedEnvironmentCount(errorGroup, errorObj)
+
 	if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{StackTrace: newFrameString, MappedStackTrace: newMappedStackTraceString, Environments: environmentsString}).Error; err != nil {
 		return nil, e.Wrap(err, "Error updating error group metadata log or environments")
 	}
 
-	err = r.AppendErrorFields(fields, errorGroup)
+	err := r.AppendErrorFields(fields, errorGroup)
 	if err != nil {
 		return nil, e.Wrap(err, "error appending error fields")
 	}
@@ -689,7 +713,7 @@ func (r *Resolver) isProjectWithinBillingQuota(project *model.Project, now time.
 	return withinBillingQuota
 }
 
-func (r *Resolver) submitAlertWorkerPoolTask(projectID int, sessionObj *model.Session, group *model.ErrorGroup, errorToInsert *model.ErrorObject) {
+func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, group *model.ErrorGroup, errorToInsert *model.ErrorObject) {
 	r.AlertWorkerPool.Submit(func() {
 		var errorAlert model.ErrorAlert
 		if err := r.DB.Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{Alert: model.Alert{ProjectID: projectID}}).First(&errorAlert).Error; err != nil {
@@ -875,13 +899,13 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 		metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "os_name", Value: sessionObj.OSName})
 		metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "visited_url", Value: errorToInsert.URL})
 		metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "event", Value: errorToInsert.Event})
-		group, err := r.HandleErrorAndGroup(errorToInsert, v.StackTrace, metaFields, projectID)
+		group, err := r.HandleErrorAndGroup(errorToInsert, v.StackTrace, nil, metaFields, projectID)
 		if err != nil {
 			log.Errorf("Error updating error group: %v", errorToInsert)
 			continue
 		}
 
-		r.submitAlertWorkerPoolTask(projectID, sessionObj, group, errorToInsert)
+		r.sendErrorAlert(projectID, sessionObj, group, errorToInsert)
 	}
 
 	putErrorsToDBSpan.Finish()
@@ -1070,13 +1094,13 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "os_name", Value: sessionObj.OSName})
 			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "visited_url", Value: errorToInsert.URL})
 			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "event", Value: errorToInsert.Event})
-			group, err := r.HandleErrorAndGroup(errorToInsert, v.StackTrace, metaFields, projectID)
+			group, err := r.HandleErrorAndGroup(errorToInsert, "", v.StackTrace, metaFields, projectID)
 			if err != nil {
 				log.Errorf("Error updating error group: %v", errorToInsert)
 				continue
 			}
 
-			r.submitAlertWorkerPoolTask(projectID, sessionObj, group, errorToInsert)
+			r.sendErrorAlert(projectID, sessionObj, group, errorToInsert)
 		}
 
 		putErrorsToDBSpan.Finish()

@@ -41,7 +41,8 @@ input BackendErrorObjectInput {
     type: String!
     url: String!
     source: String!
-    stackTrace: [StackFrameInput!]
+    stackTrace: String!
+    # stackTrace: [StackFrameInput!]
     timestamp: Timestamp!
     payload: String
 }

@@ -547,7 +547,7 @@ type DailySessionCount struct {
 }
 
 const DAILY_ERROR_COUNTS_TBL = "daily_error_counts"
-const DAILY_ERROR_COUNTS_UNIQ = "daily_error_counts_date_project_id_error_type_uniq"
+const DAILY_ERROR_COUNTS_UNIQ = "date_project_id_error_type_uniq"
 
 type DailyErrorCount struct {
 	Model
@@ -796,12 +796,19 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		return nil, e.Wrap(err, "Error creating secure_id_generator")
 	}
 	if err := DB.Raw(`
-		ALTER TABLE daily_error_counts
-		DROP CONSTRAINT IF EXISTS daily_error_counts_date_project_id_error_type_uniq;
-
-		ALTER TABLE daily_error_counts
-		ADD CONSTRAINT daily_error_counts_date_project_id_error_type_uniq
-			UNIQUE (date, project_id, error_type);
+		DO $$
+		BEGIN
+		
+			BEGIN
+				ALTER TABLE daily_error_counts 
+				ADD CONSTRAINT date_project_id_error_type_uniq
+					UNIQUE (date, project_id, error_type);
+			EXCEPTION
+				WHEN duplicate_table 
+				THEN RAISE NOTICE 'daily_error_counts.date_project_id_error_type_uniq already exists';
+			END;
+		
+		END $$;
 	`).Error; err != nil {
 		return nil, e.Wrap(err, "Error adding unique constraint on daily_error_counts")
 	}

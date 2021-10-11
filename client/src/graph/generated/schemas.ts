@@ -55,7 +55,7 @@ export type BackendErrorObjectInput = {
   type: Scalars['String'];
   url: Scalars['String'];
   source: Scalars['String'];
-  stackTrace?: Maybe<Array<StackFrameInput>>;
+  stackTrace: Scalars['String'];
   timestamp: Scalars['Timestamp'];
   payload?: Maybe<Scalars['String']>;
 };

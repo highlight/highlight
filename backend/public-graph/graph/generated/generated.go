@@ -325,7 +325,8 @@ input BackendErrorObjectInput {
     type: String!
     url: String!
     source: String!
-    stackTrace: [StackFrameInput!]
+    stackTrace: String!
+    # stackTrace: [StackFrameInput!]
     timestamp: Timestamp!
     payload: String
 }
@@ -2405,7 +2406,7 @@ func (ec *executionContext) unmarshalInputBackendErrorObjectInput(ctx context.Co
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stackTrace"))
-			it.StackTrace, err = ec.unmarshalOStackFrameInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐStackFrameInputᚄ(ctx, v)
+			it.StackTrace, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3133,11 +3134,6 @@ func (ec *executionContext) unmarshalNStackFrameInput2ᚕᚖgithubᚗcomᚋhighl
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalNStackFrameInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐStackFrameInput(ctx context.Context, v interface{}) (*model.StackFrameInput, error) {
-	res, err := ec.unmarshalInputStackFrameInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -3523,30 +3519,6 @@ func (ec *executionContext) marshalOSession2ᚖgithubᚗcomᚋhighlightᚑrunᚋ
 		return graphql.Null
 	}
 	return ec._Session(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOStackFrameInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐStackFrameInputᚄ(ctx context.Context, v interface{}) ([]*model.StackFrameInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []interface{}
-	if v != nil {
-		if tmp1, ok := v.([]interface{}); ok {
-			vSlice = tmp1
-		} else {
-			vSlice = []interface{}{v}
-		}
-	}
-	var err error
-	res := make([]*model.StackFrameInput, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNStackFrameInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐStackFrameInput(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
 }
 
 func (ec *executionContext) unmarshalOStackFrameInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐStackFrameInput(ctx context.Context, v interface{}) (*model.StackFrameInput, error) {
