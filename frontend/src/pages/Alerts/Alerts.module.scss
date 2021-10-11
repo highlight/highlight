@@ -61,6 +61,7 @@
     color: var(--color-gray-500);
     display: flex;
     font-weight: 300;
+    justify-content: flex-end;
 
     &:hover {
         color: var(--color-gray-500);
