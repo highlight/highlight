@@ -22,14 +22,11 @@ export const DEMO_WORKSPACE_PROXY_APPLICATION_ID = 'demo';
 const DemoWorkspaceButton = ({ integrated }: Props) => {
     const history = useHistory();
     const { pathname } = useLocation();
-    const { currentApplication } = useApplicationContext();
+    const { currentProject } = useApplicationContext();
 
     const [, path] = pathname.split('/').filter((token) => token.length);
 
-    if (
-        integrated &&
-        currentApplication?.id !== DEMO_WORKSPACE_APPLICATION_ID
-    ) {
+    if (integrated && currentProject?.id !== DEMO_WORKSPACE_APPLICATION_ID) {
         return null;
     }
 

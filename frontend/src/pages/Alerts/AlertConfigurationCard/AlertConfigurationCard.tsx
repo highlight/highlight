@@ -15,6 +15,7 @@ import {
     useGetTrackSuggestionQuery,
     useGetUserSuggestionQuery,
     useUpdateErrorAlertMutation,
+    useUpdateNewSessionAlertMutation,
     useUpdateNewUserAlertMutation,
     useUpdateSessionFeedbackAlertMutation,
     useUpdateTrackPropertiesAlertMutation,
@@ -72,6 +73,7 @@ export const AlertConfigurationCard = ({
     const [
         updateSessionFeedbackAlert,
     ] = useUpdateSessionFeedbackAlertMutation();
+    const [updateNewSessionAlert] = useUpdateNewSessionAlertMutation();
 
     const excludedEnvironmentsFormName = `${
         alert.Name || defaultName
@@ -180,6 +182,17 @@ export const AlertConfigurationCard = ({
                             session_feedback_alert_id: alert.id,
                             threshold_window: lookbackPeriod,
                             name: defaultName,
+                        },
+                    });
+                    break;
+                case ALERT_TYPE.NewSession:
+                    await updateNewSessionAlert({
+                        ...requestBody,
+                        variables: {
+                            ...requestVariables,
+                            session_alert_id: alert.id,
+                            name: defaultName,
+                            threshold_window: 1,
                         },
                     });
                     break;
@@ -345,6 +358,7 @@ export const AlertConfigurationCard = ({
                             getPropertiesOption(trackProperty).value
                     ),
                 }}
+                key={project_id}
             >
                 {type === ALERT_TYPE.UserProperties && (
                     <section>

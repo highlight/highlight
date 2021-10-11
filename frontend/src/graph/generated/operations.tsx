@@ -127,14 +127,23 @@ export type AddSlackBotIntegrationToProjectMutation = {
 } & Pick<Types.Mutation, 'addSlackBotIntegrationToProject'>;
 
 export type CreateProjectMutationVariables = Types.Exact<{
-    project_name: Types.Scalars['String'];
-    workspace_id?: Types.Maybe<Types.Scalars['ID']>;
-    workspace_name?: Types.Maybe<Types.Scalars['String']>;
+    name: Types.Scalars['String'];
+    workspace_id: Types.Scalars['ID'];
 }>;
 
 export type CreateProjectMutation = { __typename?: 'Mutation' } & {
     createProject?: Types.Maybe<
         { __typename?: 'Project' } & Pick<Types.Project, 'id' | 'name'>
+    >;
+};
+
+export type CreateWorkspaceMutationVariables = Types.Exact<{
+    name: Types.Scalars['String'];
+}>;
+
+export type CreateWorkspaceMutation = { __typename?: 'Mutation' } & {
+    createWorkspace?: Types.Maybe<
+        { __typename?: 'Workspace' } & Pick<Types.Workspace, 'id' | 'name'>
     >;
 };
 
@@ -576,6 +585,77 @@ export type CreateNewUserAlertMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
+export type CreateNewSessionAlertMutationVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    name: Types.Scalars['String'];
+    count_threshold: Types.Scalars['Int'];
+    slack_channels:
+        | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
+        | Types.Maybe<Types.SanitizedSlackChannelInput>;
+    environments:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
+    threshold_window: Types.Scalars['Int'];
+}>;
+
+export type CreateNewSessionAlertMutation = { __typename?: 'Mutation' } & {
+    createNewSessionAlert?: Types.Maybe<
+        { __typename?: 'SessionAlert' } & Pick<
+            Types.SessionAlert,
+            | 'id'
+            | 'Name'
+            | 'ExcludedEnvironments'
+            | 'CountThreshold'
+            | 'ThresholdWindow'
+        > & {
+                ChannelsToNotify: Array<
+                    Types.Maybe<
+                        { __typename?: 'SanitizedSlackChannel' } & Pick<
+                            Types.SanitizedSlackChannel,
+                            'webhook_channel' | 'webhook_channel_id'
+                        >
+                    >
+                >;
+            }
+    >;
+};
+
+export type UpdateNewSessionAlertMutationVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    session_alert_id: Types.Scalars['ID'];
+    name: Types.Scalars['String'];
+    count_threshold: Types.Scalars['Int'];
+    slack_channels:
+        | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
+        | Types.Maybe<Types.SanitizedSlackChannelInput>;
+    environments:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
+    threshold_window: Types.Scalars['Int'];
+}>;
+
+export type UpdateNewSessionAlertMutation = { __typename?: 'Mutation' } & {
+    updateNewSessionAlert?: Types.Maybe<
+        { __typename?: 'SessionAlert' } & Pick<
+            Types.SessionAlert,
+            | 'id'
+            | 'Name'
+            | 'ExcludedEnvironments'
+            | 'CountThreshold'
+            | 'ThresholdWindow'
+        > & {
+                ChannelsToNotify: Array<
+                    Types.Maybe<
+                        { __typename?: 'SanitizedSlackChannel' } & Pick<
+                            Types.SanitizedSlackChannel,
+                            'webhook_channel' | 'webhook_channel_id'
+                        >
+                    >
+                >;
+            }
+    >;
+};
+
 export type UpdateNewUserAlertMutationVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     session_alert_id: Types.Scalars['ID'];
@@ -804,6 +884,12 @@ export type GetSessionPayloadQuery = { __typename?: 'Query' } & Pick<
                 >
             >
         >;
+        rage_clicks: Array<
+            { __typename?: 'RageClickEvent' } & Pick<
+                Types.RageClickEvent,
+                'start_timestamp' | 'end_timestamp' | 'total_clicks'
+            >
+        >;
     };
 
 export type GetSessionQueryVariables = Types.Exact<{
@@ -828,6 +914,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'created_at'
             | 'language'
             | 'user_object'
+            | 'user_properties'
             | 'identifier'
             | 'starred'
             | 'enable_strict_privacy'
@@ -864,6 +951,27 @@ export type GetProjectAdminsQuery = { __typename?: 'Query' } & {
                 Types.Admin,
                 'id' | 'name' | 'email' | 'photo_url' | 'role'
             >
+        >
+    >;
+};
+
+export type GetWorkspaceAdminsQueryVariables = Types.Exact<{
+    workspace_id: Types.Scalars['ID'];
+}>;
+
+export type GetWorkspaceAdminsQuery = { __typename?: 'Query' } & {
+    admins: Array<
+        Types.Maybe<
+            { __typename?: 'Admin' } & Pick<
+                Types.Admin,
+                'id' | 'name' | 'email' | 'photo_url' | 'role'
+            >
+        >
+    >;
+    workspace?: Types.Maybe<
+        { __typename?: 'Workspace' } & Pick<
+            Types.Workspace,
+            'id' | 'name' | 'secret'
         >
     >;
 };
@@ -1007,7 +1115,7 @@ export type GetOnboardingStepsQuery = { __typename?: 'Query' } & Pick<
         workspace?: Types.Maybe<
             { __typename?: 'Workspace' } & Pick<
                 Types.Workspace,
-                'slack_channels'
+                'id' | 'slack_channels'
             >
         >;
         admins: Array<
@@ -1068,6 +1176,7 @@ export type GetSessionsQuery = { __typename?: 'Query' } & {
                     | 'processed'
                     | 'field_group'
                     | 'first_time'
+                    | 'user_properties'
                 > & {
                         fields?: Types.Maybe<
                             Array<
@@ -1105,7 +1214,10 @@ export type GetWorkspaceQueryVariables = Types.Exact<{
 
 export type GetWorkspaceQuery = { __typename?: 'Query' } & {
     workspace?: Types.Maybe<
-        { __typename?: 'Workspace' } & Pick<Types.Workspace, 'id' | 'name'> & {
+        { __typename?: 'Workspace' } & Pick<
+            Types.Workspace,
+            'id' | 'name' | 'secret'
+        > & {
                 projects: Array<
                     Types.Maybe<
                         { __typename?: 'Project' } & Pick<
@@ -1118,11 +1230,9 @@ export type GetWorkspaceQuery = { __typename?: 'Query' } & {
     >;
 };
 
-export type GetVisibleProjectsAndWorkspacesQueryVariables = Types.Exact<{
-    id: Types.Scalars['ID'];
-}>;
+export type GetWorkspacesQueryVariables = Types.Exact<{ [key: string]: never }>;
 
-export type GetVisibleProjectsAndWorkspacesQuery = { __typename?: 'Query' } & {
+export type GetWorkspacesQuery = { __typename?: 'Query' } & {
     workspaces?: Types.Maybe<
         Array<
             Types.Maybe<
@@ -1133,6 +1243,13 @@ export type GetVisibleProjectsAndWorkspacesQuery = { __typename?: 'Query' } & {
             >
         >
     >;
+};
+
+export type GetProjectsAndWorkspacesQueryVariables = Types.Exact<{
+    [key: string]: never;
+}>;
+
+export type GetProjectsAndWorkspacesQuery = { __typename?: 'Query' } & {
     projects?: Types.Maybe<
         Array<
             Types.Maybe<
@@ -1140,6 +1257,41 @@ export type GetVisibleProjectsAndWorkspacesQuery = { __typename?: 'Query' } & {
             >
         >
     >;
+    workspaces?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Workspace' } & Pick<
+                    Types.Workspace,
+                    'id' | 'name'
+                >
+            >
+        >
+    >;
+};
+
+export type GetProjectOrWorkspaceQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    workspace_id: Types.Scalars['ID'];
+    is_workspace: Types.Scalars['Boolean'];
+}>;
+
+export type GetProjectOrWorkspaceQuery = { __typename?: 'Query' } & {
+    project?: Types.Maybe<
+        { __typename?: 'Project' } & Pick<
+            Types.Project,
+            'id' | 'name' | 'billing_email'
+        >
+    >;
+    workspace?: Types.Maybe<
+        { __typename?: 'Workspace' } & Pick<Types.Workspace, 'id' | 'name'>
+    >;
+};
+
+export type GetProjectDropdownOptionsQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+}>;
+
+export type GetProjectDropdownOptionsQuery = { __typename?: 'Query' } & {
     project?: Types.Maybe<
         { __typename?: 'Project' } & Pick<
             Types.Project,
@@ -1152,9 +1304,54 @@ export type GetVisibleProjectsAndWorkspacesQuery = { __typename?: 'Query' } & {
         >
     >;
     workspace?: Types.Maybe<
-        { __typename?: 'Workspace' } & Pick<
-            Types.Workspace,
-            'slack_webhook_channel' | 'secret'
+        { __typename?: 'Workspace' } & Pick<Types.Workspace, 'id' | 'name'> & {
+                projects: Array<
+                    Types.Maybe<
+                        { __typename?: 'Project' } & Pick<
+                            Types.Project,
+                            'id' | 'name'
+                        >
+                    >
+                >;
+            }
+    >;
+    workspaces?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Workspace' } & Pick<
+                    Types.Workspace,
+                    'id' | 'name'
+                >
+            >
+        >
+    >;
+};
+
+export type GetWorkspaceDropdownOptionsQueryVariables = Types.Exact<{
+    workspace_id: Types.Scalars['ID'];
+}>;
+
+export type GetWorkspaceDropdownOptionsQuery = { __typename?: 'Query' } & {
+    workspace?: Types.Maybe<
+        { __typename?: 'Workspace' } & Pick<Types.Workspace, 'id' | 'name'> & {
+                projects: Array<
+                    Types.Maybe<
+                        { __typename?: 'Project' } & Pick<
+                            Types.Project,
+                            'id' | 'name'
+                        >
+                    >
+                >;
+            }
+    >;
+    workspaces?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Workspace' } & Pick<
+                    Types.Workspace,
+                    'id' | 'name'
+                >
+            >
         >
     >;
 };
@@ -1183,24 +1380,14 @@ export type GetProjectQuery = { __typename?: 'Query' } & {
     project?: Types.Maybe<
         { __typename?: 'Project' } & Pick<
             Types.Project,
-            'id' | 'name' | 'verbose_id' | 'billing_email' | 'secret'
+            'id' | 'name' | 'verbose_id' | 'billing_email'
         >
     >;
     workspace?: Types.Maybe<
         { __typename?: 'Workspace' } & Pick<
             Types.Workspace,
-            'id' | 'slack_webhook_channel' | 'secret'
+            'id' | 'slack_webhook_channel'
         >
-    >;
-};
-
-export type GetWorkspaceForProjectQueryVariables = Types.Exact<{
-    project_id: Types.Scalars['ID'];
-}>;
-
-export type GetWorkspaceForProjectQuery = { __typename?: 'Query' } & {
-    workspace?: Types.Maybe<
-        { __typename?: 'Workspace' } & Pick<Types.Workspace, 'id' | 'name'>
     >;
 };
 
@@ -1264,6 +1451,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
                             | 'visited_url'
                             | 'fingerprint'
                             | 'identifier'
+                            | 'user_properties'
                         >
                     >
                 >;
@@ -1885,6 +2073,29 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     }
             >
         >;
+        new_session_alerts: Array<
+            Types.Maybe<
+                { __typename?: 'SessionAlert' } & Pick<
+                    Types.SessionAlert,
+                    | 'ExcludedEnvironments'
+                    | 'CountThreshold'
+                    | 'ThresholdWindow'
+                    | 'updated_at'
+                    | 'LastAdminToEditID'
+                    | 'Name'
+                    | 'id'
+                > & {
+                        ChannelsToNotify: Array<
+                            Types.Maybe<
+                                { __typename?: 'SanitizedSlackChannel' } & Pick<
+                                    Types.SanitizedSlackChannel,
+                                    'webhook_channel' | 'webhook_channel_id'
+                                >
+                            >
+                        >;
+                    }
+            >
+        >;
         new_user_alerts?: Types.Maybe<
             Array<
                 Types.Maybe<
@@ -2001,6 +2212,7 @@ export const namedOperations = {
         GetSessionPayload: 'GetSessionPayload' as const,
         GetSession: 'GetSession' as const,
         GetProjectAdmins: 'GetProjectAdmins' as const,
+        GetWorkspaceAdmins: 'GetWorkspaceAdmins' as const,
         GetSessionComments: 'GetSessionComments' as const,
         GetNotifications: 'GetNotifications' as const,
         GetSessionCommentsForAdmin: 'GetSessionCommentsForAdmin' as const,
@@ -2009,10 +2221,13 @@ export const namedOperations = {
         GetSessions: 'GetSessions' as const,
         GetProjects: 'GetProjects' as const,
         GetWorkspace: 'GetWorkspace' as const,
-        GetVisibleProjectsAndWorkspaces: 'GetVisibleProjectsAndWorkspaces' as const,
+        GetWorkspaces: 'GetWorkspaces' as const,
+        GetProjectsAndWorkspaces: 'GetProjectsAndWorkspaces' as const,
+        GetProjectOrWorkspace: 'GetProjectOrWorkspace' as const,
+        GetProjectDropdownOptions: 'GetProjectDropdownOptions' as const,
+        GetWorkspaceDropdownOptions: 'GetWorkspaceDropdownOptions' as const,
         GetAdmin: 'GetAdmin' as const,
         GetProject: 'GetProject' as const,
-        GetWorkspaceForProject: 'GetWorkspaceForProject' as const,
         GetBillingDetails: 'GetBillingDetails' as const,
         GetErrorGroup: 'GetErrorGroup' as const,
         GetErrorGroups: 'GetErrorGroups' as const,
@@ -2057,6 +2272,7 @@ export const namedOperations = {
         OpenSlackConversation: 'OpenSlackConversation' as const,
         AddSlackBotIntegrationToProject: 'AddSlackBotIntegrationToProject' as const,
         CreateProject: 'CreateProject' as const,
+        CreateWorkspace: 'CreateWorkspace' as const,
         EditProject: 'EditProject' as const,
         DeleteProject: 'DeleteProject' as const,
         EditWorkspace: 'EditWorkspace' as const,
@@ -2077,6 +2293,8 @@ export const namedOperations = {
         CreateSessionFeedbackAlert: 'CreateSessionFeedbackAlert' as const,
         UpdateSessionFeedbackAlert: 'UpdateSessionFeedbackAlert' as const,
         CreateNewUserAlert: 'CreateNewUserAlert' as const,
+        CreateNewSessionAlert: 'CreateNewSessionAlert' as const,
+        UpdateNewSessionAlert: 'UpdateNewSessionAlert' as const,
         UpdateNewUserAlert: 'UpdateNewUserAlert' as const,
         CreateTrackPropertiesAlert: 'CreateTrackPropertiesAlert' as const,
         UpdateTrackPropertiesAlert: 'UpdateTrackPropertiesAlert' as const,

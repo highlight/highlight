@@ -133,9 +133,15 @@ func (r *Resolver) isAdminInWorkspace(ctx context.Context, workspaceID int) (*mo
 		return nil, e.Wrap(err, "error retrieving user")
 	}
 
-	workspace := model.Workspace{Model: model.Model{ID: workspaceID}}
-	if err := r.DB.Order("name asc").Where(&workspace).Model(&admin).Association("Workspaces").Find(&workspace); err != nil {
+	workspace := model.Workspace{}
+	if err := r.DB.Order("name asc").
+		Where(&model.Workspace{Model: model.Model{ID: workspaceID}}).
+		Model(&admin).Association("Workspaces").Find(&workspace); err != nil {
 		return nil, e.Wrap(err, "error getting associated workspaces")
+	}
+
+	if workspaceID != workspace.ID {
+		return nil, e.New("workspace is not associated to the current admin")
 	}
 
 	return &workspace, nil

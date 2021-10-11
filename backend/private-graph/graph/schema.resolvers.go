@@ -93,7 +93,16 @@ func (r *errorGroupResolver) StackTrace(ctx context.Context, obj *model.ErrorGro
 func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorMetadata, error) {
 	var metadataLogs []*modelInputs.ErrorMetadata
 	r.DB.Raw(`
-		SELECT s.id AS session_id, s.secure_id AS session_secure_id, e.id AS error_id, e.timestamp, s.os_name AS os, s.browser_name AS browser, e.url AS visited_url, s.fingerprint AS fingerprint, s.identifier AS identifier
+		SELECT s.id AS session_id,
+			s.secure_id AS session_secure_id,
+			e.id AS error_id,
+			e.timestamp,
+			s.os_name AS os,
+			s.browser_name AS browser,
+			e.url AS visited_url,
+			s.fingerprint AS fingerprint,
+			s.identifier AS identifier,
+			s.user_properties
 		FROM sessions AS s
 		INNER JOIN (
 			SELECT DISTINCT ON (session_id) session_id, id, timestamp, url
@@ -186,27 +195,15 @@ func (r *errorSegmentResolver) Params(ctx context.Context, obj *model.ErrorSegme
 	return params, nil
 }
 
-func (r *mutationResolver) CreateProject(ctx context.Context, projectName string, workspaceID *int, workspaceName *string) (*model.Project, error) {
+func (r *mutationResolver) CreateProject(ctx context.Context, name string, workspaceID int) (*model.Project, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in the workspace")
+	}
+
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting admin")
-	}
-
-	var workspace *model.Workspace
-	if workspaceID != nil {
-		workspace, err = r.GetWorkspace(*workspaceID)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		workspace = &model.Workspace{
-			Admins: []model.Admin{*admin},
-			Name:   workspaceName,
-		}
-
-		if err := r.DB.Create(workspace).Error; err != nil {
-			return nil, e.Wrap(err, "error creating workspace")
-		}
 	}
 
 	c := &stripe.Customer{}
@@ -219,7 +216,7 @@ func (r *mutationResolver) CreateProject(ctx context.Context, projectName string
 	}
 
 	project := &model.Project{
-		Name:             &projectName,
+		Name:             &name,
 		BillingEmail:     admin.Email,
 		WorkspaceID:      workspace.ID,
 		StripeCustomerID: &c.ID,
@@ -293,7 +290,38 @@ func (r *mutationResolver) CreateProject(ctx context.Context, projectName string
 		}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session user properties alert for new project")
 	}
+	if err := r.DB.Create(
+		&model.SessionAlert{
+			Alert: model.Alert{
+				ProjectID:            project.ID,
+				ExcludedEnvironments: nil,
+				CountThreshold:       1,
+				ChannelsToNotify:     nil,
+				Type:                 &model.AlertType.NEW_SESSION,
+				ThresholdWindow:      util.MakeIntPointer(0),
+			},
+		}).Error; err != nil {
+		return nil, e.Wrap(err, "error creating session user properties alert for new project")
+	}
 	return project, nil
+}
+
+func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*model.Workspace, error) {
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting admin")
+	}
+
+	workspace := &model.Workspace{
+		Admins: []model.Admin{*admin},
+		Name:   &name,
+	}
+
+	if err := r.DB.Create(workspace).Error; err != nil {
+		return nil, e.Wrap(err, "error creating workspace")
+	}
+
+	return workspace, nil
 }
 
 func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string) (*model.Project, error) {
@@ -1577,6 +1605,82 @@ func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, projec
 	return alert, nil
 }
 
+func (r *mutationResolver) UpdateNewSessionAlert(ctx context.Context, projectID int, sessionAlertID int, name string, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, thresholdWindow int) (*model.SessionAlert, error) {
+	admin, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in project")
+	}
+
+	envBytes, err := json.Marshal(environments)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing environments for new session alert")
+	}
+	envString := string(envBytes)
+
+	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
+	// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
+	for _, ch := range slackChannels {
+		sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
+	}
+
+	channelsBytes, err := json.Marshal(sanitizedChannels)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing channels for new session alert")
+	}
+	channelsString := string(channelsBytes)
+
+	alert := &model.SessionAlert{}
+	alert.ExcludedEnvironments = &envString
+	alert.ChannelsToNotify = &channelsString
+	alert.LastAdminToEditID = admin.ID
+	alert.Name = &name
+	alert.ThresholdWindow = &thresholdWindow
+	if err := r.DB.Model(&model.SessionAlert{
+		Model: model.Model{
+			ID: sessionAlertID,
+		},
+	}).Where("project_id = ?", projectID).Updates(alert).Error; err != nil {
+		return nil, e.Wrap(err, "error updating org fields for new session alert")
+	}
+	return alert, nil
+}
+
+func (r *mutationResolver) CreateNewSessionAlert(ctx context.Context, projectID int, name string, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, thresholdWindow int) (*model.SessionAlert, error) {
+	admin, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in project")
+	}
+
+	envString, err := r.MarshalEnvironments(environments)
+	if err != nil {
+		return nil, err
+	}
+
+	channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
+	if err != nil {
+		return nil, err
+	}
+
+	newAlert := &model.SessionAlert{
+		Alert: model.Alert{
+			ProjectID:            projectID,
+			OrganizationID:       projectID,
+			ExcludedEnvironments: envString,
+			Type:                 &model.AlertType.NEW_SESSION,
+			ChannelsToNotify:     channelsString,
+			Name:                 &name,
+			ThresholdWindow:      &thresholdWindow,
+			LastAdminToEditID:    admin.ID,
+		},
+	}
+
+	if err := r.DB.Create(newAlert).Error; err != nil {
+		return nil, e.Wrap(err, "error creating a new user properties alert")
+	}
+
+	return newAlert, nil
+}
+
 func (r *mutationResolver) UpdateSessionIsPublic(ctx context.Context, sessionID *int, sessionSecureID *string, isPublic bool) (*model.Session, error) {
 	session, err := r.canAdminModifySession(ctx, sessionID, sessionSecureID)
 	if err != nil {
@@ -1662,6 +1766,20 @@ func (r *queryResolver) Events(ctx context.Context, sessionID *int, sessionSecur
 	}
 	eventsParseSpan.Finish()
 	return allEvents["events"], nil
+}
+
+func (r *queryResolver) RageClicks(ctx context.Context, sessionSecureID *string) ([]*model.RageClickEvent, error) {
+	_, err := r.canAdminViewSession(ctx, nil, sessionSecureID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not session owner")
+	}
+
+	var rageClicks []*model.RageClickEvent
+	if res := r.DB.Where(&model.RageClickEvent{SessionSecureID: *sessionSecureID}).Find(&rageClicks); res.Error != nil {
+		return nil, e.Wrap(res.Error, "failed to get rage clicks")
+	}
+
+	return rageClicks, nil
 }
 
 func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count int, params *modelInputs.ErrorSearchParamsInput) (*model.ErrorResults, error) {
@@ -1950,6 +2068,20 @@ func (r *queryResolver) ProjectAdmins(ctx context.Context, projectID int) ([]*mo
 	return admins, nil
 }
 
+func (r *queryResolver) WorkspaceAdmins(ctx context.Context, workspaceID int) ([]*model.Admin, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "current admin not in the workspace")
+	}
+
+	admins := []*model.Admin{}
+	if err := r.DB.Order("created_at ASC").Model(workspace).Association("Admins").Find(&admins); err != nil {
+		return nil, e.Wrap(err, "error getting admins for the workspace")
+	}
+
+	return admins, nil
+}
+
 func (r *queryResolver) IsIntegrated(ctx context.Context, projectID int) (*bool, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin not found in project")
@@ -2179,7 +2311,7 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 		return nil, e.Wrap(err, "admin not found in project")
 	}
 
-	sessionsQueryPreamble := "SELECT id, secure_id, project_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, field_group"
+	sessionsQueryPreamble := "SELECT id, secure_id, project_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, field_group, user_properties, enable_recording_network_contents, language"
 	joinClause := "FROM sessions"
 
 	fieldFilters, err := r.getFieldFilters(ctx, projectID, params)
@@ -2546,6 +2678,19 @@ func (r *queryResolver) UserPropertiesAlerts(ctx context.Context, projectID int)
 	return alerts, nil
 }
 
+func (r *queryResolver) NewSessionAlerts(ctx context.Context, projectID int) ([]*model.SessionAlert, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+	var alerts []*model.SessionAlert
+	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{Type: &model.AlertType.NEW_SESSION}}).
+		Where("project_id = ?", projectID).Find(&alerts).Error; err != nil {
+		return nil, e.Wrap(err, "error querying new session alerts")
+	}
+	return alerts, nil
+}
+
 func (r *queryResolver) ProjectSuggestion(ctx context.Context, query string) ([]*model.Project, error) {
 	projects := []*model.Project{}
 	if r.isWhitelistedAccount(ctx) {
@@ -2671,7 +2816,7 @@ func (r *queryResolver) Workspace(ctx context.Context, id int) (*model.Workspace
 	}
 
 	projects := []model.Project{}
-	if err := r.DB.Model(&workspace).Association("Projects").Find(&projects); err != nil {
+	if err := r.DB.Order("name ASC").Model(&workspace).Association("Projects").Find(&projects); err != nil {
 		return nil, e.Wrap(err, "error querying associated projects")
 	}
 
@@ -2685,7 +2830,21 @@ func (r *queryResolver) WorkspaceForProject(ctx context.Context, projectID int) 
 		return nil, e.Wrap(err, "error querying project")
 	}
 
-	return r.GetWorkspace(project.WorkspaceID)
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying workspace")
+	}
+
+	// workspace secret should not be visible unless the admin has workspace access
+	workspace.Secret = new(string)
+
+	projects := []model.Project{}
+	if err := r.DB.Order("name ASC").Model(&workspace).Association("Projects").Find(&projects); err != nil {
+		return nil, e.Wrap(err, "error querying associated projects")
+	}
+
+	workspace.Projects = projects
+	return workspace, nil
 }
 
 func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
@@ -2938,16 +3097,3 @@ type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
 type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *errorAlertResolver) LastedAdminToEditID(ctx context.Context, obj *model.ErrorAlert) (*int, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-func (r *sessionAlertResolver) LastedAdminToEditID(ctx context.Context, obj *model.SessionAlert) (*int, error) {
-	panic(fmt.Errorf("not implemented"))
-}

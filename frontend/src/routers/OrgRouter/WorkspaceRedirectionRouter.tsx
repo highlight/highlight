@@ -45,7 +45,7 @@ export const WorkspaceRedirectionRouter = () => {
                     ? `/${firstProjectIdInWorkspace}${removeWorkspaceId(
                           history.location.pathname
                       )}`
-                    : `/new`
+                    : `/w/${workspace_id}/new`
             }
         />
     );

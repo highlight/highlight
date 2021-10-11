@@ -31,6 +31,7 @@ type Session {
     length: Int
     active_length: Int
     user_object: Any
+    user_properties: String
     fields: [Field]
     viewed: Boolean
     starred: Boolean
@@ -43,6 +44,15 @@ type Session {
     payload_size: Int64
     within_billing_quota: Boolean
     is_public: Boolean
+}
+
+type RageClickEvent {
+    id: ID!
+    project_id: ID!
+    session_secure_id: String!
+    start_timestamp: Timestamp!
+    end_timestamp: Timestamp!
+    total_clicks: Int!
 }
 
 type BillingDetails {
@@ -163,6 +173,7 @@ type ErrorMetadata {
     visited_url: String
     fingerprint: String!
     identifier: String
+    user_properties: String
 }
 
 type ErrorTrace {
@@ -423,6 +434,7 @@ scalar Upload
 type Query {
     session(id: ID, secure_id: String): Session
     events(session_id: ID, session_secure_id: String): [Any]
+    rage_clicks(session_secure_id: String): [RageClickEvent!]!
     error_groups(
         project_id: ID!
         count: Int!
@@ -445,6 +457,7 @@ type Query {
     error_comments_for_admin: [ErrorComment]!
     error_comments_for_project(project_id: ID!): [ErrorComment]!
     project_admins(project_id: ID!): [Admin]!
+    workspace_admins(workspace_id: ID!): [Admin]!
     isIntegrated(project_id: ID!): Boolean
     unprocessedSessionsCount(project_id: ID!): Int64
     adminHasCreatedComment(admin_id: ID!): Boolean
@@ -497,6 +510,7 @@ type Query {
     new_user_alerts(project_id: ID!): [SessionAlert]
     track_properties_alerts(project_id: ID!): [SessionAlert]!
     user_properties_alerts(project_id: ID!): [SessionAlert]!
+    new_session_alerts(project_id: ID!): [SessionAlert]!
     projectSuggestion(query: String!): [Project]
     environment_suggestion(project_id: ID!): [Field]
     app_version_suggestion(project_id: ID!): [String]!
@@ -513,11 +527,8 @@ type Query {
 }
 
 type Mutation {
-    createProject(
-        project_name: String!
-        workspace_id: ID
-        workspace_name: String
-    ): Project
+    createProject(name: String!, workspace_id: ID!): Project
+    createWorkspace(name: String!): Workspace
     editProject(id: ID!, name: String, billing_email: String): Project
     editWorkspace(id: ID!, name: String): Workspace
     markSessionAsViewed(id: ID, secure_id: String, viewed: Boolean): Session
@@ -688,6 +699,23 @@ type Mutation {
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
         user_properties: [UserPropertyInput]!
+        threshold_window: Int!
+    ): SessionAlert
+    updateNewSessionAlert(
+        project_id: ID!
+        session_alert_id: ID!
+        name: String!
+        count_threshold: Int!
+        slack_channels: [SanitizedSlackChannelInput]!
+        environments: [String]!
+        threshold_window: Int!
+    ): SessionAlert
+    createNewSessionAlert(
+        project_id: ID!
+        name: String!
+        count_threshold: Int!
+        slack_channels: [SanitizedSlackChannelInput]!
+        environments: [String]!
         threshold_window: Int!
     ): SessionAlert
     updateSessionIsPublic(

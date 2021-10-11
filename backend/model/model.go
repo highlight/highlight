@@ -46,12 +46,14 @@ var AlertType = struct {
 	TRACK_PROPERTIES string
 	USER_PROPERTIES  string
 	SESSION_FEEDBACK string
+	NEW_SESSION      string
 }{
 	ERROR:            "ERROR_ALERT",
 	NEW_USER:         "NEW_USER_ALERT",
 	TRACK_PROPERTIES: "TRACK_PROPERTIES_ALERT",
 	USER_PROPERTIES:  "USER_PROPERTIES_ALERT",
 	SESSION_FEEDBACK: "SESSION_FEEDBACK_ALERT",
+	NEW_SESSION:      "NEW_SESSION_ALERT",
 }
 
 var AdminRole = struct {
@@ -120,6 +122,7 @@ var Models = []interface{}{
 	&ErrorAlert{},
 	&SessionAlert{},
 	&Project{},
+	&RageClickEvent{},
 	&Workspace{},
 }
 
@@ -135,10 +138,10 @@ func init() {
 }
 
 type Model struct {
-	ID        int        `gorm:"primary_key;type:serial" json:"id"`
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
-	DeletedAt *time.Time `json:"deleted_at"`
+	ID        int        `gorm:"primary_key;type:serial" json:"id" deep:"-"`
+	CreatedAt time.Time  `json:"created_at" deep:"-"`
+	UpdatedAt time.Time  `json:"updated_at" deep:"-"`
+	DeletedAt *time.Time `json:"deleted_at" deep:"-"`
 }
 
 type Organization struct {
@@ -703,6 +706,15 @@ type ErrorComment struct {
 	Text           string
 }
 
+type RageClickEvent struct {
+	Model
+	ProjectID       int    `deep:"-"`
+	SessionSecureID string `deep:"-"`
+	TotalClicks     int
+	StartTimestamp  time.Time `deep:"-"`
+	EndTimestamp    time.Time `deep:"-"`
+}
+
 func SetupDB(dbName string) (*gorm.DB, error) {
 	var (
 		host     = os.Getenv("PSQL_HOST")
@@ -923,6 +935,9 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 	if err != nil {
 		return e.Wrap(err, "error getting channels to notify from user properties alert")
 	}
+	if len(channels) <= 0 {
+		return nil
+	}
 	// get project's channels
 	integratedSlackChannels, err := input.Workspace.IntegratedSlackChannels()
 	if err != nil {
@@ -1047,6 +1062,11 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
 	case AlertType.SESSION_FEEDBACK:
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s Left Feedback*\n\n%s", input.UserIdentifier, input.CommentText), false, false)
+		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
+		blockSet = append(blockSet, slack.NewDividerBlock())
+		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
+	case AlertType.NEW_SESSION:
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*New Session Created By User: %s*\n\n", input.UserIdentifier), false, false)
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}

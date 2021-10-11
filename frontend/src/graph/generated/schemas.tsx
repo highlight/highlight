@@ -48,6 +48,7 @@ export type Session = {
     length?: Maybe<Scalars['Int']>;
     active_length?: Maybe<Scalars['Int']>;
     user_object?: Maybe<Scalars['Any']>;
+    user_properties?: Maybe<Scalars['String']>;
     fields?: Maybe<Array<Maybe<Field>>>;
     viewed?: Maybe<Scalars['Boolean']>;
     starred?: Maybe<Scalars['Boolean']>;
@@ -60,6 +61,16 @@ export type Session = {
     payload_size?: Maybe<Scalars['Int64']>;
     within_billing_quota?: Maybe<Scalars['Boolean']>;
     is_public?: Maybe<Scalars['Boolean']>;
+};
+
+export type RageClickEvent = {
+    __typename?: 'RageClickEvent';
+    id: Scalars['ID'];
+    project_id: Scalars['ID'];
+    session_secure_id: Scalars['String'];
+    start_timestamp: Scalars['Timestamp'];
+    end_timestamp: Scalars['Timestamp'];
+    total_clicks: Scalars['Int'];
 };
 
 export type BillingDetails = {
@@ -190,6 +201,7 @@ export type ErrorMetadata = {
     visited_url?: Maybe<Scalars['String']>;
     fingerprint: Scalars['String'];
     identifier?: Maybe<Scalars['String']>;
+    user_properties?: Maybe<Scalars['String']>;
 };
 
 export type ErrorTrace = {
@@ -470,6 +482,7 @@ export type Query = {
     __typename?: 'Query';
     session?: Maybe<Session>;
     events?: Maybe<Array<Maybe<Scalars['Any']>>>;
+    rage_clicks: Array<RageClickEvent>;
     error_groups?: Maybe<ErrorResults>;
     error_group?: Maybe<ErrorGroup>;
     messages?: Maybe<Array<Maybe<Scalars['Any']>>>;
@@ -482,6 +495,7 @@ export type Query = {
     error_comments_for_admin: Array<Maybe<ErrorComment>>;
     error_comments_for_project: Array<Maybe<ErrorComment>>;
     project_admins: Array<Maybe<Admin>>;
+    workspace_admins: Array<Maybe<Admin>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
     unprocessedSessionsCount?: Maybe<Scalars['Int64']>;
     adminHasCreatedComment?: Maybe<Scalars['Boolean']>;
@@ -506,6 +520,7 @@ export type Query = {
     new_user_alerts?: Maybe<Array<Maybe<SessionAlert>>>;
     track_properties_alerts: Array<Maybe<SessionAlert>>;
     user_properties_alerts: Array<Maybe<SessionAlert>>;
+    new_session_alerts: Array<Maybe<SessionAlert>>;
     projectSuggestion?: Maybe<Array<Maybe<Project>>>;
     environment_suggestion?: Maybe<Array<Maybe<Field>>>;
     app_version_suggestion: Array<Maybe<Scalars['String']>>;
@@ -528,6 +543,10 @@ export type QuerySessionArgs = {
 
 export type QueryEventsArgs = {
     session_id?: Maybe<Scalars['ID']>;
+    session_secure_id?: Maybe<Scalars['String']>;
+};
+
+export type QueryRage_ClicksArgs = {
     session_secure_id?: Maybe<Scalars['String']>;
 };
 
@@ -577,6 +596,10 @@ export type QueryError_Comments_For_ProjectArgs = {
 
 export type QueryProject_AdminsArgs = {
     project_id: Scalars['ID'];
+};
+
+export type QueryWorkspace_AdminsArgs = {
+    workspace_id: Scalars['ID'];
 };
 
 export type QueryIsIntegratedArgs = {
@@ -687,6 +710,10 @@ export type QueryUser_Properties_AlertsArgs = {
     project_id: Scalars['ID'];
 };
 
+export type QueryNew_Session_AlertsArgs = {
+    project_id: Scalars['ID'];
+};
+
 export type QueryProjectSuggestionArgs = {
     query: Scalars['String'];
 };
@@ -738,6 +765,7 @@ export type QueryApi_Key_To_Org_IdArgs = {
 export type Mutation = {
     __typename?: 'Mutation';
     createProject?: Maybe<Project>;
+    createWorkspace?: Maybe<Workspace>;
     editProject?: Maybe<Project>;
     editWorkspace?: Maybe<Workspace>;
     markSessionAsViewed?: Maybe<Session>;
@@ -777,14 +805,19 @@ export type Mutation = {
     createUserPropertiesAlert?: Maybe<SessionAlert>;
     deleteSessionAlert?: Maybe<SessionAlert>;
     updateUserPropertiesAlert?: Maybe<SessionAlert>;
+    updateNewSessionAlert?: Maybe<SessionAlert>;
+    createNewSessionAlert?: Maybe<SessionAlert>;
     updateSessionIsPublic?: Maybe<Session>;
     updateErrorGroupIsPublic?: Maybe<ErrorGroup>;
 };
 
 export type MutationCreateProjectArgs = {
-    project_name: Scalars['String'];
-    workspace_id?: Maybe<Scalars['ID']>;
-    workspace_name?: Maybe<Scalars['String']>;
+    name: Scalars['String'];
+    workspace_id: Scalars['ID'];
+};
+
+export type MutationCreateWorkspaceArgs = {
+    name: Scalars['String'];
 };
 
 export type MutationEditProjectArgs = {
@@ -1048,6 +1081,25 @@ export type MutationUpdateUserPropertiesAlertArgs = {
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;
     user_properties: Array<Maybe<UserPropertyInput>>;
+    threshold_window: Scalars['Int'];
+};
+
+export type MutationUpdateNewSessionAlertArgs = {
+    project_id: Scalars['ID'];
+    session_alert_id: Scalars['ID'];
+    name: Scalars['String'];
+    count_threshold: Scalars['Int'];
+    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+    environments: Array<Maybe<Scalars['String']>>;
+    threshold_window: Scalars['Int'];
+};
+
+export type MutationCreateNewSessionAlertArgs = {
+    project_id: Scalars['ID'];
+    name: Scalars['String'];
+    count_threshold: Scalars['Int'];
+    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+    environments: Array<Maybe<Scalars['String']>>;
     threshold_window: Scalars['Int'];
 };
 

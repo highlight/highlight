@@ -17,6 +17,7 @@ import { Link, useHistory } from 'react-router-dom';
 import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
 import {
     useCreateErrorAlertMutation,
+    useCreateNewSessionAlertMutation,
     useCreateNewUserAlertMutation,
     useCreateSessionFeedbackAlertMutation,
     useCreateTrackPropertiesAlertMutation,
@@ -34,6 +35,7 @@ export enum ALERT_TYPE {
     UserProperties,
     TrackProperties,
     SessionFeedbackComment,
+    NewSession,
 }
 
 const ALERT_CONFIGURATIONS = {
@@ -68,6 +70,12 @@ const ALERT_CONFIGURATIONS = {
         type: ALERT_TYPE.SessionFeedbackComment,
         description:
             'Get alerted when a user submits a session feedback comment.',
+    },
+    'new sessions': {
+        name: 'New Sessions',
+        canControlThreshold: false,
+        type: ALERT_TYPE.NewSession,
+        description: 'Get alerted every time a session is created.',
     },
 };
 
@@ -161,7 +169,18 @@ const AlertsPage = () => {
             count_threshold: 1,
             environments: [],
             slack_channels: [],
-            name: 'New User Alert',
+            name: 'New User',
+            threshold_window: 1,
+        },
+        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+    });
+    const [createNewSessionAlert, {}] = useCreateNewSessionAlertMutation({
+        variables: {
+            project_id,
+            count_threshold: 1,
+            environments: [],
+            slack_channels: [],
+            name: 'New Session',
             threshold_window: 1,
         },
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
@@ -236,12 +255,17 @@ const AlertsPage = () => {
             configuration: ALERT_CONFIGURATIONS['user properties'],
             type: ALERT_CONFIGURATIONS['user properties'].name,
         })),
+        ...(data?.new_session_alerts || []).map((alert) => ({
+            ...alert,
+            configuration: ALERT_CONFIGURATIONS['new sessions'],
+            type: ALERT_CONFIGURATIONS['new sessions'].name,
+        })),
     ];
 
     return (
         <LeadAlignLayout>
             <h2>Alerts</h2>
-            {/* <button
+            <button
                 onClick={() => {
                     createErrorAlert();
                 }}
@@ -275,7 +299,14 @@ const AlertsPage = () => {
                 }}
             >
                 Create Track Properties
-            </button> */}
+            </button>
+            <button
+                onClick={() => {
+                    createNewSessionAlert();
+                }}
+            >
+                Create New Session Alert
+            </button>
             <div className={styles.subTitleContainer}>
                 <p>Configure the environments you want alerts for.</p>
                 <ButtonLink
@@ -442,6 +473,32 @@ const AlertsPage = () => {
                                         ALERT_CONFIGURATIONS['user properties']
                                     }
                                     alert={userPropertiesAlert || {}}
+                                    environmentOptions={
+                                        data?.environment_suggestion || []
+                                    }
+                                    channelSuggestions={
+                                        data?.slack_channel_suggestion || []
+                                    }
+                                    slackUrl={slackUrl}
+                                    onDeleteHandler={(alertId) => {
+                                        deleteSessionAlert({
+                                            variables: {
+                                                session_alert_id: alertId,
+                                                project_id,
+                                            },
+                                        });
+                                    }}
+                                />
+                            )
+                        )}
+                        {data?.new_session_alerts.map(
+                            (trackPropertiesAlert) => (
+                                <AlertConfigurationCard
+                                    key={trackPropertiesAlert?.id}
+                                    configuration={
+                                        ALERT_CONFIGURATIONS['new sessions']
+                                    }
+                                    alert={trackPropertiesAlert || {}}
                                     environmentOptions={
                                         data?.environment_suggestion || []
                                     }
