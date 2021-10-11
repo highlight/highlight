@@ -1075,7 +1075,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 	case AlertType.NEW_SESSION:
 		previewText = fmt.Sprintf("Highlight: New Session Created By %s", input.UserIdentifier)
 		if input.UserIdentifier == "" {
-			previewText = fmt.Sprintf("Highlight: mNew Session Created By %s", "User")
+			previewText = fmt.Sprintf("Highlight: New Session Created By %s", "User")
 		}
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*New Session Created By User: %s*\n\n", input.UserIdentifier), false, false)
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
