@@ -7,6 +7,7 @@ import _ from 'lodash';
 import React, { Suspense, useEffect, useState } from 'react';
 import { Redirect, Route, Switch } from 'react-router-dom';
 import {
+    ArrayParam,
     BooleanParam,
     JsonParam,
     StringParam,
@@ -27,8 +28,7 @@ import {
     SearchParams,
 } from '../../pages/Sessions/SearchContext/SearchContext';
 import SetupPage from '../../pages/Setup/SetupPage';
-import WorkspaceSettings from '../../pages/WorkspaceSettings/WorkspaceSettings';
-import WorkspaceTeam from '../../pages/WorkspaceTeam/WorkspaceTeam';
+import ProjectSettings from '../../pages/WorkspaceSettings/WorkspaceSettings';
 
 interface Props {
     integrated: boolean;
@@ -68,6 +68,8 @@ const ApplicationRouter = ({ integrated }: Props) => {
         first_time: BooleanParam,
         device_id: StringParam,
         show_live_sessions: BooleanParam,
+        environments: ArrayParam,
+        app_versions: ArrayParam,
     });
     const [activeSegmentUrlParam, setActiveSegmentUrlParam] = useQueryParam(
         'segment',
@@ -170,13 +172,10 @@ const ApplicationRouter = ({ integrated }: Props) => {
                     </Route>
                 )}
                 <Route path="/:project_id/settings">
-                    <WorkspaceSettings />
+                    <ProjectSettings />
                 </Route>
                 <Route path="/:project_id/alerts">
                     <AlertsPage />
-                </Route>
-                <Route path="/:project_id/team">
-                    <WorkspaceTeam />
                 </Route>
                 <Route path="/:project_id/billing">
                     <Suspense fallback={null}>

@@ -59,6 +59,14 @@ export const TrackPropertyInput = ({
                         ...provided,
                         backgroundColor: 'var(--color-purple-100)',
                     }),
+                    placeholder: (provided) => ({
+                        ...provided,
+                        color: '#bfbfbf',
+                    }),
+                    valueContainer: (provided) => ({
+                        ...provided,
+                        padding: 'var(--size-xSmall) var(--size-medium)',
+                    }),
                 }}
                 cacheOptions
                 placeholder={'Select a track property...'}

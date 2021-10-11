@@ -90,9 +90,18 @@ export interface ReplayerContextInterface {
      * @example The session is 100 seconds long. The current time is 50 seconds. `playerProgress` is 0.5.
      */
     playerProgress: number | null;
+    rageClicks: RageClick[];
 }
 
 export const [
     useReplayerContext,
     ReplayerContextProvider,
 ] = createContext<ReplayerContextInterface>('ReplayerContext');
+
+export interface RageClick {
+    startTimestamp: string;
+    startPercentage: number;
+    endTimestamp: string;
+    endPercentage: number;
+    totalClicks: number;
+}

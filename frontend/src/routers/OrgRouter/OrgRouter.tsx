@@ -11,7 +11,7 @@ import { ErrorState } from '../../components/ErrorState/ErrorState';
 import { Header } from '../../components/Header/Header';
 import OnboardingBubble from '../../components/OnboardingBubble/OnboardingBubble';
 import { Sidebar } from '../../components/Sidebar/Sidebar';
-import { useGetApplicationsQuery } from '../../graph/generated/hooks';
+import { useGetProjectDropdownOptionsQuery } from '../../graph/generated/hooks';
 import { useIntegrated } from '../../util/integrated';
 import { ApplicationContextProvider } from './ApplicationContext';
 import ApplicationRouter from './ApplicationRouter';
@@ -26,8 +26,8 @@ export const ProjectRouter = () => {
         project_id: string;
     }>();
 
-    const { data, loading, error } = useGetApplicationsQuery({
-        variables: { id: project_id },
+    const { data, loading, error } = useGetProjectDropdownOptionsQuery({
+        variables: { project_id },
         skip: !isLoggedIn, // Higher level routers decide when guests are allowed to hit this router
     });
 
@@ -63,7 +63,7 @@ export const ProjectRouter = () => {
         }
     }, [isLoggedIn]);
 
-    if (integratedLoading || loading) {
+    if (loading || integratedLoading) {
         return null;
     }
     return (
@@ -75,8 +75,10 @@ export const ProjectRouter = () => {
         >
             <ApplicationContextProvider
                 value={{
-                    currentApplication: data?.project || undefined,
-                    allApplications: data?.projects || [],
+                    currentProject: data?.project || undefined,
+                    allProjects: data?.workspace?.projects || [],
+                    currentWorkspace: data?.workspace || undefined,
+                    workspaces: data?.workspaces || [],
                 }}
             >
                 <Header />

@@ -24,6 +24,8 @@ type PopoverProps = Pick<
     popoverClassName?: string;
     large?: boolean;
     contentContainerClassName?: string;
+    onMouseEnter?: React.MouseEventHandler<HTMLDivElement> | undefined;
+    onMouseLeave?: React.MouseEventHandler<HTMLDivElement> | undefined;
 };
 
 /**
@@ -36,6 +38,8 @@ const Popover: React.FC<PopoverProps> = ({
     popoverClassName,
     contentContainerClassName,
     large = false,
+    onMouseEnter,
+    onMouseLeave,
     ...props
 }) => {
     return (
@@ -51,6 +55,8 @@ const Popover: React.FC<PopoverProps> = ({
                         },
                         contentContainerClassName
                     )}
+                    onMouseEnter={onMouseEnter}
+                    onMouseLeave={onMouseLeave}
                 >
                     {title}
                     <div className={styles.content}>{props.content}</div>

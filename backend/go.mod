@@ -16,11 +16,11 @@ require (
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.2.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.4.0
 	github.com/aws/aws-xray-sdk-go v1.6.0
-	github.com/gammazero/workerpool v1.1.2
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/go-test/deep v1.0.4
 	github.com/gorilla/sessions v1.2.1 // indirect
+	github.com/highlight-run/workerpool v1.2.0
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/kylelemons/godebug v1.1.0

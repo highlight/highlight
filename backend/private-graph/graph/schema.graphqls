@@ -1,7 +1,7 @@
 # MAIN GRAPH
 
 scalar Any
-scalar Time
+scalar Timestamp
 scalar Int64
 
 type Field {
@@ -27,10 +27,11 @@ type Session {
     client_version: String
     language: String!
     identifier: String!
-    created_at: Time
+    created_at: Timestamp
     length: Int
     active_length: Int
     user_object: Any
+    user_properties: String
     fields: [Field]
     viewed: Boolean
     starred: Boolean
@@ -43,6 +44,15 @@ type Session {
     payload_size: Int64
     within_billing_quota: Boolean
     is_public: Boolean
+}
+
+type RageClickEvent {
+    id: ID!
+    project_id: ID!
+    session_secure_id: String!
+    start_timestamp: Timestamp!
+    end_timestamp: Timestamp!
+    total_clicks: Int!
 }
 
 type BillingDetails {
@@ -84,10 +94,18 @@ type Project {
     verbose_id: String!
     name: String!
     billing_email: String
-    trial_end_date: Time
+    trial_end_date: Timestamp
+    secret: String
+    workspace_id: ID!
+}
+
+type Workspace {
+    id: ID!
+    name: String!
     slack_webhook_channel: String
     slack_channels: String
     secret: String
+    projects: [Project]!
 }
 
 type Segment {
@@ -117,7 +135,7 @@ type ErrorObject {
     lineNumber: Int
     columnNumber: Int
     stack_trace: [Any]
-    timestamp: Time
+    timestamp: Timestamp
     payload: String
 }
 
@@ -128,7 +146,7 @@ type ErrorField {
 }
 
 type ErrorGroup {
-    created_at: Time!
+    created_at: Timestamp!
     id: ID!
     secure_id: String!
     project_id: Int!
@@ -149,12 +167,13 @@ type ErrorMetadata {
     session_id: Int!
     session_secure_id: String!
     environment: String
-    timestamp: Time
+    timestamp: Timestamp
     os: String
     browser: String
     visited_url: String
     fingerprint: String!
     identifier: String
+    user_properties: String
 }
 
 type ErrorTrace {
@@ -197,6 +216,8 @@ input SearchParamsInput {
     excluded_properties: [UserPropertyInput]
     track_properties: [UserPropertyInput]
     excluded_track_properties: [UserPropertyInput]
+    environments: [String]
+    app_versions: [String]
     date_range: DateRangeInput
     length_range: LengthRangeInput
     os: String
@@ -207,21 +228,27 @@ input SearchParamsInput {
     identified: Boolean
     hide_viewed: Boolean
     first_time: Boolean
+    show_live_sessions: Boolean
 }
 
 type SearchParams {
     user_properties: [UserProperty]
     excluded_properties: [UserProperty]
     track_properties: [UserProperty]
+    excluded_track_properties: [UserProperty]
+    environments: [String]
+    app_versions: [String]
     date_range: DateRange
     length_range: LengthRange
     os: String
     browser: String
     visited_url: String
+    device_id: String
     referrer: String
     identified: Boolean
     hide_viewed: Boolean
     first_time: Boolean
+    show_live_sessions: Boolean
 }
 
 input ErrorSearchParamsInput {
@@ -243,13 +270,13 @@ type ErrorSearchParams {
 }
 
 type DateRange {
-    start_date: Time
-    end_date: Time
+    start_date: Timestamp
+    end_date: Timestamp
 }
 
 input DateRangeInput {
-    start_date: Time
-    end_date: Time
+    start_date: Timestamp
+    end_date: Timestamp
 }
 
 type LengthRange {
@@ -315,8 +342,8 @@ type SessionComment {
     id: ID!
     project_id: ID!
     timestamp: Int
-    created_at: Time!
-    updated_at: Time!
+    created_at: Timestamp!
+    updated_at: Timestamp!
     session_id: Int!
     session_secure_id: String!
     author: SanitizedAdmin
@@ -330,10 +357,10 @@ type SessionComment {
 type ErrorComment {
     id: ID!
     project_id: ID!
-    created_at: Time!
+    created_at: Timestamp!
     error_id: Int!
     error_secure_id: String!
-    updated_at: Time!
+    updated_at: Timestamp!
     author: SanitizedAdmin!
     text: String!
 }
@@ -346,13 +373,13 @@ enum SessionLifecycle {
 
 type DailySessionCount {
     project_id: ID!
-    date: Time!
+    date: Timestamp!
     count: Int64!
 }
 
 type DailyErrorCount {
     project_id: ID!
-    date: Time!
+    date: Timestamp!
     count: Int64!
 }
 
@@ -401,6 +428,7 @@ scalar Upload
 type Query {
     session(id: ID, secure_id: String): Session
     events(session_id: ID, session_secure_id: String): [Any]
+    rage_clicks(session_secure_id: String): [RageClickEvent!]!
     error_groups(
         project_id: ID!
         count: Int!
@@ -422,7 +450,8 @@ type Query {
     ): [ErrorComment]!
     error_comments_for_admin: [ErrorComment]!
     error_comments_for_project(project_id: ID!): [ErrorComment]!
-    admins(project_id: ID!): [Admin]!
+    project_admins(project_id: ID!): [Admin]!
+    workspace_admins(workspace_id: ID!): [Admin]!
     isIntegrated(project_id: ID!): Boolean
     unprocessedSessionsCount(project_id: ID!): Int64
     adminHasCreatedComment(admin_id: ID!): Boolean
@@ -469,17 +498,22 @@ type Query {
         query: String!
     ): [ErrorField]
     projects: [Project]
+    workspaces: [Workspace!]
     error_alert(project_id: ID!): ErrorAlert
     session_feedback_alert(project_id: ID!): SessionAlert
     new_user_alert(project_id: ID!): SessionAlert
     track_properties_alert(project_id: ID!): SessionAlert
     user_properties_alert(project_id: ID!): SessionAlert
+    new_session_alert(project_id: ID!): SessionAlert
     projectSuggestion(query: String!): [Project]
     environment_suggestion(project_id: ID!): [Field]
+    app_version_suggestion(project_id: ID!): [String]!
     slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
     slack_members(project_id: ID!): [SanitizedSlackChannel]!
     is_integrated_with_slack(project_id: ID!): Boolean!
     project(id: ID!): Project
+    workspace(id: ID!): Workspace
+    workspace_for_project(project_id: ID!): Workspace
     admin: Admin
     segments(project_id: ID!): [Segment]
     error_segments(project_id: ID!): [ErrorSegment]
@@ -487,15 +521,28 @@ type Query {
 }
 
 type Mutation {
-    createProject(name: String!): Project
+    createProject(name: String!, workspace_id: ID!): Project
+    createWorkspace(name: String!): Workspace
     editProject(id: ID!, name: String, billing_email: String): Project
+    editWorkspace(id: ID!, name: String): Workspace
     markSessionAsViewed(id: ID, secure_id: String, viewed: Boolean): Session
     markSessionAsStarred(id: ID, secure_id: String, starred: Boolean): Session
     updateErrorGroupState(id: ID, secure_id: String, state: String!): ErrorGroup
     deleteProject(id: ID!): Boolean
-    sendAdminInvite(project_id: ID!, email: String!, base_url: String!): String
+    sendAdminProjectInvite(
+        project_id: ID!
+        email: String!
+        base_url: String!
+    ): String
+    sendAdminWorkspaceInvite(
+        workspace_id: ID!
+        email: String!
+        base_url: String!
+    ): String
     addAdminToProject(project_id: ID!, invite_id: String!): ID
+    addAdminToWorkspace(workspace_id: ID!, invite_id: String!): ID
     deleteAdminFromProject(project_id: ID!, admin_id: ID!): ID
+    deleteAdminFromWorkspace(workspace_id: ID!, admin_id: ID!): ID
     createSegment(
         project_id: ID!
         name: String!
@@ -597,6 +644,12 @@ type Mutation {
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
         user_properties: [UserPropertyInput]!
+    ): SessionAlert
+    updateNewSessionAlert(
+        project_id: ID!
+        session_alert_id: ID!
+        slack_channels: [SanitizedSlackChannelInput]!
+        environments: [String]!
     ): SessionAlert
     updateSessionIsPublic(
         session_id: ID

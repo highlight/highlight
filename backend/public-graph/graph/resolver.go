@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gammazero/workerpool"
 	"github.com/go-sourcemap/sourcemap"
+	"github.com/highlight-run/workerpool"
 	"github.com/mssola/user_agent"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -423,6 +423,9 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 		return nil, e.Wrap(err, "error creating session")
 	}
 
+	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
+		Infof("initialized session: %s", session.Identifier)
+
 	sessionProperties := map[string]string{
 		"os_name":         deviceDetails.OSName,
 		"os_version":      deviceDetails.OSVersion,
@@ -641,6 +644,14 @@ func (r *Resolver) processStackFrame(projectId, sessionId int, stackTrace model2
 		ColumnNumber: &col,
 	}
 	return mappedStackFrame, nil
+}
+
+func (r *Resolver) getWorkspace(workspaceID int) (*model.Workspace, error) {
+	var workspace model.Workspace
+	if err := r.DB.Where(&model.Workspace{Model: model.Model{ID: workspaceID}}).First(&workspace).Error; err != nil {
+		return nil, e.Wrap(err, "error querying workspace")
+	}
+	return &workspace, nil
 }
 
 func (r *Resolver) isProjectWithinBillingQuota(project *model.Project, now time.Time) bool {
@@ -900,7 +911,13 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 					log.Error(e.Wrap(err, "error querying project"))
 					return
 				}
-				err = errorAlert.SendSlackAlert(&model.SendSlackAlertInput{Project: &project, SessionID: sessionID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &errorToInsert.URL, ErrorsCount: &numErrors})
+
+				workspace, err := r.getWorkspace(project.WorkspaceID)
+				if err != nil {
+					log.Error(err)
+				}
+
+				err = errorAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &errorToInsert.URL, ErrorsCount: &numErrors})
 				if err != nil {
 					log.Error(e.Wrap(err, "error sending slack error message"))
 					return

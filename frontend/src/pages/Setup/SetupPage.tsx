@@ -63,7 +63,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                 ]}
                 onSelect={(p: PlatformType) => setPlatform(p)}
             />
-            {!data?.project || loading ? (
+            {!data?.project || !data?.workspace || loading ? (
                 <Skeleton
                     height={75}
                     count={3}
@@ -181,7 +181,7 @@ const App = () => {
                         title={
                             <span className={styles.sectionTitleWithIcon}>
                                 Enable Slack Alerts
-                                {data.project.slack_webhook_channel ? (
+                                {data.workspace.slack_webhook_channel ? (
                                     <IntegrationDetector
                                         verbose={false}
                                         integrated={integrated}

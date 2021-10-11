@@ -38,22 +38,19 @@ export const SessionFeed = React.memo(() => {
     // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
     const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
     const { searchParams, showStarredSessions } = useSearchContext();
-    const {
-        show_live_sessions,
-        ...searchParamsExceptForShowLiveSessions
-    } = searchParams;
+    const { show_live_sessions } = searchParams;
 
     const { loading, fetchMore, called } = useGetSessionsQuery({
         variables: {
-            params: searchParamsExceptForShowLiveSessions,
+            params: searchParams,
             count: count + 10,
             project_id,
             lifecycle:
                 segment_id === LIVE_SEGMENT_ID
                     ? SessionLifecycle.Live
-                    : !show_live_sessions
-                    ? SessionLifecycle.Completed
-                    : SessionLifecycle.All,
+                    : show_live_sessions
+                    ? SessionLifecycle.Live
+                    : SessionLifecycle.Completed,
             starred: showStarredSessions,
         },
         // pollInterval: SESSIONS_FEED_POLL_INTERVAL,
@@ -78,15 +75,15 @@ export const SessionFeed = React.memo(() => {
             setCount((previousCount) => previousCount + 10);
             fetchMore({
                 variables: {
-                    params: searchParamsExceptForShowLiveSessions,
+                    params: searchParams,
                     count,
                     project_id,
                     processed:
                         segment_id === LIVE_SEGMENT_ID
                             ? SessionLifecycle.Live
-                            : !searchParams.show_live_sessions
-                            ? SessionLifecycle.Completed
-                            : SessionLifecycle.All,
+                            : searchParams.show_live_sessions
+                            ? SessionLifecycle.Live
+                            : SessionLifecycle.Completed,
                 },
             });
         },

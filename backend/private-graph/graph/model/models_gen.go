@@ -35,6 +35,7 @@ type ErrorMetadata struct {
 	VisitedURL      *string    `json:"visited_url"`
 	Fingerprint     string     `json:"fingerprint"`
 	Identifier      *string    `json:"identifier"`
+	UserProperties  *string    `json:"user_properties"`
 }
 
 type ErrorSearchParamsInput struct {
@@ -102,6 +103,8 @@ type SearchParamsInput struct {
 	ExcludedProperties      []*UserPropertyInput `json:"excluded_properties"`
 	TrackProperties         []*UserPropertyInput `json:"track_properties"`
 	ExcludedTrackProperties []*UserPropertyInput `json:"excluded_track_properties"`
+	Environments            []*string            `json:"environments"`
+	AppVersions             []*string            `json:"app_versions"`
 	DateRange               *DateRangeInput      `json:"date_range"`
 	LengthRange             *LengthRangeInput    `json:"length_range"`
 	Os                      *string              `json:"os"`
@@ -112,6 +115,7 @@ type SearchParamsInput struct {
 	Identified              *bool                `json:"identified"`
 	HideViewed              *bool                `json:"hide_viewed"`
 	FirstTime               *bool                `json:"first_time"`
+	ShowLiveSessions        *bool                `json:"show_live_sessions"`
 }
 
 type TopUsersPayload struct {

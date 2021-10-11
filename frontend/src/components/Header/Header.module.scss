@@ -44,7 +44,7 @@
 }
 
 .trialWrapper {
-    --banner-height: 15px;
+    --banner-height: 8px;
 
     align-items: center;
     animation: enter-viewport 1s forwards;
@@ -102,8 +102,8 @@
 .bannerSvg {
     fill: var(--color-purple);
     position: absolute;
-    top: 17px;
-    transform: scale(2.5, 2);
+    top: 10px;
+    transform: scale(2.5, 3);
 }
 
 .trialCloseStyle {
@@ -118,7 +118,7 @@
 
 .trialTimeText {
     font-size: 12px;
-    margin-top: 15px;
+    margin-top: 18px;
     padding-bottom: 4px;
     padding-top: 4px;
     z-index: 100;

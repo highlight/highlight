@@ -14,7 +14,7 @@ export type Scalars = {
     Int: number;
     Float: number;
     Any: any;
-    Time: any;
+    Timestamp: any;
     Int64: any;
     Upload: any;
 };
@@ -44,10 +44,11 @@ export type Session = {
     client_version?: Maybe<Scalars['String']>;
     language: Scalars['String'];
     identifier: Scalars['String'];
-    created_at?: Maybe<Scalars['Time']>;
+    created_at?: Maybe<Scalars['Timestamp']>;
     length?: Maybe<Scalars['Int']>;
     active_length?: Maybe<Scalars['Int']>;
     user_object?: Maybe<Scalars['Any']>;
+    user_properties?: Maybe<Scalars['String']>;
     fields?: Maybe<Array<Maybe<Field>>>;
     viewed?: Maybe<Scalars['Boolean']>;
     starred?: Maybe<Scalars['Boolean']>;
@@ -60,6 +61,16 @@ export type Session = {
     payload_size?: Maybe<Scalars['Int64']>;
     within_billing_quota?: Maybe<Scalars['Boolean']>;
     is_public?: Maybe<Scalars['Boolean']>;
+};
+
+export type RageClickEvent = {
+    __typename?: 'RageClickEvent';
+    id: Scalars['ID'];
+    project_id: Scalars['ID'];
+    session_secure_id: Scalars['String'];
+    start_timestamp: Scalars['Timestamp'];
+    end_timestamp: Scalars['Timestamp'];
+    total_clicks: Scalars['Int'];
 };
 
 export type BillingDetails = {
@@ -104,10 +115,19 @@ export type Project = {
     verbose_id: Scalars['String'];
     name: Scalars['String'];
     billing_email?: Maybe<Scalars['String']>;
-    trial_end_date?: Maybe<Scalars['Time']>;
+    trial_end_date?: Maybe<Scalars['Timestamp']>;
+    secret?: Maybe<Scalars['String']>;
+    workspace_id: Scalars['ID'];
+};
+
+export type Workspace = {
+    __typename?: 'Workspace';
+    id: Scalars['ID'];
+    name: Scalars['String'];
     slack_webhook_channel?: Maybe<Scalars['String']>;
     slack_channels?: Maybe<Scalars['String']>;
     secret?: Maybe<Scalars['String']>;
+    projects: Array<Maybe<Project>>;
 };
 
 export type Segment = {
@@ -140,7 +160,7 @@ export type ErrorObject = {
     lineNumber?: Maybe<Scalars['Int']>;
     columnNumber?: Maybe<Scalars['Int']>;
     stack_trace?: Maybe<Array<Maybe<Scalars['Any']>>>;
-    timestamp?: Maybe<Scalars['Time']>;
+    timestamp?: Maybe<Scalars['Timestamp']>;
     payload?: Maybe<Scalars['String']>;
 };
 
@@ -153,7 +173,7 @@ export type ErrorField = {
 
 export type ErrorGroup = {
     __typename?: 'ErrorGroup';
-    created_at: Scalars['Time'];
+    created_at: Scalars['Timestamp'];
     id: Scalars['ID'];
     secure_id: Scalars['String'];
     project_id: Scalars['Int'];
@@ -175,12 +195,13 @@ export type ErrorMetadata = {
     session_id: Scalars['Int'];
     session_secure_id: Scalars['String'];
     environment?: Maybe<Scalars['String']>;
-    timestamp?: Maybe<Scalars['Time']>;
+    timestamp?: Maybe<Scalars['Timestamp']>;
     os?: Maybe<Scalars['String']>;
     browser?: Maybe<Scalars['String']>;
     visited_url?: Maybe<Scalars['String']>;
     fingerprint: Scalars['String'];
     identifier?: Maybe<Scalars['String']>;
+    user_properties?: Maybe<Scalars['String']>;
 };
 
 export type ErrorTrace = {
@@ -227,6 +248,8 @@ export type SearchParamsInput = {
     excluded_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
     track_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
     excluded_track_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
+    environments?: Maybe<Array<Maybe<Scalars['String']>>>;
+    app_versions?: Maybe<Array<Maybe<Scalars['String']>>>;
     date_range?: Maybe<DateRangeInput>;
     length_range?: Maybe<LengthRangeInput>;
     os?: Maybe<Scalars['String']>;
@@ -237,6 +260,7 @@ export type SearchParamsInput = {
     identified?: Maybe<Scalars['Boolean']>;
     hide_viewed?: Maybe<Scalars['Boolean']>;
     first_time?: Maybe<Scalars['Boolean']>;
+    show_live_sessions?: Maybe<Scalars['Boolean']>;
 };
 
 export type SearchParams = {
@@ -244,15 +268,20 @@ export type SearchParams = {
     user_properties?: Maybe<Array<Maybe<UserProperty>>>;
     excluded_properties?: Maybe<Array<Maybe<UserProperty>>>;
     track_properties?: Maybe<Array<Maybe<UserProperty>>>;
+    excluded_track_properties?: Maybe<Array<Maybe<UserProperty>>>;
+    environments?: Maybe<Array<Maybe<Scalars['String']>>>;
+    app_versions?: Maybe<Array<Maybe<Scalars['String']>>>;
     date_range?: Maybe<DateRange>;
     length_range?: Maybe<LengthRange>;
     os?: Maybe<Scalars['String']>;
     browser?: Maybe<Scalars['String']>;
     visited_url?: Maybe<Scalars['String']>;
+    device_id?: Maybe<Scalars['String']>;
     referrer?: Maybe<Scalars['String']>;
     identified?: Maybe<Scalars['Boolean']>;
     hide_viewed?: Maybe<Scalars['Boolean']>;
     first_time?: Maybe<Scalars['Boolean']>;
+    show_live_sessions?: Maybe<Scalars['Boolean']>;
 };
 
 export type ErrorSearchParamsInput = {
@@ -276,13 +305,13 @@ export type ErrorSearchParams = {
 
 export type DateRange = {
     __typename?: 'DateRange';
-    start_date?: Maybe<Scalars['Time']>;
-    end_date?: Maybe<Scalars['Time']>;
+    start_date?: Maybe<Scalars['Timestamp']>;
+    end_date?: Maybe<Scalars['Timestamp']>;
 };
 
 export type DateRangeInput = {
-    start_date?: Maybe<Scalars['Time']>;
-    end_date?: Maybe<Scalars['Time']>;
+    start_date?: Maybe<Scalars['Timestamp']>;
+    end_date?: Maybe<Scalars['Timestamp']>;
 };
 
 export type LengthRange = {
@@ -355,8 +384,8 @@ export type SessionComment = {
     id: Scalars['ID'];
     project_id: Scalars['ID'];
     timestamp?: Maybe<Scalars['Int']>;
-    created_at: Scalars['Time'];
-    updated_at: Scalars['Time'];
+    created_at: Scalars['Timestamp'];
+    updated_at: Scalars['Timestamp'];
     session_id: Scalars['Int'];
     session_secure_id: Scalars['String'];
     author?: Maybe<SanitizedAdmin>;
@@ -371,10 +400,10 @@ export type ErrorComment = {
     __typename?: 'ErrorComment';
     id: Scalars['ID'];
     project_id: Scalars['ID'];
-    created_at: Scalars['Time'];
+    created_at: Scalars['Timestamp'];
     error_id: Scalars['Int'];
     error_secure_id: Scalars['String'];
-    updated_at: Scalars['Time'];
+    updated_at: Scalars['Timestamp'];
     author: SanitizedAdmin;
     text: Scalars['String'];
 };
@@ -388,14 +417,14 @@ export enum SessionLifecycle {
 export type DailySessionCount = {
     __typename?: 'DailySessionCount';
     project_id: Scalars['ID'];
-    date: Scalars['Time'];
+    date: Scalars['Timestamp'];
     count: Scalars['Int64'];
 };
 
 export type DailyErrorCount = {
     __typename?: 'DailyErrorCount';
     project_id: Scalars['ID'];
-    date: Scalars['Time'];
+    date: Scalars['Timestamp'];
     count: Scalars['Int64'];
 };
 
@@ -447,6 +476,7 @@ export type Query = {
     __typename?: 'Query';
     session?: Maybe<Session>;
     events?: Maybe<Array<Maybe<Scalars['Any']>>>;
+    rage_clicks: Array<RageClickEvent>;
     error_groups?: Maybe<ErrorResults>;
     error_group?: Maybe<ErrorGroup>;
     messages?: Maybe<Array<Maybe<Scalars['Any']>>>;
@@ -458,7 +488,8 @@ export type Query = {
     error_comments: Array<Maybe<ErrorComment>>;
     error_comments_for_admin: Array<Maybe<ErrorComment>>;
     error_comments_for_project: Array<Maybe<ErrorComment>>;
-    admins: Array<Maybe<Admin>>;
+    project_admins: Array<Maybe<Admin>>;
+    workspace_admins: Array<Maybe<Admin>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
     unprocessedSessionsCount?: Maybe<Scalars['Int64']>;
     adminHasCreatedComment?: Maybe<Scalars['Boolean']>;
@@ -477,17 +508,22 @@ export type Query = {
     property_suggestion?: Maybe<Array<Maybe<Field>>>;
     error_field_suggestion?: Maybe<Array<Maybe<ErrorField>>>;
     projects?: Maybe<Array<Maybe<Project>>>;
+    workspaces?: Maybe<Array<Workspace>>;
     error_alert?: Maybe<ErrorAlert>;
     session_feedback_alert?: Maybe<SessionAlert>;
     new_user_alert?: Maybe<SessionAlert>;
     track_properties_alert?: Maybe<SessionAlert>;
     user_properties_alert?: Maybe<SessionAlert>;
+    new_session_alert?: Maybe<SessionAlert>;
     projectSuggestion?: Maybe<Array<Maybe<Project>>>;
     environment_suggestion?: Maybe<Array<Maybe<Field>>>;
+    app_version_suggestion: Array<Maybe<Scalars['String']>>;
     slack_channel_suggestion?: Maybe<Array<Maybe<SanitizedSlackChannel>>>;
     slack_members: Array<Maybe<SanitizedSlackChannel>>;
     is_integrated_with_slack: Scalars['Boolean'];
     project?: Maybe<Project>;
+    workspace?: Maybe<Workspace>;
+    workspace_for_project?: Maybe<Workspace>;
     admin?: Maybe<Admin>;
     segments?: Maybe<Array<Maybe<Segment>>>;
     error_segments?: Maybe<Array<Maybe<ErrorSegment>>>;
@@ -501,6 +537,10 @@ export type QuerySessionArgs = {
 
 export type QueryEventsArgs = {
     session_id?: Maybe<Scalars['ID']>;
+    session_secure_id?: Maybe<Scalars['String']>;
+};
+
+export type QueryRage_ClicksArgs = {
     session_secure_id?: Maybe<Scalars['String']>;
 };
 
@@ -548,8 +588,12 @@ export type QueryError_Comments_For_ProjectArgs = {
     project_id: Scalars['ID'];
 };
 
-export type QueryAdminsArgs = {
+export type QueryProject_AdminsArgs = {
     project_id: Scalars['ID'];
+};
+
+export type QueryWorkspace_AdminsArgs = {
+    workspace_id: Scalars['ID'];
 };
 
 export type QueryIsIntegratedArgs = {
@@ -660,11 +704,19 @@ export type QueryUser_Properties_AlertArgs = {
     project_id: Scalars['ID'];
 };
 
+export type QueryNew_Session_AlertArgs = {
+    project_id: Scalars['ID'];
+};
+
 export type QueryProjectSuggestionArgs = {
     query: Scalars['String'];
 };
 
 export type QueryEnvironment_SuggestionArgs = {
+    project_id: Scalars['ID'];
+};
+
+export type QueryApp_Version_SuggestionArgs = {
     project_id: Scalars['ID'];
 };
 
@@ -684,6 +736,14 @@ export type QueryProjectArgs = {
     id: Scalars['ID'];
 };
 
+export type QueryWorkspaceArgs = {
+    id: Scalars['ID'];
+};
+
+export type QueryWorkspace_For_ProjectArgs = {
+    project_id: Scalars['ID'];
+};
+
 export type QuerySegmentsArgs = {
     project_id: Scalars['ID'];
 };
@@ -699,14 +759,19 @@ export type QueryApi_Key_To_Org_IdArgs = {
 export type Mutation = {
     __typename?: 'Mutation';
     createProject?: Maybe<Project>;
+    createWorkspace?: Maybe<Workspace>;
     editProject?: Maybe<Project>;
+    editWorkspace?: Maybe<Workspace>;
     markSessionAsViewed?: Maybe<Session>;
     markSessionAsStarred?: Maybe<Session>;
     updateErrorGroupState?: Maybe<ErrorGroup>;
     deleteProject?: Maybe<Scalars['Boolean']>;
-    sendAdminInvite?: Maybe<Scalars['String']>;
+    sendAdminProjectInvite?: Maybe<Scalars['String']>;
+    sendAdminWorkspaceInvite?: Maybe<Scalars['String']>;
     addAdminToProject?: Maybe<Scalars['ID']>;
+    addAdminToWorkspace?: Maybe<Scalars['ID']>;
     deleteAdminFromProject?: Maybe<Scalars['ID']>;
+    deleteAdminFromWorkspace?: Maybe<Scalars['ID']>;
     createSegment?: Maybe<Segment>;
     emailSignup: Scalars['String'];
     editSegment?: Maybe<Scalars['Boolean']>;
@@ -727,11 +792,17 @@ export type Mutation = {
     updateNewUserAlert?: Maybe<SessionAlert>;
     updateTrackPropertiesAlert?: Maybe<SessionAlert>;
     updateUserPropertiesAlert?: Maybe<SessionAlert>;
+    updateNewSessionAlert?: Maybe<SessionAlert>;
     updateSessionIsPublic?: Maybe<Session>;
     updateErrorGroupIsPublic?: Maybe<ErrorGroup>;
 };
 
 export type MutationCreateProjectArgs = {
+    name: Scalars['String'];
+    workspace_id: Scalars['ID'];
+};
+
+export type MutationCreateWorkspaceArgs = {
     name: Scalars['String'];
 };
 
@@ -739,6 +810,11 @@ export type MutationEditProjectArgs = {
     id: Scalars['ID'];
     name?: Maybe<Scalars['String']>;
     billing_email?: Maybe<Scalars['String']>;
+};
+
+export type MutationEditWorkspaceArgs = {
+    id: Scalars['ID'];
+    name?: Maybe<Scalars['String']>;
 };
 
 export type MutationMarkSessionAsViewedArgs = {
@@ -763,8 +839,14 @@ export type MutationDeleteProjectArgs = {
     id: Scalars['ID'];
 };
 
-export type MutationSendAdminInviteArgs = {
+export type MutationSendAdminProjectInviteArgs = {
     project_id: Scalars['ID'];
+    email: Scalars['String'];
+    base_url: Scalars['String'];
+};
+
+export type MutationSendAdminWorkspaceInviteArgs = {
+    workspace_id: Scalars['ID'];
     email: Scalars['String'];
     base_url: Scalars['String'];
 };
@@ -774,8 +856,18 @@ export type MutationAddAdminToProjectArgs = {
     invite_id: Scalars['String'];
 };
 
+export type MutationAddAdminToWorkspaceArgs = {
+    workspace_id: Scalars['ID'];
+    invite_id: Scalars['String'];
+};
+
 export type MutationDeleteAdminFromProjectArgs = {
     project_id: Scalars['ID'];
+    admin_id: Scalars['ID'];
+};
+
+export type MutationDeleteAdminFromWorkspaceArgs = {
+    workspace_id: Scalars['ID'];
     admin_id: Scalars['ID'];
 };
 
@@ -913,6 +1005,13 @@ export type MutationUpdateUserPropertiesAlertArgs = {
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;
     user_properties: Array<Maybe<UserPropertyInput>>;
+};
+
+export type MutationUpdateNewSessionAlertArgs = {
+    project_id: Scalars['ID'];
+    session_alert_id: Scalars['ID'];
+    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+    environments: Array<Maybe<Scalars['String']>>;
 };
 
 export type MutationUpdateSessionIsPublicArgs = {

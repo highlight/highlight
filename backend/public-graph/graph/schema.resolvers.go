@@ -41,7 +41,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, userIdentifier string, userObject interface{}) (*int, error) {
 	obj, ok := userObject.(map[string]interface{})
 	if !ok {
-		return nil, fmt.Errorf("error converting userObject interface type")
+		return nil, fmt.Errorf("[IdentifySession] error converting userObject interface type")
 	}
 
 	userProperties := map[string]string{
@@ -53,16 +53,16 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 		userObj[k] = fmt.Sprintf("%v", v)
 	}
 	if err := r.AppendProperties(sessionID, userProperties, PropertyType.USER); err != nil {
-		log.Error(e.Wrap(err, "error adding set of properties to db"))
+		log.Error(e.Wrapf(err, "[IdentifySession] error adding set of identify properties to db: session: %d", sessionID))
 	}
 
 	session := &model.Session{}
 	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
-		return nil, e.Wrap(err, "error querying session by sessionID")
+		return nil, e.Wrap(err, "[IdentifySession] error querying session by sessionID")
 	}
 	// set user properties to session in db
 	if err := session.SetUserProperties(userObj); err != nil {
-		return nil, e.Wrapf(err, "[project_id: %d] error appending user properties to session object {id: %d}", session.ProjectID, sessionID)
+		return nil, e.Wrapf(err, "[IdentifySession] [project_id: %d] error appending user properties to session object {id: %d}", session.ProjectID, sessionID)
 	}
 
 	// Check if there is a session created by this user.
@@ -71,7 +71,7 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			firstTime = &model.T
 		} else {
-			return nil, e.Wrap(err, "error querying session with past identifier")
+			return nil, e.Wrap(err, "[IdentifySession] error querying session with past identifier")
 		}
 	}
 
@@ -79,8 +79,11 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 	session.Identifier = userIdentifier
 
 	if err := r.DB.Save(&session).Error; err != nil {
-		return nil, e.Wrap(err, "failed to update session")
+		return nil, e.Wrap(err, "[IdentifySession] failed to update session")
 	}
+
+	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
+		Infof("identified session: %s", session.Identifier)
 
 	return &sessionID, nil
 }
@@ -136,11 +139,11 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 	metadata["timestamp"] = timestamp
 
 	session := &model.Session{}
-	if err := r.DB.Select("project_id", "environment", "id").Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
+	if err := r.DB.Select("project_id", "environment", "id", "secure_id").Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
 		return -1, e.Wrap(err, "error querying session by sessionID for adding session feedback")
 	}
 
-	feedbackComment := &model.SessionComment{SessionId: sessionID, Text: verbatim, Metadata: metadata, Type: model.SessionCommentTypes.FEEDBACK, ProjectID: session.ProjectID}
+	feedbackComment := &model.SessionComment{SessionId: sessionID, Text: verbatim, Metadata: metadata, Type: model.SessionCommentTypes.FEEDBACK, ProjectID: session.ProjectID, SessionSecureId: session.SecureID}
 	if err := r.DB.Create(feedbackComment).Error; err != nil {
 		return -1, e.Wrap(err, "error creating session feedback")
 	}
@@ -185,7 +188,7 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 			time.Now().Add(-time.Duration(*sessionFeedbackAlert.ThresholdWindow)*time.Minute)).
 			Scan(&commentsCount).Error; err != nil {
 			log.WithError(err).
-				WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "comment_id": feedbackComment.ID}).
+				WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "session_secure_id": session.SecureID, "comment_id": feedbackComment.ID}).
 				Error(e.Wrapf(err, "error fetching %s alert count", model.AlertType.SESSION_FEEDBACK))
 			return
 		}
@@ -200,7 +203,7 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 			WHERE id = ?
 		`, session.ProjectID).Scan(&project).Error; err != nil {
 			log.WithError(err).
-				WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "comment_id": feedbackComment.ID}).
+				WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "session_secure_id": session.SecureID, "comment_id": feedbackComment.ID}).
 				Error(e.Wrapf(err, "error fetching %s alert", model.AlertType.SESSION_FEEDBACK))
 			return
 		}
@@ -212,12 +215,19 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 			identifier = *userEmail
 		}
 
+		workspace, err := r.getWorkspace(project.WorkspaceID)
+		if err != nil {
+			log.WithError(err).
+				WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "comment_id": feedbackComment.ID}).
+				Error(e.Wrap(err, "error fetching workspace"))
+		}
+
 		if err := sessionFeedbackAlert.SendSlackAlert(&model.SendSlackAlertInput{
-			Project:        &project,
-			SessionID:      session.ID,
-			UserIdentifier: identifier,
-			CommentID:      &feedbackComment.ID,
-			CommentText:    feedbackComment.Text,
+			Workspace:       workspace,
+			SessionSecureID: session.SecureID,
+			UserIdentifier:  identifier,
+			CommentID:       &feedbackComment.ID,
+			CommentText:     feedbackComment.Text,
 		}); err != nil {
 			log.WithError(err).WithFields(log.Fields{"project_id": session.ProjectID, "comment_id": feedbackComment.ID}).
 				Error(e.Wrapf(err, "error sending %s slack alert", model.AlertType.SESSION_FEEDBACK))

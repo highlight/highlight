@@ -11,6 +11,11 @@ query GetSessionPayload($session_secure_id: String!) {
         timestamp
         payload
     }
+    rage_clicks(session_secure_id: $session_secure_id) {
+        start_timestamp
+        end_timestamp
+        total_clicks
+    }
 }
 
 query GetSession($secure_id: String!) {
@@ -29,6 +34,7 @@ query GetSession($secure_id: String!) {
         created_at
         language
         user_object
+        user_properties
         identifier
         starred
         enable_strict_privacy
@@ -47,13 +53,28 @@ query GetSession($secure_id: String!) {
     }
 }
 
-query GetAdmins($project_id: ID!) {
-    admins(project_id: $project_id) {
+query GetProjectAdmins($project_id: ID!) {
+    admins: project_admins(project_id: $project_id) {
         id
         name
         email
         photo_url
         role
+    }
+}
+
+query GetWorkspaceAdmins($workspace_id: ID!) {
+    admins: workspace_admins(workspace_id: $workspace_id) {
+        id
+        name
+        email
+        photo_url
+        role
+    }
+    workspace(id: $workspace_id) {
+        id
+        name
+        secret
     }
 }
 
@@ -147,10 +168,11 @@ query GetErrorComments($error_group_secure_id: String!) {
 }
 
 query GetOnboardingSteps($project_id: ID!, $admin_id: ID!) {
-    project(id: $project_id) {
+    workspace: workspace_for_project(project_id: $project_id) {
+        id
         slack_channels
     }
-    admins(project_id: $project_id) {
+    admins: project_admins(project_id: $project_id) {
         id
     }
     isIntegrated(project_id: $project_id)
@@ -163,12 +185,16 @@ query GetOnboardingSteps($project_id: ID!, $admin_id: ID!) {
     }
 }
 
-mutation SendAdminInvite(
-    $project_id: ID!
+mutation SendAdminWorkspaceInvite(
+    $workspace_id: ID!
     $email: String!
     $base_url: String!
 ) {
-    sendAdminInvite(project_id: $project_id, email: $email, base_url: $base_url)
+    sendAdminWorkspaceInvite(
+        workspace_id: $workspace_id
+        email: $email
+        base_url: $base_url
+    )
 }
 
 query GetSessions(
@@ -213,6 +239,7 @@ query GetSessions(
                 id
             }
             first_time
+            user_properties
         }
         totalCount
     }
@@ -222,22 +249,91 @@ query GetProjects {
     projects {
         id
         name
+        workspace_id
     }
 }
 
-# Gets the current application and all applications the admin has access to.
-query GetApplications($id: ID!) {
+query GetWorkspace($id: ID!) {
+    workspace(id: $id) {
+        id
+        name
+        secret
+        projects {
+            id
+            name
+        }
+    }
+}
+
+query GetWorkspaces {
+    workspaces {
+        id
+        name
+    }
+}
+
+query GetProjectsAndWorkspaces {
     projects {
         id
         name
     }
-    project(id: $id) {
+    workspaces {
+        id
+        name
+    }
+}
+
+query GetProjectOrWorkspace(
+    $project_id: ID!
+    $workspace_id: ID!
+    $is_workspace: Boolean!
+) {
+    project(id: $project_id) @skip(if: $is_workspace) {
+        id
+        name
+        billing_email
+    }
+    workspace(id: $workspace_id) @include(if: $is_workspace) {
+        id
+        name
+    }
+}
+
+query GetProjectDropdownOptions($project_id: ID!) {
+    project(id: $project_id) {
         id
         name
         verbose_id
         billing_email
-        slack_webhook_channel
         secret
+        workspace_id
+    }
+    workspace: workspace_for_project(project_id: $project_id) {
+        id
+        name
+        projects {
+            id
+            name
+        }
+    }
+    workspaces {
+        id
+        name
+    }
+}
+
+query GetWorkspaceDropdownOptions($workspace_id: ID!) {
+    workspace(id: $workspace_id) {
+        id
+        name
+        projects {
+            id
+            name
+        }
+    }
+    workspaces {
+        id
+        name
     }
 }
 
@@ -258,8 +354,10 @@ query GetProject($id: ID!) {
         name
         verbose_id
         billing_email
+    }
+    workspace: workspace_for_project(project_id: $id) {
+        id
         slack_webhook_channel
-        secret
     }
 }
 
@@ -304,6 +402,7 @@ query GetErrorGroup($secure_id: String!) {
             visited_url
             fingerprint
             identifier
+            user_properties
         }
         field_group {
             name
@@ -359,6 +458,17 @@ query GetFieldSuggestion($project_id: ID!, $name: String!, $query: String!) {
         name
         value
     }
+}
+
+query GetEnvironments($project_id: ID!) {
+    environment_suggestion(project_id: $project_id) {
+        name
+        value
+    }
+}
+
+query GetAppVersions($project_id: ID!) {
+    app_version_suggestion(project_id: $project_id)
 }
 
 query GetProjectSuggestion($query: String!) {
@@ -489,6 +599,10 @@ query GetSegments($project_id: ID!) {
             identified
             hide_viewed
             first_time
+            app_versions
+            environments
+            device_id
+            show_live_sessions
         }
     }
 }
@@ -677,6 +791,16 @@ query GetAlertsPagePayload($project_id: ID!) {
         ThresholdWindow
         id
     }
+    new_session_alert(project_id: $project_id) {
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        ExcludedEnvironments
+        CountThreshold
+        ThresholdWindow
+        id
+    }
     new_user_alert(project_id: $project_id) {
         id
         ChannelsToNotify {
@@ -717,7 +841,7 @@ query GetAlertsPagePayload($project_id: ID!) {
 }
 
 query GetCommentMentionSuggestions($project_id: ID!) {
-    admins(project_id: $project_id) {
+    admins: project_admins(project_id: $project_id) {
         id
         name
         email

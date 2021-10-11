@@ -129,6 +129,8 @@ type Source = 'segment' | undefined;
 
 type SessionData = {
     sessionID: number;
+    sessionSecureID: string;
+    projectID: number;
     sessionStartTime?: number;
     userIdentifier?: string;
     userObject?: Object;
@@ -151,9 +153,12 @@ const MAX_SESSION_LENGTH = 4 * 60 * 60 * 1000;
 
 const MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS = 5;
 
+const HIGHLIGHT_URL = 'app.highlight.run';
+
 export class Highlight {
     /** Determines if the client is running on a Highlight property (e.g. frontend). */
     isRunningOnHighlight: boolean;
+    /** Verbose project ID that is exposed to users. Legacy users may still be using ints. */
     organizationID: string;
     graphqlSDK: Sdk;
     events: eventWithTime[];
@@ -269,6 +274,8 @@ export class Highlight {
         this.firstloadVersion = options.firstloadVersion || 'unknown';
         this.sessionData = {
             sessionID: 0,
+            sessionSecureID: '',
+            projectID: 0,
             sessionStartTime: Date.now(),
         };
         // We only want to store a subset of the options for debugging purposes. Firstload version is stored as another field so we don't need to store it here.
@@ -475,13 +482,16 @@ export class Highlight {
                     this.sessionData.sessionID = parseInt(
                         gr?.initializeSession?.id || '0'
                     );
-                    const organization_id =
-                        gr?.initializeSession?.organization_id;
+                    this.sessionData.sessionSecureID =
+                        gr?.initializeSession?.secure_id || '';
+                    this.sessionData.projectID = parseInt(
+                        gr?.initializeSession?.project_id || '0'
+                    );
                     this.logger.log(
                         `Loaded Highlight
   Remote: ${process.env.PUBLIC_GRAPH_URI}
-  Org ID: ${organization_id}
-  Verbose Org ID: ${this.organizationID}
+  Friendly Project ID: ${this.organizationID}
+  Short Project ID: ${this.sessionData.projectID}
   SessionID: ${this.sessionData.sessionID}
   Session Data:
   `,
@@ -689,6 +699,15 @@ export class Highlight {
 
     getCurrentSessionTimestamp() {
         return this._recordingStartTime;
+    }
+
+    getCurrentSessionURL() {
+        const projectID = this.sessionData.projectID;
+        const sessionSecureID = this.sessionData.sessionSecureID;
+        if (projectID && sessionSecureID) {
+            return `https://${HIGHLIGHT_URL}/${projectID}/sessions/${sessionSecureID}`;
+        }
+        return null;
     }
 
     addSessionFeedback({

@@ -1,10 +1,17 @@
+import Select from '@components/Select/Select';
+import SvgHashtagIcon from '@icons/HashtagIcon';
+import SvgMapIcon from '@icons/MapIcon';
 import { useParams } from '@util/react-router/useParams';
 import { H } from 'highlight.run';
 import React from 'react';
 import { OptionsType, OptionTypeBase, ValueType } from 'react-select';
 import AsyncSelect from 'react-select/async';
 
-import { useGetFieldSuggestionQuery } from '../../../graph/generated/hooks';
+import {
+    useGetAppVersionsQuery,
+    useGetEnvironmentsQuery,
+    useGetFieldSuggestionQuery,
+} from '../../../graph/generated/hooks';
 import SvgBrowser from '../../../static/Browser';
 import SvgMonitorIcon from '../../../static/MonitorIcon';
 import SvgOs from '../../../static/Os';
@@ -188,6 +195,78 @@ export const DeviceIdInput = () => {
                 defaultOptions
                 onChange={onChange}
             />
+        </div>
+    );
+};
+
+export const EnvironmentInput = () => {
+    const { project_id } = useParams<{ project_id: string }>();
+    const { searchParams, setSearchParams } = useSearchContext();
+
+    const { data } = useGetEnvironmentsQuery({
+        variables: {
+            project_id,
+        },
+    });
+
+    const onChange = (current: string[]) => {
+        setSearchParams((params) => ({ ...params, environments: current }));
+        H.track('EnvironmentsFilter');
+    };
+
+    return (
+        <div className={inputStyles.selectWithIconContainer}>
+            <Select
+                className={inputStyles.select}
+                mode="multiple"
+                placeholder={'Environments'}
+                value={searchParams.environments}
+                options={(data?.environment_suggestion || []).map(
+                    (suggestion) => ({
+                        value: suggestion?.value || '',
+                        displayValue: suggestion?.value || '',
+                        id: suggestion?.value || '',
+                    })
+                )}
+                onChange={onChange}
+            />
+            <SvgMapIcon className={inputStyles.icon} />
+        </div>
+    );
+};
+
+export const AppVersionInput = () => {
+    const { project_id } = useParams<{ project_id: string }>();
+    const { searchParams, setSearchParams } = useSearchContext();
+
+    const { data } = useGetAppVersionsQuery({
+        variables: {
+            project_id,
+        },
+    });
+
+    const onChange = (current: string[]) => {
+        setSearchParams((params) => ({ ...params, app_versions: current }));
+        H.track('AppVersionFilter');
+    };
+
+    return (
+        <div className={inputStyles.selectWithIconContainer}>
+            <Select
+                className={inputStyles.select}
+                mode="multiple"
+                placeholder={'5.2.2, 4.3.1'}
+                value={searchParams.app_versions}
+                options={(data?.app_version_suggestion || []).map(
+                    (suggestion) => ({
+                        value: suggestion || '',
+                        displayValue: suggestion || '',
+                        id: suggestion || '',
+                    })
+                )}
+                onChange={onChange}
+            />
+            <SvgHashtagIcon className={inputStyles.icon} />
         </div>
     );
 };

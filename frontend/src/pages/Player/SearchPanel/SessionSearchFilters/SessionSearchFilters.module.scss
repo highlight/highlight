@@ -43,3 +43,13 @@
     max-width: 800px;
     min-width: 200px;
 }
+
+.clearFilters {
+    width: fit-content;
+}
+
+.clearFiltersContainer {
+    align-items: flex-end;
+    display: flex;
+    justify-content: flex-end;
+}

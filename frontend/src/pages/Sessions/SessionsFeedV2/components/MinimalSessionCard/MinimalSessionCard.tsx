@@ -17,7 +17,7 @@ import SvgUserPlusIcon from '../../../../../static/UserPlusIcon';
 import { MillisToMinutesAndSecondsVerbose } from '../../../../../util/time';
 import { LIVE_SEGMENT_ID } from '../../../SearchSidebar/SegmentPicker/SegmentPicker';
 import styles from './MinimalSessionCard.module.scss';
-import { getIdentifiedUserProfileImage } from './utils/utils';
+import { getDisplayName, getIdentifiedUserProfileImage } from './utils/utils';
 
 interface Props {
     session: Maybe<Session>;
@@ -113,12 +113,7 @@ const MinimalSessionCard = React.memo(
                             })}
                         >
                             <Tooltip
-                                title={
-                                    session?.identifier ||
-                                    (session?.fingerprint
-                                        ? `#${session?.fingerprint}`
-                                        : 'unidentified')
-                                }
+                                title={getDisplayName(session)}
                                 mouseEnterDelay={0}
                             >
                                 <div
@@ -127,10 +122,7 @@ const MinimalSessionCard = React.memo(
                                         'highlight-block'
                                     )}
                                 >
-                                    {session?.identifier ||
-                                        (session?.fingerprint
-                                            ? `#${session?.fingerprint}`
-                                            : 'unidentified')}
+                                    {getDisplayName(session)}
                                 </div>
                             </Tooltip>
                         </div>
