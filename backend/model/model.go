@@ -545,7 +545,8 @@ type DailyErrorCount struct {
 	Date           *time.Time `json:"date"`
 	Count          int64      `json:"count"`
 	OrganizationID int
-	ProjectID      int `json:"project_id"`
+	ProjectID      int    `json:"project_id"`
+	ErrorType      string `gorm:"default:FRONTEND"`
 }
 
 func (s *SearchParams) GormDataType() string {
@@ -713,6 +714,14 @@ type RageClickEvent struct {
 	EndTimestamp    time.Time `deep:"-"`
 }
 
+var ErrorType = struct {
+	FRONTEND string
+	BACKEND  string
+}{
+	FRONTEND: "FRONTEND",
+	BACKEND:  "BACKEND",
+}
+
 func SetupDB(dbName string) (*gorm.DB, error) {
 	var (
 		host     = os.Getenv("PSQL_HOST")
@@ -783,11 +792,30 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 	`).Error; err != nil {
 		return nil, e.Wrap(err, "Error creating secure_id_generator")
 	}
+
 	if err := DB.AutoMigrate(
 		Models...,
 	); err != nil {
 		return nil, e.Wrap(err, "Error migrating db")
 	}
+
+	// Add unique constraint to daily_error_counts
+	if err := DB.Exec(`
+		DO $$
+			BEGIN
+				BEGIN
+					ALTER TABLE daily_error_counts 
+					ADD CONSTRAINT date_project_id_error_type_uniq
+						UNIQUE (date, project_id, error_type);
+				EXCEPTION
+					WHEN duplicate_table 
+					THEN RAISE NOTICE 'daily_error_counts.date_project_id_error_type_uniq already exists';
+				END;
+			END $$;
+	`).Error; err != nil {
+		return nil, e.Wrap(err, "Error adding unique constraint on daily_error_counts")
+	}
+
 	sqlDB, err := DB.DB()
 	if err != nil {
 		return nil, e.Wrap(err, "error retrieving underlying sql db")
