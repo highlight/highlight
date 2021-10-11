@@ -876,52 +876,57 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 			r := r
 			sessionObj := sessionObj
 			r.AlertWorkerPool.Submit(func() {
-				var errorAlert model.ErrorAlert
-				if err := r.DB.Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{Alert: model.Alert{ProjectID: projectID}}).First(&errorAlert).Error; err != nil {
-					log.Error(e.Wrap(err, "error fetching ErrorAlert object"))
+				var errorAlerts []*model.ErrorAlert
+				if err := r.DB.Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{Alert: model.Alert{ProjectID: projectID}}).Find(&errorAlerts).Error; err != nil {
+					log.Error(e.Wrap(err, "error fetching ErrorAlerts object"))
 					return
 				}
-				if errorAlert.CountThreshold < 1 {
-					return
-				}
-				excludedEnvironments, err := errorAlert.GetExcludedEnvironments()
-				if err != nil {
-					log.Error(e.Wrap(err, "error getting excluded environments from ErrorAlert"))
-					return
-				}
-				for _, env := range excludedEnvironments {
-					if env != nil && *env == sessionObj.Environment {
+
+				for _, errorAlert := range errorAlerts {
+					if errorAlert.CountThreshold < 1 {
 						return
 					}
-				}
-				numErrors := int64(-1)
-				if errorAlert.ThresholdWindow == nil {
-					t := 30
-					errorAlert.ThresholdWindow = &t
-				}
-				if err := r.DB.Model(&model.ErrorObject{}).Where(&model.ErrorObject{ProjectID: projectID, ErrorGroupID: group.ID}).Where("created_at > ?", time.Now().Add(time.Duration(-(*errorAlert.ThresholdWindow))*time.Minute)).Count(&numErrors).Error; err != nil {
-					log.Error(e.Wrapf(err, "error counting errors from past %d minutes", *errorAlert.ThresholdWindow))
-					return
-				}
-				if numErrors+1 < int64(errorAlert.CountThreshold) {
-					return
-				}
-				var project model.Project
-				if err := r.DB.Model(&model.Project{}).Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
-					log.Error(e.Wrap(err, "error querying project"))
-					return
+					excludedEnvironments, err := errorAlert.GetExcludedEnvironments()
+					if err != nil {
+						log.Error(e.Wrap(err, "error getting excluded environments from ErrorAlert"))
+						return
+					}
+					for _, env := range excludedEnvironments {
+						if env != nil && *env == sessionObj.Environment {
+							return
+						}
+					}
+					numErrors := int64(-1)
+					if errorAlert.ThresholdWindow == nil {
+						t := 30
+						errorAlert.ThresholdWindow = &t
+					}
+					if err := r.DB.Model(&model.ErrorObject{}).Where(&model.ErrorObject{ProjectID: projectID, ErrorGroupID: group.ID}).Where("created_at > ?", time.Now().Add(time.Duration(-(*errorAlert.ThresholdWindow))*time.Minute)).Count(&numErrors).Error; err != nil {
+						log.Error(e.Wrapf(err, "error counting errors from past %d minutes", *errorAlert.ThresholdWindow))
+						return
+					}
+					if numErrors+1 < int64(errorAlert.CountThreshold) {
+						return
+					}
+					var project model.Project
+					if err := r.DB.Model(&model.Project{}).Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
+						log.Error(e.Wrap(err, "error querying project"))
+						return
+					}
+
+					workspace, err := r.getWorkspace(project.WorkspaceID)
+					if err != nil {
+						log.Error(err)
+					}
+
+					err = errorAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &errorToInsert.URL, ErrorsCount: &numErrors})
+					if err != nil {
+						log.Error(e.Wrap(err, "error sending slack error message"))
+						return
+					}
+
 				}
 
-				workspace, err := r.getWorkspace(project.WorkspaceID)
-				if err != nil {
-					log.Error(err)
-				}
-
-				err = errorAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &errorToInsert.URL, ErrorsCount: &numErrors})
-				if err != nil {
-					log.Error(e.Wrap(err, "error sending slack error message"))
-					return
-				}
 			})
 		}
 

@@ -1,0 +1,21 @@
+.table {
+    :global(.ant-table-thead > tr > th) {
+        background: transparent !important;
+        border-bottom: 1px solid var(--color-gray-300) !important;
+        border-top: 1px solid var(--color-gray-300) !important;
+        color: var(--color-gray-800) !important;
+        font-weight: normal !important;
+        padding-bottom: var(--size-xSmall) !important;
+        padding-top: var(--size-xSmall) !important;
+    }
+
+    :global(.ant-table-cell) {
+        border-bottom: 1px solid var(--color-gray-300) !important;
+        padding-bottom: var(--size-medium) !important;
+        padding-top: var(--size-medium) !important;
+    }
+
+    :global(.ant-table-tbody > tr.ant-table-row:hover > td) {
+        background: var(--color-gray-100) !important;
+    }
+}

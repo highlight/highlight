@@ -13,6 +13,9 @@
 }
 
 .alertConfigurationCard {
+    .subTitle {
+        margin-top: var(--size-small) !important;
+    }
     h2 {
         font-size: 22px !important;
         margin-bottom: 0 !important;
@@ -51,12 +54,6 @@
 
 .notFoundMessage {
     padding: var(--size-small) 0;
-}
-
-.title {
-    align-items: center;
-    column-gap: var(--size-xSmall);
-    display: flex;
 }
 
 .frequencyContainer {

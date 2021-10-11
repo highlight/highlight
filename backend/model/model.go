@@ -205,7 +205,9 @@ type Alert struct {
 	CountThreshold       int
 	ThresholdWindow      *int
 	ChannelsToNotify     *string
+	Name                 *string
 	Type                 *string `gorm:"index"`
+	LastAdminToEditID    int     `gorm:"last_admin_to_edit_id"`
 }
 
 type ErrorAlert struct {

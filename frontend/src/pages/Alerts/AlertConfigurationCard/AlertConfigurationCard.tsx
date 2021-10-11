@@ -1,15 +1,16 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import { DEMO_WORKSPACE_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { namedOperations } from '@graph/operations';
 import { useParams } from '@util/react-router/useParams';
 import { Divider, Form, message } from 'antd';
 import classNames from 'classnames';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useHistory } from 'react-router';
 import TextTransition from 'react-text-transition';
 
 import Button from '../../../components/Button/Button/Button';
-import Collapsible from '../../../components/Collapsible/Collapsible';
-import InfoTooltip from '../../../components/InfoTooltip/InfoTooltip';
 import InputNumber from '../../../components/InputNumber/InputNumber';
+import layoutStyles from '../../../components/layout/LeadAlignLayout.module.scss';
 import Select from '../../../components/Select/Select';
 import {
     useGetTrackSuggestionQuery,
@@ -22,7 +23,7 @@ import {
     useUpdateUserPropertiesAlertMutation,
 } from '../../../graph/generated/hooks';
 import { ALERT_TYPE } from '../Alerts';
-import { dedupeEnvironments } from '../utils/AlertsUtils';
+import { dedupeEnvironments, getAlertTypeColor } from '../utils/AlertsUtils';
 import styles from './AlertConfigurationCard.module.scss';
 
 interface AlertConfiguration {
@@ -38,14 +39,21 @@ interface Props {
     environmentOptions: any[];
     channelSuggestions: any[];
     slackUrl: string;
+    onDeleteHandler?: (alertId: string) => void;
 }
 
 export const AlertConfigurationCard = ({
     alert,
-    configuration: { name, canControlThreshold, type, description },
+    configuration: {
+        name: defaultName,
+        canControlThreshold,
+        type,
+        description,
+    },
     environmentOptions,
     channelSuggestions,
     slackUrl,
+    onDeleteHandler,
 }: Props) => {
     const [loading, setLoading] = useState(false);
     const [formTouched, setFormTouched] = useState(false);
@@ -54,12 +62,14 @@ export const AlertConfigurationCard = ({
     const [lookbackPeriod, setLookbackPeriod] = useState(
         getLookbackPeriodOption(alert?.ThresholdWindow).value
     );
+    const { isHighlightAdmin } = useAuthContext();
     const [searchQuery, setSearchQuery] = useState('');
     const { project_id } = useParams<{ project_id: string }>();
     const [form] = Form.useForm();
     const [updateErrorAlert] = useUpdateErrorAlertMutation();
     const [updateNewUserAlert] = useUpdateNewUserAlertMutation();
     const [updateUserPropertiesAlert] = useUpdateUserPropertiesAlertMutation();
+    const history = useHistory();
     const [
         updateTrackPropertiesAlert,
     ] = useUpdateTrackPropertiesAlertMutation();
@@ -68,12 +78,22 @@ export const AlertConfigurationCard = ({
     ] = useUpdateSessionFeedbackAlertMutation();
     const [updateNewSessionAlert] = useUpdateNewSessionAlertMutation();
 
+    const excludedEnvironmentsFormName = `${
+        alert.Name || defaultName
+    }-excludedEnvironments`;
+
+    useEffect(() => {
+        history.replace(history.location.pathname, {
+            errorName: alert.Name || defaultName,
+        });
+    }, [alert.Name, defaultName, history]);
+
     const onSubmit = async () => {
         setLoading(true);
         try {
             const requestVariables = {
                 project_id,
-                environments: form.getFieldValue('excludedEnvironments'),
+                environments: form.getFieldValue(excludedEnvironmentsFormName),
                 count_threshold: form.getFieldValue('threshold'),
                 slack_channels: form
                     .getFieldValue('channels')
@@ -98,6 +118,7 @@ export const AlertConfigurationCard = ({
                             ...requestVariables,
                             error_alert_id: alert.id,
                             threshold_window: lookbackPeriod,
+                            name: 'Error Alert',
                         },
                     });
                     break;
@@ -107,6 +128,8 @@ export const AlertConfigurationCard = ({
                         variables: {
                             ...requestVariables,
                             session_alert_id: alert.id,
+                            name: defaultName,
+                            threshold_window: 1,
                         },
                     });
                     break;
@@ -130,6 +153,8 @@ export const AlertConfigurationCard = ({
                                     };
                                 }),
                             session_alert_id: alert.id,
+                            name: defaultName,
+                            threshold_window: 1,
                         },
                     });
                     break;
@@ -153,6 +178,8 @@ export const AlertConfigurationCard = ({
                                     };
                                 }),
                             session_alert_id: alert.id,
+                            name: defaultName,
+                            threshold_window: 1,
                         },
                     });
                     break;
@@ -163,6 +190,7 @@ export const AlertConfigurationCard = ({
                             ...requestVariables,
                             session_feedback_alert_id: alert.id,
                             threshold_window: lookbackPeriod,
+                            name: defaultName,
                         },
                     });
                     break;
@@ -172,17 +200,19 @@ export const AlertConfigurationCard = ({
                         variables: {
                             ...requestVariables,
                             session_alert_id: alert.id,
+                            name: defaultName,
+                            threshold_window: 1,
                         },
                     });
                     break;
                 default:
                     throw new Error(`Unsupported alert type: ${type}`);
             }
-            message.success(`Updated ${name}!`);
+            message.success(`Updated ${defaultName}!`);
             setFormTouched(false);
         } catch (e) {
             message.error(
-                `There was a problem updating ${name}. Please try again.`
+                `There was a problem updating ${defaultName}. Please try again.`
             );
         }
         setLoading(false);
@@ -307,15 +337,14 @@ export const AlertConfigurationCard = ({
     }
 
     return (
-        <Collapsible
-            title={
-                <span className={styles.title}>
-                    {name} {description && <InfoTooltip title={description} />}
-                </span>
-            }
-            id={name}
-            contentClassName={styles.alertConfigurationCard}
-        >
+        <div className={styles.alertConfigurationCard}>
+            <p className={classNames(layoutStyles.subTitle, styles.subTitle)}>
+                This is an{' '}
+                <strong style={{ color: getAlertTypeColor(defaultName) }}>
+                    {defaultName}
+                </strong>{' '}
+                alert. {description}
+            </p>
             <Form
                 onFinish={onSubmit}
                 form={form}
@@ -325,7 +354,7 @@ export const AlertConfigurationCard = ({
                         alert.ChannelsToNotify?.map(
                             (channel: any) => channel.webhook_channel_id
                         ) || [],
-                    excludedEnvironments: alert.ExcludedEnvironments,
+                    [excludedEnvironmentsFormName]: alert.ExcludedEnvironments,
                     lookbackPeriod: [lookbackPeriod],
                     userProperties: alert.UserProperties?.map(
                         (userProperty: any) =>
@@ -396,7 +425,7 @@ export const AlertConfigurationCard = ({
                                         .toLowerCase()
                                         .includes(searchValue.toLowerCase());
                                 }}
-                                placeholder={`Select a channel(s) or person(s) to send ${name} to.`}
+                                placeholder={`Select a channel(s) or person(s) to send ${defaultName} to.`}
                                 onChange={onChannelsChange}
                                 notFoundContent={
                                     channelSuggestions?.length === 0 ? (
@@ -490,7 +519,7 @@ export const AlertConfigurationCard = ({
                         </a>
                         .
                     </p>
-                    <Form.Item name="excludedEnvironments">
+                    <Form.Item name={excludedEnvironmentsFormName}>
                         <Select
                             className={styles.channelSelect}
                             options={environments}
@@ -516,7 +545,7 @@ export const AlertConfigurationCard = ({
                                                 text={`${threshold}`}
                                                 inline
                                             />{' '}
-                                            {name.toLocaleLowerCase()}
+                                            {defaultName.toLocaleLowerCase()}
                                         </b>{' '}
                                         happens in a{' '}
                                         <b>
@@ -558,20 +587,38 @@ export const AlertConfigurationCard = ({
 
                 <Form.Item shouldUpdate>
                     {() => (
-                        <Button
-                            trackingId="SaveAlertConfiguration"
-                            type="primary"
-                            className={styles.saveButton}
-                            htmlType="submit"
-                            disabled={!formTouched}
-                            loading={loading}
-                        >
-                            Save
-                        </Button>
+                        <>
+                            {isHighlightAdmin && onDeleteHandler && (
+                                <Button
+                                    trackingId="DeleteAlertConfiguration"
+                                    type="primary"
+                                    className={styles.saveButton}
+                                    htmlType="button"
+                                    loading={loading}
+                                    onClick={() => {
+                                        if (alert.id) {
+                                            onDeleteHandler(alert.id);
+                                        }
+                                    }}
+                                >
+                                    Delete
+                                </Button>
+                            )}
+                            <Button
+                                trackingId="SaveAlertConfiguration"
+                                type="primary"
+                                className={styles.saveButton}
+                                htmlType="submit"
+                                disabled={!formTouched}
+                                loading={loading}
+                            >
+                                Save
+                            </Button>
+                        </>
                     )}
                 </Form.Item>
             </Form>
-        </Collapsible>
+        </div>
     );
 };
 
