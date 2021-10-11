@@ -326,7 +326,6 @@ input BackendErrorObjectInput {
     url: String!
     source: String!
     stackTrace: String!
-    # stackTrace: [StackFrameInput!]
     timestamp: Timestamp!
     payload: String
 }
