@@ -93,7 +93,16 @@ func (r *errorGroupResolver) StackTrace(ctx context.Context, obj *model.ErrorGro
 func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorMetadata, error) {
 	var metadataLogs []*modelInputs.ErrorMetadata
 	r.DB.Raw(`
-		SELECT s.id AS session_id, s.secure_id AS session_secure_id, e.id AS error_id, e.timestamp, s.os_name AS os, s.browser_name AS browser, e.url AS visited_url, s.fingerprint AS fingerprint, s.identifier AS identifier
+		SELECT s.id AS session_id,
+			s.secure_id AS session_secure_id,
+			e.id AS error_id,
+			e.timestamp,
+			s.os_name AS os,
+			s.browser_name AS browser,
+			e.url AS visited_url,
+			s.fingerprint AS fingerprint,
+			s.identifier AS identifier,
+			s.user_properties
 		FROM sessions AS s
 		INNER JOIN (
 			SELECT DISTINCT ON (session_id) session_id, id, timestamp, url
@@ -276,6 +285,19 @@ func (r *mutationResolver) CreateProject(ctx context.Context, name string, works
 				CountThreshold:       1,
 				ChannelsToNotify:     nil,
 				Type:                 &model.AlertType.USER_PROPERTIES,
+				ThresholdWindow:      util.MakeIntPointer(0),
+			},
+		}).Error; err != nil {
+		return nil, e.Wrap(err, "error creating session user properties alert for new project")
+	}
+	if err := r.DB.Create(
+		&model.SessionAlert{
+			Alert: model.Alert{
+				ProjectID:            project.ID,
+				ExcludedEnvironments: nil,
+				CountThreshold:       1,
+				ChannelsToNotify:     nil,
+				Type:                 &model.AlertType.NEW_SESSION,
 				ThresholdWindow:      util.MakeIntPointer(0),
 			},
 		}).Error; err != nil {
@@ -1362,6 +1384,43 @@ func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, projec
 	return alert, nil
 }
 
+func (r *mutationResolver) UpdateNewSessionAlert(ctx context.Context, projectID int, sessionAlertID int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in project")
+	}
+
+	envBytes, err := json.Marshal(environments)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing environments for new session alert")
+	}
+	envString := string(envBytes)
+
+	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
+	// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
+	for _, ch := range slackChannels {
+		sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
+	}
+
+	channelsBytes, err := json.Marshal(sanitizedChannels)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing channels for new session alert")
+	}
+	channelsString := string(channelsBytes)
+
+	alert := &model.SessionAlert{}
+	alert.ExcludedEnvironments = &envString
+	alert.ChannelsToNotify = &channelsString
+	if err := r.DB.Model(&model.SessionAlert{
+		Model: model.Model{
+			ID: sessionAlertID,
+		},
+	}).Where("project_id = ?", projectID).Updates(alert).Error; err != nil {
+		return nil, e.Wrap(err, "error updating org fields for new session alert")
+	}
+	return alert, nil
+}
+
 func (r *mutationResolver) UpdateSessionIsPublic(ctx context.Context, sessionID *int, sessionSecureID *string, isPublic bool) (*model.Session, error) {
 	session, err := r.canAdminModifySession(ctx, sessionID, sessionSecureID)
 	if err != nil {
@@ -1992,7 +2051,7 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 		return nil, e.Wrap(err, "admin not found in project")
 	}
 
-	sessionsQueryPreamble := "SELECT id, secure_id, project_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, field_group"
+	sessionsQueryPreamble := "SELECT id, secure_id, project_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, field_group, user_properties, enable_recording_network_contents, language"
 	joinClause := "FROM sessions"
 
 	fieldFilters, err := r.getFieldFilters(ctx, projectID, params)
@@ -2355,6 +2414,19 @@ func (r *queryResolver) UserPropertiesAlert(ctx context.Context, projectID int) 
 	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{Type: &model.AlertType.USER_PROPERTIES}}).
 		Where("project_id = ?", projectID).First(&alert).Error; err != nil {
 		return nil, e.Wrap(err, "error querying user properties alert")
+	}
+	return &alert, nil
+}
+
+func (r *queryResolver) NewSessionAlert(ctx context.Context, projectID int) (*model.SessionAlert, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+	var alert model.SessionAlert
+	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{Type: &model.AlertType.NEW_SESSION}}).
+		Where("project_id = ?", projectID).First(&alert).Error; err != nil {
+		return nil, e.Wrap(err, "error querying new session alert")
 	}
 	return &alert, nil
 }

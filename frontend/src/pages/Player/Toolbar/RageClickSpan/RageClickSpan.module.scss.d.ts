@@ -1,3 +1,5 @@
+export const goToButton: string;
+export const goToButtonContainer: string;
 export const hover: string;
 export const icon: string;
 export const iconContainer: string;

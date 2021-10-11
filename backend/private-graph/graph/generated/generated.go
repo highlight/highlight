@@ -142,6 +142,7 @@ type ComplexityRoot struct {
 		SessionID       func(childComplexity int) int
 		SessionSecureID func(childComplexity int) int
 		Timestamp       func(childComplexity int) int
+		UserProperties  func(childComplexity int) int
 		VisitedURL      func(childComplexity int) int
 	}
 
@@ -235,6 +236,7 @@ type ComplexityRoot struct {
 		UpdateErrorAlert                 func(childComplexity int, projectID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
 		UpdateErrorGroupIsPublic         func(childComplexity int, errorGroupID *int, errorGroupSecureID *string, isPublic bool) int
 		UpdateErrorGroupState            func(childComplexity int, id *int, secureID *string, state string) int
+		UpdateNewSessionAlert            func(childComplexity int, projectID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
 		UpdateNewUserAlert               func(childComplexity int, projectID int, sessionAlertID int, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
 		UpdateSessionFeedbackAlert       func(childComplexity int, projectID int, sessionFeedbackAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
 		UpdateSessionIsPublic            func(childComplexity int, sessionID *int, sessionSecureID *string, isPublic bool) int
@@ -286,6 +288,7 @@ type ComplexityRoot struct {
 		IsIntegrated              func(childComplexity int, projectID int) int
 		IsIntegratedWithSlack     func(childComplexity int, projectID int) int
 		Messages                  func(childComplexity int, sessionID *int, sessionSecureID *string) int
+		NewSessionAlert           func(childComplexity int, projectID int) int
 		NewUserAlert              func(childComplexity int, projectID int) int
 		NewUsersCount             func(childComplexity int, projectID int, lookBackPeriod int) int
 		Project                   func(childComplexity int, id int) int
@@ -401,6 +404,7 @@ type ComplexityRoot struct {
 		Starred                        func(childComplexity int) int
 		State                          func(childComplexity int) int
 		UserObject                     func(childComplexity int) int
+		UserProperties                 func(childComplexity int) int
 		Viewed                         func(childComplexity int) int
 		WithinBillingQuota             func(childComplexity int) int
 	}
@@ -534,6 +538,7 @@ type MutationResolver interface {
 	UpdateNewUserAlert(ctx context.Context, projectID int, sessionAlertID int, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.SessionAlert, error)
 	UpdateTrackPropertiesAlert(ctx context.Context, projectID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, trackProperties []*model.TrackPropertyInput) (*model1.SessionAlert, error)
 	UpdateUserPropertiesAlert(ctx context.Context, projectID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, userProperties []*model.UserPropertyInput) (*model1.SessionAlert, error)
+	UpdateNewSessionAlert(ctx context.Context, projectID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.SessionAlert, error)
 	UpdateSessionIsPublic(ctx context.Context, sessionID *int, sessionSecureID *string, isPublic bool) (*model1.Session, error)
 	UpdateErrorGroupIsPublic(ctx context.Context, errorGroupID *int, errorGroupSecureID *string, isPublic bool) (*model1.ErrorGroup, error)
 }
@@ -578,6 +583,7 @@ type QueryResolver interface {
 	NewUserAlert(ctx context.Context, projectID int) (*model1.SessionAlert, error)
 	TrackPropertiesAlert(ctx context.Context, projectID int) (*model1.SessionAlert, error)
 	UserPropertiesAlert(ctx context.Context, projectID int) (*model1.SessionAlert, error)
+	NewSessionAlert(ctx context.Context, projectID int) (*model1.SessionAlert, error)
 	ProjectSuggestion(ctx context.Context, query string) ([]*model1.Project, error)
 	EnvironmentSuggestion(ctx context.Context, projectID int) ([]*model1.Field, error)
 	AppVersionSuggestion(ctx context.Context, projectID int) ([]*string, error)
@@ -1025,6 +1031,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorMetadata.Timestamp(childComplexity), true
+
+	case "ErrorMetadata.user_properties":
+		if e.complexity.ErrorMetadata.UserProperties == nil {
+			break
+		}
+
+		return e.complexity.ErrorMetadata.UserProperties(childComplexity), true
 
 	case "ErrorMetadata.visited_url":
 		if e.complexity.ErrorMetadata.VisitedURL == nil {
@@ -1664,6 +1677,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateErrorGroupState(childComplexity, args["id"].(*int), args["secure_id"].(*string), args["state"].(string)), true
 
+	case "Mutation.updateNewSessionAlert":
+		if e.complexity.Mutation.UpdateNewSessionAlert == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateNewSessionAlert_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateNewSessionAlert(childComplexity, args["project_id"].(int), args["session_alert_id"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["environments"].([]*string)), true
+
 	case "Mutation.updateNewUserAlert":
 		if e.complexity.Mutation.UpdateNewUserAlert == nil {
 			break
@@ -2071,6 +2096,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Messages(childComplexity, args["session_id"].(*int), args["session_secure_id"].(*string)), true
+
+	case "Query.new_session_alert":
+		if e.complexity.Query.NewSessionAlert == nil {
+			break
+		}
+
+		args, err := ec.field_Query_new_session_alert_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.NewSessionAlert(childComplexity, args["project_id"].(int)), true
 
 	case "Query.new_user_alert":
 		if e.complexity.Query.NewUserAlert == nil {
@@ -2860,6 +2897,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.UserObject(childComplexity), true
 
+	case "Session.user_properties":
+		if e.complexity.Session.UserProperties == nil {
+			break
+		}
+
+		return e.complexity.Session.UserProperties(childComplexity), true
+
 	case "Session.viewed":
 		if e.complexity.Session.Viewed == nil {
 			break
@@ -3251,6 +3295,7 @@ type Session {
     length: Int
     active_length: Int
     user_object: Any
+    user_properties: String
     fields: [Field]
     viewed: Boolean
     starred: Boolean
@@ -3392,6 +3437,7 @@ type ErrorMetadata {
     visited_url: String
     fingerprint: String!
     identifier: String
+    user_properties: String
 }
 
 type ErrorTrace {
@@ -3722,6 +3768,7 @@ type Query {
     new_user_alert(project_id: ID!): SessionAlert
     track_properties_alert(project_id: ID!): SessionAlert
     user_properties_alert(project_id: ID!): SessionAlert
+    new_session_alert(project_id: ID!): SessionAlert
     projectSuggestion(query: String!): [Project]
     environment_suggestion(project_id: ID!): [Field]
     app_version_suggestion(project_id: ID!): [String]!
@@ -3861,6 +3908,12 @@ type Mutation {
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
         user_properties: [UserPropertyInput]!
+    ): SessionAlert
+    updateNewSessionAlert(
+        project_id: ID!
+        session_alert_id: ID!
+        slack_channels: [SanitizedSlackChannelInput]!
+        environments: [String]!
     ): SessionAlert
     updateSessionIsPublic(
         session_id: ID
@@ -4877,6 +4930,48 @@ func (ec *executionContext) field_Mutation_updateErrorGroupState_args(ctx contex
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_updateNewSessionAlert_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["session_alert_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_alert_id"))
+		arg1, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["session_alert_id"] = arg1
+	var arg2 []*model.SanitizedSlackChannelInput
+	if tmp, ok := rawArgs["slack_channels"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("slack_channels"))
+		arg2, err = ec.unmarshalNSanitizedSlackChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["slack_channels"] = arg2
+	var arg3 []*string
+	if tmp, ok := rawArgs["environments"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("environments"))
+		arg3, err = ec.unmarshalNString2ᚕᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["environments"] = arg3
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_updateNewUserAlert_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -5642,6 +5737,21 @@ func (ec *executionContext) field_Query_newUsersCount_args(ctx context.Context, 
 		}
 	}
 	args["lookBackPeriod"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_new_session_alert_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
 	return args, nil
 }
 
@@ -8138,6 +8248,38 @@ func (ec *executionContext) _ErrorMetadata_identifier(ctx context.Context, field
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Identifier, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorMetadata_user_properties(ctx context.Context, field graphql.CollectedField, obj *model.ErrorMetadata) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ErrorMetadata",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserProperties, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10718,6 +10860,45 @@ func (ec *executionContext) _Mutation_updateUserPropertiesAlert(ctx context.Cont
 	return ec.marshalOSessionAlert2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionAlert(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_updateNewSessionAlert(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateNewSessionAlert_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateNewSessionAlert(rctx, args["project_id"].(int), args["session_alert_id"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["environments"].([]*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model1.SessionAlert)
+	fc.Result = res
+	return ec.marshalOSessionAlert2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionAlert(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_updateSessionIsPublic(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -12704,6 +12885,45 @@ func (ec *executionContext) _Query_user_properties_alert(ctx context.Context, fi
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().UserPropertiesAlert(rctx, args["project_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model1.SessionAlert)
+	fc.Result = res
+	return ec.marshalOSessionAlert2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionAlert(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_new_session_alert(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_new_session_alert_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().NewSessionAlert(rctx, args["project_id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15133,6 +15353,38 @@ func (ec *executionContext) _Session_user_object(ctx context.Context, field grap
 	res := resTmp.(interface{})
 	fc.Result = res
 	return ec.marshalOAny2interface(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Session_user_properties(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserProperties, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Session_fields(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
@@ -18947,6 +19199,8 @@ func (ec *executionContext) _ErrorMetadata(ctx context.Context, sel ast.Selectio
 			}
 		case "identifier":
 			out.Values[i] = ec._ErrorMetadata_identifier(ctx, field, obj)
+		case "user_properties":
+			out.Values[i] = ec._ErrorMetadata_user_properties(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -19362,6 +19616,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_updateTrackPropertiesAlert(ctx, field)
 		case "updateUserPropertiesAlert":
 			out.Values[i] = ec._Mutation_updateUserPropertiesAlert(ctx, field)
+		case "updateNewSessionAlert":
+			out.Values[i] = ec._Mutation_updateNewSessionAlert(ctx, field)
 		case "updateSessionIsPublic":
 			out.Values[i] = ec._Mutation_updateSessionIsPublic(ctx, field)
 		case "updateErrorGroupIsPublic":
@@ -19987,6 +20243,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_user_properties_alert(ctx, field)
 				return res
 			})
+		case "new_session_alert":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_new_session_alert(ctx, field)
+				return res
+			})
 		case "projectSuggestion":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -20503,6 +20770,8 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 				res = ec._Session_user_object(ctx, field, obj)
 				return res
 			})
+		case "user_properties":
+			out.Values[i] = ec._Session_user_properties(ctx, field, obj)
 		case "fields":
 			out.Values[i] = ec._Session_fields(ctx, field, obj)
 		case "viewed":

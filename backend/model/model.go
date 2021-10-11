@@ -46,12 +46,14 @@ var AlertType = struct {
 	TRACK_PROPERTIES string
 	USER_PROPERTIES  string
 	SESSION_FEEDBACK string
+	NEW_SESSION      string
 }{
 	ERROR:            "ERROR_ALERT",
 	NEW_USER:         "NEW_USER_ALERT",
 	TRACK_PROPERTIES: "TRACK_PROPERTIES_ALERT",
 	USER_PROPERTIES:  "USER_PROPERTIES_ALERT",
 	SESSION_FEEDBACK: "SESSION_FEEDBACK_ALERT",
+	NEW_SESSION:      "NEW_SESSION_ALERT",
 }
 
 var AdminRole = struct {
@@ -80,14 +82,6 @@ var SessionCommentTypes = struct {
 }{
 	ADMIN:    "ADMIN",
 	FEEDBACK: "FEEDBACK",
-}
-
-var ErrorType = struct {
-	FRONTEND string
-	BACKEND  string
-}{
-	FRONTEND: "FRONTEND",
-	BACKEND:  "BACKEND",
 }
 
 type contextString string
@@ -725,6 +719,14 @@ type RageClickEvent struct {
 	EndTimestamp    time.Time `deep:"-"`
 }
 
+var ErrorType = struct {
+	FRONTEND string
+	BACKEND  string
+}{
+	FRONTEND: "FRONTEND",
+	BACKEND:  "BACKEND",
+}
+
 func SetupDB(dbName string) (*gorm.DB, error) {
 	var (
 		host     = os.Getenv("PSQL_HOST")
@@ -795,28 +797,30 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 	`).Error; err != nil {
 		return nil, e.Wrap(err, "Error creating secure_id_generator")
 	}
-	if err := DB.Raw(`
-		DO $$
-		BEGIN
-		
-			BEGIN
-				ALTER TABLE daily_error_counts 
-				ADD CONSTRAINT date_project_id_error_type_uniq
-					UNIQUE (date, project_id, error_type);
-			EXCEPTION
-				WHEN duplicate_table 
-				THEN RAISE NOTICE 'daily_error_counts.date_project_id_error_type_uniq already exists';
-			END;
-		
-		END $$;
-	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error adding unique constraint on daily_error_counts")
-	}
+
 	if err := DB.AutoMigrate(
 		Models...,
 	); err != nil {
 		return nil, e.Wrap(err, "Error migrating db")
 	}
+
+	// Add unique constraint to daily_error_counts
+	if err := DB.Exec(`
+		DO $$
+			BEGIN
+				BEGIN
+					ALTER TABLE daily_error_counts 
+					ADD CONSTRAINT date_project_id_error_type_uniq
+						UNIQUE (date, project_id, error_type);
+				EXCEPTION
+					WHEN duplicate_table 
+					THEN RAISE NOTICE 'daily_error_counts.date_project_id_error_type_uniq already exists';
+				END;
+			END $$;
+	`).Error; err != nil {
+		return nil, e.Wrap(err, "Error adding unique constraint on daily_error_counts")
+	}
+
 	sqlDB, err := DB.DB()
 	if err != nil {
 		return nil, e.Wrap(err, "error retrieving underlying sql db")
@@ -962,6 +966,9 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 	if err != nil {
 		return e.Wrap(err, "error getting channels to notify from user properties alert")
 	}
+	if len(channels) <= 0 {
+		return nil
+	}
 	// get project's channels
 	integratedSlackChannels, err := input.Workspace.IntegratedSlackChannels()
 	if err != nil {
@@ -1086,6 +1093,11 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
 	case AlertType.SESSION_FEEDBACK:
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s Left Feedback*\n\n%s", input.UserIdentifier, input.CommentText), false, false)
+		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
+		blockSet = append(blockSet, slack.NewDividerBlock())
+		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
+	case AlertType.NEW_SESSION:
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*New Session Created By User: %s*\n\n", input.UserIdentifier), false, false)
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}

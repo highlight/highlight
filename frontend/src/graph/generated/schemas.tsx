@@ -48,6 +48,7 @@ export type Session = {
     length?: Maybe<Scalars['Int']>;
     active_length?: Maybe<Scalars['Int']>;
     user_object?: Maybe<Scalars['Any']>;
+    user_properties?: Maybe<Scalars['String']>;
     fields?: Maybe<Array<Maybe<Field>>>;
     viewed?: Maybe<Scalars['Boolean']>;
     starred?: Maybe<Scalars['Boolean']>;
@@ -200,6 +201,7 @@ export type ErrorMetadata = {
     visited_url?: Maybe<Scalars['String']>;
     fingerprint: Scalars['String'];
     identifier?: Maybe<Scalars['String']>;
+    user_properties?: Maybe<Scalars['String']>;
 };
 
 export type ErrorTrace = {
@@ -512,6 +514,7 @@ export type Query = {
     new_user_alert?: Maybe<SessionAlert>;
     track_properties_alert?: Maybe<SessionAlert>;
     user_properties_alert?: Maybe<SessionAlert>;
+    new_session_alert?: Maybe<SessionAlert>;
     projectSuggestion?: Maybe<Array<Maybe<Project>>>;
     environment_suggestion?: Maybe<Array<Maybe<Field>>>;
     app_version_suggestion: Array<Maybe<Scalars['String']>>;
@@ -701,6 +704,10 @@ export type QueryUser_Properties_AlertArgs = {
     project_id: Scalars['ID'];
 };
 
+export type QueryNew_Session_AlertArgs = {
+    project_id: Scalars['ID'];
+};
+
 export type QueryProjectSuggestionArgs = {
     query: Scalars['String'];
 };
@@ -785,6 +792,7 @@ export type Mutation = {
     updateNewUserAlert?: Maybe<SessionAlert>;
     updateTrackPropertiesAlert?: Maybe<SessionAlert>;
     updateUserPropertiesAlert?: Maybe<SessionAlert>;
+    updateNewSessionAlert?: Maybe<SessionAlert>;
     updateSessionIsPublic?: Maybe<Session>;
     updateErrorGroupIsPublic?: Maybe<ErrorGroup>;
 };
@@ -997,6 +1005,13 @@ export type MutationUpdateUserPropertiesAlertArgs = {
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;
     user_properties: Array<Maybe<UserPropertyInput>>;
+};
+
+export type MutationUpdateNewSessionAlertArgs = {
+    project_id: Scalars['ID'];
+    session_alert_id: Scalars['ID'];
+    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+    environments: Array<Maybe<Scalars['String']>>;
 };
 
 export type MutationUpdateSessionIsPublicArgs = {

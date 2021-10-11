@@ -34,6 +34,7 @@ query GetSession($secure_id: String!) {
         created_at
         language
         user_object
+        user_properties
         identifier
         starred
         enable_strict_privacy
@@ -238,6 +239,7 @@ query GetSessions(
                 id
             }
             first_time
+            user_properties
         }
         totalCount
     }
@@ -400,6 +402,7 @@ query GetErrorGroup($secure_id: String!) {
             visited_url
             fingerprint
             identifier
+            user_properties
         }
         field_group {
             name
@@ -779,6 +782,16 @@ query GetAlertsPagePayload($project_id: ID!) {
         id
     }
     session_feedback_alert(project_id: $project_id) {
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        ExcludedEnvironments
+        CountThreshold
+        ThresholdWindow
+        id
+    }
+    new_session_alert(project_id: $project_id) {
         ChannelsToNotify {
             webhook_channel
             webhook_channel_id
