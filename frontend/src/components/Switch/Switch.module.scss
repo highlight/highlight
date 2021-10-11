@@ -18,4 +18,8 @@
     &.noMarginAroundSwitch {
         margin: 0;
     }
+
+    &.setMarginForAnimation {
+        margin: 6px; // The animation for toggling the switch takes up extra space
+    }
 }
