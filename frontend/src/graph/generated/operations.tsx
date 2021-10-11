@@ -2045,6 +2045,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     | 'LastAdminToEditID'
                     | 'ThresholdWindow'
                     | 'id'
+                    | 'Type'
                     | 'Name'
                 > & {
                         ChannelsToNotify: Array<
@@ -2069,6 +2070,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     | 'LastAdminToEditID'
                     | 'id'
                     | 'Name'
+                    | 'Type'
                 > & {
                         ChannelsToNotify: Array<
                             Types.Maybe<
@@ -2092,6 +2094,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     | 'LastAdminToEditID'
                     | 'Name'
                     | 'id'
+                    | 'Type'
                 > & {
                         ChannelsToNotify: Array<
                             Types.Maybe<
@@ -2115,6 +2118,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                         | 'updated_at'
                         | 'LastAdminToEditID'
                         | 'Name'
+                        | 'Type'
                     > & {
                             ChannelsToNotify: Array<
                                 Types.Maybe<
@@ -2140,6 +2144,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     | 'LastAdminToEditID'
                     | 'CountThreshold'
                     | 'Name'
+                    | 'Type'
                 > & {
                         ChannelsToNotify: Array<
                             Types.Maybe<
@@ -2170,6 +2175,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     | 'LastAdminToEditID'
                     | 'CountThreshold'
                     | 'Name'
+                    | 'Type'
                 > & {
                         ChannelsToNotify: Array<
                             Types.Maybe<

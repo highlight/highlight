@@ -1,8 +1,9 @@
+import { getSlackUrl } from '@components/Header/components/PersonalNotificationButton/utils/utils';
 import { useGetAlertsPagePayloadQuery } from '@graph/hooks';
 import { GetAlertsPagePayloadQuery } from '@graph/operations';
 import AlertsPage from '@pages/Alerts/Alerts';
 import { AlertsContextProvider } from '@pages/Alerts/AlertsContext/AlertsContext';
-import NewAlertsPage from '@pages/Alerts/NewAlertsPage';
+import EditAlertsPage from '@pages/Alerts/EditAlertsPage';
 import { useParams } from '@util/react-router/useParams';
 import React, { useEffect, useState } from 'react';
 import { Route, Switch, useRouteMatch } from 'react-router-dom';
@@ -16,6 +17,7 @@ const AlertsRouter = () => {
     const { data, loading } = useGetAlertsPagePayloadQuery({
         variables: { project_id },
     });
+    const slackUrl = getSlackUrl('Organization', project_id, 'alerts');
 
     useEffect(() => {
         if (!loading) {
@@ -29,6 +31,7 @@ const AlertsRouter = () => {
                 alertsPayload,
                 setAlertsPayload,
                 loading,
+                slackUrl,
             }}
         >
             <Switch>
@@ -36,10 +39,10 @@ const AlertsRouter = () => {
                     <AlertsPage />
                 </Route>
                 <Route path={`${path}/new`}>
-                    <NewAlertsPage />
+                    <EditAlertsPage isEditing={false} />
                 </Route>
                 <Route path={`${path}/:id`}>
-                    <h2>Edit</h2>
+                    <EditAlertsPage isEditing={true} />
                 </Route>
             </Switch>
         </AlertsContextProvider>

@@ -5707,6 +5707,7 @@ export const GetAlertsPagePayloadDocument = gql`
             LastAdminToEditID
             ThresholdWindow
             id
+            Type
             Name
         }
         session_feedback_alerts(project_id: $project_id) {
@@ -5721,6 +5722,7 @@ export const GetAlertsPagePayloadDocument = gql`
             LastAdminToEditID
             id
             Name
+            Type
         }
         new_session_alerts(project_id: $project_id) {
             ChannelsToNotify {
@@ -5734,6 +5736,7 @@ export const GetAlertsPagePayloadDocument = gql`
             LastAdminToEditID
             Name
             id
+            Type
         }
         new_user_alerts(project_id: $project_id) {
             id
@@ -5746,6 +5749,7 @@ export const GetAlertsPagePayloadDocument = gql`
             updated_at
             LastAdminToEditID
             Name
+            Type
         }
         track_properties_alerts(project_id: $project_id) {
             id
@@ -5763,6 +5767,7 @@ export const GetAlertsPagePayloadDocument = gql`
             LastAdminToEditID
             CountThreshold
             Name
+            Type
         }
         user_properties_alerts(project_id: $project_id) {
             id
@@ -5780,6 +5785,7 @@ export const GetAlertsPagePayloadDocument = gql`
             LastAdminToEditID
             CountThreshold
             Name
+            Type
         }
     }
 `;

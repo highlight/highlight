@@ -449,6 +449,7 @@ export type ErrorAlert = {
     CountThreshold: Scalars['Int'];
     ThresholdWindow?: Maybe<Scalars['Int']>;
     LastAdminToEditID?: Maybe<Scalars['ID']>;
+    Type: Scalars['String'];
 };
 
 export type TrackProperty = {
@@ -476,6 +477,7 @@ export type SessionAlert = {
     UserProperties: Array<Maybe<UserProperty>>;
     ThresholdWindow: Scalars['Int'];
     LastAdminToEditID?: Maybe<Scalars['ID']>;
+    Type: Scalars['String'];
 };
 
 export type Query = {

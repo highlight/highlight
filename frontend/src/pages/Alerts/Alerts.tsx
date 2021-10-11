@@ -1,7 +1,6 @@
 import Alert from '@components/Alert/Alert';
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
-import { getSlackUrl } from '@components/Header/components/PersonalNotificationButton/utils/utils';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Table from '@components/Table/Table';
 import Tag from '@components/Tag/Tag';
@@ -38,40 +37,40 @@ export enum ALERT_TYPE {
     NewSession,
 }
 
-const ALERT_CONFIGURATIONS = {
-    errors: {
+export const ALERT_CONFIGURATIONS = {
+    ERROR_ALERT: {
         name: 'Errors',
         canControlThreshold: true,
         type: ALERT_TYPE.Error,
     },
-    'new users': {
+    NEW_USER_ALERT: {
         name: 'New Users',
         canControlThreshold: false,
         type: ALERT_TYPE.FirstTimeUser,
         description:
             'Get alerted when a new user starts their first journey in your application.',
     },
-    'user properties': {
+    USER_PROPERTIES_ALERT: {
         name: 'User Properties',
         canControlThreshold: false,
         type: ALERT_TYPE.UserProperties,
         description:
             'Get alerted when users you want to track record a session.',
     },
-    'track properties': {
+    TRACK_PROPERTIES_ALERT: {
         name: 'Track Events',
         canControlThreshold: false,
         type: ALERT_TYPE.TrackProperties,
         description: 'Get alerted when an action is done in your application.',
     },
-    'session feedback comments': {
+    SESSION_FEEDBACK_ALERT: {
         name: 'Feedback',
         canControlThreshold: false,
         type: ALERT_TYPE.SessionFeedbackComment,
         description:
             'Get alerted when a user submits a session feedback comment.',
     },
-    'new sessions': {
+    NEW_SESSION_ALERT: {
         name: 'New Sessions',
         canControlThreshold: false,
         type: ALERT_TYPE.NewSession,
@@ -134,7 +133,7 @@ const TABLE_COLUMNS = [
 
 const AlertsPage = () => {
     const { project_id } = useParams<{ project_id: string }>();
-    const { alertsPayload, loading } = useAlertsContext();
+    const { alertsPayload, loading, slackUrl } = useAlertsContext();
 
     const [createErrorAlert, {}] = useCreateErrorAlertMutation({
         variables: {
@@ -226,37 +225,36 @@ const AlertsPage = () => {
             cache.gc();
         },
     });
-    const slackUrl = getSlackUrl('Organization', project_id, 'alerts');
     const alertsAsTableRows = [
         ...(alertsPayload?.error_alerts || []).map((alert) => ({
             ...alert,
-            configuration: ALERT_CONFIGURATIONS['errors'],
-            type: ALERT_CONFIGURATIONS['errors'].name,
+            configuration: ALERT_CONFIGURATIONS['ERROR_ALERT'],
+            type: ALERT_CONFIGURATIONS['ERROR_ALERT'].name,
         })),
         ...(alertsPayload?.new_user_alerts || []).map((alert) => ({
             ...alert,
-            configuration: ALERT_CONFIGURATIONS['new users'],
-            type: ALERT_CONFIGURATIONS['new users'].name,
+            configuration: ALERT_CONFIGURATIONS['NEW_USER_ALERT'],
+            type: ALERT_CONFIGURATIONS['NEW_USER_ALERT'].name,
         })),
         ...(alertsPayload?.session_feedback_alerts || []).map((alert) => ({
             ...alert,
-            configuration: ALERT_CONFIGURATIONS['session feedback comments'],
-            type: ALERT_CONFIGURATIONS['session feedback comments'].name,
+            configuration: ALERT_CONFIGURATIONS['SESSION_FEEDBACK_ALERT'],
+            type: ALERT_CONFIGURATIONS['SESSION_FEEDBACK_ALERT'].name,
         })),
         ...(alertsPayload?.track_properties_alerts || []).map((alert) => ({
             ...alert,
-            configuration: ALERT_CONFIGURATIONS['track properties'],
-            type: ALERT_CONFIGURATIONS['track properties'].name,
+            configuration: ALERT_CONFIGURATIONS['TRACK_PROPERTIES_ALERT'],
+            type: ALERT_CONFIGURATIONS['TRACK_PROPERTIES_ALERT'].name,
         })),
         ...(alertsPayload?.user_properties_alerts || []).map((alert) => ({
             ...alert,
-            configuration: ALERT_CONFIGURATIONS['user properties'],
-            type: ALERT_CONFIGURATIONS['user properties'].name,
+            configuration: ALERT_CONFIGURATIONS['USER_PROPERTIES_ALERT'],
+            type: ALERT_CONFIGURATIONS['USER_PROPERTIES_ALERT'].name,
         })),
         ...(alertsPayload?.new_session_alerts || []).map((alert) => ({
             ...alert,
-            configuration: ALERT_CONFIGURATIONS['new sessions'],
-            type: ALERT_CONFIGURATIONS['new sessions'].name,
+            configuration: ALERT_CONFIGURATIONS['NEW_SESSION_ALERT'],
+            type: ALERT_CONFIGURATIONS['NEW_SESSION_ALERT'].name,
         })),
     ];
 
@@ -396,7 +394,9 @@ const AlertsPage = () => {
                         {alertsPayload?.error_alerts.map((errorAlert) => (
                             <AlertConfigurationCard
                                 key={errorAlert?.id}
-                                configuration={ALERT_CONFIGURATIONS['errors']}
+                                configuration={
+                                    ALERT_CONFIGURATIONS['ERROR_ALERT']
+                                }
                                 alert={errorAlert || {}}
                                 environmentOptions={
                                     alertsPayload?.environment_suggestion || []
@@ -422,7 +422,7 @@ const AlertsPage = () => {
                                     key={sessionFeedbackAlert?.id}
                                     configuration={
                                         ALERT_CONFIGURATIONS[
-                                            'session feedback comments'
+                                            'SESSION_FEEDBACK_ALERT'
                                         ]
                                     }
                                     alert={sessionFeedbackAlert || {}}
@@ -450,7 +450,7 @@ const AlertsPage = () => {
                             <AlertConfigurationCard
                                 key={newUserAlert?.id || ''}
                                 configuration={
-                                    ALERT_CONFIGURATIONS['new users']
+                                    ALERT_CONFIGURATIONS['NEW_USER_ALERT']
                                 }
                                 alert={newUserAlert || {}}
                                 environmentOptions={
@@ -476,7 +476,9 @@ const AlertsPage = () => {
                                 <AlertConfigurationCard
                                     key={userPropertiesAlert?.id}
                                     configuration={
-                                        ALERT_CONFIGURATIONS['user properties']
+                                        ALERT_CONFIGURATIONS[
+                                            'USER_PROPERTIES_ALERT'
+                                        ]
                                     }
                                     alert={userPropertiesAlert || {}}
                                     environmentOptions={
@@ -504,7 +506,9 @@ const AlertsPage = () => {
                                 <AlertConfigurationCard
                                     key={trackPropertiesAlert?.id}
                                     configuration={
-                                        ALERT_CONFIGURATIONS['new sessions']
+                                        ALERT_CONFIGURATIONS[
+                                            'NEW_SESSION_ALERT'
+                                        ]
                                     }
                                     alert={trackPropertiesAlert || {}}
                                     environmentOptions={
@@ -532,7 +536,9 @@ const AlertsPage = () => {
                                 <AlertConfigurationCard
                                     key={trackPropertiesAlert?.id}
                                     configuration={
-                                        ALERT_CONFIGURATIONS['track properties']
+                                        ALERT_CONFIGURATIONS[
+                                            'TRACK_PROPERTIES_ALERT'
+                                        ]
                                     }
                                     alert={trackPropertiesAlert || {}}
                                     environmentOptions={

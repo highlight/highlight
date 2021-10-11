@@ -744,6 +744,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         LastAdminToEditID
         ThresholdWindow
         id
+        Type
         Name
     }
     session_feedback_alerts(project_id: $project_id) {
@@ -758,6 +759,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         LastAdminToEditID
         id
         Name
+        Type
     }
     new_session_alerts(project_id: $project_id) {
         ChannelsToNotify {
@@ -771,6 +773,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         LastAdminToEditID
         Name
         id
+        Type
     }
     new_user_alerts(project_id: $project_id) {
         id
@@ -783,6 +786,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         updated_at
         LastAdminToEditID
         Name
+        Type
     }
     track_properties_alerts(project_id: $project_id) {
         id
@@ -800,6 +804,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         LastAdminToEditID
         CountThreshold
         Name
+        Type
     }
     user_properties_alerts(project_id: $project_id) {
         id
@@ -817,6 +822,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         LastAdminToEditID
         CountThreshold
         Name
+        Type
     }
 }
 

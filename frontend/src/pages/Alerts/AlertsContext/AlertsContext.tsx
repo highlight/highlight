@@ -7,6 +7,7 @@ interface AlertsContext {
         React.SetStateAction<GetAlertsPagePayloadQuery | undefined>
     >;
     loading: boolean;
+    slackUrl: string;
 }
 
 export const [

@@ -402,6 +402,7 @@ type ErrorAlert {
     CountThreshold: Int!
     ThresholdWindow: Int
     LastAdminToEditID: ID
+    Type: String!
 }
 
 type TrackProperty {
@@ -427,6 +428,7 @@ type SessionAlert {
     UserProperties: [UserProperty]!
     ThresholdWindow: Int!
     LastAdminToEditID: ID
+    Type: String!
 }
 
 scalar Upload
