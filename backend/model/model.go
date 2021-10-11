@@ -1073,10 +1073,11 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
 	case AlertType.NEW_SESSION:
-		previewText = fmt.Sprintf("Highlight: New Session Created By %s", input.UserIdentifier)
-		if input.UserIdentifier == "" {
-			previewText = fmt.Sprintf("Highlight: New Session Created By %s", "User")
+		identifier := input.UserIdentifier
+		if identifier == "" {
+			identifier = "User"
 		}
+		previewText = fmt.Sprintf("Highlight: New Session Created By %s", identifier)
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*New Session Created By User: %s*\n\n", input.UserIdentifier), false, false)
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		blockSet = append(blockSet, slack.NewDividerBlock())
