@@ -214,31 +214,43 @@ const AlertsPage = () => {
             ...alert,
             configuration: ALERT_CONFIGURATIONS['ERROR_ALERT'],
             type: ALERT_CONFIGURATIONS['ERROR_ALERT'].name,
+            Name: alert?.Name || ALERT_CONFIGURATIONS['ERROR_ALERT'].name,
         })),
         ...(alertsPayload?.new_user_alerts || []).map((alert) => ({
             ...alert,
             configuration: ALERT_CONFIGURATIONS['NEW_USER_ALERT'],
             type: ALERT_CONFIGURATIONS['NEW_USER_ALERT'].name,
+            Name: alert?.Name || ALERT_CONFIGURATIONS['NEW_USER_ALERT'].name,
         })),
         ...(alertsPayload?.session_feedback_alerts || []).map((alert) => ({
             ...alert,
             configuration: ALERT_CONFIGURATIONS['SESSION_FEEDBACK_ALERT'],
             type: ALERT_CONFIGURATIONS['SESSION_FEEDBACK_ALERT'].name,
+            Name:
+                alert?.Name ||
+                ALERT_CONFIGURATIONS['SESSION_FEEDBACK_ALERT'].name,
         })),
         ...(alertsPayload?.track_properties_alerts || []).map((alert) => ({
             ...alert,
             configuration: ALERT_CONFIGURATIONS['TRACK_PROPERTIES_ALERT'],
             type: ALERT_CONFIGURATIONS['TRACK_PROPERTIES_ALERT'].name,
+            Name:
+                alert?.Name ||
+                ALERT_CONFIGURATIONS['TRACK_PROPERTIES_ALERT'].name,
         })),
         ...(alertsPayload?.user_properties_alerts || []).map((alert) => ({
             ...alert,
             configuration: ALERT_CONFIGURATIONS['USER_PROPERTIES_ALERT'],
             type: ALERT_CONFIGURATIONS['USER_PROPERTIES_ALERT'].name,
+            Name:
+                alert?.Name ||
+                ALERT_CONFIGURATIONS['USER_PROPERTIES_ALERT'].name,
         })),
         ...(alertsPayload?.new_session_alerts || []).map((alert) => ({
             ...alert,
             configuration: ALERT_CONFIGURATIONS['NEW_SESSION_ALERT'],
             type: ALERT_CONFIGURATIONS['NEW_SESSION_ALERT'].name,
+            Name: alert?.Name || ALERT_CONFIGURATIONS['NEW_SESSION_ALERT'].name,
         })),
     ];
 
