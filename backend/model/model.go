@@ -1020,7 +1020,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 		}
 	case AlertType.NEW_USER:
 		// construct Slack message
-		previewText = fmt.Sprintf("Highlight: New User Alert")
+		previewText = "Highlight: New User Alert"
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight New User Alert:*\n\n", false, false)
 		if input.UserIdentifier != "" {
 			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+input.UserIdentifier, false, false))
