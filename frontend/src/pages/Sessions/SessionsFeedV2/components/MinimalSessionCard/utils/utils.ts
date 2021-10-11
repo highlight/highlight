@@ -33,7 +33,9 @@ export const getIdentifiedUserProfileImage = (
 export const getDisplayName = (session: Maybe<Session>) => {
     let userProperties;
     try {
-        userProperties = JSON.parse(session?.user_properties || '{}');
+        if (typeof session?.user_properties === 'string') {
+            userProperties = JSON.parse(session?.user_properties || '{}');
+        }
     } catch (e) {
         if (e instanceof Error) {
             H.consumeError(e);
