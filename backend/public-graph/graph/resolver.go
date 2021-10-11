@@ -424,7 +424,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 	}
 
 	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
-		Infof("identified session: %s", session.Identifier)
+		Infof("initialized session: %s", session.Identifier)
 
 	sessionProperties := map[string]string{
 		"os_name":         deviceDetails.OSName,

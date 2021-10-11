@@ -82,6 +82,9 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 		return nil, e.Wrap(err, "[IdentifySession] failed to update session")
 	}
 
+	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
+		Infof("identified session: %s", session.Identifier)
+
 	return &sessionID, nil
 }
 
