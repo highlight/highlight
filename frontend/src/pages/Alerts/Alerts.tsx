@@ -54,7 +54,7 @@ const ALERT_CONFIGURATIONS = [
             'Get alerted when a user submits a session feedback comment.',
     },
     {
-        name: 'New Session Alert',
+        name: 'New Sessions',
         canControlThreshold: false,
         type: ALERT_TYPE.NewSession,
         description: 'Get alerted every time a session is created.',
