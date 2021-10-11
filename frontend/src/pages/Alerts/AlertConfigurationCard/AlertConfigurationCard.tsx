@@ -1,5 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext';
 import { DEMO_WORKSPACE_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import Input from '@components/Input/Input';
 import { namedOperations } from '@graph/operations';
 import { useParams } from '@util/react-router/useParams';
 import { Divider, Form, message } from 'antd';
@@ -105,6 +106,7 @@ export const AlertConfigurationCard = ({
                         ).webhook_channel,
                         webhook_channel_id,
                     })),
+                name: form.getFieldValue('name'),
             };
             const requestBody = {
                 refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
@@ -118,7 +120,6 @@ export const AlertConfigurationCard = ({
                             ...requestVariables,
                             error_alert_id: alert.id,
                             threshold_window: lookbackPeriod,
-                            name: 'Error Alert',
                         },
                     });
                     break;
@@ -128,7 +129,6 @@ export const AlertConfigurationCard = ({
                         variables: {
                             ...requestVariables,
                             session_alert_id: alert.id,
-                            name: defaultName,
                             threshold_window: 1,
                         },
                     });
@@ -153,7 +153,6 @@ export const AlertConfigurationCard = ({
                                     };
                                 }),
                             session_alert_id: alert.id,
-                            name: defaultName,
                             threshold_window: 1,
                         },
                     });
@@ -178,7 +177,6 @@ export const AlertConfigurationCard = ({
                                     };
                                 }),
                             session_alert_id: alert.id,
-                            name: defaultName,
                             threshold_window: 1,
                         },
                     });
@@ -190,7 +188,6 @@ export const AlertConfigurationCard = ({
                             ...requestVariables,
                             session_feedback_alert_id: alert.id,
                             threshold_window: lookbackPeriod,
-                            name: defaultName,
                         },
                     });
                     break;
@@ -200,7 +197,6 @@ export const AlertConfigurationCard = ({
                         variables: {
                             ...requestVariables,
                             session_alert_id: alert.id,
-                            name: defaultName,
                             threshold_window: 1,
                         },
                     });
@@ -364,9 +360,21 @@ export const AlertConfigurationCard = ({
                         (trackProperty: any) =>
                             getPropertiesOption(trackProperty).value
                     ),
+                    name: alert.Name,
                 }}
                 key={project_id}
             >
+                <section>
+                    <h3>Name</h3>
+                    <Form.Item name="name" required>
+                        <Input
+                            size="large"
+                            onChange={() => {
+                                setFormTouched(true);
+                            }}
+                        />
+                    </Form.Item>
+                </section>
                 {type === ALERT_TYPE.UserProperties && (
                     <section>
                         <h3>User Properties</h3>
