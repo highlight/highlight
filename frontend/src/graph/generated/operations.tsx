@@ -2017,6 +2017,14 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                 >
             >
         >;
+        admins: Array<
+            Types.Maybe<
+                { __typename?: 'Admin' } & Pick<
+                    Types.Admin,
+                    'id' | 'name' | 'email' | 'photo_url'
+                >
+            >
+        >;
         environment_suggestion?: Types.Maybe<
             Array<
                 Types.Maybe<

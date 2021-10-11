@@ -1,5 +1,4 @@
-import { useGetProjectAdminsQuery } from '@graph/hooks';
-import { useParams } from '@util/react-router/useParams';
+import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext';
 import moment from 'moment';
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
@@ -12,12 +11,9 @@ interface Props {
 }
 
 const AlertLastEditedBy = ({ adminId, lastEditedTimestamp }: Props) => {
-    const { project_id } = useParams<{ project_id: string }>();
-    const { data, loading } = useGetProjectAdminsQuery({
-        variables: { project_id },
-    });
+    const { alertsPayload, loading } = useAlertsContext();
 
-    const admin = data?.admins.find((admin) => admin?.id === adminId);
+    const admin = alertsPayload?.admins.find((admin) => admin?.id === adminId);
     const displayName = admin?.name || 'Highlight';
 
     return (

@@ -5686,6 +5686,12 @@ export const GetAlertsPagePayloadDocument = gql`
             webhook_channel
             webhook_channel_id
         }
+        admins: project_admins(project_id: $project_id) {
+            id
+            name
+            email
+            photo_url
+        }
         environment_suggestion(project_id: $project_id) {
             name
             value

@@ -7,6 +7,7 @@ import Table from '@components/Table/Table';
 import Tag from '@components/Tag/Tag';
 import { namedOperations } from '@graph/operations';
 import SvgChevronRightIcon from '@icons/ChevronRightIcon';
+import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext';
 import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy';
 import { getAlertTypeColor } from '@pages/Alerts/utils/AlertsUtils';
 import { useParams } from '@util/react-router/useParams';
@@ -24,7 +25,6 @@ import {
     useCreateUserPropertiesAlertMutation,
     useDeleteErrorAlertMutation,
     useDeleteSessionAlertMutation,
-    useGetAlertsPagePayloadQuery,
 } from '../../graph/generated/hooks';
 import { AlertConfigurationCard } from './AlertConfigurationCard/AlertConfigurationCard';
 import styles from './Alerts.module.scss';
@@ -134,9 +134,7 @@ const TABLE_COLUMNS = [
 
 const AlertsPage = () => {
     const { project_id } = useParams<{ project_id: string }>();
-    const { data, loading } = useGetAlertsPagePayloadQuery({
-        variables: { project_id },
-    });
+    const { alertsPayload, loading } = useAlertsContext();
 
     const [createErrorAlert, {}] = useCreateErrorAlertMutation({
         variables: {
@@ -230,32 +228,32 @@ const AlertsPage = () => {
     });
     const slackUrl = getSlackUrl('Organization', project_id, 'alerts');
     const alertsAsTableRows = [
-        ...(data?.error_alerts || []).map((alert) => ({
+        ...(alertsPayload?.error_alerts || []).map((alert) => ({
             ...alert,
             configuration: ALERT_CONFIGURATIONS['errors'],
             type: ALERT_CONFIGURATIONS['errors'].name,
         })),
-        ...(data?.new_user_alerts || []).map((alert) => ({
+        ...(alertsPayload?.new_user_alerts || []).map((alert) => ({
             ...alert,
             configuration: ALERT_CONFIGURATIONS['new users'],
             type: ALERT_CONFIGURATIONS['new users'].name,
         })),
-        ...(data?.session_feedback_alerts || []).map((alert) => ({
+        ...(alertsPayload?.session_feedback_alerts || []).map((alert) => ({
             ...alert,
             configuration: ALERT_CONFIGURATIONS['session feedback comments'],
             type: ALERT_CONFIGURATIONS['session feedback comments'].name,
         })),
-        ...(data?.track_properties_alerts || []).map((alert) => ({
+        ...(alertsPayload?.track_properties_alerts || []).map((alert) => ({
             ...alert,
             configuration: ALERT_CONFIGURATIONS['track properties'],
             type: ALERT_CONFIGURATIONS['track properties'].name,
         })),
-        ...(data?.user_properties_alerts || []).map((alert) => ({
+        ...(alertsPayload?.user_properties_alerts || []).map((alert) => ({
             ...alert,
             configuration: ALERT_CONFIGURATIONS['user properties'],
             type: ALERT_CONFIGURATIONS['user properties'].name,
         })),
-        ...(data?.new_session_alerts || []).map((alert) => ({
+        ...(alertsPayload?.new_session_alerts || []).map((alert) => ({
             ...alert,
             configuration: ALERT_CONFIGURATIONS['new sessions'],
             type: ALERT_CONFIGURATIONS['new sessions'].name,
@@ -317,18 +315,22 @@ const AlertsPage = () => {
                     New Alert
                 </ButtonLink>
             </div>
-            {!loading && !data?.is_integrated_with_slack ? (
+            {!loading && !alertsPayload?.is_integrated_with_slack ? (
                 <Alert
                     trackingId="AlertPageSlackBotIntegration"
                     message={
-                        !data?.is_integrated_with_slack
+                        !alertsPayload?.is_integrated_with_slack
                             ? "Slack isn't connected"
                             : "Can't find a Slack channel or person?"
                     }
-                    type={!data?.is_integrated_with_slack ? 'error' : 'info'}
+                    type={
+                        !alertsPayload?.is_integrated_with_slack
+                            ? 'error'
+                            : 'info'
+                    }
                     description={
                         <>
-                            {!data?.is_integrated_with_slack ? (
+                            {!alertsPayload?.is_integrated_with_slack ? (
                                 <>
                                     Highlight needs to be connected with Slack
                                     in order to send you and your team messages.
@@ -391,16 +393,17 @@ const AlertsPage = () => {
                         ))
                 ) : (
                     <>
-                        {data?.error_alerts.map((errorAlert) => (
+                        {alertsPayload?.error_alerts.map((errorAlert) => (
                             <AlertConfigurationCard
                                 key={errorAlert?.id}
                                 configuration={ALERT_CONFIGURATIONS['errors']}
                                 alert={errorAlert || {}}
                                 environmentOptions={
-                                    data?.environment_suggestion || []
+                                    alertsPayload?.environment_suggestion || []
                                 }
                                 channelSuggestions={
-                                    data?.slack_channel_suggestion || []
+                                    alertsPayload?.slack_channel_suggestion ||
+                                    []
                                 }
                                 slackUrl={slackUrl}
                                 onDeleteHandler={(alertId) => {
@@ -413,7 +416,7 @@ const AlertsPage = () => {
                                 }}
                             />
                         ))}
-                        {data?.session_feedback_alerts.map(
+                        {alertsPayload?.session_feedback_alerts.map(
                             (sessionFeedbackAlert) => (
                                 <AlertConfigurationCard
                                     key={sessionFeedbackAlert?.id}
@@ -424,10 +427,12 @@ const AlertsPage = () => {
                                     }
                                     alert={sessionFeedbackAlert || {}}
                                     environmentOptions={
-                                        data?.environment_suggestion || []
+                                        alertsPayload?.environment_suggestion ||
+                                        []
                                     }
                                     channelSuggestions={
-                                        data?.slack_channel_suggestion || []
+                                        alertsPayload?.slack_channel_suggestion ||
+                                        []
                                     }
                                     slackUrl={slackUrl}
                                     onDeleteHandler={(alertId) => {
@@ -441,7 +446,7 @@ const AlertsPage = () => {
                                 />
                             )
                         )}
-                        {data?.new_user_alerts?.map((newUserAlert) => (
+                        {alertsPayload?.new_user_alerts?.map((newUserAlert) => (
                             <AlertConfigurationCard
                                 key={newUserAlert?.id || ''}
                                 configuration={
@@ -449,10 +454,11 @@ const AlertsPage = () => {
                                 }
                                 alert={newUserAlert || {}}
                                 environmentOptions={
-                                    data?.environment_suggestion || []
+                                    alertsPayload?.environment_suggestion || []
                                 }
                                 channelSuggestions={
-                                    data?.slack_channel_suggestion || []
+                                    alertsPayload?.slack_channel_suggestion ||
+                                    []
                                 }
                                 slackUrl={slackUrl}
                                 onDeleteHandler={(alertId) => {
@@ -465,7 +471,7 @@ const AlertsPage = () => {
                                 }}
                             />
                         ))}
-                        {data?.user_properties_alerts.map(
+                        {alertsPayload?.user_properties_alerts.map(
                             (userPropertiesAlert) => (
                                 <AlertConfigurationCard
                                     key={userPropertiesAlert?.id}
@@ -474,10 +480,12 @@ const AlertsPage = () => {
                                     }
                                     alert={userPropertiesAlert || {}}
                                     environmentOptions={
-                                        data?.environment_suggestion || []
+                                        alertsPayload?.environment_suggestion ||
+                                        []
                                     }
                                     channelSuggestions={
-                                        data?.slack_channel_suggestion || []
+                                        alertsPayload?.slack_channel_suggestion ||
+                                        []
                                     }
                                     slackUrl={slackUrl}
                                     onDeleteHandler={(alertId) => {
@@ -491,7 +499,7 @@ const AlertsPage = () => {
                                 />
                             )
                         )}
-                        {data?.new_session_alerts.map(
+                        {alertsPayload?.new_session_alerts.map(
                             (trackPropertiesAlert) => (
                                 <AlertConfigurationCard
                                     key={trackPropertiesAlert?.id}
@@ -500,10 +508,12 @@ const AlertsPage = () => {
                                     }
                                     alert={trackPropertiesAlert || {}}
                                     environmentOptions={
-                                        data?.environment_suggestion || []
+                                        alertsPayload?.environment_suggestion ||
+                                        []
                                     }
                                     channelSuggestions={
-                                        data?.slack_channel_suggestion || []
+                                        alertsPayload?.slack_channel_suggestion ||
+                                        []
                                     }
                                     slackUrl={slackUrl}
                                     onDeleteHandler={(alertId) => {
@@ -517,7 +527,7 @@ const AlertsPage = () => {
                                 />
                             )
                         )}
-                        {data?.track_properties_alerts.map(
+                        {alertsPayload?.track_properties_alerts.map(
                             (trackPropertiesAlert) => (
                                 <AlertConfigurationCard
                                     key={trackPropertiesAlert?.id}
@@ -526,10 +536,12 @@ const AlertsPage = () => {
                                     }
                                     alert={trackPropertiesAlert || {}}
                                     environmentOptions={
-                                        data?.environment_suggestion || []
+                                        alertsPayload?.environment_suggestion ||
+                                        []
                                     }
                                     channelSuggestions={
-                                        data?.slack_channel_suggestion || []
+                                        alertsPayload?.slack_channel_suggestion ||
+                                        []
                                     }
                                     slackUrl={slackUrl}
                                     onDeleteHandler={(alertId) => {
