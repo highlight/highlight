@@ -12,6 +12,7 @@ interface NetworkListenerArguments {
     fetchCallback: NetworkListenerCallback;
     headersToRedact: string[];
     backendUrl: string;
+    tracingOrigins: string[];
     urlBlocklist: string[];
     sessionID: number;
 }
@@ -21,6 +22,7 @@ export const NetworkListener = ({
     fetchCallback,
     headersToRedact,
     backendUrl,
+    tracingOrigins,
     urlBlocklist,
     sessionID,
 }: NetworkListenerArguments) => {
@@ -35,6 +37,7 @@ export const NetworkListener = ({
             );
         },
         backendUrl,
+        tracingOrigins,
         urlBlocklist,
         sessionID,
     );
@@ -49,6 +52,7 @@ export const NetworkListener = ({
             );
         },
         backendUrl,
+        tracingOrigins,
         urlBlocklist
     );
 

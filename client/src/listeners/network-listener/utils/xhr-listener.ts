@@ -16,6 +16,7 @@ interface BrowserXHR extends XMLHttpRequest {
 export const XHRListener = (
     callback: NetworkListenerCallback,
     backendUrl: string,
+    tracingOrigins: string[],
     urlBlocklist: string[],
     sessionID: number,
 ) => {

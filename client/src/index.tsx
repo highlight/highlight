@@ -102,6 +102,7 @@ export type HighlightClassOptions = {
     organizationID: number | string;
     debug?: boolean | DebugOptions;
     backendUrl?: string;
+    tracingOrigins?: string[];
     disableNetworkRecording?: boolean;
     networkRecording?: boolean | NetworkRecordingOptions;
     disableConsoleRecording?: boolean;
@@ -166,6 +167,7 @@ export class Highlight {
     messages: ConsoleMessage[];
     xhrNetworkContents: RequestResponsePair[] = [];
     fetchNetworkContents: RequestResponsePair[] = [];
+    tracingOrigins: string[] = [];
     networkHeadersToRedact: string[] = [];
     urlBlocklist: string[] = [];
     sessionData: SessionData;
@@ -254,6 +256,7 @@ export class Highlight {
             options?.backendUrl ||
             process.env.PUBLIC_GRAPH_URI ||
             'https://public.highlight.run';
+        this.tracingOrigins = options.tracingOrigins || [];
         const client = new GraphQLClient(`${this._backendUrl}`, {
             headers: {},
         });
@@ -641,6 +644,7 @@ export class Highlight {
                         },
                         headersToRedact: this.networkHeadersToRedact,
                         backendUrl: this._backendUrl,
+                        tracingOrigins: this.tracingOrigins,
                         urlBlocklist: this.urlBlocklist,
                         sessionID: this.sessionData.sessionID,
                     })

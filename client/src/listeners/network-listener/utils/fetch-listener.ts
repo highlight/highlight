@@ -9,6 +9,7 @@ import { isHighlightNetworkResourceFilter } from './utils';
 export const FetchListener = (
     callback: NetworkListenerCallback,
     backendUrl: string,
+    tracingOrigins: string[],
     urlBlocklist: string[]
 ) => {
     const originalFetch = window.fetch;
