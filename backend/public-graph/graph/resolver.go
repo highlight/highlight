@@ -423,6 +423,9 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 		return nil, e.Wrap(err, "error creating session")
 	}
 
+	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
+		Infof("initialized session: %s", session.Identifier)
+
 	sessionProperties := map[string]string{
 		"os_name":         deviceDetails.OSName,
 		"os_version":      deviceDetails.OSVersion,
