@@ -1,15 +1,16 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import { DEMO_WORKSPACE_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { namedOperations } from '@graph/operations';
 import { useParams } from '@util/react-router/useParams';
 import { Divider, Form, message } from 'antd';
 import classNames from 'classnames';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useHistory } from 'react-router';
 import TextTransition from 'react-text-transition';
 
 import Button from '../../../components/Button/Button/Button';
-import Collapsible from '../../../components/Collapsible/Collapsible';
-import InfoTooltip from '../../../components/InfoTooltip/InfoTooltip';
 import InputNumber from '../../../components/InputNumber/InputNumber';
+import layoutStyles from '../../../components/layout/LeadAlignLayout.module.scss';
 import Select from '../../../components/Select/Select';
 import {
     useGetTrackSuggestionQuery,
@@ -22,7 +23,7 @@ import {
     useUpdateUserPropertiesAlertMutation,
 } from '../../../graph/generated/hooks';
 import { ALERT_TYPE } from '../Alerts';
-import { dedupeEnvironments } from '../utils/AlertsUtils';
+import { dedupeEnvironments, getAlertTypeColor } from '../utils/AlertsUtils';
 import styles from './AlertConfigurationCard.module.scss';
 
 interface AlertConfiguration {
@@ -61,12 +62,14 @@ export const AlertConfigurationCard = ({
     const [lookbackPeriod, setLookbackPeriod] = useState(
         getLookbackPeriodOption(alert?.ThresholdWindow).value
     );
+    const { isHighlightAdmin } = useAuthContext();
     const [searchQuery, setSearchQuery] = useState('');
     const { project_id } = useParams<{ project_id: string }>();
     const [form] = Form.useForm();
     const [updateErrorAlert] = useUpdateErrorAlertMutation();
     const [updateNewUserAlert] = useUpdateNewUserAlertMutation();
     const [updateUserPropertiesAlert] = useUpdateUserPropertiesAlertMutation();
+    const history = useHistory();
     const [
         updateTrackPropertiesAlert,
     ] = useUpdateTrackPropertiesAlertMutation();
@@ -78,6 +81,12 @@ export const AlertConfigurationCard = ({
     const excludedEnvironmentsFormName = `${
         alert.Name || defaultName
     }-excludedEnvironments`;
+
+    useEffect(() => {
+        history.replace(history.location.pathname, {
+            errorName: alert.Name || defaultName,
+        });
+    }, [alert.Name, defaultName, history]);
 
     const onSubmit = async () => {
         setLoading(true);
@@ -328,16 +337,14 @@ export const AlertConfigurationCard = ({
     }
 
     return (
-        <Collapsible
-            title={
-                <span className={styles.title}>
-                    {alert?.Name || defaultName}{' '}
-                    {description && <InfoTooltip title={description} />}
-                </span>
-            }
-            id={`${alert.id}${defaultName}`}
-            contentClassName={styles.alertConfigurationCard}
-        >
+        <div className={styles.alertConfigurationCard}>
+            <p className={classNames(layoutStyles.subTitle, styles.subTitle)}>
+                This is an{' '}
+                <strong style={{ color: getAlertTypeColor(defaultName) }}>
+                    {defaultName}
+                </strong>{' '}
+                alert. {description}
+            </p>
             <Form
                 onFinish={onSubmit}
                 form={form}
@@ -581,7 +588,7 @@ export const AlertConfigurationCard = ({
                 <Form.Item shouldUpdate>
                     {() => (
                         <>
-                            {onDeleteHandler && (
+                            {isHighlightAdmin && onDeleteHandler && (
                                 <Button
                                     trackingId="DeleteAlertConfiguration"
                                     type="primary"
@@ -611,7 +618,7 @@ export const AlertConfigurationCard = ({
                     )}
                 </Form.Item>
             </Form>
-        </Collapsible>
+        </div>
     );
 };
 

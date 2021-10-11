@@ -1,3 +1,4 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import Alert from '@components/Alert/Alert';
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
@@ -11,7 +12,6 @@ import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertL
 import { getAlertTypeColor } from '@pages/Alerts/utils/AlertsUtils';
 import { useParams } from '@util/react-router/useParams';
 import React from 'react';
-import Skeleton from 'react-loading-skeleton';
 import { Link, useHistory } from 'react-router-dom';
 
 import {
@@ -21,10 +21,7 @@ import {
     useCreateSessionFeedbackAlertMutation,
     useCreateTrackPropertiesAlertMutation,
     useCreateUserPropertiesAlertMutation,
-    useDeleteErrorAlertMutation,
-    useDeleteSessionAlertMutation,
 } from '../../graph/generated/hooks';
-import { AlertConfigurationCard } from './AlertConfigurationCard/AlertConfigurationCard';
 import styles from './Alerts.module.scss';
 
 export enum ALERT_TYPE {
@@ -41,6 +38,7 @@ export const ALERT_CONFIGURATIONS = {
         name: 'Errors',
         canControlThreshold: true,
         type: ALERT_TYPE.Error,
+        description: 'Get alerted when an error is thrown in your app.',
     },
     NEW_USER_ALERT: {
         name: 'New Users',
@@ -132,7 +130,8 @@ const TABLE_COLUMNS = [
 
 const AlertsPage = () => {
     const { project_id } = useParams<{ project_id: string }>();
-    const { alertsPayload, loading, slackUrl } = useAlertsContext();
+    const { alertsPayload, loading } = useAlertsContext();
+    const { isHighlightAdmin } = useAuthContext();
 
     const [createErrorAlert, {}] = useCreateErrorAlertMutation({
         variables: {
@@ -209,21 +208,7 @@ const AlertsPage = () => {
         },
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
-    const [deleteErrorAlert, {}] = useDeleteErrorAlertMutation({
-        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-    });
     const history = useHistory();
-    const [deleteSessionAlert, {}] = useDeleteSessionAlertMutation({
-        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-        update(cache, data) {
-            const normalizedId = cache.identify({
-                id: data.data?.deleteSessionAlert?.id,
-                __typename: data.data?.__typename,
-            });
-            cache.evict({ id: normalizedId });
-            cache.gc();
-        },
-    });
     const alertsAsTableRows = [
         ...(alertsPayload?.error_alerts || []).map((alert) => ({
             ...alert,
@@ -259,57 +244,63 @@ const AlertsPage = () => {
 
     return (
         <>
-            <button
-                onClick={() => {
-                    createErrorAlert();
-                }}
-            >
-                Create Error
-            </button>
-            <button
-                onClick={() => {
-                    createSessionFeedbackAlert();
-                }}
-            >
-                Create Session Feedback
-            </button>
-            <button
-                onClick={() => {
-                    createNewUserAlert();
-                }}
-            >
-                Create New Users
-            </button>
-            <button
-                onClick={() => {
-                    createUserPropertiesAlert();
-                }}
-            >
-                Create User Properties
-            </button>
-            <button
-                onClick={() => {
-                    createTrackPropertiesAlert();
-                }}
-            >
-                Create Track Properties
-            </button>
-            <button
-                onClick={() => {
-                    createNewSessionAlert();
-                }}
-            >
-                Create New Session Alert
-            </button>
+            {isHighlightAdmin && (
+                <>
+                    <button
+                        onClick={() => {
+                            createErrorAlert();
+                        }}
+                    >
+                        Create Error
+                    </button>
+                    <button
+                        onClick={() => {
+                            createSessionFeedbackAlert();
+                        }}
+                    >
+                        Create Session Feedback
+                    </button>
+                    <button
+                        onClick={() => {
+                            createNewUserAlert();
+                        }}
+                    >
+                        Create New Users
+                    </button>
+                    <button
+                        onClick={() => {
+                            createUserPropertiesAlert();
+                        }}
+                    >
+                        Create User Properties
+                    </button>
+                    <button
+                        onClick={() => {
+                            createTrackPropertiesAlert();
+                        }}
+                    >
+                        Create Track Properties
+                    </button>
+                    <button
+                        onClick={() => {
+                            createNewSessionAlert();
+                        }}
+                    >
+                        Create New Session Alert
+                    </button>
+                </>
+            )}
             <div className={styles.subTitleContainer}>
                 <p>Configure the environments you want alerts for.</p>
-                <ButtonLink
-                    trackingId="NewAlert"
-                    className={styles.callToAction}
-                    to={`/${project_id}/alerts/new`}
-                >
-                    New Alert
-                </ButtonLink>
+                {isHighlightAdmin && (
+                    <ButtonLink
+                        trackingId="NewAlert"
+                        className={styles.callToAction}
+                        to={`/${project_id}/alerts/new`}
+                    >
+                        New Alert
+                    </ButtonLink>
+                )}
             </div>
             {!loading && !alertsPayload?.is_integrated_with_slack ? (
                 <Alert
@@ -367,201 +358,11 @@ const AlertsPage = () => {
                 pagination={false}
                 showHeader={false}
                 onRow={(record) => ({
-                    onClick: (e) => {
-                        console.log(e, record);
+                    onClick: () => {
                         history.push(`alerts/${record.id}`);
                     },
                 })}
             />
-            <div className={styles.configurationContainer}>
-                {loading ? (
-                    Array(2)
-                        .fill(0)
-                        .map((_, index) => (
-                            <Skeleton
-                                key={index}
-                                style={{
-                                    width: '648px',
-                                    height: 79,
-                                    borderRadius: 8,
-                                }}
-                            />
-                        ))
-                ) : (
-                    <>
-                        {alertsPayload?.error_alerts.map((errorAlert) => (
-                            <AlertConfigurationCard
-                                key={errorAlert?.id}
-                                configuration={
-                                    ALERT_CONFIGURATIONS['ERROR_ALERT']
-                                }
-                                alert={errorAlert || {}}
-                                environmentOptions={
-                                    alertsPayload?.environment_suggestion || []
-                                }
-                                channelSuggestions={
-                                    alertsPayload?.slack_channel_suggestion ||
-                                    []
-                                }
-                                slackUrl={slackUrl}
-                                onDeleteHandler={(alertId) => {
-                                    deleteErrorAlert({
-                                        variables: {
-                                            error_alert_id: alertId,
-                                            project_id,
-                                        },
-                                    });
-                                }}
-                            />
-                        ))}
-                        {alertsPayload?.session_feedback_alerts.map(
-                            (sessionFeedbackAlert) => (
-                                <AlertConfigurationCard
-                                    key={sessionFeedbackAlert?.id}
-                                    configuration={
-                                        ALERT_CONFIGURATIONS[
-                                            'SESSION_FEEDBACK_ALERT'
-                                        ]
-                                    }
-                                    alert={sessionFeedbackAlert || {}}
-                                    environmentOptions={
-                                        alertsPayload?.environment_suggestion ||
-                                        []
-                                    }
-                                    channelSuggestions={
-                                        alertsPayload?.slack_channel_suggestion ||
-                                        []
-                                    }
-                                    slackUrl={slackUrl}
-                                    onDeleteHandler={(alertId) => {
-                                        deleteSessionAlert({
-                                            variables: {
-                                                session_alert_id: alertId,
-                                                project_id,
-                                            },
-                                        });
-                                    }}
-                                />
-                            )
-                        )}
-                        {alertsPayload?.new_user_alerts?.map((newUserAlert) => (
-                            <AlertConfigurationCard
-                                key={newUserAlert?.id || ''}
-                                configuration={
-                                    ALERT_CONFIGURATIONS['NEW_USER_ALERT']
-                                }
-                                alert={newUserAlert || {}}
-                                environmentOptions={
-                                    alertsPayload?.environment_suggestion || []
-                                }
-                                channelSuggestions={
-                                    alertsPayload?.slack_channel_suggestion ||
-                                    []
-                                }
-                                slackUrl={slackUrl}
-                                onDeleteHandler={(alertId) => {
-                                    deleteSessionAlert({
-                                        variables: {
-                                            session_alert_id: alertId,
-                                            project_id,
-                                        },
-                                    });
-                                }}
-                            />
-                        ))}
-                        {alertsPayload?.user_properties_alerts.map(
-                            (userPropertiesAlert) => (
-                                <AlertConfigurationCard
-                                    key={userPropertiesAlert?.id}
-                                    configuration={
-                                        ALERT_CONFIGURATIONS[
-                                            'USER_PROPERTIES_ALERT'
-                                        ]
-                                    }
-                                    alert={userPropertiesAlert || {}}
-                                    environmentOptions={
-                                        alertsPayload?.environment_suggestion ||
-                                        []
-                                    }
-                                    channelSuggestions={
-                                        alertsPayload?.slack_channel_suggestion ||
-                                        []
-                                    }
-                                    slackUrl={slackUrl}
-                                    onDeleteHandler={(alertId) => {
-                                        deleteSessionAlert({
-                                            variables: {
-                                                session_alert_id: alertId,
-                                                project_id,
-                                            },
-                                        });
-                                    }}
-                                />
-                            )
-                        )}
-                        {alertsPayload?.new_session_alerts.map(
-                            (trackPropertiesAlert) => (
-                                <AlertConfigurationCard
-                                    key={trackPropertiesAlert?.id}
-                                    configuration={
-                                        ALERT_CONFIGURATIONS[
-                                            'NEW_SESSION_ALERT'
-                                        ]
-                                    }
-                                    alert={trackPropertiesAlert || {}}
-                                    environmentOptions={
-                                        alertsPayload?.environment_suggestion ||
-                                        []
-                                    }
-                                    channelSuggestions={
-                                        alertsPayload?.slack_channel_suggestion ||
-                                        []
-                                    }
-                                    slackUrl={slackUrl}
-                                    onDeleteHandler={(alertId) => {
-                                        deleteSessionAlert({
-                                            variables: {
-                                                session_alert_id: alertId,
-                                                project_id,
-                                            },
-                                        });
-                                    }}
-                                />
-                            )
-                        )}
-                        {alertsPayload?.track_properties_alerts.map(
-                            (trackPropertiesAlert) => (
-                                <AlertConfigurationCard
-                                    key={trackPropertiesAlert?.id}
-                                    configuration={
-                                        ALERT_CONFIGURATIONS[
-                                            'TRACK_PROPERTIES_ALERT'
-                                        ]
-                                    }
-                                    alert={trackPropertiesAlert || {}}
-                                    environmentOptions={
-                                        alertsPayload?.environment_suggestion ||
-                                        []
-                                    }
-                                    channelSuggestions={
-                                        alertsPayload?.slack_channel_suggestion ||
-                                        []
-                                    }
-                                    slackUrl={slackUrl}
-                                    onDeleteHandler={(alertId) => {
-                                        deleteSessionAlert({
-                                            variables: {
-                                                session_alert_id: alertId,
-                                                project_id,
-                                            },
-                                        });
-                                    }}
-                                />
-                            )
-                        )}
-                    </>
-                )}
-            </div>
         </>
     );
 };

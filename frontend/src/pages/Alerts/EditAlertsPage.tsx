@@ -1,4 +1,8 @@
-import { GetAlertsPagePayloadQuery } from '@graph/operations';
+import {
+    useDeleteErrorAlertMutation,
+    useDeleteSessionAlertMutation,
+} from '@graph/hooks';
+import { GetAlertsPagePayloadQuery, namedOperations } from '@graph/operations';
 import { AlertConfigurationCard } from '@pages/Alerts/AlertConfigurationCard/AlertConfigurationCard';
 import { ALERT_CONFIGURATIONS } from '@pages/Alerts/Alerts';
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext';
@@ -10,10 +14,24 @@ interface Props {
 }
 
 const EditAlertsPage = ({ isEditing }: Props) => {
-    const { id } = useParams<{ id: string }>();
+    const { id, project_id } = useParams<{ id: string; project_id: string }>();
     const { slackUrl, alertsPayload, loading } = useAlertsContext();
 
     const alert = isEditing && id ? findAlert(id, alertsPayload) : undefined;
+    const [deleteErrorAlert, {}] = useDeleteErrorAlertMutation({
+        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+    });
+    const [deleteSessionAlert, {}] = useDeleteSessionAlertMutation({
+        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+        update(cache, data) {
+            const normalizedId = cache.identify({
+                id: data.data?.deleteSessionAlert?.id,
+                __typename: data.data?.__typename,
+            });
+            cache.evict({ id: normalizedId });
+            cache.gc();
+        },
+    });
 
     return (
         <>
@@ -31,6 +49,26 @@ const EditAlertsPage = ({ isEditing }: Props) => {
                     }
                     // @ts-expect-error
                     configuration={ALERT_CONFIGURATIONS[alert?.Type]}
+                    onDeleteHandler={(alertId) => {
+                        if (!alert) {
+                            return;
+                        }
+                        if (alert?.Type === 'Errors') {
+                            deleteErrorAlert({
+                                variables: {
+                                    error_alert_id: alertId,
+                                    project_id,
+                                },
+                            });
+                        } else {
+                            deleteSessionAlert({
+                                variables: {
+                                    session_alert_id: alertId,
+                                    project_id,
+                                },
+                            });
+                        }
+                    }}
                 />
             )}
         </>

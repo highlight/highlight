@@ -8,7 +8,7 @@ import { AlertsContextProvider } from '@pages/Alerts/AlertsContext/AlertsContext
 import EditAlertsPage from '@pages/Alerts/EditAlertsPage';
 import { useParams } from '@util/react-router/useParams';
 import React, { useEffect, useState } from 'react';
-import { Route, Switch, useRouteMatch } from 'react-router-dom';
+import { Route, Switch, useHistory, useRouteMatch } from 'react-router-dom';
 
 const AlertsRouter = () => {
     const { project_id } = useParams<{ project_id: string }>();
@@ -20,6 +20,7 @@ const AlertsRouter = () => {
         variables: { project_id },
     });
     const slackUrl = getSlackUrl('Organization', project_id, 'alerts');
+    const history = useHistory<{ errorName: string }>();
 
     useEffect(() => {
         if (!loading) {
@@ -38,7 +39,9 @@ const AlertsRouter = () => {
         >
             <LeadAlignLayout>
                 <Breadcrumb
-                    getBreadcrumbName={getAlertsBreadcrumbNames}
+                    getBreadcrumbName={(url) =>
+                        getAlertsBreadcrumbNames(history.location.state)(url)
+                    }
                     linkRenderAs="h2"
                 />
                 <Switch>
@@ -59,14 +62,15 @@ const AlertsRouter = () => {
 
 export default AlertsRouter;
 
-const getAlertsBreadcrumbNames = (url: string) => {
-    console.log(url);
-    if (url.endsWith('/alerts')) {
-        return 'Alerts';
-    }
+const getAlertsBreadcrumbNames = (suffixes: { [key: string]: string }) => {
+    return (url: string) => {
+        if (url.endsWith('/alerts')) {
+            return 'Alerts';
+        }
 
-    if (url.endsWith('/alerts/new')) {
-        return 'Create New Alert';
-    }
-    return 'Edit';
+        if (url.endsWith('/alerts/new')) {
+            return 'Create New Alert';
+        }
+        return `Edit ${suffixes?.errorName}`;
+    };
 };
