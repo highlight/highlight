@@ -14,7 +14,6 @@ import React from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { Link, useHistory } from 'react-router-dom';
 
-import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
 import {
     useCreateErrorAlertMutation,
     useCreateNewSessionAlertMutation,
@@ -259,8 +258,7 @@ const AlertsPage = () => {
     ];
 
     return (
-        <LeadAlignLayout>
-            <h2>Alerts</h2>
+        <>
             <button
                 onClick={() => {
                     createErrorAlert();
@@ -564,7 +562,7 @@ const AlertsPage = () => {
                     </>
                 )}
             </div>
-        </LeadAlignLayout>
+        </>
     );
 };
 

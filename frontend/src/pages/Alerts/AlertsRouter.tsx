@@ -1,4 +1,6 @@
+import Breadcrumb from '@components/Breadcrumb/Breadcrumb';
 import { getSlackUrl } from '@components/Header/components/PersonalNotificationButton/utils/utils';
+import LeadAlignLayout from '@components/layout/LeadAlignLayout';
 import { useGetAlertsPagePayloadQuery } from '@graph/hooks';
 import { GetAlertsPagePayloadQuery } from '@graph/operations';
 import AlertsPage from '@pages/Alerts/Alerts';
@@ -34,19 +36,37 @@ const AlertsRouter = () => {
                 slackUrl,
             }}
         >
-            <Switch>
-                <Route exact path={path}>
-                    <AlertsPage />
-                </Route>
-                <Route path={`${path}/new`}>
-                    <EditAlertsPage isEditing={false} />
-                </Route>
-                <Route path={`${path}/:id`}>
-                    <EditAlertsPage isEditing={true} />
-                </Route>
-            </Switch>
+            <LeadAlignLayout>
+                <Breadcrumb
+                    getBreadcrumbName={getAlertsBreadcrumbNames}
+                    linkRenderAs="h2"
+                />
+                <Switch>
+                    <Route exact path={path}>
+                        <AlertsPage />
+                    </Route>
+                    <Route path={`${path}/new`}>
+                        <EditAlertsPage isEditing={false} />
+                    </Route>
+                    <Route path={`${path}/:id`}>
+                        <EditAlertsPage isEditing={true} />
+                    </Route>
+                </Switch>
+            </LeadAlignLayout>
         </AlertsContextProvider>
     );
 };
 
 export default AlertsRouter;
+
+const getAlertsBreadcrumbNames = (url: string) => {
+    console.log(url);
+    if (url.endsWith('/alerts')) {
+        return 'Alerts';
+    }
+
+    if (url.endsWith('/alerts/new')) {
+        return 'Create New Alert';
+    }
+    return 'Edit';
+};

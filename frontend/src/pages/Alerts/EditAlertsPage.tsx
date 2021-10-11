@@ -1,4 +1,3 @@
-import LeadAlignLayout from '@components/layout/LeadAlignLayout';
 import { GetAlertsPagePayloadQuery } from '@graph/operations';
 import { AlertConfigurationCard } from '@pages/Alerts/AlertConfigurationCard/AlertConfigurationCard';
 import { ALERT_CONFIGURATIONS } from '@pages/Alerts/Alerts';
@@ -17,8 +16,7 @@ const EditAlertsPage = ({ isEditing }: Props) => {
     const alert = isEditing && id ? findAlert(id, alertsPayload) : undefined;
 
     return (
-        <LeadAlignLayout>
-            <h2>New Alert</h2>
+        <>
             {loading || !alertsPayload || !alert ? (
                 <h2>Loading</h2>
             ) : (
@@ -35,7 +33,7 @@ const EditAlertsPage = ({ isEditing }: Props) => {
                     configuration={ALERT_CONFIGURATIONS[alert?.Type]}
                 />
             )}
-        </LeadAlignLayout>
+        </>
     );
 };
 
