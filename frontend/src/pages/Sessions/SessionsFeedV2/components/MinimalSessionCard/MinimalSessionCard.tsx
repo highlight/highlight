@@ -4,7 +4,6 @@ import {
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
-import { H } from 'highlight.run';
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -18,7 +17,7 @@ import SvgUserPlusIcon from '../../../../../static/UserPlusIcon';
 import { MillisToMinutesAndSecondsVerbose } from '../../../../../util/time';
 import { LIVE_SEGMENT_ID } from '../../../SearchSidebar/SegmentPicker/SegmentPicker';
 import styles from './MinimalSessionCard.module.scss';
-import { getIdentifiedUserProfileImage } from './utils/utils';
+import { getDisplayName, getIdentifiedUserProfileImage } from './utils/utils';
 
 interface Props {
     session: Maybe<Session>;
@@ -32,26 +31,6 @@ interface Props {
     showDetailedSessionView?: boolean;
     autoPlaySessions?: boolean;
 }
-
-// Fallback logic for the display name shown for the session card
-const getDisplayName = (session: Maybe<Session>) => {
-    let userProperties;
-    try {
-        userProperties = JSON.parse(session?.user_properties || '{}');
-    } catch (e) {
-        if (e instanceof Error) {
-            H.consumeError(e);
-        }
-    }
-
-    return (
-        userProperties?.highlightDisplayName ||
-        userProperties?.email ||
-        session?.identifier ||
-        (session?.fingerprint && `#${session?.fingerprint}`) ||
-        'unidentified'
-    );
-};
 
 const MinimalSessionCard = React.memo(
     ({

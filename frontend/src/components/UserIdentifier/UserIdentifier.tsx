@@ -1,6 +1,6 @@
 import Tooltip from '@components/Tooltip/Tooltip';
+import { getDisplayName } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils';
 import classNames from 'classnames';
-import { H } from 'highlight.run';
 import React from 'react';
 
 import { Session } from '../../graph/generated/schemas';
@@ -13,26 +13,6 @@ interface Props {
     session: Session;
     className?: string;
 }
-
-// Fallback logic for the display name shown for the session card
-const getDisplayName = (session: Session) => {
-    let userProperties;
-    try {
-        userProperties = JSON.parse(session?.user_properties || '{}');
-    } catch (e) {
-        if (e instanceof Error) {
-            H.consumeError(e);
-        }
-    }
-
-    return (
-        userProperties?.highlightDisplayName ||
-        userProperties?.email ||
-        session?.identifier ||
-        (session?.fingerprint && `#${session?.fingerprint}`) ||
-        'unidentified'
-    );
-};
 
 const UserIdentifier = ({ session, className }: Props) => {
     const { setSearchParams } = useSearchContext();
