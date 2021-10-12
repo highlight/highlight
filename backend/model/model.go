@@ -988,6 +988,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 	sessionLink := fmt.Sprintf("<%s/%d/sessions/%s%s>", frontendURL, obj.ProjectID, input.SessionSecureID, suffix)
 	messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false))
 
+	var previewText string
 	if obj.Type == nil {
 		if input.Group != nil {
 			obj.Type = &AlertType.ERROR
@@ -1006,6 +1007,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 		}
 		errorLink := fmt.Sprintf("%s/%d/errors/%s", frontendURL, obj.ProjectID, input.Group.SecureID)
 		// construct Slack message
+		previewText = fmt.Sprintf("Highlight: Error Alert: %s", shortEvent)
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Highlight Error Alert: %d Recent Occurrences*\n\n%s\n<%s/>", *input.ErrorsCount, shortEvent, errorLink), false, false)
 		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+input.UserIdentifier, false, false))
 		if input.URL != nil {
@@ -1048,6 +1050,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 		}
 	case AlertType.NEW_USER:
 		// construct Slack message
+		previewText = "Highlight: New User Alert"
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight New User Alert:*\n\n", false, false)
 		if input.UserIdentifier != "" {
 			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+input.UserIdentifier, false, false))
@@ -1071,6 +1074,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 			formattedFields = append(formattedFields, fmt.Sprintf("{name: %s, value: %s}", addr.Name, addr.Value))
 		}
 		// construct Slack message
+		previewText = "Highlight: Track Properties Alert"
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight Track Properties Alert:*\n\n", false, false)
 		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Matched Track Properties:*\n%+v", formattedFields), false, false))
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
@@ -1083,22 +1087,34 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 			formattedFields = append(formattedFields, fmt.Sprintf("{name: %s, value: %s}", addr.Name, addr.Value))
 		}
 		// construct Slack message
+		previewText = "Highlight: User Properties Alert"
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight User Properties Alert:*\n\n", false, false)
 		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Matched User Properties:*\n%+v", formattedFields), false, false))
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
 	case AlertType.SESSION_FEEDBACK:
+		previewText = "Highlight: Session Feedback Alert"
+		if input.UserIdentifier == "" {
+			input.UserIdentifier = "User"
+		}
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s Left Feedback*\n\n%s", input.UserIdentifier, input.CommentText), false, false)
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
 	case AlertType.NEW_SESSION:
+		identifier := input.UserIdentifier
+		if identifier == "" {
+			identifier = "User"
+		}
+		previewText = fmt.Sprintf("Highlight: New Session Created By %s", identifier)
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*New Session Created By User: %s*\n\n", input.UserIdentifier), false, false)
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
 	}
+
+	msg.Text = previewText
 
 	var slackClient *slack.Client
 	if input.Workspace.SlackAccessToken != nil {
