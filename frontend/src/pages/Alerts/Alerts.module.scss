@@ -73,3 +73,19 @@
         width: var(--size-large);
     }
 }
+
+.emptyContainer {
+    display: flex;
+    flex-direction: column;
+    margin: 0 auto;
+    max-width: 400px;
+    padding-top: var(--size-xLarge);
+
+    p {
+        color: var(--color-gray-500) !important;
+    }
+
+    a {
+        margin-top: var(--size-xLarge);
+    }
+}

@@ -52,7 +52,7 @@ const EditAlertsPage = () => {
                         if (!alert) {
                             return;
                         }
-                        if (alert?.Type === 'Errors') {
+                        if (alert?.Type === 'ERROR_ALERT') {
                             deleteErrorAlert({
                                 variables: {
                                     error_alert_id: alertId,
