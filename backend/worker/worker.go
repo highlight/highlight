@@ -522,37 +522,40 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	g.Go(func() error {
 		// Sending session init alert
-		var sessionAlert model.SessionAlert
+		var sessionAlerts []*model.SessionAlert
 		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).
-			Where("type=?", model.AlertType.NEW_SESSION).First(&sessionAlert).Error; err != nil {
+			Where("type=?", model.AlertType.NEW_SESSION).Find(&sessionAlerts).Error; err != nil {
 			return e.Wrapf(err, "[project_id: %d] error fetching new session alert", projectID)
 		}
 
-		// check if session was produced from an excluded environment
-		excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
-		if err != nil {
-			return e.Wrapf(err, "[project_id: %d] error getting excluded environments from new session alert", projectID)
-		}
-		isExcludedEnvironment := false
-		for _, env := range excludedEnvironments {
-			if env != nil && *env == s.Environment {
-				isExcludedEnvironment = true
-				break
+		for _, sessionAlert := range sessionAlerts {
+			// check if session was produced from an excluded environment
+			excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
+			if err != nil {
+				return e.Wrapf(err, "[project_id: %d] error getting excluded environments from new session alert", projectID)
 			}
-		}
-		if isExcludedEnvironment {
-			return nil
-		}
+			isExcludedEnvironment := false
+			for _, env := range excludedEnvironments {
+				if env != nil && *env == s.Environment {
+					isExcludedEnvironment = true
+					break
+				}
+			}
+			if isExcludedEnvironment {
+				return nil
+			}
 
-		workspace, err := w.Resolver.GetWorkspace(project.WorkspaceID)
-		if err != nil {
-			return e.Wrap(err, "error querying workspace")
-		}
+			workspace, err := w.Resolver.GetWorkspace(project.WorkspaceID)
+			if err != nil {
+				return e.Wrap(err, "error querying workspace")
+			}
 
-		// send Slack message
-		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier})
-		if err != nil {
-			return e.Wrapf(err, "[project_id: %d] error sending slack message for new session alert", projectID)
+			// send Slack message
+			err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier})
+			if err != nil {
+				return e.Wrapf(err, "[project_id: %d] error sending slack message for new session alert", projectID)
+			}
+
 		}
 		return nil
 	})
