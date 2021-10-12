@@ -618,11 +618,12 @@ func (r *Resolver) processStackFrame(projectId, sessionId int, stackTrace model2
 		return nil, err
 	}
 
-	sourceMapFileName := string(regexp.MustCompile(`sourceMappingURL=(.*)`).Find(minifiedFileBytes))
+	sourceMapFileName := string(regexp.MustCompile(`//# sourceMappingURL=(.*)`).Find(minifiedFileBytes))
 	if len(sourceMapFileName) < 1 {
 		err := e.Errorf("file does not contain source map url: %v", stackTraceFileURL)
 		return nil, err
 	}
+	sourceMapFileName = strings.Replace(sourceMapFileName, "//# sourceMappingURL=", "", 1)
 
 	// construct sourcemap url from searched file
 	sourceMapURL := (stackTraceFileURL)[:stackFileNameIndex] + sourceMapFileName
