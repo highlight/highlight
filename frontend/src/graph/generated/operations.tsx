@@ -413,6 +413,7 @@ export type CreateErrorAlertMutation = { __typename?: 'Mutation' } & {
             | 'ExcludedEnvironments'
             | 'CountThreshold'
             | 'ThresholdWindow'
+            | 'LastAdminToEditID'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -448,6 +449,7 @@ export type UpdateErrorAlertMutation = { __typename?: 'Mutation' } & {
             | 'ExcludedEnvironments'
             | 'CountThreshold'
             | 'ThresholdWindow'
+            | 'LastAdminToEditID'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -505,6 +507,7 @@ export type CreateSessionFeedbackAlertMutation = { __typename?: 'Mutation' } & {
             | 'ExcludedEnvironments'
             | 'CountThreshold'
             | 'ThresholdWindow'
+            | 'LastAdminToEditID'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -536,7 +539,12 @@ export type UpdateSessionFeedbackAlertMutation = { __typename?: 'Mutation' } & {
     updateSessionFeedbackAlert?: Types.Maybe<
         { __typename?: 'SessionAlert' } & Pick<
             Types.SessionAlert,
-            'id' | 'ExcludedEnvironments' | 'CountThreshold' | 'ThresholdWindow'
+            | 'id'
+            | 'ExcludedEnvironments'
+            | 'CountThreshold'
+            | 'ThresholdWindow'
+            | 'Name'
+            | 'LastAdminToEditID'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -572,6 +580,7 @@ export type CreateNewUserAlertMutation = { __typename?: 'Mutation' } & {
             | 'ExcludedEnvironments'
             | 'CountThreshold'
             | 'ThresholdWindow'
+            | 'LastAdminToEditID'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -607,6 +616,7 @@ export type CreateNewSessionAlertMutation = { __typename?: 'Mutation' } & {
             | 'ExcludedEnvironments'
             | 'CountThreshold'
             | 'ThresholdWindow'
+            | 'LastAdminToEditID'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -643,6 +653,7 @@ export type UpdateNewSessionAlertMutation = { __typename?: 'Mutation' } & {
             | 'ExcludedEnvironments'
             | 'CountThreshold'
             | 'ThresholdWindow'
+            | 'LastAdminToEditID'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -674,7 +685,10 @@ export type UpdateNewUserAlertMutation = { __typename?: 'Mutation' } & {
     updateNewUserAlert?: Types.Maybe<
         { __typename?: 'SessionAlert' } & Pick<
             Types.SessionAlert,
-            'id' | 'ExcludedEnvironments' | 'CountThreshold'
+            | 'id'
+            | 'ExcludedEnvironments'
+            | 'CountThreshold'
+            | 'LastAdminToEditID'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -712,6 +726,7 @@ export type CreateTrackPropertiesAlertMutation = { __typename?: 'Mutation' } & {
             | 'ExcludedEnvironments'
             | 'CountThreshold'
             | 'ThresholdWindow'
+            | 'LastAdminToEditID'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -753,7 +768,11 @@ export type UpdateTrackPropertiesAlertMutation = { __typename?: 'Mutation' } & {
     updateTrackPropertiesAlert?: Types.Maybe<
         { __typename?: 'SessionAlert' } & Pick<
             Types.SessionAlert,
-            'id' | 'ExcludedEnvironments' | 'CountThreshold'
+            | 'id'
+            | 'ExcludedEnvironments'
+            | 'CountThreshold'
+            | 'LastAdminToEditID'
+            | 'Name'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -799,6 +818,7 @@ export type CreateUserPropertiesAlertMutation = { __typename?: 'Mutation' } & {
             | 'ExcludedEnvironments'
             | 'CountThreshold'
             | 'ThresholdWindow'
+            | 'LastAdminToEditID'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -840,7 +860,11 @@ export type UpdateUserPropertiesAlertMutation = { __typename?: 'Mutation' } & {
     updateUserPropertiesAlert?: Types.Maybe<
         { __typename?: 'SessionAlert' } & Pick<
             Types.SessionAlert,
-            'id' | 'ExcludedEnvironments' | 'CountThreshold'
+            | 'id'
+            | 'ExcludedEnvironments'
+            | 'CountThreshold'
+            | 'Name'
+            | 'LastAdminToEditID'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<

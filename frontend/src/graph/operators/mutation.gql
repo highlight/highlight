@@ -296,6 +296,7 @@ mutation CreateErrorAlert(
         ExcludedEnvironments
         CountThreshold
         ThresholdWindow
+        LastAdminToEditID
     }
 }
 
@@ -325,6 +326,7 @@ mutation UpdateErrorAlert(
         ExcludedEnvironments
         CountThreshold
         ThresholdWindow
+        LastAdminToEditID
     }
 }
 
@@ -368,6 +370,7 @@ mutation CreateSessionFeedbackAlert(
         ExcludedEnvironments
         CountThreshold
         ThresholdWindow
+        LastAdminToEditID
     }
 }
 
@@ -397,6 +400,8 @@ mutation UpdateSessionFeedbackAlert(
         ExcludedEnvironments
         CountThreshold
         ThresholdWindow
+        Name
+        LastAdminToEditID
     }
 }
 
@@ -425,6 +430,7 @@ mutation CreateNewUserAlert(
         ExcludedEnvironments
         CountThreshold
         ThresholdWindow
+        LastAdminToEditID
     }
 }
 
@@ -453,6 +459,7 @@ mutation CreateNewSessionAlert(
         ExcludedEnvironments
         CountThreshold
         ThresholdWindow
+        LastAdminToEditID
     }
 }
 
@@ -483,6 +490,7 @@ mutation UpdateNewSessionAlert(
         ExcludedEnvironments
         CountThreshold
         ThresholdWindow
+        LastAdminToEditID
     }
 }
 
@@ -511,6 +519,7 @@ mutation UpdateNewUserAlert(
         }
         ExcludedEnvironments
         CountThreshold
+        LastAdminToEditID
     }
 }
 
@@ -544,6 +553,7 @@ mutation CreateTrackPropertiesAlert(
         ExcludedEnvironments
         CountThreshold
         ThresholdWindow
+        LastAdminToEditID
     }
 }
 mutation UpdateTrackPropertiesAlert(
@@ -576,6 +586,8 @@ mutation UpdateTrackPropertiesAlert(
         }
         ExcludedEnvironments
         CountThreshold
+        LastAdminToEditID
+        Name
     }
 }
 
@@ -609,6 +621,7 @@ mutation CreateUserPropertiesAlert(
         ExcludedEnvironments
         CountThreshold
         ThresholdWindow
+        LastAdminToEditID
     }
 }
 
@@ -642,6 +655,8 @@ mutation UpdateUserPropertiesAlert(
         }
         ExcludedEnvironments
         CountThreshold
+        Name
+        LastAdminToEditID
     }
 }
 
