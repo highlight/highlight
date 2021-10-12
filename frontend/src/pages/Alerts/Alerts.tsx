@@ -1,4 +1,3 @@
-import { useAuthContext } from '@authentication/AuthContext';
 import Alert from '@components/Alert/Alert';
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import Card from '@components/Card/Card';
@@ -143,7 +142,6 @@ const TABLE_COLUMNS = [
 const AlertsPage = () => {
     const { project_id } = useParams<{ project_id: string }>();
     const { alertsPayload, loading } = useAlertsContext();
-    const { isHighlightAdmin } = useAuthContext();
 
     const history = useHistory();
     const alertsAsTableRows = [
@@ -195,15 +193,13 @@ const AlertsPage = () => {
         <>
             <div className={styles.subTitleContainer}>
                 <p>Manage your alerts for your project.</p>
-                {isHighlightAdmin && (
-                    <ButtonLink
-                        trackingId="NewAlert"
-                        className={styles.callToAction}
-                        to={`/${project_id}/alerts/new`}
-                    >
-                        New Alert
-                    </ButtonLink>
-                )}
+                <ButtonLink
+                    trackingId="NewAlert"
+                    className={styles.callToAction}
+                    to={`/${project_id}/alerts/new`}
+                >
+                    New Alert
+                </ButtonLink>
             </div>
             {!loading && !alertsPayload?.is_integrated_with_slack ? (
                 <Alert

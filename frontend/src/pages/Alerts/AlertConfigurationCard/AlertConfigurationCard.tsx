@@ -1,4 +1,3 @@
-import { useAuthContext } from '@authentication/AuthContext';
 import Card from '@components/Card/Card';
 import { DEMO_WORKSPACE_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import Input from '@components/Input/Input';
@@ -72,7 +71,6 @@ export const AlertConfigurationCard = ({
     const [lookbackPeriod, setLookbackPeriod] = useState(
         getLookbackPeriodOption(alert?.ThresholdWindow).value
     );
-    const { isHighlightAdmin } = useAuthContext();
     const [searchQuery, setSearchQuery] = useState('');
     const { project_id } = useParams<{ project_id: string }>();
     const [form] = Form.useForm();
@@ -789,7 +787,7 @@ export const AlertConfigurationCard = ({
                     <Form.Item shouldUpdate>
                         {() => (
                             <div className={styles.actionsContainer}>
-                                {isHighlightAdmin && onDeleteHandler && (
+                                {onDeleteHandler && (
                                     <Button
                                         trackingId="DeleteAlertConfiguration"
                                         type="default"

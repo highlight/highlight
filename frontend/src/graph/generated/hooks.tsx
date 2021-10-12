@@ -1490,6 +1490,7 @@ export const CreateErrorAlertDocument = gql`
             ExcludedEnvironments
             CountThreshold
             ThresholdWindow
+            LastAdminToEditID
         }
     }
 `;
@@ -1566,6 +1567,7 @@ export const UpdateErrorAlertDocument = gql`
             ExcludedEnvironments
             CountThreshold
             ThresholdWindow
+            LastAdminToEditID
         }
     }
 `;
@@ -1746,6 +1748,7 @@ export const CreateSessionFeedbackAlertDocument = gql`
             ExcludedEnvironments
             CountThreshold
             ThresholdWindow
+            LastAdminToEditID
         }
     }
 `;
@@ -1822,6 +1825,8 @@ export const UpdateSessionFeedbackAlertDocument = gql`
             ExcludedEnvironments
             CountThreshold
             ThresholdWindow
+            Name
+            LastAdminToEditID
         }
     }
 `;
@@ -1898,6 +1903,7 @@ export const CreateNewUserAlertDocument = gql`
             ExcludedEnvironments
             CountThreshold
             ThresholdWindow
+            LastAdminToEditID
         }
     }
 `;
@@ -1973,6 +1979,7 @@ export const CreateNewSessionAlertDocument = gql`
             ExcludedEnvironments
             CountThreshold
             ThresholdWindow
+            LastAdminToEditID
         }
     }
 `;
@@ -2050,6 +2057,7 @@ export const UpdateNewSessionAlertDocument = gql`
             ExcludedEnvironments
             CountThreshold
             ThresholdWindow
+            LastAdminToEditID
         }
     }
 `;
@@ -2126,6 +2134,7 @@ export const UpdateNewUserAlertDocument = gql`
             }
             ExcludedEnvironments
             CountThreshold
+            LastAdminToEditID
         }
     }
 `;
@@ -2207,6 +2216,7 @@ export const CreateTrackPropertiesAlertDocument = gql`
             ExcludedEnvironments
             CountThreshold
             ThresholdWindow
+            LastAdminToEditID
         }
     }
 `;
@@ -2287,6 +2297,8 @@ export const UpdateTrackPropertiesAlertDocument = gql`
             }
             ExcludedEnvironments
             CountThreshold
+            LastAdminToEditID
+            Name
         }
     }
 `;
@@ -2368,6 +2380,7 @@ export const CreateUserPropertiesAlertDocument = gql`
             ExcludedEnvironments
             CountThreshold
             ThresholdWindow
+            LastAdminToEditID
         }
     }
 `;
@@ -2448,6 +2461,8 @@ export const UpdateUserPropertiesAlertDocument = gql`
             }
             ExcludedEnvironments
             CountThreshold
+            Name
+            LastAdminToEditID
         }
     }
 `;
