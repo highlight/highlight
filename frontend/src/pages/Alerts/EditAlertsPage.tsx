@@ -7,7 +7,9 @@ import { AlertConfigurationCard } from '@pages/Alerts/AlertConfigurationCard/Ale
 import { ALERT_CONFIGURATIONS } from '@pages/Alerts/Alerts';
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext';
 import { useParams } from '@util/react-router/useParams';
+import { message } from 'antd';
 import React from 'react';
+import { useHistory } from 'react-router';
 
 const EditAlertsPage = () => {
     const { id, project_id } = useParams<{ id: string; project_id: string }>();
@@ -17,6 +19,7 @@ const EditAlertsPage = () => {
     const [deleteErrorAlert, {}] = useDeleteErrorAlertMutation({
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
+    const history = useHistory();
     const [deleteSessionAlert, {}] = useDeleteSessionAlertMutation({
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
         update(cache, data) {
@@ -64,6 +67,8 @@ const EditAlertsPage = () => {
                                 },
                             });
                         }
+                        message.success(`Deleted ${alert.Name} alert.`);
+                        history.push(`/${project_id}/alerts`);
                     }}
                 />
             )}

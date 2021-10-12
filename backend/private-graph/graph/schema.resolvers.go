@@ -1485,6 +1485,12 @@ func (r *mutationResolver) CreateTrackPropertiesAlert(ctx context.Context, proje
 		return nil, err
 	}
 
+	trackPropertiesBytes, err := json.Marshal(trackProperties)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing track properties for track properties alert")
+	}
+	trackPropertiesString := string(trackPropertiesBytes)
+
 	newAlert := &model.SessionAlert{
 		Alert: model.Alert{
 			ProjectID:            projectID,
@@ -1496,6 +1502,7 @@ func (r *mutationResolver) CreateTrackPropertiesAlert(ctx context.Context, proje
 			ThresholdWindow:      &thresholdWindow,
 			LastAdminToEditID:    admin.ID,
 		},
+		TrackProperties: &trackPropertiesString,
 	}
 
 	if err := r.DB.Create(newAlert).Error; err != nil {
@@ -1521,6 +1528,12 @@ func (r *mutationResolver) CreateUserPropertiesAlert(ctx context.Context, projec
 		return nil, err
 	}
 
+	userPropertiesBytes, err := json.Marshal(userProperties)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing user properties for user properties alert")
+	}
+	userPropertiesString := string(userPropertiesBytes)
+
 	newAlert := &model.SessionAlert{
 		Alert: model.Alert{
 			ProjectID:            projectID,
@@ -1532,6 +1545,7 @@ func (r *mutationResolver) CreateUserPropertiesAlert(ctx context.Context, projec
 			ThresholdWindow:      &thresholdWindow,
 			LastAdminToEditID:    admin.ID,
 		},
+		UserProperties: &userPropertiesString,
 	}
 
 	if err := r.DB.Create(newAlert).Error; err != nil {
