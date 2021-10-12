@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -616,24 +617,12 @@ func (r *Resolver) processStackFrame(projectId, sessionId int, stackTrace model2
 		err := e.Errorf("minified source file over 5mb: %v, size: %v", stackTraceFileURL, len(minifiedFileBytes))
 		return nil, err
 	}
-	bodyString := string(minifiedFileBytes)
-	bodyLines := strings.Split(strings.ReplaceAll(bodyString, "\rn", "\n"), "\n")
-	if len(bodyLines) < 2 {
-		err := e.Errorf("body lines empty: %v", stackTraceFilePath)
-		return nil, err
-	}
-	// sometimes, there's an empty line between the end of the source file and the sourceMappingURL,
-	// so we check against the last two lines instead of the last line
-	lastLine := bodyLines[len(bodyLines)-2] + bodyLines[len(bodyLines)-1]
 
-	// extract sourceMappingURL file name from slice
-	var sourceMapFileName string
-	sourceMapIndex := strings.LastIndex(lastLine, "sourceMappingURL=")
-	if sourceMapIndex == -1 {
+	sourceMapFileName := string(regexp.MustCompile(`sourceMappingURL=(.*)\n`).Find(minifiedFileBytes))
+	if len(sourceMapFileName) < 1 {
 		err := e.Errorf("file does not contain source map url: %v", stackTraceFileURL)
 		return nil, err
 	}
-	sourceMapFileName = lastLine[sourceMapIndex+len("sourceMappingURL="):]
 
 	// construct sourcemap url from searched file
 	sourceMapURL := (stackTraceFileURL)[:stackFileNameIndex] + sourceMapFileName
