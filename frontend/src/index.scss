@@ -324,3 +324,7 @@ code:not([class]) {
 .ant-dropdown-menu-submenu-title:hover {
     background-color: var(--color-gray-200) !important;
 }
+
+strong {
+    font-weight: 500 !important;
+}

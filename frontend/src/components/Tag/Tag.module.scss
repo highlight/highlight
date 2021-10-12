@@ -1,0 +1,10 @@
+.tag {
+    align-items: center;
+    border: 1px solid;
+    border-radius: var(--size-large);
+    column-gap: var(--size-xxSmall);
+    display: flex;
+    font-size: 12px;
+    height: var(--size-large);
+    padding: var(--size-xxSmall) var(--size-small);
+}

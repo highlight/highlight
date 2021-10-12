@@ -20,10 +20,10 @@ const SwitchWorkspace = () => {
         return <LoadingBar />;
     }
 
-    const workspaceOptions = data!.workspaces?.map((workspace) => ({
-        value: workspace?.id,
-        displayValue: workspace?.name,
-        id: workspace?.id,
+    const workspaceOptions = (data!.workspaces || [])?.map((workspace) => ({
+        value: workspace?.id || '',
+        displayValue: workspace?.name || '',
+        id: workspace?.id || '',
     }));
 
     const currentWorkspace = workspaceOptions?.find(
