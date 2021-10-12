@@ -7,20 +7,19 @@ import { AlertConfigurationCard } from '@pages/Alerts/AlertConfigurationCard/Ale
 import { ALERT_CONFIGURATIONS } from '@pages/Alerts/Alerts';
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext';
 import { useParams } from '@util/react-router/useParams';
+import { message } from 'antd';
 import React from 'react';
+import { useHistory } from 'react-router';
 
-interface Props {
-    isEditing: boolean;
-}
-
-const EditAlertsPage = ({ isEditing }: Props) => {
+const EditAlertsPage = () => {
     const { id, project_id } = useParams<{ id: string; project_id: string }>();
     const { slackUrl, alertsPayload, loading } = useAlertsContext();
 
-    const alert = isEditing && id ? findAlert(id, alertsPayload) : undefined;
+    const alert = id ? findAlert(id, alertsPayload) : undefined;
     const [deleteErrorAlert, {}] = useDeleteErrorAlertMutation({
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
+    const history = useHistory();
     const [deleteSessionAlert, {}] = useDeleteSessionAlertMutation({
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
         update(cache, data) {
@@ -68,6 +67,8 @@ const EditAlertsPage = ({ isEditing }: Props) => {
                                 },
                             });
                         }
+                        message.success(`Deleted ${alert.Name} alert.`);
+                        history.push(`/${project_id}/alerts`);
                     }}
                 />
             )}

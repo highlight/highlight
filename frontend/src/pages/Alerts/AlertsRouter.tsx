@@ -6,6 +6,7 @@ import { GetAlertsPagePayloadQuery } from '@graph/operations';
 import AlertsPage from '@pages/Alerts/Alerts';
 import { AlertsContextProvider } from '@pages/Alerts/AlertsContext/AlertsContext';
 import EditAlertsPage from '@pages/Alerts/EditAlertsPage';
+import NewAlertPage from '@pages/Alerts/NewAlertPage';
 import { useParams } from '@util/react-router/useParams';
 import React, { useEffect, useState } from 'react';
 import { Route, Switch, useHistory, useRouteMatch } from 'react-router-dom';
@@ -48,11 +49,14 @@ const AlertsRouter = () => {
                     <Route exact path={path}>
                         <AlertsPage />
                     </Route>
-                    <Route path={`${path}/new`}>
-                        <EditAlertsPage isEditing={false} />
+                    <Route exact path={`${path}/new`}>
+                        <NewAlertPage />
+                    </Route>
+                    <Route exact path={`${path}/new/:type`}>
+                        <NewAlertPage />
                     </Route>
                     <Route path={`${path}/:id`}>
-                        <EditAlertsPage isEditing={true} />
+                        <EditAlertsPage />
                     </Route>
                 </Switch>
             </LeadAlignLayout>
@@ -69,8 +73,13 @@ const getAlertsBreadcrumbNames = (suffixes: { [key: string]: string }) => {
         }
 
         if (url.endsWith('/alerts/new')) {
-            return 'Create New Alert';
+            return 'Create';
         }
+
+        if (url.includes('/alerts/new/')) {
+            return `${suffixes?.errorName}`;
+        }
+
         return `Edit ${suffixes?.errorName}`;
     };
 };
