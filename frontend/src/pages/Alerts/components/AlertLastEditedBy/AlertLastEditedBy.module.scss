@@ -1,0 +1,14 @@
+.container {
+    align-items: center;
+    column-gap: var(--size-xSmall);
+    display: flex;
+
+    .adminContainer {
+        color: var(--color-gray-500);
+
+        .value {
+            color: var(--color-gray-600);
+            font-weight: 500;
+        }
+    }
+}

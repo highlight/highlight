@@ -13,6 +13,9 @@
 }
 
 .alertConfigurationCard {
+    .subTitle {
+        margin-top: var(--size-small) !important;
+    }
     h2 {
         font-size: 22px !important;
         margin-bottom: 0 !important;
@@ -32,11 +35,15 @@
     }
 
     section {
-        padding-bottom: var(--size-xLarge);
+        padding-bottom: var(--size-xxLarge);
 
         &:last-of-type {
-            padding-bottom: var(--size-xxLarge);
+            padding-bottom: var(--size-xLarge);
         }
+    }
+
+    :global(.ant-form-item:last-of-type) {
+        margin-bottom: 0;
     }
 }
 
@@ -53,12 +60,6 @@
     padding: var(--size-small) 0;
 }
 
-.title {
-    align-items: center;
-    column-gap: var(--size-xSmall);
-    display: flex;
-}
-
 .frequencyContainer {
     column-gap: var(--size-large);
     display: flex;
@@ -66,4 +67,9 @@
 
 .lookbackPeriodSelect {
     width: 150px !important;
+}
+
+.actionsContainer {
+    column-gap: var(--size-large);
+    display: flex;
 }

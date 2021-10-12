@@ -2,6 +2,7 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { ALERT_CONFIGURATIONS } from '@pages/Alerts/Alerts';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import React, { useEffect, useRef, useState } from 'react';
@@ -11,9 +12,7 @@ import { Avatar } from '../../../../../components/Avatar/Avatar';
 import Tooltip from '../../../../../components/Tooltip/Tooltip';
 import { Maybe, Session } from '../../../../../graph/generated/schemas';
 import SvgEyeOffIcon from '../../../../../static/EyeOffIcon';
-import SvgFaceIdIcon from '../../../../../static/FaceIdIcon';
 import SvgFastForwardIcon from '../../../../../static/FastForwardIcon';
-import SvgUserPlusIcon from '../../../../../static/UserPlusIcon';
 import { MillisToMinutesAndSecondsVerbose } from '../../../../../util/time';
 import { LIVE_SEGMENT_ID } from '../../../SearchSidebar/SegmentPicker/SegmentPicker';
 import styles from './MinimalSessionCard.module.scss';
@@ -294,7 +293,11 @@ const MinimalSessionCard = React.memo(
                                             } as React.CSSProperties
                                         }
                                     >
-                                        <SvgUserPlusIcon />
+                                        {
+                                            ALERT_CONFIGURATIONS[
+                                                'NEW_USER_ALERT'
+                                            ].icon
+                                        }
                                     </span>
                                 </Tooltip>
                             </div>
@@ -310,7 +313,11 @@ const MinimalSessionCard = React.memo(
                                             } as React.CSSProperties
                                         }
                                     >
-                                        <SvgFaceIdIcon />
+                                        {
+                                            ALERT_CONFIGURATIONS[
+                                                'USER_PROPERTIES_ALERT'
+                                            ].icon
+                                        }
                                     </span>
                                 </Tooltip>
                             </div>

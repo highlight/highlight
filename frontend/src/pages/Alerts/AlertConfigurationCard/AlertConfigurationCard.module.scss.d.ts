@@ -1,3 +1,4 @@
+export const actionsContainer: string;
 export const addContainer: string;
 export const alertConfigurationCard: string;
 export const channelSelect: string;
@@ -6,4 +7,4 @@ export const lookbackPeriodSelect: string;
 export const notFoundMessage: string;
 export const saveButton: string;
 export const selectMessage: string;
-export const title: string;
+export const subTitle: string;

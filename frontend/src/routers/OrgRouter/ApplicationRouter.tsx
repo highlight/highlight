@@ -1,5 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext';
 import KeyboardShortcutsEducation from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation';
+import AlertsRouter from '@pages/Alerts/AlertsRouter';
 import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import { FieldArrayParam } from '@util/url/params';
@@ -15,7 +16,6 @@ import {
     useQueryParams,
 } from 'use-query-params';
 
-import AlertsPage from '../../pages/Alerts/Alerts';
 const BillingPage = React.lazy(() => import('../../pages/Billing/Billing'));
 
 const Buttons = React.lazy(() => import('../../pages/Buttons/Buttons'));
@@ -175,7 +175,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
                     <ProjectSettings />
                 </Route>
                 <Route path="/:project_id/alerts">
-                    <AlertsPage />
+                    <AlertsRouter />
                 </Route>
                 <Route path="/:project_id/billing">
                     <Suspense fallback={null}>

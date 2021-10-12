@@ -90,6 +90,7 @@ export { default as ShareIcon } from './ShareIcon';
 export { default as ShieldWarningIcon } from './ShieldWarningIcon';
 export { default as SkipBackIcon } from './SkipBackIcon';
 export { default as SkipForwardIcon } from './SkipForwardIcon';
+export { default as Sparkles2Icon } from './Sparkles2Icon';
 export { default as SparklesIcon } from './SparklesIcon';
 export { default as SpeechBubbleIcon } from './SpeechBubbleIcon';
 export { default as Star } from './Star';

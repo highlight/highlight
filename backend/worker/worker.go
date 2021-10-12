@@ -359,155 +359,163 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		if s.FirstTime == nil || !*s.FirstTime {
 			return nil
 		}
-		var sessionAlert model.SessionAlert
-		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Where("type IS NULL OR type=?", model.AlertType.NEW_USER).First(&sessionAlert).Error; err != nil {
+		var sessionAlerts []*model.SessionAlert
+		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Where("type IS NULL OR type=?", model.AlertType.NEW_USER).Find(&sessionAlerts).Error; err != nil {
 			return e.Wrapf(err, "[project_id: %d] error fetching new user alert", projectID)
 		}
 
-		// check if session was produced from an excluded environment
-		excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
-		if err != nil {
-			return e.Wrapf(err, "[project_id: %d] error getting excluded environments from new user alert", projectID)
-		}
-		isExcludedEnvironment := false
-		for _, env := range excludedEnvironments {
-			if env != nil && *env == s.Environment {
-				isExcludedEnvironment = true
-				break
+		for _, sessionAlert := range sessionAlerts {
+			// check if session was produced from an excluded environment
+			excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
+			if err != nil {
+				return e.Wrapf(err, "[project_id: %d] error getting excluded environments from new user alert", projectID)
 			}
-		}
-		if isExcludedEnvironment {
-			return nil
-		}
+			isExcludedEnvironment := false
+			for _, env := range excludedEnvironments {
+				if env != nil && *env == s.Environment {
+					isExcludedEnvironment = true
+					break
+				}
+			}
+			if isExcludedEnvironment {
+				return nil
+			}
 
-		// get produced user properties from session
-		userProperties, err := s.GetUserProperties()
-		if err != nil {
-			return e.Wrapf(err, "[project_id: %d] error getting user properties from new user alert", s.ProjectID)
-		}
+			// get produced user properties from session
+			userProperties, err := s.GetUserProperties()
+			if err != nil {
+				return e.Wrapf(err, "[project_id: %d] error getting user properties from new user alert", s.ProjectID)
+			}
 
-		workspace, err := w.Resolver.GetWorkspace(project.WorkspaceID)
-		if err != nil {
-			return e.Wrapf(err, "[project_id: %d] error querying workspace", s.ProjectID)
-		}
+			workspace, err := w.Resolver.GetWorkspace(project.WorkspaceID)
+			if err != nil {
+				return e.Wrapf(err, "[project_id: %d] error querying workspace", s.ProjectID)
+			}
 
-		// send Slack message
-		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, UserProperties: userProperties})
-		if err != nil {
-			return e.Wrapf(err, "[project_id: %d] error sending slack message for new user alert", projectID)
+			// send Slack message
+			err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, UserProperties: userProperties})
+			if err != nil {
+				return e.Wrapf(err, "[project_id: %d] error sending slack message for new user alert", projectID)
+			}
 		}
 		return nil
 	})
 
 	g.Go(func() error {
 		// Sending Track Properties Alert
-		var sessionAlert model.SessionAlert
-		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Where("type=?", model.AlertType.TRACK_PROPERTIES).First(&sessionAlert).Error; err != nil {
+		var sessionAlerts []*model.SessionAlert
+		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Where("type=?", model.AlertType.TRACK_PROPERTIES).Find(&sessionAlerts).Error; err != nil {
 			return e.Wrapf(err, "[project_id: %d] error fetching track properties alert", projectID)
 		}
 
-		excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
-		if err != nil {
-			return e.Wrapf(err, "[project_id: %d] error getting excluded environments from track properties alert", projectID)
-		}
-		isExcludedEnvironment := false
-		for _, env := range excludedEnvironments {
-			if env != nil && *env == s.Environment {
-				isExcludedEnvironment = true
-				break
+		for _, sessionAlert := range sessionAlerts {
+			excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
+			if err != nil {
+				return e.Wrapf(err, "[project_id: %d] error getting excluded environments from track properties alert", projectID)
 			}
-		}
-		if isExcludedEnvironment {
-			return nil
+			isExcludedEnvironment := false
+			for _, env := range excludedEnvironments {
+				if env != nil && *env == s.Environment {
+					isExcludedEnvironment = true
+					break
+				}
+			}
+			if isExcludedEnvironment {
+				return nil
+			}
+
+			// get matched track properties between the alert and session
+			trackProperties, err := sessionAlert.GetTrackProperties()
+			if err != nil {
+				return e.Wrap(err, "error getting track properties from session")
+			}
+			var trackPropertyIds []int
+			for _, trackProperty := range trackProperties {
+				trackPropertyIds = append(trackPropertyIds, trackProperty.ID)
+			}
+			stmt := w.Resolver.DB.Model(&model.Field{}).
+				Where(&model.Field{ProjectID: projectID, Type: "track"}).
+				Where("id IN (SELECT field_id FROM session_fields WHERE session_id=?)", s.ID).
+				Where("id IN ?", trackPropertyIds)
+			var matchedFields []*model.Field
+			if err := stmt.Find(&matchedFields).Error; err != nil {
+				return e.Wrap(err, "error querying matched fields by session_id")
+			}
+			if len(matchedFields) < 1 {
+				return nil
+			}
+
+			workspace, err := w.Resolver.GetWorkspace(project.WorkspaceID)
+			if err != nil {
+				return e.Wrap(err, "error querying workspace")
+			}
+
+			// send Slack message
+			err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, MatchedFields: matchedFields})
+			if err != nil {
+				return e.Wrap(err, "error sending track properties alert slack message")
+			}
+
 		}
 
-		// get matched track properties between the alert and session
-		trackProperties, err := sessionAlert.GetTrackProperties()
-		if err != nil {
-			return e.Wrap(err, "error getting track properties from session")
-		}
-		var trackPropertyIds []int
-		for _, trackProperty := range trackProperties {
-			trackPropertyIds = append(trackPropertyIds, trackProperty.ID)
-		}
-		stmt := w.Resolver.DB.Model(&model.Field{}).
-			Where(&model.Field{ProjectID: projectID, Type: "track"}).
-			Where("id IN (SELECT field_id FROM session_fields WHERE session_id=?)", s.ID).
-			Where("id IN ?", trackPropertyIds)
-		var matchedFields []*model.Field
-		if err := stmt.Find(&matchedFields).Error; err != nil {
-			return e.Wrap(err, "error querying matched fields by session_id")
-		}
-		if len(matchedFields) < 1 {
-			return nil
-		}
-
-		workspace, err := w.Resolver.GetWorkspace(project.WorkspaceID)
-		if err != nil {
-			return e.Wrap(err, "error querying workspace")
-		}
-
-		// send Slack message
-		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, MatchedFields: matchedFields})
-		if err != nil {
-			return e.Wrap(err, "error sending track properties alert slack message")
-		}
 		return nil
 	})
 
 	g.Go(func() error {
 		// Sending User Properties Alert
-		var sessionAlert model.SessionAlert
-		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Where("type=?", model.AlertType.USER_PROPERTIES).First(&sessionAlert).Error; err != nil {
+		var sessionAlerts []*model.SessionAlert
+		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Where("type=?", model.AlertType.USER_PROPERTIES).Find(&sessionAlerts).Error; err != nil {
 			return e.Wrapf(err, "[project_id: %d] error fetching user properties alert", projectID)
 		}
 
-		// check if session was produced from an excluded environment
-		excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
-		if err != nil {
-			return e.Wrapf(err, "[project_id: %d] error getting excluded environments from user properties alert", projectID)
-		}
-		isExcludedEnvironment := false
-		for _, env := range excludedEnvironments {
-			if env != nil && *env == s.Environment {
-				isExcludedEnvironment = true
-				break
+		for _, sessionAlert := range sessionAlerts {
+			// check if session was produced from an excluded environment
+			excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
+			if err != nil {
+				return e.Wrapf(err, "[project_id: %d] error getting excluded environments from user properties alert", projectID)
 			}
-		}
-		if isExcludedEnvironment {
-			return nil
-		}
+			isExcludedEnvironment := false
+			for _, env := range excludedEnvironments {
+				if env != nil && *env == s.Environment {
+					isExcludedEnvironment = true
+					break
+				}
+			}
+			if isExcludedEnvironment {
+				return nil
+			}
 
-		// get matched user properties between the alert and session
-		userProperties, err := sessionAlert.GetUserProperties()
-		if err != nil {
-			return e.Wrap(err, "error getting user properties from session")
-		}
-		var userPropertyIds []int
-		for _, userProperty := range userProperties {
-			userPropertyIds = append(userPropertyIds, userProperty.ID)
-		}
-		stmt := w.Resolver.DB.Model(&model.Field{}).
-			Where(&model.Field{ProjectID: projectID, Type: "user"}).
-			Where("id IN (SELECT field_id FROM session_fields WHERE session_id=?)", s.ID).
-			Where("id IN ?", userPropertyIds)
-		var matchedFields []*model.Field
-		if err := stmt.Find(&matchedFields).Error; err != nil {
-			return e.Wrap(err, "error querying matched fields by session_id")
-		}
-		if len(matchedFields) < 1 {
-			return nil
-		}
+			// get matched user properties between the alert and session
+			userProperties, err := sessionAlert.GetUserProperties()
+			if err != nil {
+				return e.Wrap(err, "error getting user properties from session")
+			}
+			var userPropertyIds []int
+			for _, userProperty := range userProperties {
+				userPropertyIds = append(userPropertyIds, userProperty.ID)
+			}
+			stmt := w.Resolver.DB.Model(&model.Field{}).
+				Where(&model.Field{ProjectID: projectID, Type: "user"}).
+				Where("id IN (SELECT field_id FROM session_fields WHERE session_id=?)", s.ID).
+				Where("id IN ?", userPropertyIds)
+			var matchedFields []*model.Field
+			if err := stmt.Find(&matchedFields).Error; err != nil {
+				return e.Wrap(err, "error querying matched fields by session_id")
+			}
+			if len(matchedFields) < 1 {
+				return nil
+			}
 
-		workspace, err := w.Resolver.GetWorkspace(project.WorkspaceID)
-		if err != nil {
-			return e.Wrap(err, "error querying workspace")
-		}
+			workspace, err := w.Resolver.GetWorkspace(project.WorkspaceID)
+			if err != nil {
+				return e.Wrap(err, "error querying workspace")
+			}
 
-		// send Slack message
-		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, MatchedFields: matchedFields})
-		if err != nil {
-			return e.Wrapf(err, "error sending user properties alert slack message")
+			// send Slack message
+			err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, MatchedFields: matchedFields})
+			if err != nil {
+				return e.Wrapf(err, "error sending user properties alert slack message")
+			}
 		}
 		return nil
 	})

@@ -2,14 +2,13 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
-import SvgQuoteIcon from '@icons/QuoteIcon';
+import { ALERT_CONFIGURATIONS } from '@pages/Alerts/Alerts';
 import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 import { Link } from 'react-router-dom';
 
 import { PlayerSearchParameters } from '../../../../pages/Player/PlayerHook/utils';
 import CommentTextBody from '../../../../pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody';
-import SvgBugIcon from '../../../../static/BugIcon';
 import SvgMessageIcon from '../../../../static/MessageIcon';
 import { AdminAvatar, Avatar } from '../../../Avatar/Avatar';
 import Dot from '../../../Dot/Dot';
@@ -68,11 +67,11 @@ export default CommentNotification;
 const getIcon = (type: NotificationType) => {
     switch (type) {
         case NotificationType.ErrorComment:
-            return <SvgBugIcon />;
+            return ALERT_CONFIGURATIONS['ERROR_ALERT'].icon;
         case NotificationType.SessionComment:
             return <SvgMessageIcon />;
         case NotificationType.SessionFeedback:
-            return <SvgQuoteIcon />;
+            return ALERT_CONFIGURATIONS['SESSION_FEEDBACK_ALERT'].icon;
     }
 };
 
