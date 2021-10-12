@@ -9,10 +9,14 @@
         padding-top: var(--size-xSmall) !important;
     }
 
-    :global(.ant-table-cell) {
+    :global(tr > .ant-table-cell) {
         border-bottom: 1px solid var(--color-gray-300) !important;
         padding-bottom: var(--size-medium) !important;
         padding-top: var(--size-medium) !important;
+    }
+
+    :global(.ant-table-row:last-of-type > .ant-table-cell) {
+        border-bottom: 0 !important;
     }
 
     :global(.ant-table-tbody > tr.ant-table-row:hover > td) {

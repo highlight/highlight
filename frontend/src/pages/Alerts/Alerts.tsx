@@ -1,6 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext';
 import Alert from '@components/Alert/Alert';
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
+import Card from '@components/Card/Card';
 import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Table from '@components/Table/Table';
@@ -253,35 +254,38 @@ const AlertsPage = () => {
                 />
             )}
 
-            <Table
-                columns={TABLE_COLUMNS}
-                loading={loading}
-                dataSource={alertsAsTableRows}
-                pagination={false}
-                showHeader={false}
-                renderEmptyComponent={
-                    <div className={styles.emptyContainer}>
-                        <h3>Your project doesn't have any alerts yet.</h3>
-                        <p>
-                            Alerts help you and your team stay on top of things
-                            as they happen in your application. You can set up
-                            alerts for things like when certain actions happen,
-                            errors thrown, and when a new user uses your app.
-                        </p>
-                        <ButtonLink
-                            to="alerts/new"
-                            trackingId="NoAlertsCreateNewAlert"
-                        >
-                            Create an Alert
-                        </ButtonLink>
-                    </div>
-                }
-                onRow={(record) => ({
-                    onClick: () => {
-                        history.push(`alerts/${record.id}`);
-                    },
-                })}
-            />
+            <Card>
+                <Table
+                    columns={TABLE_COLUMNS}
+                    loading={loading}
+                    dataSource={alertsAsTableRows}
+                    pagination={false}
+                    showHeader={false}
+                    renderEmptyComponent={
+                        <div className={styles.emptyContainer}>
+                            <h3>Your project doesn't have any alerts yet.</h3>
+                            <p>
+                                Alerts help you and your team stay on top of
+                                things as they happen in your application. You
+                                can set up alerts for things like when certain
+                                actions happen, errors thrown, and when a new
+                                user uses your app.
+                            </p>
+                            <ButtonLink
+                                to="alerts/new"
+                                trackingId="NoAlertsCreateNewAlert"
+                            >
+                                Create an Alert
+                            </ButtonLink>
+                        </div>
+                    }
+                    onRow={(record) => ({
+                        onClick: () => {
+                            history.push(`alerts/${record.id}`);
+                        },
+                    })}
+                />
+            </Card>
         </>
     );
 };
