@@ -24,7 +24,6 @@ export const DEFAULT_HIGHLIGHT_ENVIRONMENTS = [
 ];
 
 export const getAlertTypeColor = (type: string) => {
-    console.log(type);
     switch (type) {
         case 'Errors':
             return '#eb5757';
