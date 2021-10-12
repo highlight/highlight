@@ -18,4 +18,10 @@
     :global(.ant-table-tbody > tr.ant-table-row:hover > td) {
         background: var(--color-gray-100) !important;
     }
+
+    :global(.ant-table-placeholder) {
+        :global(.ant-table-cell) {
+            border-bottom: 0 !important;
+        }
+    }
 }
