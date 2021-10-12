@@ -6,6 +6,7 @@ import {
     FaFacebookSquare,
     FaGithubSquare,
     FaLinkedin,
+    FaTwitterSquare,
 } from 'react-icons/fa';
 import Skeleton from 'react-loading-skeleton';
 
@@ -13,10 +14,15 @@ import { useAuthContext } from '../../../authentication/AuthContext';
 import { Avatar } from '../../../components/Avatar/Avatar';
 import UserIdentifier from '../../../components/UserIdentifier/UserIdentifier';
 import {
-    useGetSocialLinksQuery,
+    useGetEnhancedUserDetailsQuery,
     useMarkSessionAsStarredMutation,
 } from '../../../graph/generated/hooks';
-import { Maybe, Session } from '../../../graph/generated/schemas';
+import {
+    Maybe,
+    Session,
+    SocialLink,
+    SocialType,
+} from '../../../graph/generated/schemas';
 import { ReactComponent as StarIcon } from '../../../static/star.svg';
 import { ReactComponent as FilledStarIcon } from '../../../static/star-filled.svg';
 import { getIdentifiedUserProfileImage } from '../../Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils';
@@ -28,10 +34,6 @@ export const MetadataBox = () => {
     const { isLoggedIn } = useAuthContext();
     const { session_secure_id } = useParams<{ session_secure_id: string }>();
     const { session } = useReplayerContext();
-    const { loading, data } = useGetSocialLinksQuery({
-        variables: { session_secure_id },
-    });
-
     const [markSessionAsStarred] = useMarkSessionAsStarredMutation({
         update(cache) {
             cache.modify({
@@ -54,7 +56,7 @@ export const MetadataBox = () => {
 
     return (
         <div className={styles.userBox}>
-            <>
+            <div className={styles.userMainSection}>
                 {isLoggedIn && (
                     <div
                         className={styles.starIconWrapper}
@@ -147,26 +149,71 @@ export const MetadataBox = () => {
                                     </>
                                 )}
                             </p>
-                            {loading ? (
-                                'loading'
-                            ) : (
-                                <div className={styles.socialIcons}>
-                                    <FaFacebookSquare
-                                        className={styles.socialIcon}
-                                    />
-                                    <FaLinkedin className={styles.socialIcon} />
-                                    <FaGithubSquare
-                                        className={styles.socialIcon}
-                                    />
-                                    <FaExternalLinkSquareAlt
-                                        className={styles.socialIcon}
-                                    />
-                                </div>
-                            )}
                         </>
                     )}
                 </div>
-            </>
+            </div>
+            <UserDetailsBox />
         </div>
+    );
+};
+
+export const UserDetailsBox = () => {
+    const { session_secure_id } = useParams<{ session_secure_id: string }>();
+    const { loading, data } = useGetEnhancedUserDetailsQuery({
+        variables: { session_secure_id },
+    });
+
+    return (
+        <div className={styles.userEnhanced}>
+            {loading ? (
+                <Skeleton circle={true} height={36} width={36} />
+            ) : (
+                <Avatar
+                    seed="test"
+                    customImage={
+                        data?.enhanced_user_details?.avatar ?? undefined
+                    }
+                    className={styles.enhancedAvatar}
+                />
+            )}
+            <div className={styles.enhancedTextSection}>
+                <h4 className={styles.enhancedName}>
+                    {data?.enhanced_user_details?.name}
+                </h4>
+                <p className={styles.enhancedBio}>
+                    {data?.enhanced_user_details?.bio}
+                </p>
+                {data?.enhanced_user_details?.socials?.map(
+                    (e) => e && <SocialComponent socialLink={e} />
+                )}
+            </div>
+        </div>
+    );
+};
+
+const SocialComponent = ({ socialLink }: { socialLink: SocialLink }) => {
+    return (
+        <a
+            className={styles.enhancedSocial}
+            href={socialLink.link ?? ''}
+            target="_blank"
+            rel="noopener noreferrer"
+        >
+            {socialLink?.type === SocialType.Github ? (
+                <FaGithubSquare />
+            ) : socialLink?.type === SocialType.Facebook ? (
+                <FaFacebookSquare />
+            ) : socialLink?.type === SocialType.Twitter ? (
+                <FaTwitterSquare />
+            ) : socialLink?.type === SocialType.Site ? (
+                <FaExternalLinkSquareAlt />
+            ) : socialLink?.type === SocialType.LinkedIn ? (
+                <FaLinkedin />
+            ) : (
+                <></>
+            )}
+            <p className={styles.enhancedSocialText}>{socialLink.type}</p>
+        </a>
     );
 };

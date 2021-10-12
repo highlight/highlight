@@ -2154,63 +2154,6 @@ export type GetSessionCommentsForAdminQueryResult = Apollo.QueryResult<
     Types.GetSessionCommentsForAdminQuery,
     Types.GetSessionCommentsForAdminQueryVariables
 >;
-export const GetSocialLinksDocument = gql`
-    query GetSocialLinks($session_secure_id: String!) {
-        social_links(session_secure_id: $session_secure_id) {
-            type
-            link
-        }
-    }
-`;
-
-/**
- * __useGetSocialLinksQuery__
- *
- * To run a query within a React component, call `useGetSocialLinksQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetSocialLinksQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetSocialLinksQuery({
- *   variables: {
- *      session_secure_id: // value for 'session_secure_id'
- *   },
- * });
- */
-export function useGetSocialLinksQuery(
-    baseOptions: Apollo.QueryHookOptions<
-        Types.GetSocialLinksQuery,
-        Types.GetSocialLinksQueryVariables
-    >
-) {
-    return Apollo.useQuery<
-        Types.GetSocialLinksQuery,
-        Types.GetSocialLinksQueryVariables
-    >(GetSocialLinksDocument, baseOptions);
-}
-export function useGetSocialLinksLazyQuery(
-    baseOptions?: Apollo.LazyQueryHookOptions<
-        Types.GetSocialLinksQuery,
-        Types.GetSocialLinksQueryVariables
-    >
-) {
-    return Apollo.useLazyQuery<
-        Types.GetSocialLinksQuery,
-        Types.GetSocialLinksQueryVariables
-    >(GetSocialLinksDocument, baseOptions);
-}
-export type GetSocialLinksQueryHookResult = ReturnType<
-    typeof useGetSocialLinksQuery
->;
-export type GetSocialLinksLazyQueryHookResult = ReturnType<
-    typeof useGetSocialLinksLazyQuery
->;
-export type GetSocialLinksQueryResult = Apollo.QueryResult<
-    Types.GetSocialLinksQuery,
-    Types.GetSocialLinksQueryVariables
->;
 export const GetErrorCommentsDocument = gql`
     query GetErrorComments($error_group_secure_id: String!) {
         error_comments(error_group_secure_id: $error_group_secure_id) {
@@ -2276,6 +2219,68 @@ export type GetErrorCommentsLazyQueryHookResult = ReturnType<
 export type GetErrorCommentsQueryResult = Apollo.QueryResult<
     Types.GetErrorCommentsQuery,
     Types.GetErrorCommentsQueryVariables
+>;
+export const GetEnhancedUserDetailsDocument = gql`
+    query GetEnhancedUserDetails($session_secure_id: String!) {
+        enhanced_user_details(session_secure_id: $session_secure_id) {
+            name
+            bio
+            avatar
+            socials {
+                type
+                link
+            }
+        }
+    }
+`;
+
+/**
+ * __useGetEnhancedUserDetailsQuery__
+ *
+ * To run a query within a React component, call `useGetEnhancedUserDetailsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetEnhancedUserDetailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetEnhancedUserDetailsQuery({
+ *   variables: {
+ *      session_secure_id: // value for 'session_secure_id'
+ *   },
+ * });
+ */
+export function useGetEnhancedUserDetailsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetEnhancedUserDetailsQuery,
+        Types.GetEnhancedUserDetailsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetEnhancedUserDetailsQuery,
+        Types.GetEnhancedUserDetailsQueryVariables
+    >(GetEnhancedUserDetailsDocument, baseOptions);
+}
+export function useGetEnhancedUserDetailsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetEnhancedUserDetailsQuery,
+        Types.GetEnhancedUserDetailsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetEnhancedUserDetailsQuery,
+        Types.GetEnhancedUserDetailsQueryVariables
+    >(GetEnhancedUserDetailsDocument, baseOptions);
+}
+export type GetEnhancedUserDetailsQueryHookResult = ReturnType<
+    typeof useGetEnhancedUserDetailsQuery
+>;
+export type GetEnhancedUserDetailsLazyQueryHookResult = ReturnType<
+    typeof useGetEnhancedUserDetailsLazyQuery
+>;
+export type GetEnhancedUserDetailsQueryResult = Apollo.QueryResult<
+    Types.GetEnhancedUserDetailsQuery,
+    Types.GetEnhancedUserDetailsQueryVariables
 >;
 export const GetOnboardingStepsDocument = gql`
     query GetOnboardingSteps($project_id: ID!, $admin_id: ID!) {

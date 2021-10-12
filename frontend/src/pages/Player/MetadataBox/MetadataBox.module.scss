@@ -3,15 +3,93 @@
     border: 1px solid var(--color-gray-300);
     border-radius: var(--border-radius);
     box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    max-width: var(--right-panel-width);
+    position: relative;
+}
+.enhancedAvatar {
+    height: 36px;
+    width: 36px;
+}
+
+.enhancedParent > h2 {
+    color: white !important;
+}
+
+.enhancedName {
+    font-weight: 400 !important;
+}
+
+.enhancedContent > h2 {
+    color: white !important;
+}
+
+.enhancedHeader {
+    color: white !important;
+    font-size: 20px !important;
+}
+
+.enhancedBio {
+    box-orient: vertical;
+    color: var(--color-gray-500);
+    display: box;
+    font-size: 12px;
+    font-weight: 300;
+    -webkit-line-clamp: 2; /* number of lines to show */
+    line-height: 16px; /* fallback */
+    margin-bottom: 4px !important;
+    margin-top: 0 !important;
+    max-height: 32px; /* fallback */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
+}
+
+.enhancedTextSection {
+    display: flex;
+    flex-direction: column;
+    row-gap: var(--size-xxSmall);
+}
+
+.userEnhanced {
+    column-gap: 14px;
+    display: grid;
+    grid-template-columns: fit-content(20px) auto;
+    padding: 20px;
+}
+
+.enhancedSocial {
+    align-items: center;
+    color: var(--color-gray-500);
+    column-gap: 6px;
+    display: flex;
+}
+
+.enhancedSocialText {
+    color: var(--color-gray-500);
+    font-size: 12px;
+    margin: 0 !important;
+}
+
+.userMainSection {
+    border-bottom: 1px solid var(--color-gray-300);
+    box-sizing: border-box;
     column-gap: var(--size-small);
     display: flex;
     flex-direction: row;
-    max-width: var(--right-panel-width);
     padding-bottom: var(--size-medium);
     padding-left: 22px;
     padding-right: 22px;
     padding-top: var(--size-medium);
-    position: relative;
+}
+
+.userDetailsSection {
+    display: flex;
+    padding-bottom: var(--size-medium);
+    padding-left: 22px;
+    padding-right: 22px;
+    padding-top: var(--size-medium);
 }
 
 .userAvatarWrapper {

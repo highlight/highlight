@@ -82,6 +82,14 @@ export enum PlanType {
     Enterprise = 'Enterprise',
 }
 
+export type EnhancedUserDetails = {
+    __typename?: 'EnhancedUserDetails';
+    name?: Maybe<Scalars['String']>;
+    avatar?: Maybe<Scalars['String']>;
+    bio?: Maybe<Scalars['String']>;
+    socials?: Maybe<Array<Maybe<SocialLink>>>;
+};
+
 export type SocialLink = {
     __typename?: 'SocialLink';
     type: SocialType;
@@ -94,7 +102,6 @@ export enum SocialType {
     Twitter = 'Twitter',
     Facebook = 'Facebook',
     Site = 'Site',
-    Avatar = 'Avatar',
 }
 
 export enum ErrorState {
@@ -465,7 +472,7 @@ export type Query = {
     error_groups?: Maybe<ErrorResults>;
     error_group?: Maybe<ErrorGroup>;
     messages?: Maybe<Array<Maybe<Scalars['Any']>>>;
-    social_links?: Maybe<Array<Maybe<SocialLink>>>;
+    enhanced_user_details?: Maybe<EnhancedUserDetails>;
     errors?: Maybe<Array<Maybe<ErrorObject>>>;
     resources?: Maybe<Array<Maybe<Scalars['Any']>>>;
     session_comments: Array<Maybe<SessionComment>>;
@@ -536,7 +543,7 @@ export type QueryMessagesArgs = {
     session_secure_id?: Maybe<Scalars['String']>;
 };
 
-export type QuerySocial_LinksArgs = {
+export type QueryEnhanced_User_DetailsArgs = {
     session_id?: Maybe<Scalars['ID']>;
     session_secure_id?: Maybe<Scalars['String']>;
 };

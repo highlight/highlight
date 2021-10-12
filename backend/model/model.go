@@ -121,6 +121,7 @@ var Models = []interface{}{
 	&SessionAlert{},
 	&Project{},
 	&Workspace{},
+	&EnhancedUserDetails{},
 }
 
 func init() {
@@ -203,6 +204,13 @@ type Alert struct {
 	ThresholdWindow      *int
 	ChannelsToNotify     *string
 	Type                 *string `gorm:"index"`
+}
+
+type EnhancedUserDetails struct {
+	Model
+	Email       *string `gorm:"unique_index"`
+	PersonJSON  *string
+	CompanyJSON *string
 }
 
 type ErrorAlert struct {

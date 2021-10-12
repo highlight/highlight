@@ -24,6 +24,13 @@ type DateRangeInput struct {
 	EndDate   *time.Time `json:"end_date"`
 }
 
+type EnhancedUserDetails struct {
+	Name    *string       `json:"name"`
+	Avatar  *string       `json:"avatar"`
+	Bio     *string       `json:"bio"`
+	Socials []*SocialLink `json:"socials"`
+}
+
 type ErrorMetadata struct {
 	ErrorID         int        `json:"error_id"`
 	SessionID       int        `json:"session_id"`
@@ -326,7 +333,6 @@ const (
 	SocialTypeTwitter  SocialType = "Twitter"
 	SocialTypeFacebook SocialType = "Facebook"
 	SocialTypeSite     SocialType = "Site"
-	SocialTypeAvatar   SocialType = "Avatar"
 )
 
 var AllSocialType = []SocialType{
@@ -335,12 +341,11 @@ var AllSocialType = []SocialType{
 	SocialTypeTwitter,
 	SocialTypeFacebook,
 	SocialTypeSite,
-	SocialTypeAvatar,
 }
 
 func (e SocialType) IsValid() bool {
 	switch e {
-	case SocialTypeGithub, SocialTypeLinkedIn, SocialTypeTwitter, SocialTypeFacebook, SocialTypeSite, SocialTypeAvatar:
+	case SocialTypeGithub, SocialTypeLinkedIn, SocialTypeTwitter, SocialTypeFacebook, SocialTypeSite:
 		return true
 	}
 	return false

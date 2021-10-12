@@ -1508,7 +1508,7 @@ func (r *queryResolver) Messages(ctx context.Context, sessionID *int, sessionSec
 	return allEvents["messages"], nil
 }
 
-func (r *queryResolver) SocialLinks(ctx context.Context, sessionID *int, sessionSecureID *string) ([]*modelInputs.SocialLink, error) {
+func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionID *int, sessionSecureID *string) (*modelInputs.EnhancedUserDetails, error) {
 	s, err := r.canAdminViewSession(ctx, sessionID, sessionSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
@@ -1518,9 +1518,10 @@ func (r *queryResolver) SocialLinks(ctx context.Context, sessionID *int, session
 	if res.Error != nil {
 		return nil, fmt.Errorf("error reading from session: %v", res.Error)
 	}
-	links := []*modelInputs.SocialLink{}
+	details := &modelInputs.EnhancedUserDetails{}
+	details.Socials = []*modelInputs.SocialLink{}
 	// We don't know what key is used for the user's email so we do a regex match
-	// on all 'user' type fields to find it.
+	// on all 'user' type fields.
 	var email string
 	for _, f := range sessionObj.Fields {
 		if f.Type == "user" && regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`).MatchString(f.Value) {
@@ -1530,34 +1531,79 @@ func (r *queryResolver) SocialLinks(ctx context.Context, sessionID *int, session
 			email = f.Value
 		}
 	}
-	if email != "" {
-		pc, _, err := r.ClearbitClient.Person.FindCombined(clearbit.PersonFindParams{Email: email})
-		if err != nil {
-			log.Println("Error clearbit:", err)
+	if len(email) > 0 {
+		// Check if we already have this user's data in the db
+		// If so, return it
+		userDetailsModel := &model.EnhancedUserDetails{}
+		p, co := clearbit.Person{}, clearbit.Company{}
+		if err := r.DB.Where(&model.EnhancedUserDetails{Email: &email}).First(&userDetailsModel).Error; err != nil {
+			log.Infof("retrieving api response for clearbit lookup")
+			pc, _, err := r.ClearbitClient.Person.FindCombined(clearbit.PersonFindParams{Email: email})
+			if err != nil {
+				log.Errorf("error w/ clearbit request: %v", err)
+			}
+			p, co = pc.Person, pc.Company
+			// Store the data for this email in the DB.
+			go func() {
+				log.Infof("caching response data in the db")
+				modelToSave := &model.EnhancedUserDetails{}
+				modelToSave.Email = &email
+				if personBytes, err := json.Marshal(p); err == nil {
+					sPersonBytes := string(personBytes)
+					modelToSave.PersonJSON = &sPersonBytes
+				} else {
+					log.Errorf("error marshaling clearbit person: %v", err)
+				}
+				if companyBytes, err := json.Marshal(co); err == nil {
+					sCompanyBytes := string(companyBytes)
+					modelToSave.CompanyJSON = &sCompanyBytes
+				} else {
+					log.Errorf("error marshaling clearbit company: %v", err)
+				}
+				if err := r.DB.Create(modelToSave).Error; err != nil {
+					log.Errorf("error creating clearbit details model")
+				}
+			}()
+		} else {
+			log.Infof("retrieving db entry for clearbit lookup")
+			if userDetailsModel.PersonJSON != nil && userDetailsModel.CompanyJSON != nil {
+				if err := json.Unmarshal([]byte(*userDetailsModel.PersonJSON), &p); err != nil {
+					log.Errorf("error unmarshaling person: %v", err)
+				}
+				if err := json.Unmarshal([]byte(*userDetailsModel.CompanyJSON), &co); err != nil {
+					log.Errorf("error unmarshaling company: %v", err)
+				}
+			}
 		}
-		p := pc.Person
 		if twitterHandle := p.Twitter.Handle; twitterHandle != "" {
 			twitterLink := fmt.Sprintf("https://twitter.com/%v", twitterHandle)
-			links = append(links, &modelInputs.SocialLink{Link: &twitterLink, Type: modelInputs.SocialTypeTwitter})
+			details.Socials = append(details.Socials, &modelInputs.SocialLink{Link: &twitterLink, Type: modelInputs.SocialTypeTwitter})
 		}
 		if fbHandle := p.Facebook.Handle; fbHandle != "" {
 			fbLink := fmt.Sprintf("https://www.facebook.com/%v", fbHandle)
-			links = append(links, &modelInputs.SocialLink{Link: &fbLink, Type: modelInputs.SocialTypeFacebook})
+			details.Socials = append(details.Socials, &modelInputs.SocialLink{Link: &fbLink, Type: modelInputs.SocialTypeFacebook})
 		}
 		if gHandle := p.GitHub.Handle; gHandle != "" {
 			ghLink := fmt.Sprintf("https://www.github.com/%v", gHandle)
-			links = append(links, &modelInputs.SocialLink{Link: &ghLink, Type: modelInputs.SocialTypeGithub})
+			details.Socials = append(details.Socials, &modelInputs.SocialLink{Link: &ghLink, Type: modelInputs.SocialTypeGithub})
 		}
 		if liHandle := p.LinkedIn.Handle; liHandle != "" {
 			fbLink := fmt.Sprintf("https://www.linkedin.com/in/%v", liHandle)
-			links = append(links, &modelInputs.SocialLink{Link: &fbLink, Type: modelInputs.SocialTypeLinkedIn})
+			details.Socials = append(details.Socials, &modelInputs.SocialLink{Link: &fbLink, Type: modelInputs.SocialTypeLinkedIn})
 		}
-		if avatarLink := p.Avatar; avatarLink != "" {
-			links = append(links, &modelInputs.SocialLink{Link: &avatarLink, Type: modelInputs.SocialTypeAvatar})
+		if personalSiteLink, companySiteLink := p.Site, co.Domain; personalSiteLink != "" || companySiteLink != "" {
+			site := personalSiteLink
+			if personalSiteLink == "" {
+				site = companySiteLink
+			}
+			details.Socials = append(details.Socials, &modelInputs.SocialLink{Link: &site, Type: modelInputs.SocialTypeSite})
 		}
+		details.Avatar = &p.Avatar
+		details.Name = &p.Name.FullName
+		details.Bio = &p.Bio
 	}
-	pp.Println(links)
-	return links, nil
+	pp.Printf("got details: %v\n", details)
+	return details, nil
 }
 
 func (r *queryResolver) Errors(ctx context.Context, sessionID *int, sessionSecureID *string) ([]*model.ErrorObject, error) {

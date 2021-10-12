@@ -130,13 +130,6 @@ query GetSessionCommentsForAdmin {
     }
 }
 
-query GetSocialLinks($session_secure_id: String!) {
-    social_links(session_secure_id: $session_secure_id) {
-        type
-        link
-    }
-}
-
 query GetErrorComments($error_group_secure_id: String!) {
     error_comments(error_group_secure_id: $error_group_secure_id) {
         id
@@ -149,6 +142,18 @@ query GetErrorComments($error_group_secure_id: String!) {
             name
             email
             photo_url
+        }
+    }
+}
+
+query GetEnhancedUserDetails($session_secure_id: String!) {
+    enhanced_user_details(session_secure_id: $session_secure_id) {
+        name
+        bio
+        avatar
+        socials {
+            type
+            link
         }
     }
 }

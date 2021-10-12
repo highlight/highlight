@@ -90,6 +90,13 @@ type ComplexityRoot struct {
 		StartDate func(childComplexity int) int
 	}
 
+	EnhancedUserDetails struct {
+		Avatar  func(childComplexity int) int
+		Bio     func(childComplexity int) int
+		Name    func(childComplexity int) int
+		Socials func(childComplexity int) int
+	}
+
 	ErrorAlert struct {
 		ChannelsToNotify     func(childComplexity int) int
 		CountThreshold       func(childComplexity int) int
@@ -267,6 +274,7 @@ type ComplexityRoot struct {
 		DailyErrorFrequency       func(childComplexity int, projectID int, errorGroupID *int, errorGroupSecureID *string, dateOffset int) int
 		DailyErrorsCount          func(childComplexity int, projectID int, dateRange model.DateRangeInput) int
 		DailySessionsCount        func(childComplexity int, projectID int, dateRange model.DateRangeInput) int
+		EnhancedUserDetails       func(childComplexity int, sessionID *int, sessionSecureID *string) int
 		EnvironmentSuggestion     func(childComplexity int, projectID int) int
 		ErrorAlert                func(childComplexity int, projectID int) int
 		ErrorComments             func(childComplexity int, errorGroupID *int, errorGroupSecureID *string) int
@@ -300,7 +308,6 @@ type ComplexityRoot struct {
 		Sessions                  func(childComplexity int, projectID int, count int, lifecycle model.SessionLifecycle, starred bool, params *model.SearchParamsInput) int
 		SlackChannelSuggestion    func(childComplexity int, projectID int) int
 		SlackMembers              func(childComplexity int, projectID int) int
-		SocialLinks               func(childComplexity int, sessionID *int, sessionSecureID *string) int
 		TopUsers                  func(childComplexity int, projectID int, lookBackPeriod int) int
 		TrackPropertiesAlert      func(childComplexity int, projectID int) int
 		UnprocessedSessionsCount  func(childComplexity int, projectID int) int
@@ -511,7 +518,7 @@ type QueryResolver interface {
 	ErrorGroups(ctx context.Context, projectID int, count int, params *model.ErrorSearchParamsInput) (*model1.ErrorResults, error)
 	ErrorGroup(ctx context.Context, id *int, secureID *string) (*model1.ErrorGroup, error)
 	Messages(ctx context.Context, sessionID *int, sessionSecureID *string) ([]interface{}, error)
-	SocialLinks(ctx context.Context, sessionID *int, sessionSecureID *string) ([]*model.SocialLink, error)
+	EnhancedUserDetails(ctx context.Context, sessionID *int, sessionSecureID *string) (*model.EnhancedUserDetails, error)
 	Errors(ctx context.Context, sessionID *int, sessionSecureID *string) ([]*model1.ErrorObject, error)
 	Resources(ctx context.Context, sessionID *int, sessionSecureID *string) ([]interface{}, error)
 	SessionComments(ctx context.Context, sessionID *int, sessionSecureID *string) ([]*model1.SessionComment, error)
@@ -715,6 +722,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.DateRange.StartDate(childComplexity), true
+
+	case "EnhancedUserDetails.avatar":
+		if e.complexity.EnhancedUserDetails.Avatar == nil {
+			break
+		}
+
+		return e.complexity.EnhancedUserDetails.Avatar(childComplexity), true
+
+	case "EnhancedUserDetails.bio":
+		if e.complexity.EnhancedUserDetails.Bio == nil {
+			break
+		}
+
+		return e.complexity.EnhancedUserDetails.Bio(childComplexity), true
+
+	case "EnhancedUserDetails.name":
+		if e.complexity.EnhancedUserDetails.Name == nil {
+			break
+		}
+
+		return e.complexity.EnhancedUserDetails.Name(childComplexity), true
+
+	case "EnhancedUserDetails.socials":
+		if e.complexity.EnhancedUserDetails.Socials == nil {
+			break
+		}
+
+		return e.complexity.EnhancedUserDetails.Socials(childComplexity), true
 
 	case "ErrorAlert.ChannelsToNotify":
 		if e.complexity.ErrorAlert.ChannelsToNotify == nil {
@@ -1807,6 +1842,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.DailySessionsCount(childComplexity, args["project_id"].(int), args["date_range"].(model.DateRangeInput)), true
 
+	case "Query.enhanced_user_details":
+		if e.complexity.Query.EnhancedUserDetails == nil {
+			break
+		}
+
+		args, err := ec.field_Query_enhanced_user_details_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.EnhancedUserDetails(childComplexity, args["session_id"].(*int), args["session_secure_id"].(*string)), true
+
 	case "Query.environment_suggestion":
 		if e.complexity.Query.EnvironmentSuggestion == nil {
 			break
@@ -2187,18 +2234,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.SlackMembers(childComplexity, args["project_id"].(int)), true
-
-	case "Query.social_links":
-		if e.complexity.Query.SocialLinks == nil {
-			break
-		}
-
-		args, err := ec.field_Query_social_links_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.SocialLinks(childComplexity, args["session_id"].(*int), args["session_secure_id"].(*string)), true
 
 	case "Query.topUsers":
 		if e.complexity.Query.TopUsers == nil {
@@ -3033,6 +3068,13 @@ enum PlanType {
     Enterprise
 }
 
+type EnhancedUserDetails {
+    name: String
+    avatar: String
+    bio: String
+    socials: [SocialLink]
+}
+
 type SocialLink {
     type: SocialType!
     link: String
@@ -3044,7 +3086,6 @@ enum SocialType {
     Twitter
     Facebook
     Site
-    Avatar
 }
 
 enum ErrorState {
@@ -3392,7 +3433,10 @@ type Query {
     ): ErrorResults
     error_group(id: ID, secure_id: String): ErrorGroup
     messages(session_id: ID, session_secure_id: String): [Any]
-    social_links(session_id: ID, session_secure_id: String): [SocialLink]
+    enhanced_user_details(
+        session_id: ID
+        session_secure_id: String
+    ): EnhancedUserDetails
     errors(session_id: ID, session_secure_id: String): [ErrorObject]
     resources(session_id: ID, session_secure_id: String): [Any]
     session_comments(
@@ -4904,6 +4948,30 @@ func (ec *executionContext) field_Query_dailySessionsCount_args(ctx context.Cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_enhanced_user_details_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["session_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_id"))
+		arg0, err = ec.unmarshalOID2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["session_id"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["session_secure_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_secure_id"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["session_secure_id"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_environment_suggestion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -5549,30 +5617,6 @@ func (ec *executionContext) field_Query_slack_members_args(ctx context.Context, 
 		}
 	}
 	args["project_id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_social_links_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *int
-	if tmp, ok := rawArgs["session_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_id"))
-		arg0, err = ec.unmarshalOID2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["session_id"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["session_secure_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_secure_id"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["session_secure_id"] = arg1
 	return args, nil
 }
 
@@ -6323,6 +6367,134 @@ func (ec *executionContext) _DateRange_end_date(ctx context.Context, field graph
 	res := resTmp.(time.Time)
 	fc.Result = res
 	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _EnhancedUserDetails_name(ctx context.Context, field graphql.CollectedField, obj *model.EnhancedUserDetails) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "EnhancedUserDetails",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _EnhancedUserDetails_avatar(ctx context.Context, field graphql.CollectedField, obj *model.EnhancedUserDetails) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "EnhancedUserDetails",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Avatar, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _EnhancedUserDetails_bio(ctx context.Context, field graphql.CollectedField, obj *model.EnhancedUserDetails) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "EnhancedUserDetails",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Bio, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _EnhancedUserDetails_socials(ctx context.Context, field graphql.CollectedField, obj *model.EnhancedUserDetails) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "EnhancedUserDetails",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Socials, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.SocialLink)
+	fc.Result = res
+	return ec.marshalOSocialLink2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSocialLink(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorAlert_id(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorAlert) (ret graphql.Marshaler) {
@@ -10707,7 +10879,7 @@ func (ec *executionContext) _Query_messages(ctx context.Context, field graphql.C
 	return ec.marshalOAny2ᚕinterface(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_social_links(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_enhanced_user_details(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -10724,7 +10896,7 @@ func (ec *executionContext) _Query_social_links(ctx context.Context, field graph
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_social_links_args(ctx, rawArgs)
+	args, err := ec.field_Query_enhanced_user_details_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -10732,7 +10904,7 @@ func (ec *executionContext) _Query_social_links(ctx context.Context, field graph
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SocialLinks(rctx, args["session_id"].(*int), args["session_secure_id"].(*string))
+		return ec.resolvers.Query().EnhancedUserDetails(rctx, args["session_id"].(*int), args["session_secure_id"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10741,9 +10913,9 @@ func (ec *executionContext) _Query_social_links(ctx context.Context, field graph
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*model.SocialLink)
+	res := resTmp.(*model.EnhancedUserDetails)
 	fc.Result = res
-	return ec.marshalOSocialLink2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSocialLink(ctx, field.Selections, res)
+	return ec.marshalOEnhancedUserDetails2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐEnhancedUserDetails(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_errors(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -17250,6 +17422,36 @@ func (ec *executionContext) _DateRange(ctx context.Context, sel ast.SelectionSet
 	return out
 }
 
+var enhancedUserDetailsImplementors = []string{"EnhancedUserDetails"}
+
+func (ec *executionContext) _EnhancedUserDetails(ctx context.Context, sel ast.SelectionSet, obj *model.EnhancedUserDetails) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, enhancedUserDetailsImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("EnhancedUserDetails")
+		case "name":
+			out.Values[i] = ec._EnhancedUserDetails_name(ctx, field, obj)
+		case "avatar":
+			out.Values[i] = ec._EnhancedUserDetails_avatar(ctx, field, obj)
+		case "bio":
+			out.Values[i] = ec._EnhancedUserDetails_bio(ctx, field, obj)
+		case "socials":
+			out.Values[i] = ec._EnhancedUserDetails_socials(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var errorAlertImplementors = []string{"ErrorAlert"}
 
 func (ec *executionContext) _ErrorAlert(ctx context.Context, sel ast.SelectionSet, obj *model1.ErrorAlert) graphql.Marshaler {
@@ -18193,7 +18395,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_messages(ctx, field)
 				return res
 			})
-		case "social_links":
+		case "enhanced_user_details":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -18201,7 +18403,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_social_links(ctx, field)
+				res = ec._Query_enhanced_user_details(ctx, field)
 				return res
 			})
 		case "errors":
@@ -21047,6 +21249,13 @@ func (ec *executionContext) unmarshalODateRangeInput2ᚖgithubᚗcomᚋhighlight
 	}
 	res, err := ec.unmarshalInputDateRangeInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOEnhancedUserDetails2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐEnhancedUserDetails(ctx context.Context, sel ast.SelectionSet, v *model.EnhancedUserDetails) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._EnhancedUserDetails(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOErrorAlert2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorAlert(ctx context.Context, sel ast.SelectionSet, v *model1.ErrorAlert) graphql.Marshaler {

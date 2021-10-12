@@ -63,6 +63,13 @@ enum PlanType {
     Enterprise
 }
 
+type EnhancedUserDetails {
+    name: String
+    avatar: String
+    bio: String
+    socials: [SocialLink]
+}
+
 type SocialLink {
     type: SocialType!
     link: String
@@ -74,7 +81,6 @@ enum SocialType {
     Twitter
     Facebook
     Site
-    Avatar
 }
 
 enum ErrorState {
@@ -422,7 +428,10 @@ type Query {
     ): ErrorResults
     error_group(id: ID, secure_id: String): ErrorGroup
     messages(session_id: ID, session_secure_id: String): [Any]
-    social_links(session_id: ID, session_secure_id: String): [SocialLink]
+    enhanced_user_details(
+        session_id: ID
+        session_secure_id: String
+    ): EnhancedUserDetails
     errors(session_id: ID, session_secure_id: String): [ErrorObject]
     resources(session_id: ID, session_secure_id: String): [Any]
     session_comments(

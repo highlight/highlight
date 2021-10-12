@@ -727,23 +727,6 @@ export type GetSessionCommentsForAdminQuery = { __typename?: 'Query' } & {
     >;
 };
 
-export type GetSocialLinksQueryVariables = Types.Exact<{
-    session_secure_id: Types.Scalars['String'];
-}>;
-
-export type GetSocialLinksQuery = { __typename?: 'Query' } & {
-    social_links?: Types.Maybe<
-        Array<
-            Types.Maybe<
-                { __typename?: 'SocialLink' } & Pick<
-                    Types.SocialLink,
-                    'type' | 'link'
-                >
-            >
-        >
-    >;
-};
-
 export type GetErrorCommentsQueryVariables = Types.Exact<{
     error_group_secure_id: Types.Scalars['String'];
 }>;
@@ -761,6 +744,30 @@ export type GetErrorCommentsQuery = { __typename?: 'Query' } & {
                     >;
                 }
         >
+    >;
+};
+
+export type GetEnhancedUserDetailsQueryVariables = Types.Exact<{
+    session_secure_id: Types.Scalars['String'];
+}>;
+
+export type GetEnhancedUserDetailsQuery = { __typename?: 'Query' } & {
+    enhanced_user_details?: Types.Maybe<
+        { __typename?: 'EnhancedUserDetails' } & Pick<
+            Types.EnhancedUserDetails,
+            'name' | 'bio' | 'avatar'
+        > & {
+                socials?: Types.Maybe<
+                    Array<
+                        Types.Maybe<
+                            { __typename?: 'SocialLink' } & Pick<
+                                Types.SocialLink,
+                                'type' | 'link'
+                            >
+                        >
+                    >
+                >;
+            }
     >;
 };
 
@@ -1748,8 +1755,8 @@ export const namedOperations = {
         GetSessionComments: 'GetSessionComments' as const,
         GetNotifications: 'GetNotifications' as const,
         GetSessionCommentsForAdmin: 'GetSessionCommentsForAdmin' as const,
-        GetSocialLinks: 'GetSocialLinks' as const,
         GetErrorComments: 'GetErrorComments' as const,
+        GetEnhancedUserDetails: 'GetEnhancedUserDetails' as const,
         GetOnboardingSteps: 'GetOnboardingSteps' as const,
         GetSessions: 'GetSessions' as const,
         GetProjects: 'GetProjects' as const,
