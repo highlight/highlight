@@ -24,14 +24,16 @@
 .value {
     align-items: center;
     color: var(--text-primary) !important;
-    display: flex;
+    display: inline-block;
     font-size: 12px !important;
     font-style: normal;
     line-height: initial;
     overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .infoTooltip {
     height: var(--size-medium);
+    vertical-align: bottom;
     width: var(--size-medium);
 }
