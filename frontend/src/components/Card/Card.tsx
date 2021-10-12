@@ -6,12 +6,14 @@ import styles from './Card.module.scss';
 type Props = React.HTMLAttributes<HTMLDivElement> & {
     noPadding?: boolean;
     title?: string;
+    interactable?: boolean;
 };
 
 const Card: React.FC<Props> = ({
     title,
     children,
     noPadding = false,
+    interactable = false,
     ...props
 }) => {
     return (
@@ -19,6 +21,7 @@ const Card: React.FC<Props> = ({
             {...props}
             className={classNames(styles.card, props.className, {
                 [styles.noPadding]: noPadding,
+                [styles.interactable]: interactable,
             })}
         >
             {title && (

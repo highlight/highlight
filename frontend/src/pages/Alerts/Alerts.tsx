@@ -6,7 +6,13 @@ import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Table from '@components/Table/Table';
 import Tag from '@components/Tag/Tag';
 import { namedOperations } from '@graph/operations';
+import SvgBugIcon from '@icons/BugIcon';
 import SvgChevronRightIcon from '@icons/ChevronRightIcon';
+import SvgFaceIdIcon from '@icons/FaceIdIcon';
+import SvgQuoteIcon from '@icons/QuoteIcon';
+import SvgSparkles2Icon from '@icons/Sparkles2Icon';
+import SvgTargetIcon from '@icons/TargetIcon';
+import SvgUserPlusIcon from '@icons/UserPlusIcon';
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext';
 import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy';
 import { getAlertTypeColor } from '@pages/Alerts/utils/AlertsUtils';
@@ -39,13 +45,15 @@ export const ALERT_CONFIGURATIONS = {
         canControlThreshold: true,
         type: ALERT_TYPE.Error,
         description: 'Get alerted when an error is thrown in your app.',
+        icon: <SvgBugIcon />,
     },
     NEW_USER_ALERT: {
         name: 'New Users',
         canControlThreshold: false,
         type: ALERT_TYPE.FirstTimeUser,
         description:
-            'Get alerted when a new user starts their first journey in your application.',
+            'Get alerted when a new user uses your app for the first time.',
+        icon: <SvgUserPlusIcon />,
     },
     USER_PROPERTIES_ALERT: {
         name: 'User Properties',
@@ -53,27 +61,30 @@ export const ALERT_CONFIGURATIONS = {
         type: ALERT_TYPE.UserProperties,
         description:
             'Get alerted when users you want to track record a session.',
+        icon: <SvgFaceIdIcon />,
     },
     TRACK_PROPERTIES_ALERT: {
         name: 'Track Events',
         canControlThreshold: false,
         type: ALERT_TYPE.TrackProperties,
         description: 'Get alerted when an action is done in your application.',
+        icon: <SvgTargetIcon />,
     },
     SESSION_FEEDBACK_ALERT: {
         name: 'Feedback',
         canControlThreshold: false,
         type: ALERT_TYPE.SessionFeedbackComment,
-        description:
-            'Get alerted when a user submits a session feedback comment.',
+        description: 'Get alerted when a user submits a session feedback.',
+        icon: <SvgQuoteIcon />,
     },
     NEW_SESSION_ALERT: {
         name: 'New Sessions',
         canControlThreshold: false,
         type: ALERT_TYPE.NewSession,
         description: 'Get alerted every time a session is created.',
+        icon: <SvgSparkles2Icon />,
     },
-};
+} as const;
 
 const TABLE_COLUMNS = [
     {

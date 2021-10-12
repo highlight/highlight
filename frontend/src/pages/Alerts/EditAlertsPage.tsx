@@ -9,15 +9,11 @@ import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext';
 import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 
-interface Props {
-    isEditing: boolean;
-}
-
-const EditAlertsPage = ({ isEditing }: Props) => {
+const EditAlertsPage = () => {
     const { id, project_id } = useParams<{ id: string; project_id: string }>();
     const { slackUrl, alertsPayload, loading } = useAlertsContext();
 
-    const alert = isEditing && id ? findAlert(id, alertsPayload) : undefined;
+    const alert = id ? findAlert(id, alertsPayload) : undefined;
     const [deleteErrorAlert, {}] = useDeleteErrorAlertMutation({
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
