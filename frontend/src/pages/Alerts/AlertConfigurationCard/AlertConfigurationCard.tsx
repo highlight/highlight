@@ -1,4 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext';
+import Card from '@components/Card/Card';
 import { DEMO_WORKSPACE_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import Input from '@components/Input/Input';
 import { namedOperations } from '@graph/operations';
@@ -515,292 +516,311 @@ export const AlertConfigurationCard = ({
                 </strong>{' '}
                 alert. {description}
             </p>
-            <Form
-                onFinish={onSubmit}
-                form={form}
-                initialValues={{
-                    threshold: alert.CountThreshold,
-                    channels:
-                        alert.ChannelsToNotify?.map(
-                            (channel: any) => channel.webhook_channel_id
-                        ) || [],
-                    [excludedEnvironmentsFormName]: alert.ExcludedEnvironments,
-                    lookbackPeriod: [lookbackPeriod],
-                    userProperties: alert.UserProperties?.map(
-                        (userProperty: any) =>
-                            getPropertiesOption(userProperty).value
-                    ),
-                    trackProperties: alert.TrackProperties?.map(
-                        (trackProperty: any) =>
-                            getPropertiesOption(trackProperty).value
-                    ),
-                    name: alert.Name || defaultName,
-                }}
-                key={project_id}
-            >
-                <section>
-                    <h3>Name</h3>
-                    <Form.Item name="name" required>
-                        <Input
-                            size="large"
-                            onChange={() => {
-                                setFormTouched(true);
-                            }}
-                        />
-                    </Form.Item>
-                </section>
-                {type === ALERT_TYPE.UserProperties && (
+
+            <Card>
+                <Form
+                    onFinish={onSubmit}
+                    form={form}
+                    initialValues={{
+                        threshold: alert.CountThreshold,
+                        channels:
+                            alert.ChannelsToNotify?.map(
+                                (channel: any) => channel.webhook_channel_id
+                            ) || [],
+                        [excludedEnvironmentsFormName]:
+                            alert.ExcludedEnvironments,
+                        lookbackPeriod: [lookbackPeriod],
+                        userProperties: alert.UserProperties?.map(
+                            (userProperty: any) =>
+                                getPropertiesOption(userProperty).value
+                        ),
+                        trackProperties: alert.TrackProperties?.map(
+                            (trackProperty: any) =>
+                                getPropertiesOption(trackProperty).value
+                        ),
+                        name: alert.Name || defaultName,
+                    }}
+                    key={project_id}
+                >
                     <section>
-                        <h3>User Properties</h3>
-                        <p>
-                            Pick the user properties that you would like to get
-                            alerted for.
-                        </p>
-                        <Form.Item name="userProperties">
-                            <Select
-                                onSearch={handleUserPropertiesSearch}
-                                className={styles.channelSelect}
-                                options={userPropertiesSuggestions}
-                                mode="multiple"
-                                placeholder={`Pick the user properties that you would like to get alerted for.`}
-                                onChange={onUserPropertiesChange}
+                        <h3>Name</h3>
+                        <p>You can change the name of the alert anytime.</p>
+                        <Form.Item name="name" required>
+                            <Input
+                                size="large"
+                                onChange={() => {
+                                    setFormTouched(true);
+                                }}
                             />
                         </Form.Item>
                     </section>
-                )}
-                {type === ALERT_TYPE.TrackProperties && (
+                    {type === ALERT_TYPE.UserProperties && (
+                        <section>
+                            <h3>User Properties</h3>
+                            <p>
+                                Pick the user properties that you would like to
+                                get alerted for.
+                            </p>
+                            <Form.Item name="userProperties">
+                                <Select
+                                    onSearch={handleUserPropertiesSearch}
+                                    className={styles.channelSelect}
+                                    options={userPropertiesSuggestions}
+                                    mode="multiple"
+                                    placeholder={`Pick the user properties that you would like to get alerted for.`}
+                                    onChange={onUserPropertiesChange}
+                                />
+                            </Form.Item>
+                        </section>
+                    )}
+                    {type === ALERT_TYPE.TrackProperties && (
+                        <section>
+                            <h3>Track Properties</h3>
+                            <p>
+                                Pick the track properties that you would like to
+                                get alerted for.
+                            </p>
+                            <Form.Item name="trackProperties">
+                                <Select
+                                    onSearch={handleTrackPropertiesSearch}
+                                    className={styles.channelSelect}
+                                    options={trackPropertiesSuggestions}
+                                    mode="multiple"
+                                    placeholder={`Pick the track properties that you would like to get alerted for.`}
+                                    onChange={onTrackPropertiesChange}
+                                />
+                            </Form.Item>
+                        </section>
+                    )}
                     <section>
-                        <h3>Track Properties</h3>
+                        <h3>Channels to Notify</h3>
                         <p>
-                            Pick the track properties that you would like to get
-                            alerted for.
+                            Pick Slack channels or people to message when an
+                            alert is created.
                         </p>
-                        <Form.Item name="trackProperties">
+                        <Form.Item shouldUpdate>
+                            {() => (
+                                <Select
+                                    className={styles.channelSelect}
+                                    options={channels}
+                                    mode="multiple"
+                                    onSearch={(value) => {
+                                        setSearchQuery(value);
+                                    }}
+                                    filterOption={(searchValue, option) => {
+                                        return option?.children
+                                            .toLowerCase()
+                                            .includes(
+                                                searchValue.toLowerCase()
+                                            );
+                                    }}
+                                    placeholder={`Select a channel(s) or person(s) to send ${defaultName} to.`}
+                                    onChange={onChannelsChange}
+                                    notFoundContent={
+                                        channelSuggestions?.length === 0 ? (
+                                            <div
+                                                className={classNames(
+                                                    styles.selectMessage,
+                                                    styles.notFoundMessage
+                                                )}
+                                            >
+                                                Slack is not configured yet.{' '}
+                                                <a href={slackUrl}>
+                                                    Click here to sync with
+                                                    Slack
+                                                </a>
+                                                . After syncing, you can pick
+                                                the channels or people to sent
+                                                alerts to.
+                                            </div>
+                                        ) : (
+                                            <div
+                                                className={classNames(
+                                                    styles.selectMessage,
+                                                    styles.notFoundMessage
+                                                )}
+                                            >
+                                                Can't find the channel or person
+                                                here?{' '}
+                                                {project_id !==
+                                                    DEMO_WORKSPACE_APPLICATION_ID && (
+                                                    <a href={slackUrl}>
+                                                        Sync Highlight with your
+                                                        Slack Workspace
+                                                    </a>
+                                                )}
+                                                .
+                                            </div>
+                                        )
+                                    }
+                                    defaultValue={alert?.ChannelsToNotify?.map(
+                                        (channel: any) =>
+                                            channel.webhook_channel_id
+                                    )}
+                                    dropdownRender={(menu) => (
+                                        <div>
+                                            {menu}
+                                            {searchQuery.length === 0 &&
+                                                channelSuggestions.length >
+                                                    0 && (
+                                                    <>
+                                                        <Divider
+                                                            style={{
+                                                                margin: '4px 0',
+                                                            }}
+                                                        />
+                                                        <div
+                                                            className={
+                                                                styles.addContainer
+                                                            }
+                                                        >
+                                                            Can't find the
+                                                            channel or person
+                                                            here?{' '}
+                                                            {project_id !==
+                                                                DEMO_WORKSPACE_APPLICATION_ID && (
+                                                                <a
+                                                                    href={
+                                                                        slackUrl
+                                                                    }
+                                                                >
+                                                                    Sync
+                                                                    Highlight
+                                                                    with your
+                                                                    Slack
+                                                                    Workspace
+                                                                </a>
+                                                            )}
+                                                            .
+                                                        </div>
+                                                    </>
+                                                )}
+                                        </div>
+                                    )}
+                                />
+                            )}
+                        </Form.Item>
+                    </section>
+
+                    <section>
+                        <h3>Excluded Environments</h3>
+                        <p>
+                            Pick environments that should not create alerts.
+                            Some teams don't want to be woken up at 2AM if an
+                            alert is created from localhost. Environments can be
+                            set by passing the environment name when you{' '}
+                            <a
+                                href="https://docs.highlight.run/api#w0-highlightoptions"
+                                target="_blank"
+                                rel="noreferrer"
+                            >
+                                start Highlight in your app
+                            </a>
+                            .
+                        </p>
+                        <Form.Item name={excludedEnvironmentsFormName}>
                             <Select
-                                onSearch={handleTrackPropertiesSearch}
                                 className={styles.channelSelect}
-                                options={trackPropertiesSuggestions}
-                                mode="multiple"
-                                placeholder={`Pick the track properties that you would like to get alerted for.`}
-                                onChange={onTrackPropertiesChange}
+                                options={environments}
+                                mode="tags"
+                                placeholder={`Select a environment(s) that should not trigger alerts.`}
+                                onChange={onExcludedEnvironmentsChange}
                             />
                         </Form.Item>
                     </section>
-                )}
-                <section>
-                    <h3>Channels to Notify</h3>
-                    <p>
-                        Pick Slack channels or people to message when an alert
-                        is created.
-                    </p>
+
+                    {canControlThreshold && (
+                        <>
+                            <section>
+                                <h3>Threshold</h3>
+                                {threshold <= 0 ? (
+                                    <p>{`Setting the threshold to ${threshold} means no alerts will be created.`}</p>
+                                ) : (
+                                    <>
+                                        <span>
+                                            An alert will be created if{' '}
+                                            <b>
+                                                <TextTransition
+                                                    text={`${threshold}`}
+                                                    inline
+                                                />{' '}
+                                                {defaultName.toLocaleLowerCase()}
+                                            </b>{' '}
+                                            happens in a{' '}
+                                            <b>
+                                                <TextTransition
+                                                    inline
+                                                    text={`${
+                                                        getLookbackPeriodOption(
+                                                            lookbackPeriod
+                                                        ).displayValue.slice(
+                                                            0,
+                                                            -1
+                                                        ) ||
+                                                        `${DEFAULT_LOOKBACK_PERIOD} minute`
+                                                    }`}
+                                                />
+                                            </b>{' '}
+                                            window.
+                                        </span>
+                                    </>
+                                )}
+                                <div className={styles.frequencyContainer}>
+                                    <Form.Item name="threshold">
+                                        <InputNumber
+                                            onChange={onThresholdChange}
+                                            min={0}
+                                        />
+                                    </Form.Item>
+                                    <Form.Item name="lookbackPeriod">
+                                        <Select
+                                            className={
+                                                styles.lookbackPeriodSelect
+                                            }
+                                            onChange={onLookbackPeriodChange}
+                                            options={LOOKBACK_PERIODS}
+                                        />
+                                    </Form.Item>
+                                </div>
+                            </section>
+                        </>
+                    )}
+
                     <Form.Item shouldUpdate>
                         {() => (
-                            <Select
-                                className={styles.channelSelect}
-                                options={channels}
-                                mode="multiple"
-                                onSearch={(value) => {
-                                    setSearchQuery(value);
-                                }}
-                                filterOption={(searchValue, option) => {
-                                    return option?.children
-                                        .toLowerCase()
-                                        .includes(searchValue.toLowerCase());
-                                }}
-                                placeholder={`Select a channel(s) or person(s) to send ${defaultName} to.`}
-                                onChange={onChannelsChange}
-                                notFoundContent={
-                                    channelSuggestions?.length === 0 ? (
-                                        <div
-                                            className={classNames(
-                                                styles.selectMessage,
-                                                styles.notFoundMessage
-                                            )}
-                                        >
-                                            Slack is not configured yet.{' '}
-                                            <a href={slackUrl}>
-                                                Click here to sync with Slack
-                                            </a>
-                                            . After syncing, you can pick the
-                                            channels or people to sent alerts
-                                            to.
-                                        </div>
-                                    ) : (
-                                        <div
-                                            className={classNames(
-                                                styles.selectMessage,
-                                                styles.notFoundMessage
-                                            )}
-                                        >
-                                            Can't find the channel or person
-                                            here?{' '}
-                                            {project_id !==
-                                                DEMO_WORKSPACE_APPLICATION_ID && (
-                                                <a href={slackUrl}>
-                                                    Sync Highlight with your
-                                                    Slack Workspace
-                                                </a>
-                                            )}
-                                            .
-                                        </div>
-                                    )
-                                }
-                                defaultValue={alert?.ChannelsToNotify?.map(
-                                    (channel: any) => channel.webhook_channel_id
+                            <div className={styles.actionsContainer}>
+                                {isHighlightAdmin && onDeleteHandler && (
+                                    <Button
+                                        trackingId="DeleteAlertConfiguration"
+                                        type="default"
+                                        danger
+                                        className={styles.saveButton}
+                                        htmlType="button"
+                                        loading={loading}
+                                        onClick={() => {
+                                            if (alert.id) {
+                                                onDeleteHandler(alert.id);
+                                            }
+                                        }}
+                                    >
+                                        Delete
+                                    </Button>
                                 )}
-                                dropdownRender={(menu) => (
-                                    <div>
-                                        {menu}
-                                        {searchQuery.length === 0 &&
-                                            channelSuggestions.length > 0 && (
-                                                <>
-                                                    <Divider
-                                                        style={{
-                                                            margin: '4px 0',
-                                                        }}
-                                                    />
-                                                    <div
-                                                        className={
-                                                            styles.addContainer
-                                                        }
-                                                    >
-                                                        Can't find the channel
-                                                        or person here?{' '}
-                                                        {project_id !==
-                                                            DEMO_WORKSPACE_APPLICATION_ID && (
-                                                            <a href={slackUrl}>
-                                                                Sync Highlight
-                                                                with your Slack
-                                                                Workspace
-                                                            </a>
-                                                        )}
-                                                        .
-                                                    </div>
-                                                </>
-                                            )}
-                                    </div>
-                                )}
-                            />
+                                <Button
+                                    trackingId="SaveAlertConfiguration"
+                                    type="primary"
+                                    className={styles.saveButton}
+                                    htmlType="submit"
+                                    disabled={!formTouched}
+                                    loading={loading}
+                                >
+                                    {isCreatingNewAlert ? 'Create' : 'Save'}
+                                </Button>
+                            </div>
                         )}
                     </Form.Item>
-                </section>
-
-                <section>
-                    <h3>Excluded Environments</h3>
-                    <p>
-                        Pick environments that should not create alerts. Some
-                        teams don't want to be woken up at 2AM if an alert is
-                        created from localhost. Environments can be set by
-                        passing the environment name when you{' '}
-                        <a
-                            href="https://docs.highlight.run/api#w0-highlightoptions"
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            start Highlight in your app
-                        </a>
-                        .
-                    </p>
-                    <Form.Item name={excludedEnvironmentsFormName}>
-                        <Select
-                            className={styles.channelSelect}
-                            options={environments}
-                            mode="tags"
-                            placeholder={`Select a environment(s) that should not trigger alerts.`}
-                            onChange={onExcludedEnvironmentsChange}
-                        />
-                    </Form.Item>
-                </section>
-
-                {canControlThreshold && (
-                    <>
-                        <section>
-                            <h3>Threshold</h3>
-                            {threshold <= 0 ? (
-                                <p>{`Setting the threshold to ${threshold} means no alerts will be created.`}</p>
-                            ) : (
-                                <>
-                                    <span>
-                                        An alert will be created if{' '}
-                                        <b>
-                                            <TextTransition
-                                                text={`${threshold}`}
-                                                inline
-                                            />{' '}
-                                            {defaultName.toLocaleLowerCase()}
-                                        </b>{' '}
-                                        happens in a{' '}
-                                        <b>
-                                            <TextTransition
-                                                inline
-                                                text={`${
-                                                    getLookbackPeriodOption(
-                                                        lookbackPeriod
-                                                    ).displayValue.slice(
-                                                        0,
-                                                        -1
-                                                    ) ||
-                                                    `${DEFAULT_LOOKBACK_PERIOD} minute`
-                                                }`}
-                                            />
-                                        </b>{' '}
-                                        window.
-                                    </span>
-                                </>
-                            )}
-                            <div className={styles.frequencyContainer}>
-                                <Form.Item name="threshold">
-                                    <InputNumber
-                                        onChange={onThresholdChange}
-                                        min={0}
-                                    />
-                                </Form.Item>
-                                <Form.Item name="lookbackPeriod">
-                                    <Select
-                                        className={styles.lookbackPeriodSelect}
-                                        onChange={onLookbackPeriodChange}
-                                        options={LOOKBACK_PERIODS}
-                                    />
-                                </Form.Item>
-                            </div>
-                        </section>
-                    </>
-                )}
-
-                <Form.Item shouldUpdate>
-                    {() => (
-                        <div className={styles.actionsContainer}>
-                            {isHighlightAdmin && onDeleteHandler && (
-                                <Button
-                                    trackingId="DeleteAlertConfiguration"
-                                    type="default"
-                                    danger
-                                    className={styles.saveButton}
-                                    htmlType="button"
-                                    loading={loading}
-                                    onClick={() => {
-                                        if (alert.id) {
-                                            onDeleteHandler(alert.id);
-                                        }
-                                    }}
-                                >
-                                    Delete
-                                </Button>
-                            )}
-                            <Button
-                                trackingId="SaveAlertConfiguration"
-                                type="primary"
-                                className={styles.saveButton}
-                                htmlType="submit"
-                                disabled={!formTouched}
-                                loading={loading}
-                            >
-                                {isCreatingNewAlert ? 'Create' : 'Save'}
-                            </Button>
-                        </div>
-                    )}
-                </Form.Item>
-            </Form>
+                </Form>
+            </Card>
         </div>
     );
 };
