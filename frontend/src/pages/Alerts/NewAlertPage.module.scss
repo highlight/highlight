@@ -33,10 +33,11 @@
     }
 }
 
-.title {
+#title {
     align-items: center;
     column-gap: var(--size-small);
     display: flex;
+    margin-bottom: var(--size-xxSmall) !important;
 }
 
 .description {

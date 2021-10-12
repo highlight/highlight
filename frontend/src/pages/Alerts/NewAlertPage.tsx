@@ -53,7 +53,7 @@ const NewAlertPage = () => {
                                         interactable
                                         className={styles.cardContainer}
                                     >
-                                        <h2 className={styles.title}>
+                                        <h2 id={styles.title}>
                                             <span
                                                 className={styles.icon}
                                                 style={{
