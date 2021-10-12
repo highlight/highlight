@@ -64,3 +64,8 @@
 .lookbackPeriodSelect {
     width: 150px !important;
 }
+
+.actionsContainer {
+    column-gap: var(--size-large);
+    display: flex;
+}

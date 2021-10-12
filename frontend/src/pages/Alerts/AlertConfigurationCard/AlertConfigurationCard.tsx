@@ -769,11 +769,12 @@ export const AlertConfigurationCard = ({
 
                 <Form.Item shouldUpdate>
                     {() => (
-                        <>
+                        <div className={styles.actionsContainer}>
                             {isHighlightAdmin && onDeleteHandler && (
                                 <Button
                                     trackingId="DeleteAlertConfiguration"
-                                    type="primary"
+                                    type="default"
+                                    danger
                                     className={styles.saveButton}
                                     htmlType="button"
                                     loading={loading}
@@ -796,7 +797,7 @@ export const AlertConfigurationCard = ({
                             >
                                 {isCreatingNewAlert ? 'Create' : 'Save'}
                             </Button>
-                        </>
+                        </div>
                     )}
                 </Form.Item>
             </Form>
