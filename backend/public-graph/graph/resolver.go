@@ -623,6 +623,10 @@ func (r *Resolver) processStackFrame(projectId, sessionId int, stackTrace model2
 		return nil, err
 	}
 	lastLine := bodyLines[len(bodyLines)-1]
+	// sometimes, there's an empty line between the end of the source file and the sourceMappingURL
+	if len(lastLine) < 1 && len(bodyLines) > 1 {
+		lastLine = bodyLines[len(bodyLines)-2]
+	}
 
 	// extract sourceMappingURL file name from slice
 	var sourceMapFileName string
