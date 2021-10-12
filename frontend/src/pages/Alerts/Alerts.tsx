@@ -5,7 +5,6 @@ import PersonalNotificationButton from '@components/Header/components/PersonalNo
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Table from '@components/Table/Table';
 import Tag from '@components/Tag/Tag';
-import { namedOperations } from '@graph/operations';
 import SvgBugIcon from '@icons/BugIcon';
 import SvgChevronRightIcon from '@icons/ChevronRightIcon';
 import SvgFaceIdIcon from '@icons/FaceIdIcon';
@@ -20,14 +19,6 @@ import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 import { Link, useHistory } from 'react-router-dom';
 
-import {
-    useCreateErrorAlertMutation,
-    useCreateNewSessionAlertMutation,
-    useCreateNewUserAlertMutation,
-    useCreateSessionFeedbackAlertMutation,
-    useCreateTrackPropertiesAlertMutation,
-    useCreateUserPropertiesAlertMutation,
-} from '../../graph/generated/hooks';
 import styles from './Alerts.module.scss';
 
 export enum ALERT_TYPE {
@@ -39,16 +30,25 @@ export enum ALERT_TYPE {
     NewSession,
 }
 
+export enum ALERT_NAMES {
+    ERROR_ALERT = 'Errors',
+    NEW_USER_ALERT = 'New Users',
+    USER_PROPERTIES_ALERT = 'User Properties',
+    TRACK_PROPERTIES_ALERT = 'Track Events',
+    SESSION_FEEDBACK_ALERT = 'Feedback',
+    NEW_SESSION_ALERT = 'New Sessions',
+}
+
 export const ALERT_CONFIGURATIONS = {
     ERROR_ALERT: {
-        name: 'Errors',
+        name: ALERT_NAMES['ERROR_ALERT'],
         canControlThreshold: true,
         type: ALERT_TYPE.Error,
         description: 'Get alerted when an error is thrown in your app.',
         icon: <SvgBugIcon />,
     },
     NEW_USER_ALERT: {
-        name: 'New Users',
+        name: ALERT_NAMES['NEW_USER_ALERT'],
         canControlThreshold: false,
         type: ALERT_TYPE.FirstTimeUser,
         description:
@@ -56,7 +56,7 @@ export const ALERT_CONFIGURATIONS = {
         icon: <SvgUserPlusIcon />,
     },
     USER_PROPERTIES_ALERT: {
-        name: 'User Properties',
+        name: ALERT_NAMES['USER_PROPERTIES_ALERT'],
         canControlThreshold: false,
         type: ALERT_TYPE.UserProperties,
         description:
@@ -64,21 +64,21 @@ export const ALERT_CONFIGURATIONS = {
         icon: <SvgFaceIdIcon />,
     },
     TRACK_PROPERTIES_ALERT: {
-        name: 'Track Events',
+        name: ALERT_NAMES['TRACK_PROPERTIES_ALERT'],
         canControlThreshold: false,
         type: ALERT_TYPE.TrackProperties,
         description: 'Get alerted when an action is done in your application.',
         icon: <SvgTargetIcon />,
     },
     SESSION_FEEDBACK_ALERT: {
-        name: 'Feedback',
+        name: ALERT_NAMES['SESSION_FEEDBACK_ALERT'],
         canControlThreshold: false,
         type: ALERT_TYPE.SessionFeedbackComment,
         description: 'Get alerted when a user submits a session feedback.',
         icon: <SvgQuoteIcon />,
     },
     NEW_SESSION_ALERT: {
-        name: 'New Sessions',
+        name: ALERT_NAMES['NEW_SESSION_ALERT'],
         canControlThreshold: false,
         type: ALERT_TYPE.NewSession,
         description: 'Get alerted every time a session is created.',
@@ -144,81 +144,6 @@ const AlertsPage = () => {
     const { alertsPayload, loading } = useAlertsContext();
     const { isHighlightAdmin } = useAuthContext();
 
-    const [createErrorAlert, {}] = useCreateErrorAlertMutation({
-        variables: {
-            project_id,
-            count_threshold: 1,
-            environments: [],
-            slack_channels: [],
-            threshold_window: 30,
-            name: 'Error',
-        },
-        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-    });
-    const [
-        createSessionFeedbackAlert,
-        {},
-    ] = useCreateSessionFeedbackAlertMutation({
-        variables: {
-            project_id,
-            count_threshold: 1,
-            environments: [],
-            slack_channels: [],
-            threshold_window: 30,
-            name: 'Session Feedback',
-        },
-        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-    });
-    const [createNewUserAlert, {}] = useCreateNewUserAlertMutation({
-        variables: {
-            project_id,
-            count_threshold: 1,
-            environments: [],
-            slack_channels: [],
-            name: 'New User',
-            threshold_window: 1,
-        },
-        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-    });
-    const [createNewSessionAlert, {}] = useCreateNewSessionAlertMutation({
-        variables: {
-            project_id,
-            count_threshold: 1,
-            environments: [],
-            slack_channels: [],
-            name: 'New Session',
-            threshold_window: 1,
-        },
-        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-    });
-    const [
-        createTrackPropertiesAlert,
-        {},
-    ] = useCreateTrackPropertiesAlertMutation({
-        variables: {
-            project_id,
-            environments: [],
-            slack_channels: [],
-            name: 'Track',
-            track_properties: [],
-            threshold_window: 1,
-        },
-        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-    });
-    const [
-        createUserPropertiesAlert,
-        {},
-    ] = useCreateUserPropertiesAlertMutation({
-        variables: {
-            project_id,
-            environments: [],
-            slack_channels: [],
-            name: 'User',
-            user_properties: [],
-            threshold_window: 1,
-        },
-        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-    });
     const history = useHistory();
     const alertsAsTableRows = [
         ...(alertsPayload?.error_alerts || []).map((alert) => ({
@@ -267,52 +192,6 @@ const AlertsPage = () => {
 
     return (
         <>
-            {isHighlightAdmin && (
-                <>
-                    <button
-                        onClick={() => {
-                            createErrorAlert();
-                        }}
-                    >
-                        Create Error
-                    </button>
-                    <button
-                        onClick={() => {
-                            createSessionFeedbackAlert();
-                        }}
-                    >
-                        Create Session Feedback
-                    </button>
-                    <button
-                        onClick={() => {
-                            createNewUserAlert();
-                        }}
-                    >
-                        Create New Users
-                    </button>
-                    <button
-                        onClick={() => {
-                            createUserPropertiesAlert();
-                        }}
-                    >
-                        Create User Properties
-                    </button>
-                    <button
-                        onClick={() => {
-                            createTrackPropertiesAlert();
-                        }}
-                    >
-                        Create Track Properties
-                    </button>
-                    <button
-                        onClick={() => {
-                            createNewSessionAlert();
-                        }}
-                    >
-                        Create New Session Alert
-                    </button>
-                </>
-            )}
             <div className={styles.subTitleContainer}>
                 <p>Configure the environments you want alerts for.</p>
                 {isHighlightAdmin && (

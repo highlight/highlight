@@ -2198,6 +2198,11 @@ export const CreateTrackPropertiesAlertDocument = gql`
                 webhook_channel
                 webhook_channel_id
             }
+            TrackProperties {
+                id
+                name
+                value
+            }
             Name
             ExcludedEnvironments
             CountThreshold
@@ -2275,6 +2280,11 @@ export const UpdateTrackPropertiesAlertDocument = gql`
                 webhook_channel
                 webhook_channel_id
             }
+            TrackProperties {
+                id
+                name
+                value
+            }
             ExcludedEnvironments
             CountThreshold
         }
@@ -2348,6 +2358,11 @@ export const CreateUserPropertiesAlertDocument = gql`
             ChannelsToNotify {
                 webhook_channel
                 webhook_channel_id
+            }
+            UserProperties {
+                id
+                name
+                value
             }
             Name
             ExcludedEnvironments
@@ -2425,6 +2440,11 @@ export const UpdateUserPropertiesAlertDocument = gql`
             ChannelsToNotify {
                 webhook_channel
                 webhook_channel_id
+            }
+            UserProperties {
+                id
+                name
+                value
             }
             ExcludedEnvironments
             CountThreshold

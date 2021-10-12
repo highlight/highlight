@@ -14,6 +14,12 @@ import InputNumber from '../../../components/InputNumber/InputNumber';
 import layoutStyles from '../../../components/layout/LeadAlignLayout.module.scss';
 import Select from '../../../components/Select/Select';
 import {
+    useCreateErrorAlertMutation,
+    useCreateNewSessionAlertMutation,
+    useCreateNewUserAlertMutation,
+    useCreateSessionFeedbackAlertMutation,
+    useCreateTrackPropertiesAlertMutation,
+    useCreateUserPropertiesAlertMutation,
     useGetTrackSuggestionQuery,
     useGetUserSuggestionQuery,
     useUpdateErrorAlertMutation,
@@ -41,6 +47,7 @@ interface Props {
     channelSuggestions: any[];
     slackUrl: string;
     onDeleteHandler?: (alertId: string) => void;
+    isCreatingNewAlert?: boolean;
 }
 
 export const AlertConfigurationCard = ({
@@ -55,6 +62,7 @@ export const AlertConfigurationCard = ({
     channelSuggestions,
     slackUrl,
     onDeleteHandler,
+    isCreatingNewAlert = false,
 }: Props) => {
     const [loading, setLoading] = useState(false);
     const [formTouched, setFormTouched] = useState(false);
@@ -71,6 +79,81 @@ export const AlertConfigurationCard = ({
     const [updateNewUserAlert] = useUpdateNewUserAlertMutation();
     const [updateUserPropertiesAlert] = useUpdateUserPropertiesAlertMutation();
     const history = useHistory();
+    const [createErrorAlert, {}] = useCreateErrorAlertMutation({
+        variables: {
+            project_id,
+            count_threshold: 1,
+            environments: [],
+            slack_channels: [],
+            threshold_window: 30,
+            name: 'Error',
+        },
+        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+    });
+    const [
+        createSessionFeedbackAlert,
+        {},
+    ] = useCreateSessionFeedbackAlertMutation({
+        variables: {
+            project_id,
+            count_threshold: 1,
+            environments: [],
+            slack_channels: [],
+            threshold_window: 30,
+            name: 'Session Feedback',
+        },
+        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+    });
+    const [createNewUserAlert, {}] = useCreateNewUserAlertMutation({
+        variables: {
+            project_id,
+            count_threshold: 1,
+            environments: [],
+            slack_channels: [],
+            name: 'New User',
+            threshold_window: 1,
+        },
+        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+    });
+    const [createNewSessionAlert, {}] = useCreateNewSessionAlertMutation({
+        variables: {
+            project_id,
+            count_threshold: 1,
+            environments: [],
+            slack_channels: [],
+            name: 'New Session',
+            threshold_window: 1,
+        },
+        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+    });
+    const [
+        createTrackPropertiesAlert,
+        {},
+    ] = useCreateTrackPropertiesAlertMutation({
+        variables: {
+            project_id,
+            environments: [],
+            slack_channels: [],
+            name: 'Track',
+            track_properties: [],
+            threshold_window: 1,
+        },
+        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+    });
+    const [
+        createUserPropertiesAlert,
+        {},
+    ] = useCreateUserPropertiesAlertMutation({
+        variables: {
+            project_id,
+            environments: [],
+            slack_channels: [],
+            name: 'User',
+            user_properties: [],
+            threshold_window: 1,
+        },
+        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+    });
     const [
         updateTrackPropertiesAlert,
     ] = useUpdateTrackPropertiesAlertMutation();
@@ -90,127 +173,218 @@ export const AlertConfigurationCard = ({
     }, [alert.Name, defaultName, history]);
 
     const onSubmit = async () => {
+        const requestVariables = {
+            project_id,
+            environments: form.getFieldValue(excludedEnvironmentsFormName),
+            count_threshold: form.getFieldValue('threshold'),
+            slack_channels: form
+                .getFieldValue('channels')
+                .map((webhook_channel_id: string) => ({
+                    webhook_channel_name: channelSuggestions.find(
+                        (suggestion) =>
+                            suggestion.webhook_channel_id === webhook_channel_id
+                    ).webhook_channel,
+                    webhook_channel_id,
+                })),
+            name: form.getFieldValue('name'),
+        };
+        const requestBody = {
+            refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+        };
         setLoading(true);
-        try {
-            const requestVariables = {
-                project_id,
-                environments: form.getFieldValue(excludedEnvironmentsFormName),
-                count_threshold: form.getFieldValue('threshold'),
-                slack_channels: form
-                    .getFieldValue('channels')
-                    .map((webhook_channel_id: string) => ({
-                        webhook_channel_name: channelSuggestions.find(
-                            (suggestion) =>
-                                suggestion.webhook_channel_id ===
-                                webhook_channel_id
-                        ).webhook_channel,
-                        webhook_channel_id,
-                    })),
-                name: form.getFieldValue('name'),
-            };
-            const requestBody = {
-                refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-            };
-
-            switch (type) {
-                case ALERT_TYPE.Error:
-                    await updateErrorAlert({
-                        ...requestBody,
-                        variables: {
-                            ...requestVariables,
-                            error_alert_id: alert.id,
-                            threshold_window: lookbackPeriod,
-                        },
-                    });
-                    break;
-                case ALERT_TYPE.FirstTimeUser:
-                    await updateNewUserAlert({
-                        ...requestBody,
-                        variables: {
-                            ...requestVariables,
-                            session_alert_id: alert.id,
-                            threshold_window: 1,
-                        },
-                    });
-                    break;
-                case ALERT_TYPE.UserProperties:
-                    await updateUserPropertiesAlert({
-                        ...requestBody,
-                        variables: {
-                            ...requestVariables,
-                            user_properties: form
-                                .getFieldValue('userProperties')
-                                .map((userProperty: any) => {
-                                    const [
-                                        value,
-                                        name,
-                                        id,
-                                    ] = userProperty.split(':');
-                                    return {
-                                        id,
-                                        value,
-                                        name,
-                                    };
-                                }),
-                            session_alert_id: alert.id,
-                            threshold_window: 1,
-                        },
-                    });
-                    break;
-                case ALERT_TYPE.TrackProperties:
-                    await updateTrackPropertiesAlert({
-                        ...requestBody,
-                        variables: {
-                            ...requestVariables,
-                            track_properties: form
-                                .getFieldValue('trackProperties')
-                                .map((trackProperty: any) => {
-                                    const [
-                                        value,
-                                        name,
-                                        id,
-                                    ] = trackProperty.split(':');
-                                    return {
-                                        id,
-                                        value,
-                                        name,
-                                    };
-                                }),
-                            session_alert_id: alert.id,
-                            threshold_window: 1,
-                        },
-                    });
-                    break;
-                case ALERT_TYPE.SessionFeedbackComment:
-                    await updateSessionFeedbackAlert({
-                        ...requestBody,
-                        variables: {
-                            ...requestVariables,
-                            session_feedback_alert_id: alert.id,
-                            threshold_window: lookbackPeriod,
-                        },
-                    });
-                    break;
-                case ALERT_TYPE.NewSession:
-                    await updateNewSessionAlert({
-                        ...requestBody,
-                        variables: {
-                            ...requestVariables,
-                            session_alert_id: alert.id,
-                            threshold_window: 1,
-                        },
-                    });
-                    break;
-                default:
-                    throw new Error(`Unsupported alert type: ${type}`);
+        if (isCreatingNewAlert) {
+            try {
+                switch (type) {
+                    case ALERT_TYPE.Error:
+                        await createErrorAlert({
+                            ...requestBody,
+                            variables: {
+                                ...requestVariables,
+                                threshold_window: lookbackPeriod,
+                            },
+                        });
+                        break;
+                    case ALERT_TYPE.FirstTimeUser:
+                        await createNewUserAlert({
+                            ...requestBody,
+                            variables: {
+                                ...requestVariables,
+                                threshold_window: 1,
+                            },
+                        });
+                        break;
+                    case ALERT_TYPE.NewSession:
+                        await createNewSessionAlert({
+                            ...requestBody,
+                            variables: {
+                                ...requestVariables,
+                                threshold_window: 1,
+                            },
+                        });
+                        break;
+                    case ALERT_TYPE.SessionFeedbackComment:
+                        await createSessionFeedbackAlert({
+                            ...requestBody,
+                            variables: {
+                                ...requestVariables,
+                                threshold_window: 1,
+                            },
+                        });
+                        break;
+                    case ALERT_TYPE.TrackProperties:
+                        await createTrackPropertiesAlert({
+                            ...requestBody,
+                            variables: {
+                                ...requestVariables,
+                                threshold_window: 1,
+                                track_properties: form
+                                    .getFieldValue('trackProperties')
+                                    .map((trackProperty: any) => {
+                                        const [
+                                            value,
+                                            name,
+                                            id,
+                                        ] = trackProperty.split(':');
+                                        return {
+                                            id,
+                                            value,
+                                            name,
+                                        };
+                                    }),
+                            },
+                        });
+                        break;
+                    case ALERT_TYPE.UserProperties:
+                        await createUserPropertiesAlert({
+                            ...requestBody,
+                            variables: {
+                                ...requestVariables,
+                                threshold_window: 1,
+                                user_properties: form
+                                    .getFieldValue('userProperties')
+                                    .map((userProperty: any) => {
+                                        const [
+                                            value,
+                                            name,
+                                            id,
+                                        ] = userProperty.split(':');
+                                        return {
+                                            id,
+                                            value,
+                                            name,
+                                        };
+                                    }),
+                            },
+                        });
+                        break;
+                }
+                message.success(`Created ${requestVariables.name} alert!`);
+                history.push(`/${project_id}/alerts`);
+            } catch (e) {
+                console.log(e);
             }
-            message.success(`Updated ${defaultName}!`);
-            setFormTouched(false);
-        } catch (e) {
-            message.error(
-                `There was a problem updating ${defaultName}. Please try again.`
-            );
+        } else {
+            try {
+                switch (type) {
+                    case ALERT_TYPE.Error:
+                        await updateErrorAlert({
+                            ...requestBody,
+                            variables: {
+                                ...requestVariables,
+                                error_alert_id: alert.id,
+                                threshold_window: lookbackPeriod,
+                            },
+                        });
+                        break;
+                    case ALERT_TYPE.FirstTimeUser:
+                        await updateNewUserAlert({
+                            ...requestBody,
+                            variables: {
+                                ...requestVariables,
+                                session_alert_id: alert.id,
+                                threshold_window: 1,
+                            },
+                        });
+                        break;
+                    case ALERT_TYPE.UserProperties:
+                        await updateUserPropertiesAlert({
+                            ...requestBody,
+                            variables: {
+                                ...requestVariables,
+                                user_properties: form
+                                    .getFieldValue('userProperties')
+                                    .map((userProperty: any) => {
+                                        const [
+                                            value,
+                                            name,
+                                            id,
+                                        ] = userProperty.split(':');
+                                        return {
+                                            id,
+                                            value,
+                                            name,
+                                        };
+                                    }),
+                                session_alert_id: alert.id,
+                                threshold_window: 1,
+                            },
+                        });
+                        break;
+                    case ALERT_TYPE.TrackProperties:
+                        await updateTrackPropertiesAlert({
+                            ...requestBody,
+                            variables: {
+                                ...requestVariables,
+                                track_properties: form
+                                    .getFieldValue('trackProperties')
+                                    .map((trackProperty: any) => {
+                                        const [
+                                            value,
+                                            name,
+                                            id,
+                                        ] = trackProperty.split(':');
+                                        return {
+                                            id,
+                                            value,
+                                            name,
+                                        };
+                                    }),
+                                session_alert_id: alert.id,
+                                threshold_window: 1,
+                            },
+                        });
+                        break;
+                    case ALERT_TYPE.SessionFeedbackComment:
+                        await updateSessionFeedbackAlert({
+                            ...requestBody,
+                            variables: {
+                                ...requestVariables,
+                                session_feedback_alert_id: alert.id,
+                                threshold_window: lookbackPeriod,
+                            },
+                        });
+                        break;
+                    case ALERT_TYPE.NewSession:
+                        await updateNewSessionAlert({
+                            ...requestBody,
+                            variables: {
+                                ...requestVariables,
+                                session_alert_id: alert.id,
+                                threshold_window: 1,
+                            },
+                        });
+                        break;
+                    default:
+                        throw new Error(`Unsupported alert type: ${type}`);
+                }
+                message.success(`Updated ${defaultName}!`);
+            } catch (e) {
+                message.error(
+                    `There was a problem updating ${defaultName}. Please try again.`
+                );
+            }
         }
+        setFormTouched(false);
         setLoading(false);
     };
 
@@ -620,7 +794,7 @@ export const AlertConfigurationCard = ({
                                 disabled={!formTouched}
                                 loading={loading}
                             >
-                                Save
+                                {isCreatingNewAlert ? 'Create' : 'Save'}
                             </Button>
                         </>
                     )}

@@ -535,6 +535,11 @@ mutation CreateTrackPropertiesAlert(
             webhook_channel
             webhook_channel_id
         }
+        TrackProperties {
+            id
+            name
+            value
+        }
         Name
         ExcludedEnvironments
         CountThreshold
@@ -564,6 +569,11 @@ mutation UpdateTrackPropertiesAlert(
             webhook_channel
             webhook_channel_id
         }
+        TrackProperties {
+            id
+            name
+            value
+        }
         ExcludedEnvironments
         CountThreshold
     }
@@ -589,6 +599,11 @@ mutation CreateUserPropertiesAlert(
         ChannelsToNotify {
             webhook_channel
             webhook_channel_id
+        }
+        UserProperties {
+            id
+            name
+            value
         }
         Name
         ExcludedEnvironments
@@ -619,6 +634,11 @@ mutation UpdateUserPropertiesAlert(
         ChannelsToNotify {
             webhook_channel
             webhook_channel_id
+        }
+        UserProperties {
+            id
+            name
+            value
         }
         ExcludedEnvironments
         CountThreshold

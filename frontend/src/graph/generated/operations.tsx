@@ -721,6 +721,14 @@ export type CreateTrackPropertiesAlertMutation = { __typename?: 'Mutation' } & {
                         >
                     >
                 >;
+                TrackProperties: Array<
+                    Types.Maybe<
+                        { __typename?: 'TrackProperty' } & Pick<
+                            Types.TrackProperty,
+                            'id' | 'name' | 'value'
+                        >
+                    >
+                >;
             }
     >;
 };
@@ -752,6 +760,14 @@ export type UpdateTrackPropertiesAlertMutation = { __typename?: 'Mutation' } & {
                         { __typename?: 'SanitizedSlackChannel' } & Pick<
                             Types.SanitizedSlackChannel,
                             'webhook_channel' | 'webhook_channel_id'
+                        >
+                    >
+                >;
+                TrackProperties: Array<
+                    Types.Maybe<
+                        { __typename?: 'TrackProperty' } & Pick<
+                            Types.TrackProperty,
+                            'id' | 'name' | 'value'
                         >
                     >
                 >;
@@ -792,6 +808,14 @@ export type CreateUserPropertiesAlertMutation = { __typename?: 'Mutation' } & {
                         >
                     >
                 >;
+                UserProperties: Array<
+                    Types.Maybe<
+                        { __typename?: 'UserProperty' } & Pick<
+                            Types.UserProperty,
+                            'id' | 'name' | 'value'
+                        >
+                    >
+                >;
             }
     >;
 };
@@ -823,6 +847,14 @@ export type UpdateUserPropertiesAlertMutation = { __typename?: 'Mutation' } & {
                         { __typename?: 'SanitizedSlackChannel' } & Pick<
                             Types.SanitizedSlackChannel,
                             'webhook_channel' | 'webhook_channel_id'
+                        >
+                    >
+                >;
+                UserProperties: Array<
+                    Types.Maybe<
+                        { __typename?: 'UserProperty' } & Pick<
+                            Types.UserProperty,
+                            'id' | 'name' | 'value'
                         >
                     >
                 >;
