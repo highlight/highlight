@@ -16,7 +16,6 @@ export const FetchListener = (
 ) => {
     const originalFetch = window.fetch;
 
-    console.log("fetch: overriding fetch:")
     window.fetch = function (input, init) {
         const { method, url } = getRequestProperties(input, init);
         if (!shouldNetworkRequestBeRecorded(url, backendUrl, tracingOrigins)) {
@@ -24,7 +23,6 @@ export const FetchListener = (
         }
 
         const requestId = createNetworkRequestId();
-        console.log("fetch: ", method, url);
         if (shouldNetworkRequestBeTraced(url, tracingOrigins)) {
             init = init || {};
             init.headers = {...init.headers, 'X-Highlight-Request': sessionData.sessionID + "/" + requestId};
@@ -56,7 +54,6 @@ export const FetchListener = (
     };
 
     return () => {
-        console.log("fetch: unmounting");
         window.fetch = originalFetch;
     };
 };

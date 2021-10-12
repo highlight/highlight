@@ -877,13 +877,3 @@ declare global {
         defaultDebug: any;
     }
 }
-
-setInterval(() => {
-    // 1. Create a new XMLHttpRequest object
-    let xhr = new XMLHttpRequest();
-
-    // 2. Configure it: GET-request for the URL /article/.../load
-    xhr.open('GET', 'http://localhost:8082/health');
-    // 3. Send the request over the network
-    xhr.send();
-}, 5000);

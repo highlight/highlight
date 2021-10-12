@@ -74,7 +74,6 @@ export const matchPerformanceTimingsWithRequestResponsePair = (
         });
 };
 
-
 /**
  * Returns true if the name is a Highlight network resource.
  * This is used to filter out Highlight requests/responses from showing up on end application's network resources.

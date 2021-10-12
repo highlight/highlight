@@ -29,7 +29,6 @@ export const NetworkListener = ({
 }: NetworkListenerArguments) => {
     const removeXHRListener = XHRListener(
         (requestResponsePair) => {
-            console.log("got an xhr callback");
             xhrCallback(
                 sanitizeRequestResponsePair(
                     requestResponsePair,
@@ -44,7 +43,6 @@ export const NetworkListener = ({
     );
     const removeFetchListener = FetchListener(
         (requestResponsePair) => {
-            console.log("got a fetch callback");
             fetchCallback(
                 sanitizeRequestResponsePair(
                     requestResponsePair,
