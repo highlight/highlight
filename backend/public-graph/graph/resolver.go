@@ -618,15 +618,13 @@ func (r *Resolver) processStackFrame(projectId, sessionId int, stackTrace model2
 	}
 	bodyString := string(minifiedFileBytes)
 	bodyLines := strings.Split(strings.ReplaceAll(bodyString, "\rn", "\n"), "\n")
-	if len(bodyLines) < 1 {
+	if len(bodyLines) < 2 {
 		err := e.Errorf("body lines empty: %v", stackTraceFilePath)
 		return nil, err
 	}
-	lastLine := bodyLines[len(bodyLines)-1]
-	// sometimes, there's an empty line between the end of the source file and the sourceMappingURL
-	if len(lastLine) < 1 && len(bodyLines) > 1 {
-		lastLine = bodyLines[len(bodyLines)-2]
-	}
+	// sometimes, there's an empty line between the end of the source file and the sourceMappingURL,
+	// so we check against the last two lines instead of the last line
+	lastLine := bodyLines[len(bodyLines)-2] + bodyLines[len(bodyLines)-1]
 
 	// extract sourceMappingURL file name from slice
 	var sourceMapFileName string
