@@ -86,7 +86,7 @@ const isHighlightNetworkResourceFilter = (
         .toLocaleLowerCase()
         .includes(process.env.PUBLIC_GRAPH_URI ?? 'highlight.run') ||
     name.toLocaleLowerCase().includes('highlight.run') ||
-    name.toLocaleLowerCase().includes(backendUrl) && !name.toLocaleLowerCase().includes("health");
+    name.toLocaleLowerCase().includes(backendUrl);
 
 export const shouldNetworkRequestBeRecorded = (url: string, highlightBackendUrl: string, tracingOrigins: string[]) => {
     return !isHighlightNetworkResourceFilter(url, highlightBackendUrl)
