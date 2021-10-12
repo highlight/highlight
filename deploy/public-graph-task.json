@@ -105,7 +105,9 @@
             "cpu": 0,
             "environment": [],
             "resourceRequirements": null,
-            "ulimits": null,
+            "ulimits": [
+                { "name": "nofile", "softLimit": 65535, "hardLimit": 65535 }
+            ],
             "dnsServers": null,
             "mountPoints": [],
             "workingDirectory": null,

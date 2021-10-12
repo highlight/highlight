@@ -58,3 +58,6 @@ models:
   Float:
     model:
       - github.com/99designs/gqlgen/graphql.Float
+  Timestamp:
+    model:
+      - github.com/highlight-run/highlight/backend/model.Timestamp

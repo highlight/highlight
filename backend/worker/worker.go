@@ -1,13 +1,18 @@
 package worker
 
 import (
+	"container/list"
 	"context"
+	"encoding/json"
 	"io"
+	"math"
 	"math/rand"
 	"os"
+	"runtime"
 	"strconv"
 	"time"
 
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
 	"github.com/pkg/errors"
@@ -223,7 +228,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	//Delete the session if there's no events.
 	if payloadManager.Events.Length == 0 {
-		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Warn("there are no events for session")
+		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier, "session_obj": s}).Warn("deleting session with no events")
 		if err := w.Resolver.DB.Select(clause.Associations).Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
 			return errors.Wrap(err, "error trying to delete associations for session with no events")
 		}
@@ -248,6 +253,9 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	p := payload.NewPayloadReadWriter(eventsFile)
 	re := p.Reader()
 	hasNext := true
+	clickEventQueue := list.New()
+	var rageClickSets []*model.RageClickEvent
+	var currentlyInRageClickSet bool
 	for hasNext {
 		se, err := re.Next()
 		if err != nil {
@@ -258,12 +266,32 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 		if se != nil && *se != "" {
 			eventsObject := model.EventsObject{Events: *se}
-			var tempDuration time.Duration
-			tempDuration, firstEventTimestamp, lastEventTimestamp, err = getActiveDuration(&eventsObject, firstEventTimestamp, lastEventTimestamp)
-			if err != nil {
-				return e.Wrap(err, "error getting active duration")
+			o := processEventChunk(&processEventChunkInput{
+				EventsChunk:             &eventsObject,
+				ClickEventQueue:         clickEventQueue,
+				FirstEventTimestamp:     firstEventTimestamp,
+				LastEventTimestamp:      lastEventTimestamp,
+				RageClickSets:           rageClickSets,
+				CurrentlyInRageClickSet: currentlyInRageClickSet,
+			})
+			if o.Error != nil {
+				return e.Wrap(err, "error processing event chunk")
 			}
-			activeDuration += tempDuration
+			firstEventTimestamp = o.FirstEventTimestamp
+			lastEventTimestamp = o.LastEventTimestamp
+			activeDuration += o.CalculatedDuration
+			rageClickSets = o.RageClickSets
+			currentlyInRageClickSet = o.CurrentlyInRageClickSet
+		}
+	}
+	for i, r := range rageClickSets {
+		r.SessionSecureID = s.SecureID
+		r.ProjectID = s.ProjectID
+		rageClickSets[i] = r
+	}
+	if len(rageClickSets) > 0 {
+		if err := w.Resolver.DB.Create(&rageClickSets).Error; err != nil {
+			log.Error(e.Wrap(err, "error creating rage click sets"))
 		}
 	}
 
@@ -275,7 +303,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// 1. Nothing happened in the session
 	// 2. A web crawler visited the page and produced no events
 	if activeDuration == 0 {
-		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Warn("active duration is 0 for session, deleting...")
+		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier, "session_obj": s}).Warn("deleting session with 0ms length active duration")
 		if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Delete(&model.EventsObject{}).Error; err != nil {
 			return errors.Wrap(err, "error trying to delete events_object for session of length 0ms")
 		}
@@ -331,103 +359,179 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		if s.FirstTime == nil || !*s.FirstTime {
 			return nil
 		}
-		var sessionAlert model.SessionAlert
-		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Where("type IS NULL OR type=?", model.AlertType.NEW_USER).First(&sessionAlert).Error; err != nil {
+		var sessionAlerts []*model.SessionAlert
+		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Where("type IS NULL OR type=?", model.AlertType.NEW_USER).Find(&sessionAlerts).Error; err != nil {
 			return e.Wrapf(err, "[project_id: %d] error fetching new user alert", projectID)
 		}
 
-		// check if session was produced from an excluded environment
-		excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
-		if err != nil {
-			return e.Wrapf(err, "[project_id: %d] error getting excluded environments from new user alert", projectID)
-		}
-		isExcludedEnvironment := false
-		for _, env := range excludedEnvironments {
-			if env != nil && *env == s.Environment {
-				isExcludedEnvironment = true
-				break
+		for _, sessionAlert := range sessionAlerts {
+			// check if session was produced from an excluded environment
+			excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
+			if err != nil {
+				return e.Wrapf(err, "[project_id: %d] error getting excluded environments from new user alert", projectID)
 			}
-		}
-		if isExcludedEnvironment {
-			return nil
-		}
+			isExcludedEnvironment := false
+			for _, env := range excludedEnvironments {
+				if env != nil && *env == s.Environment {
+					isExcludedEnvironment = true
+					break
+				}
+			}
+			if isExcludedEnvironment {
+				return nil
+			}
 
-		// get produced user properties from session
-		userProperties, err := s.GetUserProperties()
-		if err != nil {
-			return e.Wrapf(err, "[project_id: %d] error getting user properties from new user alert", s.ProjectID)
-		}
+			// get produced user properties from session
+			userProperties, err := s.GetUserProperties()
+			if err != nil {
+				return e.Wrapf(err, "[project_id: %d] error getting user properties from new user alert", s.ProjectID)
+			}
 
-		// send Slack message
-		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Project: project, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, UserProperties: userProperties})
-		if err != nil {
-			return e.Wrapf(err, "[project_id: %d] error sending slack message for new user alert", projectID)
+			workspace, err := w.Resolver.GetWorkspace(project.WorkspaceID)
+			if err != nil {
+				return e.Wrapf(err, "[project_id: %d] error querying workspace", s.ProjectID)
+			}
+
+			// send Slack message
+			err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, UserProperties: userProperties})
+			if err != nil {
+				return e.Wrapf(err, "[project_id: %d] error sending slack message for new user alert", projectID)
+			}
 		}
 		return nil
 	})
 
 	g.Go(func() error {
 		// Sending Track Properties Alert
-		var sessionAlert model.SessionAlert
-		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Where("type=?", model.AlertType.TRACK_PROPERTIES).First(&sessionAlert).Error; err != nil {
+		var sessionAlerts []*model.SessionAlert
+		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Where("type=?", model.AlertType.TRACK_PROPERTIES).Find(&sessionAlerts).Error; err != nil {
 			return e.Wrapf(err, "[project_id: %d] error fetching track properties alert", projectID)
 		}
 
-		excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
-		if err != nil {
-			return e.Wrapf(err, "[project_id: %d] error getting excluded environments from track properties alert", projectID)
-		}
-		isExcludedEnvironment := false
-		for _, env := range excludedEnvironments {
-			if env != nil && *env == s.Environment {
-				isExcludedEnvironment = true
-				break
+		for _, sessionAlert := range sessionAlerts {
+			excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
+			if err != nil {
+				return e.Wrapf(err, "[project_id: %d] error getting excluded environments from track properties alert", projectID)
 			}
-		}
-		if isExcludedEnvironment {
-			return nil
+			isExcludedEnvironment := false
+			for _, env := range excludedEnvironments {
+				if env != nil && *env == s.Environment {
+					isExcludedEnvironment = true
+					break
+				}
+			}
+			if isExcludedEnvironment {
+				return nil
+			}
+
+			// get matched track properties between the alert and session
+			trackProperties, err := sessionAlert.GetTrackProperties()
+			if err != nil {
+				return e.Wrap(err, "error getting track properties from session")
+			}
+			var trackPropertyIds []int
+			for _, trackProperty := range trackProperties {
+				trackPropertyIds = append(trackPropertyIds, trackProperty.ID)
+			}
+			stmt := w.Resolver.DB.Model(&model.Field{}).
+				Where(&model.Field{ProjectID: projectID, Type: "track"}).
+				Where("id IN (SELECT field_id FROM session_fields WHERE session_id=?)", s.ID).
+				Where("id IN ?", trackPropertyIds)
+			var matchedFields []*model.Field
+			if err := stmt.Find(&matchedFields).Error; err != nil {
+				return e.Wrap(err, "error querying matched fields by session_id")
+			}
+			if len(matchedFields) < 1 {
+				return nil
+			}
+
+			workspace, err := w.Resolver.GetWorkspace(project.WorkspaceID)
+			if err != nil {
+				return e.Wrap(err, "error querying workspace")
+			}
+
+			// send Slack message
+			err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, MatchedFields: matchedFields})
+			if err != nil {
+				return e.Wrap(err, "error sending track properties alert slack message")
+			}
+
 		}
 
-		// get matched track properties between the alert and session
-		trackProperties, err := sessionAlert.GetTrackProperties()
-		if err != nil {
-			return e.Wrap(err, "error getting track properties from session")
-		}
-		var trackPropertyIds []int
-		for _, trackProperty := range trackProperties {
-			trackPropertyIds = append(trackPropertyIds, trackProperty.ID)
-		}
-		stmt := w.Resolver.DB.Model(&model.Field{}).
-			Where(&model.Field{ProjectID: projectID, Type: "track"}).
-			Where("id IN (SELECT field_id FROM session_fields WHERE session_id=?)", s.ID).
-			Where("id IN ?", trackPropertyIds)
-		var matchedFields []*model.Field
-		if err := stmt.Find(&matchedFields).Error; err != nil {
-			return e.Wrap(err, "error querying matched fields by session_id")
-		}
-		if len(matchedFields) < 1 {
-			return nil
-		}
-
-		// send Slack message
-		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Project: project, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, MatchedFields: matchedFields})
-		if err != nil {
-			return e.Wrap(err, "error sending track properties alert slack message")
-		}
 		return nil
 	})
 
 	g.Go(func() error {
 		// Sending User Properties Alert
-		var sessionAlert model.SessionAlert
-		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Where("type=?", model.AlertType.USER_PROPERTIES).First(&sessionAlert).Error; err != nil {
+		var sessionAlerts []*model.SessionAlert
+		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Where("type=?", model.AlertType.USER_PROPERTIES).Find(&sessionAlerts).Error; err != nil {
 			return e.Wrapf(err, "[project_id: %d] error fetching user properties alert", projectID)
+		}
+
+		for _, sessionAlert := range sessionAlerts {
+			// check if session was produced from an excluded environment
+			excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
+			if err != nil {
+				return e.Wrapf(err, "[project_id: %d] error getting excluded environments from user properties alert", projectID)
+			}
+			isExcludedEnvironment := false
+			for _, env := range excludedEnvironments {
+				if env != nil && *env == s.Environment {
+					isExcludedEnvironment = true
+					break
+				}
+			}
+			if isExcludedEnvironment {
+				return nil
+			}
+
+			// get matched user properties between the alert and session
+			userProperties, err := sessionAlert.GetUserProperties()
+			if err != nil {
+				return e.Wrap(err, "error getting user properties from session")
+			}
+			var userPropertyIds []int
+			for _, userProperty := range userProperties {
+				userPropertyIds = append(userPropertyIds, userProperty.ID)
+			}
+			stmt := w.Resolver.DB.Model(&model.Field{}).
+				Where(&model.Field{ProjectID: projectID, Type: "user"}).
+				Where("id IN (SELECT field_id FROM session_fields WHERE session_id=?)", s.ID).
+				Where("id IN ?", userPropertyIds)
+			var matchedFields []*model.Field
+			if err := stmt.Find(&matchedFields).Error; err != nil {
+				return e.Wrap(err, "error querying matched fields by session_id")
+			}
+			if len(matchedFields) < 1 {
+				return nil
+			}
+
+			workspace, err := w.Resolver.GetWorkspace(project.WorkspaceID)
+			if err != nil {
+				return e.Wrap(err, "error querying workspace")
+			}
+
+			// send Slack message
+			err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, MatchedFields: matchedFields})
+			if err != nil {
+				return e.Wrapf(err, "error sending user properties alert slack message")
+			}
+		}
+		return nil
+	})
+
+	g.Go(func() error {
+		// Sending session init alert
+		var sessionAlert model.SessionAlert
+		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).
+			Where("type=?", model.AlertType.NEW_SESSION).First(&sessionAlert).Error; err != nil {
+			return e.Wrapf(err, "[project_id: %d] error fetching new session alert", projectID)
 		}
 
 		// check if session was produced from an excluded environment
 		excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
 		if err != nil {
-			return e.Wrapf(err, "[project_id: %d] error getting excluded environments from user properties alert", projectID)
+			return e.Wrapf(err, "[project_id: %d] error getting excluded environments from new session alert", projectID)
 		}
 		isExcludedEnvironment := false
 		for _, env := range excludedEnvironments {
@@ -440,31 +544,15 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			return nil
 		}
 
-		// get matched user properties between the alert and session
-		userProperties, err := sessionAlert.GetUserProperties()
+		workspace, err := w.Resolver.GetWorkspace(project.WorkspaceID)
 		if err != nil {
-			return e.Wrap(err, "error getting user properties from session")
-		}
-		var userPropertyIds []int
-		for _, userProperty := range userProperties {
-			userPropertyIds = append(userPropertyIds, userProperty.ID)
-		}
-		stmt := w.Resolver.DB.Model(&model.Field{}).
-			Where(&model.Field{ProjectID: projectID, Type: "user"}).
-			Where("id IN (SELECT field_id FROM session_fields WHERE session_id=?)", s.ID).
-			Where("id IN ?", userPropertyIds)
-		var matchedFields []*model.Field
-		if err := stmt.Find(&matchedFields).Error; err != nil {
-			return e.Wrap(err, "error querying matched fields by session_id")
-		}
-		if len(matchedFields) < 1 {
-			return nil
+			return e.Wrap(err, "error querying workspace")
 		}
 
 		// send Slack message
-		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Project: project, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, MatchedFields: matchedFields})
+		err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier})
 		if err != nil {
-			return e.Wrapf(err, "error sending user properties alert slack message")
+			return e.Wrapf(err, "[project_id: %d] error sending slack message for new session alert", projectID)
 		}
 		return nil
 	})
@@ -487,19 +575,21 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 // Start begins the worker's tasks.
 func (w *Worker) Start() {
 	ctx := context.Background()
+	payloadLookbackPeriod := 60 // a session must be stale for at least this long to be processed
+	if util.IsDevEnv() {
+		payloadLookbackPeriod = 8
+	}
+	go reportProcessSessionCount(w.Resolver.DB, payloadLookbackPeriod)
 	for {
 		time.Sleep(1 * time.Second)
-		workerSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.unit"))
-		workerSpan.SetTag("backend", util.Worker)
 		now := time.Now()
-		seconds := 30
-		if util.IsDevEnv() {
-			seconds = 8
-		}
-		someSecondsAgo := now.Add(time.Duration(-1*seconds) * time.Second)
+		processSessionLimit := 10000
+		someSecondsAgo := now.Add(time.Duration(-1*payloadLookbackPeriod) * time.Second)
 		sessions := []*model.Session{}
-		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName(now.String()))
-		if err := w.Resolver.DB.Where("(payload_updated_at < ? OR payload_updated_at IS NULL) AND (processed = ?)", someSecondsAgo, false).Find(&sessions).Error; err != nil {
+		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName("worker.sessionsQuery"))
+		if err := w.Resolver.DB.
+			Where("(payload_updated_at < ? OR payload_updated_at IS NULL) AND (processed = ?)", someSecondsAgo, false).
+			Limit(processSessionLimit).Find(&sessions).Error; err != nil {
 			log.Errorf("error querying unparsed, outdated sessions: %v", err)
 			sessionsSpan.Finish()
 			continue
@@ -523,23 +613,29 @@ func (w *Worker) Start() {
 			log.Infof("sessions that will be processed: %v", sessionIds)
 		}
 
-		// process 4 sessions at a time. this number was chosen arbitrarily.
 		wp := workerpool.New(40)
+		wp.SetPanicHandler(func() {
+			if rec := recover(); rec != nil {
+				buf := make([]byte, 64<<10)
+				buf = buf[:runtime.Stack(buf, false)]
+				log.Errorf("panic: %+v\n%s", rec, buf)
+			}
+		})
+		// process 80 sessions at a time.
 		for _, session := range sessions {
 			session := session
-			wp.Submit(func() {
-				span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"), tracer.Tag("session_id", strconv.Itoa(session.ID)))
+			ctx := ctx
+			wp.SubmitRecover(func() {
+				span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"))
 				if err := w.processSession(ctx, session); err != nil {
 					log.WithField("session_id", session.ID).Error(e.Wrap(err, "error processing main session"))
 					span.Finish(tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID)))
 					return
 				}
+				hlog.Incr("sessionsProcessed", nil, 1)
 				span.Finish()
 			})
 		}
-		// wait for all workers to finish so we don't query sessions that are still being processed
-		wp.StopWait()
-		workerSpan.Finish()
 	}
 }
 
@@ -552,28 +648,174 @@ func CalculateSessionLength(first time.Time, last time.Time) (d time.Duration) {
 	return d
 }
 
-func getActiveDuration(event *model.EventsObject, firstEventTimestamp time.Time, lastEventTimestamp time.Time) (time.Duration, time.Time, time.Time, error) {
-	activeDuration := time.Duration(0)
-	// parses the events from EventObject
-	allEvents, err := parse.EventsFromString(event.Events)
-	if err != nil {
-		return time.Duration(0), firstEventTimestamp, lastEventTimestamp, err
-	}
+type processEventChunkInput struct {
+	// EventsChunk represents the chunk of events to be processed in this iteration of processEventChunk
+	EventsChunk *model.EventsObject
+	// ClickEventQueue is a queue containing the last 2 seconds worth of clustered click events
+	ClickEventQueue *list.List
+	// CurrentlyInRageClickSet denotes whether the currently parsed event is within a rage click set
+	CurrentlyInRageClickSet bool
+	// CurrentlyInRageClickSet denotes whether the currently parsed event is within a rage click set
+	RageClickSets []*model.RageClickEvent
+	// FirstEventTimestamp represents the timestamp for the first event
+	FirstEventTimestamp time.Time
+	// LastEventTimestamp represents the timestamp for the first event
+	LastEventTimestamp time.Time
+}
 
-	// Iterate through all events and sum up time between interactions
-	for _, eventObj := range allEvents.Events {
-		if eventObj.Type == 3 {
-			if !lastEventTimestamp.IsZero() {
-				diff := eventObj.Timestamp.Sub(lastEventTimestamp)
+type processEventChunkOutput struct {
+	// DidEventsChunkChange denotes whether the events chunk was altered and needs to be updated in the stored file
+	DidEventsChunkChange bool
+	// CurrentlyInRageClickSet denotes whether the currently parsed event is within a rage click set
+	CurrentlyInRageClickSet bool
+	// RageClickSets contains all rage click sets that will be inserted into the db
+	RageClickSets []*model.RageClickEvent
+	// FirstEventTimestamp represents the timestamp for the first event
+	FirstEventTimestamp time.Time
+	// LastEventTimestamp represents the timestamp for the first event
+	LastEventTimestamp time.Time
+	// CalculatedDuration represents the calculated active duration for the current event chunk
+	CalculatedDuration time.Duration
+	// Error
+	Error error
+}
+
+func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput) {
+	var events *parse.ReplayEvents
+	var err error
+	if input == nil {
+		o.Error = errors.New("processEventChunkInput cannot be nil")
+		return o
+	}
+	if input.EventsChunk == nil {
+		o.Error = errors.New("EventsChunk cannot be nil")
+		return o
+	}
+	if input.ClickEventQueue == nil {
+		o.Error = errors.New("ClickEventQueue cannot be nil")
+		return o
+	}
+	events, err = parse.EventsFromString(input.EventsChunk.Events)
+	if err != nil {
+		o.Error = err
+		return o
+	}
+	o.FirstEventTimestamp = input.FirstEventTimestamp
+	o.LastEventTimestamp = input.LastEventTimestamp
+	o.CurrentlyInRageClickSet = input.CurrentlyInRageClickSet
+	o.RageClickSets = input.RageClickSets
+	for _, event := range events.Events {
+		if event == nil {
+			continue
+		}
+		if event.Type == parse.IncrementalSnapshot {
+			var diff time.Duration
+			if !o.LastEventTimestamp.IsZero() {
+				diff = event.Timestamp.Sub(o.LastEventTimestamp)
 				if diff.Seconds() <= MIN_INACTIVE_DURATION {
-					activeDuration += diff
+					o.CalculatedDuration += diff
 				}
 			}
-			lastEventTimestamp = eventObj.Timestamp
-			if firstEventTimestamp.IsZero() {
-				firstEventTimestamp = eventObj.Timestamp
+			o.LastEventTimestamp = event.Timestamp
+			if o.FirstEventTimestamp.IsZero() {
+				o.FirstEventTimestamp = event.Timestamp
+			}
+
+			// purge old clicks
+			var toRemove []*list.Element
+			for element := input.ClickEventQueue.Front(); element != nil; element = element.Next() {
+				if event.Timestamp.Sub(element.Value.(*parse.ReplayEvent).Timestamp) > time.Second*5 {
+					toRemove = append(toRemove, element)
+				}
+			}
+
+			for _, elem := range toRemove {
+				input.ClickEventQueue.Remove(elem)
+			}
+
+			var mouseInteractionEventData parse.MouseInteractionEventData
+			err = json.Unmarshal(event.Data, &mouseInteractionEventData)
+			if err != nil {
+				o.Error = err
+				return o
+			}
+			if mouseInteractionEventData.X == nil || mouseInteractionEventData.Y == nil ||
+				mouseInteractionEventData.Type == nil || mouseInteractionEventData.Source == nil {
+				// all values must not be nil on a click/touch event
+				continue
+			}
+			if *mouseInteractionEventData.Source != parse.MouseInteraction {
+				// Source must be MouseInteraction for a click/touch event
+				continue
+			}
+			if _, ok := map[parse.MouseInteractions]bool{parse.Click: true,
+				parse.DblClick: true}[*mouseInteractionEventData.Type]; !ok {
+				// Type must be a Click, Double Click, or Touch Start for a click/touch event
+				continue
+			}
+
+			// save all new click events
+			input.ClickEventQueue.PushBack(event)
+
+			numTotal := 0
+			rageClick := model.RageClickEvent{
+				TotalClicks: 5,
+			}
+			for element := input.ClickEventQueue.Front(); element != nil; element = element.Next() {
+				el := element.Value.(*parse.ReplayEvent)
+				if el == event {
+					continue
+				}
+				var prev *parse.MouseInteractionEventData
+				err = json.Unmarshal(el.Data, &prev)
+				if err != nil {
+					o.Error = err
+					return o
+				}
+				first := math.Pow(*mouseInteractionEventData.X-*prev.X, 2)
+				second := math.Pow(*mouseInteractionEventData.Y-*prev.Y, 2)
+				if math.Sqrt(first+second) <= 32 {
+					numTotal += 1
+					if !o.CurrentlyInRageClickSet && rageClick.StartTimestamp.IsZero() {
+						rageClick.StartTimestamp = el.Timestamp
+					}
+				}
+			}
+			if numTotal >= 5 {
+				if o.CurrentlyInRageClickSet {
+					o.RageClickSets[len(o.RageClickSets)-1].TotalClicks += 1
+					o.RageClickSets[len(o.RageClickSets)-1].EndTimestamp = event.Timestamp
+				} else {
+					o.CurrentlyInRageClickSet = true
+					rageClick.EndTimestamp = event.Timestamp
+					rageClick.TotalClicks = numTotal
+					o.RageClickSets = append(o.RageClickSets, &rageClick)
+				}
+			} else if o.CurrentlyInRageClickSet {
+				o.CurrentlyInRageClickSet = false
 			}
 		}
 	}
-	return activeDuration, firstEventTimestamp, lastEventTimestamp, nil
+
+	return o
+}
+
+func reportProcessSessionCount(db *gorm.DB, lookbackPeriod int) {
+	for {
+		time.Sleep(5 * time.Second)
+		var count int64
+		if err := db.Raw(`
+			SELECT COUNT(*)
+			FROM sessions
+			WHERE (
+				payload_updated_at < (NOW() - ? * INTERVAL '1 SECOND')
+				OR payload_updated_at IS NULL
+			)
+			AND processed=false;
+		`, lookbackPeriod).Scan(&count).Error; err != nil {
+			log.Error("error getting count of sessions to process")
+			continue
+		}
+		hlog.Histogram("processSessionsCount", float64(count), nil, 1)
+	}
 }

@@ -104,6 +104,7 @@ const ExternalSharingToggle = ({ errorGroup }: Props) => {
                 }}
                 label="Allow anyone with the link to view this error."
                 trackingId="ErrorSharingExternal"
+                setMarginForAnimation
             />
         </div>
     );

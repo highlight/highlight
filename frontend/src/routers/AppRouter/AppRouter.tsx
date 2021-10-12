@@ -3,13 +3,15 @@ import '../../App.scss';
 import { useAuthContext } from '@authentication/AuthContext';
 import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import LoginForm from '@pages/Login/Login';
+import NewProjectPage from '@pages/NewProject/NewProjectPage';
+import SwitchWorkspace from '@pages/SwitchWorkspace/SwitchWorkspace';
 import { ProjectRedirectionRouter } from '@routers/OrgRouter/OrgRedirectionRouter';
+import { WorkspaceRouter } from '@routers/OrgRouter/WorkspaceRouter';
 import React from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 
 import { Landing } from '../../pages/Landing/Landing';
 import NewMemberPage from '../../pages/NewMember/NewMemberPage';
-import NewWorkspacePage from '../../pages/NewWorkspace/NewWorkspacePage';
 import InternalRouter from '../InternalRouter/InternalRouter';
 import { ProjectRouter } from '../OrgRouter/OrgRouter';
 import styles from './AppRouter.module.scss';
@@ -26,9 +28,24 @@ export const AppRouter = () => {
                             <NewMemberPage />
                         </Landing>
                     </Route>
+                    <Route path="/w/:workspace_id(\d+)/invite/:invite_id">
+                        <Landing>
+                            <NewMemberPage />
+                        </Landing>
+                    </Route>
                     <Route path="/new">
                         <Landing>
-                            <NewWorkspacePage />
+                            <NewProjectPage />
+                        </Landing>
+                    </Route>
+                    <Route path="/w/:workspace_id(\d+)/new">
+                        <Landing>
+                            <NewProjectPage />
+                        </Landing>
+                    </Route>
+                    <Route path="/switch">
+                        <Landing>
+                            <SwitchWorkspace />
                         </Landing>
                     </Route>
                     <Route path="/_internal">
@@ -41,6 +58,9 @@ export const AppRouter = () => {
                         path={`/:project_id(${DEMO_WORKSPACE_PROXY_APPLICATION_ID})`}
                     >
                         <ProjectRouter />
+                    </Route>
+                    <Route path="/w/:workspace_id(\d+)">
+                        <WorkspaceRouter />
                     </Route>
                     <Route path="/">
                         {isLoggedIn ? (

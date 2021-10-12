@@ -1,26 +1,22 @@
-import { useGetProjectQuery } from '@graph/hooks';
-import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 
 import { generateRandomColor } from '../../../util/color';
 import styles from './WorkspaceDropdown.module.scss';
 
-export const MiniWorkspaceIcon = () => {
-    const { project_id } = useParams<{ project_id: string }>();
-    const { data: currentProject } = useGetProjectQuery({
-        variables: { id: project_id },
-    });
+type Props = {
+    projectName: string;
+};
+
+export const MiniWorkspaceIcon = ({ projectName }: Props) => {
     return (
         <div>
             <div
                 className={styles.workspaceIcon}
                 style={{
-                    backgroundColor: generateRandomColor(
-                        currentProject?.project?.name ?? ''
-                    ),
+                    backgroundColor: generateRandomColor(projectName ?? ''),
                 }}
             >
-                {currentProject?.project?.name[0]?.toUpperCase() ?? 'H'}
+                {projectName[0]?.toUpperCase() ?? 'H'}
             </div>
         </div>
     );

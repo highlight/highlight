@@ -3,7 +3,9 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { MiniWorkspaceIcon } from '@components/Header/WorkspaceDropdown/WorkspaceDropdown';
 import { AdminRole } from '@graph/schemas';
+import SvgUsersIcon from '@icons/UsersIcon';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
@@ -18,9 +20,7 @@ import SvgCreditCardIcon from '../../static/CreditCardIcon';
 import SvgHomeIcon from '../../static/HomeIcon';
 import SvgPlugIcon from '../../static/PlugIcon';
 import SvgSessionsIcon from '../../static/SessionsIcon';
-import SvgUsersIcon from '../../static/UsersIcon';
 import Changelog from '../Changelog/Changelog';
-import { MiniWorkspaceIcon } from '../Header/WorkspaceDropdown/WorkspaceDropdown';
 import Tooltip from '../Tooltip/Tooltip';
 import styles from './Sidebar.module.scss';
 
@@ -29,35 +29,47 @@ interface NavigationItem {
     displayName: string;
     route: string;
     className?: string;
+    hidden?: boolean;
 }
 
-const LEAD_NAVIGATION_ITEMS: NavigationItem[] = [
-    {
-        Icon: SvgHomeIcon,
-        displayName: 'Home',
-        route: 'home',
-    },
-    {
-        Icon: SvgSessionsIcon,
-        displayName: 'Sessions',
-        route: 'sessions',
-    },
-    {
-        Icon: SvgBugIcon,
-        displayName: 'Errors',
-        route: 'errors',
-    },
-];
-
 export const Sidebar = () => {
-    const { currentApplication } = useApplicationContext();
+    const { currentProject } = useApplicationContext();
     const { admin } = useAuthContext();
+    const isWorkspace = !currentProject;
+
+    const LEAD_NAVIGATION_ITEMS: NavigationItem[] = [
+        {
+            Icon: SvgHomeIcon,
+            displayName: 'Home',
+            route: 'home',
+            hidden: isWorkspace,
+        },
+        {
+            Icon: SvgSessionsIcon,
+            displayName: 'Sessions',
+            route: 'sessions',
+            hidden: isWorkspace,
+        },
+        {
+            Icon: SvgBugIcon,
+            displayName: 'Errors',
+            route: 'errors',
+            hidden: isWorkspace,
+        },
+    ];
 
     const END_NAVIGATION_ITEMS: NavigationItem[] = [
         {
             Icon: SvgPlugIcon,
             displayName: 'Setup',
             route: 'setup',
+            hidden: isWorkspace,
+        },
+        {
+            Icon: SvgUsersIcon,
+            displayName: 'Team',
+            route: 'team',
+            hidden: !isWorkspace,
         },
         {
             Icon: SvgBriefcase2Icon,
@@ -65,23 +77,16 @@ export const Sidebar = () => {
             route: 'settings',
         },
         {
-            Icon: SvgUsersIcon,
-            displayName: 'Team',
-            route: 'team',
+            Icon: SvgCreditCardIcon,
+            displayName: 'Billing',
+            route: 'billing',
+            hidden: isWorkspace || isOnPrem || admin?.role !== AdminRole.Admin,
         },
-        ...(!isOnPrem && admin?.role === AdminRole.Admin
-            ? [
-                  {
-                      Icon: SvgCreditCardIcon,
-                      displayName: 'Billing',
-                      route: 'billing',
-                  },
-              ]
-            : []),
         {
             Icon: SvgAnnouncementIcon,
             displayName: 'Alerts',
             route: 'alerts',
+            hidden: isWorkspace,
         },
     ];
 
@@ -93,8 +98,10 @@ export const Sidebar = () => {
                     styles.sideBar
                 )}
             >
-                <MiniWorkspaceIcon />
-                {LEAD_NAVIGATION_ITEMS.map(
+                {!isWorkspace && (
+                    <MiniWorkspaceIcon projectName={currentProject.name} />
+                )}
+                {LEAD_NAVIGATION_ITEMS.filter(({ hidden }) => !hidden).map(
                     ({ Icon, displayName, route, className }) => (
                         <MiniSidebarItem
                             route={route}
@@ -109,27 +116,29 @@ export const Sidebar = () => {
                         </MiniSidebarItem>
                     )
                 )}
-                {currentApplication?.id !== DEMO_WORKSPACE_APPLICATION_ID && (
+                {currentProject?.id !== DEMO_WORKSPACE_APPLICATION_ID && (
                     <>
-                        <div className={styles.settingsDivider} />
-                        {END_NAVIGATION_ITEMS.map(
-                            ({ Icon, displayName, route, className }) => (
-                                <MiniSidebarItem
-                                    route={route}
-                                    text={displayName}
-                                    key={route}
-                                >
-                                    <Icon
-                                        className={classNames(
-                                            styles.icon,
-                                            className
-                                        )}
-                                        height="32px"
-                                        width="32px"
-                                    />
-                                </MiniSidebarItem>
-                            )
+                        {!isWorkspace && (
+                            <div className={styles.settingsDivider} />
                         )}
+                        {END_NAVIGATION_ITEMS.filter(
+                            ({ hidden }) => !hidden
+                        ).map(({ Icon, displayName, route, className }) => (
+                            <MiniSidebarItem
+                                route={route}
+                                text={displayName}
+                                key={route}
+                            >
+                                <Icon
+                                    className={classNames(
+                                        styles.icon,
+                                        className
+                                    )}
+                                    height="32px"
+                                    width="32px"
+                                />
+                            </MiniSidebarItem>
+                        ))}
                     </>
                 )}
                 <div className={styles.changelogContainer}>
@@ -144,16 +153,24 @@ const MiniSidebarItem: React.FC<{
     route: string;
     text: string;
 }> = ({ route, text, children }) => {
-    const { project_id } = useParams<{ project_id: string }>();
+    const { project_id, workspace_id } = useParams<{
+        project_id: string;
+        workspace_id: string;
+    }>();
     const projectIdRemapped =
         project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
             : project_id;
+    const isWorkspace = workspace_id !== undefined;
+    const workspaceOrProjectId = workspace_id || projectIdRemapped;
     const { pathname } = useLocation();
-    const page = pathname.split('/')[2] ?? '';
+    const page = pathname.split('/')[isWorkspace ? 3 : 2] ?? '';
 
     return (
-        <Link className={styles.miniRow} to={`/${projectIdRemapped}/${route}`}>
+        <Link
+            className={styles.miniRow}
+            to={`${isWorkspace ? '/w' : ''}/${workspaceOrProjectId}/${route}`}
+        >
             <Tooltip
                 title={text}
                 placement="right"

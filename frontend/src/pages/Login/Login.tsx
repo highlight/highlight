@@ -23,6 +23,8 @@ export const AuthAdminRouter = () => {
                 id: string;
                 avatar?: string;
                 name: string;
+                highlightDisplayName?: string;
+                email?: string;
             } = {
                 id,
                 name,

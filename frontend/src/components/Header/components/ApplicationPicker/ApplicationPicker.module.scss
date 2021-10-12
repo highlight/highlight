@@ -1,6 +1,30 @@
-.createNewApplicationOption {
+.createNewProjectOption {
     align-items: center;
     color: var(--color-purple);
     display: flex;
-    justify-content: space-between;
+
+    svg {
+        margin: 6px;
+    }
+
+    span {
+        margin-left: 8px;
+    }
+}
+
+.selected {
+    color: var(--text-primary-inverted);
+}
+
+.existingProjectOption {
+    align-items: center;
+    display: flex;
+
+    span {
+        margin-left: 8px;
+    }
+}
+
+.subTitle {
+    color: var(--color-gray-500);
 }

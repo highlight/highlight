@@ -1,4 +1,5 @@
 import Tooltip from '@components/Tooltip/Tooltip';
+import { getDisplayName } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils';
 import classNames from 'classnames';
 import React from 'react';
 
@@ -17,9 +18,7 @@ const UserIdentifier = ({ session, className }: Props) => {
     const { setSearchParams } = useSearchContext();
 
     const hasIdentifier = !!session?.identifier;
-    const displayValue = hasIdentifier
-        ? session.identifier
-        : `Device#${session?.fingerprint}`;
+    const displayValue = getDisplayName(session);
 
     return (
         <Tooltip title={displayValue} mouseEnterDelay={0}>

@@ -1,5 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext';
 import KeyboardShortcutsEducation from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation';
+import AlertsRouter from '@pages/Alerts/AlertsRouter';
 import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import { FieldArrayParam } from '@util/url/params';
@@ -7,6 +8,7 @@ import _ from 'lodash';
 import React, { Suspense, useEffect, useState } from 'react';
 import { Redirect, Route, Switch } from 'react-router-dom';
 import {
+    ArrayParam,
     BooleanParam,
     JsonParam,
     StringParam,
@@ -14,7 +16,6 @@ import {
     useQueryParams,
 } from 'use-query-params';
 
-import AlertsPage from '../../pages/Alerts/Alerts';
 const BillingPage = React.lazy(() => import('../../pages/Billing/Billing'));
 
 const Buttons = React.lazy(() => import('../../pages/Buttons/Buttons'));
@@ -27,8 +28,7 @@ import {
     SearchParams,
 } from '../../pages/Sessions/SearchContext/SearchContext';
 import SetupPage from '../../pages/Setup/SetupPage';
-import WorkspaceSettings from '../../pages/WorkspaceSettings/WorkspaceSettings';
-import WorkspaceTeam from '../../pages/WorkspaceTeam/WorkspaceTeam';
+import ProjectSettings from '../../pages/WorkspaceSettings/WorkspaceSettings';
 
 interface Props {
     integrated: boolean;
@@ -68,6 +68,8 @@ const ApplicationRouter = ({ integrated }: Props) => {
         first_time: BooleanParam,
         device_id: StringParam,
         show_live_sessions: BooleanParam,
+        environments: ArrayParam,
+        app_versions: ArrayParam,
     });
     const [activeSegmentUrlParam, setActiveSegmentUrlParam] = useQueryParam(
         'segment',
@@ -170,13 +172,10 @@ const ApplicationRouter = ({ integrated }: Props) => {
                     </Route>
                 )}
                 <Route path="/:project_id/settings">
-                    <WorkspaceSettings />
+                    <ProjectSettings />
                 </Route>
                 <Route path="/:project_id/alerts">
-                    <AlertsPage />
-                </Route>
-                <Route path="/:project_id/team">
-                    <WorkspaceTeam />
+                    <AlertsRouter />
                 </Route>
                 <Route path="/:project_id/billing">
                     <Suspense fallback={null}>

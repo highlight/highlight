@@ -34,7 +34,7 @@ export const DateInput = () => {
                           ]
                         : null
                 }
-                suffixIcon={<SvgCalendarIcon />}
+                suffixIcon={<SvgCalendarIcon height="16px" width="16px" />}
                 className={inputStyles.datePicker}
                 onChange={(_date: any, dateStrings: [string, string]) => {
                     // Dates in local timezone.

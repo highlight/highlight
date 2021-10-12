@@ -16,7 +16,7 @@ export type Scalars = {
   Int: number;
   Float: number;
   Any: any;
-  Time: any;
+  Timestamp: any;
   Int64: any;
 };
 
@@ -26,7 +26,9 @@ export type Scalars = {
 export type Session = {
   __typename?: 'Session';
   id: Scalars['ID'];
+  secure_id: Scalars['String'];
   organization_id: Scalars['ID'];
+  project_id: Scalars['ID'];
 };
 
 export type StackFrameInput = {
@@ -48,7 +50,7 @@ export type ErrorObjectInput = {
   lineNumber: Scalars['Int'];
   columnNumber: Scalars['Int'];
   stackTrace: Array<Maybe<StackFrameInput>>;
-  timestamp: Scalars['Time'];
+  timestamp: Scalars['Timestamp'];
   payload?: Maybe<Scalars['String']>;
 };
 
@@ -113,7 +115,7 @@ export type MutationAddSessionFeedbackArgs = {
   user_name?: Maybe<Scalars['String']>;
   user_email?: Maybe<Scalars['String']>;
   verbatim: Scalars['String'];
-  timestamp: Scalars['Time'];
+  timestamp: Scalars['Timestamp'];
 };
 
 export type Query = {
@@ -179,7 +181,7 @@ export type AddSessionFeedbackMutationVariables = Types.Exact<{
   user_name?: Types.Maybe<Types.Scalars['String']>;
   user_email?: Types.Maybe<Types.Scalars['String']>;
   verbatim: Types.Scalars['String'];
-  timestamp: Types.Scalars['Time'];
+  timestamp: Types.Scalars['Timestamp'];
 }>;
 
 
@@ -205,7 +207,7 @@ export type InitializeSessionMutation = (
   { __typename?: 'Mutation' }
   & { initializeSession?: Types.Maybe<(
     { __typename?: 'Session' }
-    & Pick<Types.Session, 'id' | 'organization_id'>
+    & Pick<Types.Session, 'id' | 'secure_id' | 'organization_id' | 'project_id'>
   )> }
 );
 
@@ -257,7 +259,7 @@ export const AddTrackPropertiesDocument = gql`
 }
     `;
 export const AddSessionFeedbackDocument = gql`
-    mutation addSessionFeedback($session_id: ID!, $user_name: String, $user_email: String, $verbatim: String!, $timestamp: Time!) {
+    mutation addSessionFeedback($session_id: ID!, $user_name: String, $user_email: String, $verbatim: String!, $timestamp: Timestamp!) {
   addSessionFeedback(
     session_id: $session_id
     user_name: $user_name
@@ -281,7 +283,9 @@ export const InitializeSessionDocument = gql`
     fingerprint: $id
   ) {
     id
+    secure_id
     organization_id
+    project_id
   }
 }
     `;

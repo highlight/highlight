@@ -7,6 +7,7 @@ import Button from '../../components/Button/Button/Button';
 import { CircularSpinner, LoadingBar } from '../../components/Loading/Loading';
 import {
     useAddAdminToProjectMutation,
+    useAddAdminToWorkspaceMutation,
     useGetAdminQuery,
 } from '../../graph/generated/hooks';
 import { auth } from '../../util/auth';
@@ -14,16 +15,25 @@ import { client } from '../../util/graph';
 import styles from './NewMemberPage.module.scss';
 
 const NewMemberPage = () => {
-    const { invite_id, project_id } = useParams<{
+    const { invite_id, project_id, workspace_id } = useParams<{
         project_id: string;
+        workspace_id: string;
         invite_id: string;
     }>();
+    const isProject = !!project_id;
     const [adminAdded, setAdminAdded] = useState(false);
-    const [addAdmin, { loading: addLoading }] = useAddAdminToProjectMutation();
+    const addAdminMutation = isProject
+        ? useAddAdminToProjectMutation
+        : useAddAdminToWorkspaceMutation;
+    const [addAdmin, { loading: addLoading }] = addAdminMutation();
     const { loading: adminLoading, data: adminData } = useGetAdminQuery();
-    if (adminAdded) {
-        return <Redirect to={`/${project_id}/setup`} />;
+
+    if (adminAdded && isProject) {
+        return <Redirect to={`/${project_id}`} />;
+    } else if (adminAdded) {
+        return <Redirect to={`/w/${workspace_id}`} />;
     }
+
     if (adminLoading) {
         return <LoadingBar />;
     }
@@ -43,6 +53,7 @@ const NewMemberPage = () => {
                     addAdmin({
                         variables: {
                             project_id,
+                            workspace_id,
                             invite_id,
                         },
                     }).then(() => {
@@ -67,7 +78,7 @@ const NewMemberPage = () => {
                 style={{ marginTop: 16 }}
                 onClick={() => {
                     auth.signOut();
-                    client.cache.reset();
+                    client.clearStore();
                 }}
             >
                 Login as different User

@@ -33,7 +33,7 @@ const dev = process.env.NODE_ENV === 'development' ? true : false;
 const options: HighlightOptions = {
     debug: { clientInteractions: true, domRecording: true },
     manualStart: true,
-    enableStrictPrivacy: Math.floor(Math.random() * 2) === 0,
+    enableStrictPrivacy: Math.floor(Math.random() * 8) === 0,
     version: packageJson['version'],
     networkRecording: {
         enabled: true,
@@ -105,7 +105,7 @@ const App = () => {
 const AuthenticationRouter = () => {
     const [
         getAdminQuery,
-        { error: adminError, data: adminData },
+        { error: adminError, data: adminData, called, refetch },
     ] = useGetAdminLazyQuery();
 
     const [authRole, setAuthRole] = useState<AuthRole>(AuthRole.LOADING);
@@ -114,7 +114,11 @@ const AuthenticationRouter = () => {
         const unsubscribeFirebase = auth.onAuthStateChanged(
             (user) => {
                 if (user) {
-                    getAdminQuery();
+                    if (!called) {
+                        getAdminQuery();
+                    } else {
+                        refetch!();
+                    }
                 } else {
                     setAuthRole(AuthRole.UNAUTHENTICATED);
                 }
@@ -128,7 +132,7 @@ const AuthenticationRouter = () => {
         return () => {
             unsubscribeFirebase();
         };
-    }, [getAdminQuery, adminData]);
+    }, [getAdminQuery, adminData, called, refetch]);
 
     useEffect(() => {
         if (adminData) {
@@ -143,19 +147,6 @@ const AuthenticationRouter = () => {
         }
     }, [adminError, adminData]);
 
-    if (adminError) {
-        return (
-            <ErrorState
-                message={`
-Seems like you we had issue with your login 😢.
-Feel free to log out and try again, or otherwise,
-get in contact with us!
-`}
-                errorString={JSON.stringify(adminError)}
-            />
-        );
-    }
-
     return (
         <AuthContextProvider
             value={{
@@ -168,38 +159,49 @@ get in contact with us!
                 isHighlightAdmin: isHighlightAdmin(authRole),
             }}
         >
-            <Router>
-                <Switch>
-                    <Route path="/:project_id(0)/*" exact>
-                        {/* Allow guests to access this route without being asked to log in */}
-                        <AuthAdminRouter />
-                    </Route>
-                    <Route
-                        path={`/:project_id(${DEMO_WORKSPACE_PROXY_APPLICATION_ID})/*`}
-                        exact
-                    >
-                        {/* Allow guests to access this route without being asked to log in */}
-                        <AuthAdminRouter />
-                    </Route>
-                    <Route
-                        path="/:project_id(\d+)/sessions/:session_secure_id(\w+)"
-                        exact
-                    >
-                        {/* Allow guests to access this route without being asked to log in */}
-                        <AuthAdminRouter />
-                    </Route>
-                    <Route
-                        path="/:project_id(\d+)/errors/:error_secure_id(\w+)"
-                        exact
-                    >
-                        {/* Allow guests to access this route without being asked to log in */}
-                        <AuthAdminRouter />
-                    </Route>
-                    <Route path="/">
-                        <LoginForm />
-                    </Route>
-                </Switch>
-            </Router>
+            {adminError ? (
+                <ErrorState
+                    message={`
+Seems like you we had issue with your login 😢.
+Feel free to log out and try again, or otherwise,
+get in contact with us!
+`}
+                    errorString={JSON.stringify(adminError)}
+                />
+            ) : (
+                <Router>
+                    <Switch>
+                        <Route path="/:project_id(0)/*" exact>
+                            {/* Allow guests to access this route without being asked to log in */}
+                            <AuthAdminRouter />
+                        </Route>
+                        <Route
+                            path={`/:project_id(${DEMO_WORKSPACE_PROXY_APPLICATION_ID})/*`}
+                            exact
+                        >
+                            {/* Allow guests to access this route without being asked to log in */}
+                            <AuthAdminRouter />
+                        </Route>
+                        <Route
+                            path="/:project_id(\d+)/sessions/:session_secure_id(\w+)"
+                            exact
+                        >
+                            {/* Allow guests to access this route without being asked to log in */}
+                            <AuthAdminRouter />
+                        </Route>
+                        <Route
+                            path="/:project_id(\d+)/errors/:error_secure_id(\w+)"
+                            exact
+                        >
+                            {/* Allow guests to access this route without being asked to log in */}
+                            <AuthAdminRouter />
+                        </Route>
+                        <Route path="/">
+                            <LoginForm />
+                        </Route>
+                    </Switch>
+                </Router>
+            )}
         </AuthContextProvider>
     );
 };
