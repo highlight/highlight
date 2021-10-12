@@ -74,11 +74,12 @@ export const matchPerformanceTimingsWithRequestResponsePair = (
         });
 };
 
+
 /**
  * Returns true if the name is a Highlight network resource.
  * This is used to filter out Highlight requests/responses from showing up on end application's network resources.
  */
-export const isHighlightNetworkResourceFilter = (
+const isHighlightNetworkResourceFilter = (
     name: string,
     backendUrl: string
 ) =>
@@ -87,3 +88,26 @@ export const isHighlightNetworkResourceFilter = (
         .includes(process.env.PUBLIC_GRAPH_URI ?? 'highlight.run') ||
     name.toLocaleLowerCase().includes('highlight.run') ||
     name.toLocaleLowerCase().includes(backendUrl) && !name.toLocaleLowerCase().includes("health");
+
+export const shouldNetworkRequestBeRecorded = (url: string, highlightBackendUrl: string, tracingOrigins: string[]) => {
+    return !isHighlightNetworkResourceFilter(url, highlightBackendUrl)
+        || shouldNetworkRequestBeTraced(url, tracingOrigins);
+}
+
+export const shouldNetworkRequestBeTraced = (
+    url: string,
+    tracingOrigins: string[],
+) => {
+    let result = false;
+    tracingOrigins.forEach((origin) => {
+        if (url.includes(origin)) { // TODO: regex support
+            result = true;
+        }
+    });
+    return result;
+}
+
+let nextNetworkRequestId = 0;
+export const createNetworkRequestId = () => {
+    return new Number(nextNetworkRequestId++).toString();
+}
