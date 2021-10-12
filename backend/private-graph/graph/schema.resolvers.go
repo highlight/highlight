@@ -24,7 +24,6 @@ import (
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
-	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -1602,7 +1601,6 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionID *int,
 		details.Name = &p.Name.FullName
 		details.Bio = &p.Bio
 	}
-	pp.Printf("got details: %v\n", details)
 	return details, nil
 }
 

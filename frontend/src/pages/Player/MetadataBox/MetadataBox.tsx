@@ -34,6 +34,7 @@ export const MetadataBox = () => {
     const { isLoggedIn } = useAuthContext();
     const { session_secure_id } = useParams<{ session_secure_id: string }>();
     const { session } = useReplayerContext();
+    const { isHighlightAdmin } = useAuthContext();
     const [markSessionAsStarred] = useMarkSessionAsStarredMutation({
         update(cache) {
             cache.modify({
@@ -153,7 +154,7 @@ export const MetadataBox = () => {
                     )}
                 </div>
             </div>
-            <UserDetailsBox />
+            {isHighlightAdmin && <UserDetailsBox />}
         </div>
     );
 };
