@@ -542,6 +542,9 @@ type DailySessionCount struct {
 	ProjectID      int `json:"project_id"`
 }
 
+const DAILY_ERROR_COUNTS_TBL = "daily_error_counts"
+const DAILY_ERROR_COUNTS_UNIQ = "date_project_id_error_type_uniq"
+
 type DailyErrorCount struct {
 	Model
 	Date           *time.Time `json:"date"`
@@ -651,6 +654,8 @@ type ErrorObject struct {
 	Timestamp      time.Time `json:"timestamp"`
 	Payload        *string   `json:"payload"`
 	Environment    string
+	RequestID      *string // From X-Highlight-Request header
+	ErrorType      string  `gorm:"default:FRONTEND"`
 }
 
 type ErrorGroup struct {
