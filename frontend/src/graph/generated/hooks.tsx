@@ -2727,6 +2727,7 @@ export const GetSessionDocument = gql`
             payload_size
             within_billing_quota
             client_version
+            client_config
             is_public
         }
     }
