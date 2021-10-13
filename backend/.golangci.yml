@@ -4,6 +4,7 @@ run:
   skip-dirs:
     - private-graph/graph/generated
     - public-graph/graph/generated
+    - highlight-go
 
 # output configuration options
 output:
