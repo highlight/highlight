@@ -227,10 +227,23 @@ export const usePlayer = (): ReplayerContextInterface => {
                     );
                 }
             }
+            let clientConfig;
+            if (sessionData?.session?.client_config) {
+                try {
+                    clientConfig = JSON.parse(
+                        sessionData?.session?.client_config
+                    );
+                } catch (_e) {
+                    const e = _e as Error;
+                    H.consumeError(e, 'Failed to JSON parse client config');
+                }
+            }
             const r = new Replayer(newEvents.slice(0, EVENTS_CHUNK_SIZE), {
                 root: playerMountingRoot,
                 triggerFocus: false,
                 mouseTail: showPlayerMouseTail,
+                UNSAFE_replayCanvas:
+                    clientConfig?.enableCanvasRecording || false,
             });
             r.on('event-cast', (e: any) => {
                 const event = e as HighlightEvent;

@@ -49,6 +49,7 @@ query GetSession($secure_id: String!) {
         payload_size
         within_billing_quota
         client_version
+        client_config
         is_public
     }
 }

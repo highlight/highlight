@@ -980,6 +980,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'payload_size'
             | 'within_billing_quota'
             | 'client_version'
+            | 'client_config'
             | 'is_public'
         > & {
                 fields?: Types.Maybe<
