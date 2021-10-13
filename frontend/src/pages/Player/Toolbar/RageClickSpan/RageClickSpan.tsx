@@ -102,9 +102,7 @@ const RageClickSpan = ({ rageClick }: Props) => {
                     }%`,
                 }}
             >
-                <div className={styles.icon}>
-                    <SvgAnnotationWarningIcon />
-                </div>
+                <div className={styles.icon}></div>
             </div>
         </Popover>
     );

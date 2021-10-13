@@ -32,11 +32,11 @@
         display: flex;
         height: var(--size-medium);
         justify-content: center;
-        max-width: 50%;
-        min-width: 32px;
-        position: fixed;
+        max-width: 20%;
+        min-width: 4px;
+        position: absolute;
         top: -16px;
-        width: 10%;
+        width: 100%;
     }
 }
 
