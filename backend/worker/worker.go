@@ -230,7 +230,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	//Delete the session if there's no events.
 	if payloadManager.Events.Length == 0 {
 		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
-			"session_obj": s}).Warnf("deleting session with no events (session_id=%d, identifier=%s)", s.ID, s.Identifier)
+			"session_obj": s}).Warnf("deleting session with no events (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v)", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed)
 		if err := w.Resolver.DB.Select(clause.Associations).Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
 			return errors.Wrap(err, "error trying to delete associations for session with no events")
 		}
