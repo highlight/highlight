@@ -54,8 +54,14 @@ export const ALERT_CONFIGURATIONS = {
         name: ALERT_NAMES['RAGE_CLICK_ALERT'],
         canControlThreshold: true,
         type: ALERT_TYPE.RageClick,
-        description:
-            'Get alerted whenever a user rage clicks (https://docs.highlight.run/rage-clicks).',
+        description: (
+            <>
+                {'Get alerted whenever a user'}{' '}
+                <a href="https://docs.highlight.run/rage-clicks">
+                    rage clicks.
+                </a>
+            </>
+        ),
         icon: <SvgCursorClickIcon />,
     },
     NEW_USER_ALERT: {
