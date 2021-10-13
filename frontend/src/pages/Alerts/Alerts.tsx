@@ -1,14 +1,24 @@
 import Alert from '@components/Alert/Alert';
+import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
+import Card from '@components/Card/Card';
 import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
-import { getSlackUrl } from '@components/Header/components/PersonalNotificationButton/utils/utils';
+import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
+import Table from '@components/Table/Table';
+import Tag from '@components/Tag/Tag';
+import SvgBugIcon from '@icons/BugIcon';
+import SvgChevronRightIcon from '@icons/ChevronRightIcon';
+import SvgFaceIdIcon from '@icons/FaceIdIcon';
+import SvgQuoteIcon from '@icons/QuoteIcon';
+import SvgSparkles2Icon from '@icons/Sparkles2Icon';
+import SvgTargetIcon from '@icons/TargetIcon';
+import SvgUserPlusIcon from '@icons/UserPlusIcon';
+import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext';
+import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy';
+import { getAlertTypeColor } from '@pages/Alerts/utils/AlertsUtils';
 import { useParams } from '@util/react-router/useParams';
 import React from 'react';
-import Skeleton from 'react-loading-skeleton';
+import { Link, useHistory } from 'react-router-dom';
 
-import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
-import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
-import { useGetAlertsPagePayloadQuery } from '../../graph/generated/hooks';
-import { AlertConfigurationCard } from './AlertConfigurationCard/AlertConfigurationCard';
 import styles from './Alerts.module.scss';
 
 export enum ALERT_TYPE {
@@ -20,73 +30,193 @@ export enum ALERT_TYPE {
     NewSession,
 }
 
-const ALERT_CONFIGURATIONS = [
-    {
-        name: 'Errors',
+export enum ALERT_NAMES {
+    ERROR_ALERT = 'Errors',
+    NEW_USER_ALERT = 'New Users',
+    USER_PROPERTIES_ALERT = 'User Properties',
+    TRACK_PROPERTIES_ALERT = 'Track Events',
+    SESSION_FEEDBACK_ALERT = 'Feedback',
+    NEW_SESSION_ALERT = 'New Sessions',
+}
+
+export const ALERT_CONFIGURATIONS = {
+    ERROR_ALERT: {
+        name: ALERT_NAMES['ERROR_ALERT'],
         canControlThreshold: true,
         type: ALERT_TYPE.Error,
+        description: 'Get alerted when an error is thrown in your app.',
+        icon: <SvgBugIcon />,
     },
-    {
-        name: 'New Users',
+    NEW_USER_ALERT: {
+        name: ALERT_NAMES['NEW_USER_ALERT'],
         canControlThreshold: false,
         type: ALERT_TYPE.FirstTimeUser,
         description:
-            'Get alerted when a new user starts their first journey in your application.',
+            'Get alerted when a new user uses your app for the first time.',
+        icon: <SvgUserPlusIcon />,
     },
-    {
-        name: 'Identified Users',
+    USER_PROPERTIES_ALERT: {
+        name: ALERT_NAMES['USER_PROPERTIES_ALERT'],
         canControlThreshold: false,
         type: ALERT_TYPE.UserProperties,
         description:
             'Get alerted when users you want to track record a session.',
+        icon: <SvgFaceIdIcon />,
     },
-    {
-        name: 'Track Events',
+    TRACK_PROPERTIES_ALERT: {
+        name: ALERT_NAMES['TRACK_PROPERTIES_ALERT'],
         canControlThreshold: false,
         type: ALERT_TYPE.TrackProperties,
         description: 'Get alerted when an action is done in your application.',
+        icon: <SvgTargetIcon />,
     },
-    {
-        name: 'Session Feedback Comments',
+    SESSION_FEEDBACK_ALERT: {
+        name: ALERT_NAMES['SESSION_FEEDBACK_ALERT'],
         canControlThreshold: false,
         type: ALERT_TYPE.SessionFeedbackComment,
-        description:
-            'Get alerted when a user submits a session feedback comment.',
+        description: 'Get alerted when a user submits a session feedback.',
+        icon: <SvgQuoteIcon />,
     },
-    {
-        name: 'New Sessions',
+    NEW_SESSION_ALERT: {
+        name: ALERT_NAMES['NEW_SESSION_ALERT'],
         canControlThreshold: false,
         type: ALERT_TYPE.NewSession,
         description: 'Get alerted every time a session is created.',
+        icon: <SvgSparkles2Icon />,
+    },
+} as const;
+
+const TABLE_COLUMNS = [
+    {
+        title: 'Name',
+        dataIndex: 'Name',
+        key: 'Name',
+        render: (name: string, record: any) => {
+            return (
+                <div className={styles.nameCell}>
+                    <div className={styles.primary}>{name}</div>
+                    <div>
+                        <AlertLastEditedBy
+                            adminId={record.LastAdminToEditID}
+                            lastEditedTimestamp={record.updated_at}
+                        />
+                    </div>
+                </div>
+            );
+        },
+    },
+    {
+        title: 'Type',
+        dataIndex: 'type',
+        key: 'type',
+        width: 160,
+        render: (type: string, record: any) => {
+            return (
+                <span className={styles.cellWithTooltip}>
+                    <Tag backgroundColor={getAlertTypeColor(type)}>
+                        {type}
+                        <InfoTooltip title={record.configuration.description} />
+                    </Tag>
+                </span>
+            );
+        },
+    },
+    {
+        title: 'Configure',
+        dataIndex: 'configure',
+        key: 'configure',
+        render: (_: any, record: any) => (
+            <Link
+                to={`alerts/${record.id}`}
+                className={styles.configureButton}
+                onClick={(e) => {
+                    e.stopPropagation();
+                }}
+            >
+                Configure <SvgChevronRightIcon />
+            </Link>
+        ),
     },
 ];
 
 const AlertsPage = () => {
     const { project_id } = useParams<{ project_id: string }>();
-    const { data, loading } = useGetAlertsPagePayloadQuery({
-        variables: { project_id },
-    });
+    const { alertsPayload, loading } = useAlertsContext();
 
-    const slackUrl = getSlackUrl('Organization', project_id, 'alerts');
+    const history = useHistory();
+    const alertsAsTableRows = [
+        ...(alertsPayload?.error_alerts || []).map((alert) => ({
+            ...alert,
+            configuration: ALERT_CONFIGURATIONS['ERROR_ALERT'],
+            type: ALERT_CONFIGURATIONS['ERROR_ALERT'].name,
+            Name: alert?.Name || ALERT_CONFIGURATIONS['ERROR_ALERT'].name,
+        })),
+        ...(alertsPayload?.new_user_alerts || []).map((alert) => ({
+            ...alert,
+            configuration: ALERT_CONFIGURATIONS['NEW_USER_ALERT'],
+            type: ALERT_CONFIGURATIONS['NEW_USER_ALERT'].name,
+            Name: alert?.Name || ALERT_CONFIGURATIONS['NEW_USER_ALERT'].name,
+        })),
+        ...(alertsPayload?.session_feedback_alerts || []).map((alert) => ({
+            ...alert,
+            configuration: ALERT_CONFIGURATIONS['SESSION_FEEDBACK_ALERT'],
+            type: ALERT_CONFIGURATIONS['SESSION_FEEDBACK_ALERT'].name,
+            Name:
+                alert?.Name ||
+                ALERT_CONFIGURATIONS['SESSION_FEEDBACK_ALERT'].name,
+        })),
+        ...(alertsPayload?.track_properties_alerts || []).map((alert) => ({
+            ...alert,
+            configuration: ALERT_CONFIGURATIONS['TRACK_PROPERTIES_ALERT'],
+            type: ALERT_CONFIGURATIONS['TRACK_PROPERTIES_ALERT'].name,
+            Name:
+                alert?.Name ||
+                ALERT_CONFIGURATIONS['TRACK_PROPERTIES_ALERT'].name,
+        })),
+        ...(alertsPayload?.user_properties_alerts || []).map((alert) => ({
+            ...alert,
+            configuration: ALERT_CONFIGURATIONS['USER_PROPERTIES_ALERT'],
+            type: ALERT_CONFIGURATIONS['USER_PROPERTIES_ALERT'].name,
+            Name:
+                alert?.Name ||
+                ALERT_CONFIGURATIONS['USER_PROPERTIES_ALERT'].name,
+        })),
+        ...(alertsPayload?.new_session_alerts || []).map((alert) => ({
+            ...alert,
+            configuration: ALERT_CONFIGURATIONS['NEW_SESSION_ALERT'],
+            type: ALERT_CONFIGURATIONS['NEW_SESSION_ALERT'].name,
+            Name: alert?.Name || ALERT_CONFIGURATIONS['NEW_SESSION_ALERT'].name,
+        })),
+    ];
 
     return (
-        <LeadAlignLayout>
-            <h2>Configure Your Alerts</h2>
-            <p className={layoutStyles.subTitle}>
-                Configure the environments you want alerts for.
-            </p>
-            {!loading && !data?.is_integrated_with_slack ? (
+        <>
+            <div className={styles.subTitleContainer}>
+                <p>Manage your alerts for your project.</p>
+                <ButtonLink
+                    trackingId="NewAlert"
+                    className={styles.callToAction}
+                    to={`/${project_id}/alerts/new`}
+                >
+                    New Alert
+                </ButtonLink>
+            </div>
+            {!loading && !alertsPayload?.is_integrated_with_slack ? (
                 <Alert
                     trackingId="AlertPageSlackBotIntegration"
                     message={
-                        !data?.is_integrated_with_slack
+                        !alertsPayload?.is_integrated_with_slack
                             ? "Slack isn't connected"
                             : "Can't find a Slack channel or person?"
                     }
-                    type={!data?.is_integrated_with_slack ? 'error' : 'info'}
+                    type={
+                        !alertsPayload?.is_integrated_with_slack
+                            ? 'error'
+                            : 'info'
+                    }
                     description={
                         <>
-                            {!data?.is_integrated_with_slack ? (
+                            {!alertsPayload?.is_integrated_with_slack ? (
                                 <>
                                     Highlight needs to be connected with Slack
                                     in order to send you and your team messages.
@@ -120,122 +250,43 @@ const AlertsPage = () => {
                 />
             )}
 
-            <div className={styles.configurationContainer}>
-                {loading ? (
-                    Array(2)
-                        .fill(0)
-                        .map((_, index) => (
-                            <Skeleton
-                                key={index}
-                                style={{
-                                    width: '648px',
-                                    height: 79,
-                                    borderRadius: 8,
-                                }}
-                            />
-                        ))
-                ) : (
-                    <>
-                        {/* {ALERT_CONFIGURATIONS.map((configuration) => (
-                            <AlertConfigurationCard
-                                key={configuration.name}
-                                configuration={configuration}
-                                environmentOptions={
-                                    data?.environment_suggestion || []
-                                }
-                                channelSuggestions={
-                                    data?.slack_channel_suggestion || []
-                                }
-                            />
-                        ))} */}
-                        <AlertConfigurationCard
-                            configuration={ALERT_CONFIGURATIONS[5]}
-                            alert={
-                                data?.new_session_alert
-                                    ? data?.new_session_alert
-                                    : {}
-                            }
-                            environmentOptions={
-                                data?.environment_suggestion || []
-                            }
-                            channelSuggestions={
-                                data?.slack_channel_suggestion || []
-                            }
-                            slackUrl={slackUrl}
-                        />
-                        <AlertConfigurationCard
-                            configuration={ALERT_CONFIGURATIONS[4]}
-                            alert={
-                                data?.session_feedback_alert
-                                    ? data?.session_feedback_alert
-                                    : {}
-                            }
-                            environmentOptions={
-                                data?.environment_suggestion || []
-                            }
-                            channelSuggestions={
-                                data?.slack_channel_suggestion || []
-                            }
-                            slackUrl={slackUrl}
-                        />
-                        <AlertConfigurationCard
-                            configuration={ALERT_CONFIGURATIONS[0]}
-                            alert={data?.error_alert ? data?.error_alert : {}}
-                            environmentOptions={
-                                data?.environment_suggestion || []
-                            }
-                            channelSuggestions={
-                                data?.slack_channel_suggestion || []
-                            }
-                            slackUrl={slackUrl}
-                        />
-                        <AlertConfigurationCard
-                            configuration={ALERT_CONFIGURATIONS[1]}
-                            alert={
-                                data?.new_user_alert ? data?.new_user_alert : {}
-                            }
-                            environmentOptions={
-                                data?.environment_suggestion || []
-                            }
-                            channelSuggestions={
-                                data?.slack_channel_suggestion || []
-                            }
-                            slackUrl={slackUrl}
-                        />
-                        <AlertConfigurationCard
-                            configuration={ALERT_CONFIGURATIONS[2]}
-                            alert={
-                                data?.user_properties_alert
-                                    ? data?.user_properties_alert
-                                    : {}
-                            }
-                            environmentOptions={
-                                data?.environment_suggestion || []
-                            }
-                            channelSuggestions={
-                                data?.slack_channel_suggestion || []
-                            }
-                            slackUrl={slackUrl}
-                        />
-                        <AlertConfigurationCard
-                            configuration={ALERT_CONFIGURATIONS[3]}
-                            alert={
-                                data?.track_properties_alert
-                                    ? data?.track_properties_alert
-                                    : {}
-                            }
-                            environmentOptions={
-                                data?.environment_suggestion || []
-                            }
-                            channelSuggestions={
-                                data?.slack_channel_suggestion || []
-                            }
-                            slackUrl={slackUrl}
-                        />
-                    </>
-                )}
-            </div>
-        </LeadAlignLayout>
+            {alertsPayload?.is_integrated_with_slack && (
+                <Card>
+                    <Table
+                        columns={TABLE_COLUMNS}
+                        loading={loading}
+                        dataSource={alertsAsTableRows}
+                        pagination={false}
+                        showHeader={false}
+                        renderEmptyComponent={
+                            <div className={styles.emptyContainer}>
+                                <h3>
+                                    Your project doesn't have any alerts yet.
+                                </h3>
+                                <p>
+                                    Alerts help you and your team stay on top of
+                                    things as they happen in your application.
+                                    You can set up alerts for things like when
+                                    certain actions happen, errors thrown, and
+                                    when a new user uses your app.
+                                </p>
+                                <ButtonLink
+                                    to="alerts/new"
+                                    trackingId="NoAlertsCreateNewAlert"
+                                >
+                                    Create an Alert
+                                </ButtonLink>
+                            </div>
+                        }
+                        onRow={(record) => ({
+                            onClick: () => {
+                                history.push(`alerts/${record.id}`);
+                            },
+                        })}
+                    />
+                </Card>
+            )}
+        </>
     );
 };
 

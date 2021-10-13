@@ -1,3 +1,8 @@
 .input {
-    border-radius: var(--border-radius);
+    border: 1px solid var(--color-gray-300) !important;
+    border-radius: var(--border-radius) !important;
+
+    &:global(.ant-input-lg) {
+        padding: var(--size-xSmall) var(--size-medium) !important;
+    }
 }
