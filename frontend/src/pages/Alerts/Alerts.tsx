@@ -7,6 +7,7 @@ import Table from '@components/Table/Table';
 import Tag from '@components/Tag/Tag';
 import SvgBugIcon from '@icons/BugIcon';
 import SvgChevronRightIcon from '@icons/ChevronRightIcon';
+import SvgCursorClickIcon from '@icons/CursorClickIcon';
 import SvgFaceIdIcon from '@icons/FaceIdIcon';
 import SvgQuoteIcon from '@icons/QuoteIcon';
 import SvgSparkles2Icon from '@icons/Sparkles2Icon';
@@ -27,8 +28,8 @@ export enum ALERT_TYPE {
     UserProperties,
     TrackProperties,
     SessionFeedbackComment,
-    RageClick,
     NewSession,
+    RageClick,
 }
 
 export enum ALERT_NAMES {
@@ -48,6 +49,14 @@ export const ALERT_CONFIGURATIONS = {
         type: ALERT_TYPE.Error,
         description: 'Get alerted when an error is thrown in your app.',
         icon: <SvgBugIcon />,
+    },
+    RAGE_CLICK_ALERT: {
+        name: ALERT_NAMES['RAGE_CLICK_ALERT'],
+        canControlThreshold: true,
+        type: ALERT_TYPE.RageClick,
+        description:
+            'Get alerted whenever a user rage clicks (https://docs.highlight.run/rage-clicks).',
+        icon: <SvgCursorClickIcon />,
     },
     NEW_USER_ALERT: {
         name: ALERT_NAMES['NEW_USER_ALERT'],
@@ -81,13 +90,6 @@ export const ALERT_CONFIGURATIONS = {
     },
     NEW_SESSION_ALERT: {
         name: ALERT_NAMES['NEW_SESSION_ALERT'],
-        canControlThreshold: false,
-        type: ALERT_TYPE.NewSession,
-        description: 'Get alerted every time a session is created.',
-        icon: <SvgSparkles2Icon />,
-    },
-    RAGE_CLICK_ALERT: {
-        name: ALERT_NAMES['RAGE_CLICK_ALERT'],
         canControlThreshold: false,
         type: ALERT_TYPE.NewSession,
         description: 'Get alerted every time a session is created.',

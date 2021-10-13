@@ -427,6 +427,42 @@ export type CreateErrorAlertMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
+export type CreateRageClickAlertMutationVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    name: Types.Scalars['String'];
+    count_threshold: Types.Scalars['Int'];
+    threshold_window: Types.Scalars['Int'];
+    slack_channels:
+        | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
+        | Types.Maybe<Types.SanitizedSlackChannelInput>;
+    environments:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
+}>;
+
+export type CreateRageClickAlertMutation = { __typename?: 'Mutation' } & {
+    createRageClickAlert?: Types.Maybe<
+        { __typename?: 'SessionAlert' } & Pick<
+            Types.SessionAlert,
+            | 'id'
+            | 'Name'
+            | 'ExcludedEnvironments'
+            | 'CountThreshold'
+            | 'ThresholdWindow'
+            | 'LastAdminToEditID'
+        > & {
+                ChannelsToNotify: Array<
+                    Types.Maybe<
+                        { __typename?: 'SanitizedSlackChannel' } & Pick<
+                            Types.SanitizedSlackChannel,
+                            'webhook_channel' | 'webhook_channel_id'
+                        >
+                    >
+                >;
+            }
+    >;
+};
+
 export type UpdateErrorAlertMutationVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     name: Types.Scalars['String'];
@@ -2412,6 +2448,7 @@ export const namedOperations = {
         EditErrorSegment: 'EditErrorSegment' as const,
         CreateErrorSegment: 'CreateErrorSegment' as const,
         CreateErrorAlert: 'CreateErrorAlert' as const,
+        CreateRageClickAlert: 'CreateRageClickAlert' as const,
         UpdateErrorAlert: 'UpdateErrorAlert' as const,
         DeleteErrorAlert: 'DeleteErrorAlert' as const,
         DeleteSessionAlert: 'DeleteSessionAlert' as const,

@@ -17,6 +17,7 @@ import {
     useCreateErrorAlertMutation,
     useCreateNewSessionAlertMutation,
     useCreateNewUserAlertMutation,
+    useCreateRageClickAlertMutation,
     useCreateSessionFeedbackAlertMutation,
     useCreateTrackPropertiesAlertMutation,
     useCreateUserPropertiesAlertMutation,
@@ -112,6 +113,17 @@ export const AlertConfigurationCard = ({
             slack_channels: [],
             name: 'New User',
             threshold_window: 1,
+        },
+        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+    });
+    const [createRageClickAlert, {}] = useCreateRageClickAlertMutation({
+        variables: {
+            project_id,
+            count_threshold: 1,
+            environments: [],
+            slack_channels: [],
+            name: 'Rage Click',
+            threshold_window: 30,
         },
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
@@ -220,6 +232,15 @@ export const AlertConfigurationCard = ({
                             variables: {
                                 ...requestVariables,
                                 threshold_window: 1,
+                            },
+                        });
+                        break;
+                    case ALERT_TYPE.RageClick:
+                        await createRageClickAlert({
+                            ...requestBody,
+                            variables: {
+                                ...requestVariables,
+                                threshold_window: lookbackPeriod,
                             },
                         });
                         break;
