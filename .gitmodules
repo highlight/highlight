@@ -1,0 +1,3 @@
+[submodule "backend/highlight-go"]
+	path = backend/highlight-go
+	url = https://github.com/highlight-run/highlight-go
