@@ -29,6 +29,8 @@ import {
     ReplayerState,
 } from '../ReplayerContext';
 import {
+    addErrorsToSessionIntervals,
+    addEventsToSessionIntervals,
     findNextSessionInList,
     getCommentsInSessionIntervals,
     getEventsForTimelineIndicator,
@@ -282,7 +284,17 @@ export const usePlayer = (): ReplayerContextInterface => {
                         '[Highlight] Session Metadata:',
                         replayer.getMetaData()
                     );
-                    setSessionIntervals(sessionIntervals);
+                    setSessionIntervals(
+                        addEventsToSessionIntervals(
+                            addErrorsToSessionIntervals(
+                                sessionIntervals,
+                                errors,
+                                replayer.getMetaData().startTime
+                            ),
+                            events,
+                            replayer.getMetaData().startTime
+                        )
+                    );
                     setEventsForTimelineIndicator(
                         getEventsForTimelineIndicator(
                             events,

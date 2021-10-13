@@ -15,10 +15,7 @@ const TimelineIndicators = () => {
     const {
         state,
         replayer,
-        errors,
         sessionComments,
-        eventsForTimelineIndicator,
-        playerProgress,
         rageClicks,
         sessionIntervals,
     } = useReplayerContext();
@@ -60,18 +57,6 @@ const TimelineIndicators = () => {
     ) {
         return null;
     }
-    const sessionStartTime = new Date(
-        replayer.getMetaData().startTime
-    ).getTime();
-    const sessionTotalTime = replayer.getMetaData().totalTime;
-    const errorsWithTimestamps = errors
-        .filter((error) => !!error.timestamp)
-        .sort((a, b) => b.timestamp - a.timestamp);
-
-    const playerProgressIndicatorPosition =
-        !refContainer.current || !playerProgress
-            ? 0
-            : refContainer.current.clientWidth * playerProgress;
 
     return (
         <aside
@@ -89,27 +74,6 @@ const TimelineIndicators = () => {
                         rageClick={rageClick}
                     />
                 ))}
-            {selectedTimelineAnnotationTypes.includes('Errors') &&
-                errorsWithTimestamps.map((error) => {
-                    const relativeTimestamp =
-                        new Date(error.timestamp).getTime() - sessionStartTime;
-                    const percentage =
-                        (relativeTimestamp / sessionTotalTime) * 100;
-
-                    if (percentage > 100) {
-                        return null;
-                    }
-
-                    return (
-                        <TimelineErrorAnnotation
-                            key={error.id}
-                            error={{
-                                ...error,
-                                relativeIntervalPercentage: percentage,
-                            }}
-                        />
-                    );
-                })}
             {selectedTimelineAnnotationTypes.includes('Comments') &&
                 sessionComments.map((comment) => {
                     return (
@@ -119,39 +83,37 @@ const TimelineIndicators = () => {
                         />
                     );
                 })}
-            {eventsForTimelineIndicator.map((event, index) => {
-                return (
-                    <TimelineEventAnnotation
-                        event={event}
-                        key={`${event.timestamp}-${index}`}
-                    />
-                );
-            })}
-            {playerProgress && playerProgress >= 0.01 ? (
-                <div
-                    className={styles.progressIndicator}
-                    style={{
-                        transform: `translateX(${playerProgressIndicatorPosition}px)`,
-                    }}
-                />
-            ) : null}
 
-            {sessionIntervals
-                .filter((sessionInterval) => !sessionInterval.active)
-                .map((sessionInterval, index) => (
-                    <div
-                        key={index}
-                        className={classNames(styles.inactiveInterval)}
-                        style={{
-                            left: `${sessionInterval.startPercent * 100}%`,
-                            width: `${
-                                (sessionInterval.endPercent -
-                                    sessionInterval.startPercent) *
-                                100
-                            }%`,
-                        }}
-                    ></div>
-                ))}
+            {sessionIntervals.map((sessionInterval, index) => (
+                <div
+                    key={`${sessionInterval.startPercent}-${index}`}
+                    className={classNames(styles.sessionInterval, {
+                        [styles.active]: sessionInterval.active,
+                    })}
+                    style={{
+                        left: `${sessionInterval.startPercent * 100}%`,
+                        width: `${
+                            (sessionInterval.endPercent -
+                                sessionInterval.startPercent) *
+                            100
+                        }%`,
+                    }}
+                >
+                    {sessionInterval.sessionEvents.map((event) => (
+                        <TimelineEventAnnotation
+                            event={event}
+                            key={`${event.timestamp}-${event.identifier}`}
+                        />
+                    ))}
+                    {selectedTimelineAnnotationTypes.includes('Errors') &&
+                        sessionInterval.errors.map((error) => (
+                            <TimelineErrorAnnotation
+                                error={error}
+                                key={`${error.timestamp}-${error.id}`}
+                            />
+                        ))}
+                </div>
+            ))}
         </aside>
     );
 };

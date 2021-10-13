@@ -26,17 +26,15 @@
     }
 }
 
-.progressIndicator {
-    background: var(--color-purple);
-    height: 100%;
-    position: absolute;
-    top: 0;
-    width: 1px;
-}
-
-.inactiveInterval {
+.sessionInterval {
+    align-items: center;
     background: var(--color-gray-400);
+    display: flex;
     height: 100%;
     position: absolute;
     top: 0;
+
+    &.active {
+        background: transparent;
+    }
 }
