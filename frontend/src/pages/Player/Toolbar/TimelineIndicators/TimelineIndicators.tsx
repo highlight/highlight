@@ -74,15 +74,6 @@ const TimelineIndicators = () => {
                         rageClick={rageClick}
                     />
                 ))}
-            {selectedTimelineAnnotationTypes.includes('Comments') &&
-                sessionComments.map((comment) => {
-                    return (
-                        <TimelineCommentAnnotation
-                            comment={comment}
-                            key={comment.id}
-                        />
-                    );
-                })}
 
             {sessionIntervals.map((sessionInterval, index) => (
                 <div
@@ -112,6 +103,15 @@ const TimelineIndicators = () => {
                                 key={`${error.timestamp}-${error.id}`}
                             />
                         ))}
+                    {selectedTimelineAnnotationTypes.includes('Comments') &&
+                        sessionInterval.comments.map((comment) => {
+                            return (
+                                <TimelineCommentAnnotation
+                                    comment={comment}
+                                    key={comment.id}
+                                />
+                            );
+                        })}
                 </div>
             ))}
         </aside>

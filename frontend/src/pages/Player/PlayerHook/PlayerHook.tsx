@@ -8,7 +8,6 @@ import { BooleanParam, useQueryParam } from 'use-query-params';
 
 import { useAuthContext } from '../../../authentication/AuthContext';
 import {
-    useGetSessionCommentsQuery,
     useGetSessionPayloadLazyQuery,
     useGetSessionQuery,
     useMarkSessionAsViewedMutation,
@@ -22,7 +21,6 @@ import {
 import { HighlightEvent } from '../HighlightEvent';
 import {
     ParsedHighlightEvent,
-    ParsedSessionComment,
     ParsedSessionInterval,
     RageClick,
     ReplayerContextInterface,
@@ -32,7 +30,7 @@ import {
     addErrorsToSessionIntervals,
     addEventsToSessionIntervals,
     findNextSessionInList,
-    getCommentsInSessionIntervals,
+    getCommentsInSessionIntervalsRelative,
     getEventsForTimelineIndicator,
     getSessionIntervals,
     useSetPlayerTimestampFromSearchParam,
@@ -66,9 +64,9 @@ export const usePlayer = (): ReplayerContextInterface => {
     const [download] = useQueryParam('download', BooleanParam);
     const [scale, setScale] = useState(1);
     const [events, setEvents] = useState<Array<HighlightEvent>>([]);
-    const [sessionComments, setSessionComments] = useState<
-        ParsedSessionComment[]
-    >([]);
+    const [sessionComments, setSessionComments] = useState<SessionComment[]>(
+        []
+    );
     const [
         eventsForTimelineIndicator,
         setEventsForTimelineIndicator,
@@ -139,16 +137,6 @@ export const usePlayer = (): ReplayerContextInterface => {
             setSessionViewability(SessionViewability.ERROR);
         },
         skip: !session_secure_id,
-    });
-    const {
-        data: sessionCommentsData,
-        loading: sessionCommentsLoading,
-    } = useGetSessionCommentsQuery({
-        variables: {
-            session_secure_id,
-        },
-        skip: !session_secure_id,
-        // pollInterval: 1000 * 10,
     });
 
     const resetPlayer = useCallback(
@@ -244,6 +232,11 @@ export const usePlayer = (): ReplayerContextInterface => {
             if (eventsData?.errors) {
                 setErrors(eventsData.errors as ErrorObject[]);
             }
+            if (eventsData?.session_comments) {
+                setSessionComments(
+                    eventsData.session_comments as SessionComment[]
+                );
+            }
             setReplayer(r);
         } else if (!!eventsData) {
             setSessionViewability(SessionViewability.EMPTY_SESSION);
@@ -285,13 +278,17 @@ export const usePlayer = (): ReplayerContextInterface => {
                         replayer.getMetaData()
                     );
                     setSessionIntervals(
-                        addEventsToSessionIntervals(
-                            addErrorsToSessionIntervals(
-                                sessionIntervals,
-                                errors,
+                        getCommentsInSessionIntervalsRelative(
+                            addEventsToSessionIntervals(
+                                addErrorsToSessionIntervals(
+                                    sessionIntervals,
+                                    errors,
+                                    replayer.getMetaData().startTime
+                                ),
+                                events,
                                 replayer.getMetaData().startTime
                             ),
-                            events,
+                            sessionComments,
                             replayer.getMetaData().startTime
                         )
                     );
@@ -364,28 +361,6 @@ export const usePlayer = (): ReplayerContextInterface => {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [errors, events, events.length, hasSearchParam, replayer]);
-
-    useEffect(() => {
-        if (
-            replayer &&
-            sessionCommentsData?.session_comments &&
-            sessionIntervals.length > 0 &&
-            !sessionCommentsLoading
-        ) {
-            setSessionComments(
-                getCommentsInSessionIntervals(
-                    sessionCommentsData.session_comments as SessionComment[],
-                    replayer.getMetaData().startTime,
-                    replayer.getMetaData().totalTime
-                )
-            );
-        }
-    }, [
-        replayer,
-        sessionCommentsData?.session_comments,
-        sessionCommentsLoading,
-        sessionIntervals,
-    ]);
 
     // "Subscribes" the time with the Replayer when the Player is playing.
     useEffect(() => {

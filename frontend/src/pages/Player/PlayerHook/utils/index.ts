@@ -44,6 +44,7 @@ export const getSessionIntervals = (
                 startTime: 0,
                 errors: [],
                 sessionEvents: [],
+                comments: [],
             },
         ];
     }
@@ -340,6 +341,27 @@ const assignEventToSessionIntervalRelative = (
         }
     }
     return response;
+};
+
+/**
+ * Returns the comments that are in the respective interval bins. If a comment is in the ith index, then it shows up in the ith session interval.
+ */
+export const getCommentsInSessionIntervalsRelative = (
+    sessionIntervals: ParsedSessionInterval[],
+    comments: SessionComment[],
+    sessionStartTime: number
+): ParsedSessionInterval[] => {
+    const groupedComments = assignEventToSessionIntervalRelative(
+        sessionIntervals,
+        comments,
+        sessionStartTime,
+        true
+    );
+
+    return sessionIntervals.map((sessionInterval, index) => ({
+        ...sessionInterval,
+        comments: groupedComments[index] as ParsedSessionComment[],
+    }));
 };
 
 /**

@@ -55,6 +55,7 @@ export interface ParsedSessionInterval extends SessionInterval {
     endPercent: number;
     errors: ParsedErrorObject[];
     sessionEvents: ParsedHighlightEvent[];
+    comments: ParsedSessionComment[];
 }
 
 export interface ReplayerContextInterface {

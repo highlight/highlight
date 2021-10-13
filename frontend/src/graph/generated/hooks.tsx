@@ -2644,6 +2644,26 @@ export const GetSessionPayloadDocument = gql`
             end_timestamp
             total_clicks
         }
+        session_comments(session_secure_id: $session_secure_id) {
+            id
+            timestamp
+            session_id
+            session_secure_id
+            created_at
+            updated_at
+            project_id
+            text
+            author {
+                id
+                name
+                email
+                photo_url
+            }
+            x_coordinate
+            y_coordinate
+            type
+            metadata
+        }
     }
 `;
 
