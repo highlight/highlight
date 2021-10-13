@@ -220,6 +220,8 @@ $canvas-width: calc(
         display: flex;
         flex-shrink: 1;
         overflow-x: auto;
+        position: absolute;
+        width: calc(100% - 250px);
     }
 }
 
