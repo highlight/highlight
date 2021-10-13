@@ -20,6 +20,7 @@ const TimelineIndicators = () => {
         eventsForTimelineIndicator,
         playerProgress,
         rageClicks,
+        sessionIntervals,
     } = useReplayerContext();
     const {
         selectedTimelineAnnotationTypes,
@@ -134,6 +135,23 @@ const TimelineIndicators = () => {
                     }}
                 />
             ) : null}
+
+            {sessionIntervals
+                .filter((sessionInterval) => !sessionInterval.active)
+                .map((sessionInterval, index) => (
+                    <div
+                        key={index}
+                        className={classNames(styles.inactiveInterval)}
+                        style={{
+                            left: `${sessionInterval.startPercent * 100}%`,
+                            width: `${
+                                (sessionInterval.endPercent -
+                                    sessionInterval.startPercent) *
+                                100
+                            }%`,
+                        }}
+                    ></div>
+                ))}
         </aside>
     );
 };

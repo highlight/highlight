@@ -33,3 +33,10 @@
     top: 0;
     width: 1px;
 }
+
+.inactiveInterval {
+    background: var(--color-gray-400);
+    height: 100%;
+    position: absolute;
+    top: 0;
+}
