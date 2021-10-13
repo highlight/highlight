@@ -15,7 +15,6 @@ const TimelineIndicators = () => {
     const {
         state,
         replayer,
-        sessionComments,
         rageClicks,
         sessionIntervals,
     } = useReplayerContext();
