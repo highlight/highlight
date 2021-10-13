@@ -82,6 +82,9 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 		return nil, e.Wrap(err, "[IdentifySession] failed to update session")
 	}
 
+	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
+		Infof("identified session: %s", session.Identifier)
+
 	return &sessionID, nil
 }
 
@@ -122,6 +125,13 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		r.processPayload(ctx, sessionID, events, messages, resources, errors)
 	})
 	return &sessionID, nil
+}
+
+func (r *mutationResolver) PushBackendPayload(ctx context.Context, errors []*customModels.BackendErrorObjectInput) (interface{}, error) {
+	r.PushPayloadWorkerPool.Submit(func() {
+		r.processBackendPayload(ctx, errors)
+	})
+	return nil, nil
 }
 
 func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int, userName *string, userEmail *string, verbatim string, timestamp time.Time) (int, error) {

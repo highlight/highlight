@@ -1,0 +1,171 @@
+import Card from '@components/Card/Card';
+import { AlertConfigurationCard } from '@pages/Alerts/AlertConfigurationCard/AlertConfigurationCard';
+import {
+    ALERT_CONFIGURATIONS,
+    ALERT_NAMES,
+    ALERT_TYPE,
+} from '@pages/Alerts/Alerts';
+import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext';
+import { getAlertTypeColor } from '@pages/Alerts/utils/AlertsUtils';
+import { useParams } from '@util/react-router/useParams';
+import { snakeCaseString } from '@util/string';
+import React from 'react';
+import { Link, useRouteMatch } from 'react-router-dom';
+
+import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
+import styles from './NewAlertPage.module.scss';
+
+const NewAlertPage = () => {
+    const { url } = useRouteMatch();
+    const { type } = useParams<{ type?: ALERT_NAMES }>();
+    const { alertsPayload, slackUrl } = useAlertsContext();
+
+    return (
+        <div>
+            {!type ? (
+                <>
+                    <p className={layoutStyles.subTitle}>
+                        👋 Let's create an alert! Alerts are a way to keep your
+                        team in the loop as to what is happening on your app.
+                    </p>
+                    <div className={styles.cardGrid}>
+                        {Object.keys(ALERT_CONFIGURATIONS).map((_key) => {
+                            const key = _key as keyof typeof ALERT_CONFIGURATIONS;
+                            const configuration = ALERT_CONFIGURATIONS[key];
+                            const alertColor = getAlertTypeColor(
+                                configuration.name
+                            );
+
+                            return (
+                                <Link
+                                    className={styles.cardContent}
+                                    key={key}
+                                    to={{
+                                        pathname: `${url}/${snakeCaseString(
+                                            configuration.name
+                                        )}`,
+                                        state: {
+                                            errorName: `${configuration.name} Alert`,
+                                        },
+                                    }}
+                                >
+                                    <Card
+                                        interactable
+                                        className={styles.cardContainer}
+                                    >
+                                        <h2 id={styles.title}>
+                                            <span
+                                                className={styles.icon}
+                                                style={{
+                                                    backgroundColor: alertColor,
+                                                }}
+                                            >
+                                                {ALERT_CONFIGURATIONS[key].icon}
+                                            </span>
+                                            {ALERT_CONFIGURATIONS[key].name}
+                                        </h2>
+                                        <p className={styles.description}>
+                                            {
+                                                ALERT_CONFIGURATIONS[key]
+                                                    .description
+                                            }
+                                        </p>
+                                    </Card>
+                                </Link>
+                            );
+                        })}
+                    </div>
+                </>
+            ) : (
+                <AlertConfigurationCard
+                    alert={{
+                        ...getNewAlert(type)?.alert,
+                    }}
+                    slackUrl={slackUrl}
+                    channelSuggestions={
+                        alertsPayload?.slack_channel_suggestion || []
+                    }
+                    environmentOptions={
+                        alertsPayload?.environment_suggestion || []
+                    }
+                    // @ts-expect-error
+                    configuration={getNewAlert(type)?.configuration}
+                    isCreatingNewAlert
+                />
+            )}
+        </div>
+    );
+};
+
+export default NewAlertPage;
+
+const getNewAlert = (type: ALERT_NAMES) => {
+    switch (type) {
+        case snakeCaseString(ALERT_NAMES.ERROR_ALERT):
+            return {
+                alert: {
+                    Name: ALERT_NAMES.ERROR_ALERT,
+                    ExcludedEnvironments: [],
+                    CountThreshold: 1,
+                    Type: ALERT_TYPE.Error,
+                    ThresholdWindow: 30,
+                },
+                configuration: ALERT_CONFIGURATIONS['ERROR_ALERT'],
+            };
+        case snakeCaseString(ALERT_NAMES.TRACK_PROPERTIES_ALERT):
+            return {
+                alert: {
+                    Name: ALERT_NAMES.TRACK_PROPERTIES_ALERT,
+                    ExcludedEnvironments: [],
+                    CountThreshold: 1,
+                    Type: ALERT_TYPE.TrackProperties,
+                },
+                configuration: ALERT_CONFIGURATIONS['TRACK_PROPERTIES_ALERT'],
+            };
+        case snakeCaseString(ALERT_NAMES.SESSION_FEEDBACK_ALERT):
+            return {
+                alert: {
+                    Name: ALERT_NAMES.SESSION_FEEDBACK_ALERT,
+                    ExcludedEnvironments: [],
+                    CountThreshold: 1,
+                    ThresholdWindow: 30,
+                    Type: ALERT_TYPE.SessionFeedbackComment,
+                },
+                configuration: ALERT_CONFIGURATIONS['SESSION_FEEDBACK_ALERT'],
+            };
+        case snakeCaseString(ALERT_NAMES.NEW_SESSION_ALERT):
+            return {
+                alert: {
+                    Name: ALERT_NAMES.NEW_SESSION_ALERT,
+                    ExcludedEnvironments: [],
+                    CountThreshold: 1,
+                    ThresholdWindow: 30,
+                    Type: ALERT_TYPE.NewSession,
+                },
+                configuration: ALERT_CONFIGURATIONS['NEW_SESSION_ALERT'],
+            };
+        case snakeCaseString(ALERT_NAMES.NEW_USER_ALERT):
+            return {
+                alert: {
+                    Name: ALERT_NAMES.NEW_USER_ALERT,
+                    ExcludedEnvironments: [],
+                    CountThreshold: 1,
+                    ThresholdWindow: 30,
+                    Type: ALERT_TYPE.FirstTimeUser,
+                },
+                configuration: ALERT_CONFIGURATIONS['NEW_USER_ALERT'],
+            };
+        case snakeCaseString(ALERT_NAMES.USER_PROPERTIES_ALERT):
+            return {
+                alert: {
+                    Name: ALERT_NAMES.USER_PROPERTIES_ALERT,
+                    ExcludedEnvironments: [],
+                    CountThreshold: 1,
+                    ThresholdWindow: 30,
+                    Type: ALERT_TYPE.UserProperties,
+                    UserProperties: [],
+                },
+                configuration: ALERT_CONFIGURATIONS['USER_PROPERTIES_ALERT'],
+            };
+    }
+};

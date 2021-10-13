@@ -48,6 +48,18 @@ export type ErrorObjectInput = {
   payload?: Maybe<Scalars['String']>;
 };
 
+export type BackendErrorObjectInput = {
+  session_id: Scalars['String'];
+  request_id: Scalars['String'];
+  event: Scalars['String'];
+  type: Scalars['String'];
+  url: Scalars['String'];
+  source: Scalars['String'];
+  stackTrace: Scalars['String'];
+  timestamp: Scalars['Timestamp'];
+  payload?: Maybe<Scalars['String']>;
+};
+
 export type ReplayEventsInput = {
   events: Array<Maybe<Scalars['Any']>>;
 };
@@ -59,6 +71,7 @@ export type Mutation = {
   addTrackProperties?: Maybe<Scalars['ID']>;
   addSessionProperties?: Maybe<Scalars['ID']>;
   pushPayload?: Maybe<Scalars['ID']>;
+  pushBackendPayload?: Maybe<Scalars['Any']>;
   addSessionFeedback: Scalars['ID'];
 };
 
@@ -101,6 +114,11 @@ export type MutationPushPayloadArgs = {
   messages: Scalars['String'];
   resources: Scalars['String'];
   errors: Array<Maybe<ErrorObjectInput>>;
+};
+
+
+export type MutationPushBackendPayloadArgs = {
+  errors: Array<Maybe<BackendErrorObjectInput>>;
 };
 
 

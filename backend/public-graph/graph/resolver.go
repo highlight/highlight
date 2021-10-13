@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -21,6 +22,7 @@ import (
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/model"
@@ -163,57 +165,7 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 	return nil
 }
 
-func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *model2.ErrorObjectInput, fields []*model.ErrorField, projectID int) (*model.ErrorGroup, error) {
-	frames := errorInput.StackTrace
-	if len(frames) > 0 && frames[0] != nil && frames[0].Source != nil && strings.Contains(*frames[0].Source, "https://static.highlight.run/index.js") {
-		errorObj.ProjectID = 1
-	}
-	firstFrameBytes, err := json.Marshal(frames)
-	if err != nil {
-		return nil, e.Wrap(err, "Error marshalling first frame")
-	}
-	frameString := string(firstFrameBytes)
-
-	errorGroup := &model.ErrorGroup{}
-
-	// Query the DB for errors w/ 1) the same events string and 2) the same trace string.
-	// If it doesn't exist, we create a new error group.
-	if err := r.DB.Where(&model.ErrorGroup{
-		ProjectID: errorObj.ProjectID,
-		Event:     errorObj.Event,
-		Type:      errorObj.Type,
-	}).First(&errorGroup).Error; err != nil {
-		newErrorGroup := &model.ErrorGroup{
-			ProjectID:  errorObj.ProjectID,
-			Event:      errorObj.Event,
-			StackTrace: frameString,
-			Type:       errorObj.Type,
-			State:      modelInputs.ErrorStateOpen.String(),
-		}
-		if err := r.DB.Create(newErrorGroup).Error; err != nil {
-			return nil, e.Wrap(err, "Error creating new error group")
-		}
-		errorGroup = newErrorGroup
-	}
-	errorObj.ErrorGroupID = errorGroup.ID
-	if err := r.DB.Create(errorObj).Error; err != nil {
-		return nil, e.Wrap(err, "Error performing error insert for error")
-	}
-
-	var newMappedStackTraceString *string
-	newFrameString := frameString
-	mappedStackTrace, err := r.EnhanceStackTrace(errorInput.StackTrace, projectID, errorObj.SessionID)
-	if err != nil {
-		log.Error(e.Wrapf(err, "error group: %+v error object: %+v", errorGroup, errorObj))
-	} else {
-		mappedStackTraceBytes, err := json.Marshal(mappedStackTrace)
-		if err != nil {
-			return nil, e.Wrap(err, "error marshalling mapped stack trace")
-		}
-		mappedStackTraceString := string(mappedStackTraceBytes)
-		newMappedStackTraceString = &mappedStackTraceString
-	}
-
+func (r *Resolver) getIncrementedEnvironmentCount(errorGroup *model.ErrorGroup, errorObj *model.ErrorObject) string {
 	environmentsMap := make(map[string]int)
 	if errorGroup.Environments != "" {
 		err := json.Unmarshal([]byte(errorGroup.Environments), &environmentsMap)
@@ -234,11 +186,96 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *
 	}
 	environmentsString := string(environmentsBytes)
 
+	return environmentsString
+}
+
+func (r *Resolver) getMappedStackTraceString(stackTrace []*model2.StackFrameInput, projectID int, errorGroup *model.ErrorGroup, errorObj *model.ErrorObject) (*string, error) {
+	var newMappedStackTraceString *string
+	mappedStackTrace, err := r.EnhanceStackTrace(stackTrace, projectID, errorObj.SessionID)
+	if err != nil {
+		log.Error(e.Wrapf(err, "error group: %+v error object: %+v", errorGroup, errorObj))
+	} else {
+		mappedStackTraceBytes, err := json.Marshal(mappedStackTrace)
+		if err != nil {
+			return nil, e.Wrap(err, "error marshalling mapped stack trace")
+		}
+		mappedStackTraceString := string(mappedStackTraceBytes)
+		newMappedStackTraceString = &mappedStackTraceString
+	}
+	return newMappedStackTraceString, nil
+}
+
+// TODO: NOP for now - implement by trying to parse individual stack frames
+// and stringifying the result
+func (r *Resolver) normalizeStackTraceString(stackTraceString string) string {
+	return stackTraceString
+}
+
+// Matches the ErrorObject with an existing ErrorGroup, or creates a new one if the group does not exist
+// The input can include the stack trace as a string or []*StackFrameInput
+// If stackTrace is non-nil, it will be marshalled into a string and saved with the ErrorObject
+func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceString string, stackTrace []*model2.StackFrameInput, fields []*model.ErrorField, projectID int) (*model.ErrorGroup, error) {
+	// If there was no stackTraceString passed in, marshal it as a JSON string from stackTrace
+	if stackTraceString == "" {
+		frames := stackTrace
+		if len(frames) > 0 && frames[0] != nil && frames[0].Source != nil && strings.Contains(*frames[0].Source, "https://static.highlight.run/index.js") {
+			errorObj.ProjectID = 1
+		}
+		firstFrameBytes, err := json.Marshal(frames)
+		if err != nil {
+			return nil, e.Wrap(err, "Error marshalling first frame")
+		}
+
+		stackTraceString = string(firstFrameBytes)
+	} else {
+		// If stackTraceString was passed in, try to normalize it
+		stackTraceString = r.normalizeStackTraceString(stackTraceString)
+	}
+
+	errorGroup := &model.ErrorGroup{}
+
+	// Query the DB for errors w/ 1) the same events string and 2) the same trace string.
+	// If it doesn't exist, we create a new error group.
+	if err := r.DB.Where(&model.ErrorGroup{
+		ProjectID: errorObj.ProjectID,
+		Event:     errorObj.Event,
+		Type:      errorObj.Type,
+	}).First(&errorGroup).Error; err != nil {
+		newErrorGroup := &model.ErrorGroup{
+			ProjectID:  errorObj.ProjectID,
+			Event:      errorObj.Event,
+			StackTrace: stackTraceString,
+			Type:       errorObj.Type,
+			State:      modelInputs.ErrorStateOpen.String(),
+		}
+		if err := r.DB.Create(newErrorGroup).Error; err != nil {
+			return nil, e.Wrap(err, "Error creating new error group")
+		}
+		errorGroup = newErrorGroup
+	}
+	errorObj.ErrorGroupID = errorGroup.ID
+	if err := r.DB.Create(errorObj).Error; err != nil {
+		return nil, e.Wrap(err, "Error performing error insert for error")
+	}
+
+	// If stackTrace is non-nil, do the source mapping; else, MappedStackTrace will not be set on the ErrorObject
+	newFrameString := stackTraceString
+	var newMappedStackTraceString *string
+	if stackTrace != nil {
+		mappedStackTraceString, err := r.getMappedStackTraceString(stackTrace, projectID, errorGroup, errorObj)
+		if err != nil {
+			return nil, e.Wrap(err, "Error mapping stack trace string")
+		}
+		newMappedStackTraceString = mappedStackTraceString
+	}
+
+	environmentsString := r.getIncrementedEnvironmentCount(errorGroup, errorObj)
+
 	if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{StackTrace: newFrameString, MappedStackTrace: newMappedStackTraceString, Environments: environmentsString}).Error; err != nil {
 		return nil, e.Wrap(err, "Error updating error group metadata log or environments")
 	}
 
-	err = r.AppendErrorFields(fields, errorGroup)
+	err := r.AppendErrorFields(fields, errorGroup)
 	if err != nil {
 		return nil, e.Wrap(err, "error appending error fields")
 	}
@@ -423,6 +460,9 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 		return nil, e.Wrap(err, "error creating session")
 	}
 
+	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
+		Infof("initialized session: %s", session.Identifier)
+
 	sessionProperties := map[string]string{
 		"os_name":         deviceDetails.OSName,
 		"os_version":      deviceDetails.OSVersion,
@@ -577,22 +617,13 @@ func (r *Resolver) processStackFrame(projectId, sessionId int, stackTrace model2
 		err := e.Errorf("minified source file over 5mb: %v, size: %v", stackTraceFileURL, len(minifiedFileBytes))
 		return nil, err
 	}
-	bodyString := string(minifiedFileBytes)
-	bodyLines := strings.Split(strings.ReplaceAll(bodyString, "\rn", "\n"), "\n")
-	if len(bodyLines) < 1 {
-		err := e.Errorf("body lines empty: %v", stackTraceFilePath)
-		return nil, err
-	}
-	lastLine := bodyLines[len(bodyLines)-1]
 
-	// extract sourceMappingURL file name from slice
-	var sourceMapFileName string
-	sourceMapIndex := strings.LastIndex(lastLine, "sourceMappingURL=")
-	if sourceMapIndex == -1 {
+	sourceMapFileName := string(regexp.MustCompile(`//# sourceMappingURL=(.*)`).Find(minifiedFileBytes))
+	if len(sourceMapFileName) < 1 {
 		err := e.Errorf("file does not contain source map url: %v", stackTraceFileURL)
 		return nil, err
 	}
-	sourceMapFileName = lastLine[sourceMapIndex+len("sourceMappingURL="):]
+	sourceMapFileName = strings.Replace(sourceMapFileName, "//# sourceMappingURL=", "", 1)
 
 	// construct sourcemap url from searched file
 	sourceMapURL := (stackTraceFileURL)[:stackFileNameIndex] + sourceMapFileName
@@ -686,6 +717,213 @@ func (r *Resolver) isProjectWithinBillingQuota(project *model.Project, now time.
 	}
 	withinBillingQuota = int64(quota) > monthToDateSessionCount
 	return withinBillingQuota
+}
+
+func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, group *model.ErrorGroup, errorToInsert *model.ErrorObject) {
+	r.AlertWorkerPool.Submit(func() {
+		var errorAlerts []*model.ErrorAlert
+		if err := r.DB.Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{Alert: model.Alert{ProjectID: projectID}}).Find(&errorAlerts).Error; err != nil {
+			log.Error(e.Wrap(err, "error fetching ErrorAlerts object"))
+			return
+		}
+
+		for _, errorAlert := range errorAlerts {
+			if errorAlert.CountThreshold < 1 {
+				return
+			}
+			excludedEnvironments, err := errorAlert.GetExcludedEnvironments()
+			if err != nil {
+				log.Error(e.Wrap(err, "error getting excluded environments from ErrorAlert"))
+				return
+			}
+			for _, env := range excludedEnvironments {
+				if env != nil && *env == sessionObj.Environment {
+					return
+				}
+			}
+			numErrors := int64(-1)
+			if errorAlert.ThresholdWindow == nil {
+				t := 30
+				errorAlert.ThresholdWindow = &t
+			}
+			if err := r.DB.Model(&model.ErrorObject{}).Where(&model.ErrorObject{ProjectID: projectID, ErrorGroupID: group.ID}).Find("created_at > ?", time.Now().Add(time.Duration(-(*errorAlert.ThresholdWindow))*time.Minute)).Count(&numErrors).Error; err != nil {
+				log.Error(e.Wrapf(err, "error counting errors from past %d minutes", *errorAlert.ThresholdWindow))
+				return
+			}
+			if numErrors+1 < int64(errorAlert.CountThreshold) {
+				return
+			}
+			var project model.Project
+			if err := r.DB.Model(&model.Project{}).Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
+				log.Error(e.Wrap(err, "error querying project"))
+				return
+			}
+
+			workspace, err := r.getWorkspace(project.WorkspaceID)
+			if err != nil {
+				log.Error(err)
+			}
+
+			err = errorAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &errorToInsert.URL, ErrorsCount: &numErrors})
+			if err != nil {
+				log.Error(e.Wrap(err, "error sending slack error message"))
+				return
+			}
+		}
+	})
+}
+
+func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customModels.BackendErrorObjectInput) {
+	// Get a list of unique session ids to query
+	sessionIdSet := make(map[string]bool)
+	for _, errInput := range errors {
+		sessionIdSet[errInput.SessionID] = true
+	}
+	sessionIds := make([]string, 0, len(sessionIdSet))
+	for sId := range sessionIdSet {
+		sessionIds = append(sessionIds, sId)
+	}
+
+	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload", tracer.ResourceName("db.querySessions"))
+	querySessionSpan.SetTag("numberOfErrors", len(errors))
+	querySessionSpan.SetTag("numberOfSessions", len(sessionIds))
+
+	// Query all sessions related to the current batch of error objects
+	sessions := []*model.Session{}
+	if err := r.DB.Model(&model.Session{}).Where("id IN ?", sessionIds).Scan(&sessions).Error; err != nil {
+		retErr := e.Wrapf(err, "error reading from sessionIds")
+		querySessionSpan.Finish(tracer.WithError(retErr))
+		log.Error(retErr)
+		return
+	}
+
+	querySessionSpan.Finish()
+
+	// Index sessions by id
+	sessionLookup := make(map[string]*model.Session)
+	for _, session := range sessions {
+		sessionLookup[strconv.Itoa(session.ID)] = session
+	}
+
+	// Filter out empty errors
+	var filteredErrors []*customModels.BackendErrorObjectInput
+	for _, errorObject := range errors {
+		if errorObject.Event == "[{}]" {
+			var objString string
+			objBytes, err := json.Marshal(errorObject)
+			if err != nil {
+				log.Error(e.Wrap(err, "error marshalling error object when filtering"))
+				objString = ""
+			} else {
+				objString = string(objBytes)
+			}
+			log.WithFields(log.Fields{
+				"project_id":   sessionLookup[errorObject.SessionID],
+				"session_id":   errorObject.SessionID,
+				"error_object": objString,
+			}).Warn("caught empty error, continuing...")
+		} else {
+			filteredErrors = append(filteredErrors, errorObject)
+		}
+	}
+	errors = filteredErrors
+
+	if len(errors) == 0 {
+		return
+	}
+
+	// Count the number of errors for each project
+	errorsByProject := make(map[int]int64)
+	for _, err := range errors {
+		projectID := sessionLookup[err.SessionID].ProjectID
+		errorsByProject[projectID] += 1
+	}
+
+	dailyErrorCountSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload", tracer.ResourceName("db.updateDailyErrorCounts"))
+	dailyErrorCountSpan.SetTag("numberOfErrors", len(errors))
+	dailyErrorCountSpan.SetTag("numberOfProjects", len(errorsByProject))
+
+	// For each project, increment daily error count by the current error count
+	n := time.Now()
+	currentDate := time.Date(n.UTC().Year(), n.UTC().Month(), n.UTC().Day(), 0, 0, 0, 0, time.UTC)
+
+	dailyErrorCounts := make([]*model.DailyErrorCount, 0)
+	for projectId, count := range errorsByProject {
+		errorCount := model.DailyErrorCount{
+			ProjectID: projectId,
+			Date:      &currentDate,
+			Count:     count,
+			ErrorType: model.ErrorType.BACKEND,
+		}
+		dailyErrorCounts = append(dailyErrorCounts, &errorCount)
+	}
+
+	// Upsert error counts into daily_error_counts
+	if err := r.DB.Table(model.DAILY_ERROR_COUNTS_TBL).Clauses(clause.OnConflict{
+		OnConstraint: model.DAILY_ERROR_COUNTS_UNIQ,
+		DoUpdates:    clause.Assignments(map[string]interface{}{"count": gorm.Expr("daily_error_counts.count + excluded.count")}),
+	}).Create(&dailyErrorCounts).Error; err != nil {
+		wrapped := e.Wrap(err, "error updating daily error count")
+		dailyErrorCountSpan.Finish(tracer.WithError(wrapped))
+		log.Error(wrapped)
+		return
+	}
+
+	dailyErrorCountSpan.Finish()
+
+	// put errors in db
+	putErrorsToDBSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload",
+		tracer.ResourceName("db.errors"))
+	for _, v := range errors {
+		traceBytes, err := json.Marshal(v.StackTrace)
+		if err != nil {
+			log.Errorf("Error marshaling trace: %v", v.StackTrace)
+			continue
+		}
+		traceString := string(traceBytes)
+
+		sessionObj := sessionLookup[v.SessionID]
+		projectID := sessionObj.ProjectID
+
+		errorToInsert := &model.ErrorObject{
+			ProjectID:   projectID,
+			SessionID:   sessionObj.ID,
+			Environment: sessionObj.Environment,
+			Event:       v.Event,
+			Type:        v.Type,
+			URL:         v.URL,
+			Source:      v.Source,
+			OS:          sessionObj.OSName,
+			Browser:     sessionObj.BrowserName,
+			StackTrace:  &traceString,
+			Timestamp:   v.Timestamp,
+			Payload:     v.Payload,
+			RequestID:   &v.RequestID,
+			ErrorType:   model.ErrorType.BACKEND,
+		}
+
+		//create error fields array
+		metaFields := []*model.ErrorField{}
+		metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "browser", Value: sessionObj.BrowserName})
+		metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "os_name", Value: sessionObj.OSName})
+		metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "visited_url", Value: errorToInsert.URL})
+		metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "event", Value: errorToInsert.Event})
+		group, err := r.HandleErrorAndGroup(errorToInsert, v.StackTrace, nil, metaFields, projectID)
+		if err != nil {
+			log.Errorf("Error updating error group: %v", errorToInsert)
+			continue
+		}
+
+		r.sendErrorAlert(projectID, sessionObj, group, errorToInsert)
+	}
+
+	putErrorsToDBSpan.Finish()
+
+	now := time.Now()
+	if err := r.DB.Model(&model.Session{}).Where("id IN ?", sessionIds).Updates(&model.Session{PayloadUpdatedAt: &now}).Error; err != nil {
+		log.Error(e.Wrap(err, "error updating session payload time"))
+		return
+	}
 }
 
 func (r *Resolver) processPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput) {
@@ -812,20 +1050,20 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 		// increment daily error table
 		if len(errors) > 0 {
 			n := time.Now()
-			dailyError := &model.DailyErrorCount{}
 			currentDate := time.Date(n.UTC().Year(), n.UTC().Month(), n.UTC().Day(), 0, 0, 0, 0, time.UTC)
-			if err := r.DB.Where(&model.DailyErrorCount{
+			dailyErrorCount := model.DailyErrorCount{
 				ProjectID: projectID,
 				Date:      &currentDate,
-			}).Attrs(&model.DailyErrorCount{
-				Count: 0,
-			}).FirstOrCreate(&dailyError).Error; err != nil {
-
-				return e.Wrap(err, "error getting or creating daily error count")
+				Count:     int64(len(errors)),
+				ErrorType: model.ErrorType.FRONTEND,
 			}
 
-			if err := r.DB.Exec("UPDATE daily_error_counts SET count = count + ? WHERE date = ? AND project_id = ?", len(errors), currentDate, projectID).Error; err != nil {
-				return e.Wrap(err, "error updating daily error count")
+			// Upsert error counts into daily_error_counts
+			if err := r.DB.Table(model.DAILY_ERROR_COUNTS_TBL).Clauses(clause.OnConflict{
+				OnConstraint: model.DAILY_ERROR_COUNTS_UNIQ,
+				DoUpdates:    clause.Assignments(map[string]interface{}{"count": gorm.Expr("daily_error_counts.count + excluded.count")}),
+			}).Create(&dailyErrorCount).Error; err != nil {
+				return e.Wrap(err, "error getting or creating daily error count")
 			}
 		}
 
@@ -855,6 +1093,8 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 				StackTrace:   &traceString,
 				Timestamp:    v.Timestamp,
 				Payload:      v.Payload,
+				RequestID:    nil,
+				ErrorType:    model.ErrorType.FRONTEND,
 			}
 
 			//create error fields array
@@ -863,63 +1103,13 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "os_name", Value: sessionObj.OSName})
 			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "visited_url", Value: errorToInsert.URL})
 			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "event", Value: errorToInsert.Event})
-			group, err := r.HandleErrorAndGroup(errorToInsert, v, metaFields, projectID)
+			group, err := r.HandleErrorAndGroup(errorToInsert, "", v.StackTrace, metaFields, projectID)
 			if err != nil {
 				log.Errorf("Error updating error group: %v", errorToInsert)
 				continue
 			}
 
-			// Get ErrorAlert object and send respective alert
-			r := r
-			sessionObj := sessionObj
-			r.AlertWorkerPool.Submit(func() {
-				var errorAlert model.ErrorAlert
-				if err := r.DB.Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{Alert: model.Alert{ProjectID: projectID}}).First(&errorAlert).Error; err != nil {
-					log.Error(e.Wrap(err, "error fetching ErrorAlert object"))
-					return
-				}
-				if errorAlert.CountThreshold < 1 {
-					return
-				}
-				excludedEnvironments, err := errorAlert.GetExcludedEnvironments()
-				if err != nil {
-					log.Error(e.Wrap(err, "error getting excluded environments from ErrorAlert"))
-					return
-				}
-				for _, env := range excludedEnvironments {
-					if env != nil && *env == sessionObj.Environment {
-						return
-					}
-				}
-				numErrors := int64(-1)
-				if errorAlert.ThresholdWindow == nil {
-					t := 30
-					errorAlert.ThresholdWindow = &t
-				}
-				if err := r.DB.Model(&model.ErrorObject{}).Where(&model.ErrorObject{ProjectID: projectID, ErrorGroupID: group.ID}).Where("created_at > ?", time.Now().Add(time.Duration(-(*errorAlert.ThresholdWindow))*time.Minute)).Count(&numErrors).Error; err != nil {
-					log.Error(e.Wrapf(err, "error counting errors from past %d minutes", *errorAlert.ThresholdWindow))
-					return
-				}
-				if numErrors+1 < int64(errorAlert.CountThreshold) {
-					return
-				}
-				var project model.Project
-				if err := r.DB.Model(&model.Project{}).Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
-					log.Error(e.Wrap(err, "error querying project"))
-					return
-				}
-
-				workspace, err := r.getWorkspace(project.WorkspaceID)
-				if err != nil {
-					log.Error(err)
-				}
-
-				err = errorAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &errorToInsert.URL, ErrorsCount: &numErrors})
-				if err != nil {
-					log.Error(e.Wrap(err, "error sending slack error message"))
-					return
-				}
-			})
+			r.sendErrorAlert(projectID, sessionObj, group, errorToInsert)
 		}
 
 		putErrorsToDBSpan.Finish()

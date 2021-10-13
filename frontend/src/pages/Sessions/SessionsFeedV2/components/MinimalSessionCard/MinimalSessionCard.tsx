@@ -2,6 +2,8 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { ALERT_CONFIGURATIONS } from '@pages/Alerts/Alerts';
+import { formatShortTime } from '@pages/Home/components/KeyPerformanceIndicators/utils/utils';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import React, { useEffect, useRef, useState } from 'react';
@@ -11,13 +13,11 @@ import { Avatar } from '../../../../../components/Avatar/Avatar';
 import Tooltip from '../../../../../components/Tooltip/Tooltip';
 import { Maybe, Session } from '../../../../../graph/generated/schemas';
 import SvgEyeOffIcon from '../../../../../static/EyeOffIcon';
-import SvgFaceIdIcon from '../../../../../static/FaceIdIcon';
 import SvgFastForwardIcon from '../../../../../static/FastForwardIcon';
-import SvgUserPlusIcon from '../../../../../static/UserPlusIcon';
 import { MillisToMinutesAndSecondsVerbose } from '../../../../../util/time';
 import { LIVE_SEGMENT_ID } from '../../../SearchSidebar/SegmentPicker/SegmentPicker';
 import styles from './MinimalSessionCard.module.scss';
-import { getIdentifiedUserProfileImage } from './utils/utils';
+import { getDisplayName, getIdentifiedUserProfileImage } from './utils/utils';
 
 interface Props {
     session: Maybe<Session>;
@@ -113,12 +113,7 @@ const MinimalSessionCard = React.memo(
                             })}
                         >
                             <Tooltip
-                                title={
-                                    session?.identifier ||
-                                    (session?.fingerprint
-                                        ? `#${session?.fingerprint}`
-                                        : 'unidentified')
-                                }
+                                title={getDisplayName(session)}
                                 mouseEnterDelay={0}
                             >
                                 <div
@@ -127,10 +122,7 @@ const MinimalSessionCard = React.memo(
                                         'highlight-block'
                                     )}
                                 >
-                                    {session?.identifier ||
-                                        (session?.fingerprint
-                                            ? `#${session?.fingerprint}`
-                                            : 'unidentified')}
+                                    {getDisplayName(session)}
                                 </div>
                             </Tooltip>
                         </div>
@@ -145,9 +137,17 @@ const MinimalSessionCard = React.memo(
                                         <div className={styles.topText}>
                                             {session?.processed &&
                                             segment_id !== LIVE_SEGMENT_ID
-                                                ? MillisToMinutesAndSecondsVerbose(
-                                                      session.active_length || 0
-                                                  )
+                                                ? `${formatShortTime(
+                                                      (session.active_length ||
+                                                          0) / 1000,
+                                                      ['h', 'm', 's']
+                                                  )} • ${(
+                                                      ((session?.active_length ||
+                                                          1) /
+                                                          (session?.length ||
+                                                              1)) *
+                                                      100
+                                                  ).toFixed(0)}% Active`
                                                 : 'Live'}
                                         </div>
                                     )}
@@ -302,7 +302,11 @@ const MinimalSessionCard = React.memo(
                                             } as React.CSSProperties
                                         }
                                     >
-                                        <SvgUserPlusIcon />
+                                        {
+                                            ALERT_CONFIGURATIONS[
+                                                'NEW_USER_ALERT'
+                                            ].icon
+                                        }
                                     </span>
                                 </Tooltip>
                             </div>
@@ -318,7 +322,11 @@ const MinimalSessionCard = React.memo(
                                             } as React.CSSProperties
                                         }
                                     >
-                                        <SvgFaceIdIcon />
+                                        {
+                                            ALERT_CONFIGURATIONS[
+                                                'USER_PROPERTIES_ALERT'
+                                            ].icon
+                                        }
                                     </span>
                                 </Tooltip>
                             </div>

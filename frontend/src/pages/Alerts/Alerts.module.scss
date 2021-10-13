@@ -19,3 +19,73 @@
 .hiddenSlackIntegrationButton {
     display: none;
 }
+
+.cellWithTooltip {
+    column-gap: var(--size-xxSmall);
+    display: flex;
+}
+
+.nameCell {
+    align-items: flex-start;
+    display: flex;
+    flex-direction: column;
+
+    .primary {
+        font-size: 16px;
+        font-weight: 500;
+    }
+}
+
+.subTitleContainer {
+    align-items: center;
+    display: flex;
+    margin-bottom: var(--size-medium);
+    margin-top: var(--size-small);
+
+    p {
+        align-self: flex-start;
+        color: var(--color-gray-500);
+        font-size: 18px;
+        margin-bottom: 0 !important;
+        margin-top: 0 !important;
+    }
+
+    .callToAction {
+        margin-left: auto;
+        transform: translateY(-25%);
+    }
+}
+
+.configureButton {
+    align-items: center;
+    color: var(--color-gray-500);
+    display: flex;
+    font-weight: 300;
+    justify-content: flex-end;
+
+    &:hover {
+        color: var(--color-gray-500);
+    }
+
+    svg {
+        color: var(--color-gray-400);
+        height: var(--size-large);
+        width: var(--size-large);
+    }
+}
+
+.emptyContainer {
+    display: flex;
+    flex-direction: column;
+    margin: 0 auto;
+    max-width: 400px;
+    padding-top: var(--size-xLarge);
+
+    p {
+        color: var(--color-gray-500) !important;
+    }
+
+    a {
+        margin-top: var(--size-xLarge);
+    }
+}

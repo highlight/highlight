@@ -31,6 +31,7 @@ type Session {
     length: Int
     active_length: Int
     user_object: Any
+    user_properties: String
     fields: [Field]
     viewed: Boolean
     starred: Boolean
@@ -172,6 +173,7 @@ type ErrorMetadata {
     visited_url: String
     fingerprint: String!
     identifier: String
+    user_properties: String
 }
 
 type ErrorTrace {
@@ -393,10 +395,14 @@ input SanitizedSlackChannelInput {
 
 type ErrorAlert {
     id: ID!
+    updated_at: Timestamp!
+    Name: String
     ChannelsToNotify: [SanitizedSlackChannel]!
     ExcludedEnvironments: [String]!
     CountThreshold: Int!
     ThresholdWindow: Int
+    LastAdminToEditID: ID
+    Type: String!
 }
 
 type TrackProperty {
@@ -413,12 +419,16 @@ input TrackPropertyInput {
 
 type SessionAlert {
     id: ID!
+    updated_at: Timestamp!
+    Name: String
     ChannelsToNotify: [SanitizedSlackChannel]!
     ExcludedEnvironments: [String]!
     CountThreshold: Int!
     TrackProperties: [TrackProperty]!
     UserProperties: [UserProperty]!
     ThresholdWindow: Int!
+    LastAdminToEditID: ID
+    Type: String!
 }
 
 scalar Upload
@@ -496,13 +506,14 @@ type Query {
         query: String!
     ): [ErrorField]
     projects: [Project]
-    workspaces: [Workspace!]
-    error_alert(project_id: ID!): ErrorAlert
-    session_feedback_alert(project_id: ID!): SessionAlert
-    rage_click_alert(project_id: ID!): SessionAlert
-    new_user_alert(project_id: ID!): SessionAlert
-    track_properties_alert(project_id: ID!): SessionAlert
-    user_properties_alert(project_id: ID!): SessionAlert
+    workspaces: [Workspace]
+    error_alerts(project_id: ID!): [ErrorAlert]!
+    session_feedback_alerts(project_id: ID!): [SessionAlert]!
+    new_user_alerts(project_id: ID!): [SessionAlert]
+    track_properties_alerts(project_id: ID!): [SessionAlert]!
+    user_properties_alerts(project_id: ID!): [SessionAlert]!
+    new_session_alerts(project_id: ID!): [SessionAlert]!
+    rage_click_alerts(project_id: ID!): [SessionAlert]!
     projectSuggestion(query: String!): [Project]
     environment_suggestion(project_id: ID!): [Field]
     app_version_suggestion(project_id: ID!): [String]!
@@ -606,17 +617,44 @@ type Mutation {
         code: String!
         redirect_path: String!
     ): Boolean!
+    createRageClickAlert(
+        project_id: ID!
+        name: String!
+        count_threshold: Int!
+        threshold_window: Int!
+        slack_channels: [SanitizedSlackChannelInput]!
+        environments: [String]!
+    ): SessionAlert
+    createErrorAlert(
+        project_id: ID!
+        name: String!
+        count_threshold: Int!
+        threshold_window: Int!
+        slack_channels: [SanitizedSlackChannelInput]!
+        environments: [String]!
+    ): ErrorAlert
     updateErrorAlert(
         project_id: ID!
+        name: String!
         error_alert_id: ID!
         count_threshold: Int!
         threshold_window: Int!
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
     ): ErrorAlert
+    deleteErrorAlert(project_id: ID!, error_alert_id: ID!): ErrorAlert
     updateSessionFeedbackAlert(
         project_id: ID!
         session_feedback_alert_id: ID!
+        name: String!
+        count_threshold: Int!
+        threshold_window: Int!
+        slack_channels: [SanitizedSlackChannelInput]!
+        environments: [String]!
+    ): SessionAlert
+    createSessionFeedbackAlert(
+        project_id: ID!
+        name: String!
         count_threshold: Int!
         threshold_window: Int!
         slack_channels: [SanitizedSlackChannelInput]!
@@ -633,23 +671,71 @@ type Mutation {
     updateNewUserAlert(
         project_id: ID!
         session_alert_id: ID!
+        name: String!
+        count_threshold: Int!
+        threshold_window: Int!
+        slack_channels: [SanitizedSlackChannelInput]!
+        environments: [String]!
+    ): SessionAlert
+    createNewUserAlert(
+        project_id: ID!
+        name: String!
         count_threshold: Int!
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
+        threshold_window: Int!
     ): SessionAlert
     updateTrackPropertiesAlert(
         project_id: ID!
         session_alert_id: ID!
+        name: String!
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
         track_properties: [TrackPropertyInput]!
+        threshold_window: Int!
     ): SessionAlert
-    updateUserPropertiesAlert(
+    createTrackPropertiesAlert(
         project_id: ID!
-        session_alert_id: ID!
+        name: String!
+        slack_channels: [SanitizedSlackChannelInput]!
+        environments: [String]!
+        track_properties: [TrackPropertyInput]!
+        threshold_window: Int!
+    ): SessionAlert
+    createUserPropertiesAlert(
+        project_id: ID!
+        name: String!
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
         user_properties: [UserPropertyInput]!
+        threshold_window: Int!
+    ): SessionAlert
+    deleteSessionAlert(project_id: ID!, session_alert_id: ID!): SessionAlert
+    updateUserPropertiesAlert(
+        project_id: ID!
+        session_alert_id: ID!
+        name: String!
+        slack_channels: [SanitizedSlackChannelInput]!
+        environments: [String]!
+        user_properties: [UserPropertyInput]!
+        threshold_window: Int!
+    ): SessionAlert
+    updateNewSessionAlert(
+        project_id: ID!
+        session_alert_id: ID!
+        name: String!
+        count_threshold: Int!
+        slack_channels: [SanitizedSlackChannelInput]!
+        environments: [String]!
+        threshold_window: Int!
+    ): SessionAlert
+    createNewSessionAlert(
+        project_id: ID!
+        name: String!
+        count_threshold: Int!
+        slack_channels: [SanitizedSlackChannelInput]!
+        environments: [String]!
+        threshold_window: Int!
     ): SessionAlert
     updateSessionIsPublic(
         session_id: ID

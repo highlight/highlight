@@ -6,6 +6,7 @@
     padding-left: var(--size-large);
     padding-right: var(--size-large);
     padding-top: var(--size-large);
+    transition: border-color 0.1s ease-in-out, box-shadow 0.2s ease-in-out;
     width: 100%;
 
     &.noPadding {
@@ -48,6 +49,13 @@
         h3 {
             font-size: 14px !important;
             margin-bottom: var(--size-medium) !important;
+        }
+    }
+
+    &:hover {
+        &.interactable {
+            border-color: var(--color-purple);
+            box-shadow: 0 5px 8px rgba(86, 41, 198, 0.2);
         }
     }
 }

@@ -47,6 +47,7 @@ var AlertType = struct {
 	USER_PROPERTIES  string
 	SESSION_FEEDBACK string
 	RAGE_CLICK       string
+	NEW_SESSION      string
 }{
 	ERROR:            "ERROR_ALERT",
 	NEW_USER:         "NEW_USER_ALERT",
@@ -54,6 +55,7 @@ var AlertType = struct {
 	USER_PROPERTIES:  "USER_PROPERTIES_ALERT",
 	SESSION_FEEDBACK: "SESSION_FEEDBACK_ALERT",
 	RAGE_CLICK:       "RAGE_CLICK_ALERT",
+	NEW_SESSION:      "NEW_SESSION_ALERT",
 }
 
 var AdminRole = struct {
@@ -205,7 +207,9 @@ type Alert struct {
 	CountThreshold       int
 	ThresholdWindow      *int
 	ChannelsToNotify     *string
+	Name                 *string
 	Type                 *string `gorm:"index"`
+	LastAdminToEditID    int     `gorm:"last_admin_to_edit_id"`
 }
 
 type ErrorAlert struct {
@@ -540,12 +544,16 @@ type DailySessionCount struct {
 	ProjectID      int `json:"project_id"`
 }
 
+const DAILY_ERROR_COUNTS_TBL = "daily_error_counts"
+const DAILY_ERROR_COUNTS_UNIQ = "date_project_id_error_type_uniq"
+
 type DailyErrorCount struct {
 	Model
 	Date           *time.Time `json:"date"`
 	Count          int64      `json:"count"`
 	OrganizationID int
-	ProjectID      int `json:"project_id"`
+	ProjectID      int    `json:"project_id"`
+	ErrorType      string `gorm:"default:FRONTEND"`
 }
 
 func (s *SearchParams) GormDataType() string {
@@ -648,6 +656,8 @@ type ErrorObject struct {
 	Timestamp      time.Time `json:"timestamp"`
 	Payload        *string   `json:"payload"`
 	Environment    string
+	RequestID      *string // From X-Highlight-Request header
+	ErrorType      string  `gorm:"default:FRONTEND"`
 }
 
 type ErrorGroup struct {
@@ -711,6 +721,14 @@ type RageClickEvent struct {
 	TotalClicks     int
 	StartTimestamp  time.Time `deep:"-"`
 	EndTimestamp    time.Time `deep:"-"`
+}
+
+var ErrorType = struct {
+	FRONTEND string
+	BACKEND  string
+}{
+	FRONTEND: "FRONTEND",
+	BACKEND:  "BACKEND",
 }
 
 func SetupDB(dbName string) (*gorm.DB, error) {
@@ -783,11 +801,30 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 	`).Error; err != nil {
 		return nil, e.Wrap(err, "Error creating secure_id_generator")
 	}
+
 	if err := DB.AutoMigrate(
 		Models...,
 	); err != nil {
 		return nil, e.Wrap(err, "Error migrating db")
 	}
+
+	// Add unique constraint to daily_error_counts
+	if err := DB.Exec(`
+		DO $$
+			BEGIN
+				BEGIN
+					ALTER TABLE daily_error_counts 
+					ADD CONSTRAINT date_project_id_error_type_uniq
+						UNIQUE (date, project_id, error_type);
+				EXCEPTION
+					WHEN duplicate_table 
+					THEN RAISE NOTICE 'daily_error_counts.date_project_id_error_type_uniq already exists';
+				END;
+			END $$;
+	`).Error; err != nil {
+		return nil, e.Wrap(err, "Error adding unique constraint on daily_error_counts")
+	}
+
 	sqlDB, err := DB.DB()
 	if err != nil {
 		return nil, e.Wrap(err, "error retrieving underlying sql db")
@@ -941,6 +978,9 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 	if err != nil {
 		return e.Wrap(err, "error getting channels to notify from user properties alert")
 	}
+	if len(channels) <= 0 {
+		return nil
+	}
 	// get project's channels
 	integratedSlackChannels, err := input.Workspace.IntegratedSlackChannels()
 	if err != nil {
@@ -973,6 +1013,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 	sessionLink := fmt.Sprintf("<%s/%d/sessions/%s%s>", frontendURL, obj.ProjectID, input.SessionSecureID, suffix)
 	messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false))
 
+	var previewText string
 	if obj.Type == nil {
 		if input.Group != nil {
 			obj.Type = &AlertType.ERROR
@@ -991,6 +1032,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 		}
 		errorLink := fmt.Sprintf("%s/%d/errors/%s", frontendURL, obj.ProjectID, input.Group.SecureID)
 		// construct Slack message
+		previewText = fmt.Sprintf("Highlight: Error Alert: %s", shortEvent)
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Highlight Error Alert: %d Recent Occurrences*\n\n%s\n<%s/>", *input.ErrorsCount, shortEvent, errorLink), false, false)
 		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+input.UserIdentifier, false, false))
 		if input.URL != nil {
@@ -1033,6 +1075,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 		}
 	case AlertType.NEW_USER:
 		// construct Slack message
+		previewText = "Highlight: New User Alert"
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight New User Alert:*\n\n", false, false)
 		if input.UserIdentifier != "" {
 			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+input.UserIdentifier, false, false))
@@ -1056,6 +1099,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 			formattedFields = append(formattedFields, fmt.Sprintf("{name: %s, value: %s}", addr.Name, addr.Value))
 		}
 		// construct Slack message
+		previewText = "Highlight: Track Properties Alert"
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight Track Properties Alert:*\n\n", false, false)
 		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Matched Track Properties:*\n%+v", formattedFields), false, false))
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
@@ -1068,25 +1112,40 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 			formattedFields = append(formattedFields, fmt.Sprintf("{name: %s, value: %s}", addr.Name, addr.Value))
 		}
 		// construct Slack message
+		previewText = "Highlight: User Properties Alert"
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight User Properties Alert:*\n\n", false, false)
 		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Matched User Properties:*\n%+v", formattedFields), false, false))
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
 	case AlertType.SESSION_FEEDBACK:
+		previewText = "Highlight: Session Feedback Alert"
+		if input.UserIdentifier == "" {
+			input.UserIdentifier = "User"
+		}
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s Left Feedback*\n\n%s", input.UserIdentifier, input.CommentText), false, false)
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
 	case AlertType.RAGE_CLICK:
+		previewText = "Highlight: Rage Clicks Alert"
 		if input.RageClicksCount == nil {
 			return nil
 		}
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Rage Clicks Detected:* %d Recent Occurrences\n\n", *input.RageClicksCount), false, false)
+	case AlertType.NEW_SESSION:
+		identifier := input.UserIdentifier
+		if identifier == "" {
+			identifier = "User"
+		}
+		previewText = fmt.Sprintf("Highlight: New Session Created By %s", identifier)
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*New Session Created By User: %s*\n\n", input.UserIdentifier), false, false)
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
 	}
+
+	msg.Text = previewText
 
 	var slackClient *slack.Client
 	if input.Workspace.SlackAccessToken != nil {

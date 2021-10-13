@@ -34,6 +34,7 @@ query GetSession($secure_id: String!) {
         created_at
         language
         user_object
+        user_properties
         identifier
         starred
         enable_strict_privacy
@@ -238,6 +239,7 @@ query GetSessions(
                 id
             }
             first_time
+            user_properties
         }
         totalCount
     }
@@ -400,6 +402,7 @@ query GetErrorGroup($secure_id: String!) {
             visited_url
             fingerprint
             identifier
+            user_properties
         }
         field_group {
             name
@@ -707,50 +710,6 @@ query GetDailyErrorFrequency(
     )
 }
 
-query GetErrorAlert($project_id: ID!) {
-    error_alert(project_id: $project_id) {
-        ChannelsToNotify {
-            webhook_channel
-            webhook_channel_id
-        }
-        ExcludedEnvironments
-        CountThreshold
-    }
-}
-
-query GetNewUserAlert($project_id: ID!) {
-    new_user_alert(project_id: $project_id) {
-        ChannelsToNotify {
-            webhook_channel
-            webhook_channel_id
-        }
-        ExcludedEnvironments
-        CountThreshold
-    }
-}
-
-query GetTrackPropertiesAlert($project_id: ID!) {
-    track_properties_alert(project_id: $project_id) {
-        ChannelsToNotify {
-            webhook_channel
-            webhook_channel_id
-        }
-        ExcludedEnvironments
-        CountThreshold
-    }
-}
-
-query GetUserPropertiesAlert($project_id: ID!) {
-    user_properties_alert(project_id: $project_id) {
-        ChannelsToNotify {
-            webhook_channel
-            webhook_channel_id
-        }
-        ExcludedEnvironments
-        CountThreshold
-    }
-}
-
 query GetSlackChannelSuggestion($project_id: ID!) {
     slack_channel_suggestion(project_id: $project_id) {
         webhook_channel
@@ -764,11 +723,45 @@ query GetAlertsPagePayload($project_id: ID!) {
         webhook_channel
         webhook_channel_id
     }
+    admins: project_admins(project_id: $project_id) {
+        id
+        name
+        email
+        photo_url
+    }
     environment_suggestion(project_id: $project_id) {
         name
         value
     }
-    error_alert(project_id: $project_id) {
+    error_alerts(project_id: $project_id) {
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        ExcludedEnvironments
+        updated_at
+        CountThreshold
+        LastAdminToEditID
+        ThresholdWindow
+        id
+        Type
+        Name
+    }
+    session_feedback_alerts(project_id: $project_id) {
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        updated_at
+        ExcludedEnvironments
+        CountThreshold
+        ThresholdWindow
+        LastAdminToEditID
+        id
+        Name
+        Type
+    }
+    new_session_alerts(project_id: $project_id) {
         ChannelsToNotify {
             webhook_channel
             webhook_channel_id
@@ -776,9 +769,14 @@ query GetAlertsPagePayload($project_id: ID!) {
         ExcludedEnvironments
         CountThreshold
         ThresholdWindow
+        updated_at
+        LastAdminToEditID
+        Name
         id
+        Type
     }
-    session_feedback_alert(project_id: $project_id) {
+    rage_click_alerts(project_id: $project_id) {
+        id
         ChannelsToNotify {
             webhook_channel
             webhook_channel_id
@@ -786,19 +784,12 @@ query GetAlertsPagePayload($project_id: ID!) {
         ExcludedEnvironments
         CountThreshold
         ThresholdWindow
-        id
+        updated_at
+        LastAdminToEditID
+        Name
+        Type
     }
-    rage_click_alert(project_id: $project_id) {
-        ChannelsToNotify {
-            webhook_channel
-            webhook_channel_id
-        }
-        ExcludedEnvironments
-        CountThreshold
-        ThresholdWindow
-        id
-    }
-    new_user_alert(project_id: $project_id) {
+    new_user_alerts(project_id: $project_id) {
         id
         ChannelsToNotify {
             webhook_channel
@@ -806,8 +797,12 @@ query GetAlertsPagePayload($project_id: ID!) {
         }
         ExcludedEnvironments
         CountThreshold
+        updated_at
+        LastAdminToEditID
+        Name
+        Type
     }
-    track_properties_alert(project_id: $project_id) {
+    track_properties_alerts(project_id: $project_id) {
         id
         ChannelsToNotify {
             webhook_channel
@@ -819,9 +814,13 @@ query GetAlertsPagePayload($project_id: ID!) {
             value
         }
         ExcludedEnvironments
+        updated_at
+        LastAdminToEditID
         CountThreshold
+        Name
+        Type
     }
-    user_properties_alert(project_id: $project_id) {
+    user_properties_alerts(project_id: $project_id) {
         id
         ChannelsToNotify {
             webhook_channel
@@ -833,7 +832,11 @@ query GetAlertsPagePayload($project_id: ID!) {
             value
         }
         ExcludedEnvironments
+        updated_at
+        LastAdminToEditID
         CountThreshold
+        Name
+        Type
     }
 }
 
