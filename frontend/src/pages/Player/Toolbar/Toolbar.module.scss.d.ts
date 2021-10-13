@@ -34,6 +34,7 @@ export const sliderWrapper: string;
 export const speedControlContainer: string;
 export const timeSection: string;
 export const toolbarLeftSection: string;
+export const toolbarPinnedSettings: string;
 export const toolbarRightSection: string;
 export const toolbarSection: string;
 export const undoSection: string;
