@@ -9,6 +9,7 @@ import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import React from 'react';
+import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router';
 
 const EditAlertsPage = () => {
@@ -35,7 +36,19 @@ const EditAlertsPage = () => {
     return (
         <>
             {loading || !alertsPayload || !alert ? (
-                <h2>Loading</h2>
+                <>
+                    <Skeleton
+                        count={1}
+                        height="18px"
+                        style={{ marginTop: 12, marginBottom: 32 }}
+                    />
+                    <Skeleton
+                        count={1}
+                        height="600px"
+                        width="100%"
+                        style={{ borderRadius: 8 }}
+                    />
+                </>
             ) : (
                 <AlertConfigurationCard
                     alert={alert}
