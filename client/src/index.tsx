@@ -31,8 +31,8 @@ import 'clientjs';
 import { NetworkListener } from './listeners/network-listener/network-listener';
 import { RequestResponsePair } from './listeners/network-listener/utils/models';
 import {
-    isHighlightNetworkResourceFilter,
     matchPerformanceTimingsWithRequestResponsePair,
+    shouldNetworkRequestBeRecorded,
 } from './listeners/network-listener/utils/utils';
 import { DEFAULT_URL_BLOCKLIST } from './listeners/network-listener/utils/network-sanitizer';
 
@@ -102,6 +102,7 @@ export type HighlightClassOptions = {
     organizationID: number | string;
     debug?: boolean | DebugOptions;
     backendUrl?: string;
+    tracingOrigins?: string[];
     disableNetworkRecording?: boolean;
     networkRecording?: boolean | NetworkRecordingOptions;
     disableConsoleRecording?: boolean;
@@ -127,7 +128,7 @@ type PropertyType = {
 
 type Source = 'segment' | undefined;
 
-type SessionData = {
+export type SessionData = {
     sessionID: number;
     sessionSecureID: string;
     projectID: number;
@@ -166,6 +167,7 @@ export class Highlight {
     messages: ConsoleMessage[];
     xhrNetworkContents: RequestResponsePair[] = [];
     fetchNetworkContents: RequestResponsePair[] = [];
+    tracingOrigins: string[] = [];
     networkHeadersToRedact: string[] = [];
     urlBlocklist: string[] = [];
     sessionData: SessionData;
@@ -254,6 +256,7 @@ export class Highlight {
             options?.backendUrl ||
             process.env.PUBLIC_GRAPH_URI ||
             'https://public.highlight.run';
+        this.tracingOrigins = options.tracingOrigins || [];
         const client = new GraphQLClient(`${this._backendUrl}`, {
             headers: {},
         });
@@ -641,7 +644,9 @@ export class Highlight {
                         },
                         headersToRedact: this.networkHeadersToRedact,
                         backendUrl: this._backendUrl,
+                        tracingOrigins: this.tracingOrigins,
                         urlBlocklist: this.urlBlocklist,
+                        sessionData: this.sessionData,
                     })
                 );
             }
@@ -801,9 +806,12 @@ export class Highlight {
             // get all resources that don't include 'api.highlight.run'
             resources = performance.getEntriesByType('resource');
 
-            resources = resources.filter(
-                (r) =>
-                    !isHighlightNetworkResourceFilter(r.name, this._backendUrl)
+            resources = resources.filter((r) =>
+                shouldNetworkRequestBeRecorded(
+                    r.name,
+                    this._backendUrl,
+                    this.tracingOrigins
+                )
             );
 
             if (this.enableRecordingNetworkContents) {

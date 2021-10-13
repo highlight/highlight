@@ -1,6 +1,7 @@
+import { SessionData } from '../../../index';
 import { NetworkListenerCallback } from '../network-listener';
 import { Headers, Request, RequestResponsePair, Response } from './models';
-import { isHighlightNetworkResourceFilter } from './utils';
+import { createNetworkRequestId, shouldNetworkRequestBeRecorded, shouldNetworkRequestBeTraced } from './utils';
 
 interface BrowserXHR extends XMLHttpRequest {
     _method: string;
@@ -16,7 +17,9 @@ interface BrowserXHR extends XMLHttpRequest {
 export const XHRListener = (
     callback: NetworkListenerCallback,
     backendUrl: string,
-    urlBlocklist: string[]
+    tracingOrigins: string[],
+    urlBlocklist: string[],
+    sessionData: SessionData,
 ) => {
     const XHR = XMLHttpRequest.prototype;
 
@@ -51,8 +54,21 @@ export const XHRListener = (
     };
 
     XHR.send = function (this: BrowserXHR, postData: any) {
+        if (
+            !shouldNetworkRequestBeRecorded(this._url, backendUrl, tracingOrigins)
+        ) {
+            // @ts-expect-error
+            return originalSend.apply(this, arguments);
+        }
+
+        const requestId = createNetworkRequestId();
+        if (shouldNetworkRequestBeTraced(this._url, tracingOrigins)) {
+            this.setRequestHeader('X-Highlight-Request', sessionData.sessionID.toString() + "/" + requestId);
+        }
+
         const shouldRecordHeaderAndBody = this._shouldRecordHeaderAndBody;
         const requestModel: Request = {
+            id: requestId,
             url: this._url,
             verb: this._method,
             headers: shouldRecordHeaderAndBody ? this._requestHeaders : {},
@@ -61,12 +77,6 @@ export const XHRListener = (
 
         // The load event for XMLHttpRequest is fired when a request completes successfully.
         this.addEventListener('load', async function () {
-            if (
-                isHighlightNetworkResourceFilter(requestModel.url, backendUrl)
-            ) {
-                return;
-            }
-
             const responseModel: Response = {
                 status: this.status,
                 headers: {},

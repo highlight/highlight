@@ -31,6 +31,12 @@ export type HighlightOptions = {
      */
     backendUrl?: string;
     /**
+     * Specifies where the backend of the app lives. If specified, Highlight will attach the
+     * X-Highlight-Request header to outgoing requests whose destination URLs contain a string
+     * from this list, so that backend errors can be linked back to the session.
+     */
+    tracingOrigins?: string[];
+    /**
      * Specifies if Highlight should not automatically start recording when the app starts.
      * This should be used with `H.start()` and `H.stop()` if you want to control when Highlight records.
      * @default false
@@ -181,6 +187,7 @@ export const H: HighlightPublicInterface = {
                     organizationID: projectID,
                     debug: options?.debug,
                     backendUrl: options?.backendUrl,
+                    tracingOrigins: options?.tracingOrigins,
                     disableNetworkRecording: options?.disableNetworkRecording,
                     networkRecording: options?.networkRecording,
                     disableConsoleRecording: options?.disableConsoleRecording,
