@@ -106,7 +106,19 @@ export const shouldNetworkRequestBeTraced = (
     return result;
 }
 
-let nextNetworkRequestId = 0;
+function makeId(length: number) {
+    var result           = '';
+    var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for ( var i = 0; i < length; i++ ) {
+      result += characters.charAt(Math.floor(Math.random() * 
+ charactersLength));
+   }
+   return result;
+} 
+
 export const createNetworkRequestId = () => {
-    return new Number(nextNetworkRequestId++).toString();
+    // Long enough to avoid collisions within a given session,
+    // not long enough to be unguessable
+    return makeId(5);
 }
