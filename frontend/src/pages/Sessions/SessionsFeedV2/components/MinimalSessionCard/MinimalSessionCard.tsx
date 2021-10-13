@@ -3,6 +3,7 @@ import {
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { ALERT_CONFIGURATIONS } from '@pages/Alerts/Alerts';
+import { formatShortTime } from '@pages/Home/components/KeyPerformanceIndicators/utils/utils';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import React, { useEffect, useRef, useState } from 'react';
@@ -136,9 +137,17 @@ const MinimalSessionCard = React.memo(
                                         <div className={styles.topText}>
                                             {session?.processed &&
                                             segment_id !== LIVE_SEGMENT_ID
-                                                ? MillisToMinutesAndSecondsVerbose(
-                                                      session.active_length || 0
-                                                  )
+                                                ? `${formatShortTime(
+                                                      (session.active_length ||
+                                                          0) / 1000,
+                                                      ['h', 'm', 's']
+                                                  )} • ${(
+                                                      ((session?.active_length ||
+                                                          1) /
+                                                          (session?.length ||
+                                                              1)) *
+                                                      100
+                                                  ).toFixed(0)}% Active`
                                                 : 'Live'}
                                         </div>
                                     )}
