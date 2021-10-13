@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	H "github.com/highlight-run/highlight-go"
+
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/highlight-run/highlight/backend/model"
@@ -179,6 +181,7 @@ func main() {
 		}
 		r.Route(privateEndpoint, func(r chi.Router) {
 			r.Use(private.PrivateMiddleware)
+			r.Use(util.HighlightMiddleware)
 			privateServer := ghandler.NewDefaultServer(privategen.NewExecutableSchema(
 				privategen.Config{
 					Resolvers: privateResolver,
@@ -199,6 +202,7 @@ func main() {
 		}
 		r.Route(publicEndpoint, func(r chi.Router) {
 			r.Use(public.PublicMiddleware)
+			r.Use(util.HighlightMiddleware)
 			publicServer := ghandler.NewDefaultServer(publicgen.NewExecutableSchema(
 				publicgen.Config{
 					Resolvers: &public.Resolver{
@@ -216,6 +220,10 @@ func main() {
 			)
 		})
 	}
+
+	log.Info("starting highlight")
+	go H.Start()
+	log.Info("not highlight")
 
 	/*
 		Run a simple server that runs the frontend if 'staticFrontedPath' and 'all' is set.

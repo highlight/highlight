@@ -20,6 +20,7 @@ require (
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/go-test/deep v1.0.4
 	github.com/gorilla/sessions v1.2.1 // indirect
+	github.com/highlight-run/highlight-go v0.1.0 // indirect
 	github.com/highlight-run/workerpool v1.2.0
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
@@ -39,7 +40,6 @@ require (
 	github.com/stripe/stripe-go v70.15.0+incompatible
 	github.com/valyala/fasthttp v1.30.0 // indirect
 	github.com/vektah/gqlparser/v2 v2.1.0
-	golang.org/x/net v0.0.0-20210916014120-12bc252f5db8 // indirect
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/sys v0.0.0-20210915083310-ed5796bab164 // indirect
@@ -52,3 +52,5 @@ require (
 	gorm.io/driver/postgres v1.0.8
 	gorm.io/gorm v1.21.9
 )
+
+replace github.com/highlight-run/highlight-go => ./highlight-go
