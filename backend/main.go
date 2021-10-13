@@ -221,9 +221,7 @@ func main() {
 		})
 	}
 
-	log.Info("starting highlight")
 	go H.Start()
-	log.Info("not highlight")
 
 	/*
 		Run a simple server that runs the frontend if 'staticFrontedPath' and 'all' is set.
