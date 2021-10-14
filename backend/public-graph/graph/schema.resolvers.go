@@ -124,7 +124,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	r.PushPayloadWorkerPool.Submit(func() {
 		r.processPayload(ctx, sessionID, events, messages, resources, errors)
 	})
-	return &sessionID, nil
+	return &sessionID, e.New("howdy howdy")
 }
 
 func (r *mutationResolver) PushBackendPayload(ctx context.Context, errors []*customModels.BackendErrorObjectInput) (interface{}, error) {

@@ -1722,16 +1722,17 @@ func (r *mutationResolver) UpdateErrorGroupIsPublic(ctx context.Context, errorGr
 }
 
 func (r *queryResolver) Session(ctx context.Context, id *int, secureID *string) (*model.Session, error) {
-	s, err := r.canAdminViewSession(ctx, id, secureID)
-	if err != nil {
-		return nil, e.Wrap(err, "admin not session owner")
-	}
-	sessionObj := &model.Session{}
-	res := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&sessionObj)
-	if res.Error != nil {
-		return nil, fmt.Errorf("error reading from session: %v", res.Error)
-	}
-	return sessionObj, nil
+	return nil, e.New("this is an error my homie")
+	// s, err := r.canAdminViewSession(ctx, id, secureID)
+	// if err != nil {
+	// 	return nil, e.Wrap(err, "admin not session owner")
+	// }
+	// sessionObj := &model.Session{}
+	// res := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&sessionObj)
+	// if res.Error != nil {
+	// 	return nil, fmt.Errorf("error reading from session: %v", res.Error)
+	// }
+	// return sessionObj, nil
 }
 
 func (r *queryResolver) Events(ctx context.Context, sessionID *int, sessionSecureID *string) ([]interface{}, error) {

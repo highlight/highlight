@@ -91,6 +91,18 @@ export const Buttons = () => {
             <div>
                 <button
                     onClick={() => {
+                        fetch('http://localhost:8082/private', {
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Highlight-Request': '1/1',
+                            },
+                        });
+                    }}
+                >
+                    Fetch with highlight headers
+                </button>
+                <button
+                    onClick={() => {
                         fetch('https://pokeapi.co/api/v2/pokemon/ditto', {
                             headers: {
                                 'Content-Type': 'application/json',
