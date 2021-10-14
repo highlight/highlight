@@ -1734,6 +1734,15 @@ func (r *mutationResolver) UpdateErrorGroupIsPublic(ctx context.Context, errorGr
 }
 
 func (r *queryResolver) Session(ctx context.Context, id *int, secureID *string) (*model.Session, error) {
+	if util.IsDevEnv() && secureID != nil && *secureID == "repro" {
+		sessionObj := &model.Session{}
+		res := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: 0}}).First(&sessionObj)
+		if res.Error != nil {
+			return nil, fmt.Errorf("error reading from session: %v", res.Error)
+		}
+		return sessionObj, nil
+	}
+
 	s, err := r.canAdminViewSession(ctx, id, secureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
@@ -1747,7 +1756,7 @@ func (r *queryResolver) Session(ctx context.Context, id *int, secureID *string) 
 }
 
 func (r *queryResolver) Events(ctx context.Context, sessionID *int, sessionSecureID *string) ([]interface{}, error) {
-	if util.IsDevEnv() && sessionID != nil && *sessionID == 1 {
+	if util.IsDevEnv() && sessionSecureID != nil && *sessionSecureID == "repro" {
 		file, err := ioutil.ReadFile("./tmp/events.json")
 		if err != nil {
 			return nil, e.Wrap(err, "Failed to read temp file")
@@ -1795,6 +1804,10 @@ func (r *queryResolver) Events(ctx context.Context, sessionID *int, sessionSecur
 }
 
 func (r *queryResolver) RageClicks(ctx context.Context, sessionSecureID *string) ([]*model.RageClickEvent, error) {
+	if util.IsDevEnv() && sessionSecureID != nil && *sessionSecureID == "repro" {
+		rageClicks := []*model.RageClickEvent{}
+		return rageClicks, nil
+	}
 	_, err := r.canAdminViewSession(ctx, nil, sessionSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
@@ -1948,6 +1961,10 @@ func (r *queryResolver) Messages(ctx context.Context, sessionID *int, sessionSec
 }
 
 func (r *queryResolver) Errors(ctx context.Context, sessionID *int, sessionSecureID *string) ([]*model.ErrorObject, error) {
+	if util.IsDevEnv() && sessionSecureID != nil && *sessionSecureID == "repro" {
+		errors := []*model.ErrorObject{}
+		return errors, nil
+	}
 	s, err := r.canAdminViewSession(ctx, sessionID, sessionSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
@@ -1993,6 +2010,10 @@ func (r *queryResolver) Resources(ctx context.Context, sessionID *int, sessionSe
 }
 
 func (r *queryResolver) SessionComments(ctx context.Context, sessionID *int, sessionSecureID *string) ([]*model.SessionComment, error) {
+	if util.IsDevEnv() && sessionSecureID != nil && *sessionSecureID == "repro" {
+		sessionComments := []*model.SessionComment{}
+		return sessionComments, nil
+	}
 	s, err := r.canAdminViewSession(ctx, sessionID, sessionSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")

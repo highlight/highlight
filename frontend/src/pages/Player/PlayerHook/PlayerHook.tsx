@@ -114,7 +114,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         },
         onCompleted: (data) => {
             if (data.session?.within_billing_quota) {
-                if (isLoggedIn) {
+                if (isLoggedIn && session_secure_id !== 'repro') {
                     markSessionAsViewed({
                         variables: {
                             secure_id: session_secure_id,
