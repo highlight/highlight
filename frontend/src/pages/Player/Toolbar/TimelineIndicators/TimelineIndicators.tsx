@@ -63,16 +63,6 @@ const TimelineIndicators = () => {
             })}
             ref={refContainer}
         >
-            {isHighlightAdmin &&
-                selectedTimelineAnnotationTypes.includes('Click') &&
-                rageClicks.length > 0 &&
-                rageClicks.map((rageClick) => (
-                    <RageClickSpan
-                        key={rageClick.startTimestamp}
-                        rageClick={rageClick}
-                    />
-                ))}
-
             {sessionIntervals.map((sessionInterval, index) => (
                 <div
                     key={`${sessionInterval.startPercent}-${index}`}
@@ -110,6 +100,19 @@ const TimelineIndicators = () => {
                                 />
                             );
                         })}
+                    {isHighlightAdmin &&
+                        selectedTimelineAnnotationTypes.includes('Click') &&
+                        rageClicks
+                            .filter(
+                                (rageClick) =>
+                                    rageClick.sessionIntervalIndex === index
+                            )
+                            .map((rageClick) => (
+                                <RageClickSpan
+                                    rageClick={rageClick}
+                                    key={rageClick.startTimestamp}
+                                />
+                            ))}
                 </div>
             ))}
         </aside>

@@ -315,18 +315,25 @@ export const usePlayer = (): ReplayerContextInterface => {
                     setSessionEndTime(replayer.getMetaData().totalTime);
                     if (eventsData?.rage_clicks) {
                         setSessionIntervals((sessionIntervals) => {
-                            const allClickEvents: ParsedHighlightEvent[] = [];
+                            const allClickEvents: (ParsedHighlightEvent & {
+                                sessionIndex: number;
+                            })[] = [];
 
-                            sessionIntervals.forEach((interval) => {
-                                interval.sessionEvents.forEach((event) => {
-                                    if (
-                                        event.type === 5 &&
-                                        event.data.tag === 'Click'
-                                    ) {
-                                        allClickEvents.push(event);
-                                    }
-                                });
-                            });
+                            sessionIntervals.forEach(
+                                (interval, sessionIndex) => {
+                                    interval.sessionEvents.forEach((event) => {
+                                        if (
+                                            event.type === 5 &&
+                                            event.data.tag === 'Click'
+                                        ) {
+                                            allClickEvents.push({
+                                                ...event,
+                                                sessionIndex,
+                                            });
+                                        }
+                                    });
+                                }
+                            );
 
                             const rageClicksWithRelativePositions: RageClick[] = [];
 
@@ -380,6 +387,8 @@ export const usePlayer = (): ReplayerContextInterface => {
                                             matchingStartClickEvent.relativeIntervalPercentage,
                                         endPercentage:
                                             matchingEndClickEvent.relativeIntervalPercentage,
+                                        sessionIntervalIndex:
+                                            matchingStartClickEvent.sessionIndex,
                                     } as RageClick);
                                 }
                             });
