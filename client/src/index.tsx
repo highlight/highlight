@@ -251,7 +251,7 @@ export class Highlight {
             options.disableConsoleRecording;
         this.enableSegmentIntegration = options.enableSegmentIntegration;
         this.enableStrictPrivacy = options.enableStrictPrivacy || false;
-	this.enableCanvasRecording = options.enableCanvasRecording || false;
+        this.enableCanvasRecording = options.enableCanvasRecording || false;
         this.logger = new Logger(this.debugOptions.clientInteractions);
         this._backendUrl =
             options?.backendUrl ||

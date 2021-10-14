@@ -1,3 +1,4 @@
+import JsonOrTextCard from '@pages/Error/components/JsonOrTextCard/JsonOrTextCard';
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
 
@@ -9,7 +10,14 @@ import styles from './StackTraceSection.module.scss';
 
 interface Props {
     errorGroup:
-        | Maybe<Pick<ErrorGroup, 'stack_trace' | 'mapped_stack_trace'>>
+        | Maybe<
+              Pick<
+                  ErrorGroup,
+                  | 'stack_trace'
+                  | 'mapped_stack_trace'
+                  | 'structured_stack_trace'
+              >
+          >
         | undefined;
     loading: boolean;
 }
@@ -20,7 +28,7 @@ const StackTraceSection = ({ errorGroup, loading }: Props) => {
      * We use this to figure out the minimal amount of spacing needed to show all the line numbers.
      */
     const longestLineNumberCharacterLength =
-        errorGroup?.stack_trace.reduce(
+        errorGroup?.structured_stack_trace?.reduce(
             (longestLineNumber, currentStackTrace) => {
                 if (
                     currentStackTrace?.lineNumber &&
@@ -60,24 +68,32 @@ const StackTraceSection = ({ errorGroup, loading }: Props) => {
                     }
                 />
             )}
-            {loading
-                ? Array(5)
-                      .fill(0)
-                      .map((_, index) => (
-                          <Skeleton key={index} className={styles.skeleton} />
-                      ))
-                : errorGroup?.stack_trace.map((e, i) => (
-                      <StackSection
-                          key={i}
-                          fileName={e?.fileName ?? ''}
-                          functionName={e?.functionName ?? ''}
-                          lineNumber={e?.lineNumber ?? 0}
-                          columnNumber={e?.columnNumber ?? 0}
-                          longestLineNumberCharacterLength={
-                              longestLineNumberCharacterLength
-                          }
-                      />
-                  ))}
+            {loading ? (
+                Array(5)
+                    .fill(0)
+                    .map((_, index) => (
+                        <Skeleton key={index} className={styles.skeleton} />
+                    ))
+            ) : errorGroup?.structured_stack_trace?.length ? (
+                errorGroup?.structured_stack_trace?.map((e, i) => (
+                    <StackSection
+                        key={i}
+                        fileName={e?.fileName ?? ''}
+                        functionName={e?.functionName ?? ''}
+                        lineNumber={e?.lineNumber ?? 0}
+                        columnNumber={e?.columnNumber ?? 0}
+                        longestLineNumberCharacterLength={
+                            longestLineNumberCharacterLength
+                        }
+                    />
+                ))
+            ) : (
+                <div className={styles.stackTraceCard}>
+                    <JsonOrTextCard
+                        jsonOrText={errorGroup?.stack_trace || ''}
+                    />
+                </div>
+            )}
         </div>
     );
 };

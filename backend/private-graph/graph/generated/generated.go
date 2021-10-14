@@ -120,20 +120,21 @@ type ComplexityRoot struct {
 	}
 
 	ErrorGroup struct {
-		CreatedAt        func(childComplexity int) int
-		Environments     func(childComplexity int) int
-		ErrorFrequency   func(childComplexity int) int
-		Event            func(childComplexity int) int
-		FieldGroup       func(childComplexity int) int
-		ID               func(childComplexity int) int
-		IsPublic         func(childComplexity int) int
-		MappedStackTrace func(childComplexity int) int
-		MetadataLog      func(childComplexity int) int
-		ProjectID        func(childComplexity int) int
-		SecureID         func(childComplexity int) int
-		StackTrace       func(childComplexity int) int
-		State            func(childComplexity int) int
-		Type             func(childComplexity int) int
+		CreatedAt            func(childComplexity int) int
+		Environments         func(childComplexity int) int
+		ErrorFrequency       func(childComplexity int) int
+		Event                func(childComplexity int) int
+		FieldGroup           func(childComplexity int) int
+		ID                   func(childComplexity int) int
+		IsPublic             func(childComplexity int) int
+		MappedStackTrace     func(childComplexity int) int
+		MetadataLog          func(childComplexity int) int
+		ProjectID            func(childComplexity int) int
+		SecureID             func(childComplexity int) int
+		StackTrace           func(childComplexity int) int
+		State                func(childComplexity int) int
+		StructuredStackTrace func(childComplexity int) int
+		Type                 func(childComplexity int) int
 	}
 
 	ErrorMetadata struct {
@@ -151,20 +152,20 @@ type ComplexityRoot struct {
 	}
 
 	ErrorObject struct {
-		ColumnNumber       func(childComplexity int) int
-		ErrorGroupID       func(childComplexity int) int
-		ErrorGroupSecureID func(childComplexity int) int
-		Event              func(childComplexity int) int
-		ID                 func(childComplexity int) int
-		LineNumber         func(childComplexity int) int
-		Payload            func(childComplexity int) int
-		ProjectID          func(childComplexity int) int
-		SessionID          func(childComplexity int) int
-		Source             func(childComplexity int) int
-		StackTrace         func(childComplexity int) int
-		Timestamp          func(childComplexity int) int
-		Type               func(childComplexity int) int
-		URL                func(childComplexity int) int
+		ColumnNumber         func(childComplexity int) int
+		ErrorGroupID         func(childComplexity int) int
+		ErrorGroupSecureID   func(childComplexity int) int
+		Event                func(childComplexity int) int
+		ID                   func(childComplexity int) int
+		LineNumber           func(childComplexity int) int
+		Payload              func(childComplexity int) int
+		ProjectID            func(childComplexity int) int
+		SessionID            func(childComplexity int) int
+		Source               func(childComplexity int) int
+		StructuredStackTrace func(childComplexity int) int
+		Timestamp            func(childComplexity int) int
+		Type                 func(childComplexity int) int
+		URL                  func(childComplexity int) int
 	}
 
 	ErrorResults struct {
@@ -503,7 +504,7 @@ type ErrorCommentResolver interface {
 }
 type ErrorGroupResolver interface {
 	Event(ctx context.Context, obj *model1.ErrorGroup) ([]*string, error)
-	StackTrace(ctx context.Context, obj *model1.ErrorGroup) ([]*model.ErrorTrace, error)
+	StructuredStackTrace(ctx context.Context, obj *model1.ErrorGroup) ([]*model.ErrorTrace, error)
 	MetadataLog(ctx context.Context, obj *model1.ErrorGroup) ([]*model.ErrorMetadata, error)
 
 	FieldGroup(ctx context.Context, obj *model1.ErrorGroup) ([]*model1.ErrorField, error)
@@ -515,7 +516,7 @@ type ErrorObjectResolver interface {
 	ErrorGroupSecureID(ctx context.Context, obj *model1.ErrorObject) (string, error)
 	Event(ctx context.Context, obj *model1.ErrorObject) ([]*string, error)
 
-	StackTrace(ctx context.Context, obj *model1.ErrorObject) ([]interface{}, error)
+	StructuredStackTrace(ctx context.Context, obj *model1.ErrorObject) ([]*model.ErrorTrace, error)
 }
 type ErrorSegmentResolver interface {
 	Params(ctx context.Context, obj *model1.ErrorSegment) (*model1.ErrorSearchParams, error)
@@ -1015,6 +1016,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorGroup.State(childComplexity), true
 
+	case "ErrorGroup.structured_stack_trace":
+		if e.complexity.ErrorGroup.StructuredStackTrace == nil {
+			break
+		}
+
+		return e.complexity.ErrorGroup.StructuredStackTrace(childComplexity), true
+
 	case "ErrorGroup.type":
 		if e.complexity.ErrorGroup.Type == nil {
 			break
@@ -1169,12 +1177,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorObject.Source(childComplexity), true
 
-	case "ErrorObject.stack_trace":
-		if e.complexity.ErrorObject.StackTrace == nil {
+	case "ErrorObject.structured_stack_trace":
+		if e.complexity.ErrorObject.StructuredStackTrace == nil {
 			break
 		}
 
-		return e.complexity.ErrorObject.StackTrace(childComplexity), true
+		return e.complexity.ErrorObject.StructuredStackTrace(childComplexity), true
 
 	case "ErrorObject.timestamp":
 		if e.complexity.ErrorObject.Timestamp == nil {
@@ -3583,7 +3591,7 @@ type ErrorObject {
     source: String
     lineNumber: Int
     columnNumber: Int
-    stack_trace: [Any]
+    structured_stack_trace: [ErrorTrace]!
     timestamp: Timestamp
     payload: String
 }
@@ -3601,9 +3609,10 @@ type ErrorGroup {
     project_id: Int!
     type: String!
     event: [String]!
-    stack_trace: [ErrorTrace]!
+    structured_stack_trace: [ErrorTrace]!
     metadata_log: [ErrorMetadata]!
     mapped_stack_trace: String
+    stack_trace: String
     field_group: [ErrorField]
     state: ErrorState!
     environments: String
@@ -8553,7 +8562,7 @@ func (ec *executionContext) _ErrorGroup_event(ctx context.Context, field graphql
 	return ec.marshalNString2ᚕᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ErrorGroup_stack_trace(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
+func (ec *executionContext) _ErrorGroup_structured_stack_trace(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -8571,7 +8580,7 @@ func (ec *executionContext) _ErrorGroup_stack_trace(ctx context.Context, field g
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ErrorGroup().StackTrace(rctx, obj)
+		return ec.resolvers.ErrorGroup().StructuredStackTrace(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8653,6 +8662,38 @@ func (ec *executionContext) _ErrorGroup_mapped_stack_trace(ctx context.Context, 
 	res := resTmp.(*string)
 	fc.Result = res
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorGroup_stack_trace(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ErrorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StackTrace, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorGroup_field_group(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
@@ -9564,7 +9605,7 @@ func (ec *executionContext) _ErrorObject_columnNumber(ctx context.Context, field
 	return ec.marshalOInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ErrorObject_stack_trace(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
+func (ec *executionContext) _ErrorObject_structured_stack_trace(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -9582,18 +9623,21 @@ func (ec *executionContext) _ErrorObject_stack_trace(ctx context.Context, field 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ErrorObject().StackTrace(rctx, obj)
+		return ec.resolvers.ErrorObject().StructuredStackTrace(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.([]interface{})
+	res := resTmp.([]*model.ErrorTrace)
 	fc.Result = res
-	return ec.marshalOAny2ᚕinterface(ctx, field.Selections, res)
+	return ec.marshalNErrorTrace2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorTrace(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorObject_timestamp(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
@@ -20471,7 +20515,7 @@ func (ec *executionContext) _ErrorGroup(ctx context.Context, sel ast.SelectionSe
 				}
 				return res
 			})
-		case "stack_trace":
+		case "structured_stack_trace":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -20479,7 +20523,7 @@ func (ec *executionContext) _ErrorGroup(ctx context.Context, sel ast.SelectionSe
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._ErrorGroup_stack_trace(ctx, field, obj)
+				res = ec._ErrorGroup_structured_stack_trace(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -20501,6 +20545,8 @@ func (ec *executionContext) _ErrorGroup(ctx context.Context, sel ast.SelectionSe
 			})
 		case "mapped_stack_trace":
 			out.Values[i] = ec._ErrorGroup_mapped_stack_trace(ctx, field, obj)
+		case "stack_trace":
+			out.Values[i] = ec._ErrorGroup_stack_trace(ctx, field, obj)
 		case "field_group":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -20689,7 +20735,7 @@ func (ec *executionContext) _ErrorObject(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = ec._ErrorObject_lineNumber(ctx, field, obj)
 		case "columnNumber":
 			out.Values[i] = ec._ErrorObject_columnNumber(ctx, field, obj)
-		case "stack_trace":
+		case "structured_stack_trace":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -20697,7 +20743,10 @@ func (ec *executionContext) _ErrorObject(ctx context.Context, sel ast.SelectionS
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._ErrorObject_stack_trace(ctx, field, obj)
+				res = ec._ErrorObject_structured_stack_trace(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			})
 		case "timestamp":

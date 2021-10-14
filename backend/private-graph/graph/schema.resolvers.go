@@ -74,20 +74,16 @@ func (r *errorGroupResolver) Event(ctx context.Context, obj *model.ErrorGroup) (
 	return util.JsonStringToStringArray(obj.Event), nil
 }
 
-func (r *errorGroupResolver) StackTrace(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorTrace, error) {
+func (r *errorGroupResolver) StructuredStackTrace(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorTrace, error) {
 	if (obj.MappedStackTrace == nil || *obj.MappedStackTrace == "") && obj.StackTrace == "" {
 		return nil, nil
 	}
-	var ret []*modelInputs.ErrorTrace
 	stackTraceString := obj.StackTrace
 	if obj.MappedStackTrace != nil && *obj.MappedStackTrace != "" && *obj.MappedStackTrace != "null" {
 		stackTraceString = *obj.MappedStackTrace
 	}
-	if err := json.Unmarshal([]byte(stackTraceString), &ret); err != nil {
-		log.Error(e.Wrap(err, "error unmarshalling MappedStackTrace"))
-		return nil, nil
-	}
-	return ret, nil
+
+	return r.UnmarshalStackTrace(stackTraceString)
 }
 
 func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorMetadata, error) {
@@ -174,14 +170,8 @@ func (r *errorObjectResolver) Event(ctx context.Context, obj *model.ErrorObject)
 	return util.JsonStringToStringArray(obj.Event), nil
 }
 
-func (r *errorObjectResolver) StackTrace(ctx context.Context, obj *model.ErrorObject) ([]interface{}, error) {
-	frames := []interface{}{}
-	if obj.StackTrace != nil {
-		if err := json.Unmarshal([]byte(*obj.StackTrace), &frames); err != nil {
-			return nil, fmt.Errorf("error decoding stack frame data: %v", err)
-		}
-	}
-	return frames, nil
+func (r *errorObjectResolver) StructuredStackTrace(ctx context.Context, obj *model.ErrorObject) ([]*modelInputs.ErrorTrace, error) {
+	return r.UnmarshalStackTrace(*obj.StackTrace)
 }
 
 func (r *errorSegmentResolver) Params(ctx context.Context, obj *model.ErrorSegment) (*model.ErrorSearchParams, error) {
