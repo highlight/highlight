@@ -1950,8 +1950,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionID *int,
 	if len(email) > 0 {
 		// Check if we already have this user's data in the db
 		// If so, return it
-		userDetailsModel := &model.EnhancedUserDetails{}
-		p, co := clearbit.Person{}, clearbit.Company{}
+		userDetailsModel := &model.EnhancedUserDetails{} p, co := clearbit.Person{}, clearbit.Company{}
 		if err := r.DB.Where(&model.EnhancedUserDetails{Email: &email}).First(&userDetailsModel).Error; err != nil {
 			log.Infof("retrieving api response for clearbit lookup")
 			pc, _, err := r.ClearbitClient.Person.FindCombined(clearbit.PersonFindParams{Email: email})
