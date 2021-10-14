@@ -182,7 +182,6 @@ func main() {
 		}
 		r.Route(privateEndpoint, func(r chi.Router) {
 			r.Use(private.PrivateMiddleware)
-			r.Use(highlightChi.Middleware)
 			privateServer := ghandler.NewDefaultServer(privategen.NewExecutableSchema(
 				privategen.Config{
 					Resolvers: privateResolver,
