@@ -1,4 +1,5 @@
 export const actionIcon: string;
+export const activityGraphContainer: string;
 export const avatarWrapper: string;
 export const bottomText: string;
 export const cardAnnotation: string;

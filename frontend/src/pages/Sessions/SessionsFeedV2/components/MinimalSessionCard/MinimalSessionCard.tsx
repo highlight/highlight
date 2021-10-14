@@ -2,6 +2,7 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import HighlightGate from '@components/HighlightGate/HighlightGate';
 import { ALERT_CONFIGURATIONS } from '@pages/Alerts/Alerts';
 import { formatShortTime } from '@pages/Home/components/KeyPerformanceIndicators/utils/utils';
 import { useParams } from '@util/react-router/useParams';
@@ -355,6 +356,14 @@ const MinimalSessionCard = React.memo(
                         </div>
                     )}
                 </div>
+
+                {!errorVersion && showDetailedSessionView && (
+                    <HighlightGate>
+                        <div className={styles.activityGraphContainer}>
+                            <h2>hi</h2>
+                        </div>
+                    </HighlightGate>
+                )}
             </div>
         );
 
