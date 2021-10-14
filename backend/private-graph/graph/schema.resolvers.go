@@ -1929,6 +1929,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionID *int,
 		return nil, e.Wrap(err, "admin not session owner")
 	}
 	sessionObj := &model.Session{}
+	// TODO: filter fields by type='user'.
 	res := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&sessionObj)
 	if res.Error != nil {
 		return nil, fmt.Errorf("error reading from session: %v", res.Error)

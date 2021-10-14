@@ -169,6 +169,7 @@ query GetErrorComments($error_group_secure_id: String!) {
 
 query GetEnhancedUserDetails($session_secure_id: String!) {
     enhanced_user_details(session_secure_id: $session_secure_id) {
+        id
         name
         bio
         avatar
