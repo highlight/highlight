@@ -811,7 +811,7 @@ func (r *Resolver) UnmarshalStackTrace(stackTraceString string) ([]*modelInputs.
 	empty := modelInputs.ErrorTrace{}
 	var ret []*modelInputs.ErrorTrace
 	for _, frame := range unmarshalled {
-		if *frame != empty {
+		if frame != nil && *frame != empty {
 			ret = append(ret, frame)
 		}
 	}
