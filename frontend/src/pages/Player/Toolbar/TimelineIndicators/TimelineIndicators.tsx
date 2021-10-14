@@ -56,7 +56,6 @@ const TimelineIndicators = () => {
     ) {
         return null;
     }
-
     return (
         <aside
             className={classNames(styles.container, {

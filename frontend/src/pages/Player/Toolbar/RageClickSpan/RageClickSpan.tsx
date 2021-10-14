@@ -95,11 +95,8 @@ const RageClickSpan = ({ rageClick }: Props) => {
                     [styles.hover]: isHovered,
                 })}
                 style={{
-                    left: `${rageClick.startPercentage * 100}%`,
-                    width: `${
-                        (rageClick.endPercentage - rageClick.startPercentage) *
-                        100
-                    }%`,
+                    left: `calc(${rageClick.startPercentage}% - 4px)`,
+                    width: `calc((${rageClick.endPercentage}% + 6px) - (${rageClick.startPercentage}% - 4px))`,
                 }}
             >
                 <div className={styles.icon}></div>
