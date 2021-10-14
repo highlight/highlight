@@ -42,6 +42,7 @@ export type Session = {
     environment?: Maybe<Scalars['String']>;
     app_version?: Maybe<Scalars['String']>;
     client_version?: Maybe<Scalars['String']>;
+    client_config?: Maybe<Scalars['String']>;
     language: Scalars['String'];
     identifier: Scalars['String'];
     created_at?: Maybe<Scalars['Timestamp']>;
@@ -159,7 +160,7 @@ export type ErrorObject = {
     source?: Maybe<Scalars['String']>;
     lineNumber?: Maybe<Scalars['Int']>;
     columnNumber?: Maybe<Scalars['Int']>;
-    stack_trace?: Maybe<Array<Maybe<Scalars['Any']>>>;
+    structured_stack_trace: Array<Maybe<ErrorTrace>>;
     timestamp?: Maybe<Scalars['Timestamp']>;
     payload?: Maybe<Scalars['String']>;
 };
@@ -179,9 +180,10 @@ export type ErrorGroup = {
     project_id: Scalars['Int'];
     type: Scalars['String'];
     event: Array<Maybe<Scalars['String']>>;
-    stack_trace: Array<Maybe<ErrorTrace>>;
+    structured_stack_trace: Array<Maybe<ErrorTrace>>;
     metadata_log: Array<Maybe<ErrorMetadata>>;
     mapped_stack_trace?: Maybe<Scalars['String']>;
+    stack_trace?: Maybe<Scalars['String']>;
     field_group?: Maybe<Array<Maybe<ErrorField>>>;
     state: ErrorState;
     environments?: Maybe<Scalars['String']>;

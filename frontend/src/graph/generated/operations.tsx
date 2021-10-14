@@ -933,10 +933,21 @@ export type GetSessionPayloadQuery = { __typename?: 'Query' } & Pick<
                         | 'type'
                         | 'url'
                         | 'source'
-                        | 'stack_trace'
                         | 'timestamp'
                         | 'payload'
-                    >
+                    > & {
+                            structured_stack_trace: Array<
+                                Types.Maybe<
+                                    { __typename?: 'ErrorTrace' } & Pick<
+                                        Types.ErrorTrace,
+                                        | 'fileName'
+                                        | 'lineNumber'
+                                        | 'functionName'
+                                        | 'columnNumber'
+                                    >
+                                >
+                            >;
+                        }
                 >
             >
         >;
@@ -944,6 +955,32 @@ export type GetSessionPayloadQuery = { __typename?: 'Query' } & Pick<
             { __typename?: 'RageClickEvent' } & Pick<
                 Types.RageClickEvent,
                 'start_timestamp' | 'end_timestamp' | 'total_clicks'
+            >
+        >;
+        session_comments: Array<
+            Types.Maybe<
+                { __typename?: 'SessionComment' } & Pick<
+                    Types.SessionComment,
+                    | 'id'
+                    | 'timestamp'
+                    | 'session_id'
+                    | 'session_secure_id'
+                    | 'created_at'
+                    | 'updated_at'
+                    | 'project_id'
+                    | 'text'
+                    | 'x_coordinate'
+                    | 'y_coordinate'
+                    | 'type'
+                    | 'metadata'
+                > & {
+                        author?: Types.Maybe<
+                            { __typename?: 'SanitizedAdmin' } & Pick<
+                                Types.SanitizedAdmin,
+                                'id' | 'name' | 'email' | 'photo_url'
+                            >
+                        >;
+                    }
             >
         >;
     };
@@ -980,6 +1017,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'payload_size'
             | 'within_billing_quota'
             | 'client_version'
+            | 'client_config'
             | 'is_public'
         > & {
                 fields?: Types.Maybe<
@@ -1480,10 +1518,11 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
             | 'event'
             | 'state'
             | 'mapped_stack_trace'
+            | 'stack_trace'
             | 'error_frequency'
             | 'is_public'
         > & {
-                stack_trace: Array<
+                structured_stack_trace: Array<
                     Types.Maybe<
                         { __typename?: 'ErrorTrace' } & Pick<
                             Types.ErrorTrace,
@@ -1547,9 +1586,10 @@ export type GetErrorGroupsQuery = { __typename?: 'Query' } & {
                         | 'event'
                         | 'state'
                         | 'environments'
+                        | 'stack_trace'
                         | 'error_frequency'
                     > & {
-                            stack_trace: Array<
+                            structured_stack_trace: Array<
                                 Types.Maybe<
                                     { __typename?: 'ErrorTrace' } & Pick<
                                         Types.ErrorTrace,

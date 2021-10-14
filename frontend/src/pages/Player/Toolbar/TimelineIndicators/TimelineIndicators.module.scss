@@ -26,10 +26,15 @@
     }
 }
 
-.progressIndicator {
-    background: var(--color-purple);
+.sessionInterval {
+    align-items: center;
+    background: transparent;
+    display: flex;
     height: 100%;
     position: absolute;
     top: 0;
-    width: 1px;
+
+    &.active {
+        background: transparent;
+    }
 }

@@ -2635,7 +2635,12 @@ export const GetSessionPayloadDocument = gql`
             type
             url
             source
-            stack_trace
+            structured_stack_trace {
+                fileName
+                lineNumber
+                functionName
+                columnNumber
+            }
             timestamp
             payload
         }
@@ -2643,6 +2648,26 @@ export const GetSessionPayloadDocument = gql`
             start_timestamp
             end_timestamp
             total_clicks
+        }
+        session_comments(session_secure_id: $session_secure_id) {
+            id
+            timestamp
+            session_id
+            session_secure_id
+            created_at
+            updated_at
+            project_id
+            text
+            author {
+                id
+                name
+                email
+                photo_url
+            }
+            x_coordinate
+            y_coordinate
+            type
+            metadata
         }
     }
 `;
@@ -2727,6 +2752,7 @@ export const GetSessionDocument = gql`
             payload_size
             within_billing_quota
             client_version
+            client_config
             is_public
         }
     }
@@ -4049,13 +4075,14 @@ export const GetErrorGroupDocument = gql`
             project_id
             event
             state
-            stack_trace {
+            structured_stack_trace {
                 fileName
                 lineNumber
                 functionName
                 columnNumber
             }
             mapped_stack_trace
+            stack_trace
             metadata_log {
                 error_id
                 session_secure_id
@@ -4142,7 +4169,8 @@ export const GetErrorGroupsDocument = gql`
                 state
                 state
                 environments
-                stack_trace {
+                stack_trace
+                structured_stack_trace {
                     fileName
                     lineNumber
                     functionName

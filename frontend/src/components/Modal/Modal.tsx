@@ -40,6 +40,7 @@ const Modal: React.FC<Props> = ({ children, title, minimal, ...props }) => {
             className={styles.modal}
             closable={!minimal}
             bodyStyle={bodyStyle}
+            maskClosable
         >
             {title && <h3 className={styles.title}>{title}</h3>}
             <main className={styles.modalContent}>{children}</main>
