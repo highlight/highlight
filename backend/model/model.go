@@ -124,6 +124,7 @@ var Models = []interface{}{
 	&Project{},
 	&RageClickEvent{},
 	&Workspace{},
+	&EnhancedUserDetails{},
 }
 
 func init() {
@@ -208,6 +209,13 @@ type Alert struct {
 	Name                 *string
 	Type                 *string `gorm:"index"`
 	LastAdminToEditID    int     `gorm:"last_admin_to_edit_id"`
+}
+
+type EnhancedUserDetails struct {
+	Model
+	Email       *string `gorm:"unique_index"`
+	PersonJSON  *string
+	CompanyJSON *string
 }
 
 type ErrorAlert struct {

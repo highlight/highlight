@@ -94,6 +94,28 @@ export enum PlanType {
     Enterprise = 'Enterprise',
 }
 
+export type EnhancedUserDetailsResult = {
+    __typename?: 'EnhancedUserDetailsResult';
+    name?: Maybe<Scalars['String']>;
+    avatar?: Maybe<Scalars['String']>;
+    bio?: Maybe<Scalars['String']>;
+    socials?: Maybe<Array<Maybe<SocialLink>>>;
+};
+
+export type SocialLink = {
+    __typename?: 'SocialLink';
+    type: SocialType;
+    link?: Maybe<Scalars['String']>;
+};
+
+export enum SocialType {
+    Github = 'Github',
+    LinkedIn = 'LinkedIn',
+    Twitter = 'Twitter',
+    Facebook = 'Facebook',
+    Site = 'Site',
+}
+
 export enum ErrorState {
     Open = 'OPEN',
     Resolved = 'RESOLVED',
@@ -490,6 +512,7 @@ export type Query = {
     error_groups?: Maybe<ErrorResults>;
     error_group?: Maybe<ErrorGroup>;
     messages?: Maybe<Array<Maybe<Scalars['Any']>>>;
+    enhanced_user_details?: Maybe<EnhancedUserDetailsResult>;
     errors?: Maybe<Array<Maybe<ErrorObject>>>;
     resources?: Maybe<Array<Maybe<Scalars['Any']>>>;
     session_comments: Array<Maybe<SessionComment>>;
@@ -566,6 +589,11 @@ export type QueryError_GroupArgs = {
 };
 
 export type QueryMessagesArgs = {
+    session_id?: Maybe<Scalars['ID']>;
+    session_secure_id?: Maybe<Scalars['String']>;
+};
+
+export type QueryEnhanced_User_DetailsArgs = {
     session_id?: Maybe<Scalars['ID']>;
     session_secure_id?: Maybe<Scalars['String']>;
 };

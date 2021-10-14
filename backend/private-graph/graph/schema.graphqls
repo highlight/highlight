@@ -74,6 +74,26 @@ enum PlanType {
     Enterprise
 }
 
+type EnhancedUserDetailsResult {
+    name: String
+    avatar: String
+    bio: String
+    socials: [SocialLink]
+}
+
+type SocialLink {
+    type: SocialType!
+    link: String
+}
+
+enum SocialType {
+    Github
+    LinkedIn
+    Twitter
+    Facebook
+    Site
+}
+
 enum ErrorState {
     OPEN
     RESOLVED
@@ -446,6 +466,10 @@ type Query {
     ): ErrorResults
     error_group(id: ID, secure_id: String): ErrorGroup
     messages(session_id: ID, session_secure_id: String): [Any]
+    enhanced_user_details(
+        session_id: ID
+        session_secure_id: String
+    ): EnhancedUserDetailsResult
     errors(session_id: ID, session_secure_id: String): [ErrorObject]
     resources(session_id: ID, session_secure_id: String): [Any]
     session_comments(

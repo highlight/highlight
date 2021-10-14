@@ -1197,6 +1197,30 @@ export type GetErrorCommentsQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetEnhancedUserDetailsQueryVariables = Types.Exact<{
+    session_secure_id: Types.Scalars['String'];
+}>;
+
+export type GetEnhancedUserDetailsQuery = { __typename?: 'Query' } & {
+    enhanced_user_details?: Types.Maybe<
+        { __typename?: 'EnhancedUserDetailsResult' } & Pick<
+            Types.EnhancedUserDetailsResult,
+            'name' | 'bio' | 'avatar'
+        > & {
+                socials?: Types.Maybe<
+                    Array<
+                        Types.Maybe<
+                            { __typename?: 'SocialLink' } & Pick<
+                                Types.SocialLink,
+                                'type' | 'link'
+                            >
+                        >
+                    >
+                >;
+            }
+    >;
+};
+
 export type GetOnboardingStepsQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     admin_id: Types.Scalars['ID'];
@@ -2327,6 +2351,7 @@ export const namedOperations = {
         GetNotifications: 'GetNotifications' as const,
         GetSessionCommentsForAdmin: 'GetSessionCommentsForAdmin' as const,
         GetErrorComments: 'GetErrorComments' as const,
+        GetEnhancedUserDetails: 'GetEnhancedUserDetails' as const,
         GetOnboardingSteps: 'GetOnboardingSteps' as const,
         GetSessions: 'GetSessions' as const,
         GetProjects: 'GetProjects' as const,

@@ -193,6 +193,19 @@ query GetErrorComments($error_group_secure_id: String!) {
     }
 }
 
+query GetEnhancedUserDetails($session_secure_id: String!) {
+    enhanced_user_details(session_secure_id: $session_secure_id) {
+        id
+        name
+        bio
+        avatar
+        socials {
+            type
+            link
+        }
+    }
+}
+
 query GetOnboardingSteps($project_id: ID!, $admin_id: ID!) {
     workspace: workspace_for_project(project_id: $project_id) {
         id
