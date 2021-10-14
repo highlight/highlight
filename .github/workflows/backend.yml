@@ -73,7 +73,7 @@ jobs:
                 make public-gen 
             - name: Diff Check
               run: |
-                diff -ry backend/ tmp/
+                diff -r backend/ tmp/
     build:
         needs: code-quality-check
         runs-on: ubuntu-latest
