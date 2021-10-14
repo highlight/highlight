@@ -1,7 +1,11 @@
 import { SessionData } from '../../../index';
 import { NetworkListenerCallback } from '../network-listener';
 import { Headers, Request, RequestResponsePair, Response } from './models';
-import { createNetworkRequestId, shouldNetworkRequestBeRecorded, shouldNetworkRequestBeTraced } from './utils';
+import {
+    createNetworkRequestId,
+    shouldNetworkRequestBeRecorded,
+    shouldNetworkRequestBeTraced,
+} from './utils';
 
 interface BrowserXHR extends XMLHttpRequest {
     _method: string;
@@ -19,7 +23,7 @@ export const XHRListener = (
     backendUrl: string,
     tracingOrigins: string[],
     urlBlocklist: string[],
-    sessionData: SessionData,
+    sessionData: SessionData
 ) => {
     const XHR = XMLHttpRequest.prototype;
 
@@ -55,7 +59,11 @@ export const XHRListener = (
 
     XHR.send = function (this: BrowserXHR, postData: any) {
         if (
-            !shouldNetworkRequestBeRecorded(this._url, backendUrl, tracingOrigins)
+            !shouldNetworkRequestBeRecorded(
+                this._url,
+                backendUrl,
+                tracingOrigins
+            )
         ) {
             // @ts-expect-error
             return originalSend.apply(this, arguments);
@@ -63,7 +71,10 @@ export const XHRListener = (
 
         const requestId = createNetworkRequestId();
         if (shouldNetworkRequestBeTraced(this._url, tracingOrigins)) {
-            this.setRequestHeader('X-Highlight-Request', sessionData.sessionID.toString() + "/" + requestId);
+            this.setRequestHeader(
+                'X-Highlight-Request',
+                sessionData.sessionID.toString() + '/' + requestId
+            );
         }
 
         const shouldRecordHeaderAndBody = this._shouldRecordHeaderAndBody;
@@ -86,7 +97,15 @@ export const XHRListener = (
             if (shouldRecordHeaderAndBody) {
                 if (postData) {
                     if (typeof postData === 'string') {
-                        requestModel['body'] = postData;
+                        // TODO: This should be removed when we move recording logic from client to firstload.
+                        // This is only for development purposes. We don't want to send the body of pushPayload requests because it'll end up being recursive.
+                        if (
+                            (requestModel.url.includes('localhost') ||
+                                requestModel.url.includes('highlight.run')) &&
+                            !postData.includes('pushPayload')
+                        ) {
+                            requestModel['body'] = postData;
+                        }
                     } else if (
                         typeof postData === 'object' ||
                         typeof postData === 'number' ||
