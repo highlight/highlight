@@ -7,7 +7,12 @@ query GetSessionPayload($session_secure_id: String!) {
         type
         url
         source
-        stack_trace
+        structured_stack_trace {
+            fileName
+            lineNumber
+            functionName
+            columnNumber
+        }
         timestamp
         payload
     }
@@ -406,13 +411,14 @@ query GetErrorGroup($secure_id: String!) {
         project_id
         event
         state
-        stack_trace {
+        structured_stack_trace {
             fileName
             lineNumber
             functionName
             columnNumber
         }
         mapped_stack_trace
+        stack_trace
         metadata_log {
             error_id
             session_secure_id
@@ -449,7 +455,8 @@ query GetErrorGroups(
             state
             state
             environments
-            stack_trace {
+            stack_trace
+            structured_stack_trace {
                 fileName
                 lineNumber
                 functionName

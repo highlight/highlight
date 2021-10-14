@@ -247,11 +247,11 @@ export class Highlight {
         this.disableConsoleRecording =
             // Disable recording the console on localhost.
             // We're doing this because on some development builds, the console ends up in an infinite loop.
-            window.location.hostname === 'localhost' ||
+            // window.location.hostname === 'localhost' ||
             options.disableConsoleRecording;
         this.enableSegmentIntegration = options.enableSegmentIntegration;
         this.enableStrictPrivacy = options.enableStrictPrivacy || false;
-	this.enableCanvasRecording = options.enableCanvasRecording || false;
+        this.enableCanvasRecording = options.enableCanvasRecording || false;
         this.logger = new Logger(this.debugOptions.clientInteractions);
         this._backendUrl =
             options?.backendUrl ||

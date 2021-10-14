@@ -2635,7 +2635,12 @@ export const GetSessionPayloadDocument = gql`
             type
             url
             source
-            stack_trace
+            structured_stack_trace {
+                fileName
+                lineNumber
+                functionName
+                columnNumber
+            }
             timestamp
             payload
         }
@@ -4070,13 +4075,14 @@ export const GetErrorGroupDocument = gql`
             project_id
             event
             state
-            stack_trace {
+            structured_stack_trace {
                 fileName
                 lineNumber
                 functionName
                 columnNumber
             }
             mapped_stack_trace
+            stack_trace
             metadata_log {
                 error_id
                 session_secure_id
@@ -4163,7 +4169,8 @@ export const GetErrorGroupsDocument = gql`
                 state
                 state
                 environments
-                stack_trace {
+                stack_trace
+                structured_stack_trace {
                     fileName
                     lineNumber
                     functionName

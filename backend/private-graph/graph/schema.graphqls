@@ -135,7 +135,7 @@ type ErrorObject {
     source: String
     lineNumber: Int
     columnNumber: Int
-    stack_trace: [Any]
+    structured_stack_trace: [ErrorTrace]!
     timestamp: Timestamp
     payload: String
 }
@@ -153,9 +153,10 @@ type ErrorGroup {
     project_id: Int!
     type: String!
     event: [String]!
-    stack_trace: [ErrorTrace]!
+    structured_stack_trace: [ErrorTrace]!
     metadata_log: [ErrorMetadata]!
     mapped_stack_trace: String
+    stack_trace: String
     field_group: [ErrorField]
     state: ErrorState!
     environments: String

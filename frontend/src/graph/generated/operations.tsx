@@ -933,10 +933,21 @@ export type GetSessionPayloadQuery = { __typename?: 'Query' } & Pick<
                         | 'type'
                         | 'url'
                         | 'source'
-                        | 'stack_trace'
                         | 'timestamp'
                         | 'payload'
-                    >
+                    > & {
+                            structured_stack_trace: Array<
+                                Types.Maybe<
+                                    { __typename?: 'ErrorTrace' } & Pick<
+                                        Types.ErrorTrace,
+                                        | 'fileName'
+                                        | 'lineNumber'
+                                        | 'functionName'
+                                        | 'columnNumber'
+                                    >
+                                >
+                            >;
+                        }
                 >
             >
         >;
@@ -1507,10 +1518,11 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
             | 'event'
             | 'state'
             | 'mapped_stack_trace'
+            | 'stack_trace'
             | 'error_frequency'
             | 'is_public'
         > & {
-                stack_trace: Array<
+                structured_stack_trace: Array<
                     Types.Maybe<
                         { __typename?: 'ErrorTrace' } & Pick<
                             Types.ErrorTrace,
@@ -1574,9 +1586,10 @@ export type GetErrorGroupsQuery = { __typename?: 'Query' } & {
                         | 'event'
                         | 'state'
                         | 'environments'
+                        | 'stack_trace'
                         | 'error_frequency'
                     > & {
-                            stack_trace: Array<
+                            structured_stack_trace: Array<
                                 Types.Maybe<
                                     { __typename?: 'ErrorTrace' } & Pick<
                                         Types.ErrorTrace,

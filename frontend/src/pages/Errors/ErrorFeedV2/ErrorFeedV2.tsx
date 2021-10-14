@@ -175,7 +175,10 @@ const ErrorCardV2 = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                             style={{ width: '240px' }}
                         >
                             <div className={styles.topText} dir="rtl">
-                                {errorGroup?.stack_trace[0]?.fileName}
+                                {
+                                    errorGroup?.structured_stack_trace[0]
+                                        ?.fileName
+                                }
                             </div>
                             <div
                                 className={classNames(

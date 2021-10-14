@@ -798,3 +798,23 @@ func (r *Resolver) MarshalSlackChannelsToSanitizedSlackChannels(slackChannels []
 
 	return &channelsString, nil
 }
+
+func (r *Resolver) UnmarshalStackTrace(stackTraceString string) ([]*modelInputs.ErrorTrace, error) {
+	var unmarshalled []*modelInputs.ErrorTrace
+	if err := json.Unmarshal([]byte(stackTraceString), &unmarshalled); err != nil {
+		// Stack trace may not be able to be unmarshalled as the format may differ
+		// based on the error source. This should not be treated as an error.
+		return nil, nil
+	}
+
+	// Keep only non-empty stack frames
+	empty := modelInputs.ErrorTrace{}
+	var ret []*modelInputs.ErrorTrace
+	for _, frame := range unmarshalled {
+		if *frame != empty {
+			ret = append(ret, frame)
+		}
+	}
+
+	return ret, nil
+}
