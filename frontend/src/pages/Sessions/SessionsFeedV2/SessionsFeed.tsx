@@ -39,7 +39,7 @@ export const SessionFeed = React.memo(() => {
     // We want to show live sessions to new users who have just integrated.
     // If we don't show them live sessions, their session feed will be empty unless they turn on live sessions.
     // This is a bad experience so we override the live sessions filter.
-    const [shouldShowLiveSessions, setShouldShowLiveSessions] = useLocalStorage(
+    const [, setShouldShowLiveSessions] = useLocalStorage(
         'highlight-shouldShowLiveSessions',
         false
     );
@@ -57,7 +57,7 @@ export const SessionFeed = React.memo(() => {
             lifecycle:
                 segment_id === LIVE_SEGMENT_ID
                     ? SessionLifecycle.Live
-                    : show_live_sessions || shouldShowLiveSessions
+                    : show_live_sessions
                     ? SessionLifecycle.Live
                     : SessionLifecycle.Completed,
             starred: showStarredSessions,

@@ -3,11 +3,12 @@ import {
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { useGetProjectQuery } from '@graph/hooks';
+import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import useLocalStorage from '@rehooks/local-storage';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import { H } from 'highlight.run';
-import React, { FunctionComponent, useState } from 'react';
+import React, { FunctionComponent, useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import useFetch from 'use-http';
 
@@ -36,6 +37,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
     const { admin } = useAuthContext();
     const [platform, setPlatform] = useState(PlatformType.React);
     const { project_id } = useParams<{ project_id: string }>();
+    const { setSearchParams } = useSearchContext();
     const projectIdRemapped =
         project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
@@ -48,6 +50,18 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
     // If we don't show them live sessions, their session feed will be empty unless they turn on live sessions.
     // This is a bad experience so we override the live sessions filter.
     const [] = useLocalStorage('highlight-shouldShowLiveSessions', !integrated);
+
+    // We want to show live sessions to new users who have just integrated.
+    // If we don't show them live sessions, their session feed will be empty unless they turn on live sessions.
+    // This is a bad experience so we override the live sessions filter.
+    useEffect(() => {
+        if (!integrated) {
+            setSearchParams((previous) => ({
+                ...previous,
+                show_live_sessions: true,
+            }));
+        }
+    }, [integrated, setSearchParams]);
 
     return (
         <LeadAlignLayout>
