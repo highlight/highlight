@@ -62,7 +62,8 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                 show_live_sessions: true,
             });
         }
-    }, [integrated, setSearchParams]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [integrated]);
 
     return (
         <LeadAlignLayout>
