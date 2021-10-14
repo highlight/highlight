@@ -30,7 +30,6 @@ interface Props {
     linkDisabled?: boolean;
     showDetailedSessionView?: boolean;
     autoPlaySessions?: boolean;
-    onClickHandler?: () => void;
 }
 
 const MinimalSessionCard = React.memo(
@@ -43,7 +42,6 @@ const MinimalSessionCard = React.memo(
         linkDisabled,
         autoPlaySessions = false,
         showDetailedSessionView: showDetailedSessionViewPlayerConfiguration = false,
-        onClickHandler,
     }: Props) => {
         const ref = useRef<HTMLDivElement | null>(null);
         const { project_id, segment_id, session_secure_id } = useParams<{
@@ -373,7 +371,6 @@ const MinimalSessionCard = React.memo(
                         to={`/${projectIdRemapped}/sessions/${
                             session?.secure_id
                         }${urlParams || ''}`}
-                        onClick={onClickHandler}
                     >
                         {innerContent}
                     </Link>

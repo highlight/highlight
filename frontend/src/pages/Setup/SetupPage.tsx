@@ -3,6 +3,7 @@ import {
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { useGetProjectQuery } from '@graph/hooks';
+import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import useLocalStorage from '@rehooks/local-storage';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
@@ -56,10 +57,10 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
     // This is a bad experience so we override the live sessions filter.
     useEffect(() => {
         if (!integrated) {
-            setSearchParams((previous) => ({
-                ...previous,
+            setSearchParams({
+                ...EmptySessionsSearchParams,
                 show_live_sessions: true,
-            }));
+            });
         }
     }, [integrated, setSearchParams]);
 
