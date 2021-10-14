@@ -105,4 +105,5 @@ export interface RageClick {
     endTimestamp: string;
     endPercentage: number;
     totalClicks: number;
+    sessionIntervalIndex: number;
 }

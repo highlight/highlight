@@ -1804,13 +1804,11 @@ func (r *queryResolver) Events(ctx context.Context, sessionID *int, sessionSecur
 }
 
 func (r *queryResolver) RageClicks(ctx context.Context, sessionSecureID *string) ([]*model.RageClickEvent, error) {
-	if util.IsDevEnv() && sessionSecureID != nil && *sessionSecureID == "repro" {
-		rageClicks := []*model.RageClickEvent{}
-		return rageClicks, nil
-	}
-	_, err := r.canAdminViewSession(ctx, nil, sessionSecureID)
-	if err != nil {
-		return nil, e.Wrap(err, "admin not session owner")
+	if !(util.IsDevEnv() && sessionSecureID != nil && *sessionSecureID == "repro") {
+		_, err := r.canAdminViewSession(ctx, nil, sessionSecureID)
+		if err != nil {
+			return nil, e.Wrap(err, "admin not session owner")
+		}
 	}
 
 	var rageClicks []*model.RageClickEvent
