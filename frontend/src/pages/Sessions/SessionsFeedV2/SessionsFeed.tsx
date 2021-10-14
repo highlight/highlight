@@ -1,3 +1,4 @@
+import useLocalStorage from '@rehooks/local-storage';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import React, { RefObject, useEffect, useMemo, useState } from 'react';
@@ -35,6 +36,14 @@ export const SessionFeed = React.memo(() => {
         showDetailedSessionView,
     } = usePlayerConfiguration();
 
+    // We want to show live sessions to new users who have just integrated.
+    // If we don't show them live sessions, their session feed will be empty unless they turn on live sessions.
+    // This is a bad experience so we override the live sessions filter.
+    const [shouldShowLiveSessions, setShouldShowLiveSessions] = useLocalStorage(
+        'highlight-shouldShowLiveSessions',
+        false
+    );
+
     // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
     const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
     const { searchParams, showStarredSessions } = useSearchContext();
@@ -48,7 +57,7 @@ export const SessionFeed = React.memo(() => {
             lifecycle:
                 segment_id === LIVE_SEGMENT_ID
                     ? SessionLifecycle.Live
-                    : show_live_sessions
+                    : show_live_sessions || shouldShowLiveSessions
                     ? SessionLifecycle.Live
                     : SessionLifecycle.Completed,
             starred: showStarredSessions,
@@ -174,6 +183,11 @@ export const SessionFeed = React.memo(() => {
                                             showDetailedSessionView={
                                                 showDetailedSessionView
                                             }
+                                            onClickHandler={() => {
+                                                setShouldShowLiveSessions(
+                                                    false
+                                                );
+                                            }}
                                         />
                                     ))}
                                 </>

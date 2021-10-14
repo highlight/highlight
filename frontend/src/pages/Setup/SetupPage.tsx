@@ -3,6 +3,7 @@ import {
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { useGetProjectQuery } from '@graph/hooks';
+import useLocalStorage from '@rehooks/local-storage';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import { H } from 'highlight.run';
@@ -42,6 +43,11 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
     const { data, loading } = useGetProjectQuery({
         variables: { id: project_id },
     });
+
+    // We want to show live sessions to new users who have just integrated.
+    // If we don't show them live sessions, their session feed will be empty unless they turn on live sessions.
+    // This is a bad experience so we override the live sessions filter.
+    const [] = useLocalStorage('highlight-shouldShowLiveSessions', !integrated);
 
     return (
         <LeadAlignLayout>
