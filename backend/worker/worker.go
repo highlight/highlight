@@ -850,7 +850,6 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 			o.TimestampCounts[ts] += 1
 		}
 	}
-
 	return o
 }
 
