@@ -14,8 +14,7 @@ const HighlightGate: React.FC = ({ children }) => {
             {React.Children.map(children, (child) => {
                 // @ts-expect-error
                 return React.cloneElement(child, {
-                    class: classNames(
-                        'boba',
+                    className: classNames(
                         // @ts-expect-error
                         child?.props.className
                     ),

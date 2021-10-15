@@ -28,7 +28,7 @@ import { ReactComponent as FilledStarIcon } from '../../../static/star-filled.sv
 import { getIdentifiedUserProfileImage } from '../../Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils';
 import { useReplayerContext } from '../ReplayerContext';
 import styles from './MetadataBox.module.scss';
-import { getMajorVersion } from './utils/utils';
+import { getAbsoluteUrl, getMajorVersion } from './utils/utils';
 
 export const MetadataBox = () => {
     const { isLoggedIn } = useAuthContext();
@@ -186,7 +186,7 @@ export const UserDetailsBox = () => {
                     {data?.enhanced_user_details?.bio}
                 </p>
                 {data?.enhanced_user_details?.socials?.map(
-                    (e) => e && <SocialComponent socialLink={e} />
+                    (e) => e && <SocialComponent socialLink={e} key={e.type} />
                 )}
             </div>
         </div>
@@ -197,7 +197,7 @@ const SocialComponent = ({ socialLink }: { socialLink: SocialLink }) => {
     return (
         <a
             className={styles.enhancedSocial}
-            href={socialLink.link ?? ''}
+            href={getAbsoluteUrl(socialLink.link ?? '')}
             target="_blank"
             rel="noopener noreferrer"
         >
