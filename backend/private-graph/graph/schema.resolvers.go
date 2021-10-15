@@ -1390,7 +1390,8 @@ func (r *mutationResolver) CreateSessionFeedbackAlert(ctx context.Context, proje
 }
 
 func (r *mutationResolver) UpdateRageClickAlert(ctx context.Context, projectID int, rageClickAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
-	admin, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1434,7 +1435,7 @@ func (r *mutationResolver) UpdateNewUserAlert(ctx context.Context, projectID int
 	}
 
 	alert := &model.SessionAlert{}
-	if err := r.DB.Where(&model.SessionAlert{Model: model.Model{ID: sessionAlertID}}).Where("type IS NULL OR type=?", model.AlertType.NEW_USER).Find(&alert).Error; err != nil {
+	if err := r.DB.Where(&model.SessionAlert{Model: model.Model{ID: sessionAlertID}}).Where("type=?", model.AlertType.NEW_USER).Find(&alert).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session alert")
 	}
 
