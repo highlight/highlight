@@ -1,33 +1,27 @@
 import React from 'react';
-import {
-    Area,
-    ComposedChart,
-    Line,
-    ResponsiveContainer,
-    YAxis,
-} from 'recharts';
+import { Area, ComposedChart, Line, ResponsiveContainer } from 'recharts';
 
 interface Props {
     data: any[];
 }
 
 const ActivityGraph = ({ data }: Props) => {
-    const gridColor = 'none';
-    const labelColor = 'var(--color-gray-500)';
-
-    const gradientId = `${name}-colorUv`;
+    const gradientId = `session-activity-graph-colorUv`;
     const lineColor = 'var(--color-purple)';
 
     return (
-        <ResponsiveContainer width="100%" height={40}>
+        <ResponsiveContainer width="100%" height={20}>
             <ComposedChart
                 data={data}
                 height={200}
                 margin={{
-                    top: 12,
+                    top: 4,
                     right: 0,
                     left: 0,
                     bottom: 2,
+                }}
+                style={{
+                    opacity: 0.5,
                 }}
             >
                 <defs>
@@ -35,28 +29,19 @@ const ActivityGraph = ({ data }: Props) => {
                         <stop
                             offset="5%"
                             stopColor={lineColor}
-                            stopOpacity={0.2}
+                            stopOpacity={0.8}
                         />
                         <stop
                             offset="95%"
                             stopColor="var(--color-primary-background)"
-                            stopOpacity={0.1}
+                            stopOpacity={1}
                         />
                     </linearGradient>
                 </defs>
-                <YAxis
-                    interval="preserveStart"
-                    dataKey="value"
-                    width={0}
-                    tick={false}
-                    tickLine={{ stroke: labelColor, visibility: 'hidden' }}
-                    axisLine={{ stroke: gridColor }}
-                    domain={[0, 'dataMax']}
-                />
                 <Line
                     dataKey="value"
                     stroke={lineColor}
-                    strokeWidth={1.5}
+                    strokeWidth={2}
                     type="monotone"
                     dot={false}
                     activeDot={{
