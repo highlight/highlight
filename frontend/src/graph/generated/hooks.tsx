@@ -1540,6 +1540,82 @@ export type CreateErrorAlertMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateErrorAlertMutation,
     Types.CreateErrorAlertMutationVariables
 >;
+export const CreateRageClickAlertDocument = gql`
+    mutation CreateRageClickAlert(
+        $project_id: ID!
+        $name: String!
+        $count_threshold: Int!
+        $threshold_window: Int!
+        $slack_channels: [SanitizedSlackChannelInput]!
+        $environments: [String]!
+    ) {
+        createRageClickAlert(
+            project_id: $project_id
+            count_threshold: $count_threshold
+            name: $name
+            slack_channels: $slack_channels
+            environments: $environments
+            threshold_window: $threshold_window
+        ) {
+            id
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            Name
+            ExcludedEnvironments
+            CountThreshold
+            ThresholdWindow
+            LastAdminToEditID
+        }
+    }
+`;
+export type CreateRageClickAlertMutationFn = Apollo.MutationFunction<
+    Types.CreateRageClickAlertMutation,
+    Types.CreateRageClickAlertMutationVariables
+>;
+
+/**
+ * __useCreateRageClickAlertMutation__
+ *
+ * To run a mutation, you first call `useCreateRageClickAlertMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateRageClickAlertMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createRageClickAlertMutation, { data, loading, error }] = useCreateRageClickAlertMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      name: // value for 'name'
+ *      count_threshold: // value for 'count_threshold'
+ *      threshold_window: // value for 'threshold_window'
+ *      slack_channels: // value for 'slack_channels'
+ *      environments: // value for 'environments'
+ *   },
+ * });
+ */
+export function useCreateRageClickAlertMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.CreateRageClickAlertMutation,
+        Types.CreateRageClickAlertMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.CreateRageClickAlertMutation,
+        Types.CreateRageClickAlertMutationVariables
+    >(CreateRageClickAlertDocument, baseOptions);
+}
+export type CreateRageClickAlertMutationHookResult = ReturnType<
+    typeof useCreateRageClickAlertMutation
+>;
+export type CreateRageClickAlertMutationResult = Apollo.MutationResult<Types.CreateRageClickAlertMutation>;
+export type CreateRageClickAlertMutationOptions = Apollo.BaseMutationOptions<
+    Types.CreateRageClickAlertMutation,
+    Types.CreateRageClickAlertMutationVariables
+>;
 export const UpdateErrorAlertDocument = gql`
     mutation UpdateErrorAlert(
         $project_id: ID!
@@ -2107,6 +2183,82 @@ export type UpdateNewSessionAlertMutationResult = Apollo.MutationResult<Types.Up
 export type UpdateNewSessionAlertMutationOptions = Apollo.BaseMutationOptions<
     Types.UpdateNewSessionAlertMutation,
     Types.UpdateNewSessionAlertMutationVariables
+>;
+export const UpdateRageClickAlertDocument = gql`
+    mutation UpdateRageClickAlert(
+        $project_id: ID!
+        $rage_click_alert_id: ID!
+        $name: String!
+        $count_threshold: Int!
+        $threshold_window: Int!
+        $slack_channels: [SanitizedSlackChannelInput]!
+        $environments: [String]!
+    ) {
+        updateRageClickAlert(
+            project_id: $project_id
+            rage_click_alert_id: $rage_click_alert_id
+            name: $name
+            count_threshold: $count_threshold
+            slack_channels: $slack_channels
+            environments: $environments
+            threshold_window: $threshold_window
+        ) {
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            ExcludedEnvironments
+            CountThreshold
+            ThresholdWindow
+        }
+    }
+`;
+export type UpdateRageClickAlertMutationFn = Apollo.MutationFunction<
+    Types.UpdateRageClickAlertMutation,
+    Types.UpdateRageClickAlertMutationVariables
+>;
+
+/**
+ * __useUpdateRageClickAlertMutation__
+ *
+ * To run a mutation, you first call `useUpdateRageClickAlertMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateRageClickAlertMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateRageClickAlertMutation, { data, loading, error }] = useUpdateRageClickAlertMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      rage_click_alert_id: // value for 'rage_click_alert_id'
+ *      name: // value for 'name'
+ *      count_threshold: // value for 'count_threshold'
+ *      threshold_window: // value for 'threshold_window'
+ *      slack_channels: // value for 'slack_channels'
+ *      environments: // value for 'environments'
+ *   },
+ * });
+ */
+export function useUpdateRageClickAlertMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.UpdateRageClickAlertMutation,
+        Types.UpdateRageClickAlertMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.UpdateRageClickAlertMutation,
+        Types.UpdateRageClickAlertMutationVariables
+    >(UpdateRageClickAlertDocument, baseOptions);
+}
+export type UpdateRageClickAlertMutationHookResult = ReturnType<
+    typeof useUpdateRageClickAlertMutation
+>;
+export type UpdateRageClickAlertMutationResult = Apollo.MutationResult<Types.UpdateRageClickAlertMutation>;
+export type UpdateRageClickAlertMutationOptions = Apollo.BaseMutationOptions<
+    Types.UpdateRageClickAlertMutation,
+    Types.UpdateRageClickAlertMutationVariables
 >;
 export const UpdateNewUserAlertDocument = gql`
     mutation UpdateNewUserAlert(
@@ -5867,6 +6019,20 @@ export const GetAlertsPagePayloadDocument = gql`
             LastAdminToEditID
             Name
             id
+            Type
+        }
+        rage_click_alerts(project_id: $project_id) {
+            id
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            ExcludedEnvironments
+            CountThreshold
+            ThresholdWindow
+            updated_at
+            LastAdminToEditID
+            Name
             Type
         }
         new_user_alerts(project_id: $project_id) {

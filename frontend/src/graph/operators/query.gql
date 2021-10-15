@@ -821,6 +821,20 @@ query GetAlertsPagePayload($project_id: ID!) {
         id
         Type
     }
+    rage_click_alerts(project_id: $project_id) {
+        id
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        ExcludedEnvironments
+        CountThreshold
+        ThresholdWindow
+        updated_at
+        LastAdminToEditID
+        Name
+        Type
+    }
     new_user_alerts(project_id: $project_id) {
         id
         ChannelsToNotify {

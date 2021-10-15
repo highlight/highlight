@@ -18,6 +18,7 @@ import {
     useCreateErrorAlertMutation,
     useCreateNewSessionAlertMutation,
     useCreateNewUserAlertMutation,
+    useCreateRageClickAlertMutation,
     useCreateSessionFeedbackAlertMutation,
     useCreateTrackPropertiesAlertMutation,
     useCreateUserPropertiesAlertMutation,
@@ -26,6 +27,7 @@ import {
     useUpdateErrorAlertMutation,
     useUpdateNewSessionAlertMutation,
     useUpdateNewUserAlertMutation,
+    useUpdateRageClickAlertMutation,
     useUpdateSessionFeedbackAlertMutation,
     useUpdateTrackPropertiesAlertMutation,
     useUpdateUserPropertiesAlertMutation,
@@ -115,6 +117,17 @@ export const AlertConfigurationCard = ({
         },
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
+    const [createRageClickAlert, {}] = useCreateRageClickAlertMutation({
+        variables: {
+            project_id,
+            count_threshold: 1,
+            environments: [],
+            slack_channels: [],
+            name: 'Rage Click',
+            threshold_window: 30,
+        },
+        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+    });
     const [createNewSessionAlert, {}] = useCreateNewSessionAlertMutation({
         variables: {
             project_id,
@@ -160,6 +173,7 @@ export const AlertConfigurationCard = ({
     const [
         updateSessionFeedbackAlert,
     ] = useUpdateSessionFeedbackAlertMutation();
+    const [updateRageClickAlert] = useUpdateRageClickAlertMutation();
     const [updateNewSessionAlert] = useUpdateNewSessionAlertMutation();
 
     const excludedEnvironmentsFormName = `${
@@ -219,6 +233,15 @@ export const AlertConfigurationCard = ({
                             variables: {
                                 ...requestVariables,
                                 threshold_window: 1,
+                            },
+                        });
+                        break;
+                    case ALERT_TYPE.RageClick:
+                        await createRageClickAlert({
+                            ...requestBody,
+                            variables: {
+                                ...requestVariables,
+                                threshold_window: lookbackPeriod,
                             },
                         });
                         break;
@@ -371,6 +394,16 @@ export const AlertConfigurationCard = ({
                                 ...requestVariables,
                                 session_alert_id: alert.id,
                                 threshold_window: 1,
+                            },
+                        });
+                        break;
+                    case ALERT_TYPE.RageClick:
+                        await updateRageClickAlert({
+                            ...requestBody,
+                            variables: {
+                                ...requestVariables,
+                                rage_click_alert_id: alert.id,
+                                threshold_window: lookbackPeriod,
                             },
                         });
                         break;

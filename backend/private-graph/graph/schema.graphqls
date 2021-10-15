@@ -544,6 +544,7 @@ type Query {
     track_properties_alerts(project_id: ID!): [SessionAlert]!
     user_properties_alerts(project_id: ID!): [SessionAlert]!
     new_session_alerts(project_id: ID!): [SessionAlert]!
+    rage_click_alerts(project_id: ID!): [SessionAlert]!
     projectSuggestion(query: String!): [Project]
     environment_suggestion(project_id: ID!): [Field]
     app_version_suggestion(project_id: ID!): [String]!
@@ -647,6 +648,14 @@ type Mutation {
         code: String!
         redirect_path: String!
     ): Boolean!
+    createRageClickAlert(
+        project_id: ID!
+        name: String!
+        count_threshold: Int!
+        threshold_window: Int!
+        slack_channels: [SanitizedSlackChannelInput]!
+        environments: [String]!
+    ): SessionAlert
     createErrorAlert(
         project_id: ID!
         name: String!
@@ -676,6 +685,15 @@ type Mutation {
     ): SessionAlert
     createSessionFeedbackAlert(
         project_id: ID!
+        name: String!
+        count_threshold: Int!
+        threshold_window: Int!
+        slack_channels: [SanitizedSlackChannelInput]!
+        environments: [String]!
+    ): SessionAlert
+    updateRageClickAlert(
+        project_id: ID!
+        rage_click_alert_id: ID!
         name: String!
         count_threshold: Int!
         threshold_window: Int!

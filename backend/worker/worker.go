@@ -4,6 +4,7 @@ import (
 	"container/list"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"math"
 	"math/rand"
@@ -581,6 +582,71 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 				return e.Wrapf(err, "[project_id: %d] error sending slack message for new session alert", projectID)
 			}
 
+		}
+		return nil
+	})
+
+	g.Go(func() error {
+		if len(rageClickSets) < 1 {
+			return nil
+		}
+		// Sending Rage Click Alert
+		var sessionAlerts []*model.SessionAlert
+		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Where("type=?", model.AlertType.RAGE_CLICK).Find(&sessionAlerts).Error; err != nil {
+			return e.Wrapf(err, "[project_id: %d] error fetching rage click alert", projectID)
+		}
+
+		for _, sessionAlert := range sessionAlerts {
+			if sessionAlert.CountThreshold < 1 {
+				return nil
+			}
+
+			// check if session was produced from an excluded environment
+			excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
+			if err != nil {
+				return e.Wrapf(err, "[project_id: %d] error getting excluded environments from user properties alert", projectID)
+			}
+			isExcludedEnvironment := false
+			for _, env := range excludedEnvironments {
+				if env != nil && *env == s.Environment {
+					isExcludedEnvironment = true
+					break
+				}
+			}
+			if isExcludedEnvironment {
+				return nil
+			}
+
+			workspace, err := w.Resolver.GetWorkspace(project.WorkspaceID)
+			if err != nil {
+				return e.Wrap(err, "error querying workspace")
+			}
+
+			if sessionAlert.ThresholdWindow == nil {
+				sessionAlert.ThresholdWindow = util.MakeIntPointer(30)
+			}
+			var count int
+			if err := w.Resolver.DB.Raw(`
+				SELECT COUNT(*)
+				FROM rage_click_events
+				WHERE
+					project_id=?
+					AND created_at > (NOW() - ? * INTERVAL '1 MINUTE')
+				`, projectID, sessionAlert.ThresholdWindow).Scan(&count).Error; err != nil {
+				return e.Wrap(err, "error counting rage clicks")
+			}
+			if count < sessionAlert.CountThreshold {
+				return nil
+			}
+
+			// send Slack message
+			count64 := int64(count)
+			err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace,
+				SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, RageClicksCount: &count64,
+				QueryParams: map[string]string{"tsAbs": fmt.Sprintf("%d", rageClickSets[0].StartTimestamp.UnixNano()/int64(time.Millisecond))}})
+			if err != nil {
+				return e.Wrapf(err, "error sending rage click alert slack message")
+			}
 		}
 		return nil
 	})

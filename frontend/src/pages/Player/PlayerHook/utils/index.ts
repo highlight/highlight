@@ -98,6 +98,8 @@ const getIntervalWithPercentages = (
 export enum PlayerSearchParameters {
     /** The time in the player in seconds. */
     ts = 'ts',
+    /** The absolute time in milliseconds. */
+    tsAbs = 'tsAbs',
     /** The error ID for an error in the current session. The player's time will be set to the lookback period before the error's timestamp. */
     errorId = 'errorId',
     /** The comment ID for a comment in the current session. The player's time will be set to the comments's timestamp. */
@@ -144,6 +146,24 @@ export const useSetPlayerTimestampFromSearchParam = (
                 ) {
                     setTime(timestampMilliseconds);
                     replayer?.pause(timestampMilliseconds);
+                }
+                setHasSearchParam(true);
+            } else if (searchParamsObject.get(PlayerSearchParameters.tsAbs)) {
+                const absoluteTimestampMilliseconds = parseFloat(
+                    searchParamsObject.get(
+                        PlayerSearchParameters.tsAbs
+                    ) as string
+                );
+                const relativeTimestampMilliseconds =
+                    absoluteTimestampMilliseconds -
+                    sessionStartTimeMilliseconds;
+
+                if (
+                    relativeTimestampMilliseconds > 0 ||
+                    relativeTimestampMilliseconds <= sessionDurationMilliseconds
+                ) {
+                    setTime(relativeTimestampMilliseconds);
+                    replayer?.pause(relativeTimestampMilliseconds);
                 }
                 setHasSearchParam(true);
             } else if (searchParamsObject.get(PlayerSearchParameters.errorId)) {
