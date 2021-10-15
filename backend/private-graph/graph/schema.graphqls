@@ -76,6 +76,7 @@ enum PlanType {
 }
 
 type EnhancedUserDetailsResult {
+    id: ID
     name: String
     avatar: String
     bio: String

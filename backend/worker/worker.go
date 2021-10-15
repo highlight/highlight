@@ -300,10 +300,14 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 	}
 	// figuring out the slice of event counts
-	window := int64(lastEventTimestamp.Sub(firstEventTimestamp).Milliseconds()) / 100
-	eventCounts := make([]int, 100)
+	eventCountsLen := 100
+	if len(timestamps) < eventCountsLen {
+		eventCountsLen = len(timestamps)
+	}
+	window := int64(lastEventTimestamp.Sub(firstEventTimestamp).Milliseconds()) / int64(eventCountsLen)
+	eventCounts := make([]int, eventCountsLen)
 	for t, c := range timestamps {
-		eventCounts[int64(t.Sub(firstEventTimestamp).Milliseconds()/window)] += c
+		eventCounts[int64(t.Sub(firstEventTimestamp).Milliseconds()/window)-1] += c
 	}
 	eventCountsBytes, err := json.Marshal(eventCounts)
 	if err != nil {

@@ -62,6 +62,7 @@ export type Session = {
     payload_size?: Maybe<Scalars['Int64']>;
     within_billing_quota?: Maybe<Scalars['Boolean']>;
     is_public?: Maybe<Scalars['Boolean']>;
+    event_counts?: Maybe<Scalars['String']>;
 };
 
 export type RageClickEvent = {
@@ -96,6 +97,7 @@ export enum PlanType {
 
 export type EnhancedUserDetailsResult = {
     __typename?: 'EnhancedUserDetailsResult';
+    id?: Maybe<Scalars['ID']>;
     name?: Maybe<Scalars['String']>;
     avatar?: Maybe<Scalars['String']>;
     bio?: Maybe<Scalars['String']>;

@@ -78,6 +78,7 @@ query GetSession($secure_id: String!) {
         client_version
         client_config
         is_public
+        event_counts
     }
 }
 
@@ -281,6 +282,7 @@ query GetSessions(
             }
             first_time
             user_properties
+            event_counts
         }
         totalCount
     }

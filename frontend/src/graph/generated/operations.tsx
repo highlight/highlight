@@ -1021,6 +1021,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'client_version'
             | 'client_config'
             | 'is_public'
+            | 'event_counts'
         > & {
                 fields?: Types.Maybe<
                     Array<
@@ -1207,7 +1208,7 @@ export type GetEnhancedUserDetailsQuery = { __typename?: 'Query' } & {
     enhanced_user_details?: Types.Maybe<
         { __typename?: 'EnhancedUserDetailsResult' } & Pick<
             Types.EnhancedUserDetailsResult,
-            'name' | 'bio' | 'avatar'
+            'id' | 'name' | 'bio' | 'avatar'
         > & {
                 socials?: Types.Maybe<
                     Array<
@@ -1297,6 +1298,7 @@ export type GetSessionsQuery = { __typename?: 'Query' } & {
                     | 'field_group'
                     | 'first_time'
                     | 'user_properties'
+                    | 'event_counts'
                 > & {
                         fields?: Types.Maybe<
                             Array<

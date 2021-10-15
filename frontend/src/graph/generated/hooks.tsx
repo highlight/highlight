@@ -2756,6 +2756,7 @@ export const GetSessionDocument = gql`
             client_version
             client_config
             is_public
+            event_counts
         }
     }
 `;
@@ -3222,6 +3223,7 @@ export type GetErrorCommentsQueryResult = Apollo.QueryResult<
 export const GetEnhancedUserDetailsDocument = gql`
     query GetEnhancedUserDetails($session_secure_id: String!) {
         enhanced_user_details(session_secure_id: $session_secure_id) {
+            id
             name
             bio
             avatar
@@ -3450,6 +3452,7 @@ export const GetSessionsDocument = gql`
                 }
                 first_time
                 user_properties
+                event_counts
             }
             totalCount
         }

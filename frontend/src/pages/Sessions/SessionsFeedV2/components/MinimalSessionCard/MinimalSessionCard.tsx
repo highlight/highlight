@@ -67,6 +67,20 @@ const MinimalSessionCard = React.memo(
             }
         }, [session?.secure_id, session_secure_id]);
 
+        const [eventCounts, setEventCounts] = useState(undefined);
+
+        useEffect(() => {
+            if (!!session?.event_counts) {
+                setEventCounts(
+                    JSON.parse(session.event_counts).map(
+                        (v: number, k: number) => {
+                            return { ts: k, value: v };
+                        }
+                    )
+                );
+            }
+        }, [session?.event_counts, setEventCounts]);
+
         useEffect(() => {
             if (
                 autoPlaySessions &&
@@ -371,24 +385,10 @@ const MinimalSessionCard = React.memo(
                     )}
                 </div>
 
-                {!errorVersion && showDetailedSessionView && (
+                {!errorVersion && showDetailedSessionView && eventCounts && (
                     <HighlightGate>
                         <div className={styles.activityGraphContainer}>
-                            <ActivityGraph
-                                data={[
-                                    { ts: 0, value: Math.random() * 100 },
-                                    { ts: 1, value: Math.random() * 200 },
-                                    { ts: 2, value: Math.random() * 1000 },
-                                    { ts: 3, value: Math.random() * 1000 },
-                                    { ts: 4, value: Math.random() * 1000 },
-                                    { ts: 5, value: Math.random() * 1000 },
-                                    { ts: 6, value: Math.random() * 1000 },
-                                    { ts: 7, value: Math.random() * 100 },
-                                    { ts: 8, value: Math.random() * 1000 },
-                                    { ts: 9, value: Math.random() * 100 },
-                                    { ts: 10, value: Math.random() * 1000 },
-                                ]}
-                            />
+                            <ActivityGraph data={eventCounts} />
                         </div>
                     </HighlightGate>
                 )}
