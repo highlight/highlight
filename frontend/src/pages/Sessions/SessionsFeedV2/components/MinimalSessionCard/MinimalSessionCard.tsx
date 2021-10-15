@@ -138,19 +138,32 @@ const MinimalSessionCard = React.memo(
                                     {!errorVersion && (
                                         <div className={styles.topText}>
                                             {session?.processed &&
-                                            segment_id !== LIVE_SEGMENT_ID
-                                                ? `${formatShortTime(
-                                                      (session.active_length ||
-                                                          0) / 1000,
-                                                      ['h', 'm', 's']
-                                                  )} • ${(
-                                                      ((session?.active_length ||
-                                                          1) /
-                                                          (session?.length ||
-                                                              1)) *
-                                                      100
-                                                  ).toFixed(0)}% Active`
-                                                : 'Live'}
+                                            segment_id !== LIVE_SEGMENT_ID ? (
+                                                <>
+                                                    {formatShortTime(
+                                                        (session.active_length ||
+                                                            0) / 1000,
+                                                        ['h', 'm', 's']
+                                                    )}
+                                                    <span
+                                                        className={
+                                                            styles.separator
+                                                        }
+                                                    >
+                                                        •
+                                                    </span>
+                                                    {(
+                                                        ((session?.active_length ||
+                                                            1) /
+                                                            (session?.length ||
+                                                                1)) *
+                                                        100
+                                                    ).toFixed(0)}
+                                                    % Active{' '}
+                                                </>
+                                            ) : (
+                                                'Live'
+                                            )}
                                         </div>
                                     )}
                                     {errorVersion ? (
