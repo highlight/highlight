@@ -1141,6 +1141,9 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 			return nil
 		}
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Rage Clicks Detected:* %d Recent Occurrences\n\n", *input.RageClicksCount), false, false)
+		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
+		blockSet = append(blockSet, slack.NewDividerBlock())
+		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
 	case AlertType.NEW_SESSION:
 		identifier := input.UserIdentifier
 		if identifier == "" {
