@@ -782,7 +782,7 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 			}[*mouseInteractionEventData.Source]; !ok {
 				continue
 			}
-			ts := event.Timestamp.Truncate(time.Millisecond)
+			ts := event.Timestamp.Round(time.Millisecond)
 			if _, ok := o.TimestampCounts[ts]; !ok {
 				o.TimestampCounts[ts] = 0
 			}
@@ -843,7 +843,7 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 				o.CurrentlyInRageClickSet = false
 			}
 		} else if event.Type == parse.Custom {
-			ts := event.Timestamp.Truncate(time.Millisecond)
+			ts := event.Timestamp.Round(time.Millisecond)
 			if _, ok := o.TimestampCounts[ts]; !ok {
 				o.TimestampCounts[ts] = 0
 			}
