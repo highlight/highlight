@@ -387,9 +387,14 @@ const MinimalSessionCard = React.memo(
 
                 {!errorVersion && showDetailedSessionView && eventCounts && (
                     <HighlightGate>
-                        <div className={styles.activityGraphContainer}>
-                            <ActivityGraph data={eventCounts} />
-                        </div>
+                        <Tooltip
+                            title="This is a graph of the user's activity during the session. If the user does more things, the higher the value will be."
+                            mouseEnterDelay={0.2}
+                        >
+                            <div className={styles.activityGraphContainer}>
+                                <ActivityGraph data={eventCounts} />
+                            </div>
+                        </Tooltip>
                     </HighlightGate>
                 )}
             </div>
