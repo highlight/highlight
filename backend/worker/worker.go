@@ -842,6 +842,12 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 			} else if o.CurrentlyInRageClickSet {
 				o.CurrentlyInRageClickSet = false
 			}
+		} else if event.Type == parse.Custom {
+			ts := event.Timestamp.Truncate(time.Millisecond)
+			if _, ok := o.TimestampCounts[ts]; !ok {
+				o.TimestampCounts[ts] = 0
+			}
+			o.TimestampCounts[ts] += 1
 		}
 	}
 
