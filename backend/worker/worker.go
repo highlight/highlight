@@ -300,10 +300,16 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 	}
 	// figuring out the slice of event counts
-	lastEventTimestamp.Sub(firstEventTimestamp).Seconds()
+	window := int64(lastEventTimestamp.Sub(firstEventTimestamp).Milliseconds()) / 100
+	eventCounts := make([]int, 100)
 	for t, c := range timestamps {
-
+		eventCounts[int64(t.Sub(firstEventTimestamp).Milliseconds()/window)] += c
 	}
+	eventCountsBytes, err := json.Marshal(eventCounts)
+	if err != nil {
+		return err
+	}
+	eventCountsString := string(eventCountsBytes)
 
 	// Calculate total session length and write the length to the session.
 	sessionTotalLength := CalculateSessionLength(firstEventTimestamp, lastEventTimestamp)
@@ -334,6 +340,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			Processed:    &model.T,
 			Length:       sessionTotalLengthInMilliseconds,
 			ActiveLength: activeDuration.Milliseconds(),
+			EventCounts:  &eventCountsString,
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
@@ -768,7 +775,7 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 			}[*mouseInteractionEventData.Source]; !ok {
 				continue
 			}
-			ts := event.Timestamp.Truncate(time.Second)
+			ts := event.Timestamp.Truncate(time.Millisecond)
 			if _, ok := o.TimestampCounts[ts]; !ok {
 				o.TimestampCounts[ts] = 0
 			}

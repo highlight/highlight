@@ -438,6 +438,8 @@ type Session struct {
 	WithinBillingQuota *bool `json:"within_billing_quota" gorm:"index;default:true"` // index? probably.
 	// Used for shareable links. No authentication is needed if IsPublic is true
 	IsPublic *bool `json:"is_public" gorm:"default:false"`
+	// EventCounts is a len()=100 slice that contains the count of events for the session normalized over 100 points
+	EventCounts *string
 
 	ObjectStorageEnabled *bool   `json:"object_storage_enabled"`
 	PayloadSize          *int64  `json:"payload_size"`

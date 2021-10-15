@@ -45,6 +45,7 @@ type Session {
     payload_size: Int64
     within_billing_quota: Boolean
     is_public: Boolean
+    event_counts: String
 }
 
 type RageClickEvent {
