@@ -547,40 +547,37 @@ const getDetailedPanel = (
     resource: NetworkResource,
     pause: (time: number) => void,
     session: Session
-) => {
-    console.log('getDetailedPanel', resource);
-    return {
-        title: (
-            <div className={styles.detailPanelTitle}>
-                <h3>Network Resource</h3>
-                <GoToButton
-                    onClick={() => {
-                        pause(resource.startTime);
+) => ({
+    title: (
+        <div className={styles.detailPanelTitle}>
+            <h3>Network Resource</h3>
+            <GoToButton
+                onClick={() => {
+                    pause(resource.startTime);
 
-                        message.success(
-                            `Changed player time to when ${getNetworkResourcesDisplayName(
-                                resource.initiatorType
-                            )} request started at ${MillisToMinutesAndSeconds(
-                                resource.startTime
-                            )}.`
-                        );
-                    }}
-                />
-            </div>
-        ),
-        content: (
-            <>
-                <ResourceDetailsModal
-                    selectedNetworkResource={resource}
-                    networkRecordingEnabledForSession={
-                        session?.enable_recording_network_contents || false
-                    }
-                />
-            </>
-        ),
-        id: resource.id.toString(),
-    };
-};
+                    message.success(
+                        `Changed player time to when ${getNetworkResourcesDisplayName(
+                            resource.initiatorType
+                        )} request started at ${MillisToMinutesAndSeconds(
+                            resource.startTime
+                        )}.`
+                    );
+                }}
+            />
+        </div>
+    ),
+    content: (
+        <>
+            <ResourceDetailsModal
+                selectedNetworkResource={resource}
+                networkRecordingEnabledForSession={
+                    session?.enable_recording_network_contents || false
+                }
+            />
+        </>
+    ),
+    id: resource.id.toString(),
+});
 
 const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request';
 
