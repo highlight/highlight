@@ -1,4 +1,42 @@
 .alert {
+    &:global(.ant-alert-info) {
+        background-color: var(--color-purple-300) !important;
+        border: 0 !important;
+        border-radius: var(--border-radius) !important;
+        color: var(--color-purple-800) !important;
+
+        :global(.ant-alert-message) {
+            color: var(--color-purple-800) !important;
+        }
+
+        :global(.ant-alert-close-text) {
+            color: var(--color-purple-800) !important;
+        }
+    }
+
+    &:global(.ant-alert-error) {
+        background-color: var(--color-red-300) !important;
+        border: 0 !important;
+        border-radius: var(--border-radius) !important;
+        color: var(--color-red-800) !important;
+
+        :global(.ant-alert-message) {
+            color: var(--color-red-800) !important;
+        }
+
+        :global(.ant-alert-close-text) {
+            color: var(--color-red-800) !important;
+        }
+
+        :global(.ant-alert-icon) {
+            color: var(--color-red-500) !important;
+        }
+    }
+
+    :global(.ant-alert-icon) {
+        margin-right: var(--size-xxSmall) !important;
+    }
+
     &:global(.ant-alert) {
         padding-bottom: var(--size-medium) !important;
         padding-left: var(--size-medium) !important;
