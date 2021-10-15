@@ -95,9 +95,6 @@ const getIntervalWithPercentages = (
     });
 };
 
-/** This is used to set the player time back X milliseconds so the user can see how the error was thrown. Without this the player would be set to when the error was thrown and they wouldn't see why it was thrown. */
-const ERROR_TIMESTAMP_LOOK_BACK_MILLISECONDS = 5000;
-
 export enum PlayerSearchParameters {
     /** The time in the player in seconds. */
     ts = 'ts',
@@ -155,17 +152,15 @@ export const useSetPlayerTimestampFromSearchParam = (
                 )!;
                 const error = errors.find((e) => e.id === errorId);
                 if (error && error.timestamp) {
-                    const delta =
+                    const sessionTime =
                         new Date(error.timestamp).getTime() -
                         sessionStartTimeMilliseconds;
-                    if (delta >= 0 || delta <= sessionDurationMilliseconds) {
-                        // Clamp the time to 0.
-                        const newTime = Math.max(
-                            0,
-                            delta - ERROR_TIMESTAMP_LOOK_BACK_MILLISECONDS
-                        );
-                        setTime(newTime);
-                        replayer?.pause(newTime);
+                    if (
+                        sessionTime >= 0 ||
+                        sessionTime <= sessionDurationMilliseconds
+                    ) {
+                        setTime(sessionTime);
+                        replayer?.pause(sessionTime);
                         setSelectedErrorId(errorId);
 
                         // Show errors on the timeline indicators if deep linked.
