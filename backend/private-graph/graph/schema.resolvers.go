@@ -98,10 +98,11 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 			e.url AS visited_url,
 			s.fingerprint AS fingerprint,
 			s.identifier AS identifier,
-			s.user_properties
+			s.user_properties,
+			e.request_id
 		FROM sessions AS s
 		INNER JOIN (
-			SELECT DISTINCT ON (session_id) session_id, id, timestamp, url
+			SELECT DISTINCT ON (session_id) session_id, id, timestamp, url, request_id
 			FROM error_objects
 			WHERE error_group_id = ?
 			ORDER BY session_id DESC

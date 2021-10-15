@@ -1,5 +1,5 @@
 import Input from '@components/Input/Input';
-import { Session } from '@graph/schemas';
+import { ErrorObject, Session } from '@graph/schemas';
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils';
 import { useParams } from '@util/react-router/useParams';
@@ -60,6 +60,7 @@ export const ResourcePage = ({
         },
         fetchPolicy: 'no-cache',
     });
+    const { errors } = useReplayerContext();
     const virtuoso = useRef<VirtuosoHandle>(null);
     const rawResources = data?.resources;
     const resourceErrorRequestHeader = new URLSearchParams(location.search).get(
@@ -126,22 +127,33 @@ export const ResourcePage = ({
         }
     }, [allResources, startTime, time, currentResource]);
 
+    const [resourceErrorShown, setResourceErrorShown] = useState(false);
     useEffect(() => {
         if (
             resourceErrorRequestHeader &&
             !loading &&
             !!session &&
             !!allResources &&
-            !detailedPanel
+            !!errors &&
+            errors.length > 0 &&
+            !detailedPanel &&
+            !resourceErrorShown
         ) {
             const resource = findResourceWithMatchingHighlightHeader(
                 resourceErrorRequestHeader,
                 allResources
             );
             if (resource) {
+                setResourceErrorShown(true);
                 setDetailedPanel(
                     getDetailedPanel(
-                        { ...resource, backendError: 'NOT IMPLEMENTED' },
+                        {
+                            ...resource,
+                            errors: errors.filter(
+                                (e) =>
+                                    e.request_id === resourceErrorRequestHeader
+                            ),
+                        },
                         pause,
                         session
                     )
@@ -153,9 +165,11 @@ export const ResourcePage = ({
     }, [
         allResources,
         detailedPanel,
+        errors,
         loading,
         pause,
         resourceErrorRequestHeader,
+        resourceErrorShown,
         session,
         setDetailedPanel,
     ]);
@@ -296,7 +310,16 @@ export const ResourcePage = ({
                                             onClickHandler={() => {
                                                 setDetailedPanel(
                                                     getDetailedPanel(
-                                                        resource,
+                                                        {
+                                                            ...resource,
+                                                            errors: errors.filter(
+                                                                (e) =>
+                                                                    e.request_id ===
+                                                                    getHighlightRequestId(
+                                                                        resource
+                                                                    )
+                                                            ),
+                                                        },
                                                         pause,
                                                         session
                                                     )
@@ -356,7 +379,7 @@ const TimingCanvas = () => {
 export type NetworkResource = PerformanceResourceTiming & {
     id: number;
     requestResponsePairs?: RequestResponsePair;
-    backendError?: any;
+    errors?: ErrorObject[];
 };
 
 const ResourceRow = ({
@@ -524,37 +547,40 @@ const getDetailedPanel = (
     resource: NetworkResource,
     pause: (time: number) => void,
     session: Session
-) => ({
-    title: (
-        <div className={styles.detailPanelTitle}>
-            <h3>Network Resource</h3>
-            <GoToButton
-                onClick={() => {
-                    pause(resource.startTime);
+) => {
+    console.log('getDetailedPanel', resource);
+    return {
+        title: (
+            <div className={styles.detailPanelTitle}>
+                <h3>Network Resource</h3>
+                <GoToButton
+                    onClick={() => {
+                        pause(resource.startTime);
 
-                    message.success(
-                        `Changed player time to when ${getNetworkResourcesDisplayName(
-                            resource.initiatorType
-                        )} request started at ${MillisToMinutesAndSeconds(
-                            resource.startTime
-                        )}.`
-                    );
-                }}
-            />
-        </div>
-    ),
-    content: (
-        <>
-            <ResourceDetailsModal
-                selectedNetworkResource={resource}
-                networkRecordingEnabledForSession={
-                    session?.enable_recording_network_contents || false
-                }
-            />
-        </>
-    ),
-    id: resource.id.toString(),
-});
+                        message.success(
+                            `Changed player time to when ${getNetworkResourcesDisplayName(
+                                resource.initiatorType
+                            )} request started at ${MillisToMinutesAndSeconds(
+                                resource.startTime
+                            )}.`
+                        );
+                    }}
+                />
+            </div>
+        ),
+        content: (
+            <>
+                <ResourceDetailsModal
+                    selectedNetworkResource={resource}
+                    networkRecordingEnabledForSession={
+                        session?.enable_recording_network_contents || false
+                    }
+                />
+            </>
+        ),
+        id: resource.id.toString(),
+    };
+};
 
 const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request';
 
@@ -562,15 +588,20 @@ const findResourceWithMatchingHighlightHeader = (
     headerValue: string,
     resources: NetworkResource[]
 ) => {
-    const implemented = false;
-
-    if (!implemented) {
-        return resources[0];
-    }
     return resources.find(
-        (resource) =>
-            resource.requestResponsePairs?.request?.headers.get(
-                HIGHLIGHT_REQUEST_HEADER
-            ) === headerValue
+        (resource) => getHighlightRequestId(resource) === headerValue
     );
+};
+
+const getHighlightRequestId = (resource: NetworkResource) => {
+    const joined =
+        // @ts-expect-error
+        resource.requestResponsePairs?.request?.headers[
+            HIGHLIGHT_REQUEST_HEADER
+        ];
+    if (!joined) {
+        return joined;
+    }
+
+    return joined.split('/')[1];
 };

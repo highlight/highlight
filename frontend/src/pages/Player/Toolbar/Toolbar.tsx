@@ -72,6 +72,8 @@ export const Toolbar = () => {
         showLeftPanel,
         showDevTools,
         setShowDevTools,
+        selectedDevToolsTab,
+        setSelectedDevToolsTab,
         autoPlayVideo,
         autoPlaySessions,
         setAutoPlayVideo,
@@ -143,8 +145,14 @@ export const Toolbar = () => {
     useEffect(() => {
         if (!disableControls && resourceErrorRequestHeader) {
             setShowDevTools(true);
+            setSelectedDevToolsTab('Network');
         }
-    }, [disableControls, resourceErrorRequestHeader, setShowDevTools]);
+    }, [
+        disableControls,
+        resourceErrorRequestHeader,
+        setSelectedDevToolsTab,
+        setShowDevTools,
+    ]);
 
     const endLogger = (e: any) => {
         let newTime = (e.x / wrapperWidth) * max;
@@ -229,6 +237,8 @@ export const Toolbar = () => {
                 value={{
                     openDevTools: showDevTools,
                     setOpenDevTools: setShowDevTools,
+                    devToolsTab: selectedDevToolsTab,
+                    setDevToolsTab: setSelectedDevToolsTab,
                 }}
             >
                 {!isPlayerFullscreen && <TimelineIndicators />}
