@@ -43,7 +43,10 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
     const { data, loading } = useGetProjectQuery({
         variables: { id: project_id },
     });
-    const [] = useSessionStorage('highlight-isIntegrating', !integrated);
+    const [] = useSessionStorage(
+        `highlight-isIntegrating-${project_id}`,
+        !integrated
+    );
 
     return (
         <LeadAlignLayout>

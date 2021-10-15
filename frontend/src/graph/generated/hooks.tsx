@@ -2635,6 +2635,7 @@ export const GetSessionPayloadDocument = gql`
             type
             url
             source
+            stack_trace
             structured_stack_trace {
                 fileName
                 lineNumber
@@ -2643,6 +2644,7 @@ export const GetSessionPayloadDocument = gql`
             }
             timestamp
             payload
+            request_id
         }
         rage_clicks(session_secure_id: $session_secure_id) {
             start_timestamp
@@ -4156,6 +4158,7 @@ export const GetErrorGroupDocument = gql`
                 fingerprint
                 identifier
                 user_properties
+                request_id
             }
             field_group {
                 name

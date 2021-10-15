@@ -40,7 +40,10 @@ export const SessionFeed = React.memo(() => {
     const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
     const { searchParams, showStarredSessions } = useSearchContext();
     const { show_live_sessions } = searchParams;
-    const [isIntegrating] = useSessionStorage('highlight-isIntegrating', false);
+    const [isIntegrating] = useSessionStorage(
+        `highlight-isIntegrating-${project_id}`,
+        false
+    );
 
     const { loading, fetchMore, called } = useGetSessionsQuery({
         variables: {

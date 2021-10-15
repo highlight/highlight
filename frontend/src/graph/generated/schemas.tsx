@@ -182,9 +182,11 @@ export type ErrorObject = {
     source?: Maybe<Scalars['String']>;
     lineNumber?: Maybe<Scalars['Int']>;
     columnNumber?: Maybe<Scalars['Int']>;
+    stack_trace: Scalars['String'];
     structured_stack_trace: Array<Maybe<ErrorTrace>>;
     timestamp?: Maybe<Scalars['Timestamp']>;
     payload?: Maybe<Scalars['String']>;
+    request_id?: Maybe<Scalars['String']>;
 };
 
 export type ErrorField = {
@@ -226,6 +228,7 @@ export type ErrorMetadata = {
     fingerprint: Scalars['String'];
     identifier?: Maybe<Scalars['String']>;
     user_properties?: Maybe<Scalars['String']>;
+    request_id?: Maybe<Scalars['String']>;
 };
 
 export type ErrorTrace = {

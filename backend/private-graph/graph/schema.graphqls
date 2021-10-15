@@ -156,9 +156,11 @@ type ErrorObject {
     source: String
     lineNumber: Int
     columnNumber: Int
+    stack_trace: String!
     structured_stack_trace: [ErrorTrace]!
     timestamp: Timestamp
     payload: String
+    request_id: String
 }
 
 type ErrorField {
@@ -197,6 +199,7 @@ type ErrorMetadata {
     fingerprint: String!
     identifier: String
     user_properties: String
+    request_id: String
 }
 
 type ErrorTrace {

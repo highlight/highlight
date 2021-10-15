@@ -933,8 +933,10 @@ export type GetSessionPayloadQuery = { __typename?: 'Query' } & Pick<
                         | 'type'
                         | 'url'
                         | 'source'
+                        | 'stack_trace'
                         | 'timestamp'
                         | 'payload'
+                        | 'request_id'
                     > & {
                             structured_stack_trace: Array<
                                 Types.Maybe<
@@ -1571,6 +1573,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
                             | 'fingerprint'
                             | 'identifier'
                             | 'user_properties'
+                            | 'request_id'
                         >
                     >
                 >;

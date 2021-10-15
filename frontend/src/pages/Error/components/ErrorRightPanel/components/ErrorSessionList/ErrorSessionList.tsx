@@ -45,9 +45,9 @@ const ErrorSessionList = ({ errorGroup }: Props) => {
                     urlParams={`?${PlayerSearchParameters.errorId}=${
                         session?.error_id
                     }${
-                        //     Set the value based on the request header ID when backend error linking is implemented.
-                        false
-                            ? `&${PlayerSearchParameters.resourceErrorRequestHeader}=5`
+                        // If the error object has a request id, pass it as resourceErrorRequestHeader
+                        session?.request_id
+                            ? `&${PlayerSearchParameters.resourceErrorRequestHeader}=${session?.request_id}`
                             : ''
                     }`}
                     linkDisabled={!isLoggedIn}
