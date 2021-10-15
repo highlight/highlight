@@ -100,8 +100,7 @@ const TimelineIndicators = () => {
                                 />
                             );
                         })}
-                    {isHighlightAdmin &&
-                        selectedTimelineAnnotationTypes.includes('Click') &&
+                    {selectedTimelineAnnotationTypes.includes('Click') &&
                         rageClicks
                             .filter(
                                 (rageClick) =>
