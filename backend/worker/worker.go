@@ -300,17 +300,17 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 	}
 
-	eventCountsLen := 100
-	window := int64(lastEventTimestamp.Sub(firstEventTimestamp).Milliseconds()) / int64(eventCountsLen)
-	eventCounts := make([]int, eventCountsLen)
+	var eventCountsLen int64 = 100
+	window := float64(lastEventTimestamp.Sub(firstEventTimestamp).Milliseconds()) / float64(eventCountsLen)
+	eventCounts := make([]int64, eventCountsLen)
 	for t, c := range timestamps {
-		i := int64(t.Sub(firstEventTimestamp).Milliseconds() / window)
+		i := int64(math.Round(float64(t.Sub(firstEventTimestamp).Milliseconds()) / window))
 		if i < 0 {
 			i = 0
 		} else if i > 99 {
 			i = 99
 		}
-		eventCounts[i] += c
+		eventCounts[i] += int64(c)
 	}
 	eventCountsBytes, err := json.Marshal(eventCounts)
 	if err != nil {
