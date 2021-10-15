@@ -93,6 +93,7 @@ type ComplexityRoot struct {
 	EnhancedUserDetailsResult struct {
 		Avatar  func(childComplexity int) int
 		Bio     func(childComplexity int) int
+		ID      func(childComplexity int) int
 		Name    func(childComplexity int) int
 		Socials func(childComplexity int) int
 	}
@@ -410,6 +411,7 @@ type ComplexityRoot struct {
 		EnableRecordingNetworkContents func(childComplexity int) int
 		EnableStrictPrivacy            func(childComplexity int) int
 		Environment                    func(childComplexity int) int
+		EventCounts                    func(childComplexity int) int
 		FieldGroup                     func(childComplexity int) int
 		Fields                         func(childComplexity int) int
 		Fingerprint                    func(childComplexity int) int
@@ -815,6 +817,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.EnhancedUserDetailsResult.Bio(childComplexity), true
+
+	case "EnhancedUserDetailsResult.id":
+		if e.complexity.EnhancedUserDetailsResult.ID == nil {
+			break
+		}
+
+		return e.complexity.EnhancedUserDetailsResult.ID(childComplexity), true
 
 	case "EnhancedUserDetailsResult.name":
 		if e.complexity.EnhancedUserDetailsResult.Name == nil {
@@ -3006,6 +3015,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.Environment(childComplexity), true
 
+	case "Session.event_counts":
+		if e.complexity.Session.EventCounts == nil {
+			break
+		}
+
+		return e.complexity.Session.EventCounts(childComplexity), true
+
 	case "Session.field_group":
 		if e.complexity.Session.FieldGroup == nil {
 			break
@@ -3593,6 +3609,7 @@ type Session {
     payload_size: Int64
     within_billing_quota: Boolean
     is_public: Boolean
+    event_counts: String
 }
 
 type RageClickEvent {
@@ -3623,6 +3640,7 @@ enum PlanType {
 }
 
 type EnhancedUserDetailsResult {
+    id: ID
     name: String
     avatar: String
     bio: String
@@ -7805,6 +7823,38 @@ func (ec *executionContext) _DateRange_end_date(ctx context.Context, field graph
 	res := resTmp.(time.Time)
 	fc.Result = res
 	return ec.marshalOTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _EnhancedUserDetailsResult_id(ctx context.Context, field graphql.CollectedField, obj *model.EnhancedUserDetailsResult) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "EnhancedUserDetailsResult",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOID2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EnhancedUserDetailsResult_name(ctx context.Context, field graphql.CollectedField, obj *model.EnhancedUserDetailsResult) (ret graphql.Marshaler) {
@@ -17478,6 +17528,38 @@ func (ec *executionContext) _Session_is_public(ctx context.Context, field graphq
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Session_event_counts(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EventCounts, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _SessionAlert_id(ctx context.Context, field graphql.CollectedField, obj *model1.SessionAlert) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -20771,6 +20853,8 @@ func (ec *executionContext) _EnhancedUserDetailsResult(ctx context.Context, sel 
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("EnhancedUserDetailsResult")
+		case "id":
+			out.Values[i] = ec._EnhancedUserDetailsResult_id(ctx, field, obj)
 		case "name":
 			out.Values[i] = ec._EnhancedUserDetailsResult_name(ctx, field, obj)
 		case "avatar":
@@ -22806,6 +22890,8 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Session_within_billing_quota(ctx, field, obj)
 		case "is_public":
 			out.Values[i] = ec._Session_is_public(ctx, field, obj)
+		case "event_counts":
+			out.Values[i] = ec._Session_event_counts(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

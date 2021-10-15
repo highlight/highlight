@@ -258,6 +258,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	clickEventQueue := list.New()
 	var rageClickSets []*model.RageClickEvent
 	var currentlyInRageClickSet bool
+	timestamps := make(map[time.Time]int)
 	for hasNext {
 		se, err := re.Next()
 		if err != nil {
@@ -275,6 +276,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 				LastEventTimestamp:      lastEventTimestamp,
 				RageClickSets:           rageClickSets,
 				CurrentlyInRageClickSet: currentlyInRageClickSet,
+				TimestampCounts:         timestamps,
 			})
 			if o.Error != nil {
 				return e.Wrap(err, "error processing event chunk")
@@ -284,6 +286,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			activeDuration += o.CalculatedDuration
 			rageClickSets = o.RageClickSets
 			currentlyInRageClickSet = o.CurrentlyInRageClickSet
+			timestamps = o.TimestampCounts
 		}
 	}
 	for i, r := range rageClickSets {
@@ -296,6 +299,24 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			log.Error(e.Wrap(err, "error creating rage click sets"))
 		}
 	}
+
+	var eventCountsLen int64 = 100
+	window := float64(lastEventTimestamp.Sub(firstEventTimestamp).Milliseconds()) / float64(eventCountsLen)
+	eventCounts := make([]int64, eventCountsLen)
+	for t, c := range timestamps {
+		i := int64(math.Round(float64(t.Sub(firstEventTimestamp).Milliseconds()) / window))
+		if i < 0 {
+			i = 0
+		} else if i > 99 {
+			i = 99
+		}
+		eventCounts[i] += int64(c)
+	}
+	eventCountsBytes, err := json.Marshal(eventCounts)
+	if err != nil {
+		return err
+	}
+	eventCountsString := string(eventCountsBytes)
 
 	// Calculate total session length and write the length to the session.
 	sessionTotalLength := CalculateSessionLength(firstEventTimestamp, lastEventTimestamp)
@@ -326,6 +347,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			Processed:    &model.T,
 			Length:       sessionTotalLengthInMilliseconds,
 			ActiveLength: activeDuration.Milliseconds(),
+			EventCounts:  &eventCountsString,
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
@@ -667,6 +689,8 @@ type processEventChunkInput struct {
 	FirstEventTimestamp time.Time
 	// LastEventTimestamp represents the timestamp for the first event
 	LastEventTimestamp time.Time
+	// TimestampCounts represents a count of all user interaction events per second
+	TimestampCounts map[time.Time]int
 }
 
 type processEventChunkOutput struct {
@@ -682,6 +706,8 @@ type processEventChunkOutput struct {
 	LastEventTimestamp time.Time
 	// CalculatedDuration represents the calculated active duration for the current event chunk
 	CalculatedDuration time.Duration
+	// TimestampCounts represents a count of all user interaction events per second
+	TimestampCounts map[time.Time]int
 	// Error
 	Error error
 }
@@ -710,6 +736,7 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 	o.LastEventTimestamp = input.LastEventTimestamp
 	o.CurrentlyInRageClickSet = input.CurrentlyInRageClickSet
 	o.RageClickSets = input.RageClickSets
+	o.TimestampCounts = input.TimestampCounts
 	for _, event := range events.Events {
 		if event == nil {
 			continue
@@ -745,9 +772,24 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 				o.Error = err
 				return o
 			}
+			if mouseInteractionEventData.Source == nil {
+				// all user interaction events must have a source
+				continue
+			}
+			if _, ok := map[parse.EventSource]bool{
+				parse.MouseMove: true, parse.MouseInteraction: true, parse.Scroll: true,
+				parse.Input: true, parse.TouchMove: true, parse.Drag: true,
+			}[*mouseInteractionEventData.Source]; !ok {
+				continue
+			}
+			ts := event.Timestamp.Round(time.Millisecond)
+			if _, ok := o.TimestampCounts[ts]; !ok {
+				o.TimestampCounts[ts] = 0
+			}
+			o.TimestampCounts[ts] += 1
 			if mouseInteractionEventData.X == nil || mouseInteractionEventData.Y == nil ||
-				mouseInteractionEventData.Type == nil || mouseInteractionEventData.Source == nil {
-				// all values must not be nil on a click/touch event
+				mouseInteractionEventData.Type == nil {
+				// all values must be not nil on a click/touch event
 				continue
 			}
 			if *mouseInteractionEventData.Source != parse.MouseInteraction {
@@ -800,9 +842,14 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 			} else if o.CurrentlyInRageClickSet {
 				o.CurrentlyInRageClickSet = false
 			}
+		} else if event.Type == parse.Custom {
+			ts := event.Timestamp.Round(time.Millisecond)
+			if _, ok := o.TimestampCounts[ts]; !ok {
+				o.TimestampCounts[ts] = 0
+			}
+			o.TimestampCounts[ts] += 1
 		}
 	}
-
 	return o
 }
 

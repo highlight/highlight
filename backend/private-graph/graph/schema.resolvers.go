@@ -2447,7 +2447,7 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 		return nil, e.Wrap(err, "admin not found in project")
 	}
 
-	sessionsQueryPreamble := "SELECT id, secure_id, project_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, field_group, user_properties, enable_recording_network_contents, language"
+	sessionsQueryPreamble := "SELECT id, secure_id, project_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, field_group, user_properties, enable_recording_network_contents, language, event_counts"
 	joinClause := "FROM sessions"
 
 	fieldFilters, err := r.getFieldFilters(ctx, projectID, params)
