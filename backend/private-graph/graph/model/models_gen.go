@@ -43,6 +43,7 @@ type ErrorMetadata struct {
 	Fingerprint     string     `json:"fingerprint"`
 	Identifier      *string    `json:"identifier"`
 	UserProperties  *string    `json:"user_properties"`
+	RequestID       *string    `json:"request_id"`
 }
 
 type ErrorSearchParamsInput struct {

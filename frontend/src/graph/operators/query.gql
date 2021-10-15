@@ -7,6 +7,7 @@ query GetSessionPayload($session_secure_id: String!) {
         type
         url
         source
+        stack_trace
         structured_stack_trace {
             fileName
             lineNumber
@@ -15,6 +16,7 @@ query GetSessionPayload($session_secure_id: String!) {
         }
         timestamp
         payload
+        request_id
     }
     rage_clicks(session_secure_id: $session_secure_id) {
         start_timestamp
@@ -443,6 +445,7 @@ query GetErrorGroup($secure_id: String!) {
             fingerprint
             identifier
             user_properties
+            request_id
         }
         field_group {
             name
