@@ -72,6 +72,11 @@ export type HighlightOptions = {
      * @see {@link https://docs.highlight.run/docs/privacy} for more information.
      */
     enableStrictPrivacy?: boolean;
+    /**
+     * Specifies whether to record canvas elements or not.
+     * @default false
+     */
+    enableCanvasRecording?: boolean;
     integrations?: IntegrationOptions;
 };
 
@@ -186,6 +191,7 @@ export const H: HighlightPublicInterface = {
                     disableConsoleRecording: options?.disableConsoleRecording,
                     enableSegmentIntegration: options?.enableSegmentIntegration,
                     enableStrictPrivacy: options?.enableStrictPrivacy || false,
+                    enableCanvasRecording: options?.enableCanvasRecording,
                     firstloadVersion: packageJson['version'],
                     environment: options?.environment || 'production',
                     appVersion: options?.version,

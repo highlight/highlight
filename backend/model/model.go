@@ -124,6 +124,7 @@ var Models = []interface{}{
 	&Project{},
 	&RageClickEvent{},
 	&Workspace{},
+	&EnhancedUserDetails{},
 }
 
 func init() {
@@ -208,6 +209,13 @@ type Alert struct {
 	Name                 *string
 	Type                 *string `gorm:"index"`
 	LastAdminToEditID    int     `gorm:"last_admin_to_edit_id"`
+}
+
+type EnhancedUserDetails struct {
+	Model
+	Email       *string `gorm:"unique_index"`
+	PersonJSON  *string
+	CompanyJSON *string
 }
 
 type ErrorAlert struct {
@@ -491,10 +499,9 @@ type Field struct {
 	// 'email', 'identifier', etc.
 	Name string
 	// 'email@email.com'
-	Value          string
-	OrganizationID int       `json:"organization_id"`
-	ProjectID      int       `json:"project_id"`
-	Sessions       []Session `gorm:"many2many:session_fields;"`
+	Value     string
+	ProjectID int       `json:"project_id"`
+	Sessions  []Session `gorm:"many2many:session_fields;"`
 }
 
 type ResourcesObject struct {
@@ -811,11 +818,11 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		DO $$
 			BEGIN
 				BEGIN
-					ALTER TABLE daily_error_counts 
+					ALTER TABLE daily_error_counts
 					ADD CONSTRAINT date_project_id_error_type_uniq
 						UNIQUE (date, project_id, error_type);
 				EXCEPTION
-					WHEN duplicate_table 
+					WHEN duplicate_table
 					THEN RAISE NOTICE 'daily_error_counts.date_project_id_error_type_uniq already exists';
 				END;
 			END $$;

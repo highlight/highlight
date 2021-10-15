@@ -1,0 +1,17 @@
+.actionsContainer {
+    column-gap: var(--size-large);
+    display: flex;
+    margin-top: var(--size-xLarge);
+
+    > * {
+        width: 50%;
+    }
+
+    .button {
+        justify-content: center;
+    }
+}
+
+.description {
+    margin-top: 0 !important;
+}

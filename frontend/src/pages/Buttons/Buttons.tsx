@@ -1,3 +1,4 @@
+import DO_NOT_USE_Canvas from '@pages/Buttons/Canvas';
 import { H } from 'highlight.run';
 import React, { useState } from 'react';
 
@@ -25,6 +26,7 @@ export const Buttons = () => {
                 </button>
                 {showBadComponent && <BadComponent />}
             </div>
+            <DO_NOT_USE_Canvas />
             <div>
                 <button
                     className={commonStyles.submitButton}

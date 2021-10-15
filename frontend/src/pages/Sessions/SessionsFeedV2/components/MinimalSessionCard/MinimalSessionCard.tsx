@@ -2,8 +2,10 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import HighlightGate from '@components/HighlightGate/HighlightGate';
 import { ALERT_CONFIGURATIONS } from '@pages/Alerts/Alerts';
 import { formatShortTime } from '@pages/Home/components/KeyPerformanceIndicators/utils/utils';
+import ActivityGraph from '@pages/Sessions/SessionsFeedV2/components/ActivityGraph/ActivityGraph';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import React, { useEffect, useRef, useState } from 'react';
@@ -136,19 +138,32 @@ const MinimalSessionCard = React.memo(
                                     {!errorVersion && (
                                         <div className={styles.topText}>
                                             {session?.processed &&
-                                            segment_id !== LIVE_SEGMENT_ID
-                                                ? `${formatShortTime(
-                                                      (session.active_length ||
-                                                          0) / 1000,
-                                                      ['h', 'm', 's']
-                                                  )} • ${(
-                                                      ((session?.active_length ||
-                                                          1) /
-                                                          (session?.length ||
-                                                              1)) *
-                                                      100
-                                                  ).toFixed(0)}% Active`
-                                                : 'Live'}
+                                            segment_id !== LIVE_SEGMENT_ID ? (
+                                                <>
+                                                    {formatShortTime(
+                                                        (session.active_length ||
+                                                            0) / 1000,
+                                                        ['h', 'm', 's']
+                                                    )}
+                                                    <span
+                                                        className={
+                                                            styles.separator
+                                                        }
+                                                    >
+                                                        •
+                                                    </span>
+                                                    {(
+                                                        ((session?.active_length ||
+                                                            1) /
+                                                            (session?.length ||
+                                                                1)) *
+                                                        100
+                                                    ).toFixed(0)}
+                                                    % Active{' '}
+                                                </>
+                                            ) : (
+                                                'Live'
+                                            )}
                                         </div>
                                     )}
                                     {errorVersion ? (
@@ -355,6 +370,28 @@ const MinimalSessionCard = React.memo(
                         </div>
                     )}
                 </div>
+
+                {!errorVersion && showDetailedSessionView && (
+                    <HighlightGate>
+                        <div className={styles.activityGraphContainer}>
+                            <ActivityGraph
+                                data={[
+                                    { ts: 0, value: Math.random() * 100 },
+                                    { ts: 1, value: Math.random() * 200 },
+                                    { ts: 2, value: Math.random() * 1000 },
+                                    { ts: 3, value: Math.random() * 1000 },
+                                    { ts: 4, value: Math.random() * 1000 },
+                                    { ts: 5, value: Math.random() * 1000 },
+                                    { ts: 6, value: Math.random() * 1000 },
+                                    { ts: 7, value: Math.random() * 100 },
+                                    { ts: 8, value: Math.random() * 1000 },
+                                    { ts: 9, value: Math.random() * 100 },
+                                    { ts: 10, value: Math.random() * 1000 },
+                                ]}
+                            />
+                        </div>
+                    </HighlightGate>
+                )}
             </div>
         );
 

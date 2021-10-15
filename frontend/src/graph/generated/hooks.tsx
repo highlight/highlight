@@ -2636,13 +2636,40 @@ export const GetSessionPayloadDocument = gql`
             url
             source
             stack_trace
+            structured_stack_trace {
+                fileName
+                lineNumber
+                functionName
+                columnNumber
+            }
             timestamp
             payload
+            request_id
         }
         rage_clicks(session_secure_id: $session_secure_id) {
             start_timestamp
             end_timestamp
             total_clicks
+        }
+        session_comments(session_secure_id: $session_secure_id) {
+            id
+            timestamp
+            session_id
+            session_secure_id
+            created_at
+            updated_at
+            project_id
+            text
+            author {
+                id
+                name
+                email
+                photo_url
+            }
+            x_coordinate
+            y_coordinate
+            type
+            metadata
         }
     }
 `;
@@ -2727,6 +2754,7 @@ export const GetSessionDocument = gql`
             payload_size
             within_billing_quota
             client_version
+            client_config
             is_public
         }
     }
@@ -3190,6 +3218,68 @@ export type GetErrorCommentsLazyQueryHookResult = ReturnType<
 export type GetErrorCommentsQueryResult = Apollo.QueryResult<
     Types.GetErrorCommentsQuery,
     Types.GetErrorCommentsQueryVariables
+>;
+export const GetEnhancedUserDetailsDocument = gql`
+    query GetEnhancedUserDetails($session_secure_id: String!) {
+        enhanced_user_details(session_secure_id: $session_secure_id) {
+            name
+            bio
+            avatar
+            socials {
+                type
+                link
+            }
+        }
+    }
+`;
+
+/**
+ * __useGetEnhancedUserDetailsQuery__
+ *
+ * To run a query within a React component, call `useGetEnhancedUserDetailsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetEnhancedUserDetailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetEnhancedUserDetailsQuery({
+ *   variables: {
+ *      session_secure_id: // value for 'session_secure_id'
+ *   },
+ * });
+ */
+export function useGetEnhancedUserDetailsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetEnhancedUserDetailsQuery,
+        Types.GetEnhancedUserDetailsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetEnhancedUserDetailsQuery,
+        Types.GetEnhancedUserDetailsQueryVariables
+    >(GetEnhancedUserDetailsDocument, baseOptions);
+}
+export function useGetEnhancedUserDetailsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetEnhancedUserDetailsQuery,
+        Types.GetEnhancedUserDetailsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetEnhancedUserDetailsQuery,
+        Types.GetEnhancedUserDetailsQueryVariables
+    >(GetEnhancedUserDetailsDocument, baseOptions);
+}
+export type GetEnhancedUserDetailsQueryHookResult = ReturnType<
+    typeof useGetEnhancedUserDetailsQuery
+>;
+export type GetEnhancedUserDetailsLazyQueryHookResult = ReturnType<
+    typeof useGetEnhancedUserDetailsLazyQuery
+>;
+export type GetEnhancedUserDetailsQueryResult = Apollo.QueryResult<
+    Types.GetEnhancedUserDetailsQuery,
+    Types.GetEnhancedUserDetailsQueryVariables
 >;
 export const GetOnboardingStepsDocument = gql`
     query GetOnboardingSteps($project_id: ID!, $admin_id: ID!) {
@@ -4049,13 +4139,14 @@ export const GetErrorGroupDocument = gql`
             project_id
             event
             state
-            stack_trace {
+            structured_stack_trace {
                 fileName
                 lineNumber
                 functionName
                 columnNumber
             }
             mapped_stack_trace
+            stack_trace
             metadata_log {
                 error_id
                 session_secure_id
@@ -4067,6 +4158,7 @@ export const GetErrorGroupDocument = gql`
                 fingerprint
                 identifier
                 user_properties
+                request_id
             }
             field_group {
                 name
@@ -4142,7 +4234,8 @@ export const GetErrorGroupsDocument = gql`
                 state
                 state
                 environments
-                stack_trace {
+                stack_trace
+                structured_stack_trace {
                     fileName
                     lineNumber
                     functionName

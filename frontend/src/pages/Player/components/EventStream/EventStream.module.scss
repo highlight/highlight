@@ -2,7 +2,7 @@
     box-sizing: border-box;
     color: var(--color-primary-background);
     height: 100%;
-    overflow-y: auto;
+    overflow-y: hidden;
     padding: 0;
     position: relative;
     width: 100%;
@@ -20,20 +20,6 @@
 
 .virtualList {
     flex-grow: 1;
-    margin: var(--size-medium) 0 !important;
-    margin-top: 0;
-
-    > div {
-        margin: var(--size-medium) 0;
-
-        &:first-of-type {
-            margin-top: 0;
-        }
-
-        &:last-of-type {
-            padding-bottom: var(--size-large);
-        }
-    }
 }
 
 .header {

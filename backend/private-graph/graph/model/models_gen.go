@@ -24,6 +24,13 @@ type DateRangeInput struct {
 	EndDate   *time.Time `json:"end_date"`
 }
 
+type EnhancedUserDetailsResult struct {
+	Name    *string       `json:"name"`
+	Avatar  *string       `json:"avatar"`
+	Bio     *string       `json:"bio"`
+	Socials []*SocialLink `json:"socials"`
+}
+
 type ErrorMetadata struct {
 	ErrorID         int        `json:"error_id"`
 	SessionID       int        `json:"session_id"`
@@ -36,6 +43,7 @@ type ErrorMetadata struct {
 	Fingerprint     string     `json:"fingerprint"`
 	Identifier      *string    `json:"identifier"`
 	UserProperties  *string    `json:"user_properties"`
+	RequestID       *string    `json:"request_id"`
 }
 
 type ErrorSearchParamsInput struct {
@@ -116,6 +124,11 @@ type SearchParamsInput struct {
 	HideViewed              *bool                `json:"hide_viewed"`
 	FirstTime               *bool                `json:"first_time"`
 	ShowLiveSessions        *bool                `json:"show_live_sessions"`
+}
+
+type SocialLink struct {
+	Type SocialType `json:"type"`
+	Link *string    `json:"link"`
 }
 
 type TopUsersPayload struct {
@@ -314,5 +327,52 @@ func (e *SessionLifecycle) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SessionLifecycle) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type SocialType string
+
+const (
+	SocialTypeGithub   SocialType = "Github"
+	SocialTypeLinkedIn SocialType = "LinkedIn"
+	SocialTypeTwitter  SocialType = "Twitter"
+	SocialTypeFacebook SocialType = "Facebook"
+	SocialTypeSite     SocialType = "Site"
+)
+
+var AllSocialType = []SocialType{
+	SocialTypeGithub,
+	SocialTypeLinkedIn,
+	SocialTypeTwitter,
+	SocialTypeFacebook,
+	SocialTypeSite,
+}
+
+func (e SocialType) IsValid() bool {
+	switch e {
+	case SocialTypeGithub, SocialTypeLinkedIn, SocialTypeTwitter, SocialTypeFacebook, SocialTypeSite:
+		return true
+	}
+	return false
+}
+
+func (e SocialType) String() string {
+	return string(e)
+}
+
+func (e *SocialType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SocialType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SocialType", str)
+	}
+	return nil
+}
+
+func (e SocialType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

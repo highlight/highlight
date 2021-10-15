@@ -11,10 +11,12 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
@@ -74,20 +76,16 @@ func (r *errorGroupResolver) Event(ctx context.Context, obj *model.ErrorGroup) (
 	return util.JsonStringToStringArray(obj.Event), nil
 }
 
-func (r *errorGroupResolver) StackTrace(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorTrace, error) {
+func (r *errorGroupResolver) StructuredStackTrace(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorTrace, error) {
 	if (obj.MappedStackTrace == nil || *obj.MappedStackTrace == "") && obj.StackTrace == "" {
 		return nil, nil
 	}
-	var ret []*modelInputs.ErrorTrace
 	stackTraceString := obj.StackTrace
 	if obj.MappedStackTrace != nil && *obj.MappedStackTrace != "" && *obj.MappedStackTrace != "null" {
 		stackTraceString = *obj.MappedStackTrace
 	}
-	if err := json.Unmarshal([]byte(stackTraceString), &ret); err != nil {
-		log.Error(e.Wrap(err, "error unmarshalling MappedStackTrace"))
-		return nil, nil
-	}
-	return ret, nil
+
+	return r.UnmarshalStackTrace(stackTraceString)
 }
 
 func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorMetadata, error) {
@@ -102,10 +100,11 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 			e.url AS visited_url,
 			s.fingerprint AS fingerprint,
 			s.identifier AS identifier,
-			s.user_properties
+			s.user_properties,
+			e.request_id
 		FROM sessions AS s
 		INNER JOIN (
-			SELECT DISTINCT ON (session_id) session_id, id, timestamp, url
+			SELECT DISTINCT ON (session_id) session_id, id, timestamp, url, request_id
 			FROM error_objects
 			WHERE error_group_id = ?
 			ORDER BY session_id DESC
@@ -174,14 +173,8 @@ func (r *errorObjectResolver) Event(ctx context.Context, obj *model.ErrorObject)
 	return util.JsonStringToStringArray(obj.Event), nil
 }
 
-func (r *errorObjectResolver) StackTrace(ctx context.Context, obj *model.ErrorObject) ([]interface{}, error) {
-	frames := []interface{}{}
-	if obj.StackTrace != nil {
-		if err := json.Unmarshal([]byte(*obj.StackTrace), &frames); err != nil {
-			return nil, fmt.Errorf("error decoding stack frame data: %v", err)
-		}
-	}
-	return frames, nil
+func (r *errorObjectResolver) StructuredStackTrace(ctx context.Context, obj *model.ErrorObject) ([]*modelInputs.ErrorTrace, error) {
+	return r.UnmarshalStackTrace(*obj.StackTrace)
 }
 
 func (r *errorSegmentResolver) Params(ctx context.Context, obj *model.ErrorSegment) (*model.ErrorSearchParams, error) {
@@ -1169,7 +1162,8 @@ func (r *mutationResolver) AddSlackBotIntegrationToProject(ctx context.Context, 
 }
 
 func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.ErrorAlert, error) {
-	admin, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1206,7 +1200,8 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 }
 
 func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, name string, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.ErrorAlert, error) {
-	admin, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1261,7 +1256,8 @@ func (r *mutationResolver) DeleteErrorAlert(ctx context.Context, projectID int, 
 }
 
 func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, projectID int, sessionFeedbackAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
-	admin, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1306,7 +1302,8 @@ func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, proje
 }
 
 func (r *mutationResolver) CreateSessionFeedbackAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
-	admin, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1343,7 +1340,8 @@ func (r *mutationResolver) CreateSessionFeedbackAlert(ctx context.Context, proje
 }
 
 func (r *mutationResolver) UpdateNewUserAlert(ctx context.Context, projectID int, sessionAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
-	admin, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1387,7 +1385,8 @@ func (r *mutationResolver) UpdateNewUserAlert(ctx context.Context, projectID int
 }
 
 func (r *mutationResolver) CreateNewUserAlert(ctx context.Context, projectID int, name string, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, thresholdWindow int) (*model.SessionAlert, error) {
-	admin, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1424,7 +1423,8 @@ func (r *mutationResolver) CreateNewUserAlert(ctx context.Context, projectID int
 }
 
 func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, projectID int, sessionAlertID int, name string, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, trackProperties []*modelInputs.TrackPropertyInput, thresholdWindow int) (*model.SessionAlert, error) {
-	admin, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1470,7 +1470,8 @@ func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, proje
 }
 
 func (r *mutationResolver) CreateTrackPropertiesAlert(ctx context.Context, projectID int, name string, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, trackProperties []*modelInputs.TrackPropertyInput, thresholdWindow int) (*model.SessionAlert, error) {
-	admin, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1513,7 +1514,8 @@ func (r *mutationResolver) CreateTrackPropertiesAlert(ctx context.Context, proje
 }
 
 func (r *mutationResolver) CreateUserPropertiesAlert(ctx context.Context, projectID int, name string, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, userProperties []*modelInputs.UserPropertyInput, thresholdWindow int) (*model.SessionAlert, error) {
-	admin, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1574,7 +1576,8 @@ func (r *mutationResolver) DeleteSessionAlert(ctx context.Context, projectID int
 }
 
 func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, projectID int, sessionAlertID int, name string, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, userProperties []*modelInputs.UserPropertyInput, thresholdWindow int) (*model.SessionAlert, error) {
-	admin, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1620,7 +1623,8 @@ func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, projec
 }
 
 func (r *mutationResolver) UpdateNewSessionAlert(ctx context.Context, projectID int, sessionAlertID int, name string, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, thresholdWindow int) (*model.SessionAlert, error) {
-	admin, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1660,7 +1664,8 @@ func (r *mutationResolver) UpdateNewSessionAlert(ctx context.Context, projectID 
 }
 
 func (r *mutationResolver) CreateNewSessionAlert(ctx context.Context, projectID int, name string, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, thresholdWindow int) (*model.SessionAlert, error) {
-	admin, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1722,6 +1727,15 @@ func (r *mutationResolver) UpdateErrorGroupIsPublic(ctx context.Context, errorGr
 }
 
 func (r *queryResolver) Session(ctx context.Context, id *int, secureID *string) (*model.Session, error) {
+	if util.IsDevEnv() && secureID != nil && *secureID == "repro" {
+		sessionObj := &model.Session{}
+		res := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: 0}}).First(&sessionObj)
+		if res.Error != nil {
+			return nil, fmt.Errorf("error reading from session: %v", res.Error)
+		}
+		return sessionObj, nil
+	}
+
 	s, err := r.canAdminViewSession(ctx, id, secureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
@@ -1735,7 +1749,7 @@ func (r *queryResolver) Session(ctx context.Context, id *int, secureID *string) 
 }
 
 func (r *queryResolver) Events(ctx context.Context, sessionID *int, sessionSecureID *string) ([]interface{}, error) {
-	if util.IsDevEnv() && sessionID != nil && *sessionID == 1 {
+	if util.IsDevEnv() && sessionSecureID != nil && *sessionSecureID == "repro" {
 		file, err := ioutil.ReadFile("./tmp/events.json")
 		if err != nil {
 			return nil, e.Wrap(err, "Failed to read temp file")
@@ -1783,9 +1797,11 @@ func (r *queryResolver) Events(ctx context.Context, sessionID *int, sessionSecur
 }
 
 func (r *queryResolver) RageClicks(ctx context.Context, sessionSecureID *string) ([]*model.RageClickEvent, error) {
-	_, err := r.canAdminViewSession(ctx, nil, sessionSecureID)
-	if err != nil {
-		return nil, e.Wrap(err, "admin not session owner")
+	if !(util.IsDevEnv() && sessionSecureID != nil && *sessionSecureID == "repro") {
+		_, err := r.canAdminViewSession(ctx, nil, sessionSecureID)
+		if err != nil {
+			return nil, e.Wrap(err, "admin not session owner")
+		}
 	}
 
 	var rageClicks []*model.RageClickEvent
@@ -1935,7 +1951,109 @@ func (r *queryResolver) Messages(ctx context.Context, sessionID *int, sessionSec
 	return allEvents["messages"], nil
 }
 
+func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionID *int, sessionSecureID *string) (*modelInputs.EnhancedUserDetailsResult, error) {
+	s, err := r.canAdminViewSession(ctx, sessionID, sessionSecureID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not session owner")
+	}
+	sessionObj := &model.Session{}
+	// TODO: filter fields by type='user'.
+	res := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&sessionObj)
+	if res.Error != nil {
+		return nil, fmt.Errorf("error reading from session: %v", res.Error)
+	}
+	details := &modelInputs.EnhancedUserDetailsResult{}
+	details.Socials = []*modelInputs.SocialLink{}
+	// We don't know what key is used for the user's email so we do a regex match
+	// on all 'user' type fields.
+	var email string
+	for _, f := range sessionObj.Fields {
+		if f.Type == "user" && regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`).MatchString(f.Value) {
+			email = f.Value
+		}
+		if f.Type == "user" && f.Name == "email" {
+			email = f.Value
+		}
+	}
+	if len(email) > 0 {
+		// Check if we already have this user's data in the db
+		// If so, return it
+		userDetailsModel := &model.EnhancedUserDetails{}
+		p, co := clearbit.Person{}, clearbit.Company{}
+		if err := r.DB.Where(&model.EnhancedUserDetails{Email: &email}).First(&userDetailsModel).Error; err != nil {
+			log.Infof("retrieving api response for clearbit lookup")
+			pc, _, err := r.ClearbitClient.Person.FindCombined(clearbit.PersonFindParams{Email: email})
+			if err != nil {
+				log.Errorf("error w/ clearbit request: %v", err)
+			}
+			p, co = pc.Person, pc.Company
+			// Store the data for this email in the DB.
+			go func() {
+				log.Infof("caching response data in the db")
+				modelToSave := &model.EnhancedUserDetails{}
+				modelToSave.Email = &email
+				if personBytes, err := json.Marshal(p); err == nil {
+					sPersonBytes := string(personBytes)
+					modelToSave.PersonJSON = &sPersonBytes
+				} else {
+					log.Errorf("error marshaling clearbit person: %v", err)
+				}
+				if companyBytes, err := json.Marshal(co); err == nil {
+					sCompanyBytes := string(companyBytes)
+					modelToSave.CompanyJSON = &sCompanyBytes
+				} else {
+					log.Errorf("error marshaling clearbit company: %v", err)
+				}
+				if err := r.DB.Create(modelToSave).Error; err != nil {
+					log.Errorf("error creating clearbit details model")
+				}
+			}()
+		} else {
+			log.Infof("retrieving db entry for clearbit lookup")
+			if userDetailsModel.PersonJSON != nil && userDetailsModel.CompanyJSON != nil {
+				if err := json.Unmarshal([]byte(*userDetailsModel.PersonJSON), &p); err != nil {
+					log.Errorf("error unmarshaling person: %v", err)
+				}
+				if err := json.Unmarshal([]byte(*userDetailsModel.CompanyJSON), &co); err != nil {
+					log.Errorf("error unmarshaling company: %v", err)
+				}
+			}
+		}
+		if twitterHandle := p.Twitter.Handle; twitterHandle != "" {
+			twitterLink := fmt.Sprintf("https://twitter.com/%v", twitterHandle)
+			details.Socials = append(details.Socials, &modelInputs.SocialLink{Link: &twitterLink, Type: modelInputs.SocialTypeTwitter})
+		}
+		if fbHandle := p.Facebook.Handle; fbHandle != "" {
+			fbLink := fmt.Sprintf("https://www.facebook.com/%v", fbHandle)
+			details.Socials = append(details.Socials, &modelInputs.SocialLink{Link: &fbLink, Type: modelInputs.SocialTypeFacebook})
+		}
+		if gHandle := p.GitHub.Handle; gHandle != "" {
+			ghLink := fmt.Sprintf("https://www.github.com/%v", gHandle)
+			details.Socials = append(details.Socials, &modelInputs.SocialLink{Link: &ghLink, Type: modelInputs.SocialTypeGithub})
+		}
+		if liHandle := p.LinkedIn.Handle; liHandle != "" {
+			fbLink := fmt.Sprintf("https://www.linkedin.com/in/%v", liHandle)
+			details.Socials = append(details.Socials, &modelInputs.SocialLink{Link: &fbLink, Type: modelInputs.SocialTypeLinkedIn})
+		}
+		if personalSiteLink, companySiteLink := p.Site, co.Domain; personalSiteLink != "" || companySiteLink != "" {
+			site := personalSiteLink
+			if personalSiteLink == "" {
+				site = companySiteLink
+			}
+			details.Socials = append(details.Socials, &modelInputs.SocialLink{Link: &site, Type: modelInputs.SocialTypeSite})
+		}
+		details.Avatar = &p.Avatar
+		details.Name = &p.Name.FullName
+		details.Bio = &p.Bio
+	}
+	return details, nil
+}
+
 func (r *queryResolver) Errors(ctx context.Context, sessionID *int, sessionSecureID *string) ([]*model.ErrorObject, error) {
+	if util.IsDevEnv() && sessionSecureID != nil && *sessionSecureID == "repro" {
+		errors := []*model.ErrorObject{}
+		return errors, nil
+	}
 	s, err := r.canAdminViewSession(ctx, sessionID, sessionSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
@@ -1981,6 +2099,10 @@ func (r *queryResolver) Resources(ctx context.Context, sessionID *int, sessionSe
 }
 
 func (r *queryResolver) SessionComments(ctx context.Context, sessionID *int, sessionSecureID *string) ([]*model.SessionComment, error) {
+	if util.IsDevEnv() && sessionSecureID != nil && *sessionSecureID == "repro" {
+		sessionComments := []*model.SessionComment{}
+		return sessionComments, nil
+	}
 	s, err := r.canAdminViewSession(ctx, sessionID, sessionSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")

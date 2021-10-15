@@ -936,7 +936,20 @@ export type GetSessionPayloadQuery = { __typename?: 'Query' } & Pick<
                         | 'stack_trace'
                         | 'timestamp'
                         | 'payload'
-                    >
+                        | 'request_id'
+                    > & {
+                            structured_stack_trace: Array<
+                                Types.Maybe<
+                                    { __typename?: 'ErrorTrace' } & Pick<
+                                        Types.ErrorTrace,
+                                        | 'fileName'
+                                        | 'lineNumber'
+                                        | 'functionName'
+                                        | 'columnNumber'
+                                    >
+                                >
+                            >;
+                        }
                 >
             >
         >;
@@ -944,6 +957,32 @@ export type GetSessionPayloadQuery = { __typename?: 'Query' } & Pick<
             { __typename?: 'RageClickEvent' } & Pick<
                 Types.RageClickEvent,
                 'start_timestamp' | 'end_timestamp' | 'total_clicks'
+            >
+        >;
+        session_comments: Array<
+            Types.Maybe<
+                { __typename?: 'SessionComment' } & Pick<
+                    Types.SessionComment,
+                    | 'id'
+                    | 'timestamp'
+                    | 'session_id'
+                    | 'session_secure_id'
+                    | 'created_at'
+                    | 'updated_at'
+                    | 'project_id'
+                    | 'text'
+                    | 'x_coordinate'
+                    | 'y_coordinate'
+                    | 'type'
+                    | 'metadata'
+                > & {
+                        author?: Types.Maybe<
+                            { __typename?: 'SanitizedAdmin' } & Pick<
+                                Types.SanitizedAdmin,
+                                'id' | 'name' | 'email' | 'photo_url'
+                            >
+                        >;
+                    }
             >
         >;
     };
@@ -980,6 +1019,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'payload_size'
             | 'within_billing_quota'
             | 'client_version'
+            | 'client_config'
             | 'is_public'
         > & {
                 fields?: Types.Maybe<
@@ -1156,6 +1196,30 @@ export type GetErrorCommentsQuery = { __typename?: 'Query' } & {
                     >;
                 }
         >
+    >;
+};
+
+export type GetEnhancedUserDetailsQueryVariables = Types.Exact<{
+    session_secure_id: Types.Scalars['String'];
+}>;
+
+export type GetEnhancedUserDetailsQuery = { __typename?: 'Query' } & {
+    enhanced_user_details?: Types.Maybe<
+        { __typename?: 'EnhancedUserDetailsResult' } & Pick<
+            Types.EnhancedUserDetailsResult,
+            'name' | 'bio' | 'avatar'
+        > & {
+                socials?: Types.Maybe<
+                    Array<
+                        Types.Maybe<
+                            { __typename?: 'SocialLink' } & Pick<
+                                Types.SocialLink,
+                                'type' | 'link'
+                            >
+                        >
+                    >
+                >;
+            }
     >;
 };
 
@@ -1480,10 +1544,11 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
             | 'event'
             | 'state'
             | 'mapped_stack_trace'
+            | 'stack_trace'
             | 'error_frequency'
             | 'is_public'
         > & {
-                stack_trace: Array<
+                structured_stack_trace: Array<
                     Types.Maybe<
                         { __typename?: 'ErrorTrace' } & Pick<
                             Types.ErrorTrace,
@@ -1508,6 +1573,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
                             | 'fingerprint'
                             | 'identifier'
                             | 'user_properties'
+                            | 'request_id'
                         >
                     >
                 >;
@@ -1547,9 +1613,10 @@ export type GetErrorGroupsQuery = { __typename?: 'Query' } & {
                         | 'event'
                         | 'state'
                         | 'environments'
+                        | 'stack_trace'
                         | 'error_frequency'
                     > & {
-                            stack_trace: Array<
+                            structured_stack_trace: Array<
                                 Types.Maybe<
                                     { __typename?: 'ErrorTrace' } & Pick<
                                         Types.ErrorTrace,
@@ -2287,6 +2354,7 @@ export const namedOperations = {
         GetNotifications: 'GetNotifications' as const,
         GetSessionCommentsForAdmin: 'GetSessionCommentsForAdmin' as const,
         GetErrorComments: 'GetErrorComments' as const,
+        GetEnhancedUserDetails: 'GetEnhancedUserDetails' as const,
         GetOnboardingSteps: 'GetOnboardingSteps' as const,
         GetSessions: 'GetSessions' as const,
         GetProjects: 'GetProjects' as const,

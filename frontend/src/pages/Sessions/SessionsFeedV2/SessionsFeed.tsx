@@ -4,6 +4,7 @@ import React, { RefObject, useEffect, useMemo, useState } from 'react';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
 import Skeleton from 'react-loading-skeleton';
 import TextTransition from 'react-text-transition';
+import { useSessionStorage } from 'react-use';
 
 import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
 import Switch from '../../../components/Switch/Switch';
@@ -39,6 +40,10 @@ export const SessionFeed = React.memo(() => {
     const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
     const { searchParams, showStarredSessions } = useSearchContext();
     const { show_live_sessions } = searchParams;
+    const [isIntegrating] = useSessionStorage(
+        `highlight-isIntegrating-${project_id}`,
+        false
+    );
 
     const { loading, fetchMore, called } = useGetSessionsQuery({
         variables: {
@@ -48,7 +53,7 @@ export const SessionFeed = React.memo(() => {
             lifecycle:
                 segment_id === LIVE_SEGMENT_ID
                     ? SessionLifecycle.Live
-                    : show_live_sessions
+                    : show_live_sessions || isIntegrating
                     ? SessionLifecycle.Live
                     : SessionLifecycle.Completed,
             starred: showStarredSessions,

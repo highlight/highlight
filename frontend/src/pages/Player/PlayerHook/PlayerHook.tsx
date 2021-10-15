@@ -8,7 +8,6 @@ import { BooleanParam, useQueryParam } from 'use-query-params';
 
 import { useAuthContext } from '../../../authentication/AuthContext';
 import {
-    useGetSessionCommentsQuery,
     useGetSessionPayloadLazyQuery,
     useGetSessionQuery,
     useMarkSessionAsViewedMutation,
@@ -22,17 +21,19 @@ import {
 import { HighlightEvent } from '../HighlightEvent';
 import {
     ParsedHighlightEvent,
-    ParsedSessionComment,
     ParsedSessionInterval,
     RageClick,
     ReplayerContextInterface,
     ReplayerState,
 } from '../ReplayerContext';
 import {
+    addErrorsToSessionIntervals,
+    addEventsToSessionIntervals,
     findNextSessionInList,
-    getCommentsInSessionIntervals,
+    getCommentsInSessionIntervalsRelative,
     getEventsForTimelineIndicator,
     getSessionIntervals,
+    PlayerSearchParameters,
     useSetPlayerTimestampFromSearchParam,
 } from './utils';
 import usePlayerConfiguration from './utils/usePlayerConfiguration';
@@ -64,9 +65,9 @@ export const usePlayer = (): ReplayerContextInterface => {
     const [download] = useQueryParam('download', BooleanParam);
     const [scale, setScale] = useState(1);
     const [events, setEvents] = useState<Array<HighlightEvent>>([]);
-    const [sessionComments, setSessionComments] = useState<
-        ParsedSessionComment[]
-    >([]);
+    const [sessionComments, setSessionComments] = useState<SessionComment[]>(
+        []
+    );
     const [
         eventsForTimelineIndicator,
         setEventsForTimelineIndicator,
@@ -91,6 +92,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         setPlayerTime: setPlayerTimeToPersistance,
         autoPlaySessions,
         showPlayerMouseTail,
+        setShowLeftPanel,
     } = usePlayerConfiguration();
     const [sessionEndTime, setSessionEndTime] = useState<number>(0);
     const [sessionIntervals, setSessionIntervals] = useState<
@@ -114,7 +116,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         },
         onCompleted: (data) => {
             if (data.session?.within_billing_quota) {
-                if (isLoggedIn) {
+                if (isLoggedIn && session_secure_id !== 'repro') {
                     markSessionAsViewed({
                         variables: {
                             secure_id: session_secure_id,
@@ -137,16 +139,6 @@ export const usePlayer = (): ReplayerContextInterface => {
             setSessionViewability(SessionViewability.ERROR);
         },
         skip: !session_secure_id,
-    });
-    const {
-        data: sessionCommentsData,
-        loading: sessionCommentsLoading,
-    } = useGetSessionCommentsQuery({
-        variables: {
-            session_secure_id,
-        },
-        skip: !session_secure_id,
-        // pollInterval: 1000 * 10,
     });
 
     const resetPlayer = useCallback(
@@ -189,6 +181,13 @@ export const usePlayer = (): ReplayerContextInterface => {
         }
     }, [eventsLoading, resetPlayer, setPlayerTimeToPersistance]);
 
+    useEffect(() => {
+        const searchParamsObject = new URLSearchParams(location.search);
+        if (searchParamsObject.get(PlayerSearchParameters.errorId)) {
+            setShowLeftPanel(false);
+        }
+    }, [setShowLeftPanel]);
+
     // Downloads the events data only if the URL search parameter '?download=1' is present.
     useEffect(() => {
         if (download && eventsData) {
@@ -227,10 +226,23 @@ export const usePlayer = (): ReplayerContextInterface => {
                     );
                 }
             }
+            let clientConfig;
+            if (sessionData?.session?.client_config) {
+                try {
+                    clientConfig = JSON.parse(
+                        sessionData?.session?.client_config
+                    );
+                } catch (_e) {
+                    const e = _e as Error;
+                    H.consumeError(e, 'Failed to JSON parse client config');
+                }
+            }
             const r = new Replayer(newEvents.slice(0, EVENTS_CHUNK_SIZE), {
                 root: playerMountingRoot,
                 triggerFocus: false,
                 mouseTail: showPlayerMouseTail,
+                UNSAFE_replayCanvas:
+                    clientConfig?.enableCanvasRecording || false,
             });
             r.on('event-cast', (e: any) => {
                 const event = e as HighlightEvent;
@@ -241,6 +253,11 @@ export const usePlayer = (): ReplayerContextInterface => {
             setEvents(newEvents);
             if (eventsData?.errors) {
                 setErrors(eventsData.errors as ErrorObject[]);
+            }
+            if (eventsData?.session_comments) {
+                setSessionComments(
+                    eventsData.session_comments as SessionComment[]
+                );
             }
             setReplayer(r);
         } else if (!!eventsData) {
@@ -282,7 +299,21 @@ export const usePlayer = (): ReplayerContextInterface => {
                         '[Highlight] Session Metadata:',
                         replayer.getMetaData()
                     );
-                    setSessionIntervals(sessionIntervals);
+                    setSessionIntervals(
+                        getCommentsInSessionIntervalsRelative(
+                            addEventsToSessionIntervals(
+                                addErrorsToSessionIntervals(
+                                    sessionIntervals,
+                                    errors,
+                                    replayer.getMetaData().startTime
+                                ),
+                                events,
+                                replayer.getMetaData().startTime
+                            ),
+                            sessionComments,
+                            replayer.getMetaData().startTime
+                        )
+                    );
                     setEventsForTimelineIndicator(
                         getEventsForTimelineIndicator(
                             events,
@@ -292,41 +323,88 @@ export const usePlayer = (): ReplayerContextInterface => {
                     );
                     setSessionEndTime(replayer.getMetaData().totalTime);
                     if (eventsData?.rage_clicks) {
-                        const sessionStartTime = new Date(
-                            replayer?.getMetaData().startTime
-                        ).getTime();
-                        const sessionEndTime = new Date(
-                            replayer?.getMetaData().endTime
-                        ).getTime();
-                        const sessionDuration =
-                            sessionEndTime - sessionStartTime;
+                        setSessionIntervals((sessionIntervals) => {
+                            const allClickEvents: (ParsedHighlightEvent & {
+                                sessionIndex: number;
+                            })[] = [];
 
-                        const rageClicks = eventsData.rage_clicks.map(
-                            (rageClick) => {
-                                const start =
-                                    new Date(
-                                        rageClick.start_timestamp
-                                    ).getTime() - sessionStartTime;
+                            sessionIntervals.forEach(
+                                (interval, sessionIndex) => {
+                                    interval.sessionEvents.forEach((event) => {
+                                        if (
+                                            event.type === 5 &&
+                                            event.data.tag === 'Click'
+                                        ) {
+                                            allClickEvents.push({
+                                                ...event,
+                                                sessionIndex,
+                                            });
+                                        }
+                                    });
+                                }
+                            );
 
-                                const startPercentage = start / sessionDuration;
+                            const rageClicksWithRelativePositions: RageClick[] = [];
 
-                                const end =
-                                    new Date(
-                                        rageClick.end_timestamp
-                                    ).getTime() - sessionStartTime;
+                            eventsData.rage_clicks.forEach((rageClick) => {
+                                const rageClickStartUnixTimestamp = new Date(
+                                    rageClick.start_timestamp
+                                ).getTime();
+                                const rageClickEndUnixTimestamp = new Date(
+                                    rageClick.end_timestamp
+                                ).getTime();
+                                /**
+                                 * We have this tolerance because time reporting for milliseconds precision is slightly off.
+                                 */
+                                const DIFFERENCE_TOLERANCE = 100;
 
-                                const endPercentage = end / sessionDuration;
+                                const matchingStartClickEvent = allClickEvents.find(
+                                    (clickEvent) => {
+                                        if (
+                                            Math.abs(
+                                                clickEvent.timestamp -
+                                                    rageClickStartUnixTimestamp
+                                            ) < DIFFERENCE_TOLERANCE
+                                        ) {
+                                            return true;
+                                        }
+                                    }
+                                );
+                                const matchingEndClickEvent = allClickEvents.find(
+                                    (clickEvent) => {
+                                        if (
+                                            Math.abs(
+                                                clickEvent.timestamp -
+                                                    rageClickEndUnixTimestamp
+                                            ) < DIFFERENCE_TOLERANCE
+                                        ) {
+                                            return true;
+                                        }
+                                    }
+                                );
 
-                                return {
-                                    startTimestamp: rageClick.start_timestamp,
-                                    startPercentage,
-                                    endTimestamp: rageClick.end_timestamp,
-                                    endPercentage,
-                                    totalClicks: rageClick.total_clicks,
-                                } as RageClick;
-                            }
-                        );
-                        setRageClicks(rageClicks);
+                                if (
+                                    matchingStartClickEvent &&
+                                    matchingEndClickEvent
+                                ) {
+                                    rageClicksWithRelativePositions.push({
+                                        endTimestamp: rageClick.end_timestamp,
+                                        startTimestamp:
+                                            rageClick.start_timestamp,
+                                        totalClicks: rageClick.total_clicks,
+                                        startPercentage:
+                                            matchingStartClickEvent.relativeIntervalPercentage,
+                                        endPercentage:
+                                            matchingEndClickEvent.relativeIntervalPercentage,
+                                        sessionIntervalIndex:
+                                            matchingStartClickEvent.sessionIndex,
+                                    } as RageClick);
+                                }
+                            });
+
+                            setRageClicks(rageClicksWithRelativePositions);
+                            return sessionIntervals;
+                        });
                     }
                     setState(
                         hasSearchParam
@@ -352,28 +430,6 @@ export const usePlayer = (): ReplayerContextInterface => {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [errors, events, events.length, hasSearchParam, replayer]);
-
-    useEffect(() => {
-        if (
-            replayer &&
-            sessionCommentsData?.session_comments &&
-            sessionIntervals.length > 0 &&
-            !sessionCommentsLoading
-        ) {
-            setSessionComments(
-                getCommentsInSessionIntervals(
-                    sessionCommentsData.session_comments as SessionComment[],
-                    replayer.getMetaData().startTime,
-                    replayer.getMetaData().totalTime
-                )
-            );
-        }
-    }, [
-        replayer,
-        sessionCommentsData?.session_comments,
-        sessionCommentsLoading,
-        sessionIntervals,
-    ]);
 
     // "Subscribes" the time with the Replayer when the Player is playing.
     useEffect(() => {
