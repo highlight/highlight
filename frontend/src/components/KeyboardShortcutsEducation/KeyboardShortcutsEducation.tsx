@@ -7,6 +7,7 @@ import { PLAYBACK_SPEED_INCREMENT } from '@pages/Player/Toolbar/SpeedControl/Spe
 import { PLAYER_SKIP_DURATION } from '@pages/Player/utils/PlayerHooks';
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext';
 import classNames from 'classnames';
+import { AnimatePresence, motion } from 'framer-motion';
 import { H } from 'highlight.run';
 import React, { useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
@@ -86,168 +87,201 @@ const KeyboardShortcutsEducation = () => {
         filteredGeneralKeyboardShortcuts.length === 0;
 
     return (
-        <>
-            <div
-                className={classNames(styles.backdrop, {
-                    [styles.hidden]: !showKeyboardShortcutsGuide,
-                })}
-                onClick={() => {
-                    if (showKeyboardShortcutsGuide) {
-                        toggleShowKeyboardShortcutsGuide();
-                    }
-                }}
-            ></div>
-
-            <ElevatedCard
-                title={
-                    <div className={styles.titleContainer}>
-                        Shortcuts{' '}
-                        <ButtonLink
-                            anchor
-                            href="https://feedback.highlight.run/feature-requests"
-                            trackingId="SuggestKeyboardShortcut"
-                            className={styles.suggestionButton}
-                        >
-                            Suggest a Shortcut
-                        </ButtonLink>
-                    </div>
-                }
-                className={classNames(styles.elevatedCard, {
-                    [styles.hidden]: !showKeyboardShortcutsGuide,
-                })}
-            >
-                <main className={styles.container}>
-                    <Input
-                        placeholder="Search"
-                        suffix={<SvgSearchIcon className={styles.searchIcon} />}
-                        onChange={(e) => {
-                            setSearchQuery(e.target.value);
+        <AnimatePresence presenceAffectsLayout>
+            {showKeyboardShortcutsGuide && (
+                <>
+                    <motion.div
+                        key="backdrop"
+                        className={classNames(styles.backdrop)}
+                        onClick={() => {
+                            if (showKeyboardShortcutsGuide) {
+                                toggleShowKeyboardShortcutsGuide();
+                            }
                         }}
-                        allowClear
-                    />
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                    ></motion.div>
 
-                    {!isOnSessionPlayerPage && !hasNoSearchHits && (
-                        <section>
-                            <h3 className={styles.emptyTitle}>
-                                {location.pathname.split('/').reverse()[0]} Page
-                            </h3>
-
-                            <p>
-                                There are no keyboard shortcuts for this page.
-                            </p>
-                        </section>
-                    )}
-
-                    {hasNoSearchHits && (
-                        <section>
-                            <p className={styles.emptyDescription}>
-                                No keyboard results matching '{searchQuery}
-                                '.
-                            </p>
-                            <ButtonLink
-                                anchor
-                                href="https://feedback.highlight.run/feature-requests"
-                                trackingId="SuggestKeyboardShortcutFromSearch"
-                                className={classNames(
-                                    styles.suggestionButton,
-                                    styles.cta
-                                )}
-                            >
-                                Suggest a Shortcut
-                            </ButtonLink>
-                        </section>
-                    )}
-
-                    {filteredGeneralKeyboardShortcuts.length > 0 && (
-                        <section>
-                            <h3>General</h3>
-
-                            <table>
-                                <tbody>
-                                    {filteredGeneralKeyboardShortcuts.map(
-                                        (shortcut) => (
-                                            <tr key={shortcut.description}>
-                                                <td
-                                                    className={
-                                                        styles.description
-                                                    }
-                                                >
-                                                    <TextHighlighter
-                                                        searchWords={searchQuery.split(
-                                                            ' '
-                                                        )}
-                                                        textToHighlight={
-                                                            shortcut.description
-                                                        }
-                                                    />
-                                                </td>
-                                                <td
-                                                    className={
-                                                        styles.shortcutContainer
-                                                    }
-                                                >
-                                                    <KeyboardShortcut
-                                                        shortcut={
-                                                            shortcut.shortcut
-                                                        }
-                                                    />
-                                                </td>
-                                            </tr>
-                                        )
-                                    )}
-                                </tbody>
-                            </table>
-                        </section>
-                    )}
-
-                    {filteredPlayerKeyboardShortcuts.length > 0 && (
-                        <section
-                            className={classNames({
-                                [styles.disabled]: !isOnSessionPlayerPage,
-                            })}
+                    <motion.div
+                        key="ShortcutsCard"
+                        initial={{ transform: 'translateX(110%)' }}
+                        animate={{ transform: 'translateX(0%)' }}
+                        exit={{ transform: 'translateX(110%)' }}
+                        className={styles.elevatedCardMotion}
+                    >
+                        <ElevatedCard
+                            title={
+                                <div className={styles.titleContainer}>
+                                    Shortcuts{' '}
+                                    <ButtonLink
+                                        anchor
+                                        href="https://feedback.highlight.run/feature-requests"
+                                        trackingId="SuggestKeyboardShortcut"
+                                        className={styles.suggestionButton}
+                                    >
+                                        Suggest a Shortcut
+                                    </ButtonLink>
+                                </div>
+                            }
+                            className={classNames(styles.elevatedCard)}
                         >
-                            <h3>Session Player Page</h3>
+                            <main className={styles.container}>
+                                <Input
+                                    placeholder="Search"
+                                    suffix={
+                                        <SvgSearchIcon
+                                            className={styles.searchIcon}
+                                        />
+                                    }
+                                    onChange={(e) => {
+                                        setSearchQuery(e.target.value);
+                                    }}
+                                    allowClear
+                                />
 
-                            <table>
-                                <tbody>
-                                    {filteredPlayerKeyboardShortcuts.map(
-                                        (shortcut) => (
-                                            <tr key={shortcut.description}>
-                                                <td
-                                                    className={
-                                                        styles.description
-                                                    }
-                                                >
-                                                    <TextHighlighter
-                                                        searchWords={searchQuery.split(
-                                                            ' '
-                                                        )}
-                                                        textToHighlight={
-                                                            shortcut.description
-                                                        }
-                                                    />
-                                                </td>
-                                                <td
-                                                    className={
-                                                        styles.shortcutContainer
-                                                    }
-                                                >
-                                                    <KeyboardShortcut
-                                                        shortcut={
-                                                            shortcut.shortcut
-                                                        }
-                                                    />
-                                                </td>
-                                            </tr>
-                                        )
-                                    )}
-                                </tbody>
-                            </table>
-                        </section>
-                    )}
-                </main>
-            </ElevatedCard>
-        </>
+                                {!isOnSessionPlayerPage && !hasNoSearchHits && (
+                                    <section>
+                                        <h3 className={styles.emptyTitle}>
+                                            {
+                                                location.pathname
+                                                    .split('/')
+                                                    .reverse()[0]
+                                            }{' '}
+                                            Page
+                                        </h3>
+
+                                        <p>
+                                            There are no keyboard shortcuts for
+                                            this page.
+                                        </p>
+                                    </section>
+                                )}
+
+                                {hasNoSearchHits && (
+                                    <section>
+                                        <p className={styles.emptyDescription}>
+                                            No keyboard results matching '
+                                            {searchQuery}
+                                            '.
+                                        </p>
+                                        <ButtonLink
+                                            anchor
+                                            href="https://feedback.highlight.run/feature-requests"
+                                            trackingId="SuggestKeyboardShortcutFromSearch"
+                                            className={classNames(
+                                                styles.suggestionButton,
+                                                styles.cta
+                                            )}
+                                        >
+                                            Suggest a Shortcut
+                                        </ButtonLink>
+                                    </section>
+                                )}
+
+                                {filteredGeneralKeyboardShortcuts.length >
+                                    0 && (
+                                    <section>
+                                        <h3>General</h3>
+
+                                        <table>
+                                            <tbody>
+                                                {filteredGeneralKeyboardShortcuts.map(
+                                                    (shortcut) => (
+                                                        <tr
+                                                            key={
+                                                                shortcut.description
+                                                            }
+                                                        >
+                                                            <td
+                                                                className={
+                                                                    styles.description
+                                                                }
+                                                            >
+                                                                <TextHighlighter
+                                                                    searchWords={searchQuery.split(
+                                                                        ' '
+                                                                    )}
+                                                                    textToHighlight={
+                                                                        shortcut.description
+                                                                    }
+                                                                />
+                                                            </td>
+                                                            <td
+                                                                className={
+                                                                    styles.shortcutContainer
+                                                                }
+                                                            >
+                                                                <KeyboardShortcut
+                                                                    shortcut={
+                                                                        shortcut.shortcut
+                                                                    }
+                                                                />
+                                                            </td>
+                                                        </tr>
+                                                    )
+                                                )}
+                                            </tbody>
+                                        </table>
+                                    </section>
+                                )}
+
+                                {filteredPlayerKeyboardShortcuts.length > 0 && (
+                                    <section
+                                        className={classNames({
+                                            [styles.disabled]: !isOnSessionPlayerPage,
+                                        })}
+                                    >
+                                        <h3>Session Player Page</h3>
+
+                                        <table>
+                                            <tbody>
+                                                {filteredPlayerKeyboardShortcuts.map(
+                                                    (shortcut) => (
+                                                        <tr
+                                                            key={
+                                                                shortcut.description
+                                                            }
+                                                        >
+                                                            <td
+                                                                className={
+                                                                    styles.description
+                                                                }
+                                                            >
+                                                                <TextHighlighter
+                                                                    searchWords={searchQuery.split(
+                                                                        ' '
+                                                                    )}
+                                                                    textToHighlight={
+                                                                        shortcut.description
+                                                                    }
+                                                                />
+                                                            </td>
+                                                            <td
+                                                                className={
+                                                                    styles.shortcutContainer
+                                                                }
+                                                            >
+                                                                <KeyboardShortcut
+                                                                    shortcut={
+                                                                        shortcut.shortcut
+                                                                    }
+                                                                />
+                                                            </td>
+                                                        </tr>
+                                                    )
+                                                )}
+                                            </tbody>
+                                        </table>
+                                    </section>
+                                )}
+                            </main>
+                        </ElevatedCard>
+                    </motion.div>
+                </>
+            )}
+        </AnimatePresence>
     );
 };
 
