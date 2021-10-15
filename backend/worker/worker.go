@@ -258,6 +258,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	clickEventQueue := list.New()
 	var rageClickSets []*model.RageClickEvent
 	var currentlyInRageClickSet bool
+	timestamps := make(map[time.Time]int)
 	for hasNext {
 		se, err := re.Next()
 		if err != nil {
@@ -275,6 +276,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 				LastEventTimestamp:      lastEventTimestamp,
 				RageClickSets:           rageClickSets,
 				CurrentlyInRageClickSet: currentlyInRageClickSet,
+				TimestampCounts:         timestamps,
 			})
 			if o.Error != nil {
 				return e.Wrap(err, "error processing event chunk")
@@ -284,6 +286,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			activeDuration += o.CalculatedDuration
 			rageClickSets = o.RageClickSets
 			currentlyInRageClickSet = o.CurrentlyInRageClickSet
+			timestamps = o.TimestampCounts
 		}
 	}
 	for i, r := range rageClickSets {
@@ -295,6 +298,11 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		if err := w.Resolver.DB.Create(&rageClickSets).Error; err != nil {
 			log.Error(e.Wrap(err, "error creating rage click sets"))
 		}
+	}
+	// figuring out the slice of event counts
+	lastEventTimestamp.Sub(firstEventTimestamp).Seconds()
+	for t, c := range timestamps {
+
 	}
 
 	// Calculate total session length and write the length to the session.
@@ -667,6 +675,8 @@ type processEventChunkInput struct {
 	FirstEventTimestamp time.Time
 	// LastEventTimestamp represents the timestamp for the first event
 	LastEventTimestamp time.Time
+	// TimestampCounts represents a count of all user interaction events per second
+	TimestampCounts map[time.Time]int
 }
 
 type processEventChunkOutput struct {
@@ -682,6 +692,8 @@ type processEventChunkOutput struct {
 	LastEventTimestamp time.Time
 	// CalculatedDuration represents the calculated active duration for the current event chunk
 	CalculatedDuration time.Duration
+	// TimestampCounts represents a count of all user interaction events per second
+	TimestampCounts map[time.Time]int
 	// Error
 	Error error
 }
@@ -710,6 +722,7 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 	o.LastEventTimestamp = input.LastEventTimestamp
 	o.CurrentlyInRageClickSet = input.CurrentlyInRageClickSet
 	o.RageClickSets = input.RageClickSets
+	o.TimestampCounts = input.TimestampCounts
 	for _, event := range events.Events {
 		if event == nil {
 			continue
@@ -745,9 +758,24 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 				o.Error = err
 				return o
 			}
+			if mouseInteractionEventData.Source == nil {
+				// all user interaction events must have a source
+				continue
+			}
+			if _, ok := map[parse.EventSource]bool{
+				parse.MouseMove: true, parse.MouseInteraction: true, parse.Scroll: true,
+				parse.Input: true, parse.TouchMove: true, parse.Drag: true,
+			}[*mouseInteractionEventData.Source]; !ok {
+				continue
+			}
+			ts := event.Timestamp.Truncate(time.Second)
+			if _, ok := o.TimestampCounts[ts]; !ok {
+				o.TimestampCounts[ts] = 0
+			}
+			o.TimestampCounts[ts] += 1
 			if mouseInteractionEventData.X == nil || mouseInteractionEventData.Y == nil ||
-				mouseInteractionEventData.Type == nil || mouseInteractionEventData.Source == nil {
-				// all values must not be nil on a click/touch event
+				mouseInteractionEventData.Type == nil {
+				// all values must be not nil on a click/touch event
 				continue
 			}
 			if *mouseInteractionEventData.Source != parse.MouseInteraction {
