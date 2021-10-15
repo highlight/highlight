@@ -40,11 +40,9 @@ const ApplicationRouter = ({ integrated }: Props) => {
     const [showStarredSessions, setShowStarredSessions] = useState<boolean>(
         false
     );
-    const [searchParams, setSearchParams] = useState<SearchParams>({
-        ...EmptySessionsSearchParams,
-        show_live_sessions: !integrated,
-    });
-
+    const [searchParams, setSearchParams] = useState<SearchParams>(
+        EmptySessionsSearchParams
+    );
     const [selectedSegment, setSelectedSegment] = useLocalStorage<
         { value: string; id: string } | undefined
     >(
