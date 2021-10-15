@@ -5,6 +5,7 @@ import {
 import HighlightGate from '@components/HighlightGate/HighlightGate';
 import { ALERT_CONFIGURATIONS } from '@pages/Alerts/Alerts';
 import { formatShortTime } from '@pages/Home/components/KeyPerformanceIndicators/utils/utils';
+import ActivityGraph from '@pages/Sessions/SessionsFeedV2/components/ActivityGraph/ActivityGraph';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import React, { useEffect, useRef, useState } from 'react';
@@ -360,7 +361,21 @@ const MinimalSessionCard = React.memo(
                 {!errorVersion && showDetailedSessionView && (
                     <HighlightGate>
                         <div className={styles.activityGraphContainer}>
-                            <h2>hi</h2>
+                            <ActivityGraph
+                                data={[
+                                    { ts: 0, value: Math.random() * 100 },
+                                    { ts: 1, value: Math.random() * 200 },
+                                    { ts: 2, value: Math.random() * 1000 },
+                                    { ts: 3, value: Math.random() * 1000 },
+                                    { ts: 4, value: Math.random() * 1000 },
+                                    { ts: 5, value: Math.random() * 1000 },
+                                    { ts: 6, value: Math.random() * 1000 },
+                                    { ts: 7, value: Math.random() * 100 },
+                                    { ts: 8, value: Math.random() * 1000 },
+                                    { ts: 9, value: Math.random() * 100 },
+                                    { ts: 10, value: Math.random() * 1000 },
+                                ]}
+                            />
                         </div>
                     </HighlightGate>
                 )}
