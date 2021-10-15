@@ -1,10 +1,5 @@
 import { RequestResponsePair } from './models';
 
-const KEY_MAPPINGS = {
-    xmlhttprequest: 'xhr',
-    fetch: 'fetch',
-};
-
 export const matchPerformanceTimingsWithRequestResponsePair = (
     performanceTimings: any[],
     requestResponsePairs: RequestResponsePair[],
@@ -13,21 +8,16 @@ export const matchPerformanceTimingsWithRequestResponsePair = (
     const groupedPerformanceTimings = performanceTimings.reduce(
         (previous, performanceTiming) => {
             if (performanceTiming.initiatorType === type) {
-                return {
-                    ...previous,
-                    [KEY_MAPPINGS[type]]: [
-                        ...previous[KEY_MAPPINGS[type]],
-                        performanceTiming,
-                    ],
-                };
+                previous[type] = [
+                    ...previous[type],
+                    performanceTiming,
+                ];
             } else {
-                return {
-                    ...previous,
-                    others: [...previous.others, performanceTiming],
-                };
+                previous.others = [...previous.others, performanceTiming];
             }
+            return previous;
         },
-        { xhr: [], others: [], fetch: [] }
+        { xmlhttprequest: [], others: [], fetch: [] }
     );
 
     /**
@@ -37,23 +27,23 @@ export const matchPerformanceTimingsWithRequestResponsePair = (
      * first few requests made when a page loads.
      */
     const startingIndex =
-        groupedPerformanceTimings[KEY_MAPPINGS[type]].length -
+        groupedPerformanceTimings[type].length -
         requestResponsePairs.length;
     for (
         let i = startingIndex;
-        i < groupedPerformanceTimings[KEY_MAPPINGS[type]].length;
+        i < groupedPerformanceTimings[type].length;
         i++
     ) {
         // TODO: Fix this matching.
-        if (groupedPerformanceTimings[KEY_MAPPINGS[type]][i]) {
-            groupedPerformanceTimings[KEY_MAPPINGS[type]][
+        if (groupedPerformanceTimings[type][i]) {
+            groupedPerformanceTimings[type][
                 i
             ].requestResponsePair = requestResponsePairs[i];
         }
     }
 
     return [
-        ...groupedPerformanceTimings.xhr,
+        ...groupedPerformanceTimings.xmlhttprequest,
         ...groupedPerformanceTimings.others,
         ...groupedPerformanceTimings.fetch,
     ]
