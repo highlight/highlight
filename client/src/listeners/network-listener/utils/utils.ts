@@ -5,6 +5,8 @@ export const matchPerformanceTimingsWithRequestResponsePair = (
     requestResponsePairs: RequestResponsePair[],
     type: 'xmlhttprequest' | 'fetch'
 ) => {
+    // Request response pairs are sorted by end time; sort performance timings the same way
+    performanceTimings.sort((a, b) => a.responseEnd - b.responseEnd);
     const groupedPerformanceTimings = performanceTimings.reduce(
         (previous, performanceTiming) => {
             if (performanceTiming.initiatorType === type) {
