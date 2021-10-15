@@ -9,4 +9,5 @@ export const EmptyErrorsSearchParams: Complete<ErrorSearchParams> = {
     state: ErrorState.Open,
     os: undefined,
     visited_url: undefined,
+    type: undefined,
 };

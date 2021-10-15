@@ -1843,6 +1843,10 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 		queryString += fmt.Sprintf("AND (event ILIKE '%s') ", "%"+*params.Event+"%")
 	}
 
+	if params.Type != nil {
+		queryString += fmt.Sprintf("AND (type = '%s')", *params.Type)
+	}
+
 	sessionFilters := []string{}
 	if params.Browser != nil {
 		sessionFilters = append(sessionFilters, fmt.Sprintf("(sessions.browser_name = '%s')", *params.Browser))
