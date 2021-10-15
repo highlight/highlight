@@ -1,6 +1,6 @@
 {
     "name": "highlight.run",
-    "version": "2.7.3",
+    "version": "2.7.5",
     "scripts": {
         "build": "webpack --mode=production --config=./webpack.config.js",
         "dev": "doppler run -- webpack-dev-server --progress --colors --watch",
@@ -10,6 +10,7 @@
     },
     "main": "dist/firstload/src/index.js",
     "types": "dist/firstload/src/index.d.ts",
+    "license": "MIT",
     "devDependencies": {
         "@babel/preset-env": "^7.14.7",
         "@babel/preset-typescript": "^7.14.5",

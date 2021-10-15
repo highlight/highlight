@@ -1,4 +1,5 @@
 export const actionIcon: string;
+export const activityGraphContainer: string;
 export const avatarWrapper: string;
 export const bottomText: string;
 export const cardAnnotation: string;
@@ -10,6 +11,7 @@ export const linkDisabled: string;
 export const middleText: string;
 export const readMarkerContainer: string;
 export const selected: string;
+export const separator: string;
 export const sessionCard: string;
 export const sessionCardAction: string;
 export const sessionCardContentWrapper: string;

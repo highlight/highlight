@@ -1,4 +1,5 @@
 import Card from '@components/Card/Card';
+import ConfirmModal from '@components/ConfirmModal/ConfirmModal';
 import { DEMO_WORKSPACE_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import Input from '@components/Input/Input';
 import { namedOperations } from '@graph/operations';
@@ -821,21 +822,29 @@ export const AlertConfigurationCard = ({
                         {() => (
                             <div className={styles.actionsContainer}>
                                 {onDeleteHandler && (
-                                    <Button
-                                        trackingId="DeleteAlertConfiguration"
-                                        type="default"
-                                        danger
-                                        className={styles.saveButton}
-                                        htmlType="button"
-                                        loading={loading}
-                                        onClick={() => {
+                                    <ConfirmModal
+                                        buttonProps={{
+                                            trackingId:
+                                                'DeleteAlertConfiguration',
+                                            type: 'default',
+                                            danger: true,
+                                            className: styles.saveButton,
+                                            htmlType: 'button',
+                                            loading: loading,
+                                        }}
+                                        onCancelHandler={() => {}}
+                                        onConfirmHandler={() => {
                                             if (alert.id) {
                                                 onDeleteHandler(alert.id);
                                             }
                                         }}
-                                    >
-                                        Delete
-                                    </Button>
+                                        trackingId="DeleteAlert"
+                                        modalTitleText={`Delete '${alert.Name}' Alert?`}
+                                        description="Deleting an alert is irreversible. You can always create a new alert if you want to get alerted for this again."
+                                        confirmText="Delete Alert"
+                                        cancelText="Don't Delete Alert"
+                                        buttonText="Delete"
+                                    />
                                 )}
                                 <Button
                                     trackingId="SaveAlertConfiguration"

@@ -25,6 +25,7 @@ type Session {
     environment: String
     app_version: String
     client_version: String
+    client_config: String
     language: String!
     identifier: String!
     created_at: Timestamp
@@ -71,6 +72,26 @@ enum PlanType {
     Basic
     Startup
     Enterprise
+}
+
+type EnhancedUserDetailsResult {
+    name: String
+    avatar: String
+    bio: String
+    socials: [SocialLink]
+}
+
+type SocialLink {
+    type: SocialType!
+    link: String
+}
+
+enum SocialType {
+    Github
+    LinkedIn
+    Twitter
+    Facebook
+    Site
 }
 
 enum ErrorState {
@@ -134,9 +155,11 @@ type ErrorObject {
     source: String
     lineNumber: Int
     columnNumber: Int
-    stack_trace: [Any]
+    stack_trace: String!
+    structured_stack_trace: [ErrorTrace]!
     timestamp: Timestamp
     payload: String
+    request_id: String
 }
 
 type ErrorField {
@@ -152,9 +175,10 @@ type ErrorGroup {
     project_id: Int!
     type: String!
     event: [String]!
-    stack_trace: [ErrorTrace]!
+    structured_stack_trace: [ErrorTrace]!
     metadata_log: [ErrorMetadata]!
     mapped_stack_trace: String
+    stack_trace: String
     field_group: [ErrorField]
     state: ErrorState!
     environments: String
@@ -174,6 +198,7 @@ type ErrorMetadata {
     fingerprint: String!
     identifier: String
     user_properties: String
+    request_id: String
 }
 
 type ErrorTrace {
@@ -444,6 +469,10 @@ type Query {
     ): ErrorResults
     error_group(id: ID, secure_id: String): ErrorGroup
     messages(session_id: ID, session_secure_id: String): [Any]
+    enhanced_user_details(
+        session_id: ID
+        session_secure_id: String
+    ): EnhancedUserDetailsResult
     errors(session_id: ID, session_secure_id: String): [ErrorObject]
     resources(session_id: ID, session_secure_id: String): [Any]
     session_comments(

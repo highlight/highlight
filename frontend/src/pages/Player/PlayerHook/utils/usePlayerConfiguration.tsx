@@ -73,10 +73,12 @@ const usePlayerConfiguration = () => {
     const { width } = useWindowSize();
 
     useEffect(() => {
-        if (width <= 1300) {
+        if (showLeftPanel && width <= 1300) {
+            setShowRightPanel(false);
+        } else if (width <= 840) {
             setShowRightPanel(false);
         }
-    }, [setShowRightPanel, width]);
+    }, [setShowRightPanel, showLeftPanel, width]);
 
     return {
         showLeftPanel,

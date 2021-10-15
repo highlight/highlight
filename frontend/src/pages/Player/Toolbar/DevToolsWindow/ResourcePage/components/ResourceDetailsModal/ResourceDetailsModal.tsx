@@ -1,3 +1,4 @@
+import { ErrorObject } from '@graph/schemas';
 import React from 'react';
 
 import DataCard from '../../../../../../../components/DataCard/DataCard';
@@ -186,6 +187,19 @@ const ResourceDetailsModal = ({
         }
     }
 
+    const getErrorRows = (errorObj: ErrorObject): KeyValueTableRow[] => [
+        {
+            keyDisplayValue: 'Event',
+            valueDisplayValue: errorObj.event.find((e) => e),
+            renderType: 'string',
+        },
+        {
+            keyDisplayValue: 'Stack Trace',
+            valueDisplayValue: errorObj.stack_trace,
+            renderType: 'string',
+        },
+    ];
+
     return (
         <section className={styles.modalContentContainer}>
             <Space size="large" direction="vertical">
@@ -193,11 +207,11 @@ const ResourceDetailsModal = ({
                     <KeyValueTable data={generalData} />
                 </DataCard>
 
-                {selectedNetworkResource?.backendError && (
-                    <DataCard title="Backend Error" fullWidth>
-                        {selectedNetworkResource.backendError}
+                {selectedNetworkResource?.errors?.map((error) => (
+                    <DataCard key={error.id} title="Backend Error" fullWidth>
+                        <KeyValueTable data={getErrorRows(error)} />
                     </DataCard>
-                )}
+                ))}
 
                 {(selectedNetworkResource?.initiatorType === 'fetch' ||
                     selectedNetworkResource?.initiatorType ===

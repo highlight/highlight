@@ -42,6 +42,7 @@ export type Session = {
     environment?: Maybe<Scalars['String']>;
     app_version?: Maybe<Scalars['String']>;
     client_version?: Maybe<Scalars['String']>;
+    client_config?: Maybe<Scalars['String']>;
     language: Scalars['String'];
     identifier: Scalars['String'];
     created_at?: Maybe<Scalars['Timestamp']>;
@@ -91,6 +92,28 @@ export enum PlanType {
     Basic = 'Basic',
     Startup = 'Startup',
     Enterprise = 'Enterprise',
+}
+
+export type EnhancedUserDetailsResult = {
+    __typename?: 'EnhancedUserDetailsResult';
+    name?: Maybe<Scalars['String']>;
+    avatar?: Maybe<Scalars['String']>;
+    bio?: Maybe<Scalars['String']>;
+    socials?: Maybe<Array<Maybe<SocialLink>>>;
+};
+
+export type SocialLink = {
+    __typename?: 'SocialLink';
+    type: SocialType;
+    link?: Maybe<Scalars['String']>;
+};
+
+export enum SocialType {
+    Github = 'Github',
+    LinkedIn = 'LinkedIn',
+    Twitter = 'Twitter',
+    Facebook = 'Facebook',
+    Site = 'Site',
 }
 
 export enum ErrorState {
@@ -159,9 +182,11 @@ export type ErrorObject = {
     source?: Maybe<Scalars['String']>;
     lineNumber?: Maybe<Scalars['Int']>;
     columnNumber?: Maybe<Scalars['Int']>;
-    stack_trace?: Maybe<Array<Maybe<Scalars['Any']>>>;
+    stack_trace: Scalars['String'];
+    structured_stack_trace: Array<Maybe<ErrorTrace>>;
     timestamp?: Maybe<Scalars['Timestamp']>;
     payload?: Maybe<Scalars['String']>;
+    request_id?: Maybe<Scalars['String']>;
 };
 
 export type ErrorField = {
@@ -179,9 +204,10 @@ export type ErrorGroup = {
     project_id: Scalars['Int'];
     type: Scalars['String'];
     event: Array<Maybe<Scalars['String']>>;
-    stack_trace: Array<Maybe<ErrorTrace>>;
+    structured_stack_trace: Array<Maybe<ErrorTrace>>;
     metadata_log: Array<Maybe<ErrorMetadata>>;
     mapped_stack_trace?: Maybe<Scalars['String']>;
+    stack_trace?: Maybe<Scalars['String']>;
     field_group?: Maybe<Array<Maybe<ErrorField>>>;
     state: ErrorState;
     environments?: Maybe<Scalars['String']>;
@@ -202,6 +228,7 @@ export type ErrorMetadata = {
     fingerprint: Scalars['String'];
     identifier?: Maybe<Scalars['String']>;
     user_properties?: Maybe<Scalars['String']>;
+    request_id?: Maybe<Scalars['String']>;
 };
 
 export type ErrorTrace = {
@@ -488,6 +515,7 @@ export type Query = {
     error_groups?: Maybe<ErrorResults>;
     error_group?: Maybe<ErrorGroup>;
     messages?: Maybe<Array<Maybe<Scalars['Any']>>>;
+    enhanced_user_details?: Maybe<EnhancedUserDetailsResult>;
     errors?: Maybe<Array<Maybe<ErrorObject>>>;
     resources?: Maybe<Array<Maybe<Scalars['Any']>>>;
     session_comments: Array<Maybe<SessionComment>>;
@@ -565,6 +593,11 @@ export type QueryError_GroupArgs = {
 };
 
 export type QueryMessagesArgs = {
+    session_id?: Maybe<Scalars['ID']>;
+    session_secure_id?: Maybe<Scalars['String']>;
+};
+
+export type QueryEnhanced_User_DetailsArgs = {
     session_id?: Maybe<Scalars['ID']>;
     session_secure_id?: Maybe<Scalars['String']>;
 };

@@ -72,6 +72,8 @@ export const Toolbar = () => {
         showLeftPanel,
         showDevTools,
         setShowDevTools,
+        selectedDevToolsTab,
+        setSelectedDevToolsTab,
         autoPlayVideo,
         autoPlaySessions,
         setAutoPlayVideo,
@@ -143,8 +145,14 @@ export const Toolbar = () => {
     useEffect(() => {
         if (!disableControls && resourceErrorRequestHeader) {
             setShowDevTools(true);
+            setSelectedDevToolsTab('Network');
         }
-    }, [disableControls, resourceErrorRequestHeader, setShowDevTools]);
+    }, [
+        disableControls,
+        resourceErrorRequestHeader,
+        setSelectedDevToolsTab,
+        setShowDevTools,
+    ]);
 
     const endLogger = (e: any) => {
         let newTime = (e.x / wrapperWidth) * max;
@@ -229,6 +237,8 @@ export const Toolbar = () => {
                 value={{
                     openDevTools: showDevTools,
                     setOpenDevTools: setShowDevTools,
+                    devToolsTab: selectedDevToolsTab,
+                    setDevToolsTab: setSelectedDevToolsTab,
                 }}
             >
                 {!isPlayerFullscreen && <TimelineIndicators />}
@@ -404,22 +414,11 @@ export const Toolbar = () => {
                         )}
                     </div>
                 </div>
-                <div className={styles.toolbarRightSection}>
+                <div className={styles.toolbarPinnedSettings}>
                     {!isPlayerFullscreen && (
                         <>
-                            <PlaybackSpeedControlToolbarItem
-                                loading={disableControls}
-                                renderContext="toolbar"
-                            />
-                            <TimelineAnnotationsToolbarItem
-                                loading={disableControls}
-                                renderContext="toolbar"
-                            />
-                            <SkipInactiveToolbarItem
-                                loading={disableControls}
-                                renderContext="toolbar"
-                            />
-                            <AutoPlayToolbarItem
+                            <ToolbarMenu loading={disableControls} />
+                            <DevToolsToolbarItem
                                 loading={disableControls}
                                 renderContext="toolbar"
                             />
@@ -427,13 +426,26 @@ export const Toolbar = () => {
                                 loading={disableControls}
                                 renderContext="toolbar"
                             />
-                            <DevToolsToolbarItem
+                            <AutoPlayToolbarItem
                                 loading={disableControls}
                                 renderContext="toolbar"
                             />
-                            <ToolbarMenu loading={disableControls} />
+                            <SkipInactiveToolbarItem
+                                loading={disableControls}
+                                renderContext="toolbar"
+                            />
+                            <TimelineAnnotationsToolbarItem
+                                loading={disableControls}
+                                renderContext="toolbar"
+                            />
+                            <PlaybackSpeedControlToolbarItem
+                                loading={disableControls}
+                                renderContext="toolbar"
+                            />
                         </>
                     )}
+                </div>
+                <div className={styles.toolbarRightSection}>
                     <Button
                         trackingId="PlayerFullScreenButton"
                         className={styles.settingsButton}

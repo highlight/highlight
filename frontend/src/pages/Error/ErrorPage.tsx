@@ -191,33 +191,54 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                                             disabled={loading}
                                             onClick={() => {
                                                 if (data?.error_group) {
-                                                    const traceLines = data.error_group.stack_trace.map(
-                                                        (stack_trace) => {
-                                                            return `${stack_trace?.fileName} in ${stack_trace?.functionName} at line ${stack_trace?.lineNumber}:${stack_trace?.columnNumber}`;
+                                                    let stackTraceStr =
+                                                        data.error_group
+                                                            .stack_trace || '';
+                                                    let isJson = true;
+
+                                                    if (
+                                                        data.error_group
+                                                            .structured_stack_trace
+                                                            ?.length > 0
+                                                    ) {
+                                                        const traceLines = data.error_group.structured_stack_trace.map(
+                                                            (stack_trace) => {
+                                                                return `${stack_trace?.fileName} in ${stack_trace?.functionName} at line ${stack_trace?.lineNumber}:${stack_trace?.columnNumber}`;
+                                                            }
+                                                        );
+                                                        stackTraceStr = JSON.stringify(
+                                                            traceLines,
+                                                            undefined,
+                                                            2
+                                                        );
+                                                    } else {
+                                                        try {
+                                                            JSON.parse(
+                                                                stackTraceStr
+                                                            );
+                                                        } catch {
+                                                            isJson = false;
                                                         }
-                                                    );
+                                                    }
 
                                                     const a = document.createElement(
                                                         'a'
                                                     );
                                                     const file = new Blob(
-                                                        [
-                                                            JSON.stringify(
-                                                                traceLines,
-                                                                undefined,
-                                                                2
-                                                            ),
-                                                        ],
+                                                        [stackTraceStr],
                                                         {
-                                                            type:
-                                                                'application/json',
+                                                            type: isJson
+                                                                ? 'application/json'
+                                                                : 'text/plain',
                                                         }
                                                     );
 
                                                     a.href = URL.createObjectURL(
                                                         file
                                                     );
-                                                    a.download = `stack-trace-for-error-${error_secure_id}.json`;
+                                                    a.download = `stack-trace-for-error-${error_secure_id}.${
+                                                        isJson ? 'json' : 'txt'
+                                                    }`;
                                                     a.click();
 
                                                     URL.revokeObjectURL(a.href);

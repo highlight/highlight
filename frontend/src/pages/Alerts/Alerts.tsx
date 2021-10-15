@@ -273,7 +273,8 @@ const AlertsPage = () => {
                 />
             )}
 
-            {alertsPayload?.is_integrated_with_slack && (
+            {((alertsPayload && alertsPayload.is_integrated_with_slack) ||
+                !alertsPayload) && (
                 <Card>
                     <Table
                         columns={TABLE_COLUMNS}
