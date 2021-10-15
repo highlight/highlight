@@ -1,4 +1,4 @@
-import ErrorTypeInput from '@pages/Errors/ErrorSearchInputs/ErrorMechanismInput';
+import ErrorTypeInput from '@pages/Errors/ErrorSearchInputs/ErrorTypeInput';
 import classNames from 'classnames';
 import React from 'react';
 import { useEffect } from 'react';

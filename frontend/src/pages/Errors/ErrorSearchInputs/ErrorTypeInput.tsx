@@ -4,14 +4,9 @@ import Select from '../../../components/Select/Select';
 import { useErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
 import styles from './ErrorStateInput.module.scss';
 
-export const ErrorType = [
-    'BACKEND',
-    'console.error',
-    'window.onerror',
-    'custom',
-];
+const ErrorType = ['BACKEND', 'console.error', 'window.onerror', 'custom'];
 
-export const ErrorTypeOptions = ErrorType.map((val: string) => ({
+const ErrorTypeOptions = ErrorType.map((val: string) => ({
     displayValue: `${val}`,
     value: val,
     id: val,
