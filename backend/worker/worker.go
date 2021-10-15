@@ -299,15 +299,18 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			log.Error(e.Wrap(err, "error creating rage click sets"))
 		}
 	}
-	// figuring out the slice of event counts
+
 	eventCountsLen := 100
-	if len(timestamps) < eventCountsLen {
-		eventCountsLen = len(timestamps)
-	}
 	window := int64(lastEventTimestamp.Sub(firstEventTimestamp).Milliseconds()) / int64(eventCountsLen)
 	eventCounts := make([]int, eventCountsLen)
 	for t, c := range timestamps {
-		eventCounts[int64(t.Sub(firstEventTimestamp).Milliseconds()/window)-1] += c
+		i := int64(t.Sub(firstEventTimestamp).Milliseconds() / window)
+		if i < 0 {
+			i = 0
+		} else if i > 99 {
+			i = 99
+		}
+		eventCounts[i] += c
 	}
 	eventCountsBytes, err := json.Marshal(eventCounts)
 	if err != nil {
