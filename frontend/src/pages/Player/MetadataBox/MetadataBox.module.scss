@@ -19,7 +19,7 @@
 
 .enhancedBio {
     color: var(--color-gray-500);
-    display: box;
+    display: flex;
     font-size: 12px;
     font-weight: 300;
     -webkit-line-clamp: 2; /* number of lines to show */

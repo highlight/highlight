@@ -6,3 +6,11 @@ export const getMajorVersion = (version: string) => {
 
     return tokens[0];
 };
+
+export const getAbsoluteUrl = (url: string) => {
+    if (url.startsWith('http')) {
+        return url;
+    }
+
+    return `https://${url}`;
+};
