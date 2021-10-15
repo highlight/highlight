@@ -147,12 +147,8 @@
 
 .sessionCard {
     @include rounded-border;
-    align-items: center;
     cursor: pointer;
-    display: flex;
-    flex-direction: column;
     font-weight: 400;
-    justify-content: space-between;
     margin-bottom: var(--size-small);
     position: relative;
     transition: box-shadow 0.1s ease-in;
