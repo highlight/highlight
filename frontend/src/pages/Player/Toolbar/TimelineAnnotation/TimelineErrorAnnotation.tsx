@@ -2,7 +2,7 @@ import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
 import ErrorModal from '@pages/Player/Toolbar/DevToolsWindow/ErrorsPage/components/ErrorModal/ErrorModal';
 import { message } from 'antd';
-import React, { ReactElement, useState } from 'react';
+import React, { ReactElement, useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
 import GoToButton from '../../../../components/Button/GoToButton';
@@ -31,6 +31,19 @@ function TimelineErrorAnnotation({ error }: Props): ReactElement {
     const { setDetailedPanel } = usePlayerUIContext();
 
     const [isTooltipOpen, setIsTooltipOpen] = useState(false);
+
+    useEffect(() => {
+        if (errorId) {
+            setDetailedPanel({
+                title: null,
+                content: <ErrorModal error={error} />,
+                options: {
+                    noHeader: true,
+                },
+                id: error.id,
+            });
+        }
+    }, [error, errorId, setDetailedPanel]);
 
     return (
         <Popover

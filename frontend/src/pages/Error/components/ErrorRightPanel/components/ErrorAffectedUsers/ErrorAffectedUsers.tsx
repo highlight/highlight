@@ -3,6 +3,7 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils';
 import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
@@ -106,7 +107,7 @@ const ErrorAffectedUsers = ({ loading, errorGroup }: Props) => {
                     <div className={styles.actionsContainer}>
                         <ButtonLink
                             trackingId="ErrorMostRecentSession"
-                            to={`/${projectIdRemapped}/sessions/${mostRecentAffectedSession?.session_secure_id}`}
+                            to={`/${projectIdRemapped}/sessions/${mostRecentAffectedSession?.session_secure_id}?${PlayerSearchParameters.errorId}=${errorGroup.error_group?.id}`}
                             icon={
                                 <SvgPlaySolidIcon
                                     className={styles.playButton}
