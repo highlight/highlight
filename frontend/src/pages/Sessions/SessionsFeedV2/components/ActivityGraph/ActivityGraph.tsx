@@ -27,7 +27,7 @@ const ActivityGraph = ({ data }: Props) => {
                     top: 12,
                     right: 0,
                     left: 0,
-                    bottom: 0,
+                    bottom: 2,
                 }}
             >
                 <defs>
