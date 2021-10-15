@@ -28,19 +28,18 @@ export const matchPerformanceTimingsWithRequestResponsePair = (
      * is loaded. Because of this requestResponsePairs will not always have the
      * first few requests made when a page loads.
      */
-    const startingIndex =
+    const offset =
         groupedPerformanceTimings[type].length -
         requestResponsePairs.length;
     for (
-        let i = startingIndex;
+        let i = offset;
         i < groupedPerformanceTimings[type].length;
         i++
     ) {
-        // TODO: Fix this matching.
         if (groupedPerformanceTimings[type][i]) {
             groupedPerformanceTimings[type][
                 i
-            ].requestResponsePair = requestResponsePairs[i];
+            ].requestResponsePair = requestResponsePairs[i - offset];
         }
     }
 
