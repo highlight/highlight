@@ -1043,6 +1043,7 @@ export type MutationCreateSessionFeedbackAlertArgs = {
 export type MutationUpdateRageClickAlertArgs = {
     project_id: Scalars['ID'];
     rage_click_alert_id: Scalars['ID'];
+    name: Scalars['String'];
     count_threshold: Scalars['Int'];
     threshold_window: Scalars['Int'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;

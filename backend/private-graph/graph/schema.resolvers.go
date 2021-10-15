@@ -1392,8 +1392,41 @@ func (r *mutationResolver) CreateSessionFeedbackAlert(ctx context.Context, proje
 	return newAlert, nil
 }
 
-func (r *mutationResolver) UpdateRageClickAlert(ctx context.Context, projectID int, rageClickAlertID int, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *mutationResolver) UpdateRageClickAlert(ctx context.Context, projectID int, rageClickAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
+	admin, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in project")
+	}
+
+	alert := &model.SessionAlert{}
+	if err := r.DB.Where(&model.SessionAlert{Model: model.Model{ID: rageClickAlertID}}).Find(&alert).Error; err != nil {
+		return nil, e.Wrap(err, "error querying rage click alert")
+	}
+
+	envString, err := r.MarshalEnvironments(environments)
+	if err != nil {
+		return nil, err
+	}
+
+	channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
+	if err != nil {
+		return nil, err
+	}
+
+	alert.ChannelsToNotify = channelsString
+	alert.ExcludedEnvironments = envString
+	alert.CountThreshold = countThreshold
+	alert.ThresholdWindow = &thresholdWindow
+	alert.Name = &name
+	alert.LastAdminToEditID = admin.ID
+	if err := r.DB.Model(&model.SessionAlert{
+		Model: model.Model{
+			ID: rageClickAlertID,
+		},
+	}).Where("project_id = ?", projectID).Updates(alert).Error; err != nil {
+		return nil, e.Wrap(err, "error updating org fields")
+	}
+	return alert, nil
 }
 
 func (r *mutationResolver) UpdateNewUserAlert(ctx context.Context, projectID int, sessionAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {

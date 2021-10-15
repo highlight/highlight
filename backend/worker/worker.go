@@ -562,13 +562,16 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	})
 
 	g.Go(func() error {
-		if len(rageClickSets) > 0 {
-			// Sending User Properties Alert
-			var sessionAlert model.SessionAlert
-			if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Where("type=?", model.AlertType.RAGE_CLICK).First(&sessionAlert).Error; err != nil {
-				return e.Wrapf(err, "[project_id: %d] error fetching rage click alert", projectID)
-			}
+		if len(rageClickSets) < 1 {
+			return nil
+		}
+		// Sending Rage Click Alert
+		var sessionAlerts []*model.SessionAlert
+		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Where("type=?", model.AlertType.RAGE_CLICK).Find(&sessionAlerts).Error; err != nil {
+			return e.Wrapf(err, "[project_id: %d] error fetching rage click alert", projectID)
+		}
 
+		for _, sessionAlert := range sessionAlerts {
 			if sessionAlert.CountThreshold < 1 {
 				return nil
 			}

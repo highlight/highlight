@@ -706,6 +706,7 @@ export type UpdateNewSessionAlertMutation = { __typename?: 'Mutation' } & {
 export type UpdateRageClickAlertMutationVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     rage_click_alert_id: Types.Scalars['ID'];
+    name: Types.Scalars['String'];
     count_threshold: Types.Scalars['Int'];
     threshold_window: Types.Scalars['Int'];
     slack_channels:

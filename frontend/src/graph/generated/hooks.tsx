@@ -2188,6 +2188,7 @@ export const UpdateRageClickAlertDocument = gql`
     mutation UpdateRageClickAlert(
         $project_id: ID!
         $rage_click_alert_id: ID!
+        $name: String!
         $count_threshold: Int!
         $threshold_window: Int!
         $slack_channels: [SanitizedSlackChannelInput]!
@@ -2196,6 +2197,7 @@ export const UpdateRageClickAlertDocument = gql`
         updateRageClickAlert(
             project_id: $project_id
             rage_click_alert_id: $rage_click_alert_id
+            name: $name
             count_threshold: $count_threshold
             slack_channels: $slack_channels
             environments: $environments
@@ -2231,6 +2233,7 @@ export type UpdateRageClickAlertMutationFn = Apollo.MutationFunction<
  *   variables: {
  *      project_id: // value for 'project_id'
  *      rage_click_alert_id: // value for 'rage_click_alert_id'
+ *      name: // value for 'name'
  *      count_threshold: // value for 'count_threshold'
  *      threshold_window: // value for 'threshold_window'
  *      slack_channels: // value for 'slack_channels'

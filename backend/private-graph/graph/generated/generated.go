@@ -251,7 +251,7 @@ type ComplexityRoot struct {
 		UpdateErrorGroupState            func(childComplexity int, id *int, secureID *string, state string) int
 		UpdateNewSessionAlert            func(childComplexity int, projectID int, sessionAlertID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, thresholdWindow int) int
 		UpdateNewUserAlert               func(childComplexity int, projectID int, sessionAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
-		UpdateRageClickAlert             func(childComplexity int, projectID int, rageClickAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
+		UpdateRageClickAlert             func(childComplexity int, projectID int, rageClickAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
 		UpdateSessionFeedbackAlert       func(childComplexity int, projectID int, sessionFeedbackAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
 		UpdateSessionIsPublic            func(childComplexity int, sessionID *int, sessionSecureID *string, isPublic bool) int
 		UpdateTrackPropertiesAlert       func(childComplexity int, projectID int, sessionAlertID int, name string, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, trackProperties []*model.TrackPropertyInput, thresholdWindow int) int
@@ -558,7 +558,7 @@ type MutationResolver interface {
 	DeleteErrorAlert(ctx context.Context, projectID int, errorAlertID int) (*model1.ErrorAlert, error)
 	UpdateSessionFeedbackAlert(ctx context.Context, projectID int, sessionFeedbackAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.SessionAlert, error)
 	CreateSessionFeedbackAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.SessionAlert, error)
-	UpdateRageClickAlert(ctx context.Context, projectID int, rageClickAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.SessionAlert, error)
+	UpdateRageClickAlert(ctx context.Context, projectID int, rageClickAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.SessionAlert, error)
 	UpdateNewUserAlert(ctx context.Context, projectID int, sessionAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.SessionAlert, error)
 	CreateNewUserAlert(ctx context.Context, projectID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, thresholdWindow int) (*model1.SessionAlert, error)
 	UpdateTrackPropertiesAlert(ctx context.Context, projectID int, sessionAlertID int, name string, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, trackProperties []*model.TrackPropertyInput, thresholdWindow int) (*model1.SessionAlert, error)
@@ -1877,7 +1877,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateRageClickAlert(childComplexity, args["project_id"].(int), args["rage_click_alert_id"].(int), args["count_threshold"].(int), args["threshold_window"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["environments"].([]*string)), true
+		return e.complexity.Mutation.UpdateRageClickAlert(childComplexity, args["project_id"].(int), args["rage_click_alert_id"].(int), args["name"].(string), args["count_threshold"].(int), args["threshold_window"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["environments"].([]*string)), true
 
 	case "Mutation.updateSessionFeedbackAlert":
 		if e.complexity.Mutation.UpdateSessionFeedbackAlert == nil {
@@ -4145,6 +4145,7 @@ type Mutation {
     updateRageClickAlert(
         project_id: ID!
         rage_click_alert_id: ID!
+        name: String!
         count_threshold: Int!
         threshold_window: Int!
         slack_channels: [SanitizedSlackChannelInput]!
@@ -5870,42 +5871,51 @@ func (ec *executionContext) field_Mutation_updateRageClickAlert_args(ctx context
 		}
 	}
 	args["rage_click_alert_id"] = arg1
-	var arg2 int
-	if tmp, ok := rawArgs["count_threshold"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("count_threshold"))
-		arg2, err = ec.unmarshalNInt2int(ctx, tmp)
+	var arg2 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["count_threshold"] = arg2
+	args["name"] = arg2
 	var arg3 int
-	if tmp, ok := rawArgs["threshold_window"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("threshold_window"))
+	if tmp, ok := rawArgs["count_threshold"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("count_threshold"))
 		arg3, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["threshold_window"] = arg3
-	var arg4 []*model.SanitizedSlackChannelInput
+	args["count_threshold"] = arg3
+	var arg4 int
+	if tmp, ok := rawArgs["threshold_window"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("threshold_window"))
+		arg4, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["threshold_window"] = arg4
+	var arg5 []*model.SanitizedSlackChannelInput
 	if tmp, ok := rawArgs["slack_channels"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("slack_channels"))
-		arg4, err = ec.unmarshalNSanitizedSlackChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx, tmp)
+		arg5, err = ec.unmarshalNSanitizedSlackChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["slack_channels"] = arg4
-	var arg5 []*string
+	args["slack_channels"] = arg5
+	var arg6 []*string
 	if tmp, ok := rawArgs["environments"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("environments"))
-		arg5, err = ec.unmarshalNString2ᚕᚖstring(ctx, tmp)
+		arg6, err = ec.unmarshalNString2ᚕᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["environments"] = arg5
+	args["environments"] = arg6
 	return args, nil
 }
 
@@ -12004,7 +12014,7 @@ func (ec *executionContext) _Mutation_updateRageClickAlert(ctx context.Context, 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateRageClickAlert(rctx, args["project_id"].(int), args["rage_click_alert_id"].(int), args["count_threshold"].(int), args["threshold_window"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["environments"].([]*string))
+		return ec.resolvers.Mutation().UpdateRageClickAlert(rctx, args["project_id"].(int), args["rage_click_alert_id"].(int), args["name"].(string), args["count_threshold"].(int), args["threshold_window"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["environments"].([]*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
