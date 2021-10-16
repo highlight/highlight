@@ -53,8 +53,8 @@ export const matchPerformanceTimingsWithRequestResponsePair = (
          * first few requests made when a page loads.
          */
         const offset =
-            performanceTimingsForUrl.length -
-            requestResponsePairsForUrl.length;
+            Math.max(performanceTimingsForUrl.length -
+            requestResponsePairsForUrl.length, 0);
         for (
             let i = offset;
             i < performanceTimingsForUrl.length;
