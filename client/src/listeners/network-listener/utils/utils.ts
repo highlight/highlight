@@ -7,47 +7,75 @@ export const matchPerformanceTimingsWithRequestResponsePair = (
 ) => {
     // Request response pairs are sorted by end time; sort performance timings the same way
     performanceTimings.sort((a, b) => a.responseEnd - b.responseEnd);
-    const groupedPerformanceTimings = performanceTimings.reduce(
+
+    const groupedPerformanceTimings: {[type: string]: {[url: string]: any[]}} = performanceTimings.reduce(
         (previous, performanceTiming) => {
+            const url = performanceTiming.name;
             if (performanceTiming.initiatorType === type) {
-                previous[type] = [
-                    ...previous[type],
-                    performanceTiming,
+                previous[type][url] = [
+                    ...(previous[type][url] || []),
+                    performanceTiming
                 ];
             } else {
-                previous.others = [...previous.others, performanceTiming];
+                previous.others[url] = [
+                    ...(previous.others[url] || []),
+                    performanceTiming
+                ];
             }
             return previous;
         },
-        { xmlhttprequest: [], others: [], fetch: [] }
+        { xmlhttprequest: {}, others: {}, fetch: {} }
     );
 
-    /**
-     * We offset the starting because performanceTimings starts recording
-     * immediately and requestResponsePairs only start recording when Highlight
-     * is loaded. Because of this requestResponsePairs will not always have the
-     * first few requests made when a page loads.
-     */
-    const offset =
-        groupedPerformanceTimings[type].length -
-        requestResponsePairs.length;
-    for (
-        let i = offset;
-        i < groupedPerformanceTimings[type].length;
-        i++
-    ) {
-        if (groupedPerformanceTimings[type][i]) {
-            groupedPerformanceTimings[type][
-                i
-            ].requestResponsePair = requestResponsePairs[i - offset];
+    let groupedRequestResponsePairs: { [url: string]: RequestResponsePair[] } = {};
+    groupedRequestResponsePairs = requestResponsePairs.reduce(
+        (previous, requestResponsePair) => {
+            const url = requestResponsePair.request.url;
+            previous[url] = [
+                ...(previous[url] || []),
+                requestResponsePair
+            ];
+            return previous;
+        },
+        groupedRequestResponsePairs,
+    );
+
+    for (let url in groupedPerformanceTimings[type]) {
+        const performanceTimingsForUrl = groupedPerformanceTimings[type][url];
+        const requestResponsePairsForUrl = groupedRequestResponsePairs[url];
+        if (!requestResponsePairsForUrl) {
+            continue;
+        }
+        /**
+         * We offset the starting because performanceTimings starts recording
+         * immediately and requestResponsePairs only start recording when Highlight
+         * is loaded. Because of this requestResponsePairs will not always have the
+         * first few requests made when a page loads.
+         */
+        const offset =
+            performanceTimingsForUrl.length -
+            requestResponsePairsForUrl.length;
+        for (
+            let i = offset;
+            i < performanceTimingsForUrl.length;
+            i++
+        ) {
+            if (performanceTimingsForUrl[i]) {
+                performanceTimingsForUrl[
+                    i
+                ].requestResponsePair = requestResponsePairsForUrl[i - offset];
+            }
         }
     }
 
-    return [
-        ...groupedPerformanceTimings.xmlhttprequest,
-        ...groupedPerformanceTimings.others,
-        ...groupedPerformanceTimings.fetch,
-    ]
+    performanceTimings = [];
+    for (let type in groupedPerformanceTimings) {
+        for (let url in groupedPerformanceTimings[type]) {
+            performanceTimings = performanceTimings.concat(groupedPerformanceTimings[type][url]);
+        }
+    }
+
+    return performanceTimings
         .sort((a, b) => a.fetchStart - b.fetchStart)
         .map((performanceTiming) => {
             performanceTiming.toJSON = function () {
