@@ -11,6 +11,7 @@ import { useLocation } from 'react-router';
 
 import { HighlightEvent } from '../../HighlightEvent';
 import {
+    ParsedErrorObject,
     ParsedEvent,
     ParsedHighlightEvent,
     ParsedSessionComment,
@@ -43,6 +44,7 @@ export const getSessionIntervals = (
                 startTime: 0,
                 errors: [],
                 sessionEvents: [],
+                comments: [],
             },
         ];
     }
@@ -93,12 +95,11 @@ const getIntervalWithPercentages = (
     });
 };
 
-/** This is used to set the player time back X milliseconds so the user can see how the error was thrown. Without this the player would be set to when the error was thrown and they wouldn't see why it was thrown. */
-const ERROR_TIMESTAMP_LOOK_BACK_MILLISECONDS = 5000;
-
 export enum PlayerSearchParameters {
     /** The time in the player in seconds. */
     ts = 'ts',
+    /** The absolute time in milliseconds. */
+    tsAbs = 'tsAbs',
     /** The error ID for an error in the current session. The player's time will be set to the lookback period before the error's timestamp. */
     errorId = 'errorId',
     /** The comment ID for a comment in the current session. The player's time will be set to the comments's timestamp. */
@@ -147,23 +148,39 @@ export const useSetPlayerTimestampFromSearchParam = (
                     replayer?.pause(timestampMilliseconds);
                 }
                 setHasSearchParam(true);
+            } else if (searchParamsObject.get(PlayerSearchParameters.tsAbs)) {
+                const absoluteTimestampMilliseconds = parseFloat(
+                    searchParamsObject.get(
+                        PlayerSearchParameters.tsAbs
+                    ) as string
+                );
+                const relativeTimestampMilliseconds =
+                    absoluteTimestampMilliseconds -
+                    sessionStartTimeMilliseconds;
+
+                if (
+                    relativeTimestampMilliseconds > 0 ||
+                    relativeTimestampMilliseconds <= sessionDurationMilliseconds
+                ) {
+                    setTime(relativeTimestampMilliseconds);
+                    replayer?.pause(relativeTimestampMilliseconds);
+                }
+                setHasSearchParam(true);
             } else if (searchParamsObject.get(PlayerSearchParameters.errorId)) {
                 const errorId = searchParamsObject.get(
                     PlayerSearchParameters.errorId
                 )!;
                 const error = errors.find((e) => e.id === errorId);
                 if (error && error.timestamp) {
-                    const delta =
+                    const sessionTime =
                         new Date(error.timestamp).getTime() -
                         sessionStartTimeMilliseconds;
-                    if (delta >= 0 || delta <= sessionDurationMilliseconds) {
-                        // Clamp the time to 0.
-                        const newTime = Math.max(
-                            0,
-                            delta - ERROR_TIMESTAMP_LOOK_BACK_MILLISECONDS
-                        );
-                        setTime(newTime);
-                        replayer?.pause(newTime);
+                    if (
+                        sessionTime >= 0 ||
+                        sessionTime <= sessionDurationMilliseconds
+                    ) {
+                        setTime(sessionTime);
+                        replayer?.pause(sessionTime);
                         setSelectedErrorId(errorId);
 
                         // Show errors on the timeline indicators if deep linked.
@@ -243,6 +260,123 @@ export const getEventsForTimelineIndicator = (
     );
 
     return groupedEvents as ParsedHighlightEvent[];
+};
+
+/**
+ * Adds error events based on the interval that the error was thrown.
+ */
+export const addEventsToSessionIntervals = (
+    sessionIntervals: ParsedSessionInterval[],
+    events: HighlightEvent[],
+    sessionStartTime: number
+): ParsedSessionInterval[] => {
+    const eventsToAddToTimeline = events.filter((event) => {
+        if (event.type === 5) {
+            const data = event.data as any;
+            return CustomEventsForTimelineSet.has(data.tag);
+        }
+        return false;
+    });
+    const groupedEvents = assignEventToSessionIntervalRelative(
+        sessionIntervals,
+        eventsToAddToTimeline,
+        sessionStartTime
+    );
+
+    return sessionIntervals.map((sessionInterval, index) => ({
+        ...sessionInterval,
+        sessionEvents: groupedEvents[index] as ParsedHighlightEvent[],
+    }));
+};
+
+/**
+ * Adds error events based on the interval that the error was thrown.
+ */
+export const addErrorsToSessionIntervals = (
+    sessionIntervals: ParsedSessionInterval[],
+    errors: ErrorObject[],
+    sessionStartTime: number
+): ParsedSessionInterval[] => {
+    const errorsWithTimestamps = errors
+        .filter((error) => !!error.timestamp)
+        .sort((a, b) => b.timestamp - a.timestamp);
+
+    const groupedErrors = assignEventToSessionIntervalRelative(
+        sessionIntervals,
+        errorsWithTimestamps,
+        sessionStartTime
+    );
+
+    return sessionIntervals.map((sessionInterval, index) => ({
+        ...sessionInterval,
+        errors: groupedErrors[index] as ParsedErrorObject[],
+    }));
+};
+
+/**
+ * Adds events to the session interval that the event occurred in.
+ */
+const assignEventToSessionIntervalRelative = (
+    sessionIntervals: ParsedSessionInterval[],
+    events: ParsableEvent[],
+    sessionStartTime: number,
+    /** Whether the timestamp in events global time or already relative to the session. */
+    relativeTime = false
+) => {
+    let eventIndex = 0;
+    let sessionIntervalIndex = 0;
+    let currentSessionInterval = sessionIntervals[sessionIntervalIndex];
+    const response: ParsedEvent[][] = Array.from(
+        Array(sessionIntervals.length)
+    ).map(() => []);
+    while (
+        eventIndex < events.length &&
+        sessionIntervalIndex < sessionIntervals.length
+    ) {
+        const event = events[eventIndex];
+        const relativeTimestamp = relativeTime
+            ? event.timestamp
+            : new Date(event.timestamp).getTime() - sessionStartTime;
+        if (
+            relativeTimestamp >= currentSessionInterval.startTime &&
+            relativeTimestamp <= currentSessionInterval.endTime
+        ) {
+            const relativeTime =
+                relativeTimestamp - currentSessionInterval.startTime;
+            response[sessionIntervalIndex].push({
+                ...event,
+                // Calculate at the percentage of time where the event occurred in the session.
+                relativeIntervalPercentage:
+                    (relativeTime / currentSessionInterval.duration) * 100,
+            });
+            eventIndex++;
+        } else {
+            sessionIntervalIndex++;
+            currentSessionInterval = sessionIntervals[sessionIntervalIndex];
+        }
+    }
+    return response;
+};
+
+/**
+ * Returns the comments that are in the respective interval bins. If a comment is in the ith index, then it shows up in the ith session interval.
+ */
+export const getCommentsInSessionIntervalsRelative = (
+    sessionIntervals: ParsedSessionInterval[],
+    comments: SessionComment[],
+    sessionStartTime: number
+): ParsedSessionInterval[] => {
+    const groupedComments = assignEventToSessionIntervalRelative(
+        sessionIntervals,
+        comments,
+        sessionStartTime,
+        true
+    );
+
+    return sessionIntervals.map((sessionInterval, index) => ({
+        ...sessionInterval,
+        comments: groupedComments[index] as ParsedSessionComment[],
+    }));
 };
 
 /**

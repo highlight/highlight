@@ -2,7 +2,10 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import HighlightGate from '@components/HighlightGate/HighlightGate';
 import { ALERT_CONFIGURATIONS } from '@pages/Alerts/Alerts';
+import { formatShortTime } from '@pages/Home/components/KeyPerformanceIndicators/utils/utils';
+import ActivityGraph from '@pages/Sessions/SessionsFeedV2/components/ActivityGraph/ActivityGraph';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import React, { useEffect, useRef, useState } from 'react';
@@ -63,6 +66,20 @@ const MinimalSessionCard = React.memo(
                 setViewed(true);
             }
         }, [session?.secure_id, session_secure_id]);
+
+        const [eventCounts, setEventCounts] = useState(undefined);
+
+        useEffect(() => {
+            if (!!session?.event_counts) {
+                setEventCounts(
+                    JSON.parse(session.event_counts).map(
+                        (v: number, k: number) => {
+                            return { ts: k, value: v };
+                        }
+                    )
+                );
+            }
+        }, [session?.event_counts, setEventCounts]);
 
         useEffect(() => {
             if (
@@ -135,11 +152,32 @@ const MinimalSessionCard = React.memo(
                                     {!errorVersion && (
                                         <div className={styles.topText}>
                                             {session?.processed &&
-                                            segment_id !== LIVE_SEGMENT_ID
-                                                ? MillisToMinutesAndSecondsVerbose(
-                                                      session.active_length || 0
-                                                  )
-                                                : 'Live'}
+                                            segment_id !== LIVE_SEGMENT_ID ? (
+                                                <>
+                                                    {formatShortTime(
+                                                        (session.active_length ||
+                                                            0) / 1000,
+                                                        ['h', 'm', 's']
+                                                    )}
+                                                    <span
+                                                        className={
+                                                            styles.separator
+                                                        }
+                                                    >
+                                                        •
+                                                    </span>
+                                                    {(
+                                                        ((session?.active_length ||
+                                                            1) /
+                                                            (session?.length ||
+                                                                1)) *
+                                                        100
+                                                    ).toFixed(0)}
+                                                    % Active{' '}
+                                                </>
+                                            ) : (
+                                                'Live'
+                                            )}
                                         </div>
                                     )}
                                     {errorVersion ? (
@@ -346,6 +384,19 @@ const MinimalSessionCard = React.memo(
                         </div>
                     )}
                 </div>
+
+                {!errorVersion && showDetailedSessionView && eventCounts && (
+                    <HighlightGate>
+                        <Tooltip
+                            title="This is a graph of the user's activity during the session. If the user does more things, the higher the value will be."
+                            mouseEnterDelay={0.2}
+                        >
+                            <div className={styles.activityGraphContainer}>
+                                <ActivityGraph data={eventCounts} />
+                            </div>
+                        </Tooltip>
+                    </HighlightGate>
+                )}
             </div>
         );
 

@@ -1,4 +1,3 @@
-import { useAuthContext } from '@authentication/AuthContext';
 import Alert from '@components/Alert/Alert';
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import Card from '@components/Card/Card';
@@ -8,6 +7,7 @@ import Table from '@components/Table/Table';
 import Tag from '@components/Tag/Tag';
 import SvgBugIcon from '@icons/BugIcon';
 import SvgChevronRightIcon from '@icons/ChevronRightIcon';
+import SvgCursorClickIcon from '@icons/CursorClickIcon';
 import SvgFaceIdIcon from '@icons/FaceIdIcon';
 import SvgQuoteIcon from '@icons/QuoteIcon';
 import SvgSparkles2Icon from '@icons/Sparkles2Icon';
@@ -29,6 +29,7 @@ export enum ALERT_TYPE {
     TrackProperties,
     SessionFeedbackComment,
     NewSession,
+    RageClick,
 }
 
 export enum ALERT_NAMES {
@@ -38,6 +39,7 @@ export enum ALERT_NAMES {
     TRACK_PROPERTIES_ALERT = 'Track Events',
     SESSION_FEEDBACK_ALERT = 'Feedback',
     NEW_SESSION_ALERT = 'New Sessions',
+    RAGE_CLICK_ALERT = 'Rage Clicks',
 }
 
 export const ALERT_CONFIGURATIONS = {
@@ -47,6 +49,20 @@ export const ALERT_CONFIGURATIONS = {
         type: ALERT_TYPE.Error,
         description: 'Get alerted when an error is thrown in your app.',
         icon: <SvgBugIcon />,
+    },
+    RAGE_CLICK_ALERT: {
+        name: ALERT_NAMES['RAGE_CLICK_ALERT'],
+        canControlThreshold: true,
+        type: ALERT_TYPE.RageClick,
+        description: (
+            <>
+                {'Get alerted whenever a user'}{' '}
+                <a href="https://docs.highlight.run/rage-clicks">
+                    rage clicks.
+                </a>
+            </>
+        ),
+        icon: <SvgCursorClickIcon />,
     },
     NEW_USER_ALERT: {
         name: ALERT_NAMES['NEW_USER_ALERT'],
@@ -143,7 +159,6 @@ const TABLE_COLUMNS = [
 const AlertsPage = () => {
     const { project_id } = useParams<{ project_id: string }>();
     const { alertsPayload, loading } = useAlertsContext();
-    const { isHighlightAdmin } = useAuthContext();
 
     const history = useHistory();
     const alertsAsTableRows = [
@@ -189,21 +204,25 @@ const AlertsPage = () => {
             type: ALERT_CONFIGURATIONS['NEW_SESSION_ALERT'].name,
             Name: alert?.Name || ALERT_CONFIGURATIONS['NEW_SESSION_ALERT'].name,
         })),
+        ...(alertsPayload?.rage_click_alerts || []).map((alert) => ({
+            ...alert,
+            configuration: ALERT_CONFIGURATIONS['RAGE_CLICK_ALERT'],
+            type: ALERT_CONFIGURATIONS['RAGE_CLICK_ALERT'].name,
+            Name: alert?.Name || ALERT_CONFIGURATIONS['RAGE_CLICK_ALERT'].name,
+        })),
     ];
 
     return (
         <>
             <div className={styles.subTitleContainer}>
                 <p>Manage your alerts for your project.</p>
-                {isHighlightAdmin && (
-                    <ButtonLink
-                        trackingId="NewAlert"
-                        className={styles.callToAction}
-                        to={`/${project_id}/alerts/new`}
-                    >
-                        New Alert
-                    </ButtonLink>
-                )}
+                <ButtonLink
+                    trackingId="NewAlert"
+                    className={styles.callToAction}
+                    to={`/${project_id}/alerts/new`}
+                >
+                    New Alert
+                </ButtonLink>
             </div>
             {!loading && !alertsPayload?.is_integrated_with_slack ? (
                 <Alert
@@ -254,7 +273,8 @@ const AlertsPage = () => {
                 />
             )}
 
-            {alertsPayload?.is_integrated_with_slack && (
+            {((alertsPayload && alertsPayload.is_integrated_with_slack) ||
+                !alertsPayload) && (
                 <Card>
                     <Table
                         columns={TABLE_COLUMNS}

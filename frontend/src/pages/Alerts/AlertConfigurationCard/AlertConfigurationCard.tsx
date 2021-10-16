@@ -1,5 +1,5 @@
-import { useAuthContext } from '@authentication/AuthContext';
 import Card from '@components/Card/Card';
+import ConfirmModal from '@components/ConfirmModal/ConfirmModal';
 import { DEMO_WORKSPACE_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import Input from '@components/Input/Input';
 import { namedOperations } from '@graph/operations';
@@ -18,6 +18,7 @@ import {
     useCreateErrorAlertMutation,
     useCreateNewSessionAlertMutation,
     useCreateNewUserAlertMutation,
+    useCreateRageClickAlertMutation,
     useCreateSessionFeedbackAlertMutation,
     useCreateTrackPropertiesAlertMutation,
     useCreateUserPropertiesAlertMutation,
@@ -26,6 +27,7 @@ import {
     useUpdateErrorAlertMutation,
     useUpdateNewSessionAlertMutation,
     useUpdateNewUserAlertMutation,
+    useUpdateRageClickAlertMutation,
     useUpdateSessionFeedbackAlertMutation,
     useUpdateTrackPropertiesAlertMutation,
     useUpdateUserPropertiesAlertMutation,
@@ -72,7 +74,6 @@ export const AlertConfigurationCard = ({
     const [lookbackPeriod, setLookbackPeriod] = useState(
         getLookbackPeriodOption(alert?.ThresholdWindow).value
     );
-    const { isHighlightAdmin } = useAuthContext();
     const [searchQuery, setSearchQuery] = useState('');
     const { project_id } = useParams<{ project_id: string }>();
     const [form] = Form.useForm();
@@ -113,6 +114,17 @@ export const AlertConfigurationCard = ({
             slack_channels: [],
             name: 'New User',
             threshold_window: 1,
+        },
+        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+    });
+    const [createRageClickAlert, {}] = useCreateRageClickAlertMutation({
+        variables: {
+            project_id,
+            count_threshold: 1,
+            environments: [],
+            slack_channels: [],
+            name: 'Rage Click',
+            threshold_window: 30,
         },
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
@@ -161,6 +173,7 @@ export const AlertConfigurationCard = ({
     const [
         updateSessionFeedbackAlert,
     ] = useUpdateSessionFeedbackAlertMutation();
+    const [updateRageClickAlert] = useUpdateRageClickAlertMutation();
     const [updateNewSessionAlert] = useUpdateNewSessionAlertMutation();
 
     const excludedEnvironmentsFormName = `${
@@ -220,6 +233,15 @@ export const AlertConfigurationCard = ({
                             variables: {
                                 ...requestVariables,
                                 threshold_window: 1,
+                            },
+                        });
+                        break;
+                    case ALERT_TYPE.RageClick:
+                        await createRageClickAlert({
+                            ...requestBody,
+                            variables: {
+                                ...requestVariables,
+                                threshold_window: lookbackPeriod,
                             },
                         });
                         break;
@@ -372,6 +394,16 @@ export const AlertConfigurationCard = ({
                                 ...requestVariables,
                                 session_alert_id: alert.id,
                                 threshold_window: 1,
+                            },
+                        });
+                        break;
+                    case ALERT_TYPE.RageClick:
+                        await updateRageClickAlert({
+                            ...requestBody,
+                            variables: {
+                                ...requestVariables,
+                                rage_click_alert_id: alert.id,
+                                threshold_window: lookbackPeriod,
                             },
                         });
                         break;
@@ -789,22 +821,30 @@ export const AlertConfigurationCard = ({
                     <Form.Item shouldUpdate>
                         {() => (
                             <div className={styles.actionsContainer}>
-                                {isHighlightAdmin && onDeleteHandler && (
-                                    <Button
-                                        trackingId="DeleteAlertConfiguration"
-                                        type="default"
-                                        danger
-                                        className={styles.saveButton}
-                                        htmlType="button"
-                                        loading={loading}
-                                        onClick={() => {
+                                {onDeleteHandler && (
+                                    <ConfirmModal
+                                        buttonProps={{
+                                            trackingId:
+                                                'DeleteAlertConfiguration',
+                                            type: 'default',
+                                            danger: true,
+                                            className: styles.saveButton,
+                                            htmlType: 'button',
+                                            loading: loading,
+                                        }}
+                                        onCancelHandler={() => {}}
+                                        onConfirmHandler={() => {
                                             if (alert.id) {
                                                 onDeleteHandler(alert.id);
                                             }
                                         }}
-                                    >
-                                        Delete
-                                    </Button>
+                                        trackingId="DeleteAlert"
+                                        modalTitleText={`Delete '${alert.Name}' Alert?`}
+                                        description="Deleting an alert is irreversible. You can always create a new alert if you want to get alerted for this again."
+                                        confirmText="Delete Alert"
+                                        cancelText="Don't Delete Alert"
+                                        buttonText="Delete"
+                                    />
                                 )}
                                 <Button
                                     trackingId="SaveAlertConfiguration"

@@ -8,13 +8,40 @@ query GetSessionPayload($session_secure_id: String!) {
         url
         source
         stack_trace
+        structured_stack_trace {
+            fileName
+            lineNumber
+            functionName
+            columnNumber
+        }
         timestamp
         payload
+        request_id
     }
     rage_clicks(session_secure_id: $session_secure_id) {
         start_timestamp
         end_timestamp
         total_clicks
+    }
+    session_comments(session_secure_id: $session_secure_id) {
+        id
+        timestamp
+        session_id
+        session_secure_id
+        created_at
+        updated_at
+        project_id
+        text
+        author {
+            id
+            name
+            email
+            photo_url
+        }
+        x_coordinate
+        y_coordinate
+        type
+        metadata
     }
 }
 
@@ -49,7 +76,9 @@ query GetSession($secure_id: String!) {
         payload_size
         within_billing_quota
         client_version
+        client_config
         is_public
+        event_counts
     }
 }
 
@@ -167,6 +196,19 @@ query GetErrorComments($error_group_secure_id: String!) {
     }
 }
 
+query GetEnhancedUserDetails($session_secure_id: String!) {
+    enhanced_user_details(session_secure_id: $session_secure_id) {
+        id
+        name
+        bio
+        avatar
+        socials {
+            type
+            link
+        }
+    }
+}
+
 query GetOnboardingSteps($project_id: ID!, $admin_id: ID!) {
     workspace: workspace_for_project(project_id: $project_id) {
         id
@@ -240,6 +282,7 @@ query GetSessions(
             }
             first_time
             user_properties
+            event_counts
         }
         totalCount
     }
@@ -385,13 +428,14 @@ query GetErrorGroup($secure_id: String!) {
         project_id
         event
         state
-        stack_trace {
+        structured_stack_trace {
             fileName
             lineNumber
             functionName
             columnNumber
         }
         mapped_stack_trace
+        stack_trace
         metadata_log {
             error_id
             session_secure_id
@@ -403,6 +447,7 @@ query GetErrorGroup($secure_id: String!) {
             fingerprint
             identifier
             user_properties
+            request_id
         }
         field_group {
             name
@@ -428,7 +473,8 @@ query GetErrorGroups(
             state
             state
             environments
-            stack_trace {
+            stack_trace
+            structured_stack_trace {
                 fileName
                 lineNumber
                 functionName
@@ -773,6 +819,20 @@ query GetAlertsPagePayload($project_id: ID!) {
         LastAdminToEditID
         Name
         id
+        Type
+    }
+    rage_click_alerts(project_id: $project_id) {
+        id
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        ExcludedEnvironments
+        CountThreshold
+        ThresholdWindow
+        updated_at
+        LastAdminToEditID
+        Name
         Type
     }
     new_user_alerts(project_id: $project_id) {

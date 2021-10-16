@@ -32,11 +32,11 @@
         display: flex;
         height: var(--size-medium);
         justify-content: center;
-        max-width: 50%;
-        min-width: 32px;
-        position: fixed;
+        max-width: 80%;
+        min-width: 4px;
+        position: absolute;
         top: -16px;
-        width: 10%;
+        width: 100%;
     }
 }
 
@@ -87,5 +87,6 @@
 
 .goToButtonContainer {
     display: flex;
-    justify-content: center;
+    justify-content: flex-end;
+    margin-top: var(--size-large);
 }

@@ -108,6 +108,7 @@ export type HighlightClassOptions = {
     disableConsoleRecording?: boolean;
     enableSegmentIntegration?: boolean;
     enableStrictPrivacy?: boolean;
+    enableCanvasRecording?: boolean;
     firstloadVersion?: string;
     environment?: 'development' | 'production' | 'staging' | string;
     appVersion?: string;
@@ -184,6 +185,7 @@ export class Highlight {
     disableConsoleRecording: boolean | undefined;
     enableSegmentIntegration: boolean | undefined;
     enableStrictPrivacy: boolean;
+    enableCanvasRecording: boolean;
     debugOptions: DebugOptions;
     listeners: listenerHandler[];
     firstloadVersion: string;
@@ -251,6 +253,7 @@ export class Highlight {
             options.disableConsoleRecording;
         this.enableSegmentIntegration = options.enableSegmentIntegration;
         this.enableStrictPrivacy = options.enableStrictPrivacy || false;
+        this.enableCanvasRecording = options.enableCanvasRecording || false;
         this.logger = new Logger(this.debugOptions.clientInteractions);
         this._backendUrl =
             options?.backendUrl ||
@@ -527,6 +530,7 @@ export class Highlight {
                 emit,
                 enableStrictPrivacy: this.enableStrictPrivacy,
                 maskAllInputs: this.enableStrictPrivacy,
+                recordCanvas: this.enableCanvasRecording,
             });
             if (recordStop) {
                 this.listeners.push(recordStop);

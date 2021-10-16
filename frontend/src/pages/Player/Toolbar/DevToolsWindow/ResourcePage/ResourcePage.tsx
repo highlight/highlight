@@ -1,8 +1,7 @@
 import Input from '@components/Input/Input';
-import { Session } from '@graph/schemas';
+import { ErrorObject, Session } from '@graph/schemas';
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils';
-import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
@@ -46,14 +45,9 @@ export const ResourcePage = ({
     const [currentResource, setCurrentResource] = useState(0);
     const [networkRange, setNetworkRange] = useState(0);
     const [
-        networkOptionsContainerWidth,
-        setNetworkOptionsContainerWidth,
-    ] = useState<number | null>(null);
-    const [
         isInteractingWithResources,
         setIsInteractingWithResources,
     ] = useState(false);
-    const { showLeftPanel, showRightPanel } = usePlayerConfiguration();
     const [allResources, setAllResources] = useState<
         Array<NetworkResource> | undefined
     >([]);
@@ -66,6 +60,7 @@ export const ResourcePage = ({
         },
         fetchPolicy: 'no-cache',
     });
+    const { errors } = useReplayerContext();
     const virtuoso = useRef<VirtuosoHandle>(null);
     const rawResources = data?.resources;
     const resourceErrorRequestHeader = new URLSearchParams(location.search).get(
@@ -111,18 +106,6 @@ export const ResourcePage = ({
     }, [rawResources]);
 
     useEffect(() => {
-        if (showLeftPanel && showRightPanel) {
-            if (window.innerWidth < 1600) {
-                setNetworkOptionsContainerWidth(350);
-            } else {
-                setNetworkOptionsContainerWidth(null);
-            }
-        } else {
-            setNetworkOptionsContainerWidth(null);
-        }
-    }, [showLeftPanel, showRightPanel]);
-
-    useEffect(() => {
         if (allResources?.length) {
             let msgIndex = 0;
             const relativeTime = time - startTime;
@@ -144,22 +127,33 @@ export const ResourcePage = ({
         }
     }, [allResources, startTime, time, currentResource]);
 
+    const [resourceErrorShown, setResourceErrorShown] = useState(false);
     useEffect(() => {
         if (
             resourceErrorRequestHeader &&
             !loading &&
             !!session &&
             !!allResources &&
-            !detailedPanel
+            !!errors &&
+            errors.length > 0 &&
+            !detailedPanel &&
+            !resourceErrorShown
         ) {
             const resource = findResourceWithMatchingHighlightHeader(
                 resourceErrorRequestHeader,
                 allResources
             );
             if (resource) {
+                setResourceErrorShown(true);
                 setDetailedPanel(
                     getDetailedPanel(
-                        { ...resource, backendError: 'NOT IMPLEMENTED' },
+                        {
+                            ...resource,
+                            errors: errors.filter(
+                                (e) =>
+                                    e.request_id === resourceErrorRequestHeader
+                            ),
+                        },
                         pause,
                         session
                     )
@@ -171,9 +165,11 @@ export const ResourcePage = ({
     }, [
         allResources,
         detailedPanel,
+        errors,
         loading,
         pause,
         resourceErrorRequestHeader,
+        resourceErrorShown,
         session,
         setDetailedPanel,
     ]);
@@ -222,12 +218,7 @@ export const ResourcePage = ({
         <div className={styles.resourcePageWrapper}>
             <div className={devStyles.topBar}>
                 <div className={styles.optionsWrapper}>
-                    <div
-                        className={styles.optionsContainer}
-                        style={{
-                            width: networkOptionsContainerWidth || 'initial',
-                        }}
-                    >
+                    <div className={styles.optionsContainer}>
                         {options.map((o: string, i: number) => {
                             return (
                                 <Option
@@ -319,7 +310,16 @@ export const ResourcePage = ({
                                             onClickHandler={() => {
                                                 setDetailedPanel(
                                                     getDetailedPanel(
-                                                        resource,
+                                                        {
+                                                            ...resource,
+                                                            errors: errors.filter(
+                                                                (e) =>
+                                                                    e.request_id ===
+                                                                    getHighlightRequestId(
+                                                                        resource
+                                                                    )
+                                                            ),
+                                                        },
                                                         pause,
                                                         session
                                                     )
@@ -379,7 +379,7 @@ const TimingCanvas = () => {
 export type NetworkResource = PerformanceResourceTiming & {
     id: number;
     requestResponsePairs?: RequestResponsePair;
-    backendError?: any;
+    errors?: ErrorObject[];
 };
 
 const ResourceRow = ({
@@ -585,15 +585,20 @@ const findResourceWithMatchingHighlightHeader = (
     headerValue: string,
     resources: NetworkResource[]
 ) => {
-    const implemented = false;
-
-    if (!implemented) {
-        return resources[0];
-    }
     return resources.find(
-        (resource) =>
-            resource.requestResponsePairs?.request?.headers.get(
-                HIGHLIGHT_REQUEST_HEADER
-            ) === headerValue
+        (resource) => getHighlightRequestId(resource) === headerValue
     );
+};
+
+const getHighlightRequestId = (resource: NetworkResource) => {
+    const joined =
+        // @ts-expect-error
+        resource.requestResponsePairs?.request?.headers[
+            HIGHLIGHT_REQUEST_HEADER
+        ];
+    if (!joined) {
+        return joined;
+    }
+
+    return joined.split('/')[1];
 };

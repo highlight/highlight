@@ -167,5 +167,16 @@ const getNewAlert = (type: ALERT_NAMES) => {
                 },
                 configuration: ALERT_CONFIGURATIONS['USER_PROPERTIES_ALERT'],
             };
+        case snakeCaseString(ALERT_NAMES.RAGE_CLICK_ALERT):
+            return {
+                alert: {
+                    Name: ALERT_NAMES.RAGE_CLICK_ALERT,
+                    ExcludedEnvironments: [],
+                    CountThreshold: 1,
+                    Type: ALERT_TYPE.RageClick,
+                    ThresholdWindow: 30,
+                },
+                configuration: ALERT_CONFIGURATIONS['RAGE_CLICK_ALERT'],
+            };
     }
 };

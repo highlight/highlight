@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/highlight-run/highlight/backend/model"
@@ -145,10 +146,11 @@ func main() {
 
 	private.SetupAuthClient()
 	privateResolver := &private.Resolver{
-		DB:            db,
-		MailClient:    sendgrid.NewSendClient(sendgridKey),
-		StripeClient:  stripeClient,
-		StorageClient: storage,
+		ClearbitClient: clearbit.NewClient(clearbit.WithAPIKey(os.Getenv("CLEARBIT_API_KEY"))),
+		DB:             db,
+		MailClient:     sendgrid.NewSendClient(sendgridKey),
+		StripeClient:   stripeClient,
+		StorageClient:  storage,
 	}
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.
