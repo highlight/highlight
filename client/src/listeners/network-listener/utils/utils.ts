@@ -118,7 +118,6 @@ function makeId(length: number) {
 } 
 
 export const createNetworkRequestId = () => {
-    // Long enough to avoid collisions within a given session,
-    // not long enough to be unguessable
-    return makeId(5);
+    // Long enough to avoid collisions, not long enough to be unguessable
+    return makeId(10);
 }
