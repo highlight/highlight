@@ -1176,7 +1176,9 @@ func (r *mutationResolver) AddSlackBotIntegrationToProject(ctx context.Context, 
 }
 
 func (r *mutationResolver) CreateRageClickAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
-	admin, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
+	workspace, _ := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1207,13 +1209,17 @@ func (r *mutationResolver) CreateRageClickAlert(ctx context.Context, projectID i
 	if err := r.DB.Create(newAlert).Error; err != nil {
 		return nil, e.Wrap(err, "error creating a new error alert")
 	}
+	if err := newAlert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &newAlert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+		log.Error(err)
+	}
 
 	return newAlert, nil
 }
 
 func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.ErrorAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
+	workspace, _ := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1245,13 +1251,17 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 	if err := r.DB.Create(newAlert).Error; err != nil {
 		return nil, e.Wrap(err, "error creating a new error alert")
 	}
+	if err := newAlert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &newAlert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+		log.Error(err)
+	}
 
 	return newAlert, nil
 }
 
 func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, name string, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.ErrorAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
+	workspace, _ := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1284,11 +1294,17 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, 
 	}).Where("project_id = ?", projectID).Updates(alert).Error; err != nil {
 		return nil, e.Wrap(err, "error updating org fields")
 	}
+
+	if err := alert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &errorAlertID, Project: project, OperationName: "updated", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+		log.Error(err)
+	}
 	return alert, nil
 }
 
 func (r *mutationResolver) DeleteErrorAlert(ctx context.Context, projectID int, errorAlertID int) (*model.ErrorAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
+	workspace, _ := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1302,12 +1318,17 @@ func (r *mutationResolver) DeleteErrorAlert(ctx context.Context, projectID int, 
 		return nil, e.Wrap(err, "error trying to delete error alert")
 	}
 
+	if err := alert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &errorAlertID, Project: project, OperationName: "deleted", OperationDescription: "Alerts will no longer be sent to this channel.", IncludeEditLink: false}); err != nil {
+		log.Error(err)
+	}
+
 	return alert, nil
 }
 
 func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, projectID int, sessionFeedbackAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
+	workspace, _ := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1348,12 +1369,17 @@ func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, proje
 	}).Where("project_id = ?", projectID).Updates(alert).Error; err != nil {
 		return nil, e.Wrap(err, "error updating org fields")
 	}
+
+	if err := alert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &sessionFeedbackAlertID, Project: project, OperationName: "updated", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+		log.Error(err)
+	}
 	return alert, nil
 }
 
 func (r *mutationResolver) CreateSessionFeedbackAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
+	workspace, _ := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1385,13 +1411,17 @@ func (r *mutationResolver) CreateSessionFeedbackAlert(ctx context.Context, proje
 	if err := r.DB.Create(newAlert).Error; err != nil {
 		return nil, e.Wrap(err, "error creating a new session feedback alert")
 	}
+	if err := newAlert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &newAlert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+		log.Error(err)
+	}
 
 	return newAlert, nil
 }
 
 func (r *mutationResolver) UpdateRageClickAlert(ctx context.Context, projectID int, rageClickAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
+	workspace, _ := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1424,12 +1454,16 @@ func (r *mutationResolver) UpdateRageClickAlert(ctx context.Context, projectID i
 	}).Where("project_id = ?", projectID).Updates(alert).Error; err != nil {
 		return nil, e.Wrap(err, "error updating org fields")
 	}
+	if err := alert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &rageClickAlertID, Project: project, OperationName: "updated", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+		log.Error(err)
+	}
 	return alert, nil
 }
 
 func (r *mutationResolver) UpdateNewUserAlert(ctx context.Context, projectID int, sessionAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
+	workspace, _ := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1469,12 +1503,16 @@ func (r *mutationResolver) UpdateNewUserAlert(ctx context.Context, projectID int
 	}).Where("project_id = ?", projectID).Updates(alert).Error; err != nil {
 		return nil, e.Wrap(err, "error updating org fields")
 	}
+	if err := alert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &sessionAlertID, Project: project, OperationName: "updated", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+		log.Error(err)
+	}
 	return alert, nil
 }
 
 func (r *mutationResolver) CreateNewUserAlert(ctx context.Context, projectID int, name string, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, thresholdWindow int) (*model.SessionAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
+	workspace, _ := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1506,13 +1544,17 @@ func (r *mutationResolver) CreateNewUserAlert(ctx context.Context, projectID int
 	if err := r.DB.Create(newAlert).Error; err != nil {
 		return nil, e.Wrap(err, "error creating a new new user alert")
 	}
+	if err := newAlert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &newAlert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+		log.Error(err)
+	}
 
 	return newAlert, nil
 }
 
 func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, projectID int, sessionAlertID int, name string, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, trackProperties []*modelInputs.TrackPropertyInput, thresholdWindow int) (*model.SessionAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
+	workspace, _ := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1554,12 +1596,16 @@ func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, proje
 	}).Where("project_id = ?", projectID).Updates(alert).Error; err != nil {
 		return nil, e.Wrap(err, "error updating org fields for track properties alert")
 	}
+	if err := alert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &sessionAlertID, Project: project, OperationName: "updated", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+		log.Error(err)
+	}
 	return alert, nil
 }
 
 func (r *mutationResolver) CreateTrackPropertiesAlert(ctx context.Context, projectID int, name string, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, trackProperties []*modelInputs.TrackPropertyInput, thresholdWindow int) (*model.SessionAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
+	workspace, _ := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1597,13 +1643,17 @@ func (r *mutationResolver) CreateTrackPropertiesAlert(ctx context.Context, proje
 	if err := r.DB.Create(newAlert).Error; err != nil {
 		return nil, e.Wrap(err, "error creating a new session track properties alert")
 	}
+	if err := newAlert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &newAlert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+		log.Error(err)
+	}
 
 	return newAlert, nil
 }
 
 func (r *mutationResolver) CreateUserPropertiesAlert(ctx context.Context, projectID int, name string, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, userProperties []*modelInputs.UserPropertyInput, thresholdWindow int) (*model.SessionAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
+	workspace, _ := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1641,12 +1691,17 @@ func (r *mutationResolver) CreateUserPropertiesAlert(ctx context.Context, projec
 	if err := r.DB.Create(newAlert).Error; err != nil {
 		return nil, e.Wrap(err, "error creating a new user properties alert")
 	}
+	if err := newAlert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &newAlert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+		log.Error(err)
+	}
 
 	return newAlert, nil
 }
 
 func (r *mutationResolver) DeleteSessionAlert(ctx context.Context, projectID int, sessionAlertID int) (*model.SessionAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
+	workspace, _ := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1660,12 +1715,17 @@ func (r *mutationResolver) DeleteSessionAlert(ctx context.Context, projectID int
 		return nil, e.Wrap(err, "error trying to delete session alert")
 	}
 
+	if err := alert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &sessionAlertID, Project: project, OperationName: "deleted", OperationDescription: "Alerts will no longer be sent to this channel.", IncludeEditLink: false}); err != nil {
+		log.Error(err)
+	}
+
 	return alert, nil
 }
 
 func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, projectID int, sessionAlertID int, name string, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, userProperties []*modelInputs.UserPropertyInput, thresholdWindow int) (*model.SessionAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
+	workspace, _ := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1707,12 +1767,16 @@ func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, projec
 	}).Where("project_id = ?", projectID).Updates(alert).Error; err != nil {
 		return nil, e.Wrap(err, "error updating org fields for user properties alert")
 	}
+	if err := alert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &sessionAlertID, Project: project, OperationName: "updated", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+		log.Error(err)
+	}
 	return alert, nil
 }
 
 func (r *mutationResolver) UpdateNewSessionAlert(ctx context.Context, projectID int, sessionAlertID int, name string, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, thresholdWindow int) (*model.SessionAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
+	workspace, _ := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1748,12 +1812,16 @@ func (r *mutationResolver) UpdateNewSessionAlert(ctx context.Context, projectID 
 	}).Where("project_id = ?", projectID).Updates(alert).Error; err != nil {
 		return nil, e.Wrap(err, "error updating org fields for new session alert")
 	}
+	if err := alert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &sessionAlertID, Project: project, OperationName: "updated", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+		log.Error(err)
+	}
 	return alert, nil
 }
 
 func (r *mutationResolver) CreateNewSessionAlert(ctx context.Context, projectID int, name string, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, thresholdWindow int) (*model.SessionAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
+	workspace, _ := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
@@ -1783,6 +1851,9 @@ func (r *mutationResolver) CreateNewSessionAlert(ctx context.Context, projectID 
 
 	if err := r.DB.Create(newAlert).Error; err != nil {
 		return nil, e.Wrap(err, "error creating a new user properties alert")
+	}
+	if err := newAlert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &newAlert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+		log.Error(err)
 	}
 
 	return newAlert, nil
