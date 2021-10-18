@@ -3891,6 +3891,7 @@ input ErrorSearchParamsInput {
     visited_url: String
     state: ErrorState
     event: String
+    type: String
 }
 
 type ErrorSearchParams {
@@ -20627,6 +20628,14 @@ func (ec *executionContext) unmarshalInputErrorSearchParamsInput(ctx context.Con
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("event"))
 			it.Event, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "type":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+			it.Type, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}

@@ -54,6 +54,7 @@ type ErrorSearchParamsInput struct {
 	VisitedURL *string         `json:"visited_url"`
 	State      *ErrorState     `json:"state"`
 	Event      *string         `json:"event"`
+	Type       *string         `json:"type"`
 }
 
 type ErrorTrace struct {

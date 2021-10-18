@@ -285,6 +285,7 @@ input ErrorSearchParamsInput {
     visited_url: String
     state: ErrorState
     event: String
+    type: String
 }
 
 type ErrorSearchParams {
