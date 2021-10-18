@@ -320,6 +320,7 @@ export type ErrorSearchParamsInput = {
     visited_url?: Maybe<Scalars['String']>;
     state?: Maybe<ErrorState>;
     event?: Maybe<Scalars['String']>;
+    type?: Maybe<Scalars['String']>;
 };
 
 export type ErrorSearchParams = {
@@ -570,13 +571,11 @@ export type Query = {
 };
 
 export type QuerySessionArgs = {
-    id?: Maybe<Scalars['ID']>;
-    secure_id?: Maybe<Scalars['String']>;
+    secure_id: Scalars['String'];
 };
 
 export type QueryEventsArgs = {
-    session_id?: Maybe<Scalars['ID']>;
-    session_secure_id?: Maybe<Scalars['String']>;
+    session_secure_id: Scalars['String'];
 };
 
 export type QueryRage_ClicksArgs = {
@@ -590,33 +589,27 @@ export type QueryError_GroupsArgs = {
 };
 
 export type QueryError_GroupArgs = {
-    id?: Maybe<Scalars['ID']>;
-    secure_id?: Maybe<Scalars['String']>;
+    secure_id: Scalars['String'];
 };
 
 export type QueryMessagesArgs = {
-    session_id?: Maybe<Scalars['ID']>;
-    session_secure_id?: Maybe<Scalars['String']>;
+    session_secure_id: Scalars['String'];
 };
 
 export type QueryEnhanced_User_DetailsArgs = {
-    session_id?: Maybe<Scalars['ID']>;
-    session_secure_id?: Maybe<Scalars['String']>;
+    session_secure_id: Scalars['String'];
 };
 
 export type QueryErrorsArgs = {
-    session_id?: Maybe<Scalars['ID']>;
-    session_secure_id?: Maybe<Scalars['String']>;
+    session_secure_id: Scalars['String'];
 };
 
 export type QueryResourcesArgs = {
-    session_id?: Maybe<Scalars['ID']>;
-    session_secure_id?: Maybe<Scalars['String']>;
+    session_secure_id: Scalars['String'];
 };
 
 export type QuerySession_CommentsArgs = {
-    session_id?: Maybe<Scalars['ID']>;
-    session_secure_id?: Maybe<Scalars['String']>;
+    session_secure_id: Scalars['String'];
 };
 
 export type QuerySession_Comments_For_ProjectArgs = {
@@ -624,8 +617,7 @@ export type QuerySession_Comments_For_ProjectArgs = {
 };
 
 export type QueryError_CommentsArgs = {
-    error_group_id?: Maybe<Scalars['ID']>;
-    error_group_secure_id?: Maybe<Scalars['String']>;
+    error_group_secure_id: Scalars['String'];
 };
 
 export type QueryError_Comments_For_ProjectArgs = {
@@ -668,8 +660,7 @@ export type QueryDailyErrorsCountArgs = {
 
 export type QueryDailyErrorFrequencyArgs = {
     project_id: Scalars['ID'];
-    error_group_id?: Maybe<Scalars['ID']>;
-    error_group_secure_id?: Maybe<Scalars['String']>;
+    error_group_secure_id: Scalars['String'];
     date_offset: Scalars['Int'];
 };
 
@@ -876,20 +867,17 @@ export type MutationEditWorkspaceArgs = {
 };
 
 export type MutationMarkSessionAsViewedArgs = {
-    id?: Maybe<Scalars['ID']>;
-    secure_id?: Maybe<Scalars['String']>;
+    secure_id: Scalars['String'];
     viewed?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationMarkSessionAsStarredArgs = {
-    id?: Maybe<Scalars['ID']>;
-    secure_id?: Maybe<Scalars['String']>;
+    secure_id: Scalars['String'];
     starred?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationUpdateErrorGroupStateArgs = {
-    id?: Maybe<Scalars['ID']>;
-    secure_id?: Maybe<Scalars['String']>;
+    secure_id: Scalars['String'];
     state: Scalars['String'];
 };
 
@@ -976,8 +964,7 @@ export type MutationUpdateBillingDetailsArgs = {
 
 export type MutationCreateSessionCommentArgs = {
     project_id: Scalars['ID'];
-    session_id?: Maybe<Scalars['ID']>;
-    session_secure_id?: Maybe<Scalars['String']>;
+    session_secure_id: Scalars['String'];
     session_timestamp: Scalars['Int'];
     text: Scalars['String'];
     text_for_email: Scalars['String'];
@@ -997,8 +984,7 @@ export type MutationDeleteSessionCommentArgs = {
 
 export type MutationCreateErrorCommentArgs = {
     project_id: Scalars['ID'];
-    error_group_id?: Maybe<Scalars['ID']>;
-    error_group_secure_id?: Maybe<Scalars['String']>;
+    error_group_secure_id: Scalars['String'];
     text: Scalars['String'];
     text_for_email: Scalars['String'];
     tagged_admins: Array<Maybe<SanitizedAdminInput>>;
@@ -1167,13 +1153,11 @@ export type MutationCreateNewSessionAlertArgs = {
 };
 
 export type MutationUpdateSessionIsPublicArgs = {
-    session_id?: Maybe<Scalars['ID']>;
-    session_secure_id?: Maybe<Scalars['String']>;
+    session_secure_id: Scalars['String'];
     is_public: Scalars['Boolean'];
 };
 
 export type MutationUpdateErrorGroupIsPublicArgs = {
-    error_group_id?: Maybe<Scalars['ID']>;
-    error_group_secure_id?: Maybe<Scalars['String']>;
+    error_group_secure_id: Scalars['String'];
     is_public: Scalars['Boolean'];
 };

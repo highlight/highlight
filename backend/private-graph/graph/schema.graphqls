@@ -462,32 +462,23 @@ type SessionAlert {
 scalar Upload
 
 type Query {
-    session(id: ID, secure_id: String): Session
-    events(session_id: ID, session_secure_id: String): [Any]
+    session(secure_id: String!): Session
+    events(session_secure_id: String!): [Any]
     rage_clicks(session_secure_id: String): [RageClickEvent!]!
     error_groups(
         project_id: ID!
         count: Int!
         params: ErrorSearchParamsInput
     ): ErrorResults
-    error_group(id: ID, secure_id: String): ErrorGroup
-    messages(session_id: ID, session_secure_id: String): [Any]
-    enhanced_user_details(
-        session_id: ID
-        session_secure_id: String
-    ): EnhancedUserDetailsResult
-    errors(session_id: ID, session_secure_id: String): [ErrorObject]
-    resources(session_id: ID, session_secure_id: String): [Any]
-    session_comments(
-        session_id: ID
-        session_secure_id: String
-    ): [SessionComment]!
+    error_group(secure_id: String!): ErrorGroup
+    messages(session_secure_id: String!): [Any]
+    enhanced_user_details(session_secure_id: String!): EnhancedUserDetailsResult
+    errors(session_secure_id: String!): [ErrorObject]
+    resources(session_secure_id: String!): [Any]
+    session_comments(session_secure_id: String!): [SessionComment]!
     session_comments_for_admin: [SessionComment]!
     session_comments_for_project(project_id: ID!): [SessionComment]!
-    error_comments(
-        error_group_id: ID
-        error_group_secure_id: String
-    ): [ErrorComment]!
+    error_comments(error_group_secure_id: String!): [ErrorComment]!
     error_comments_for_admin: [ErrorComment]!
     error_comments_for_project(project_id: ID!): [ErrorComment]!
     project_admins(project_id: ID!): [Admin]!
@@ -506,8 +497,7 @@ type Query {
     ): [DailyErrorCount]!
     dailyErrorFrequency(
         project_id: ID!
-        error_group_id: ID
-        error_group_secure_id: String
+        error_group_secure_id: String!
         date_offset: Int!
     ): [Int64]!
     referrers(project_id: ID!, lookBackPeriod: Int!): [ReferrerTablePayload]!
@@ -566,9 +556,9 @@ type Mutation {
     createWorkspace(name: String!): Workspace
     editProject(id: ID!, name: String, billing_email: String): Project
     editWorkspace(id: ID!, name: String): Workspace
-    markSessionAsViewed(id: ID, secure_id: String, viewed: Boolean): Session
-    markSessionAsStarred(id: ID, secure_id: String, starred: Boolean): Session
-    updateErrorGroupState(id: ID, secure_id: String, state: String!): ErrorGroup
+    markSessionAsViewed(secure_id: String!, viewed: Boolean): Session
+    markSessionAsStarred(secure_id: String!, starred: Boolean): Session
+    updateErrorGroupState(secure_id: String!, state: String!): ErrorGroup
     deleteProject(id: ID!): Boolean
     sendAdminProjectInvite(
         project_id: ID!
@@ -612,8 +602,7 @@ type Mutation {
     updateBillingDetails(project_id: ID!): Boolean
     createSessionComment(
         project_id: ID!
-        session_id: ID
-        session_secure_id: String
+        session_secure_id: String!
         session_timestamp: Int!
         text: String!
         text_for_email: String!
@@ -629,8 +618,7 @@ type Mutation {
     deleteSessionComment(id: ID!): Boolean
     createErrorComment(
         project_id: ID!
-        error_group_id: ID
-        error_group_secure_id: String
+        error_group_secure_id: String!
         text: String!
         text_for_email: String!
         tagged_admins: [SanitizedAdminInput]!
@@ -771,13 +759,11 @@ type Mutation {
         threshold_window: Int!
     ): SessionAlert
     updateSessionIsPublic(
-        session_id: ID
-        session_secure_id: String
+        session_secure_id: String!
         is_public: Boolean!
     ): Session
     updateErrorGroupIsPublic(
-        error_group_id: ID
-        error_group_secure_id: String
+        error_group_secure_id: String!
         is_public: Boolean!
     ): ErrorGroup
 }
