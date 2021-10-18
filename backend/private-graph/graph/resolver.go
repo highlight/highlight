@@ -665,7 +665,9 @@ func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model
 			if err != nil {
 				log.Error(e.Wrap(err, "failed to join slack channel"))
 			}
-			_, _, err = slackClient.PostMessage(*slackUser.WebhookChannelID, slack.MsgOptionBlocks(blockSet.BlockSet...))
+			_, _, err = slackClient.PostMessage(*slackUser.WebhookChannelID, slack.MsgOptionBlocks(blockSet.BlockSet...),
+				slack.MsgOptionDisableLinkUnfurl(), /** Disables showing a preview of any links that are in the Slack message.*/
+				slack.MsgOptionDisableMediaUnfurl() /** Disables showing a preview of any links that are in the Slack message.*/)
 			if err != nil {
 				return e.Wrap(err, "error posting slack message via slack bot")
 			}
