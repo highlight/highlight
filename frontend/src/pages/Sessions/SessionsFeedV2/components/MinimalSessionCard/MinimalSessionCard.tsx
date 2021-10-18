@@ -2,7 +2,6 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
-import HighlightGate from '@components/HighlightGate/HighlightGate';
 import { ALERT_CONFIGURATIONS } from '@pages/Alerts/Alerts';
 import { formatShortTime } from '@pages/Home/components/KeyPerformanceIndicators/utils/utils';
 import ActivityGraph from '@pages/Sessions/SessionsFeedV2/components/ActivityGraph/ActivityGraph';
@@ -386,16 +385,14 @@ const MinimalSessionCard = React.memo(
                 </div>
 
                 {!errorVersion && showDetailedSessionView && eventCounts && (
-                    <HighlightGate>
-                        <Tooltip
-                            title="This is a graph of the user's activity during the session. If the user does more things, the higher the value will be."
-                            mouseEnterDelay={0.2}
-                        >
-                            <div className={styles.activityGraphContainer}>
-                                <ActivityGraph data={eventCounts} />
-                            </div>
-                        </Tooltip>
-                    </HighlightGate>
+                    <Tooltip
+                        title="This is a graph of the user's activity during the session. If the user does more things, the higher the value will be."
+                        mouseEnterDelay={0.2}
+                    >
+                        <div className={styles.activityGraphContainer}>
+                            <ActivityGraph data={eventCounts} />
+                        </div>
+                    </Tooltip>
                 )}
             </div>
         );
