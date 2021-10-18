@@ -730,6 +730,7 @@ func (w *Worker) Start() {
 				span.Finish()
 			})
 		}
+		wp.StopWait()
 	}
 }
 
