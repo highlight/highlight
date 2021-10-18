@@ -1,4 +1,3 @@
-import { useAuthContext } from '@authentication/AuthContext';
 import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
 import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
@@ -45,8 +44,6 @@ const Notifications = () => {
         },
         skip: !project_id,
     });
-
-    const { admin } = useAuthContext();
 
     useEffect(() => {
         const unreadCount = notifications.reduce((prev, curr) => {
