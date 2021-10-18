@@ -977,6 +977,123 @@ type SendSlackAlertInput struct {
 	Timestamp *time.Time
 }
 
+type SendWelcomeSlackMessageInput struct {
+	Workspace            *Workspace
+	Admin                *Admin
+	OperationName        string
+	OperationDescription string
+	Project              *Project
+	AlertID              *int
+	IncludeEditLink      bool
+}
+
+func (obj *Alert) SendWelcomeSlackMessage(input *SendWelcomeSlackMessageInput) error {
+	if obj == nil {
+		return e.New("Alert needs to be defined.")
+	}
+	if input.Workspace == nil {
+		return e.New("Workspace needs to be defined.")
+	}
+	if input.Admin == nil {
+		return e.New("Admin needs to be defined.")
+	}
+	if input.Project == nil {
+		return e.New("Project needs to be defined.")
+	}
+	if input.AlertID == nil {
+		return e.New("AlertID needs to be defined.")
+	}
+
+	// get alerts channels
+	channels, err := obj.GetChannelsToNotify()
+	if err != nil {
+		return e.Wrap(err, "error getting channels to notify welcome slack message")
+	}
+	if len(channels) <= 0 {
+		return nil
+	}
+	// get project's channels
+	integratedSlackChannels, err := input.Workspace.IntegratedSlackChannels()
+	if err != nil {
+		return e.Wrap(err, "error getting slack webhook url for alert")
+	}
+	if len(integratedSlackChannels) <= 0 {
+		return nil
+	}
+	var slackClient *slack.Client
+	if input.Workspace.SlackAccessToken != nil {
+		slackClient = slack.New(*input.Workspace.SlackAccessToken)
+	}
+
+	frontendURL := os.Getenv("FRONTEND_URI")
+	alertUrl := fmt.Sprintf("%s/%d/alerts/%d", frontendURL, input.Project.Model.ID, *input.AlertID)
+	if !input.IncludeEditLink {
+		alertUrl = ""
+	}
+	adminName := input.Admin.Name
+
+	if adminName == nil {
+		adminName = input.Admin.Email
+	}
+
+	// send message
+	for _, channel := range channels {
+		if channel.WebhookChannel != nil {
+			var slackWebhookURL string
+			isWebhookChannel := false
+
+			// Find the webhook URL
+			for _, ch := range integratedSlackChannels {
+				if id := channel.WebhookChannelID; id != nil && ch.WebhookChannelID == *id {
+					slackWebhookURL = ch.WebhookURL
+
+					if ch.WebhookAccessToken != "" {
+						isWebhookChannel = true
+					}
+					break
+				}
+			}
+
+			if slackWebhookURL == "" && isWebhookChannel {
+				log.WithFields(log.Fields{"workspace_id": input.Workspace.ID}).
+					Error("requested channel has no matching slackWebhookURL when sending welcome message")
+				continue
+			}
+
+			message := fmt.Sprintf("👋 %s has %s the alert \"%s\". %s %s", *adminName, input.OperationName, *obj.Name, input.OperationDescription, alertUrl)
+			slackChannelId := *channel.WebhookChannelID
+			slackChannelName := *channel.WebhookChannel
+
+			go func() {
+				// The Highlight Slack bot needs to join the channel before it can send a message.
+				// Slack handles a bot trying to join a channel it already is a part of, we don't need to handle it.
+				log.Printf("Sending Slack Bot Message for welcome message")
+				if slackClient != nil {
+					if strings.Contains(slackChannelName, "#") {
+						_, _, _, err := slackClient.JoinConversation(slackChannelId)
+						if err != nil {
+							log.Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
+						}
+					}
+					_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(message, false),
+						slack.MsgOptionDisableLinkUnfurl(),  /** Disables showing a preview of any links that are in the Slack message.*/
+						slack.MsgOptionDisableMediaUnfurl(), /** Disables showing a preview of any links that are in the Slack message.*/
+					)
+					if err != nil {
+						log.WithFields(log.Fields{"workspace_id": input.Workspace.ID, "message": fmt.Sprintf("%+v", message)}).
+							Error(e.Wrap(err, "error sending slack msg via bot api for welcome message"))
+					}
+
+				} else {
+					log.Printf("Slack Bot Client was not defined for sending welcome message")
+				}
+			}()
+		}
+	}
+
+	return nil
+}
+
 func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 	// TODO: combine `error_alerts` and `session_alerts` tables and create composite index on (project_id, type)
 	if obj == nil {
