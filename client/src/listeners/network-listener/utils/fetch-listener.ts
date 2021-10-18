@@ -1,21 +1,35 @@
+import { SessionData } from '../../../index';
 import { NetworkListenerCallback } from '../network-listener';
 import {
     RequestResponsePair,
     Request as HighlightRequest,
     Response as HighlightResponse,
 } from './models';
-import { isHighlightNetworkResourceFilter } from './utils';
+import { createNetworkRequestId, shouldNetworkRequestBeRecorded, shouldNetworkRequestBeTraced } from './utils';
 
 export const FetchListener = (
     callback: NetworkListenerCallback,
     backendUrl: string,
-    urlBlocklist: string[]
+    tracingOrigins: string[],
+    urlBlocklist: string[],
+    sessionData: SessionData
 ) => {
     const originalFetch = window.fetch;
 
     window.fetch = function (input, init) {
         const { method, url } = getRequestProperties(input, init);
+        if (!shouldNetworkRequestBeRecorded(url, backendUrl, tracingOrigins)) {
+            return originalFetch.call(this, input, init);
+        }
+
+        const requestId = createNetworkRequestId();
+        if (shouldNetworkRequestBeTraced(url, tracingOrigins)) {
+            init = init || {};
+            init.headers = {...init.headers, 'X-Highlight-Request': sessionData.sessionID + "/" + requestId};
+        }
+
         const request: HighlightRequest = {
+            id: requestId,
             headers: {},
             body: undefined,
             url,
@@ -24,25 +38,18 @@ export const FetchListener = (
         const shouldRecordHeaderAndBody = !urlBlocklist.some((blockedUrl) =>
             url.toLowerCase().includes(blockedUrl)
         );
-
         if (shouldRecordHeaderAndBody) {
             request.headers = init?.headers as any;
             request.body = init?.body;
         }
 
-        let responsePromise: Promise<Response>;
-
-        responsePromise = originalFetch.call(this, input, init);
-
-        if (!isHighlightNetworkResourceFilter(url, backendUrl)) {
-            logRequest(
-                responsePromise,
-                request,
-                callback,
-                shouldRecordHeaderAndBody
-            );
-        }
-
+        let responsePromise = originalFetch.call(this, input, init);
+        logRequest(
+            responsePromise,
+            request,
+            callback,
+            shouldRecordHeaderAndBody
+        );
         return responsePromise;
     };
 
