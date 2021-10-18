@@ -1,3 +1,4 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import React from 'react';
 
 import Select from '../../../components/Select/Select';
@@ -15,13 +16,20 @@ const ErrorTypeOptions = ErrorType.map((val: string) => ({
 const ErrorTypeInput = () => {
     const { searchParams, setSearchParams } = useErrorSearchContext();
 
+    const { isHighlightAdmin } = useAuthContext();
+
     const options: {
         displayValue: string;
         value: string;
         id: string;
     }[] = [
         { displayValue: 'All', value: 'ALL', id: 'ALL' },
-        ...ErrorTypeOptions,
+        ...ErrorTypeOptions.filter((val) => {
+            if (val.value === 'BACKEND') {
+                return isHighlightAdmin;
+            }
+            return true;
+        }),
     ];
 
     return (
