@@ -2,7 +2,6 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
-import HighlightGate from '@components/HighlightGate/HighlightGate';
 import { ALERT_CONFIGURATIONS } from '@pages/Alerts/Alerts';
 import { formatShortTime } from '@pages/Home/components/KeyPerformanceIndicators/utils/utils';
 import ActivityGraph from '@pages/Sessions/SessionsFeedV2/components/ActivityGraph/ActivityGraph';
@@ -66,6 +65,20 @@ const MinimalSessionCard = React.memo(
                 setViewed(true);
             }
         }, [session?.secure_id, session_secure_id]);
+
+        const [eventCounts, setEventCounts] = useState(undefined);
+
+        useEffect(() => {
+            if (!!session?.event_counts) {
+                setEventCounts(
+                    JSON.parse(session.event_counts).map(
+                        (v: number, k: number) => {
+                            return { ts: k, value: v };
+                        }
+                    )
+                );
+            }
+        }, [session?.event_counts, setEventCounts]);
 
         useEffect(() => {
             if (
@@ -371,26 +384,15 @@ const MinimalSessionCard = React.memo(
                     )}
                 </div>
 
-                {!errorVersion && showDetailedSessionView && (
-                    <HighlightGate>
+                {!errorVersion && showDetailedSessionView && eventCounts && (
+                    <Tooltip
+                        title="This is a graph of the user's activity during the session. If the user does more things, the higher the value will be."
+                        mouseEnterDelay={0.2}
+                    >
                         <div className={styles.activityGraphContainer}>
-                            <ActivityGraph
-                                data={[
-                                    { ts: 0, value: Math.random() * 100 },
-                                    { ts: 1, value: Math.random() * 200 },
-                                    { ts: 2, value: Math.random() * 1000 },
-                                    { ts: 3, value: Math.random() * 1000 },
-                                    { ts: 4, value: Math.random() * 1000 },
-                                    { ts: 5, value: Math.random() * 1000 },
-                                    { ts: 6, value: Math.random() * 1000 },
-                                    { ts: 7, value: Math.random() * 100 },
-                                    { ts: 8, value: Math.random() * 1000 },
-                                    { ts: 9, value: Math.random() * 100 },
-                                    { ts: 10, value: Math.random() * 1000 },
-                                ]}
-                            />
+                            <ActivityGraph data={eventCounts} />
                         </div>
-                    </HighlightGate>
+                    </Tooltip>
                 )}
             </div>
         );

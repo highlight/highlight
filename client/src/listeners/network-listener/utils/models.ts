@@ -3,6 +3,7 @@ export interface Headers {
 }
 
 export interface Request {
+    id: string;
     url: string;
     verb: string;
     headers?: Headers;

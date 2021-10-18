@@ -584,6 +584,7 @@ func TestGetActiveDuration(t *testing.T) {
 				currentlyInRageClickSet bool
 				clickEventQueue         *list.List
 			)
+			timestamps := make(map[time.Time]int)
 			clickEventQueue = list.New()
 			var o processEventChunkOutput
 			for _, event := range tt.events {
@@ -594,6 +595,7 @@ func TestGetActiveDuration(t *testing.T) {
 					LastEventTimestamp:      lastEventTimestamp,
 					RageClickSets:           rageClickSets,
 					CurrentlyInRageClickSet: currentlyInRageClickSet,
+					TimestampCounts:         timestamps,
 				})
 				if o.Error != nil {
 					t.Logf("error: %v", o.Error)
@@ -603,6 +605,7 @@ func TestGetActiveDuration(t *testing.T) {
 				activeDuration += o.CalculatedDuration
 				rageClickSets = o.RageClickSets
 				currentlyInRageClickSet = o.CurrentlyInRageClickSet
+				timestamps = o.TimestampCounts
 			}
 
 			if tt.expectedRageClicks != nil {

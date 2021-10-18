@@ -78,6 +78,7 @@ query GetSession($secure_id: String!) {
         client_version
         client_config
         is_public
+        event_counts
     }
 }
 
@@ -281,6 +282,7 @@ query GetSessions(
             }
             first_time
             user_properties
+            event_counts
         }
         totalCount
     }
@@ -817,6 +819,20 @@ query GetAlertsPagePayload($project_id: ID!) {
         LastAdminToEditID
         Name
         id
+        Type
+    }
+    rage_click_alerts(project_id: $project_id) {
+        id
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        ExcludedEnvironments
+        CountThreshold
+        ThresholdWindow
+        updated_at
+        LastAdminToEditID
+        Name
         Type
     }
     new_user_alerts(project_id: $project_id) {

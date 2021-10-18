@@ -46,6 +46,7 @@ var AlertType = struct {
 	TRACK_PROPERTIES string
 	USER_PROPERTIES  string
 	SESSION_FEEDBACK string
+	RAGE_CLICK       string
 	NEW_SESSION      string
 }{
 	ERROR:            "ERROR_ALERT",
@@ -53,6 +54,7 @@ var AlertType = struct {
 	TRACK_PROPERTIES: "TRACK_PROPERTIES_ALERT",
 	USER_PROPERTIES:  "USER_PROPERTIES_ALERT",
 	SESSION_FEEDBACK: "SESSION_FEEDBACK_ALERT",
+	RAGE_CLICK:       "RAGE_CLICK_ALERT",
 	NEW_SESSION:      "NEW_SESSION_ALERT",
 }
 
@@ -438,6 +440,8 @@ type Session struct {
 	WithinBillingQuota *bool `json:"within_billing_quota" gorm:"index;default:true"` // index? probably.
 	// Used for shareable links. No authentication is needed if IsPublic is true
 	IsPublic *bool `json:"is_public" gorm:"default:false"`
+	// EventCounts is a len()=100 slice that contains the count of events for the session normalized over 100 points
+	EventCounts *string
 
 	ObjectStorageEnabled *bool   `json:"object_storage_enabled"`
 	PayloadSize          *int64  `json:"payload_size"`
@@ -963,10 +967,18 @@ type SendSlackAlertInput struct {
 	CommentID *int
 	// CommentText is a required parameter for SessionFeedback alerts
 	CommentText string
+	// QueryParams is a map of query params to be appended to the url suffix
+	// `key:value` will be converted to `key=value` in the url with the appropriate separator (`?` or `&`)
+	// - tsAbs is required for rage click alerts
+	QueryParams map[string]string
+	// RageClicksCount is a required parameter for Rage Click Alerts
+	RageClicksCount *int64
+	// Timestamp is an optional value for all session alerts.
+	Timestamp *time.Time
 }
 
 func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
-	// TODO: combine `error_alerts` and `session_alerts` tables and create unique composite index on (project_id, type)
+	// TODO: combine `error_alerts` and `session_alerts` tables and create composite index on (project_id, type)
 	if obj == nil {
 		return e.New("alert is nil")
 	}
@@ -995,7 +1007,17 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 	frontendURL := os.Getenv("FRONTEND_URI")
 	suffix := ""
 	if input.CommentID != nil {
-		suffix = fmt.Sprintf("?commentId=%d", *input.CommentID)
+		input.QueryParams["commentId"] = fmt.Sprintf("%d", *input.CommentID)
+	}
+	if len(input.QueryParams) > 0 {
+		for k, v := range input.QueryParams {
+			if len(suffix) == 0 {
+				suffix += "?"
+			} else {
+				suffix += "&"
+			}
+			suffix += fmt.Sprintf("%s=%s", k, v)
+		}
 	}
 	sessionLink := fmt.Sprintf("<%s/%d/sessions/%s%s>", frontendURL, obj.ProjectID, input.SessionSecureID, suffix)
 	messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false))
@@ -1111,6 +1133,15 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 			input.UserIdentifier = "User"
 		}
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s Left Feedback*\n\n%s", input.UserIdentifier, input.CommentText), false, false)
+		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
+		blockSet = append(blockSet, slack.NewDividerBlock())
+		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
+	case AlertType.RAGE_CLICK:
+		previewText = "Highlight: Rage Clicks Alert"
+		if input.RageClicksCount == nil {
+			return nil
+		}
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Rage Clicks Detected:* %d Recent Occurrences\n\n", *input.RageClicksCount), false, false)
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
