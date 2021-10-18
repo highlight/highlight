@@ -19,6 +19,7 @@ type PopoverProps = Pick<
     | 'placement'
     | 'align'
     | 'visible'
+    | 'destroyTooltipOnHide'
 > & {
     isList?: boolean;
     popoverClassName?: string;

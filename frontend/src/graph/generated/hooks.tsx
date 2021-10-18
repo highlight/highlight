@@ -5962,6 +5962,60 @@ export type GetSlackChannelSuggestionQueryResult = Apollo.QueryResult<
     Types.GetSlackChannelSuggestionQuery,
     Types.GetSlackChannelSuggestionQueryVariables
 >;
+export const GetWorkspaceIsIntegratedWithSlackDocument = gql`
+    query GetWorkspaceIsIntegratedWithSlack($project_id: ID!) {
+        is_integrated_with_slack(project_id: $project_id)
+    }
+`;
+
+/**
+ * __useGetWorkspaceIsIntegratedWithSlackQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspaceIsIntegratedWithSlackQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspaceIsIntegratedWithSlackQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspaceIsIntegratedWithSlackQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetWorkspaceIsIntegratedWithSlackQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetWorkspaceIsIntegratedWithSlackQuery,
+        Types.GetWorkspaceIsIntegratedWithSlackQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetWorkspaceIsIntegratedWithSlackQuery,
+        Types.GetWorkspaceIsIntegratedWithSlackQueryVariables
+    >(GetWorkspaceIsIntegratedWithSlackDocument, baseOptions);
+}
+export function useGetWorkspaceIsIntegratedWithSlackLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetWorkspaceIsIntegratedWithSlackQuery,
+        Types.GetWorkspaceIsIntegratedWithSlackQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetWorkspaceIsIntegratedWithSlackQuery,
+        Types.GetWorkspaceIsIntegratedWithSlackQueryVariables
+    >(GetWorkspaceIsIntegratedWithSlackDocument, baseOptions);
+}
+export type GetWorkspaceIsIntegratedWithSlackQueryHookResult = ReturnType<
+    typeof useGetWorkspaceIsIntegratedWithSlackQuery
+>;
+export type GetWorkspaceIsIntegratedWithSlackLazyQueryHookResult = ReturnType<
+    typeof useGetWorkspaceIsIntegratedWithSlackLazyQuery
+>;
+export type GetWorkspaceIsIntegratedWithSlackQueryResult = Apollo.QueryResult<
+    Types.GetWorkspaceIsIntegratedWithSlackQuery,
+    Types.GetWorkspaceIsIntegratedWithSlackQueryVariables
+>;
 export const GetAlertsPagePayloadDocument = gql`
     query GetAlertsPagePayload($project_id: ID!) {
         is_integrated_with_slack(project_id: $project_id)

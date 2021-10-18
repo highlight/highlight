@@ -2192,6 +2192,14 @@ export type GetSlackChannelSuggestionQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetWorkspaceIsIntegratedWithSlackQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+}>;
+
+export type GetWorkspaceIsIntegratedWithSlackQuery = {
+    __typename?: 'Query';
+} & Pick<Types.Query, 'is_integrated_with_slack'>;
+
 export type GetAlertsPagePayloadQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
 }>;
@@ -2487,6 +2495,7 @@ export const namedOperations = {
         GetDailyErrorsCount: 'GetDailyErrorsCount' as const,
         GetDailyErrorFrequency: 'GetDailyErrorFrequency' as const,
         GetSlackChannelSuggestion: 'GetSlackChannelSuggestion' as const,
+        GetWorkspaceIsIntegratedWithSlack: 'GetWorkspaceIsIntegratedWithSlack' as const,
         GetAlertsPagePayload: 'GetAlertsPagePayload' as const,
         GetCommentMentionSuggestions: 'GetCommentMentionSuggestions' as const,
     },
