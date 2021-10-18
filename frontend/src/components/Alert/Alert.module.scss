@@ -15,21 +15,21 @@
     }
 
     &:global(.ant-alert-error) {
-        background-color: var(--color-red-300) !important;
+        background-color: var(--color-red) !important;
         border: 0 !important;
         border-radius: var(--border-radius) !important;
-        color: var(--color-red-800) !important;
+        color: var(--text-primary-inverted) !important;
 
         :global(.ant-alert-message) {
-            color: var(--color-red-800) !important;
+            color: var(--text-primary-inverted) !important;
         }
 
         :global(.ant-alert-close-text) {
-            color: var(--color-red-800) !important;
+            color: var(--text-primary-inverted) !important;
         }
 
         :global(.ant-alert-icon) {
-            color: var(--color-red-500) !important;
+            color: var(--text-primary-inverted) !important;
         }
     }
 
