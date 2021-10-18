@@ -1215,7 +1215,10 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 								log.Error(e.Wrap(err, "failed to join slack channel"))
 							}
 						}
-						_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionBlocks(blockSet...))
+						_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionBlocks(blockSet...),
+							slack.MsgOptionDisableLinkUnfurl(),  /** Disables showing a preview of any links that are in the Slack message.*/
+							slack.MsgOptionDisableMediaUnfurl(), /** Disables showing a preview of any links that are in the Slack message.*/
+						)
 						if err != nil {
 							log.WithFields(log.Fields{"workspace_id": input.Workspace.ID, "message": fmt.Sprintf("%+v", msg)}).
 								Error(e.Wrap(err, "error sending slack msg via bot api"))
