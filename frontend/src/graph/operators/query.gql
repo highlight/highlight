@@ -278,7 +278,6 @@ query GetSessions(
                 name
                 value
                 type
-                id
             }
             first_time
             user_properties
