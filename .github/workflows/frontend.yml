@@ -8,40 +8,7 @@ on:
       - "frontend/**"
       - ".github/workflows/frontend.yml"
 jobs:
-  changes:
-    runs-on: ubuntu-latest
-    # Set job outputs to values from filter step
-    outputs:
-      gql: ${{ steps.filter.outputs.gql }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - uses: dorny/paths-filter@v2
-        id: filter
-        with:
-          filters: |
-            gql:
-              - 'frontend/src/graph/operators/query.gql'
-              - 'frontend/src/graph/operators/mutation.gql'
-  generate-check:
-    needs: [changes]
-    if: needs.changes.outputs.gql == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: copy backend
-        run: |
-          mkdir tmp
-          cp -a frontend/. tmp/
-      - name: Generate code
-        run: |
-          cd frontend/
-          yarn gql:nowatch
-      - name: Diff Check
-        run: |
-          diff -r frontend/ tmp/
-  frontend:
+  setup:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -64,6 +31,45 @@ jobs:
             ${{ runner.os }}-yarn-
       - name: Install main dependencies
         run: cd frontend && yarn --prefer-offline
+  changes:
+    runs-on: ubuntu-latest
+    # Set job outputs to values from filter step
+    outputs:
+      gql: ${{ steps.filter.outputs.gql }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            gql:
+              - 'frontend/src/graph/operators/query.gql'
+              - 'frontend/src/graph/operators/mutation.gql'
+  generate-check:
+    needs: [changes, setup]
+    if: needs.changes.outputs.gql == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: copy backend
+        run: |
+          mkdir tmp
+          cp -a frontend/. tmp/
+      - name: Generate code
+        run: |
+          cd frontend/
+          yarn gql:nowatch
+      - name: Diff Check
+        run: |
+          diff -r frontend/ tmp/
+  frontend:
+    needs: [setup]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
       - name: Runs linting
         run: cd frontend && yarn lint
       - name: Run Tests
