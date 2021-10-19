@@ -48,7 +48,7 @@ jobs:
             ${{ runner.os }}-yarn-
       - name: Install main dependencies
         run: cd frontend && yarn --prefer-offline
-      - name: copy backend
+      - name: copy frontend
         run: |
           mkdir tmp
           cp -a frontend/. tmp/
