@@ -80,7 +80,6 @@ const CommandPaletteComponent: React.FC<RouteComponentProps> = ({
             hotKeys={['command+k', 'ctrl+k']}
             highlightFirstSuggestion={false}
             closeOnSelect
-            open
             commands={commands}
             renderCommand={CommandBarCommand}
             options={{ keys: ['name', 'category'] }}
