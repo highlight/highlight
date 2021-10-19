@@ -55,7 +55,7 @@ export type ErrorObjectInput = {
 };
 
 export type BackendErrorObjectInput = {
-  session_id: Scalars['String'];
+  session_secure_id: Scalars['String'];
   request_id: Scalars['String'];
   event: Scalars['String'];
   type: Scalars['String'];

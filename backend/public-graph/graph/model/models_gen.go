@@ -7,15 +7,15 @@ import (
 )
 
 type BackendErrorObjectInput struct {
-	SessionID  string    `json:"session_id"`
-	RequestID  string    `json:"request_id"`
-	Event      string    `json:"event"`
-	Type       string    `json:"type"`
-	URL        string    `json:"url"`
-	Source     string    `json:"source"`
-	StackTrace string    `json:"stackTrace"`
-	Timestamp  time.Time `json:"timestamp"`
-	Payload    *string   `json:"payload"`
+	SessionSecureID string    `json:"session_secure_id"`
+	RequestID       string    `json:"request_id"`
+	Event           string    `json:"event"`
+	Type            string    `json:"type"`
+	URL             string    `json:"url"`
+	Source          string    `json:"source"`
+	StackTrace      string    `json:"stackTrace"`
+	Timestamp       time.Time `json:"timestamp"`
+	Payload         *string   `json:"payload"`
 }
 
 type ErrorObjectInput struct {

@@ -319,7 +319,7 @@ input ErrorObjectInput {
 }
 
 input BackendErrorObjectInput {
-    session_id: String!
+    session_secure_id: String!
     request_id: String!
     event: String!
     type: String!
@@ -2353,11 +2353,11 @@ func (ec *executionContext) unmarshalInputBackendErrorObjectInput(ctx context.Co
 
 	for k, v := range asMap {
 		switch k {
-		case "session_id":
+		case "session_secure_id":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_id"))
-			it.SessionID, err = ec.unmarshalNString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_secure_id"))
+			it.SessionSecureID, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
