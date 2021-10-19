@@ -34,6 +34,7 @@ import DetailPanel from '@pages/Player/Toolbar/DevToolsWindow/DetailPanel/Detail
 import { NewCommentForm } from '@pages/Player/Toolbar/NewCommentForm/NewCommentForm';
 import { Toolbar } from '@pages/Player/Toolbar/Toolbar';
 import { usePlayerFullscreen } from '@pages/Player/utils/PlayerHooks';
+import { getNewCommentFormCoordinates } from '@pages/Player/utils/utils';
 import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard';
 import { SessionSearchOption } from '@pages/Sessions/SessionsFeedV2/components/SessionSearch/SessionSearch';
 import useLocalStorage from '@rehooks/local-storage';
@@ -432,8 +433,11 @@ const Player = ({ integrated }: Props) => {
                         minimal
                         width="324px"
                         style={{
-                            left: `${commentModalPosition?.x}px`,
-                            top: `${commentModalPosition?.y}px`,
+                            ...getNewCommentFormCoordinates(
+                                324,
+                                commentModalPosition?.x,
+                                commentModalPosition?.y
+                            ),
                             margin: 0,
                         }}
                         mask={false}
