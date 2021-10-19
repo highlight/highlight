@@ -1,5 +1,12 @@
 import { RequestResponsePair } from './models';
 
+export const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'
+
+const normalizeUrl = (url: string) => {
+    // Remove trailing forward slashes
+    return url.replace(/\/+$/, "");
+}
+
 export const matchPerformanceTimingsWithRequestResponsePair = (
     performanceTimings: any[],
     requestResponsePairs: RequestResponsePair[],
@@ -10,7 +17,7 @@ export const matchPerformanceTimingsWithRequestResponsePair = (
 
     const groupedPerformanceTimings: {[type: string]: {[url: string]: any[]}} = performanceTimings.reduce(
         (previous, performanceTiming) => {
-            const url = performanceTiming.name;
+            const url = normalizeUrl(performanceTiming.name);
             if (performanceTiming.initiatorType === type) {
                 previous[type][url] = [
                     ...(previous[type][url] || []),
@@ -30,7 +37,7 @@ export const matchPerformanceTimingsWithRequestResponsePair = (
     let groupedRequestResponsePairs: { [url: string]: RequestResponsePair[] } = {};
     groupedRequestResponsePairs = requestResponsePairs.reduce(
         (previous, requestResponsePair) => {
-            const url = requestResponsePair.request.url;
+            const url = normalizeUrl(requestResponsePair.request.url);
             previous[url] = [
                 ...(previous[url] || []),
                 requestResponsePair
