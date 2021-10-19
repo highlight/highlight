@@ -24,6 +24,14 @@
     cursor: pointer;
 }
 
+.cardContainer {
+    padding-bottom: var(--size-medium);
+
+    &.firstCard {
+        padding-top: var(--size-medium);
+    }
+}
+
 .eventTime {
     align-items: center;
     display: flex;

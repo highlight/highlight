@@ -1,5 +1,3 @@
-import { useAuthContext } from '@authentication/AuthContext';
-import Alert from '@components/Alert/Alert';
 import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
 import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
@@ -47,8 +45,6 @@ const Notifications = () => {
         skip: !project_id,
     });
 
-    const { admin } = useAuthContext();
-
     useEffect(() => {
         const unreadCount = notifications.reduce((prev, curr) => {
             return readNotifications.includes(curr.id) ? prev : prev + 1;
@@ -61,34 +57,11 @@ const Notifications = () => {
             isList
             visible={showPopover}
             trigger={['click']}
+            destroyTooltipOnHide
             content={
                 <div className={styles.popover}>
                     {notifications.length !== 0 ? (
                         <>
-                            {!admin?.slack_im_channel_id && (
-                                <Alert
-                                    trackingId={
-                                        'NotificationsTab-PersonalNotificationCTA'
-                                    }
-                                    message={'Get Comment Notifications'}
-                                    description={
-                                        <>
-                                            {
-                                                'Get a slack DM anytime someone tags you in a Highlight comment!'
-                                            }
-                                            <PersonalNotificationButton
-                                                type="Personal"
-                                                text={'Enable Notifications'}
-                                                style={{
-                                                    marginTop:
-                                                        'var(--size-medium)',
-                                                }}
-                                            />
-                                        </>
-                                    }
-                                    className={styles.personalNotificationAlert}
-                                />
-                            )}
                             <PopoverListContent
                                 listItems={notifications.map(
                                     (notification, index) => (
@@ -131,7 +104,7 @@ const Notifications = () => {
                                 <PersonalNotificationButton
                                     text="Get Slack Notifications"
                                     style={{ maxWidth: 'fit-content' }}
-                                    type="Personal"
+                                    type="Organization"
                                 />
                             </div>
                         </>

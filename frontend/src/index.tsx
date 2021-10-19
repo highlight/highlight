@@ -39,6 +39,7 @@ const options: HighlightOptions = {
         enabled: true,
         recordHeadersAndBody: true,
     },
+    tracingOrigins: ['pub.highlight.run', 'localhost'],
     integrations: {
         mixpanel: {
             projectToken: 'e70039b6a5b93e7c86b8afb02b6d2300',

@@ -20,7 +20,6 @@ interface Props {
     openDevTools: boolean;
     refContainer: React.RefObject<HTMLDivElement>;
     sessionIntervals: ParsedSessionInterval[];
-    isHighlightAdmin: boolean;
     selectedTimelineAnnotationTypes: string[];
     rageClicks: RageClick[];
     startTime: number | undefined;
@@ -32,7 +31,6 @@ const TimelineIndicatorsMemoized = React.memo(
         openDevTools,
         refContainer,
         sessionIntervals,
-        isHighlightAdmin,
         selectedTimelineAnnotationTypes,
         rageClicks,
         startTime,
@@ -87,8 +85,7 @@ const TimelineIndicatorsMemoized = React.memo(
                                     />
                                 );
                             })}
-                        {isHighlightAdmin &&
-                            selectedTimelineAnnotationTypes.includes('Click') &&
+                        {selectedTimelineAnnotationTypes.includes('Click') &&
                             rageClicks
                                 .filter(
                                     (rageClick) =>
@@ -159,7 +156,6 @@ const TimelineIndicators = () => {
             openDevTools={openDevTools}
             refContainer={refContainer}
             sessionIntervals={sessionIntervals}
-            isHighlightAdmin={isHighlightAdmin}
             selectedTimelineAnnotationTypes={selectedTimelineAnnotationTypes}
             rageClicks={rageClicks}
             startTime={replayer?.getMetaData()?.startTime}

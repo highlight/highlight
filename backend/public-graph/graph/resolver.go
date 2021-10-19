@@ -746,7 +746,15 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 				t := 30
 				errorAlert.ThresholdWindow = &t
 			}
-			if err := r.DB.Model(&model.ErrorObject{}).Where(&model.ErrorObject{ProjectID: projectID, ErrorGroupID: group.ID}).Find("created_at > ?", time.Now().Add(time.Duration(-(*errorAlert.ThresholdWindow))*time.Minute)).Count(&numErrors).Error; err != nil {
+
+			if err := r.DB.Raw(`
+				SELECT COUNT(*)
+				FROM error_objects
+				WHERE
+					project_id=?
+					AND error_group_id=?
+					AND created_at > ?
+			`, projectID, group.ID, time.Now().Add(time.Duration(-(*errorAlert.ThresholdWindow))*time.Minute)).Scan(&numErrors).Error; err != nil {
 				log.Error(e.Wrapf(err, "error counting errors from past %d minutes", *errorAlert.ThresholdWindow))
 				return
 			}

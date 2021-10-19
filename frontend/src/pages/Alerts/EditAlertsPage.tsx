@@ -103,6 +103,7 @@ const findAlert = (id: string, alertsPayload?: GetAlertsPagePayloadQuery) => {
         ...alertsPayload.session_feedback_alerts,
         ...alertsPayload.track_properties_alerts,
         ...alertsPayload.user_properties_alerts,
+        ...alertsPayload.rage_click_alerts,
     ];
 
     return allAlerts.find((alert) => alert?.id === id);

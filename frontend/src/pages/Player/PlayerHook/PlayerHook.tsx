@@ -33,6 +33,7 @@ import {
     getCommentsInSessionIntervalsRelative,
     getEventsForTimelineIndicator,
     getSessionIntervals,
+    PlayerSearchParameters,
     useSetPlayerTimestampFromSearchParam,
 } from './utils';
 import usePlayerConfiguration from './utils/usePlayerConfiguration';
@@ -91,6 +92,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         setPlayerTime: setPlayerTimeToPersistance,
         autoPlaySessions,
         showPlayerMouseTail,
+        setShowLeftPanel,
     } = usePlayerConfiguration();
     const [sessionEndTime, setSessionEndTime] = useState<number>(0);
     const [sessionIntervals, setSessionIntervals] = useState<
@@ -178,6 +180,13 @@ export const usePlayer = (): ReplayerContextInterface => {
             resetPlayer(ReplayerState.Loading);
         }
     }, [eventsLoading, resetPlayer, setPlayerTimeToPersistance]);
+
+    useEffect(() => {
+        const searchParamsObject = new URLSearchParams(location.search);
+        if (searchParamsObject.get(PlayerSearchParameters.errorId)) {
+            setShowLeftPanel(false);
+        }
+    }, [setShowLeftPanel]);
 
     // Downloads the events data only if the URL search parameter '?download=1' is present.
     useEffect(() => {

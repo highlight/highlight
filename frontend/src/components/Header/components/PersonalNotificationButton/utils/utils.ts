@@ -38,6 +38,7 @@ export const useSlackBot = ({ type, watch }: UseSlackBotProps) => {
     });
     const [
         addSlackBotIntegrationToProject,
+        { called },
     ] = useAddSlackBotIntegrationToProjectMutation({
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
@@ -75,18 +76,13 @@ export const useSlackBot = ({ type, watch }: UseSlackBotProps) => {
                     });
                     message.success('Highlight is now synced with Slack!', 5);
                 }
-            } catch (e) {
-                message.error(
-                    `There was an error with Slack, please try again.: ${e}`,
-                    5
-                );
-            }
+            } catch (e) {}
             setLoading(false);
             // Remove the "code" URL param that Slack adds to the redirect URL.
             history.replace({ search: '' });
         };
 
-        if (watch) {
+        if (watch && !called && !loading) {
             sideEffect();
         }
     }, [
@@ -98,6 +94,7 @@ export const useSlackBot = ({ type, watch }: UseSlackBotProps) => {
         addSlackBotIntegrationToProject,
         watch,
         setupType,
+        called,
     ]);
 
     return {

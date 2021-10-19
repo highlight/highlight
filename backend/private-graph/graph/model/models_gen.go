@@ -25,6 +25,7 @@ type DateRangeInput struct {
 }
 
 type EnhancedUserDetailsResult struct {
+	ID      *int          `json:"id"`
 	Name    *string       `json:"name"`
 	Avatar  *string       `json:"avatar"`
 	Bio     *string       `json:"bio"`
@@ -53,6 +54,7 @@ type ErrorSearchParamsInput struct {
 	VisitedURL *string         `json:"visited_url"`
 	State      *ErrorState     `json:"state"`
 	Event      *string         `json:"event"`
+	Type       *string         `json:"type"`
 }
 
 type ErrorTrace struct {

@@ -3,6 +3,8 @@ package util
 import (
 	"context"
 
+	"github.com/highlight-run/highlight-go"
+
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -15,8 +17,9 @@ func GraphQLErrorPresenter(service string) func(ctx context.Context, e error) *g
 			"error": e,
 			"path":  graphql.GetPath(ctx),
 		}).Errorf("%s graphql request failed", service)
-		err := gqlerror.Errorf(e.Error())
-		return err
+		_ = highlight.ConsumeError(ctx, e)
+		gqlerr := gqlerror.Errorf(e.Error())
+		return gqlerr
 	}
 }
 

@@ -62,6 +62,7 @@ export type Session = {
     payload_size?: Maybe<Scalars['Int64']>;
     within_billing_quota?: Maybe<Scalars['Boolean']>;
     is_public?: Maybe<Scalars['Boolean']>;
+    event_counts?: Maybe<Scalars['String']>;
 };
 
 export type RageClickEvent = {
@@ -96,6 +97,7 @@ export enum PlanType {
 
 export type EnhancedUserDetailsResult = {
     __typename?: 'EnhancedUserDetailsResult';
+    id?: Maybe<Scalars['ID']>;
     name?: Maybe<Scalars['String']>;
     avatar?: Maybe<Scalars['String']>;
     bio?: Maybe<Scalars['String']>;
@@ -318,6 +320,7 @@ export type ErrorSearchParamsInput = {
     visited_url?: Maybe<Scalars['String']>;
     state?: Maybe<ErrorState>;
     event?: Maybe<Scalars['String']>;
+    type?: Maybe<Scalars['String']>;
 };
 
 export type ErrorSearchParams = {
@@ -551,6 +554,7 @@ export type Query = {
     track_properties_alerts: Array<Maybe<SessionAlert>>;
     user_properties_alerts: Array<Maybe<SessionAlert>>;
     new_session_alerts: Array<Maybe<SessionAlert>>;
+    rage_click_alerts: Array<Maybe<SessionAlert>>;
     projectSuggestion?: Maybe<Array<Maybe<Project>>>;
     environment_suggestion?: Maybe<Array<Maybe<Field>>>;
     app_version_suggestion: Array<Maybe<Scalars['String']>>;
@@ -749,6 +753,10 @@ export type QueryNew_Session_AlertsArgs = {
     project_id: Scalars['ID'];
 };
 
+export type QueryRage_Click_AlertsArgs = {
+    project_id: Scalars['ID'];
+};
+
 export type QueryProjectSuggestionArgs = {
     query: Scalars['String'];
 };
@@ -828,11 +836,13 @@ export type Mutation = {
     deleteErrorComment?: Maybe<Scalars['Boolean']>;
     openSlackConversation?: Maybe<Scalars['Boolean']>;
     addSlackBotIntegrationToProject: Scalars['Boolean'];
+    createRageClickAlert?: Maybe<SessionAlert>;
     createErrorAlert?: Maybe<ErrorAlert>;
     updateErrorAlert?: Maybe<ErrorAlert>;
     deleteErrorAlert?: Maybe<ErrorAlert>;
     updateSessionFeedbackAlert?: Maybe<SessionAlert>;
     createSessionFeedbackAlert?: Maybe<SessionAlert>;
+    updateRageClickAlert?: Maybe<SessionAlert>;
     updateNewUserAlert?: Maybe<SessionAlert>;
     createNewUserAlert?: Maybe<SessionAlert>;
     updateTrackPropertiesAlert?: Maybe<SessionAlert>;
@@ -1014,6 +1024,15 @@ export type MutationAddSlackBotIntegrationToProjectArgs = {
     redirect_path: Scalars['String'];
 };
 
+export type MutationCreateRageClickAlertArgs = {
+    project_id: Scalars['ID'];
+    name: Scalars['String'];
+    count_threshold: Scalars['Int'];
+    threshold_window: Scalars['Int'];
+    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+    environments: Array<Maybe<Scalars['String']>>;
+};
+
 export type MutationCreateErrorAlertArgs = {
     project_id: Scalars['ID'];
     name: Scalars['String'];
@@ -1050,6 +1069,16 @@ export type MutationUpdateSessionFeedbackAlertArgs = {
 
 export type MutationCreateSessionFeedbackAlertArgs = {
     project_id: Scalars['ID'];
+    name: Scalars['String'];
+    count_threshold: Scalars['Int'];
+    threshold_window: Scalars['Int'];
+    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+    environments: Array<Maybe<Scalars['String']>>;
+};
+
+export type MutationUpdateRageClickAlertArgs = {
+    project_id: Scalars['ID'];
+    rage_click_alert_id: Scalars['ID'];
     name: Scalars['String'];
     count_threshold: Scalars['Int'];
     threshold_window: Scalars['Int'];
