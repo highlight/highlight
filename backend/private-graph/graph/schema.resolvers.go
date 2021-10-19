@@ -152,7 +152,7 @@ func (r *errorGroupResolver) State(ctx context.Context, obj *model.ErrorGroup) (
 
 func (r *errorGroupResolver) ErrorFrequency(ctx context.Context, obj *model.ErrorGroup) ([]*int64, error) {
 	if obj != nil {
-		return r.Query().DailyErrorFrequency(ctx, obj.ProjectID, &obj.ID, &obj.SecureID, 5)
+		return r.Query().DailyErrorFrequency(ctx, obj.ProjectID, obj.SecureID, 5)
 	}
 	return nil, nil
 }
@@ -358,8 +358,8 @@ func (r *mutationResolver) EditWorkspace(ctx context.Context, id int, name *stri
 	return workspace, nil
 }
 
-func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, id *int, secureID *string, viewed *bool) (*model.Session, error) {
-	s, err := r.canAdminModifySession(ctx, id, secureID)
+func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID string, viewed *bool) (*model.Session, error) {
+	s, err := r.canAdminModifySession(ctx, secureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
@@ -373,8 +373,8 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, id *int, sec
 	return session, nil
 }
 
-func (r *mutationResolver) MarkSessionAsStarred(ctx context.Context, id *int, secureID *string, starred *bool) (*model.Session, error) {
-	s, err := r.canAdminModifySession(ctx, id, secureID)
+func (r *mutationResolver) MarkSessionAsStarred(ctx context.Context, secureID string, starred *bool) (*model.Session, error) {
+	s, err := r.canAdminModifySession(ctx, secureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
@@ -388,8 +388,8 @@ func (r *mutationResolver) MarkSessionAsStarred(ctx context.Context, id *int, se
 	return session, nil
 }
 
-func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, id *int, secureID *string, state string) (*model.ErrorGroup, error) {
-	errGroup, err := r.canAdminModifyErrorGroup(ctx, id, secureID)
+func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, secureID string, state string) (*model.ErrorGroup, error) {
+	errGroup, err := r.canAdminModifyErrorGroup(ctx, secureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not authorized to modify error group")
 	}
@@ -772,11 +772,11 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, projectID i
 	return &model.T, nil
 }
 
-func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID int, sessionID *int, sessionSecureID *string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model.SessionComment, error) {
+func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model.SessionComment, error) {
 	admin, isGuestCreatingSession := r.getCurrentAdminOrGuest(ctx)
 
 	// All viewers can leave a comment, including guests
-	session, err := r.canAdminViewSession(ctx, sessionID, sessionSecureID)
+	session, err := r.canAdminViewSession(ctx, sessionSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin cannot leave a comment")
 	}
@@ -877,7 +877,7 @@ func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*b
 	if err := r.DB.Where(model.SessionComment{Model: model.Model{ID: id}}).First(&sessionComment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session comment")
 	}
-	_, err := r.canAdminModifySession(ctx, &sessionComment.SessionId, nil)
+	_, err := r.canAdminModifySession(ctx, sessionComment.SessionSecureId)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not session owner")
 	}
@@ -887,10 +887,10 @@ func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*b
 	return &model.T, nil
 }
 
-func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int, errorGroupID *int, errorGroupSecureID *string, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, errorURL string, authorName string) (*model.ErrorComment, error) {
+func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, errorURL string, authorName string) (*model.ErrorComment, error) {
 	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
 
-	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupID, errorGroupSecureID)
+	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not authorized to view error group")
 	}
@@ -978,11 +978,11 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 }
 
 func (r *mutationResolver) DeleteErrorComment(ctx context.Context, id int) (*bool, error) {
-	var errorGroupID int
-	if err := r.DB.Table("error_comments").Select("error_id").Where("id=?", id).Scan(&errorGroupID).Error; err != nil {
+	var errorGroupSecureID string
+	if err := r.DB.Table("error_comments").Select("error_secure_id").Where("id=?", id).Scan(&errorGroupSecureID).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error comments")
 	}
-	_, err := r.canAdminModifyErrorGroup(ctx, &errorGroupID, nil)
+	_, err := r.canAdminModifyErrorGroup(ctx, errorGroupSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not authorized to modify error group")
 	}
@@ -1859,8 +1859,8 @@ func (r *mutationResolver) CreateNewSessionAlert(ctx context.Context, projectID 
 	return newAlert, nil
 }
 
-func (r *mutationResolver) UpdateSessionIsPublic(ctx context.Context, sessionID *int, sessionSecureID *string, isPublic bool) (*model.Session, error) {
-	session, err := r.canAdminModifySession(ctx, sessionID, sessionSecureID)
+func (r *mutationResolver) UpdateSessionIsPublic(ctx context.Context, sessionSecureID string, isPublic bool) (*model.Session, error) {
+	session, err := r.canAdminModifySession(ctx, sessionSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
@@ -1873,8 +1873,8 @@ func (r *mutationResolver) UpdateSessionIsPublic(ctx context.Context, sessionID 
 	return session, nil
 }
 
-func (r *mutationResolver) UpdateErrorGroupIsPublic(ctx context.Context, errorGroupID *int, errorGroupSecureID *string, isPublic bool) (*model.ErrorGroup, error) {
-	errorGroup, err := r.canAdminModifyErrorGroup(ctx, errorGroupID, errorGroupSecureID)
+func (r *mutationResolver) UpdateErrorGroupIsPublic(ctx context.Context, errorGroupSecureID string, isPublic bool) (*model.ErrorGroup, error) {
+	errorGroup, err := r.canAdminModifyErrorGroup(ctx, errorGroupSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not authorized to modify error group")
 	}
@@ -1885,8 +1885,8 @@ func (r *mutationResolver) UpdateErrorGroupIsPublic(ctx context.Context, errorGr
 	return errorGroup, nil
 }
 
-func (r *queryResolver) Session(ctx context.Context, id *int, secureID *string) (*model.Session, error) {
-	if util.IsDevEnv() && secureID != nil && *secureID == "repro" {
+func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Session, error) {
+	if util.IsDevEnv() && secureID == "repro" {
 		sessionObj := &model.Session{}
 		res := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: 0}}).First(&sessionObj)
 		if res.Error != nil {
@@ -1895,7 +1895,7 @@ func (r *queryResolver) Session(ctx context.Context, id *int, secureID *string) 
 		return sessionObj, nil
 	}
 
-	s, err := r.canAdminViewSession(ctx, id, secureID)
+	s, err := r.canAdminViewSession(ctx, secureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
@@ -1907,8 +1907,8 @@ func (r *queryResolver) Session(ctx context.Context, id *int, secureID *string) 
 	return sessionObj, nil
 }
 
-func (r *queryResolver) Events(ctx context.Context, sessionID *int, sessionSecureID *string) ([]interface{}, error) {
-	if util.IsDevEnv() && sessionSecureID != nil && *sessionSecureID == "repro" {
+func (r *queryResolver) Events(ctx context.Context, sessionSecureID string) ([]interface{}, error) {
+	if util.IsDevEnv() && sessionSecureID == "repro" {
 		file, err := ioutil.ReadFile("./tmp/events.json")
 		if err != nil {
 			return nil, e.Wrap(err, "Failed to read temp file")
@@ -1920,7 +1920,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionID *int, sessionSecur
 		}
 		return data, nil
 	}
-	s, err := r.canAdminViewSession(ctx, sessionID, sessionSecureID)
+	s, err := r.canAdminViewSession(ctx, sessionSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
@@ -1955,16 +1955,16 @@ func (r *queryResolver) Events(ctx context.Context, sessionID *int, sessionSecur
 	return allEvents["events"], nil
 }
 
-func (r *queryResolver) RageClicks(ctx context.Context, sessionSecureID *string) ([]*model.RageClickEvent, error) {
-	if !(util.IsDevEnv() && sessionSecureID != nil && *sessionSecureID == "repro") {
-		_, err := r.canAdminViewSession(ctx, nil, sessionSecureID)
+func (r *queryResolver) RageClicks(ctx context.Context, sessionSecureID string) ([]*model.RageClickEvent, error) {
+	if !(util.IsDevEnv() && sessionSecureID == "repro") {
+		_, err := r.canAdminViewSession(ctx, sessionSecureID)
 		if err != nil {
 			return nil, e.Wrap(err, "admin not session owner")
 		}
 	}
 
 	var rageClicks []*model.RageClickEvent
-	if res := r.DB.Where(&model.RageClickEvent{SessionSecureID: *sessionSecureID}).Find(&rageClicks); res.Error != nil {
+	if res := r.DB.Where(&model.RageClickEvent{SessionSecureID: sessionSecureID}).Find(&rageClicks); res.Error != nil {
 		return nil, e.Wrap(res.Error, "failed to get rage clicks")
 	}
 
@@ -2080,12 +2080,12 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 	return errorResults, nil
 }
 
-func (r *queryResolver) ErrorGroup(ctx context.Context, id *int, secureID *string) (*model.ErrorGroup, error) {
-	return r.canAdminViewErrorGroup(ctx, id, secureID)
+func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string) (*model.ErrorGroup, error) {
+	return r.canAdminViewErrorGroup(ctx, secureID)
 }
 
-func (r *queryResolver) Messages(ctx context.Context, sessionID *int, sessionSecureID *string) ([]interface{}, error) {
-	s, err := r.canAdminViewSession(ctx, sessionID, sessionSecureID)
+func (r *queryResolver) Messages(ctx context.Context, sessionSecureID string) ([]interface{}, error) {
+	s, err := r.canAdminViewSession(ctx, sessionSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
@@ -2114,8 +2114,8 @@ func (r *queryResolver) Messages(ctx context.Context, sessionID *int, sessionSec
 	return allEvents["messages"], nil
 }
 
-func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionID *int, sessionSecureID *string) (*modelInputs.EnhancedUserDetailsResult, error) {
-	s, err := r.canAdminViewSession(ctx, sessionID, sessionSecureID)
+func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID string) (*modelInputs.EnhancedUserDetailsResult, error) {
+	s, err := r.canAdminViewSession(ctx, sessionSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
@@ -2212,12 +2212,12 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionID *int,
 	return details, nil
 }
 
-func (r *queryResolver) Errors(ctx context.Context, sessionID *int, sessionSecureID *string) ([]*model.ErrorObject, error) {
-	if util.IsDevEnv() && sessionSecureID != nil && *sessionSecureID == "repro" {
+func (r *queryResolver) Errors(ctx context.Context, sessionSecureID string) ([]*model.ErrorObject, error) {
+	if util.IsDevEnv() && sessionSecureID == "repro" {
 		errors := []*model.ErrorObject{}
 		return errors, nil
 	}
-	s, err := r.canAdminViewSession(ctx, sessionID, sessionSecureID)
+	s, err := r.canAdminViewSession(ctx, sessionSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
@@ -2231,8 +2231,8 @@ func (r *queryResolver) Errors(ctx context.Context, sessionID *int, sessionSecur
 	return errorsObj, nil
 }
 
-func (r *queryResolver) Resources(ctx context.Context, sessionID *int, sessionSecureID *string) ([]interface{}, error) {
-	s, err := r.canAdminViewSession(ctx, sessionID, sessionSecureID)
+func (r *queryResolver) Resources(ctx context.Context, sessionSecureID string) ([]interface{}, error) {
+	s, err := r.canAdminViewSession(ctx, sessionSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
@@ -2261,12 +2261,12 @@ func (r *queryResolver) Resources(ctx context.Context, sessionID *int, sessionSe
 	return allResources["resources"], nil
 }
 
-func (r *queryResolver) SessionComments(ctx context.Context, sessionID *int, sessionSecureID *string) ([]*model.SessionComment, error) {
-	if util.IsDevEnv() && sessionSecureID != nil && *sessionSecureID == "repro" {
+func (r *queryResolver) SessionComments(ctx context.Context, sessionSecureID string) ([]*model.SessionComment, error) {
+	if util.IsDevEnv() && sessionSecureID == "repro" {
 		sessionComments := []*model.SessionComment{}
 		return sessionComments, nil
 	}
-	s, err := r.canAdminViewSession(ctx, sessionID, sessionSecureID)
+	s, err := r.canAdminViewSession(ctx, sessionSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
@@ -2304,8 +2304,8 @@ func (r *queryResolver) SessionCommentsForProject(ctx context.Context, projectID
 	return sessionComments, nil
 }
 
-func (r *queryResolver) ErrorComments(ctx context.Context, errorGroupID *int, errorGroupSecureID *string) ([]*model.ErrorComment, error) {
-	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupID, errorGroupSecureID)
+func (r *queryResolver) ErrorComments(ctx context.Context, errorGroupSecureID string) ([]*model.ErrorComment, error) {
+	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not error owner")
 	}
@@ -2465,8 +2465,8 @@ func (r *queryResolver) DailyErrorsCount(ctx context.Context, projectID int, dat
 	return dailyErrors, nil
 }
 
-func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, errorGroupID *int, errorGroupSecureID *string, dateOffset int) ([]*int64, error) {
-	errGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupID, errorGroupSecureID)
+func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, errorGroupSecureID string, dateOffset int) ([]*int64, error) {
+	errGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not authorized to view error group")
 	}
