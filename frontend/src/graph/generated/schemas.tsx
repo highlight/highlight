@@ -320,7 +320,6 @@ export type ErrorSearchParamsInput = {
     visited_url?: Maybe<Scalars['String']>;
     state?: Maybe<ErrorState>;
     event?: Maybe<Scalars['String']>;
-    type?: Maybe<Scalars['String']>;
 };
 
 export type ErrorSearchParams = {
