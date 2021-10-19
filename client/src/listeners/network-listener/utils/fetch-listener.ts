@@ -42,7 +42,7 @@ export const FetchListener = (
             url.toLowerCase().includes(blockedUrl)
         );
         if (shouldRecordHeaderAndBody) {
-            request.headers = init?.headers as any;
+            request.headers = Object.fromEntries((new Headers(init?.headers).entries()));
             request.body = init?.body;
         }
 
