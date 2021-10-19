@@ -5,7 +5,7 @@ import {
     Request as HighlightRequest,
     Response as HighlightResponse,
 } from './models';
-import { createNetworkRequestId, shouldNetworkRequestBeRecorded, shouldNetworkRequestBeTraced } from './utils';
+import { createNetworkRequestId, getHighlightRequestHeader, shouldNetworkRequestBeRecorded, shouldNetworkRequestBeTraced } from './utils';
 
 export const FetchListener = (
     callback: NetworkListenerCallback,
@@ -25,7 +25,7 @@ export const FetchListener = (
         const requestId = createNetworkRequestId();
         if (shouldNetworkRequestBeTraced(url, tracingOrigins)) {
             init = init || {};
-            init.headers = {...init.headers, 'X-Highlight-Request': sessionData.sessionID + "/" + requestId};
+            init.headers = {...init.headers, HIGHLIGHT_REQUEST_HEADER: getHighlightRequestHeader(sessionData, requestId)};
         }
 
         const request: HighlightRequest = {

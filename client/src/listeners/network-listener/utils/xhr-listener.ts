@@ -3,6 +3,8 @@ import { NetworkListenerCallback } from '../network-listener';
 import { Headers, Request, RequestResponsePair, Response } from './models';
 import {
     createNetworkRequestId,
+    getHighlightRequestHeader,
+    HIGHLIGHT_REQUEST_HEADER,
     shouldNetworkRequestBeRecorded,
     shouldNetworkRequestBeTraced,
 } from './utils';
@@ -72,8 +74,8 @@ export const XHRListener = (
         const requestId = createNetworkRequestId();
         if (shouldNetworkRequestBeTraced(this._url, tracingOrigins)) {
             this.setRequestHeader(
-                'X-Highlight-Request',
-                sessionData.sessionID.toString() + '/' + requestId
+                HIGHLIGHT_REQUEST_HEADER,
+                getHighlightRequestHeader(sessionData, requestId)
             );
         }
 

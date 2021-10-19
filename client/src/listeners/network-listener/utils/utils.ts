@@ -1,4 +1,7 @@
+import { SessionData } from 'index';
 import { RequestResponsePair } from './models';
+
+export const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'
 
 export const matchPerformanceTimingsWithRequestResponsePair = (
     performanceTimings: any[],
@@ -139,4 +142,8 @@ function makeId(length: number) {
 export const createNetworkRequestId = () => {
     // Long enough to avoid collisions, not long enough to be unguessable
     return makeId(10);
+}
+
+export const getHighlightRequestHeader = (sessionData: SessionData, requestId: string) => {
+    return sessionData.sessionSecureID + "/" + requestId
 }
