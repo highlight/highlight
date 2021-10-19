@@ -26,9 +26,9 @@ export const FetchListener = (
         if (shouldNetworkRequestBeTraced(url, tracingOrigins)) {
             init = init || {};
             // Pre-existing headers could be one of three different formats; this reads all of them.
-            init.headers = new Headers(init.headers);
-            init.headers.set(HIGHLIGHT_REQUEST_HEADER, getHighlightRequestHeader(sessionData, requestId))
-            init.headers = Object.fromEntries(init.headers);
+            let headers = new Headers(init.headers);
+            headers.set(HIGHLIGHT_REQUEST_HEADER, getHighlightRequestHeader(sessionData, requestId))
+            init.headers = Object.fromEntries(headers.entries());
         }
 
         const request: HighlightRequest = {
