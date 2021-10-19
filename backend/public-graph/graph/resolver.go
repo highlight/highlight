@@ -91,77 +91,26 @@ type FieldData struct {
 }
 
 //Change to AppendProperties(sessionId,properties,type)
-func (r *Resolver) AppendProperties(sessionID int, properties map[string]string, propType Property) error {
-	session := &model.Session{}
-	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session)
-	if err := res.Error; err != nil {
-		return e.Wrapf(err, "error getting session(id=%d) in append properties(type=%s)", sessionID, propType)
-	}
+func (r *Resolver) AppendProperties(sessionID, projectID int, properties map[string]string, propType Property) error {
 
 	modelFields := []*model.Field{}
-	for k, fv := range properties {
-		modelFields = append(modelFields, &model.Field{ProjectID: session.ProjectID, Name: k, Value: fv, Type: string(propType)})
+	for k, v := range properties {
+		modelFields = append(modelFields, &model.Field{ProjectID: projectID, Name: k, Value: v, Type: string(propType)})
 	}
 
-	err := r.AppendFields(modelFields, session)
-	if err != nil {
-		return e.Wrap(err, "error appending fields")
-	}
-
-	return nil
-}
-
-func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) error {
-	fieldsToAppend := []*model.Field{}
-	var newFieldGroup []FieldData
-	exists := false
-	if session.FieldGroup != nil {
-		if err := json.Unmarshal([]byte(*session.FieldGroup), &newFieldGroup); err != nil {
-			return e.Wrap(err, "error decoding session field group")
-		}
-	}
-	for _, f := range fields {
+	var fieldsToAppend []*model.Field
+	for _, f := range modelFields {
 		field := &model.Field{}
-		res := r.DB.Where(f).First(&field)
 		// If the field doesn't exist, we create it.
-		if err := res.Error; err != nil || errors.Is(err, gorm.ErrRecordNotFound) {
-			if err := r.DB.Create(f).Error; err != nil {
-				return e.Wrap(err, "error creating field")
-			}
-			fieldsToAppend = append(fieldsToAppend, f)
-			newFieldGroup = append(newFieldGroup, FieldData{
-				Name:  f.Name,
-				Value: f.Value,
-			})
-		} else {
-			exists = false
-			for _, existing := range newFieldGroup {
-				if field.Name == existing.Name && field.Value == existing.Value {
-					exists = true
-				}
-			}
-			fieldsToAppend = append(fieldsToAppend, field)
-			if !exists {
-				newFieldGroup = append(newFieldGroup, FieldData{
-					Name:  field.Name,
-					Value: field.Value,
-				})
-			}
+		if err := r.DB.Where(f).Attrs(f).FirstOrCreate(&field).Error; err != nil {
+			return e.Wrap(err, "error querying/creating fields")
 		}
+		fieldsToAppend = append(fieldsToAppend, f)
 	}
-	fieldBytes, err := json.Marshal(newFieldGroup)
-	if err != nil {
-		return e.Wrap(err, "Error marshalling session field group")
-	}
-	fieldString := string(fieldBytes)
-
-	if err := r.DB.Model(session).Updates(&model.Session{FieldGroup: &fieldString}).Error; errors.Is(err, gorm.ErrRecordNotFound) || err != nil {
-		return e.Wrap(err, "Error updating session field group")
-	}
-	// We append to this session in the join table regardless.
-	if err := r.DB.Model(session).Association("Fields").Append(fieldsToAppend); err != nil {
+	if err := r.DB.Model(model.Session{Model: model.Model{ID: sessionID}}).Association("Fields").Append(fieldsToAppend); err != nil {
 		return e.Wrap(err, "error updating fields")
 	}
+
 	return nil
 }
 
@@ -471,7 +420,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 		"environment":     environment,
 		"device_id":       strconv.Itoa(session.Fingerprint),
 	}
-	if err := r.AppendProperties(session.ID, sessionProperties, PropertyType.SESSION); err != nil {
+	if err := r.AppendProperties(session.ID, session.ProjectID, sessionProperties, PropertyType.SESSION); err != nil {
 		log.Error(e.Wrap(err, "error adding set of properties to db"))
 	}
 

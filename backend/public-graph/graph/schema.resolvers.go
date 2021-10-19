@@ -39,30 +39,25 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 }
 
 func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, userIdentifier string, userObject interface{}) (*int, error) {
-	obj, ok := userObject.(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("[IdentifySession] error converting userObject interface type")
+	var session model.Session
+	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
+		return nil, e.Wrapf(err, "error getting session(id=%d) in IdentifySession", sessionID)
 	}
 
 	userProperties := map[string]string{
 		"identifier": userIdentifier,
 	}
-	userObj := make(map[string]string)
-	for k, v := range obj {
-		userProperties[k] = fmt.Sprintf("%v", v)
-		userObj[k] = fmt.Sprintf("%v", v)
-	}
-	if err := r.AppendProperties(sessionID, userProperties, PropertyType.USER); err != nil {
-		log.Error(e.Wrapf(err, "[IdentifySession] error adding set of identify properties to db: session: %d", sessionID))
+	switch obj := userObject.(type) {
+	case map[string]interface{}:
+		for k, v := range obj {
+			userProperties[k] = fmt.Sprintf("%v", v)
+		}
+	default:
+		log.WithFields(log.Fields{"session_id": sessionID, "project_id": session.ProjectID}).Warn("userObject not map[string]interface{}")
 	}
 
-	session := &model.Session{}
-	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
-		return nil, e.Wrap(err, "[IdentifySession] error querying session by sessionID")
-	}
-	// set user properties to session in db
-	if err := session.SetUserProperties(userObj); err != nil {
-		return nil, e.Wrapf(err, "[IdentifySession] [project_id: %d] error appending user properties to session object {id: %d}", session.ProjectID, sessionID)
+	if err := r.AppendProperties(sessionID, session.ProjectID, userProperties, PropertyType.USER); err != nil {
+		log.Error(e.Wrapf(err, "[IdentifySession] error adding set of identify properties to db: session: %d", sessionID))
 	}
 
 	// Check if there is a session created by this user.
@@ -89,6 +84,10 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 }
 
 func (r *mutationResolver) AddTrackProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error) {
+	var session model.Session
+	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
+		return nil, e.Wrapf(err, "error getting session(id=%d) in add track properties", sessionID)
+	}
 	obj, ok := propertiesObject.(map[string]interface{})
 	if !ok {
 		return nil, fmt.Errorf("error converting userObject interface type")
@@ -97,7 +96,7 @@ func (r *mutationResolver) AddTrackProperties(ctx context.Context, sessionID int
 	for k, v := range obj {
 		fields[k] = fmt.Sprintf("%v", v)
 	}
-	err := r.AppendProperties(sessionID, fields, PropertyType.TRACK)
+	err := r.AppendProperties(sessionID, session.ProjectID, fields, PropertyType.TRACK)
 	if err != nil {
 		return nil, e.Wrap(err, "error adding set of properties to db")
 	}
@@ -105,6 +104,10 @@ func (r *mutationResolver) AddTrackProperties(ctx context.Context, sessionID int
 }
 
 func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error) {
+	var session model.Session
+	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
+		return nil, e.Wrapf(err, "error getting session(id=%d) in add session properties", sessionID)
+	}
 	obj, ok := propertiesObject.(map[string]interface{})
 	if !ok {
 		return nil, fmt.Errorf("error converting userObject interface type")
@@ -113,7 +116,7 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 	for k, v := range obj {
 		fields[k] = fmt.Sprintf("%v", v)
 	}
-	err := r.AppendProperties(sessionID, fields, PropertyType.SESSION)
+	err := r.AppendProperties(sessionID, session.ProjectID, fields, PropertyType.SESSION)
 	if err != nil {
 		return nil, e.Wrap(err, "error adding set of properties to db")
 	}
