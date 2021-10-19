@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -279,19 +278,10 @@ func ErrorInputToParams(params *modelInputs.ErrorSearchParamsInput) *model.Error
 	return modelParams
 }
 
-func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupID *int, errorGroupSecureID *string) (eg *model.ErrorGroup, isOwner bool, err error) {
+func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureID string) (eg *model.ErrorGroup, isOwner bool, err error) {
 	errorGroup := &model.ErrorGroup{}
-	if errorGroupID == nil && errorGroupSecureID == nil {
-		return nil, false, errors.New("No ID was specified for the error group")
-	}
-	if errorGroupSecureID != nil {
-		if err := r.DB.Where(&model.ErrorGroup{SecureID: *errorGroupSecureID}).First(&errorGroup).Error; err != nil {
-			return nil, false, e.Wrap(err, "error querying error group by secureID: "+*errorGroupSecureID)
-		}
-	} else {
-		if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: *errorGroupID}}).First(&errorGroup).Error; err != nil {
-			return nil, false, e.Wrap(err, fmt.Sprintf("error querying error group by ID: %d", *errorGroupID))
-		}
+	if err := r.DB.Where(&model.ErrorGroup{SecureID: errorGroupSecureID}).First(&errorGroup).Error; err != nil {
+		return nil, false, e.Wrap(err, "error querying error group by secureID: "+errorGroupSecureID)
 	}
 	_, err = r.isAdminInProjectOrDemoProject(ctx, errorGroup.ProjectID)
 	if err != nil {
@@ -303,7 +293,7 @@ func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupID *int
 func (r *Resolver) canAdminViewErrorGroup(ctx context.Context, errorGroupSecureID string) (*model.ErrorGroup, error) {
 	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminViewErrorGroup"))
 	defer authSpan.Finish()
-	errorGroup, isOwner, err := r.doesAdminOwnErrorGroup(ctx, nil, &errorGroupSecureID)
+	errorGroup, isOwner, err := r.doesAdminOwnErrorGroup(ctx, errorGroupSecureID)
 	if err == nil && isOwner {
 		return errorGroup, nil
 	}
@@ -316,26 +306,17 @@ func (r *Resolver) canAdminViewErrorGroup(ctx context.Context, errorGroupSecureI
 func (r *Resolver) canAdminModifyErrorGroup(ctx context.Context, errorGroupSecureID string) (*model.ErrorGroup, error) {
 	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminModifyErrorGroup"))
 	defer authSpan.Finish()
-	errorGroup, isOwner, err := r.doesAdminOwnErrorGroup(ctx, nil, &errorGroupSecureID)
+	errorGroup, isOwner, err := r.doesAdminOwnErrorGroup(ctx, errorGroupSecureID)
 	if err == nil && isOwner {
 		return errorGroup, nil
 	}
 	return nil, err
 }
 
-func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_id *int, session_secure_id *string) (session *model.Session, ownsSession bool, err error) {
+func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_secure_id string) (session *model.Session, ownsSession bool, err error) {
 	session = &model.Session{}
-	if session_id == nil && session_secure_id == nil {
-		return nil, false, errors.New("No ID was specified for the session")
-	}
-	if session_secure_id != nil {
-		if err = r.DB.Where(&model.Session{SecureID: *session_secure_id}).First(&session).Error; err != nil {
-			return nil, false, e.Wrap(err, "error querying session by secure_id: "+*session_secure_id)
-		}
-	} else {
-		if err = r.DB.Where(&model.Session{Model: model.Model{ID: *session_id}}).First(&session).Error; err != nil {
-			return nil, false, e.Wrap(err, fmt.Sprintf("error querying session by id: %d", *session_id))
-		}
+	if err = r.DB.Where(&model.Session{SecureID: session_secure_id}).First(&session).Error; err != nil {
+		return nil, false, e.Wrap(err, "error querying session by secure_id: "+session_secure_id)
 	}
 
 	_, err = r.isAdminInProjectOrDemoProject(ctx, session.ProjectID)
@@ -348,7 +329,7 @@ func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_id *int, se
 func (r *Resolver) canAdminViewSession(ctx context.Context, session_secure_id string) (*model.Session, error) {
 	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminViewSession"))
 	defer authSpan.Finish()
-	session, isOwner, err := r._doesAdminOwnSession(ctx, nil, &session_secure_id)
+	session, isOwner, err := r._doesAdminOwnSession(ctx, session_secure_id)
 	if err == nil && isOwner {
 		return session, nil
 	}
@@ -361,7 +342,7 @@ func (r *Resolver) canAdminViewSession(ctx context.Context, session_secure_id st
 func (r *Resolver) canAdminModifySession(ctx context.Context, session_secure_id string) (*model.Session, error) {
 	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminModifySession"))
 	defer authSpan.Finish()
-	session, isOwner, err := r._doesAdminOwnSession(ctx, nil, &session_secure_id)
+	session, isOwner, err := r._doesAdminOwnSession(ctx, session_secure_id)
 	if err == nil && isOwner {
 		return session, nil
 	}
