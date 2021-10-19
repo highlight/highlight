@@ -502,11 +502,16 @@ export const usePlayer = (): ReplayerContextInterface => {
         replayer?.play(newTime);
     };
 
-    const pause = (newTime?: number) => {
-        setState(ReplayerState.Paused);
-        setTime(newTime ?? time);
-        replayer?.pause(newTime);
-    };
+    const pause = useCallback(
+        (newTime?: number) => {
+            setState(ReplayerState.Paused);
+            if (newTime) {
+                setTime(newTime);
+            }
+            replayer?.pause(newTime);
+        },
+        [replayer]
+    );
 
     /**
      * Wraps the setTime call so we can also forward the setTime request to the Replayer. Without forwarding time and Replayer.getCurrentTime() would be out of sync.
