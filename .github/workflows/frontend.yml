@@ -21,7 +21,8 @@ jobs:
         with:
           filters: |
             gql:
-              - 'backend/private-graph/graph/schema.graphqls'
+              - 'frontend/src/graph/operators/query.gql'
+              - 'frontend/src/graph/operators/mutation.gql'
   generate-check:
     needs: [changes]
     if: needs.changes.outputs.gql == 'true'
