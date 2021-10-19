@@ -85,7 +85,8 @@ const CommandPaletteComponent: React.FC<RouteComponentProps> = ({
             options={{ keys: ['name', 'category'] }}
             theme={THEME}
             resetInputOnOpen
-            maxDisplayed={25}
+            maxDisplayed={100}
+            placeholder="What do you want to do?"
         />
     );
 };
