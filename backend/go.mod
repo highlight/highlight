@@ -18,7 +18,7 @@ require (
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/go-test/deep v1.0.4
 	github.com/gorilla/sessions v1.2.1 // indirect
-	github.com/highlight-run/highlight-go v0.2.2-beta
+	github.com/highlight-run/highlight-go v0.3.0
 	github.com/highlight-run/workerpool v1.2.0
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/kylelemons/godebug v1.1.0

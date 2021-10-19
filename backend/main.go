@@ -12,7 +12,7 @@ import (
 	"time"
 
 	H "github.com/highlight-run/highlight-go"
-	highlightChi "github.com/highlight-run/highlight-go/go-chi/middleware"
+	highlightChi "github.com/highlight-run/highlight-go/middleware/chi"
 
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/go-chi/chi"
@@ -226,6 +226,10 @@ func main() {
 
 	H.Start()
 	defer H.Stop()
+	if util.IsDevOrTestEnv() {
+		log.Info("overwriting highlight-go graphql client address...")
+		H.SetGraphqlClientAddress("http://localhost:8082/public")
+	}
 
 	/*
 		Run a simple server that runs the frontend if 'staticFrontedPath' and 'all' is set.
