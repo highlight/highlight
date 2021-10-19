@@ -435,6 +435,7 @@ export const usePlayer = (): ReplayerContextInterface => {
     useEffect(() => {
         if (state === ReplayerState.Playing) {
             const frameAction = () => {
+                console.log('frame!');
                 if (replayer) {
                     setTime(replayer.getCurrentTime());
 
@@ -514,7 +515,7 @@ export const usePlayer = (): ReplayerContextInterface => {
     const pause = useCallback(
         (newTime?: number) => {
             setState(ReplayerState.Paused);
-            if (newTime) {
+            if (newTime !== undefined) {
                 setTime(newTime);
             }
             replayer?.pause(newTime);
