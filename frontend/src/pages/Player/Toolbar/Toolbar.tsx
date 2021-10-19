@@ -227,9 +227,13 @@ export const Toolbar = () => {
 
     // The play button should be disabled if the player has reached the end.
     const disablePlayButton = time >= (replayer?.getMetaData().totalTime ?? 0);
-    const leftSidebarWidth = showLeftPanel ? 475 : 0;
+    const leftSidebarWidth = isPlayerFullscreen ? 0 : showLeftPanel ? 475 : 0;
     /** 64 (sidebar width) + 12 (left padding for the toolbar)  */
-    const staticSidebarWidth = isLoggedIn ? 64 + 12 : 12;
+    const staticSidebarWidth = isPlayerFullscreen
+        ? 16
+        : isLoggedIn
+        ? 64 + 12
+        : 12;
 
     return (
         <ToolbarItemsContextProvider value={toolbarItems}>
