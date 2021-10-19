@@ -5,7 +5,6 @@ import ModalBody from '@components/ModalBody/ModalBody';
 import Switch from '@components/Switch/Switch';
 import { useUpdateErrorGroupIsPublicMutation } from '@graph/hooks';
 import SvgShareIcon from '@icons/ShareIcon';
-import { message } from 'antd';
 import { Maybe } from 'graphql/jsutils/Maybe';
 import React, { useState } from 'react';
 
@@ -18,20 +17,8 @@ interface Props {
 }
 
 const ErrorShareButton = ({ errorGroup }: Props) => {
-    const { isHighlightAdmin, isLoggedIn } = useAuthContext();
+    const { isLoggedIn } = useAuthContext();
     const [showModal, setShowModal] = useState(false);
-
-    if (!isHighlightAdmin) {
-        return (
-            <ShareButton
-                trackingId="errorShareButton"
-                onClick={() => {
-                    message.success('Copied link!');
-                    navigator.clipboard.writeText(window.location.href);
-                }}
-            />
-        );
-    }
 
     return (
         <>
