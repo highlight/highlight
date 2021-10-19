@@ -225,7 +225,7 @@ type ComplexityRoot struct {
 		AddAdminToWorkspace              func(childComplexity int, workspaceID int, inviteID string) int
 		AddSlackBotIntegrationToProject  func(childComplexity int, projectID int, code string, redirectPath string) int
 		CreateErrorAlert                 func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
-		CreateErrorComment               func(childComplexity int, projectID int, errorGroupID *int, errorGroupSecureID *string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string) int
+		CreateErrorComment               func(childComplexity int, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string) int
 		CreateErrorSegment               func(childComplexity int, projectID int, name string, params model.ErrorSearchParamsInput) int
 		CreateNewSessionAlert            func(childComplexity int, projectID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, thresholdWindow int) int
 		CreateNewUserAlert               func(childComplexity int, projectID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, thresholdWindow int) int
@@ -233,7 +233,7 @@ type ComplexityRoot struct {
 		CreateProject                    func(childComplexity int, name string, workspaceID int) int
 		CreateRageClickAlert             func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
 		CreateSegment                    func(childComplexity int, projectID int, name string, params model.SearchParamsInput) int
-		CreateSessionComment             func(childComplexity int, projectID int, sessionID *int, sessionSecureID *string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string) int
+		CreateSessionComment             func(childComplexity int, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string) int
 		CreateSessionFeedbackAlert       func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
 		CreateTrackPropertiesAlert       func(childComplexity int, projectID int, name string, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, trackProperties []*model.TrackPropertyInput, thresholdWindow int) int
 		CreateUserPropertiesAlert        func(childComplexity int, projectID int, name string, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, userProperties []*model.UserPropertyInput, thresholdWindow int) int
@@ -252,20 +252,20 @@ type ComplexityRoot struct {
 		EditSegment                      func(childComplexity int, id int, projectID int, params model.SearchParamsInput) int
 		EditWorkspace                    func(childComplexity int, id int, name *string) int
 		EmailSignup                      func(childComplexity int, email string) int
-		MarkSessionAsStarred             func(childComplexity int, id *int, secureID *string, starred *bool) int
-		MarkSessionAsViewed              func(childComplexity int, id *int, secureID *string, viewed *bool) int
+		MarkSessionAsStarred             func(childComplexity int, secureID string, starred *bool) int
+		MarkSessionAsViewed              func(childComplexity int, secureID string, viewed *bool) int
 		OpenSlackConversation            func(childComplexity int, projectID int, code string, redirectPath string) int
 		SendAdminProjectInvite           func(childComplexity int, projectID int, email string, baseURL string) int
 		SendAdminWorkspaceInvite         func(childComplexity int, workspaceID int, email string, baseURL string) int
 		UpdateBillingDetails             func(childComplexity int, projectID int) int
 		UpdateErrorAlert                 func(childComplexity int, projectID int, name string, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
-		UpdateErrorGroupIsPublic         func(childComplexity int, errorGroupID *int, errorGroupSecureID *string, isPublic bool) int
-		UpdateErrorGroupState            func(childComplexity int, id *int, secureID *string, state string) int
+		UpdateErrorGroupIsPublic         func(childComplexity int, errorGroupSecureID string, isPublic bool) int
+		UpdateErrorGroupState            func(childComplexity int, secureID string, state string) int
 		UpdateNewSessionAlert            func(childComplexity int, projectID int, sessionAlertID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, thresholdWindow int) int
 		UpdateNewUserAlert               func(childComplexity int, projectID int, sessionAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
 		UpdateRageClickAlert             func(childComplexity int, projectID int, rageClickAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
 		UpdateSessionFeedbackAlert       func(childComplexity int, projectID int, sessionFeedbackAlertID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
-		UpdateSessionIsPublic            func(childComplexity int, sessionID *int, sessionSecureID *string, isPublic bool) int
+		UpdateSessionIsPublic            func(childComplexity int, sessionSecureID string, isPublic bool) int
 		UpdateTrackPropertiesAlert       func(childComplexity int, projectID int, sessionAlertID int, name string, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, trackProperties []*model.TrackPropertyInput, thresholdWindow int) int
 		UpdateUserPropertiesAlert        func(childComplexity int, projectID int, sessionAlertID int, name string, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, userProperties []*model.UserPropertyInput, thresholdWindow int) int
 	}
@@ -296,25 +296,25 @@ type ComplexityRoot struct {
 		AppVersionSuggestion      func(childComplexity int, projectID int) int
 		AverageSessionLength      func(childComplexity int, projectID int, lookBackPeriod int) int
 		BillingDetails            func(childComplexity int, projectID int) int
-		DailyErrorFrequency       func(childComplexity int, projectID int, errorGroupID *int, errorGroupSecureID *string, dateOffset int) int
+		DailyErrorFrequency       func(childComplexity int, projectID int, errorGroupSecureID string, dateOffset int) int
 		DailyErrorsCount          func(childComplexity int, projectID int, dateRange model.DateRangeInput) int
 		DailySessionsCount        func(childComplexity int, projectID int, dateRange model.DateRangeInput) int
-		EnhancedUserDetails       func(childComplexity int, sessionID *int, sessionSecureID *string) int
+		EnhancedUserDetails       func(childComplexity int, sessionSecureID string) int
 		EnvironmentSuggestion     func(childComplexity int, projectID int) int
 		ErrorAlerts               func(childComplexity int, projectID int) int
-		ErrorComments             func(childComplexity int, errorGroupID *int, errorGroupSecureID *string) int
+		ErrorComments             func(childComplexity int, errorGroupSecureID string) int
 		ErrorCommentsForAdmin     func(childComplexity int) int
 		ErrorCommentsForProject   func(childComplexity int, projectID int) int
 		ErrorFieldSuggestion      func(childComplexity int, projectID int, name string, query string) int
-		ErrorGroup                func(childComplexity int, id *int, secureID *string) int
+		ErrorGroup                func(childComplexity int, secureID string) int
 		ErrorGroups               func(childComplexity int, projectID int, count int, params *model.ErrorSearchParamsInput) int
 		ErrorSegments             func(childComplexity int, projectID int) int
-		Errors                    func(childComplexity int, sessionID *int, sessionSecureID *string) int
-		Events                    func(childComplexity int, sessionID *int, sessionSecureID *string) int
+		Errors                    func(childComplexity int, sessionSecureID string) int
+		Events                    func(childComplexity int, sessionSecureID string) int
 		FieldSuggestion           func(childComplexity int, projectID int, name string, query string) int
 		IsIntegrated              func(childComplexity int, projectID int) int
 		IsIntegratedWithSlack     func(childComplexity int, projectID int) int
-		Messages                  func(childComplexity int, sessionID *int, sessionSecureID *string) int
+		Messages                  func(childComplexity int, sessionSecureID string) int
 		NewSessionAlerts          func(childComplexity int, projectID int) int
 		NewUserAlerts             func(childComplexity int, projectID int) int
 		NewUsersCount             func(childComplexity int, projectID int, lookBackPeriod int) int
@@ -325,12 +325,12 @@ type ComplexityRoot struct {
 		Projects                  func(childComplexity int) int
 		PropertySuggestion        func(childComplexity int, projectID int, query string, typeArg string) int
 		RageClickAlerts           func(childComplexity int, projectID int) int
-		RageClicks                func(childComplexity int, sessionSecureID *string) int
+		RageClicks                func(childComplexity int, sessionSecureID string) int
 		Referrers                 func(childComplexity int, projectID int, lookBackPeriod int) int
-		Resources                 func(childComplexity int, sessionID *int, sessionSecureID *string) int
+		Resources                 func(childComplexity int, sessionSecureID string) int
 		Segments                  func(childComplexity int, projectID int) int
-		Session                   func(childComplexity int, id *int, secureID *string) int
-		SessionComments           func(childComplexity int, sessionID *int, sessionSecureID *string) int
+		Session                   func(childComplexity int, secureID string) int
+		SessionComments           func(childComplexity int, sessionSecureID string) int
 		SessionCommentsForAdmin   func(childComplexity int) int
 		SessionCommentsForProject func(childComplexity int, projectID int) int
 		SessionFeedbackAlerts     func(childComplexity int, projectID int) int
@@ -547,9 +547,9 @@ type MutationResolver interface {
 	CreateWorkspace(ctx context.Context, name string) (*model1.Workspace, error)
 	EditProject(ctx context.Context, id int, name *string, billingEmail *string) (*model1.Project, error)
 	EditWorkspace(ctx context.Context, id int, name *string) (*model1.Workspace, error)
-	MarkSessionAsViewed(ctx context.Context, id *int, secureID *string, viewed *bool) (*model1.Session, error)
-	MarkSessionAsStarred(ctx context.Context, id *int, secureID *string, starred *bool) (*model1.Session, error)
-	UpdateErrorGroupState(ctx context.Context, id *int, secureID *string, state string) (*model1.ErrorGroup, error)
+	MarkSessionAsViewed(ctx context.Context, secureID string, viewed *bool) (*model1.Session, error)
+	MarkSessionAsStarred(ctx context.Context, secureID string, starred *bool) (*model1.Session, error)
+	UpdateErrorGroupState(ctx context.Context, secureID string, state string) (*model1.ErrorGroup, error)
 	DeleteProject(ctx context.Context, id int) (*bool, error)
 	SendAdminProjectInvite(ctx context.Context, projectID int, email string, baseURL string) (*string, error)
 	SendAdminWorkspaceInvite(ctx context.Context, workspaceID int, email string, baseURL string) (*string, error)
@@ -566,9 +566,9 @@ type MutationResolver interface {
 	DeleteErrorSegment(ctx context.Context, segmentID int) (*bool, error)
 	CreateOrUpdateStripeSubscription(ctx context.Context, projectID int, planType model.PlanType) (*string, error)
 	UpdateBillingDetails(ctx context.Context, projectID int) (*bool, error)
-	CreateSessionComment(ctx context.Context, projectID int, sessionID *int, sessionSecureID *string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model1.SessionComment, error)
+	CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model1.SessionComment, error)
 	DeleteSessionComment(ctx context.Context, id int) (*bool, error)
-	CreateErrorComment(ctx context.Context, projectID int, errorGroupID *int, errorGroupSecureID *string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string) (*model1.ErrorComment, error)
+	CreateErrorComment(ctx context.Context, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string) (*model1.ErrorComment, error)
 	DeleteErrorComment(ctx context.Context, id int) (*bool, error)
 	OpenSlackConversation(ctx context.Context, projectID int, code string, redirectPath string) (*bool, error)
 	AddSlackBotIntegrationToProject(ctx context.Context, projectID int, code string, redirectPath string) (bool, error)
@@ -588,23 +588,23 @@ type MutationResolver interface {
 	UpdateUserPropertiesAlert(ctx context.Context, projectID int, sessionAlertID int, name string, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, userProperties []*model.UserPropertyInput, thresholdWindow int) (*model1.SessionAlert, error)
 	UpdateNewSessionAlert(ctx context.Context, projectID int, sessionAlertID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, thresholdWindow int) (*model1.SessionAlert, error)
 	CreateNewSessionAlert(ctx context.Context, projectID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, thresholdWindow int) (*model1.SessionAlert, error)
-	UpdateSessionIsPublic(ctx context.Context, sessionID *int, sessionSecureID *string, isPublic bool) (*model1.Session, error)
-	UpdateErrorGroupIsPublic(ctx context.Context, errorGroupID *int, errorGroupSecureID *string, isPublic bool) (*model1.ErrorGroup, error)
+	UpdateSessionIsPublic(ctx context.Context, sessionSecureID string, isPublic bool) (*model1.Session, error)
+	UpdateErrorGroupIsPublic(ctx context.Context, errorGroupSecureID string, isPublic bool) (*model1.ErrorGroup, error)
 }
 type QueryResolver interface {
-	Session(ctx context.Context, id *int, secureID *string) (*model1.Session, error)
-	Events(ctx context.Context, sessionID *int, sessionSecureID *string) ([]interface{}, error)
-	RageClicks(ctx context.Context, sessionSecureID *string) ([]*model1.RageClickEvent, error)
+	Session(ctx context.Context, secureID string) (*model1.Session, error)
+	Events(ctx context.Context, sessionSecureID string) ([]interface{}, error)
+	RageClicks(ctx context.Context, sessionSecureID string) ([]*model1.RageClickEvent, error)
 	ErrorGroups(ctx context.Context, projectID int, count int, params *model.ErrorSearchParamsInput) (*model1.ErrorResults, error)
-	ErrorGroup(ctx context.Context, id *int, secureID *string) (*model1.ErrorGroup, error)
-	Messages(ctx context.Context, sessionID *int, sessionSecureID *string) ([]interface{}, error)
-	EnhancedUserDetails(ctx context.Context, sessionID *int, sessionSecureID *string) (*model.EnhancedUserDetailsResult, error)
-	Errors(ctx context.Context, sessionID *int, sessionSecureID *string) ([]*model1.ErrorObject, error)
-	Resources(ctx context.Context, sessionID *int, sessionSecureID *string) ([]interface{}, error)
-	SessionComments(ctx context.Context, sessionID *int, sessionSecureID *string) ([]*model1.SessionComment, error)
+	ErrorGroup(ctx context.Context, secureID string) (*model1.ErrorGroup, error)
+	Messages(ctx context.Context, sessionSecureID string) ([]interface{}, error)
+	EnhancedUserDetails(ctx context.Context, sessionSecureID string) (*model.EnhancedUserDetailsResult, error)
+	Errors(ctx context.Context, sessionSecureID string) ([]*model1.ErrorObject, error)
+	Resources(ctx context.Context, sessionSecureID string) ([]interface{}, error)
+	SessionComments(ctx context.Context, sessionSecureID string) ([]*model1.SessionComment, error)
 	SessionCommentsForAdmin(ctx context.Context) ([]*model1.SessionComment, error)
 	SessionCommentsForProject(ctx context.Context, projectID int) ([]*model1.SessionComment, error)
-	ErrorComments(ctx context.Context, errorGroupID *int, errorGroupSecureID *string) ([]*model1.ErrorComment, error)
+	ErrorComments(ctx context.Context, errorGroupSecureID string) ([]*model1.ErrorComment, error)
 	ErrorCommentsForAdmin(ctx context.Context) ([]*model1.ErrorComment, error)
 	ErrorCommentsForProject(ctx context.Context, projectID int) ([]*model1.ErrorComment, error)
 	ProjectAdmins(ctx context.Context, projectID int) ([]*model1.Admin, error)
@@ -615,7 +615,7 @@ type QueryResolver interface {
 	ProjectHasViewedASession(ctx context.Context, projectID int) (*model1.Session, error)
 	DailySessionsCount(ctx context.Context, projectID int, dateRange model.DateRangeInput) ([]*model1.DailySessionCount, error)
 	DailyErrorsCount(ctx context.Context, projectID int, dateRange model.DateRangeInput) ([]*model1.DailyErrorCount, error)
-	DailyErrorFrequency(ctx context.Context, projectID int, errorGroupID *int, errorGroupSecureID *string, dateOffset int) ([]*int64, error)
+	DailyErrorFrequency(ctx context.Context, projectID int, errorGroupSecureID string, dateOffset int) ([]*int64, error)
 	Referrers(ctx context.Context, projectID int, lookBackPeriod int) ([]*model.ReferrerTablePayload, error)
 	NewUsersCount(ctx context.Context, projectID int, lookBackPeriod int) (*model.NewUsersCount, error)
 	TopUsers(ctx context.Context, projectID int, lookBackPeriod int) ([]*model.TopUsersPayload, error)
@@ -1505,7 +1505,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateErrorComment(childComplexity, args["project_id"].(int), args["error_group_id"].(*int), args["error_group_secure_id"].(*string), args["text"].(string), args["text_for_email"].(string), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), args["error_url"].(string), args["author_name"].(string)), true
+		return e.complexity.Mutation.CreateErrorComment(childComplexity, args["project_id"].(int), args["error_group_secure_id"].(string), args["text"].(string), args["text_for_email"].(string), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), args["error_url"].(string), args["author_name"].(string)), true
 
 	case "Mutation.createErrorSegment":
 		if e.complexity.Mutation.CreateErrorSegment == nil {
@@ -1601,7 +1601,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateSessionComment(childComplexity, args["project_id"].(int), args["session_id"].(*int), args["session_secure_id"].(*string), args["session_timestamp"].(int), args["text"].(string), args["text_for_email"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), args["session_url"].(string), args["time"].(float64), args["author_name"].(string), args["session_image"].(*string)), true
+		return e.complexity.Mutation.CreateSessionComment(childComplexity, args["project_id"].(int), args["session_secure_id"].(string), args["session_timestamp"].(int), args["text"].(string), args["text_for_email"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), args["session_url"].(string), args["time"].(float64), args["author_name"].(string), args["session_image"].(*string)), true
 
 	case "Mutation.createSessionFeedbackAlert":
 		if e.complexity.Mutation.CreateSessionFeedbackAlert == nil {
@@ -1829,7 +1829,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.MarkSessionAsStarred(childComplexity, args["id"].(*int), args["secure_id"].(*string), args["starred"].(*bool)), true
+		return e.complexity.Mutation.MarkSessionAsStarred(childComplexity, args["secure_id"].(string), args["starred"].(*bool)), true
 
 	case "Mutation.markSessionAsViewed":
 		if e.complexity.Mutation.MarkSessionAsViewed == nil {
@@ -1841,7 +1841,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.MarkSessionAsViewed(childComplexity, args["id"].(*int), args["secure_id"].(*string), args["viewed"].(*bool)), true
+		return e.complexity.Mutation.MarkSessionAsViewed(childComplexity, args["secure_id"].(string), args["viewed"].(*bool)), true
 
 	case "Mutation.openSlackConversation":
 		if e.complexity.Mutation.OpenSlackConversation == nil {
@@ -1913,7 +1913,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateErrorGroupIsPublic(childComplexity, args["error_group_id"].(*int), args["error_group_secure_id"].(*string), args["is_public"].(bool)), true
+		return e.complexity.Mutation.UpdateErrorGroupIsPublic(childComplexity, args["error_group_secure_id"].(string), args["is_public"].(bool)), true
 
 	case "Mutation.updateErrorGroupState":
 		if e.complexity.Mutation.UpdateErrorGroupState == nil {
@@ -1925,7 +1925,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateErrorGroupState(childComplexity, args["id"].(*int), args["secure_id"].(*string), args["state"].(string)), true
+		return e.complexity.Mutation.UpdateErrorGroupState(childComplexity, args["secure_id"].(string), args["state"].(string)), true
 
 	case "Mutation.updateNewSessionAlert":
 		if e.complexity.Mutation.UpdateNewSessionAlert == nil {
@@ -1985,7 +1985,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateSessionIsPublic(childComplexity, args["session_id"].(*int), args["session_secure_id"].(*string), args["is_public"].(bool)), true
+		return e.complexity.Mutation.UpdateSessionIsPublic(childComplexity, args["session_secure_id"].(string), args["is_public"].(bool)), true
 
 	case "Mutation.updateTrackPropertiesAlert":
 		if e.complexity.Mutation.UpdateTrackPropertiesAlert == nil {
@@ -2158,7 +2158,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.DailyErrorFrequency(childComplexity, args["project_id"].(int), args["error_group_id"].(*int), args["error_group_secure_id"].(*string), args["date_offset"].(int)), true
+		return e.complexity.Query.DailyErrorFrequency(childComplexity, args["project_id"].(int), args["error_group_secure_id"].(string), args["date_offset"].(int)), true
 
 	case "Query.dailyErrorsCount":
 		if e.complexity.Query.DailyErrorsCount == nil {
@@ -2194,7 +2194,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.EnhancedUserDetails(childComplexity, args["session_id"].(*int), args["session_secure_id"].(*string)), true
+		return e.complexity.Query.EnhancedUserDetails(childComplexity, args["session_secure_id"].(string)), true
 
 	case "Query.environment_suggestion":
 		if e.complexity.Query.EnvironmentSuggestion == nil {
@@ -2230,7 +2230,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ErrorComments(childComplexity, args["error_group_id"].(*int), args["error_group_secure_id"].(*string)), true
+		return e.complexity.Query.ErrorComments(childComplexity, args["error_group_secure_id"].(string)), true
 
 	case "Query.error_comments_for_admin":
 		if e.complexity.Query.ErrorCommentsForAdmin == nil {
@@ -2273,7 +2273,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ErrorGroup(childComplexity, args["id"].(*int), args["secure_id"].(*string)), true
+		return e.complexity.Query.ErrorGroup(childComplexity, args["secure_id"].(string)), true
 
 	case "Query.error_groups":
 		if e.complexity.Query.ErrorGroups == nil {
@@ -2309,7 +2309,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Errors(childComplexity, args["session_id"].(*int), args["session_secure_id"].(*string)), true
+		return e.complexity.Query.Errors(childComplexity, args["session_secure_id"].(string)), true
 
 	case "Query.events":
 		if e.complexity.Query.Events == nil {
@@ -2321,7 +2321,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Events(childComplexity, args["session_id"].(*int), args["session_secure_id"].(*string)), true
+		return e.complexity.Query.Events(childComplexity, args["session_secure_id"].(string)), true
 
 	case "Query.field_suggestion":
 		if e.complexity.Query.FieldSuggestion == nil {
@@ -2369,7 +2369,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Messages(childComplexity, args["session_id"].(*int), args["session_secure_id"].(*string)), true
+		return e.complexity.Query.Messages(childComplexity, args["session_secure_id"].(string)), true
 
 	case "Query.new_session_alerts":
 		if e.complexity.Query.NewSessionAlerts == nil {
@@ -2496,7 +2496,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.RageClicks(childComplexity, args["session_secure_id"].(*string)), true
+		return e.complexity.Query.RageClicks(childComplexity, args["session_secure_id"].(string)), true
 
 	case "Query.referrers":
 		if e.complexity.Query.Referrers == nil {
@@ -2520,7 +2520,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Resources(childComplexity, args["session_id"].(*int), args["session_secure_id"].(*string)), true
+		return e.complexity.Query.Resources(childComplexity, args["session_secure_id"].(string)), true
 
 	case "Query.segments":
 		if e.complexity.Query.Segments == nil {
@@ -2544,7 +2544,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Session(childComplexity, args["id"].(*int), args["secure_id"].(*string)), true
+		return e.complexity.Query.Session(childComplexity, args["secure_id"].(string)), true
 
 	case "Query.session_comments":
 		if e.complexity.Query.SessionComments == nil {
@@ -2556,7 +2556,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.SessionComments(childComplexity, args["session_id"].(*int), args["session_secure_id"].(*string)), true
+		return e.complexity.Query.SessionComments(childComplexity, args["session_secure_id"].(string)), true
 
 	case "Query.session_comments_for_admin":
 		if e.complexity.Query.SessionCommentsForAdmin == nil {
@@ -4068,32 +4068,23 @@ type SessionAlert {
 scalar Upload
 
 type Query {
-    session(id: ID, secure_id: String): Session
-    events(session_id: ID, session_secure_id: String): [Any]
-    rage_clicks(session_secure_id: String): [RageClickEvent!]!
+    session(secure_id: String!): Session
+    events(session_secure_id: String!): [Any]
+    rage_clicks(session_secure_id: String!): [RageClickEvent!]!
     error_groups(
         project_id: ID!
         count: Int!
         params: ErrorSearchParamsInput
     ): ErrorResults
-    error_group(id: ID, secure_id: String): ErrorGroup
-    messages(session_id: ID, session_secure_id: String): [Any]
-    enhanced_user_details(
-        session_id: ID
-        session_secure_id: String
-    ): EnhancedUserDetailsResult
-    errors(session_id: ID, session_secure_id: String): [ErrorObject]
-    resources(session_id: ID, session_secure_id: String): [Any]
-    session_comments(
-        session_id: ID
-        session_secure_id: String
-    ): [SessionComment]!
+    error_group(secure_id: String!): ErrorGroup
+    messages(session_secure_id: String!): [Any]
+    enhanced_user_details(session_secure_id: String!): EnhancedUserDetailsResult
+    errors(session_secure_id: String!): [ErrorObject]
+    resources(session_secure_id: String!): [Any]
+    session_comments(session_secure_id: String!): [SessionComment]!
     session_comments_for_admin: [SessionComment]!
     session_comments_for_project(project_id: ID!): [SessionComment]!
-    error_comments(
-        error_group_id: ID
-        error_group_secure_id: String
-    ): [ErrorComment]!
+    error_comments(error_group_secure_id: String!): [ErrorComment]!
     error_comments_for_admin: [ErrorComment]!
     error_comments_for_project(project_id: ID!): [ErrorComment]!
     project_admins(project_id: ID!): [Admin]!
@@ -4112,8 +4103,7 @@ type Query {
     ): [DailyErrorCount]!
     dailyErrorFrequency(
         project_id: ID!
-        error_group_id: ID
-        error_group_secure_id: String
+        error_group_secure_id: String!
         date_offset: Int!
     ): [Int64]!
     referrers(project_id: ID!, lookBackPeriod: Int!): [ReferrerTablePayload]!
@@ -4172,9 +4162,9 @@ type Mutation {
     createWorkspace(name: String!): Workspace
     editProject(id: ID!, name: String, billing_email: String): Project
     editWorkspace(id: ID!, name: String): Workspace
-    markSessionAsViewed(id: ID, secure_id: String, viewed: Boolean): Session
-    markSessionAsStarred(id: ID, secure_id: String, starred: Boolean): Session
-    updateErrorGroupState(id: ID, secure_id: String, state: String!): ErrorGroup
+    markSessionAsViewed(secure_id: String!, viewed: Boolean): Session
+    markSessionAsStarred(secure_id: String!, starred: Boolean): Session
+    updateErrorGroupState(secure_id: String!, state: String!): ErrorGroup
     deleteProject(id: ID!): Boolean
     sendAdminProjectInvite(
         project_id: ID!
@@ -4218,8 +4208,7 @@ type Mutation {
     updateBillingDetails(project_id: ID!): Boolean
     createSessionComment(
         project_id: ID!
-        session_id: ID
-        session_secure_id: String
+        session_secure_id: String!
         session_timestamp: Int!
         text: String!
         text_for_email: String!
@@ -4235,8 +4224,7 @@ type Mutation {
     deleteSessionComment(id: ID!): Boolean
     createErrorComment(
         project_id: ID!
-        error_group_id: ID
-        error_group_secure_id: String
+        error_group_secure_id: String!
         text: String!
         text_for_email: String!
         tagged_admins: [SanitizedAdminInput]!
@@ -4377,13 +4365,11 @@ type Mutation {
         threshold_window: Int!
     ): SessionAlert
     updateSessionIsPublic(
-        session_id: ID
-        session_secure_id: String
+        session_secure_id: String!
         is_public: Boolean!
     ): Session
     updateErrorGroupIsPublic(
-        error_group_id: ID
-        error_group_secure_id: String
+        error_group_secure_id: String!
         is_public: Boolean!
     ): ErrorGroup
 }
@@ -4548,78 +4534,69 @@ func (ec *executionContext) field_Mutation_createErrorComment_args(ctx context.C
 		}
 	}
 	args["project_id"] = arg0
-	var arg1 *int
-	if tmp, ok := rawArgs["error_group_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_group_id"))
-		arg1, err = ec.unmarshalOID2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["error_group_id"] = arg1
-	var arg2 *string
+	var arg1 string
 	if tmp, ok := rawArgs["error_group_secure_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_group_secure_id"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["error_group_secure_id"] = arg2
-	var arg3 string
+	args["error_group_secure_id"] = arg1
+	var arg2 string
 	if tmp, ok := rawArgs["text"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["text"] = arg2
+	var arg3 string
+	if tmp, ok := rawArgs["text_for_email"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_for_email"))
 		arg3, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["text"] = arg3
-	var arg4 string
-	if tmp, ok := rawArgs["text_for_email"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_for_email"))
-		arg4, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["text_for_email"] = arg4
-	var arg5 []*model.SanitizedAdminInput
+	args["text_for_email"] = arg3
+	var arg4 []*model.SanitizedAdminInput
 	if tmp, ok := rawArgs["tagged_admins"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tagged_admins"))
-		arg5, err = ec.unmarshalNSanitizedAdminInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedAdminInput(ctx, tmp)
+		arg4, err = ec.unmarshalNSanitizedAdminInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedAdminInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["tagged_admins"] = arg5
-	var arg6 []*model.SanitizedSlackChannelInput
+	args["tagged_admins"] = arg4
+	var arg5 []*model.SanitizedSlackChannelInput
 	if tmp, ok := rawArgs["tagged_slack_users"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tagged_slack_users"))
-		arg6, err = ec.unmarshalNSanitizedSlackChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx, tmp)
+		arg5, err = ec.unmarshalNSanitizedSlackChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["tagged_slack_users"] = arg6
-	var arg7 string
+	args["tagged_slack_users"] = arg5
+	var arg6 string
 	if tmp, ok := rawArgs["error_url"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_url"))
+		arg6, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["error_url"] = arg6
+	var arg7 string
+	if tmp, ok := rawArgs["author_name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("author_name"))
 		arg7, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["error_url"] = arg7
-	var arg8 string
-	if tmp, ok := rawArgs["author_name"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("author_name"))
-		arg8, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["author_name"] = arg8
+	args["author_name"] = arg7
 	return args, nil
 }
 
@@ -4929,123 +4906,114 @@ func (ec *executionContext) field_Mutation_createSessionComment_args(ctx context
 		}
 	}
 	args["project_id"] = arg0
-	var arg1 *int
-	if tmp, ok := rawArgs["session_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_id"))
-		arg1, err = ec.unmarshalOID2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["session_id"] = arg1
-	var arg2 *string
+	var arg1 string
 	if tmp, ok := rawArgs["session_secure_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_secure_id"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["session_secure_id"] = arg2
-	var arg3 int
+	args["session_secure_id"] = arg1
+	var arg2 int
 	if tmp, ok := rawArgs["session_timestamp"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_timestamp"))
-		arg3, err = ec.unmarshalNInt2int(ctx, tmp)
+		arg2, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["session_timestamp"] = arg3
-	var arg4 string
+	args["session_timestamp"] = arg2
+	var arg3 string
 	if tmp, ok := rawArgs["text"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text"))
+		arg3, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["text"] = arg3
+	var arg4 string
+	if tmp, ok := rawArgs["text_for_email"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_for_email"))
 		arg4, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["text"] = arg4
-	var arg5 string
-	if tmp, ok := rawArgs["text_for_email"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_for_email"))
-		arg5, err = ec.unmarshalNString2string(ctx, tmp)
+	args["text_for_email"] = arg4
+	var arg5 float64
+	if tmp, ok := rawArgs["x_coordinate"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("x_coordinate"))
+		arg5, err = ec.unmarshalNFloat2float64(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["text_for_email"] = arg5
+	args["x_coordinate"] = arg5
 	var arg6 float64
-	if tmp, ok := rawArgs["x_coordinate"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("x_coordinate"))
+	if tmp, ok := rawArgs["y_coordinate"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("y_coordinate"))
 		arg6, err = ec.unmarshalNFloat2float64(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["x_coordinate"] = arg6
-	var arg7 float64
-	if tmp, ok := rawArgs["y_coordinate"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("y_coordinate"))
-		arg7, err = ec.unmarshalNFloat2float64(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["y_coordinate"] = arg7
-	var arg8 []*model.SanitizedAdminInput
+	args["y_coordinate"] = arg6
+	var arg7 []*model.SanitizedAdminInput
 	if tmp, ok := rawArgs["tagged_admins"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tagged_admins"))
-		arg8, err = ec.unmarshalNSanitizedAdminInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedAdminInput(ctx, tmp)
+		arg7, err = ec.unmarshalNSanitizedAdminInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedAdminInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["tagged_admins"] = arg8
-	var arg9 []*model.SanitizedSlackChannelInput
+	args["tagged_admins"] = arg7
+	var arg8 []*model.SanitizedSlackChannelInput
 	if tmp, ok := rawArgs["tagged_slack_users"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tagged_slack_users"))
-		arg9, err = ec.unmarshalNSanitizedSlackChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx, tmp)
+		arg8, err = ec.unmarshalNSanitizedSlackChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["tagged_slack_users"] = arg9
-	var arg10 string
+	args["tagged_slack_users"] = arg8
+	var arg9 string
 	if tmp, ok := rawArgs["session_url"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_url"))
-		arg10, err = ec.unmarshalNString2string(ctx, tmp)
+		arg9, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["session_url"] = arg10
-	var arg11 float64
+	args["session_url"] = arg9
+	var arg10 float64
 	if tmp, ok := rawArgs["time"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("time"))
-		arg11, err = ec.unmarshalNFloat2float64(ctx, tmp)
+		arg10, err = ec.unmarshalNFloat2float64(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["time"] = arg11
-	var arg12 string
+	args["time"] = arg10
+	var arg11 string
 	if tmp, ok := rawArgs["author_name"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("author_name"))
-		arg12, err = ec.unmarshalNString2string(ctx, tmp)
+		arg11, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["author_name"] = arg12
-	var arg13 *string
+	args["author_name"] = arg11
+	var arg12 *string
 	if tmp, ok := rawArgs["session_image"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_image"))
-		arg13, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg12, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["session_image"] = arg13
+	args["session_image"] = arg12
 	return args, nil
 }
 
@@ -5556,66 +5524,48 @@ func (ec *executionContext) field_Mutation_emailSignup_args(ctx context.Context,
 func (ec *executionContext) field_Mutation_markSessionAsStarred_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *int
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalOID2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	var arg1 *string
+	var arg0 string
 	if tmp, ok := rawArgs["secure_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("secure_id"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["secure_id"] = arg1
-	var arg2 *bool
+	args["secure_id"] = arg0
+	var arg1 *bool
 	if tmp, ok := rawArgs["starred"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("starred"))
-		arg2, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		arg1, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["starred"] = arg2
+	args["starred"] = arg1
 	return args, nil
 }
 
 func (ec *executionContext) field_Mutation_markSessionAsViewed_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *int
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalOID2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	var arg1 *string
+	var arg0 string
 	if tmp, ok := rawArgs["secure_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("secure_id"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["secure_id"] = arg1
-	var arg2 *bool
+	args["secure_id"] = arg0
+	var arg1 *bool
 	if tmp, ok := rawArgs["viewed"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("viewed"))
-		arg2, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		arg1, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["viewed"] = arg2
+	args["viewed"] = arg1
 	return args, nil
 }
 
@@ -5805,66 +5755,48 @@ func (ec *executionContext) field_Mutation_updateErrorAlert_args(ctx context.Con
 func (ec *executionContext) field_Mutation_updateErrorGroupIsPublic_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *int
-	if tmp, ok := rawArgs["error_group_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_group_id"))
-		arg0, err = ec.unmarshalOID2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["error_group_id"] = arg0
-	var arg1 *string
+	var arg0 string
 	if tmp, ok := rawArgs["error_group_secure_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_group_secure_id"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["error_group_secure_id"] = arg1
-	var arg2 bool
+	args["error_group_secure_id"] = arg0
+	var arg1 bool
 	if tmp, ok := rawArgs["is_public"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("is_public"))
-		arg2, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		arg1, err = ec.unmarshalNBoolean2bool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["is_public"] = arg2
+	args["is_public"] = arg1
 	return args, nil
 }
 
 func (ec *executionContext) field_Mutation_updateErrorGroupState_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *int
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalOID2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	var arg1 *string
+	var arg0 string
 	if tmp, ok := rawArgs["secure_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("secure_id"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["secure_id"] = arg1
-	var arg2 string
+	args["secure_id"] = arg0
+	var arg1 string
 	if tmp, ok := rawArgs["state"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("state"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["state"] = arg2
+	args["state"] = arg1
 	return args, nil
 }
 
@@ -6147,33 +6079,24 @@ func (ec *executionContext) field_Mutation_updateSessionFeedbackAlert_args(ctx c
 func (ec *executionContext) field_Mutation_updateSessionIsPublic_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *int
-	if tmp, ok := rawArgs["session_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_id"))
-		arg0, err = ec.unmarshalOID2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["session_id"] = arg0
-	var arg1 *string
+	var arg0 string
 	if tmp, ok := rawArgs["session_secure_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_secure_id"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["session_secure_id"] = arg1
-	var arg2 bool
+	args["session_secure_id"] = arg0
+	var arg1 bool
 	if tmp, ok := rawArgs["is_public"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("is_public"))
-		arg2, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		arg1, err = ec.unmarshalNBoolean2bool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["is_public"] = arg2
+	args["is_public"] = arg1
 	return args, nil
 }
 
@@ -6426,33 +6349,24 @@ func (ec *executionContext) field_Query_dailyErrorFrequency_args(ctx context.Con
 		}
 	}
 	args["project_id"] = arg0
-	var arg1 *int
-	if tmp, ok := rawArgs["error_group_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_group_id"))
-		arg1, err = ec.unmarshalOID2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["error_group_id"] = arg1
-	var arg2 *string
+	var arg1 string
 	if tmp, ok := rawArgs["error_group_secure_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_group_secure_id"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["error_group_secure_id"] = arg2
-	var arg3 int
+	args["error_group_secure_id"] = arg1
+	var arg2 int
 	if tmp, ok := rawArgs["date_offset"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_offset"))
-		arg3, err = ec.unmarshalNInt2int(ctx, tmp)
+		arg2, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["date_offset"] = arg3
+	args["date_offset"] = arg2
 	return args, nil
 }
 
@@ -6507,24 +6421,15 @@ func (ec *executionContext) field_Query_dailySessionsCount_args(ctx context.Cont
 func (ec *executionContext) field_Query_enhanced_user_details_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *int
-	if tmp, ok := rawArgs["session_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_id"))
-		arg0, err = ec.unmarshalOID2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["session_id"] = arg0
-	var arg1 *string
+	var arg0 string
 	if tmp, ok := rawArgs["session_secure_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_secure_id"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["session_secure_id"] = arg1
+	args["session_secure_id"] = arg0
 	return args, nil
 }
 
@@ -6561,24 +6466,15 @@ func (ec *executionContext) field_Query_error_alerts_args(ctx context.Context, r
 func (ec *executionContext) field_Query_error_comments_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *int
-	if tmp, ok := rawArgs["error_group_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_group_id"))
-		arg0, err = ec.unmarshalOID2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["error_group_id"] = arg0
-	var arg1 *string
+	var arg0 string
 	if tmp, ok := rawArgs["error_group_secure_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_group_secure_id"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["error_group_secure_id"] = arg1
+	args["error_group_secure_id"] = arg0
 	return args, nil
 }
 
@@ -6633,24 +6529,15 @@ func (ec *executionContext) field_Query_error_field_suggestion_args(ctx context.
 func (ec *executionContext) field_Query_error_group_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *int
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalOID2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	var arg1 *string
+	var arg0 string
 	if tmp, ok := rawArgs["secure_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("secure_id"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["secure_id"] = arg1
+	args["secure_id"] = arg0
 	return args, nil
 }
 
@@ -6705,48 +6592,30 @@ func (ec *executionContext) field_Query_error_segments_args(ctx context.Context,
 func (ec *executionContext) field_Query_errors_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *int
-	if tmp, ok := rawArgs["session_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_id"))
-		arg0, err = ec.unmarshalOID2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["session_id"] = arg0
-	var arg1 *string
+	var arg0 string
 	if tmp, ok := rawArgs["session_secure_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_secure_id"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["session_secure_id"] = arg1
+	args["session_secure_id"] = arg0
 	return args, nil
 }
 
 func (ec *executionContext) field_Query_events_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *int
-	if tmp, ok := rawArgs["session_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_id"))
-		arg0, err = ec.unmarshalOID2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["session_id"] = arg0
-	var arg1 *string
+	var arg0 string
 	if tmp, ok := rawArgs["session_secure_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_secure_id"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["session_secure_id"] = arg1
+	args["session_secure_id"] = arg0
 	return args, nil
 }
 
@@ -6816,24 +6685,15 @@ func (ec *executionContext) field_Query_is_integrated_with_slack_args(ctx contex
 func (ec *executionContext) field_Query_messages_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *int
-	if tmp, ok := rawArgs["session_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_id"))
-		arg0, err = ec.unmarshalOID2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["session_id"] = arg0
-	var arg1 *string
+	var arg0 string
 	if tmp, ok := rawArgs["session_secure_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_secure_id"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["session_secure_id"] = arg1
+	args["session_secure_id"] = arg0
 	return args, nil
 }
 
@@ -7002,10 +6862,10 @@ func (ec *executionContext) field_Query_rage_click_alerts_args(ctx context.Conte
 func (ec *executionContext) field_Query_rage_clicks_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *string
+	var arg0 string
 	if tmp, ok := rawArgs["session_secure_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_secure_id"))
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -7041,24 +6901,15 @@ func (ec *executionContext) field_Query_referrers_args(ctx context.Context, rawA
 func (ec *executionContext) field_Query_resources_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *int
-	if tmp, ok := rawArgs["session_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_id"))
-		arg0, err = ec.unmarshalOID2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["session_id"] = arg0
-	var arg1 *string
+	var arg0 string
 	if tmp, ok := rawArgs["session_secure_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_secure_id"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["session_secure_id"] = arg1
+	args["session_secure_id"] = arg0
 	return args, nil
 }
 
@@ -7080,48 +6931,30 @@ func (ec *executionContext) field_Query_segments_args(ctx context.Context, rawAr
 func (ec *executionContext) field_Query_session_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *int
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalOID2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	var arg1 *string
+	var arg0 string
 	if tmp, ok := rawArgs["secure_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("secure_id"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["secure_id"] = arg1
+	args["secure_id"] = arg0
 	return args, nil
 }
 
 func (ec *executionContext) field_Query_session_comments_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *int
-	if tmp, ok := rawArgs["session_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_id"))
-		arg0, err = ec.unmarshalOID2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["session_id"] = arg0
-	var arg1 *string
+	var arg0 string
 	if tmp, ok := rawArgs["session_secure_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_secure_id"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["session_secure_id"] = arg1
+	args["session_secure_id"] = arg0
 	return args, nil
 }
 
@@ -11273,7 +11106,7 @@ func (ec *executionContext) _Mutation_markSessionAsViewed(ctx context.Context, f
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().MarkSessionAsViewed(rctx, args["id"].(*int), args["secure_id"].(*string), args["viewed"].(*bool))
+		return ec.resolvers.Mutation().MarkSessionAsViewed(rctx, args["secure_id"].(string), args["viewed"].(*bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11312,7 +11145,7 @@ func (ec *executionContext) _Mutation_markSessionAsStarred(ctx context.Context, 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().MarkSessionAsStarred(rctx, args["id"].(*int), args["secure_id"].(*string), args["starred"].(*bool))
+		return ec.resolvers.Mutation().MarkSessionAsStarred(rctx, args["secure_id"].(string), args["starred"].(*bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11351,7 +11184,7 @@ func (ec *executionContext) _Mutation_updateErrorGroupState(ctx context.Context,
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateErrorGroupState(rctx, args["id"].(*int), args["secure_id"].(*string), args["state"].(string))
+		return ec.resolvers.Mutation().UpdateErrorGroupState(rctx, args["secure_id"].(string), args["state"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12017,7 +11850,7 @@ func (ec *executionContext) _Mutation_createSessionComment(ctx context.Context, 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateSessionComment(rctx, args["project_id"].(int), args["session_id"].(*int), args["session_secure_id"].(*string), args["session_timestamp"].(int), args["text"].(string), args["text_for_email"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), args["session_url"].(string), args["time"].(float64), args["author_name"].(string), args["session_image"].(*string))
+		return ec.resolvers.Mutation().CreateSessionComment(rctx, args["project_id"].(int), args["session_secure_id"].(string), args["session_timestamp"].(int), args["text"].(string), args["text_for_email"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), args["session_url"].(string), args["time"].(float64), args["author_name"].(string), args["session_image"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12095,7 +11928,7 @@ func (ec *executionContext) _Mutation_createErrorComment(ctx context.Context, fi
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateErrorComment(rctx, args["project_id"].(int), args["error_group_id"].(*int), args["error_group_secure_id"].(*string), args["text"].(string), args["text_for_email"].(string), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), args["error_url"].(string), args["author_name"].(string))
+		return ec.resolvers.Mutation().CreateErrorComment(rctx, args["project_id"].(int), args["error_group_secure_id"].(string), args["text"].(string), args["text_for_email"].(string), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), args["error_url"].(string), args["author_name"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12878,7 +12711,7 @@ func (ec *executionContext) _Mutation_updateSessionIsPublic(ctx context.Context,
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateSessionIsPublic(rctx, args["session_id"].(*int), args["session_secure_id"].(*string), args["is_public"].(bool))
+		return ec.resolvers.Mutation().UpdateSessionIsPublic(rctx, args["session_secure_id"].(string), args["is_public"].(bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12917,7 +12750,7 @@ func (ec *executionContext) _Mutation_updateErrorGroupIsPublic(ctx context.Conte
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateErrorGroupIsPublic(rctx, args["error_group_id"].(*int), args["error_group_secure_id"].(*string), args["is_public"].(bool))
+		return ec.resolvers.Mutation().UpdateErrorGroupIsPublic(rctx, args["error_group_secure_id"].(string), args["is_public"].(bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13297,7 +13130,7 @@ func (ec *executionContext) _Query_session(ctx context.Context, field graphql.Co
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Session(rctx, args["id"].(*int), args["secure_id"].(*string))
+		return ec.resolvers.Query().Session(rctx, args["secure_id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13336,7 +13169,7 @@ func (ec *executionContext) _Query_events(ctx context.Context, field graphql.Col
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Events(rctx, args["session_id"].(*int), args["session_secure_id"].(*string))
+		return ec.resolvers.Query().Events(rctx, args["session_secure_id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13375,7 +13208,7 @@ func (ec *executionContext) _Query_rage_clicks(ctx context.Context, field graphq
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().RageClicks(rctx, args["session_secure_id"].(*string))
+		return ec.resolvers.Query().RageClicks(rctx, args["session_secure_id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13456,7 +13289,7 @@ func (ec *executionContext) _Query_error_group(ctx context.Context, field graphq
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ErrorGroup(rctx, args["id"].(*int), args["secure_id"].(*string))
+		return ec.resolvers.Query().ErrorGroup(rctx, args["secure_id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13495,7 +13328,7 @@ func (ec *executionContext) _Query_messages(ctx context.Context, field graphql.C
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Messages(rctx, args["session_id"].(*int), args["session_secure_id"].(*string))
+		return ec.resolvers.Query().Messages(rctx, args["session_secure_id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13534,7 +13367,7 @@ func (ec *executionContext) _Query_enhanced_user_details(ctx context.Context, fi
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().EnhancedUserDetails(rctx, args["session_id"].(*int), args["session_secure_id"].(*string))
+		return ec.resolvers.Query().EnhancedUserDetails(rctx, args["session_secure_id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13573,7 +13406,7 @@ func (ec *executionContext) _Query_errors(ctx context.Context, field graphql.Col
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Errors(rctx, args["session_id"].(*int), args["session_secure_id"].(*string))
+		return ec.resolvers.Query().Errors(rctx, args["session_secure_id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13612,7 +13445,7 @@ func (ec *executionContext) _Query_resources(ctx context.Context, field graphql.
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Resources(rctx, args["session_id"].(*int), args["session_secure_id"].(*string))
+		return ec.resolvers.Query().Resources(rctx, args["session_secure_id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13651,7 +13484,7 @@ func (ec *executionContext) _Query_session_comments(ctx context.Context, field g
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SessionComments(rctx, args["session_id"].(*int), args["session_secure_id"].(*string))
+		return ec.resolvers.Query().SessionComments(rctx, args["session_secure_id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13770,7 +13603,7 @@ func (ec *executionContext) _Query_error_comments(ctx context.Context, field gra
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ErrorComments(rctx, args["error_group_id"].(*int), args["error_group_secure_id"].(*string))
+		return ec.resolvers.Query().ErrorComments(rctx, args["error_group_secure_id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14213,7 +14046,7 @@ func (ec *executionContext) _Query_dailyErrorFrequency(ctx context.Context, fiel
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().DailyErrorFrequency(rctx, args["project_id"].(int), args["error_group_id"].(*int), args["error_group_secure_id"].(*string), args["date_offset"].(int))
+		return ec.resolvers.Query().DailyErrorFrequency(rctx, args["project_id"].(int), args["error_group_secure_id"].(string), args["date_offset"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

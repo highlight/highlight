@@ -464,7 +464,7 @@ scalar Upload
 type Query {
     session(secure_id: String!): Session
     events(session_secure_id: String!): [Any]
-    rage_clicks(session_secure_id: String): [RageClickEvent!]!
+    rage_clicks(session_secure_id: String!): [RageClickEvent!]!
     error_groups(
         project_id: ID!
         count: Int!

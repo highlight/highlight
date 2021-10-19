@@ -579,7 +579,7 @@ export type QueryEventsArgs = {
 };
 
 export type QueryRage_ClicksArgs = {
-    session_secure_id?: Maybe<Scalars['String']>;
+    session_secure_id: Scalars['String'];
 };
 
 export type QueryError_GroupsArgs = {

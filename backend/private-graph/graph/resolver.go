@@ -300,10 +300,10 @@ func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupID *int
 	return errorGroup, true, nil
 }
 
-func (r *Resolver) canAdminViewErrorGroup(ctx context.Context, errorGroupID *int, errorGroupSecureID *string) (*model.ErrorGroup, error) {
+func (r *Resolver) canAdminViewErrorGroup(ctx context.Context, errorGroupSecureID string) (*model.ErrorGroup, error) {
 	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminViewErrorGroup"))
 	defer authSpan.Finish()
-	errorGroup, isOwner, err := r.doesAdminOwnErrorGroup(ctx, errorGroupID, errorGroupSecureID)
+	errorGroup, isOwner, err := r.doesAdminOwnErrorGroup(ctx, nil, &errorGroupSecureID)
 	if err == nil && isOwner {
 		return errorGroup, nil
 	}
@@ -313,10 +313,10 @@ func (r *Resolver) canAdminViewErrorGroup(ctx context.Context, errorGroupID *int
 	return nil, err
 }
 
-func (r *Resolver) canAdminModifyErrorGroup(ctx context.Context, errorGroupID *int, errorGroupSecureID *string) (*model.ErrorGroup, error) {
+func (r *Resolver) canAdminModifyErrorGroup(ctx context.Context, errorGroupSecureID string) (*model.ErrorGroup, error) {
 	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminModifyErrorGroup"))
 	defer authSpan.Finish()
-	errorGroup, isOwner, err := r.doesAdminOwnErrorGroup(ctx, errorGroupID, errorGroupSecureID)
+	errorGroup, isOwner, err := r.doesAdminOwnErrorGroup(ctx, nil, &errorGroupSecureID)
 	if err == nil && isOwner {
 		return errorGroup, nil
 	}
@@ -345,10 +345,10 @@ func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_id *int, se
 	return session, true, nil
 }
 
-func (r *Resolver) canAdminViewSession(ctx context.Context, session_id *int, session_secure_id *string) (*model.Session, error) {
+func (r *Resolver) canAdminViewSession(ctx context.Context, session_secure_id string) (*model.Session, error) {
 	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminViewSession"))
 	defer authSpan.Finish()
-	session, isOwner, err := r._doesAdminOwnSession(ctx, session_id, session_secure_id)
+	session, isOwner, err := r._doesAdminOwnSession(ctx, nil, &session_secure_id)
 	if err == nil && isOwner {
 		return session, nil
 	}
@@ -358,10 +358,10 @@ func (r *Resolver) canAdminViewSession(ctx context.Context, session_id *int, ses
 	return nil, err
 }
 
-func (r *Resolver) canAdminModifySession(ctx context.Context, session_id *int, session_secure_id *string) (*model.Session, error) {
+func (r *Resolver) canAdminModifySession(ctx context.Context, session_secure_id string) (*model.Session, error) {
 	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminModifySession"))
 	defer authSpan.Finish()
-	session, isOwner, err := r._doesAdminOwnSession(ctx, session_id, session_secure_id)
+	session, isOwner, err := r._doesAdminOwnSession(ctx, nil, &session_secure_id)
 	if err == nil && isOwner {
 		return session, nil
 	}
