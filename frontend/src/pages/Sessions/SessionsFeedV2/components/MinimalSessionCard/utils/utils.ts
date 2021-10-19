@@ -6,21 +6,20 @@ import { Maybe, Session } from '../../../../../../graph/generated/schemas';
 export const getIdentifiedUserProfileImage = (
     session: Maybe<Session>
 ): string | undefined => {
-    if (!session || !session.field_group) {
+    if (!session || !session.user_properties) {
         return undefined;
     }
 
     try {
-        const parsedFieldGroup = JSON.parse(session.field_group);
-        const avatarField = parsedFieldGroup.find(
-            (field: any) => field['Name'] === 'avatar'
+        const avatarField = JSON.parse(session.user_properties).find(
+            (field: any) => field?.name === 'avatar'
         );
 
         if (avatarField) {
-            const { Value } = avatarField;
+            const { value } = avatarField;
 
-            if (validator.isURL(Value)) {
-                return Value;
+            if (validator.isURL(value)) {
+                return '' + value;
             }
         }
     } catch {

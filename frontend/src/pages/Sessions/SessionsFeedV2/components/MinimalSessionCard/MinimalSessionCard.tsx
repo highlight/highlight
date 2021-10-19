@@ -93,7 +93,17 @@ const MinimalSessionCard = React.memo(
             }
         }, [autoPlaySessions, session?.secure_id, session_secure_id]);
 
-        const customAvatarImage = getIdentifiedUserProfileImage(session);
+        const [customAvatarImage, setCustomAvatarImage] = useState(
+            undefined || ''
+        );
+        useEffect(() => {
+            if (session?.user_properties) {
+                const tmp = getIdentifiedUserProfileImage(session);
+                if (tmp) {
+                    setCustomAvatarImage(tmp);
+                }
+            }
+        }, [session?.user_properties, session, setCustomAvatarImage]);
 
         const innerContent = (
             <div
