@@ -3,6 +3,7 @@ import { customEvent } from '@highlight-run/rrweb/dist/types';
 import { useParams } from '@util/react-router/useParams';
 import { H } from 'highlight.run';
 import { useCallback, useEffect, useState } from 'react';
+import { isSafari } from 'react-device-detect';
 import { useHistory } from 'react-router-dom';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
@@ -241,8 +242,11 @@ export const usePlayer = (): ReplayerContextInterface => {
                 root: playerMountingRoot,
                 triggerFocus: false,
                 mouseTail: showPlayerMouseTail,
+                // We enable this for Safari users to allow for html2image to access the iframe.
+                // Without this, the Safari browser will block html2image from access the iframe so it won't have access.
+                // This access is determined by the iframe's `sandbox="allow-scripts"` property.
                 UNSAFE_replayCanvas:
-                    clientConfig?.enableCanvasRecording || false,
+                    isSafari || clientConfig?.enableCanvasRecording || false,
             });
             r.on('event-cast', (e: any) => {
                 const event = e as HighlightEvent;
