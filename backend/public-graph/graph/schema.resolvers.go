@@ -39,27 +39,29 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 }
 
 func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, userIdentifier string, userObject interface{}) (*int, error) {
-	obj, ok := userObject.(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("[IdentifySession] error converting userObject interface type")
+	session := &model.Session{}
+	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
+		return nil, e.Wrap(err, "[IdentifySession] error querying session by sessionID")
 	}
 
 	userProperties := map[string]string{
 		"identifier": userIdentifier,
 	}
 	userObj := make(map[string]string)
-	for k, v := range obj {
-		userProperties[k] = fmt.Sprintf("%v", v)
-		userObj[k] = fmt.Sprintf("%v", v)
+	switch obj := userObject.(type) {
+	case map[string]interface{}:
+		for k, v := range obj {
+			userProperties[k] = fmt.Sprintf("%v", v)
+			userObj[k] = fmt.Sprintf("%v", v)
+		}
+	default:
+		log.WithFields(log.Fields{"session_id": sessionID, "project_id": session.ProjectID}).Warn("userObject not map[string]interface{}")
 	}
+
 	if err := r.AppendProperties(sessionID, userProperties, PropertyType.USER); err != nil {
 		log.Error(e.Wrapf(err, "[IdentifySession] error adding set of identify properties to db: session: %d", sessionID))
 	}
 
-	session := &model.Session{}
-	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
-		return nil, e.Wrap(err, "[IdentifySession] error querying session by sessionID")
-	}
 	// set user properties to session in db
 	if err := session.SetUserProperties(userObj); err != nil {
 		return nil, e.Wrapf(err, "[IdentifySession] [project_id: %d] error appending user properties to session object {id: %d}", session.ProjectID, sessionID)
