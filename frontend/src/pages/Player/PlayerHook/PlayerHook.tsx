@@ -435,7 +435,6 @@ export const usePlayer = (): ReplayerContextInterface => {
     useEffect(() => {
         if (state === ReplayerState.Playing) {
             const frameAction = () => {
-                console.log('frame!');
                 if (replayer) {
                     setTime(replayer.getCurrentTime());
 
