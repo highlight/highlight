@@ -35,6 +35,7 @@ import {
     shouldNetworkRequestBeRecorded,
 } from './listeners/network-listener/utils/utils';
 import { DEFAULT_URL_BLOCKLIST } from './listeners/network-listener/utils/network-sanitizer';
+import { SESSION_STORAGE_KEYS } from './utils/sessionStorage/sessionStorageKeys';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -490,6 +491,10 @@ export class Highlight {
                     );
                     this.sessionData.sessionSecureID =
                         gr?.initializeSession?.secure_id || '';
+                    window.sessionStorage.setItem(
+                        SESSION_STORAGE_KEYS.SESSION_SECURE_ID,
+                        this.sessionData.sessionSecureID
+                    );
                     this.sessionData.projectID = parseInt(
                         gr?.initializeSession?.project_id || '0'
                     );

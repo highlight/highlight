@@ -12,7 +12,10 @@ import {
     setupAmplitudeIntegration,
 } from './integrations/amplitude';
 import { MixpanelAPI, setupMixpanelIntegration } from './integrations/mixpanel';
+import { initializeFetchListener } from './listeners/fetch';
 import { SessionDetails } from './types/types';
+
+initializeFetchListener();
 
 export type HighlightOptions = {
     /**

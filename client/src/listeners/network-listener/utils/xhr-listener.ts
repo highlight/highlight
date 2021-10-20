@@ -75,7 +75,10 @@ export const XHRListener = (
         if (shouldNetworkRequestBeTraced(this._url, tracingOrigins)) {
             this.setRequestHeader(
                 HIGHLIGHT_REQUEST_HEADER,
-                getHighlightRequestHeader(sessionData, requestId)
+                getHighlightRequestHeader(
+                    sessionData.sessionSecureID,
+                    requestId
+                )
             );
         }
 

@@ -1,4 +1,3 @@
-import { SessionData } from 'index';
 import { RequestResponsePair } from './models';
 
 export const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'
@@ -149,6 +148,6 @@ export const createNetworkRequestId = () => {
     return makeId(10);
 }
 
-export const getHighlightRequestHeader = (sessionData: SessionData, requestId: string) => {
-    return sessionData.sessionSecureID + "/" + requestId
+export const getHighlightRequestHeader = (sessionSecureID: string, requestId: string) => {
+    return sessionSecureID + "/" + requestId
 }
