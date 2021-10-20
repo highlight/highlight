@@ -63,6 +63,7 @@ export type Session = {
     within_billing_quota?: Maybe<Scalars['Boolean']>;
     is_public?: Maybe<Scalars['Boolean']>;
     event_counts?: Maybe<Scalars['String']>;
+    direct_download_url?: Maybe<Scalars['String']>;
 };
 
 export type RageClickEvent = {

@@ -46,6 +46,7 @@ type Session {
     within_billing_quota: Boolean
     is_public: Boolean
     event_counts: String
+    direct_download_url: String
 }
 
 type RageClickEvent {

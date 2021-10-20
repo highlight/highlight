@@ -3,14 +3,18 @@ package storage
 import (
 	"bytes"
 	"context"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"io"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/pkg/errors"
@@ -19,18 +23,23 @@ import (
 var (
 	S3SessionsPayloadBucketName = os.Getenv("AWS_S3_BUCKET_NAME")
 	S3SourceMapBucketName       = os.Getenv("AWS_S3_SOURCE_MAP_BUCKET_NAME")
+	CloudfrontDomain            = os.Getenv("AWS_CLOUDFRONT_DOMAIN")
+	CloudfrontPublicKeyID       = os.Getenv("AWS_CLOUDFRONT_PUBLIC_KEY_ID")
+	CloudfrontPrivateKey        = os.Getenv("AWS_CLOUDFRONT_PRIVATE_KEY")
 )
 
 type PayloadType string
 
 const (
-	SessionContents  PayloadType = "session-contents"
-	NetworkResources PayloadType = "network-resources"
-	ConsoleMessages  PayloadType = "console-messages"
+	SessionContents           PayloadType = "session-contents"
+	NetworkResources          PayloadType = "network-resources"
+	ConsoleMessages           PayloadType = "console-messages"
+	SessionContentsCompressed PayloadType = "session-contents-compressed"
 )
 
 type StorageClient struct {
-	S3Client *s3.Client
+	S3Client  *s3.Client
+	URLSigner *sign.URLSigner
 }
 
 func NewStorageClient() (*StorageClient, error) {
@@ -43,8 +52,15 @@ func NewStorageClient() (*StorageClient, error) {
 		o.UsePathStyle = true
 	})
 
+	block, _ := pem.Decode([]byte(CloudfrontPrivateKey))
+	privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		return nil, errors.Wrap(err, "error parsing private key")
+	}
+
 	return &StorageClient{
-		S3Client: client,
+		S3Client:  client,
+		URLSigner: sign.NewURLSigner(CloudfrontPublicKeyID, privateKey),
 	}, nil
 }
 
@@ -213,4 +229,10 @@ func (s *StorageClient) ReadSourceMapFileFromS3(projectId int, version *string, 
 		return nil, errors.Wrap(err, "error reading from s3 buffer")
 	}
 	return buf.Bytes(), nil
+}
+
+func (s *StorageClient) GetDirectDownloadURL(projectId int, sessionId int) (string, error) {
+	key := s.bucketKey(sessionId, projectId, SessionContentsCompressed)
+	unsignedURL := fmt.Sprintf("https://%v/%v", CloudfrontDomain, key)
+	return s.URLSigner.Sign(unsignedURL, time.Now().Add(5*time.Minute))
 }
