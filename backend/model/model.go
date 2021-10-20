@@ -1332,7 +1332,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 								log.Error(e.Wrap(err, "failed to join slack channel"))
 							}
 						}
-						_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionBlocks(blockSet...),
+						_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(previewText, false), slack.MsgOptionBlocks(blockSet...),
 							slack.MsgOptionDisableLinkUnfurl(),  /** Disables showing a preview of any links that are in the Slack message.*/
 							slack.MsgOptionDisableMediaUnfurl(), /** Disables showing a preview of any links that are in the Slack message.*/
 						)
