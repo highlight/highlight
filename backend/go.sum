@@ -123,6 +123,7 @@ github.com/gin-contrib/sse v0.1.0 h1:Y/yl/+YNO8GZSjAhjMsSuLt29uWRFHdHYUb5lYOV9qE
 github.com/gin-contrib/sse v0.1.0/go.mod h1:RHrZQHXnP2xjPF+u1gW/2HnVO7nvIa9PG3Gm+fLHvGI=
 github.com/gin-gonic/gin v1.6.3 h1:ahKqKTFpO5KTPHxWZjEdPScmYaGtLo8Y4DMHoEsnp14=
 github.com/gin-gonic/gin v1.6.3/go.mod h1:75u5sXoLsGZoRN5Sgbi1eraJ4GU3++wFwWzhwvtwp4M=
+github.com/gin-gonic/gin v1.7.0/go.mod h1:jD2toBW3GZUr5UMcdrwQA10I7RuaFOl/SGeDjXkfUtY=
 github.com/go-chi/chi v3.3.2+incompatible/go.mod h1:eB3wogJHnLi3x/kFX2A+IbTBlXxmMeXJVKy9tTv1XzQ=
 github.com/go-chi/chi v4.1.2+incompatible h1:fGFk2Gmi/YKXk0OmGfBh0WgmN3XB8lVnEyNz34tQRec=
 github.com/go-chi/chi v4.1.2+incompatible/go.mod h1:eB3wogJHnLi3x/kFX2A+IbTBlXxmMeXJVKy9tTv1XzQ=
@@ -137,6 +138,7 @@ github.com/go-playground/universal-translator v0.17.0 h1:icxd5fm+REJzpZx7ZfpaD87
 github.com/go-playground/universal-translator v0.17.0/go.mod h1:UkSxE5sNxxRwHyU+Scu5vgOQjsIJAF8j9muTVoKLVtA=
 github.com/go-playground/validator/v10 v10.2.0 h1:KgJ0snyC2R9VXYN2rneOtQcw5aHQB1Vv0sFl1UcHBOY=
 github.com/go-playground/validator/v10 v10.2.0/go.mod h1:uOYAAleCW8F/7oMFd6aG0GOhaH6EGOAJShg8Id5JGkI=
+github.com/go-playground/validator/v10 v10.4.1/go.mod h1:nlOn6nFhuKACm19sB/8EGNn9GlaMV7XkbRSipzJ0Ii4=
 github.com/go-sourcemap/sourcemap v2.1.3+incompatible h1:W1iEw64niKVGogNgBN3ePyLFfuisuzeidWPMPWmECqU=
 github.com/go-sourcemap/sourcemap v2.1.3+incompatible/go.mod h1:F8jJfvm2KbVjc5NqelyYJmf/v5J0dwNLS2mL4sNA1Jg=
 github.com/go-stack/stack v1.8.0/go.mod h1:v0f6uXyyMGvRgIKkXu+yp6POWl0qKG85gN/melR3HDY=
@@ -239,6 +241,8 @@ github.com/highlight-run/highlight-go v0.3.0 h1:XxKydQRnhCZRzM5aq7B/EDnVKMvS9PUi
 github.com/highlight-run/highlight-go v0.3.0/go.mod h1:QMrVFrRIn3VfCsoGszLJRaNayjKGrXXX4CcapYid0AU=
 github.com/highlight-run/highlight-go v0.3.2 h1:P1VDmAnaT2XvtarupVlZ/wfd7kvAg2FjVOgh03+eMWY=
 github.com/highlight-run/highlight-go v0.3.2/go.mod h1:QMrVFrRIn3VfCsoGszLJRaNayjKGrXXX4CcapYid0AU=
+github.com/highlight-run/highlight-go v0.3.4 h1:pWtXcCeTbqfh0HywL/C6JyWkIdSX3lnq1sohCsV2o6g=
+github.com/highlight-run/highlight-go v0.3.4/go.mod h1:Bpfo9f8hecB/4l3zFszUWnzlpOdmpSSFZ5VhMnpvKaQ=
 github.com/highlight-run/workerpool v1.2.0 h1:0mLu2hvvgAbgkdjQuBQsmMSVPaIk75Vy3mSK+FavxxY=
 github.com/highlight-run/workerpool v1.2.0/go.mod h1:1iJmXJoC39MnWrqrLa+TaIqdveW4XaxPMoXAMH2wDYU=
 github.com/ianlancetaylor/demangle v0.0.0-20181102032728-5e5cf60278f6/go.mod h1:aSSvb/t6k1mPoxDqO4vJh6VOCGPwU4O0C2/Eqndh1Sc=
