@@ -149,6 +149,6 @@ export const createNetworkRequestId = () => {
     return makeId(10);
 }
 
-export const getHighlightRequestHeader = (sessionData: SessionData, requestId: string) => {
-    return sessionData.sessionSecureID + "/" + requestId
+export const getHighlightRequestHeader = (sessionSecureID: string, requestId: string) => {
+    return sessionSecureID + "/" + requestId
 }

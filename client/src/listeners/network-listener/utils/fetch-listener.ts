@@ -5,7 +5,13 @@ import {
     Request as HighlightRequest,
     Response as HighlightResponse,
 } from './models';
-import { createNetworkRequestId, getHighlightRequestHeader, HIGHLIGHT_REQUEST_HEADER, shouldNetworkRequestBeRecorded, shouldNetworkRequestBeTraced } from './utils';
+import {
+    createNetworkRequestId,
+    getHighlightRequestHeader,
+    HIGHLIGHT_REQUEST_HEADER,
+    shouldNetworkRequestBeRecorded,
+    shouldNetworkRequestBeTraced,
+} from './utils';
 
 export const FetchListener = (
     callback: NetworkListenerCallback,
@@ -17,7 +23,7 @@ export const FetchListener = (
     const originalFetch = window.fetch;
 
     window.fetch = function (input, init) {
-        const { method, url } = getRequestProperties(input, init);
+        const { method, url } = getFetchRequestProperties(input, init);
         if (!shouldNetworkRequestBeRecorded(url, backendUrl, tracingOrigins)) {
             return originalFetch.call(this, input, init);
         }
@@ -27,7 +33,13 @@ export const FetchListener = (
             init = init || {};
             // Pre-existing headers could be one of three different formats; this reads all of them.
             let headers = new Headers(init.headers);
-            headers.set(HIGHLIGHT_REQUEST_HEADER, getHighlightRequestHeader(sessionData, requestId))
+            headers.set(
+                HIGHLIGHT_REQUEST_HEADER,
+                getHighlightRequestHeader(
+                    sessionData.sessionSecureID,
+                    requestId
+                )
+            );
             init.headers = Object.fromEntries(headers.entries());
         }
 
@@ -42,7 +54,9 @@ export const FetchListener = (
             url.toLowerCase().includes(blockedUrl)
         );
         if (shouldRecordHeaderAndBody) {
-            request.headers = Object.fromEntries((new Headers(init?.headers).entries()));
+            request.headers = Object.fromEntries(
+                new Headers(init?.headers).entries()
+            );
             request.body = init?.body;
         }
 
@@ -61,7 +75,10 @@ export const FetchListener = (
     };
 };
 
-const getRequestProperties = (input: RequestInfo, init?: RequestInit) => {
+export const getFetchRequestProperties = (
+    input: RequestInfo,
+    init?: RequestInit
+) => {
     const method =
         (init && init.method) ||
         (typeof input === 'object' && input.method) ||
