@@ -15,7 +15,6 @@ export const EventStreamTypesFilter = () => {
         setShowFocus,
         setShowIdentify,
         setShowNavigate,
-        setShowReferrer,
         setShowReload,
         setShowSegment,
         setShowTrack,

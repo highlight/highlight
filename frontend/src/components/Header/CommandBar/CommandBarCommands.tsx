@@ -2,7 +2,6 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
-import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import { History } from 'history';
 import { Command } from 'react-command-palette';
@@ -55,7 +54,6 @@ export const usePlayerCommands = (
         showDevTools,
         showRightPanel,
     } = usePlayerConfiguration();
-    const { session_id } = useParams<{ session_id?: string }>();
 
     const PLAYER_COMMANDS = [
         {
