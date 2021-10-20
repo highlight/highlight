@@ -2489,16 +2489,17 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, 
 	var dailyErrors []*int64
 
 	if err := r.DB.Raw(`
-		SELECT count(e.id)
+		SELECT COUNT(e.id)
 		FROM (
 			SELECT to_char(date_trunc('day', (current_date - offs)), 'YYYY-MM-DD') AS date
 			FROM generate_series(0, ?, 1)
 			AS offs
 		) d LEFT OUTER JOIN
 		error_objects e
-		ON d.date = to_char(date_trunc('day', e.updated_at), 'YYYY-MM-DD')
-		AND e.error_group_id = ? AND e.project_id = ?
-		GROUP BY d.date;
+		ON d.date = to_char(date_trunc('day', e.created_at), 'YYYY-MM-DD')
+		AND e.error_group_id=? AND e.project_id=?
+		GROUP BY d.date
+		ORDER BY d.date DESC;
 	`, dateOffset, errGroup.ID, projectID).Scan(&dailyErrors).Error; err != nil {
 		return nil, e.Wrap(err, "error querying daily frequency")
 	}
