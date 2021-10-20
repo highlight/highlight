@@ -21,8 +21,8 @@ jobs:
               run: cd client && yarn install
             - name: Runs linting
               run: cd firstload && yarn lint
-            - name: Run tests
-              run: cd firstload && yarn test
+            # - name: Run tests
+            #   run: cd firstload && yarn test
             - name: Build Bundle
               run: cd firstload && yarn build
             - name: Confirm new version
