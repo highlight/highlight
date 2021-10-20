@@ -630,7 +630,7 @@ func (r *Resolver) processStackFrame(projectId, sessionId int, stackTrace model2
 	// get path from url
 	u2, err := url.Parse(sourceMapURL)
 	if err != nil {
-		err := e.Wrapf(err, "error parsing source map url: %v", sourceMapURL)
+		err := e.Wrap(err, "error parsing source map url")
 		return nil, err
 	}
 	sourceMapFilePath := u2.Path
