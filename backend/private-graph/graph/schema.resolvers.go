@@ -201,7 +201,11 @@ func (r *mutationResolver) CreateProject(ctx context.Context, name string, works
 
 	c := &stripe.Customer{}
 	if os.Getenv("REACT_APP_ONPREM") != "true" {
-		params := &stripe.CustomerParams{}
+		params := &stripe.CustomerParams{
+			Name:  &name,
+			Email: admin.Email,
+		}
+		params.AddMetadata("Workspace ID", strconv.Itoa(workspace.ID))
 		c, err = r.StripeClient.Customers.New(params)
 		if err != nil {
 			return nil, e.Wrap(err, "error creating stripe customer")
