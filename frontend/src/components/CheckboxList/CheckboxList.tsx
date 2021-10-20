@@ -1,0 +1,121 @@
+import Checkbox, { CheckboxChangeEvent } from 'antd/lib/checkbox';
+import classNames from 'classnames';
+import React, { useState } from 'react';
+
+import styles from './CheckboxList.module.scss';
+
+interface Props {
+    checkboxOptions: CheckboxOption[];
+    containerClassName?: string;
+}
+
+interface CheckboxOption {
+    label: string;
+    onChange: (e: CheckboxChangeEvent) => void;
+    checked: boolean;
+}
+
+const CheckboxList = ({ checkboxOptions, containerClassName }: Props) => {
+    const [hoverOnCheckbox, setHoverOnCheckbox] = useState(false);
+
+    const numberOfCheckedOptions = checkboxOptions.reduce((acc, curr) => {
+        return curr.checked ? acc + 1 : acc;
+    }, 0);
+
+    const toggleAllOrOnly = (option: CheckboxOption) => {
+        // Toggle everything on.
+        if (option.checked) {
+            if (numberOfCheckedOptions > 1) {
+                checkboxOptions.forEach((o) => {
+                    if (o.label === option.label) {
+                        o.onChange({
+                            target: { checked: true },
+                        } as CheckboxChangeEvent);
+                    } else {
+                        o.onChange({
+                            target: { checked: false },
+                        } as CheckboxChangeEvent);
+                    }
+                });
+            } else {
+                checkboxOptions.forEach((o) => {
+                    o.onChange({
+                        target: { checked: true },
+                    } as CheckboxChangeEvent);
+                });
+            }
+        } else {
+            // Toggle only the selected option on.
+            checkboxOptions.forEach((o) => {
+                if (o.label === option.label) {
+                    o.onChange({
+                        target: {
+                            checked: true,
+                        },
+                    } as CheckboxChangeEvent);
+                } else {
+                    o.onChange({
+                        target: {
+                            checked: false,
+                        },
+                    } as CheckboxChangeEvent);
+                }
+            });
+        }
+    };
+
+    return (
+        <div className={classNames(containerClassName)}>
+            {checkboxOptions.map((option) => (
+                <div key={option.label} className={styles.checkboxOption}>
+                    <div className={styles.checkboxContainer}>
+                        <Checkbox
+                            checked={option.checked}
+                            onChange={option.onChange}
+                            onMouseEnter={() => {
+                                setHoverOnCheckbox(true);
+                            }}
+                            onMouseLeave={() => {
+                                setHoverOnCheckbox(false);
+                            }}
+                        />
+                    </div>
+
+                    <button
+                        className={styles.button}
+                        onClick={() => {
+                            toggleAllOrOnly(option);
+                        }}
+                    >
+                        {option.label}
+                        <p className={styles.actionLabel}>
+                            {hoverOnCheckbox
+                                ? 'Toggle'
+                                : getActionLabel(
+                                      option,
+                                      numberOfCheckedOptions
+                                  )}
+                        </p>
+                    </button>
+                </div>
+            ))}
+        </div>
+    );
+};
+
+export default CheckboxList;
+
+const getActionLabel = (
+    option: CheckboxOption,
+    numberOfCheckedOptions: number
+) => {
+    if (option.checked) {
+        if (numberOfCheckedOptions > 1) {
+            return 'Only';
+        } else {
+            return 'All';
+        }
+    } else {
+        return 'Only';
+    }
+};
