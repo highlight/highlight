@@ -77,4 +77,7 @@
 		"Blocklist",
 		"interactable"
 	],
+	"[yaml]": {
+		"editor.defaultFormatter": "redhat.vscode-yaml"
+	},
 }
