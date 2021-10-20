@@ -233,6 +233,6 @@ func (s *StorageClient) ReadSourceMapFileFromS3(projectId int, version *string, 
 
 func (s *StorageClient) GetDirectDownloadURL(projectId int, sessionId int) (string, error) {
 	key := s.bucketKey(sessionId, projectId, SessionContentsCompressed)
-	unsignedURL := fmt.Sprintf("https://%v/%v", CloudfrontDomain, key)
+	unsignedURL := fmt.Sprintf("https://%s/%s", CloudfrontDomain, *key)
 	return s.URLSigner.Sign(unsignedURL, time.Now().Add(5*time.Minute))
 }

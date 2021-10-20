@@ -122,7 +122,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         if (eventsData?.events) {
             setEventsPayload(eventsData?.events);
         }
-    }, [eventsData]);
+    }, [eventsData?.events]);
 
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
 
@@ -155,6 +155,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                             setEventsPayload(data);
                         })
                         .catch((e) => {
+                            setEventsPayload([]);
                             H.consumeError(
                                 e,
                                 'Error direct downloading session payload'
@@ -300,6 +301,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     useEffect(() => {
         if (!!eventsPayload && !!eventsData) {
+            console.log('both exist');
             setSessionViewability(SessionViewability.VIEWABLE);
             if (eventsData.errors) {
                 setErrors(eventsData.errors as ErrorObject[]);
@@ -310,7 +312,9 @@ export const usePlayer = (): ReplayerContextInterface => {
                 );
             }
         } else if (!!eventsData) {
-            setSessionViewability(SessionViewability.EMPTY_SESSION);
+            console.log('events data but no payload');
+            // ZANETODO: uncomment this
+            // setSessionViewability(SessionViewability.EMPTY_SESSION);
         }
     }, [eventsData, eventsPayload]);
 
