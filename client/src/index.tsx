@@ -35,7 +35,7 @@ import {
     shouldNetworkRequestBeRecorded,
 } from './listeners/network-listener/utils/utils';
 import { DEFAULT_URL_BLOCKLIST } from './listeners/network-listener/utils/network-sanitizer';
-import { SESSION_STORAGE_KEYS } from 'utils/sessionStorage/sessionStorageKeys';
+import { SESSION_STORAGE_KEYS } from './utils/sessionStorage/sessionStorageKeys';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });

@@ -1,4 +1,4 @@
-.import { SessionData } from '../../../index';
+import { SessionData } from '../../../index';
 import { NetworkListenerCallback } from '../network-listener';
 import { Headers, Request, RequestResponsePair, Response } from './models';
 import {
