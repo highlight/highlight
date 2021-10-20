@@ -118,6 +118,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         undefined
     );
 
+    // If events are returned by getSessionPayloadQuery, set the events payload
     useEffect(() => {
         if (eventsData?.events) {
             setEventsPayload(eventsData?.events);
@@ -152,7 +153,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                     fetch(directDownloadUrl)
                         .then((response) => response.json())
                         .then((data) => {
-                            setEventsPayload(data);
+                            setEventsPayload(data || []);
                         })
                         .catch((e) => {
                             setEventsPayload([]);
@@ -246,11 +247,12 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     // Handle data in playback mode.
     useEffect(() => {
-        if (eventsPayload?.length ?? 0 > 1) {
+        if (eventsPayload?.length) {
             setState(ReplayerState.Loading);
+            setSessionViewability(SessionViewability.VIEWABLE);
             // Add an id field to each event so it can be referenced.
             const newEvents: HighlightEvent[] = toHighlightEvents(
-                eventsPayload ?? []
+                eventsPayload
             );
             // Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
             const playerMountingRoot = document.getElementById(
@@ -294,29 +296,21 @@ export const usePlayer = (): ReplayerContextInterface => {
             });
             setEvents(newEvents);
             setReplayer(r);
+        } else if (eventsPayload?.length == 0) {
+            setSessionViewability(SessionViewability.EMPTY_SESSION);
         }
         // This hook shouldn't depend on `showPlayerMouseTail`. The player is updated through a setter. Making this hook depend on `showPlayerMouseTrail` will cause the player to be remounted when `showPlayerMouseTrail` changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [eventsPayload, setPlayerTimeToPersistance]);
 
     useEffect(() => {
-        if (!!eventsPayload && !!eventsData) {
-            console.log('both exist');
-            setSessionViewability(SessionViewability.VIEWABLE);
-            if (eventsData.errors) {
-                setErrors(eventsData.errors as ErrorObject[]);
-            }
-            if (eventsData.session_comments) {
-                setSessionComments(
-                    eventsData.session_comments as SessionComment[]
-                );
-            }
-        } else if (!!eventsData) {
-            console.log('events data but no payload');
-            // ZANETODO: uncomment this
-            // setSessionViewability(SessionViewability.EMPTY_SESSION);
+        if (eventsData?.errors) {
+            setErrors(eventsData.errors as ErrorObject[]);
         }
-    }, [eventsData, eventsPayload]);
+        if (eventsData?.session_comments) {
+            setSessionComments(eventsData.session_comments as SessionComment[]);
+        }
+    }, [eventsData]);
 
     useEffect(() => {
         if (replayer) {

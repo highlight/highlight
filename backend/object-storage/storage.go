@@ -18,6 +18,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -52,16 +53,26 @@ func NewStorageClient() (*StorageClient, error) {
 		o.UsePathStyle = true
 	})
 
+	return &StorageClient{
+		S3Client:  client,
+		URLSigner: getURLSigner(),
+	}, nil
+}
+
+func getURLSigner() *sign.URLSigner {
+	if CloudfrontDomain == "" || CloudfrontPrivateKey == "" || CloudfrontPublicKeyID == "" {
+		log.Warn("Missing one or more Cloudfront configs, disabling direct download.")
+		return nil
+	}
+
 	block, _ := pem.Decode([]byte(CloudfrontPrivateKey))
 	privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 	if err != nil {
-		return nil, errors.Wrap(err, "error parsing private key")
+		log.Warn("Error parsing private key, disabling direct download.")
+		return nil
 	}
 
-	return &StorageClient{
-		S3Client:  client,
-		URLSigner: sign.NewURLSigner(CloudfrontPublicKeyID, privateKey),
-	}, nil
+	return sign.NewURLSigner(CloudfrontPublicKeyID, privateKey)
 }
 
 func (s *StorageClient) PushFileToS3(ctx context.Context, sessionId, projectId int, file *os.File, bucket string, payloadType PayloadType) (*int64, error) {
@@ -231,8 +242,17 @@ func (s *StorageClient) ReadSourceMapFileFromS3(projectId int, version *string, 
 	return buf.Bytes(), nil
 }
 
-func (s *StorageClient) GetDirectDownloadURL(projectId int, sessionId int) (string, error) {
+func (s *StorageClient) GetDirectDownloadURL(projectId int, sessionId int) (*string, error) {
+	if s.URLSigner == nil {
+		return nil, nil
+	}
+
 	key := s.bucketKey(sessionId, projectId, SessionContentsCompressed)
 	unsignedURL := fmt.Sprintf("https://%s/%s", CloudfrontDomain, *key)
-	return s.URLSigner.Sign(unsignedURL, time.Now().Add(5*time.Minute))
+	signedURL, err := s.URLSigner.Sign(unsignedURL, time.Now().Add(5*time.Minute))
+	if err != nil {
+		return nil, errors.Wrap(err, "error signing URL")
+	}
+
+	return &signedURL, nil
 }

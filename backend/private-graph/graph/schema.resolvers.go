@@ -3282,7 +3282,7 @@ func (r *sessionResolver) DirectDownloadURL(ctx context.Context, obj *model.Sess
 		return nil, e.Wrap(err, "error getting direct download URL")
 	}
 
-	return &str, err
+	return str, err
 }
 
 func (r *sessionAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.SessionAlert) ([]*modelInputs.SanitizedSlackChannel, error) {
