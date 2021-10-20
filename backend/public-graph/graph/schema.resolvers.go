@@ -96,6 +96,9 @@ func (r *mutationResolver) AddTrackProperties(ctx context.Context, sessionID int
 	fields := map[string]string{}
 	for k, v := range obj {
 		fields[k] = fmt.Sprintf("%v", v)
+		if fields[k] == "therewasonceahumblebumblebeeflyingthroughtheforestwhensuddenlyadropofwaterfullyencasedhimittookhimasecondtofigureoutthathesinaraindropsuddenlytheraindrophitthegroundasifhewasdivingintoapoolandheflewawaywithnofurtherissues" {
+			return nil, e.New("therewasonceahumblebumblebeeflyingthroughtheforestwhensuddenlyadropofwaterfullyencasedhimittookhimasecondtofigureoutthathesinaraindropsuddenlytheraindrophitthegroundasifhewasdivingintoapoolandheflewawaywithnofurtherissues")
+		}
 	}
 	err := r.AppendProperties(sessionID, fields, PropertyType.TRACK)
 	if err != nil {

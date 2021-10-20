@@ -88,6 +88,16 @@ export const Buttons = () => {
                 >
                     Stop Recording
                 </button>
+                <button
+                    className={commonStyles.submitButton}
+                    onClick={() => {
+                        H.track(
+                            'therewasonceahumblebumblebeeflyingthroughtheforestwhensuddenlyadropofwaterfullyencasedhimittookhimasecondtofigureoutthathesinaraindropsuddenlytheraindrophitthegroundasifhewasdivingintoapoolandheflewawaywithnofurtherissues'
+                        );
+                    }}
+                >
+                    Track
+                </button>
             </div>
 
             <div>

@@ -1312,7 +1312,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 
 			go func() {
 				if isWebhookChannel {
-					log.Printf("Sending Slack Webhook")
+					log.WithFields(log.Fields{"session_secure_id": input.SessionSecureID, "project_id": obj.ProjectID}).Infof("Sending Slack Webhook with preview_text: %s", msg.Text)
 					err := slack.PostWebhook(
 						slackWebhookURL,
 						&msg,

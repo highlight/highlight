@@ -12,8 +12,12 @@ import { onGetLinkWithTimestamp } from '../../../pages/Player/SessionShareButton
 export type CommandWithoutId = Omit<Command, 'id'>;
 
 const NAVIGATION_COMMANDS = [
-    { route: 'sessions', name: 'Go to sessions' },
-    { route: 'errors', name: 'Go to errors' },
+    { route: 'sessions', name: 'Go to Sessions' },
+    { route: 'errors', name: 'Go to Errors' },
+    { route: 'alerts', name: 'Go to Alerts' },
+    { route: 'billing', name: 'Go to Billing' },
+    { route: 'settings', name: 'Go to Project Settings' },
+    { route: 'home', name: 'Go to Project Dashboard' },
 ] as const;
 
 export const getNavigationCommands = (
@@ -174,14 +178,13 @@ export const usePlayerCommands = (
         },
     ] as const;
 
-    const pathNameTokens = location.pathname.split('/');
+    const [, , routeName, sessionId] = location.pathname.split('/');
     // We don't have access to the session URL parameter on all routes so we manually parse/check for the session.
-    const isOnPlayerPage =
-        pathNameTokens[pathNameTokens.length - 2] === 'sessions' &&
-        !Number.isNaN(parseInt(pathNameTokens[pathNameTokens.length - 1]));
+    const isOnPlayerPageWithSession =
+        routeName === 'sessions' && sessionId !== '' && sessionId != undefined;
 
     // Don't show Player-specific commands when not on the player page.
-    if (!isOnPlayerPage) {
+    if (!isOnPlayerPageWithSession) {
         return [];
     }
 

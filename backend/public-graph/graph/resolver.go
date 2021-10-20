@@ -582,7 +582,7 @@ func (r *Resolver) processStackFrame(projectId, sessionId int, stackTrace model2
 	// get path from url
 	u, err := url.Parse(stackTraceFileURL)
 	if err != nil {
-		err := e.Wrapf(err, "error parsing url: %v", stackTraceFileURL)
+		err := e.Wrapf(err, "error parsing stack trace file url: %v", stackTraceFileURL)
 		return nil, err
 	}
 	stackTraceFilePath := u.Path
@@ -630,7 +630,7 @@ func (r *Resolver) processStackFrame(projectId, sessionId int, stackTrace model2
 	// get path from url
 	u2, err := url.Parse(sourceMapURL)
 	if err != nil {
-		err := e.Wrapf(err, "error parsing url: %v", sourceMapURL)
+		err := e.Wrap(err, "error parsing source map url")
 		return nil, err
 	}
 	sourceMapFilePath := u2.Path
@@ -783,23 +783,23 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 
 func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customModels.BackendErrorObjectInput) {
 	// Get a list of unique session ids to query
-	sessionIdSet := make(map[string]bool)
+	sessionSecureIdSet := make(map[string]bool)
 	for _, errInput := range errors {
-		sessionIdSet[errInput.SessionID] = true
+		sessionSecureIdSet[errInput.SessionSecureID] = true
 	}
-	sessionIds := make([]string, 0, len(sessionIdSet))
-	for sId := range sessionIdSet {
-		sessionIds = append(sessionIds, sId)
+	sessionSecureIds := make([]string, 0, len(sessionSecureIdSet))
+	for sId := range sessionSecureIdSet {
+		sessionSecureIds = append(sessionSecureIds, sId)
 	}
 
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload", tracer.ResourceName("db.querySessions"))
 	querySessionSpan.SetTag("numberOfErrors", len(errors))
-	querySessionSpan.SetTag("numberOfSessions", len(sessionIds))
+	querySessionSpan.SetTag("numberOfSessions", len(sessionSecureIds))
 
 	// Query all sessions related to the current batch of error objects
 	sessions := []*model.Session{}
-	if err := r.DB.Model(&model.Session{}).Where("id IN ?", sessionIds).Scan(&sessions).Error; err != nil {
-		retErr := e.Wrapf(err, "error reading from sessionIds")
+	if err := r.DB.Model(&model.Session{}).Where("secure_id IN ?", sessionSecureIds).Scan(&sessions).Error; err != nil {
+		retErr := e.Wrapf(err, "error reading from sessionSecureIds")
 		querySessionSpan.Finish(tracer.WithError(retErr))
 		log.Error(retErr)
 		return
@@ -807,10 +807,10 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 
 	querySessionSpan.Finish()
 
-	// Index sessions by id
+	// Index sessions by secure_id
 	sessionLookup := make(map[string]*model.Session)
 	for _, session := range sessions {
-		sessionLookup[strconv.Itoa(session.ID)] = session
+		sessionLookup[session.SecureID] = session
 	}
 
 	// Filter out empty errors
@@ -826,9 +826,9 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 				objString = string(objBytes)
 			}
 			log.WithFields(log.Fields{
-				"project_id":   sessionLookup[errorObject.SessionID],
-				"session_id":   errorObject.SessionID,
-				"error_object": objString,
+				"project_id":        sessionLookup[errorObject.SessionSecureID],
+				"session_secure_id": errorObject.SessionSecureID,
+				"error_object":      objString,
 			}).Warn("caught empty error, continuing...")
 		} else {
 			filteredErrors = append(filteredErrors, errorObject)
@@ -843,7 +843,7 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 	// Count the number of errors for each project
 	errorsByProject := make(map[int]int64)
 	for _, err := range errors {
-		projectID := sessionLookup[err.SessionID].ProjectID
+		projectID := sessionLookup[err.SessionSecureID].ProjectID
 		errorsByProject[projectID] += 1
 	}
 
@@ -890,7 +890,7 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 		}
 		traceString := string(traceBytes)
 
-		sessionObj := sessionLookup[v.SessionID]
+		sessionObj := sessionLookup[v.SessionSecureID]
 		projectID := sessionObj.ProjectID
 
 		errorToInsert := &model.ErrorObject{
@@ -928,7 +928,7 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 	putErrorsToDBSpan.Finish()
 
 	now := time.Now()
-	if err := r.DB.Model(&model.Session{}).Where("id IN ?", sessionIds).Updates(&model.Session{PayloadUpdatedAt: &now}).Error; err != nil {
+	if err := r.DB.Model(&model.Session{}).Where("secure_id IN ?", sessionSecureIds).Updates(&model.Session{PayloadUpdatedAt: &now}).Error; err != nil {
 		log.Error(e.Wrap(err, "error updating session payload time"))
 		return
 	}

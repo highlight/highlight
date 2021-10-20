@@ -83,6 +83,7 @@
         "start": "HTTPS=true doppler run -- craco start",
         "styles": " tsm src -w",
         "gql": "graphql-codegen --config --watch codegen.yml",
+        "gql:nowatch": "graphql-codegen --config codegen.yml",
         "build": "craco build",
         "test": "craco test",
         "eject": "react-scripts eject",
