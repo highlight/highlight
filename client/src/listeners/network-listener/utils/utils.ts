@@ -1,4 +1,3 @@
-import { SessionData } from 'index';
 import { RequestResponsePair } from './models';
 
 export const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'
