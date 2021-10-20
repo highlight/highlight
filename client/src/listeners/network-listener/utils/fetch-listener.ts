@@ -5,7 +5,7 @@ import {
     Request as HighlightRequest,
     Response as HighlightResponse,
 } from './models';
-import { createNetworkRequestId, shouldNetworkRequestBeRecorded, shouldNetworkRequestBeTraced } from './utils';
+import { createNetworkRequestId, getHighlightRequestHeader, HIGHLIGHT_REQUEST_HEADER, shouldNetworkRequestBeRecorded, shouldNetworkRequestBeTraced } from './utils';
 
 export const FetchListener = (
     callback: NetworkListenerCallback,
@@ -25,7 +25,10 @@ export const FetchListener = (
         const requestId = createNetworkRequestId();
         if (shouldNetworkRequestBeTraced(url, tracingOrigins)) {
             init = init || {};
-            init.headers = {...init.headers, 'X-Highlight-Request': sessionData.sessionID + "/" + requestId};
+            // Pre-existing headers could be one of three different formats; this reads all of them.
+            let headers = new Headers(init.headers);
+            headers.set(HIGHLIGHT_REQUEST_HEADER, getHighlightRequestHeader(sessionData, requestId))
+            init.headers = Object.fromEntries(headers.entries());
         }
 
         const request: HighlightRequest = {
@@ -39,7 +42,7 @@ export const FetchListener = (
             url.toLowerCase().includes(blockedUrl)
         );
         if (shouldRecordHeaderAndBody) {
-            request.headers = init?.headers as any;
+            request.headers = Object.fromEntries((new Headers(init?.headers).entries()));
             request.body = init?.body;
         }
 
