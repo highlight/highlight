@@ -10,7 +10,7 @@ interface Props {
 }
 
 interface CheckboxOption {
-    label: string;
+    label: string | React.ReactNode;
     onChange: (e: CheckboxChangeEvent) => void;
     checked: boolean;
 }
@@ -66,8 +66,8 @@ const CheckboxList = ({ checkboxOptions, containerClassName }: Props) => {
 
     return (
         <div className={classNames(containerClassName)}>
-            {checkboxOptions.map((option) => (
-                <div key={option.label} className={styles.checkboxOption}>
+            {checkboxOptions.map((option, index) => (
+                <div key={index} className={styles.checkboxOption}>
                     <div className={styles.checkboxContainer}>
                         <Checkbox
                             checked={option.checked}
