@@ -296,7 +296,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             });
             setEvents(newEvents);
             setReplayer(r);
-        } else if (eventsPayload?.length == 0) {
+        } else if (eventsPayload?.length === 0) {
             setSessionViewability(SessionViewability.EMPTY_SESSION);
         }
         // This hook shouldn't depend on `showPlayerMouseTail`. The player is updated through a setter. Making this hook depend on `showPlayerMouseTrail` will cause the player to be remounted when `showPlayerMouseTrail` changes.
