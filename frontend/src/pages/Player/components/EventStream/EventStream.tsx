@@ -21,7 +21,7 @@ import React, {
 } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import TextTransition from 'react-text-transition';
-import { LogLevel, Virtuoso, VirtuosoHandle } from 'react-virtuoso';
+import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
 import styles from './EventStream.module.scss';
@@ -176,7 +176,6 @@ const EventStream = () => {
                             ref={virtuoso}
                             data={filteredEvents}
                             totalCount={filteredEvents.length}
-                            logLevel={LogLevel.DEBUG}
                             itemContent={(index, event) => (
                                 <StreamElement
                                     e={event}
