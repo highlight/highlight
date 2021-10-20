@@ -21,6 +21,8 @@ type Props = Pick<
     id: string;
     /** Whether the tab contents has the default padding. */
     noPadding?: boolean;
+    /** Whether the tab headers have the default padding. */
+    noHeaderPadding?: boolean;
     /** An HTML id to attach to the tabs. */
     tabsHtmlId?: string;
     className?: string;
@@ -30,6 +32,7 @@ const Tabs = ({
     tabs,
     id,
     noPadding = false,
+    noHeaderPadding = false,
     tabBarExtraContent,
     tabsHtmlId,
     className,
@@ -53,13 +56,19 @@ const Tabs = ({
             }}
             tabBarExtraContent={
                 tabBarExtraContent ? (
-                    <div className={styles.extraContentContainer}>
+                    <div
+                        className={classNames(styles.extraContentContainer, {
+                            [styles.withHeaderPadding]: !noHeaderPadding,
+                        })}
+                    >
                         {tabBarExtraContent}
                     </div>
                 ) : null
             }
             id={tabsHtmlId}
-            className={classNames(styles.tabs, className)}
+            className={classNames(styles.tabs, className, {
+                [styles.noHeaderPadding]: noHeaderPadding,
+            })}
         >
             {tabs.map(({ panelContent, title }) => (
                 <TabPane

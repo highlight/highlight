@@ -230,8 +230,18 @@ $canvas-width: calc(
     column-gap: var(--size-medium);
     display: flex;
     justify-content: space-between;
+    padding-bottom: var(--size-xSmall);
 }
 
 .virtuoso {
     overflow-x: hidden;
+}
+
+.tabContainer {
+    height: 100%;
+    padding: var(--size-medium) 0;
+}
+
+.extraContentContainer {
+    margin-right: var(--size-medium);
 }
