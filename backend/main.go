@@ -224,12 +224,12 @@ func main() {
 		})
 	}
 
-	H.Start()
-	defer H.Stop()
 	if util.IsDevOrTestEnv() {
 		log.Info("overwriting highlight-go graphql client address...")
 		H.SetGraphqlClientAddress("http://localhost:8082/public")
 	}
+	H.Start()
+	defer H.Stop()
 
 	/*
 		Run a simple server that runs the frontend if 'staticFrontedPath' and 'all' is set.
