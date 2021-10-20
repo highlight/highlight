@@ -34,3 +34,12 @@
     align-items: center;
     display: flex !important;
 }
+
+.shortcutButton {
+    height: var(--size-large);
+}
+
+.icon {
+    height: var(--size-medium);
+    width: var(--size-medium);
+}
