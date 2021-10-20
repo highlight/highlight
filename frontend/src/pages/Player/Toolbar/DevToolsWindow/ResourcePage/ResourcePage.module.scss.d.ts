@@ -1,6 +1,7 @@
 export const canvasNetworkWrapper: string;
 export const current: string;
 export const detailPanelTitle: string;
+export const extraContentContainer: string;
 export const failedResource: string;
 export const filterContainer: string;
 export const goToButton: string;
@@ -21,6 +22,7 @@ export const optionsWrapper: string;
 export const resourcePageWrapper: string;
 export const rightAlign: string;
 export const showingDetails: string;
+export const tabContainer: string;
 export const timingBar: string;
 export const timingBarEmptySection: string;
 export const timingBarWrapper: string;

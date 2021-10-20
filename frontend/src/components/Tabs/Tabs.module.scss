@@ -11,9 +11,18 @@
     align-items: center;
     column-gap: var(--size-medium);
     display: flex;
-    padding-right: var(--size-large);
+
+    &.withHeaderPadding {
+        padding-right: var(--size-large);
+    }
 }
 
 .tabs {
     font-family: var(--header-font-family) !important;
+
+    &.noHeaderPadding {
+        :global(.ant-tabs-nav-wrap) {
+            padding: 0;
+        }
+    }
 }
