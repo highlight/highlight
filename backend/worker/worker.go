@@ -175,28 +175,47 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	return nil
 }
 
+func CreateFile(name string) (func(), *os.File, error) {
+	file, err := os.Create(name)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "error creating file")
+	}
+	return func() {
+		err := file.Close()
+		if err != nil {
+			log.Error(e.Wrap(err, "failed to close file"))
+			return
+		}
+		err = os.Remove(file.Name())
+		if err != nil {
+			log.Error(e.Wrap(err, "failed to remove file"))
+			return
+		}
+	}, file, nil
+}
+
 func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	sessionIdString := os.Getenv("SESSION_FILE_PATH_PREFIX") + strconv.FormatInt(int64(s.ID), 10)
 
 	// Create files.
-	eventsClose, eventsFile, err := util.CreateFile(sessionIdString + ".events.txt")
+	eventsClose, eventsFile, err := CreateFile(sessionIdString + ".events.txt")
 	if err != nil {
 		return errors.Wrap(err, "error creating events file")
 	}
 	defer eventsClose()
-	resourcesClose, resourcesFile, err := util.CreateFile(sessionIdString + ".resources.txt")
+	resourcesClose, resourcesFile, err := CreateFile(sessionIdString + ".resources.txt")
 	if err != nil {
 		return errors.Wrap(err, "error creating events file")
 	}
 	defer resourcesClose()
-	messagesClose, messagesFile, err := util.CreateFile(sessionIdString + ".messages.txt")
+	messagesClose, messagesFile, err := CreateFile(sessionIdString + ".messages.txt")
 	if err != nil {
 		return errors.Wrap(err, "error creating events file")
 	}
 	defer messagesClose()
 
-	eventsCompressedClose, eventsCompressedFile, err := util.CreateFile(sessionIdString + ".events.json.br")
+	eventsCompressedClose, eventsCompressedFile, err := CreateFile(sessionIdString + ".events.json.br")
 	if err != nil {
 		return errors.Wrap(err, "error creating events file")
 	}
