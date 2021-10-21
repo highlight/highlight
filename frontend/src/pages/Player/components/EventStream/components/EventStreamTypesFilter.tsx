@@ -56,6 +56,7 @@ export const EventStreamTypesFilter = () => {
                                     setShowIdentify(e.target.checked);
                                 },
                                 label: <Label label="Identify" />,
+                                key: 'Identify',
                             },
                             {
                                 checked: showTrack,
@@ -63,6 +64,7 @@ export const EventStreamTypesFilter = () => {
                                     setShowTrack(e.target.checked);
                                 },
                                 label: <Label label="Track" />,
+                                key: 'Track',
                             },
                             {
                                 checked: showViewport,
@@ -70,6 +72,7 @@ export const EventStreamTypesFilter = () => {
                                     setShowViewport(e.target.checked);
                                 },
                                 label: <Label label="Viewport" />,
+                                key: 'Viewport',
                             },
                             {
                                 checked: showSegment,
@@ -77,6 +80,7 @@ export const EventStreamTypesFilter = () => {
                                     setShowSegment(e.target.checked);
                                 },
                                 label: <Label label="Segment" />,
+                                key: 'Segment',
                             },
                             {
                                 checked: showFocus,
@@ -84,6 +88,7 @@ export const EventStreamTypesFilter = () => {
                                     setShowFocus(e.target.checked);
                                 },
                                 label: <Label label="Focus" />,
+                                key: 'Focus',
                             },
                             {
                                 checked: showNavigate,
@@ -91,6 +96,7 @@ export const EventStreamTypesFilter = () => {
                                     setShowNavigate(e.target.checked);
                                 },
                                 label: <Label label="Navigate" />,
+                                key: 'Navigate',
                             },
                             {
                                 checked: showClick,
@@ -98,6 +104,7 @@ export const EventStreamTypesFilter = () => {
                                     setShowClick(e.target.checked);
                                 },
                                 label: <Label label="Click" />,
+                                key: 'Click',
                             },
                             {
                                 checked: showReload,
@@ -105,6 +112,7 @@ export const EventStreamTypesFilter = () => {
                                     setShowReload(e.target.checked);
                                 },
                                 label: <Label label="Reload" />,
+                                key: 'Reload',
                             },
                         ]}
                         containerClassName={styles.optionsContainer}
