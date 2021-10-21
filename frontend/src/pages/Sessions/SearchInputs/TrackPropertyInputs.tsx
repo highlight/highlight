@@ -69,7 +69,9 @@ export const TrackPropertyInput = ({
                     }),
                 }}
                 cacheOptions
-                placeholder={'Select a track property...'}
+                placeholder={`Select a track property to ${
+                    include ? 'include' : 'exclude'
+                }...`}
                 isClearable={false}
                 defaultOptions
                 onChange={(options) => {

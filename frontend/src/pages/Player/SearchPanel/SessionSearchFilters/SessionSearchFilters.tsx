@@ -51,6 +51,8 @@ const SessionSearchFilters = () => {
             !!searchParams.show_live_sessions,
             !!searchParams.app_versions?.length,
             !!searchParams.environments?.length,
+            !!searchParams.track_properties?.length,
+            !!searchParams.user_properties?.length,
         ];
 
         setFiltersSetCount(
@@ -72,11 +74,14 @@ const SessionSearchFilters = () => {
         searchParams.length_range?.min,
         searchParams.os,
         searchParams.show_live_sessions,
+        searchParams.track_properties?.length,
+        searchParams.user_properties?.length,
     ]);
 
     return (
         <Popover
             large
+            visible
             content={
                 <main className={styles.contentContainer}>
                     <section className={styles.groupContainer}>
@@ -92,15 +97,21 @@ const SessionSearchFilters = () => {
                         )}
                     >
                         <label>
+                            <span>Included User Properties</span>
+                            <UserPropertyInput include />
+                        </label>
+                        <label>
                             <span>Excluded User Properties</span>
                             <UserPropertyInput include={false} />
+                        </label>
+                        <label>
+                            <span>Included Track Properties</span>
+                            <TrackPropertyInput include />
                         </label>
                         <label>
                             <span>Excluded Track Properties</span>
                             <TrackPropertyInput include={false} />
                         </label>
-                        <div></div>
-                        <div></div>
                         <label>
                             <span>Browser</span>
                             <BrowserInput />
