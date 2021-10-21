@@ -15,6 +15,8 @@ import {
     DeviceIdInput,
     EnvironmentInput,
     OperatingSystemInput,
+    ReferrerInput,
+    VisitedUrlInput,
 } from '../../../Sessions/SearchInputs/DeviceInputs';
 import { LengthInput } from '../../../Sessions/SearchInputs/LengthInput';
 import {
@@ -53,6 +55,8 @@ const SessionSearchFilters = () => {
             !!searchParams.environments?.length,
             !!searchParams.track_properties?.length,
             !!searchParams.user_properties?.length,
+            !!searchParams.referrer,
+            !!searchParams.visited_url,
         ];
 
         setFiltersSetCount(
@@ -73,15 +77,16 @@ const SessionSearchFilters = () => {
         searchParams.length_range?.max,
         searchParams.length_range?.min,
         searchParams.os,
+        searchParams.referrer,
         searchParams.show_live_sessions,
         searchParams.track_properties?.length,
         searchParams.user_properties?.length,
+        searchParams.visited_url,
     ]);
 
     return (
         <Popover
             large
-            visible
             content={
                 <main className={styles.contentContainer}>
                     <section className={styles.groupContainer}>
@@ -120,8 +125,14 @@ const SessionSearchFilters = () => {
                             <span>Operating System</span>
                             <OperatingSystemInput />
                         </label>
-                        <div></div>
-                        <div></div>
+                        <label>
+                            <span>Referrer</span>
+                            <ReferrerInput />
+                        </label>
+                        <label>
+                            <span>Visited URL</span>
+                            <VisitedUrlInput />
+                        </label>
                         <label>
                             <span>Device ID</span>
                             <DeviceIdInput />
