@@ -660,23 +660,24 @@ export class Highlight {
                 );
             }
             // Send the payload as the page closes. navigator.sendBeacon guarantees that a request will be made.
-            window.addEventListener('beforeunload', () => {
-                if ('sendBeacon' in navigator) {
-                    const payload = this._getPayload();
-                    let blob = new Blob(
-                        [
-                            JSON.stringify({
-                                query: print(PushPayloadDocument),
-                                variables: payload,
-                            }),
-                        ],
-                        {
-                            type: 'application/json',
-                        }
-                    );
-                    navigator.sendBeacon(`${this._backendUrl}`, blob);
-                }
-            });
+            // Disable beforeunload to see if it improves performance for safegraph
+            //     window.addEventListener('beforeunload', () => {
+            //         if ('sendBeacon' in navigator) {
+            //             const payload = this._getPayload();
+            //             let blob = new Blob(
+            //                 [
+            //                     JSON.stringify({
+            //                         query: print(PushPayloadDocument),
+            //                         variables: payload,
+            //                     }),
+            //                 ],
+            //                 {
+            //                     type: 'application/json',
+            //                 }
+            //             );
+            //             navigator.sendBeacon(`${this._backendUrl}`, blob);
+            //         }
+            //     });
             this.ready = true;
             this.state = 'Recording';
         } catch (e) {
