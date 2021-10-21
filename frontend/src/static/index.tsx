@@ -52,6 +52,7 @@ export { default as HumanImage } from './HumanImage';
 export { default as InformationIcon } from './InformationIcon';
 export { default as KeyboardIcon } from './KeyboardIcon';
 export { default as Link } from './Link';
+export { default as LinkedIcon } from './LinkedIcon';
 export { default as LinkIcon } from './LinkIcon';
 export { default as Lock } from './Lock';
 export { default as LogIn } from './LogIn';

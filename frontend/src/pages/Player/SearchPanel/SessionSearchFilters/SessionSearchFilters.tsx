@@ -15,6 +15,8 @@ import {
     DeviceIdInput,
     EnvironmentInput,
     OperatingSystemInput,
+    ReferrerInput,
+    VisitedUrlInput,
 } from '../../../Sessions/SearchInputs/DeviceInputs';
 import { LengthInput } from '../../../Sessions/SearchInputs/LengthInput';
 import {
@@ -51,6 +53,10 @@ const SessionSearchFilters = () => {
             !!searchParams.show_live_sessions,
             !!searchParams.app_versions?.length,
             !!searchParams.environments?.length,
+            !!searchParams.track_properties?.length,
+            !!searchParams.user_properties?.length,
+            !!searchParams.referrer,
+            !!searchParams.visited_url,
         ];
 
         setFiltersSetCount(
@@ -71,7 +77,11 @@ const SessionSearchFilters = () => {
         searchParams.length_range?.max,
         searchParams.length_range?.min,
         searchParams.os,
+        searchParams.referrer,
         searchParams.show_live_sessions,
+        searchParams.track_properties?.length,
+        searchParams.user_properties?.length,
+        searchParams.visited_url,
     ]);
 
     return (
@@ -92,15 +102,21 @@ const SessionSearchFilters = () => {
                         )}
                     >
                         <label>
+                            <span>Included User Properties</span>
+                            <UserPropertyInput include />
+                        </label>
+                        <label>
                             <span>Excluded User Properties</span>
                             <UserPropertyInput include={false} />
+                        </label>
+                        <label>
+                            <span>Included Track Properties</span>
+                            <TrackPropertyInput include />
                         </label>
                         <label>
                             <span>Excluded Track Properties</span>
                             <TrackPropertyInput include={false} />
                         </label>
-                        <div></div>
-                        <div></div>
                         <label>
                             <span>Browser</span>
                             <BrowserInput />
@@ -109,8 +125,14 @@ const SessionSearchFilters = () => {
                             <span>Operating System</span>
                             <OperatingSystemInput />
                         </label>
-                        <div></div>
-                        <div></div>
+                        <label>
+                            <span>Referrer</span>
+                            <ReferrerInput />
+                        </label>
+                        <label>
+                            <span>Visited URL</span>
+                            <VisitedUrlInput />
+                        </label>
                         <label>
                             <span>Device ID</span>
                             <DeviceIdInput />
