@@ -64,6 +64,7 @@ export const Toolbar = () => {
         canViewSession,
         isPlayerReady,
         sessionResults,
+        session,
     } = useReplayerContext();
     usePlayerKeyboardShortcuts();
     const {
@@ -417,6 +418,11 @@ export const Toolbar = () => {
                             </>
                         )}
                     </div>
+                    {session?.processed === false ? (
+                        <div className={styles.liveSection}>Live</div>
+                    ) : (
+                        ''
+                    )}
                 </div>
                 <div className={styles.toolbarPinnedSettings}>
                     {!isPlayerFullscreen && (
