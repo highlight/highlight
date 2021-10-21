@@ -2499,7 +2499,7 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, 
 		ON d.date = to_char(date_trunc('day', e.created_at), 'YYYY-MM-DD')
 		AND e.error_group_id=? AND e.project_id=?
 		GROUP BY d.date
-		ORDER BY d.date DESC;
+		ORDER BY d.date ASC;
 	`, dateOffset, errGroup.ID, projectID).Scan(&dailyErrors).Error; err != nil {
 		return nil, e.Wrap(err, "error querying daily frequency")
 	}
