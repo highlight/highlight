@@ -60,12 +60,17 @@ github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kd
 github.com/arbovm/levenshtein v0.0.0-20160628152529-48b4e1c0c4d0 h1:jfIu9sQUG6Ig+0+Ap1h4unLjW6YQJpKZVmUzxsD4E/Q=
 github.com/arbovm/levenshtein v0.0.0-20160628152529-48b4e1c0c4d0/go.mod h1:t2tdKJDJF9BV14lnkjHmOQgcvEKgtqs5a1N3LNdJhGE=
 github.com/aws/aws-sdk-go-v2 v1.3.1/go.mod h1:5SmWRTjN6uTRFNCc7rR69xHsdcUJnthmaRHGDsYhpTE=
+github.com/aws/aws-sdk-go-v2 v1.4.0/go.mod h1:tI4KhsR5VkzlUa2DZAdwx7wCAYGwkZZ1H31PYrBFx1w=
 github.com/aws/aws-sdk-go-v2 v1.9.0 h1:+S+dSqQCN3MSU5vJRu1HqHrq00cJn6heIMU7X9hcsoo=
 github.com/aws/aws-sdk-go-v2 v1.9.0/go.mod h1:cK/D0BBs0b/oWPIcX/Z/obahJK1TT7IPVjy53i/mX/4=
+github.com/aws/aws-sdk-go-v2 v1.9.2 h1:dUFQcMNZMLON4BOe273pl0filK9RqyQMhCK/6xssL6s=
+github.com/aws/aws-sdk-go-v2 v1.9.2/go.mod h1:cK/D0BBs0b/oWPIcX/Z/obahJK1TT7IPVjy53i/mX/4=
 github.com/aws/aws-sdk-go-v2/config v1.1.4 h1:2hjdDldmJJjb+rFieQySfOFt4WwxKZJVTEB6RBI74T4=
 github.com/aws/aws-sdk-go-v2/config v1.1.4/go.mod h1:op05ummoVoAqctpA80jVt/+hvEtLfuKmDyx0bIuvfbE=
 github.com/aws/aws-sdk-go-v2/credentials v1.1.4 h1:whYYw2srG+zUQzUw4LhML83f+xd22Vm7gv0I7aJglc8=
 github.com/aws/aws-sdk-go-v2/credentials v1.1.4/go.mod h1:UQwsT2w2XelrWoVV2v/zL2uce1RxmVCiHaZsoKLamZg=
+github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign v1.3.5 h1:Pf547qBd6fPrrNJjJ0UxmEkj9CYTeK5mRa+vIxz232w=
+github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign v1.3.5/go.mod h1:qap86Kvlbz5D9VjGZr0NnITwEfVGFs+Zja6CN5nSZZ8=
 github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.0.5 h1:5gCrezE41xYQHWDsDkJD9nT22tUH3s+Zrvs4c3v2FGc=
 github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.0.5/go.mod h1:z/NKNlYxMzphl7TzjV+ctUebHF4CFNGGlSvmV/NKcJU=
 github.com/aws/aws-sdk-go-v2/internal/ini v1.2.2 h1:d95cddM3yTm4qffj3P6EnP+TzX1SSkWaQypXSgT/hpA=
@@ -83,6 +88,7 @@ github.com/aws/aws-sdk-go-v2/service/sso v1.1.4/go.mod h1:yQayEbOWH75NaKFylsFocB
 github.com/aws/aws-sdk-go-v2/service/sts v1.2.1 h1:1koRvKlZMN+FhTGV5f4q6vRHXNJzeZlPKzbs1/Y32Kg=
 github.com/aws/aws-sdk-go-v2/service/sts v1.2.1/go.mod h1:L1LH5nHMXxdkKj057ZUx7Wi50CCrkZ+9jkTnBnY2j/w=
 github.com/aws/smithy-go v1.3.0/go.mod h1:SObp3lf9smib00L/v3U2eAKG8FyQ7iLrJnQiAmR5n+E=
+github.com/aws/smithy-go v1.4.0/go.mod h1:SObp3lf9smib00L/v3U2eAKG8FyQ7iLrJnQiAmR5n+E=
 github.com/aws/smithy-go v1.8.0 h1:AEwwwXQZtUwP5Mz506FeXXrKBe0jA8gVM+1gEcSRooc=
 github.com/aws/smithy-go v1.8.0/go.mod h1:SObp3lf9smib00L/v3U2eAKG8FyQ7iLrJnQiAmR5n+E=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
@@ -316,6 +322,7 @@ github.com/jinzhu/inflection v1.0.0/go.mod h1:h+uFLlag+Qp1Va5pdKtLDYj+kHp5pxUVkr
 github.com/jinzhu/now v1.1.1/go.mod h1:d3SSVoowX0Lcu0IBviAWJpolVfI5UJVZZ7cO71lE/z8=
 github.com/jinzhu/now v1.1.2 h1:eVKgfIdy9b6zbWBMgFpfDPoAMifwSZagU9HmEU6zgiI=
 github.com/jinzhu/now v1.1.2/go.mod h1:d3SSVoowX0Lcu0IBviAWJpolVfI5UJVZZ7cO71lE/z8=
+github.com/jmespath/go-jmespath v0.4.0 h1:BEgLn5cpjn8UN1mAw4NjwDrS35OdebyEtFe+9YPoQUg=
 github.com/jmespath/go-jmespath v0.4.0/go.mod h1:T8mJZnbsbmF+m6zOOFylbeCJqk5+pHWvzYPziyZiYoo=
 github.com/jmespath/go-jmespath/internal/testify v1.5.1/go.mod h1:L3OGu8Wl2/fWfCI6z80xFu9LTZmf1ZRjMHUOPmWr69U=
 github.com/json-iterator/go v1.1.9 h1:9yzud/Ht36ygwatGx56VwCZtlI/2AD15T1X2sjSuGns=

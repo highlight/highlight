@@ -443,9 +443,10 @@ type Session struct {
 	// EventCounts is a len()=100 slice that contains the count of events for the session normalized over 100 points
 	EventCounts *string
 
-	ObjectStorageEnabled *bool   `json:"object_storage_enabled"`
-	PayloadSize          *int64  `json:"payload_size"`
-	MigrationState       *string `json:"migration_state"`
+	ObjectStorageEnabled  *bool   `json:"object_storage_enabled"`
+	DirectDownloadEnabled bool    `json:"direct_download_enabled" gorm:"default:false"`
+	PayloadSize           *int64  `json:"payload_size"`
+	MigrationState        *string `json:"migration_state"`
 }
 
 // AreModelsWeaklyEqual compares two structs of the same type while ignoring the Model and SecureID field

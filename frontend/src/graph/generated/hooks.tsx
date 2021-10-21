@@ -2778,8 +2778,11 @@ export type UpdateErrorGroupIsPublicMutationOptions = Apollo.BaseMutationOptions
     Types.UpdateErrorGroupIsPublicMutationVariables
 >;
 export const GetSessionPayloadDocument = gql`
-    query GetSessionPayload($session_secure_id: String!) {
-        events(session_secure_id: $session_secure_id)
+    query GetSessionPayload(
+        $session_secure_id: String!
+        $skip_events: Boolean!
+    ) {
+        events(session_secure_id: $session_secure_id) @skip(if: $skip_events)
         errors(session_secure_id: $session_secure_id) {
             id
             error_group_secure_id
@@ -2839,6 +2842,7 @@ export const GetSessionPayloadDocument = gql`
  * const { data, loading, error } = useGetSessionPayloadQuery({
  *   variables: {
  *      session_secure_id: // value for 'session_secure_id'
+ *      skip_events: // value for 'skip_events'
  *   },
  * });
  */
@@ -2909,6 +2913,7 @@ export const GetSessionDocument = gql`
             client_config
             is_public
             event_counts
+            direct_download_url
         }
     }
 `;

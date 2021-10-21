@@ -1,5 +1,5 @@
-query GetSessionPayload($session_secure_id: String!) {
-    events(session_secure_id: $session_secure_id)
+query GetSessionPayload($session_secure_id: String!, $skip_events: Boolean!) {
+    events(session_secure_id: $session_secure_id) @skip(if: $skip_events)
     errors(session_secure_id: $session_secure_id) {
         id
         error_group_secure_id
@@ -79,6 +79,7 @@ query GetSession($secure_id: String!) {
         client_config
         is_public
         event_counts
+        direct_download_url
     }
 }
 

@@ -3277,6 +3277,19 @@ func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (i
 	return obj.UserObject, nil
 }
 
+func (r *sessionResolver) DirectDownloadURL(ctx context.Context, obj *model.Session) (*string, error) {
+	if !obj.DirectDownloadEnabled {
+		return nil, nil
+	}
+
+	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting direct download URL")
+	}
+
+	return str, err
+}
+
 func (r *sessionAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.SessionAlert) ([]*modelInputs.SanitizedSlackChannel, error) {
 	return obj.GetChannelsToNotify()
 }

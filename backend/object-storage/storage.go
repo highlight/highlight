@@ -3,34 +3,44 @@ package storage
 import (
 	"bytes"
 	"context"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"io"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
 	S3SessionsPayloadBucketName = os.Getenv("AWS_S3_BUCKET_NAME")
 	S3SourceMapBucketName       = os.Getenv("AWS_S3_SOURCE_MAP_BUCKET_NAME")
+	CloudfrontDomain            = os.Getenv("AWS_CLOUDFRONT_DOMAIN")
+	CloudfrontPublicKeyID       = os.Getenv("AWS_CLOUDFRONT_PUBLIC_KEY_ID")
+	CloudfrontPrivateKey        = os.Getenv("AWS_CLOUDFRONT_PRIVATE_KEY")
 )
 
 type PayloadType string
 
 const (
-	SessionContents  PayloadType = "session-contents"
-	NetworkResources PayloadType = "network-resources"
-	ConsoleMessages  PayloadType = "console-messages"
+	SessionContents           PayloadType = "session-contents"
+	NetworkResources          PayloadType = "network-resources"
+	ConsoleMessages           PayloadType = "console-messages"
+	SessionContentsCompressed PayloadType = "session-contents-compressed"
 )
 
 type StorageClient struct {
-	S3Client *s3.Client
+	S3Client  *s3.Client
+	URLSigner *sign.URLSigner
 }
 
 func NewStorageClient() (*StorageClient, error) {
@@ -44,8 +54,25 @@ func NewStorageClient() (*StorageClient, error) {
 	})
 
 	return &StorageClient{
-		S3Client: client,
+		S3Client:  client,
+		URLSigner: getURLSigner(),
 	}, nil
+}
+
+func getURLSigner() *sign.URLSigner {
+	if CloudfrontDomain == "" || CloudfrontPrivateKey == "" || CloudfrontPublicKeyID == "" {
+		log.Warn("Missing one or more Cloudfront configs, disabling direct download.")
+		return nil
+	}
+
+	block, _ := pem.Decode([]byte(CloudfrontPrivateKey))
+	privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		log.Warn("Error parsing private key, disabling direct download.")
+		return nil
+	}
+
+	return sign.NewURLSigner(CloudfrontPublicKeyID, privateKey)
 }
 
 func (s *StorageClient) PushFileToS3(ctx context.Context, sessionId, projectId int, file *os.File, bucket string, payloadType PayloadType) (*int64, error) {
@@ -213,4 +240,19 @@ func (s *StorageClient) ReadSourceMapFileFromS3(projectId int, version *string, 
 		return nil, errors.Wrap(err, "error reading from s3 buffer")
 	}
 	return buf.Bytes(), nil
+}
+
+func (s *StorageClient) GetDirectDownloadURL(projectId int, sessionId int) (*string, error) {
+	if s.URLSigner == nil {
+		return nil, nil
+	}
+
+	key := s.bucketKey(sessionId, projectId, SessionContentsCompressed)
+	unsignedURL := fmt.Sprintf("https://%s/%s", CloudfrontDomain, *key)
+	signedURL, err := s.URLSigner.Sign(unsignedURL, time.Now().Add(5*time.Minute))
+	if err != nil {
+		return nil, errors.Wrap(err, "error signing URL")
+	}
+
+	return &signedURL, nil
 }
