@@ -29,6 +29,11 @@ var (
 	CloudfrontPrivateKey        = os.Getenv("AWS_CLOUDFRONT_PRIVATE_KEY")
 )
 
+const (
+	MIME_TYPE_JSON          = "application/json"
+	CONTENT_ENCODING_BROTLI = "br"
+)
+
 type PayloadType string
 
 const (
@@ -44,7 +49,7 @@ type StorageClient struct {
 }
 
 func NewStorageClient() (*StorageClient, error) {
-	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-west-2"))
+	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-east-2"))
 	if err != nil {
 		return nil, errors.Wrap(err, "error loading default from config")
 	}
@@ -75,17 +80,22 @@ func getURLSigner() *sign.URLSigner {
 	return sign.NewURLSigner(CloudfrontPublicKeyID, privateKey)
 }
 
-func (s *StorageClient) PushFileToS3(ctx context.Context, sessionId, projectId int, file *os.File, bucket string, payloadType PayloadType) (*int64, error) {
+func (s *StorageClient) pushFileToS3WithOptions(ctx context.Context, sessionId, projectId int, file *os.File, bucket string, payloadType PayloadType, options s3.PutObjectInput) (*int64, error) {
 	_, err := file.Seek(0, io.SeekStart)
 	if err != nil {
 		return nil, errors.Wrap(err, "error seeking to beginning of file")
 	}
+
 	key := s.bucketKey(sessionId, projectId, payloadType)
-	_, err = s.S3Client.PutObject(ctx, &s3.PutObjectInput{Bucket: &bucket,
-		Key: key, Body: file})
+
+	options.Bucket = &bucket
+	options.Key = key
+	options.Body = file
+	_, err = s.S3Client.PutObject(ctx, &options)
 	if err != nil {
 		return nil, err
 	}
+
 	headObj := s3.HeadObjectInput{
 		Bucket: aws.String(S3SessionsPayloadBucketName),
 		Key:    key,
@@ -95,6 +105,19 @@ func (s *StorageClient) PushFileToS3(ctx context.Context, sessionId, projectId i
 		return nil, errors.New("error retrieving head object")
 	}
 	return &result.ContentLength, nil
+}
+
+// Push a compressed file to S3, adding the relevant metadata
+func (s *StorageClient) PushCompressedFileToS3(ctx context.Context, sessionId, projectId int, file *os.File, bucket string, payloadType PayloadType) (*int64, error) {
+	options := s3.PutObjectInput{
+		ContentType:     util.MakeStringPointer(MIME_TYPE_JSON),
+		ContentEncoding: util.MakeStringPointer(CONTENT_ENCODING_BROTLI),
+	}
+	return s.pushFileToS3WithOptions(ctx, sessionId, projectId, file, bucket, payloadType, options)
+}
+
+func (s *StorageClient) PushFileToS3(ctx context.Context, sessionId, projectId int, file *os.File, bucket string, payloadType PayloadType) (*int64, error) {
+	return s.pushFileToS3WithOptions(ctx, sessionId, projectId, file, bucket, payloadType, s3.PutObjectInput{})
 }
 
 func (s *StorageClient) ReadSessionsFromS3(sessionId int, projectId int) ([]interface{}, error) {

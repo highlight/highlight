@@ -40,7 +40,7 @@ type Worker struct {
 	S3Client *storage.StorageClient
 }
 
-func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Session, migrationState *string, eventsFile *os.File, resourcesFile *os.File, messagesFile *os.File) error {
+func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Session, migrationState *string, eventsFile *os.File, resourcesFile *os.File, messagesFile *os.File, compressedEventsFile *os.File) error {
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
@@ -61,7 +61,12 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 
 	messagePayloadSize, err := w.S3Client.PushFileToS3(ctx, s.ID, s.ProjectID, messagesFile, storage.S3SessionsPayloadBucketName, storage.ConsoleMessages)
 	if err != nil {
-		return errors.Wrap(err, "error pushing network payload to s3")
+		return errors.Wrap(err, "error pushing message payload to s3")
+	}
+
+	sessionCompressedPayloadSize, err := w.S3Client.PushCompressedFileToS3(ctx, s.ID, s.ProjectID, compressedEventsFile, storage.S3SessionsPayloadBucketName, storage.SessionContentsCompressed)
+	if err != nil {
+		return errors.Wrap(err, "error pushing compressed session payload to s3")
 	}
 
 	var totalPayloadSize int64
@@ -74,12 +79,15 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	if messagePayloadSize != nil {
 		totalPayloadSize += *messagePayloadSize
 	}
+	if sessionCompressedPayloadSize != nil {
+		totalPayloadSize += *sessionCompressedPayloadSize
+	}
 
 	// Mark this session as stored in S3.
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
-		&model.Session{ObjectStorageEnabled: &model.T, PayloadSize: &totalPayloadSize},
+		&model.Session{ObjectStorageEnabled: &model.T, PayloadSize: &totalPayloadSize, DirectDownloadEnabled: true},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to storage enabled")
 	}
@@ -98,13 +106,11 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	return nil
 }
 
-func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session, eventsFile *os.File, resourcesFile *os.File, messagesFile *os.File) (*payload.PayloadManager, error) {
-	manager := payload.NewPayloadManager(eventsFile, resourcesFile, messagesFile)
-
+func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.PayloadManager, s *model.Session) error {
 	// Fetch/write events.
 	eventRows, err := w.Resolver.DB.Model(&model.EventsObject{}).Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").Rows()
 	if err != nil {
-		return nil, errors.Wrap(err, "error retrieving events objects")
+		return errors.Wrap(err, "error retrieving events objects")
 	}
 	var numberOfRows int64 = 0
 	eventsWriter := manager.Events.Writer()
@@ -112,19 +118,25 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session, event
 		eventObject := model.EventsObject{}
 		err := w.Resolver.DB.ScanRows(eventRows, &eventObject)
 		if err != nil {
-			return nil, errors.Wrap(err, "error scanning event row")
+			return errors.Wrap(err, "error scanning event row")
 		}
 		if err := eventsWriter.Write(&eventObject); err != nil {
-			return nil, errors.Wrap(err, "error writing event row")
+			return errors.Wrap(err, "error writing event row")
+		}
+		if err := manager.EventsCompressed.WriteEvents(&eventObject); err != nil {
+			return errors.Wrap(err, "error writing compressed event row")
 		}
 		numberOfRows += 1
 	}
 	manager.Events.Length = numberOfRows
+	if err := manager.EventsCompressed.Close(); err != nil {
+		return errors.Wrap(err, "error closing compressed events file")
+	}
 
 	// Fetch/write resources.
 	resourcesRows, err := w.Resolver.DB.Model(&model.ResourcesObject{}).Where(&model.ResourcesObject{SessionID: s.ID}).Order("created_at asc").Rows()
 	if err != nil {
-		return nil, errors.Wrap(err, "error retrieving resources objects")
+		return errors.Wrap(err, "error retrieving resources objects")
 	}
 	resourceWriter := manager.Resources.Writer()
 	numberOfRows = 0
@@ -132,10 +144,10 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session, event
 		resourcesObject := model.ResourcesObject{}
 		err := w.Resolver.DB.ScanRows(resourcesRows, &resourcesObject)
 		if err != nil {
-			return nil, errors.Wrap(err, "error scanning resource row")
+			return errors.Wrap(err, "error scanning resource row")
 		}
 		if err := resourceWriter.Write(&resourcesObject); err != nil {
-			return nil, errors.Wrap(err, "error writing resource row")
+			return errors.Wrap(err, "error writing resource row")
 		}
 		numberOfRows += 1
 	}
@@ -144,7 +156,7 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session, event
 	// Fetch/write messages.
 	messageRows, err := w.Resolver.DB.Model(&model.MessagesObject{}).Where(&model.MessagesObject{SessionID: s.ID}).Order("created_at asc").Rows()
 	if err != nil {
-		return nil, errors.Wrap(err, "error retrieving messages objects")
+		return errors.Wrap(err, "error retrieving messages objects")
 	}
 
 	numberOfRows = 0
@@ -152,54 +164,15 @@ func (w *Worker) scanSessionPayload(ctx context.Context, s *model.Session, event
 	for messageRows.Next() {
 		messageObject := model.MessagesObject{}
 		if err := w.Resolver.DB.ScanRows(messageRows, &messageObject); err != nil {
-			return nil, errors.Wrap(err, "error scanning message row")
+			return errors.Wrap(err, "error scanning message row")
 		}
 		if err := messagesWriter.Write(&messageObject); err != nil {
-			return nil, errors.Wrap(err, "error writing messages object")
+			return errors.Wrap(err, "error writing messages object")
 		}
 		numberOfRows += 1
 	}
 	manager.Messages.Length = numberOfRows
-
-	// Measure payload sizes.
-	eventInfo, err := eventsFile.Stat()
-	if err != nil {
-		return nil, errors.Wrap(err, "error getting event file info")
-	}
-	hlog.Histogram("worker.processSession.eventPayloadSize", float64(eventInfo.Size()), nil, 1) //nolint
-
-	resourceInfo, err := resourcesFile.Stat()
-	if err != nil {
-		return nil, errors.Wrap(err, "error getting resource file info")
-	}
-	hlog.Histogram("worker.processSession.resourcePayloadSize", float64(resourceInfo.Size()), nil, 1) //nolint
-
-	messagesInfo, err := messagesFile.Stat()
-	if err != nil {
-		return nil, errors.Wrap(err, "error getting message file info")
-	}
-	hlog.Histogram("worker.processSession.messagePayloadSize", float64(messagesInfo.Size()), nil, 1) //nolint
-
-	return manager, nil
-}
-
-func CreateFile(name string) (func(), *os.File, error) {
-	file, err := os.Create(name)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "error creating file")
-	}
-	return func() {
-		err := file.Close()
-		if err != nil {
-			log.Error(e.Wrap(err, "failed to close file"))
-			return
-		}
-		err = os.Remove(file.Name())
-		if err != nil {
-			log.Error(e.Wrap(err, "failed to remove file"))
-			return
-		}
-	}, file, nil
+	return nil
 }
 
 func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
@@ -207,26 +180,58 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	sessionIdString := os.Getenv("SESSION_FILE_PATH_PREFIX") + strconv.FormatInt(int64(s.ID), 10)
 
 	// Create files.
-	eventsClose, eventsFile, err := CreateFile(sessionIdString + ".events.txt")
+	eventsClose, eventsFile, err := util.CreateFile(sessionIdString + ".events.txt")
 	if err != nil {
 		return errors.Wrap(err, "error creating events file")
 	}
 	defer eventsClose()
-	resourcesClose, resourcesFile, err := CreateFile(sessionIdString + ".resources.txt")
+	resourcesClose, resourcesFile, err := util.CreateFile(sessionIdString + ".resources.txt")
 	if err != nil {
 		return errors.Wrap(err, "error creating events file")
 	}
 	defer resourcesClose()
-	messagesClose, messagesFile, err := CreateFile(sessionIdString + ".messages.txt")
+	messagesClose, messagesFile, err := util.CreateFile(sessionIdString + ".messages.txt")
 	if err != nil {
 		return errors.Wrap(err, "error creating events file")
 	}
 	defer messagesClose()
 
-	payloadManager, err := w.scanSessionPayload(ctx, s, eventsFile, resourcesFile, messagesFile)
+	eventsCompressedClose, eventsCompressedFile, err := util.CreateFile(sessionIdString + ".events.json.br")
 	if err != nil {
+		return errors.Wrap(err, "error creating events file")
+	}
+	defer eventsCompressedClose()
+
+	payloadManager := payload.NewPayloadManager(eventsFile, resourcesFile, messagesFile, eventsCompressedFile)
+
+	if err := w.scanSessionPayload(ctx, payloadManager, s); err != nil {
 		return errors.Wrap(err, "error scanning session payload")
 	}
+
+	// Measure payload sizes.
+	eventInfo, err := eventsFile.Stat()
+	if err != nil {
+		return errors.Wrap(err, "error getting event file info")
+	}
+	hlog.Histogram("worker.processSession.eventPayloadSize", float64(eventInfo.Size()), nil, 1) //nolint
+
+	resourceInfo, err := resourcesFile.Stat()
+	if err != nil {
+		return errors.Wrap(err, "error getting resource file info")
+	}
+	hlog.Histogram("worker.processSession.resourcePayloadSize", float64(resourceInfo.Size()), nil, 1) //nolint
+
+	messagesInfo, err := messagesFile.Stat()
+	if err != nil {
+		return errors.Wrap(err, "error getting message file info")
+	}
+	hlog.Histogram("worker.processSession.messagePayloadSize", float64(messagesInfo.Size()), nil, 1) //nolint
+
+	eventsCompressedInfo, err := eventsCompressedFile.Stat()
+	if err != nil {
+		return errors.Wrap(err, "error getting compressed event file info")
+	}
+	hlog.Histogram("worker.processSession.eventsCompressedPayloadSize", float64(eventsCompressedInfo.Size()), nil, 1) //nolint
 
 	//Delete the session if there's no events.
 	if payloadManager.Events.Length == 0 && s.Length <= 0 {
@@ -659,7 +664,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// Upload to s3 and wipe from the db.
 	if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" {
 		state := "normal"
-		if err := w.pushToObjectStorageAndWipe(ctx, s, &state, eventsFile, resourcesFile, messagesFile); err != nil {
+		if err := w.pushToObjectStorageAndWipe(ctx, s, &state, eventsFile, resourcesFile, messagesFile, eventsCompressedFile); err != nil {
 			log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Error(e.Wrap(err, "error pushing to object and wiping from db"))
 		}
 	}
