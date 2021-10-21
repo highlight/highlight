@@ -49,7 +49,7 @@ type StorageClient struct {
 }
 
 func NewStorageClient() (*StorageClient, error) {
-	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-east-2"))
+	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-west-2"))
 	if err != nil {
 		return nil, errors.Wrap(err, "error loading default from config")
 	}
