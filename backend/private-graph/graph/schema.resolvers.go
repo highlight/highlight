@@ -1975,6 +1975,43 @@ func (r *queryResolver) RageClicks(ctx context.Context, sessionSecureID string) 
 	return rageClicks, nil
 }
 
+func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int, lookBackPeriod int) ([]*modelInputs.RageClickEventForProject, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "admin not found in project")
+	}
+
+	rageClicks := []*modelInputs.RageClickEventForProject{}
+
+	rageClicksSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
+		tracer.ResourceName("db.RageClicksForProject"), tracer.Tag("project_id", projectID))
+	if err := r.DB.Raw(`
+	SELECT
+		COALESCE(NULLIF(identifier, ''), CONCAT('#', fingerprint)) as identifier,
+		rageClicks. *
+	FROM
+		(
+			SELECT
+				DISTINCT session_secure_id,
+				sum(total_clicks) as total_clicks
+			FROM
+				rage_click_events
+			WHERE
+				project_id = ?
+				AND created_at >= NOW() - (? * INTERVAL '1 DAY')
+			GROUP BY
+				session_secure_id
+		) AS rageClicks
+		LEFT JOIN sessions s ON rageClicks.session_secure_id = s.secure_id
+		WHERE session_secure_id IS NOT NULL
+		ORDER BY total_clicks DESC`,
+		projectID, lookBackPeriod).Scan(&rageClicks).Error; err != nil {
+		return nil, e.Wrap(err, "error retrieving rage clicks for project")
+	}
+	rageClicksSpan.Finish()
+
+	return rageClicks, nil
+}
+
 func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count int, params *modelInputs.ErrorSearchParamsInput) (*model.ErrorResults, error) {
 	endpointStart := time.Now()
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {

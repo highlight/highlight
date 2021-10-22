@@ -2,6 +2,7 @@ import DemoWorkspaceButton, {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import RageClicksForProjectTable from '@pages/Home/components/RageClicksForProjectTable/RageClicksForProjectTable';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
@@ -114,6 +115,7 @@ const HomePage = () => {
                         <ErrorCountGraph />
                         <ReferrersTable />
                         <ActiveUsersTable />
+                        <RageClicksForProjectTable />
                     </div>
                     {!hasData && (
                         <div className={styles.noDataContainer}>
