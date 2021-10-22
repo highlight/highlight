@@ -110,7 +110,7 @@ const RageClicksForProjectTable = () => {
                         ...EmptySessionsSearchParams,
                     });
                     message.success(
-                        `Showing sessions for ${record.identifier}`
+                        `Showing session for ${record.identifier} with rage clicks.`
                     );
                     history.push(
                         `/${projectIdRemapped}/sessions/${record.sessionSecureId}`
