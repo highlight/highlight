@@ -2003,7 +2003,8 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 		) AS rageClicks
 		LEFT JOIN sessions s ON rageClicks.session_secure_id = s.secure_id
 		WHERE session_secure_id IS NOT NULL
-		ORDER BY total_clicks DESC`,
+		ORDER BY total_clicks DESC
+		LIMIT 100`,
 		projectID, lookBackPeriod).Scan(&rageClicks).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving rage clicks for project")
 	}
