@@ -9,6 +9,7 @@ require (
 	github.com/99designs/gqlgen v0.13.0
 	github.com/DataDog/datadog-go v4.4.0+incompatible
 	github.com/Microsoft/go-winio v0.4.16 // indirect
+	github.com/andybalholm/brotli v1.0.3
 	github.com/aws/aws-sdk-go-v2 v1.9.2
 	github.com/aws/aws-sdk-go-v2/config v1.1.4
 	github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign v1.3.5

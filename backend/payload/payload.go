@@ -2,10 +2,12 @@ package payload
 
 import (
 	"bufio"
+	"encoding/json"
 	"io"
 	"os"
 	"strings"
 
+	"github.com/andybalholm/brotli"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/pkg/errors"
 )
@@ -83,16 +85,87 @@ func (o *ObjectWriter) Write(m model.Object) error {
 	return nil
 }
 
-type PayloadManager struct {
-	Events    *PayloadReadWriter
-	Resources *PayloadReadWriter
-	Messages  *PayloadReadWriter
+type CompressedJSONArrayWriter struct {
+	writer      *brotli.Writer
+	hasContents bool
 }
 
-func NewPayloadManager(eventsFile *os.File, resourcesFile *os.File, messagesFile *os.File) *PayloadManager {
+const BROTLI_COMPRESSION_LEVEL = 9
+
+// Initializes a new writer with the configured compression level
+func NewCompressedJSONArrayWriter(brFile *os.File) *CompressedJSONArrayWriter {
+	brWriter := brotli.NewWriterLevel(brFile, BROTLI_COMPRESSION_LEVEL)
+	return &CompressedJSONArrayWriter{
+		writer:      (brWriter),
+		hasContents: false,
+	}
+}
+
+// Merges the inner contents of the input events objects into a large JSON array
+func (w *CompressedJSONArrayWriter) WriteEvents(events *model.EventsObject) error {
+	var eventsObj struct {
+		Events []interface{}
+	}
+
+	// EventsObject.Events is a string with the format "{events:[{...},{...},...]}"
+	// Unmarshal this string, then marshal the inner array
+	if err := json.Unmarshal([]byte(events.Events), &eventsObj); err != nil {
+		return errors.Wrap(err, "error unmarshalling events")
+	}
+	if len(eventsObj.Events) == 0 {
+		return nil
+	}
+	remarshalled, err := json.Marshal(eventsObj.Events)
+	if err != nil {
+		return errors.Wrap(err, "error marshalling events array")
+	}
+
+	// If nothing has been written yet, start with an opening bracket
+	if !w.hasContents {
+		if _, err := w.writer.Write([]byte("[")); err != nil {
+			return errors.Wrap(err, "error writing message start")
+		}
+	} else {
+		if _, err := w.writer.Write([]byte(",")); err != nil {
+			return errors.Wrap(err, "error writing message delimiter")
+		}
+	}
+
+	// Strip the start and end brackets from the array string
+	if _, err := w.writer.Write(remarshalled[1 : len(remarshalled)-1]); err != nil {
+		return errors.Wrap(err, "error writing compressed payload to file")
+	}
+
+	w.hasContents = true
+
+	return nil
+}
+
+// Appends a closing bracket to close the JSON array, and closes the underlying writer
+func (w *CompressedJSONArrayWriter) Close() error {
+	if w.hasContents {
+		if _, err := w.writer.Write([]byte("]")); err != nil {
+			return errors.Wrap(err, "error writing message end")
+		}
+	}
+	if err := w.writer.Close(); err != nil {
+		return errors.Wrap(err, "error closing writer")
+	}
+	return nil
+}
+
+type PayloadManager struct {
+	Events           *PayloadReadWriter
+	Resources        *PayloadReadWriter
+	Messages         *PayloadReadWriter
+	EventsCompressed *CompressedJSONArrayWriter
+}
+
+func NewPayloadManager(eventsFile *os.File, resourcesFile *os.File, messagesFile *os.File, eventsCompressedFile *os.File) *PayloadManager {
 	reader := &PayloadManager{}
 	reader.Events = NewPayloadReadWriter(eventsFile)
 	reader.Resources = NewPayloadReadWriter(resourcesFile)
 	reader.Messages = NewPayloadReadWriter(messagesFile)
+	reader.EventsCompressed = NewCompressedJSONArrayWriter(eventsCompressedFile)
 	return reader
 }
