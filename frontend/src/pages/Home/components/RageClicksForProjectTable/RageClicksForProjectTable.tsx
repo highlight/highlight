@@ -11,19 +11,24 @@ import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router-dom';
 
 import BarChartTable from '../../../../components/BarChartTable/BarChartTable';
-import { getPercentageDisplayValue } from '../../../../components/BarChartTable/utils/utils';
 import Input from '../../../../components/Input/Input';
 import Tooltip from '../../../../components/Tooltip/Tooltip';
-import { useGetTopUsersQuery } from '../../../../graph/generated/hooks';
+import { useGetRageClicksForProjectQuery } from '../../../../graph/generated/hooks';
 import { EmptySessionsSearchParams } from '../../../Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '../../../Sessions/SearchContext/SearchContext';
 import homePageStyles from '../../HomePage.module.scss';
 import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext';
-import { formatShortTime } from '../KeyPerformanceIndicators/utils/utils';
-import styles from './ActiveUsersTable.module.scss';
+import styles from './RageClicksForProjectTable.module.scss';
 
-const ActiveUsersTable = () => {
-    const [tableData, setTableData] = useState<any[]>([]);
+const RageClicksForProjectTable = () => {
+    const [tableData, setTableData] = useState<
+        {
+            key: string;
+            identifier: string;
+            sessionSecureId: string;
+            totalClicks: number;
+        }[]
+    >([]);
     const { project_id } = useParams<{
         project_id: string;
     }>();
@@ -41,19 +46,18 @@ const ActiveUsersTable = () => {
     const history = useHistory();
     const [filterSearchTerm, setFilterSearchTerm] = useState('');
 
-    const { loading } = useGetTopUsersQuery({
+    const { loading } = useGetRageClicksForProjectQuery({
         variables: { project_id, lookBackPeriod: dateRangeLength },
         onCompleted: (data) => {
-            if (data.topUsers) {
-                const transformedData = data.topUsers
-                    .slice()
-                    .map((topUser, index) => ({
-                        key: index,
-                        identifier: topUser?.identifier,
-                        total_active_time: topUser?.total_active_time,
-                        active_time_percentage: topUser?.active_time_percentage,
-                        id: topUser?.id,
-                    }));
+            if (data.rageClicksForProject) {
+                const transformedData = data.rageClicksForProject.map(
+                    (rageClick) => ({
+                        key: rageClick.session_secure_id,
+                        identifier: rageClick.identifier,
+                        sessionSecureId: rageClick.session_secure_id,
+                        totalClicks: rageClick.total_clicks,
+                    })
+                );
 
                 setTableData(transformedData);
             }
@@ -83,7 +87,7 @@ const ActiveUsersTable = () => {
             )}
         >
             <div className={homePageStyles.chartHeaderWrapper}>
-                <h3>Top Users</h3>
+                <h3>Rage Clicks</h3>
                 <Input
                     allowClear
                     placeholder="Search for user"
@@ -104,62 +108,42 @@ const ActiveUsersTable = () => {
                     setSelectedSegment(undefined);
                     setSearchParams({
                         ...EmptySessionsSearchParams,
-                        user_properties: [
-                            {
-                                id: record.id,
-                                name: 'identifer',
-                                value: record.identifier,
-                            },
-                        ],
                     });
                     message.success(
-                        `Showing sessions for ${record.identifier}`
+                        `Showing session for ${record.identifier} with rage clicks.`
                     );
-                    history.push(`/${projectIdRemapped}/sessions`);
+                    history.push(
+                        `/${projectIdRemapped}/sessions/${record.sessionSecureId}`
+                    );
                 }}
                 noDataMessage={
                     filteredTableData.length === 0 &&
                     filterSearchTerm !== '' ? (
-                        <>
-                            This table will only shows the top 50 users based on
-                            total active time in your app. '{filterSearchTerm}'
-                            is not in the top 50.
-                        </>
+                        <></>
                     ) : (
                         <>
-                            It doesn't look like we have any sessions with
-                            identified users. You will need to call{' '}
-                            <code>identify()</code> in your app to identify
-                            users during their sessions. You can{' '}
-                            <a
-                                href="https://docs.highlight.run/identifying-users"
-                                target="_blank"
-                                rel="noreferrer"
-                            >
-                                learn more here
-                            </a>
-                            .
+                            Woohoo! There are no rage clicks for the past{' '}
+                            {dateRangeLength} days!
                         </>
                     )
                 }
                 noDataTitle={
                     filteredTableData.length === 0 && filterSearchTerm !== ''
-                        ? `No matches for '${filterSearchTerm}'`
-                        : 'No user data yet 😔'
+                        ? `No rage clicks found from '${filterSearchTerm}' 🎉`
+                        : 'No rage clicks yet! 🎉'
                 }
             />
         </div>
     );
 };
 
-export default ActiveUsersTable;
+export default RageClicksForProjectTable;
 
 const Columns: ColumnsType<any> = [
     {
         title: 'User',
         dataIndex: 'identifier',
         key: 'identifier',
-        // width: 250,
         render: (user) => (
             <div className={styles.hostContainer}>
                 <span>{user}</span>
@@ -167,35 +151,14 @@ const Columns: ColumnsType<any> = [
         ),
     },
     {
-        title: 'Active Time',
-        dataIndex: 'total_active_time',
-        key: 'total_active_time',
-        width: 75,
+        title: 'Rage Clicks',
+        dataIndex: 'totalClicks',
+        key: 'totalClicks',
         align: 'right',
         render: (count) => (
-            <Tooltip title="Total active time the user has spent on your app">
-                <div className={styles.countContainer}>
-                    {formatShortTime(count / 1000)}
-                </div>
+            <Tooltip title="The number of rage clicks in the session.">
+                <div className={styles.countContainer}>{count} rage clicks</div>
             </Tooltip>
-        ),
-    },
-    {
-        title: 'Percentage',
-        dataIndex: 'active_time_percentage',
-        key: 'active_time_percentage',
-        width: 150,
-        render: (percent) => (
-            <div
-                className={styles.percentContainer}
-                style={
-                    {
-                        '--percentage': `${percent * 100}%`,
-                    } as React.CSSProperties
-                }
-            >
-                <span>{getPercentageDisplayValue(percent)}</span>
-            </div>
         ),
     },
 ];

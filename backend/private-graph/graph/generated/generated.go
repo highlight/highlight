@@ -326,6 +326,7 @@ type ComplexityRoot struct {
 		PropertySuggestion        func(childComplexity int, projectID int, query string, typeArg string) int
 		RageClickAlerts           func(childComplexity int, projectID int) int
 		RageClicks                func(childComplexity int, sessionSecureID string) int
+		RageClicksForProject      func(childComplexity int, projectID int, lookBackPeriod int) int
 		Referrers                 func(childComplexity int, projectID int, lookBackPeriod int) int
 		Resources                 func(childComplexity int, sessionSecureID string) int
 		Segments                  func(childComplexity int, projectID int) int
@@ -354,6 +355,12 @@ type ComplexityRoot struct {
 		ProjectID       func(childComplexity int) int
 		SessionSecureID func(childComplexity int) int
 		StartTimestamp  func(childComplexity int) int
+		TotalClicks     func(childComplexity int) int
+	}
+
+	RageClickEventForProject struct {
+		Identifier      func(childComplexity int) int
+		SessionSecureID func(childComplexity int) int
 		TotalClicks     func(childComplexity int) int
 	}
 
@@ -596,6 +603,7 @@ type QueryResolver interface {
 	Session(ctx context.Context, secureID string) (*model1.Session, error)
 	Events(ctx context.Context, sessionSecureID string) ([]interface{}, error)
 	RageClicks(ctx context.Context, sessionSecureID string) ([]*model1.RageClickEvent, error)
+	RageClicksForProject(ctx context.Context, projectID int, lookBackPeriod int) ([]*model.RageClickEventForProject, error)
 	ErrorGroups(ctx context.Context, projectID int, count int, params *model.ErrorSearchParamsInput) (*model1.ErrorResults, error)
 	ErrorGroup(ctx context.Context, secureID string) (*model1.ErrorGroup, error)
 	Messages(ctx context.Context, sessionSecureID string) ([]interface{}, error)
@@ -2501,6 +2509,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.RageClicks(childComplexity, args["session_secure_id"].(string)), true
 
+	case "Query.rageClicksForProject":
+		if e.complexity.Query.RageClicksForProject == nil {
+			break
+		}
+
+		args, err := ec.field_Query_rageClicksForProject_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.RageClicksForProject(childComplexity, args["project_id"].(int), args["lookBackPeriod"].(int)), true
+
 	case "Query.referrers":
 		if e.complexity.Query.Referrers == nil {
 			break
@@ -2772,6 +2792,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.RageClickEvent.TotalClicks(childComplexity), true
+
+	case "RageClickEventForProject.identifier":
+		if e.complexity.RageClickEventForProject.Identifier == nil {
+			break
+		}
+
+		return e.complexity.RageClickEventForProject.Identifier(childComplexity), true
+
+	case "RageClickEventForProject.session_secure_id":
+		if e.complexity.RageClickEventForProject.SessionSecureID == nil {
+			break
+		}
+
+		return e.complexity.RageClickEventForProject.SessionSecureID(childComplexity), true
+
+	case "RageClickEventForProject.total_clicks":
+		if e.complexity.RageClickEventForProject.TotalClicks == nil {
+			break
+		}
+
+		return e.complexity.RageClickEventForProject.TotalClicks(childComplexity), true
 
 	case "ReferrerTablePayload.count":
 		if e.complexity.ReferrerTablePayload.Count == nil {
@@ -3674,6 +3715,12 @@ type RageClickEvent {
     total_clicks: Int!
 }
 
+type RageClickEventForProject {
+    identifier: String!
+    session_secure_id: String!
+    total_clicks: Int!
+}
+
 type BillingDetails {
     plan: Plan!
     meter: Int64!
@@ -4082,6 +4129,10 @@ type Query {
     session(secure_id: String!): Session
     events(session_secure_id: String!): [Any]
     rage_clicks(session_secure_id: String!): [RageClickEvent!]!
+    rageClicksForProject(
+        project_id: ID!
+        lookBackPeriod: Int!
+    ): [RageClickEventForProject!]!
     error_groups(
         project_id: ID!
         count: Int!
@@ -6852,6 +6903,30 @@ func (ec *executionContext) field_Query_property_suggestion_args(ctx context.Con
 		}
 	}
 	args["type"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_rageClicksForProject_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["lookBackPeriod"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lookBackPeriod"))
+		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["lookBackPeriod"] = arg1
 	return args, nil
 }
 
@@ -13236,6 +13311,48 @@ func (ec *executionContext) _Query_rage_clicks(ctx context.Context, field graphq
 	return ec.marshalNRageClickEvent2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐRageClickEventᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_rageClicksForProject(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_rageClicksForProject_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().RageClicksForProject(rctx, args["project_id"].(int), args["lookBackPeriod"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.RageClickEventForProject)
+	fc.Result = res
+	return ec.marshalNRageClickEventForProject2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐRageClickEventForProjectᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_error_groups(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -15595,6 +15712,111 @@ func (ec *executionContext) _RageClickEvent_total_clicks(ctx context.Context, fi
 	}()
 	fc := &graphql.FieldContext{
 		Object:     "RageClickEvent",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalClicks, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RageClickEventForProject_identifier(ctx context.Context, field graphql.CollectedField, obj *model.RageClickEventForProject) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RageClickEventForProject",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Identifier, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RageClickEventForProject_session_secure_id(ctx context.Context, field graphql.CollectedField, obj *model.RageClickEventForProject) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RageClickEventForProject",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SessionSecureID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RageClickEventForProject_total_clicks(ctx context.Context, field graphql.CollectedField, obj *model.RageClickEventForProject) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RageClickEventForProject",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   false,
@@ -22070,6 +22292,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "rageClicksForProject":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_rageClicksForProject(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "error_groups":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -22778,6 +23014,43 @@ func (ec *executionContext) _RageClickEvent(ctx context.Context, sel ast.Selecti
 			}
 		case "total_clicks":
 			out.Values[i] = ec._RageClickEvent_total_clicks(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var rageClickEventForProjectImplementors = []string{"RageClickEventForProject"}
+
+func (ec *executionContext) _RageClickEventForProject(ctx context.Context, sel ast.SelectionSet, obj *model.RageClickEventForProject) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, rageClickEventForProjectImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RageClickEventForProject")
+		case "identifier":
+			out.Values[i] = ec._RageClickEventForProject_identifier(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "session_secure_id":
+			out.Values[i] = ec._RageClickEventForProject_session_secure_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "total_clicks":
+			out.Values[i] = ec._RageClickEventForProject_total_clicks(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -24442,6 +24715,53 @@ func (ec *executionContext) marshalNRageClickEvent2ᚖgithubᚗcomᚋhighlight�
 		return graphql.Null
 	}
 	return ec._RageClickEvent(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNRageClickEventForProject2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐRageClickEventForProjectᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RageClickEventForProject) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNRageClickEventForProject2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐRageClickEventForProject(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNRageClickEventForProject2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐRageClickEventForProject(ctx context.Context, sel ast.SelectionSet, v *model.RageClickEventForProject) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._RageClickEventForProject(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNReferrerTablePayload2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐReferrerTablePayload(ctx context.Context, sel ast.SelectionSet, v []*model.ReferrerTablePayload) graphql.Marshaler {

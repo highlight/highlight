@@ -745,6 +745,17 @@ query GetDailyErrorsCount($project_id: ID!, $date_range: DateRangeInput!) {
     }
 }
 
+query GetRageClicksForProject($project_id: ID!, $lookBackPeriod: Int!) {
+    rageClicksForProject(
+        project_id: $project_id
+        lookBackPeriod: $lookBackPeriod
+    ) {
+        identifier
+        session_secure_id
+        total_clicks
+    }
+}
+
 query GetDailyErrorFrequency(
     $project_id: ID!
     $error_group_secure_id: String!

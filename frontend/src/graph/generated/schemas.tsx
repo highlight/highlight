@@ -76,6 +76,13 @@ export type RageClickEvent = {
     total_clicks: Scalars['Int'];
 };
 
+export type RageClickEventForProject = {
+    __typename?: 'RageClickEventForProject';
+    identifier: Scalars['String'];
+    session_secure_id: Scalars['String'];
+    total_clicks: Scalars['Int'];
+};
+
 export type BillingDetails = {
     __typename?: 'BillingDetails';
     plan: Plan;
@@ -516,6 +523,7 @@ export type Query = {
     session?: Maybe<Session>;
     events?: Maybe<Array<Maybe<Scalars['Any']>>>;
     rage_clicks: Array<RageClickEvent>;
+    rageClicksForProject: Array<RageClickEventForProject>;
     error_groups?: Maybe<ErrorResults>;
     error_group?: Maybe<ErrorGroup>;
     messages?: Maybe<Array<Maybe<Scalars['Any']>>>;
@@ -581,6 +589,11 @@ export type QueryEventsArgs = {
 
 export type QueryRage_ClicksArgs = {
     session_secure_id: Scalars['String'];
+};
+
+export type QueryRageClicksForProjectArgs = {
+    project_id: Scalars['ID'];
+    lookBackPeriod: Scalars['Int'];
 };
 
 export type QueryError_GroupsArgs = {

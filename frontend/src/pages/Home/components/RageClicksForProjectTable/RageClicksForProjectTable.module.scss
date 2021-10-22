@@ -3,7 +3,7 @@
 }
 
 .percentContainer {
-    --bar-width: max(calc(var(--percentage) - 4ch - var(--size-xxSmall)), 1px);
+    --bar-width: max(calc(var(--percentage) - 24px - var(--size-xxSmall)), 1px);
     color: var(--color-gray-500);
     padding: 0;
     position: relative;
@@ -48,6 +48,10 @@
 }
 
 .hostContainer {
+    align-items: center;
+    column-gap: var(--size-xxSmall);
+    display: flex;
+
     span {
         overflow: hidden;
         text-overflow: ellipsis;
