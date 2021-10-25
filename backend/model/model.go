@@ -1143,10 +1143,10 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 	messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false))
 
 	identifier := input.UserIdentifier
-	if val, ok := input.UserObject["email"]; ok {
+	if val, ok := input.UserObject["email"]; ok && len(val) > 0 {
 		identifier = fmt.Sprintf("%s", val)
 	}
-	if val, ok := input.UserObject["highlightDisplayName"]; ok {
+	if val, ok := input.UserObject["highlightDisplayName"]; ok && len(val) > 0 {
 		identifier = fmt.Sprintf("%s", val)
 	}
 
