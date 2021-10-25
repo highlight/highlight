@@ -772,7 +772,7 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 				log.Error(err)
 			}
 
-			err = errorAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &errorToInsert.URL, ErrorsCount: &numErrors})
+			err = errorAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &errorToInsert.URL, ErrorsCount: &numErrors, UserObject: sessionObj.UserObject})
 			if err != nil {
 				log.Error(e.Wrap(err, "error sending slack error message"))
 				return
