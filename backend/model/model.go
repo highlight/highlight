@@ -338,17 +338,18 @@ func (u *Project) VerboseID() string {
 	return str
 }
 
-func FromVerboseID(verboseId string) int {
+func FromVerboseID(verboseId string) (int, error) {
 	// Try to convert the id to an integer in the case that the client is out of date.
 	if projectID, err := strconv.Atoi(verboseId); err == nil {
-		return projectID
+		return projectID, nil
 	}
 	// Otherwise, decode with HashID library
 	ints := HashID.Decode(verboseId)
 	if len(ints) != 1 {
-		return 1
+		log.Error("An unsupported verboseID")
+		return 1, fmt.Errorf("An unsupported verboseID was used: %s", verboseId)
 	}
-	return ints[0]
+	return ints[0], nil
 }
 
 func (u *Project) BeforeCreate(tx *gorm.DB) (err error) {
@@ -447,6 +448,7 @@ type Session struct {
 	DirectDownloadEnabled bool    `json:"direct_download_enabled" gorm:"default:false"`
 	PayloadSize           *int64  `json:"payload_size"`
 	MigrationState        *string `json:"migration_state"`
+	VerboseID             string  `json:"verbose_id"`
 }
 
 // AreModelsWeaklyEqual compares two structs of the same type while ignoring the Model and SecureID field

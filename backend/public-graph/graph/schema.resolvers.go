@@ -25,7 +25,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 	session, err := InitializeSessionImplementation(r, ctx, organizationVerboseID, enableStrictPrivacy, enableRecordingNetworkContents, firstloadVersion, clientVersion, clientConfig, environment, appVersion, fingerprint)
 	hlog.Incr("gql.initializeSession.count", []string{fmt.Sprintf("success:%t", err == nil)}, 1)
 
-	projectID := model.FromVerboseID(organizationVerboseID)
+	projectID, _ := model.FromVerboseID(organizationVerboseID)
 	if !util.IsDevEnv() && err != nil {
 		msg := slack.WebhookMessage{Text: fmt.
 			Sprintf("Error in InitializeSession: %q\nOccurred for project: {%d, %q}\nIs on-prem: %q", err, projectID, organizationVerboseID, os.Getenv("REACT_APP_ONPREM"))}
