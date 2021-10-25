@@ -346,7 +346,6 @@ func FromVerboseID(verboseId string) (int, error) {
 	// Otherwise, decode with HashID library
 	ints := HashID.Decode(verboseId)
 	if len(ints) != 1 {
-		log.Error("An unsupported verboseID")
 		return 1, fmt.Errorf("An unsupported verboseID was used: %s", verboseId)
 	}
 	return ints[0], nil
