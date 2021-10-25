@@ -1,6 +1,6 @@
 .alert {
     &:global(.ant-alert-info) {
-        background-color: var(--color-purple-300) !important;
+        background-color: var(--color-green-100) !important;
         border: 0 !important;
         border-radius: var(--border-radius) !important;
         color: var(--color-purple-800) !important;
@@ -12,29 +12,38 @@
         :global(.ant-alert-close-text) {
             color: var(--color-purple-800) !important;
         }
+
+        :global(.ant-alert-icon) {
+            color: var(--color-green-600) !important;
+        }
+    }
+
+    :global(.ant-alert-description) {
+        font-size: 12px !important;
+        line-height: 1.6em !important;
     }
 
     &:global(.ant-alert-error) {
-        background-color: var(--color-red) !important;
+        background-color: var(--color-orange-300) !important;
         border: 0 !important;
         border-radius: var(--border-radius) !important;
-        color: var(--text-primary-inverted) !important;
+        color: var(--text-primary) !important;
 
         :global(.ant-alert-message) {
-            color: var(--text-primary-inverted) !important;
+            color: var(--text-primary) !important;
         }
 
         :global(.ant-alert-close-text) {
-            color: var(--text-primary-inverted) !important;
+            color: var(--text-primary) !important;
         }
 
         :global(.ant-alert-icon) {
-            color: var(--text-primary-inverted) !important;
+            color: var(--color-red-600) !important;
         }
     }
 
     :global(.ant-alert-icon) {
-        margin-right: var(--size-xxSmall) !important;
+        margin-right: var(--size-small) !important;
     }
 
     &:global(.ant-alert) {
@@ -46,5 +55,6 @@
 
     :global(.ant-alert-message) {
         font-weight: 500;
+        margin-bottom: var(--size-small) !important;
     }
 }
