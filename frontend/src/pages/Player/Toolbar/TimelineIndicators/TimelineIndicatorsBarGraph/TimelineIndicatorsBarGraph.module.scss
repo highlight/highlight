@@ -2,8 +2,8 @@
     position: relative;
 
     .sessionInterval {
-        position: absolute;
-        height: var(--size-xxLarge);
         bottom: 0;
+        height: var(--size-xxLarge);
+        position: absolute;
     }
 }
