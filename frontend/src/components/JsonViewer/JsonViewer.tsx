@@ -4,6 +4,10 @@ import ReactJson, { ReactJsonViewProps } from 'react-json-view';
 type Props = {} & Pick<ReactJsonViewProps, 'src' | 'collapsed' | 'name'>;
 
 const JsonViewer = ({ collapsed = 1, name = null, ...props }: Props) => {
+    if (props.src === null) {
+        return null;
+    }
+
     return (
         <ReactJson
             {...props}
