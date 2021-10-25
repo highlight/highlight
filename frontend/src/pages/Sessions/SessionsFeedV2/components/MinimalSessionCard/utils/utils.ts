@@ -11,7 +11,7 @@ export const getIdentifiedUserProfileImage = (
     }
 
     try {
-        const avatarURL = JSON.parse(session.user_properties)['avatar'];
+        const avatarURL = JSON.parse(session.user_properties)?.avatar;
 
         if (avatarURL && validator.isURL(avatarURL)) {
             return '' + avatarURL;
