@@ -1,5 +1,7 @@
 import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip';
+import { EventsForTimeline } from '@pages/Player/PlayerHook/utils';
 import { ParsedSessionInterval } from '@pages/Player/ReplayerContext';
+import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar';
 import React from 'react';
 import { Bar, BarChart, ResponsiveContainer, Tooltip } from 'recharts';
 
@@ -13,46 +15,6 @@ const TimelineIndicatorsBarGraph = React.memo(({ sessionIntervals }: Props) => {
     const activeSessionIntervals = sessionIntervals.filter(
         (interval) => interval.active
     );
-
-    const data = [
-        {
-            name: 'Page A',
-            uv: 4000,
-            pv: 2400,
-        },
-        {
-            name: 'Page B',
-            uv: 3000,
-            pv: 1398,
-        },
-        {
-            name: 'Page C',
-            uv: 2000,
-            pv: 9800,
-        },
-        {
-            name: 'Page D',
-            uv: 2780,
-            pv: 3908,
-        },
-        {
-            name: 'Page E',
-            uv: 1890,
-            pv: 4800,
-        },
-        {
-            name: 'Page F',
-            uv: 2390,
-            pv: 3800,
-        },
-        {
-            name: 'Page G',
-            uv: 3490,
-            pv: 4300,
-        },
-    ];
-
-    console.log(getEventsInTimeBucket(sessionIntervals));
 
     return (
         <div className={styles.container}>
@@ -69,8 +31,7 @@ const TimelineIndicatorsBarGraph = React.memo(({ sessionIntervals }: Props) => {
                 >
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart
-                            data={data}
-                            barSize={32}
+                            data={getEventsInTimeBucket(interval)}
                             barGap={0}
                             margin={{
                                 top: 0,
@@ -79,9 +40,20 @@ const TimelineIndicatorsBarGraph = React.memo(({ sessionIntervals }: Props) => {
                                 bottom: 0,
                             }}
                         >
-                            <Tooltip content={<RechartTooltip />} />
-                            <Bar dataKey="pv" stackId="a" fill="#8884d8" />
-                            <Bar dataKey="uv" stackId="a" fill="#82ca9d" />
+                            <Tooltip
+                                content={<RechartTooltip />}
+                                wrapperStyle={{ zIndex: 99999 }}
+                            />
+                            {EventsForTimeline.map((eventType) => (
+                                <Bar
+                                    key={eventType}
+                                    dataKey={eventType}
+                                    stackId="a"
+                                    fill={`var(${getAnnotationColor(
+                                        eventType
+                                    )})`}
+                                />
+                            ))}
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
@@ -98,10 +70,40 @@ export default TimelineIndicatorsBarGraph;
  */
 const BUCKET_SIZE = 1000;
 
-const getEventsInTimeBucket = (intervals: ParsedSessionInterval[]) => {
-    intervals.forEach((interval) => {
-        const { startTime, endTime } = interval;
+const getEventsInTimeBucket = (interval: ParsedSessionInterval) => {
+    const { startTime, endTime } = interval;
+    const timeSpanInMilliseconds = endTime - startTime;
+    const numberOfBuckets = Math.floor(timeSpanInMilliseconds / BUCKET_SIZE);
+    const data: { [key: string]: any } = {};
 
-        console.log(interval);
+    for (let i = 0; i < numberOfBuckets; i++) {
+        data[i.toString()] = {};
+    }
+
+    interval.sessionEvents.forEach((event) => {
+        if (event.type === 5 && event.relativeIntervalPercentage) {
+            const eventType = event.data.tag;
+
+            const eventTimestampInMilliseconds =
+                (event.relativeIntervalPercentage / 100) *
+                timeSpanInMilliseconds;
+
+            const bucketKey = Math.floor(
+                eventTimestampInMilliseconds / BUCKET_SIZE
+            );
+
+            if (!(event.type in data[bucketKey])) {
+                data[bucketKey][eventType] = 1;
+            } else {
+                data[bucketKey][eventType]++;
+            }
+        }
     });
+
+    const res = Object.keys(data).map((key, index) => ({
+        ...data[key],
+        name: `INdex ${index}`,
+    }));
+
+    return res;
 };
