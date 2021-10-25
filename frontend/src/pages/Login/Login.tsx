@@ -38,6 +38,15 @@ export const AuthAdminRouter = () => {
             }
 
             H.identify(email, identifyMetadata);
+            H.getSessionURL().then((sessionUrl) => {
+                window.Intercom('boot', {
+                    app_id: 'gm6369ty',
+                    alignment: 'right',
+                    hide_default_launcher: true,
+                    email: admin?.email,
+                    sessionUrl,
+                });
+            });
         }
     }, [admin]);
 
