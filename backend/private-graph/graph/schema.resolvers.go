@@ -1100,9 +1100,21 @@ func (r *mutationResolver) AddSlackBotIntegrationToProject(ctx context.Context, 
 		// im is for all individuals in the Slack workspace
 		Types: []string{"public_channel", "im"},
 	}
-	channels, _, err := slackClient.GetConversations(&getConversationsParam)
-	if err != nil {
-		return false, e.Wrap(err, "error getting Slack channels from Slack.")
+	allSlackChannelsFromAPI := []slack.Channel{}
+
+	// Slack paginates the channels/people listing.
+	for {
+		channels, cursor, err := slackClient.GetConversations(&getConversationsParam)
+		if err != nil {
+			return false, e.Wrap(err, "error getting Slack channels from Slack.")
+		}
+
+		allSlackChannelsFromAPI = append(allSlackChannelsFromAPI, channels...)
+
+		if cursor == "" {
+			break
+		}
+
 	}
 
 	// We need to get the users in the Slack channel in order to get their name.
@@ -1113,7 +1125,7 @@ func (r *mutationResolver) AddSlackBotIntegrationToProject(ctx context.Context, 
 	}
 
 	newChannels := []model.SlackChannel{}
-	for _, channel := range channels {
+	for _, channel := range allSlackChannelsFromAPI {
 		newChannel := model.SlackChannel{}
 
 		// Slack channels' `User` will be an empty string and the user's ID if it's a user.
