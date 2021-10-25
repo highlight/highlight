@@ -946,38 +946,6 @@ func (s *Session) GetUserProperties() (map[string]string, error) {
 	return userProperties, nil
 }
 
-type SendSlackAlertInput struct {
-	Organization *Organization
-	// Workspace is a required parameter
-	Workspace *Workspace
-	// SessionSecureID is a required parameter
-	SessionSecureID string
-	// UserIdentifier is a required parameter for New User, Error, and SessionFeedback alerts
-	UserIdentifier string
-	// Group is a required parameter for Error alerts
-	Group *ErrorGroup
-	// URL is an optional parameter for Error alerts
-	URL *string
-	// ErrorsCount is a required parameter for Error alerts
-	ErrorsCount *int64
-	// MatchedFields is a required parameter for Track Properties and User Properties alerts
-	MatchedFields []*Field
-	// UserProperties is a required parameter for User Properties alerts
-	UserProperties map[string]string
-	// CommentID is a required parameter for SessionFeedback alerts
-	CommentID *int
-	// CommentText is a required parameter for SessionFeedback alerts
-	CommentText string
-	// QueryParams is a map of query params to be appended to the url suffix
-	// `key:value` will be converted to `key=value` in the url with the appropriate separator (`?` or `&`)
-	// - tsAbs is required for rage click alerts
-	QueryParams map[string]string
-	// RageClicksCount is a required parameter for Rage Click Alerts
-	RageClicksCount *int64
-	// Timestamp is an optional value for all session alerts.
-	Timestamp *time.Time
-}
-
 type SendWelcomeSlackMessageInput struct {
 	Workspace            *Workspace
 	Admin                *Admin
@@ -1093,6 +1061,38 @@ func (obj *Alert) SendWelcomeSlackMessage(input *SendWelcomeSlackMessageInput) e
 	}
 
 	return nil
+}
+
+type SendSlackAlertInput struct {
+	Organization *Organization
+	// Workspace is a required parameter
+	Workspace *Workspace
+	// SessionSecureID is a required parameter
+	SessionSecureID string
+	// UserIdentifier is a required parameter for New User, Error, and SessionFeedback alerts
+	UserIdentifier string
+	// Group is a required parameter for Error alerts
+	Group *ErrorGroup
+	// URL is an optional parameter for Error alerts
+	URL *string
+	// ErrorsCount is a required parameter for Error alerts
+	ErrorsCount *int64
+	// MatchedFields is a required parameter for Track Properties and User Properties alerts
+	MatchedFields []*Field
+	// UserProperties is a required parameter for User Properties alerts
+	UserProperties map[string]string
+	// CommentID is a required parameter for SessionFeedback alerts
+	CommentID *int
+	// CommentText is a required parameter for SessionFeedback alerts
+	CommentText string
+	// QueryParams is a map of query params to be appended to the url suffix
+	// `key:value` will be converted to `key=value` in the url with the appropriate separator (`?` or `&`)
+	// - tsAbs is required for rage click alerts
+	QueryParams map[string]string
+	// RageClicksCount is a required parameter for Rage Click Alerts
+	RageClicksCount *int64
+	// Timestamp is an optional value for all session alerts.
+	Timestamp *time.Time
 }
 
 func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
@@ -1258,6 +1258,9 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 		previewText = "Highlight: Rage Clicks Alert"
 		if input.RageClicksCount == nil {
 			return nil
+		}
+		if input.UserIdentifier != "" {
+			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*User Identifier:*\n%s", input.UserIdentifier), false, false))
 		}
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Rage Clicks Detected:* %d Recent Occurrences\n\n", *input.RageClicksCount), false, false)
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))

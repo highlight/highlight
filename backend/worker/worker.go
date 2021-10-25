@@ -665,8 +665,18 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 			// send Slack message
 			count64 := int64(count)
+			identifier := s.Identifier
+			if val, ok := s.UserObject["highlightDisplayName"]; ok {
+				identifier = fmt.Sprintf("%s", val)
+				goto SendRageClickAlert
+			}
+			if val, ok := s.UserObject["email"]; ok {
+				identifier = fmt.Sprintf("%s", val)
+				goto SendRageClickAlert
+			}
+		SendRageClickAlert:
 			err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace,
-				SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, RageClicksCount: &count64,
+				SessionSecureID: s.SecureID, UserIdentifier: identifier, RageClicksCount: &count64,
 				QueryParams: map[string]string{"tsAbs": fmt.Sprintf("%d", rageClickSets[0].StartTimestamp.UnixNano()/int64(time.Millisecond))}})
 			if err != nil {
 				return e.Wrapf(err, "error sending rage click alert slack message")
