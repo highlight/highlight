@@ -63,6 +63,7 @@ export const Toolbar = () => {
         sessionIntervals,
         canViewSession,
         isPlayerReady,
+        isLiveMode,
         sessionResults,
         session,
     } = useReplayerContext();
@@ -112,8 +113,12 @@ export const Toolbar = () => {
     }, [enableInspectElement, replayer]);
 
     useEffect(() => {
-        replayer?.setConfig({ skipInactive, speed: playerSpeed });
-    }, [replayer, skipInactive, playerSpeed]);
+        if (!isLiveMode) {
+            replayer?.setConfig({ skipInactive, speed: playerSpeed });
+        } else {
+            replayer?.setConfig({ skipInactive: false, speed: 1 });
+        }
+    }, [replayer, skipInactive, playerSpeed, isLiveMode]);
 
     // Automatically start the player if the user has set the preference.
     useEffect(() => {

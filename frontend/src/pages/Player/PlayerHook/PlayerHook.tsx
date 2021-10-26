@@ -90,6 +90,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         setLastLoadedPlayerState,
     ] = useState<LoadedPlayerState | null>(null);
     const [loadedEventsIndex, setLoadedEventsIndex] = useState<number>(0);
+    const [isLiveMode, setIsLiveMode] = useState<boolean>(false);
     const [timerId, setTimerId] = useState<number | null>(null);
     const [errors, setErrors] = useState<ErrorObject[]>([]);
     const [, setSelectedErrorId] = useState<string | undefined>(undefined);
@@ -257,7 +258,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                         H.consumeError(e, 'Failed to JSON parse client config');
                     }
                 }
-                const isLive = sessionData?.session?.processed === false;
+                setIsLiveMode(sessionData?.session?.processed === false);
                 const r = new Replayer(newEvents.slice(0, EVENTS_CHUNK_SIZE), {
                     root: playerMountingRoot,
                     triggerFocus: false,
@@ -269,7 +270,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                         isSafari ||
                         clientConfig?.enableCanvasRecording ||
                         false,
-                    liveMode: isLive,
+                    liveMode: isLiveMode,
                 });
                 setLoadedEventsIndex(
                     Math.min(EVENTS_CHUNK_SIZE, newEvents.length)
@@ -285,7 +286,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                     }
                 });
                 setReplayer(r);
-                if (isLive) {
+                if (isLiveMode) {
                     r.startLive(newEvents[0].timestamp - 5000);
                 }
                 setLastLoadedPlayerState({
@@ -637,6 +638,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             state !== ReplayerState.Empty &&
             scale !== 1 &&
             sessionViewability === SessionViewability.VIEWABLE,
+        isLiveMode,
         session,
         playerProgress: replayer
             ? time / replayer.getMetaData().totalTime
