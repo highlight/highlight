@@ -38,8 +38,8 @@ export const ResourcePage = ({
     time: number;
     startTime: number;
 }) => {
-    const { state, session, pause } = useReplayerContext();
-    const { setDetailedPanel, detailedPanel } = usePlayerUIContext();
+    const { state, session, pause, isPlayerReady } = useReplayerContext();
+    const { setDetailedPanel } = usePlayerUIContext();
     const { session_secure_id } = useParams<{ session_secure_id: string }>();
     const [options, setOptions] = useState<Array<string>>([]);
     const [currentOption, setCurrentOption] = useState('All');
@@ -129,54 +129,10 @@ export const ResourcePage = ({
         }
     }, [allResources, startTime, time, currentResource]);
 
-    const [resourceErrorShown, setResourceErrorShown] = useState(false);
-    useEffect(() => {
-        if (
-            resourceErrorRequestHeader &&
-            !loading &&
-            !!session &&
-            !!allResources &&
-            !!errors &&
-            errors.length > 0 &&
-            !detailedPanel &&
-            !resourceErrorShown
-        ) {
-            const resource = findResourceWithMatchingHighlightHeader(
-                resourceErrorRequestHeader,
-                allResources
-            );
-            if (resource) {
-                setResourceErrorShown(true);
-                setDetailedPanel(
-                    getDetailedPanel(
-                        resource,
-                        pause,
-                        session,
-                        errors.find(
-                            (e) => e.request_id === resourceErrorRequestHeader
-                        )
-                    )
-                );
-            } else {
-                H.track('FailedToMatchHighlightResourceHeaderWithResource');
-            }
-        }
-    }, [
-        allResources,
-        detailedPanel,
-        errors,
-        loading,
-        pause,
-        resourceErrorRequestHeader,
-        resourceErrorShown,
-        session,
-        setDetailedPanel,
-    ]);
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const scrollFunction = useCallback(
-        _.debounce((index: number, state) => {
-            if (virtuoso.current && state === ReplayerState.Playing) {
+        _.debounce((index: number) => {
+            if (virtuoso.current) {
                 virtuoso.current.scrollToIndex({
                     index,
                     align: 'center',
@@ -188,8 +144,51 @@ export const ResourcePage = ({
     );
 
     useEffect(() => {
-        if (!isInteractingWithResources) {
-            scrollFunction(currentResource, state);
+        if (
+            resourceErrorRequestHeader &&
+            !loading &&
+            !!session &&
+            !!allResources &&
+            !!errors &&
+            errors.length > 0 &&
+            isPlayerReady
+        ) {
+            const resource = findResourceWithMatchingHighlightHeader(
+                resourceErrorRequestHeader,
+                allResources
+            );
+            if (resource) {
+                setDetailedPanel(
+                    getDetailedPanel(
+                        resource,
+                        pause,
+                        session,
+                        errors.find(
+                            (e) => e.request_id === resourceErrorRequestHeader
+                        )
+                    )
+                );
+                pause(resource.startTime);
+                scrollFunction(allResources.indexOf(resource));
+            } else {
+                H.track('FailedToMatchHighlightResourceHeaderWithResource');
+            }
+        }
+    }, [
+        allResources,
+        errors,
+        isPlayerReady,
+        loading,
+        pause,
+        resourceErrorRequestHeader,
+        scrollFunction,
+        session,
+        setDetailedPanel,
+    ]);
+
+    useEffect(() => {
+        if (!isInteractingWithResources && state === ReplayerState.Playing) {
+            scrollFunction(currentResource);
         }
     }, [currentResource, scrollFunction, isInteractingWithResources, state]);
 
@@ -628,7 +627,7 @@ const getDetailedPanel = (
 
 const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request';
 
-const findResourceWithMatchingHighlightHeader = (
+export const findResourceWithMatchingHighlightHeader = (
     headerValue: string,
     resources: NetworkResource[]
 ) => {
