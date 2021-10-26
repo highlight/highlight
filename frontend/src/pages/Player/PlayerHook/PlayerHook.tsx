@@ -172,6 +172,8 @@ export const usePlayer = (): ReplayerContextInterface => {
             setSessionEndTime(0);
             setSessionIntervals([]);
             setSessionViewability(SessionViewability.VIEWABLE);
+            setLastLoadedPlayerState(null);
+            setLoadedEventsIndex(0);
         },
         [setPlayerTimeToPersistance]
     );
@@ -225,6 +227,7 @@ export const usePlayer = (): ReplayerContextInterface => {
     // Handle data in playback mode.
     useEffect(() => {
         if (eventsData?.events?.length ?? 0 > 1) {
+            console.log('Events length: ', eventsData?.events?.length);
             setSessionViewability(SessionViewability.VIEWABLE);
             // Add an id field to each event so it can be referenced.
             const newEvents: HighlightEvent[] = toHighlightEvents(
@@ -506,10 +509,12 @@ export const usePlayer = (): ReplayerContextInterface => {
 
                     if (
                         replayer.getCurrentTime() >=
-                            replayer.getMetaData().totalTime &&
-                        !isLiveMode
+                        replayer.getMetaData().totalTime
                     ) {
-                        console.log('Rich state set to ended');
+                        console.log(
+                            'Rich state set to ended',
+                            replayer.getMetaData().totalTime
+                        );
                         setState(ReplayerState.SessionEnded);
                     }
                 }
@@ -518,7 +523,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
             setTimerId(requestAnimationFrame(frameAction));
         }
-    }, [state, replayer]);
+    }, [state, replayer, isLiveMode]);
 
     useEffect(() => {
         console.log('Rich state: ', ReplayerState[state]);
@@ -576,8 +581,11 @@ export const usePlayer = (): ReplayerContextInterface => {
     const play = (newTime?: number) => {
         // Re-visit this
         // Don't play the session if the player is already at the end of the session.
-        if ((newTime ?? time) >= sessionEndTime && !isLiveMode) {
-            console.log('Rich cant play because time is at end');
+        if ((newTime ?? time) >= sessionEndTime) {
+            console.log(
+                'Rich cant play because time is at end',
+                sessionEndTime
+            );
             return;
         }
         setState(ReplayerState.Playing);
