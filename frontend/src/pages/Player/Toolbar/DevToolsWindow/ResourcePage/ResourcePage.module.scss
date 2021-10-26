@@ -239,7 +239,7 @@ $canvas-width: calc(
 
 .tabContainer {
     height: 100%;
-    padding: var(--size-medium) 0;
+    padding: var(--size-medium) var(--size-large);
 }
 
 .extraContentContainer {
