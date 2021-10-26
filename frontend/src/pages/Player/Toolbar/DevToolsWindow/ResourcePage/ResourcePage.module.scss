@@ -14,6 +14,7 @@ $right-padding: 12px;
     padding-right: $right-padding;
     padding-top: var(--size-xxSmall);
     width: 100%;
+    position: relative;
 
     &.current {
         p,
@@ -22,6 +23,17 @@ $right-padding: 12px;
             color: var(--text-primary) !important;
             font-weight: 500;
         }
+    }
+
+    .currentIndicator {
+        position: absolute;
+        background-color: var(--color-blue-500);
+        border-radius: 50%;
+        height: 6px;
+        width: 6px;
+        top: 47%;
+        left: 10px;
+        transform: translate(0, -50%);
     }
 
     &.failedResource {

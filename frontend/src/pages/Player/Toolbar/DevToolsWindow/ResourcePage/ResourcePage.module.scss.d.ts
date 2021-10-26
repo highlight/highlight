@@ -1,5 +1,6 @@
 export const canvasNetworkWrapper: string;
 export const current: string;
+export const currentIndicator: string;
 export const detailPanelTitle: string;
 export const extraContentContainer: string;
 export const failedResource: string;
