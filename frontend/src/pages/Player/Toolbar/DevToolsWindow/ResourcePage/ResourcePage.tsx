@@ -133,6 +133,7 @@ export const ResourcePage = ({
     const scrollFunction = useCallback(
         _.debounce((index: number) => {
             if (virtuoso.current) {
+                console.log({ index });
                 virtuoso.current.scrollToIndex({
                     index,
                     align: 'center',
