@@ -13,4 +13,9 @@
             padding-right: var(--size-small);
         }
     }
+
+    :global(.ant-tooltip-inner) {
+        background: var(--color-primary-inverted-background) !important;
+        border-radius: var(--border-radius) !important;
+    }
 }
