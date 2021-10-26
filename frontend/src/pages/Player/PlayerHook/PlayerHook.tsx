@@ -180,6 +180,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             setSessionViewability(SessionViewability.ERROR);
         },
         skip: !session_secure_id,
+        fetchPolicy: 'network-only',
     });
 
     const resetPlayer = useCallback(

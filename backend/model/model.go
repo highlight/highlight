@@ -94,13 +94,15 @@ var ContextKeys = struct {
 	AcceptLanguage contextString
 	UID            contextString
 	// The email for the current user. If the email is a @highlight.run, the email will need to be verified, otherwise `Email` will be an empty string.
-	Email contextString
+	Email          contextString
+	AcceptEncoding contextString
 }{
 	IP:             "ip",
 	UserAgent:      "userAgent",
 	AcceptLanguage: "acceptLanguage",
 	UID:            "uid",
 	Email:          "email",
+	AcceptEncoding: "acceptEncoding",
 }
 
 var Models = []interface{}{
