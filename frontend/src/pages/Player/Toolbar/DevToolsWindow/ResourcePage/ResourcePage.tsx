@@ -78,9 +78,11 @@ export const ResourcePage = ({
         });
         setOptions(['All', ...Array.from(optionSet)]);
         setParsedResources(
-            rawResources?.map((r, i) => {
-                return { ...r, id: i };
-            }) ?? []
+            (
+                rawResources?.map((r, i) => {
+                    return { ...r, id: i };
+                }) ?? []
+            ).sort((a, b) => b.startTime - a.startTime)
         );
     }, [rawResources]);
 
