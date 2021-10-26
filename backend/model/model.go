@@ -949,38 +949,6 @@ func (s *Session) GetUserProperties() (map[string]string, error) {
 	return userProperties, nil
 }
 
-type SendSlackAlertInput struct {
-	Organization *Organization
-	// Workspace is a required parameter
-	Workspace *Workspace
-	// SessionSecureID is a required parameter
-	SessionSecureID string
-	// UserIdentifier is a required parameter for New User, Error, and SessionFeedback alerts
-	UserIdentifier string
-	// Group is a required parameter for Error alerts
-	Group *ErrorGroup
-	// URL is an optional parameter for Error alerts
-	URL *string
-	// ErrorsCount is a required parameter for Error alerts
-	ErrorsCount *int64
-	// MatchedFields is a required parameter for Track Properties and User Properties alerts
-	MatchedFields []*Field
-	// UserProperties is a required parameter for User Properties alerts
-	UserProperties map[string]string
-	// CommentID is a required parameter for SessionFeedback alerts
-	CommentID *int
-	// CommentText is a required parameter for SessionFeedback alerts
-	CommentText string
-	// QueryParams is a map of query params to be appended to the url suffix
-	// `key:value` will be converted to `key=value` in the url with the appropriate separator (`?` or `&`)
-	// - tsAbs is required for rage click alerts
-	QueryParams map[string]string
-	// RageClicksCount is a required parameter for Rage Click Alerts
-	RageClicksCount *int64
-	// Timestamp is an optional value for all session alerts.
-	Timestamp *time.Time
-}
-
 type SendWelcomeSlackMessageInput struct {
 	Workspace            *Workspace
 	Admin                *Admin
@@ -1098,6 +1066,40 @@ func (obj *Alert) SendWelcomeSlackMessage(input *SendWelcomeSlackMessageInput) e
 	return nil
 }
 
+type SendSlackAlertInput struct {
+	Organization *Organization
+	// Workspace is a required parameter
+	Workspace *Workspace
+	// SessionSecureID is a required parameter
+	SessionSecureID string
+	// UserIdentifier is a required parameter for New User, Error, and SessionFeedback alerts
+	UserIdentifier string
+	// UserObject is a required parameter for alerts that relate to a session
+	UserObject JSONB
+	// Group is a required parameter for Error alerts
+	Group *ErrorGroup
+	// URL is an optional parameter for Error alerts
+	URL *string
+	// ErrorsCount is a required parameter for Error alerts
+	ErrorsCount *int64
+	// MatchedFields is a required parameter for Track Properties and User Properties alerts
+	MatchedFields []*Field
+	// UserProperties is a required parameter for User Properties alerts
+	UserProperties map[string]string
+	// CommentID is a required parameter for SessionFeedback alerts
+	CommentID *int
+	// CommentText is a required parameter for SessionFeedback alerts
+	CommentText string
+	// QueryParams is a map of query params to be appended to the url suffix
+	// `key:value` will be converted to `key=value` in the url with the appropriate separator (`?` or `&`)
+	// - tsAbs is required for rage click alerts
+	QueryParams map[string]string
+	// RageClicksCount is a required parameter for Rage Click Alerts
+	RageClicksCount *int64
+	// Timestamp is an optional value for all session alerts.
+	Timestamp *time.Time
+}
+
 func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 	// TODO: combine `error_alerts` and `session_alerts` tables and create composite index on (project_id, type)
 	if obj == nil {
@@ -1143,6 +1145,14 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 	sessionLink := fmt.Sprintf("<%s/%d/sessions/%s%s>", frontendURL, obj.ProjectID, input.SessionSecureID, suffix)
 	messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false))
 
+	identifier := input.UserIdentifier
+	if val, ok := input.UserObject["email"].(string); ok && len(val) > 0 {
+		identifier = val
+	}
+	if val, ok := input.UserObject["highlightDisplayName"].(string); ok && len(val) > 0 {
+		identifier = val
+	}
+
 	var previewText string
 	if obj.Type == nil {
 		if input.Group != nil {
@@ -1164,7 +1174,7 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 		// construct Slack message
 		previewText = fmt.Sprintf("Highlight: Error Alert: %s", shortEvent)
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Highlight Error Alert: %d Recent Occurrences*\n\n%s\n<%s/>", *input.ErrorsCount, shortEvent, errorLink), false, false)
-		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+input.UserIdentifier, false, false))
+		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+identifier, false, false))
 		if input.URL != nil {
 			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Visited Url:*\n"+*input.URL, false, false))
 		}
@@ -1207,8 +1217,8 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 		// construct Slack message
 		previewText = "Highlight: New User Alert"
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight New User Alert:*\n\n", false, false)
-		if input.UserIdentifier != "" {
-			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+input.UserIdentifier, false, false))
+		if identifier != "" {
+			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+identifier, false, false))
 		}
 		for k, v := range input.UserProperties {
 			if k == "" {
@@ -1250,10 +1260,10 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
 	case AlertType.SESSION_FEEDBACK:
 		previewText = "Highlight: Session Feedback Alert"
-		if input.UserIdentifier == "" {
-			input.UserIdentifier = "User"
+		if identifier == "" {
+			identifier = "User"
 		}
-		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s Left Feedback*\n\n%s", input.UserIdentifier, input.CommentText), false, false)
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s Left Feedback*\n\n%s", identifier, input.CommentText), false, false)
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
@@ -1262,17 +1272,19 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 		if input.RageClicksCount == nil {
 			return nil
 		}
+		if identifier != "" {
+			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*User Identifier:*\n%s", identifier), false, false))
+		}
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Rage Clicks Detected:* %d Recent Occurrences\n\n", *input.RageClicksCount), false, false)
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
 	case AlertType.NEW_SESSION:
-		identifier := input.UserIdentifier
 		if identifier == "" {
 			identifier = "User"
 		}
 		previewText = fmt.Sprintf("Highlight: New Session Created By %s", identifier)
-		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*New Session Created By User: %s*\n\n", input.UserIdentifier), false, false)
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*New Session Created By User: %s*\n\n", identifier), false, false)
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
