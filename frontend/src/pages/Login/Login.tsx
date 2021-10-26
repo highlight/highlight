@@ -44,6 +44,7 @@ export const AuthAdminRouter = () => {
                     alignment: 'right',
                     hide_default_launcher: true,
                     email: admin?.email,
+                    user_id: admin?.id,
                     sessionUrl,
                 });
             });
