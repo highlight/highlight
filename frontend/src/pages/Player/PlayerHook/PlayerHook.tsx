@@ -174,6 +174,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             setSessionViewability(SessionViewability.VIEWABLE);
             setLastLoadedPlayerState(null);
             setLoadedEventsIndex(0);
+            setIsLiveMode(false);
         },
         [setPlayerTimeToPersistance]
     );
