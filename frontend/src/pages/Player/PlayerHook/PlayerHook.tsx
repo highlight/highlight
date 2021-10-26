@@ -506,7 +506,8 @@ export const usePlayer = (): ReplayerContextInterface => {
 
                     if (
                         replayer.getCurrentTime() >=
-                        replayer.getMetaData().totalTime
+                            replayer.getMetaData().totalTime &&
+                        !isLiveMode
                     ) {
                         console.log('Rich state set to ended');
                         setState(ReplayerState.SessionEnded);
@@ -520,7 +521,7 @@ export const usePlayer = (): ReplayerContextInterface => {
     }, [state, replayer]);
 
     useEffect(() => {
-        console.log('Rich state: ', state);
+        console.log('Rich state: ', ReplayerState[state]);
     }, [state]);
 
     useEffect(() => {
@@ -573,8 +574,10 @@ export const usePlayer = (): ReplayerContextInterface => {
     ]);
 
     const play = (newTime?: number) => {
+        // Re-visit this
         // Don't play the session if the player is already at the end of the session.
-        if ((newTime ?? time) >= sessionEndTime) {
+        if ((newTime ?? time) >= sessionEndTime && !isLiveMode) {
+            console.log('Rich cant play because time is at end');
             return;
         }
         setState(ReplayerState.Playing);

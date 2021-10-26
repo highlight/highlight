@@ -124,7 +124,7 @@ export const Toolbar = () => {
     useEffect(() => {
         if (isLoggedIn) {
             if (
-                (autoPlayVideo || autoPlaySessions) &&
+                (autoPlayVideo || autoPlaySessions || isLiveMode) &&
                 replayer &&
                 isPlayerReady
             ) {
@@ -146,6 +146,7 @@ export const Toolbar = () => {
         setAutoPlayVideo,
         state,
         time,
+        isLiveMode,
     ]);
 
     useEffect(() => {
