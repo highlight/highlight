@@ -5,7 +5,14 @@ import styles from './PopConfirm.module.scss';
 
 type Props = Pick<
     PopconfirmProps,
-    'cancelText' | 'okText' | 'children' | 'title' | 'onConfirm'
+    | 'cancelText'
+    | 'okText'
+    | 'children'
+    | 'title'
+    | 'onConfirm'
+    | 'onCancel'
+    | 'placement'
+    | 'align'
 >;
 
 const PopConfirm = ({ children, ...props }: Props) => {
