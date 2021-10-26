@@ -1,3 +1,4 @@
+import { GetSessionPayloadQuery } from '@graph/operations';
 import { Replayer } from '@highlight-run/rrweb';
 import { customEvent } from '@highlight-run/rrweb/dist/types';
 import { useParams } from '@util/react-router/useParams';
@@ -55,6 +56,12 @@ export enum SessionViewability {
     ERROR,
 }
 
+interface LoadedPlayerState {
+    sessionSecureId: string;
+    eventsData: GetSessionPayloadQuery;
+    initialized: boolean;
+}
+
 export const usePlayer = (): ReplayerContextInterface => {
     const { isLoggedIn } = useAuthContext();
     const { session_secure_id, project_id } = useParams<{
@@ -78,6 +85,11 @@ export const usePlayer = (): ReplayerContextInterface => {
         sessions: [],
         totalCount: -1,
     });
+    const [
+        lastLoadedPlayerState,
+        setLastLoadedPlayerState,
+    ] = useState<LoadedPlayerState | null>(null);
+    const [loadedEventsIndex, setLoadedEventsIndex] = useState<number>(0);
     const [timerId, setTimerId] = useState<number | null>(null);
     const [errors, setErrors] = useState<ErrorObject[]>([]);
     const [, setSelectedErrorId] = useState<string | undefined>(undefined);
@@ -107,7 +119,10 @@ export const usePlayer = (): ReplayerContextInterface => {
     const [
         getSessionPayloadQuery,
         { loading: eventsLoading, data: eventsData },
-    ] = useGetSessionPayloadLazyQuery({ fetchPolicy: 'no-cache' });
+    ] = useGetSessionPayloadLazyQuery({
+        fetchPolicy: 'no-cache',
+        pollInterval: 1000,
+    });
 
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
 
@@ -178,6 +193,7 @@ export const usePlayer = (): ReplayerContextInterface => {
     // Reset all state when loading events.
     useEffect(() => {
         if (eventsLoading) {
+            console.log('Rich resetting player due to events loading');
             resetPlayer(ReplayerState.Loading);
         }
     }, [eventsLoading, resetPlayer, setPlayerTimeToPersistance]);
@@ -209,51 +225,75 @@ export const usePlayer = (): ReplayerContextInterface => {
     useEffect(() => {
         if (eventsData?.events?.length ?? 0 > 1) {
             setSessionViewability(SessionViewability.VIEWABLE);
-            setState(ReplayerState.Loading);
             // Add an id field to each event so it can be referenced.
             const newEvents: HighlightEvent[] = toHighlightEvents(
                 eventsData?.events ?? []
             );
-            // Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
-            const playerMountingRoot = document.getElementById(
-                'player'
-            ) as HTMLElement;
-            // There are existing children on an already initialized player page. We want to unmount the previously mounted player to mount the new one.
-            // Example: User is viewing Session A, they navigate to Session B. The player for Session A needs to be unmounted. If we don't unmount it then there will be 2 players on the page.
-            if (playerMountingRoot?.childNodes?.length > 0) {
-                while (playerMountingRoot.firstChild) {
-                    playerMountingRoot.removeChild(
-                        playerMountingRoot.firstChild
-                    );
+            console.log('Rich: got events');
+            if (session_secure_id !== lastLoadedPlayerState?.sessionSecureId) {
+                setState(ReplayerState.Loading);
+                console.log('Rich: redoing player');
+                // Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
+                const playerMountingRoot = document.getElementById(
+                    'player'
+                ) as HTMLElement;
+                // There are existing children on an already initialized player page. We want to unmount the previously mounted player to mount the new one.
+                // Example: User is viewing Session A, they navigate to Session B. The player for Session A needs to be unmounted. If we don't unmount it then there will be 2 players on the page.
+                if (playerMountingRoot?.childNodes?.length > 0) {
+                    while (playerMountingRoot.firstChild) {
+                        playerMountingRoot.removeChild(
+                            playerMountingRoot.firstChild
+                        );
+                    }
                 }
+                let clientConfig;
+                if (sessionData?.session?.client_config) {
+                    try {
+                        clientConfig = JSON.parse(
+                            sessionData?.session?.client_config
+                        );
+                    } catch (_e) {
+                        const e = _e as Error;
+                        H.consumeError(e, 'Failed to JSON parse client config');
+                    }
+                }
+                const isLive = sessionData?.session?.processed === false;
+                const r = new Replayer(newEvents.slice(0, EVENTS_CHUNK_SIZE), {
+                    root: playerMountingRoot,
+                    triggerFocus: false,
+                    mouseTail: showPlayerMouseTail,
+                    // We enable this for Safari users to allow for html2image to access the iframe.
+                    // Without this, the Safari browser will block html2image from access the iframe so it won't have access.
+                    // This access is determined by the iframe's `sandbox="allow-scripts"` property.
+                    UNSAFE_replayCanvas:
+                        isSafari ||
+                        clientConfig?.enableCanvasRecording ||
+                        false,
+                    liveMode: isLive,
+                });
+                setLoadedEventsIndex(
+                    Math.min(EVENTS_CHUNK_SIZE, newEvents.length)
+                );
+                console.log(
+                    'Rich loaded up to ',
+                    Math.min(EVENTS_CHUNK_SIZE, newEvents.length)
+                );
+                r.on('event-cast', (e: any) => {
+                    const event = e as HighlightEvent;
+                    if ((event as customEvent)?.data?.tag === 'Stop') {
+                        setState(ReplayerState.SessionRecordingStopped);
+                    }
+                });
+                setReplayer(r);
+                if (isLive) {
+                    r.startLive(newEvents[0].timestamp - 5000);
+                }
+                setLastLoadedPlayerState({
+                    sessionSecureId: session_secure_id,
+                    eventsData: eventsData!,
+                    initialized: false,
+                });
             }
-            let clientConfig;
-            if (sessionData?.session?.client_config) {
-                try {
-                    clientConfig = JSON.parse(
-                        sessionData?.session?.client_config
-                    );
-                } catch (_e) {
-                    const e = _e as Error;
-                    H.consumeError(e, 'Failed to JSON parse client config');
-                }
-            }
-            const r = new Replayer(newEvents.slice(0, EVENTS_CHUNK_SIZE), {
-                root: playerMountingRoot,
-                triggerFocus: false,
-                mouseTail: showPlayerMouseTail,
-                // We enable this for Safari users to allow for html2image to access the iframe.
-                // Without this, the Safari browser will block html2image from access the iframe so it won't have access.
-                // This access is determined by the iframe's `sandbox="allow-scripts"` property.
-                UNSAFE_replayCanvas:
-                    isSafari || clientConfig?.enableCanvasRecording || false,
-            });
-            r.on('event-cast', (e: any) => {
-                const event = e as HighlightEvent;
-                if ((event as customEvent)?.data?.tag === 'Stop') {
-                    setState(ReplayerState.SessionRecordingStopped);
-                }
-            });
             setEvents(newEvents);
             if (eventsData?.errors) {
                 setErrors(eventsData.errors as ErrorObject[]);
@@ -263,7 +303,6 @@ export const usePlayer = (): ReplayerContextInterface => {
                     eventsData.session_comments as SessionComment[]
                 );
             }
-            setReplayer(r);
         } else if (!!eventsData) {
             setSessionViewability(SessionViewability.EMPTY_SESSION);
         }
@@ -281,7 +320,7 @@ export const usePlayer = (): ReplayerContextInterface => {
     useEffect(() => {
         if (replayer) {
             let timerId = 0;
-            let eventsIndex = EVENTS_CHUNK_SIZE;
+            let eventsIndex = loadedEventsIndex;
 
             const addEventsWorker = () => {
                 events
@@ -289,144 +328,166 @@ export const usePlayer = (): ReplayerContextInterface => {
                     .forEach((event) => {
                         replayer.addEvent(event);
                     });
-                eventsIndex += EVENTS_CHUNK_SIZE;
 
-                if (eventsIndex > events.length) {
+                console.log(
+                    'Rich loaded from ',
+                    eventsIndex,
+                    ' to ',
+                    Math.min(events.length, eventsIndex + EVENTS_CHUNK_SIZE)
+                );
+                eventsIndex = Math.min(
+                    events.length,
+                    eventsIndex + EVENTS_CHUNK_SIZE
+                );
+
+                if (eventsIndex >= events.length) {
+                    setLoadedEventsIndex(eventsIndex);
                     cancelAnimationFrame(timerId);
+                    if (!lastLoadedPlayerState?.initialized) {
+                        setLastLoadedPlayerState({
+                            ...lastLoadedPlayerState!,
+                            initialized: true,
+                        });
 
-                    const sessionIntervals = getSessionIntervals(
-                        replayer.getMetaData(),
-                        replayer.getActivityIntervals()
-                    );
+                        const sessionIntervals = getSessionIntervals(
+                            replayer.getMetaData(),
+                            replayer.getActivityIntervals()
+                        );
 
-                    console.log(
-                        '[Highlight] Session Metadata:',
-                        replayer.getMetaData()
-                    );
-                    setSessionIntervals(
-                        getCommentsInSessionIntervalsRelative(
-                            addEventsToSessionIntervals(
-                                addErrorsToSessionIntervals(
-                                    sessionIntervals,
-                                    errors,
+                        console.log(
+                            '[Highlight] Session Metadata:',
+                            replayer.getMetaData()
+                        );
+                        setSessionIntervals(
+                            getCommentsInSessionIntervalsRelative(
+                                addEventsToSessionIntervals(
+                                    addErrorsToSessionIntervals(
+                                        sessionIntervals,
+                                        errors,
+                                        replayer.getMetaData().startTime
+                                    ),
+                                    events,
                                     replayer.getMetaData().startTime
                                 ),
-                                events,
+                                sessionComments,
                                 replayer.getMetaData().startTime
-                            ),
-                            sessionComments,
-                            replayer.getMetaData().startTime
-                        )
-                    );
-                    setEventsForTimelineIndicator(
-                        getEventsForTimelineIndicator(
-                            events,
-                            replayer.getMetaData().startTime,
-                            replayer.getMetaData().totalTime
-                        )
-                    );
-                    setSessionEndTime(replayer.getMetaData().totalTime);
-                    if (eventsData?.rage_clicks) {
-                        setSessionIntervals((sessionIntervals) => {
-                            const allClickEvents: (ParsedHighlightEvent & {
-                                sessionIndex: number;
-                            })[] = [];
+                            )
+                        );
+                        setEventsForTimelineIndicator(
+                            getEventsForTimelineIndicator(
+                                events,
+                                replayer.getMetaData().startTime,
+                                replayer.getMetaData().totalTime
+                            )
+                        );
+                        setSessionEndTime(replayer.getMetaData().totalTime);
+                        if (eventsData?.rage_clicks) {
+                            setSessionIntervals((sessionIntervals) => {
+                                const allClickEvents: (ParsedHighlightEvent & {
+                                    sessionIndex: number;
+                                })[] = [];
 
-                            sessionIntervals.forEach(
-                                (interval, sessionIndex) => {
-                                    interval.sessionEvents.forEach((event) => {
-                                        if (
-                                            event.type === 5 &&
-                                            event.data.tag === 'Click'
-                                        ) {
-                                            allClickEvents.push({
-                                                ...event,
-                                                sessionIndex,
-                                            });
-                                        }
-                                    });
-                                }
-                            );
-
-                            const rageClicksWithRelativePositions: RageClick[] = [];
-
-                            eventsData.rage_clicks.forEach((rageClick) => {
-                                const rageClickStartUnixTimestamp = new Date(
-                                    rageClick.start_timestamp
-                                ).getTime();
-                                const rageClickEndUnixTimestamp = new Date(
-                                    rageClick.end_timestamp
-                                ).getTime();
-                                /**
-                                 * We have this tolerance because time reporting for milliseconds precision is slightly off.
-                                 */
-                                const DIFFERENCE_TOLERANCE = 100;
-
-                                const matchingStartClickEvent = allClickEvents.find(
-                                    (clickEvent) => {
-                                        if (
-                                            Math.abs(
-                                                clickEvent.timestamp -
-                                                    rageClickStartUnixTimestamp
-                                            ) < DIFFERENCE_TOLERANCE
-                                        ) {
-                                            return true;
-                                        }
-                                    }
-                                );
-                                const matchingEndClickEvent = allClickEvents.find(
-                                    (clickEvent) => {
-                                        if (
-                                            Math.abs(
-                                                clickEvent.timestamp -
-                                                    rageClickEndUnixTimestamp
-                                            ) < DIFFERENCE_TOLERANCE
-                                        ) {
-                                            return true;
-                                        }
+                                sessionIntervals.forEach(
+                                    (interval, sessionIndex) => {
+                                        interval.sessionEvents.forEach(
+                                            (event) => {
+                                                if (
+                                                    event.type === 5 &&
+                                                    event.data.tag === 'Click'
+                                                ) {
+                                                    allClickEvents.push({
+                                                        ...event,
+                                                        sessionIndex,
+                                                    });
+                                                }
+                                            }
+                                        );
                                     }
                                 );
 
-                                if (
-                                    matchingStartClickEvent &&
-                                    matchingEndClickEvent
-                                ) {
-                                    rageClicksWithRelativePositions.push({
-                                        endTimestamp: rageClick.end_timestamp,
-                                        startTimestamp:
-                                            rageClick.start_timestamp,
-                                        totalClicks: rageClick.total_clicks,
-                                        startPercentage:
-                                            matchingStartClickEvent.relativeIntervalPercentage,
-                                        endPercentage:
-                                            matchingEndClickEvent.relativeIntervalPercentage,
-                                        sessionIntervalIndex:
-                                            matchingStartClickEvent.sessionIndex,
-                                    } as RageClick);
-                                }
+                                const rageClicksWithRelativePositions: RageClick[] = [];
+
+                                eventsData.rage_clicks.forEach((rageClick) => {
+                                    const rageClickStartUnixTimestamp = new Date(
+                                        rageClick.start_timestamp
+                                    ).getTime();
+                                    const rageClickEndUnixTimestamp = new Date(
+                                        rageClick.end_timestamp
+                                    ).getTime();
+                                    /**
+                                     * We have this tolerance because time reporting for milliseconds precision is slightly off.
+                                     */
+                                    const DIFFERENCE_TOLERANCE = 100;
+
+                                    const matchingStartClickEvent = allClickEvents.find(
+                                        (clickEvent) => {
+                                            if (
+                                                Math.abs(
+                                                    clickEvent.timestamp -
+                                                        rageClickStartUnixTimestamp
+                                                ) < DIFFERENCE_TOLERANCE
+                                            ) {
+                                                return true;
+                                            }
+                                        }
+                                    );
+                                    const matchingEndClickEvent = allClickEvents.find(
+                                        (clickEvent) => {
+                                            if (
+                                                Math.abs(
+                                                    clickEvent.timestamp -
+                                                        rageClickEndUnixTimestamp
+                                                ) < DIFFERENCE_TOLERANCE
+                                            ) {
+                                                return true;
+                                            }
+                                        }
+                                    );
+
+                                    if (
+                                        matchingStartClickEvent &&
+                                        matchingEndClickEvent
+                                    ) {
+                                        rageClicksWithRelativePositions.push({
+                                            endTimestamp:
+                                                rageClick.end_timestamp,
+                                            startTimestamp:
+                                                rageClick.start_timestamp,
+                                            totalClicks: rageClick.total_clicks,
+                                            startPercentage:
+                                                matchingStartClickEvent.relativeIntervalPercentage,
+                                            endPercentage:
+                                                matchingEndClickEvent.relativeIntervalPercentage,
+                                            sessionIntervalIndex:
+                                                matchingStartClickEvent.sessionIndex,
+                                        } as RageClick);
+                                    }
+                                });
+
+                                setRageClicks(rageClicksWithRelativePositions);
+                                return sessionIntervals;
                             });
-
-                            setRageClicks(rageClicksWithRelativePositions);
-                            return sessionIntervals;
-                        });
+                        }
+                        setState(
+                            hasSearchParam
+                                ? ReplayerState.LoadedWithDeepLink
+                                : ReplayerState.LoadedAndUntouched
+                        );
+                        setPlayerTimestamp(
+                            replayer.getMetaData().totalTime,
+                            replayer.getMetaData().startTime,
+                            errors,
+                            setSelectedErrorId
+                        );
                     }
-                    setState(
-                        hasSearchParam
-                            ? ReplayerState.LoadedWithDeepLink
-                            : ReplayerState.LoadedAndUntouched
-                    );
-                    setPlayerTimestamp(
-                        replayer.getMetaData().totalTime,
-                        replayer.getMetaData().startTime,
-                        errors,
-                        setSelectedErrorId
-                    );
                 } else {
                     timerId = requestAnimationFrame(addEventsWorker);
                 }
             };
 
             timerId = requestAnimationFrame(addEventsWorker);
+
+            console.log('Rich: checking for more chunks');
 
             return () => {
                 cancelAnimationFrame(timerId);
@@ -446,6 +507,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                         replayer.getCurrentTime() >=
                         replayer.getMetaData().totalTime
                     ) {
+                        console.log('Rich state set to ended');
                         setState(ReplayerState.SessionEnded);
                     }
                 }
@@ -455,6 +517,10 @@ export const usePlayer = (): ReplayerContextInterface => {
             setTimerId(requestAnimationFrame(frameAction));
         }
     }, [state, replayer]);
+
+    useEffect(() => {
+        console.log('Rich state: ', state);
+    }, [state]);
 
     useEffect(() => {
         if (state !== ReplayerState.Playing && timerId) {
