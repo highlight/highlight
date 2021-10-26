@@ -3,4 +3,9 @@
         color: var(--text-primary-inverted) !important;
         text-decoration: underline;
     }
+
+    :global(.ant-tooltip-inner) {
+        background: var(--color-primary-inverted-background) !important;
+        border-radius: var(--border-radius) !important;
+    }
 }
