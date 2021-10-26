@@ -170,6 +170,9 @@ export const useSetPlayerTimestampFromSearchParam = (
                 const errorId = searchParamsObject.get(
                     PlayerSearchParameters.errorId
                 )!;
+                const requestId = searchParamsObject.get(
+                    PlayerSearchParameters.resourceErrorRequestHeader
+                );
                 const error = errors.find((e) => e.id === errorId);
                 if (error && error.timestamp) {
                     const sessionTime =
@@ -179,8 +182,11 @@ export const useSetPlayerTimestampFromSearchParam = (
                         sessionTime >= 0 ||
                         sessionTime <= sessionDurationMilliseconds
                     ) {
-                        setTime(sessionTime);
-                        replayer?.pause(sessionTime);
+                        // If requestId is defined, time will be set based on the network request instead
+                        if (!requestId) {
+                            setTime(sessionTime);
+                            replayer?.pause(sessionTime);
+                        }
                         setSelectedErrorId(errorId);
 
                         // Show errors on the timeline indicators if deep linked.

@@ -49,7 +49,10 @@ const SessionLevelBar = () => {
     // Finds the first relevant events.
     useEffect(() => {
         if (!events.length) return;
-        if (!currentUrl && !viewport) {
+        if (
+            state === ReplayerState.LoadedAndUntouched ||
+            state === ReplayerState.LoadedWithDeepLink
+        ) {
             const firstNavigateEvent = findFirstEventOfType(events, [
                 'Navigate',
                 'Reload',
@@ -65,7 +68,7 @@ const SessionLevelBar = () => {
                 firstViewportEvent?.data.payload || { height: 0, width: 0 }
             );
         }
-    }, [currentUrl, events, viewport]);
+    }, [events, state]);
 
     const isLoading =
         (state === ReplayerState.Loading && !events.length) ||

@@ -9,7 +9,6 @@ import { H } from 'highlight.run';
 import React, { FunctionComponent, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useSessionStorage } from 'react-use';
-import useFetch from 'use-http';
 
 import { useAuthContext } from '../../authentication/AuthContext';
 import ButtonLink from '../../components/Button/ButtonLink/ButtonLink';
@@ -95,7 +94,11 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                             To tag sessions with user specific identifiers
                             (name, email, etc.), you can call the
                             <code>
-                                {'H.identify(id: string, object: Object)'}
+                                {`${
+                                    platform === PlatformType.Html
+                                        ? 'window.'
+                                        : ''
+                                }H.identify()`}
                             </code>{' '}
                             method in your app. Here's an example:
                         </p>
@@ -107,7 +110,9 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                                     { copied: 'code snippet' }
                                 );
                             }}
-                            text={`H.identify('${
+                            text={`${
+                                platform === PlatformType.Html ? 'window.' : ''
+                            }H.identify('${
                                 admin?.email || 'eliza@gmail.com'
                             }', {
   id: '8909b017-c0d9-4cc2-90ae-fb519c9e028a',
@@ -295,45 +300,27 @@ const HtmlInstructions = ({
 }: {
     projectVerboseId: string;
 }) => {
-    const { loading, error, data = '' } = useFetch<string>(
-        'https://unpkg.com/highlight.run@latest',
-        {},
-        []
-    );
-    const codeStr = data.replace(/(\r\n|\n|\r)/gm, '');
-
     return (
         <Section title="Installing the SDK">
             <p>
-                Copy and paste the{' '}
-                <span className={styles.codeBlockBasic}>{'<script/>'}</span>{' '}
-                below into the
-                <span className={styles.codeBlockBasic}>{'<head/>'}</span> of
-                every page you wish to record.
+                Copy and paste the <code>{'<script>'}</code> below into the
+                <code>{'<head>'}</code> of every page you wish to record.
             </p>
             <div>
-                {loading || error ? (
-                    <Skeleton />
-                ) : (
-                    <CodeBlock
-                        language="html"
-                        onCopy={() => {
-                            H.track('Copied Script (Highlight Event)', {
-                                copied: 'script',
-                            });
-                        }}
-                        text={`<script>
-${codeStr}
-window.H.init('${projectVerboseId}'${
-                            isOnPrem
-                                ? ', {backendUrl: "' +
-                                  GetBaseURL() +
-                                  '/public"}'
-                                : ''
-                        })
-</script>`}
-                    />
-                )}
+                <CodeBlock
+                    language="html"
+                    onCopy={() => {
+                        H.track('Copied Script (Highlight Event)', {
+                            copied: 'script',
+                        });
+                    }}
+                    text={`<script src="https://unpkg.com/highlight.run"></script>
+<script>window.H.init('${projectVerboseId}'${
+                        isOnPrem
+                            ? ', {backendUrl: "' + GetBaseURL() + '/public"}'
+                            : ''
+                    })</script>`}
+                />
             </div>
         </Section>
     );

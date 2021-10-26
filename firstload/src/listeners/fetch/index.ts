@@ -20,19 +20,19 @@ export const initializeFetchListener = () => {
     // This check will be removed before we release backend errors to everyone.
     if (
         !(
-            window.location.host === 'localhost:3000' ||
-            window.location.host === 'app.highlight.run'
+            window?.location.host === 'localhost:3000' ||
+            window?.location.host === 'app.highlight.run'
         )
     ) {
         return () => {};
     }
-    const originalFetch = window.fetch;
+    const originalFetch = window?.fetch;
 
     window.fetch = function (input, init) {
         const { url } = getFetchRequestProperties(input, init);
         const { options } = window?.H;
 
-        const sessionSecureId = window.sessionStorage.getItem(
+        const sessionSecureId = window?.sessionStorage.getItem(
             SESSION_STORAGE_KEYS.SESSION_SECURE_ID
         );
 
@@ -70,6 +70,8 @@ export const initializeFetchListener = () => {
     };
 
     return () => {
-        window.fetch = originalFetch;
+        if (window?.fetch) {
+            window.fetch = originalFetch;
+        }
     };
 };

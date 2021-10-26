@@ -53,7 +53,9 @@ export const SessionFeed = React.memo(() => {
             lifecycle:
                 segment_id === LIVE_SEGMENT_ID
                     ? SessionLifecycle.Live
-                    : show_live_sessions || isIntegrating
+                    : isIntegrating
+                    ? SessionLifecycle.All
+                    : show_live_sessions
                     ? SessionLifecycle.Live
                     : SessionLifecycle.Completed,
             starred: showStarredSessions,
