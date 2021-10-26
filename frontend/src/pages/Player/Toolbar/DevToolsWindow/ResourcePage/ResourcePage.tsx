@@ -39,7 +39,7 @@ export const ResourcePage = ({
     startTime: number;
 }) => {
     const { state, session, pause, isPlayerReady } = useReplayerContext();
-    const { setDetailedPanel, detailedPanel } = usePlayerUIContext();
+    const { setDetailedPanel } = usePlayerUIContext();
     const { session_secure_id } = useParams<{ session_secure_id: string }>();
     const [options, setOptions] = useState<Array<string>>([]);
     const [currentOption, setCurrentOption] = useState('All');
