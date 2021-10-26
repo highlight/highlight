@@ -3328,7 +3328,10 @@ func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (i
 }
 
 func (r *sessionResolver) DirectDownloadURL(ctx context.Context, obj *model.Session) (*string, error) {
-	if !obj.DirectDownloadEnabled {
+	acceptEncodingString := ctx.Value(model.ContextKeys.AcceptEncoding).(string)
+
+	// Direct download only supported for clients that accept Brotli content encoding
+	if !obj.DirectDownloadEnabled || !strings.Contains(acceptEncodingString, "br") {
 		return nil, nil
 	}
 
