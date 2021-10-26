@@ -82,7 +82,7 @@ export const ResourcePage = ({
                 rawResources?.map((r, i) => {
                     return { ...r, id: i };
                 }) ?? []
-            ).sort((a, b) => b.startTime - a.startTime)
+            ).sort((a, b) => a.startTime - b.startTime)
         );
     }, [rawResources]);
 

@@ -13,8 +13,8 @@ $right-padding: 12px;
     padding-left: 25px;
     padding-right: $right-padding;
     padding-top: var(--size-xxSmall);
-    width: 100%;
     position: relative;
+    width: 100%;
 
     &.current {
         p,
@@ -26,14 +26,14 @@ $right-padding: 12px;
     }
 
     .currentIndicator {
-        position: absolute;
         background-color: var(--color-blue-500);
         border-radius: 50%;
         height: 6px;
-        width: 6px;
-        top: 47%;
         left: 10px;
+        position: absolute;
+        top: 47%;
         transform: translate(0, -50%);
+        width: 6px;
     }
 
     &.failedResource {
