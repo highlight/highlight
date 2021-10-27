@@ -103,8 +103,8 @@
     margin-left: 3px;
     outline: none;
     padding: 0;
-    position: relative;
-    top: -7px;
+    position: absolute;
+    top: 8px;
     transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
     width: var(--size);
 }
