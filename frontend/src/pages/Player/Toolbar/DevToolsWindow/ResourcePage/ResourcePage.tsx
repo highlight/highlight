@@ -78,9 +78,11 @@ export const ResourcePage = ({
         });
         setOptions(['All', ...Array.from(optionSet)]);
         setParsedResources(
-            rawResources?.map((r, i) => {
-                return { ...r, id: i };
-            }) ?? []
+            (
+                rawResources?.map((r, i) => {
+                    return { ...r, id: i };
+                }) ?? []
+            ).sort((a, b) => a.startTime - b.startTime)
         );
     }, [rawResources]);
 
@@ -406,12 +408,13 @@ const ResourceRow = ({
         0.1
     );
     const rightPaddingPercent = 100 - actualPercent - leftPaddingPercent;
+    const isCurrentResource = resource.id === currentResource;
 
     return (
         <div key={resource.id.toString()} onClick={onClickHandler}>
             <div
                 className={classNames(styles.networkRow, {
-                    [styles.current]: resource.id === currentResource,
+                    [styles.current]: isCurrentResource,
                     [styles.failedResource]:
                         hasError ||
                         (resource.requestResponsePairs?.response.status &&
@@ -423,6 +426,9 @@ const ResourceRow = ({
                         detailedPanel?.id === resource.id.toString(),
                 })}
             >
+                {isCurrentResource && (
+                    <div className={styles.currentIndicator} />
+                )}
                 <div className={styles.typeSection}>
                     {resource.requestResponsePairs?.response.status ?? 200}
                 </div>
