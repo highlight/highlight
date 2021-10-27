@@ -1554,6 +1554,7 @@ export type GetAdminQuery = { __typename?: 'Query' } & {
         { __typename?: 'Admin' } & Pick<
             Types.Admin,
             | 'id'
+            | 'uid'
             | 'name'
             | 'email'
             | 'photo_url'
