@@ -1004,7 +1004,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 			tracer.ResourceName("go.unmarshal.messages"), tracer.Tag("project_id", projectID))
 		messagesParsed := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(messages), &messagesParsed); err != nil {
-			return fmt.Errorf("error decoding message data: %w", err)
+			return e.Wrap(err, "error decoding message data")
 		}
 		if len(messagesParsed["messages"]) > 0 {
 			obj := &model.MessagesObject{SessionID: sessionID, Messages: messages}
@@ -1022,7 +1022,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 			tracer.ResourceName("go.unmarshal.resources"), tracer.Tag("project_id", projectID))
 		resourcesParsed := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
-			return fmt.Errorf("error decoding resource data: %w", err)
+			return e.Wrap(err, "error decoding resource data")
 		}
 		if len(resourcesParsed["resources"]) > 0 {
 			obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources}
