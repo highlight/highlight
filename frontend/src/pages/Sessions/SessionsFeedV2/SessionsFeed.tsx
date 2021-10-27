@@ -1,3 +1,6 @@
+import SessionFeedConfiguration from '@pages/Sessions/SessionsFeedV2/components/SessionFeedConfiguration/SessionFeedConfiguration';
+import { SessionFeedConfigurationContextProvider } from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext';
+import { useSessionFeedConfiguration } from '@pages/Sessions/SessionsFeedV2/hooks/useSessionFeedConfiguration';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import React, { RefObject, useEffect, useMemo, useState } from 'react';
@@ -28,6 +31,7 @@ export const SessionFeed = React.memo(() => {
         segment_id: string;
         session_secure_id: string;
     }>();
+    const sessionFeedConfiguration = useSessionFeedConfiguration();
     const [count, setCount] = useState(10);
     const {
         autoPlaySessions,
@@ -109,7 +113,9 @@ export const SessionFeed = React.memo(() => {
     }, [loading, searchParams.hide_viewed, sessionResults.sessions]);
 
     return (
-        <>
+        <SessionFeedConfigurationContextProvider
+            value={sessionFeedConfiguration}
+        >
             <div className={styles.fixedContent}>
                 <div className={styles.resultCount}>
                     {sessionResults.totalCount === -1 ? (
@@ -143,6 +149,13 @@ export const SessionFeed = React.memo(() => {
                                         }}
                                         trackingId="SessionFeedShowDetails"
                                     />
+                                    {showDetailedSessionView && (
+                                        <SessionFeedConfiguration
+                                            configuration={
+                                                sessionFeedConfiguration
+                                            }
+                                        />
+                                    )}
                                 </div>
                             </div>
                         )
@@ -181,6 +194,9 @@ export const SessionFeed = React.memo(() => {
                                             showDetailedSessionView={
                                                 showDetailedSessionView
                                             }
+                                            configuration={
+                                                sessionFeedConfiguration
+                                            }
                                         />
                                     ))}
                                 </>
@@ -199,6 +215,6 @@ export const SessionFeed = React.memo(() => {
                     )}
                 </div>
             </div>
-        </>
+        </SessionFeedConfigurationContextProvider>
     );
 });

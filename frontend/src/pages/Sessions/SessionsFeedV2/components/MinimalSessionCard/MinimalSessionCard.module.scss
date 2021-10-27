@@ -64,6 +64,10 @@
     grid-template-columns: 1fr 1fr;
     max-width: unset;
     padding-top: var(--size-xSmall);
+
+    &.withLongDatetimeFormat {
+        grid-template-columns: 1.7fr 1fr;
+    }
 }
 
 .tagWrapper {

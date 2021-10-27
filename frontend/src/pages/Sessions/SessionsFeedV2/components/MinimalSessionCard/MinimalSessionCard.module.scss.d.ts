@@ -22,3 +22,4 @@ export const starredIcon: string;
 export const starredIconWrapper: string;
 export const tagWrapper: string;
 export const topText: string;
+export const withLongDatetimeFormat: string;

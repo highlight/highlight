@@ -5,10 +5,13 @@ import {
 import { ALERT_CONFIGURATIONS } from '@pages/Alerts/Alerts';
 import { formatShortTime } from '@pages/Home/components/KeyPerformanceIndicators/utils/utils';
 import ActivityGraph from '@pages/Sessions/SessionsFeedV2/components/ActivityGraph/ActivityGraph';
+import { formatDatetime } from '@pages/Sessions/SessionsFeedV2/components/SessionFeedConfiguration/SessionFeedConfiguration';
+import { SessionFeedConfigurationContext } from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import TextTransition from 'react-text-transition';
 
 import { Avatar } from '../../../../../components/Avatar/Avatar';
 import { Maybe, Session } from '../../../../../graph/generated/schemas';
@@ -30,6 +33,7 @@ interface Props {
     linkDisabled?: boolean;
     showDetailedSessionView?: boolean;
     autoPlaySessions?: boolean;
+    configuration?: SessionFeedConfigurationContext;
 }
 
 const MinimalSessionCard = React.memo(
@@ -42,6 +46,7 @@ const MinimalSessionCard = React.memo(
         linkDisabled,
         autoPlaySessions = false,
         showDetailedSessionView: showDetailedSessionViewPlayerConfiguration = false,
+        configuration,
     }: Props) => {
         const ref = useRef<HTMLDivElement | null>(null);
         const { project_id, segment_id, session_secure_id } = useParams<{
@@ -138,6 +143,8 @@ const MinimalSessionCard = React.memo(
                         <div
                             className={classNames(styles.sessionTextSection, {
                                 [styles.detailedSection]: showDetailedSessionView,
+                                [styles.withLongDatetimeFormat]:
+                                    configuration?.datetimeFormat === 'ISO',
                             })}
                         >
                             {showDetailedSessionView ? (
@@ -187,13 +194,26 @@ const MinimalSessionCard = React.memo(
                                         </div>
                                     )}
                                     <div className={styles.topText}>
-                                        {`${new Date(
-                                            session?.created_at
-                                        ).toLocaleString('en-us', {
-                                            day: 'numeric',
-                                            month: 'long',
-                                            year: 'numeric',
-                                        })}`}
+                                        <TextTransition
+                                            text={
+                                                configuration?.datetimeFormat
+                                                    ? formatDatetime(
+                                                          session?.created_at,
+                                                          configuration.datetimeFormat
+                                                      )
+                                                    : `${new Date(
+                                                          session?.created_at
+                                                      ).toLocaleString(
+                                                          'en-us',
+                                                          {
+                                                              day: 'numeric',
+                                                              month: 'long',
+                                                              year: 'numeric',
+                                                          }
+                                                      )}`
+                                            }
+                                            inline
+                                        />
                                     </div>
                                     <div className={styles.topText}>
                                         {`${session?.browser_name}`}
