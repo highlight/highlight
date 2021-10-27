@@ -6,8 +6,8 @@
     padding: 0;
     position: absolute;
     width: 100%;
-    z-index: 20;
     transform: translateY(-11px);
+    z-index: 20;
 
     &:disabled {
         cursor: not-allowed;
@@ -63,16 +63,16 @@
     background-color: var(--color-purple);
     border-radius: 20px;
     height: var(--size-medium);
+    margin-top: var(--size-xxSmall);
     transform: scale(0);
     transition: all 0.1s ease-in-out;
     width: var(--size-medium);
-    margin-top: var(--size-xxSmall);
 }
 
 .indicatorParent {
     height: var(--size-large);
-    width: var(--size-large);
     margin-top: -4px;
+    width: var(--size-large);
 }
 
 .playerRail {
