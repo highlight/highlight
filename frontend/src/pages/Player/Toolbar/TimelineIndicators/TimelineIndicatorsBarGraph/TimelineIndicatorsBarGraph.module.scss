@@ -1,0 +1,9 @@
+.container {
+    position: relative;
+
+    .sessionInterval {
+        bottom: 0;
+        height: var(--size-xxLarge);
+        position: absolute;
+    }
+}
