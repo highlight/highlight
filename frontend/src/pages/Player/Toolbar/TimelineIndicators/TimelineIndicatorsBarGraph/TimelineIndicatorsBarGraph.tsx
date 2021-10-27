@@ -115,9 +115,31 @@ const getEventsInTimeBucket = (
         }
     });
 
+    if (selectedTimelineAnnotationTypes.includes('Errors')) {
+        interval.errors.forEach((error) => {
+            if (error.relativeIntervalPercentage === undefined) {
+                return;
+            }
+
+            const eventTimestampInMilliseconds =
+                (error.relativeIntervalPercentage / 100) *
+                timeSpanInMilliseconds;
+
+            const bucketKey = Math.floor(
+                eventTimestampInMilliseconds / BUCKET_SIZE
+            );
+
+            if (!(error.type in data[bucketKey])) {
+                data[bucketKey]['Errors'] = 1;
+            } else {
+                data[bucketKey]['Errors']++;
+            }
+        });
+    }
+
     const res = Object.keys(data).map((key, index) => ({
         ...data[key],
-        name: `INdex ${index}`,
+        name: `Index ${index}`,
     }));
 
     return res;
