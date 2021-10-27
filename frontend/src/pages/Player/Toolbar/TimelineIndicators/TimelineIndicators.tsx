@@ -1,7 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext';
-import HighlightGate from '@components/HighlightGate/HighlightGate';
 import RageClickSpan from '@pages/Player/Toolbar/RageClickSpan/RageClickSpan';
-import TimelineIndicatorsBarGraph from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph';
 import classNames from 'classnames';
 import React, { useEffect, useRef } from 'react';
 
@@ -154,24 +152,15 @@ const TimelineIndicators = () => {
     }
 
     return (
-        <>
-            <HighlightGate>
-                <TimelineIndicatorsBarGraph
-                    sessionIntervals={sessionIntervals}
-                />
-            </HighlightGate>
-            <TimelineIndicatorsMemoized
-                openDevTools={openDevTools}
-                refContainer={refContainer}
-                sessionIntervals={sessionIntervals}
-                selectedTimelineAnnotationTypes={
-                    selectedTimelineAnnotationTypes
-                }
-                rageClicks={rageClicks}
-                startTime={replayer?.getMetaData()?.startTime}
-                pause={pause}
-            />
-        </>
+        <TimelineIndicatorsMemoized
+            openDevTools={openDevTools}
+            refContainer={refContainer}
+            sessionIntervals={sessionIntervals}
+            selectedTimelineAnnotationTypes={selectedTimelineAnnotationTypes}
+            rageClicks={rageClicks}
+            startTime={replayer?.getMetaData()?.startTime}
+            pause={pause}
+        ></TimelineIndicatorsMemoized>
     );
 };
 
