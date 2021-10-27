@@ -101,7 +101,11 @@ const DetailPanel = () => {
                                                                           styles.errorNotification
                                                                       }
                                                                   >
-                                                                      <div>
+                                                                      <div
+                                                                          className={
+                                                                              styles.errorCount
+                                                                          }
+                                                                      >
                                                                           1
                                                                       </div>
                                                                   </div>

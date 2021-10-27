@@ -3,6 +3,7 @@ export const detailPanel: string;
 export const detailPanelTitle: string;
 export const dragHandle: string;
 export const dragHandleWrapper: string;
+export const errorCount: string;
 export const errorNotification: string;
 export const extraContentContainer: string;
 export const header: string;
