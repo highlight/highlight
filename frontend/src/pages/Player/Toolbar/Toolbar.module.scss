@@ -61,17 +61,16 @@
 .indicator {
     background-color: var(--color-purple);
     border-radius: 20px;
-    height: 15px;
-    margin-top: -9px;
+    height: var(--size-medium);
+    margin-top: -10px;
     transform: scale(0);
-    transition: all 0.3s ease-in-out;
-    width: 15px;
+    transition: all 0.1s ease-in-out;
+    width: var(--size-medium);
 }
 
 .indicatorParent {
-    background-color: none;
-    height: 15px;
-    width: 15px;
+    height: var(--size-medium);
+    width: var(--size-medium);
 }
 
 .playerRail {
