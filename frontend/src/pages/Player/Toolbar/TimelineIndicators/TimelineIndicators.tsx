@@ -158,6 +158,9 @@ const TimelineIndicators = () => {
             <HighlightGate>
                 <TimelineIndicatorsBarGraph
                     sessionIntervals={sessionIntervals}
+                    selectedTimelineAnnotationTypes={
+                        selectedTimelineAnnotationTypes
+                    }
                 />
             </HighlightGate>
             <TimelineIndicatorsMemoized

@@ -9,58 +9,64 @@ import styles from './TimelineIndicatorsBarGraph.module.scss';
 
 interface Props {
     sessionIntervals: ParsedSessionInterval[];
+    selectedTimelineAnnotationTypes: string[];
 }
 
-const TimelineIndicatorsBarGraph = React.memo(({ sessionIntervals }: Props) => {
-    const activeSessionIntervals = sessionIntervals.filter(
-        (interval) => interval.active
-    );
+const TimelineIndicatorsBarGraph = React.memo(
+    ({ sessionIntervals, selectedTimelineAnnotationTypes }: Props) => {
+        const activeSessionIntervals = sessionIntervals.filter(
+            (interval) => interval.active
+        );
 
-    return (
-        <div className={styles.container}>
-            {activeSessionIntervals.map((interval) => (
-                <div
-                    key={interval.startTime}
-                    style={{
-                        left: `${interval.startPercent * 100}%`,
-                        width: `calc((${interval.endPercent * 100}%) - (${
-                            interval.startPercent * 100
-                        }%))`,
-                    }}
-                    className={styles.sessionInterval}
-                >
-                    <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                            data={getEventsInTimeBucket(interval)}
-                            barGap={0}
-                            margin={{
-                                top: 0,
-                                right: 0,
-                                left: 0,
-                                bottom: 0,
-                            }}
-                        >
-                            <Tooltip
-                                content={<RechartTooltip />}
-                                wrapperStyle={{ zIndex: 99999 }}
-                            />
-                            {EventsForTimeline.map((eventType) => (
-                                <Bar
-                                    key={eventType}
-                                    dataKey={eventType}
-                                    stackId="a"
-                                    fill={`var(${getAnnotationColor(
-                                        eventType
-                                    )})`}
+        return (
+            <div className={styles.container}>
+                {activeSessionIntervals.map((interval) => (
+                    <div
+                        key={interval.startTime}
+                        style={{
+                            left: `${interval.startPercent * 100}%`,
+                            width: `calc((${interval.endPercent * 100}%) - (${
+                                interval.startPercent * 100
+                            }%))`,
+                        }}
+                        className={styles.sessionInterval}
+                    >
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                                data={getEventsInTimeBucket(
+                                    interval,
+                                    selectedTimelineAnnotationTypes
+                                )}
+                                barGap={0}
+                                margin={{
+                                    top: 0,
+                                    right: 0,
+                                    left: 0,
+                                    bottom: 0,
+                                }}
+                            >
+                                <Tooltip
+                                    content={<RechartTooltip />}
+                                    wrapperStyle={{ zIndex: 99999 }}
                                 />
-                            ))}
-                        </BarChart>
-                    </ResponsiveContainer>
-                </div>
-            ))}
-        </div>
-    );
-});
+                                {EventsForTimeline.map((eventType) => (
+                                    <Bar
+                                        key={eventType}
+                                        dataKey={eventType}
+                                        stackId="a"
+                                        fill={`var(${getAnnotationColor(
+                                            eventType
+                                        )})`}
+                                    />
+                                ))}
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                ))}
+            </div>
+        );
+    }
+);
 
 export default TimelineIndicatorsBarGraph;
 
@@ -68,21 +74,28 @@ export default TimelineIndicatorsBarGraph;
  * Units is milliseconds.
  * This represents the time span for each bucket.
  */
-const BUCKET_SIZE = 1000;
+const BUCKET_SIZE = 10000;
 
-const getEventsInTimeBucket = (interval: ParsedSessionInterval) => {
+const getEventsInTimeBucket = (
+    interval: ParsedSessionInterval,
+    selectedTimelineAnnotationTypes: string[]
+) => {
     const { startTime, endTime } = interval;
     const timeSpanInMilliseconds = endTime - startTime;
     const numberOfBuckets = Math.floor(timeSpanInMilliseconds / BUCKET_SIZE);
     const data: { [key: string]: any } = {};
 
-    for (let i = 0; i < numberOfBuckets; i++) {
+    for (let i = 0; i <= numberOfBuckets; i++) {
         data[i.toString()] = {};
     }
 
     interval.sessionEvents.forEach((event) => {
         if (event.type === 5 && event.relativeIntervalPercentage) {
             const eventType = event.data.tag;
+
+            if (!selectedTimelineAnnotationTypes.includes(eventType)) {
+                return;
+            }
 
             const eventTimestampInMilliseconds =
                 (event.relativeIntervalPercentage / 100) *
