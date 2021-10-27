@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	e "errors"
 
 	"github.com/pkg/errors"
 )
@@ -140,7 +141,7 @@ func InjectStylesheets(inputData json.RawMessage) (json.RawMessage, error) {
 	}
 	node, ok := n["node"].(map[string]interface{})
 	if !ok {
-		return nil, errors.New("error converting to node")
+		return nil, e.New("error converting to node")
 	}
 	childNodes, ok := node["childNodes"].([]interface{})
 	if !ok {
