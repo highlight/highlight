@@ -62,7 +62,7 @@ export const SessionFeed = React.memo(() => {
         },
         // pollInterval: SESSIONS_FEED_POLL_INTERVAL,
         onCompleted: (response) => {
-            if (response.sessions) {
+            if (response?.sessions) {
                 setSessionResults(response.sessions);
             }
             setShowLoadingSkeleton(false);

@@ -8,6 +8,7 @@ export const errorNotification: string;
 export const extraContentContainer: string;
 export const header: string;
 export const hidden: string;
+export const padding: string;
 export const resizeContainer: string;
 export const tabContainer: string;
 export const title: string;
