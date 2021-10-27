@@ -1,9 +1,7 @@
 import Input from '@components/Input/Input';
-import Tabs from '@components/Tabs/Tabs';
-import { ErrorObject, Session } from '@graph/schemas';
+import { ErrorObject } from '@graph/schemas';
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils';
-import ErrorModal from '@pages/Player/Toolbar/DevToolsWindow/ErrorsPage/components/ErrorModal/ErrorModal';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
@@ -28,7 +26,6 @@ import { formatTime } from '../../../../Home/components/KeyPerformanceIndicators
 import { ReplayerState, useReplayerContext } from '../../../ReplayerContext';
 import devStyles from '../DevToolsWindow.module.scss';
 import { getNetworkResourcesDisplayName, Option } from '../Option/Option';
-import ResourceDetailsModal from './components/ResourceDetailsModal/ResourceDetailsModal';
 import styles from './ResourcePage.module.scss';
 
 export const ResourcePage = ({
@@ -160,16 +157,12 @@ export const ResourcePage = ({
                 allResources
             );
             if (resource) {
-                setDetailedPanel(
-                    getDetailedPanel(
-                        resource,
-                        pause,
-                        session,
-                        errors.find(
-                            (e) => e.request_id === resourceErrorRequestHeader
-                        )
-                    )
-                );
+                setDetailedPanel({
+                    resource,
+                    error: errors.find(
+                        (e) => e.request_id === resourceErrorRequestHeader
+                    ),
+                });
                 pause(resource.startTime);
                 scrollFunction(allResources.indexOf(resource));
             } else {
@@ -317,14 +310,10 @@ export const ResourcePage = ({
                                                 }
                                                 searchTerm={filterSearchTerm}
                                                 onClickHandler={() => {
-                                                    setDetailedPanel(
-                                                        getDetailedPanel(
-                                                            resource,
-                                                            pause,
-                                                            session,
-                                                            error
-                                                        )
-                                                    );
+                                                    setDetailedPanel({
+                                                        resource,
+                                                        error,
+                                                    });
                                                 }}
                                                 hasError={!!error}
                                             />
@@ -423,7 +412,7 @@ const ResourceRow = ({
                                 resource.requestResponsePairs.response.status >=
                                     400)),
                     [styles.showingDetails]:
-                        detailedPanel?.id === resource.id.toString(),
+                        detailedPanel?.resource?.id === resource.id,
                 })}
             >
                 {isCurrentResource && (
@@ -552,83 +541,6 @@ export const formatSize = (bytes: number) => {
 const roundOff = (value: number, decimal = 1) => {
     const base = 10 ** decimal;
     return Math.round(value * base) / base;
-};
-
-const getDetailedPanel = (
-    resource: NetworkResource,
-    pause: (time: number) => void,
-    session: Session,
-    error?: ErrorObject
-) => {
-    const networkContent = (
-        <>
-            <div className={styles.detailPanelTitle}></div>
-            <ResourceDetailsModal
-                selectedNetworkResource={resource}
-                networkRecordingEnabledForSession={
-                    session?.enable_recording_network_contents || false
-                }
-            />
-        </>
-    );
-
-    return {
-        title: null,
-        content: (
-            <Tabs
-                noPadding
-                noHeaderPadding
-                tabs={[
-                    {
-                        title: 'Network Resource',
-                        panelContent: (
-                            <div className={styles.tabContainer}>
-                                {networkContent}
-                            </div>
-                        ),
-                    },
-                    ...(error
-                        ? [
-                              {
-                                  title: 'Error',
-                                  panelContent: (
-                                      <div className={styles.tabContainer}>
-                                          <ErrorModal error={error} />
-                                      </div>
-                                  ),
-                              },
-                          ]
-                        : []),
-                ]}
-                tabBarExtraContent={
-                    <div className={styles.extraContentContainer}>
-                        <GoToButton
-                            onClick={() => {
-                                pause(resource.startTime);
-
-                                message.success(
-                                    `Changed player time to when ${getNetworkResourcesDisplayName(
-                                        resource.initiatorType
-                                    )} request started at ${MillisToMinutesAndSeconds(
-                                        resource.startTime
-                                    )}.`
-                                );
-                            }}
-                        />
-                    </div>
-                }
-                id={
-                    error
-                        ? 'NetworkErrorRightPanelTabs'
-                        : 'NetworkRightPanelTabs'
-                }
-            />
-        ),
-        options: {
-            noHeader: true,
-        },
-        id: resource.id.toString(),
-    };
 };
 
 const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request';

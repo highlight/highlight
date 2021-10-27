@@ -10,6 +10,7 @@ import ElevatedCard from '@components/ElevatedCard/ElevatedCard';
 import { ErrorState } from '@components/ErrorState/ErrorState';
 import FullBleedCard from '@components/FullBleedCard/FullBleedCard';
 import Modal from '@components/Modal/Modal';
+import { ErrorObject } from '@graph/schemas';
 import { Replayer } from '@highlight-run/rrweb';
 import NoActiveSessionCard from '@pages/Player/components/NoActiveSessionCard/NoActiveSessionCard';
 import PanelToggleButton from '@pages/Player/components/PanelToggleButton/PanelToggleButton';
@@ -31,6 +32,7 @@ import RightPlayerPanel from '@pages/Player/RightPlayerPanel/RightPlayerPanel';
 import SearchPanel from '@pages/Player/SearchPanel/SearchPanel';
 import SessionLevelBar from '@pages/Player/SessionLevelBar/SessionLevelBar';
 import DetailPanel from '@pages/Player/Toolbar/DevToolsWindow/DetailPanel/DetailPanel';
+import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindow/ResourcePage/ResourcePage';
 import { NewCommentForm } from '@pages/Player/Toolbar/NewCommentForm/NewCommentForm';
 import { Toolbar } from '@pages/Player/Toolbar/Toolbar';
 import { usePlayerFullscreen } from '@pages/Player/utils/PlayerHooks';
@@ -93,9 +95,8 @@ const Player = ({ integrated }: Props) => {
     } = usePlayerFullscreen();
     const [detailedPanel, setDetailedPanel] = useState<
         | {
-              title: string | React.ReactNode;
-              content: React.ReactNode;
-              id: string;
+              resource?: NetworkResource;
+              error?: ErrorObject;
           }
         | undefined
     >(undefined);

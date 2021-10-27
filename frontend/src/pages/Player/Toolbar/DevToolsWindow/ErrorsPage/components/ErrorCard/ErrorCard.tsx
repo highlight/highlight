@@ -30,7 +30,7 @@ const ErrorCard = ({ error, setSelectedError, searchQuery, state }: Props) => {
         <button
             key={error.id}
             className={classNames(styles.errorCard, {
-                [styles.active]: detailedPanel?.id === error.id,
+                [styles.active]: detailedPanel?.error?.id === error.id,
             })}
             onClick={setSelectedError}
         >

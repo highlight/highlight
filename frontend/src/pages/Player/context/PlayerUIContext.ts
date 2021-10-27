@@ -1,19 +1,14 @@
+import { ErrorObject } from '@graph/schemas';
+import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindow/ResourcePage/ResourcePage';
 import React from 'react';
 import AsyncSelect from 'react-select/async';
 
 import { createContext } from '../../../util/context/context';
 import { SessionSearchOption } from '../../Sessions/SessionsFeedV2/components/SessionSearch/SessionSearch';
 
-interface DetailedPanelOptions {
-    noHeader?: boolean;
-}
-
 interface DetailedPanel {
-    title: string | React.ReactNode;
-    content: React.ReactNode;
-    options?: DetailedPanelOptions;
-    /** The ID of the object that is being showed details for. */
-    id: string;
+    resource?: NetworkResource;
+    error?: ErrorObject;
 }
 
 interface PlayerUIContext {

@@ -1,6 +1,5 @@
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
-import ErrorModal from '@pages/Player/Toolbar/DevToolsWindow/ErrorsPage/components/ErrorModal/ErrorModal';
 import { message } from 'antd';
 import React, { ReactElement, useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
@@ -38,12 +37,7 @@ function TimelineErrorAnnotation({ error }: Props): ReactElement {
     useEffect(() => {
         if (errorId && !requestId) {
             setDetailedPanel({
-                title: null,
-                content: <ErrorModal error={error} />,
-                options: {
-                    noHeader: true,
-                },
-                id: error.id,
+                error,
             });
         }
     }, [error, errorId, requestId, setDetailedPanel]);
@@ -61,12 +55,7 @@ function TimelineErrorAnnotation({ error }: Props): ReactElement {
                                 setShowDevTools(true);
                                 setSelectedDevToolsTab('Errors');
                                 setDetailedPanel({
-                                    title: null,
-                                    content: <ErrorModal error={error} />,
-                                    options: {
-                                        noHeader: true,
-                                    },
-                                    id: error.id,
+                                    error,
                                 });
                             }}
                             label="More info"

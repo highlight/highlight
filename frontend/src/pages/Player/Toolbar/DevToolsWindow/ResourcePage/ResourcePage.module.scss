@@ -237,23 +237,6 @@ $canvas-width: calc(
     }
 }
 
-.detailPanelTitle {
-    align-items: center !important;
-    column-gap: var(--size-medium);
-    display: flex;
-    justify-content: space-between;
-    padding-bottom: var(--size-xSmall);
-}
-
 .virtuoso {
     overflow-x: hidden;
-}
-
-.tabContainer {
-    height: 100%;
-    padding: var(--size-medium) var(--size-large);
-}
-
-.extraContentContainer {
-    margin-right: var(--size-medium);
 }

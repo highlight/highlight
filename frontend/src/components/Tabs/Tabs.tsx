@@ -10,6 +10,7 @@ import styles from './Tabs.module.scss';
 export interface TabItem {
     title: string;
     panelContent: React.ReactNode;
+    titleContent?: React.ReactNode;
 }
 
 type Props = Pick<
@@ -70,10 +71,10 @@ const Tabs = ({
                 [styles.noHeaderPadding]: noHeaderPadding,
             })}
         >
-            {tabs.map(({ panelContent, title }) => (
+            {tabs.map(({ panelContent, title, titleContent }) => (
                 <TabPane
                     key={title}
-                    tab={title}
+                    tab={titleContent ?? title}
                     className={classNames(styles.tabPane, {
                         [styles.withPadding]: !noPadding,
                     })}

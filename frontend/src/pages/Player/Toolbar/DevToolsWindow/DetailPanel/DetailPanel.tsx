@@ -1,5 +1,13 @@
+import GoToButton from '@components/Button/GoToButton';
+import Tabs from '@components/Tabs/Tabs';
 import PanelToggleButton from '@pages/Player/components/PanelToggleButton/PanelToggleButton';
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
+import { useReplayerContext } from '@pages/Player/ReplayerContext';
+import ErrorModal from '@pages/Player/Toolbar/DevToolsWindow/ErrorsPage/components/ErrorModal/ErrorModal';
+import { getNetworkResourcesDisplayName } from '@pages/Player/Toolbar/DevToolsWindow/Option/Option';
+import ResourceDetailsModal from '@pages/Player/Toolbar/DevToolsWindow/ResourcePage/components/ResourceDetailsModal/ResourceDetailsModal';
+import { MillisToMinutesAndSeconds } from '@util/time';
+import { message } from 'antd';
 import classNames from 'classnames';
 import { AnimatePresence, motion, useIsPresent } from 'framer-motion';
 import { Resizable } from 're-resizable';
@@ -9,6 +17,7 @@ import styles from './DetailPanel.module.scss';
 
 const DetailPanel = () => {
     const { detailedPanel, setDetailedPanel } = usePlayerUIContext();
+    const { session, pause, replayer } = useReplayerContext();
 
     return (
         <AnimatePresence presenceAffectsLayout>
@@ -42,16 +51,150 @@ const DetailPanel = () => {
                                 setDetailedPanel(undefined);
                             }}
                         />
-                        {!detailedPanel.options?.noHeader && (
-                            <div className={styles.header}>
-                                <h3 className={styles.title}>
-                                    {detailedPanel.title}
-                                </h3>
-                            </div>
-                        )}
-
                         <div className={styles.contentContainer}>
-                            {detailedPanel.content}
+                            {
+                                <Tabs
+                                    noPadding
+                                    noHeaderPadding
+                                    tabs={[
+                                        ...(detailedPanel.resource
+                                            ? [
+                                                  {
+                                                      title: 'Network Resource',
+                                                      panelContent: (
+                                                          <>
+                                                              <div
+                                                                  className={
+                                                                      styles.detailPanelTitle
+                                                                  }
+                                                              ></div>
+                                                              <div
+                                                                  className={
+                                                                      styles.tabContainer
+                                                                  }
+                                                              >
+                                                                  <ResourceDetailsModal
+                                                                      selectedNetworkResource={
+                                                                          detailedPanel.resource
+                                                                      }
+                                                                      networkRecordingEnabledForSession={
+                                                                          session?.enable_recording_network_contents ||
+                                                                          false
+                                                                      }
+                                                                  />
+                                                              </div>
+                                                          </>
+                                                      ),
+                                                  },
+                                              ]
+                                            : []),
+                                        ...(detailedPanel.error
+                                            ? [
+                                                  {
+                                                      title: 'Error',
+                                                      titleContent: (
+                                                          <div>
+                                                              Error
+                                                              {detailedPanel.resource ? (
+                                                                  <div
+                                                                      className={
+                                                                          styles.errorNotification
+                                                                      }
+                                                                  >
+                                                                      <div>
+                                                                          1
+                                                                      </div>
+                                                                  </div>
+                                                              ) : null}
+                                                          </div>
+                                                      ),
+                                                      panelContent: (
+                                                          <div
+                                                              className={
+                                                                  styles.tabContainer
+                                                              }
+                                                          >
+                                                              <ErrorModal
+                                                                  error={
+                                                                      detailedPanel.error
+                                                                  }
+                                                              />
+                                                          </div>
+                                                      ),
+                                                  },
+                                              ]
+                                            : []),
+                                    ]}
+                                    tabBarExtraContent={
+                                        <div
+                                            className={
+                                                styles.extraContentContainer
+                                            }
+                                        >
+                                            <GoToButton
+                                                onClick={() => {
+                                                    if (
+                                                        detailedPanel.resource
+                                                    ) {
+                                                        pause(
+                                                            detailedPanel
+                                                                .resource
+                                                                .startTime
+                                                        );
+
+                                                        message.success(
+                                                            `Changed player time to when ${getNetworkResourcesDisplayName(
+                                                                detailedPanel
+                                                                    .resource
+                                                                    .initiatorType
+                                                            )} request started at ${MillisToMinutesAndSeconds(
+                                                                detailedPanel
+                                                                    .resource
+                                                                    .startTime
+                                                            )}.`
+                                                        );
+                                                    } else if (
+                                                        detailedPanel.error
+                                                    ) {
+                                                        const sessionTotalTime = replayer?.getMetaData()
+                                                            .totalTime;
+                                                        const sessionStartTime =
+                                                            replayer?.getMetaData()
+                                                                .startTime || 0;
+
+                                                        const relativeTime =
+                                                            new Date(
+                                                                detailedPanel.error.timestamp
+                                                            ).getTime() -
+                                                            sessionStartTime;
+
+                                                        if (
+                                                            sessionTotalTime !==
+                                                                undefined &&
+                                                            relativeTime >= 0 &&
+                                                            relativeTime <=
+                                                                sessionTotalTime
+                                                        ) {
+                                                            pause(relativeTime);
+
+                                                            message.success(
+                                                                `Changed player time to when error occurred at ${MillisToMinutesAndSeconds(
+                                                                    relativeTime
+                                                                )}.`
+                                                            );
+                                                        }
+                                                    }
+                                                }}
+                                            />
+                                        </div>
+                                    }
+                                    id={`${
+                                        detailedPanel.resource ? 'Network' : ''
+                                    }${
+                                        detailedPanel.error ? 'Error' : ''
+                                    }RightPanelTabs`}
+                                />
+                            }
                         </div>
                     </motion.div>
                 </Resizable>
