@@ -2,7 +2,6 @@ package parse
 
 import (
 	"encoding/json"
-	e "errors"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -141,7 +140,7 @@ func InjectStylesheets(inputData json.RawMessage) (json.RawMessage, error) {
 	}
 	node, ok := n["node"].(map[string]interface{})
 	if !ok {
-		return nil, e.New("error converting to node")
+		return nil, errors.New("error converting to node")
 	}
 	childNodes, ok := node["childNodes"].([]interface{})
 	if !ok {
