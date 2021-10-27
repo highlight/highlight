@@ -10,6 +10,10 @@
     right: 0;
     width: 100%;
     z-index: 99;
+
+    &.padding {
+        padding: var(--size-medium) var(--size-large);
+    }
 }
 
 .header {
