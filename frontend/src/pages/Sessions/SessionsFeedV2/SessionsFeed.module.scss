@@ -174,7 +174,7 @@
 .fixedContent {
     align-items: center;
     display: flex;
-    padding-bottom: var(--size-small);
+    padding-bottom: var(--size-xSmall);
     position: relative;
 }
 
@@ -187,7 +187,7 @@
 }
 
 .resultCountValueContainer {
-    align-items: flex-end;
+    align-items: center;
     display: flex;
     justify-content: space-between;
 }
@@ -338,4 +338,5 @@
 .sessionFeedActions {
     column-gap: var(--size-small);
     display: flex;
+    height: 30px;
 }

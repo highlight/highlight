@@ -62,6 +62,10 @@
     display: grid;
     gap: var(--size-xxSmall);
     grid-template-columns: 1fr 1fr;
+
+    &.withLongDatetimeFormat {
+        grid-template-columns: 1.7fr 1fr;
+    }
     max-width: unset;
     padding-top: var(--size-xSmall);
 }
