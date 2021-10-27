@@ -12,9 +12,9 @@
     width: 100%;
 
     .graphContainer {
-        width: calc(100% - var(--size-medium));
-        position: relative;
         margin: 0 auto;
+        position: relative;
+        width: calc(100% - var(--size-medium));
 
         .sessionInterval {
             height: var(--size-xxLarge);
