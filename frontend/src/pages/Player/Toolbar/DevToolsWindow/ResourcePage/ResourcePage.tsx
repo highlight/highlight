@@ -626,6 +626,7 @@ const getDetailedPanel = (
         ),
         options: {
             noHeader: true,
+            noPadding: true,
         },
         id: resource.id.toString(),
     };
