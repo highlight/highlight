@@ -2,11 +2,11 @@ package parse
 
 import (
 	"encoding/json"
+	e "errors"
 	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
-	e "errors"
 
 	"github.com/pkg/errors"
 )
