@@ -47,7 +47,7 @@ linters-settings:
 
   depguard:
     list-type: blacklist
-    include-go-root: false
+    include-go-root: true
     packages:
       - errors
     packages-with-error-message:
