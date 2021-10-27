@@ -705,6 +705,20 @@ export class Highlight {
                 JSON.stringify(this.sessionData)
             );
         });
+
+        // beforeunload is not supported on iOS on Safari. Apple docs recommend using `pagehide` instead.
+        const isOnIOS =
+            navigator.userAgent.match(/iPad/i) ||
+            navigator.userAgent.match(/iPhone/i);
+        if (isOnIOS) {
+            window.addEventListener('pagehide', () => {
+                addCustomEvent('Page Unload', '');
+                window.sessionStorage.setItem(
+                    'sessionData',
+                    JSON.stringify(this.sessionData)
+                );
+            });
+        }
     }
 
     /**
