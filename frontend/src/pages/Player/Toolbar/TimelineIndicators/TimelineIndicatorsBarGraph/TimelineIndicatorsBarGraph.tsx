@@ -20,49 +20,51 @@ const TimelineIndicatorsBarGraph = React.memo(
 
         return (
             <div className={styles.container}>
-                {activeSessionIntervals.map((interval) => (
-                    <div
-                        key={interval.startTime}
-                        style={{
-                            left: `${interval.startPercent * 100}%`,
-                            width: `calc((${interval.endPercent * 100}%) - (${
-                                interval.startPercent * 100
-                            }%))`,
-                        }}
-                        className={styles.sessionInterval}
-                    >
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart
-                                data={getEventsInTimeBucket(
-                                    interval,
-                                    selectedTimelineAnnotationTypes
-                                )}
-                                barGap={0}
-                                margin={{
-                                    top: 0,
-                                    right: 0,
-                                    left: 0,
-                                    bottom: 0,
-                                }}
-                            >
-                                <Tooltip
-                                    content={<RechartTooltip />}
-                                    wrapperStyle={{ zIndex: 99999 }}
-                                />
-                                {EventsForTimeline.map((eventType) => (
-                                    <Bar
-                                        key={eventType}
-                                        dataKey={eventType}
-                                        stackId="a"
-                                        fill={`var(${getAnnotationColor(
-                                            eventType
-                                        )})`}
+                <div className={styles.graphContainer}>
+                    {activeSessionIntervals.map((interval) => (
+                        <div
+                            key={interval.startTime}
+                            style={{
+                                left: `${interval.startPercent * 100}%`,
+                                width: `calc((${
+                                    interval.endPercent * 100
+                                }%) - (${interval.startPercent * 100}%))`,
+                            }}
+                            className={styles.sessionInterval}
+                        >
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart
+                                    data={getEventsInTimeBucket(
+                                        interval,
+                                        selectedTimelineAnnotationTypes
+                                    )}
+                                    barGap={0}
+                                    margin={{
+                                        top: 0,
+                                        right: 0,
+                                        left: 0,
+                                        bottom: 0,
+                                    }}
+                                >
+                                    <Tooltip
+                                        content={<RechartTooltip />}
+                                        wrapperStyle={{ zIndex: 99999 }}
                                     />
-                                ))}
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                ))}
+                                    {EventsForTimeline.map((eventType) => (
+                                        <Bar
+                                            key={eventType}
+                                            dataKey={eventType}
+                                            stackId="a"
+                                            fill={`var(${getAnnotationColor(
+                                                eventType
+                                            )})`}
+                                        />
+                                    ))}
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    ))}
+                </div>
             </div>
         );
     }
