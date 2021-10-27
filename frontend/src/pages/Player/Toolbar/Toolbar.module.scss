@@ -2,10 +2,10 @@
     background: none;
     border: 0;
     cursor: pointer;
-    height: 4px;
     outline: none;
     padding: 0;
     position: absolute;
+    transform: translateY(-11px);
     width: 100%;
     z-index: 20;
 
@@ -37,7 +37,7 @@
 }
 
 .sliderRail {
-    height: 4px;
+    height: 5px;
     transition: all 0.2s ease-in-out;
     width: 100%;
 }
@@ -62,17 +62,17 @@
 .indicator {
     background-color: var(--color-purple);
     border-radius: 20px;
-    height: 15px;
-    margin-top: -9px;
+    height: var(--size-medium);
+    margin-top: var(--size-xxSmall);
     transform: scale(0);
-    transition: all 0.3s ease-in-out;
-    width: 15px;
+    transition: all 0.1s ease-in-out;
+    width: var(--size-medium);
 }
 
 .indicatorParent {
-    background-color: none;
-    height: 15px;
-    width: 15px;
+    height: var(--size-large);
+    margin-top: -4px;
+    width: var(--size-large);
 }
 
 .playerRail {
