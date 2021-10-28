@@ -13,7 +13,6 @@ import {
     getHighlightRequestId,
     NetworkResource,
 } from '@pages/Player/Toolbar/DevToolsWindow/ResourcePage/ResourcePage';
-import { useParams } from '@util/react-router/useParams';
 import { MillisToMinutesAndSeconds } from '@util/time';
 import { message } from 'antd';
 import React, { useCallback } from 'react';
@@ -26,7 +25,6 @@ type Props = {
 };
 
 const ResourceOrErrorDetailPanelContent = ({ resource, error }: Props) => {
-    const { session_secure_id } = useParams<{ session_secure_id: string }>();
     const { pause, session, replayer } = useReplayerContext();
     const { errors, isPlayerReady } = useReplayerContext();
     const {
