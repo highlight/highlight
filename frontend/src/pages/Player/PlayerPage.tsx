@@ -27,6 +27,10 @@ import {
     ReplayerContextProvider,
     ReplayerState,
 } from '@pages/Player/ReplayerContext';
+import {
+    ResourcesContextProvider,
+    useResources,
+} from '@pages/Player/ResourcesContext/ResourcesContext';
 import RightPlayerPanel from '@pages/Player/RightPlayerPanel/RightPlayerPanel';
 import SearchPanel from '@pages/Player/SearchPanel/SearchPanel';
 import SessionLevelBar from '@pages/Player/SessionLevelBar/SessionLevelBar';
@@ -70,6 +74,7 @@ const Player = ({ integrated }: Props) => {
         AsyncSelect<SessionSearchOption, true> | undefined
     >(undefined);
     const player = usePlayer();
+    const resources = useResources();
     const {
         state: replayerState,
         scale: replayerScale,
@@ -394,13 +399,21 @@ const Player = ({ integrated }: Props) => {
                                                 />
                                             )}
                                         </div>
-                                        <Toolbar />
+                                        <ResourcesContextProvider
+                                            value={resources}
+                                        >
+                                            <Toolbar />
+                                        </ResourcesContextProvider>
                                     </div>
 
                                     {!isPlayerFullscreen && (
                                         <>
                                             <RightPlayerPanel />
-                                            <DetailPanel />
+                                            <ResourcesContextProvider
+                                                value={resources}
+                                            >
+                                                <DetailPanel />
+                                            </ResourcesContextProvider>
                                         </>
                                     )}
                                 </div>

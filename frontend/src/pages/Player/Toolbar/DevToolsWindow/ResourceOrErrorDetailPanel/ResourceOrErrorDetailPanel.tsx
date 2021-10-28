@@ -1,147 +1,220 @@
 import GoToButton from '@components/Button/GoToButton';
+import { LoadingBar } from '@components/Loading/Loading';
 import Tabs from '@components/Tabs/Tabs';
 import { ErrorObject } from '@graph/schemas';
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import { useReplayerContext } from '@pages/Player/ReplayerContext';
+import { useResourcesContext } from '@pages/Player/ResourcesContext/ResourcesContext';
 import ErrorModal from '@pages/Player/Toolbar/DevToolsWindow/ErrorsPage/components/ErrorModal/ErrorModal';
 import { getNetworkResourcesDisplayName } from '@pages/Player/Toolbar/DevToolsWindow/Option/Option';
 import ResourceDetailsModal from '@pages/Player/Toolbar/DevToolsWindow/ResourcePage/components/ResourceDetailsModal/ResourceDetailsModal';
-import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindow/ResourcePage/ResourcePage';
+import {
+    findResourceWithMatchingHighlightHeader,
+    getHighlightRequestId,
+    NetworkResource,
+} from '@pages/Player/Toolbar/DevToolsWindow/ResourcePage/ResourcePage';
+import { useParams } from '@util/react-router/useParams';
 import { MillisToMinutesAndSeconds } from '@util/time';
 import { message } from 'antd';
 import React, { useCallback } from 'react';
 
 import styles from './ResourceOrErrorDetailPanel.module.scss';
 
-export const useResourceOrErrorDetailPanel = () => {
+type Props = {
+    resource?: NetworkResource;
+    error?: ErrorObject;
+};
+
+const ResourceOrErrorDetailPanelContent = ({ resource, error }: Props) => {
+    const { session_secure_id } = useParams<{ session_secure_id: string }>();
     const { pause, session, replayer } = useReplayerContext();
+    const { errors, isPlayerReady } = useReplayerContext();
+    const {
+        resources,
+        loadResources,
+        resourcesLoading,
+    } = useResourcesContext();
+
+    if (resource !== undefined && error === undefined) {
+        const requestId = getHighlightRequestId(resource);
+        if (requestId) {
+            if (!isPlayerReady) {
+                return <LoadingBar />;
+            }
+            error = errors.find((e) => e.request_id == requestId);
+        }
+    }
+
+    if (error !== undefined && resource === undefined) {
+        if (error.request_id) {
+            loadResources();
+            if (resourcesLoading) {
+                return <LoadingBar />;
+            }
+            resource = findResourceWithMatchingHighlightHeader(
+                error.request_id!,
+                resources
+            );
+        }
+    }
+
+    return (
+        <Tabs
+            className={styles.tabsWrapper}
+            noPadding
+            noHeaderPadding
+            tabs={[
+                ...(resource
+                    ? [
+                          {
+                              key: 'Network Resource',
+                              panelContent: (
+                                  <>
+                                      <div>
+                                          <ResourceDetailsModal
+                                              selectedNetworkResource={resource}
+                                              networkRecordingEnabledForSession={
+                                                  session?.enable_recording_network_contents ||
+                                                  false
+                                              }
+                                          />
+                                      </div>
+                                  </>
+                              ),
+                          },
+                      ]
+                    : []),
+                ...(error
+                    ? [
+                          {
+                              key: 'Error',
+                              title: (
+                                  <div>
+                                      Error
+                                      {resource ? (
+                                          <div
+                                              className={
+                                                  styles.errorNotification
+                                              }
+                                          >
+                                              <div
+                                                  className={styles.errorCount}
+                                              >
+                                                  1
+                                              </div>
+                                          </div>
+                                      ) : null}
+                                  </div>
+                              ),
+                              panelContent: (
+                                  <div>
+                                      <ErrorModal error={error} />
+                                  </div>
+                              ),
+                          },
+                      ]
+                    : []),
+            ]}
+            tabBarExtraContent={
+                <div className={styles.extraContentContainer}>
+                    <GoToButton
+                        onClick={() => {
+                            if (resource) {
+                                pause(resource.startTime);
+
+                                message.success(
+                                    `Changed player time to when ${getNetworkResourcesDisplayName(
+                                        resource.initiatorType
+                                    )} request started at ${MillisToMinutesAndSeconds(
+                                        resource.startTime
+                                    )}.`
+                                );
+                            } else if (error) {
+                                const sessionTotalTime = replayer?.getMetaData()
+                                    .totalTime;
+                                const sessionStartTime =
+                                    replayer?.getMetaData().startTime || 0;
+
+                                const relativeTime =
+                                    new Date(error.timestamp).getTime() -
+                                    sessionStartTime;
+
+                                if (
+                                    sessionTotalTime !== undefined &&
+                                    relativeTime >= 0 &&
+                                    relativeTime <= sessionTotalTime
+                                ) {
+                                    pause(relativeTime);
+
+                                    message.success(
+                                        `Changed player time to when error occurred at ${MillisToMinutesAndSeconds(
+                                            relativeTime
+                                        )}.`
+                                    );
+                                }
+                            }
+                        }}
+                    />
+                </div>
+            }
+            id={`${resource ? 'Network' : ''}${
+                error ? 'Error' : ''
+            }RightPanelTabs`}
+        />
+    );
+};
+
+const getOptions = (content: any, id: string) => ({
+    title: null,
+    content,
+    options: {
+        noHeader: true,
+        noPadding: true,
+    },
+    id,
+});
+
+export const useResourceOrErrorDetailPanel = () => {
     const { setDetailedPanel } = usePlayerUIContext();
 
-    const callback = (resource?: NetworkResource, error?: ErrorObject) => {
-        const options = {
-            title: null,
-            content: (
-                <Tabs
-                    className={styles.tabsWrapper}
-                    noPadding
-                    noHeaderPadding
-                    tabs={[
-                        ...(resource
-                            ? [
-                                  {
-                                      key: 'Network Resource',
-                                      panelContent: (
-                                          <div>
-                                              <ResourceDetailsModal
-                                                  selectedNetworkResource={
-                                                      resource
-                                                  }
-                                                  networkRecordingEnabledForSession={
-                                                      session?.enable_recording_network_contents ||
-                                                      false
-                                                  }
-                                              />
-                                          </div>
-                                      ),
-                                  },
-                              ]
-                            : []),
-                        ...(error
-                            ? [
-                                  {
-                                      key: 'Error',
-                                      title: (
-                                          <div>
-                                              Error
-                                              {resource ? (
-                                                  <div
-                                                      className={
-                                                          styles.errorNotification
-                                                      }
-                                                  >
-                                                      <div
-                                                          className={
-                                                              styles.errorCount
-                                                          }
-                                                      >
-                                                          1
-                                                      </div>
-                                                  </div>
-                                              ) : null}
-                                          </div>
-                                      ),
-                                      panelContent: (
-                                          <div>
-                                              <ErrorModal error={error} />
-                                          </div>
-                                      ),
-                                  },
-                              ]
-                            : []),
-                    ]}
-                    tabBarExtraContent={
-                        <div className={styles.extraContentContainer}>
-                            <GoToButton
-                                onClick={() => {
-                                    if (resource) {
-                                        pause(resource.startTime);
-
-                                        message.success(
-                                            `Changed player time to when ${getNetworkResourcesDisplayName(
-                                                resource.initiatorType
-                                            )} request started at ${MillisToMinutesAndSeconds(
-                                                resource.startTime
-                                            )}.`
-                                        );
-                                    } else if (error) {
-                                        const sessionTotalTime = replayer?.getMetaData()
-                                            .totalTime;
-                                        const sessionStartTime =
-                                            replayer?.getMetaData().startTime ||
-                                            0;
-
-                                        const relativeTime =
-                                            new Date(
-                                                error.timestamp
-                                            ).getTime() - sessionStartTime;
-
-                                        if (
-                                            sessionTotalTime !== undefined &&
-                                            relativeTime >= 0 &&
-                                            relativeTime <= sessionTotalTime
-                                        ) {
-                                            pause(relativeTime);
-
-                                            message.success(
-                                                `Changed player time to when error occurred at ${MillisToMinutesAndSeconds(
-                                                    relativeTime
-                                                )}.`
-                                            );
-                                        }
-                                    }
-                                }}
-                            />
-                        </div>
-                    }
-                    id={`${resource ? 'Network' : ''}${
-                        error ? 'Error' : ''
-                    }RightPanelTabs`}
+    const setResourceOrErrorPanel = useCallback(
+        (resource?: NetworkResource, error?: ErrorObject) => {
+            const content = (
+                <ResourceOrErrorDetailPanelContent
+                    resource={resource}
+                    error={error}
                 />
-            ),
-            options: {
-                noHeader: true,
-                noPadding: true,
-            },
-            id: (resource ?? error)?.id.toString() || '',
-        };
+            );
 
-        setDetailedPanel(options);
+            setDetailedPanel(
+                getOptions(content, (resource ?? error)?.id.toString() || '')
+            );
+        },
+        [setDetailedPanel]
+    );
+
+    const setResourcePanel = useCallback(
+        (resource: NetworkResource) => {
+            const content = (
+                <ResourceOrErrorDetailPanelContent resource={resource} />
+            );
+            setDetailedPanel(getOptions(content, resource.id.toString()));
+        },
+        [setDetailedPanel]
+    );
+
+    const setErrorPanel = useCallback(
+        (error: ErrorObject) => {
+            const content = <ResourceOrErrorDetailPanelContent error={error} />;
+
+            setDetailedPanel(getOptions(content, error.id.toString()));
+        },
+        [setDetailedPanel]
+    );
+
+    return {
+        setResourceOrErrorPanel,
+        setResourcePanel,
+        setErrorPanel,
     };
-
-    return useCallback(callback, [
-        pause,
-        replayer,
-        session?.enable_recording_network_contents,
-        setDetailedPanel,
-    ]);
 };

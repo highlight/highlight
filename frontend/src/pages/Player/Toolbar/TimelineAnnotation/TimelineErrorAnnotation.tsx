@@ -30,15 +30,15 @@ function TimelineErrorAnnotation({ error }: Props): ReactElement {
         setShowDevTools,
         setSelectedDevToolsTab,
     } = usePlayerConfiguration();
-    const setResourceOrErrorPanel = useResourceOrErrorDetailPanel();
+    const { setErrorPanel } = useResourceOrErrorDetailPanel();
 
     const [isTooltipOpen, setIsTooltipOpen] = useState(false);
 
     useEffect(() => {
         if (errorId && !requestId) {
-            setResourceOrErrorPanel(undefined, error);
+            setErrorPanel(error);
         }
-    }, [error, errorId, requestId, setResourceOrErrorPanel]);
+    }, [error, errorId, requestId, setErrorPanel]);
 
     return (
         <Popover
@@ -52,7 +52,7 @@ function TimelineErrorAnnotation({ error }: Props): ReactElement {
                             onClick={() => {
                                 setShowDevTools(true);
                                 setSelectedDevToolsTab('Errors');
-                                setResourceOrErrorPanel(undefined, error);
+                                setErrorPanel(error);
                             }}
                             label="More info"
                         />
