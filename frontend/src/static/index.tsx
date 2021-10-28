@@ -46,6 +46,7 @@ export { default as HashtagIcon } from './HashtagIcon';
 export { default as HeartIcon } from './HeartIcon';
 export { default as HelpCircleIcon } from './HelpCircleIcon';
 export { default as HighlightLogoSmall } from './HighlightLogoSmall';
+export { default as HighlightLogoWithNoBackground } from './HighlightLogoWithNoBackground';
 export { default as HomeIcon } from './HomeIcon';
 export { default as Hover } from './Hover';
 export { default as HumanImage } from './HumanImage';

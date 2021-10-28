@@ -1,3 +1,4 @@
+import { useAppLoadingContext } from '@context/AppLoadingContext';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React, { useEffect, useState } from 'react';
@@ -7,7 +8,6 @@ import { BooleanParam, useQueryParam } from 'use-query-params';
 import { useAuthContext } from '../../authentication/AuthContext';
 import commonStyles from '../../Common.module.scss';
 import Button from '../../components/Button/Button/Button';
-import { LoadingPage } from '../../components/Loading/Loading';
 import { AppRouter } from '../../routers/AppRouter/AppRouter';
 import { ReactComponent as GoogleLogo } from '../../static/google.svg';
 import { auth, googleProvider } from '../../util/auth';
@@ -16,6 +16,7 @@ import styles from './Login.module.scss';
 
 export const AuthAdminRouter = () => {
     const { isAuthLoading, admin } = useAuthContext();
+    const { setIsLoading } = useAppLoadingContext();
     useEffect(() => {
         if (admin) {
             const { email, id, name } = admin;
@@ -50,8 +51,14 @@ export const AuthAdminRouter = () => {
         }
     }, [admin]);
 
+    useEffect(() => {
+        if (isAuthLoading) {
+            setIsLoading(true);
+        }
+    }, [isAuthLoading, setIsLoading]);
+
     if (isAuthLoading) {
-        return <LoadingPage />;
+        return null;
     }
 
     return <AppRouter />;
@@ -76,6 +83,7 @@ const LoginForm = () => {
     const [signIn, setSignIn] = useState<boolean>(!signUpParam);
     const { isAuthLoading, isLoggedIn } = useAuthContext();
     const [firebaseError, setFirebaseError] = useState('');
+    const { setIsLoading } = useAppLoadingContext();
 
     const onSubmit = (data: Inputs) => {
         if (signIn) {
@@ -105,8 +113,14 @@ const LoginForm = () => {
         reset();
     };
 
+    useEffect(() => {
+        if (isAuthLoading) {
+            setIsLoading(true);
+        }
+    }, [isAuthLoading, setIsLoading]);
+
     if (isAuthLoading) {
-        return <LoadingPage />;
+        return null;
     }
 
     if (isLoggedIn) {

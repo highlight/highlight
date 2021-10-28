@@ -7,6 +7,7 @@ const aliases = (prefix = `src`) => ({
     '@routers': `${prefix}/routers`,
     '@graph': `${prefix}/graph/generated`,
     '@authentication': `${prefix}/authentication`,
+    '@context': `${prefix}/context`,
 });
 
 module.exports = aliases;
