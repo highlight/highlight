@@ -162,9 +162,14 @@ const AuthenticationRouter = () => {
             H.track('Authenticated');
         } else if (adminError) {
             setAuthRole(AuthRole.UNAUTHENTICATED);
-            setIsLoading(false);
         }
     }, [adminError, adminData, setIsLoading]);
+
+    useEffect(() => {
+        if (authRole === AuthRole.UNAUTHENTICATED) {
+            setIsLoading(isAuthLoading(authRole));
+        }
+    }, [authRole, setIsLoading]);
 
     return (
         <AuthContextProvider
