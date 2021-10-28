@@ -1,6 +1,7 @@
 import SessionFeedConfiguration from '@pages/Sessions/SessionsFeedV2/components/SessionFeedConfiguration/SessionFeedConfiguration';
 import { SessionFeedConfigurationContextProvider } from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext';
 import { useSessionFeedConfiguration } from '@pages/Sessions/SessionsFeedV2/hooks/useSessionFeedConfiguration';
+import { useIntegrated } from '@util/integrated';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import React, { RefObject, useEffect, useMemo, useState } from 'react';
@@ -41,6 +42,7 @@ export const SessionFeed = React.memo(() => {
         setShowDetailedSessionView,
         showDetailedSessionView,
     } = usePlayerConfiguration();
+    const { integrated } = useIntegrated();
 
     // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
     const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
@@ -84,7 +86,7 @@ export const SessionFeed = React.memo(() => {
         // We're showing live sessions for new users.
         // The assumption here is if a project is on the free plan and the project has less than 15 sessions than there must be live sessions.
         // We show live sessions along with the processed sessions so the user isn't confused on why sessions are not showing up in the feed.
-        if (billingDetails?.billingDetails) {
+        if (billingDetails?.billingDetails && integrated) {
             if (
                 billingDetails.billingDetails.plan.type === PlanType.Free &&
                 billingDetails.billingDetails.meter < 15
@@ -92,7 +94,12 @@ export const SessionFeed = React.memo(() => {
                 setSearchParams({ ...searchParams, show_live_sessions: true });
             }
         }
-    }, [billingDetails?.billingDetails, searchParams, setSearchParams]);
+    }, [
+        billingDetails?.billingDetails,
+        integrated,
+        searchParams,
+        setSearchParams,
+    ]);
 
     const infiniteRef = useInfiniteScroll({
         checkInterval: 1200, // frequency to check (1.2s)
