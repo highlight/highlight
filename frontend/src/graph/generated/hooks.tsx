@@ -4109,6 +4109,7 @@ export const GetAdminDocument = gql`
     query GetAdmin {
         admin {
             id
+            uid
             name
             email
             photo_url

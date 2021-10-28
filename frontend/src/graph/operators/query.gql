@@ -384,6 +384,7 @@ query GetWorkspaceDropdownOptions($workspace_id: ID!) {
 query GetAdmin {
     admin {
         id
+        uid
         name
         email
         photo_url

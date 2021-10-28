@@ -343,6 +343,7 @@ type User {
 type Admin {
     id: ID!
     name: String!
+    uid: String!
     email: String!
     photo_url: String
     role: String!

@@ -385,6 +385,7 @@ export type Admin = {
     __typename?: 'Admin';
     id: Scalars['ID'];
     name: Scalars['String'];
+    uid: Scalars['String'];
     email: Scalars['String'];
     photo_url?: Maybe<Scalars['String']>;
     role: Scalars['String'];

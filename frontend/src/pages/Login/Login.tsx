@@ -36,7 +36,6 @@ export const AuthAdminRouter = () => {
                     avatar: admin.photo_url,
                 };
             }
-
             H.identify(email, identifyMetadata);
             H.getSessionURL().then((sessionUrl) => {
                 window.Intercom('boot', {
@@ -44,7 +43,7 @@ export const AuthAdminRouter = () => {
                     alignment: 'right',
                     hide_default_launcher: true,
                     email: admin?.email,
-                    user_id: admin?.id,
+                    user_id: admin?.uid,
                     sessionUrl,
                 });
             });
