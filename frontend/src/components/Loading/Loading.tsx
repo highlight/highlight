@@ -45,10 +45,11 @@ export const LoadingPage = React.memo(() => {
         <AnimatePresence>
             {isLoading && (
                 <motion.div
+                    key="loadingWrapper"
                     className={styles.loadingWrapper}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
+                    exit={{ opacity: 0, display: 'none' }}
                     transition={{
                         duration: 1.5 * speedFactor,
                     }}
@@ -83,6 +84,7 @@ export const LoadingPage = React.memo(() => {
                         />
                     </motion.div>
                     <motion.div
+                        key="primaryBackground"
                         className={styles.background}
                         initial={{ opacity: 0, scale: 2 }}
                         animate={{ opacity: 1, scale: 1 }}
