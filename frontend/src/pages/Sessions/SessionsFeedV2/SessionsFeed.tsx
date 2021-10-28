@@ -7,13 +7,15 @@ import React, { RefObject, useEffect, useMemo, useState } from 'react';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
 import Skeleton from 'react-loading-skeleton';
 import TextTransition from 'react-text-transition';
-import { useSessionStorage } from 'react-use';
 
 import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
 import Switch from '../../../components/Switch/Switch';
 import LimitedSessionCard from '../../../components/Upsell/LimitedSessionsCard/LimitedSessionsCard';
-import { useGetSessionsQuery } from '../../../graph/generated/hooks';
-import { SessionLifecycle } from '../../../graph/generated/schemas';
+import {
+    useGetBillingDetailsQuery,
+    useGetSessionsQuery,
+} from '../../../graph/generated/hooks';
+import { PlanType, SessionLifecycle } from '../../../graph/generated/schemas';
 import { formatNumberWithDelimiters } from '../../../util/numbers';
 import usePlayerConfiguration from '../../Player/PlayerHook/utils/usePlayerConfiguration';
 import { useReplayerContext } from '../../Player/ReplayerContext';
@@ -42,12 +44,15 @@ export const SessionFeed = React.memo(() => {
 
     // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
     const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
-    const { searchParams, showStarredSessions } = useSearchContext();
+    const {
+        searchParams,
+        showStarredSessions,
+        setSearchParams,
+    } = useSearchContext();
     const { show_live_sessions } = searchParams;
-    const [isIntegrating] = useSessionStorage(
-        `highlight-isIntegrating-${project_id}`,
-        false
-    );
+    const { data: billingDetails } = useGetBillingDetailsQuery({
+        variables: { project_id },
+    });
 
     const { loading, fetchMore, called } = useGetSessionsQuery({
         variables: {
@@ -56,11 +61,9 @@ export const SessionFeed = React.memo(() => {
             project_id,
             lifecycle:
                 segment_id === LIVE_SEGMENT_ID
-                    ? SessionLifecycle.Live
-                    : isIntegrating
                     ? SessionLifecycle.All
                     : show_live_sessions
-                    ? SessionLifecycle.Live
+                    ? SessionLifecycle.All
                     : SessionLifecycle.Completed,
             starred: showStarredSessions,
         },
@@ -76,6 +79,20 @@ export const SessionFeed = React.memo(() => {
     useEffect(() => {
         setShowLoadingSkeleton(true);
     }, [searchParams]);
+
+    useEffect(() => {
+        // We're showing live sessions for new users.
+        // The assumption here is if a project is on the free plan and the project has less than 15 sessions than there must be live sessions.
+        // We show live sessions along with the processed sessions so the user isn't confused on why sessions are not showing up in the feed.
+        if (billingDetails?.billingDetails) {
+            if (
+                billingDetails.billingDetails.plan.type === PlanType.Free &&
+                billingDetails.billingDetails.meter < 15
+            ) {
+                setSearchParams({ ...searchParams, show_live_sessions: true });
+            }
+        }
+    }, [billingDetails?.billingDetails, searchParams, setSearchParams]);
 
     const infiniteRef = useInfiniteScroll({
         checkInterval: 1200, // frequency to check (1.2s)
