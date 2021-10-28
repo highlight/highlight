@@ -1,6 +1,5 @@
-import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
-import ErrorModal from '@pages/Player/Toolbar/DevToolsWindow/ErrorsPage/components/ErrorModal/ErrorModal';
+import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel';
 import { message } from 'antd';
 import React, { ReactElement, useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
@@ -31,22 +30,15 @@ function TimelineErrorAnnotation({ error }: Props): ReactElement {
         setShowDevTools,
         setSelectedDevToolsTab,
     } = usePlayerConfiguration();
-    const { setDetailedPanel } = usePlayerUIContext();
+    const setResourceOrErrorPanel = useResourceOrErrorDetailPanel();
 
     const [isTooltipOpen, setIsTooltipOpen] = useState(false);
 
     useEffect(() => {
         if (errorId && !requestId) {
-            setDetailedPanel({
-                title: null,
-                content: <ErrorModal error={error} />,
-                options: {
-                    noHeader: true,
-                },
-                id: error.id,
-            });
+            setResourceOrErrorPanel(undefined, error);
         }
-    }, [error, errorId, requestId, setDetailedPanel]);
+    }, [error, errorId, requestId, setResourceOrErrorPanel]);
 
     return (
         <Popover
@@ -60,14 +52,7 @@ function TimelineErrorAnnotation({ error }: Props): ReactElement {
                             onClick={() => {
                                 setShowDevTools(true);
                                 setSelectedDevToolsTab('Errors');
-                                setDetailedPanel({
-                                    title: null,
-                                    content: <ErrorModal error={error} />,
-                                    options: {
-                                        noHeader: true,
-                                    },
-                                    id: error.id,
-                                });
+                                setResourceOrErrorPanel(undefined, error);
                             }}
                             label="More info"
                         />
