@@ -291,7 +291,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                 });
                 setReplayer(r);
                 if (isLiveMode) {
-                    r.startLive(newEvents[0].timestamp - 5000);
+                    r.startLive(newEvents[0].timestamp);
                 }
                 setLastLoadedPlayerState({
                     sessionSecureId: session_secure_id,
@@ -346,8 +346,27 @@ export const usePlayer = (): ReplayerContextInterface => {
                 );
 
                 if (eventsIndex >= events.length) {
+                    console.log(
+                        'Player time: ',
+                        replayer.getCurrentTime(),
+                        ' First new event: ',
+                        events[loadedEventsIndex]?.timestamp -
+                            events[0]?.timestamp
+                    );
                     setLoadedEventsIndex(eventsIndex);
                     cancelAnimationFrame(timerId);
+                    console.log(
+                        'Rich set end time to ',
+                        replayer.getMetaData().totalTime
+                    );
+                    console.log(
+                        'Rich last event delta: ',
+                        JSON.stringify(
+                            events[events.length - 1].timestamp -
+                                events[0].timestamp
+                        )
+                    );
+                    setSessionEndTime(replayer.getMetaData().totalTime);
                     if (!lastLoadedPlayerState?.initialized) {
                         setLastLoadedPlayerState({
                             ...lastLoadedPlayerState!,
@@ -385,7 +404,6 @@ export const usePlayer = (): ReplayerContextInterface => {
                                 replayer.getMetaData().totalTime
                             )
                         );
-                        setSessionEndTime(replayer.getMetaData().totalTime);
                         if (eventsData?.rage_clicks) {
                             setSessionIntervals((sessionIntervals) => {
                                 const allClickEvents: (ParsedHighlightEvent & {
@@ -513,10 +531,12 @@ export const usePlayer = (): ReplayerContextInterface => {
                         replayer.getMetaData().totalTime
                     ) {
                         console.log(
-                            'Rich state set to ended',
+                            'Rich hit end of total time',
                             replayer.getMetaData().totalTime
                         );
-                        setState(ReplayerState.SessionEnded);
+                        if (!isLiveMode) {
+                            setState(ReplayerState.SessionEnded);
+                        }
                     }
                 }
                 setTimerId(requestAnimationFrame(frameAction));
@@ -584,10 +604,17 @@ export const usePlayer = (): ReplayerContextInterface => {
         // Don't play the session if the player is already at the end of the session.
         if ((newTime ?? time) >= sessionEndTime) {
             console.log(
-                'Rich cant play because time is at end',
+                'Rich playing past end',
+                newTime ?? time,
                 sessionEndTime
             );
-            return;
+            if (!isLiveMode) {
+                return;
+            }
+        }
+        if (isLiveMode) {
+            newTime = Date.now() - events[0].timestamp - 15000; // 15s delay for live mode
+            console.log('Playing from ', newTime);
         }
         setState(ReplayerState.Playing);
         setTime(newTime ?? time);
