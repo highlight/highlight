@@ -9,6 +9,7 @@ interface Props {
     /** Buttons or action elements for the card. These are rendered at the bottom of the card. */
     actions?: React.ReactNode;
     className?: string;
+    childrenClassName?: string;
 }
 
 const ElevatedCard = ({
@@ -17,6 +18,7 @@ const ElevatedCard = ({
     animation,
     actions,
     className,
+    childrenClassName,
 }: PropsWithChildren<Props>) => {
     return (
         <div
@@ -30,7 +32,9 @@ const ElevatedCard = ({
         >
             {animation && <div className={styles.animation}>{animation}</div>}
             {title && <h2>{title}</h2>}
-            <div className={styles.content}>{children}</div>
+            <div className={classNames(styles.content, childrenClassName)}>
+                {children}
+            </div>
             {actions && <div className={styles.actions}>{actions}</div>}
         </div>
     );

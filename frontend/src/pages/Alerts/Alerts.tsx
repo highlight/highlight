@@ -214,6 +214,7 @@ const AlertsPage = () => {
 
     return (
         <>
+            {/*<AlertSetupWizard />*/}
             <div className={styles.subTitleContainer}>
                 <p>Manage your alerts for your project.</p>
                 <ButtonLink

@@ -1,0 +1,62 @@
+.fullBleedAlertSetupStep {
+    min-width: fit-content;
+    padding: 3%;
+}
+
+.alertStepsHeader {
+    display: flex;
+    flex-direction: row;
+}
+
+.alertStepsParent {
+    max-width: 60vw;
+    min-height: 50vh;
+    min-width: 60vw;
+}
+
+.cardGrid {
+    display: grid;
+    gap: var(--size-xLarge);
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+}
+
+.cardContent {
+    display: block;
+
+    .icon {
+        align-items: center;
+        border-radius: 50%;
+        color: var(--text-primary-inverted);
+        display: flex;
+        flex-shrink: 0;
+        height: 1.5em;
+        justify-content: center;
+        width: 1.5em;
+
+        svg {
+            height: 0.8em;
+            width: 0.8em;
+        }
+    }
+}
+
+.cardContainer {
+    height: 100%;
+}
+
+#title {
+    align-items: center;
+    column-gap: var(--size-small);
+    display: flex;
+    margin-bottom: var(--size-xxSmall) !important;
+}
+
+.description {
+    margin-bottom: 0 !important;
+    margin-left: calc(1.5em + calc(2 * var(--size-small))) !important;
+}
+
+.childContent {
+    max-width: none !important;
+}
