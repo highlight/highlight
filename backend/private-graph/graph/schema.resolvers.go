@@ -160,9 +160,9 @@ func (r *errorGroupResolver) ErrorFrequency(ctx context.Context, obj *model.Erro
 func (r *errorObjectResolver) ErrorGroupSecureID(ctx context.Context, obj *model.ErrorObject) (string, error) {
 	if obj != nil {
 		var secureID string
-		if result := r.DB.Raw(`SELECT secure_id FROM error_groups WHERE id = ? LIMIT 1`,
-			obj.ErrorGroupID).Scan(&secureID); result.Error != nil {
-			return "", fmt.Errorf("Failed to retrieve secure_id for error group: %v, id: %d", result.Error, obj.ErrorGroupID)
+		if err := r.DB.Raw(`SELECT secure_id FROM error_groups WHERE id = ? LIMIT 1`,
+			obj.ErrorGroupID).Scan(&secureID).Error; err != nil {
+			return "", e.Wrapf(err, "Failed to retrieve secure_id for error group, id: %d", obj.ErrorGroupID)
 		}
 		return secureID, nil
 	}
@@ -1904,9 +1904,8 @@ func (r *mutationResolver) UpdateErrorGroupIsPublic(ctx context.Context, errorGr
 func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Session, error) {
 	if util.IsDevEnv() && secureID == "repro" {
 		sessionObj := &model.Session{}
-		res := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: 0}}).First(&sessionObj)
-		if res.Error != nil {
-			return nil, fmt.Errorf("error reading from session: %v", res.Error)
+		if err := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: 0}}).First(&sessionObj).Error; err != nil {
+			return nil, e.Wrap(err, "error reading from session")
 		}
 		return sessionObj, nil
 	}
@@ -1916,9 +1915,8 @@ func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Se
 		return nil, e.Wrap(err, "admin not session owner")
 	}
 	sessionObj := &model.Session{}
-	res := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&sessionObj)
-	if res.Error != nil {
-		return nil, fmt.Errorf("error reading from session: %v", res.Error)
+	if err := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&sessionObj).Error; err != nil {
+		return nil, e.Wrap(err, "error reading from session")
 	}
 	return sessionObj, nil
 }
@@ -1953,8 +1951,8 @@ func (r *queryResolver) Events(ctx context.Context, sessionSecureID string) ([]i
 	eventsQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("db.eventsObjectsQuery"), tracer.Tag("project_id", s.ProjectID))
 	eventObjs := []*model.EventsObject{}
-	if res := r.DB.Order("created_at desc").Where(&model.EventsObject{SessionID: s.ID}).Find(&eventObjs); res.Error != nil {
-		return nil, fmt.Errorf("error reading from events: %v", res.Error)
+	if err := r.DB.Order("created_at desc").Where(&model.EventsObject{SessionID: s.ID}).Find(&eventObjs).Error; err != nil {
+		return nil, e.Wrap(err, "error reading from events")
 	}
 	eventsQuerySpan.Finish()
 	eventsParseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
@@ -1963,7 +1961,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionSecureID string) ([]i
 	for _, eventObj := range eventObjs {
 		subEvents := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(eventObj.Events), &subEvents); err != nil {
-			return nil, fmt.Errorf("error decoding event data: %v", err)
+			return nil, e.Wrap(err, "error decoding event data")
 		}
 		allEvents["events"] = append(subEvents["events"], allEvents["events"]...)
 	}
@@ -2154,14 +2152,14 @@ func (r *queryResolver) Messages(ctx context.Context, sessionSecureID string) ([
 		return ret, nil
 	}
 	messagesObj := []*model.MessagesObject{}
-	if res := r.DB.Order("created_at desc").Where(&model.MessagesObject{SessionID: s.ID}).Find(&messagesObj); res.Error != nil {
-		return nil, fmt.Errorf("error reading from messages: %v", res.Error)
+	if err := r.DB.Order("created_at desc").Where(&model.MessagesObject{SessionID: s.ID}).Find(&messagesObj).Error; err != nil {
+		return nil, e.Wrap(err, "error reading from messages")
 	}
 	allEvents := make(map[string][]interface{})
 	for _, messageObj := range messagesObj {
 		subMessage := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(messageObj.Messages), &subMessage); err != nil {
-			return nil, fmt.Errorf("error decoding message data: %v", err)
+			return nil, e.Wrap(err, "error decoding message data")
 		}
 		allEvents["messages"] = append(subMessage["messages"], allEvents["messages"]...)
 	}
@@ -2175,9 +2173,8 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 	}
 	sessionObj := &model.Session{}
 	// TODO: filter fields by type='user'.
-	res := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&sessionObj)
-	if res.Error != nil {
-		return nil, fmt.Errorf("error reading from session: %v", res.Error)
+	if err := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&sessionObj).Error; err != nil {
+		return nil, e.Wrap(err, "error reading from session")
 	}
 	details := &modelInputs.EnhancedUserDetailsResult{}
 	details.Socials = []*modelInputs.SocialLink{}
@@ -2279,8 +2276,8 @@ func (r *queryResolver) Errors(ctx context.Context, sessionSecureID string) ([]*
 		tracer.ResourceName("db.errorObjectsQuery"), tracer.Tag("project_id", s.ProjectID))
 	defer eventsQuerySpan.Finish()
 	errorsObj := []*model.ErrorObject{}
-	if res := r.DB.Order("created_at asc").Where(&model.ErrorObject{SessionID: s.ID}).Find(&errorsObj); res.Error != nil {
-		return nil, fmt.Errorf("error reading from errors: %v", res.Error)
+	if err := r.DB.Order("created_at asc").Where(&model.ErrorObject{SessionID: s.ID}).Find(&errorsObj).Error; err != nil {
+		return nil, e.Wrap(err, "error reading from errors")
 	}
 	return errorsObj, nil
 }
@@ -2301,14 +2298,14 @@ func (r *queryResolver) Resources(ctx context.Context, sessionSecureID string) (
 		return ret, nil
 	}
 	resourcesObject := []*model.ResourcesObject{}
-	if res := r.DB.Order("created_at desc").Where(&model.ResourcesObject{SessionID: s.ID}).Find(&resourcesObject); res.Error != nil {
-		return nil, fmt.Errorf("error reading from resources: %v", res.Error)
+	if err := r.DB.Order("created_at desc").Where(&model.ResourcesObject{SessionID: s.ID}).Find(&resourcesObject).Error; err != nil {
+		return nil, e.Wrap(err, "error reading from resources")
 	}
 	allResources := make(map[string][]interface{})
 	for _, resourceObj := range resourcesObject {
 		subResources := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(resourceObj.Resources), &subResources); err != nil {
-			return nil, fmt.Errorf("error decoding resource data: %v", err)
+			return nil, e.Wrap(err, "error decoding resource data")
 		}
 		allResources["resources"] = append(subResources["resources"], allResources["resources"]...)
 	}

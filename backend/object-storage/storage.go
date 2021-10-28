@@ -142,7 +142,7 @@ func (s *StorageClient) ReadSessionsFromS3(sessionId int, projectId int) ([]inte
 		}
 		var tempEvents events
 		if err := json.Unmarshal([]byte(e), &tempEvents); err != nil {
-			return nil, fmt.Errorf("error decoding event data: %v", err)
+			return nil, errors.Wrap(err, "error decoding event data")
 		}
 		retEvents = append(retEvents, tempEvents.Events...)
 	}
@@ -171,7 +171,7 @@ func (s *StorageClient) ReadResourcesFromS3(sessionId int, projectId int) ([]int
 		}
 		var tempResources resources
 		if err := json.Unmarshal([]byte(e), &tempResources); err != nil {
-			return nil, fmt.Errorf("error decoding resource data: %v", err)
+			return nil, errors.Wrap(err, "error decoding resource data")
 		}
 		retResources = append(retResources, tempResources.Resources...)
 	}
@@ -200,7 +200,7 @@ func (s *StorageClient) ReadMessagesFromS3(sessionId int, projectId int) ([]inte
 		}
 		var tempResources messages
 		if err := json.Unmarshal([]byte(e), &tempResources); err != nil {
-			return nil, fmt.Errorf("error decoding message data: %v", err)
+			return nil, errors.Wrap(err, "error decoding message data")
 		}
 		retMessages = append(retMessages, tempResources.Messages...)
 	}

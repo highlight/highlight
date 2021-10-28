@@ -348,7 +348,7 @@ func FromVerboseID(verboseId string) (int, error) {
 	// Otherwise, decode with HashID library
 	ints := HashID.Decode(verboseId)
 	if len(ints) != 1 {
-		return 1, fmt.Errorf("An unsupported verboseID was used: %s", verboseId)
+		return 1, e.Errorf("An unsupported verboseID was used: %s", verboseId)
 	}
 	return ints[0], nil
 }
@@ -924,7 +924,7 @@ func DecodeAndValidateParams(params []interface{}) ([]*Param, error) {
 		}
 		// If we've already seen the key, throw an error.
 		if val := keys[output.Action]; val {
-			return nil, fmt.Errorf("repeated param '%v' not suppported", val)
+			return nil, e.Errorf("repeated param '%v' not supported", val)
 		}
 		keys[output.Action] = true
 		ps = append(ps, output)

@@ -98,7 +98,13 @@ const App = () => {
     const [isLoading, setIsLoading] = useState(true);
 
     return (
-        <ErrorBoundary showDialog>
+        <ErrorBoundary
+            showDialog
+            onAfterReportDialogCancelHandler={() => {
+                const { origin } = window.location;
+                window.location.href = origin;
+            }}
+        >
             <ApolloProvider client={client}>
                 <QueryParamProvider>
                     <SkeletonTheme color={'#F5F5F5'} highlightColor={'#FCFCFC'}>
