@@ -3,7 +3,6 @@ package graph
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -124,7 +123,7 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 		field := &model.Field{}
 		res := r.DB.Where(f).First(&field)
 		// If the field doesn't exist, we create it.
-		if err := res.Error; err != nil || errors.Is(err, gorm.ErrRecordNotFound) {
+		if err := res.Error; err != nil || e.Is(err, gorm.ErrRecordNotFound) {
 			if err := r.DB.Create(f).Error; err != nil {
 				return e.Wrap(err, "error creating field")
 			}
@@ -155,7 +154,7 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 	}
 	fieldString := string(fieldBytes)
 
-	if err := r.DB.Model(session).Updates(&model.Session{FieldGroup: &fieldString}).Error; errors.Is(err, gorm.ErrRecordNotFound) || err != nil {
+	if err := r.DB.Model(session).Updates(&model.Session{FieldGroup: &fieldString}).Error; e.Is(err, gorm.ErrRecordNotFound) || err != nil {
 		return e.Wrap(err, "Error updating session field group")
 	}
 	// We append to this session in the join table regardless.
@@ -296,7 +295,7 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 		field := &model.ErrorField{}
 		res := r.DB.Where(f).First(&field)
 		// If the field doesn't exist, we create it.
-		if err := res.Error; err != nil || errors.Is(err, gorm.ErrRecordNotFound) {
+		if err := res.Error; err != nil || e.Is(err, gorm.ErrRecordNotFound) {
 			if err := r.DB.Create(f).Error; err != nil {
 				return e.Wrap(err, "error creating error field")
 			}
@@ -597,7 +596,7 @@ func (r *Resolver) processStackFrame(projectId, sessionId int, stackTrace model2
 	// get version from session
 	var version *string
 	if err := r.DB.Model(&model.Session{}).Where(&model.Session{Model: model.Model{ID: sessionId}}).Select("app_version").Scan(&version).Error; err != nil {
-		if !errors.Is(err, gorm.ErrRecordNotFound) {
+		if !e.Is(err, gorm.ErrRecordNotFound) {
 			return nil, e.Wrap(err, "error getting app version from session")
 		}
 	}
@@ -1004,7 +1003,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 			tracer.ResourceName("go.unmarshal.messages"), tracer.Tag("project_id", projectID))
 		messagesParsed := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(messages), &messagesParsed); err != nil {
-			return fmt.Errorf("error decoding message data: %w", err)
+			return e.Wrap(err, "error decoding message data")
 		}
 		if len(messagesParsed["messages"]) > 0 {
 			obj := &model.MessagesObject{SessionID: sessionID, Messages: messages}
@@ -1022,7 +1021,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 			tracer.ResourceName("go.unmarshal.resources"), tracer.Tag("project_id", projectID))
 		resourcesParsed := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
-			return fmt.Errorf("error decoding resource data: %w", err)
+			return e.Wrap(err, "error decoding resource data")
 		}
 		if len(resourcesParsed["resources"]) > 0 {
 			obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources}

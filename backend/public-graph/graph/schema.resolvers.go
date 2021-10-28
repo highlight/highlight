@@ -5,7 +5,6 @@ package graph
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -41,7 +40,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, userIdentifier string, userObject interface{}) (*int, error) {
 	obj, ok := userObject.(map[string]interface{})
 	if !ok {
-		return nil, fmt.Errorf("[IdentifySession] error converting userObject interface type")
+		return nil, e.New("[IdentifySession] error converting userObject interface type")
 	}
 
 	userProperties := map[string]string{
@@ -68,7 +67,7 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 	// Check if there is a session created by this user.
 	firstTime := &model.F
 	if err := r.DB.Where(&model.Session{Identifier: userIdentifier, ProjectID: session.ProjectID}).Take(&model.Session{}).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+		if e.Is(err, gorm.ErrRecordNotFound) {
 			firstTime = &model.T
 		} else {
 			return nil, e.Wrap(err, "[IdentifySession] error querying session with past identifier")
@@ -91,7 +90,7 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 func (r *mutationResolver) AddTrackProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error) {
 	obj, ok := propertiesObject.(map[string]interface{})
 	if !ok {
-		return nil, fmt.Errorf("error converting userObject interface type")
+		return nil, e.New("error converting userObject interface type")
 	}
 	fields := map[string]string{}
 	for k, v := range obj {
@@ -110,7 +109,7 @@ func (r *mutationResolver) AddTrackProperties(ctx context.Context, sessionID int
 func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error) {
 	obj, ok := propertiesObject.(map[string]interface{})
 	if !ok {
-		return nil, fmt.Errorf("error converting userObject interface type")
+		return nil, e.New("error converting userObject interface type")
 	}
 	fields := map[string]string{}
 	for k, v := range obj {
