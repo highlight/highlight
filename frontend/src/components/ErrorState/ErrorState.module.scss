@@ -1,11 +1,11 @@
 .errorWrapper {
     align-items: center;
+    background: var(--color-purple);
     display: flex;
     height: 100vh;
     justify-content: center;
-    width: 100vw;
     position: absolute;
-    background: var(--color-purple);
+    width: 100vw;
 }
 
 .errorBody {

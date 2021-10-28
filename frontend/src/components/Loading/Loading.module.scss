@@ -16,12 +16,12 @@
 
 .loadingWrapper {
     align-items: center;
+    background: var(--color-primary-background);
     display: flex;
     height: 100vh;
     justify-content: center;
-    width: 100vw;
     position: absolute;
-    background: var(--color-primary-background);
+    width: 100vw;
     z-index: 5;
 }
 
@@ -34,26 +34,26 @@
         var(--dot-color) var(--dot-size),
         var(--background-color) var(--dot-size)
     );
+    background-position: 0 0;
+    background-size: var(--square-size) var(--square-size);
     height: 100vh;
     position: absolute;
-    background-position: 0 0;
     width: 100vw;
-    background-size: var(--square-size) var(--square-size);
     z-index: -1;
 }
 
 .logoContainer {
     --logo-size: 100px;
+    display: grid;
     height: var(--logo-size);
     width: var(--logo-size);
-    display: grid;
 
     .logo {
-        grid-row-start: 1;
         grid-column-start: 1;
-        z-index: 2;
+        grid-row-start: 1;
         height: var(--logo-size);
         width: var(--logo-size);
+        z-index: 2;
 
         svg {
             height: 100%;
@@ -62,12 +62,16 @@
     }
 
     .logoBackground {
-        background: linear-gradient(180deg, #5629c6 0%, #321873 100%);
+        background: linear-gradient(
+            180deg,
+            var(--logo-gradient-start-color) 0%,
+            var(--logo-gradient-end-color) 100%
+        );
         border-radius: 50%;
-        height: var(--logo-size);
-        width: var(--logo-size);
-        grid-row-start: 1;
         grid-column-start: 1;
+        grid-row-start: 1;
+        height: var(--logo-size);
         transform-origin: center;
+        width: var(--logo-size);
     }
 }
