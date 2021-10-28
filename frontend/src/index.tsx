@@ -4,6 +4,11 @@ import '@highlight-run/rrweb/dist/index.css';
 
 import { ApolloProvider } from '@apollo/client';
 import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { LoadingPage } from '@components/Loading/Loading';
+import {
+    AppLoadingContext,
+    useAppLoadingContext,
+} from '@context/AppLoadingContext';
 import { ErrorBoundary } from '@highlight-run/react';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { H, HighlightOptions } from 'highlight.run';
@@ -90,12 +95,17 @@ if (!isOnPrem) {
 showHiringMessage();
 
 const App = () => {
+    const [isLoading, setIsLoading] = useState(true);
+
     return (
         <ErrorBoundary showDialog>
             <ApolloProvider client={client}>
                 <QueryParamProvider>
                     <SkeletonTheme color={'#F5F5F5'} highlightColor={'#FCFCFC'}>
-                        <AuthenticationRouter />
+                        <AppLoadingContext value={{ isLoading, setIsLoading }}>
+                            <LoadingPage />
+                            <AuthenticationRouter />
+                        </AppLoadingContext>
                     </SkeletonTheme>
                 </QueryParamProvider>
             </ApolloProvider>
@@ -108,6 +118,7 @@ const AuthenticationRouter = () => {
         getAdminQuery,
         { error: adminError, data: adminData, called, refetch },
     ] = useGetAdminLazyQuery();
+    const { setIsLoading } = useAppLoadingContext();
 
     const [authRole, setAuthRole] = useState<AuthRole>(AuthRole.LOADING);
 
@@ -145,8 +156,9 @@ const AuthenticationRouter = () => {
             H.track('Authenticated');
         } else if (adminError) {
             setAuthRole(AuthRole.UNAUTHENTICATED);
+            setIsLoading(false);
         }
-    }, [adminError, adminData]);
+    }, [adminError, adminData, setIsLoading]);
 
     return (
         <AuthContextProvider

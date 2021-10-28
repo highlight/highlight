@@ -1,19 +1,28 @@
+import { useAppLoadingContext } from '@context/AppLoadingContext';
 import { useGetProjectsAndWorkspacesQuery } from '@graph/hooks';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Redirect, useHistory } from 'react-router-dom';
-
-import { LoadingPage } from '../../components/Loading/Loading';
 
 export const ProjectRedirectionRouter = () => {
     const { loading, error, data } = useGetProjectsAndWorkspacesQuery();
+    const { setIsLoading } = useAppLoadingContext();
     const history = useHistory();
+
+    useEffect(() => {
+        if (loading) {
+            setIsLoading(true);
+        }
+        if (error) {
+            setIsLoading(false);
+        }
+    }, [loading, setIsLoading, error]);
 
     if (error) {
         return <p>{'App error: ' + JSON.stringify(error)}</p>;
     }
 
     if (loading) {
-        return <LoadingPage />;
+        return null;
     }
 
     let redirectTo;

@@ -1,3 +1,4 @@
+export const background: string;
 export const loadingWrapper: string;
 export const logo: string;
 export const logoBackground: string;

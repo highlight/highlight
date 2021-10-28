@@ -1,9 +1,8 @@
+import { useAppLoadingContext } from '@context/AppLoadingContext';
 import { useGetProjectsQuery } from '@graph/hooks';
 import { useParams } from '@util/react-router/useParams';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Redirect, useHistory } from 'react-router-dom';
-
-import { LoadingPage } from '../../components/Loading/Loading';
 
 const removeWorkspaceId = (pathname: string) => {
     // Remove the 'w' token and workspace id from the pathname
@@ -17,6 +16,7 @@ export const WorkspaceRedirectionRouter = () => {
     const { workspace_id } = useParams<{
         workspace_id: string;
     }>();
+    const { setIsLoading } = useAppLoadingContext();
 
     const {
         loading: o_loading,
@@ -26,12 +26,18 @@ export const WorkspaceRedirectionRouter = () => {
 
     const history = useHistory();
 
+    useEffect(() => {
+        if (o_loading) {
+            setIsLoading(true);
+        }
+    }, [o_loading, setIsLoading]);
+
     if (o_error) {
         return <p>{'App error: ' + JSON.stringify(o_error)}</p>;
     }
 
     if (o_loading) {
-        return <LoadingPage />;
+        return null;
     }
 
     const firstProjectIdInWorkspace = o_data!.projects?.filter(

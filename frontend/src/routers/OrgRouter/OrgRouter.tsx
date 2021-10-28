@@ -1,3 +1,4 @@
+import { useAppLoadingContext } from '@context/AppLoadingContext';
 import useLocalStorage from '@rehooks/local-storage';
 import { GlobalContextProvider } from '@routers/OrgRouter/context/GlobalContext';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
@@ -25,6 +26,7 @@ export const ProjectRouter = () => {
     const { project_id } = useParams<{
         project_id: string;
     }>();
+    const { setIsLoading } = useAppLoadingContext();
 
     const { data, loading, error } = useGetProjectDropdownOptionsQuery({
         variables: { project_id },
@@ -63,9 +65,18 @@ export const ProjectRouter = () => {
         }
     }, [isLoggedIn]);
 
+    useEffect(() => {
+        if (!error) {
+            setIsLoading(loading || integratedLoading);
+        } else {
+            setIsLoading(false);
+        }
+    }, [error, integratedLoading, loading, setIsLoading]);
+
     if (loading || integratedLoading) {
         return null;
     }
+
     return (
         <GlobalContextProvider
             value={{

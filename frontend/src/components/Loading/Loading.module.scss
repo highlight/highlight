@@ -20,6 +20,26 @@
     height: 100vh;
     justify-content: center;
     width: 100vw;
+    position: absolute;
+    background: var(--color-primary-background);
+    z-index: 5;
+}
+
+.background {
+    --background-color: var(--color-primary-background);
+    --dot-color: var(--color-gray-200);
+    --dot-size: 2px;
+    --square-size: 50px;
+    background-image: radial-gradient(
+        var(--dot-color) var(--dot-size),
+        var(--background-color) var(--dot-size)
+    );
+    height: 100vh;
+    position: absolute;
+    background-position: 0 0;
+    width: 100vw;
+    background-size: var(--square-size) var(--square-size);
+    z-index: -1;
 }
 
 .logoContainer {
