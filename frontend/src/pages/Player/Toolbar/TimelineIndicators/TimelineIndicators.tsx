@@ -155,7 +155,7 @@ const TimelineIndicators = () => {
 
     return (
         <>
-            <HighlightGate>
+            <HighlightGate featureIsOn={false}>
                 <TimelineIndicatorsBarGraph
                     sessionIntervals={sessionIntervals}
                     selectedTimelineAnnotationTypes={
