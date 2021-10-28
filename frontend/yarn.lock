@@ -2981,10 +2981,10 @@
     prop-types "^15.5.8"
     substyle "^9.1.0"
 
-"@highlight-run/react@^1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@highlight-run/react/-/react-1.0.2.tgz#d4fc3e2ed693456d5d2b4a7fbfe7fdc590e15d9c"
-  integrity sha512-/ZtLIcWEUqR6YMpOQP2TZvzjTfNOFIplg9YNzUs35GQJ7ZXHvBQfqSz3viLDZzeOHEzzFHd6n+UxBDuu5R8hxQ==
+"@highlight-run/react@1.0.3":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@highlight-run/react/-/react-1.0.3.tgz#e1120d5302a76c4ba043bada3755b2f7e5354ff9"
+  integrity sha512-1xUD+RV3p2BMkWqMM2/FjcmhRV2BIWNsBJ0TiyWQVLkqCYnGs8G5UWZakpERAmFo5mCHh64fXxSY1qShyg/i4g==
   dependencies:
     "@types/node" "^12.0.0"
     "@types/react" "^17.0.0"
