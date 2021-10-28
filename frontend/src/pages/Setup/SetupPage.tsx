@@ -8,7 +8,6 @@ import { useParams } from '@util/react-router/useParams';
 import { H } from 'highlight.run';
 import React, { FunctionComponent, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { useSessionStorage } from 'react-use';
 
 import { useAuthContext } from '../../authentication/AuthContext';
 import ButtonLink from '../../components/Button/ButtonLink/ButtonLink';
@@ -42,10 +41,6 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
     const { data, loading } = useGetProjectQuery({
         variables: { id: project_id },
     });
-    const [] = useSessionStorage(
-        `highlight-isIntegrating-${project_id}`,
-        !integrated
-    );
 
     return (
         <LeadAlignLayout>
