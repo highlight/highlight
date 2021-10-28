@@ -1,6 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext';
 import HighlightGate from '@components/HighlightGate/HighlightGate';
 import RageClickSpan from '@pages/Player/Toolbar/RageClickSpan/RageClickSpan';
+import TimelineActivityGraph from '@pages/Player/Toolbar/TimelineIndicators/TimelineActivityGraph/TimelineActivityGraph';
 import TimelineIndicatorsBarGraph from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph';
 import classNames from 'classnames';
 import React, { useEffect, useRef } from 'react';
@@ -163,6 +164,10 @@ const TimelineIndicators = () => {
                     }
                 />
             </HighlightGate>
+            <TimelineActivityGraph
+                sessionIntervals={sessionIntervals}
+                totalTime={replayer.getMetaData().totalTime}
+            />
             <TimelineIndicatorsMemoized
                 openDevTools={openDevTools}
                 refContainer={refContainer}

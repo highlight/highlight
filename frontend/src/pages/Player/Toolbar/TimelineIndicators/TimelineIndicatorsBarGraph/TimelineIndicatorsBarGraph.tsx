@@ -89,6 +89,10 @@ const getEventsInTimeBucket = (
 
     for (let i = 0; i <= numberOfBuckets; i++) {
         data[i.toString()] = {};
+
+        EventsForTimeline.forEach((type) => {
+            data[i.toString()][type] = 0;
+        });
     }
 
     interval.sessionEvents.forEach((event) => {
