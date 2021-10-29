@@ -212,7 +212,8 @@ const OnboardingBubble = () => {
                                 />
                             </div>
                             <PopConfirm
-                                title="Should we show you the setup steps later?"
+                                title="Show setup steps later?"
+                                description="Completing these setup steps will help you get the most out of Highlight."
                                 cancelText="Don't Show Again"
                                 okText="Show Again"
                                 placement="topLeft"

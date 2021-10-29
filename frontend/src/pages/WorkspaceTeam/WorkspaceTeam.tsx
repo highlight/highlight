@@ -184,11 +184,8 @@ const WorkspaceTeam = () => {
                                 </div>
 
                                 <PopConfirm
-                                    title={`Remove ${
-                                        a?.name || a?.email
-                                    } from ${
-                                        data?.workspace?.name
-                                    }? They will no longer have access to Highlight. You can invite them again if they need access.`}
+                                    title={`Remove ${a?.name || a?.email}?`}
+                                    description={`They will no longer have access to Highlight. You can invite them again if they need access.`}
                                     okText={`Remove ${a?.name || a?.email}`}
                                     cancelText="Cancel"
                                     onConfirm={() => {

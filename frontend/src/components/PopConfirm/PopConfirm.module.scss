@@ -17,5 +17,17 @@
     :global(.ant-popover-inner) {
         border: 1px solid var(--color-gray-300);
         border-radius: var(--border-radius);
+        background-color: var(--color-primary-background);
+        box-shadow: var(--box-shadow);
+    }
+
+    .description {
+        color: var(--color-gray-500) !important;
+        margin-top: var(--size-xSmall) !important;
+        line-height: 1.5 !important;
+    }
+
+    :global(.ant-popover-buttons button) {
+        margin-left: var(--size-medium) !important;
     }
 }
