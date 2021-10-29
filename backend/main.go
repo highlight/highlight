@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"path"
-	"runtime"
 	"strings"
 	"time"
 
@@ -150,13 +149,7 @@ func main() {
 
 	private.SetupAuthClient()
 	privateWorkerpool := workerpool.New(10000)
-	privateWorkerpool.SetPanicHandler(func() {
-		if rec := recover(); rec != nil {
-			buf := make([]byte, 64<<10)
-			buf = buf[:runtime.Stack(buf, false)]
-			log.Errorf("panic: %+v\n%s", rec, buf)
-		}
-	})
+	privateWorkerpool.SetPanicHandler(util.Recover)
 	privateResolver := &private.Resolver{
 		ClearbitClient:    clearbit.NewClient(clearbit.WithAPIKey(os.Getenv("CLEARBIT_API_KEY"))),
 		DB:                db,
@@ -217,21 +210,9 @@ func main() {
 			r.Use(public.PublicMiddleware)
 			r.Use(highlightChi.Middleware)
 			pushPayloadWorkerPool := workerpool.New(80)
-			pushPayloadWorkerPool.SetPanicHandler(func() {
-				if rec := recover(); rec != nil {
-					buf := make([]byte, 64<<10)
-					buf = buf[:runtime.Stack(buf, false)]
-					log.Errorf("panic: %+v\n%s", rec, buf)
-				}
-			})
+			pushPayloadWorkerPool.SetPanicHandler(util.Recover)
 			alertWorkerpool := workerpool.New(40)
-			alertWorkerpool.SetPanicHandler(func() {
-				if rec := recover(); rec != nil {
-					buf := make([]byte, 64<<10)
-					buf = buf[:runtime.Stack(buf, false)]
-					log.Errorf("panic: %+v\n%s", rec, buf)
-				}
-			})
+			alertWorkerpool.SetPanicHandler(util.Recover)
 
 			publicServer := ghandler.NewDefaultServer(publicgen.NewExecutableSchema(
 				publicgen.Config{

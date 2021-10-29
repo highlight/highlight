@@ -873,7 +873,6 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 				log.Error(e.Wrap(err, "error notifying tagged admins in session comment for slack bot"))
 			}
 		})
-
 	}
 
 	return sessionComment, nil
