@@ -1,6 +1,5 @@
 import { Replayer } from '@highlight-run/rrweb';
 import { customEvent } from '@highlight-run/rrweb/dist/types';
-import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import { H } from 'highlight.run';
 import { useCallback, useEffect, useState } from 'react';
@@ -57,7 +56,7 @@ export enum SessionViewability {
 }
 
 export const usePlayer = (): ReplayerContextInterface => {
-    const { isLoggedIn, isHighlightAdmin } = useAuthContext();
+    const { isLoggedIn } = useAuthContext();
     const { session_secure_id, project_id } = useParams<{
         session_secure_id: string;
         project_id: string;
@@ -105,11 +104,6 @@ export const usePlayer = (): ReplayerContextInterface => {
         hasSearchParam,
     } = useSetPlayerTimestampFromSearchParam(setTime, replayer);
 
-    const [enableDirectDownload] = useLocalStorage(
-        'highlight-direct-download-session-payload',
-        isHighlightAdmin
-    );
-
     const [
         getSessionPayloadQuery,
         { loading: eventsLoading, data: eventsData },
@@ -143,7 +137,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                 }
 
                 const directDownloadUrl = data.session?.direct_download_url;
-                if (directDownloadUrl && enableDirectDownload) {
+                if (directDownloadUrl) {
                     getSessionPayloadQuery({
                         variables: {
                             session_secure_id,
