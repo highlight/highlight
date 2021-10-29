@@ -251,6 +251,8 @@ github.com/highlight-run/highlight-go v0.3.2 h1:P1VDmAnaT2XvtarupVlZ/wfd7kvAg2Fj
 github.com/highlight-run/highlight-go v0.3.2/go.mod h1:QMrVFrRIn3VfCsoGszLJRaNayjKGrXXX4CcapYid0AU=
 github.com/highlight-run/highlight-go v0.3.4 h1:pWtXcCeTbqfh0HywL/C6JyWkIdSX3lnq1sohCsV2o6g=
 github.com/highlight-run/highlight-go v0.3.4/go.mod h1:Bpfo9f8hecB/4l3zFszUWnzlpOdmpSSFZ5VhMnpvKaQ=
+github.com/highlight-run/highlight-go v0.3.6 h1:L3DfGpyCBNJIfN7iyNAK1+zVCK/PB1sY5tWDj3rIi0I=
+github.com/highlight-run/highlight-go v0.3.6/go.mod h1:5s0djwmGhlGcM67M8/ZLf2TWd9C5rNkyyRSb4KDQyeo=
 github.com/highlight-run/workerpool v1.2.0 h1:0mLu2hvvgAbgkdjQuBQsmMSVPaIk75Vy3mSK+FavxxY=
 github.com/highlight-run/workerpool v1.2.0/go.mod h1:1iJmXJoC39MnWrqrLa+TaIqdveW4XaxPMoXAMH2wDYU=
 github.com/highlight-run/workerpool v1.3.0 h1:BuOWBJJeGG5ZRpq+IKXDTfASAdJoTkBS0sSH+lvCTgw=
