@@ -1,4 +1,3 @@
-import Tooltip from '@components/Tooltip/Tooltip';
 import SessionFeedConfiguration from '@pages/Sessions/SessionsFeedV2/components/SessionFeedConfiguration/SessionFeedConfiguration';
 import { SessionFeedConfigurationContextProvider } from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext';
 import { useSessionFeedConfiguration } from '@pages/Sessions/SessionsFeedV2/hooks/useSessionFeedConfiguration';
@@ -20,7 +19,7 @@ import {
     useUnprocessedSessionsCountQuery,
 } from '../../../graph/generated/hooks';
 import { PlanType, SessionLifecycle } from '../../../graph/generated/schemas';
-import { formatNumberWithDelimiters } from '../../../util/numbers';
+import { formatNumber } from '../../../util/numbers';
 import usePlayerConfiguration from '../../Player/PlayerHook/utils/usePlayerConfiguration';
 import { useReplayerContext } from '../../Player/ReplayerContext';
 import { useSearchContext } from '../SearchContext/SearchContext';
@@ -161,55 +160,34 @@ export const SessionFeed = React.memo(() => {
                                 <span className={styles.countContainer}>
                                     <TextTransition
                                         inline
-                                        text={`${formatNumberWithDelimiters(
+                                        text={`${formatNumber(
                                             sessionResults.totalCount
                                         )}`}
                                     />{' '}
-                                    sessions{' '}
+                                    {`sessions `}
                                     {unprocessedSessionsCount?.unprocessedSessionsCount >
                                         0 &&
                                         !searchParams.show_live_sessions && (
-                                            <Tooltip
-                                                title={`There ${
-                                                    unprocessedSessionsCount?.unprocessedSessionsCount >
-                                                    1
-                                                        ? 'are'
-                                                        : 'is'
-                                                } ${
-                                                    unprocessedSessionsCount?.unprocessedSessionsCount
-                                                } live session${
-                                                    unprocessedSessionsCount?.unprocessedSessionsCount >
-                                                    1
-                                                        ? 's'
-                                                        : ''
-                                                }. Click to show live session${
-                                                    unprocessedSessionsCount?.unprocessedSessionsCount >
-                                                    1
-                                                        ? 's'
-                                                        : ''
-                                                }.`}
-                                                placement="right"
+                                            <button
+                                                className={
+                                                    styles.liveSessionsCountButton
+                                                }
+                                                onClick={() => {
+                                                    message.success(
+                                                        'Showing live sessions'
+                                                    );
+                                                    setSearchParams({
+                                                        ...searchParams,
+                                                        show_live_sessions: !searchParams.show_live_sessions,
+                                                    });
+                                                }}
                                             >
-                                                <button
-                                                    className={
-                                                        styles.liveSessionsCountButton
-                                                    }
-                                                    onClick={() => {
-                                                        message.success(
-                                                            'Showing live sessions'
-                                                        );
-                                                        setSearchParams({
-                                                            ...searchParams,
-                                                            show_live_sessions: !searchParams.show_live_sessions,
-                                                        });
-                                                    }}
-                                                >
-                                                    {unprocessedSessionsCount?.unprocessedSessionsCount >
-                                                    99
-                                                        ? `99+`
-                                                        : unprocessedSessionsCount?.unprocessedSessionsCount}
-                                                </button>
-                                            </Tooltip>
+                                                (
+                                                {formatNumber(
+                                                    unprocessedSessionsCount?.unprocessedSessionsCount
+                                                )}{' '}
+                                                live)
+                                            </button>
                                         )}
                                 </span>
                                 <div className={styles.sessionFeedActions}>
@@ -222,7 +200,7 @@ export const SessionFeed = React.memo(() => {
                                         trackingId="SessionFeedAutoplay"
                                     />
                                     <Switch
-                                        label="Show Details"
+                                        label="Details"
                                         checked={showDetailedSessionView}
                                         onChange={(checked) => {
                                             setShowDetailedSessionView(checked);

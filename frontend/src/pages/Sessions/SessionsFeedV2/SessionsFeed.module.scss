@@ -343,19 +343,12 @@
 
 .liveSessionsCountButton {
     border: 0;
-    background: var(--color-purple);
+    background: transparent;
     border-radius: var(--size-small);
-    color: var(--text-primary-inverted);
-    font-size: 0.5em;
-    max-width: 5ch;
+    color: var(--color-gray-500);
     cursor: pointer;
     outline: none;
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    position: absolute;
-    transform: translateX(100%);
-    right: calc(-1 * var(--size-xxSmall));
+    display: contents;
 }
 
 .countContainer {
