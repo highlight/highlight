@@ -30,7 +30,7 @@ const ErrorsPage = () => {
         replayer,
         session,
     } = useReplayerContext();
-    const setResourceOrErrorPanel = useResourceOrErrorDetailPanel();
+    const { setErrorPanel } = useResourceOrErrorDetailPanel();
 
     const loading = state === ReplayerState.Loading;
 
@@ -139,7 +139,7 @@ const ErrorsPage = () => {
                                         : ErrorCardState.Unknown
                                 }
                                 setSelectedError={() => {
-                                    setResourceOrErrorPanel(undefined, error);
+                                    setErrorPanel(error);
                                 }}
                             />
                         )}

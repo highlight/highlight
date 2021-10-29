@@ -2,8 +2,8 @@ import Input from '@components/Input/Input';
 import { ErrorObject } from '@graph/schemas';
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils';
+import { useResourcesContext } from '@pages/Player/ResourcesContext/ResourcesContext';
 import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel';
-import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
@@ -21,7 +21,6 @@ import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import GoToButton from '../../../../../components/Button/GoToButton';
 import TextHighlighter from '../../../../../components/TextHighlighter/TextHighlighter';
 import Tooltip from '../../../../../components/Tooltip/Tooltip';
-import { useGetResourcesQuery } from '../../../../../graph/generated/hooks';
 import { MillisToMinutesAndSeconds } from '../../../../../util/time';
 import { formatTime } from '../../../../Home/components/KeyPerformanceIndicators/utils/utils';
 import { ReplayerState, useReplayerContext } from '../../../ReplayerContext';
@@ -36,8 +35,13 @@ export const ResourcePage = ({
     time: number;
     startTime: number;
 }) => {
-    const { state, session, pause, isPlayerReady } = useReplayerContext();
-    const { session_secure_id } = useParams<{ session_secure_id: string }>();
+    const {
+        state,
+        session,
+        pause,
+        isPlayerReady,
+        errors,
+    } = useReplayerContext();
     const [options, setOptions] = useState<Array<string>>([]);
     const [currentOption, setCurrentOption] = useState('All');
     const [filterSearchTerm, setFilterSearchTerm] = useState('');
@@ -50,42 +54,32 @@ export const ResourcePage = ({
     const [allResources, setAllResources] = useState<
         Array<NetworkResource> | undefined
     >([]);
-    const [parsedResources, setParsedResources] = useState<
-        Array<PerformanceResourceTiming & { id: number }> | undefined
-    >(undefined);
-    const { data, loading } = useGetResourcesQuery({
-        variables: {
-            session_secure_id,
-        },
-        fetchPolicy: 'no-cache',
-    });
-    const { errors } = useReplayerContext();
+
     const virtuoso = useRef<VirtuosoHandle>(null);
-    const rawResources = data?.resources;
     const resourceErrorRequestHeader = new URLSearchParams(location.search).get(
         PlayerSearchParameters.resourceErrorRequestHeader
     );
-    const setResourceOrErrorPanel = useResourceOrErrorDetailPanel();
+    const { setResourcePanel } = useResourceOrErrorDetailPanel();
+
+    const {
+        resources: parsedResources,
+        loadResources,
+        resourcesLoading: loading,
+    } = useResourcesContext();
+    loadResources();
 
     useEffect(() => {
         const optionSet = new Set<string>();
-        rawResources?.forEach((r) => {
+        parsedResources?.forEach((r) => {
             if (!optionSet.has(r.initiatorType)) {
                 optionSet.add(r.initiatorType);
             }
         });
         setOptions(['All', ...Array.from(optionSet)]);
-        setParsedResources(
-            (
-                rawResources?.map((r, i) => {
-                    return { ...r, id: i };
-                }) ?? []
-            ).sort((a, b) => a.startTime - b.startTime)
-        );
-    }, [rawResources]);
+    }, [parsedResources]);
 
     useEffect(() => {
-        if (rawResources) {
+        if (parsedResources) {
             setAllResources(
                 parsedResources?.filter((r) => {
                     if (currentOption === 'All') {
@@ -97,15 +91,15 @@ export const ResourcePage = ({
                 }) ?? []
             );
         }
-    }, [parsedResources, rawResources, currentOption, options]);
+    }, [parsedResources, currentOption, options]);
 
     useEffect(() => {
-        if (rawResources) {
-            const start = rawResources[0].startTime;
-            const end = rawResources[rawResources.length - 1].responseEnd;
+        if (parsedResources.length > 0) {
+            const start = parsedResources[0].startTime;
+            const end = parsedResources[parsedResources.length - 1].responseEnd;
             setNetworkRange(end - start);
         }
-    }, [rawResources]);
+    }, [parsedResources]);
 
     useEffect(() => {
         if (allResources?.length) {
@@ -158,12 +152,7 @@ export const ResourcePage = ({
                 allResources
             );
             if (resource) {
-                setResourceOrErrorPanel(
-                    resource,
-                    errors.find(
-                        (e) => e.request_id === resourceErrorRequestHeader
-                    )
-                );
+                setResourcePanel(resource);
                 pause(resource.startTime);
                 scrollFunction(allResources.indexOf(resource));
             } else {
@@ -179,7 +168,7 @@ export const ResourcePage = ({
         resourceErrorRequestHeader,
         scrollFunction,
         session,
-        setResourceOrErrorPanel,
+        setResourcePanel,
     ]);
 
     useEffect(() => {
@@ -311,10 +300,7 @@ export const ResourcePage = ({
                                                 }
                                                 searchTerm={filterSearchTerm}
                                                 onClickHandler={() => {
-                                                    setResourceOrErrorPanel(
-                                                        resource,
-                                                        error
-                                                    );
+                                                    setResourcePanel(resource);
                                                 }}
                                                 hasError={!!error}
                                             />
@@ -555,7 +541,7 @@ export const findResourceWithMatchingHighlightHeader = (
     );
 };
 
-const getHighlightRequestId = (resource: NetworkResource) => {
+export const getHighlightRequestId = (resource: NetworkResource) => {
     const joined =
         // @ts-expect-error
         resource.requestResponsePairs?.request?.headers[

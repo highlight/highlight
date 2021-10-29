@@ -342,13 +342,13 @@
 }
 
 .liveSessionsCountButton {
-    border: 0;
     background: transparent;
+    border: 0;
     border-radius: var(--size-small);
     color: var(--color-gray-500);
     cursor: pointer;
-    outline: none;
     display: contents;
+    outline: none;
 }
 
 .countContainer {
