@@ -21,7 +21,7 @@ require (
 	github.com/go-test/deep v1.0.4
 	github.com/gorilla/sessions v1.2.1 // indirect
 	github.com/highlight-run/highlight-go v0.3.4
-	github.com/highlight-run/workerpool v1.2.0
+	github.com/highlight-run/workerpool v1.3.0
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/kylelemons/godebug v1.1.0
 	github.com/lib/pq v1.6.0 // indirect

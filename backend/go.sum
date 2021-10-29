@@ -253,6 +253,8 @@ github.com/highlight-run/highlight-go v0.3.4 h1:pWtXcCeTbqfh0HywL/C6JyWkIdSX3lnq
 github.com/highlight-run/highlight-go v0.3.4/go.mod h1:Bpfo9f8hecB/4l3zFszUWnzlpOdmpSSFZ5VhMnpvKaQ=
 github.com/highlight-run/workerpool v1.2.0 h1:0mLu2hvvgAbgkdjQuBQsmMSVPaIk75Vy3mSK+FavxxY=
 github.com/highlight-run/workerpool v1.2.0/go.mod h1:1iJmXJoC39MnWrqrLa+TaIqdveW4XaxPMoXAMH2wDYU=
+github.com/highlight-run/workerpool v1.3.0 h1:BuOWBJJeGG5ZRpq+IKXDTfASAdJoTkBS0sSH+lvCTgw=
+github.com/highlight-run/workerpool v1.3.0/go.mod h1:1iJmXJoC39MnWrqrLa+TaIqdveW4XaxPMoXAMH2wDYU=
 github.com/ianlancetaylor/demangle v0.0.0-20181102032728-5e5cf60278f6/go.mod h1:aSSvb/t6k1mPoxDqO4vJh6VOCGPwU4O0C2/Eqndh1Sc=
 github.com/ianlancetaylor/demangle v0.0.0-20200824232613-28f6c0f3b639/go.mod h1:aSSvb/t6k1mPoxDqO4vJh6VOCGPwU4O0C2/Eqndh1Sc=
 github.com/jackc/chunkreader v1.0.0 h1:4s39bBR8ByfqH+DKm8rQA3E1LHZWB9XWcrz8fqaZbe0=
