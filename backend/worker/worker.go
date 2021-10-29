@@ -9,7 +9,6 @@ import (
 	"math"
 	"math/rand"
 	"os"
-	"runtime"
 	"strconv"
 	"time"
 
@@ -732,13 +731,7 @@ func (w *Worker) Start() {
 		}
 
 		wp := workerpool.New(40)
-		wp.SetPanicHandler(func() {
-			if rec := recover(); rec != nil {
-				buf := make([]byte, 64<<10)
-				buf = buf[:runtime.Stack(buf, false)]
-				log.Errorf("panic: %+v\n%s", rec, buf)
-			}
-		})
+		wp.SetPanicHandler(util.Recover)
 		// process 80 sessions at a time.
 		for _, session := range sessions {
 			session := session
@@ -945,6 +938,7 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 }
 
 func reportProcessSessionCount(db *gorm.DB, lookbackPeriod int) {
+	defer util.Recover()
 	for {
 		time.Sleep(5 * time.Second)
 		var count int64

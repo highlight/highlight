@@ -1129,6 +1129,9 @@ func (obj *Alert) SendSlackAlert(input *SendSlackAlertInput) error {
 
 	frontendURL := os.Getenv("FRONTEND_URI")
 	suffix := ""
+	if input.QueryParams == nil {
+		input.QueryParams = make(map[string]string)
+	}
 	if input.CommentID != nil {
 		input.QueryParams["commentId"] = fmt.Sprintf("%d", *input.CommentID)
 	}

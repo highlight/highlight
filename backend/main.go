@@ -45,7 +45,7 @@ var (
 	landingStagingURL  = os.Getenv("LANDING_PAGE_STAGING_URI")
 	sendgridKey        = os.Getenv("SENDGRID_API_KEY")
 	stripeApiKey       = os.Getenv("STRIPE_API_KEY")
-	runtime            = flag.String("runtime", "all", "the runtime of the backend; either 1) dev (all runtimes) 2) worker 3) public-graph 4) private-graph")
+	runtimeFlag        = flag.String("runtime", "all", "the runtime of the backend; either 1) dev (all runtimes) 2) worker 3) public-graph 4) private-graph")
 )
 
 //  we inject this value at build time for on-prem
@@ -55,17 +55,17 @@ var runtimeParsed util.Runtime
 
 func init() {
 	flag.Parse()
-	if runtime == nil {
+	if runtimeFlag == nil {
 		log.Fatal("runtime is nil, provide a value")
-	} else if !util.Runtime(*runtime).IsValid() {
-		log.Fatalf("invalid runtime: %v", *runtime)
+	} else if !util.Runtime(*runtimeFlag).IsValid() {
+		log.Fatalf("invalid runtime: %v", *runtimeFlag)
 	}
-	runtimeParsed = util.Runtime(*runtime)
+	runtimeParsed = util.Runtime(*runtimeFlag)
 }
 
-func healthRouter(runtime util.Runtime) http.HandlerFunc {
+func healthRouter(runtimeFlag util.Runtime) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		_, err := w.Write([]byte(fmt.Sprintf("%v is healthy", runtime)))
+		_, err := w.Write([]byte(fmt.Sprintf("%v is healthy", runtimeFlag)))
 		if err != nil {
 			log.Error(e.Wrap(err, "error writing health response"))
 		}
@@ -148,12 +148,15 @@ func main() {
 	}
 
 	private.SetupAuthClient()
+	privateWorkerpool := workerpool.New(10000)
+	privateWorkerpool.SetPanicHandler(util.Recover)
 	privateResolver := &private.Resolver{
-		ClearbitClient: clearbit.NewClient(clearbit.WithAPIKey(os.Getenv("CLEARBIT_API_KEY"))),
-		DB:             db,
-		MailClient:     sendgrid.NewSendClient(sendgridKey),
-		StripeClient:   stripeClient,
-		StorageClient:  storage,
+		ClearbitClient:    clearbit.NewClient(clearbit.WithAPIKey(os.Getenv("CLEARBIT_API_KEY"))),
+		DB:                db,
+		MailClient:        sendgrid.NewSendClient(sendgridKey),
+		StripeClient:      stripeClient,
+		StorageClient:     storage,
+		PrivateWorkerPool: privateWorkerpool,
 	}
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.
@@ -206,13 +209,18 @@ func main() {
 		r.Route(publicEndpoint, func(r chi.Router) {
 			r.Use(public.PublicMiddleware)
 			r.Use(highlightChi.Middleware)
+			pushPayloadWorkerPool := workerpool.New(80)
+			pushPayloadWorkerPool.SetPanicHandler(util.Recover)
+			alertWorkerpool := workerpool.New(40)
+			alertWorkerpool.SetPanicHandler(util.Recover)
+
 			publicServer := ghandler.NewDefaultServer(publicgen.NewExecutableSchema(
 				publicgen.Config{
 					Resolvers: &public.Resolver{
 						DB:                    db,
 						StorageClient:         storage,
-						PushPayloadWorkerPool: workerpool.New(80),
-						AlertWorkerPool:       workerpool.New(40),
+						PushPayloadWorkerPool: pushPayloadWorkerPool,
+						AlertWorkerPool:       alertWorkerpool,
 					},
 				}))
 			publicServer.Use(util.NewTracer(util.PublicGraph))
