@@ -340,3 +340,17 @@
     display: flex;
     height: 30px;
 }
+
+.liveSessionsCountButton {
+    border: 0;
+    background: transparent;
+    border-radius: var(--size-small);
+    color: var(--color-gray-500);
+    cursor: pointer;
+    outline: none;
+    display: contents;
+}
+
+.countContainer {
+    position: relative;
+}

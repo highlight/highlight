@@ -4,6 +4,7 @@ import { useSessionFeedConfiguration } from '@pages/Sessions/SessionsFeedV2/hook
 import { useIntegrated } from '@util/integrated';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
+import { message } from 'antd';
 import React, { RefObject, useEffect, useMemo, useState } from 'react';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
 import Skeleton from 'react-loading-skeleton';
@@ -15,9 +16,10 @@ import LimitedSessionCard from '../../../components/Upsell/LimitedSessionsCard/L
 import {
     useGetBillingDetailsQuery,
     useGetSessionsQuery,
+    useUnprocessedSessionsCountQuery,
 } from '../../../graph/generated/hooks';
 import { PlanType, SessionLifecycle } from '../../../graph/generated/schemas';
-import { formatNumberWithDelimiters } from '../../../util/numbers';
+import { formatNumber } from '../../../util/numbers';
 import usePlayerConfiguration from '../../Player/PlayerHook/utils/usePlayerConfiguration';
 import { useReplayerContext } from '../../Player/ReplayerContext';
 import { useSearchContext } from '../SearchContext/SearchContext';
@@ -55,6 +57,14 @@ export const SessionFeed = React.memo(() => {
     const { data: billingDetails } = useGetBillingDetailsQuery({
         variables: { project_id },
     });
+    const { data: unprocessedSessionsCount } = useUnprocessedSessionsCountQuery(
+        {
+            variables: {
+                project_id,
+            },
+            pollInterval: 5000,
+        }
+    );
 
     const { loading, fetchMore, called } = useGetSessionsQuery({
         variables: {
@@ -147,14 +157,38 @@ export const SessionFeed = React.memo(() => {
                     ) : (
                         sessionResults.totalCount > 0 && (
                             <div className={styles.resultCountValueContainer}>
-                                <span>
+                                <span className={styles.countContainer}>
                                     <TextTransition
                                         inline
-                                        text={`${formatNumberWithDelimiters(
+                                        text={`${formatNumber(
                                             sessionResults.totalCount
                                         )}`}
                                     />{' '}
-                                    sessions
+                                    {`sessions `}
+                                    {unprocessedSessionsCount?.unprocessedSessionsCount >
+                                        0 &&
+                                        !searchParams.show_live_sessions && (
+                                            <button
+                                                className={
+                                                    styles.liveSessionsCountButton
+                                                }
+                                                onClick={() => {
+                                                    message.success(
+                                                        'Showing live sessions'
+                                                    );
+                                                    setSearchParams({
+                                                        ...searchParams,
+                                                        show_live_sessions: !searchParams.show_live_sessions,
+                                                    });
+                                                }}
+                                            >
+                                                (
+                                                {formatNumber(
+                                                    unprocessedSessionsCount?.unprocessedSessionsCount
+                                                )}{' '}
+                                                live)
+                                            </button>
+                                        )}
                                 </span>
                                 <div className={styles.sessionFeedActions}>
                                     <Switch
@@ -166,7 +200,7 @@ export const SessionFeed = React.memo(() => {
                                         trackingId="SessionFeedAutoplay"
                                     />
                                     <Switch
-                                        label="Show Details"
+                                        label="Details"
                                         checked={showDetailedSessionView}
                                         onChange={(checked) => {
                                             setShowDetailedSessionView(checked);
