@@ -945,6 +945,13 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 }
 
 func reportProcessSessionCount(db *gorm.DB, lookbackPeriod int) {
+	defer func() {
+		if rec := recover(); rec != nil {
+			buf := make([]byte, 64<<10)
+			buf = buf[:runtime.Stack(buf, false)]
+			log.Errorf("panic: %+v\n%s", rec, buf)
+		}
+	}()
 	for {
 		time.Sleep(5 * time.Second)
 		var count int64

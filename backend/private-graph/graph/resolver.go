@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/clearbit/clearbit-go/clearbit"
+	"github.com/highlight-run/workerpool"
 	e "github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -37,11 +38,12 @@ var (
 )
 
 type Resolver struct {
-	DB             *gorm.DB
-	MailClient     *sendgrid.Client
-	StripeClient   *client.API
-	StorageClient  *storage.StorageClient
-	ClearbitClient *clearbit.Client
+	DB                *gorm.DB
+	MailClient        *sendgrid.Client
+	StripeClient      *client.API
+	StorageClient     *storage.StorageClient
+	ClearbitClient    *clearbit.Client
+	PrivateWorkerPool *workerpool.WorkerPool
 }
 
 func (r *Resolver) getCurrentAdmin(ctx context.Context) (*model.Admin, error) {

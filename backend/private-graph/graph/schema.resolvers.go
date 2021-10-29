@@ -573,7 +573,7 @@ func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (strin
 		ApolloDataShortened: *short,
 	})
 
-	go func() {
+	r.PrivateWorkerPool.SubmitRecover(func() {
 		if contact, err := apolloio.CreateContact(email); err != nil {
 			log.Errorf("error creating apollo contact: %v", err)
 		} else {
@@ -582,7 +582,7 @@ func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (strin
 				log.Errorf("error adding to apollo sequence: %v", err)
 			}
 		}
-	}()
+	})
 
 	return email, nil
 }
@@ -771,7 +771,10 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, projectID i
 	// mark sessions as within billing quota on plan upgrade
 	// this code is repeated as the first time, the user already has a billing plan and the function returns early.
 	// here, the user doesn't already have a billing plan, so it's considered an upgrade unless the plan is free
-	go r.UpdateSessionsVisibility(projectID, pricing.FromPriceID(planTypeId), modelInputs.PlanTypeFree)
+
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		r.UpdateSessionsVisibility(projectID, pricing.FromPriceID(planTypeId), modelInputs.PlanTypeFree)
+	})
 
 	return &model.T, nil
 }
@@ -836,7 +839,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			adminIds = append(adminIds, admin.ID)
 		}
 
-		go func() {
+		r.PrivateWorkerPool.SubmitRecover(func() {
 			commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
 				tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedAdmins)))
 			defer commentMentionEmailSpan.Finish()
@@ -845,9 +848,9 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in session comment"))
 			}
-		}()
+		})
 
-		go func() {
+		r.PrivateWorkerPool.SubmitRecover(func() {
 			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
 				tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(adminIds)))
 			defer commentMentionSlackSpan.Finish()
@@ -856,11 +859,11 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in session comment"))
 			}
-		}()
+		})
 	}
 
 	if len(taggedSlackUsers) > 0 && !isGuestCreatingSession {
-		go func() {
+		r.PrivateWorkerPool.SubmitRecover(func() {
 			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
 				tracer.ResourceName("slackBot.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedSlackUsers)))
 			defer commentMentionSlackSpan.Finish()
@@ -869,7 +872,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in session comment for slack bot"))
 			}
-		}()
+		})
 
 	}
 
@@ -943,7 +946,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 			adminIds = append(adminIds, admin.ID)
 		}
 
-		go func() {
+		r.PrivateWorkerPool.SubmitRecover(func() {
 			commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
 				tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedAdmins)))
 			defer commentMentionEmailSpan.Finish()
@@ -952,9 +955,9 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in error comment"))
 			}
-		}()
+		})
 
-		go func() {
+		r.PrivateWorkerPool.SubmitRecover(func() {
 			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
 				tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(adminIds)))
 			defer commentMentionSlackSpan.Finish()
@@ -963,11 +966,11 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in error comment"))
 			}
-		}()
+		})
 
 	}
 	if len(taggedSlackUsers) > 0 && !isGuest {
-		go func() {
+		r.PrivateWorkerPool.SubmitRecover(func() {
 			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
 				tracer.ResourceName("slackBot.sendErrorCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedSlackUsers)))
 			defer commentMentionSlackSpan.Finish()
@@ -976,7 +979,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in error comment for slack bot"))
 			}
-		}()
+		})
 	}
 	return errorComment, nil
 }
@@ -2202,7 +2205,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 			}
 			p, co = pc.Person, pc.Company
 			// Store the data for this email in the DB.
-			go func() {
+			r.PrivateWorkerPool.SubmitRecover(func() {
 				log.Infof("caching response data in the db")
 				modelToSave := &model.EnhancedUserDetails{}
 				modelToSave.Email = &email
@@ -2221,7 +2224,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 				if err := r.DB.Create(modelToSave).Error; err != nil {
 					log.Errorf("error creating clearbit details model")
 				}
-			}()
+			})
 		} else {
 			log.Infof("retrieving db entry for clearbit lookup")
 			if userDetailsModel.PersonJSON != nil && userDetailsModel.CompanyJSON != nil {
@@ -3238,7 +3241,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 			return nil, spanError
 		}
 		firebaseSpan.Finish()
-		go func() {
+		r.PrivateWorkerPool.SubmitRecover(func() {
 			if contact, err := apolloio.CreateContact(*newAdmin.Email); err != nil {
 				log.Errorf("error creating apollo contact: %v", err)
 			} else {
@@ -3247,7 +3250,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 					log.Errorf("error adding new contact to sequence: %v", err)
 				}
 			}
-		}()
+		})
 		admin = newAdmin
 	}
 	if admin.PhotoURL == nil || admin.Name == nil {

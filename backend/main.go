@@ -149,12 +149,21 @@ func main() {
 	}
 
 	private.SetupAuthClient()
+	privateWorkerpool := workerpool.New(40)
+	privateWorkerpool.SetPanicHandler(func() {
+		if rec := recover(); rec != nil {
+			buf := make([]byte, 64<<10)
+			buf = buf[:runtime.Stack(buf, false)]
+			log.Errorf("panic: %+v\n%s", rec, buf)
+		}
+	})
 	privateResolver := &private.Resolver{
-		ClearbitClient: clearbit.NewClient(clearbit.WithAPIKey(os.Getenv("CLEARBIT_API_KEY"))),
-		DB:             db,
-		MailClient:     sendgrid.NewSendClient(sendgridKey),
-		StripeClient:   stripeClient,
-		StorageClient:  storage,
+		ClearbitClient:    clearbit.NewClient(clearbit.WithAPIKey(os.Getenv("CLEARBIT_API_KEY"))),
+		DB:                db,
+		MailClient:        sendgrid.NewSendClient(sendgridKey),
+		StripeClient:      stripeClient,
+		StorageClient:     storage,
+		PrivateWorkerPool: privateWorkerpool,
 	}
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.
