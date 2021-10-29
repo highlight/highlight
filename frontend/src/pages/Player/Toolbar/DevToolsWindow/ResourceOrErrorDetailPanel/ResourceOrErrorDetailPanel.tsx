@@ -22,36 +22,26 @@ export const useResourceOrErrorDetailPanel = () => {
             title: null,
             content: (
                 <Tabs
+                    className={styles.tabsWrapper}
                     noPadding
                     noHeaderPadding
                     tabs={[
                         ...(resource
                             ? [
                                   {
-                                      title: 'Network Resource',
+                                      key: 'Network Resource',
                                       panelContent: (
-                                          <>
-                                              <div
-                                                  className={
-                                                      styles.detailPanelTitle
+                                          <div>
+                                              <ResourceDetailsModal
+                                                  selectedNetworkResource={
+                                                      resource
                                                   }
-                                              ></div>
-                                              <div
-                                                  className={
-                                                      styles.tabContainer
+                                                  networkRecordingEnabledForSession={
+                                                      session?.enable_recording_network_contents ||
+                                                      false
                                                   }
-                                              >
-                                                  <ResourceDetailsModal
-                                                      selectedNetworkResource={
-                                                          resource
-                                                      }
-                                                      networkRecordingEnabledForSession={
-                                                          session?.enable_recording_network_contents ||
-                                                          false
-                                                      }
-                                                  />
-                                              </div>
-                                          </>
+                                              />
+                                          </div>
                                       ),
                                   },
                               ]
@@ -59,8 +49,8 @@ export const useResourceOrErrorDetailPanel = () => {
                         ...(error
                             ? [
                                   {
-                                      title: 'Error',
-                                      titleContent: (
+                                      key: 'Error',
+                                      title: (
                                           <div>
                                               Error
                                               {resource ? (
@@ -81,7 +71,7 @@ export const useResourceOrErrorDetailPanel = () => {
                                           </div>
                                       ),
                                       panelContent: (
-                                          <div className={styles.tabContainer}>
+                                          <div>
                                               <ErrorModal error={error} />
                                           </div>
                                       ),

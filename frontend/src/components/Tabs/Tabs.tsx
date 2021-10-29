@@ -8,9 +8,9 @@ import classNames from 'classnames';
 import styles from './Tabs.module.scss';
 
 export interface TabItem {
-    title: string;
+    key: string;
+    title?: string | React.ReactNode; // If undefined, `key` will be used as the title
     panelContent: React.ReactNode;
-    titleContent?: React.ReactNode;
 }
 
 type Props = Pick<
@@ -41,7 +41,7 @@ const Tabs = ({
 }: Props) => {
     const [activeTab, setActiveTab] = useLocalStorage(
         `tabs-${id || 'unknown'}-active-tab`,
-        tabs[0].title || '0'
+        tabs[0].key || '0'
     );
 
     return (
@@ -71,10 +71,10 @@ const Tabs = ({
                 [styles.noHeaderPadding]: noHeaderPadding,
             })}
         >
-            {tabs.map(({ panelContent, title, titleContent }) => (
+            {tabs.map(({ panelContent, title, key }) => (
                 <TabPane
-                    key={title}
-                    tab={titleContent ?? title}
+                    key={key}
+                    tab={title ?? key}
                     className={classNames(styles.tabPane, {
                         [styles.withPadding]: !noPadding,
                     })}

@@ -1,14 +1,7 @@
-.detailPanelTitle {
-    align-items: center !important;
-    column-gap: var(--size-medium);
-    display: flex;
-    justify-content: space-between;
-    padding-bottom: var(--size-xSmall);
-}
-
-.tabContainer {
-    height: 100%;
-    padding: var(--size-medium) var(--size-large);
+.tabsWrapper {
+    :global(.ant-tabs-tabpane) {
+        padding: var(--size-medium) var(--size-large);
+    }
 }
 
 .extraContentContainer {
