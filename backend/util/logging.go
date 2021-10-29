@@ -17,7 +17,10 @@ func GraphQLErrorPresenter(service string) func(ctx context.Context, e error) *g
 			"error": e,
 			"path":  graphql.GetPath(ctx),
 		}).Errorf("%s graphql request failed", service)
-		_ = highlight.ConsumeError(ctx, e)
+		err := highlight.ConsumeError(ctx, e)
+		if err != nil {
+			log.WithError(err).Error("[highlight-go] error consuming error")
+		}
 		gqlerr := gqlerror.Errorf(e.Error())
 		return gqlerr
 	}
