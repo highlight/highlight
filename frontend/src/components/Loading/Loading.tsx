@@ -63,7 +63,7 @@ export const LoadingPage = React.memo(() => {
                             repeatType: 'mirror',
                         }}
                         initial={{ scale: 1 }}
-                        animate={{ scale: 0.6 }}
+                        animate={{ scale: 0.8 }}
                         exit={{ scale: 1 }}
                     >
                         <motion.div
