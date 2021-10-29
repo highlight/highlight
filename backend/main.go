@@ -149,7 +149,7 @@ func main() {
 	}
 
 	private.SetupAuthClient()
-	privateWorkerpool := workerpool.New(40)
+	privateWorkerpool := workerpool.New(10000)
 	privateWorkerpool.SetPanicHandler(func() {
 		if rec := recover(); rec != nil {
 			buf := make([]byte, 64<<10)
