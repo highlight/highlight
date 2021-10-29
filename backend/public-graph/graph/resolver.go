@@ -723,7 +723,7 @@ func (r *Resolver) isProjectWithinBillingQuota(project *model.Project, now time.
 }
 
 func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, group *model.ErrorGroup, errorToInsert *model.ErrorObject) {
-	r.AlertWorkerPool.Submit(func() {
+	r.AlertWorkerPool.SubmitRecover(func() {
 		var errorAlerts []*model.ErrorAlert
 		if err := r.DB.Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{Alert: model.Alert{ProjectID: projectID}}).Find(&errorAlerts).Error; err != nil {
 			log.Error(e.Wrap(err, "error fetching ErrorAlerts object"))
