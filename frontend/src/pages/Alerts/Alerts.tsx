@@ -14,6 +14,7 @@ import SvgSparkles2Icon from '@icons/Sparkles2Icon';
 import SvgTargetIcon from '@icons/TargetIcon';
 import SvgUserPlusIcon from '@icons/UserPlusIcon';
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext';
+import AlertSetupWizard from '@pages/Alerts/AlertSetupWizard/AlertSetupWizard';
 import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy';
 import { getAlertTypeColor } from '@pages/Alerts/utils/AlertsUtils';
 import { useParams } from '@util/react-router/useParams';
@@ -214,7 +215,7 @@ const AlertsPage = () => {
 
     return (
         <>
-            {/*<AlertSetupWizard />*/}
+            <AlertSetupWizard />
             <div className={styles.subTitleContainer}>
                 <p>Manage your alerts for your project.</p>
                 <ButtonLink

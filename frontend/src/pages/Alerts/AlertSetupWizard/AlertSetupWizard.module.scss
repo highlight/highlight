@@ -43,6 +43,14 @@
 
 .cardContainer {
     height: 100%;
+    &:hover {
+        border-color: var(--color-purple-400) !important;
+        box-shadow: 0 5px 8px rgba(86, 41, 198, 0.2);
+    }
+}
+
+.cardContainerSelected {
+    border-color: var(--color-purple);
 }
 
 #title {

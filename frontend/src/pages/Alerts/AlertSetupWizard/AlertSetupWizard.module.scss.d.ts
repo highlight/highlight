@@ -1,6 +1,7 @@
 export const alertStepsHeader: string;
 export const alertStepsParent: string;
 export const cardContainer: string;
+export const cardContainerSelected: string;
 export const cardContent: string;
 export const cardGrid: string;
 export const childContent: string;

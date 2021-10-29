@@ -2,6 +2,7 @@ import Card from '@components/Card/Card';
 import FullBleedCard from '@components/FullBleedCard/FullBleedCard';
 import { ALERT_CONFIGURATIONS } from '@pages/Alerts/Alerts';
 import { getAlertTypeColor } from '@pages/Alerts/utils/AlertsUtils';
+import classNames from 'classnames';
 import React from 'react';
 
 import styles from './AlertSetupWizard.module.scss';
@@ -38,9 +39,11 @@ const SelectAlertTypesStep = () => {
                 const configuration = ALERT_CONFIGURATIONS[key];
                 const alertColor = getAlertTypeColor(configuration.name);
 
+                const cx = classNames.bind(styles);
+
                 return (
                     <div className={styles.cardContent} key={key}>
-                        <Card interactable className={styles.cardContainer}>
+                        <Card className={cx(styles.cardContainer)}>
                             <h2 id={styles.title}>
                                 <span
                                     className={styles.icon}
