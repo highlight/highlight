@@ -23,15 +23,15 @@ export const DevToolsWindow = ({
 
     const TABS: TabItem[] = [
         {
-            title: 'Errors',
+            key: 'Errors',
             panelContent: <ErrorsPage />,
         },
         {
-            title: 'Console',
+            key: 'Console',
             panelContent: <ConsolePage time={time} />,
         },
         {
-            title: 'Network',
+            key: 'Network',
             panelContent: <ResourcePage startTime={startTime} time={time} />,
         },
     ];
