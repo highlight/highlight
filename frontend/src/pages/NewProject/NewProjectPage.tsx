@@ -1,3 +1,4 @@
+import { useAppLoadingContext } from '@context/AppLoadingContext';
 import {
     useCreateProjectMutation,
     useCreateWorkspaceMutation,
@@ -33,6 +34,7 @@ const NewProjectPage = () => {
             error: workspaceError,
         },
     ] = useCreateWorkspaceMutation();
+    const { setIsLoading } = useAppLoadingContext();
 
     useEffect(() => {
         if (projectError || workspaceError) {
@@ -42,6 +44,10 @@ const NewProjectPage = () => {
             });
         }
     }, [setError, projectError, workspaceError]);
+
+    useEffect(() => {
+        setIsLoading(false);
+    }, [setIsLoading]);
 
     // User is creating a workspace if workspace is not specified in the URL
     const isWorkspace = !workspace_id;
