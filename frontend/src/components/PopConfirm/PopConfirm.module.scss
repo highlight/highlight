@@ -31,4 +31,9 @@
     :global(.ant-popover-buttons button) {
         margin-left: var(--size-medium) !important;
     }
+
+    :global(.ant-btn) {
+        border-radius: var(--button-border-radius) !important;
+        padding: var(--size-xSmall) var(--size-medium) !important;
+    }
 }

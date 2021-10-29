@@ -85,7 +85,7 @@
         'Segoe UI Emoji', 'Segoe UI Symbol';
     --monospace-font-family: 'Roboto Mono', monospace;
 
-    --button-border-radius: 5px;
+    --button-border-radius: var(--size-xSmall);
     --border-radius: var(--size-xSmall);
 
     // UI Elements
