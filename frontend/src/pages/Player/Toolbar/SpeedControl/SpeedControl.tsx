@@ -85,7 +85,6 @@ const SpeedControl = ({ disabled }: Props) => {
                 buttonContentsOverride={
                     <Button
                         trackingId="SpeedControlMenu"
-                        type="text"
                         size="small"
                         className={styles.shortcutButton}
                     >
