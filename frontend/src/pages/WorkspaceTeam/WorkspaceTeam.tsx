@@ -251,6 +251,7 @@ const TABLE_COLUMNS = [
                             record.onDeleteHandler();
                         }
                     }}
+                    okButtonProps={{ danger: true }}
                 >
                     <Button
                         className={styles.removeTeamMemberButton}
