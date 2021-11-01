@@ -11,6 +11,7 @@
         position: absolute;
         right: calc(var(--size-small) * -1);
         top: calc(var(--size-xxSmall) * -1);
+        color: var(--text-primary);
     }
 
     .labelContainer {

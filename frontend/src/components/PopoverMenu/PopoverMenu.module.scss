@@ -49,6 +49,7 @@
 
 .button {
     border-radius: 0;
+    color: var(--text-primary) !important;
 
     &.active {
         color: var(--text-primary-inverted) !important;

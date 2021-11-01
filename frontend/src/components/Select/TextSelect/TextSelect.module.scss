@@ -49,6 +49,10 @@
             width: 100%;
         }
     }
+
+    :global(.ant-select-selector) {
+        background-color: var(--color-primary-background) !important;
+    }
 }
 
 .dropdown {
@@ -60,6 +64,15 @@
     padding-bottom: 0 !important;
     padding-top: 0 !important;
     width: 300px !important;
+    background: var(--color-primary-background) !important;
+
+    :global(.ant-select-item) {
+        color: var(--text-primary) !important;
+    }
+
+    :global(.ant-select-item-option-selected) {
+        color: var(--text-primary-inverted) !important;
+    }
 }
 
 .suffixIconActive {

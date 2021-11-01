@@ -1,0 +1,14 @@
+.table {
+    :global(.ant-table) {
+        background: var(--color-primary-background) !important;
+        color: var(--text-primary) !important;
+    }
+
+    :global(.ant-table-tbody > tr.ant-table-row:hover > td) {
+        background: var(--color-gray-300) !important;
+    }
+
+    :global(.ant-table-tbody > tr.ant-table-placeholder:hover > td) {
+        background: transparent !important;
+    }
+}

@@ -5,4 +5,14 @@
     &:global(.ant-input-lg) {
         padding: var(--size-xSmall) var(--size-medium) !important;
     }
+
+    &:global(.ant-input-affix-wrapper),
+    :global(.ant-input) {
+        background: var(--color-primary-background) !important;
+        color: var(--text-primary) !important;
+    }
+
+    :global(.ant-input-clear-icon) {
+        color: var(--color-gray-500) !important;
+    }
 }

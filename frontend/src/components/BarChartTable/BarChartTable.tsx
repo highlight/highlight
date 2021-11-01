@@ -3,6 +3,7 @@ import { ColumnsType } from 'antd/lib/table';
 import React from 'react';
 
 import EmptyCardPlaceholder from '../../pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder';
+import styles from './BarChartTable.module.scss';
 
 interface Props {
     columns: ColumnsType<any>;
@@ -38,6 +39,7 @@ const BarChartTable = ({
                 columns={columns}
                 dataSource={data}
                 pagination={false}
+                className={styles.table}
                 onRow={(record) => ({
                     onClick: () => {
                         onClickHandler(record);
