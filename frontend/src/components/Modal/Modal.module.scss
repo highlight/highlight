@@ -1,6 +1,10 @@
 .modal {
     max-width: 60vw;
     pointer-events: unset;
+
+    :global(.ant-modal-content) {
+        border-radius: var(--border-radius) !important;
+    }
 }
 
 .modalContent {
