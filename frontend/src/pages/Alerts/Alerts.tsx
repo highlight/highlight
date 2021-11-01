@@ -275,13 +275,14 @@ const AlertsPage = () => {
 
             {((alertsPayload && alertsPayload.is_integrated_with_slack) ||
                 !alertsPayload) && (
-                <Card>
+                <Card noPadding>
                     <Table
                         columns={TABLE_COLUMNS}
                         loading={loading}
                         dataSource={alertsAsTableRows}
                         pagination={false}
                         showHeader={false}
+                        rowHasPadding
                         renderEmptyComponent={
                             <div className={styles.emptyContainer}>
                                 <h3>

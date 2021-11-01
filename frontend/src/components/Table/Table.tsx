@@ -1,5 +1,6 @@
 import { CircularSpinner } from '@components/Loading/Loading';
 import { ConfigProvider, Table as AntDesignTable, TableProps } from 'antd';
+import classNames from 'classnames';
 import React from 'react';
 
 import styles from './Table.module.scss';
@@ -9,9 +10,14 @@ type Props = Pick<
     'columns' | 'dataSource' | 'loading' | 'pagination' | 'showHeader' | 'onRow'
 > & {
     renderEmptyComponent?: React.ReactNode;
+    rowHasPadding?: boolean;
 };
 
-const Table = ({ renderEmptyComponent, ...props }: Props) => {
+const Table = ({
+    renderEmptyComponent,
+    rowHasPadding = false,
+    ...props
+}: Props) => {
     return (
         <ConfigProvider
             renderEmpty={() => {
@@ -23,7 +29,9 @@ const Table = ({ renderEmptyComponent, ...props }: Props) => {
         >
             <AntDesignTable
                 {...props}
-                className={styles.table}
+                className={classNames(styles.table, {
+                    [styles.rowHasPadding]: rowHasPadding,
+                })}
                 loading={
                     props.loading ? { indicator: <CircularSpinner /> } : false
                 }

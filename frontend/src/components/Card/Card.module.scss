@@ -8,6 +8,7 @@
     padding-top: var(--size-large);
     transition: border-color 0.1s ease-in-out, box-shadow 0.2s ease-in-out;
     width: 100%;
+    overflow: hidden;
 
     &.noPadding {
         padding: 0;
