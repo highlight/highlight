@@ -1,11 +1,6 @@
-import {
-    DEMO_WORKSPACE_APPLICATION_ID,
-    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
-} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import SessionFeedConfiguration from '@pages/Sessions/SessionsFeedV2/components/SessionFeedConfiguration/SessionFeedConfiguration';
 import { SessionFeedConfigurationContextProvider } from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext';
 import { useSessionFeedConfiguration } from '@pages/Sessions/SessionsFeedV2/hooks/useSessionFeedConfiguration';
-import { useIntegrated } from '@util/integrated';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
@@ -18,11 +13,10 @@ import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmp
 import Switch from '../../../components/Switch/Switch';
 import LimitedSessionCard from '../../../components/Upsell/LimitedSessionsCard/LimitedSessionsCard';
 import {
-    useGetBillingDetailsQuery,
     useGetSessionsQuery,
     useUnprocessedSessionsCountQuery,
 } from '../../../graph/generated/hooks';
-import { PlanType, SessionLifecycle } from '../../../graph/generated/schemas';
+import { SessionLifecycle } from '../../../graph/generated/schemas';
 import { formatNumber } from '../../../util/numbers';
 import usePlayerConfiguration from '../../Player/PlayerHook/utils/usePlayerConfiguration';
 import { useReplayerContext } from '../../Player/ReplayerContext';
@@ -48,7 +42,6 @@ export const SessionFeed = React.memo(() => {
         setShowDetailedSessionView,
         showDetailedSessionView,
     } = usePlayerConfiguration();
-    const { integrated } = useIntegrated();
 
     // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
     const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
@@ -58,9 +51,6 @@ export const SessionFeed = React.memo(() => {
         setSearchParams,
     } = useSearchContext();
     const { show_live_sessions } = searchParams;
-    const { data: billingDetails } = useGetBillingDetailsQuery({
-        variables: { project_id },
-    });
     const { data: unprocessedSessionsCount } = useUnprocessedSessionsCountQuery(
         {
             variables: {
@@ -96,30 +86,30 @@ export const SessionFeed = React.memo(() => {
         setShowLoadingSkeleton(true);
     }, [searchParams]);
 
-    useEffect(() => {
-        // We're showing live sessions for new users.
-        // The assumption here is if a project is on the free plan and the project has less than 15 sessions than there must be live sessions.
-        // We show live sessions along with the processed sessions so the user isn't confused on why sessions are not showing up in the feed.
-        if (
-            billingDetails?.billingDetails &&
-            integrated &&
-            project_id !== DEMO_WORKSPACE_APPLICATION_ID &&
-            project_id !== DEMO_WORKSPACE_PROXY_APPLICATION_ID
-        ) {
-            if (
-                billingDetails.billingDetails.plan.type === PlanType.Free &&
-                billingDetails.billingDetails.meter < 15
-            ) {
-                setSearchParams({ ...searchParams, show_live_sessions: true });
-            }
-        }
-    }, [
-        billingDetails?.billingDetails,
-        integrated,
-        project_id,
-        searchParams,
-        setSearchParams,
-    ]);
+    //     useEffect(() => {
+    //         // We're showing live sessions for new users.
+    //         // The assumption here is if a project is on the free plan and the project has less than 15 sessions than there must be live sessions.
+    //         // We show live sessions along with the processed sessions so the user isn't confused on why sessions are not showing up in the feed.
+    //         if (
+    //             billingDetails?.billingDetails &&
+    //             integrated &&
+    //             project_id !== DEMO_WORKSPACE_APPLICATION_ID &&
+    //             project_id !== DEMO_WORKSPACE_PROXY_APPLICATION_ID
+    //         ) {
+    //             if (
+    //                 billingDetails.billingDetails.plan.type === PlanType.Free &&
+    //                 billingDetails.billingDetails.meter < 15
+    //             ) {
+    //                 setSearchParams({ ...searchParams, show_live_sessions: true });
+    //             }
+    //         }
+    //     }, [
+    //         billingDetails?.billingDetails,
+    //         integrated,
+    //         project_id,
+    //         searchParams,
+    //         setSearchParams,
+    //     ]);
 
     const infiniteRef = useInfiniteScroll({
         checkInterval: 1200, // frequency to check (1.2s)
