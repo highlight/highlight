@@ -2,6 +2,7 @@ import Input from '@components/Input/Input';
 import { ErrorObject } from '@graph/schemas';
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils';
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
 import { useResourcesContext } from '@pages/Player/ResourcesContext/ResourcesContext';
 import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel';
 import { message } from 'antd';
@@ -41,7 +42,12 @@ export const ResourcePage = ({
         pause,
         isPlayerReady,
         errors,
+        replayer,
     } = useReplayerContext();
+    const {
+        setShowDevTools,
+        setSelectedDevToolsTab,
+    } = usePlayerConfiguration();
     const [options, setOptions] = useState<Array<string>>([]);
     const [currentOption, setCurrentOption] = useState('All');
     const [filterSearchTerm, setFilterSearchTerm] = useState('');
@@ -59,7 +65,7 @@ export const ResourcePage = ({
     const resourceErrorRequestHeader = new URLSearchParams(location.search).get(
         PlayerSearchParameters.resourceErrorRequestHeader
     );
-    const { setResourcePanel } = useResourceOrErrorDetailPanel();
+    const { setResourcePanel, setErrorPanel } = useResourceOrErrorDetailPanel();
 
     const {
         resources: parsedResources,
@@ -156,6 +162,16 @@ export const ResourcePage = ({
                 pause(resource.startTime);
                 scrollFunction(allResources.indexOf(resource));
             } else {
+                setSelectedDevToolsTab('Errors');
+                const firstError = errors[0];
+                setErrorPanel(firstError);
+                const startTime = replayer?.getMetaData().startTime;
+                if (startTime && firstError.timestamp) {
+                    const errorDateTime = new Date(firstError.timestamp);
+                    const deltaMilliseconds =
+                        errorDateTime.getTime() - startTime;
+                    pause(deltaMilliseconds);
+                }
                 H.track('FailedToMatchHighlightResourceHeaderWithResource');
             }
         }
@@ -165,10 +181,14 @@ export const ResourcePage = ({
         isPlayerReady,
         loading,
         pause,
+        replayer,
         resourceErrorRequestHeader,
         scrollFunction,
         session,
+        setErrorPanel,
         setResourcePanel,
+        setSelectedDevToolsTab,
+        setShowDevTools,
     ]);
 
     useEffect(() => {
@@ -530,8 +550,6 @@ const roundOff = (value: number, decimal = 1) => {
     return Math.round(value * base) / base;
 };
 
-const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request';
-
 export const findResourceWithMatchingHighlightHeader = (
     headerValue: string,
     resources: NetworkResource[]
@@ -542,14 +560,6 @@ export const findResourceWithMatchingHighlightHeader = (
 };
 
 export const getHighlightRequestId = (resource: NetworkResource) => {
-    const joined =
-        // @ts-expect-error
-        resource.requestResponsePairs?.request?.headers[
-            HIGHLIGHT_REQUEST_HEADER
-        ];
-    if (!joined) {
-        return joined;
-    }
-
-    return joined.split('/')[1];
+    // @ts-expect-error
+    return resource.requestResponsePairs?.request?.id;
 };

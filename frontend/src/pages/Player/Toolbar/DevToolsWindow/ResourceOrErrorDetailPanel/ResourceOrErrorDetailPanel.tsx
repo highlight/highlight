@@ -43,6 +43,7 @@ const ResourceOrErrorDetailPanelContent = ({ resource, error }: Props) => {
         }
     }
 
+    let requestNotFound = false;
     if (error !== undefined && resource === undefined) {
         if (error.request_id) {
             loadResources();
@@ -53,6 +54,7 @@ const ResourceOrErrorDetailPanelContent = ({ resource, error }: Props) => {
                 error.request_id!,
                 resources
             );
+            requestNotFound = resource === undefined;
         }
     }
 
@@ -106,7 +108,10 @@ const ResourceOrErrorDetailPanelContent = ({ resource, error }: Props) => {
                               ),
                               panelContent: (
                                   <div>
-                                      <ErrorModal error={error} />
+                                      <ErrorModal
+                                          error={error}
+                                          showRequestAlert={requestNotFound}
+                                      />
                                   </div>
                               ),
                           },
