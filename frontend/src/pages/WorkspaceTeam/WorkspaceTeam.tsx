@@ -11,7 +11,7 @@ import Button from '../../components/Button/Button/Button';
 import CopyText from '../../components/CopyText/CopyText';
 import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
-import { CircularSpinner, LoadingBar } from '../../components/Loading/Loading';
+import { CircularSpinner } from '../../components/Loading/Loading';
 import PopConfirm from '../../components/PopConfirm/PopConfirm';
 import {
     useDeleteAdminFromWorkspaceMutation,
@@ -78,10 +78,6 @@ const WorkspaceTeam = () => {
             emailRef.current?.focus();
         });
     };
-
-    if (loading) {
-        return <LoadingBar />;
-    }
 
     if (error) {
         return <div>{JSON.stringify(error)}</div>;
