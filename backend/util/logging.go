@@ -23,6 +23,8 @@ func GraphQLErrorPresenter(service string) func(ctx context.Context, e error) *g
 		case *gqlerror.Error:
 			gqlerr = t
 			e = gqlerr.Unwrap()
+		default:
+			gqlerr = gqlerror.Errorf(e.Error())
 		}
 
 		err := highlight.ConsumeError(ctx, e)
