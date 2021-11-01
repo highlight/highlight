@@ -1,10 +1,11 @@
+import { useAppLoadingContext } from '@context/AppLoadingContext';
 import { useParams } from '@util/react-router/useParams';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Redirect } from 'react-router-dom';
 
 import commonStyles from '../../Common.module.scss';
 import Button from '../../components/Button/Button/Button';
-import { CircularSpinner, LoadingBar } from '../../components/Loading/Loading';
+import { CircularSpinner } from '../../components/Loading/Loading';
 import {
     useAddAdminToProjectMutation,
     useAddAdminToWorkspaceMutation,
@@ -27,15 +28,18 @@ const NewMemberPage = () => {
         : useAddAdminToWorkspaceMutation;
     const [addAdmin, { loading: addLoading }] = addAdminMutation();
     const { loading: adminLoading, data: adminData } = useGetAdminQuery();
+    const { setIsLoading } = useAppLoadingContext();
+
+    useEffect(() => {
+        if (!adminLoading) {
+            setIsLoading(false);
+        }
+    }, [adminLoading, setIsLoading]);
 
     if (adminAdded && isProject) {
         return <Redirect to={`/${project_id}`} />;
     } else if (adminAdded) {
         return <Redirect to={`/w/${workspace_id}`} />;
-    }
-
-    if (adminLoading) {
-        return <LoadingBar />;
     }
 
     return (
