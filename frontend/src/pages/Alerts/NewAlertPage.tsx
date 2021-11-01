@@ -10,15 +10,30 @@ import { getAlertTypeColor } from '@pages/Alerts/utils/AlertsUtils';
 import { useParams } from '@util/react-router/useParams';
 import { snakeCaseString } from '@util/string';
 import React from 'react';
-import { Link, useRouteMatch } from 'react-router-dom';
+import { Link, useHistory, useRouteMatch } from 'react-router-dom';
 
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import styles from './NewAlertPage.module.scss';
 
 const NewAlertPage = () => {
     const { url } = useRouteMatch();
-    const { type } = useParams<{ type?: ALERT_NAMES }>();
+    const { type, project_id } = useParams<{
+        type?: ALERT_NAMES;
+        project_id: string;
+    }>();
     const { alertsPayload, slackUrl } = useAlertsContext();
+    const history = useHistory();
+
+    // Redirect the user if the alert type is not valid.
+    if (
+        type &&
+        !Object.values(ALERT_NAMES)
+            .map((alert) => snakeCaseString(alert.toString()))
+            .includes(type)
+    ) {
+        history.replace(`/${project_id}/alerts/new`);
+        return null;
+    }
 
     return (
         <div>
