@@ -12,6 +12,7 @@ import { PlayerSearchParameters } from '../../PlayerHook/utils';
 import { ParsedErrorObject, useReplayerContext } from '../../ReplayerContext';
 import styles from '../Toolbar.module.scss';
 import TimelineAnnotation from './TimelineAnnotation';
+import timelineAnnotationStyles from './TimelineAnnotation.module.scss';
 
 interface Props {
     error: ParsedErrorObject;
@@ -44,6 +45,7 @@ function TimelineErrorAnnotation({ error }: Props): ReactElement {
         <Popover
             key={error.id}
             defaultVisible={errorId === error.id}
+            popoverClassName={timelineAnnotationStyles.popover}
             content={
                 <div className={styles.popoverContent}>
                     {error.source}

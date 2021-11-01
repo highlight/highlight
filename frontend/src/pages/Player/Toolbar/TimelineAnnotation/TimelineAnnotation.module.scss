@@ -58,3 +58,9 @@
     justify-content: center;
     padding: var(--size-xxSmall);
 }
+
+.popover {
+    :global(.ant-popover-arrow) {
+        transform: translateX(-50%) translateY(120%) rotate(45deg) !important;
+    }
+}
