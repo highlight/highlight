@@ -20,7 +20,15 @@
     }
 
     :global(.ant-table-tbody > tr.ant-table-row:hover > td) {
-        background: var(--color-gray-100) !important;
+        background: none !important;
+        cursor: auto;
+    }
+
+    &.interactable {
+        :global(.ant-table-tbody > tr.ant-table-row:hover > td) {
+            background: var(--color-gray-100) !important;
+            cursor: pointer;
+        }
     }
 
     :global(.ant-table-placeholder) {

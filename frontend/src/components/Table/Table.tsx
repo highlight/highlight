@@ -31,6 +31,7 @@ const Table = ({
                 {...props}
                 className={classNames(styles.table, {
                     [styles.rowHasPadding]: rowHasPadding,
+                    [styles.interactable]: !!props.onRow,
                 })}
                 loading={
                     props.loading ? { indicator: <CircularSpinner /> } : false

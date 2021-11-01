@@ -12,6 +12,7 @@ type Props = Pick<
     | 'onCancel'
     | 'placement'
     | 'align'
+    | 'okButtonProps'
 > & {
     title: string;
     description: string;
