@@ -28,4 +28,14 @@
             border-bottom: 0 !important;
         }
     }
+
+    &.rowHasPadding {
+        :global(tr > .ant-table-cell:first-of-type) {
+            padding-left: var(--size-large) !important;
+        }
+
+        :global(tr > .ant-table-cell:last-of-type) {
+            padding-right: var(--size-large) !important;
+        }
+    }
 }
