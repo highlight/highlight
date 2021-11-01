@@ -2634,7 +2634,7 @@ func (r *queryResolver) AverageSessionLength(ctx context.Context, projectID int,
 		return nil, e.Wrap(err, "admin not found in project")
 	}
 	var length float64
-	query := fmt.Sprintf("SELECT avg(active_length) FROM sessions WHERE project_id=%d AND processed=true AND active_length IS NOT NULL AND created_at >= NOW() - INTERVAL '%d DAY';", projectID, lookBackPeriod)
+	query := fmt.Sprintf("SELECT COALESCE(avg(active_length), 0) FROM sessions WHERE project_id=%d AND processed=true AND active_length IS NOT NULL AND created_at >= NOW() - INTERVAL '%d DAY';", projectID, lookBackPeriod)
 	if err := r.DB.Raw(query).Scan(&length).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving average length for sessions")
 	}
