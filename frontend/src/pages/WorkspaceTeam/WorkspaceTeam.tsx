@@ -223,11 +223,14 @@ const TABLE_COLUMNS = [
             );
         },
     },
-    {
-        title: 'Role',
-        dataIndex: 'role',
-        key: 'role',
-    },
+    //     {
+    //         title: 'Role',
+    //         dataIndex: 'role',
+    //         key: 'role',
+    //         render: (role: string) => {
+    //             return <div className={styles.role}>{role}</div>;
+    //         },
+    //     },
     {
         title: 'Remove',
         dataIndex: 'remove',
