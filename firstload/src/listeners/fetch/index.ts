@@ -42,14 +42,13 @@ export const initializeFetchListener = () => {
                 !shouldNetworkRequestBeRecorded(
                     url,
                     options.backendUrl || '',
-                    options.tracingOrigins || []
+                    options.tracingOrigins
                 )
             ) {
                 return originalFetch.call(this, input, init);
             }
 
             if (
-                options.tracingOrigins?.length &&
                 shouldNetworkRequestBeTraced(url, options.tracingOrigins)
             ) {
                 init = init || {};

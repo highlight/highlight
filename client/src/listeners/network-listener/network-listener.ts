@@ -13,7 +13,7 @@ interface NetworkListenerArguments {
     fetchCallback: NetworkListenerCallback;
     headersToRedact: string[];
     backendUrl: string;
-    tracingOrigins: string[];
+    tracingOrigins: boolean | (string | RegExp)[];
     urlBlocklist: string[];
     sessionData: SessionData;
 }
