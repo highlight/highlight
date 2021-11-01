@@ -150,3 +150,15 @@
     height: 14px;
     width: 14px;
 }
+
+.tabs {
+    :global(.ant-tabs-nav) {
+        height: var(--size-xxxLarge);
+        align-items: flex-end;
+    }
+
+    :global(.ant-tabs-nav-wrap) {
+        height: 46px;
+        align-self: flex-end !important;
+    }
+}
