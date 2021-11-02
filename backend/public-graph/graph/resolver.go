@@ -214,10 +214,17 @@ func (r *Resolver) normalizeStackTraceString(stackTraceString string) string {
 // The input can include the stack trace as a string or []*StackFrameInput
 // If stackTrace is non-nil, it will be marshalled into a string and saved with the ErrorObject
 func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceString string, stackTrace []*model2.StackFrameInput, fields []*model.ErrorField, projectID int) (*model.ErrorGroup, error) {
+	if errorObj == nil {
+		return nil, e.New("error object was nil")
+	}
+	if errorObj.Event == "<nil>" {
+		return nil, e.New("error object event was nil")
+	}
+
 	// If there was no stackTraceString passed in, marshal it as a JSON string from stackTrace
-	if stackTraceString == "" {
+	if len(stackTrace) > 0 {
 		frames := stackTrace
-		if len(frames) > 0 && frames[0] != nil && frames[0].Source != nil && strings.Contains(*frames[0].Source, "https://static.highlight.run/index.js") {
+		if frames[0] != nil && frames[0].Source != nil && strings.Contains(*frames[0].Source, "https://static.highlight.run/index.js") {
 			errorObj.ProjectID = 1
 		}
 		firstFrameBytes, err := json.Marshal(frames)
@@ -226,9 +233,11 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 		}
 
 		stackTraceString = string(firstFrameBytes)
-	} else {
+	} else if stackTraceString != "<nil>" {
 		// If stackTraceString was passed in, try to normalize it
 		stackTraceString = r.normalizeStackTraceString(stackTraceString)
+	} else {
+		return nil, e.New(`stackTrace slice was empty and stack trace string was equal to "<nil>"`)
 	}
 
 	errorGroup := &model.ErrorGroup{}
