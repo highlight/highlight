@@ -30,8 +30,6 @@ export const SessionCommentCard = ({
     menuItems,
     footer,
 }: Props) => {
-    const { isHighlightAdmin } = useAuthContext();
-
     return (
         <div
             className={classNames(styles.container, {
@@ -43,13 +41,7 @@ export const SessionCommentCard = ({
                 comment={comment}
                 deepLinkedCommentId={deepLinkedCommentId}
                 menuItems={menuItems}
-                footer={
-                    isHighlightAdmin ? (
-                        <SessionCommentFooter>{footer}</SessionCommentFooter>
-                    ) : (
-                        footer
-                    )
-                }
+                footer={footer}
             />
         </div>
     );
@@ -74,7 +66,7 @@ interface SessionCommentFooterProps {
     a?: any;
 }
 
-const SessionCommentFooter: React.FC<SessionCommentFooterProps> = ({
+export const ExperimentalSessionCommentFooter: React.FC<SessionCommentFooterProps> = ({
     children,
 }) => {
     const { admin } = useAuthContext();
