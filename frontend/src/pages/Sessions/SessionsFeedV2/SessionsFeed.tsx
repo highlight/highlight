@@ -9,6 +9,7 @@ import { useIntegrated } from '@util/integrated';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
+import classNames from 'classnames';
 import React, { RefObject, useEffect, useMemo, useState } from 'react';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
 import Skeleton from 'react-loading-skeleton';
@@ -48,6 +49,10 @@ export const SessionFeed = React.memo(() => {
         setShowDetailedSessionView,
         showDetailedSessionView,
     } = usePlayerConfiguration();
+    const [
+        sessionFeedIsInTopScrollPosition,
+        setSessionFeedIsInTopScrollPosition,
+    ] = useState(true);
 
     // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
     const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
@@ -158,6 +163,12 @@ export const SessionFeed = React.memo(() => {
         return sessionResults.sessions;
     }, [loading, searchParams.hide_viewed, sessionResults.sessions]);
 
+    const onFeedScrollListener = (
+        e: React.UIEvent<HTMLElement> | undefined
+    ) => {
+        setSessionFeedIsInTopScrollPosition(e?.currentTarget.scrollTop === 0);
+    };
+
     return (
         <SessionFeedConfigurationContextProvider
             value={sessionFeedConfiguration}
@@ -232,8 +243,16 @@ export const SessionFeed = React.memo(() => {
                     )}
                 </div>
             </div>
-            <div className={styles.feedContent}>
-                <div ref={infiniteRef as RefObject<HTMLDivElement>}>
+            <div
+                className={classNames(styles.feedContent, {
+                    [styles.hasScrolled]: !sessionFeedIsInTopScrollPosition,
+                })}
+                onScroll={onFeedScrollListener}
+            >
+                <div
+                    ref={infiniteRef as RefObject<HTMLDivElement>}
+                    onScroll={onFeedScrollListener}
+                >
                     {loading && showLoadingSkeleton ? (
                         <Skeleton
                             height={74}
@@ -288,3 +307,7 @@ export const SessionFeed = React.memo(() => {
         </SessionFeedConfigurationContextProvider>
     );
 });
+
+const getScrollPosition = (element: React.RefObject<HTMLElement>) => {
+    console.log(element);
+};

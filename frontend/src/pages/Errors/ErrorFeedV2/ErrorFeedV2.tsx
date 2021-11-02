@@ -32,6 +32,10 @@ export const ErrorFeedV2 = () => {
         totalCount: 0,
     });
     const { searchParams } = useErrorSearchContext();
+    const [
+        errorFeedIsInTopScrollPosition,
+        setErrorFeedIsInTopScrollPosition,
+    ] = useState(true);
 
     const { loading, fetchMore, data: errorData } = useGetErrorGroupsQuery({
         variables: {
@@ -64,6 +68,12 @@ export const ErrorFeedV2 = () => {
         },
     });
 
+    const onFeedScrollListener = (
+        e: React.UIEvent<HTMLElement> | undefined
+    ) => {
+        setErrorFeedIsInTopScrollPosition(e?.currentTarget.scrollTop === 0);
+    };
+
     return (
         <>
             <div className={styles.fixedContent}>
@@ -75,7 +85,12 @@ export const ErrorFeedV2 = () => {
                     )}
                 </div>
             </div>
-            <div className={styles.feedContent}>
+            <div
+                className={classNames(styles.feedContent, {
+                    [styles.hasScrolled]: !errorFeedIsInTopScrollPosition,
+                })}
+                onScroll={onFeedScrollListener}
+            >
                 <div ref={infiniteRef as RefObject<HTMLDivElement>}>
                     {loading ? (
                         <Skeleton

@@ -158,13 +158,19 @@
 }
 
 .feedContent {
+    border-top: 1px solid transparent;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
     height: 200px;
     overflow-x: hidden;
     overflow-y: auto;
+    transition: border 0.2s ease-in-out;
     width: 100%;
+
+    &.hasScrolled {
+        border-top-color: var(--color-gray-300);
+    }
 
     &::-webkit-scrollbar {
         display: none;
