@@ -1,9 +1,13 @@
+import useLocalStorage from '@rehooks/local-storage';
 import { message } from 'antd';
-import React from 'react';
+import React, { useEffect } from 'react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { FaCopy } from 'react-icons/fa';
 import SyntaxHighlighter from 'react-syntax-highlighter';
-import { atomOneLight as syntaxHighlighterTheme } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import {
+    atomOneDark,
+    atomOneLight,
+} from 'react-syntax-highlighter/dist/esm/styles/hljs';
 
 import styles from './CodeBlock.module.scss';
 
@@ -16,6 +20,25 @@ export const CodeBlock = ({
     onCopy?: () => void;
     language: string;
 }) => {
+    const [theme, setTheme] = useLocalStorage<'light' | 'dark'>(
+        'highlightTheme',
+        'light'
+    );
+    const htmlElement = document.querySelector('html');
+
+    useEffect(() => {
+        console.log({ htmlElement });
+        if (htmlElement) {
+            const currentTheme = htmlElement.dataset.theme;
+            if (
+                currentTheme &&
+                (currentTheme === 'light' || currentTheme === 'dark')
+            ) {
+                setTheme(currentTheme);
+            }
+        }
+    }, [htmlElement, setTheme]);
+
     return (
         <span className={styles.codeBlock}>
             <span className={styles.copyButton}>
@@ -39,10 +62,9 @@ export const CodeBlock = ({
                     </span>
                 </CopyToClipboard>
             </span>
-            {/* <code className={styles.codeBlockWrapper}>{text}</code> */}
             <SyntaxHighlighter
                 language={language}
-                style={syntaxHighlighterTheme}
+                style={theme === 'light' ? atomOneLight : atomOneDark}
             >
                 {text}
             </SyntaxHighlighter>

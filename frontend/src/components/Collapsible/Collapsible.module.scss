@@ -32,6 +32,7 @@
             height: var(--size-icon);
             transition: transform 0.2s ease-in-out;
             width: var(--size-icon);
+            color: var(--text-primary);
 
             &.expanded {
                 transform: rotate(180deg);

@@ -140,19 +140,6 @@
     --color-gray-700: #cccccc;
     --color-gray-800: #f2f2f2;
 
-    --color-grey10: #1a1a1a;
-    --color-grey20: #333333;
-    --color-grey25: #404040;
-    --color-grey30: #4d4d4d;
-    --color-grey35: #595959;
-    --color-grey40: #666666;
-    --color-grey45: #737373;
-    --color-grey55: #8c8c8c;
-    --color-grey65: #a6a6a6;
-    --color-grey80: #cccccc;
-    --color-grey85: #d9d9d9;
-    --color-grey95: #f2f2f2;
-
     --color-black: #111;
     --color-white: #fff;
 
@@ -163,7 +150,7 @@
 
     --color-primary-background: #1f2023;
     --color-primary-inverted-background: #000;
-    --color-secondary-background: #f9f9f9;
+    --color-secondary-background: var(--color-gray-200);
     --color-background-overlay: rgba(0, 0, 0, 0.8);
     --text-primary-inverted: #1f2023;
     --text-primary: #f6f6f6;
@@ -243,7 +230,7 @@ input {
 }
 
 a {
-    color: var(--color-purple);
+    color: var(--color-link) !important;
 }
 
 .blob {
