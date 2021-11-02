@@ -153,12 +153,12 @@
 
 .tabs {
     :global(.ant-tabs-nav) {
-        height: var(--size-xxxLarge);
         align-items: flex-end;
+        height: var(--size-xxxLarge);
     }
 
     :global(.ant-tabs-nav-wrap) {
-        height: 46px;
         align-self: flex-end !important;
+        height: 46px;
     }
 }
