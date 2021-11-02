@@ -1,6 +1,6 @@
+import Tag from '@components/Tag/Tag';
 import React, { useEffect, useState } from 'react';
 
-import { Field } from '../../../../components/Field/Field';
 import { ErrorGroup, Maybe } from '../../../../graph/generated/schemas';
 import { getHeaderFromError } from '../../ErrorPage';
 import ErrorShareButton from '../ErrorShareButton/ErrorShareButton';
@@ -57,11 +57,11 @@ const ErrorTitle = ({ errorGroup, showShareButton = true }: Props) => {
                     <ErrorShareButton errorGroup={errorGroup} />
                 )}
             </div>
-            <Field
-                k={'mechanism'}
-                v={errorGroup?.type || 'window.onerror'}
-                color={'warning'}
-            />
+            {errorGroup?.type && (
+                <Tag infoTooltipText="This is where the error was thrown.">
+                    {errorGroup.type}
+                </Tag>
+            )}
         </header>
     );
 };
