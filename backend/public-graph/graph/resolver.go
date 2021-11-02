@@ -217,8 +217,8 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 	if errorObj == nil {
 		return nil, e.New("error object was nil")
 	}
-	if errorObj.Event == "<nil>" {
-		return nil, e.New("error object event was nil")
+	if errorObj.Event == "" || errorObj.Event == "<nil>" {
+		return nil, e.New("error object event was nil or empty")
 	}
 
 	// If there was no stackTraceString passed in, marshal it as a JSON string from stackTrace
@@ -235,7 +235,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 	} else if stackTraceString != "<nil>" {
 		// If stackTraceString was passed in, try to normalize it
 		stackTraceString = r.normalizeStackTraceString(stackTraceString)
-	} else {
+	} else if stackTraceString == "<nil>" {
 		return nil, e.New(`stackTrace slice was empty and stack trace string was equal to "<nil>"`)
 	}
 
