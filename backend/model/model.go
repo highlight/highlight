@@ -740,8 +740,8 @@ var ErrorType = struct {
 	FRONTEND string
 	BACKEND  string
 }{
-	FRONTEND: "FRONTEND",
-	BACKEND:  "BACKEND",
+	FRONTEND: "Frontend",
+	BACKEND:  "Backend",
 }
 
 func SetupDB(dbName string) (*gorm.DB, error) {
