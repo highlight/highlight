@@ -7,6 +7,7 @@ import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import { H } from 'highlight.run';
 import React, { FunctionComponent, useState } from 'react';
+import { Helmet } from 'react-helmet';
 import Skeleton from 'react-loading-skeleton';
 
 import { useAuthContext } from '../../authentication/AuthContext';
@@ -43,114 +44,63 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
     });
 
     return (
-        <LeadAlignLayout>
-            <div className={styles.headingWrapper}>
-                <h2>Your Highlight Snippet</h2>
-            </div>
-            <p className={layoutStyles.subTitle}>
-                Setup Highlight in your web application!
-            </p>
-            <RadioGroup<PlatformType>
-                style={{ marginTop: 20, marginBottom: 20 }}
-                selectedLabel={platform}
-                labels={[
-                    PlatformType.React,
-                    PlatformType.Vue,
-                    PlatformType.Html,
-                    PlatformType.NextJs,
-                    PlatformType.Gatsby,
-                ]}
-                onSelect={(p: PlatformType) => setPlatform(p)}
-            />
-            {!data?.project || !data?.workspace || loading ? (
-                <Skeleton
-                    height={75}
-                    count={3}
-                    style={{ borderRadius: 8, marginBottom: 14 }}
+        <>
+            <Helmet>
+                <title>Setup: {platform}</title>
+            </Helmet>
+            <LeadAlignLayout>
+                <div className={styles.headingWrapper}>
+                    <h2>Your Highlight Snippet</h2>
+                </div>
+                <p className={layoutStyles.subTitle}>
+                    Setup Highlight in your web application!
+                </p>
+                <RadioGroup<PlatformType>
+                    style={{ marginTop: 20, marginBottom: 20 }}
+                    selectedLabel={platform}
+                    labels={[
+                        PlatformType.React,
+                        PlatformType.Vue,
+                        PlatformType.Html,
+                        PlatformType.NextJs,
+                        PlatformType.Gatsby,
+                    ]}
+                    onSelect={(p: PlatformType) => setPlatform(p)}
                 />
-            ) : (
-                <div className={styles.stepsContainer}>
-                    {platform === PlatformType.Html ? (
-                        <HtmlInstructions
-                            projectVerboseId={data?.project?.verbose_id}
-                        />
-                    ) : platform === PlatformType.Gatsby ? (
-                        <GatsbySetup
-                            projectVerboseId={data?.project?.verbose_id}
-                        />
-                    ) : (
-                        <JsAppInstructions
-                            projectVerboseId={data?.project?.verbose_id}
-                            platform={platform}
-                        />
-                    )}
-                    <Section title="Identifying Users">
-                        <p>
-                            To tag sessions with user specific identifiers
-                            (name, email, etc.), you can call the
-                            <code>
-                                {`${
-                                    platform === PlatformType.Html
-                                        ? 'window.'
-                                        : ''
-                                }H.identify()`}
-                            </code>{' '}
-                            method in your app. Here's an example:
-                        </p>
-                        <CodeBlock
-                            language="javascript"
-                            onCopy={() => {
-                                H.track(
-                                    'Copied Code Snippet (Highlight Event)',
-                                    { copied: 'code snippet' }
-                                );
-                            }}
-                            text={`${
-                                platform === PlatformType.Html ? 'window.' : ''
-                            }H.identify('${
-                                admin?.email || 'eliza@gmail.com'
-                            }', {
-  id: '8909b017-c0d9-4cc2-90ae-fb519c9e028a',
-  phone: '867-5309'
-});`}
-                        />
-                    </Section>
-                    <Section
-                        title={
-                            <span className={styles.sectionTitleWithIcon}>
-                                Verify Installation
-                                {integrated && (
-                                    <IntegrationDetector
-                                        verbose={false}
-                                        integrated={integrated}
-                                    />
-                                )}
-                            </span>
-                        }
-                        id="highlightIntegration"
-                    >
-                        <p>
-                            Please follow the setup instructions above to
-                            install Highlight. It should take less than a minute
-                            for us to detect installation.
-                        </p>
-                        <div className={styles.integrationContainer}>
-                            <IntegrationDetector
-                                integrated={integrated}
-                                verbose={true}
+                {!data?.project || !data?.workspace || loading ? (
+                    <Skeleton
+                        height={75}
+                        count={3}
+                        style={{ borderRadius: 8, marginBottom: 14 }}
+                    />
+                ) : (
+                    <div className={styles.stepsContainer}>
+                        {platform === PlatformType.Html ? (
+                            <HtmlInstructions
+                                projectVerboseId={data?.project?.verbose_id}
                             />
-                        </div>
-                    </Section>
-                    {platform === PlatformType.React && (
-                        <Section title="React Error Boundary">
+                        ) : platform === PlatformType.Gatsby ? (
+                            <GatsbySetup
+                                projectVerboseId={data?.project?.verbose_id}
+                            />
+                        ) : (
+                            <JsAppInstructions
+                                projectVerboseId={data?.project?.verbose_id}
+                                platform={platform}
+                            />
+                        )}
+                        <Section title="Identifying Users">
                             <p>
-                                Highlight's <code>@highlight-run/react</code>{' '}
-                                package includes React components to improve
-                                both the developer and customer experience. We
-                                recommend using our{' '}
-                                <code>{'<ErrorBoundary/>'}</code> to catch
-                                errors and provide an error recovery mechanism
-                                for your users.
+                                To tag sessions with user specific identifiers
+                                (name, email, etc.), you can call the
+                                <code>
+                                    {`${
+                                        platform === PlatformType.Html
+                                            ? 'window.'
+                                            : ''
+                                    }H.identify()`}
+                                </code>{' '}
+                                method in your app. Here's an example:
                             </p>
                             <CodeBlock
                                 language="javascript"
@@ -160,7 +110,65 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                                         { copied: 'code snippet' }
                                     );
                                 }}
-                                text={`import { ErrorBoundary } from '@highlight-run/react';
+                                text={`${
+                                    platform === PlatformType.Html
+                                        ? 'window.'
+                                        : ''
+                                }H.identify('${
+                                    admin?.email || 'eliza@gmail.com'
+                                }', {
+  id: '8909b017-c0d9-4cc2-90ae-fb519c9e028a',
+  phone: '867-5309'
+});`}
+                            />
+                        </Section>
+                        <Section
+                            title={
+                                <span className={styles.sectionTitleWithIcon}>
+                                    Verify Installation
+                                    {integrated && (
+                                        <IntegrationDetector
+                                            verbose={false}
+                                            integrated={integrated}
+                                        />
+                                    )}
+                                </span>
+                            }
+                            id="highlightIntegration"
+                        >
+                            <p>
+                                Please follow the setup instructions above to
+                                install Highlight. It should take less than a
+                                minute for us to detect installation.
+                            </p>
+                            <div className={styles.integrationContainer}>
+                                <IntegrationDetector
+                                    integrated={integrated}
+                                    verbose={true}
+                                />
+                            </div>
+                        </Section>
+                        {platform === PlatformType.React && (
+                            <Section title="React Error Boundary">
+                                <p>
+                                    Highlight's{' '}
+                                    <code>@highlight-run/react</code> package
+                                    includes React components to improve both
+                                    the developer and customer experience. We
+                                    recommend using our{' '}
+                                    <code>{'<ErrorBoundary/>'}</code> to catch
+                                    errors and provide an error recovery
+                                    mechanism for your users.
+                                </p>
+                                <CodeBlock
+                                    language="javascript"
+                                    onCopy={() => {
+                                        H.track(
+                                            'Copied Code Snippet (Highlight Event)',
+                                            { copied: 'code snippet' }
+                                        );
+                                    }}
+                                    text={`import { ErrorBoundary } from '@highlight-run/react';
 
 const App = () => {
   return (
@@ -169,124 +177,125 @@ const App = () => {
     </ErrorBoundary>
   );
 };`}
-                            />
+                                />
+
+                                <div className={styles.integrationContainer}>
+                                    <ButtonLink
+                                        anchor
+                                        href="https://docs.highlight.run/reactjs-integration"
+                                        trackingId="SetupPageDocsReact"
+                                    >
+                                        Learn More about the React Package
+                                    </ButtonLink>
+                                </div>
+                            </Section>
+                        )}
+                        <Section
+                            title={
+                                <span className={styles.sectionTitleWithIcon}>
+                                    Enable Slack Alerts
+                                    {data.workspace.slack_webhook_channel ? (
+                                        <IntegrationDetector
+                                            verbose={false}
+                                            integrated={integrated}
+                                        />
+                                    ) : (
+                                        <SvgSlackLogo height="15" width="15" />
+                                    )}
+                                </span>
+                            }
+                            id="slackAlerts"
+                        >
+                            <p>
+                                Get notified of different events happening in
+                                your application.
+                            </p>
+                            <div className={styles.integrationContainer}>
+                                <ButtonLink
+                                    to={`/${projectIdRemapped}/alerts`}
+                                    trackingId="ConfigureAlertsFromSetupPage"
+                                >
+                                    Configure Your Alerts
+                                </ButtonLink>
+                            </div>
+                        </Section>
+                        <Section
+                            title={
+                                <span className={styles.sectionTitleWithIcon}>
+                                    Read the Docs
+                                </span>
+                            }
+                            id="slackAlerts"
+                        >
+                            <p>
+                                Interested in learning how Highlight can help
+                                you move faster? Check out our docs!
+                            </p>
+                            <p>Some things you'll learn more about are:</p>
+                            <ul>
+                                <li>
+                                    <a
+                                        href="https://docs.highlight.run/comments"
+                                        target="_blank"
+                                        rel="noreferrer"
+                                    >
+                                        Collaborating with comments
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        href="https://docs.highlight.run/user-feedback"
+                                        target="_blank"
+                                        rel="noreferrer"
+                                    >
+                                        Collecting user feedback with retained
+                                        context
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        href="https://docs.highlight.run/network-devtools"
+                                        target="_blank"
+                                        rel="noreferrer"
+                                    >
+                                        Debugging network requests
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        href="https://docs.highlight.run/deployment-overview"
+                                        target="_blank"
+                                        rel="noreferrer"
+                                    >
+                                        On-prem
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        href="https://docs.highlight.run/sourcemaps"
+                                        target="_blank"
+                                        rel="noreferrer"
+                                    >
+                                        Getting more useful error stack traces
+                                        if you don't ship sourcemap
+                                    </a>
+                                </li>
+                            </ul>
 
                             <div className={styles.integrationContainer}>
                                 <ButtonLink
                                     anchor
-                                    href="https://docs.highlight.run/reactjs-integration"
-                                    trackingId="SetupPageDocsReact"
+                                    href="https://docs.highlight.run/"
+                                    trackingId="SetupPageDocs"
                                 >
-                                    Learn More about the React Package
+                                    Read the Docs
                                 </ButtonLink>
                             </div>
                         </Section>
-                    )}
-                    <Section
-                        title={
-                            <span className={styles.sectionTitleWithIcon}>
-                                Enable Slack Alerts
-                                {data.workspace.slack_webhook_channel ? (
-                                    <IntegrationDetector
-                                        verbose={false}
-                                        integrated={integrated}
-                                    />
-                                ) : (
-                                    <SvgSlackLogo height="15" width="15" />
-                                )}
-                            </span>
-                        }
-                        id="slackAlerts"
-                    >
-                        <p>
-                            Get notified of different events happening in your
-                            application.
-                        </p>
-                        <div className={styles.integrationContainer}>
-                            <ButtonLink
-                                to={`/${projectIdRemapped}/alerts`}
-                                trackingId="ConfigureAlertsFromSetupPage"
-                            >
-                                Configure Your Alerts
-                            </ButtonLink>
-                        </div>
-                    </Section>
-                    <Section
-                        title={
-                            <span className={styles.sectionTitleWithIcon}>
-                                Read the Docs
-                            </span>
-                        }
-                        id="slackAlerts"
-                    >
-                        <p>
-                            Interested in learning how Highlight can help you
-                            move faster? Check out our docs!
-                        </p>
-                        <p>Some things you'll learn more about are:</p>
-                        <ul>
-                            <li>
-                                <a
-                                    href="https://docs.highlight.run/comments"
-                                    target="_blank"
-                                    rel="noreferrer"
-                                >
-                                    Collaborating with comments
-                                </a>
-                            </li>
-                            <li>
-                                <a
-                                    href="https://docs.highlight.run/user-feedback"
-                                    target="_blank"
-                                    rel="noreferrer"
-                                >
-                                    Collecting user feedback with retained
-                                    context
-                                </a>
-                            </li>
-                            <li>
-                                <a
-                                    href="https://docs.highlight.run/network-devtools"
-                                    target="_blank"
-                                    rel="noreferrer"
-                                >
-                                    Debugging network requests
-                                </a>
-                            </li>
-                            <li>
-                                <a
-                                    href="https://docs.highlight.run/deployment-overview"
-                                    target="_blank"
-                                    rel="noreferrer"
-                                >
-                                    On-prem
-                                </a>
-                            </li>
-                            <li>
-                                <a
-                                    href="https://docs.highlight.run/sourcemaps"
-                                    target="_blank"
-                                    rel="noreferrer"
-                                >
-                                    Getting more useful error stack traces if
-                                    you don't ship sourcemap
-                                </a>
-                            </li>
-                        </ul>
-
-                        <div className={styles.integrationContainer}>
-                            <ButtonLink
-                                anchor
-                                href="https://docs.highlight.run/"
-                                trackingId="SetupPageDocs"
-                            >
-                                Read the Docs
-                            </ButtonLink>
-                        </div>
-                    </Section>
-                </div>
-            )}
-        </LeadAlignLayout>
+                    </div>
+                )}
+            </LeadAlignLayout>
+        </>
     );
 };
 

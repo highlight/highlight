@@ -9,6 +9,7 @@ import classNames from 'classnames';
 import Lottie from 'lottie-react';
 import moment from 'moment';
 import React, { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet';
 import Skeleton from 'react-loading-skeleton';
 import { Link, useHistory } from 'react-router-dom';
 import {
@@ -75,6 +76,9 @@ const HomePage = () => {
         <HomePageFiltersContext
             value={{ dateRangeLength, setDateRangeLength, hasData, setHasData }}
         >
+            <Helmet>
+                <title>Home</title>
+            </Helmet>
             <div className={styles.dashboardWrapper}>
                 <div className={styles.dashboard}>
                     <div className={styles.headerContainer}>

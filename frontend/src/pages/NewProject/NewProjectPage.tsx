@@ -6,6 +6,7 @@ import {
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import React, { useEffect } from 'react';
+import { Helmet } from 'react-helmet';
 import { useForm } from 'react-hook-form';
 import { Redirect } from 'react-router-dom';
 
@@ -84,51 +85,59 @@ const NewProjectPage = () => {
     const pageTypeCaps = isWorkspace ? 'Workspace' : 'Project';
 
     return (
-        <div className={styles.box} key={workspace_id}>
-            <form onSubmit={handleSubmit(onSubmit)}>
-                <h2 className={styles.title}>{`Create a ${pageTypeCaps}`}</h2>
-                <p className={styles.subTitle}>
-                    {isWorkspace &&
-                        `Let's create a workspace! This is usually your company name and can contain multiple projects (e.g. web front end, landing page, etc).`}
-                    {!isWorkspace &&
-                        `Let's create a project! This is usually a single application (e.g. web front end, landing page, etc).`}
-                </p>
-                <div className={commonStyles.errorMessage}>
-                    {errors.name &&
-                        `Error with ${pageType} name ` + errors.name.message}
-                </div>
-                <input
-                    placeholder={
-                        isWorkspace ? 'Pied Piper, Inc' : 'Web Front End'
-                    }
-                    name="name"
-                    ref={register({ required: true })}
-                    className={commonStyles.input}
-                    autoComplete="off"
-                    autoFocus
-                />
-                <Button
-                    trackingId={`Create${pageTypeCaps}`}
-                    type="primary"
-                    className={classNames(
-                        commonStyles.submitButton,
-                        styles.button
-                    )}
-                    htmlType="submit"
-                >
-                    {projectLoading || workspaceLoading ? (
-                        <CircularSpinner
-                            style={{
-                                fontSize: 18,
-                                color: 'var(--text-primary-inverted)',
-                            }}
-                        />
-                    ) : (
-                        `Create ${pageTypeCaps}`
-                    )}
-                </Button>
-            </form>
-        </div>
+        <>
+            <Helmet>
+                <title>{isWorkspace ? 'New Workspace' : 'New Project'}</title>
+            </Helmet>
+            <div className={styles.box} key={workspace_id}>
+                <form onSubmit={handleSubmit(onSubmit)}>
+                    <h2
+                        className={styles.title}
+                    >{`Create a ${pageTypeCaps}`}</h2>
+                    <p className={styles.subTitle}>
+                        {isWorkspace &&
+                            `Let's create a workspace! This is usually your company name and can contain multiple projects (e.g. web front end, landing page, etc).`}
+                        {!isWorkspace &&
+                            `Let's create a project! This is usually a single application (e.g. web front end, landing page, etc).`}
+                    </p>
+                    <div className={commonStyles.errorMessage}>
+                        {errors.name &&
+                            `Error with ${pageType} name ` +
+                                errors.name.message}
+                    </div>
+                    <input
+                        placeholder={
+                            isWorkspace ? 'Pied Piper, Inc' : 'Web Front End'
+                        }
+                        name="name"
+                        ref={register({ required: true })}
+                        className={commonStyles.input}
+                        autoComplete="off"
+                        autoFocus
+                    />
+                    <Button
+                        trackingId={`Create${pageTypeCaps}`}
+                        type="primary"
+                        className={classNames(
+                            commonStyles.submitButton,
+                            styles.button
+                        )}
+                        htmlType="submit"
+                    >
+                        {projectLoading || workspaceLoading ? (
+                            <CircularSpinner
+                                style={{
+                                    fontSize: 18,
+                                    color: 'var(--text-primary-inverted)',
+                                }}
+                            />
+                        ) : (
+                            `Create ${pageTypeCaps}`
+                        )}
+                    </Button>
+                </form>
+            </div>
+        </>
     );
 };
 

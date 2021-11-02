@@ -10,6 +10,7 @@ import ElevatedCard from '@components/ElevatedCard/ElevatedCard';
 import { ErrorState } from '@components/ErrorState/ErrorState';
 import FullBleedCard from '@components/FullBleedCard/FullBleedCard';
 import Modal from '@components/Modal/Modal';
+import { Session } from '@graph/schemas';
 import { Replayer } from '@highlight-run/rrweb';
 import NoActiveSessionCard from '@pages/Player/components/NoActiveSessionCard/NoActiveSessionCard';
 import PanelToggleButton from '@pages/Player/components/PanelToggleButton/PanelToggleButton';
@@ -40,6 +41,7 @@ import { Toolbar } from '@pages/Player/Toolbar/Toolbar';
 import { usePlayerFullscreen } from '@pages/Player/utils/PlayerHooks';
 import { getNewCommentFormCoordinates } from '@pages/Player/utils/utils';
 import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard';
+import { getDisplayName } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils';
 import { SessionSearchOption } from '@pages/Sessions/SessionsFeedV2/components/SessionSearch/SessionSearch';
 import useLocalStorage from '@rehooks/local-storage';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
@@ -47,6 +49,7 @@ import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import Lottie from 'lottie-react';
 import React, { Suspense, useEffect, useRef, useState } from 'react';
+import { Helmet } from 'react-helmet';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import useResizeAware from 'react-resize-aware';
 import AsyncSelect from 'react-select/async';
@@ -196,6 +199,9 @@ const Player = ({ integrated }: Props) => {
                 setSelectedRightPanelTab,
             }}
         >
+            <Helmet>
+                <title>{getTabTitle(session)}</title>
+            </Helmet>
             <ReplayerContextProvider value={player}>
                 {!integrated && <IntegrationCard />}
                 {isPlayerReady && !isLoggedIn && (
@@ -520,3 +526,10 @@ const PlayerSkeleton = ({
 };
 
 export default Player;
+
+const getTabTitle = (session?: Session) => {
+    if (!session) {
+        return 'Sessions';
+    }
+    return `Sessions: ${getDisplayName(session)}`;
+};

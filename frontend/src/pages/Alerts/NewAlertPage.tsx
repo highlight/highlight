@@ -10,6 +10,7 @@ import { getAlertTypeColor } from '@pages/Alerts/utils/AlertsUtils';
 import { useParams } from '@util/react-router/useParams';
 import { snakeCaseString } from '@util/string';
 import React from 'react';
+import { Helmet } from 'react-helmet';
 import { Link, useHistory, useRouteMatch } from 'react-router-dom';
 
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
@@ -37,6 +38,9 @@ const NewAlertPage = () => {
 
     return (
         <div>
+            <Helmet>
+                <title>Create New Alert</title>
+            </Helmet>
             {!type ? (
                 <>
                     <p className={layoutStyles.subTitle}>

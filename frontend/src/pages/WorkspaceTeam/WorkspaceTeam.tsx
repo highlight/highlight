@@ -5,6 +5,7 @@ import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames/bind';
 import React, { useEffect, useRef } from 'react';
+import { Helmet } from 'react-helmet';
 import { useForm } from 'react-hook-form';
 import { useToggle } from 'react-use';
 
@@ -89,6 +90,9 @@ const WorkspaceTeam = () => {
 
     return (
         <LeadAlignLayout>
+            <Helmet>
+                <title>Workspace Team</title>
+            </Helmet>
             <h2>Invite A Member</h2>
             <div className={styles.subTitleContainer}>
                 <p className={layoutStyles.subTitle} id={styles.subTitle}>
