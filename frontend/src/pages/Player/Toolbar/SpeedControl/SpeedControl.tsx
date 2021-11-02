@@ -62,12 +62,17 @@ const SpeedControl = ({ disabled }: Props) => {
             </Button>
             <PopoverMenu
                 // This is a range() function that generates a list from `PLAYBACK_MIN_SPEED` to `PLAYBACK_MAX_SPEED` in increments of `1`.
-                menuItems={Array.from(
-                    new Array(
-                        Math.floor(PLAYBACK_MAX_SPEED - PLAYBACK_MIN_SPEED) + 1
+                menuItems={[
+                    0.5,
+                    ...Array.from(
+                        new Array(
+                            Math.floor(
+                                PLAYBACK_MAX_SPEED - PLAYBACK_MIN_SPEED
+                            ) + 1
+                        ),
+                        (_, i) => i + 1
                     ),
-                    (_, i) => i + 1
-                ).map((speed) => ({
+                ].map((speed) => ({
                     displayName: `${speed.toFixed(1)}x`,
                     action: () => {
                         setPlayerSpeed(speed);
