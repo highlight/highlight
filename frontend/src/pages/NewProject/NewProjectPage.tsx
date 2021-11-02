@@ -4,6 +4,7 @@ import {
     useCreateWorkspaceMutation,
 } from '@graph/hooks';
 import { useParams } from '@util/react-router/useParams';
+import classNames from 'classnames';
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Redirect } from 'react-router-dom';
@@ -103,11 +104,16 @@ const NewProjectPage = () => {
                     name="name"
                     ref={register({ required: true })}
                     className={commonStyles.input}
+                    autoComplete="off"
+                    autoFocus
                 />
                 <Button
                     trackingId={`Create${pageTypeCaps}`}
                     type="primary"
-                    className={commonStyles.submitButton}
+                    className={classNames(
+                        commonStyles.submitButton,
+                        styles.button
+                    )}
                     htmlType="submit"
                 >
                     {projectLoading || workspaceLoading ? (
