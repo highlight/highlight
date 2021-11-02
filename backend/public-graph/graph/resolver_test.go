@@ -47,11 +47,13 @@ func TestHandleErrorAndGroup(t *testing.T) {
 		"test two errors with same environment but different case": {
 			errorsToInsert: []model.ErrorObject{
 				{
+					Event:       "error",
 					ProjectID:   1,
 					Environment: "dev",
 					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
 				},
 				{
+					Event:       "error",
 					ProjectID:   1,
 					Environment: "dEv",
 					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
@@ -59,8 +61,8 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
+					Event:        "error",
 					ProjectID:    1,
-					StackTrace:   nullStr,
 					State:        model.ErrorGroupStates.OPEN,
 					FieldGroup:   &nullStr,
 					Environments: `{"dev":2}`,
@@ -70,11 +72,13 @@ func TestHandleErrorAndGroup(t *testing.T) {
 		"test two errors with different environment": {
 			errorsToInsert: []model.ErrorObject{
 				{
+					Event:       "error",
 					ProjectID:   1,
 					Environment: "dev",
 					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
 				},
 				{
+					Event:       "error",
 					ProjectID:   1,
 					Environment: "prod",
 					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
@@ -82,8 +86,8 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
+					Event:        "error",
 					ProjectID:    1,
-					StackTrace:   nullStr,
 					State:        model.ErrorGroupStates.OPEN,
 					FieldGroup:   &nullStr,
 					Environments: `{"dev":1,"prod":1}`,
@@ -96,16 +100,18 @@ func TestHandleErrorAndGroup(t *testing.T) {
 					ProjectID:   1,
 					Environment: "dev",
 					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
+					Event:       "error",
 				},
 				{
+					Event:     "error",
 					ProjectID: 1,
 					Model:     model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
 				},
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
+					Event:        "error",
 					ProjectID:    1,
-					StackTrace:   nullStr,
 					State:        model.ErrorGroupStates.OPEN,
 					FieldGroup:   &nullStr,
 					Environments: `{"dev":1}`,
@@ -115,11 +121,13 @@ func TestHandleErrorAndGroup(t *testing.T) {
 		"test longer error stack first": {
 			errorsToInsert: []model.ErrorObject{
 				{
+					Event:      "error",
 					ProjectID:  1,
 					Model:      model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
 					StackTrace: &longTraceStr,
 				},
 				{
+					Event:      "error",
 					ProjectID:  1,
 					Model:      model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
 					StackTrace: &shortTraceStr,
@@ -127,6 +135,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
+					Event:            "error",
 					ProjectID:        1,
 					StackTrace:       shortTraceStr,
 					State:            model.ErrorGroupStates.OPEN,
@@ -139,11 +148,13 @@ func TestHandleErrorAndGroup(t *testing.T) {
 		"test shorter error stack first": {
 			errorsToInsert: []model.ErrorObject{
 				{
+					Event:      "error",
 					ProjectID:  1,
 					Model:      model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
 					StackTrace: &shortTraceStr,
 				},
 				{
+					Event:      "error",
 					ProjectID:  1,
 					Model:      model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
 					StackTrace: &longTraceStr,
@@ -151,6 +162,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
+					Event:            "error",
 					ProjectID:        1,
 					StackTrace:       longTraceStr,
 					FieldGroup:       &nullStr,
