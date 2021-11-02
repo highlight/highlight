@@ -213,21 +213,21 @@ func (r *Resolver) normalizeStackTraceString(stackTraceString string) string {
 	// TODO: maintain a list of potential error types so we can handle different stack trace formats
 	var normalizedStackFrameInput []*model2.StackFrameInput
 	for _, frame := range stackTraceSlice {
-		frameSplit := strings.SplitN(frame, " ", 2)
-		if len(frameSplit) != 2 {
+		frameExtracted := regexp.MustCompile(`(?m)(.*) (.*):(.*)`).FindAllStringSubmatch(frame, -1)
+		if len(frameExtracted) != 1 {
 			return ""
 		}
-		fileDetails := strings.SplitN(frameSplit[1], ":", 2)
-		if len(fileDetails) != 2 {
+		if len(frameExtracted[0]) != 4 {
 			return ""
 		}
-		lineNumber, err := strconv.Atoi(fileDetails[1])
+
+		lineNumber, err := strconv.Atoi(frameExtracted[0][3])
 		if err != nil {
 			return ""
 		}
 		normalizedStackFrameInput = append(normalizedStackFrameInput, &model2.StackFrameInput{
-			FunctionName: &frameSplit[0],
-			FileName:     &fileDetails[0],
+			FunctionName: &frameExtracted[0][1],
+			FileName:     &frameExtracted[0][2],
 			LineNumber:   &lineNumber,
 		})
 	}
