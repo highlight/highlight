@@ -4,12 +4,12 @@ import {
     playerMetaData,
     SessionInterval,
 } from '@highlight-run/rrweb/dist/types';
-import { MillisToMinutesAndSeconds } from '@util/time';
 import { message } from 'antd';
 import * as H from 'history';
 import { useCallback, useState } from 'react';
 import { useLocation } from 'react-router';
 
+import { MillisToMinutesAndSeconds } from '../../../../util/time';
 import { HighlightEvent } from '../../HighlightEvent';
 import {
     ParsedErrorObject,
