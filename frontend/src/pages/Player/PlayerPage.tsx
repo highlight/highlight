@@ -226,20 +226,22 @@ const Player = ({ integrated }: Props) => {
                         })}
                     >
                         <SearchPanel visible={showLeftPanel} />
-                        <PanelToggleButton
-                            className={classNames(
-                                styles.panelToggleButton,
-                                styles.panelToggleButtonLeft,
-                                {
-                                    [styles.panelShown]: showLeftPanelPreference,
-                                }
-                            )}
-                            direction="left"
-                            isOpen={showLeftPanelPreference}
-                            onClick={() => {
-                                setShowLeftPanel(!showLeftPanelPreference);
-                            }}
-                        />
+                        {isLoggedIn && (
+                            <PanelToggleButton
+                                className={classNames(
+                                    styles.panelToggleButton,
+                                    styles.panelToggleButtonLeft,
+                                    {
+                                        [styles.panelShown]: showLeftPanelPreference,
+                                    }
+                                )}
+                                direction="left"
+                                isOpen={showLeftPanelPreference}
+                                onClick={() => {
+                                    setShowLeftPanel(!showLeftPanelPreference);
+                                }}
+                            />
+                        )}
                     </div>
                     {sessionViewability ===
                         SessionViewability.OVER_BILLING_QUOTA && (
@@ -263,7 +265,10 @@ const Player = ({ integrated }: Props) => {
                         </FullBleedCard>
                     )}
                     {sessionViewability === SessionViewability.ERROR ? (
-                        <ErrorState message="This session does not exist or has not been made public." />
+                        <ErrorState
+                            shownWithHeader
+                            message="This session does not exist or has not been made public."
+                        />
                     ) : sessionViewability ===
                       SessionViewability.EMPTY_SESSION ? (
                         <ElevatedCard

@@ -1,4 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext';
+import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React, { useState } from 'react';
 
@@ -11,14 +12,20 @@ import styles from './ErrorState.module.scss';
 export const ErrorState = ({
     message,
     errorString,
+    shownWithHeader = false,
 }: {
     message: string;
     errorString?: string;
+    shownWithHeader?: boolean;
 }) => {
     const { isLoggedIn } = useAuthContext();
     const [showError, setShowError] = useState(false);
     return (
-        <div className={styles.errorWrapper}>
+        <div
+            className={classNames(styles.errorWrapper, {
+                [styles.shownWithHeader]: shownWithHeader,
+            })}
+        >
             <ElevatedCard title="Woops, something's wrong!">
                 <p className={styles.errorBody}>
                     {message}
