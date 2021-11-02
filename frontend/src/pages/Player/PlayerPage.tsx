@@ -226,20 +226,22 @@ const Player = ({ integrated }: Props) => {
                         })}
                     >
                         <SearchPanel visible={showLeftPanel} />
-                        <PanelToggleButton
-                            className={classNames(
-                                styles.panelToggleButton,
-                                styles.panelToggleButtonLeft,
-                                {
-                                    [styles.panelShown]: showLeftPanelPreference,
-                                }
-                            )}
-                            direction="left"
-                            isOpen={showLeftPanelPreference}
-                            onClick={() => {
-                                setShowLeftPanel(!showLeftPanelPreference);
-                            }}
-                        />
+                        {isLoggedIn && (
+                            <PanelToggleButton
+                                className={classNames(
+                                    styles.panelToggleButton,
+                                    styles.panelToggleButtonLeft,
+                                    {
+                                        [styles.panelShown]: showLeftPanelPreference,
+                                    }
+                                )}
+                                direction="left"
+                                isOpen={showLeftPanelPreference}
+                                onClick={() => {
+                                    setShowLeftPanel(!showLeftPanelPreference);
+                                }}
+                            />
+                        )}
                     </div>
                     {sessionViewability ===
                         SessionViewability.OVER_BILLING_QUOTA && (
