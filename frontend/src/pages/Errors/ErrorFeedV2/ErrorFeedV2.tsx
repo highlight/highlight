@@ -4,6 +4,7 @@ import {
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState';
 import { parseErrorDescription } from '@pages/Error/components/ErrorDescription/utils/utils';
+import { formatNumber } from '@util/numbers';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames/bind';
 import React, { RefObject, useEffect, useState } from 'react';
@@ -20,7 +21,6 @@ import {
     Maybe,
 } from '../../../graph/generated/schemas';
 import { gqlSanitize } from '../../../util/gqlSanitize';
-import { formatNumberWithDelimiters } from '../../../util/numbers';
 import { useErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
 import styles from './ErrorFeedV2.module.scss';
 
@@ -81,7 +81,7 @@ export const ErrorFeedV2 = () => {
                     {loading ? (
                         <Skeleton width="100px" />
                     ) : (
-                        `${formatNumberWithDelimiters(data.totalCount)} errors`
+                        `${formatNumber(data.totalCount)} errors`
                     )}
                 </div>
             </div>
