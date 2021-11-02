@@ -204,10 +204,39 @@ func (r *Resolver) getMappedStackTraceString(stackTrace []*model2.StackFrameInpu
 	return newMappedStackTraceString, nil
 }
 
-// TODO: NOP for now - implement by trying to parse individual stack frames
-// and stringifying the result
 func (r *Resolver) normalizeStackTraceString(stackTraceString string) string {
-	return stackTraceString
+	var stackTraceSlice []string
+	if err := json.Unmarshal([]byte(stackTraceString), &stackTraceSlice); err != nil {
+		return ""
+	}
+
+	// TODO: maintain a list of potential error types so we can handle different stack trace formats
+	var normalizedStackFrameInput []*model2.StackFrameInput
+	for _, frame := range stackTraceSlice {
+		frameSplit := strings.SplitN(frame, " ", 2)
+		if len(frameSplit) != 2 {
+			return ""
+		}
+		fileDetails := strings.SplitN(frameSplit[1], ":", 2)
+		if len(fileDetails) != 2 {
+			return ""
+		}
+		lineNumber, err := strconv.Atoi(fileDetails[1])
+		if err != nil {
+			return ""
+		}
+		normalizedStackFrameInput = append(normalizedStackFrameInput, &model2.StackFrameInput{
+			FunctionName: &frameSplit[0],
+			FileName:     &fileDetails[0],
+			LineNumber:   &lineNumber,
+		})
+	}
+
+	stackTraceBytes, err := json.Marshal(&normalizedStackFrameInput)
+	if err != nil {
+		return ""
+	}
+	return string(stackTraceBytes)
 }
 
 // Matches the ErrorObject with an existing ErrorGroup, or creates a new one if the group does not exist
@@ -234,7 +263,9 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 		stackTraceString = string(firstFrameBytes)
 	} else if stackTraceString != "<nil>" {
 		// If stackTraceString was passed in, try to normalize it
-		stackTraceString = r.normalizeStackTraceString(stackTraceString)
+		if t := r.normalizeStackTraceString(stackTraceString); t != "" {
+			stackTraceString = t
+		}
 	} else if stackTraceString == "<nil>" {
 		return nil, e.New(`stackTrace slice was empty and stack trace string was equal to "<nil>"`)
 	}
