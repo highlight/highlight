@@ -161,6 +161,11 @@ export const ResourcePage = ({
                 setResourcePanel(resource);
                 pause(resource.startTime);
                 scrollFunction(allResources.indexOf(resource));
+                message.success(
+                    `Changed player time to when error was thrown at ${MillisToMinutesAndSeconds(
+                        resource.startTime
+                    )}.`
+                );
             } else {
                 setSelectedDevToolsTab('Errors');
                 const firstError = errors[0];
@@ -171,6 +176,11 @@ export const ResourcePage = ({
                     const deltaMilliseconds =
                         errorDateTime.getTime() - startTime;
                     pause(deltaMilliseconds);
+                    message.success(
+                        `Changed player time to when error was thrown at ${MillisToMinutesAndSeconds(
+                            deltaMilliseconds
+                        )}.`
+                    );
                 }
                 H.track('FailedToMatchHighlightResourceHeaderWithResource');
             }

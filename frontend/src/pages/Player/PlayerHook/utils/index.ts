@@ -4,6 +4,7 @@ import {
     playerMetaData,
     SessionInterval,
 } from '@highlight-run/rrweb/dist/types';
+import { MillisToMinutesAndSeconds } from '@util/time';
 import { message } from 'antd';
 import * as H from 'history';
 import { useCallback, useState } from 'react';
@@ -186,6 +187,11 @@ export const useSetPlayerTimestampFromSearchParam = (
                         if (!requestId) {
                             setTime(sessionTime);
                             replayer?.pause(sessionTime);
+                            message.success(
+                                `Changed player time to where error was thrown at ${MillisToMinutesAndSeconds(
+                                    sessionTime
+                                )}.`
+                            );
                         }
                         setSelectedErrorId(errorId);
 

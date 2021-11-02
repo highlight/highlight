@@ -53,10 +53,11 @@ const ErrorModal = ({ error, showRequestAlert }: Props) => {
                                         <>
                                             The network resource associated with
                                             this error could not be found. This
-                                            could happen if the backend url was
-                                            not added to the tracing origins, or
-                                            if the user's browser failed to push
-                                            the network resource data while the
+                                            could happen if the tracingOrigins
+                                            parameter of H.init() was not
+                                            configured correctly, or if the
+                                            user's browser failed to push the
+                                            network resource data while the
                                             session was being recorded.
                                         </>
                                     }
