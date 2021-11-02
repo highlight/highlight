@@ -6,6 +6,7 @@ import classNames from 'classnames';
 import { H } from 'highlight.run';
 import moment from 'moment';
 import React, { useEffect, useRef, useState } from 'react';
+import { Helmet } from 'react-helmet';
 import Skeleton from 'react-loading-skeleton';
 import { useHistory, useParams } from 'react-router';
 import AsyncSelect from 'react-select/async';
@@ -126,6 +127,9 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                 setSegmentName,
             }}
         >
+            <Helmet>
+                <title>Errors</title>
+            </Helmet>
             <ErrorPageUIContextProvider
                 value={{ searchBarRef, setSearchBarRef }}
             >
@@ -146,6 +150,14 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                     </div>
                     {error_secure_id && !errorQueryingErrorGroup ? (
                         <>
+                            <Helmet>
+                                <title>
+                                    Errors:{' '}
+                                    {getHeaderFromError(
+                                        data?.error_group?.event ?? []
+                                    )}
+                                </title>
+                            </Helmet>
                             <div
                                 className={classNames(
                                     styles.errorPageCenterColumn,
@@ -287,7 +299,10 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                             </div>
                         </>
                     ) : errorQueryingErrorGroup ? (
-                        <ErrorState message="This error does not exist or has not been made public." />
+                        <ErrorState
+                            shownWithHeader
+                            message="This error does not exist or has not been made public."
+                        />
                     ) : (
                         <NoActiveErrorCard />
                     )}

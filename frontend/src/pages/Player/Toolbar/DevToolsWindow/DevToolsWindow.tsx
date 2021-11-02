@@ -52,6 +52,7 @@ export const DevToolsWindow = ({
                     tabs={TABS}
                     id="DevTools"
                     noPadding
+                    className={styles.tabs}
                     tabBarExtraContent={
                         <>
                             <DOMInteractionsToggle />

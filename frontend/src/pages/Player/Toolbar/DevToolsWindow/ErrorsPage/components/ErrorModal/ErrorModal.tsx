@@ -1,3 +1,4 @@
+import Alert from '@components/Alert/Alert';
 import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
@@ -18,9 +19,10 @@ import styles from './ErrorModal.module.scss';
 
 interface Props {
     error: ErrorObject;
+    showRequestAlert: boolean;
 }
 
-const ErrorModal = ({ error }: Props) => {
+const ErrorModal = ({ error, showRequestAlert }: Props) => {
     const { data, loading } = useGetErrorGroupQuery({
         variables: { secure_id: error.error_group_secure_id },
     });
@@ -41,6 +43,27 @@ const ErrorModal = ({ error }: Props) => {
                 <div>
                     {data && (
                         <>
+                            {showRequestAlert && (
+                                <Alert
+                                    type="error"
+                                    trackingId="UnmatchedBackendError"
+                                    message="Request data not found"
+                                    className={styles.alertContainer}
+                                    description={
+                                        <>
+                                            The network resource associated with
+                                            this error could not be found. This
+                                            could happen if the tracingOrigins
+                                            parameter of H.init() was not
+                                            configured correctly, or if the
+                                            user's browser failed to push the
+                                            network resource data while the
+                                            session was being recorded.
+                                        </>
+                                    }
+                                />
+                            )}
+
                             <div className={styles.titleContainer}>
                                 <ErrorTitle
                                     errorGroup={data.error_group}

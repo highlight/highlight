@@ -10,6 +10,7 @@ import {
 } from '../../ReplayerContext';
 import styles from '../Toolbar.module.scss';
 import TimelineAnnotation from './TimelineAnnotation';
+import timelineAnnotationStyles from './TimelineAnnotation.module.scss';
 
 interface Props {
     comment: ParsedSessionComment;
@@ -31,6 +32,7 @@ function TimelineCommentAnnotation({ comment }: Props): ReactElement {
             onVisibleChange={(visible) => {
                 setIsTooltipOpen(visible);
             }}
+            popoverClassName={timelineAnnotationStyles.popover}
         >
             <TimelineAnnotation
                 isSelected={isTooltipOpen}

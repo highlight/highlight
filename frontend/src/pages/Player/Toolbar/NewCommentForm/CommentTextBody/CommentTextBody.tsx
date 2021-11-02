@@ -61,7 +61,7 @@ const CommentTextBody = ({
             onChange={onChangeHandler}
             placeholder={placeholder}
             autoFocus
-            disabled={!onChangeHandler}
+            aria-readonly={!onChangeHandler}
             suggestionsPortalHost={suggestionsPortalHost}
             allowSuggestionsAboveCursor
             listHeader={

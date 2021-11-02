@@ -204,31 +204,70 @@ func (r *Resolver) getMappedStackTraceString(stackTrace []*model2.StackFrameInpu
 	return newMappedStackTraceString, nil
 }
 
-// TODO: NOP for now - implement by trying to parse individual stack frames
-// and stringifying the result
 func (r *Resolver) normalizeStackTraceString(stackTraceString string) string {
-	return stackTraceString
+	var stackTraceSlice []string
+	if err := json.Unmarshal([]byte(stackTraceString), &stackTraceSlice); err != nil {
+		return ""
+	}
+
+	// TODO: maintain a list of potential error types so we can handle different stack trace formats
+	var normalizedStackFrameInput []*model2.StackFrameInput
+	for _, frame := range stackTraceSlice {
+		frameExtracted := regexp.MustCompile(`(?m)(.*) (.*):(.*)`).FindAllStringSubmatch(frame, -1)
+		if len(frameExtracted) != 1 {
+			return ""
+		}
+		if len(frameExtracted[0]) != 4 {
+			return ""
+		}
+
+		lineNumber, err := strconv.Atoi(frameExtracted[0][3])
+		if err != nil {
+			return ""
+		}
+		normalizedStackFrameInput = append(normalizedStackFrameInput, &model2.StackFrameInput{
+			FunctionName: &frameExtracted[0][1],
+			FileName:     &frameExtracted[0][2],
+			LineNumber:   &lineNumber,
+		})
+	}
+
+	stackTraceBytes, err := json.Marshal(&normalizedStackFrameInput)
+	if err != nil {
+		return ""
+	}
+	return string(stackTraceBytes)
 }
 
 // Matches the ErrorObject with an existing ErrorGroup, or creates a new one if the group does not exist
 // The input can include the stack trace as a string or []*StackFrameInput
 // If stackTrace is non-nil, it will be marshalled into a string and saved with the ErrorObject
 func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceString string, stackTrace []*model2.StackFrameInput, fields []*model.ErrorField, projectID int) (*model.ErrorGroup, error) {
+	if errorObj == nil {
+		return nil, e.New("error object was nil")
+	}
+	if errorObj.Event == "" || errorObj.Event == "<nil>" {
+		return nil, e.New("error object event was nil or empty")
+	}
+
 	// If there was no stackTraceString passed in, marshal it as a JSON string from stackTrace
-	if stackTraceString == "" {
-		frames := stackTrace
-		if len(frames) > 0 && frames[0] != nil && frames[0].Source != nil && strings.Contains(*frames[0].Source, "https://static.highlight.run/index.js") {
+	if len(stackTrace) > 0 {
+		if stackTrace[0] != nil && stackTrace[0].Source != nil && strings.Contains(*stackTrace[0].Source, "https://static.highlight.run/index.js") {
 			errorObj.ProjectID = 1
 		}
-		firstFrameBytes, err := json.Marshal(frames)
+		firstFrameBytes, err := json.Marshal(stackTrace)
 		if err != nil {
 			return nil, e.Wrap(err, "Error marshalling first frame")
 		}
 
 		stackTraceString = string(firstFrameBytes)
-	} else {
+	} else if stackTraceString != "<nil>" {
 		// If stackTraceString was passed in, try to normalize it
-		stackTraceString = r.normalizeStackTraceString(stackTraceString)
+		if t := r.normalizeStackTraceString(stackTraceString); t != "" {
+			stackTraceString = t
+		}
+	} else if stackTraceString == "<nil>" {
+		return nil, e.New(`stackTrace slice was empty and stack trace string was equal to "<nil>"`)
 	}
 
 	errorGroup := &model.ErrorGroup{}

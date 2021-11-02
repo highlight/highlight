@@ -10,7 +10,12 @@
 
 .container {
     height: 100%;
-    line-break: anywhere;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.alertContainer {
+    margin-bottom: var(--size-large);
 }
 
 .titleContainer {

@@ -95,6 +95,9 @@ export const Toolbar = () => {
     const resourceErrorRequestHeader = new URLSearchParams(location.search).get(
         PlayerSearchParameters.resourceErrorRequestHeader
     );
+    const errorId = new URLSearchParams(location.search).get(
+        PlayerSearchParameters.errorId
+    );
     const disableControls = state === ReplayerState.Loading || !canViewSession;
 
     const [lastCanvasPreview, setLastCanvasPreview] = useState(0);
@@ -146,9 +149,13 @@ export const Toolbar = () => {
         if (!disableControls && resourceErrorRequestHeader) {
             setShowDevTools(true);
             setSelectedDevToolsTab('Network');
+        } else if (!disableControls && errorId) {
+            setShowDevTools(true);
+            setSelectedDevToolsTab('Errors');
         }
     }, [
         disableControls,
+        errorId,
         resourceErrorRequestHeader,
         setSelectedDevToolsTab,
         setShowDevTools,
