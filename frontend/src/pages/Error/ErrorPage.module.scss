@@ -55,7 +55,7 @@
     height: 100%;
     justify-content: space-between;
     padding-bottom: 0;
-    padding-top: var(--header-height);
+    padding-top: var(--top-padding);
     width: 100%;
     word-break: break-word;
 
@@ -69,6 +69,10 @@
 
     &.empty {
         grid-template-columns: var(--left-panel-width) 1fr;
+    }
+
+    &.withErrorState {
+        padding-top: var(--header-height);
     }
 }
 
