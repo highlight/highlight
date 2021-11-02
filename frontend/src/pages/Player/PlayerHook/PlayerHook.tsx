@@ -503,6 +503,10 @@ export const usePlayer = (): ReplayerContextInterface => {
                             setSelectedErrorId
                         );
                     }
+                    if (isLiveMode && state > ReplayerState.Loading) {
+                        // Resynchronize player timestamp after each batch of events
+                        play();
+                    }
                 } else {
                     timerId = requestAnimationFrame(addEventsWorker);
                 }
@@ -534,9 +538,9 @@ export const usePlayer = (): ReplayerContextInterface => {
                             'Rich hit end of total time',
                             replayer.getMetaData().totalTime
                         );
-                        if (!isLiveMode) {
-                            setState(ReplayerState.SessionEnded);
-                        }
+                        // if (!isLiveMode) {
+                        setState(ReplayerState.SessionEnded);
+                        // }
                     }
                 }
                 setTimerId(requestAnimationFrame(frameAction));
@@ -600,6 +604,23 @@ export const usePlayer = (): ReplayerContextInterface => {
     ]);
 
     const play = (newTime?: number) => {
+        if (isLiveMode) {
+            newTime = Math.min(
+                Date.now() - 15000 - events[0].timestamp,
+                sessionEndTime - 1
+            );
+            // newTime =
+            //     Math.min(
+            //         eventsevents.length - 1].timestamp,
+            //         Date.now() - 15000
+            //     ) - events[0].timestamp; // Minimum 15s delay for live mode
+            console.log('Playing from ', newTime);
+            console.log('sessionEndTime: ', sessionEndTime - 1);
+            console.log(
+                '15s delay: ',
+                Date.now() - 15000 - events[0].timestamp
+            );
+        }
         // Re-visit this
         // Don't play the session if the player is already at the end of the session.
         if ((newTime ?? time) >= sessionEndTime) {
@@ -611,10 +632,6 @@ export const usePlayer = (): ReplayerContextInterface => {
             if (!isLiveMode) {
                 return;
             }
-        }
-        if (isLiveMode) {
-            newTime = Date.now() - events[0].timestamp - 15000; // 15s delay for live mode
-            console.log('Playing from ', newTime);
         }
         setState(ReplayerState.Playing);
         setTime(newTime ?? time);
