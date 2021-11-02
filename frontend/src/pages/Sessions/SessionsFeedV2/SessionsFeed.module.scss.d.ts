@@ -11,6 +11,7 @@ export const emptyTitle: string;
 export const feedContent: string;
 export const feedWrapper: string;
 export const fixedContent: string;
+export const hasScrolled: string;
 export const hoverBorderLeft: string;
 export const hoverBorderOn: string;
 export const hoverBorderRight: string;
