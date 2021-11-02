@@ -224,7 +224,7 @@ const AlertsPage = () => {
                     New Alert
                 </ButtonLink>
             </div>
-            {!loading && !alertsPayload?.is_integrated_with_slack ? (
+            {true || (!loading && !alertsPayload?.is_integrated_with_slack) ? (
                 <Alert
                     trackingId="AlertPageSlackBotIntegration"
                     message={
@@ -232,11 +232,7 @@ const AlertsPage = () => {
                             ? "Slack isn't connected"
                             : "Can't find a Slack channel or person?"
                     }
-                    type={
-                        !alertsPayload?.is_integrated_with_slack
-                            ? 'error'
-                            : 'info'
-                    }
+                    type={true ? 'error' : 'info'}
                     description={
                         <>
                             {!alertsPayload?.is_integrated_with_slack ? (
