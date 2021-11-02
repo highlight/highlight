@@ -265,7 +265,10 @@ const Player = ({ integrated }: Props) => {
                         </FullBleedCard>
                     )}
                     {sessionViewability === SessionViewability.ERROR ? (
-                        <ErrorState message="This session does not exist or has not been made public." />
+                        <ErrorState
+                            shownWithHeader
+                            message="This session does not exist or has not been made public."
+                        />
                     ) : sessionViewability ===
                       SessionViewability.EMPTY_SESSION ? (
                         <ElevatedCard
