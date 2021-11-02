@@ -39,10 +39,10 @@ export const ResourcePage = ({
     const {
         state,
         session,
-        pause,
         isPlayerReady,
         errors,
         replayer,
+        setTime,
     } = useReplayerContext();
     const {
         setShowDevTools,
@@ -159,7 +159,7 @@ export const ResourcePage = ({
             );
             if (resource) {
                 setResourcePanel(resource);
-                pause(resource.startTime);
+                setTime(resource.startTime);
                 scrollFunction(allResources.indexOf(resource));
                 message.success(
                     `Changed player time to when error was thrown at ${MillisToMinutesAndSeconds(
@@ -167,30 +167,34 @@ export const ResourcePage = ({
                     )}.`
                 );
             } else {
-                setSelectedDevToolsTab('Errors');
-                const firstError = errors[0];
-                setErrorPanel(firstError);
-                const startTime = replayer?.getMetaData().startTime;
-                if (startTime && firstError.timestamp) {
-                    const errorDateTime = new Date(firstError.timestamp);
-                    const deltaMilliseconds =
-                        errorDateTime.getTime() - startTime;
-                    pause(deltaMilliseconds);
-                    message.success(
-                        `Changed player time to when error was thrown at ${MillisToMinutesAndSeconds(
-                            deltaMilliseconds
-                        )}.`
-                    );
+                const firstError = errors.find(
+                    (e) => e.request_id === resourceErrorRequestHeader
+                );
+                if (firstError) {
+                    setSelectedDevToolsTab('Errors');
+                    setErrorPanel(firstError);
+                    const startTime = replayer?.getMetaData().startTime;
+                    if (startTime && firstError.timestamp) {
+                        const errorDateTime = new Date(firstError.timestamp);
+                        const deltaMilliseconds =
+                            errorDateTime.getTime() - startTime;
+                        setTime(deltaMilliseconds);
+                        message.success(
+                            `Changed player time to when error was thrown at ${MillisToMinutesAndSeconds(
+                                deltaMilliseconds
+                            )}.`
+                        );
+                    }
                 }
                 H.track('FailedToMatchHighlightResourceHeaderWithResource');
             }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         allResources,
         errors,
         isPlayerReady,
         loading,
-        pause,
         replayer,
         resourceErrorRequestHeader,
         scrollFunction,
