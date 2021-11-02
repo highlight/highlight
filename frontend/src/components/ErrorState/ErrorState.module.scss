@@ -8,6 +8,7 @@
     width: 100vw;
 
     &.shownWithHeader {
+        background: var(--color-primary-background);
         height: calc(100vh - var(--header-height));
     }
 }

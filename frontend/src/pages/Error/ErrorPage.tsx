@@ -299,7 +299,10 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                             </div>
                         </>
                     ) : errorQueryingErrorGroup ? (
-                        <ErrorState message="This error does not exist or has not been made public." />
+                        <ErrorState
+                            shownWithHeader
+                            message="This error does not exist or has not been made public."
+                        />
                     ) : (
                         <NoActiveErrorCard />
                     )}
