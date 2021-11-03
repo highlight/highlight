@@ -178,6 +178,7 @@ export const ResourcePage = ({
                         const errorDateTime = new Date(firstError.timestamp);
                         const deltaMilliseconds =
                             errorDateTime.getTime() - startTime;
+                        setTime(deltaMilliseconds);
                         message.success(
                             `Changed player time to when error was thrown at ${MillisToMinutesAndSeconds(
                                 deltaMilliseconds

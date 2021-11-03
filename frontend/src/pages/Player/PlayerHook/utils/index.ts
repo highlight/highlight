@@ -118,7 +118,12 @@ export const useSetPlayerTimestampFromSearchParam = (
     replayer?: Replayer
 ) => {
     const location = useLocation();
-    const [hasSearchParam, setHasSearchParam] = useState(false);
+    const searchParams = new URLSearchParams(location.search);
+    const [hasSearchParam, setHasSearchParam] = useState(
+        !!searchParams.get(PlayerSearchParameters.ts) ||
+            !!searchParams.get(PlayerSearchParameters.tsAbs) ||
+            !!searchParams.get(PlayerSearchParameters.errorId)
+    );
     const {
         selectedTimelineAnnotationTypes,
         setSelectedTimelineAnnotationTypes,
@@ -207,6 +212,8 @@ export const useSetPlayerTimestampFromSearchParam = (
                     }
                 }
                 setHasSearchParam(true);
+            } else {
+                setHasSearchParam(false);
             }
         },
         [
