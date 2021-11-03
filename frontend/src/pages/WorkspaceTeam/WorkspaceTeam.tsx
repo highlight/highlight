@@ -94,11 +94,13 @@ const WorkspaceTeam = () => {
             <Helmet>
                 <title>Workspace Team</title>
             </Helmet>
-            <h2>Invite A Member</h2>
-            <div className={styles.subTitleContainer}>
-                <p className={layoutStyles.subTitle} id={styles.subTitle}>
-                    Invite your team to your Workspace.
-                </p>
+            <div className={styles.titleContainer}>
+                <div>
+                    <h2>Invite A Member</h2>
+                    <p className={layoutStyles.subTitle} id={styles.subTitle}>
+                        Invite your team to your Workspace.
+                    </p>
+                </div>
                 <Modal
                     destroyOnClose
                     centered

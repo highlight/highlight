@@ -62,15 +62,15 @@
     margin-left: auto;
 }
 
-.subTitleContainer {
-    align-items: center;
+.titleContainer {
+    align-items: flex-start;
     display: flex;
     justify-content: space-between;
     margin-bottom: var(--size-xLarge) !important;
 
     #subTitle {
         margin-bottom: 0 !important;
-        margin-top: 0 !important;
+        margin-top: var(--size-xSmall) !important;
     }
 }
 
