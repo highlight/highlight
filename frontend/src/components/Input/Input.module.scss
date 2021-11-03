@@ -2,9 +2,16 @@
     background: var(--color-gray-200) !important;
     border: 1px solid transparent !important;
     border-radius: var(--border-radius) !important;
+    font-size: 16px !important;
+    line-height: initial !important;
+    padding: 10px !important;
 
     &:global(.ant-input-lg) {
         padding: var(--size-xSmall) var(--size-medium) !important;
+    }
+
+    &:global(.ant-input-affix-wrapper-sm) {
+        padding: 0 var(--size-xSmall) !important;
     }
 
     &:global(:not(.ant-input-affix-wrapper-disabled)) {

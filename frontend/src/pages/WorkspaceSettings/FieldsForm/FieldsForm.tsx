@@ -1,3 +1,4 @@
+import Input from '@components/Input/Input';
 import {
     useEditProjectMutation,
     useEditWorkspaceMutation,
@@ -86,9 +87,8 @@ export const FieldsForm = () => {
         <form onSubmit={handleSubmit(onSubmit)} key={project_id}>
             <div className={styles.fieldRow}>
                 <label className={styles.fieldKey}>Name</label>
-                <input
+                <Input
                     defaultValue={editingObj?.name}
-                    className={commonStyles.input}
                     name="name"
                     ref={register({ required: true })}
                 />
@@ -98,9 +98,8 @@ export const FieldsForm = () => {
                     {' '}
                     <div className={styles.fieldRow}>
                         <label className={styles.fieldKey}>Billing Email</label>
-                        <input
+                        <Input
                             defaultValue={data?.project?.billing_email ?? ''}
-                            className={commonStyles.input}
                             placeholder={'Billing Email'}
                             type="email"
                             name="email"
