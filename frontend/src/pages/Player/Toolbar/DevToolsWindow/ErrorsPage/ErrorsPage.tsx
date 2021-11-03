@@ -98,7 +98,11 @@ const ErrorsPage = () => {
                                 setFilterSearchTerm(event.target.value);
                             }}
                             size="small"
-                            disabled={loading || errorsToRender.length === 0}
+                            disabled={
+                                loading ||
+                                (errorsToRender.length === 0 &&
+                                    filterSearchTerm.length === 0)
+                            }
                         />
                     </div>
                 </div>
@@ -114,6 +118,11 @@ const ErrorsPage = () => {
                 ) : !session || !allErrors.length ? (
                     <div className={devStyles.emptySection}>
                         There are no errors for this session.
+                    </div>
+                ) : errorsToRender.length === 0 &&
+                  filterSearchTerm.length > 0 ? (
+                    <div className={devStyles.emptySection}>
+                        No errors matching '{filterSearchTerm}'
                     </div>
                 ) : (
                     <Virtuoso
