@@ -7,3 +7,4 @@ export const searchContainer: string;
 export const searchIcon: string;
 export const secondRow: string;
 export const virtualList: string;
+export const withBottomBorder: string;
