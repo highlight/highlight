@@ -48,7 +48,7 @@ const PopoverListContent = ({
                         data={listItems}
                         itemContent={(index, item: any) => (
                             <li
-                                key={index}
+                                key={`${index}-${item.id}`}
                                 className={classNames(
                                     styles.item,
                                     styles.virtual,
