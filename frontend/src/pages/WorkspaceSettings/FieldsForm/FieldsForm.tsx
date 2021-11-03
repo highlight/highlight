@@ -8,7 +8,7 @@ import { namedOperations } from '@graph/operations';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames/bind';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import commonStyles from '../../../Common.module.scss';
 import Button from '../../../components/Button/Button/Button';
@@ -73,18 +73,24 @@ export const FieldsForm = () => {
         }
     };
 
+    const editingObj = isWorkspace ? data?.workspace : data?.project;
+
+    useEffect(() => {
+        if (!loading) {
+            setName(editingObj?.name || '');
+            setEmail(data?.project?.billing_email || '');
+        }
+    }, [data?.project?.billing_email, editingObj?.name, loading]);
+
     if (loading) {
         return <LoadingBar />;
     }
-
-    const editingObj = isWorkspace ? data?.workspace : data?.project;
 
     return (
         <form onSubmit={onSubmit} key={project_id}>
             <div className={styles.fieldRow}>
                 <label className={styles.fieldKey}>Name</label>
                 <Input
-                    defaultValue={editingObj?.name}
                     name="name"
                     value={name}
                     onChange={(e) => {
@@ -98,7 +104,6 @@ export const FieldsForm = () => {
                     <div className={styles.fieldRow}>
                         <label className={styles.fieldKey}>Billing Email</label>
                         <Input
-                            defaultValue={data?.project?.billing_email ?? ''}
                             placeholder={'Billing Email'}
                             type="email"
                             name="email"
