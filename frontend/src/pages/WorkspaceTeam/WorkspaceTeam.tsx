@@ -1,6 +1,7 @@
 import Card from '@components/Card/Card';
 import Modal from '@components/Modal/Modal';
 import Table from '@components/Table/Table';
+import SvgTrash from '@icons/Trash';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames/bind';
@@ -262,10 +263,9 @@ const TABLE_COLUMNS = [
                         trackingId="RemoveTeamMember"
                         // An Admin should not be able to delete themselves from an project.
                         disabled={record?.isSameAdmin}
-                        type="primary"
-                        danger
+                        iconButton
                     >
-                        Remove from Workspace
+                        <SvgTrash />
                     </Button>
                 </PopConfirm>
             );
