@@ -1,8 +1,38 @@
 .input {
-    border: 1px solid var(--color-gray-300) !important;
+    background: var(--color-gray-200) !important;
+    border: 1px solid transparent !important;
     border-radius: var(--border-radius) !important;
 
     &:global(.ant-input-lg) {
         padding: var(--size-xSmall) var(--size-medium) !important;
+    }
+
+    &:global(:not(.ant-input-affix-wrapper-disabled)) {
+        :global(.ant-input) {
+            background: var(--color-gray-200) !important;
+
+            &::placeholder {
+                color: var(--color-gray-500) !important;
+            }
+        }
+
+        &:focus,
+        &:global(.ant-input-affix-wrapper-focused) {
+            background: var(--color-primary-background) !important;
+            border-color: var(--color-purple) !important;
+            box-shadow: 0 0 0 4px rgba(var(--color-purple-rgb), 0.2) !important;
+
+            :global(.ant-input) {
+                background: var(--color-primary-background) !important;
+            }
+        }
+
+        &:hover {
+            border-color: var(--color-purple) !important;
+        }
+    }
+
+    &:global(.ant-input-affix-wrapper-disabled) {
+        background: var(--color-gray-100) !important;
     }
 }
