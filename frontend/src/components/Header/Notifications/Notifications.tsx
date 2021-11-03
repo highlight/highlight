@@ -253,7 +253,8 @@ const List = ({
     return (
         <PopoverListContent
             virtual
-            virtualListHeight={450}
+            virtualListHeight={600}
+            maxHeight={600}
             listItems={notifications.map((notification, index) => (
                 <NotificationItem
                     notification={notification}

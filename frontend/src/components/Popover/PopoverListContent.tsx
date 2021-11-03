@@ -11,6 +11,7 @@ interface Props {
     noHoverChange?: boolean;
     virtual?: boolean;
     virtualListHeight?: number;
+    maxHeight?: number;
 }
 
 const PopoverListContent = ({
@@ -20,13 +21,17 @@ const PopoverListContent = ({
     noHoverChange,
     virtual,
     virtualListHeight,
+    maxHeight,
 }: Props) => {
     const virtuoso = useRef<VirtuosoHandle>(null);
 
     return (
         <ul
             className={classNames(styles.list, className)}
-            style={{ height: virtual ? `${virtualListHeight}px` : 'initial' }}
+            style={{
+                height: virtual ? `${virtualListHeight}px` : 'initial',
+                maxHeight,
+            }}
         >
             {!virtual ? (
                 listItems.map((listItem, index) => (
