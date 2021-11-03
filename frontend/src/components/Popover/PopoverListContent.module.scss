@@ -3,7 +3,7 @@
     border-bottom-right-radius: 5px;
     margin: calc(var(--size-medium) * -1);
     margin-bottom: 0;
-    max-height: 450px;
+    max-height: 350px;
     overflow: auto;
     overscroll-behavior: contain;
     padding: 0;
@@ -52,7 +52,8 @@
         }
     }
 
-    .item:not(:last-of-type) {
+    .item:not(:last-of-type),
+    .virtual {
         border-bottom: 1px solid var(--color-gray-300);
     }
 }

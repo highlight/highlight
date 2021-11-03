@@ -57,12 +57,13 @@ const Notifications = () => {
             isList
             visible={showPopover}
             trigger={['click']}
-            destroyTooltipOnHide
             content={
                 <div className={styles.popover}>
                     {notifications.length !== 0 ? (
                         <>
                             <PopoverListContent
+                                virtual
+                                virtualListHeight={450}
                                 listItems={notifications.map(
                                     (notification, index) => (
                                         <NotificationItem
