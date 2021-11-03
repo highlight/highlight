@@ -11,6 +11,7 @@ export const notificationStartColumn: string;
 export const personalNotificationAlert: string;
 export const popover: string;
 export const popoverTitle: string;
+export const tabBarExtraContent: string;
 export const tabs: string;
 export const timestamp: string;
 export const title: string;

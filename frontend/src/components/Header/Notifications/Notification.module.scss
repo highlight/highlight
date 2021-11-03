@@ -149,4 +149,8 @@
         margin-top: calc(-1 * var(--size-medium));
         overflow: visible !important;
     }
+
+    .tabBarExtraContent {
+        padding-right: var(--size-xSmall);
+    }
 }

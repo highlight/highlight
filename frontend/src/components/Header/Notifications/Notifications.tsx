@@ -60,6 +60,7 @@ const Notifications = () => {
                 <div className={styles.popover}>
                     <Tabs
                         className={styles.tabs}
+                        tabBarExtraContentClassName={styles.tabBarExtraContent}
                         id="Notifications"
                         tabs={[
                             {

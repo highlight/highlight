@@ -27,6 +27,7 @@ type Props = Pick<
     /** An HTML id to attach to the tabs. */
     tabsHtmlId?: string;
     className?: string;
+    tabBarExtraContentClassName?: string;
 };
 
 const Tabs = ({
@@ -37,6 +38,7 @@ const Tabs = ({
     tabBarExtraContent,
     tabsHtmlId,
     className,
+    tabBarExtraContentClassName,
     ...props
 }: Props) => {
     const [activeTab, setActiveTab] = useLocalStorage(
@@ -58,9 +60,13 @@ const Tabs = ({
             tabBarExtraContent={
                 tabBarExtraContent ? (
                     <div
-                        className={classNames(styles.extraContentContainer, {
-                            [styles.withHeaderPadding]: !noHeaderPadding,
-                        })}
+                        className={classNames(
+                            styles.extraContentContainer,
+                            tabBarExtraContentClassName,
+                            {
+                                [styles.withHeaderPadding]: !noHeaderPadding,
+                            }
+                        )}
                     >
                         {tabBarExtraContent}
                     </div>
