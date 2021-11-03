@@ -173,7 +173,11 @@ export const ConsolePage = ({ time }: { time: number }) => {
                                 setFilterSearchTerm(event.target.value);
                             }}
                             size="small"
-                            disabled={loading || messagesToRender.length === 0}
+                            disabled={
+                                loading ||
+                                (messagesToRender.length === 0 &&
+                                    filterSearchTerm.length === 0)
+                            }
                         />
                     </div>
                 </div>
