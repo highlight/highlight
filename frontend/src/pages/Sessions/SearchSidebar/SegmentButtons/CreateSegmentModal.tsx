@@ -6,8 +6,7 @@ import Input from '@components/Input/Input';
 import { namedOperations } from '@graph/operations';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
-import React from 'react';
-import { useForm } from 'react-hook-form';
+import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
 import commonStyles from '../../../../Common.module.scss';
@@ -26,10 +25,6 @@ interface Props {
     afterCreateHandler?: (segmentId: string, segmentValue: string) => void;
 }
 
-type Inputs = {
-    name: string;
-};
-
 const CreateSegmentModal = ({
     showModal,
     onHideModal,
@@ -38,7 +33,7 @@ const CreateSegmentModal = ({
     const [createSegment, { loading }] = useCreateSegmentMutation({
         refetchQueries: [namedOperations.Query.GetSegments],
     });
-    const { register, handleSubmit, errors, reset } = useForm<Inputs>();
+    const [name, setName] = useState('');
     const { project_id } = useParams<{
         project_id: string;
         segment_id: string;
@@ -50,11 +45,12 @@ const CreateSegmentModal = ({
     const { searchParams, setExistingParams } = useSearchContext();
     const history = useHistory();
 
-    const onSubmit = (inputs: Inputs) => {
+    const onSubmit = (e: { preventDefault: () => void }) => {
+        e.preventDefault();
         createSegment({
             variables: {
                 project_id,
-                name: inputs.name,
+                name,
                 params: searchParams,
             },
         }).then((r) => {
@@ -70,7 +66,6 @@ const CreateSegmentModal = ({
                 );
             }
             onHideModal();
-            reset();
             message.success(
                 `Created '${r.data?.createSegment?.name}' segment`,
                 5
@@ -88,21 +83,20 @@ const CreateSegmentModal = ({
             destroyOnClose
         >
             <ModalBody>
-                <form onSubmit={handleSubmit(onSubmit)}>
+                <form onSubmit={onSubmit}>
                     <p className={styles.modalSubTitle}>
                         Enter the name of your segment and you'll be good to go!
                     </p>
                     <Input
                         className={commonStyles.input}
                         name="name"
-                        ref={register({ required: true })}
+                        value={name}
+                        onChange={(e) => {
+                            setName(e.target.value);
+                        }}
                         placeholder={'Segment Name'}
                         autoFocus
                     />
-                    <div className={commonStyles.errorMessage}>
-                        {errors.name &&
-                            'Error with segment name ' + errors.name.message}
-                    </div>
                     <Button
                         trackingId="SaveSessionSegmentFromExistingSegment"
                         style={{

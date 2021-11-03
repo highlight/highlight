@@ -3,7 +3,6 @@ import { useAppLoadingContext } from '@context/AppLoadingContext';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React, { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
 import { useAuthContext } from '../../authentication/AuthContext';
@@ -65,53 +64,39 @@ export const AuthAdminRouter = () => {
     return <AppRouter />;
 };
 
-type Inputs = {
-    email: string;
-    password: string;
-};
-
 const LoginForm = () => {
-    const {
-        watch,
-        register,
-        handleSubmit,
-        errors,
-        reset,
-        setError,
-    } = useForm<Inputs>();
     const [signUpParam] = useQueryParam('sign_up', BooleanParam);
     // Show sign in state if the sign_up param is false or undefined
     const [signIn, setSignIn] = useState<boolean>(!signUpParam);
     const { isAuthLoading, isLoggedIn } = useAuthContext();
     const [firebaseError, setFirebaseError] = useState('');
     const { setIsLoading } = useAppLoadingContext();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [passwordConfirmation, setPasswordConfirmation] = useState('');
+    const [error, setError] = useState<string | null>(null);
 
-    const onSubmit = (data: Inputs) => {
+    const onSubmit = (e: { preventDefault: () => void }) => {
+        e.preventDefault();
         if (signIn) {
-            auth.signInWithEmailAndPassword(data.email, data.password).catch(
+            auth.signInWithEmailAndPassword(email, password).catch((error) => {
+                setError(error.toString());
+            });
+        } else {
+            auth.createUserWithEmailAndPassword(email, password).catch(
                 (error) => {
-                    setError('password', {
-                        type: 'manual',
-                        message: error.toString(),
-                    });
+                    setError(error.toString());
                 }
             );
-        } else {
-            auth.createUserWithEmailAndPassword(
-                data.email,
-                data.password
-            ).catch((error) => {
-                setError('password', {
-                    type: 'manual',
-                    message: error.toString(),
-                });
-            });
         }
+        setEmail('');
+        setPassword('');
+        setPasswordConfirmation('');
     };
 
     const changeState = () => {
         setSignIn(!signIn);
-        reset();
+        setError(null);
     };
 
     useEffect(() => {
@@ -132,10 +117,7 @@ const LoginForm = () => {
         <Landing>
             <div className={styles.loginPage}>
                 <div className={styles.loginFormWrapper}>
-                    <form
-                        onSubmit={handleSubmit(onSubmit)}
-                        className={styles.loginForm}
-                    >
+                    <form onSubmit={onSubmit} className={styles.loginForm}>
                         <div className={styles.loginTitleWrapper}>
                             <h2 className={styles.loginTitle}>
                                 Welcome {signIn && 'back'} to Highlight.
@@ -172,19 +154,22 @@ const LoginForm = () => {
                             <Input
                                 placeholder={'Email'}
                                 name="email"
-                                ref={register({ required: true })}
+                                value={email}
+                                onChange={(e) => {
+                                    setEmail(e.target.value);
+                                }}
                                 autoFocus
+                                required
                             />
-                            {errors.email && (
-                                <div className={commonStyles.errorMessage}>
-                                    {errors.email && 'Enter an email yo!'}
-                                </div>
-                            )}
                             <Input
                                 placeholder={'Password'}
                                 type="password"
                                 name="password"
-                                ref={register({ required: true })}
+                                value={password}
+                                onChange={(e) => {
+                                    setPassword(e.target.value);
+                                }}
+                                required
                             />
                             {!signIn && (
                                 <>
@@ -192,28 +177,22 @@ const LoginForm = () => {
                                         placeholder={'Confirm Password'}
                                         type="password"
                                         name="confirm-password"
-                                        ref={register({
-                                            required: true,
-                                            validate: (value) => {
-                                                if (
-                                                    value !== watch('password')
-                                                ) {
-                                                    setError('password', {
-                                                        type: 'mismatch',
-                                                        message:
-                                                            'Mismatched passwords',
-                                                    });
-                                                    return "Passwords don't match.";
-                                                }
-                                            },
-                                        })}
+                                        required
+                                        value={passwordConfirmation}
+                                        onChange={(e) => {
+                                            setPasswordConfirmation(
+                                                e.target.value
+                                            );
+                                        }}
                                     />
                                 </>
                             )}
                         </div>
-                        <div className={commonStyles.errorMessage}>
-                            {errors.password && errors.password.message}
-                        </div>
+                        {error && (
+                            <div className={commonStyles.errorMessage}>
+                                {error}
+                            </div>
+                        )}
                         <Button
                             trackingId="LoginSignInUp"
                             className={commonStyles.submitButton}

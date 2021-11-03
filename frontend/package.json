@@ -48,7 +48,6 @@
         "react-firebase-hooks": "^2.2.0",
         "react-helmet": "^6.1.0",
         "react-highlight-words": "^0.17.0",
-        "react-hook-form": "^6.9.1",
         "react-hotkeys-hook": "^3.3.1",
         "react-icons": "^3.11.0",
         "react-infinite-scroll-hook": "^3.0.0",
