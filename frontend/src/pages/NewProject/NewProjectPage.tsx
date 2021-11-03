@@ -55,14 +55,20 @@ const NewProjectPage = () => {
                 variables: {
                     name: name,
                 },
-            }).then(() => client.cache.reset());
+            }).then(() => {
+                client.cache.reset();
+                setName('');
+            });
         } else {
             createProject({
                 variables: {
                     name: name,
                     workspace_id,
                 },
-            }).then(() => client.cache.reset());
+            }).then(() => {
+                client.cache.reset();
+                setName('');
+            });
         }
     };
 
