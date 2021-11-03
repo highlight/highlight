@@ -1,3 +1,4 @@
+import Input from '@components/Input/Input';
 import { useAppLoadingContext } from '@context/AppLoadingContext';
 import {
     useCreateProjectMutation,
@@ -105,13 +106,12 @@ const NewProjectPage = () => {
                             `Error with ${pageType} name ` +
                                 errors.name.message}
                     </div>
-                    <input
+                    <Input
                         placeholder={
                             isWorkspace ? 'Pied Piper, Inc' : 'Web Front End'
                         }
                         name="name"
                         ref={register({ required: true })}
-                        className={commonStyles.input}
                         autoComplete="off"
                         autoFocus
                     />

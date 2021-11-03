@@ -1,4 +1,5 @@
 import Card from '@components/Card/Card';
+import Input from '@components/Input/Input';
 import Modal from '@components/Modal/Modal';
 import Table from '@components/Table/Table';
 import SvgTrash from '@icons/Trash';
@@ -116,12 +117,12 @@ const WorkspaceTeam = () => {
                             below.
                         </p>
                         <div className={styles.buttonRow}>
-                            <input
-                                className={commonStyles.input}
+                            <Input
                                 placeholder={'Email'}
                                 type="email"
                                 name="email"
-                                ref={(e) => {
+                                autoFocus
+                                ref={(e: any) => {
                                     register(e, { required: true });
                                     emailRef.current = e;
                                 }}

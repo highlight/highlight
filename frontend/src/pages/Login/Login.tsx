@@ -1,3 +1,4 @@
+import Input from '@components/Input/Input';
 import { useAppLoadingContext } from '@context/AppLoadingContext';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
@@ -167,45 +168,49 @@ const LoginForm = () => {
                                 )}
                             </p>
                         </div>
-                        <input
-                            placeholder={'Email'}
-                            name="email"
-                            ref={register({ required: true })}
-                            className={commonStyles.input}
-                        />
-                        <div className={commonStyles.errorMessage}>
-                            {errors.email && 'Enter an email yo!'}
+                        <div className={styles.inputContainer}>
+                            <Input
+                                placeholder={'Email'}
+                                name="email"
+                                ref={register({ required: true })}
+                                autoFocus
+                            />
+                            {errors.email && (
+                                <div className={commonStyles.errorMessage}>
+                                    {errors.email && 'Enter an email yo!'}
+                                </div>
+                            )}
+                            <Input
+                                placeholder={'Password'}
+                                type="password"
+                                name="password"
+                                ref={register({ required: true })}
+                            />
+                            {!signIn && (
+                                <>
+                                    <Input
+                                        placeholder={'Confirm Password'}
+                                        type="password"
+                                        name="confirm-password"
+                                        ref={register({
+                                            required: true,
+                                            validate: (value) => {
+                                                if (
+                                                    value !== watch('password')
+                                                ) {
+                                                    setError('password', {
+                                                        type: 'mismatch',
+                                                        message:
+                                                            'Mismatched passwords',
+                                                    });
+                                                    return "Passwords don't match.";
+                                                }
+                                            },
+                                        })}
+                                    />
+                                </>
+                            )}
                         </div>
-                        <input
-                            placeholder={'Password'}
-                            type="password"
-                            name="password"
-                            ref={register({ required: true })}
-                            className={commonStyles.input}
-                        />
-                        {!signIn && (
-                            <>
-                                <input
-                                    placeholder={'Confirm Password'}
-                                    type="password"
-                                    name="confirm-password"
-                                    ref={register({
-                                        required: true,
-                                        validate: (value) => {
-                                            if (value !== watch('password')) {
-                                                setError('password', {
-                                                    type: 'mismatch',
-                                                    message:
-                                                        'Mismatched passwords',
-                                                });
-                                                return "Passwords don't match.";
-                                            }
-                                        },
-                                    })}
-                                    className={commonStyles.input}
-                                />
-                            </>
-                        )}
                         <div className={commonStyles.errorMessage}>
                             {errors.password && errors.password.message}
                         </div>

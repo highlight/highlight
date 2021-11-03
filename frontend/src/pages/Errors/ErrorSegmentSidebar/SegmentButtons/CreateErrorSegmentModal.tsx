@@ -1,3 +1,4 @@
+import Input from '@components/Input/Input';
 import { namedOperations } from '@graph/operations';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
@@ -76,13 +77,14 @@ const CreateErrorSegmentModal = ({
             onCancel={onHideModal}
             style={{ display: 'flex' }}
             width={500}
+            destroyOnClose
         >
             <ModalBody>
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <p className={styles.modalSubTitle}>
                         Enter the name of your segment and you'll be good to go!
                     </p>
-                    <input
+                    <Input
                         className={commonStyles.input}
                         name="name"
                         ref={register({ required: true })}
