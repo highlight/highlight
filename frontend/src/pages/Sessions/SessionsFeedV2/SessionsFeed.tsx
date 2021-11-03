@@ -307,7 +307,3 @@ export const SessionFeed = React.memo(() => {
         </SessionFeedConfigurationContextProvider>
     );
 });
-
-const getScrollPosition = (element: React.RefObject<HTMLElement>) => {
-    console.log(element);
-};

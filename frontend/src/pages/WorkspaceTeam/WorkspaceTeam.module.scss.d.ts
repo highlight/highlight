@@ -9,5 +9,5 @@ export const name: string;
 export const removeTeamMemberButton: string;
 export const role: string;
 export const subTitle: string;
-export const subTitleContainer: string;
+export const titleContainer: string;
 export const userDetails: string;
