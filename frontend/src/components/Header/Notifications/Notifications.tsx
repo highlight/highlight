@@ -1,4 +1,5 @@
 import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
+import Tabs from '@components/Tabs/Tabs';
 import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import { Menu } from 'antd';
@@ -21,12 +22,9 @@ import { processNotifications } from './utils/utils';
 
 const Notifications = () => {
     const { project_id } = useParams<{ project_id: string }>();
-    const [notifications, setNotifications] = useState<any[]>([]);
+    const [allNotifications, setAllNotifications] = useState<any[]>([]);
+    const [inboxNotifications, setInboxNotifications] = useState<any[]>([]);
     const [showPopover, setShowPopover] = useState(false);
-    const [
-        unreadNotificationsCount,
-        setUnreadNotificationsCount,
-    ] = useState<number>(0);
     const [readNotifications, setReadNotifications] = useLocalStorage<string[]>(
         'highlight-read-notifications',
         []
@@ -35,10 +33,10 @@ const Notifications = () => {
         onCompleted: (data) => {
             if (data) {
                 const processedNotifications = processNotifications(data);
-                setNotifications(processedNotifications);
+                setAllNotifications(processedNotifications);
             }
         },
-        // pollInterval: 1000 * 30,
+        pollInterval: 1000 * 30,
         variables: {
             project_id,
         },
@@ -46,33 +44,38 @@ const Notifications = () => {
     });
 
     useEffect(() => {
-        const unreadCount = notifications.reduce((prev, curr) => {
-            return readNotifications.includes(curr.id) ? prev : prev + 1;
-        }, 0);
-        setUnreadNotificationsCount(unreadCount);
-    }, [notifications, readNotifications]);
+        const unreadNotifications = allNotifications.filter(
+            (notification) => !readNotifications.includes(notification.id)
+        );
+        setInboxNotifications(unreadNotifications);
+    }, [allNotifications, readNotifications]);
 
     return (
         <Popover
             isList
             visible={showPopover}
             trigger={['click']}
+            placement="bottomRight"
             content={
                 <div className={styles.popover}>
-                    {notifications.length !== 0 ? (
-                        <>
-                            <PopoverListContent
-                                virtual
-                                virtualListHeight={450}
-                                listItems={notifications.map(
-                                    (notification, index) => (
-                                        <NotificationItem
-                                            notification={notification}
-                                            key={notification?.id || index}
-                                            viewed={readNotifications.includes(
-                                                notification.id
-                                            )}
-                                            onViewHandler={() => {
+                    <Tabs
+                        className={styles.tabs}
+                        tabBarExtraContentClassName={styles.tabBarExtraContent}
+                        id="Notifications"
+                        tabs={[
+                            {
+                                key: 'Inbox',
+                                title: `Inbox (${inboxNotifications.length})`,
+                                panelContent:
+                                    inboxNotifications.length !== 0 ? (
+                                        <List
+                                            notifications={inboxNotifications}
+                                            readNotifications={
+                                                readNotifications
+                                            }
+                                            onViewHandler={(
+                                                notification: any
+                                            ) => {
                                                 setShowPopover(false);
                                                 if (notification.id) {
                                                     H.track(
@@ -86,30 +89,127 @@ const Notifications = () => {
                                                 }
                                             }}
                                         />
-                                    )
-                                )}
+                                    ) : (
+                                        <>
+                                            <div
+                                                className={
+                                                    styles.emptyStateContainer
+                                                }
+                                            >
+                                                <Lottie
+                                                    animationData={
+                                                        NotificationAnimation
+                                                    }
+                                                    className={styles.animation}
+                                                />
+                                                <p>
+                                                    {allNotifications.length ===
+                                                    0
+                                                        ? `Comments made in your
+								project will show up here.
+								Get started by mentioning a
+								team member on an error or a
+								session.`
+                                                        : `You have no unread notifications 🎉`}
+                                                </p>
+                                                <PersonalNotificationButton
+                                                    text="Get Slack Notifications"
+                                                    style={{
+                                                        maxWidth: 'fit-content',
+                                                    }}
+                                                    type="Organization"
+                                                />
+                                            </div>
+                                        </>
+                                    ),
+                            },
+                            {
+                                key: 'All',
+                                title: `All (${allNotifications.length})`,
+                                panelContent:
+                                    allNotifications.length !== 0 ? (
+                                        <List
+                                            notifications={allNotifications}
+                                            readNotifications={
+                                                readNotifications
+                                            }
+                                            onViewHandler={(
+                                                notification: any
+                                            ) => {
+                                                setShowPopover(false);
+                                                if (notification.id) {
+                                                    H.track(
+                                                        'Clicked on notification item',
+                                                        {}
+                                                    );
+                                                    setReadNotifications([
+                                                        ...readNotifications,
+                                                        notification.id.toString(),
+                                                    ]);
+                                                }
+                                            }}
+                                        />
+                                    ) : (
+                                        <>
+                                            <div
+                                                className={
+                                                    styles.emptyStateContainer
+                                                }
+                                            >
+                                                <Lottie
+                                                    animationData={
+                                                        NotificationAnimation
+                                                    }
+                                                    className={styles.animation}
+                                                />
+                                                <p>
+                                                    Comments made in your
+                                                    project will show up here.
+                                                    Get started by mentioning a
+                                                    team member on an error or a
+                                                    session.
+                                                </p>
+                                                <PersonalNotificationButton
+                                                    text="Get Slack Notifications"
+                                                    style={{
+                                                        maxWidth: 'fit-content',
+                                                    }}
+                                                    type="Organization"
+                                                />
+                                            </div>
+                                        </>
+                                    ),
+                            },
+                        ]}
+                        tabBarExtraContent={
+                            <DotsMenu
+                                trackingId="MarkAllNotificationsAsRead"
+                                menu={
+                                    <Menu>
+                                        <Menu.Item
+                                            onClick={() => {
+                                                setReadNotifications([
+                                                    ...allNotifications.map(
+                                                        (notification) =>
+                                                            notification.id.toString()
+                                                    ),
+                                                ]);
+                                            }}
+                                        >
+                                            Mark all as read
+                                        </Menu.Item>
+                                        <Menu.Item
+                                            onClick={() => {
+                                                setReadNotifications([]);
+                                            }}
+                                        >
+                                            Mark all as unread
+                                        </Menu.Item>
+                                    </Menu>
+                                }
                             />
-                        </>
-                    ) : (
-                        <>
-                            <div className={styles.emptyStateContainer}>
-                                <Lottie
-                                    animationData={NotificationAnimation}
-                                    className={styles.animation}
-                                />
-                                <p>
-                                    Comments made in your project will show up
-                                    here. Get started by mentioning a team
-                                    member on an error or a session.
-                                </p>
-                                <PersonalNotificationButton
-                                    text="Get Slack Notifications"
-                                    style={{ maxWidth: 'fit-content' }}
-                                    type="Organization"
-                                />
-                            </div>
-                        </>
-                    )}
+                        }
+                    />
                 </div>
             }
             onVisibleChange={(visible) => {
@@ -118,39 +218,6 @@ const Notifications = () => {
                 }
                 setShowPopover(visible);
             }}
-            title={
-                <div className={styles.popoverTitle}>
-                    <h3>Comments</h3>
-                    <div className={styles.dotContainer}>
-                        <DotsMenu
-                            trackingId="MarkAllNotificationsAsRead"
-                            menu={
-                                <Menu>
-                                    <Menu.Item
-                                        onClick={() => {
-                                            setReadNotifications([
-                                                ...notifications.map(
-                                                    (notification) =>
-                                                        notification.id.toString()
-                                                ),
-                                            ]);
-                                        }}
-                                    >
-                                        Mark all as read
-                                    </Menu.Item>
-                                    <Menu.Item
-                                        onClick={() => {
-                                            setReadNotifications([]);
-                                        }}
-                                    >
-                                        Mark all as unread
-                                    </Menu.Item>
-                                </Menu>
-                            }
-                        />
-                    </div>
-                </div>
-            }
         >
             <Button
                 type="text"
@@ -159,7 +226,7 @@ const Notifications = () => {
                 iconButton
             >
                 <div className={styles.iconContainer}>
-                    {unreadNotificationsCount !== 0 && (
+                    {inboxNotifications.length !== 0 && (
                         <div className={styles.dotContainer}>
                             <Dot pulse />
                         </div>
@@ -172,3 +239,33 @@ const Notifications = () => {
 };
 
 export default Notifications;
+
+interface ListProps {
+    notifications: any[];
+    readNotifications: string[];
+    onViewHandler: (notification: any) => void;
+}
+
+const List = ({
+    notifications,
+    readNotifications,
+    onViewHandler,
+}: ListProps) => {
+    return (
+        <PopoverListContent
+            virtual
+            virtualListHeight={600}
+            maxHeight={600}
+            listItems={notifications.map((notification, index) => (
+                <NotificationItem
+                    notification={notification}
+                    key={notification?.id || index}
+                    viewed={readNotifications.includes(notification.id)}
+                    onViewHandler={() => {
+                        onViewHandler(notification);
+                    }}
+                />
+            ))}
+        />
+    );
+};

@@ -15,8 +15,7 @@
 
 .popover {
     margin-top: var(--size-xxSmall);
-    max-width: 320px;
-    min-width: 300px;
+    width: 320px;
 }
 
 .list {
@@ -119,9 +118,15 @@
     display: flex;
     flex-direction: column;
     height: 320px;
+    justify-content: center;
     margin: 0 auto;
+    padding-bottom: var(--size-large);
     text-align: center;
     width: 80%;
+
+    p {
+        color: var(--color-gray-500) !important;
+    }
 }
 
 .animation {
@@ -130,4 +135,22 @@
 
 .personalNotificationAlert {
     margin-bottom: var(--size-large);
+}
+
+.tabs {
+    :global(.ant-tabs-nav-wrap) {
+        padding-left: 0 !important;
+    }
+
+    &:global(.ant-tabs) {
+        margin-bottom: calc(-1 * var(--size-small));
+        margin-left: calc(-1 * var(--size-medium));
+        margin-right: calc(-1 * var(--size-medium));
+        margin-top: calc(-1 * var(--size-medium));
+        overflow: visible !important;
+    }
+
+    .tabBarExtraContent {
+        padding-right: var(--size-xSmall);
+    }
 }
