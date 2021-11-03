@@ -15,8 +15,7 @@
 
 .popover {
     margin-top: var(--size-xxSmall);
-    max-width: 320px;
-    min-width: 300px;
+    width: 320px;
 }
 
 .list {
@@ -130,4 +129,18 @@
 
 .personalNotificationAlert {
     margin-bottom: var(--size-large);
+}
+
+.tabs {
+    :global(.ant-tabs-nav-wrap) {
+        padding-left: 0 !important;
+    }
+
+    &:global(.ant-tabs) {
+        margin-bottom: calc(-1 * var(--size-small));
+        margin-left: calc(-1 * var(--size-medium));
+        margin-right: calc(-1 * var(--size-medium));
+        margin-top: calc(-1 * var(--size-medium));
+        overflow: visible !important;
+    }
 }
