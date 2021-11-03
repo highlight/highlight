@@ -1,3 +1,4 @@
+import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
@@ -29,8 +30,10 @@ const ErrorsPage = () => {
         time,
         replayer,
         session,
+        setTime,
     } = useReplayerContext();
     const { setErrorPanel } = useResourceOrErrorDetailPanel();
+    const { detailedPanel } = usePlayerUIContext();
 
     const loading = state === ReplayerState.Loading;
 
@@ -139,6 +142,7 @@ const ErrorsPage = () => {
                             <ErrorCard
                                 searchQuery={filterSearchTerm}
                                 key={error?.id}
+                                replayerContext={{ replayer, setTime }}
                                 error={error}
                                 state={
                                     hasTimestamp
@@ -150,6 +154,7 @@ const ErrorsPage = () => {
                                 setSelectedError={() => {
                                     setErrorPanel(error);
                                 }}
+                                detailedPanel={detailedPanel}
                             />
                         )}
                     />
