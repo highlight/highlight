@@ -940,7 +940,7 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 			SessionID:   sessionObj.ID,
 			Environment: sessionObj.Environment,
 			Event:       v.Event,
-			Type:        v.Type,
+			Type:        model.ErrorType.BACKEND,
 			URL:         v.URL,
 			Source:      v.Source,
 			OS:          sessionObj.OSName,
