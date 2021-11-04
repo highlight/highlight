@@ -256,6 +256,7 @@ const List = ({
             virtual
             virtualListHeight={600}
             maxHeight={600}
+            defaultItemHeight={97}
             listItems={notifications.map((notification, index) => (
                 <NotificationItem
                     notification={notification}
