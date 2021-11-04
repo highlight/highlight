@@ -22,4 +22,12 @@
             border-bottom: 0 !important;
         }
     }
+
+    :global(.ant-table-empty) {
+        margin-top: var(--size-xxLarge);
+
+        :global(.ant-table-cell) {
+            border-bottom: 0 !important;
+        }
+    }
 }

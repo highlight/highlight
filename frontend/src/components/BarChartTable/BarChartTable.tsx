@@ -35,7 +35,7 @@ const BarChartTable = ({
             <Table
                 className={styles.table}
                 loading={loading}
-                scroll={{ y: 250 }}
+                scroll={{ y: 287 }}
                 showHeader={false}
                 columns={columns}
                 dataSource={data}
