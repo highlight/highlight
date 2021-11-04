@@ -119,10 +119,15 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     const [
         getSessionPayloadQuery,
-        { loading: eventsLoading, data: eventsData },
+        {
+            loading: eventsLoading,
+            data: eventsData,
+            startPolling: startPollingEvents,
+            stopPolling: stopPollingEvents,
+        },
     ] = useGetSessionPayloadLazyQuery({
         fetchPolicy: 'no-cache',
-        pollInterval: 1000,
+        // pollInterval: 1000,
     });
     const [eventsPayload, setEventsPayload] = useState<any[] | undefined>(
         undefined
@@ -231,6 +236,21 @@ export const usePlayer = (): ReplayerContextInterface => {
         setSession(sessionData?.session as Session | undefined);
     }, [sessionData?.session]);
 
+    useEffect(() => {
+        if (isLiveMode && startPollingEvents) {
+            console.log('Starting polling');
+            startPollingEvents(1000);
+        } else if (!isLiveMode && stopPollingEvents) {
+            console.log('Stopping polling');
+            stopPollingEvents();
+        } else {
+            console.log(
+                'start/stop polling not defined, isLiveMode: ',
+                isLiveMode
+            );
+        }
+    }, [isLiveMode, startPollingEvents, stopPollingEvents]);
+
     // Reset all state when loading events.
     useEffect(() => {
         if (eventsLoading) {
@@ -238,6 +258,10 @@ export const usePlayer = (): ReplayerContextInterface => {
             resetPlayer(ReplayerState.Loading);
         }
     }, [eventsLoading, resetPlayer, setPlayerTimeToPersistance]);
+
+    useEffect(() => {
+        console.log('Is Live mode is now ', isLiveMode);
+    }, [isLiveMode]);
 
     useEffect(() => {
         const searchParamsObject = new URLSearchParams(location.search);
@@ -264,15 +288,18 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     // Handle data in playback mode.
     useEffect(() => {
-        if (eventsPayload?.length) {
+        if (eventsPayload?.length ?? 0 > 1) {
             console.log('Events length: ', eventsPayload?.length);
+            console.log('is live mode on new events is ', isLiveMode);
             setSessionViewability(SessionViewability.VIEWABLE);
             // Add an id field to each event so it can be referenced.
             const newEvents: HighlightEvent[] = toHighlightEvents(
-                eventsPayload
+                eventsPayload!
             );
             console.log('Rich: got events');
             if (session_secure_id !== lastLoadedPlayerState?.sessionSecureId) {
+                console.log('Setting live mode');
+                setIsLiveMode(sessionData?.session?.processed === false);
                 setState(ReplayerState.Loading);
                 console.log('Rich: redoing player');
                 // Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
@@ -299,7 +326,6 @@ export const usePlayer = (): ReplayerContextInterface => {
                         H.consumeError(e, 'Failed to JSON parse client config');
                     }
                 }
-                setIsLiveMode(sessionData?.session?.processed === false);
                 const r = new Replayer(newEvents.slice(0, EVENTS_CHUNK_SIZE), {
                     root: playerMountingRoot,
                     triggerFocus: false,
@@ -368,6 +394,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             let eventsIndex = loadedEventsIndex;
 
             const addEventsWorker = () => {
+                console.log('processing events, Islivemode is ', isLiveMode);
                 events
                     .slice(eventsIndex, eventsIndex + EVENTS_CHUNK_SIZE)
                     .forEach((event) => {
@@ -663,8 +690,13 @@ export const usePlayer = (): ReplayerContextInterface => {
             //     ) - events[0].timestamp; // Minimum 15s delay for live mode
             console.log('Playing from ', newTime);
             console.log('sessionEndTime: ', sessionEndTime - 1);
+            console.log('replayerEndTime: ', replayer?.getMetaData().endTime);
             console.log(
-                '15s delay: ',
+                'replayerTotalTime: ',
+                replayer?.getMetaData().totalTime
+            );
+            console.log(
+                'targetTime: ',
                 Date.now() - 15000 - events[0].timestamp
             );
         }
