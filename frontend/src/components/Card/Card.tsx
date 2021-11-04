@@ -25,7 +25,11 @@ const Card: React.FC<Props> = ({
             })}
         >
             {title && (
-                <div className={styles.titleContainer}>
+                <div
+                    className={classNames(styles.titleContainer, {
+                        [styles.interactive]: typeof title !== 'string',
+                    })}
+                >
                     {typeof title === 'string' ? (
                         <h3 className={styles.h3}>{title}</h3>
                     ) : (

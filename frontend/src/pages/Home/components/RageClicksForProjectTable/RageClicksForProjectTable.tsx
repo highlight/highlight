@@ -3,6 +3,7 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import SvgCursorClickIcon from '@icons/CursorClickIcon';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
@@ -154,7 +155,10 @@ const Columns: ColumnsType<any> = [
         align: 'right',
         render: (count) => (
             <Tooltip title="The number of rage clicks in the session.">
-                <div className={styles.countContainer}>{count} clicks</div>
+                <div className={styles.countContainer}>
+                    <SvgCursorClickIcon />
+                    {count} clicks
+                </div>
             </Tooltip>
         ),
     },

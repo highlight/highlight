@@ -1,6 +1,7 @@
 .countContainer {
     border: 1px solid var(--color-gray-300);
     border-radius: var(--border-radius);
+    column-gap: var(--size-xSmall);
     display: flex;
     justify-content: flex-end;
     margin-left: auto;
