@@ -2,7 +2,6 @@ import Alert from '@components/Alert/Alert';
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import Card from '@components/Card/Card';
 import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
-import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Table from '@components/Table/Table';
 import Tag from '@components/Tag/Tag';
 import SvgBugIcon from '@icons/BugIcon';
@@ -130,9 +129,12 @@ const TABLE_COLUMNS = [
         render: (type: string, record: any) => {
             return (
                 <span className={styles.cellWithTooltip}>
-                    <Tag backgroundColor={getAlertTypeColor(type)}>
+                    <Tag
+                        backgroundColor={getAlertTypeColor(type)}
+                        color="var(--text-primary-inverted)"
+                        infoTooltipText={record.configuration.description}
+                    >
                         {type}
-                        <InfoTooltip title={record.configuration.description} />
                     </Tag>
                 </span>
             );
@@ -275,13 +277,14 @@ const AlertsPage = () => {
 
             {((alertsPayload && alertsPayload.is_integrated_with_slack) ||
                 !alertsPayload) && (
-                <Card>
+                <Card noPadding>
                     <Table
                         columns={TABLE_COLUMNS}
                         loading={loading}
                         dataSource={alertsAsTableRows}
                         pagination={false}
                         showHeader={false}
+                        rowHasPadding
                         renderEmptyComponent={
                             <div className={styles.emptyContainer}>
                                 <h3>

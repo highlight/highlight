@@ -13,6 +13,7 @@ export const errorTextWrapper: string;
 export const feedContent: string;
 export const feedWrapper: string;
 export const fixedContent: string;
+export const hasScrolled: string;
 export const ignored: string;
 export const middleText: string;
 export const open: string;

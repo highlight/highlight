@@ -160,9 +160,9 @@ func (r *errorGroupResolver) ErrorFrequency(ctx context.Context, obj *model.Erro
 func (r *errorObjectResolver) ErrorGroupSecureID(ctx context.Context, obj *model.ErrorObject) (string, error) {
 	if obj != nil {
 		var secureID string
-		if result := r.DB.Raw(`SELECT secure_id FROM error_groups WHERE id = ? LIMIT 1`,
-			obj.ErrorGroupID).Scan(&secureID); result.Error != nil {
-			return "", fmt.Errorf("Failed to retrieve secure_id for error group: %v, id: %d", result.Error, obj.ErrorGroupID)
+		if err := r.DB.Raw(`SELECT secure_id FROM error_groups WHERE id = ? LIMIT 1`,
+			obj.ErrorGroupID).Scan(&secureID).Error; err != nil {
+			return "", e.Wrapf(err, "Failed to retrieve secure_id for error group, id: %d", obj.ErrorGroupID)
 		}
 		return secureID, nil
 	}
@@ -573,7 +573,7 @@ func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (strin
 		ApolloDataShortened: *short,
 	})
 
-	go func() {
+	r.PrivateWorkerPool.SubmitRecover(func() {
 		if contact, err := apolloio.CreateContact(email); err != nil {
 			log.Errorf("error creating apollo contact: %v", err)
 		} else {
@@ -582,7 +582,7 @@ func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (strin
 				log.Errorf("error adding to apollo sequence: %v", err)
 			}
 		}
-	}()
+	})
 
 	return email, nil
 }
@@ -771,7 +771,10 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, projectID i
 	// mark sessions as within billing quota on plan upgrade
 	// this code is repeated as the first time, the user already has a billing plan and the function returns early.
 	// here, the user doesn't already have a billing plan, so it's considered an upgrade unless the plan is free
-	go r.UpdateSessionsVisibility(projectID, pricing.FromPriceID(planTypeId), modelInputs.PlanTypeFree)
+
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		r.UpdateSessionsVisibility(projectID, pricing.FromPriceID(planTypeId), modelInputs.PlanTypeFree)
+	})
 
 	return &model.T, nil
 }
@@ -836,7 +839,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			adminIds = append(adminIds, admin.ID)
 		}
 
-		go func() {
+		r.PrivateWorkerPool.SubmitRecover(func() {
 			commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
 				tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedAdmins)))
 			defer commentMentionEmailSpan.Finish()
@@ -845,9 +848,9 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in session comment"))
 			}
-		}()
+		})
 
-		go func() {
+		r.PrivateWorkerPool.SubmitRecover(func() {
 			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
 				tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(adminIds)))
 			defer commentMentionSlackSpan.Finish()
@@ -856,11 +859,11 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in session comment"))
 			}
-		}()
+		})
 	}
 
 	if len(taggedSlackUsers) > 0 && !isGuestCreatingSession {
-		go func() {
+		r.PrivateWorkerPool.SubmitRecover(func() {
 			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
 				tracer.ResourceName("slackBot.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedSlackUsers)))
 			defer commentMentionSlackSpan.Finish()
@@ -869,8 +872,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in session comment for slack bot"))
 			}
-		}()
-
+		})
 	}
 
 	return sessionComment, nil
@@ -943,7 +945,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 			adminIds = append(adminIds, admin.ID)
 		}
 
-		go func() {
+		r.PrivateWorkerPool.SubmitRecover(func() {
 			commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
 				tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedAdmins)))
 			defer commentMentionEmailSpan.Finish()
@@ -952,9 +954,9 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in error comment"))
 			}
-		}()
+		})
 
-		go func() {
+		r.PrivateWorkerPool.SubmitRecover(func() {
 			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
 				tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(adminIds)))
 			defer commentMentionSlackSpan.Finish()
@@ -963,11 +965,11 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in error comment"))
 			}
-		}()
+		})
 
 	}
 	if len(taggedSlackUsers) > 0 && !isGuest {
-		go func() {
+		r.PrivateWorkerPool.SubmitRecover(func() {
 			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
 				tracer.ResourceName("slackBot.sendErrorCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedSlackUsers)))
 			defer commentMentionSlackSpan.Finish()
@@ -976,7 +978,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in error comment for slack bot"))
 			}
-		}()
+		})
 	}
 	return errorComment, nil
 }
@@ -1100,9 +1102,21 @@ func (r *mutationResolver) AddSlackBotIntegrationToProject(ctx context.Context, 
 		// im is for all individuals in the Slack workspace
 		Types: []string{"public_channel", "im"},
 	}
-	channels, _, err := slackClient.GetConversations(&getConversationsParam)
-	if err != nil {
-		return false, e.Wrap(err, "error getting Slack channels from Slack.")
+	allSlackChannelsFromAPI := []slack.Channel{}
+
+	// Slack paginates the channels/people listing.
+	for {
+		channels, cursor, err := slackClient.GetConversations(&getConversationsParam)
+		if err != nil {
+			return false, e.Wrap(err, "error getting Slack channels from Slack.")
+		}
+
+		allSlackChannelsFromAPI = append(allSlackChannelsFromAPI, channels...)
+
+		if cursor == "" {
+			break
+		}
+
 	}
 
 	// We need to get the users in the Slack channel in order to get their name.
@@ -1113,7 +1127,7 @@ func (r *mutationResolver) AddSlackBotIntegrationToProject(ctx context.Context, 
 	}
 
 	newChannels := []model.SlackChannel{}
-	for _, channel := range channels {
+	for _, channel := range allSlackChannelsFromAPI {
 		newChannel := model.SlackChannel{}
 
 		// Slack channels' `User` will be an empty string and the user's ID if it's a user.
@@ -1892,9 +1906,8 @@ func (r *mutationResolver) UpdateErrorGroupIsPublic(ctx context.Context, errorGr
 func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Session, error) {
 	if util.IsDevEnv() && secureID == "repro" {
 		sessionObj := &model.Session{}
-		res := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: 0}}).First(&sessionObj)
-		if res.Error != nil {
-			return nil, fmt.Errorf("error reading from session: %v", res.Error)
+		if err := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: 0}}).First(&sessionObj).Error; err != nil {
+			return nil, e.Wrap(err, "error reading from session")
 		}
 		return sessionObj, nil
 	}
@@ -1904,9 +1917,8 @@ func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Se
 		return nil, e.Wrap(err, "admin not session owner")
 	}
 	sessionObj := &model.Session{}
-	res := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&sessionObj)
-	if res.Error != nil {
-		return nil, fmt.Errorf("error reading from session: %v", res.Error)
+	if err := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&sessionObj).Error; err != nil {
+		return nil, e.Wrap(err, "error reading from session")
 	}
 	return sessionObj, nil
 }
@@ -1941,8 +1953,8 @@ func (r *queryResolver) Events(ctx context.Context, sessionSecureID string) ([]i
 	eventsQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("db.eventsObjectsQuery"), tracer.Tag("project_id", s.ProjectID))
 	eventObjs := []*model.EventsObject{}
-	if res := r.DB.Order("created_at desc").Where(&model.EventsObject{SessionID: s.ID}).Find(&eventObjs); res.Error != nil {
-		return nil, fmt.Errorf("error reading from events: %v", res.Error)
+	if err := r.DB.Order("created_at desc").Where(&model.EventsObject{SessionID: s.ID}).Find(&eventObjs).Error; err != nil {
+		return nil, e.Wrap(err, "error reading from events")
 	}
 	eventsQuerySpan.Finish()
 	eventsParseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
@@ -1951,7 +1963,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionSecureID string) ([]i
 	for _, eventObj := range eventObjs {
 		subEvents := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(eventObj.Events), &subEvents); err != nil {
-			return nil, fmt.Errorf("error decoding event data: %v", err)
+			return nil, e.Wrap(err, "error decoding event data")
 		}
 		allEvents["events"] = append(subEvents["events"], allEvents["events"]...)
 	}
@@ -1971,6 +1983,44 @@ func (r *queryResolver) RageClicks(ctx context.Context, sessionSecureID string) 
 	if res := r.DB.Where(&model.RageClickEvent{SessionSecureID: sessionSecureID}).Find(&rageClicks); res.Error != nil {
 		return nil, e.Wrap(res.Error, "failed to get rage clicks")
 	}
+
+	return rageClicks, nil
+}
+
+func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int, lookBackPeriod int) ([]*modelInputs.RageClickEventForProject, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "admin not found in project")
+	}
+
+	rageClicks := []*modelInputs.RageClickEventForProject{}
+
+	rageClicksSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
+		tracer.ResourceName("db.RageClicksForProject"), tracer.Tag("project_id", projectID))
+	if err := r.DB.Raw(`
+	SELECT
+		COALESCE(NULLIF(identifier, ''), CONCAT('#', fingerprint)) as identifier,
+		rageClicks. *
+	FROM
+		(
+			SELECT
+				DISTINCT session_secure_id,
+				sum(total_clicks) as total_clicks
+			FROM
+				rage_click_events
+			WHERE
+				project_id = ?
+				AND created_at >= NOW() - (? * INTERVAL '1 DAY')
+			GROUP BY
+				session_secure_id
+		) AS rageClicks
+		LEFT JOIN sessions s ON rageClicks.session_secure_id = s.secure_id
+		WHERE session_secure_id IS NOT NULL
+		ORDER BY total_clicks DESC
+		LIMIT 100`,
+		projectID, lookBackPeriod).Scan(&rageClicks).Error; err != nil {
+		return nil, e.Wrap(err, "error retrieving rage clicks for project")
+	}
+	rageClicksSpan.Finish()
 
 	return rageClicks, nil
 }
@@ -2104,14 +2154,14 @@ func (r *queryResolver) Messages(ctx context.Context, sessionSecureID string) ([
 		return ret, nil
 	}
 	messagesObj := []*model.MessagesObject{}
-	if res := r.DB.Order("created_at desc").Where(&model.MessagesObject{SessionID: s.ID}).Find(&messagesObj); res.Error != nil {
-		return nil, fmt.Errorf("error reading from messages: %v", res.Error)
+	if err := r.DB.Order("created_at desc").Where(&model.MessagesObject{SessionID: s.ID}).Find(&messagesObj).Error; err != nil {
+		return nil, e.Wrap(err, "error reading from messages")
 	}
 	allEvents := make(map[string][]interface{})
 	for _, messageObj := range messagesObj {
 		subMessage := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(messageObj.Messages), &subMessage); err != nil {
-			return nil, fmt.Errorf("error decoding message data: %v", err)
+			return nil, e.Wrap(err, "error decoding message data")
 		}
 		allEvents["messages"] = append(subMessage["messages"], allEvents["messages"]...)
 	}
@@ -2125,9 +2175,8 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 	}
 	sessionObj := &model.Session{}
 	// TODO: filter fields by type='user'.
-	res := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&sessionObj)
-	if res.Error != nil {
-		return nil, fmt.Errorf("error reading from session: %v", res.Error)
+	if err := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&sessionObj).Error; err != nil {
+		return nil, e.Wrap(err, "error reading from session")
 	}
 	details := &modelInputs.EnhancedUserDetailsResult{}
 	details.Socials = []*modelInputs.SocialLink{}
@@ -2155,7 +2204,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 			}
 			p, co = pc.Person, pc.Company
 			// Store the data for this email in the DB.
-			go func() {
+			r.PrivateWorkerPool.SubmitRecover(func() {
 				log.Infof("caching response data in the db")
 				modelToSave := &model.EnhancedUserDetails{}
 				modelToSave.Email = &email
@@ -2174,7 +2223,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 				if err := r.DB.Create(modelToSave).Error; err != nil {
 					log.Errorf("error creating clearbit details model")
 				}
-			}()
+			})
 		} else {
 			log.Infof("retrieving db entry for clearbit lookup")
 			if userDetailsModel.PersonJSON != nil && userDetailsModel.CompanyJSON != nil {
@@ -2229,8 +2278,8 @@ func (r *queryResolver) Errors(ctx context.Context, sessionSecureID string) ([]*
 		tracer.ResourceName("db.errorObjectsQuery"), tracer.Tag("project_id", s.ProjectID))
 	defer eventsQuerySpan.Finish()
 	errorsObj := []*model.ErrorObject{}
-	if res := r.DB.Order("created_at asc").Where(&model.ErrorObject{SessionID: s.ID}).Find(&errorsObj); res.Error != nil {
-		return nil, fmt.Errorf("error reading from errors: %v", res.Error)
+	if err := r.DB.Order("created_at asc").Where(&model.ErrorObject{SessionID: s.ID}).Find(&errorsObj).Error; err != nil {
+		return nil, e.Wrap(err, "error reading from errors")
 	}
 	return errorsObj, nil
 }
@@ -2251,14 +2300,14 @@ func (r *queryResolver) Resources(ctx context.Context, sessionSecureID string) (
 		return ret, nil
 	}
 	resourcesObject := []*model.ResourcesObject{}
-	if res := r.DB.Order("created_at desc").Where(&model.ResourcesObject{SessionID: s.ID}).Find(&resourcesObject); res.Error != nil {
-		return nil, fmt.Errorf("error reading from resources: %v", res.Error)
+	if err := r.DB.Order("created_at desc").Where(&model.ResourcesObject{SessionID: s.ID}).Find(&resourcesObject).Error; err != nil {
+		return nil, e.Wrap(err, "error reading from resources")
 	}
 	allResources := make(map[string][]interface{})
 	for _, resourceObj := range resourcesObject {
 		subResources := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(resourceObj.Resources), &subResources); err != nil {
-			return nil, fmt.Errorf("error decoding resource data: %v", err)
+			return nil, e.Wrap(err, "error decoding resource data")
 		}
 		allResources["resources"] = append(subResources["resources"], allResources["resources"]...)
 	}
@@ -2499,7 +2548,7 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, 
 		ON d.date = to_char(date_trunc('day', e.created_at), 'YYYY-MM-DD')
 		AND e.error_group_id=? AND e.project_id=?
 		GROUP BY d.date
-		ORDER BY d.date DESC;
+		ORDER BY d.date ASC;
 	`, dateOffset, errGroup.ID, projectID).Scan(&dailyErrors).Error; err != nil {
 		return nil, e.Wrap(err, "error querying daily frequency")
 	}
@@ -2585,7 +2634,7 @@ func (r *queryResolver) AverageSessionLength(ctx context.Context, projectID int,
 		return nil, e.Wrap(err, "admin not found in project")
 	}
 	var length float64
-	query := fmt.Sprintf("SELECT avg(active_length) FROM sessions WHERE project_id=%d AND processed=true AND active_length IS NOT NULL AND created_at >= NOW() - INTERVAL '%d DAY';", projectID, lookBackPeriod)
+	query := fmt.Sprintf("SELECT COALESCE(avg(active_length), 0) FROM sessions WHERE project_id=%d AND processed=true AND active_length IS NOT NULL AND created_at >= NOW() - INTERVAL '%d DAY';", projectID, lookBackPeriod)
 	if err := r.DB.Raw(query).Scan(&length).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving average length for sessions")
 	}
@@ -3191,7 +3240,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 			return nil, spanError
 		}
 		firebaseSpan.Finish()
-		go func() {
+		r.PrivateWorkerPool.SubmitRecover(func() {
 			if contact, err := apolloio.CreateContact(*newAdmin.Email); err != nil {
 				log.Errorf("error creating apollo contact: %v", err)
 			} else {
@@ -3200,7 +3249,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 					log.Errorf("error adding new contact to sequence: %v", err)
 				}
 			}
-		}()
+		})
 		admin = newAdmin
 	}
 	if admin.PhotoURL == nil || admin.Name == nil {
@@ -3275,6 +3324,22 @@ func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*mode
 
 func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (interface{}, error) {
 	return obj.UserObject, nil
+}
+
+func (r *sessionResolver) DirectDownloadURL(ctx context.Context, obj *model.Session) (*string, error) {
+	acceptEncodingString := ctx.Value(model.ContextKeys.AcceptEncoding).(string)
+
+	// Direct download only supported for clients that accept Brotli content encoding
+	if !obj.DirectDownloadEnabled || !strings.Contains(acceptEncodingString, "br") {
+		return nil, nil
+	}
+
+	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting direct download URL")
+	}
+
+	return str, err
 }
 
 func (r *sessionAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.SessionAlert) ([]*modelInputs.SanitizedSlackChannel, error) {

@@ -1,5 +1,6 @@
 import { DEMO_WORKSPACE_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { useSlackBot } from '@components/Header/components/PersonalNotificationButton/utils/utils';
+import PopConfirm from '@components/PopConfirm/PopConfirm';
 import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
@@ -51,6 +52,13 @@ const OnboardingBubble = () => {
         temporarilyHideOnboardingBubble,
         setTemporarilyHideOnboardingBubble,
     ] = useSessionStorage('highlightTemporarilyHideOnboardingBubble', false);
+    const [
+        permanentlyHideOnboardingBubble,
+        setPermanentlyHideOnboardingBubble,
+    ] = useLocalStorage(
+        `highlightPermanentlyHideOnboardingBubble-${project_id}`,
+        false
+    );
     const [steps, setSteps] = useState<OnboardingStep[]>([]);
     const [rainConfetti, setRainConfetti] = useState(false);
     const [stepsNotFinishedCount, setStepsNotFinishedCount] = useState<number>(
@@ -120,15 +128,6 @@ const OnboardingBubble = () => {
                 completed: !!data.adminHasCreatedComment || false,
                 tooltip: `You can create a comment on a session by clicking on the session player. You can also tag your team by @'ing them.`,
             });
-            STEPS.push({
-                displayName: 'Set up personal notifications',
-                action: () => {
-                    window.location.href = slackBotUrl;
-                    setSetupType('Personal');
-                },
-                completed: !!data.admin?.slack_im_channel_id || false,
-                tooltip: `You will get a Slack DM anytime someone tags you in a Highlight comment!`,
-            });
             setSteps(STEPS);
             const stepsNotFinishedCount = STEPS.reduce((prev, curr) => {
                 if (!curr.completed) {
@@ -179,6 +178,7 @@ const OnboardingBubble = () => {
         loading ||
         stepsNotFinishedCount === -1 ||
         temporarilyHideOnboardingBubble ||
+        permanentlyHideOnboardingBubble ||
         project_id === DEMO_WORKSPACE_APPLICATION_ID
     ) {
         return null;
@@ -211,18 +211,30 @@ const OnboardingBubble = () => {
                                     showInfo
                                 />
                             </div>
-                            <Button
-                                trackingId="hideOnboardingBubble"
-                                type="text"
-                                iconButton
-                                small
-                                className={styles.closeButton}
-                                onClick={() => {
+                            <PopConfirm
+                                title="Show setup steps later?"
+                                description="Completing these setup steps will help you get the most out of Highlight."
+                                cancelText="Don't Show Again"
+                                okText="Show Again"
+                                placement="topLeft"
+                                align={{ offset: [-8, -12] }}
+                                onConfirm={() => {
                                     setTemporarilyHideOnboardingBubble(true);
                                 }}
+                                onCancel={() => {
+                                    setPermanentlyHideOnboardingBubble(true);
+                                }}
                             >
-                                <SvgClose />
-                            </Button>
+                                <Button
+                                    trackingId="hideOnboardingBubble"
+                                    type="text"
+                                    iconButton
+                                    small
+                                    className={styles.closeButton}
+                                >
+                                    <SvgClose />
+                                </Button>
+                            </PopConfirm>
                         </div>
                         <ul className={styles.stepsContainer}>
                             {steps.map((step) => (

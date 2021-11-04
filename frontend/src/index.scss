@@ -6,18 +6,21 @@
     --color-purple-400: #937ccc;
     --color-purple-light: #bb6bd9;
     --color-purple: #5629c6;
+    --color-purple-rgb: 86, 41, 198;
     --color-purple-800: #302c3a;
     --color-blue-100: #deebff;
     --color-blue-200: #b2d4ff;
     --color-blue-300: #56ccf2;
     --color-blue-400: #2d9cdb;
     --color-blue-500: #2f80ed;
-    --color-green-light: #6fcf97;
-    --color-green: #27ae60;
-    --color-green-dark: #219653;
-    --color-green-extra-dark: #006400;
+    --color-green-100: #beff6c5e;
+    --color-green-300: #6fcf97;
+    --color-green-400: #27ae60;
+    --color-green-500: #219653;
+    --color-green-600: #006400;
     --color-yellow-200: #ffd82c;
     --color-yellow: #f2c94c;
+    --color-orange-300: rgba(242, 106, 76, 0.37);
     --color-orange-400: #ffb038;
     --color-orange-500: #c67e29;
     --color-brown: #835e00;
@@ -25,6 +28,7 @@
     --color-red-300: #ff7575;
     --color-red: #eb5757;
     --color-red-500: #c62929;
+    --color-red-600: #832611;
     --color-red-800: #151212;
     --color-gray-100: #efefef7d;
     --color-gray-200: #f2f2f2;
@@ -49,6 +53,11 @@
     --text-primary-inverted: #fff;
     --text-primary: var(--color-black);
 
+    // Logo
+    --logo-gradient-start-color: var(--color-purple);
+    --logo-gradient-end-color: #321873;
+
+    --size-xxxLarge: 56px;
     --size-xxLarge: 48px;
     --size-xLarge: 32px;
     --size-large: 24px;
@@ -78,7 +87,7 @@
         'Segoe UI Emoji', 'Segoe UI Symbol';
     --monospace-font-family: 'Roboto Mono', monospace;
 
-    --button-border-radius: 5px;
+    --button-border-radius: var(--size-xSmall);
     --border-radius: var(--size-xSmall);
 
     // UI Elements
@@ -86,7 +95,7 @@
     --header-height: 80px;
 
     // Errors
-    --color-error-resolved: var(--color-green);
+    --color-error-resolved: var(--color-green-400);
     --color-error-ignored: var(--color-gray-500);
     --color-error-open: var(--color-red);
 }
@@ -192,10 +201,6 @@ a {
     width: 100% !important;
 }
 
-.ant-modal-content {
-    border-radius: 6px !important;
-}
-
 .ant-slider-rail {
     background-color: lightgrey;
 }
@@ -254,10 +259,6 @@ a {
 
 .ant-tooltip-inner {
     border-radius: 6px;
-}
-
-.ant-tooltip-arrow-content {
-    background-color: transparent;
 }
 
 .ant-skeleton-content .ant-skeleton-title {

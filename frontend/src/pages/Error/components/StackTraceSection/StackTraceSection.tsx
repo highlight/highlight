@@ -47,7 +47,7 @@ const StackTraceSection = ({ errorGroup, loading }: Props) => {
     return (
         <div>
             {!errorGroup?.mapped_stack_trace &&
-                errorGroup?.type !== 'BACKEND' &&
+                errorGroup?.type !== 'Backend' &&
                 !loading && (
                     <Alert
                         trackingId="PrivacySourceMapEducation"

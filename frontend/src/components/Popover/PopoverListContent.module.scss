@@ -52,7 +52,8 @@
         }
     }
 
-    .item:not(:last-of-type) {
+    .item:not(:last-of-type),
+    .virtual {
         border-bottom: 1px solid var(--color-gray-300);
     }
 }

@@ -1,9 +1,16 @@
 .errorWrapper {
     align-items: center;
+    background: var(--color-purple);
     display: flex;
-    height: 100%;
+    height: 100vh;
     justify-content: center;
-    width: 100%;
+    position: absolute;
+    width: 100vw;
+
+    &.shownWithHeader {
+        background: var(--color-primary-background);
+        height: calc(100vh - var(--header-height));
+    }
 }
 
 .errorBody {

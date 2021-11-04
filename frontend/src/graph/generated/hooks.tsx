@@ -2778,8 +2778,11 @@ export type UpdateErrorGroupIsPublicMutationOptions = Apollo.BaseMutationOptions
     Types.UpdateErrorGroupIsPublicMutationVariables
 >;
 export const GetSessionPayloadDocument = gql`
-    query GetSessionPayload($session_secure_id: String!) {
-        events(session_secure_id: $session_secure_id)
+    query GetSessionPayload(
+        $session_secure_id: String!
+        $skip_events: Boolean!
+    ) {
+        events(session_secure_id: $session_secure_id) @skip(if: $skip_events)
         errors(session_secure_id: $session_secure_id) {
             id
             error_group_secure_id
@@ -2839,6 +2842,7 @@ export const GetSessionPayloadDocument = gql`
  * const { data, loading, error } = useGetSessionPayloadQuery({
  *   variables: {
  *      session_secure_id: // value for 'session_secure_id'
+ *      skip_events: // value for 'skip_events'
  *   },
  * });
  */
@@ -2910,6 +2914,7 @@ export const GetSessionDocument = gql`
             client_config
             is_public
             event_counts
+            direct_download_url
         }
     }
 `;
@@ -4105,6 +4110,7 @@ export const GetAdminDocument = gql`
     query GetAdmin {
         admin {
             id
+            uid
             name
             email
             photo_url
@@ -5841,6 +5847,68 @@ export type GetDailyErrorsCountLazyQueryHookResult = ReturnType<
 export type GetDailyErrorsCountQueryResult = Apollo.QueryResult<
     Types.GetDailyErrorsCountQuery,
     Types.GetDailyErrorsCountQueryVariables
+>;
+export const GetRageClicksForProjectDocument = gql`
+    query GetRageClicksForProject($project_id: ID!, $lookBackPeriod: Int!) {
+        rageClicksForProject(
+            project_id: $project_id
+            lookBackPeriod: $lookBackPeriod
+        ) {
+            identifier
+            session_secure_id
+            total_clicks
+        }
+    }
+`;
+
+/**
+ * __useGetRageClicksForProjectQuery__
+ *
+ * To run a query within a React component, call `useGetRageClicksForProjectQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetRageClicksForProjectQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetRageClicksForProjectQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      lookBackPeriod: // value for 'lookBackPeriod'
+ *   },
+ * });
+ */
+export function useGetRageClicksForProjectQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetRageClicksForProjectQuery,
+        Types.GetRageClicksForProjectQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetRageClicksForProjectQuery,
+        Types.GetRageClicksForProjectQueryVariables
+    >(GetRageClicksForProjectDocument, baseOptions);
+}
+export function useGetRageClicksForProjectLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetRageClicksForProjectQuery,
+        Types.GetRageClicksForProjectQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetRageClicksForProjectQuery,
+        Types.GetRageClicksForProjectQueryVariables
+    >(GetRageClicksForProjectDocument, baseOptions);
+}
+export type GetRageClicksForProjectQueryHookResult = ReturnType<
+    typeof useGetRageClicksForProjectQuery
+>;
+export type GetRageClicksForProjectLazyQueryHookResult = ReturnType<
+    typeof useGetRageClicksForProjectLazyQuery
+>;
+export type GetRageClicksForProjectQueryResult = Apollo.QueryResult<
+    Types.GetRageClicksForProjectQuery,
+    Types.GetRageClicksForProjectQueryVariables
 >;
 export const GetDailyErrorFrequencyDocument = gql`
     query GetDailyErrorFrequency(

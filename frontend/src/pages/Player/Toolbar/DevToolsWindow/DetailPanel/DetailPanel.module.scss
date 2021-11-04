@@ -6,11 +6,14 @@
     display: flex;
     flex-direction: column;
     height: calc(100vh - 80px - var(--size-medium) - var(--size-medium));
-    padding: var(--size-medium) var(--size-large);
     position: absolute;
     right: 0;
     width: 100%;
     z-index: 99;
+
+    &.padding {
+        padding: var(--size-medium) var(--size-large);
+    }
 }
 
 .header {

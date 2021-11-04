@@ -568,11 +568,23 @@ export class Highlight {
             }
 
             if (document.referrer) {
-                addCustomEvent<string>('Referrer', document.referrer);
-                highlightThis.addProperties(
-                    { referrer: document.referrer },
-                    { type: 'session' }
-                );
+                // Don't record the referrer if it's the same origin.
+                // Non-single page apps might have the referrer set to the same origin.
+                // If we record this then the referrer data will not be useful.
+                // Most users will want to see referrers outside of their website/app.
+                // This will be a configuration set in `H.init()` later.
+                if (
+                    !(
+                        window &&
+                        document.referrer.includes(window.location.origin)
+                    )
+                ) {
+                    addCustomEvent<string>('Referrer', document.referrer);
+                    highlightThis.addProperties(
+                        { referrer: document.referrer },
+                        { type: 'session' }
+                    );
+                }
             }
             this.listeners.push(
                 PathListener((url: string) => {
@@ -693,6 +705,20 @@ export class Highlight {
                 JSON.stringify(this.sessionData)
             );
         });
+
+        // beforeunload is not supported on iOS on Safari. Apple docs recommend using `pagehide` instead.
+        const isOnIOS =
+            navigator.userAgent.match(/iPad/i) ||
+            navigator.userAgent.match(/iPhone/i);
+        if (isOnIOS) {
+            window.addEventListener('pagehide', () => {
+                addCustomEvent('Page Unload', '');
+                window.sessionStorage.setItem(
+                    'sessionData',
+                    JSON.stringify(this.sessionData)
+                );
+            });
+        }
     }
 
     /**

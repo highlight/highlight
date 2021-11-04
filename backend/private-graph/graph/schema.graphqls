@@ -46,6 +46,7 @@ type Session {
     within_billing_quota: Boolean
     is_public: Boolean
     event_counts: String
+    direct_download_url: String
 }
 
 type RageClickEvent {
@@ -54,6 +55,12 @@ type RageClickEvent {
     session_secure_id: String!
     start_timestamp: Timestamp!
     end_timestamp: Timestamp!
+    total_clicks: Int!
+}
+
+type RageClickEventForProject {
+    identifier: String!
+    session_secure_id: String!
     total_clicks: Int!
 }
 
@@ -336,6 +343,7 @@ type User {
 type Admin {
     id: ID!
     name: String!
+    uid: String!
     email: String!
     photo_url: String
     role: String!
@@ -465,6 +473,10 @@ type Query {
     session(secure_id: String!): Session
     events(session_secure_id: String!): [Any]
     rage_clicks(session_secure_id: String!): [RageClickEvent!]!
+    rageClicksForProject(
+        project_id: ID!
+        lookBackPeriod: Int!
+    ): [RageClickEventForProject!]!
     error_groups(
         project_id: ID!
         count: Int!

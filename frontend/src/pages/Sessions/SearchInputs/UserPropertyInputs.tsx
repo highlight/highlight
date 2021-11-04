@@ -68,7 +68,9 @@ export const UserPropertyInput = ({ include }: { include: boolean }) => {
                     }),
                 }}
                 cacheOptions
-                placeholder={'Select a user property...'}
+                placeholder={`Select a user property to ${
+                    include ? 'include' : 'exclude'
+                }...`}
                 isClearable={false}
                 defaultOptions
                 onChange={(options) => {

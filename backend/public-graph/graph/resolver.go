@@ -3,7 +3,6 @@ package graph
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -124,7 +123,7 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 		field := &model.Field{}
 		res := r.DB.Where(f).First(&field)
 		// If the field doesn't exist, we create it.
-		if err := res.Error; err != nil || errors.Is(err, gorm.ErrRecordNotFound) {
+		if err := res.Error; err != nil || e.Is(err, gorm.ErrRecordNotFound) {
 			if err := r.DB.Create(f).Error; err != nil {
 				return e.Wrap(err, "error creating field")
 			}
@@ -155,7 +154,7 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 	}
 	fieldString := string(fieldBytes)
 
-	if err := r.DB.Model(session).Updates(&model.Session{FieldGroup: &fieldString}).Error; errors.Is(err, gorm.ErrRecordNotFound) || err != nil {
+	if err := r.DB.Model(session).Updates(&model.Session{FieldGroup: &fieldString}).Error; e.Is(err, gorm.ErrRecordNotFound) || err != nil {
 		return e.Wrap(err, "Error updating session field group")
 	}
 	// We append to this session in the join table regardless.
@@ -205,31 +204,70 @@ func (r *Resolver) getMappedStackTraceString(stackTrace []*model2.StackFrameInpu
 	return newMappedStackTraceString, nil
 }
 
-// TODO: NOP for now - implement by trying to parse individual stack frames
-// and stringifying the result
 func (r *Resolver) normalizeStackTraceString(stackTraceString string) string {
-	return stackTraceString
+	var stackTraceSlice []string
+	if err := json.Unmarshal([]byte(stackTraceString), &stackTraceSlice); err != nil {
+		return ""
+	}
+
+	// TODO: maintain a list of potential error types so we can handle different stack trace formats
+	var normalizedStackFrameInput []*model2.StackFrameInput
+	for _, frame := range stackTraceSlice {
+		frameExtracted := regexp.MustCompile(`(?m)(.*) (.*):(.*)`).FindAllStringSubmatch(frame, -1)
+		if len(frameExtracted) != 1 {
+			return ""
+		}
+		if len(frameExtracted[0]) != 4 {
+			return ""
+		}
+
+		lineNumber, err := strconv.Atoi(frameExtracted[0][3])
+		if err != nil {
+			return ""
+		}
+		normalizedStackFrameInput = append(normalizedStackFrameInput, &model2.StackFrameInput{
+			FunctionName: &frameExtracted[0][1],
+			FileName:     &frameExtracted[0][2],
+			LineNumber:   &lineNumber,
+		})
+	}
+
+	stackTraceBytes, err := json.Marshal(&normalizedStackFrameInput)
+	if err != nil {
+		return ""
+	}
+	return string(stackTraceBytes)
 }
 
 // Matches the ErrorObject with an existing ErrorGroup, or creates a new one if the group does not exist
 // The input can include the stack trace as a string or []*StackFrameInput
 // If stackTrace is non-nil, it will be marshalled into a string and saved with the ErrorObject
 func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceString string, stackTrace []*model2.StackFrameInput, fields []*model.ErrorField, projectID int) (*model.ErrorGroup, error) {
+	if errorObj == nil {
+		return nil, e.New("error object was nil")
+	}
+	if errorObj.Event == "" || errorObj.Event == "<nil>" {
+		return nil, e.New("error object event was nil or empty")
+	}
+
 	// If there was no stackTraceString passed in, marshal it as a JSON string from stackTrace
-	if stackTraceString == "" {
-		frames := stackTrace
-		if len(frames) > 0 && frames[0] != nil && frames[0].Source != nil && strings.Contains(*frames[0].Source, "https://static.highlight.run/index.js") {
+	if len(stackTrace) > 0 {
+		if stackTrace[0] != nil && stackTrace[0].Source != nil && strings.Contains(*stackTrace[0].Source, "https://static.highlight.run/index.js") {
 			errorObj.ProjectID = 1
 		}
-		firstFrameBytes, err := json.Marshal(frames)
+		firstFrameBytes, err := json.Marshal(stackTrace)
 		if err != nil {
 			return nil, e.Wrap(err, "Error marshalling first frame")
 		}
 
 		stackTraceString = string(firstFrameBytes)
-	} else {
+	} else if stackTraceString != "<nil>" {
 		// If stackTraceString was passed in, try to normalize it
-		stackTraceString = r.normalizeStackTraceString(stackTraceString)
+		if t := r.normalizeStackTraceString(stackTraceString); t != "" {
+			stackTraceString = t
+		}
+	} else if stackTraceString == "<nil>" {
+		return nil, e.New(`stackTrace slice was empty and stack trace string was equal to "<nil>"`)
 	}
 
 	errorGroup := &model.ErrorGroup{}
@@ -296,7 +334,7 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 		field := &model.ErrorField{}
 		res := r.DB.Where(f).First(&field)
 		// If the field doesn't exist, we create it.
-		if err := res.Error; err != nil || errors.Is(err, gorm.ErrRecordNotFound) {
+		if err := res.Error; err != nil || e.Is(err, gorm.ErrRecordNotFound) {
 			if err := r.DB.Create(f).Error; err != nil {
 				return e.Wrap(err, "error creating error field")
 			}
@@ -389,7 +427,10 @@ func GetDeviceDetails(userAgentString string) (deviceDetails DeviceDetails) {
 }
 
 func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, projectVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string) (*model.Session, error) {
-	projectID := model.FromVerboseID(projectVerboseID)
+	projectID, err := model.FromVerboseID(projectVerboseID)
+	if err != nil {
+		log.Errorf("An unsupported verboseID was used: %s", projectVerboseID)
+	}
 	project := &model.Project{}
 	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
 		return nil, e.Wrap(err, "project doesn't exist")
@@ -454,6 +495,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 		ClientConfig:                   &clientConfig,
 		Environment:                    environment,
 		AppVersion:                     appVersion,
+		VerboseID:                      projectVerboseID,
 	}
 
 	if err := r.DB.Create(session).Error; err != nil {
@@ -593,7 +635,7 @@ func (r *Resolver) processStackFrame(projectId, sessionId int, stackTrace model2
 	// get version from session
 	var version *string
 	if err := r.DB.Model(&model.Session{}).Where(&model.Session{Model: model.Model{ID: sessionId}}).Select("app_version").Scan(&version).Error; err != nil {
-		if !errors.Is(err, gorm.ErrRecordNotFound) {
+		if !e.Is(err, gorm.ErrRecordNotFound) {
 			return nil, e.Wrap(err, "error getting app version from session")
 		}
 	}
@@ -720,7 +762,7 @@ func (r *Resolver) isProjectWithinBillingQuota(project *model.Project, now time.
 }
 
 func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, group *model.ErrorGroup, errorToInsert *model.ErrorObject) {
-	r.AlertWorkerPool.Submit(func() {
+	r.AlertWorkerPool.SubmitRecover(func() {
 		var errorAlerts []*model.ErrorAlert
 		if err := r.DB.Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{Alert: model.Alert{ProjectID: projectID}}).Find(&errorAlerts).Error; err != nil {
 			log.Error(e.Wrap(err, "error fetching ErrorAlerts object"))
@@ -772,7 +814,7 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 				log.Error(err)
 			}
 
-			err = errorAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &errorToInsert.URL, ErrorsCount: &numErrors})
+			err = errorAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &errorToInsert.URL, ErrorsCount: &numErrors, UserObject: sessionObj.UserObject})
 			if err != nil {
 				log.Error(e.Wrap(err, "error sending slack error message"))
 				return
@@ -1000,7 +1042,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 			tracer.ResourceName("go.unmarshal.messages"), tracer.Tag("project_id", projectID))
 		messagesParsed := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(messages), &messagesParsed); err != nil {
-			return fmt.Errorf("error decoding message data: %w", err)
+			return e.Wrap(err, "error decoding message data")
 		}
 		if len(messagesParsed["messages"]) > 0 {
 			obj := &model.MessagesObject{SessionID: sessionID, Messages: messages}
@@ -1018,7 +1060,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 			tracer.ResourceName("go.unmarshal.resources"), tracer.Tag("project_id", projectID))
 		resourcesParsed := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
-			return fmt.Errorf("error decoding resource data: %w", err)
+			return e.Wrap(err, "error decoding resource data")
 		}
 		if len(resourcesParsed["resources"]) > 0 {
 			obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources}

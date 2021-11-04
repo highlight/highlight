@@ -97,6 +97,9 @@ export const Toolbar = () => {
     const resourceErrorRequestHeader = new URLSearchParams(location.search).get(
         PlayerSearchParameters.resourceErrorRequestHeader
     );
+    const errorId = new URLSearchParams(location.search).get(
+        PlayerSearchParameters.errorId
+    );
     const disableControls = state === ReplayerState.Loading || !canViewSession;
 
     const [lastCanvasPreview, setLastCanvasPreview] = useState(0);
@@ -153,9 +156,13 @@ export const Toolbar = () => {
         if (!disableControls && resourceErrorRequestHeader) {
             setShowDevTools(true);
             setSelectedDevToolsTab('Network');
+        } else if (!disableControls && errorId) {
+            setShowDevTools(true);
+            setSelectedDevToolsTab('Errors');
         }
     }, [
         disableControls,
+        errorId,
         resourceErrorRequestHeader,
         setSelectedDevToolsTab,
         setShowDevTools,
@@ -575,12 +582,12 @@ export const TimelineAnnotationColors: {
 } = {
     Click: '--color-purple-light',
     Focus: '--color-blue-400',
-    Reload: '--color-green-light',
+    Reload: '--color-green-300',
     Navigate: '--color-yellow',
     Errors: '--color-red',
     Segment: '--color-orange-400',
     Track: '--color-blue-300',
-    Comments: '--color-green-dark',
+    Comments: '--color-green-500',
     Identify: '--color-orange-500',
     Viewport: '--color-purple-light',
 };

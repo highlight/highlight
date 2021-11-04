@@ -34,4 +34,5 @@ export const titleContainer: string;
 export const titleWithAction: string;
 export const titleWithMargin: string;
 export const triggerWrapper: string;
+export const withErrorState: string;
 export const withoutLeftPanel: string;

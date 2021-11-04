@@ -13,6 +13,7 @@ $right-padding: 12px;
     padding-left: 25px;
     padding-right: $right-padding;
     padding-top: var(--size-xxSmall);
+    position: relative;
     width: 100%;
 
     &.current {
@@ -22,6 +23,17 @@ $right-padding: 12px;
             color: var(--text-primary) !important;
             font-weight: 500;
         }
+    }
+
+    .currentIndicator {
+        background-color: var(--color-blue-500);
+        border-radius: 50%;
+        height: 6px;
+        left: 10px;
+        position: absolute;
+        top: 47%;
+        transform: translate(0, -50%);
+        width: 6px;
     }
 
     &.failedResource {
@@ -225,23 +237,6 @@ $canvas-width: calc(
     }
 }
 
-.detailPanelTitle {
-    align-items: center !important;
-    column-gap: var(--size-medium);
-    display: flex;
-    justify-content: space-between;
-    padding-bottom: var(--size-xSmall);
-}
-
 .virtuoso {
     overflow-x: hidden;
-}
-
-.tabContainer {
-    height: 100%;
-    padding: var(--size-medium) 0;
-}
-
-.extraContentContainer {
-    margin-right: var(--size-medium);
 }

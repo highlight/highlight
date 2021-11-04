@@ -984,12 +984,12 @@ export type UpdateErrorGroupIsPublicMutation = { __typename?: 'Mutation' } & {
 
 export type GetSessionPayloadQueryVariables = Types.Exact<{
     session_secure_id: Types.Scalars['String'];
+    skip_events: Types.Scalars['Boolean'];
 }>;
 
-export type GetSessionPayloadQuery = { __typename?: 'Query' } & Pick<
-    Types.Query,
-    'events'
-> & {
+export type GetSessionPayloadQuery = {
+    __typename?: 'Query';
+} & Types.MakeOptional<Pick<Types.Query, 'events'>, 'events'> & {
         errors?: Types.Maybe<
             Array<
                 Types.Maybe<
@@ -1091,6 +1091,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'client_config'
             | 'is_public'
             | 'event_counts'
+            | 'direct_download_url'
         > & {
                 fields?: Types.Maybe<
                     Array<
@@ -1554,6 +1555,7 @@ export type GetAdminQuery = { __typename?: 'Query' } & {
         { __typename?: 'Admin' } & Pick<
             Types.Admin,
             | 'id'
+            | 'uid'
             | 'name'
             | 'email'
             | 'photo_url'
@@ -2165,6 +2167,20 @@ export type GetDailyErrorsCountQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetRageClicksForProjectQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    lookBackPeriod: Types.Scalars['Int'];
+}>;
+
+export type GetRageClicksForProjectQuery = { __typename?: 'Query' } & {
+    rageClicksForProject: Array<
+        { __typename?: 'RageClickEventForProject' } & Pick<
+            Types.RageClickEventForProject,
+            'identifier' | 'session_secure_id' | 'total_clicks'
+        >
+    >;
+};
+
 export type GetDailyErrorFrequencyQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     error_group_secure_id: Types.Scalars['String'];
@@ -2494,6 +2510,7 @@ export const namedOperations = {
         GetTopUsers: 'GetTopUsers' as const,
         GetDailySessionsCount: 'GetDailySessionsCount' as const,
         GetDailyErrorsCount: 'GetDailyErrorsCount' as const,
+        GetRageClicksForProject: 'GetRageClicksForProject' as const,
         GetDailyErrorFrequency: 'GetDailyErrorFrequency' as const,
         GetSlackChannelSuggestion: 'GetSlackChannelSuggestion' as const,
         GetWorkspaceIsIntegratedWithSlack: 'GetWorkspaceIsIntegratedWithSlack' as const,

@@ -2,29 +2,11 @@
     font-size: 18px;
 }
 
-.box {
-    border: 1px solid var(--color-gray-300);
-    border-radius: 8px;
-    margin-top: 20px;
-    padding: 30px;
-}
-
 .memberCard {
     align-items: center;
-    border: 1px solid var(--color-gray-300);
-    border-radius: 8px;
     column-gap: var(--size-small);
     display: flex;
     flex-direction: row;
-    margin: 12px 0;
-    max-width: 400px;
-    padding: 10px;
-
-    &:hover {
-        .removeTeamMemberButton {
-            opacity: 1;
-        }
-    }
 }
 
 .userDetails {
@@ -60,27 +42,40 @@
 }
 
 .buttonRow {
+    column-gap: var(--size-medium);
     display: grid;
     grid-template-columns: 1fr 120px;
-    margin-top: 5px;
 }
 
 .inviteButton {
-    margin-left: 15px;
     width: 100%;
 }
 
 .boxSubTitle {
     margin: 10px 0;
+    margin-top: 0 !important;
 }
 
 .removeTeamMemberButton {
     flex-shrink: 0;
+    height: fit-content;
     margin-left: auto;
-    opacity: 0;
-    transition: opacity 0.2s ease-in-out;
+}
 
-    &:global(.ant-popover-open) {
-        opacity: 1;
+.titleContainer {
+    align-items: flex-start;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: var(--size-xLarge) !important;
+
+    #subTitle {
+        margin-bottom: 0 !important;
+        margin-top: var(--size-xSmall) !important;
     }
+}
+
+.hr {
+    border: 0;
+    border-top: 1px solid var(--color-gray-300);
+    margin: var(--size-large) 0;
 }

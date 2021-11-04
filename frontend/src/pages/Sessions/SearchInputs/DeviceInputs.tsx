@@ -1,5 +1,7 @@
 import Select from '@components/Select/Select';
 import SvgHashtagIcon from '@icons/HashtagIcon';
+import SvgLinkedIcon from '@icons/LinkedIcon';
+import SvgLinkIcon from '@icons/LinkIcon';
 import SvgMapIcon from '@icons/MapIcon';
 import { useParams } from '@util/react-router/useParams';
 import { H } from 'highlight.run';
@@ -187,6 +189,133 @@ export const DeviceIdInput = () => {
                     DropdownIndicator: () => (
                         <div className={inputStyles.iconWrapper}>
                             <SvgMonitorIcon className={inputStyles.fill} />
+                        </div>
+                    ),
+                    IndicatorSeparator: () => null,
+                }}
+                loadOptions={generateOptions}
+                defaultOptions
+                onChange={onChange}
+            />
+        </div>
+    );
+};
+
+export const ReferrerInput = () => {
+    const { project_id } = useParams<{ project_id: string }>();
+    const { searchParams, setSearchParams } = useSearchContext();
+
+    const { refetch } = useGetFieldSuggestionQuery({ skip: true });
+
+    const generateOptions = async (
+        input: string
+    ): Promise<OptionsType<OptionTypeBase> | void[]> => {
+        const fetched = await refetch({
+            project_id,
+            query: input,
+            name: 'referrer',
+        });
+        const suggestions =
+            fetched?.data.field_suggestion
+                ?.map((e) => e?.value)
+                .filter((v, i, a) => a.indexOf(v) === i)
+                .map((f) => {
+                    return { label: f, value: f };
+                }) ?? [];
+        return suggestions;
+    };
+
+    const onChange = (
+        current: ValueType<{ label: string; value: string }, false>
+    ) => {
+        setSearchParams((params) => ({ ...params, referrer: current?.value }));
+        H.track('ReferrerFilter');
+    };
+
+    return (
+        <div>
+            <AsyncSelect
+                placeholder={'Referrer'}
+                isClearable
+                cacheOptions
+                value={
+                    searchParams.referrer
+                        ? {
+                              label: searchParams.referrer,
+                              value: searchParams.referrer,
+                          }
+                        : null
+                }
+                styles={SharedSelectStyleProps}
+                components={{
+                    DropdownIndicator: () => (
+                        <div className={inputStyles.iconWrapper}>
+                            <SvgLinkedIcon className={inputStyles.fill} />
+                        </div>
+                    ),
+                    IndicatorSeparator: () => null,
+                }}
+                loadOptions={generateOptions}
+                defaultOptions
+                onChange={onChange}
+            />
+        </div>
+    );
+};
+
+export const VisitedUrlInput = () => {
+    const { project_id } = useParams<{ project_id: string }>();
+    const { searchParams, setSearchParams } = useSearchContext();
+
+    const { refetch } = useGetFieldSuggestionQuery({ skip: true });
+
+    const generateOptions = async (
+        input: string
+    ): Promise<OptionsType<OptionTypeBase> | void[]> => {
+        const fetched = await refetch({
+            project_id,
+            query: input,
+            name: 'visited-url',
+        });
+        const suggestions =
+            fetched?.data.field_suggestion
+                ?.map((e) => e?.value)
+                .filter((v, i, a) => a.indexOf(v) === i)
+                .map((f) => {
+                    return { label: f, value: f };
+                }) ?? [];
+        return suggestions;
+    };
+
+    const onChange = (
+        current: ValueType<{ label: string; value: string }, false>
+    ) => {
+        setSearchParams((params) => ({
+            ...params,
+            visited_url: current?.value,
+        }));
+        H.track('VisitedUrlFilter');
+    };
+
+    return (
+        <div>
+            <AsyncSelect
+                placeholder={'Visited URL'}
+                isClearable
+                cacheOptions
+                value={
+                    searchParams.visited_url
+                        ? {
+                              label: searchParams.visited_url,
+                              value: searchParams.visited_url,
+                          }
+                        : null
+                }
+                styles={SharedSelectStyleProps}
+                components={{
+                    DropdownIndicator: () => (
+                        <div className={inputStyles.iconWrapper}>
+                            <SvgLinkIcon className={inputStyles.fill} />
                         </div>
                     ),
                     IndicatorSeparator: () => null,

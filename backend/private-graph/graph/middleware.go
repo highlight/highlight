@@ -63,6 +63,7 @@ func PrivateMiddleware(next http.Handler) http.Handler {
 		}
 		ctx := context.WithValue(r.Context(), model.ContextKeys.UID, uid)
 		ctx = context.WithValue(ctx, model.ContextKeys.Email, email)
+		ctx = context.WithValue(ctx, model.ContextKeys.AcceptEncoding, r.Header.Get("Accept-Encoding"))
 		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r)
 	})

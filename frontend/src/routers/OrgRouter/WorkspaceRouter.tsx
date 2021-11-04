@@ -1,3 +1,4 @@
+import { useAppLoadingContext } from '@context/AppLoadingContext';
 import LoginForm from '@pages/Login/Login';
 import WorkspaceSettings from '@pages/WorkspaceSettings/WorkspaceSettings';
 import WorkspaceTeam from '@pages/WorkspaceTeam/WorkspaceTeam';
@@ -25,6 +26,7 @@ export const WorkspaceRouter = () => {
     const { workspace_id } = useParams<{
         workspace_id: string;
     }>();
+    const { setIsLoading } = useAppLoadingContext();
 
     const { data, loading } = useGetWorkspaceDropdownOptionsQuery({
         variables: { workspace_id },
@@ -56,6 +58,12 @@ export const WorkspaceRouter = () => {
             document.documentElement.style.setProperty('--sidebar-width', '0');
         }
     }, [isLoggedIn]);
+
+    useEffect(() => {
+        if (isLoggedIn) {
+            setIsLoading(false);
+        }
+    }, [isLoggedIn, setIsLoading]);
 
     if (loading) {
         return null;

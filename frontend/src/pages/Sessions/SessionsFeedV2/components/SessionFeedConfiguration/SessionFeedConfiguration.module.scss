@@ -1,0 +1,11 @@
+.popover {
+    padding-bottom: var(--size-medium);
+    width: 250px;
+
+    .label {
+        display: flex;
+        flex-direction: column;
+        font-size: 10px;
+        row-gap: var(--size-xxSmall);
+    }
+}

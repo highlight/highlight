@@ -79,6 +79,12 @@ type Plan struct {
 	Quota int      `json:"quota"`
 }
 
+type RageClickEventForProject struct {
+	Identifier      string `json:"identifier"`
+	SessionSecureID string `json:"session_secure_id"`
+	TotalClicks     int    `json:"total_clicks"`
+}
+
 type ReferrerTablePayload struct {
 	Host    string  `json:"host"`
 	Count   int     `json:"count"`

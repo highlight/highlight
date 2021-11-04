@@ -124,6 +124,16 @@ export const usePlayer = (): ReplayerContextInterface => {
         fetchPolicy: 'no-cache',
         pollInterval: 1000,
     });
+    const [eventsPayload, setEventsPayload] = useState<any[] | undefined>(
+        undefined
+    );
+
+    // If events are returned by getSessionPayloadQuery, set the events payload
+    useEffect(() => {
+        if (eventsData?.events) {
+            setEventsPayload(eventsData?.events);
+        }
+    }, [eventsData?.events]);
 
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
 
@@ -141,11 +151,37 @@ export const usePlayer = (): ReplayerContextInterface => {
                         },
                     });
                 }
-                getSessionPayloadQuery({
-                    variables: {
-                        session_secure_id,
-                    },
-                });
+
+                const directDownloadUrl = data.session?.direct_download_url;
+                if (directDownloadUrl) {
+                    setEventsDataLoaded(false);
+                    getSessionPayloadQuery({
+                        variables: {
+                            session_secure_id,
+                            skip_events: true,
+                        },
+                    });
+                    fetch(directDownloadUrl)
+                        .then((response) => response.json())
+                        .then((data) => {
+                            setEventsPayload(data || []);
+                        })
+                        .catch((e) => {
+                            setEventsPayload([]);
+                            H.consumeError(
+                                e,
+                                'Error direct downloading session payload'
+                            );
+                        });
+                } else {
+                    setEventsDataLoaded(false);
+                    getSessionPayloadQuery({
+                        variables: {
+                            session_secure_id,
+                            skip_events: false,
+                        },
+                    });
+                }
                 setSessionViewability(SessionViewability.VIEWABLE);
                 H.track('Viewed session', { is_guest: !isLoggedIn });
             } else {
@@ -156,6 +192,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             setSessionViewability(SessionViewability.ERROR);
         },
         skip: !session_secure_id,
+        fetchPolicy: 'network-only',
     });
 
     const resetPlayer = useCallback(
@@ -211,9 +248,9 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     // Downloads the events data only if the URL search parameter '?download=1' is present.
     useEffect(() => {
-        if (download && eventsData) {
+        if (download && eventsPayload) {
             const a = document.createElement('a');
-            const file = new Blob([JSON.stringify(eventsData.events)], {
+            const file = new Blob([JSON.stringify(eventsPayload)], {
                 type: 'application/json',
             });
 
@@ -223,16 +260,16 @@ export const usePlayer = (): ReplayerContextInterface => {
 
             URL.revokeObjectURL(a.href);
         }
-    }, [download, eventsData, session_secure_id]);
+    }, [download, eventsPayload, session_secure_id]);
 
     // Handle data in playback mode.
     useEffect(() => {
-        if (eventsData?.events?.length ?? 0 > 1) {
-            console.log('Events length: ', eventsData?.events?.length);
+        if (eventsPayload?.length) {
+            console.log('Events length: ', eventsPayload?.length);
             setSessionViewability(SessionViewability.VIEWABLE);
             // Add an id field to each event so it can be referenced.
             const newEvents: HighlightEvent[] = toHighlightEvents(
-                eventsData?.events ?? []
+                eventsPayload
             );
             console.log('Rich: got events');
             if (session_secure_id !== lastLoadedPlayerState?.sessionSecureId) {
@@ -300,20 +337,23 @@ export const usePlayer = (): ReplayerContextInterface => {
                 });
             }
             setEvents(newEvents);
-            if (eventsData?.errors) {
-                setErrors(eventsData.errors as ErrorObject[]);
-            }
-            if (eventsData?.session_comments) {
-                setSessionComments(
-                    eventsData.session_comments as SessionComment[]
-                );
-            }
-        } else if (!!eventsData) {
+        } else if (eventsPayload?.length === 0) {
             setSessionViewability(SessionViewability.EMPTY_SESSION);
         }
         // This hook shouldn't depend on `showPlayerMouseTail`. The player is updated through a setter. Making this hook depend on `showPlayerMouseTrail` will cause the player to be remounted when `showPlayerMouseTrail` changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [eventsData, setPlayerTimeToPersistance]);
+    }, [eventsPayload, setPlayerTimeToPersistance]);
+
+    const [eventsDataLoaded, setEventsDataLoaded] = useState(false);
+    useEffect(() => {
+        if (eventsData?.errors) {
+            setErrors(eventsData.errors as ErrorObject[]);
+        }
+        if (eventsData?.session_comments) {
+            setSessionComments(eventsData.session_comments as SessionComment[]);
+        }
+        setEventsDataLoaded(true);
+    }, [eventsData]);
 
     useEffect(() => {
         if (replayer) {
@@ -323,7 +363,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     // Loads the remaining events into Replayer.
     useEffect(() => {
-        if (replayer) {
+        if (replayer && eventsDataLoaded) {
             let timerId = 0;
             let eventsIndex = loadedEventsIndex;
 
@@ -521,7 +561,14 @@ export const usePlayer = (): ReplayerContextInterface => {
             };
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [errors, events, events.length, hasSearchParam, replayer]);
+    }, [
+        errors,
+        events,
+        events.length,
+        hasSearchParam,
+        replayer,
+        eventsDataLoaded,
+    ]);
 
     // "Subscribes" the time with the Replayer when the Player is playing.
     useEffect(() => {

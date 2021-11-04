@@ -2,19 +2,28 @@
     background-color: var(--color-primary-background);
     border: 1px solid var(--color-gray-300);
     border-radius: 8px;
+    max-width: 500px;
     padding: 30px;
-    width: 350px;
 }
 
 .title {
+    font-size: 24px;
     margin-bottom: 10px;
 }
 
 .subTitle {
+    color: var(--color-gray-500) !important;
+    font-size: 16px;
+    line-height: 1.5 !important;
     margin-bottom: 10px;
 }
 
 .switchWorkspace {
     color: var(--color-purple);
     cursor: pointer;
+}
+
+.button {
+    margin-bottom: 0;
+    margin-top: var(--size-medium);
 }

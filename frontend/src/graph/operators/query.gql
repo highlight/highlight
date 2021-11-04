@@ -1,5 +1,5 @@
-query GetSessionPayload($session_secure_id: String!) {
-    events(session_secure_id: $session_secure_id)
+query GetSessionPayload($session_secure_id: String!, $skip_events: Boolean!) {
+    events(session_secure_id: $session_secure_id) @skip(if: $skip_events)
     errors(session_secure_id: $session_secure_id) {
         id
         error_group_secure_id
@@ -80,6 +80,7 @@ query GetSession($secure_id: String!) {
         client_config
         is_public
         event_counts
+        direct_download_url
     }
 }
 
@@ -384,6 +385,7 @@ query GetWorkspaceDropdownOptions($workspace_id: ID!) {
 query GetAdmin {
     admin {
         id
+        uid
         name
         email
         photo_url
@@ -742,6 +744,17 @@ query GetDailyErrorsCount($project_id: ID!, $date_range: DateRangeInput!) {
     dailyErrorsCount(project_id: $project_id, date_range: $date_range) {
         date
         count
+    }
+}
+
+query GetRageClicksForProject($project_id: ID!, $lookBackPeriod: Int!) {
+    rageClicksForProject(
+        project_id: $project_id
+        lookBackPeriod: $lookBackPeriod
+    ) {
+        identifier
+        session_secure_id
+        total_clicks
     }
 }
 

@@ -1,7 +1,7 @@
 .fieldRow {
     display: grid;
     grid-template-columns: 120px 1fr;
-    margin-top: 5px;
+    margin-bottom: var(--size-large);
 }
 
 .fieldKey {

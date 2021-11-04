@@ -1,10 +1,10 @@
 import Input from '@components/Input/Input';
-import Tabs from '@components/Tabs/Tabs';
-import { ErrorObject, Session } from '@graph/schemas';
+import { ErrorObject } from '@graph/schemas';
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils';
-import ErrorModal from '@pages/Player/Toolbar/DevToolsWindow/ErrorsPage/components/ErrorModal/ErrorModal';
-import { useParams } from '@util/react-router/useParams';
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
+import { useResourcesContext } from '@pages/Player/ResourcesContext/ResourcesContext';
+import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel';
 import { message } from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
@@ -22,13 +22,11 @@ import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import GoToButton from '../../../../../components/Button/GoToButton';
 import TextHighlighter from '../../../../../components/TextHighlighter/TextHighlighter';
 import Tooltip from '../../../../../components/Tooltip/Tooltip';
-import { useGetResourcesQuery } from '../../../../../graph/generated/hooks';
 import { MillisToMinutesAndSeconds } from '../../../../../util/time';
 import { formatTime } from '../../../../Home/components/KeyPerformanceIndicators/utils/utils';
 import { ReplayerState, useReplayerContext } from '../../../ReplayerContext';
 import devStyles from '../DevToolsWindow.module.scss';
 import { getNetworkResourcesDisplayName, Option } from '../Option/Option';
-import ResourceDetailsModal from './components/ResourceDetailsModal/ResourceDetailsModal';
 import styles from './ResourcePage.module.scss';
 
 export const ResourcePage = ({
@@ -38,9 +36,18 @@ export const ResourcePage = ({
     time: number;
     startTime: number;
 }) => {
-    const { state, session, pause } = useReplayerContext();
-    const { setDetailedPanel, detailedPanel } = usePlayerUIContext();
-    const { session_secure_id } = useParams<{ session_secure_id: string }>();
+    const {
+        state,
+        session,
+        isPlayerReady,
+        errors,
+        replayer,
+        setTime,
+    } = useReplayerContext();
+    const {
+        setShowDevTools,
+        setSelectedDevToolsTab,
+    } = usePlayerConfiguration();
     const [options, setOptions] = useState<Array<string>>([]);
     const [currentOption, setCurrentOption] = useState('All');
     const [filterSearchTerm, setFilterSearchTerm] = useState('');
@@ -53,39 +60,32 @@ export const ResourcePage = ({
     const [allResources, setAllResources] = useState<
         Array<NetworkResource> | undefined
     >([]);
-    const [parsedResources, setParsedResources] = useState<
-        Array<PerformanceResourceTiming & { id: number }> | undefined
-    >(undefined);
-    const { data, loading } = useGetResourcesQuery({
-        variables: {
-            session_secure_id,
-        },
-        fetchPolicy: 'no-cache',
-    });
-    const { errors } = useReplayerContext();
+
     const virtuoso = useRef<VirtuosoHandle>(null);
-    const rawResources = data?.resources;
     const resourceErrorRequestHeader = new URLSearchParams(location.search).get(
         PlayerSearchParameters.resourceErrorRequestHeader
     );
+    const { setResourcePanel, setErrorPanel } = useResourceOrErrorDetailPanel();
+
+    const {
+        resources: parsedResources,
+        loadResources,
+        resourcesLoading: loading,
+    } = useResourcesContext();
+    loadResources();
 
     useEffect(() => {
         const optionSet = new Set<string>();
-        rawResources?.forEach((r) => {
+        parsedResources?.forEach((r) => {
             if (!optionSet.has(r.initiatorType)) {
                 optionSet.add(r.initiatorType);
             }
         });
         setOptions(['All', ...Array.from(optionSet)]);
-        setParsedResources(
-            rawResources?.map((r, i) => {
-                return { ...r, id: i };
-            }) ?? []
-        );
-    }, [rawResources]);
+    }, [parsedResources]);
 
     useEffect(() => {
-        if (rawResources) {
+        if (parsedResources) {
             setAllResources(
                 parsedResources?.filter((r) => {
                     if (currentOption === 'All') {
@@ -97,15 +97,15 @@ export const ResourcePage = ({
                 }) ?? []
             );
         }
-    }, [parsedResources, rawResources, currentOption, options]);
+    }, [parsedResources, currentOption, options]);
 
     useEffect(() => {
-        if (rawResources) {
-            const start = rawResources[0].startTime;
-            const end = rawResources[rawResources.length - 1].responseEnd;
+        if (parsedResources.length > 0) {
+            const start = parsedResources[0].startTime;
+            const end = parsedResources[parsedResources.length - 1].responseEnd;
             setNetworkRange(end - start);
         }
-    }, [rawResources]);
+    }, [parsedResources]);
 
     useEffect(() => {
         if (allResources?.length) {
@@ -129,54 +129,10 @@ export const ResourcePage = ({
         }
     }, [allResources, startTime, time, currentResource]);
 
-    const [resourceErrorShown, setResourceErrorShown] = useState(false);
-    useEffect(() => {
-        if (
-            resourceErrorRequestHeader &&
-            !loading &&
-            !!session &&
-            !!allResources &&
-            !!errors &&
-            errors.length > 0 &&
-            !detailedPanel &&
-            !resourceErrorShown
-        ) {
-            const resource = findResourceWithMatchingHighlightHeader(
-                resourceErrorRequestHeader,
-                allResources
-            );
-            if (resource) {
-                setResourceErrorShown(true);
-                setDetailedPanel(
-                    getDetailedPanel(
-                        resource,
-                        pause,
-                        session,
-                        errors.find(
-                            (e) => e.request_id === resourceErrorRequestHeader
-                        )
-                    )
-                );
-            } else {
-                H.track('FailedToMatchHighlightResourceHeaderWithResource');
-            }
-        }
-    }, [
-        allResources,
-        detailedPanel,
-        errors,
-        loading,
-        pause,
-        resourceErrorRequestHeader,
-        resourceErrorShown,
-        session,
-        setDetailedPanel,
-    ]);
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const scrollFunction = useCallback(
-        _.debounce((index: number, state) => {
-            if (virtuoso.current && state === ReplayerState.Playing) {
+        _.debounce((index: number) => {
+            if (virtuoso.current) {
                 virtuoso.current.scrollToIndex({
                     index,
                     align: 'center',
@@ -188,8 +144,70 @@ export const ResourcePage = ({
     );
 
     useEffect(() => {
-        if (!isInteractingWithResources) {
-            scrollFunction(currentResource, state);
+        if (
+            resourceErrorRequestHeader &&
+            !loading &&
+            !!session &&
+            !!allResources &&
+            !!errors &&
+            errors.length > 0 &&
+            isPlayerReady
+        ) {
+            const resource = findResourceWithMatchingHighlightHeader(
+                resourceErrorRequestHeader,
+                allResources
+            );
+            if (resource) {
+                setResourcePanel(resource);
+                setTime(resource.startTime);
+                scrollFunction(allResources.indexOf(resource));
+                message.success(
+                    `Changed player time to when error was thrown at ${MillisToMinutesAndSeconds(
+                        resource.startTime
+                    )}.`
+                );
+            } else {
+                const firstError = errors.find(
+                    (e) => e.request_id === resourceErrorRequestHeader
+                );
+                if (firstError) {
+                    setSelectedDevToolsTab('Errors');
+                    setErrorPanel(firstError);
+                    const startTime = replayer?.getMetaData().startTime;
+                    if (startTime && firstError.timestamp) {
+                        const errorDateTime = new Date(firstError.timestamp);
+                        const deltaMilliseconds =
+                            errorDateTime.getTime() - startTime;
+                        setTime(deltaMilliseconds);
+                        message.success(
+                            `Changed player time to when error was thrown at ${MillisToMinutesAndSeconds(
+                                deltaMilliseconds
+                            )}.`
+                        );
+                    }
+                }
+                H.track('FailedToMatchHighlightResourceHeaderWithResource');
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+        allResources,
+        errors,
+        isPlayerReady,
+        loading,
+        replayer,
+        resourceErrorRequestHeader,
+        scrollFunction,
+        session,
+        setErrorPanel,
+        setResourcePanel,
+        setSelectedDevToolsTab,
+        setShowDevTools,
+    ]);
+
+    useEffect(() => {
+        if (!isInteractingWithResources && state === ReplayerState.Playing) {
+            scrollFunction(currentResource);
         }
     }, [currentResource, scrollFunction, isInteractingWithResources, state]);
 
@@ -316,14 +334,7 @@ export const ResourcePage = ({
                                                 }
                                                 searchTerm={filterSearchTerm}
                                                 onClickHandler={() => {
-                                                    setDetailedPanel(
-                                                        getDetailedPanel(
-                                                            resource,
-                                                            pause,
-                                                            session,
-                                                            error
-                                                        )
-                                                    );
+                                                    setResourcePanel(resource);
                                                 }}
                                                 hasError={!!error}
                                             />
@@ -407,12 +418,13 @@ const ResourceRow = ({
         0.1
     );
     const rightPaddingPercent = 100 - actualPercent - leftPaddingPercent;
+    const isCurrentResource = resource.id === currentResource;
 
     return (
         <div key={resource.id.toString()} onClick={onClickHandler}>
             <div
                 className={classNames(styles.networkRow, {
-                    [styles.current]: resource.id === currentResource,
+                    [styles.current]: isCurrentResource,
                     [styles.failedResource]:
                         hasError ||
                         (resource.requestResponsePairs?.response.status &&
@@ -424,6 +436,9 @@ const ResourceRow = ({
                         detailedPanel?.id === resource.id.toString(),
                 })}
             >
+                {isCurrentResource && (
+                    <div className={styles.currentIndicator} />
+                )}
                 <div className={styles.typeSection}>
                     {resource.requestResponsePairs?.response.status ?? 200}
                 </div>
@@ -549,86 +564,7 @@ const roundOff = (value: number, decimal = 1) => {
     return Math.round(value * base) / base;
 };
 
-const getDetailedPanel = (
-    resource: NetworkResource,
-    pause: (time: number) => void,
-    session: Session,
-    error?: ErrorObject
-) => {
-    const networkContent = (
-        <>
-            <div className={styles.detailPanelTitle}></div>
-            <ResourceDetailsModal
-                selectedNetworkResource={resource}
-                networkRecordingEnabledForSession={
-                    session?.enable_recording_network_contents || false
-                }
-            />
-        </>
-    );
-
-    return {
-        title: null,
-        content: (
-            <Tabs
-                noPadding
-                noHeaderPadding
-                tabs={[
-                    {
-                        title: 'Network Resource',
-                        panelContent: (
-                            <div className={styles.tabContainer}>
-                                {networkContent}
-                            </div>
-                        ),
-                    },
-                    ...(error
-                        ? [
-                              {
-                                  title: 'Error',
-                                  panelContent: (
-                                      <div className={styles.tabContainer}>
-                                          <ErrorModal error={error} />
-                                      </div>
-                                  ),
-                              },
-                          ]
-                        : []),
-                ]}
-                tabBarExtraContent={
-                    <div className={styles.extraContentContainer}>
-                        <GoToButton
-                            onClick={() => {
-                                pause(resource.startTime);
-
-                                message.success(
-                                    `Changed player time to when ${getNetworkResourcesDisplayName(
-                                        resource.initiatorType
-                                    )} request started at ${MillisToMinutesAndSeconds(
-                                        resource.startTime
-                                    )}.`
-                                );
-                            }}
-                        />
-                    </div>
-                }
-                id={
-                    error
-                        ? 'NetworkErrorRightPanelTabs'
-                        : 'NetworkRightPanelTabs'
-                }
-            />
-        ),
-        options: {
-            noHeader: true,
-        },
-        id: resource.id.toString(),
-    };
-};
-
-const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request';
-
-const findResourceWithMatchingHighlightHeader = (
+export const findResourceWithMatchingHighlightHeader = (
     headerValue: string,
     resources: NetworkResource[]
 ) => {
@@ -637,15 +573,7 @@ const findResourceWithMatchingHighlightHeader = (
     );
 };
 
-const getHighlightRequestId = (resource: NetworkResource) => {
-    const joined =
-        // @ts-expect-error
-        resource.requestResponsePairs?.request?.headers[
-            HIGHLIGHT_REQUEST_HEADER
-        ];
-    if (!joined) {
-        return joined;
-    }
-
-    return joined.split('/')[1];
+export const getHighlightRequestId = (resource: NetworkResource) => {
+    // @ts-expect-error
+    return resource.requestResponsePairs?.request?.id;
 };

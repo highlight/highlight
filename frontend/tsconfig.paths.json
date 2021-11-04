@@ -26,6 +26,9 @@
 			"@authentication/*": [
 				"./authentication/*"
 			],
+			"@context/*": [
+				"./context/*"
+			]
 		},
 	}
 }

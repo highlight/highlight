@@ -41,6 +41,7 @@ const TimelineEventAnnotation = ({
     return (
         <Popover
             key={event.identifier}
+            popoverClassName={timelineAnnotationStyles.popover}
             content={
                 <div className={styles.popoverContent}>
                     <StreamElementPayload

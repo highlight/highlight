@@ -86,7 +86,7 @@ const ActiveUsersTable = () => {
                 <h3>Top Users</h3>
                 <Input
                     allowClear
-                    placeholder="Filter"
+                    placeholder="Search for user"
                     value={filterSearchTerm}
                     onChange={(event) => {
                         setFilterSearchTerm(event.target.value);

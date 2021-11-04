@@ -5,15 +5,31 @@ import styles from './PopConfirm.module.scss';
 
 type Props = Pick<
     PopconfirmProps,
-    'cancelText' | 'okText' | 'children' | 'title' | 'onConfirm'
->;
+    | 'cancelText'
+    | 'okText'
+    | 'children'
+    | 'onConfirm'
+    | 'onCancel'
+    | 'placement'
+    | 'align'
+    | 'okButtonProps'
+> & {
+    title: string;
+    description: string;
+};
 
-const PopConfirm = ({ children, ...props }: Props) => {
+const PopConfirm = ({ children, title, description, ...props }: Props) => {
     return (
         <AntDesignPopconfirm
             {...props}
             icon={null}
             overlayClassName={styles.popConfirmContainer}
+            title={
+                <>
+                    <h4>{title}</h4>
+                    <p className={styles.description}>{description}</p>
+                </>
+            }
         >
             {children}
         </AntDesignPopconfirm>

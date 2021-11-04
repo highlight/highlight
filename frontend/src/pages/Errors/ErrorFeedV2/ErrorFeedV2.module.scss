@@ -82,13 +82,26 @@
 }
 
 .feedContent {
+    border-top: 1px solid transparent;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
     height: 200px;
+    margin-left: calc(-1 * var(--size-xLarge));
+    margin-right: calc(-1 * var(--size-xLarge));
     overflow-x: hidden;
     overflow-y: auto;
-    width: 100%;
+    padding-left: var(--size-xLarge);
+    padding-right: var(--size-xLarge);
+    transition: border 0.2s ease-in-out;
+
+    &.hasScrolled {
+        border-top-color: var(--color-gray-300);
+    }
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
 }
 
 .fixedContent {
