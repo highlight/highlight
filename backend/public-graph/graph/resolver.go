@@ -937,6 +937,9 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 		traceString := string(traceBytes)
 
 		sessionObj := sessionLookup[v.SessionSecureID]
+		if sessionObj == nil {
+			continue
+		}
 		projectID := sessionObj.ProjectID
 
 		errorToInsert := &model.ErrorObject{
