@@ -1,7 +1,3 @@
-.tableContainer {
-    max-height: 400px;
-}
-
 .percentContainer {
     --bar-width: max(calc(var(--percentage) - 24px - var(--size-xxSmall)), 1px);
     color: var(--color-gray-500);

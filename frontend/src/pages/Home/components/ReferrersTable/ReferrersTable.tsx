@@ -1,3 +1,4 @@
+import Card from '@components/Card/Card';
 import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
@@ -5,7 +6,6 @@ import {
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
-import classNames from 'classnames';
 import React, { useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router-dom';
@@ -15,7 +15,6 @@ import { getPercentageDisplayValue } from '../../../../components/BarChartTable/
 import { useGetReferrersCountQuery } from '../../../../graph/generated/hooks';
 import { EmptySessionsSearchParams } from '../../../Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '../../../Sessions/SearchContext/SearchContext';
-import homePageStyles from '../../HomePage.module.scss';
 import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext';
 import styles from './ReferrersTable.module.scss';
 
@@ -60,16 +59,7 @@ const ReferrersTable = () => {
     }
 
     return (
-        <div
-            className={classNames(
-                homePageStyles.section,
-                homePageStyles.graphSection,
-                styles.tableContainer
-            )}
-        >
-            <div className={homePageStyles.chartHeaderWrapper}>
-                <h3>Top Referrers</h3>
-            </div>
+        <Card title="Top Referrers">
             <BarChartTable
                 columns={Columns}
                 data={tableData}
@@ -89,7 +79,7 @@ const ReferrersTable = () => {
                 noDataTitle="No referrer data yet 😔"
                 noDataMessage="Doesn't look like your app has been referred to yet."
             />
-        </div>
+        </Card>
     );
 };
 

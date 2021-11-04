@@ -3,9 +3,9 @@ import React from 'react';
 
 import styles from './Card.module.scss';
 
-type Props = React.HTMLAttributes<HTMLDivElement> & {
+type Props = Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> & {
     noPadding?: boolean;
-    title?: string;
+    title?: string | React.ReactNode;
     interactable?: boolean;
 };
 
@@ -26,7 +26,11 @@ const Card: React.FC<Props> = ({
         >
             {title && (
                 <div className={styles.titleContainer}>
-                    <h3>{title}</h3>
+                    {typeof title === 'string' ? (
+                        <h3 className={styles.h3}>{title}</h3>
+                    ) : (
+                        title
+                    )}
                 </div>
             )}
             {children}

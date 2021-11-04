@@ -25,19 +25,6 @@
     }
 }
 
-.graphSection {
-    flex-direction: column;
-    padding: var(--size-large);
-}
-
-.section {
-    border: 1px solid var(--color-gray-300);
-    border-radius: 8px;
-    display: flex;
-    transition: 0.4s;
-    width: 100%;
-}
-
 .dashboardBody {
     display: grid;
     gap: var(--size-xxLarge);

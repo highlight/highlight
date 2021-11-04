@@ -1,3 +1,4 @@
+import Card from '@components/Card/Card';
 import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
@@ -5,7 +6,6 @@ import {
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
-import classNames from 'classnames';
 import React, { useMemo, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router-dom';
@@ -75,26 +75,23 @@ const ActiveUsersTable = () => {
     }
 
     return (
-        <div
-            className={classNames(
-                homePageStyles.section,
-                homePageStyles.graphSection,
-                styles.tableContainer
-            )}
+        <Card
+            title={
+                <div className={homePageStyles.chartHeaderWrapper}>
+                    <h3>Top Users</h3>
+                    <Input
+                        allowClear
+                        placeholder="Search for user"
+                        value={filterSearchTerm}
+                        onChange={(event) => {
+                            setFilterSearchTerm(event.target.value);
+                        }}
+                        size="small"
+                        disabled={loading}
+                    />
+                </div>
+            }
         >
-            <div className={homePageStyles.chartHeaderWrapper}>
-                <h3>Top Users</h3>
-                <Input
-                    allowClear
-                    placeholder="Search for user"
-                    value={filterSearchTerm}
-                    onChange={(event) => {
-                        setFilterSearchTerm(event.target.value);
-                    }}
-                    size="small"
-                    disabled={loading}
-                />
-            </div>
             <BarChartTable
                 loading={loading}
                 columns={Columns}
@@ -148,7 +145,7 @@ const ActiveUsersTable = () => {
                         : 'No user data yet 😔'
                 }
             />
-        </div>
+        </Card>
     );
 };
 
