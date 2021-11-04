@@ -1,13 +1,13 @@
 import Card from '@components/Card/Card';
+import Input from '@components/Input/Input';
 import Modal from '@components/Modal/Modal';
 import Table from '@components/Table/Table';
 import SvgTrash from '@icons/Trash';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames/bind';
-import React, { useEffect, useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Helmet } from 'react-helmet';
-import { useForm } from 'react-hook-form';
 import { useToggle } from 'react-use';
 
 import { useAuthContext } from '../../authentication/AuthContext';
@@ -27,17 +27,13 @@ import {
 import { getWorkspaceInvitationLink } from './utils';
 import styles from './WorkspaceTeam.module.scss';
 
-type Inputs = {
-    email: string;
-};
-
 const WorkspaceTeam = () => {
     const { workspace_id } = useParams<{ workspace_id: string }>();
     const emailRef = useRef<null | HTMLInputElement>(null);
-    const { register, handleSubmit, errors, reset } = useForm<Inputs>();
     const { data, error, loading } = useGetWorkspaceAdminsQuery({
         variables: { workspace_id },
     });
+    const [email, setEmail] = useState('');
     const [showModal, toggleShowModal] = useToggle(false);
 
     const { admin } = useAuthContext();
@@ -67,20 +63,16 @@ const WorkspaceTeam = () => {
         { loading: sendLoading },
     ] = useSendAdminWorkspaceInviteMutation();
 
-    useEffect(() => {
-        reset();
-    }, [reset]);
-
-    const onSubmit = (data: Inputs) => {
+    const onSubmit = (e: { preventDefault: () => void }) => {
+        e.preventDefault();
         sendInviteEmail({
             variables: {
                 workspace_id,
-                email: data.email,
+                email,
                 base_url: window.location.origin,
             },
         }).then(() => {
-            message.success(`Invite email sent to ${data.email}!`, 5);
-            reset();
+            message.success(`Invite email sent to ${email}!`, 5);
             emailRef.current?.focus();
         });
     };
@@ -109,21 +101,21 @@ const WorkspaceTeam = () => {
                     width={600}
                     onCancel={toggleShowModal}
                 >
-                    <form onSubmit={handleSubmit(onSubmit)}>
+                    <form onSubmit={onSubmit}>
                         <p className={styles.boxSubTitle}>
                             Invite a team member to '
                             {`${data?.workspace?.name}`}' by entering an email
                             below.
                         </p>
                         <div className={styles.buttonRow}>
-                            <input
-                                className={commonStyles.input}
+                            <Input
                                 placeholder={'Email'}
                                 type="email"
                                 name="email"
-                                ref={(e) => {
-                                    register(e, { required: true });
-                                    emailRef.current = e;
+                                autoFocus
+                                value={email}
+                                onChange={(e) => {
+                                    setEmail(e.target.value);
                                 }}
                             />
                             <Button
@@ -147,11 +139,6 @@ const WorkspaceTeam = () => {
                                     'Invite'
                                 )}
                             </Button>
-                        </div>
-                        <div className={commonStyles.errorMessage}>
-                            {errors.email &&
-                                'Error validating email ' +
-                                    errors.email.message}
                         </div>
                     </form>
                     <hr className={styles.hr} />

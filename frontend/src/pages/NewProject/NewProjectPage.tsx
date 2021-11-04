@@ -1,3 +1,4 @@
+import Input from '@components/Input/Input';
 import { useAppLoadingContext } from '@context/AppLoadingContext';
 import {
     useCreateProjectMutation,
@@ -5,9 +6,8 @@ import {
 } from '@graph/hooks';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
-import { useForm } from 'react-hook-form';
 import { Redirect } from 'react-router-dom';
 
 import commonStyles from '../../Common.module.scss';
@@ -16,14 +16,11 @@ import { CircularSpinner } from '../../components/Loading/Loading';
 import { client } from '../../util/graph';
 import styles from './NewProject.module.scss';
 
-type Inputs = {
-    name: string;
-};
-
 const NewProjectPage = () => {
     const { workspace_id } = useParams<{ workspace_id: string }>();
+    const [error, setError] = useState<undefined | string>(undefined);
+    const [name, setName] = useState<string>('');
 
-    const { register, handleSubmit, errors, setError } = useForm<Inputs>();
     const [
         createProject,
         { loading: projectLoading, data: projectData, error: projectError },
@@ -40,10 +37,7 @@ const NewProjectPage = () => {
 
     useEffect(() => {
         if (projectError || workspaceError) {
-            setError('name', {
-                type: 'request error',
-                message: projectError?.message ?? workspaceError?.message,
-            });
+            setError(projectError?.message ?? workspaceError?.message);
         }
     }, [setError, projectError, workspaceError]);
 
@@ -54,20 +48,27 @@ const NewProjectPage = () => {
     // User is creating a workspace if workspace is not specified in the URL
     const isWorkspace = !workspace_id;
 
-    const onSubmit = (data: Inputs) => {
+    const onSubmit = (e: { preventDefault: () => void }) => {
+        e.preventDefault();
         if (isWorkspace) {
             createWorkspace({
                 variables: {
-                    name: data.name,
+                    name: name,
                 },
-            }).then(() => client.cache.reset());
+            }).then(() => {
+                client.cache.reset();
+                setName('');
+            });
         } else {
             createProject({
                 variables: {
-                    name: data.name,
+                    name: name,
                     workspace_id,
                 },
-            }).then(() => client.cache.reset());
+            }).then(() => {
+                client.cache.reset();
+                setName('');
+            });
         }
     };
 
@@ -90,7 +91,7 @@ const NewProjectPage = () => {
                 <title>{isWorkspace ? 'New Workspace' : 'New Project'}</title>
             </Helmet>
             <div className={styles.box} key={workspace_id}>
-                <form onSubmit={handleSubmit(onSubmit)}>
+                <form onSubmit={onSubmit}>
                     <h2
                         className={styles.title}
                     >{`Create a ${pageTypeCaps}`}</h2>
@@ -100,18 +101,20 @@ const NewProjectPage = () => {
                         {!isWorkspace &&
                             `Let's create a project! This is usually a single application (e.g. web front end, landing page, etc).`}
                     </p>
-                    <div className={commonStyles.errorMessage}>
-                        {errors.name &&
-                            `Error with ${pageType} name ` +
-                                errors.name.message}
-                    </div>
-                    <input
+                    {error && (
+                        <div className={commonStyles.errorMessage}>
+                            {`Error with ${pageType} name ` + error}
+                        </div>
+                    )}
+                    <Input
                         placeholder={
                             isWorkspace ? 'Pied Piper, Inc' : 'Web Front End'
                         }
                         name="name"
-                        ref={register({ required: true })}
-                        className={commonStyles.input}
+                        value={name}
+                        onChange={(e) => {
+                            setName(e.target.value);
+                        }}
                         autoComplete="off"
                         autoFocus
                     />
