@@ -83,7 +83,7 @@ const RageClicksForProjectTable = () => {
         <Card
             title={
                 <div className={homePageStyles.chartHeaderWrapper}>
-                    <h3>Rage Clicks</h3>
+                    <h3 id={homePageStyles.h3}>Rage Clicks</h3>
                     <Input
                         allowClear
                         placeholder="Search for user"

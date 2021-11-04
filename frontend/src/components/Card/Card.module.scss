@@ -48,12 +48,8 @@
         padding-right: var(--size-large);
         padding-top: 0;
 
-        &.interactive {
+        &.noTitleBottomMargin {
             margin-bottom: 0;
-
-            h3 {
-                margin-bottom: 0 !important;
-            }
         }
 
         .h3 {

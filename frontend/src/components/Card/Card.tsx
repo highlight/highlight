@@ -7,6 +7,7 @@ type Props = Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> & {
     noPadding?: boolean;
     title?: string | React.ReactNode;
     interactable?: boolean;
+    noTitleBottomMargin?: boolean;
 };
 
 const Card: React.FC<Props> = ({
@@ -14,6 +15,7 @@ const Card: React.FC<Props> = ({
     children,
     noPadding = false,
     interactable = false,
+    noTitleBottomMargin,
     ...props
 }) => {
     return (
@@ -27,7 +29,8 @@ const Card: React.FC<Props> = ({
             {title && (
                 <div
                     className={classNames(styles.titleContainer, {
-                        [styles.interactive]: typeof title !== 'string',
+                        [styles.noTitleBottomMargin]:
+                            typeof title !== 'string' || noTitleBottomMargin,
                     })}
                 >
                     {typeof title === 'string' ? (

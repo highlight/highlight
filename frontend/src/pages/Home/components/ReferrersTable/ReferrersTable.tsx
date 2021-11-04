@@ -59,7 +59,7 @@ const ReferrersTable = () => {
     }
 
     return (
-        <Card title="Top Referrers">
+        <Card title="Top Referrers" noTitleBottomMargin>
             <BarChartTable
                 columns={Columns}
                 data={tableData}

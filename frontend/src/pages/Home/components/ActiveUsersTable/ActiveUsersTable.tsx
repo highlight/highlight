@@ -78,7 +78,7 @@ const ActiveUsersTable = () => {
         <Card
             title={
                 <div className={homePageStyles.chartHeaderWrapper}>
-                    <h3>Top Users</h3>
+                    <h3 id={homePageStyles.h3}>Top Users</h3>
                     <Input
                         allowClear
                         placeholder="Search for user"
@@ -91,6 +91,7 @@ const ActiveUsersTable = () => {
                     />
                 </div>
             }
+            noTitleBottomMargin
         >
             <BarChartTable
                 loading={loading}
