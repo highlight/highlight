@@ -1,8 +1,13 @@
+import {
+    BarChartTablePercentage,
+    BarChartTablePill,
+} from '@components/BarChartTable/components/BarChartTableColumns';
 import Card from '@components/Card/Card';
 import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import SvgReferrer from '@icons/Referrer';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
@@ -11,7 +16,6 @@ import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router-dom';
 
 import BarChartTable from '../../../../components/BarChartTable/BarChartTable';
-import { getPercentageDisplayValue } from '../../../../components/BarChartTable/utils/utils';
 import { useGetReferrersCountQuery } from '../../../../graph/generated/hooks';
 import { EmptySessionsSearchParams } from '../../../Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '../../../Sessions/SearchContext/SearchContext';
@@ -98,24 +102,22 @@ const Columns: ColumnsType<any> = [
         ),
     },
     {
-        title: 'Views',
-        dataIndex: 'count',
-        key: 'count',
-        width: 75,
-        align: 'right',
-        render: (count) => <div className={styles.countContainer}>{count}</div>,
-    },
-    {
         title: 'Percentage',
         dataIndex: 'percent',
         key: 'percent',
-        render: (percent) => (
-            <div
-                className={styles.percentContainer}
-                style={{ '--percentage': `${percent}%` } as React.CSSProperties}
-            >
-                <span>{getPercentageDisplayValue(percent / 100)}</span>
-            </div>
+        render: (percent) => <BarChartTablePercentage percent={percent} />,
+    },
+    {
+        title: 'Views',
+        dataIndex: 'count',
+        key: 'count',
+        align: 'right',
+        width: 150,
+        render: (count) => (
+            <BarChartTablePill
+                displayValue={`${count} refers`}
+                icon={<SvgReferrer />}
+            />
         ),
     },
 ];

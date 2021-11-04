@@ -1,3 +1,4 @@
+import { BarChartTablePill } from '@components/BarChartTable/components/BarChartTableColumns';
 import Card from '@components/Card/Card';
 import {
     DEMO_WORKSPACE_APPLICATION_ID,
@@ -155,10 +156,10 @@ const Columns: ColumnsType<any> = [
         align: 'right',
         render: (count) => (
             <Tooltip title="The number of rage clicks in the session.">
-                <div className={styles.countContainer}>
-                    <SvgCursorClickIcon />
-                    {count} clicks
-                </div>
+                <BarChartTablePill
+                    displayValue={`${count} clicks`}
+                    icon={<SvgCursorClickIcon />}
+                />
             </Tooltip>
         ),
     },

@@ -1,0 +1,41 @@
+.percentContainer {
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--border-radius);
+    column-gap: var(--size-xSmall);
+    display: flex;
+    justify-content: space-between;
+    margin-left: auto;
+    padding: var(--size-xxSmall) var(--size-xSmall);
+    width: calc(var(--size-xLarge) + 6ch);
+}
+
+.barGraph {
+    background: var(--color-gray-300);
+    border-radius: var(--size-xxSmall);
+    flex-shrink: 0;
+    height: 1rem;
+    overflow: hidden;
+    position: relative;
+    width: var(--size-xLarge);
+
+    &::after {
+        background: var(--text-primary);
+        border-bottom-right-radius: var(--size-xxSmall);
+        border-top-right-radius: var(--size-xxSmall);
+        content: '';
+        height: 100%;
+        position: absolute;
+        width: var(--percentage);
+    }
+}
+
+.pill {
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--border-radius);
+    column-gap: var(--size-xSmall);
+    display: flex;
+    justify-content: flex-end;
+    margin-left: auto;
+    padding: var(--size-xxSmall) var(--size-xSmall);
+    width: fit-content;
+}

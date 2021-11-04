@@ -1,14 +1,3 @@
-.countContainer {
-    border: 1px solid var(--color-gray-300);
-    border-radius: var(--border-radius);
-    column-gap: var(--size-xSmall);
-    display: flex;
-    justify-content: flex-end;
-    margin-left: auto;
-    padding: var(--size-xxSmall) var(--size-xSmall);
-    width: fit-content;
-}
-
 .hostContainer {
     align-items: center;
     column-gap: var(--size-xxSmall);
