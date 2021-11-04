@@ -12,6 +12,7 @@ interface Props {
     virtual?: boolean;
     virtualListHeight?: number;
     maxHeight?: number;
+    defaultItemHeight?: number;
 }
 
 const PopoverListContent = ({
@@ -22,6 +23,7 @@ const PopoverListContent = ({
     virtual,
     virtualListHeight,
     maxHeight,
+    defaultItemHeight,
 }: Props) => {
     const virtuoso = useRef<VirtuosoHandle>(null);
 
@@ -51,6 +53,8 @@ const PopoverListContent = ({
                         ref={virtuoso}
                         overscan={500}
                         data={listItems}
+                        totalCount={listItems.length}
+                        defaultItemHeight={defaultItemHeight}
                         itemContent={(index, item: any) => (
                             <li
                                 key={`${index}-${item.id}`}

@@ -27,6 +27,7 @@
     color: var(--color-gray-500);
     column-gap: var(--size-small);
     display: flex !important;
+    min-height: 97px;
 
     &:hover {
         color: var(--color-gray-500);
