@@ -154,7 +154,7 @@ const Columns: ColumnsType<any> = [
         align: 'right',
         render: (count) => (
             <Tooltip title="The number of rage clicks in the session.">
-                <div className={styles.countContainer}>{count} rage clicks</div>
+                <div className={styles.countContainer}>{count} clicks</div>
             </Tooltip>
         ),
     },
