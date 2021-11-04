@@ -161,6 +161,7 @@ const Columns: ColumnsType<any> = [
         title: 'User',
         dataIndex: 'identifier',
         key: 'identifier',
+        width: 230,
         render: (user) => (
             <div className={styles.hostContainer}>
                 <span>{user}</span>
