@@ -143,7 +143,9 @@ const WorkspaceTeam = () => {
                         </div>
                     </form>
                     <hr className={styles.hr} />
-                    <p>Or share this link with them.</p>
+                    <p className={styles.boxSubTitle}>
+                        Or share this link with them.
+                    </p>
                     <CopyText
                         text={getWorkspaceInvitationLink(
                             data?.workspace?.secret || '',
