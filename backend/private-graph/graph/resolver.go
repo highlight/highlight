@@ -830,3 +830,16 @@ func (r *Resolver) UnmarshalStackTrace(stackTraceString string) ([]*modelInputs.
 
 	return ret, nil
 }
+
+func (r *Resolver) validateAdminRole(ctx context.Context) error {
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return e.Wrap(err, "error retrieving admin")
+	}
+
+	if admin.Role == nil || *admin.Role != model.AdminRole.ADMIN {
+		return e.New("admin does not have role=ADMIN")
+	}
+
+	return nil
+}

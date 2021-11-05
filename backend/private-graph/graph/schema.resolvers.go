@@ -681,6 +681,10 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 		return nil, e.Wrap(err, "admin is not in workspace")
 	}
 
+	if err := r.validateAdminRole(ctx); err != nil {
+		return nil, e.Wrap(err, "must have ADMIN role to create/update stripe subscription")
+	}
+
 	// For older projects, if there's no customer ID, we create a StripeCustomer obj.
 	if workspace.StripeCustomerID == nil {
 		params := &stripe.CustomerParams{}
@@ -757,6 +761,10 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in workspace")
+	}
+
+	if err := r.validateAdminRole(ctx); err != nil {
+		return nil, e.Wrap(err, "must have ADMIN role to update billing details")
 	}
 
 	params := &stripe.CustomerParams{}
