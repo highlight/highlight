@@ -1,0 +1,28 @@
+export const getErrorTitle = (str: string): string | null => {
+    if (str.length === 0) {
+        return null;
+    }
+
+    try {
+        const json = JSON.parse(str);
+
+        if (Array.isArray(json)) {
+            const firstValue = json[0];
+            if (typeof firstValue === 'string') {
+                return firstValue;
+            } else if (typeof firstValue === 'object') {
+                const values = Object.values(firstValue);
+
+                if (values.length > 0) {
+                    if (typeof values[0] === 'string') {
+                        return values[0];
+                    }
+                }
+            }
+        }
+    } catch {
+        return null;
+    }
+
+    return null;
+};
