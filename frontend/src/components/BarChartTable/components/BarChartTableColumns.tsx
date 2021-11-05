@@ -25,6 +25,10 @@ export const BarChartTablePercentage = ({
     );
 };
 
+export const BarChartTableRowGroup: React.FC = ({ children }) => {
+    return <div className={styles.rowGroup}>{children}</div>;
+};
+
 interface BarChartTablePillProps {
     icon?: React.ReactNode;
     displayValue: string;

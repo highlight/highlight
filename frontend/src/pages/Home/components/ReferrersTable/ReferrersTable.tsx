@@ -1,6 +1,7 @@
 import {
     BarChartTablePercentage,
     BarChartTablePill,
+    BarChartTableRowGroup,
 } from '@components/BarChartTable/components/BarChartTableColumns';
 import Card from '@components/Card/Card';
 import {
@@ -94,7 +95,6 @@ const Columns: ColumnsType<any> = [
         title: 'Referrers',
         dataIndex: 'host',
         key: 'host',
-        width: 230,
         render: (host) => (
             <div className={styles.hostContainer}>
                 <span>{host}</span>
@@ -105,19 +105,16 @@ const Columns: ColumnsType<any> = [
         title: 'Percentage',
         dataIndex: 'percent',
         key: 'percent',
-        render: (percent) => <BarChartTablePercentage percent={percent} />,
-    },
-    {
-        title: 'Views',
-        dataIndex: 'count',
-        key: 'count',
-        align: 'right',
-        width: 150,
-        render: (count) => (
-            <BarChartTablePill
-                displayValue={`${count} refers`}
-                icon={<SvgReferrer />}
-            />
-        ),
+        render: (percent, record) => {
+            return (
+                <BarChartTableRowGroup>
+                    <BarChartTablePercentage percent={percent} />
+                    <BarChartTablePill
+                        displayValue={`${record.count} refers`}
+                        icon={<SvgReferrer />}
+                    />
+                </BarChartTableRowGroup>
+            );
+        },
     },
 ];
