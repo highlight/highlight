@@ -238,6 +238,7 @@ func main() {
 	}
 	H.Start()
 	defer H.Stop()
+	H.SetDebugMode(log.StandardLogger())
 
 	/*
 		Run a simple server that runs the frontend if 'staticFrontedPath' and 'all' is set.
