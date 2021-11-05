@@ -34,7 +34,7 @@ declare var window: HighlightFetchWindow & Window;
 export const FetchListener = (
     callback: NetworkListenerCallback,
     backendUrl: string,
-    tracingOrigins: string[],
+    tracingOrigins: boolean | (string | RegExp)[],
     urlBlocklist: string[],
     sessionData: SessionData
 ) => {
