@@ -7,11 +7,14 @@
 }
 
 .title {
+    font-size: 24px;
     margin-bottom: 10px;
 }
 
 .subTitle {
-    margin-bottom: 10px;
+    color: var(--color-gray-500) !important;
+    font-size: 16px !important;
+    margin-bottom: var(--size-large) !important;
 }
 
 .fullWidth {
