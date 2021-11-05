@@ -2,10 +2,6 @@ import 'rc-slider/assets/index.css';
 
 import { useAuthContext } from '@authentication/AuthContext';
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
-import {
-    DEMO_WORKSPACE_APPLICATION_ID,
-    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
-} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import ElevatedCard from '@components/ElevatedCard/ElevatedCard';
 import { ErrorState } from '@components/ErrorState/ErrorState';
 import FullBleedCard from '@components/FullBleedCard/FullBleedCard';
@@ -44,6 +40,7 @@ import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard
 import { getDisplayName } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils';
 import { SessionSearchOption } from '@pages/Sessions/SessionsFeedV2/components/SessionSearch/SessionSearch';
 import useLocalStorage from '@rehooks/local-storage';
+import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
@@ -63,14 +60,11 @@ interface Props {
 
 const Player = ({ integrated }: Props) => {
     const { isLoggedIn } = useAuthContext();
-    const { session_secure_id, project_id } = useParams<{
+    const { currentWorkspace } = useApplicationContext();
+    const { session_secure_id } = useParams<{
         session_secure_id: string;
         project_id: string;
     }>();
-    const projectIdRemapped =
-        project_id === DEMO_WORKSPACE_APPLICATION_ID
-            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-            : project_id;
     const [resizeListener, sizes] = useResizeAware();
 
     const [searchBarRef, setSearchBarRef] = useState<
@@ -256,7 +250,7 @@ const Player = ({ integrated }: Props) => {
                                 session quota. To view it, upgrade your plan.
                             </p>
                             <ButtonLink
-                                to={`/${projectIdRemapped}/billing`}
+                                to={`/w/${currentWorkspace?.id}/billing`}
                                 trackingId="PlayerPageUpgradePlan"
                                 className={styles.center}
                             >
