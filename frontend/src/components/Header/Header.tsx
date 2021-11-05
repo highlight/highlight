@@ -87,10 +87,6 @@ const FreePlanBanner = () => {
         false
     );
     const { project_id } = useParams<{ project_id: string }>();
-    const projectIdRemapped =
-        project_id === DEMO_WORKSPACE_APPLICATION_ID
-            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-            : project_id;
     const { data, loading } = useGetBillingDetailsForProjectQuery({
         variables: { project_id },
     });
@@ -126,7 +122,7 @@ const FreePlanBanner = () => {
                 {bannerMessage + ' '} Upgrade{' '}
                 <Link
                     className={styles.trialLink}
-                    to={`/${projectIdRemapped}/billing`}
+                    to={`/w/${data?.workspace_for_project?.id}/billing`}
                 >
                     here!
                 </Link>
