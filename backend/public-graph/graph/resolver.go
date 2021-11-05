@@ -885,7 +885,11 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 	// Count the number of errors for each project
 	errorsByProject := make(map[int]int64)
 	for _, err := range errors {
-		projectID := sessionLookup[err.SessionSecureID].ProjectID
+		session := sessionLookup[err.SessionSecureID]
+		if session == nil {
+			continue
+		}
+		projectID := session.ProjectID
 		errorsByProject[projectID] += 1
 	}
 
@@ -933,6 +937,9 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 		traceString := string(traceBytes)
 
 		sessionObj := sessionLookup[v.SessionSecureID]
+		if sessionObj == nil {
+			continue
+		}
 		projectID := sessionObj.ProjectID
 
 		errorToInsert := &model.ErrorObject{
