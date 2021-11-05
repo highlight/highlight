@@ -32,9 +32,11 @@ export const initializeFetchListener = () => {
             window.fetch = window._highlightFetchPatch;
         }
     } else {
-        window._originalFetch = window.fetch;
-        window._fetchProxy = (input, init) => {
-            return window._originalFetch(input, init);
-        };
+        if (window) {
+            window._originalFetch = window.fetch;
+            window._fetchProxy = (input, init) => {
+                return window._originalFetch(input, init);
+            };
+        }
     }
 };
