@@ -561,7 +561,6 @@ export const usePlayer = (): ReplayerContextInterface => {
         events,
         events.length,
         hasSearchParam,
-        isLiveMode,
         replayer,
         eventsDataLoaded,
     ]);
@@ -595,7 +594,8 @@ export const usePlayer = (): ReplayerContextInterface => {
 
             setTimerId(requestAnimationFrame(frameAction));
         }
-    }, [state, replayer, isLiveMode]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [state, replayer]);
 
     useEffect(() => {
         console.log('Rich state: ', ReplayerState[state]);
