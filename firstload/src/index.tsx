@@ -38,6 +38,7 @@ export type HighlightOptions = {
      * X-Highlight-Request header to outgoing requests whose destination URLs match a substring
      * or regexp from this list, so that backend errors can be linked back to the session.
      * If 'true' is specified, all requests to the current domain will be matched.
+     * @example tracingOrigins: ['localhost', /^\//, 'backend.myapp.com']
      */
     tracingOrigins?: boolean | (string | RegExp)[];
     /**

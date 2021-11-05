@@ -121,18 +121,21 @@ export const shouldNetworkRequestBeRecorded = (url: string, highlightBackendUrl:
 
 export const shouldNetworkRequestBeTraced = (
     url: string,
-    tracingOrigins?: boolean | (string|RegExp)[],
+    tracingOrigins?: boolean | (string | RegExp)[],
 ) => {
-    if (!tracingOrigins) return false;
+    let patterns: (string | RegExp)[] = [];
     if (tracingOrigins === true) {
-        tracingOrigins = ['localhost', /^\//];
+        patterns = ['localhost', /^\//];
         if (window?.location?.host) {
-            tracingOrigins.push(window.location.host);
+            patterns.push(window.location.host);
         }
+    } else if (tracingOrigins instanceof Array) {
+        patterns = tracingOrigins;
     }
+
     let result = false;
-    tracingOrigins.forEach((origin) => {
-        if (url.match(origin)) {
+    patterns.forEach((pattern) => {
+        if (url.match(pattern)) {
             result = true;
         }
     });
