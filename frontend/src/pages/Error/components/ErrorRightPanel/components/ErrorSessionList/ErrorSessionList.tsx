@@ -51,6 +51,12 @@ const ErrorSessionList = ({ errorGroup }: Props) => {
                             : ''
                     }`}
                     linkDisabled={!isLoggedIn}
+                    configuration={{
+                        datetimeFormat: 'Relative',
+                        setDatetimeFormat: () => {
+                            /** No Operation. */
+                        },
+                    }}
                 />
             )}
         />
