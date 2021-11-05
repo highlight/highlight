@@ -139,6 +139,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                         [styles.withoutLeftPanel]: !showLeftPanel,
                         [styles.empty]:
                             !error_secure_id || errorQueryingErrorGroup,
+                        [styles.withErrorState]: errorQueryingErrorGroup,
                     })}
                 >
                     <div

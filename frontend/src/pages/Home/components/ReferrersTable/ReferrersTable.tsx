@@ -1,21 +1,25 @@
 import {
+    BarChartTablePercentage,
+    BarChartTablePill,
+    BarChartTableRowGroup,
+} from '@components/BarChartTable/components/BarChartTableColumns';
+import Card from '@components/Card/Card';
+import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import SvgReferrer from '@icons/Referrer';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
-import classNames from 'classnames';
 import React, { useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router-dom';
 
 import BarChartTable from '../../../../components/BarChartTable/BarChartTable';
-import { getPercentageDisplayValue } from '../../../../components/BarChartTable/utils/utils';
 import { useGetReferrersCountQuery } from '../../../../graph/generated/hooks';
 import { EmptySessionsSearchParams } from '../../../Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '../../../Sessions/SearchContext/SearchContext';
-import homePageStyles from '../../HomePage.module.scss';
 import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext';
 import styles from './ReferrersTable.module.scss';
 
@@ -60,16 +64,7 @@ const ReferrersTable = () => {
     }
 
     return (
-        <div
-            className={classNames(
-                homePageStyles.section,
-                homePageStyles.graphSection,
-                styles.tableContainer
-            )}
-        >
-            <div className={homePageStyles.chartHeaderWrapper}>
-                <h3>Top Referrers</h3>
-            </div>
+        <Card title="Top Referrers" noTitleBottomMargin>
             <BarChartTable
                 columns={Columns}
                 data={tableData}
@@ -89,7 +84,7 @@ const ReferrersTable = () => {
                 noDataTitle="No referrer data yet 😔"
                 noDataMessage="Doesn't look like your app has been referred to yet."
             />
-        </div>
+        </Card>
     );
 };
 
@@ -100,7 +95,6 @@ const Columns: ColumnsType<any> = [
         title: 'Referrers',
         dataIndex: 'host',
         key: 'host',
-        width: 150,
         render: (host) => (
             <div className={styles.hostContainer}>
                 <span>{host}</span>
@@ -108,24 +102,19 @@ const Columns: ColumnsType<any> = [
         ),
     },
     {
-        title: 'Views',
-        dataIndex: 'count',
-        key: 'count',
-        width: 75,
-        align: 'right',
-        render: (count) => <div className={styles.countContainer}>{count}</div>,
-    },
-    {
         title: 'Percentage',
         dataIndex: 'percent',
         key: 'percent',
-        render: (percent) => (
-            <div
-                className={styles.percentContainer}
-                style={{ '--percentage': `${percent}%` } as React.CSSProperties}
-            >
-                <span>{getPercentageDisplayValue(percent / 100)}</span>
-            </div>
-        ),
+        render: (percent, record) => {
+            return (
+                <BarChartTableRowGroup>
+                    <BarChartTablePercentage percent={percent} />
+                    <BarChartTablePill
+                        displayValue={`${record.count} refers`}
+                        icon={<SvgReferrer />}
+                    />
+                </BarChartTableRowGroup>
+            );
+        },
     },
 ];

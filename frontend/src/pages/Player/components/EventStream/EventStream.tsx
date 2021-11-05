@@ -11,6 +11,7 @@ import {
     useReplayerContext,
 } from '@pages/Player/ReplayerContext';
 import { StreamElement } from '@pages/Player/StreamElement/StreamElement';
+import classNames from 'classnames';
 import _ from 'lodash';
 import React, {
     useCallback,
@@ -32,6 +33,7 @@ const EventStream = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [currEvent, setCurrEvent] = useState('');
     const [showDetails, setShowDetails] = useState(false);
+    const [listIsInTopPosition, setListIsInTopPosition] = useState(true);
     const eventTypeFilters = useEventTypeFilters();
     const [
         isInteractingWithStreamEvents,
@@ -106,10 +108,15 @@ const EventStream = () => {
         <>
             <div id="wrapper" className={styles.eventStreamContainer}>
                 <div className={styles.container}>
-                    <div className={styles.header}>
+                    <div
+                        className={classNames(styles.header, {
+                            [styles.withBottomBorder]: !listIsInTopPosition,
+                        })}
+                    >
                         <div className={styles.searchContainer}>
                             <Input
                                 placeholder="Search events"
+                                className={styles.search}
                                 suffix={
                                     <SvgSearchIcon
                                         className={styles.searchIcon}
@@ -174,6 +181,9 @@ const EventStream = () => {
                             //     @ts-ignore
                             components={{ List: VirtuosoList }}
                             ref={virtuoso}
+                            atTopStateChange={(atTop) => {
+                                setListIsInTopPosition(atTop);
+                            }}
                             data={filteredEvents}
                             totalCount={filteredEvents.length}
                             itemContent={(index, event) => (

@@ -27,12 +27,8 @@ func GraphQLErrorPresenter(service string) func(ctx context.Context, e error) *g
 			gqlerr = gqlerror.Errorf(e.Error())
 		}
 
-		err := highlight.ConsumeError(ctx, e)
-		if err != nil &&
-			err.Error() != "context does not contain highlightSessionSecureID; context must have injected values from highlight.InterceptRequest" &&
-			err.Error() != "context does not contain highlightRequestSecureID; context must have injected values from highlight.InterceptRequest" {
-			log.WithError(err).Error("[highlight-go] error consuming error")
-		}
+		highlight.ConsumeError(ctx, e)
+
 		return gqlerr
 	}
 }

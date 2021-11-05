@@ -114,18 +114,28 @@ const isHighlightNetworkResourceFilter = (
     name.toLocaleLowerCase().includes('highlight.run') ||
     name.toLocaleLowerCase().includes(backendUrl);
 
-export const shouldNetworkRequestBeRecorded = (url: string, highlightBackendUrl: string, tracingOrigins: string[]) => {
+export const shouldNetworkRequestBeRecorded = (url: string, highlightBackendUrl: string, tracingOrigins?: boolean | (string | RegExp)[]) => {
     return !isHighlightNetworkResourceFilter(url, highlightBackendUrl)
         || shouldNetworkRequestBeTraced(url, tracingOrigins);
 }
 
 export const shouldNetworkRequestBeTraced = (
     url: string,
-    tracingOrigins: string[],
+    tracingOrigins?: boolean | (string | RegExp)[],
 ) => {
+    let patterns: (string | RegExp)[] = [];
+    if (tracingOrigins === true) {
+        patterns = ['localhost', /^\//];
+        if (window?.location?.host) {
+            patterns.push(window.location.host);
+        }
+    } else if (tracingOrigins instanceof Array) {
+        patterns = tracingOrigins;
+    }
+
     let result = false;
-    tracingOrigins.forEach((origin) => {
-        if (url.includes(origin)) { // TODO: regex support
+    patterns.forEach((pattern) => {
+        if (url.match(pattern)) {
             result = true;
         }
     });

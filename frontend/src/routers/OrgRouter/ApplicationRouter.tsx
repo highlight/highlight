@@ -16,8 +16,6 @@ import {
     useQueryParams,
 } from 'use-query-params';
 
-const BillingPage = React.lazy(() => import('../../pages/Billing/Billing'));
-
 const Buttons = React.lazy(() => import('../../pages/Buttons/Buttons'));
 import ErrorPage from '../../pages/Error/ErrorPage';
 import HomePage from '../../pages/Home/HomePage';
@@ -176,11 +174,6 @@ const ApplicationRouter = ({ integrated }: Props) => {
                 </Route>
                 <Route path="/:project_id/alerts">
                     <AlertsRouter />
-                </Route>
-                <Route path="/:project_id/billing">
-                    <Suspense fallback={null}>
-                        <BillingPage />
-                    </Suspense>
                 </Route>
                 <Route path="/:project_id/setup">
                     <SetupPage integrated={integrated} />

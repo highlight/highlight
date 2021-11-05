@@ -19,7 +19,7 @@ import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmp
 import Switch from '../../../components/Switch/Switch';
 import LimitedSessionCard from '../../../components/Upsell/LimitedSessionsCard/LimitedSessionsCard';
 import {
-    useGetBillingDetailsQuery,
+    useGetBillingDetailsForProjectQuery,
     useGetSessionsQuery,
     useUnprocessedSessionsCountQuery,
 } from '../../../graph/generated/hooks';
@@ -64,7 +64,7 @@ export const SessionFeed = React.memo(() => {
     const { show_live_sessions } = searchParams;
     const { integrated } = useIntegrated();
 
-    const { data: billingDetails } = useGetBillingDetailsQuery({
+    const { data: billingDetails } = useGetBillingDetailsForProjectQuery({
         variables: { project_id },
     });
     const { data: unprocessedSessionsCount } = useUnprocessedSessionsCountQuery(
@@ -107,21 +107,22 @@ export const SessionFeed = React.memo(() => {
         // The assumption here is if a project is on the free plan and the project has less than 15 sessions than there must be live sessions.
         // We show live sessions along with the processed sessions so the user isn't confused on why sessions are not showing up in the feed.
         if (
-            billingDetails?.billingDetails &&
+            billingDetails?.billingDetailsForProject &&
             integrated &&
             project_id !== DEMO_WORKSPACE_APPLICATION_ID &&
             project_id !== DEMO_WORKSPACE_PROXY_APPLICATION_ID &&
             !searchParams.show_live_sessions
         ) {
             if (
-                billingDetails.billingDetails.plan.type === PlanType.Free &&
-                billingDetails.billingDetails.meter < 15
+                billingDetails.billingDetailsForProject.plan.type ===
+                    PlanType.Free &&
+                billingDetails.billingDetailsForProject.meter < 15
             ) {
                 setSearchParams({ ...searchParams, show_live_sessions: true });
             }
         }
     }, [
-        billingDetails?.billingDetails,
+        billingDetails?.billingDetailsForProject,
         integrated,
         project_id,
         searchParams,
@@ -253,9 +254,9 @@ export const SessionFeed = React.memo(() => {
                     ref={infiniteRef as RefObject<HTMLDivElement>}
                     onScroll={onFeedScrollListener}
                 >
-                    {loading && showLoadingSkeleton ? (
+                    {loading || showLoadingSkeleton ? (
                         <Skeleton
-                            height={74}
+                            height={!showDetailedSessionView ? 74 : 125}
                             count={3}
                             style={{
                                 borderRadius: 8,
@@ -307,7 +308,3 @@ export const SessionFeed = React.memo(() => {
         </SessionFeedConfigurationContextProvider>
     );
 });
-
-const getScrollPosition = (element: React.RefObject<HTMLElement>) => {
-    console.log(element);
-};

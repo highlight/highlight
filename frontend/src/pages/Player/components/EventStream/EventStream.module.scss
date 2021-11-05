@@ -23,21 +23,29 @@
 }
 
 .header {
+    background: var(--color-primary-background);
+    border-bottom: 1px solid transparent;
     column-gap: var(--size-small);
     display: flex;
     flex-direction: column;
     margin-bottom: calc(-1 * var(--size-medium));
-    padding-bottom: var(--size-medium);
+    padding-bottom: var(--size-small);
     padding-left: var(--size-large);
     padding-right: var(--size-large);
     padding-top: var(--size-medium);
     row-gap: var(--size-medium);
+    transition: border 0.2s ease-in-out;
+    z-index: 9;
 
     .searchContainer {
         column-gap: var(--size-small);
         display: flex;
         flex-grow: 1;
 
+        .search {
+            padding-bottom: var(--size-xxSmall) !important;
+            padding-top: var(--size-xxSmall) !important;
+        }
         .searchIcon {
             color: var(--color-gray-500);
         }
@@ -46,6 +54,10 @@
     .secondRow {
         color: var(--color-gray-500);
         display: flex;
+    }
+
+    &.withBottomBorder {
+        border-bottom-color: var(--color-gray-300);
     }
 }
 

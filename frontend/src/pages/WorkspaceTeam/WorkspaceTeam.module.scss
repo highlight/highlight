@@ -42,9 +42,16 @@
 }
 
 .buttonRow {
+    align-items: center;
     column-gap: var(--size-medium);
     display: grid;
     grid-template-columns: 1fr 120px;
+}
+
+.emailInput {
+    height: 40px;
+    padding-bottom: var(--size-xxSmall) !important;
+    padding-top: var(--size-xxSmall) !important;
 }
 
 .inviteButton {
@@ -52,7 +59,7 @@
 }
 
 .boxSubTitle {
-    margin: 10px 0;
+    color: var(--color-gray-500) !important;
     margin-top: 0 !important;
 }
 
@@ -62,15 +69,15 @@
     margin-left: auto;
 }
 
-.subTitleContainer {
-    align-items: center;
+.titleContainer {
+    align-items: flex-start;
     display: flex;
     justify-content: space-between;
     margin-bottom: var(--size-xLarge) !important;
 
     #subTitle {
         margin-bottom: 0 !important;
-        margin-top: 0 !important;
+        margin-top: var(--size-xSmall) !important;
     }
 }
 

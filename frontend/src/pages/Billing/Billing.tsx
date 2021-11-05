@@ -16,7 +16,7 @@ import Progress from '../../components/Progress/Progress';
 import {
     useCreateOrUpdateStripeSubscriptionMutation,
     useGetBillingDetailsQuery,
-    useGetProjectQuery,
+    useGetWorkspaceQuery,
     useUpdateBillingDetailsMutation,
 } from '../../graph/generated/hooks';
 import { AdminRole, PlanType } from '../../graph/generated/schemas';
@@ -38,10 +38,10 @@ const getStripePromiseOrNull = () => {
 const stripePromiseOrNull = getStripePromiseOrNull();
 
 const BillingPage = () => {
-    const { project_id } = useParams<{ project_id: string }>();
+    const { workspace_id } = useParams<{ workspace_id: string }>();
     const { pathname } = useLocation();
-    const { data: projectData } = useGetProjectQuery({
-        variables: { id: project_id },
+    const { data: workspaceData } = useGetWorkspaceQuery({
+        variables: { id: workspace_id },
     });
     const [
         checkoutRedirectFailedMessage,
@@ -59,7 +59,7 @@ const BillingPage = () => {
         refetch,
     } = useGetBillingDetailsQuery({
         variables: {
-            project_id,
+            workspace_id,
         },
     });
     const { admin } = useAuthContext();
@@ -75,7 +75,7 @@ const BillingPage = () => {
         const response = pathname.split('/')[3] ?? '';
         if (response === 'success') {
             updateBillingDetails({
-                variables: { project_id },
+                variables: { workspace_id },
             }).then(() => {
                 message.success('Billing change applied!', 5);
                 refetch();
@@ -92,7 +92,7 @@ const BillingPage = () => {
         checkoutRedirectFailedMessage,
         billingError,
         updateBillingDetails,
-        project_id,
+        workspace_id,
         refetch,
     ]);
 
@@ -101,13 +101,13 @@ const BillingPage = () => {
             setLoadingPlanType(newPlan);
             createOrUpdateStripeSubscription({
                 variables: {
-                    project_id,
+                    workspace_id,
                     plan_type: newPlan,
                 },
             }).then((r) => {
                 if (!r.data?.createOrUpdateStripeSubscription) {
                     updateBillingDetails({
-                        variables: { project_id },
+                        variables: { workspace_id },
                     }).then(() => {
                         const previousPlan = billingData!.billingDetails!.plan
                             .type;
@@ -157,7 +157,7 @@ const BillingPage = () => {
         })();
     }
 
-    /** Show upsell when the current usage is 80% of the project's plan. */
+    /** Show upsell when the current usage is 80% of the workspace's plan. */
     const upsell =
         (billingData?.billingDetails.meter ?? 0) /
             (billingData?.billingDetails.plan.quota ?? 1) >=
@@ -166,7 +166,7 @@ const BillingPage = () => {
     return (
         <>
             <Helmet>
-                <title>Project Billing</title>
+                <title>Workspace Billing</title>
             </Helmet>
             <LeadAlignLayout fullWidth>
                 {rainConfetti && <Confetti recycle={false} />}
@@ -185,7 +185,7 @@ const BillingPage = () => {
                         id="planDetails"
                     >
                         <p>
-                            This project is on the{' '}
+                            This workspace is on the{' '}
                             <b>{billingData?.billingDetails.plan.type} Plan</b>{' '}
                             which has used{' '}
                             {formatNumberWithDelimiters(
@@ -245,7 +245,7 @@ const BillingPage = () => {
                         <Alert
                             trackingId="AdminNoAccessToBilling"
                             message="You don't have access to billing."
-                            description={`You don't have permission to access the billing details for "${projectData?.project?.name}". Please contact ${projectData?.project?.billing_email} to make changes.`}
+                            description={`You don't have permission to access the billing details for "${workspaceData?.workspace?.name}". Please contact a workspace admin to make changes.`}
                         />
                     )}
                 </div>

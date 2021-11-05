@@ -87,10 +87,13 @@
     flex-direction: column;
     flex-grow: 1;
     height: 200px;
+    margin-left: calc(-1 * var(--size-xLarge));
+    margin-right: calc(-1 * var(--size-xLarge));
     overflow-x: hidden;
     overflow-y: auto;
+    padding-left: var(--size-xLarge);
+    padding-right: var(--size-xLarge);
     transition: border 0.2s ease-in-out;
-    width: 100%;
 
     &.hasScrolled {
         border-top-color: var(--color-gray-300);

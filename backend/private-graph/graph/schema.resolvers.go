@@ -199,24 +199,10 @@ func (r *mutationResolver) CreateProject(ctx context.Context, name string, works
 		return nil, e.Wrap(err, "error getting admin")
 	}
 
-	c := &stripe.Customer{}
-	if os.Getenv("REACT_APP_ONPREM") != "true" {
-		params := &stripe.CustomerParams{
-			Name:  &name,
-			Email: admin.Email,
-		}
-		params.AddMetadata("Workspace ID", strconv.Itoa(workspace.ID))
-		c, err = r.StripeClient.Customers.New(params)
-		if err != nil {
-			return nil, e.Wrap(err, "error creating stripe customer")
-		}
-	}
-
 	project := &model.Project{
-		Name:             &name,
-		BillingEmail:     admin.Email,
-		WorkspaceID:      workspace.ID,
-		StripeCustomerID: &c.ID,
+		Name:         &name,
+		BillingEmail: admin.Email,
+		WorkspaceID:  workspace.ID,
 	}
 
 	if err := r.DB.Create(project).Error; err != nil {
@@ -330,6 +316,25 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 
 	if err := r.DB.Create(workspace).Error; err != nil {
 		return nil, e.Wrap(err, "error creating workspace")
+	}
+
+	c := &stripe.Customer{}
+	if os.Getenv("REACT_APP_ONPREM") != "true" {
+		params := &stripe.CustomerParams{
+			Name:  &name,
+			Email: admin.Email,
+		}
+		params.AddMetadata("Workspace ID", strconv.Itoa(workspace.ID))
+		c, err = r.StripeClient.Customers.New(params)
+		if err != nil {
+			return nil, e.Wrap(err, "error creating stripe customer")
+		}
+	}
+
+	if err := r.DB.Model(&workspace).Updates(&model.Workspace{
+		StripeCustomerID: &c.ID,
+	}).Error; err != nil {
+		return nil, e.Wrap(err, "error updating workspace StripeCustomerID")
 	}
 
 	return workspace, nil
@@ -670,31 +675,36 @@ func (r *mutationResolver) DeleteErrorSegment(ctx context.Context, segmentID int
 	return &model.T, nil
 }
 
-func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context, projectID int, planType modelInputs.PlanType) (*string, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int, planType modelInputs.PlanType) (*string, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin is not in project")
+		return nil, e.Wrap(err, "admin is not in workspace")
+	}
+
+	if err := r.validateAdminRole(ctx); err != nil {
+		return nil, e.Wrap(err, "must have ADMIN role to create/update stripe subscription")
 	}
 
 	// For older projects, if there's no customer ID, we create a StripeCustomer obj.
-	if project.StripeCustomerID == nil {
+	if workspace.StripeCustomerID == nil {
 		params := &stripe.CustomerParams{}
 		c, err := r.StripeClient.Customers.New(params)
 		if err != nil {
 			return nil, e.Wrap(err, "error creating stripe customer")
 		}
-		if err := r.DB.Model(project).Updates(&model.Project{
+		if err := r.DB.Model(&workspace).Updates(&model.Workspace{
 			StripeCustomerID: &c.ID,
 		}).Error; err != nil {
 			return nil, e.Wrap(err, "error updating org fields")
 		}
-		project.StripeCustomerID = &c.ID
+		workspace.StripeCustomerID = &c.ID
 	}
 
 	// Check if there's already a subscription on the user. If there is, we do an update and return early.
 	params := &stripe.CustomerParams{}
 	params.AddExpand("subscriptions")
-	c, err := r.StripeClient.Customers.Get(*project.StripeCustomerID, params)
+
+	c, err := r.StripeClient.Customers.Get(*workspace.StripeCustomerID, params)
 	if err != nil {
 		return nil, e.Wrap(err, "couldn't retrieve stripe customer data")
 	}
@@ -722,12 +732,12 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	// If there's no existing subscription, we create a checkout.
 	plan := pricing.ToPriceID(planType)
 	checkoutSessionParams := &stripe.CheckoutSessionParams{
-		SuccessURL: stripe.String(os.Getenv("FRONTEND_URI") + "/" + strconv.Itoa(projectID) + "/billing/success"),
-		CancelURL:  stripe.String(os.Getenv("FRONTEND_URI") + "/" + strconv.Itoa(projectID) + "/billing/checkoutCanceled"),
+		SuccessURL: stripe.String(os.Getenv("FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/billing/success"),
+		CancelURL:  stripe.String(os.Getenv("FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/billing/checkoutCanceled"),
 		PaymentMethodTypes: stripe.StringSlice([]string{
 			"card",
 		}),
-		Customer: project.StripeCustomerID,
+		Customer: workspace.StripeCustomerID,
 		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
 			Items: []*stripe.CheckoutSessionSubscriptionDataItemsParams{
 				{
@@ -747,14 +757,19 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	return &stripeSession.ID, nil
 }
 
-func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, projectID int) (*bool, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID int) (*bool, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin is not in project")
+		return nil, e.Wrap(err, "admin is not in workspace")
 	}
+
+	if err := r.validateAdminRole(ctx); err != nil {
+		return nil, e.Wrap(err, "must have ADMIN role to update billing details")
+	}
+
 	params := &stripe.CustomerParams{}
 	params.AddExpand("subscriptions")
-	c, err := r.StripeClient.Customers.Get(*project.StripeCustomerID, params)
+	c, err := r.StripeClient.Customers.Get(*workspace.StripeCustomerID, params)
 	if err != nil {
 		return nil, e.Wrap(err, "couldn't retrieve stripe customer data")
 	}
@@ -765,7 +780,7 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, projectID i
 
 	planTypeId := c.Subscriptions.Data[0].Plan.ID
 
-	if err := r.DB.Model(&project).Updates(model.Project{StripePriceID: &planTypeId}).Error; err != nil {
+	if err := r.DB.Model(&workspace).Updates(model.Workspace{StripePriceID: &planTypeId}).Error; err != nil {
 		return nil, e.Wrap(err, "error setting stripe_price_id on project")
 	}
 	// mark sessions as within billing quota on plan upgrade
@@ -773,7 +788,7 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, projectID i
 	// here, the user doesn't already have a billing plan, so it's considered an upgrade unless the plan is free
 
 	r.PrivateWorkerPool.SubmitRecover(func() {
-		r.UpdateSessionsVisibility(projectID, pricing.FromPriceID(planTypeId), modelInputs.PlanTypeFree)
+		r.UpdateSessionsVisibility(workspaceID, pricing.FromPriceID(planTypeId), modelInputs.PlanTypeFree)
 	})
 
 	return &model.T, nil
@@ -2824,13 +2839,22 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 	return sessionList, nil
 }
 
-func (r *queryResolver) BillingDetails(ctx context.Context, projectID int) (*modelInputs.BillingDetails, error) {
-	org, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+func (r *queryResolver) BillingDetailsForProject(ctx context.Context, projectID int) (*modelInputs.BillingDetails, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin not found in project")
+		return nil, e.Wrap(err, "admin not in project")
 	}
 
-	stripePriceID := org.StripePriceID
+	return r.BillingDetails(ctx, project.WorkspaceID)
+}
+
+func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*modelInputs.BillingDetails, error) {
+	workspace, err := r.isAdminInWorkspaceOrDemoWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not in workspace")
+	}
+
+	stripePriceID := workspace.StripePriceID
 	planType := modelInputs.PlanTypeFree
 	if stripePriceID != nil {
 		planType = pricing.FromPriceID(*stripePriceID)
@@ -2841,7 +2865,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, projectID int) (*mod
 	var queriedSessionsOutOfQuota int64
 
 	g.Go(func() error {
-		meter, err = pricing.GetProjectQuota(r.DB, projectID)
+		meter, err = pricing.GetWorkspaceQuota(r.DB, workspaceID)
 		if err != nil {
 			return e.Wrap(err, "error from get quota")
 		}
@@ -2849,7 +2873,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, projectID int) (*mod
 	})
 
 	g.Go(func() error {
-		queriedSessionsOutOfQuota, err = pricing.GetProjectQuotaOverflow(ctx, r.DB, projectID)
+		queriedSessionsOutOfQuota, err = pricing.GetWorkspaceQuotaOverflow(ctx, r.DB, workspaceID)
 		if err != nil {
 			return e.Wrap(err, "error from get quota overflow")
 		}
@@ -2863,8 +2887,8 @@ func (r *queryResolver) BillingDetails(ctx context.Context, projectID int) (*mod
 
 	quota := pricing.TypeToQuota(planType)
 	// use monthly session limit if it exists
-	if org.MonthlySessionLimit != nil {
-		quota = *org.MonthlySessionLimit
+	if workspace.MonthlySessionLimit != nil {
+		quota = *workspace.MonthlySessionLimit
 	}
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{
