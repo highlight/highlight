@@ -7,5 +7,7 @@ export const getPercentageDisplayValue = (percent: number) => {
         return '<1%';
     }
 
+    return '100%';
+
     return `${(percent * 100).toFixed(0)}%`;
 };

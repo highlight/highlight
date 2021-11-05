@@ -1,6 +1,7 @@
 import {
     BarChartTablePercentage,
     BarChartTablePill,
+    BarChartTableRowGroup,
 } from '@components/BarChartTable/components/BarChartTableColumns';
 import Card from '@components/Card/Card';
 import {
@@ -161,7 +162,6 @@ const Columns: ColumnsType<any> = [
         title: 'User',
         dataIndex: 'identifier',
         key: 'identifier',
-        width: 230,
         render: (user) => (
             <div className={styles.hostContainer}>
                 <span>{user}</span>
@@ -172,21 +172,20 @@ const Columns: ColumnsType<any> = [
         title: 'Percentage',
         dataIndex: 'active_time_percentage',
         key: 'active_time_percentage',
-        render: (percent) => <BarChartTablePercentage percent={percent} />,
-    },
-    {
-        title: 'Active Time',
-        dataIndex: 'total_active_time',
-        key: 'total_active_time',
-        width: 150,
-        align: 'right',
-        render: (count) => (
-            <Tooltip title="Total active time the user has spent on your app">
-                <BarChartTablePill
-                    displayValue={`${formatShortTime(count / 1000)}`}
-                    icon={<SvgClockIcon />}
-                />
-            </Tooltip>
-        ),
+        render: (percent, record) => {
+            return (
+                <BarChartTableRowGroup>
+                    <BarChartTablePercentage percent={percent} />
+                    <Tooltip title="Total active time the user has spent on your app">
+                        <BarChartTablePill
+                            displayValue={`${formatShortTime(
+                                record.active_time_percentage * 1000
+                            )}`}
+                            icon={<SvgClockIcon />}
+                        />
+                    </Tooltip>
+                </BarChartTableRowGroup>
+            );
+        },
     },
 ];

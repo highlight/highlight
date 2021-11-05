@@ -1,12 +1,12 @@
 .percentContainer {
+    align-items: center;
     border: 1px solid var(--color-gray-300);
     border-radius: var(--border-radius);
     column-gap: var(--size-xSmall);
     display: flex;
     justify-content: space-between;
-    margin-left: auto;
     padding: var(--size-xxSmall) var(--size-xSmall);
-    width: calc(var(--size-xLarge) + 6ch);
+    width: fit-content;
 }
 
 .barGraph {
@@ -35,8 +35,15 @@
     border-radius: var(--border-radius);
     column-gap: var(--size-xSmall);
     display: flex;
+    flex-wrap: nowrap;
     justify-content: flex-end;
-    margin-left: auto;
-    padding: var(--size-xxSmall) var(--size-xSmall);
+    padding: var(--size-xxSmall) var(--size-small);
+    white-space: nowrap;
     width: fit-content;
+}
+
+.rowGroup {
+    column-gap: var(--size-small);
+    display: flex;
+    justify-content: flex-end;
 }
