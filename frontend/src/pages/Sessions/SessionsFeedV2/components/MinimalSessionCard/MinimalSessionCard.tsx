@@ -109,6 +109,7 @@ const MinimalSessionCard = React.memo(
                 <div
                     className={classNames(styles.sessionCardContentWrapper, {
                         [styles.detailed]: showDetailedSessionView,
+                        [styles.errorVersion]: errorVersion,
                     })}
                 >
                     <div className={styles.avatarWrapper}>
