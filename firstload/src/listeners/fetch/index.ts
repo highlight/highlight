@@ -11,10 +11,8 @@ export const initializeFetchListener = () => {
     // Only run this on Highlight local development and production.
     // This check will be removed before we release backend errors to everyone.
     if (
-        !(
-            window?.location.host === 'localhost:3000' ||
-            window?.location.host === 'app.highlight.run'
-        )
+        window?.location.host === 'localhost:3000' ||
+        window?.location.host === 'app.highlight.run'
     ) {
         if (window) {
             window._originalFetch = window.fetch;
