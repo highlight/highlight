@@ -127,7 +127,6 @@ export const usePlayer = (): ReplayerContextInterface => {
         },
     ] = useGetSessionPayloadLazyQuery({
         fetchPolicy: 'no-cache',
-        // pollInterval: 1000,
     });
     const [eventsPayload, setEventsPayload] = useState<any[] | undefined>(
         undefined
@@ -394,7 +393,6 @@ export const usePlayer = (): ReplayerContextInterface => {
             let eventsIndex = loadedEventsIndex;
 
             const addEventsWorker = () => {
-                console.log('processing events, Islivemode is ', isLiveMode);
                 events
                     .slice(eventsIndex, eventsIndex + EVENTS_CHUNK_SIZE)
                     .forEach((event) => {
@@ -413,26 +411,9 @@ export const usePlayer = (): ReplayerContextInterface => {
                 );
 
                 if (eventsIndex >= events.length) {
-                    console.log(
-                        'Player time: ',
-                        replayer.getCurrentTime(),
-                        ' First new event: ',
-                        events[loadedEventsIndex]?.timestamp -
-                            events[0]?.timestamp
-                    );
                     setLoadedEventsIndex(eventsIndex);
                     cancelAnimationFrame(timerId);
-                    console.log(
-                        'Rich set end time to ',
-                        replayer.getMetaData().totalTime
-                    );
-                    console.log(
-                        'Rich last event delta: ',
-                        JSON.stringify(
-                            events[events.length - 1].timestamp -
-                                events[0].timestamp
-                        )
-                    );
+
                     setSessionEndTime(replayer.getMetaData().totalTime);
                     const sessionIntervals = getSessionIntervals(
                         replayer.getMetaData(),
@@ -578,8 +559,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 
             timerId = requestAnimationFrame(addEventsWorker);
 
-            console.log('Rich: checking for more chunks');
-
             return () => {
                 cancelAnimationFrame(timerId);
             };
@@ -685,12 +664,8 @@ export const usePlayer = (): ReplayerContextInterface => {
                 Date.now() - 15000 - events[0].timestamp,
                 sessionEndTime - 1
             );
-            // newTime =
-            //     Math.min(
-            //         eventsevents.length - 1].timestamp,
-            //         Date.now() - 15000
-            //     ) - events[0].timestamp; // Minimum 15s delay for live mode
-            console.log('Playing from ', newTime);
+            console.log('Current time', time);
+            console.log('Now playing from ', newTime);
             console.log('sessionEndTime: ', sessionEndTime - 1);
             console.log('replayerEndTime: ', replayer?.getMetaData().endTime);
             console.log(
@@ -702,17 +677,9 @@ export const usePlayer = (): ReplayerContextInterface => {
                 Date.now() - 15000 - events[0].timestamp
             );
         }
-        // Re-visit this
         // Don't play the session if the player is already at the end of the session.
         if ((newTime ?? time) >= sessionEndTime) {
-            console.log(
-                'Rich playing past end',
-                newTime ?? time,
-                sessionEndTime
-            );
-            if (!isLiveMode) {
-                return;
-            }
+            return;
         }
         setState(ReplayerState.Playing);
         setTime(newTime ?? time);
