@@ -1,12 +1,10 @@
 import PopoverMenu from '@components/PopoverMenu/PopoverMenu';
 import SvgCheckCircleIcon from '@icons/CheckCircleIcon';
-import { H } from 'highlight.run';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { BiMinus } from 'react-icons/bi';
 import { BsPlus } from 'react-icons/bs';
 
 import Button from '../../../../components/Button/Button/Button';
-import { useGetAdminQuery } from '../../../../graph/generated/hooks';
 import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration';
 import styles from './SpeedControl.module.scss';
 
@@ -19,7 +17,6 @@ interface Props {
 }
 
 const SpeedControl = ({ disabled }: Props) => {
-    const { data: admin_data } = useGetAdminQuery({ skip: false });
     const { playerSpeed, setPlayerSpeed } = usePlayerConfiguration();
 
     const onHandleSpeedChange = (type: 'DECREMENT' | 'INCREMENT') => {
@@ -39,14 +36,6 @@ const SpeedControl = ({ disabled }: Props) => {
 
         setPlayerSpeed(newSpeed);
     };
-
-    useEffect(() => {
-        console.log(admin_data?.admin?.email);
-        if (admin_data?.admin?.email === 'engineering@highlight.run') {
-            H.track('PlayerSpeedOverride', { admin: 'lorilyn@impira.com' });
-            setPlayerSpeed(1.0);
-        }
-    }, [admin_data?.admin?.email, setPlayerSpeed]);
 
     return (
         <div className={styles.speedControlContainer}>
