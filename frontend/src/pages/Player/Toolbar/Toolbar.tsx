@@ -241,7 +241,8 @@ export const Toolbar = () => {
     };
 
     // The play button should be disabled if the player has reached the end.
-    const disablePlayButton = time >= (replayer?.getMetaData().totalTime ?? 0);
+    const disablePlayButton =
+        time >= (replayer?.getMetaData().totalTime ?? 0) && !isLiveMode;
     const leftSidebarWidth = isPlayerFullscreen ? 0 : showLeftPanel ? 475 : 0;
     /** 64 (sidebar width) + 12 (left padding for the toolbar)  */
     const staticSidebarWidth = isPlayerFullscreen
@@ -385,7 +386,7 @@ export const Toolbar = () => {
                             }
                         }}
                     >
-                        {isPaused ? (
+                        {isPaused && !isLiveMode ? (
                             <SvgPlayIcon
                                 fill="inherit"
                                 className={classNames(
@@ -428,7 +429,7 @@ export const Toolbar = () => {
                         />
                     </button>
 
-                    {session?.processed === false && (
+                    {session?.processed === false && !disableControls && (
                         <button
                             className={classNames(styles.liveButton)}
                             onClick={() => {
@@ -439,24 +440,24 @@ export const Toolbar = () => {
                         </button>
                     )}
 
-                    <div className={styles.timeSection}>
-                        {disableControls ? (
-                            <Skeleton count={1} width="60.13px" />
-                        ) : (
-                            <>
-                                {MillisToMinutesAndSeconds(
-                                    //     Sometimes the replayer will report a higher time when the player has ended.
-                                    Math.min(Math.max(time, 0), max)
-                                )}
-                                {!isLiveMode && (
+                    {!isLiveMode && (
+                        <div className={styles.timeSection}>
+                            {disableControls ? (
+                                <Skeleton count={1} width="60.13px" />
+                            ) : (
+                                <>
+                                    {MillisToMinutesAndSeconds(
+                                        //     Sometimes the replayer will report a higher time when the player has ended.
+                                        Math.min(Math.max(time, 0), max)
+                                    )}
                                     <>
                                         &nbsp;/&nbsp;
                                         {MillisToMinutesAndSeconds(max)}
                                     </>
-                                )}
-                            </>
-                        )}
-                    </div>
+                                </>
+                            )}
+                        </div>
+                    )}
                 </div>
                 <div className={styles.toolbarPinnedSettings}>
                     {!isPlayerFullscreen && !isLiveMode && (
