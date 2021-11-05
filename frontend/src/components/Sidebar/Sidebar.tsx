@@ -80,7 +80,7 @@ export const Sidebar = () => {
             Icon: SvgCreditCardIcon,
             displayName: 'Billing',
             route: 'billing',
-            hidden: isWorkspace || isOnPrem || admin?.role !== AdminRole.Admin,
+            hidden: !isWorkspace || isOnPrem || admin?.role !== AdminRole.Admin,
         },
         {
             Icon: SvgAnnouncementIcon,

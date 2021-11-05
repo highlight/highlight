@@ -109,6 +109,7 @@ const WorkspaceTeam = () => {
                         </p>
                         <div className={styles.buttonRow}>
                             <Input
+                                className={styles.emailInput}
                                 placeholder={'Email'}
                                 type="email"
                                 name="email"
@@ -142,7 +143,9 @@ const WorkspaceTeam = () => {
                         </div>
                     </form>
                     <hr className={styles.hr} />
-                    <p>Or share this link with them.</p>
+                    <p className={styles.boxSubTitle}>
+                        Or share this link with them.
+                    </p>
                     <CopyText
                         text={getWorkspaceInvitationLink(
                             data?.workspace?.secret || '',

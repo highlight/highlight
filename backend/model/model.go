@@ -180,6 +180,10 @@ type Workspace struct {
 	SlackChannels         *string
 	Projects              []Project
 	MigratedFromProjectID *int // Column can be removed after migration is done
+	StripeCustomerID      *string
+	StripePriceID         *string
+	MonthlySessionLimit   *int
+	TrialEndDate          *time.Time `json:"trial_end_date"`
 }
 
 type Project struct {
@@ -670,7 +674,6 @@ type ErrorObject struct {
 	Payload        *string   `json:"payload"`
 	Environment    string
 	RequestID      *string // From X-Highlight-Request header
-	ErrorType      string  `gorm:"default:FRONTEND"`
 }
 
 type ErrorGroup struct {

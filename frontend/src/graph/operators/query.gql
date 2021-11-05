@@ -407,8 +407,8 @@ query GetProject($id: ID!) {
     }
 }
 
-query GetBillingDetails($project_id: ID!) {
-    billingDetails(project_id: $project_id) {
+query GetBillingDetailsForProject($project_id: ID!) {
+    billingDetailsForProject(project_id: $project_id) {
         plan {
             type
             quota
@@ -416,7 +416,22 @@ query GetBillingDetails($project_id: ID!) {
         meter
         sessionsOutOfQuota
     }
-    project(id: $project_id) {
+    workspace_for_project(project_id: $project_id) {
+        id
+        trial_end_date
+    }
+}
+
+query GetBillingDetails($workspace_id: ID!) {
+    billingDetails(workspace_id: $workspace_id) {
+        plan {
+            type
+            quota
+        }
+        meter
+        sessionsOutOfQuota
+    }
+    workspace(id: $workspace_id) {
         id
         trial_end_date
     }

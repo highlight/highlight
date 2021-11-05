@@ -6,7 +6,7 @@ import { GlobalContextProvider } from '@routers/OrgRouter/context/GlobalContext'
 import { WorkspaceRedirectionRouter } from '@routers/OrgRouter/WorkspaceRedirectionRouter';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
-import React, { useEffect } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { Route, Switch } from 'react-router-dom';
 import { useToggle } from 'react-use';
 
@@ -16,6 +16,8 @@ import { Header } from '../../components/Header/Header';
 import { Sidebar } from '../../components/Sidebar/Sidebar';
 import { useGetWorkspaceDropdownOptionsQuery } from '../../graph/generated/hooks';
 import { ApplicationContextProvider } from './ApplicationContext';
+
+const BillingPage = React.lazy(() => import('../../pages/Billing/Billing'));
 
 export const WorkspaceRouter = () => {
     const { isLoggedIn } = useAuthContext();
@@ -93,6 +95,11 @@ export const WorkspaceRouter = () => {
                         </Route>
                         <Route path="/w/:workspace_id(\d+)/settings">
                             <WorkspaceSettings />
+                        </Route>
+                        <Route path="/w/:workspace_id(\d+)/billing">
+                            <Suspense fallback={null}>
+                                <BillingPage />
+                            </Suspense>
                         </Route>
                         <Route path="/w/:workspace_id(\d+)">
                             {isLoggedIn ? (

@@ -103,7 +103,7 @@ export type HighlightClassOptions = {
     organizationID: number | string;
     debug?: boolean | DebugOptions;
     backendUrl?: string;
-    tracingOrigins?: string[];
+    tracingOrigins?: boolean | (string | RegExp)[];
     disableNetworkRecording?: boolean;
     networkRecording?: boolean | NetworkRecordingOptions;
     disableConsoleRecording?: boolean;
@@ -169,7 +169,7 @@ export class Highlight {
     messages: ConsoleMessage[];
     xhrNetworkContents: RequestResponsePair[] = [];
     fetchNetworkContents: RequestResponsePair[] = [];
-    tracingOrigins: string[] = [];
+    tracingOrigins: boolean | (string | RegExp)[] = [];
     networkHeadersToRedact: string[] = [];
     urlBlocklist: string[] = [];
     sessionData: SessionData;
