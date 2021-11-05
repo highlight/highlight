@@ -116,6 +116,7 @@ const EventStream = () => {
                         <div className={styles.searchContainer}>
                             <Input
                                 placeholder="Search events"
+                                className={styles.search}
                                 suffix={
                                     <SvgSearchIcon
                                         className={styles.searchIcon}

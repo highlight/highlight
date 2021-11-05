@@ -42,6 +42,10 @@
         display: flex;
         flex-grow: 1;
 
+        .search {
+            padding-bottom: var(--size-xxSmall) !important;
+            padding-top: var(--size-xxSmall) !important;
+        }
         .searchIcon {
             color: var(--color-gray-500);
         }
