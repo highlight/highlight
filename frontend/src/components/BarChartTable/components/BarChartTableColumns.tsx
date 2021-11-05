@@ -2,6 +2,7 @@ import { Avatar } from '@components/Avatar/Avatar';
 import { getPercentageDisplayValue } from '@components/BarChartTable/utils/utils';
 import { Session } from '@graph/schemas';
 import { getIdentifiedUserProfileImage } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils';
+import classNames from 'classnames';
 import React from 'react';
 
 import styles from './BarChartTableColumns.module.scss';
@@ -28,8 +29,23 @@ export const BarChartTablePercentage = ({
     );
 };
 
-export const BarChartTableRowGroup: React.FC = ({ children }) => {
-    return <div className={styles.rowGroup}>{children}</div>;
+interface BarChartTableRowGroupProps {
+    alignment?: 'leading' | 'ending';
+}
+
+export const BarChartTableRowGroup: React.FC<BarChartTableRowGroupProps> = ({
+    alignment = 'leading',
+    children,
+}) => {
+    return (
+        <div
+            className={classNames(styles.rowGroup, {
+                [styles.endingAlignment]: alignment === 'ending',
+            })}
+        >
+            {children}
+        </div>
+    );
 };
 
 interface BarChartTablePillProps {

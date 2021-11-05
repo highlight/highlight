@@ -184,7 +184,7 @@ const Columns: ColumnsType<any> = [
         key: 'active_time_percentage',
         render: (percent, record) => {
             return (
-                <BarChartTableRowGroup>
+                <BarChartTableRowGroup alignment="ending">
                     <BarChartTablePercentage percent={percent} />
                     <Tooltip title="Total active time the user has spent on your app">
                         <BarChartTablePill

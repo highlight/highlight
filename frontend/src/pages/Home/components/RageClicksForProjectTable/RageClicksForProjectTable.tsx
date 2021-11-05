@@ -169,7 +169,7 @@ const Columns: ColumnsType<any> = [
         key: 'totalClicks',
         align: 'right',
         render: (count) => (
-            <BarChartTableRowGroup>
+            <BarChartTableRowGroup alignment="ending">
                 <Tooltip title="The number of rage clicks in the session.">
                     <BarChartTablePill
                         displayValue={`${count} clicks`}
