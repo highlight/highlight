@@ -254,9 +254,9 @@ export const SessionFeed = React.memo(() => {
                     ref={infiniteRef as RefObject<HTMLDivElement>}
                     onScroll={onFeedScrollListener}
                 >
-                    {loading && showLoadingSkeleton ? (
+                    {loading || showLoadingSkeleton ? (
                         <Skeleton
-                            height={74}
+                            height={!showDetailedSessionView ? 74 : 125}
                             count={3}
                             style={{
                                 borderRadius: 8,
