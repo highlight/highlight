@@ -41,7 +41,8 @@ const SpeedControl = ({ disabled }: Props) => {
     };
 
     useEffect(() => {
-        if (admin_data?.admin?.email === 'lorilyn@impira.com') {
+        console.log(admin_data?.admin?.email);
+        if (admin_data?.admin?.email === 'engineering@highlight.run') {
             H.track('PlayerSpeedOverride', { admin: 'lorilyn@impira.com' });
             setPlayerSpeed(1.0);
         }
