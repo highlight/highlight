@@ -468,8 +468,12 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 		fingerprintInt = val
 	}
 
+	workspace, err := r.getWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieving workspace")
+	}
 	// determine if session is within billing quota
-	withinBillingQuota := r.isProjectWithinBillingQuota(project, n)
+	withinBillingQuota := r.isWorkspaceWithinBillingQuota(workspace, n)
 
 	session := &model.Session{
 		Fingerprint:                    fingerprintInt,
@@ -724,8 +728,8 @@ func (r *Resolver) getWorkspace(workspaceID int) (*model.Workspace, error) {
 	return &workspace, nil
 }
 
-func (r *Resolver) isProjectWithinBillingQuota(project *model.Project, now time.Time) bool {
-	if project.TrialEndDate != nil && project.TrialEndDate.After(now) {
+func (r *Resolver) isWorkspaceWithinBillingQuota(workspace *model.Workspace, now time.Time) bool {
+	if workspace.TrialEndDate != nil && workspace.TrialEndDate.After(now) {
 		return true
 	}
 	if util.IsOnPrem() {
@@ -735,12 +739,12 @@ func (r *Resolver) isProjectWithinBillingQuota(project *model.Project, now time.
 		withinBillingQuota bool
 		quota              int
 	)
-	if project.MonthlySessionLimit != nil && *project.MonthlySessionLimit > 0 {
-		quota = *project.MonthlySessionLimit
+	if workspace.MonthlySessionLimit != nil && *workspace.MonthlySessionLimit > 0 {
+		quota = *workspace.MonthlySessionLimit
 	} else {
 		stripePriceID := ""
-		if project.StripePriceID != nil {
-			stripePriceID = *project.StripePriceID
+		if workspace.StripePriceID != nil {
+			stripePriceID = *workspace.StripePriceID
 		}
 		stripePlan := pricing.FromPriceID(stripePriceID)
 		quota = pricing.TypeToQuota(stripePlan)
@@ -749,13 +753,13 @@ func (r *Resolver) isProjectWithinBillingQuota(project *model.Project, now time.
 	var monthToDateSessionCount int64
 	if err := r.DB.
 		Model(&model.DailySessionCount{}).
-		Where(&model.DailySessionCount{ProjectID: project.ID}).
+		Where("project_id in (SELECT id FROM projects WHERE workspace_id=?)", workspace.ID).
 		Where("date > ?", time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)).
 		Select("SUM(count) as monthToDateSessionCount").
 		Scan(&monthToDateSessionCount).Error; err != nil {
 		// The record doesn't exist for new projects since the record gets created in the worker.
 		monthToDateSessionCount = 0
-		log.Warn(fmt.Sprintf("Couldn't find DailySessionCount for %d", project.ID))
+		log.Warn(fmt.Sprintf("Couldn't find DailySessionCount for %d", workspace.ID))
 	}
 	withinBillingQuota = int64(quota) > monthToDateSessionCount
 	return withinBillingQuota

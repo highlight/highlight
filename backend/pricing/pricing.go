@@ -14,22 +14,22 @@ import (
 	"gorm.io/gorm"
 )
 
-func GetProjectQuota(DB *gorm.DB, project_id int) (int64, error) {
+func GetWorkspaceQuota(DB *gorm.DB, workspace_id int) (int64, error) {
 	year, month, _ := time.Now().Date()
 	var meter int64
-	if err := DB.Model(&model.Session{}).Where("project_id = ?", project_id).Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Count(&meter).Error; err != nil {
+	if err := DB.Model(&model.Session{}).Where("project_id in (SELECT id FROM projects WHERE workspace_id=?)", workspace_id).Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Count(&meter).Error; err != nil {
 		return 0, e.Wrap(err, "error querying for session meter")
 	}
 	return meter, nil
 }
 
-func GetProjectQuotaOverflow(ctx context.Context, DB *gorm.DB, project_id int) (int64, error) {
+func GetWorkspaceQuotaOverflow(ctx context.Context, DB *gorm.DB, workspace_id int) (int64, error) {
 	year, month, _ := time.Now().Date()
 	var queriedSessionsOverQuota int64
 	sessionsOverQuotaCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-		tracer.ResourceName("db.sessionsOverQuotaCountQuery"), tracer.Tag("project_id", project_id))
+		tracer.ResourceName("db.sessionsOverQuotaCountQuery"), tracer.Tag("workspace_id", workspace_id))
 	defer sessionsOverQuotaCountSpan.Finish()
-	if err := DB.Model(&model.Session{}).Where("project_id = ?", project_id).Where("within_billing_quota = false").Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Count(&queriedSessionsOverQuota).Error; err != nil {
+	if err := DB.Model(&model.Session{}).Where("project_id in (SELECT id FROM projects WHERE workspace_id=?)", workspace_id).Where("within_billing_quota = false").Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Count(&queriedSessionsOverQuota).Error; err != nil {
 		return 0, e.Wrap(err, "error querying sessions over quota count")
 	}
 	return queriedSessionsOverQuota, nil
