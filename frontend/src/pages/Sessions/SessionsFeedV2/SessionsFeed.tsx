@@ -255,7 +255,7 @@ export const SessionFeed = React.memo(() => {
                 >
                     {loading || showLoadingSkeleton ? (
                         <Skeleton
-                            height={74}
+                            height={!showDetailedSessionView ? 74 : 125}
                             count={3}
                             style={{
                                 borderRadius: 8,
