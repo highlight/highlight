@@ -253,7 +253,7 @@ export const SessionFeed = React.memo(() => {
                     ref={infiniteRef as RefObject<HTMLDivElement>}
                     onScroll={onFeedScrollListener}
                 >
-                    {loading && showLoadingSkeleton ? (
+                    {loading || showLoadingSkeleton ? (
                         <Skeleton
                             height={74}
                             count={3}
