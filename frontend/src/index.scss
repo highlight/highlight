@@ -102,7 +102,7 @@
 }
 
 [data-theme='dark'] {
-    --color-purple-100: #f2eefb;
+    --color-purple-100: #302c3a;
     --color-purple-200: #eee7ff;
     --color-purple-300: #bea8f1;
     --color-purple-400: #937ccc;
@@ -145,8 +145,8 @@
     --color-white: #fff;
 
     // Editor Color
-    --color-editor-background: #fafafa;
-    --color-editor-foreground-text: #383a42;
+    --color-editor-background: #111;
+    --color-editor-foreground-text: var(--color-gray-700);
     --color-editor-secondary-text: #4078f2;
 
     --color-primary-background: #1f2023;

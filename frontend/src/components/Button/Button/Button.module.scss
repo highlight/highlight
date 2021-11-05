@@ -1,9 +1,14 @@
 .buttonBase {
     align-items: center;
+    color: var(--text-primary) !important;
     display: flex;
     height: auto;
     padding-bottom: 8px;
     padding-top: 8px;
+
+    &:global(.ant-btn-primary) {
+        color: var(--color-white) !important;
+    }
 
     &.iconButton {
         align-items: center;
@@ -36,6 +41,10 @@
             height: var(--size-small);
             width: var(--size-small);
         }
+    }
+
+    &:global(.ant-btn-ghost) {
+        border-color: var(--color-gray-300) !important;
     }
 }
 

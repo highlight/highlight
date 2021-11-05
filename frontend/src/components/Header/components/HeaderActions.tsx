@@ -1,4 +1,5 @@
 import ThemeToggle from '@components/Header/ThemeToggle/ThemeToggle';
+import HighlightGate from '@components/HighlightGate/HighlightGate';
 import SvgKeyboardIcon from '@icons/KeyboardIcon';
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext';
 import React from 'react';
@@ -46,9 +47,11 @@ const HeaderActions = () => {
                     <SvgKeyboardIcon />
                 </Button>
             </div>
-            <div>
-                <ThemeToggle />
-            </div>
+            <HighlightGate>
+                <div>
+                    <ThemeToggle />
+                </div>
+            </HighlightGate>
         </div>
     );
 };

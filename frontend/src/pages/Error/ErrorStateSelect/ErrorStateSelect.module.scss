@@ -17,7 +17,7 @@
 
     &.resolved {
         :global(.ant-select-selector) {
-            background-color: var(--color-error-resolved);
+            background-color: var(--color-error-resolved) !important;
             color: var(--text-primary-inverted) !important;
         }
 
@@ -30,7 +30,7 @@
 
     &.open {
         :global(.ant-select-selector) {
-            background-color: var(--color-error-open);
+            background-color: var(--color-error-open) !important;
             color: var(--text-primary-inverted) !important;
         }
 
@@ -43,7 +43,7 @@
 
     &.ignored {
         :global(.ant-select-selector) {
-            background-color: var(--color-error-ignored);
+            background-color: var(--color-error-ignored) !important;
             color: var(--text-primary-inverted) !important;
         }
 

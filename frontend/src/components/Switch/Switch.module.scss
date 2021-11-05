@@ -23,3 +23,11 @@
         margin: 6px; // The animation for toggling the switch takes up extra space
     }
 }
+
+.switchStyles {
+    background: var(--color-gray-400);
+
+    &:global(.ant-switch-checked) {
+        background: var(--color-purple);
+    }
+}
