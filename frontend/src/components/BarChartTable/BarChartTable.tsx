@@ -40,7 +40,6 @@ const BarChartTable = ({
                 columns={columns}
                 dataSource={data}
                 pagination={false}
-                className={styles.table}
                 onRow={(record) => ({
                     onClick: () => {
                         onClickHandler(record);
