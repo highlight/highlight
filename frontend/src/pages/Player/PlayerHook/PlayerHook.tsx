@@ -236,17 +236,13 @@ export const usePlayer = (): ReplayerContextInterface => {
     }, [sessionData?.session]);
 
     useEffect(() => {
-        if (isLiveMode && startPollingEvents) {
+        console.log('Is Live mode is now ', isLiveMode);
+        if (isLiveMode) {
             console.log('Starting polling');
-            startPollingEvents(1000);
-        } else if (!isLiveMode && stopPollingEvents) {
-            console.log('Stopping polling');
-            stopPollingEvents();
+            startPollingEvents && startPollingEvents(1000);
         } else {
-            console.log(
-                'start/stop polling not defined, isLiveMode: ',
-                isLiveMode
-            );
+            console.log('Stopping polling');
+            stopPollingEvents && stopPollingEvents();
         }
     }, [isLiveMode, startPollingEvents, stopPollingEvents]);
 
@@ -257,10 +253,6 @@ export const usePlayer = (): ReplayerContextInterface => {
             resetPlayer(ReplayerState.Loading);
         }
     }, [eventsLoading, resetPlayer, setPlayerTimeToPersistance]);
-
-    useEffect(() => {
-        console.log('Is Live mode is now ', isLiveMode);
-    }, [isLiveMode]);
 
     useEffect(() => {
         const searchParamsObject = new URLSearchParams(location.search);
