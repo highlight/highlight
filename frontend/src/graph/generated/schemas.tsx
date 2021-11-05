@@ -81,6 +81,7 @@ export type RageClickEventForProject = {
     identifier: Scalars['String'];
     session_secure_id: Scalars['String'];
     total_clicks: Scalars['Int'];
+    user_properties: Scalars['String'];
 };
 
 export type BillingDetails = {

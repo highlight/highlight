@@ -769,6 +769,7 @@ query GetRageClicksForProject($project_id: ID!, $lookBackPeriod: Int!) {
         identifier
         session_secure_id
         total_clicks
+        user_properties
     }
 }
 

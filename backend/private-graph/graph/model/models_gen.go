@@ -83,6 +83,7 @@ type RageClickEventForProject struct {
 	Identifier      string `json:"identifier"`
 	SessionSecureID string `json:"session_secure_id"`
 	TotalClicks     int    `json:"total_clicks"`
+	UserProperties  string `json:"user_properties"`
 }
 
 type ReferrerTablePayload struct {

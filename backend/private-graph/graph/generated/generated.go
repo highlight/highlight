@@ -363,6 +363,7 @@ type ComplexityRoot struct {
 		Identifier      func(childComplexity int) int
 		SessionSecureID func(childComplexity int) int
 		TotalClicks     func(childComplexity int) int
+		UserProperties  func(childComplexity int) int
 	}
 
 	ReferrerTablePayload struct {
@@ -2829,6 +2830,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.RageClickEventForProject.TotalClicks(childComplexity), true
 
+	case "RageClickEventForProject.user_properties":
+		if e.complexity.RageClickEventForProject.UserProperties == nil {
+			break
+		}
+
+		return e.complexity.RageClickEventForProject.UserProperties(childComplexity), true
+
 	case "ReferrerTablePayload.count":
 		if e.complexity.ReferrerTablePayload.Count == nil {
 			break
@@ -3741,6 +3749,7 @@ type RageClickEventForProject {
     identifier: String!
     session_secure_id: String!
     total_clicks: Int!
+    user_properties: String!
 }
 
 type BillingDetails {
@@ -15927,6 +15936,41 @@ func (ec *executionContext) _RageClickEventForProject_total_clicks(ctx context.C
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _RageClickEventForProject_user_properties(ctx context.Context, field graphql.CollectedField, obj *model.RageClickEventForProject) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RageClickEventForProject",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserProperties, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _ReferrerTablePayload_host(ctx context.Context, field graphql.CollectedField, obj *model.ReferrerTablePayload) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -23184,6 +23228,11 @@ func (ec *executionContext) _RageClickEventForProject(ctx context.Context, sel a
 			}
 		case "total_clicks":
 			out.Values[i] = ec._RageClickEventForProject_total_clicks(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "user_properties":
+			out.Values[i] = ec._RageClickEventForProject_user_properties(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

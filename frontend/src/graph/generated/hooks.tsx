@@ -5921,6 +5921,7 @@ export const GetRageClicksForProjectDocument = gql`
             identifier
             session_secure_id
             total_clicks
+            user_properties
         }
     }
 `;

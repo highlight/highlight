@@ -2014,7 +2014,8 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 	if err := r.DB.Raw(`
 	SELECT
 		COALESCE(NULLIF(identifier, ''), CONCAT('#', fingerprint)) as identifier,
-		rageClicks. *
+		rageClicks. *,
+		user_properties
 	FROM
 		(
 			SELECT
