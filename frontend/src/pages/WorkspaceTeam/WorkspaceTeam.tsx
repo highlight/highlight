@@ -109,6 +109,7 @@ const WorkspaceTeam = () => {
                         </p>
                         <div className={styles.buttonRow}>
                             <Input
+                                className={styles.emailInput}
                                 placeholder={'Email'}
                                 type="email"
                                 name="email"
