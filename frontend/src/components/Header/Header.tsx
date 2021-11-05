@@ -2,6 +2,7 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { useGetBillingDetailsForProjectQuery } from '@graph/hooks';
 import SvgXIcon from '@icons/XIcon';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
@@ -14,7 +15,6 @@ import { Link, useLocation } from 'react-router-dom';
 import { useSessionStorage } from 'react-use';
 
 import { useAuthContext } from '../../authentication/AuthContext';
-import { useGetBillingDetailsQuery } from '../../graph/generated/hooks';
 import { Maybe, PlanType, Project } from '../../graph/generated/schemas';
 import { ReactComponent as Banner } from '../../static/banner.svg';
 import { isProjectWithinTrial } from '../../util/billing/billing';
@@ -91,7 +91,7 @@ const FreePlanBanner = () => {
         project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
             : project_id;
-    const { data, loading } = useGetBillingDetailsQuery({
+    const { data, loading } = useGetBillingDetailsForProjectQuery({
         variables: { project_id },
     });
 
@@ -99,7 +99,7 @@ const FreePlanBanner = () => {
         return null;
     }
 
-    if (data?.billingDetails.plan.type !== PlanType.Free) {
+    if (data?.billingDetailsForProject.plan.type !== PlanType.Free) {
         return null;
     }
 
@@ -111,11 +111,11 @@ const FreePlanBanner = () => {
         return null;
     }
 
-    let bannerMessage = `You've used ${data?.billingDetails.meter}/${data?.billingDetails.plan.quota} of your free sessions.`;
-    const hasTrial = isProjectWithinTrial(data?.project);
+    let bannerMessage = `You've used ${data?.billingDetailsForProject.meter}/${data?.billingDetailsForProject.plan.quota} of your free sessions.`;
+    const hasTrial = isProjectWithinTrial(data?.workspace_for_project);
     if (hasTrial) {
         bannerMessage = `You have unlimited sessions until ${moment(
-            data?.project?.trial_end_date
+            data?.workspace_for_project?.trial_end_date
         ).format('MM/DD/YY')}. `;
     }
 

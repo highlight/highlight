@@ -675,15 +675,10 @@ func (r *mutationResolver) DeleteErrorSegment(ctx context.Context, segmentID int
 	return &model.T, nil
 }
 
-func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context, projectID int, planType modelInputs.PlanType) (*string, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int, planType modelInputs.PlanType) (*string, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin is not in project")
-	}
-
-	workspace, err := r.GetWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, e.Wrap(err, "error retrieving workspace")
+		return nil, e.Wrap(err, "admin is not in workspace")
 	}
 
 	// For older projects, if there's no customer ID, we create a StripeCustomer obj.
@@ -733,8 +728,8 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	// If there's no existing subscription, we create a checkout.
 	plan := pricing.ToPriceID(planType)
 	checkoutSessionParams := &stripe.CheckoutSessionParams{
-		SuccessURL: stripe.String(os.Getenv("FRONTEND_URI") + "/" + strconv.Itoa(projectID) + "/billing/success"),
-		CancelURL:  stripe.String(os.Getenv("FRONTEND_URI") + "/" + strconv.Itoa(projectID) + "/billing/checkoutCanceled"),
+		SuccessURL: stripe.String(os.Getenv("FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/billing/success"),
+		CancelURL:  stripe.String(os.Getenv("FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/billing/checkoutCanceled"),
 		PaymentMethodTypes: stripe.StringSlice([]string{
 			"card",
 		}),
@@ -758,15 +753,10 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	return &stripeSession.ID, nil
 }
 
-func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, projectID int) (*bool, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID int) (*bool, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin is not in project")
-	}
-
-	workspace, err := r.GetWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, e.Wrap(err, "error retrieving workspace")
+		return nil, e.Wrap(err, "admin is not in workspace")
 	}
 
 	params := &stripe.CustomerParams{}
@@ -790,7 +780,7 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, projectID i
 	// here, the user doesn't already have a billing plan, so it's considered an upgrade unless the plan is free
 
 	r.PrivateWorkerPool.SubmitRecover(func() {
-		r.UpdateSessionsVisibility(projectID, pricing.FromPriceID(planTypeId), modelInputs.PlanTypeFree)
+		r.UpdateSessionsVisibility(workspaceID, pricing.FromPriceID(planTypeId), modelInputs.PlanTypeFree)
 	})
 
 	return &model.T, nil
@@ -1920,15 +1910,6 @@ func (r *mutationResolver) UpdateErrorGroupIsPublic(ctx context.Context, errorGr
 	return errorGroup, nil
 }
 
-func (r *projectResolver) TrialEndDate(ctx context.Context, obj *model.Project) (*time.Time, error) {
-	workspace, err := r.GetWorkspace(obj.WorkspaceID)
-	if err != nil {
-		return nil, e.Wrap(err, "error retrieving workspace")
-	}
-
-	return workspace.TrialEndDate, nil
-}
-
 func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Session, error) {
 	if util.IsDevEnv() && secureID == "repro" {
 		sessionObj := &model.Session{}
@@ -2850,15 +2831,19 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 	return sessionList, nil
 }
 
-func (r *queryResolver) BillingDetails(ctx context.Context, projectID int) (*modelInputs.BillingDetails, error) {
+func (r *queryResolver) BillingDetailsForProject(ctx context.Context, projectID int) (*modelInputs.BillingDetails, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin not found in project")
+		return nil, e.Wrap(err, "admin not in project")
 	}
 
-	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	return r.BillingDetails(ctx, project.WorkspaceID)
+}
+
+func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*modelInputs.BillingDetails, error) {
+	workspace, err := r.isAdminInWorkspaceOrDemoWorkspace(ctx, workspaceID)
 	if err != nil {
-		return nil, e.Wrap(err, "error retrieving workspace")
+		return nil, e.Wrap(err, "admin not in workspace")
 	}
 
 	stripePriceID := workspace.StripePriceID
@@ -2872,7 +2857,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, projectID int) (*mod
 	var queriedSessionsOutOfQuota int64
 
 	g.Go(func() error {
-		meter, err = pricing.GetWorkspaceQuota(r.DB, project.WorkspaceID)
+		meter, err = pricing.GetWorkspaceQuota(r.DB, workspaceID)
 		if err != nil {
 			return e.Wrap(err, "error from get quota")
 		}
@@ -2880,7 +2865,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, projectID int) (*mod
 	})
 
 	g.Go(func() error {
-		queriedSessionsOutOfQuota, err = pricing.GetWorkspaceQuotaOverflow(ctx, r.DB, project.WorkspaceID)
+		queriedSessionsOutOfQuota, err = pricing.GetWorkspaceQuotaOverflow(ctx, r.DB, workspaceID)
 		if err != nil {
 			return e.Wrap(err, "error from get quota overflow")
 		}
@@ -3482,9 +3467,6 @@ func (r *Resolver) ErrorSegment() generated.ErrorSegmentResolver { return &error
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
-// Project returns generated.ProjectResolver implementation.
-func (r *Resolver) Project() generated.ProjectResolver { return &projectResolver{r} }
-
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
@@ -3508,7 +3490,6 @@ type errorGroupResolver struct{ *Resolver }
 type errorObjectResolver struct{ *Resolver }
 type errorSegmentResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
-type projectResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
