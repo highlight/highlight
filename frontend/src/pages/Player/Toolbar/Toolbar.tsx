@@ -251,84 +251,94 @@ export const Toolbar = () => {
 
     return (
         <ToolbarItemsContextProvider value={toolbarItems}>
-            <DevToolsContextProvider
-                value={{
-                    openDevTools: showDevTools,
-                    setOpenDevTools: setShowDevTools,
-                    devToolsTab: selectedDevToolsTab,
-                    setDevToolsTab: setSelectedDevToolsTab,
-                }}
-            >
-                {!isPlayerFullscreen && <TimelineIndicators />}
-                <div id={PlayerPageProductTourSelectors.DevToolsPanel}>
-                    <DevToolsWindow
-                        time={(replayer?.getMetaData().startTime ?? 0) + time}
-                        startTime={replayer?.getMetaData().startTime ?? 0}
-                    />
-                </div>
-            </DevToolsContextProvider>
-            <div className={styles.playerRail}>
-                <div
-                    className={styles.sliderRail}
-                    style={{
-                        position: 'absolute',
-                        display: 'flex',
-                        background:
-                            sessionIntervals.length > 0 ? 'none' : '#e4e8eb',
+            {!isLiveMode && (
+                <DevToolsContextProvider
+                    value={{
+                        openDevTools: showDevTools,
+                        setOpenDevTools: setShowDevTools,
+                        devToolsTab: selectedDevToolsTab,
+                        setDevToolsTab: setSelectedDevToolsTab,
                     }}
                 >
-                    {sessionIntervals.map((e, ind) => (
-                        <SessionSegment
-                            key={ind}
-                            interval={e}
-                            sliderClientX={sliderClientX}
-                            wrapperWidth={wrapperWidth}
-                            getSliderTime={getSliderTime}
+                    {!isPlayerFullscreen && <TimelineIndicators />}
+                    <div id={PlayerPageProductTourSelectors.DevToolsPanel}>
+                        <DevToolsWindow
+                            time={
+                                (replayer?.getMetaData().startTime ?? 0) + time
+                            }
+                            startTime={replayer?.getMetaData().startTime ?? 0}
                         />
-                    ))}
-                </div>
-                <button
-                    disabled={disableControls}
-                    className={styles.sliderWrapper}
-                    ref={sliderWrapperRef}
-                    onMouseMove={(e: React.MouseEvent<HTMLButtonElement>) =>
-                        setSliderClientX(
-                            e.clientX - staticSidebarWidth - leftSidebarWidth
-                        )
-                    }
-                    onMouseLeave={() => setSliderClientX(-1)}
-                    onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-                        const ratio =
-                            (e.clientX -
-                                staticSidebarWidth -
-                                leftSidebarWidth) /
-                            wrapperWidth;
-                        setTime(getSliderTime(ratio));
-                    }}
-                >
-                    <div className={styles.sliderRail}></div>
-
-                    <Draggable
-                        axis="x"
-                        bounds="parent"
-                        onStop={endLogger}
-                        onDrag={onDraggable}
-                        onStart={startDraggable}
-                        disabled={disableControls}
-                        position={{
-                            x: Math.max(
-                                getSliderPercent(time) * wrapperWidth - 10,
-                                0
-                            ),
-                            y: 0,
+                    </div>
+                </DevToolsContextProvider>
+            )}
+            {!isLiveMode && (
+                <div className={styles.playerRail}>
+                    <div
+                        className={styles.sliderRail}
+                        style={{
+                            position: 'absolute',
+                            display: 'flex',
+                            background:
+                                sessionIntervals.length > 0
+                                    ? 'none'
+                                    : '#e4e8eb',
                         }}
                     >
-                        <div className={styles.indicatorParent}>
-                            <div className={styles.indicator} />
-                        </div>
-                    </Draggable>
-                </button>
-            </div>
+                        {sessionIntervals.map((e, ind) => (
+                            <SessionSegment
+                                key={ind}
+                                interval={e}
+                                sliderClientX={sliderClientX}
+                                wrapperWidth={wrapperWidth}
+                                getSliderTime={getSliderTime}
+                            />
+                        ))}
+                    </div>
+                    <button
+                        disabled={disableControls}
+                        className={styles.sliderWrapper}
+                        ref={sliderWrapperRef}
+                        onMouseMove={(e: React.MouseEvent<HTMLButtonElement>) =>
+                            setSliderClientX(
+                                e.clientX -
+                                    staticSidebarWidth -
+                                    leftSidebarWidth
+                            )
+                        }
+                        onMouseLeave={() => setSliderClientX(-1)}
+                        onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                            const ratio =
+                                (e.clientX -
+                                    staticSidebarWidth -
+                                    leftSidebarWidth) /
+                                wrapperWidth;
+                            setTime(getSliderTime(ratio));
+                        }}
+                    >
+                        <div className={styles.sliderRail}></div>
+
+                        <Draggable
+                            axis="x"
+                            bounds="parent"
+                            onStop={endLogger}
+                            onDrag={onDraggable}
+                            onStart={startDraggable}
+                            disabled={disableControls}
+                            position={{
+                                x: Math.max(
+                                    getSliderPercent(time) * wrapperWidth - 10,
+                                    0
+                                ),
+                                y: 0,
+                            }}
+                        >
+                            <div className={styles.indicatorParent}>
+                                <div className={styles.indicator} />
+                            </div>
+                        </Draggable>
+                    </button>
+                </div>
+            )}
             <div className={styles.toolbarSection}>
                 <div className={styles.toolbarLeftSection}>
                     <button
@@ -417,28 +427,27 @@ export const Toolbar = () => {
                         />
                     </button>
 
-                    <div className={styles.timeSection}>
-                        {disableControls ? (
-                            <Skeleton count={1} width="60.13px" />
-                        ) : (
-                            <>
-                                {MillisToMinutesAndSeconds(
-                                    //     Sometimes the replayer will report a higher time when the player has ended.
-                                    time >= max ? max : time
-                                )}
-                                &nbsp;/&nbsp;
-                                {MillisToMinutesAndSeconds(max)}
-                            </>
-                        )}
-                    </div>
-                    {session?.processed === false ? (
-                        <div className={styles.liveSection}>Live</div>
+                    {!isLiveMode ? (
+                        <div className={styles.timeSection}>
+                            {disableControls ? (
+                                <Skeleton count={1} width="60.13px" />
+                            ) : (
+                                <>
+                                    {MillisToMinutesAndSeconds(
+                                        //     Sometimes the replayer will report a higher time when the player has ended.
+                                        time >= max ? max : time
+                                    )}
+                                    &nbsp;/&nbsp;
+                                    {MillisToMinutesAndSeconds(max)}
+                                </>
+                            )}
+                        </div>
                     ) : (
-                        ''
+                        <div className={styles.liveSection}>Live</div>
                     )}
                 </div>
                 <div className={styles.toolbarPinnedSettings}>
-                    {!isPlayerFullscreen && (
+                    {!isPlayerFullscreen && !isLiveMode && (
                         <>
                             <ToolbarMenu loading={disableControls} />
                             <DevToolsToolbarItem
