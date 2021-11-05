@@ -1,4 +1,3 @@
-import { GetSessionPayloadQuery } from '@graph/operations';
 import { Replayer } from '@highlight-run/rrweb';
 import { customEvent } from '@highlight-run/rrweb/dist/types';
 import { useParams } from '@util/react-router/useParams';
@@ -58,8 +57,6 @@ export enum SessionViewability {
 
 interface LoadedPlayerState {
     sessionSecureId: string;
-    eventsData: GetSessionPayloadQuery;
-    initialized: boolean;
 }
 
 export const usePlayer = (): ReplayerContextInterface => {
@@ -349,8 +346,6 @@ export const usePlayer = (): ReplayerContextInterface => {
                 }
                 setLastLoadedPlayerState({
                     sessionSecureId: session_secure_id,
-                    eventsData: eventsData!,
-                    initialized: false,
                 });
             }
             setEvents(newEvents);
@@ -522,12 +517,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                             return sessionIntervals;
                         });
                     }
-                    if (!lastLoadedPlayerState?.initialized) {
-                        setLastLoadedPlayerState({
-                            ...lastLoadedPlayerState!,
-                            initialized: true,
-                        });
-
+                    if (state <= ReplayerState.Loading) {
                         setState(
                             hasSearchParam
                                 ? ReplayerState.LoadedWithDeepLink
