@@ -670,7 +670,6 @@ type ErrorObject struct {
 	Payload        *string   `json:"payload"`
 	Environment    string
 	RequestID      *string // From X-Highlight-Request header
-	ErrorType      string  `gorm:"default:FRONTEND"`
 }
 
 type ErrorGroup struct {

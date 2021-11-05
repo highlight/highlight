@@ -949,7 +949,6 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 			Timestamp:   v.Timestamp,
 			Payload:     v.Payload,
 			RequestID:   &v.RequestID,
-			ErrorType:   model.ErrorType.BACKEND,
 		}
 
 		//create error fields array
@@ -1144,7 +1143,6 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 				Timestamp:    v.Timestamp,
 				Payload:      v.Payload,
 				RequestID:    nil,
-				ErrorType:    model.ErrorType.FRONTEND,
 			}
 
 			//create error fields array
