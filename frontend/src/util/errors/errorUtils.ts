@@ -1,3 +1,5 @@
+const MAX_TITLE_CHARACTER_LENGTH = 20;
+
 export const getErrorTitle = (str: string): string | null => {
     if (str.length === 0) {
         return null;
@@ -21,8 +23,8 @@ export const getErrorTitle = (str: string): string | null => {
             }
         }
     } catch {
-        return null;
+        return str.slice(0, MAX_TITLE_CHARACTER_LENGTH);
     }
 
-    return null;
+    return str.slice(0, MAX_TITLE_CHARACTER_LENGTH);
 };
