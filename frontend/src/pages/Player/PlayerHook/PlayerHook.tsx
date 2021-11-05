@@ -719,6 +719,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     const pause = useCallback(
         (newTime?: number) => {
+            setIsLiveMode(false);
             setState(ReplayerState.Paused);
             if (newTime !== undefined) {
                 setTime(newTime);
