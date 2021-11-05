@@ -1,6 +1,6 @@
 {
     "name": "highlight.run",
-    "version": "2.7.10",
+    "version": "2.7.11",
     "scripts": {
         "build": "webpack --mode=production --config=./webpack.config.js",
         "dev": "doppler run -- webpack-dev-server --progress --colors --watch",
@@ -26,9 +26,7 @@
         "webpack-cli": "^3.3.12",
         "webpack-dev-server": "^3.11.0"
     },
-    "dependencies": {
-        "highlight.run": "2.7.10"
-    },
+    "dependencies": {},
     "setupFiles": [
         "./tests/jest.overrides.js"
     ]

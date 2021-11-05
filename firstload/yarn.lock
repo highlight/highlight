@@ -3460,11 +3460,6 @@ hash.js@^1.0.0, hash.js@^1.0.3:
     inherits "^2.0.3"
     minimalistic-assert "^1.0.1"
 
-highlight.run@2.7.10:
-  version "2.7.10"
-  resolved "https://registry.yarnpkg.com/highlight.run/-/highlight.run-2.7.10.tgz#7bb921be94822828e865f4b83fb34cc0686842df"
-  integrity sha512-nOU1MMc6Vxw5wH2VMelTSsyiIdZId2GdaN02nITQwcJgDw4CSoy38+TTPMoyUmiuuHoqMvQf0+XsOphbKD+HLg==
-
 hmac-drbg@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/hmac-drbg/-/hmac-drbg-1.0.1.tgz#d2745701025a6c775a6c545793ed502fc0c649a1"
