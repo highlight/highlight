@@ -354,6 +354,19 @@
     }
 }
 
+.liveButton {
+    background: red;
+    border: 0;
+    border-radius: var(--border-radius);
+    color: white;
+    cursor: pointer;
+    fill: var(--text-primary);
+    font-weight: 300;
+    height: 40px;
+    outline: none;
+    width: 80px;
+}
+
 .settingsButton {
     border-color: var(--color-gray-300);
 }

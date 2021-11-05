@@ -64,6 +64,7 @@ export const Toolbar = () => {
         canViewSession,
         isPlayerReady,
         isLiveMode,
+        setIsLiveMode,
         sessionResults,
         session,
     } = useReplayerContext();
@@ -427,24 +428,35 @@ export const Toolbar = () => {
                         />
                     </button>
 
-                    {!isLiveMode ? (
-                        <div className={styles.timeSection}>
-                            {disableControls ? (
-                                <Skeleton count={1} width="60.13px" />
-                            ) : (
-                                <>
-                                    {MillisToMinutesAndSeconds(
-                                        //     Sometimes the replayer will report a higher time when the player has ended.
-                                        time >= max ? max : time
-                                    )}
-                                    &nbsp;/&nbsp;
-                                    {MillisToMinutesAndSeconds(max)}
-                                </>
-                            )}
-                        </div>
-                    ) : (
-                        <div className={styles.liveSection}>Live</div>
+                    {session?.processed === false && (
+                        <button
+                            className={classNames(styles.liveButton)}
+                            onClick={() => {
+                                setIsLiveMode(!isLiveMode);
+                            }}
+                        >
+                            {isLiveMode ? 'Stop Live' : 'Go Live'}
+                        </button>
                     )}
+
+                    <div className={styles.timeSection}>
+                        {disableControls ? (
+                            <Skeleton count={1} width="60.13px" />
+                        ) : (
+                            <>
+                                {MillisToMinutesAndSeconds(
+                                    //     Sometimes the replayer will report a higher time when the player has ended.
+                                    Math.min(Math.max(time, 0), max)
+                                )}
+                                {!isLiveMode && (
+                                    <>
+                                        &nbsp;/&nbsp;
+                                        {MillisToMinutesAndSeconds(max)}
+                                    </>
+                                )}
+                            </>
+                        )}
+                    </div>
                 </div>
                 <div className={styles.toolbarPinnedSettings}>
                     {!isPlayerFullscreen && !isLiveMode && (

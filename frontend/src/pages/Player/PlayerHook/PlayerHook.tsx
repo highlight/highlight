@@ -774,6 +774,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             scale !== 1 &&
             sessionViewability === SessionViewability.VIEWABLE,
         isLiveMode,
+        setIsLiveMode,
         session,
         playerProgress: replayer
             ? time / replayer.getMetaData().totalTime
