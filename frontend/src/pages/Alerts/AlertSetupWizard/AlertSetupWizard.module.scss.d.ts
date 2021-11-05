@@ -1,3 +1,4 @@
+export const actionsContainer: string;
 export const addContainer: string;
 export const alertStepsHeader: string;
 export const alertStepsParent: string;
@@ -13,6 +14,7 @@ export const icon: string;
 export const integrationAlert: string;
 export const integrationButton: string;
 export const notFoundMessage: string;
+export const saveButton: string;
 export const selected: string;
 export const selectMessage: string;
 export const title: string;

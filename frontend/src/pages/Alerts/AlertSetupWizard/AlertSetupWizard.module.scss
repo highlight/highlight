@@ -101,3 +101,13 @@
 .selected {
     font-weight: bolder;
 }
+
+.saveButton {
+    justify-content: center;
+    width: 125px;
+}
+
+.actionsContainer {
+    column-gap: var(--size-large);
+    display: flex;
+}
