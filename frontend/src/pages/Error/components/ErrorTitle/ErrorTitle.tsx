@@ -25,7 +25,11 @@ const ErrorTitle = ({ errorGroup, showShareButton = true }: Props) => {
                 const title = getErrorTitle(errorGroup.event.toString());
                 if (title) {
                     setHeaderTextAsJson(title);
+                } else {
+                    setHeaderTextAsJson(null);
                 }
+            } else {
+                setHeaderTextAsJson(null);
             }
         }
     }, [errorGroup?.event, headerText]);
