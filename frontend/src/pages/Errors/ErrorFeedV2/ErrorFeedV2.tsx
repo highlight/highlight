@@ -36,12 +36,17 @@ export const ErrorFeedV2 = () => {
         errorFeedIsInTopScrollPosition,
         setErrorFeedIsInTopScrollPosition,
     ] = useState(true);
+    // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
+    const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
 
     const { loading, fetchMore, data: errorData } = useGetErrorGroupsQuery({
         variables: {
             project_id,
             count: count + 10,
             params: searchParams,
+        },
+        onCompleted: () => {
+            setShowLoadingSkeleton(false);
         },
     });
 
@@ -50,6 +55,10 @@ export const ErrorFeedV2 = () => {
             setData(gqlSanitize(errorData.error_groups));
         }
     }, [errorData]);
+
+    useEffect(() => {
+        setShowLoadingSkeleton(true);
+    }, [searchParams]);
 
     const infiniteRef = useInfiniteScroll({
         checkInterval: 1200, // frequency to check (1.2s)
@@ -92,7 +101,7 @@ export const ErrorFeedV2 = () => {
                 onScroll={onFeedScrollListener}
             >
                 <div ref={infiniteRef as RefObject<HTMLDivElement>}>
-                    {loading ? (
+                    {loading || showLoadingSkeleton ? (
                         <Skeleton
                             height={110}
                             count={3}
