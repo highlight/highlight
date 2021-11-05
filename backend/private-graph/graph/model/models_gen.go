@@ -145,6 +145,7 @@ type TopUsersPayload struct {
 	Identifier           string  `json:"identifier"`
 	TotalActiveTime      int     `json:"total_active_time"`
 	ActiveTimePercentage float64 `json:"active_time_percentage"`
+	UserProperties       string  `json:"user_properties"`
 }
 
 type TrackPropertyInput struct {

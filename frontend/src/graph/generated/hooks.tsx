@@ -5742,6 +5742,7 @@ export const GetTopUsersDocument = gql`
             total_active_time
             active_time_percentage
             id
+            user_properties
         }
     }
 `;

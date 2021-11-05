@@ -2146,6 +2146,7 @@ export type GetTopUsersQuery = { __typename?: 'Query' } & {
                 | 'total_active_time'
                 | 'active_time_percentage'
                 | 'id'
+                | 'user_properties'
             >
         >
     >;

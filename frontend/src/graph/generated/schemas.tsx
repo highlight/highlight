@@ -264,6 +264,7 @@ export type TopUsersPayload = {
     identifier: Scalars['String'];
     total_active_time: Scalars['Int'];
     active_time_percentage: Scalars['Float'];
+    user_properties: Scalars['String'];
 };
 
 export type NewUsersCount = {
