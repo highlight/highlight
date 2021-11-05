@@ -61,10 +61,6 @@ func (r *Resolver) isDemoProject(project_id int) bool {
 	return project_id == 0
 }
 
-func (r *Resolver) isDemoWorkspace(workspace_id int) bool {
-	return workspace_id == 0
-}
-
 // These are authentication methods used to make sure that data is secured.
 // This'll probably get expensive at some point; they can probably be cached.
 
@@ -77,33 +73,15 @@ func (r *Resolver) isAdminInProjectOrDemoProject(ctx context.Context, project_id
 	var err error
 	if r.isDemoProject(project_id) {
 		if err = r.DB.Model(&model.Project{}).Where("id = ?", 0).First(&project).Error; err != nil {
-			return nil, e.Wrap(err, "error querying demo project")
+			return nil, e.Wrap(err, "error querying demo workspace")
 		}
 	} else {
 		project, err = r.isAdminInProject(ctx, project_id)
 		if err != nil {
-			return nil, e.Wrap(err, "admin is not in project or demo project")
+			return nil, e.Wrap(err, "admin is not in workspace or demo workspace")
 		}
 	}
 	return project, nil
-}
-
-func (r *Resolver) isAdminInWorkspaceOrDemoWorkspace(ctx context.Context, workspace_id int) (*model.Workspace, error) {
-	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("isAdminInWorkspaceOrDemoWorkspace"))
-	defer authSpan.Finish()
-	var workspace *model.Workspace
-	var err error
-	if r.isDemoWorkspace(workspace_id) {
-		if err = r.DB.Model(&model.Project{}).Where("id = ?", 0).First(&workspace).Error; err != nil {
-			return nil, e.Wrap(err, "error querying demo project")
-		}
-	} else {
-		workspace, err = r.isAdminInWorkspace(ctx, workspace_id)
-		if err != nil {
-			return nil, e.Wrap(err, "admin is not in project or demo project")
-		}
-	}
-	return workspace, nil
 }
 
 func (r *Resolver) GetWorkspace(workspaceID int) (*model.Workspace, error) {

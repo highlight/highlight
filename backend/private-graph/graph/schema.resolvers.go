@@ -2841,7 +2841,7 @@ func (r *queryResolver) BillingDetailsForProject(ctx context.Context, projectID 
 }
 
 func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*modelInputs.BillingDetails, error) {
-	workspace, err := r.isAdminInWorkspaceOrDemoWorkspace(ctx, workspaceID)
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not in workspace")
 	}
