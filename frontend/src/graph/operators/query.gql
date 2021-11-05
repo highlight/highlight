@@ -744,6 +744,7 @@ query GetTopUsers($project_id: ID!, $lookBackPeriod: Int!) {
         total_active_time
         active_time_percentage
         id
+        user_properties
     }
 }
 
@@ -769,6 +770,7 @@ query GetRageClicksForProject($project_id: ID!, $lookBackPeriod: Int!) {
         identifier
         session_secure_id
         total_clicks
+        user_properties
     }
 }
 
