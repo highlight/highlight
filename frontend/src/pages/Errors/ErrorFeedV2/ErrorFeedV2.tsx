@@ -104,7 +104,7 @@ export const ErrorFeedV2 = () => {
                     ) : (
                         <>
                             {!data.error_groups.length ? (
-                                <SearchEmptyState item={'errors'} />
+                                <SearchEmptyState item={'errors'} newFeed />
                             ) : (
                                 data.error_groups?.map(
                                     (u: Maybe<ErrorGroup>, ind: number) => (
