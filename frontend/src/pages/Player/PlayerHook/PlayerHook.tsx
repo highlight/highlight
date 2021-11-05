@@ -582,11 +582,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                             state,
                             isLiveMode
                         );
-                        if (!isLiveMode) {
-                            replayer.pause(replayer.getCurrentTime());
-                        } else {
-                            setState(ReplayerState.SessionEnded);
-                        }
+                        setState(ReplayerState.SessionEnded);
                     }
                 }
                 setTimerId(requestAnimationFrame(frameAction));
