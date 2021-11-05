@@ -95,12 +95,12 @@ func (r *Resolver) isAdminInWorkspaceOrDemoWorkspace(ctx context.Context, worksp
 	var err error
 	if r.isDemoWorkspace(workspace_id) {
 		if err = r.DB.Model(&model.Project{}).Where("id = ?", 0).First(&workspace).Error; err != nil {
-			return nil, e.Wrap(err, "error querying demo workspace")
+			return nil, e.Wrap(err, "error querying demo project")
 		}
 	} else {
 		workspace, err = r.isAdminInWorkspace(ctx, workspace_id)
 		if err != nil {
-			return nil, e.Wrap(err, "admin is not in workspace or demo workspace")
+			return nil, e.Wrap(err, "admin is not in project or demo project")
 		}
 	}
 	return workspace, nil
