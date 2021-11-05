@@ -180,6 +180,10 @@ type Workspace struct {
 	SlackChannels         *string
 	Projects              []Project
 	MigratedFromProjectID *int // Column can be removed after migration is done
+	StripeCustomerID      *string
+	StripePriceID         *string
+	MonthlySessionLimit   *int
+	TrialEndDate          *time.Time `json:"trial_end_date"`
 }
 
 type Project struct {
