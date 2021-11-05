@@ -2,6 +2,7 @@ import Input from '@components/Input/Input';
 import { ErrorObject } from '@graph/schemas';
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils';
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
 import { useResourcesContext } from '@pages/Player/ResourcesContext/ResourcesContext';
 import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel';
 import { message } from 'antd';
@@ -38,10 +39,15 @@ export const ResourcePage = ({
     const {
         state,
         session,
-        pause,
         isPlayerReady,
         errors,
+        replayer,
+        setTime,
     } = useReplayerContext();
+    const {
+        setShowDevTools,
+        setSelectedDevToolsTab,
+    } = usePlayerConfiguration();
     const [options, setOptions] = useState<Array<string>>([]);
     const [currentOption, setCurrentOption] = useState('All');
     const [filterSearchTerm, setFilterSearchTerm] = useState('');
@@ -59,7 +65,7 @@ export const ResourcePage = ({
     const resourceErrorRequestHeader = new URLSearchParams(location.search).get(
         PlayerSearchParameters.resourceErrorRequestHeader
     );
-    const { setResourcePanel } = useResourceOrErrorDetailPanel();
+    const { setResourcePanel, setErrorPanel } = useResourceOrErrorDetailPanel();
 
     const {
         resources: parsedResources,
@@ -153,22 +159,50 @@ export const ResourcePage = ({
             );
             if (resource) {
                 setResourcePanel(resource);
-                pause(resource.startTime);
+                setTime(resource.startTime);
                 scrollFunction(allResources.indexOf(resource));
+                message.success(
+                    `Changed player time to when error was thrown at ${MillisToMinutesAndSeconds(
+                        resource.startTime
+                    )}.`
+                );
             } else {
+                const firstError = errors.find(
+                    (e) => e.request_id === resourceErrorRequestHeader
+                );
+                if (firstError) {
+                    setSelectedDevToolsTab('Errors');
+                    setErrorPanel(firstError);
+                    const startTime = replayer?.getMetaData().startTime;
+                    if (startTime && firstError.timestamp) {
+                        const errorDateTime = new Date(firstError.timestamp);
+                        const deltaMilliseconds =
+                            errorDateTime.getTime() - startTime;
+                        setTime(deltaMilliseconds);
+                        message.success(
+                            `Changed player time to when error was thrown at ${MillisToMinutesAndSeconds(
+                                deltaMilliseconds
+                            )}.`
+                        );
+                    }
+                }
                 H.track('FailedToMatchHighlightResourceHeaderWithResource');
             }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         allResources,
         errors,
         isPlayerReady,
         loading,
-        pause,
+        replayer,
         resourceErrorRequestHeader,
         scrollFunction,
         session,
+        setErrorPanel,
         setResourcePanel,
+        setSelectedDevToolsTab,
+        setShowDevTools,
     ]);
 
     useEffect(() => {
@@ -530,8 +564,6 @@ const roundOff = (value: number, decimal = 1) => {
     return Math.round(value * base) / base;
 };
 
-const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request';
-
 export const findResourceWithMatchingHighlightHeader = (
     headerValue: string,
     resources: NetworkResource[]
@@ -542,14 +574,6 @@ export const findResourceWithMatchingHighlightHeader = (
 };
 
 export const getHighlightRequestId = (resource: NetworkResource) => {
-    const joined =
-        // @ts-expect-error
-        resource.requestResponsePairs?.request?.headers[
-            HIGHLIGHT_REQUEST_HEADER
-        ];
-    if (!joined) {
-        return joined;
-    }
-
-    return joined.split('/')[1];
+    // @ts-expect-error
+    return resource.requestResponsePairs?.request?.id;
 };

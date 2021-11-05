@@ -60,8 +60,8 @@ const CommentTextBody = ({
             classNames={commentTextBodyClassNames}
             onChange={onChangeHandler}
             placeholder={placeholder}
-            autoFocus
-            disabled={!onChangeHandler}
+            autoFocus={!!onChangeHandler}
+            aria-readonly={!onChangeHandler}
             suggestionsPortalHost={suggestionsPortalHost}
             allowSuggestionsAboveCursor
             listHeader={

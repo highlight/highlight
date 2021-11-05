@@ -5,7 +5,7 @@ import Select from '../../../components/Select/Select';
 import { useErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
 import styles from './ErrorStateInput.module.scss';
 
-const ErrorType = ['BACKEND', 'console.error', 'window.onerror', 'custom'];
+const ErrorType = ['Backend', 'console.error', 'window.onerror', 'custom'];
 
 const ErrorTypeOptions = ErrorType.map((val: string) => ({
     displayValue: `${val}`,
@@ -25,7 +25,7 @@ const ErrorTypeInput = () => {
     }[] = [
         { displayValue: 'All', value: 'ALL', id: 'ALL' },
         ...ErrorTypeOptions.filter((val) => {
-            if (val.value === 'BACKEND') {
+            if (val.value === 'Backend') {
                 return isHighlightAdmin;
             }
             return true;

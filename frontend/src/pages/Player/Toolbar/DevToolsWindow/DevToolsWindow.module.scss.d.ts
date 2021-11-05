@@ -10,5 +10,6 @@ export const resizeContainer: string;
 export const resizeHandle: string;
 export const selected: string;
 export const skeletonWrapper: string;
+export const tabs: string;
 export const toggleWrapper: string;
 export const topBar: string;

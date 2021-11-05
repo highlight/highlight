@@ -13,6 +13,24 @@ import {
     shouldNetworkRequestBeTraced,
 } from './utils';
 
+export interface HighlightFetchWindow {
+    _originalFetch: (
+        input: RequestInfo,
+        init?: RequestInit | undefined
+    ) => Promise<Response>;
+    _highlightFetchPatch: (
+        input: RequestInfo,
+        init?: RequestInit | undefined
+    ) => Promise<Response>;
+    /** The implementation for the fetch patch. The implementation can be hot swapped at any time. */
+    _fetchProxy: (
+        input: RequestInfo,
+        init?: RequestInit | undefined
+    ) => Promise<Response>;
+}
+
+declare var window: HighlightFetchWindow & Window;
+
 export const FetchListener = (
     callback: NetworkListenerCallback,
     backendUrl: string,
@@ -20,9 +38,9 @@ export const FetchListener = (
     urlBlocklist: string[],
     sessionData: SessionData
 ) => {
-    const originalFetch = window.fetch;
+    const originalFetch = window._originalFetch || window.fetch;
 
-    window.fetch = function (input, init) {
+    window._fetchProxy = function (input, init) {
         const { method, url } = getFetchRequestProperties(input, init);
         if (!shouldNetworkRequestBeRecorded(url, backendUrl, tracingOrigins)) {
             return originalFetch.call(this, input, init);

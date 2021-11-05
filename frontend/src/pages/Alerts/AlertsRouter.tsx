@@ -9,6 +9,7 @@ import EditAlertsPage from '@pages/Alerts/EditAlertsPage';
 import NewAlertPage from '@pages/Alerts/NewAlertPage';
 import { useParams } from '@util/react-router/useParams';
 import React, { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet';
 import { Route, Switch, useHistory, useRouteMatch } from 'react-router-dom';
 
 const AlertsRouter = () => {
@@ -38,6 +39,9 @@ const AlertsRouter = () => {
                 slackUrl,
             }}
         >
+            <Helmet>
+                <title>Alerts</title>
+            </Helmet>
             <LeadAlignLayout>
                 <Breadcrumb
                     getBreadcrumbName={(url) =>

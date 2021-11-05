@@ -204,31 +204,70 @@ func (r *Resolver) getMappedStackTraceString(stackTrace []*model2.StackFrameInpu
 	return newMappedStackTraceString, nil
 }
 
-// TODO: NOP for now - implement by trying to parse individual stack frames
-// and stringifying the result
 func (r *Resolver) normalizeStackTraceString(stackTraceString string) string {
-	return stackTraceString
+	var stackTraceSlice []string
+	if err := json.Unmarshal([]byte(stackTraceString), &stackTraceSlice); err != nil {
+		return ""
+	}
+
+	// TODO: maintain a list of potential error types so we can handle different stack trace formats
+	var normalizedStackFrameInput []*model2.StackFrameInput
+	for _, frame := range stackTraceSlice {
+		frameExtracted := regexp.MustCompile(`(?m)(.*) (.*):(.*)`).FindAllStringSubmatch(frame, -1)
+		if len(frameExtracted) != 1 {
+			return ""
+		}
+		if len(frameExtracted[0]) != 4 {
+			return ""
+		}
+
+		lineNumber, err := strconv.Atoi(frameExtracted[0][3])
+		if err != nil {
+			return ""
+		}
+		normalizedStackFrameInput = append(normalizedStackFrameInput, &model2.StackFrameInput{
+			FunctionName: &frameExtracted[0][1],
+			FileName:     &frameExtracted[0][2],
+			LineNumber:   &lineNumber,
+		})
+	}
+
+	stackTraceBytes, err := json.Marshal(&normalizedStackFrameInput)
+	if err != nil {
+		return ""
+	}
+	return string(stackTraceBytes)
 }
 
 // Matches the ErrorObject with an existing ErrorGroup, or creates a new one if the group does not exist
 // The input can include the stack trace as a string or []*StackFrameInput
 // If stackTrace is non-nil, it will be marshalled into a string and saved with the ErrorObject
 func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceString string, stackTrace []*model2.StackFrameInput, fields []*model.ErrorField, projectID int) (*model.ErrorGroup, error) {
+	if errorObj == nil {
+		return nil, e.New("error object was nil")
+	}
+	if errorObj.Event == "" || errorObj.Event == "<nil>" {
+		return nil, e.New("error object event was nil or empty")
+	}
+
 	// If there was no stackTraceString passed in, marshal it as a JSON string from stackTrace
-	if stackTraceString == "" {
-		frames := stackTrace
-		if len(frames) > 0 && frames[0] != nil && frames[0].Source != nil && strings.Contains(*frames[0].Source, "https://static.highlight.run/index.js") {
+	if len(stackTrace) > 0 {
+		if stackTrace[0] != nil && stackTrace[0].Source != nil && strings.Contains(*stackTrace[0].Source, "https://static.highlight.run/index.js") {
 			errorObj.ProjectID = 1
 		}
-		firstFrameBytes, err := json.Marshal(frames)
+		firstFrameBytes, err := json.Marshal(stackTrace)
 		if err != nil {
 			return nil, e.Wrap(err, "Error marshalling first frame")
 		}
 
 		stackTraceString = string(firstFrameBytes)
-	} else {
+	} else if stackTraceString != "<nil>" {
 		// If stackTraceString was passed in, try to normalize it
-		stackTraceString = r.normalizeStackTraceString(stackTraceString)
+		if t := r.normalizeStackTraceString(stackTraceString); t != "" {
+			stackTraceString = t
+		}
+	} else if stackTraceString == "<nil>" {
+		return nil, e.New(`stackTrace slice was empty and stack trace string was equal to "<nil>"`)
 	}
 
 	errorGroup := &model.ErrorGroup{}
@@ -429,8 +468,12 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 		fingerprintInt = val
 	}
 
+	workspace, err := r.getWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieving workspace")
+	}
 	// determine if session is within billing quota
-	withinBillingQuota := r.isProjectWithinBillingQuota(project, n)
+	withinBillingQuota := r.isWorkspaceWithinBillingQuota(workspace, n)
 
 	session := &model.Session{
 		Fingerprint:                    fingerprintInt,
@@ -685,8 +728,8 @@ func (r *Resolver) getWorkspace(workspaceID int) (*model.Workspace, error) {
 	return &workspace, nil
 }
 
-func (r *Resolver) isProjectWithinBillingQuota(project *model.Project, now time.Time) bool {
-	if project.TrialEndDate != nil && project.TrialEndDate.After(now) {
+func (r *Resolver) isWorkspaceWithinBillingQuota(workspace *model.Workspace, now time.Time) bool {
+	if workspace.TrialEndDate != nil && workspace.TrialEndDate.After(now) {
 		return true
 	}
 	if util.IsOnPrem() {
@@ -696,12 +739,12 @@ func (r *Resolver) isProjectWithinBillingQuota(project *model.Project, now time.
 		withinBillingQuota bool
 		quota              int
 	)
-	if project.MonthlySessionLimit != nil && *project.MonthlySessionLimit > 0 {
-		quota = *project.MonthlySessionLimit
+	if workspace.MonthlySessionLimit != nil && *workspace.MonthlySessionLimit > 0 {
+		quota = *workspace.MonthlySessionLimit
 	} else {
 		stripePriceID := ""
-		if project.StripePriceID != nil {
-			stripePriceID = *project.StripePriceID
+		if workspace.StripePriceID != nil {
+			stripePriceID = *workspace.StripePriceID
 		}
 		stripePlan := pricing.FromPriceID(stripePriceID)
 		quota = pricing.TypeToQuota(stripePlan)
@@ -710,13 +753,13 @@ func (r *Resolver) isProjectWithinBillingQuota(project *model.Project, now time.
 	var monthToDateSessionCount int64
 	if err := r.DB.
 		Model(&model.DailySessionCount{}).
-		Where(&model.DailySessionCount{ProjectID: project.ID}).
+		Where("project_id in (SELECT id FROM projects WHERE workspace_id=?)", workspace.ID).
 		Where("date > ?", time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)).
 		Select("SUM(count) as monthToDateSessionCount").
 		Scan(&monthToDateSessionCount).Error; err != nil {
 		// The record doesn't exist for new projects since the record gets created in the worker.
 		monthToDateSessionCount = 0
-		log.Warn(fmt.Sprintf("Couldn't find DailySessionCount for %d", project.ID))
+		log.Warn(fmt.Sprintf("Couldn't find DailySessionCount for %d", workspace.ID))
 	}
 	withinBillingQuota = int64(quota) > monthToDateSessionCount
 	return withinBillingQuota
@@ -846,7 +889,11 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 	// Count the number of errors for each project
 	errorsByProject := make(map[int]int64)
 	for _, err := range errors {
-		projectID := sessionLookup[err.SessionSecureID].ProjectID
+		session := sessionLookup[err.SessionSecureID]
+		if session == nil {
+			continue
+		}
+		projectID := session.ProjectID
 		errorsByProject[projectID] += 1
 	}
 
@@ -894,6 +941,9 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 		traceString := string(traceBytes)
 
 		sessionObj := sessionLookup[v.SessionSecureID]
+		if sessionObj == nil {
+			continue
+		}
 		projectID := sessionObj.ProjectID
 
 		errorToInsert := &model.ErrorObject{
@@ -901,7 +951,7 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 			SessionID:   sessionObj.ID,
 			Environment: sessionObj.Environment,
 			Event:       v.Event,
-			Type:        v.Type,
+			Type:        model.ErrorType.BACKEND,
 			URL:         v.URL,
 			Source:      v.Source,
 			OS:          sessionObj.OSName,
@@ -910,7 +960,6 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 			Timestamp:   v.Timestamp,
 			Payload:     v.Payload,
 			RequestID:   &v.RequestID,
-			ErrorType:   model.ErrorType.BACKEND,
 		}
 
 		//create error fields array
@@ -1105,7 +1154,6 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 				Timestamp:    v.Timestamp,
 				Payload:      v.Payload,
 				RequestID:    nil,
-				ErrorType:    model.ErrorType.FRONTEND,
 			}
 
 			//create error fields array

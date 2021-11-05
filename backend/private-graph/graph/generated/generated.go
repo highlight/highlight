@@ -43,6 +43,7 @@ type ResolverRoot interface {
 	ErrorObject() ErrorObjectResolver
 	ErrorSegment() ErrorSegmentResolver
 	Mutation() MutationResolver
+	Project() ProjectResolver
 	Query() QueryResolver
 	Segment() SegmentResolver
 	Session() SessionResolver
@@ -599,6 +600,9 @@ type MutationResolver interface {
 	CreateNewSessionAlert(ctx context.Context, projectID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, thresholdWindow int) (*model1.SessionAlert, error)
 	UpdateSessionIsPublic(ctx context.Context, sessionSecureID string, isPublic bool) (*model1.Session, error)
 	UpdateErrorGroupIsPublic(ctx context.Context, errorGroupSecureID string, isPublic bool) (*model1.ErrorGroup, error)
+}
+type ProjectResolver interface {
+	TrialEndDate(ctx context.Context, obj *model1.Project) (*time.Time, error)
 }
 type QueryResolver interface {
 	Session(ctx context.Context, secureID string) (*model1.Session, error)
@@ -13147,14 +13151,14 @@ func (ec *executionContext) _Project_trial_end_date(ctx context.Context, field g
 		Object:     "Project",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.TrialEndDate, nil
+		return ec.resolvers.Project().TrialEndDate(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -22256,28 +22260,37 @@ func (ec *executionContext) _Project(ctx context.Context, sel ast.SelectionSet, 
 		case "id":
 			out.Values[i] = ec._Project_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "verbose_id":
 			out.Values[i] = ec._Project_verbose_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "name":
 			out.Values[i] = ec._Project_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "billing_email":
 			out.Values[i] = ec._Project_billing_email(ctx, field, obj)
 		case "trial_end_date":
-			out.Values[i] = ec._Project_trial_end_date(ctx, field, obj)
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Project_trial_end_date(ctx, field, obj)
+				return res
+			})
 		case "secret":
 			out.Values[i] = ec._Project_secret(ctx, field, obj)
 		case "workspace_id":
 			out.Values[i] = ec._Project_workspace_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))

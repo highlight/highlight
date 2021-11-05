@@ -1,17 +1,9 @@
 import { HighlightPublicInterface } from '../..';
-import { getFetchRequestProperties } from '../../../../client/src/listeners/network-listener/utils/fetch-listener';
-import {
-    createNetworkRequestId,
-    getHighlightRequestHeader,
-    HIGHLIGHT_REQUEST_HEADER,
-    shouldNetworkRequestBeRecorded,
-    shouldNetworkRequestBeTraced,
-} from '../../../../client/src/listeners/network-listener/utils/utils';
-import { SESSION_STORAGE_KEYS } from '../../../../client/src/utils/sessionStorage/sessionStorageKeys';
+import { HighlightFetchWindow } from '../../../../client/src/listeners/network-listener/utils/fetch-listener';
 
-interface HighlightWindow extends Window {
+type HighlightWindow = Window & {
     H: HighlightPublicInterface;
-}
+} & HighlightFetchWindow;
 
 declare var window: HighlightWindow;
 
@@ -19,58 +11,30 @@ export const initializeFetchListener = () => {
     // Only run this on Highlight local development and production.
     // This check will be removed before we release backend errors to everyone.
     if (
-        !(
-            window?.location.host === 'localhost:3000' ||
-            window?.location.host === 'app.highlight.run'
-        )
+        window?.location.host === 'localhost:3000' ||
+        window?.location.host === 'app.highlight.run'
     ) {
-        return () => {};
+        if (window) {
+            window._originalFetch = window.fetch;
+            window._fetchProxy = (input, init) => {
+                return window._originalFetch(input, init);
+            };
+
+            window._highlightFetchPatch = (
+                input: RequestInfo,
+                init: RequestInit | undefined
+            ) => {
+                return window._fetchProxy.call(this, input, init);
+            };
+
+            window.fetch = window._highlightFetchPatch;
+        }
+    } else {
+        if (window) {
+            window._originalFetch = window.fetch;
+            window._fetchProxy = (input, init) => {
+                return window._originalFetch(input, init);
+            };
+        }
     }
-    const originalFetch = window?.fetch;
-
-    window.fetch = function (input, init) {
-        const { url } = getFetchRequestProperties(input, init);
-        const { options } = window?.H;
-
-        const sessionSecureId = window?.sessionStorage.getItem(
-            SESSION_STORAGE_KEYS.SESSION_SECURE_ID
-        );
-
-        // `sessionSecureId` will be defined after client has loaded and been initialized.
-        if (sessionSecureId && options) {
-            if (
-                !shouldNetworkRequestBeRecorded(
-                    url,
-                    options.backendUrl || '',
-                    options.tracingOrigins
-                )
-            ) {
-                return originalFetch.call(this, input, init);
-            }
-
-            if (
-                shouldNetworkRequestBeTraced(url, options.tracingOrigins)
-            ) {
-                init = init || {};
-                // Pre-existing headers could be one of three different formats; this reads all of them.
-                let headers = new Headers(init.headers);
-                const requestId = createNetworkRequestId();
-                headers.set(
-                    HIGHLIGHT_REQUEST_HEADER,
-                    getHighlightRequestHeader(sessionSecureId, requestId)
-                );
-                init.headers = Object.fromEntries(headers.entries());
-            }
-        }
-
-        const responsePromise = originalFetch.call(this, input, init);
-
-        return responsePromise;
-    };
-
-    return () => {
-        if (window?.fetch) {
-            window.fetch = originalFetch;
-        }
-    };
 };

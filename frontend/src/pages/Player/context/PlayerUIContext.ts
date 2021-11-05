@@ -9,7 +9,7 @@ interface DetailedPanelOptions {
     noPadding?: boolean;
 }
 
-interface DetailedPanel {
+export interface DetailedPanel {
     title: string | React.ReactNode;
     content: React.ReactNode;
     options?: DetailedPanelOptions;

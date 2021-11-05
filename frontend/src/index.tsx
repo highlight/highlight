@@ -14,6 +14,7 @@ import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { H, HighlightOptions } from 'highlight.run';
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
+import { Helmet } from 'react-helmet';
 import { SkeletonTheme } from 'react-loading-skeleton';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import { QueryParamProvider } from 'use-query-params';
@@ -183,6 +184,9 @@ const AuthenticationRouter = () => {
                 isHighlightAdmin: isHighlightAdmin(authRole),
             }}
         >
+            <Helmet>
+                <title>Highlight App</title>
+            </Helmet>
             {adminError ? (
                 <ErrorState
                     message={`

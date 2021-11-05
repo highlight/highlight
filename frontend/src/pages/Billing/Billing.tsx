@@ -5,6 +5,7 @@ import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import Confetti from 'react-confetti';
+import { Helmet } from 'react-helmet';
 import Skeleton from 'react-loading-skeleton';
 import { useLocation } from 'react-router-dom';
 
@@ -163,86 +164,93 @@ const BillingPage = () => {
         0.8;
 
     return (
-        <LeadAlignLayout fullWidth>
-            {rainConfetti && <Confetti recycle={false} />}
-            <h2>Billing</h2>
-            <p className={layoutStyles.subTitle}>
-                Manage your billing information.
-            </p>
-            <div className={styles.detailsCard}>
-                <Collapsible
-                    title={
-                        <span className={styles.detailsCardTitle}>
-                            <span>Plan Details</span>{' '}
-                            {upsell && <SvgShieldWarningIcon />}
-                        </span>
-                    }
-                    id="planDetails"
-                >
-                    <p>
-                        This project is on the{' '}
-                        <b>{billingData?.billingDetails.plan.type} Plan</b>{' '}
-                        which has used{' '}
-                        {formatNumberWithDelimiters(
-                            billingData?.billingDetails.meter
-                        )}{' '}
-                        of its{' '}
-                        {formatNumberWithDelimiters(
-                            billingData?.billingDetails.plan.quota
-                        )}{' '}
-                        monthly sessions limit.
-                    </p>
-                    {upsell && (
-                        <p>
-                            <span>
-                                You are nearing your monthly sessions limit.
-                                Sessions recorded after you've reached your
-                                limit will not be viewable until you upgrade
-                                your plan.
+        <>
+            <Helmet>
+                <title>Project Billing</title>
+            </Helmet>
+            <LeadAlignLayout fullWidth>
+                {rainConfetti && <Confetti recycle={false} />}
+                <h2>Billing</h2>
+                <p className={layoutStyles.subTitle}>
+                    Manage your billing information.
+                </p>
+                <div className={styles.detailsCard}>
+                    <Collapsible
+                        title={
+                            <span className={styles.detailsCardTitle}>
+                                <span>Plan Details</span>{' '}
+                                {upsell && <SvgShieldWarningIcon />}
                             </span>
-                        </p>
-                    )}
-                    <Progress
-                        numerator={billingData?.billingDetails.meter}
-                        denominator={
-                            billingData?.billingDetails.plan.quota || 1
                         }
-                    />
-                </Collapsible>
-            </div>
-            <div className={styles.billingPlanCardWrapper}>
-                {admin?.role === AdminRole.Admin ? (
-                    BILLING_PLANS.map((billingPlan) =>
-                        billingLoading ? (
-                            <Skeleton
-                                style={{ borderRadius: 8 }}
-                                count={1}
-                                height={325}
-                                width={275}
-                            />
-                        ) : (
-                            <BillingPlanCard
-                                disabled={admin?.role !== AdminRole.Admin}
-                                key={billingPlan.type}
-                                current={
-                                    billingData?.billingDetails.plan.type ===
-                                    billingPlan.name
-                                }
-                                billingPlan={billingPlan}
-                                onSelect={createOnSelect(billingPlan.type)}
-                                loading={loadingPlanType === billingPlan.type}
-                            />
+                        id="planDetails"
+                    >
+                        <p>
+                            This project is on the{' '}
+                            <b>{billingData?.billingDetails.plan.type} Plan</b>{' '}
+                            which has used{' '}
+                            {formatNumberWithDelimiters(
+                                billingData?.billingDetails.meter
+                            )}{' '}
+                            of its{' '}
+                            {formatNumberWithDelimiters(
+                                billingData?.billingDetails.plan.quota
+                            )}{' '}
+                            monthly sessions limit.
+                        </p>
+                        {upsell && (
+                            <p>
+                                <span>
+                                    You are nearing your monthly sessions limit.
+                                    Sessions recorded after you've reached your
+                                    limit will not be viewable until you upgrade
+                                    your plan.
+                                </span>
+                            </p>
+                        )}
+                        <Progress
+                            numerator={billingData?.billingDetails.meter}
+                            denominator={
+                                billingData?.billingDetails.plan.quota || 1
+                            }
+                        />
+                    </Collapsible>
+                </div>
+                <div className={styles.billingPlanCardWrapper}>
+                    {admin?.role === AdminRole.Admin ? (
+                        BILLING_PLANS.map((billingPlan) =>
+                            billingLoading ? (
+                                <Skeleton
+                                    style={{ borderRadius: 8 }}
+                                    count={1}
+                                    height={325}
+                                    width={275}
+                                />
+                            ) : (
+                                <BillingPlanCard
+                                    disabled={admin?.role !== AdminRole.Admin}
+                                    key={billingPlan.type}
+                                    current={
+                                        billingData?.billingDetails.plan
+                                            .type === billingPlan.name
+                                    }
+                                    billingPlan={billingPlan}
+                                    onSelect={createOnSelect(billingPlan.type)}
+                                    loading={
+                                        loadingPlanType === billingPlan.type
+                                    }
+                                />
+                            )
                         )
-                    )
-                ) : (
-                    <Alert
-                        trackingId="AdminNoAccessToBilling"
-                        message="You don't have access to billing."
-                        description={`You don't have permission to access the billing details for "${projectData?.project?.name}". Please contact ${projectData?.project?.billing_email} to make changes.`}
-                    />
-                )}
-            </div>
-        </LeadAlignLayout>
+                    ) : (
+                        <Alert
+                            trackingId="AdminNoAccessToBilling"
+                            message="You don't have access to billing."
+                            description={`You don't have permission to access the billing details for "${projectData?.project?.name}". Please contact ${projectData?.project?.billing_email} to make changes.`}
+                        />
+                    )}
+                </div>
+            </LeadAlignLayout>
+        </>
     );
 };
 

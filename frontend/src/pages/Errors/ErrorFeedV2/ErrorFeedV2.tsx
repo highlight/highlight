@@ -4,6 +4,7 @@ import {
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState';
 import { parseErrorDescription } from '@pages/Error/components/ErrorDescription/utils/utils';
+import { formatNumber } from '@util/numbers';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames/bind';
 import React, { RefObject, useEffect, useState } from 'react';
@@ -20,7 +21,6 @@ import {
     Maybe,
 } from '../../../graph/generated/schemas';
 import { gqlSanitize } from '../../../util/gqlSanitize';
-import { formatNumberWithDelimiters } from '../../../util/numbers';
 import { useErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
 import styles from './ErrorFeedV2.module.scss';
 
@@ -32,6 +32,10 @@ export const ErrorFeedV2 = () => {
         totalCount: 0,
     });
     const { searchParams } = useErrorSearchContext();
+    const [
+        errorFeedIsInTopScrollPosition,
+        setErrorFeedIsInTopScrollPosition,
+    ] = useState(true);
 
     const { loading, fetchMore, data: errorData } = useGetErrorGroupsQuery({
         variables: {
@@ -64,6 +68,12 @@ export const ErrorFeedV2 = () => {
         },
     });
 
+    const onFeedScrollListener = (
+        e: React.UIEvent<HTMLElement> | undefined
+    ) => {
+        setErrorFeedIsInTopScrollPosition(e?.currentTarget.scrollTop === 0);
+    };
+
     return (
         <>
             <div className={styles.fixedContent}>
@@ -71,11 +81,16 @@ export const ErrorFeedV2 = () => {
                     {loading ? (
                         <Skeleton width="100px" />
                     ) : (
-                        `${formatNumberWithDelimiters(data.totalCount)} errors`
+                        `${formatNumber(data.totalCount)} errors`
                     )}
                 </div>
             </div>
-            <div className={styles.feedContent}>
+            <div
+                className={classNames(styles.feedContent, {
+                    [styles.hasScrolled]: !errorFeedIsInTopScrollPosition,
+                })}
+                onScroll={onFeedScrollListener}
+            >
                 <div ref={infiniteRef as RefObject<HTMLDivElement>}>
                     {loading ? (
                         <Skeleton
