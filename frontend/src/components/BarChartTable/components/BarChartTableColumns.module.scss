@@ -45,9 +45,5 @@
 .rowGroup {
     column-gap: var(--size-small);
     display: flex;
-    width: 100%;
-
-    &.endingAlignment {
-        justify-content: flex-end;
-    }
+    justify-content: flex-end;
 }

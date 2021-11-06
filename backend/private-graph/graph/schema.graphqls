@@ -62,7 +62,6 @@ type RageClickEventForProject {
     identifier: String!
     session_secure_id: String!
     total_clicks: Int!
-    user_properties: String!
 }
 
 type BillingDetails {
@@ -230,7 +229,6 @@ type TopUsersPayload {
     identifier: String!
     total_active_time: Int!
     active_time_percentage: Float!
-    user_properties: String!
 }
 
 type NewUsersCount {

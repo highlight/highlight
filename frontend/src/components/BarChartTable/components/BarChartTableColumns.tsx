@@ -1,8 +1,4 @@
-import { Avatar } from '@components/Avatar/Avatar';
 import { getPercentageDisplayValue } from '@components/BarChartTable/utils/utils';
-import { Session } from '@graph/schemas';
-import { getIdentifiedUserProfileImage } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils';
-import classNames from 'classnames';
 import React from 'react';
 
 import styles from './BarChartTableColumns.module.scss';
@@ -29,23 +25,8 @@ export const BarChartTablePercentage = ({
     );
 };
 
-interface BarChartTableRowGroupProps {
-    alignment?: 'leading' | 'ending';
-}
-
-export const BarChartTableRowGroup: React.FC<BarChartTableRowGroupProps> = ({
-    alignment = 'leading',
-    children,
-}) => {
-    return (
-        <div
-            className={classNames(styles.rowGroup, {
-                [styles.endingAlignment]: alignment === 'ending',
-            })}
-        >
-            {children}
-        </div>
-    );
+export const BarChartTableRowGroup: React.FC = ({ children }) => {
+    return <div className={styles.rowGroup}>{children}</div>;
 };
 
 interface BarChartTablePillProps {
@@ -62,30 +43,5 @@ export const BarChartTablePill = ({
             {icon && icon}
             {displayValue}
         </div>
-    );
-};
-
-interface BarChartTableUserAvatarProps {
-    userProperties: string;
-    identifier: string;
-}
-
-export const BarChartTableUserAvatar = ({
-    identifier,
-    userProperties,
-}: BarChartTableUserAvatarProps) => {
-    return (
-        <Avatar
-            seed={identifier}
-            style={{
-                height: 'var(--size-large)',
-                width: 'var(--size-large)',
-                borderRadius: 'var(--size-xSmall)',
-                border: '1px solid var(--text-primary-inverted)',
-            }}
-            customImage={getIdentifiedUserProfileImage({
-                user_properties: userProperties,
-            } as Session)}
-        />
     );
 };
