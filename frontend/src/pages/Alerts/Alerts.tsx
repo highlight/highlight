@@ -14,7 +14,7 @@ import SvgSparkles2Icon from '@icons/Sparkles2Icon';
 import SvgTargetIcon from '@icons/TargetIcon';
 import SvgUserPlusIcon from '@icons/UserPlusIcon';
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext';
-import AlertSetupWizard from '@pages/Alerts/AlertSetupWizard/AlertSetupWizard';
+import AlertSetupModal from '@pages/Alerts/AlertSetupModal/AlertSetupModal';
 import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy';
 import { getAlertTypeColor } from '@pages/Alerts/utils/AlertsUtils';
 import { useParams } from '@util/react-router/useParams';
@@ -224,7 +224,7 @@ const AlertsPage = () => {
                 (alertsPayload?.track_properties_alerts.length || 0) +
                 (alertsPayload?.new_session_alerts.length || 0) <
                 1 ? (
-                <AlertSetupWizard />
+                <AlertSetupModal />
             ) : (
                 <>
                     <div className={styles.subTitleContainer}>

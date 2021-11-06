@@ -19,9 +19,9 @@ import { useSessionStorage } from 'react-use';
 
 const { Step } = Steps;
 
-import styles from './AlertSetupWizard.module.scss';
+import styles from './AlertSetupModal.module.scss';
 
-const AlertSetupWizard = () => {
+const AlertSetupModal = () => {
     const steps = [
         {
             title: 'Connect Slack',
@@ -123,7 +123,7 @@ const AlertSetupWizard = () => {
                 {current == 0 ? (
                     !loading && (
                         <Alert
-                            trackingId="AlertSetupWizardSlackIntegration"
+                            trackingId="AlertSetupModalSlackIntegration"
                             closable={false}
                             message={"Slack isn't connected"}
                             type={'error'}
@@ -358,4 +358,4 @@ const AlertSetupWizard = () => {
     );
 };
 
-export default AlertSetupWizard;
+export default AlertSetupModal;
