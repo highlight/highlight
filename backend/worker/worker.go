@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 
 	"github.com/pkg/errors"
 	e "github.com/pkg/errors"
@@ -255,12 +254,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	if payloadManager.Events.Length == 0 && s.Length <= 0 {
 		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
 			"session_obj": s}).Warnf("deleting session with no events (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v)", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed)
-		if err := w.Resolver.DB.Select(clause.Associations).Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
-			return errors.Wrap(err, "error trying to delete associations for session with no events")
-		}
-		if err := w.Resolver.DB.Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
-			return errors.Wrap(err, "error trying to delete session with no events")
-		}
 		return nil
 	}
 
@@ -352,15 +345,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	if activeDuration == 0 {
 		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
 			"session_obj": s}).Warnf("deleting session with 0ms length active duration (session_id=%d, identifier=%s)", s.ID, s.Identifier)
-		if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Delete(&model.EventsObject{}).Error; err != nil {
-			return errors.Wrap(err, "error trying to delete events_object for session of length 0ms")
-		}
-		if err := w.Resolver.DB.Select(clause.Associations).Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
-			return errors.Wrap(err, "error trying to delete associations for session with length 0")
-		}
-		if err := w.Resolver.DB.Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
-			return errors.Wrap(err, "error trying to delete session of length 0ms")
-		}
 		return nil
 	}
 
