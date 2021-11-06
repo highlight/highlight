@@ -19,5 +19,6 @@ export const saveButton: string;
 export const selected: string;
 export const selectMessage: string;
 export const stepsAction: string;
+export const stepsContainer: string;
 export const stepsContent: string;
 export const title: string;

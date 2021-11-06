@@ -110,18 +110,11 @@ const AlertSetupWizard = () => {
 
     return (
         <FullBleedCard
+            title={'Default Alert Configuration'}
             className={styles.alertStepsParent}
             childrenClassName={styles.childContent}
         >
-            <h2
-                style={{
-                    marginBottom: '1vh !important',
-                    marginTop: `0 !important`,
-                }}
-            >
-                Default Alert Configuration
-            </h2>
-            <Steps current={current}>
+            <Steps className={styles.stepsContainer} current={current}>
                 {steps.map((item) => (
                     <Step key={item.title} title={item.title} />
                 ))}
