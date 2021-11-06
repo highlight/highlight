@@ -4,11 +4,10 @@ import ElevatedCard from '../ElevatedCard/ElevatedCard';
 import styles from './FullBleedCard.module.scss';
 
 interface Props {
-    title?: string;
+    title: string;
     /** A Lottie component with the animation. */
     animation?: React.ReactNode;
     className?: string;
-    closeIcon?: React.ReactNode;
     childrenClassName?: string;
 }
 

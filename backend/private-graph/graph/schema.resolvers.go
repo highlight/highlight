@@ -1247,7 +1247,7 @@ func (r *mutationResolver) CreateDefaultAlerts(ctx context.Context, projectID in
 		}
 	}
 
-	if err := r.DB.Debug().Create(sessionAlerts).Error; err != nil {
+	if err := r.DB.Create(sessionAlerts).Error; err != nil {
 		return nil, e.Wrap(err, "error creating new session alerts")
 	}
 	for _, alert := range sessionAlerts {
