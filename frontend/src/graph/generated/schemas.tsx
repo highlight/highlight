@@ -81,7 +81,6 @@ export type RageClickEventForProject = {
     identifier: Scalars['String'];
     session_secure_id: Scalars['String'];
     total_clicks: Scalars['Int'];
-    user_properties: Scalars['String'];
 };
 
 export type BillingDetails = {
@@ -264,7 +263,6 @@ export type TopUsersPayload = {
     identifier: Scalars['String'];
     total_active_time: Scalars['Int'];
     active_time_percentage: Scalars['Float'];
-    user_properties: Scalars['String'];
 };
 
 export type NewUsersCount = {

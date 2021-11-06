@@ -107,7 +107,7 @@ const Columns: ColumnsType<any> = [
         key: 'percent',
         render: (percent, record) => {
             return (
-                <BarChartTableRowGroup alignment="ending">
+                <BarChartTableRowGroup>
                     <BarChartTablePercentage percent={percent} />
                     <BarChartTablePill
                         displayValue={`${record.count} refers`}

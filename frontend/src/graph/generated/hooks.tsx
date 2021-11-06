@@ -5742,7 +5742,6 @@ export const GetTopUsersDocument = gql`
             total_active_time
             active_time_percentage
             id
-            user_properties
         }
     }
 `;
@@ -5922,7 +5921,6 @@ export const GetRageClicksForProjectDocument = gql`
             identifier
             session_secure_id
             total_clicks
-            user_properties
         }
     }
 `;

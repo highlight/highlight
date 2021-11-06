@@ -2014,8 +2014,7 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 	if err := r.DB.Raw(`
 	SELECT
 		COALESCE(NULLIF(identifier, ''), CONCAT('#', fingerprint)) as identifier,
-		rageClicks. *,
-		user_properties
+		rageClicks. *
 	FROM
 		(
 			SELECT
@@ -2608,70 +2607,35 @@ func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPer
 	topUsersSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("db.topUsers"), tracer.Tag("project_id", projectID))
 	if err := r.DB.Raw(`
-	SELECT
-    *
-FROM
-    (
-        SELECT
-            DISTINCT ON(topUsers.identifier) topUsers.identifier,
-            topUsers.id,
-            total_active_time,
-            active_time_percentage,
-            s.user_properties
-        FROM
-            (
-                SELECT
-                    identifier,
-                    (
-                        SELECT
-                            id
-                        FROM
-                            fields
-                        WHERE
-                            project_id = ?
-                            AND type = 'user'
-                            AND name = 'identifier'
-                            AND value = identifier
-                        LIMIT
-                            1
-                    ) AS id,
-                    SUM(active_length) as total_active_time,
-                    SUM(active_length) / (
-                        SELECT
-                            SUM(active_length)
-                        FROM
-                            sessions
-                        WHERE
-                            active_length IS NOT NULL
-                            AND project_id = ?
-                            AND identifier <> ''
-                            AND created_at >= NOW() - (? * INTERVAL '1 DAY')
-                            AND processed = true
-                    ) AS active_time_percentage
-                FROM
-                    (
-                        SELECT
-                            identifier,
-                            active_length,
-                            user_properties
-                        FROM
-                            sessions
-                        WHERE
-                            active_length IS NOT NULL
-                            AND project_id = ?
-                            AND identifier <> ''
-                            AND created_at >= NOW() - (? * INTERVAL '1 DAY')
-                            AND processed = true
-                    ) q1
-                GROUP BY
-                    identifier
-                LIMIT
-                    50
-            ) as topUsers
-            INNER JOIN sessions s on topUsers.identifier = s.identifier
-    ) as q2
-ORDER BY
-    total_active_time DESC`,
+		SELECT identifier, (
+			SELECT id
+			FROM fields
+			WHERE project_id=?
+				AND type='user'
+				AND name='identifier'
+				AND value=identifier
+			LIMIT 1
+		) AS id, SUM(active_length) as total_active_time, SUM(active_length) / (
+			SELECT SUM(active_length)
+			FROM sessions
+			WHERE active_length IS NOT NULL
+				AND project_id=?
+				AND identifier <> ''
+				AND created_at >= NOW() - (? * INTERVAL '1 DAY')
+				AND processed=true
+		) AS active_time_percentage
+		FROM (
+			SELECT identifier, active_length
+			FROM sessions
+			WHERE active_length IS NOT NULL
+				AND project_id=?
+				AND identifier <> ''
+				AND created_at >= NOW() - (? * INTERVAL '1 DAY')
+				AND processed=true
+		) q1
+		GROUP BY identifier
+		ORDER BY total_active_time DESC
+		LIMIT 50`,
 		projectID, projectID, lookBackPeriod, projectID, lookBackPeriod).Scan(&topUsersPayload).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving top users")
 	}
