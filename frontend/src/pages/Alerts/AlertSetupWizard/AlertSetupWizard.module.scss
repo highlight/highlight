@@ -10,7 +10,7 @@
 
 .alertStepsParent {
     max-width: 60vw;
-    min-height: 50vh;
+    min-height: 62vh;
     min-width: 60vw;
 }
 
@@ -44,7 +44,7 @@
 .cardContainer {
     height: 100%;
     &:hover {
-        border-color: var(--color-purple-400) !important;
+        border-color: var(--color-purple-400);
         box-shadow: 0 5px 8px rgba(86, 41, 198, 0.2);
     }
 }
@@ -110,4 +110,20 @@
 .actionsContainer {
     column-gap: var(--size-large);
     display: flex;
+}
+
+.stepsAction {
+    display: flex;
+}
+
+.stepsContent {
+    margin-top: 2vh;
+    margin-bottom: 2vh;
+    max-height: 45vh;
+    min-height: 45vh;
+    overflow: scroll;
+}
+
+.alertTypeSelected {
+    border-color: var(--color-purple) !important;
 }
