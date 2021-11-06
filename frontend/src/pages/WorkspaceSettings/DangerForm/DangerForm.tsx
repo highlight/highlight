@@ -1,9 +1,9 @@
+import Input from '@components/Input/Input';
 import { namedOperations } from '@graph/operations';
 import { useParams } from '@util/react-router/useParams';
 import { Skeleton } from 'antd';
 import classNames from 'classnames/bind';
-import React from 'react';
-import { useForm } from 'react-hook-form';
+import React, { useState } from 'react';
 import { Redirect } from 'react-router-dom';
 
 import commonStyles from '../../../Common.module.scss';
@@ -15,15 +15,12 @@ import {
 } from '../../../graph/generated/hooks';
 import styles from './DangerForm.module.scss';
 
-type Inputs = {
-    text: string;
-};
-
 export const DangerForm = () => {
     const { project_id } = useParams<{ project_id: string }>();
     const { loading, data } = useGetProjectQuery({
         variables: { id: project_id },
     });
+    const [confirmationText, setConfirmationText] = useState('');
 
     const [
         deleteProject,
@@ -32,15 +29,15 @@ export const DangerForm = () => {
         refetchQueries: [namedOperations.Query.GetProjects],
     });
 
-    const { register, handleSubmit, errors } = useForm<Inputs>();
-    const onSubmit = () => {
+    const onSubmit = (e: { preventDefault: () => void }) => {
+        e.preventDefault();
         deleteProject({ variables: { id: project_id } });
     };
     if (deleteData?.deleteProject) {
         return <Redirect to={`/`} />;
     }
     return (
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={onSubmit}>
             {loading ? (
                 <Skeleton />
             ) : (
@@ -51,15 +48,14 @@ export const DangerForm = () => {
                         {`${data?.project?.name}`}' to confirm.
                     </p>
                     <div className={styles.dangerRow}>
-                        <input
+                        <Input
                             placeholder={`Please type '${data?.project?.name}'`}
                             className={commonStyles.input}
                             name="text"
-                            ref={register({
-                                required: true,
-                                validate: (value) =>
-                                    value === data?.project?.name,
-                            })}
+                            value={confirmationText}
+                            onChange={(e) => {
+                                setConfirmationText(e.target.value);
+                            }}
                         />
                         <Button
                             trackingId="DeleteWorkspace"
@@ -69,6 +65,7 @@ export const DangerForm = () => {
                                 commonStyles.submitButton,
                                 styles.deleteButton
                             )}
+                            disabled={confirmationText !== data?.project?.name}
                         >
                             {deleteLoading ? (
                                 <CircularSpinner
@@ -81,9 +78,6 @@ export const DangerForm = () => {
                                 'Delete'
                             )}
                         </Button>
-                        <div className={commonStyles.errorMessage}>
-                            {errors.text && 'Entered the incorrect text!'}
-                        </div>
                     </div>
                 </>
             )}

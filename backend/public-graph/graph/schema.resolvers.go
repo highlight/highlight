@@ -22,9 +22,10 @@ import (
 
 func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string) (*model.Session, error) {
 	session, err := InitializeSessionImplementation(r, ctx, organizationVerboseID, enableStrictPrivacy, enableRecordingNetworkContents, firstloadVersion, clientVersion, clientConfig, environment, appVersion, fingerprint)
-	hlog.Incr("gql.initializeSession.count", []string{fmt.Sprintf("success:%t", err == nil)}, 1)
 
 	projectID, _ := model.FromVerboseID(organizationVerboseID)
+	hlog.Incr("gql.initializeSession.count", []string{fmt.Sprintf("success:%t", err == nil), fmt.Sprintf("project_id:%d", projectID)}, 1)
+
 	if !util.IsDevEnv() && err != nil {
 		msg := slack.WebhookMessage{Text: fmt.
 			Sprintf("Error in InitializeSession: %q\nOccurred for project: {%d, %q}\nIs on-prem: %q", err, projectID, organizationVerboseID, os.Getenv("REACT_APP_ONPREM"))}
@@ -123,14 +124,14 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 }
 
 func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput) (*int, error) {
-	r.PushPayloadWorkerPool.Submit(func() {
+	r.PushPayloadWorkerPool.SubmitRecover(func() {
 		r.processPayload(ctx, sessionID, events, messages, resources, errors)
 	})
 	return &sessionID, nil
 }
 
 func (r *mutationResolver) PushBackendPayload(ctx context.Context, errors []*customModels.BackendErrorObjectInput) (interface{}, error) {
-	r.PushPayloadWorkerPool.Submit(func() {
+	r.PushPayloadWorkerPool.SubmitRecover(func() {
 		r.processBackendPayload(ctx, errors)
 	})
 	return nil, nil
@@ -157,7 +158,7 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 		return -1, e.Wrap(err, "error creating session feedback")
 	}
 
-	r.AlertWorkerPool.Submit(func() {
+	r.AlertWorkerPool.SubmitRecover(func() {
 		var sessionFeedbackAlert model.SessionAlert
 		if err := r.DB.Raw(`
 			SELECT *

@@ -124,7 +124,6 @@ type Project {
     verbose_id: String!
     name: String!
     billing_email: String
-    trial_end_date: Timestamp
     secret: String
     workspace_id: ID!
 }
@@ -136,6 +135,7 @@ type Workspace {
     slack_channels: String
     secret: String
     projects: [Project]!
+    trial_end_date: Timestamp
 }
 
 type Segment {
@@ -530,7 +530,8 @@ type Query {
         starred: Boolean!
         params: SearchParamsInput
     ): SessionResults!
-    billingDetails(project_id: ID!): BillingDetails!
+    billingDetailsForProject(project_id: ID!): BillingDetails!
+    billingDetails(workspace_id: ID!): BillingDetails!
     # gets all the projects of a user
     field_suggestion(project_id: ID!, name: String!, query: String!): [Field]
     property_suggestion(project_id: ID!, query: String!, type: String!): [Field]
@@ -608,10 +609,10 @@ type Mutation {
     # If this endpoint returns a checkout_id, we initiate a stripe checkout.
     # Otherwise, we simply update the subscription.
     createOrUpdateStripeSubscription(
-        project_id: ID!
+        workspace_id: ID!
         plan_type: PlanType!
     ): String
-    updateBillingDetails(project_id: ID!): Boolean
+    updateBillingDetails(workspace_id: ID!): Boolean
     createSessionComment(
         project_id: ID!
         session_secure_id: String!

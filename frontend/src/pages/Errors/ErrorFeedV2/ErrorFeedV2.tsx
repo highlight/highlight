@@ -4,6 +4,7 @@ import {
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState';
 import { parseErrorDescription } from '@pages/Error/components/ErrorDescription/utils/utils';
+import { formatNumber } from '@util/numbers';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames/bind';
 import React, { RefObject, useEffect, useState } from 'react';
@@ -20,7 +21,6 @@ import {
     Maybe,
 } from '../../../graph/generated/schemas';
 import { gqlSanitize } from '../../../util/gqlSanitize';
-import { formatNumberWithDelimiters } from '../../../util/numbers';
 import { useErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
 import styles from './ErrorFeedV2.module.scss';
 
@@ -32,12 +32,21 @@ export const ErrorFeedV2 = () => {
         totalCount: 0,
     });
     const { searchParams } = useErrorSearchContext();
+    const [
+        errorFeedIsInTopScrollPosition,
+        setErrorFeedIsInTopScrollPosition,
+    ] = useState(true);
+    // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
+    const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
 
     const { loading, fetchMore, data: errorData } = useGetErrorGroupsQuery({
         variables: {
             project_id,
             count: count + 10,
             params: searchParams,
+        },
+        onCompleted: () => {
+            setShowLoadingSkeleton(false);
         },
     });
 
@@ -46,6 +55,10 @@ export const ErrorFeedV2 = () => {
             setData(gqlSanitize(errorData.error_groups));
         }
     }, [errorData]);
+
+    useEffect(() => {
+        setShowLoadingSkeleton(true);
+    }, [searchParams]);
 
     const infiniteRef = useInfiniteScroll({
         checkInterval: 1200, // frequency to check (1.2s)
@@ -64,6 +77,12 @@ export const ErrorFeedV2 = () => {
         },
     });
 
+    const onFeedScrollListener = (
+        e: React.UIEvent<HTMLElement> | undefined
+    ) => {
+        setErrorFeedIsInTopScrollPosition(e?.currentTarget.scrollTop === 0);
+    };
+
     return (
         <>
             <div className={styles.fixedContent}>
@@ -71,13 +90,18 @@ export const ErrorFeedV2 = () => {
                     {loading ? (
                         <Skeleton width="100px" />
                     ) : (
-                        `${formatNumberWithDelimiters(data.totalCount)} errors`
+                        `${formatNumber(data.totalCount)} errors`
                     )}
                 </div>
             </div>
-            <div className={styles.feedContent}>
+            <div
+                className={classNames(styles.feedContent, {
+                    [styles.hasScrolled]: !errorFeedIsInTopScrollPosition,
+                })}
+                onScroll={onFeedScrollListener}
+            >
                 <div ref={infiniteRef as RefObject<HTMLDivElement>}>
-                    {loading ? (
+                    {loading || showLoadingSkeleton ? (
                         <Skeleton
                             height={110}
                             count={3}
@@ -89,7 +113,7 @@ export const ErrorFeedV2 = () => {
                     ) : (
                         <>
                             {!data.error_groups.length ? (
-                                <SearchEmptyState item={'errors'} />
+                                <SearchEmptyState item={'errors'} newFeed />
                             ) : (
                                 data.error_groups?.map(
                                     (u: Maybe<ErrorGroup>, ind: number) => (

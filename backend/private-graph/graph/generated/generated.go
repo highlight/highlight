@@ -231,7 +231,7 @@ type ComplexityRoot struct {
 		CreateErrorSegment               func(childComplexity int, projectID int, name string, params model.ErrorSearchParamsInput) int
 		CreateNewSessionAlert            func(childComplexity int, projectID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, thresholdWindow int) int
 		CreateNewUserAlert               func(childComplexity int, projectID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, thresholdWindow int) int
-		CreateOrUpdateStripeSubscription func(childComplexity int, projectID int, planType model.PlanType) int
+		CreateOrUpdateStripeSubscription func(childComplexity int, workspaceID int, planType model.PlanType) int
 		CreateProject                    func(childComplexity int, name string, workspaceID int) int
 		CreateRageClickAlert             func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
 		CreateSegment                    func(childComplexity int, projectID int, name string, params model.SearchParamsInput) int
@@ -259,7 +259,7 @@ type ComplexityRoot struct {
 		OpenSlackConversation            func(childComplexity int, projectID int, code string, redirectPath string) int
 		SendAdminProjectInvite           func(childComplexity int, projectID int, email string, baseURL string) int
 		SendAdminWorkspaceInvite         func(childComplexity int, workspaceID int, email string, baseURL string) int
-		UpdateBillingDetails             func(childComplexity int, projectID int) int
+		UpdateBillingDetails             func(childComplexity int, workspaceID int) int
 		UpdateErrorAlert                 func(childComplexity int, projectID int, name string, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
 		UpdateErrorGroupIsPublic         func(childComplexity int, errorGroupSecureID string, isPublic bool) int
 		UpdateErrorGroupState            func(childComplexity int, secureID string, state string) int
@@ -286,7 +286,6 @@ type ComplexityRoot struct {
 		ID           func(childComplexity int) int
 		Name         func(childComplexity int) int
 		Secret       func(childComplexity int) int
-		TrialEndDate func(childComplexity int) int
 		VerboseID    func(childComplexity int) int
 		WorkspaceID  func(childComplexity int) int
 	}
@@ -297,7 +296,8 @@ type ComplexityRoot struct {
 		AdminHasCreatedComment    func(childComplexity int, adminID int) int
 		AppVersionSuggestion      func(childComplexity int, projectID int) int
 		AverageSessionLength      func(childComplexity int, projectID int, lookBackPeriod int) int
-		BillingDetails            func(childComplexity int, projectID int) int
+		BillingDetails            func(childComplexity int, workspaceID int) int
+		BillingDetailsForProject  func(childComplexity int, projectID int) int
 		DailyErrorFrequency       func(childComplexity int, projectID int, errorGroupSecureID string, dateOffset int) int
 		DailyErrorsCount          func(childComplexity int, projectID int, dateRange model.DateRangeInput) int
 		DailySessionsCount        func(childComplexity int, projectID int, dateRange model.DateRangeInput) int
@@ -523,6 +523,7 @@ type ComplexityRoot struct {
 		Secret              func(childComplexity int) int
 		SlackChannels       func(childComplexity int) int
 		SlackWebhookChannel func(childComplexity int) int
+		TrialEndDate        func(childComplexity int) int
 	}
 }
 
@@ -574,8 +575,8 @@ type MutationResolver interface {
 	CreateErrorSegment(ctx context.Context, projectID int, name string, params model.ErrorSearchParamsInput) (*model1.ErrorSegment, error)
 	EditErrorSegment(ctx context.Context, id int, projectID int, params model.ErrorSearchParamsInput) (*bool, error)
 	DeleteErrorSegment(ctx context.Context, segmentID int) (*bool, error)
-	CreateOrUpdateStripeSubscription(ctx context.Context, projectID int, planType model.PlanType) (*string, error)
-	UpdateBillingDetails(ctx context.Context, projectID int) (*bool, error)
+	CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int, planType model.PlanType) (*string, error)
+	UpdateBillingDetails(ctx context.Context, workspaceID int) (*bool, error)
 	CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model1.SessionComment, error)
 	DeleteSessionComment(ctx context.Context, id int) (*bool, error)
 	CreateErrorComment(ctx context.Context, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string) (*model1.ErrorComment, error)
@@ -634,7 +635,8 @@ type QueryResolver interface {
 	AverageSessionLength(ctx context.Context, projectID int, lookBackPeriod int) (*model.AverageSessionLength, error)
 	UserFingerprintCount(ctx context.Context, projectID int, lookBackPeriod int) (*model.UserFingerprintCount, error)
 	Sessions(ctx context.Context, projectID int, count int, lifecycle model.SessionLifecycle, starred bool, params *model.SearchParamsInput) (*model1.SessionResults, error)
-	BillingDetails(ctx context.Context, projectID int) (*model.BillingDetails, error)
+	BillingDetailsForProject(ctx context.Context, projectID int) (*model.BillingDetails, error)
+	BillingDetails(ctx context.Context, workspaceID int) (*model.BillingDetails, error)
 	FieldSuggestion(ctx context.Context, projectID int, name string, query string) ([]*model1.Field, error)
 	PropertySuggestion(ctx context.Context, projectID int, query string, typeArg string) ([]*model1.Field, error)
 	ErrorFieldSuggestion(ctx context.Context, projectID int, name string, query string) ([]*model1.ErrorField, error)
@@ -1586,7 +1588,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateOrUpdateStripeSubscription(childComplexity, args["project_id"].(int), args["plan_type"].(model.PlanType)), true
+		return e.complexity.Mutation.CreateOrUpdateStripeSubscription(childComplexity, args["workspace_id"].(int), args["plan_type"].(model.PlanType)), true
 
 	case "Mutation.createProject":
 		if e.complexity.Mutation.CreateProject == nil {
@@ -1922,7 +1924,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateBillingDetails(childComplexity, args["project_id"].(int)), true
+		return e.complexity.Mutation.UpdateBillingDetails(childComplexity, args["workspace_id"].(int)), true
 
 	case "Mutation.updateErrorAlert":
 		if e.complexity.Mutation.UpdateErrorAlert == nil {
@@ -2093,13 +2095,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Project.Secret(childComplexity), true
 
-	case "Project.trial_end_date":
-		if e.complexity.Project.TrialEndDate == nil {
-			break
-		}
-
-		return e.complexity.Project.TrialEndDate(childComplexity), true
-
 	case "Project.verbose_id":
 		if e.complexity.Project.VerboseID == nil {
 			break
@@ -2179,7 +2174,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.BillingDetails(childComplexity, args["project_id"].(int)), true
+		return e.complexity.Query.BillingDetails(childComplexity, args["workspace_id"].(int)), true
+
+	case "Query.billingDetailsForProject":
+		if e.complexity.Query.BillingDetailsForProject == nil {
+			break
+		}
+
+		args, err := ec.field_Query_billingDetailsForProject_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.BillingDetailsForProject(childComplexity, args["project_id"].(int)), true
 
 	case "Query.dailyErrorFrequency":
 		if e.complexity.Query.DailyErrorFrequency == nil {
@@ -3613,6 +3620,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Workspace.SlackWebhookChannel(childComplexity), true
 
+	case "Workspace.trial_end_date":
+		if e.complexity.Workspace.TrialEndDate == nil {
+			break
+		}
+
+		return e.complexity.Workspace.TrialEndDate(childComplexity), true
+
 	}
 	return 0, false
 }
@@ -3803,7 +3817,6 @@ type Project {
     verbose_id: String!
     name: String!
     billing_email: String
-    trial_end_date: Timestamp
     secret: String
     workspace_id: ID!
 }
@@ -3815,6 +3828,7 @@ type Workspace {
     slack_channels: String
     secret: String
     projects: [Project]!
+    trial_end_date: Timestamp
 }
 
 type Segment {
@@ -4209,7 +4223,8 @@ type Query {
         starred: Boolean!
         params: SearchParamsInput
     ): SessionResults!
-    billingDetails(project_id: ID!): BillingDetails!
+    billingDetailsForProject(project_id: ID!): BillingDetails!
+    billingDetails(workspace_id: ID!): BillingDetails!
     # gets all the projects of a user
     field_suggestion(project_id: ID!, name: String!, query: String!): [Field]
     property_suggestion(project_id: ID!, query: String!, type: String!): [Field]
@@ -4287,10 +4302,10 @@ type Mutation {
     # If this endpoint returns a checkout_id, we initiate a stripe checkout.
     # Otherwise, we simply update the subscription.
     createOrUpdateStripeSubscription(
-        project_id: ID!
+        workspace_id: ID!
         plan_type: PlanType!
     ): String
-    updateBillingDetails(project_id: ID!): Boolean
+    updateBillingDetails(workspace_id: ID!): Boolean
     createSessionComment(
         project_id: ID!
         session_secure_id: String!
@@ -4880,14 +4895,14 @@ func (ec *executionContext) field_Mutation_createOrUpdateStripeSubscription_args
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+	if tmp, ok := rawArgs["workspace_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["project_id"] = arg0
+	args["workspace_id"] = arg0
 	var arg1 model.PlanType
 	if tmp, ok := rawArgs["plan_type"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("plan_type"))
@@ -5795,14 +5810,14 @@ func (ec *executionContext) field_Mutation_updateBillingDetails_args(ctx context
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+	if tmp, ok := rawArgs["workspace_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["project_id"] = arg0
+	args["workspace_id"] = arg0
 	return args, nil
 }
 
@@ -6445,7 +6460,7 @@ func (ec *executionContext) field_Query_averageSessionLength_args(ctx context.Co
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_billingDetails_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_billingDetailsForProject_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -6457,6 +6472,21 @@ func (ec *executionContext) field_Query_billingDetails_args(ctx context.Context,
 		}
 	}
 	args["project_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_billingDetails_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["workspace_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["workspace_id"] = arg0
 	return args, nil
 }
 
@@ -11954,7 +11984,7 @@ func (ec *executionContext) _Mutation_createOrUpdateStripeSubscription(ctx conte
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateOrUpdateStripeSubscription(rctx, args["project_id"].(int), args["plan_type"].(model.PlanType))
+		return ec.resolvers.Mutation().CreateOrUpdateStripeSubscription(rctx, args["workspace_id"].(int), args["plan_type"].(model.PlanType))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11993,7 +12023,7 @@ func (ec *executionContext) _Mutation_updateBillingDetails(ctx context.Context, 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateBillingDetails(rctx, args["project_id"].(int))
+		return ec.resolvers.Mutation().UpdateBillingDetails(rctx, args["workspace_id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13225,38 +13255,6 @@ func (ec *executionContext) _Project_billing_email(ctx context.Context, field gr
 	res := resTmp.(*string)
 	fc.Result = res
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Project_trial_end_date(ctx context.Context, field graphql.CollectedField, obj *model1.Project) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Project",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.TrialEndDate, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*time.Time)
-	fc.Result = res
-	return ec.marshalOTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Project_secret(ctx context.Context, field graphql.CollectedField, obj *model1.Project) (ret graphql.Marshaler) {
@@ -14569,6 +14567,48 @@ func (ec *executionContext) _Query_sessions(ctx context.Context, field graphql.C
 	return ec.marshalNSessionResults2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionResults(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_billingDetailsForProject(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_billingDetailsForProject_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().BillingDetailsForProject(rctx, args["project_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.BillingDetails)
+	fc.Result = res
+	return ec.marshalNBillingDetails2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐBillingDetails(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_billingDetails(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -14594,7 +14634,7 @@ func (ec *executionContext) _Query_billingDetails(ctx context.Context, field gra
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().BillingDetails(rctx, args["project_id"].(int))
+		return ec.resolvers.Query().BillingDetails(rctx, args["workspace_id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -19695,6 +19735,38 @@ func (ec *executionContext) _Workspace_projects(ctx context.Context, field graph
 	return ec.marshalNProject2ᚕgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐProject(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Workspace_trial_end_date(ctx context.Context, field graphql.CollectedField, obj *model1.Workspace) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Workspace",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TrialEndDate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -22363,8 +22435,6 @@ func (ec *executionContext) _Project(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "billing_email":
 			out.Values[i] = ec._Project_billing_email(ctx, field, obj)
-		case "trial_end_date":
-			out.Values[i] = ec._Project_trial_end_date(ctx, field, obj)
 		case "secret":
 			out.Values[i] = ec._Project_secret(ctx, field, obj)
 		case "workspace_id":
@@ -22782,6 +22852,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_sessions(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "billingDetailsForProject":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_billingDetailsForProject(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -24025,6 +24109,8 @@ func (ec *executionContext) _Workspace(ctx context.Context, sel ast.SelectionSet
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "trial_end_date":
+			out.Values[i] = ec._Workspace_trial_end_date(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

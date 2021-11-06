@@ -22,7 +22,7 @@ const ErrorRightPanel = ({ errorGroup, parentRef }: Props) => {
                 noPadding
                 tabs={[
                     {
-                        title: 'Sessions',
+                        key: 'Sessions',
                         panelContent: (
                             <div className={styles.tabContainer}>
                                 <ErrorSessionList errorGroup={errorGroup} />
@@ -30,7 +30,7 @@ const ErrorRightPanel = ({ errorGroup, parentRef }: Props) => {
                         ),
                     },
                     {
-                        title: 'Metadata',
+                        key: 'Metadata',
                         panelContent: (
                             <div className={styles.tabContainer}>
                                 <ErrorMetadata errorGroup={errorGroup} />
@@ -38,7 +38,7 @@ const ErrorRightPanel = ({ errorGroup, parentRef }: Props) => {
                         ),
                     },
                     {
-                        title: 'Comments',
+                        key: 'Comments',
                         panelContent: (
                             <div className={styles.commentsTabContainer}>
                                 <ErrorFullCommentList />

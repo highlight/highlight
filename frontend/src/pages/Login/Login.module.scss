@@ -16,6 +16,7 @@
 }
 
 .loginSubTitle {
+    color: var(--color-gray-500) !important;
     font-size: 14px;
     margin-bottom: 20px !important;
 }
@@ -67,4 +68,12 @@
     align-items: center;
     color: var(--color-text-primary);
     display: flex;
+}
+
+.inputContainer {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: var(--size-xSmall);
+    row-gap: var(--size-xSmall);
+    width: 100%;
 }

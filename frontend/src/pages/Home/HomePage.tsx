@@ -1,3 +1,4 @@
+import Card from '@components/Card/Card';
 import DemoWorkspaceButton, {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
@@ -5,10 +6,10 @@ import DemoWorkspaceButton, {
 import RageClicksForProjectTable from '@pages/Home/components/RageClicksForProjectTable/RageClicksForProjectTable';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
-import classNames from 'classnames';
 import Lottie from 'lottie-react';
 import moment from 'moment';
 import React, { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet';
 import Skeleton from 'react-loading-skeleton';
 import { Link, useHistory } from 'react-router-dom';
 import {
@@ -75,6 +76,9 @@ const HomePage = () => {
         <HomePageFiltersContext
             value={{ dateRangeLength, setDateRangeLength, hasData, setHasData }}
         >
+            <Helmet>
+                <title>Home</title>
+            </Helmet>
             <div className={styles.dashboardWrapper}>
                 <div className={styles.dashboard}>
                     <div className={styles.headerContainer}>
@@ -233,10 +237,7 @@ const SessionCountGraph = () => {
     return loading ? (
         <Skeleton count={1} style={{ width: '100%', height: 334 }} />
     ) : (
-        <div className={classNames(styles.section, styles.graphSection)}>
-            <div className={styles.chartHeaderWrapper}>
-                <h3>Sessions per Day</h3>
-            </div>
+        <Card title="Sessions per Day">
             <DailyChart
                 data={sessionCountData}
                 name="Sessions"
@@ -258,7 +259,7 @@ const SessionCountGraph = () => {
                     history.push(`/${projectIdRemapped}/sessions`);
                 }}
             />
-        </div>
+        </Card>
     );
 };
 
@@ -309,10 +310,7 @@ const ErrorCountGraph = () => {
     return loading ? (
         <Skeleton count={1} style={{ width: '100%', height: 334 }} />
     ) : (
-        <div className={classNames(styles.section, styles.graphSection)}>
-            <div className={styles.chartHeaderWrapper}>
-                <h3>Errors per Day</h3>
-            </div>
+        <Card title="Errors per Day">
             <DailyChart
                 data={errorCountData}
                 lineColor={'var(--color-orange-400)'}
@@ -323,7 +321,7 @@ const ErrorCountGraph = () => {
                     );
                 }}
             />
-        </div>
+        </Card>
     );
 };
 

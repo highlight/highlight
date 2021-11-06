@@ -70,6 +70,10 @@
     &.empty {
         grid-template-columns: var(--left-panel-width) 1fr;
     }
+
+    &.withErrorState {
+        padding-top: var(--header-height);
+    }
 }
 
 .eventText {

@@ -27,9 +27,7 @@ export const WorkspaceRedirectionRouter = () => {
     const history = useHistory();
 
     useEffect(() => {
-        if (o_loading) {
-            setIsLoading(true);
-        }
+        setIsLoading(o_loading);
     }, [o_loading, setIsLoading]);
 
     if (o_error) {

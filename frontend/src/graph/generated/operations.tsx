@@ -26,7 +26,7 @@ export type MarkSessionAsStarredMutation = { __typename?: 'Mutation' } & {
 };
 
 export type CreateOrUpdateStripeSubscriptionMutationVariables = Types.Exact<{
-    project_id: Types.Scalars['ID'];
+    workspace_id: Types.Scalars['ID'];
     plan_type: Types.PlanType;
 }>;
 
@@ -35,7 +35,7 @@ export type CreateOrUpdateStripeSubscriptionMutation = {
 } & Pick<Types.Mutation, 'createOrUpdateStripeSubscription'>;
 
 export type UpdateBillingDetailsMutationVariables = Types.Exact<{
-    project_id: Types.Scalars['ID'];
+    workspace_id: Types.Scalars['ID'];
 }>;
 
 export type UpdateBillingDetailsMutation = { __typename?: 'Mutation' } & Pick<
@@ -1596,8 +1596,25 @@ export type GetProjectQuery = { __typename?: 'Query' } & {
     >;
 };
 
-export type GetBillingDetailsQueryVariables = Types.Exact<{
+export type GetBillingDetailsForProjectQueryVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
+}>;
+
+export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
+    billingDetailsForProject: { __typename?: 'BillingDetails' } & Pick<
+        Types.BillingDetails,
+        'meter' | 'sessionsOutOfQuota'
+    > & { plan: { __typename?: 'Plan' } & Pick<Types.Plan, 'type' | 'quota'> };
+    workspace_for_project?: Types.Maybe<
+        { __typename?: 'Workspace' } & Pick<
+            Types.Workspace,
+            'id' | 'trial_end_date'
+        >
+    >;
+};
+
+export type GetBillingDetailsQueryVariables = Types.Exact<{
+    workspace_id: Types.Scalars['ID'];
 }>;
 
 export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
@@ -1605,9 +1622,9 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
         Types.BillingDetails,
         'meter' | 'sessionsOutOfQuota'
     > & { plan: { __typename?: 'Plan' } & Pick<Types.Plan, 'type' | 'quota'> };
-    project?: Types.Maybe<
-        { __typename?: 'Project' } & Pick<
-            Types.Project,
+    workspace?: Types.Maybe<
+        { __typename?: 'Workspace' } & Pick<
+            Types.Workspace,
             'id' | 'trial_end_date'
         >
     >;
@@ -2497,6 +2514,7 @@ export const namedOperations = {
         GetWorkspaceDropdownOptions: 'GetWorkspaceDropdownOptions' as const,
         GetAdmin: 'GetAdmin' as const,
         GetProject: 'GetProject' as const,
+        GetBillingDetailsForProject: 'GetBillingDetailsForProject' as const,
         GetBillingDetails: 'GetBillingDetails' as const,
         GetErrorGroup: 'GetErrorGroup' as const,
         GetErrorGroups: 'GetErrorGroups' as const,

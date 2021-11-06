@@ -1,3 +1,4 @@
+import Input from '@components/Input/Input';
 import {
     useEditProjectMutation,
     useEditWorkspaceMutation,
@@ -7,8 +8,7 @@ import { namedOperations } from '@graph/operations';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames/bind';
-import React from 'react';
-import { useForm } from 'react-hook-form';
+import React, { useEffect, useState } from 'react';
 
 import commonStyles from '../../../Common.module.scss';
 import Button from '../../../components/Button/Button/Button';
@@ -18,18 +18,14 @@ import {
 } from '../../../components/Loading/Loading';
 import styles from './FieldsForm.module.scss';
 
-type Inputs = {
-    name: string;
-    email: string;
-};
-
 export const FieldsForm = () => {
     const { project_id, workspace_id } = useParams<{
         project_id: string;
         workspace_id: string;
     }>();
     const isWorkspace = !!workspace_id;
-    const { register, handleSubmit, errors } = useForm<Inputs>();
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
     const { data, loading } = useGetProjectOrWorkspaceQuery({
         variables: {
             project_id,
@@ -53,12 +49,13 @@ export const FieldsForm = () => {
         { loading: editWorkspaceLoading },
     ] = useEditWorkspaceMutation();
 
-    const onSubmit = (inputs: Inputs) => {
+    const onSubmit = (e: { preventDefault: () => void }) => {
+        e.preventDefault();
         if (isWorkspace) {
             editWorkspace({
                 variables: {
                     id: workspace_id,
-                    name: inputs.name,
+                    name,
                 },
             }).then(() => {
                 message.success('Updated workspace fields!', 5);
@@ -67,8 +64,8 @@ export const FieldsForm = () => {
             editProject({
                 variables: {
                     id: project_id,
-                    name: inputs.name,
-                    billing_email: inputs.email,
+                    name,
+                    billing_email: email,
                 },
             }).then(() => {
                 message.success('Updated project fields!', 5);
@@ -76,21 +73,29 @@ export const FieldsForm = () => {
         }
     };
 
+    const editingObj = isWorkspace ? data?.workspace : data?.project;
+
+    useEffect(() => {
+        if (!loading) {
+            setName(editingObj?.name || '');
+            setEmail(data?.project?.billing_email || '');
+        }
+    }, [data?.project?.billing_email, editingObj?.name, loading]);
+
     if (loading) {
         return <LoadingBar />;
     }
 
-    const editingObj = isWorkspace ? data?.workspace : data?.project;
-
     return (
-        <form onSubmit={handleSubmit(onSubmit)} key={project_id}>
+        <form onSubmit={onSubmit} key={project_id}>
             <div className={styles.fieldRow}>
                 <label className={styles.fieldKey}>Name</label>
-                <input
-                    defaultValue={editingObj?.name}
-                    className={commonStyles.input}
+                <Input
                     name="name"
-                    ref={register({ required: true })}
+                    value={name}
+                    onChange={(e) => {
+                        setName(e.target.value);
+                    }}
                 />
             </div>
             {isWorkspace ? null : (
@@ -98,17 +103,15 @@ export const FieldsForm = () => {
                     {' '}
                     <div className={styles.fieldRow}>
                         <label className={styles.fieldKey}>Billing Email</label>
-                        <input
-                            defaultValue={data?.project?.billing_email ?? ''}
-                            className={commonStyles.input}
+                        <Input
                             placeholder={'Billing Email'}
                             type="email"
                             name="email"
-                            ref={register({ required: true })}
+                            value={email}
+                            onChange={(e) => {
+                                setEmail(e.target.value);
+                            }}
                         />
-                    </div>
-                    <div className={commonStyles.errorMessage}>
-                        {errors.email && 'Enter an email yo!'}
                     </div>
                 </>
             )}

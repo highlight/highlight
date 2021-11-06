@@ -1,7 +1,6 @@
 .speedText {
     color: var(--color-gray-500);
     font-size: 12px;
-    padding: 0 var(--size-xSmall);
 
     &:active {
         color: var(--color-gray-500);
@@ -32,10 +31,12 @@
 
 .speedControlContainer {
     align-items: center;
+    column-gap: var(--size-xxSmall);
     display: flex !important;
 }
 
 .shortcutButton {
+    border: 1px solid var(--color-gray-300);
     height: var(--size-large);
 }
 

@@ -1,3 +1,4 @@
+import { useAppLoadingContext } from '@context/AppLoadingContext';
 import LoginForm from '@pages/Login/Login';
 import WorkspaceSettings from '@pages/WorkspaceSettings/WorkspaceSettings';
 import WorkspaceTeam from '@pages/WorkspaceTeam/WorkspaceTeam';
@@ -5,7 +6,7 @@ import { GlobalContextProvider } from '@routers/OrgRouter/context/GlobalContext'
 import { WorkspaceRedirectionRouter } from '@routers/OrgRouter/WorkspaceRedirectionRouter';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
-import React, { useEffect } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { Route, Switch } from 'react-router-dom';
 import { useToggle } from 'react-use';
 
@@ -16,6 +17,8 @@ import { Sidebar } from '../../components/Sidebar/Sidebar';
 import { useGetWorkspaceDropdownOptionsQuery } from '../../graph/generated/hooks';
 import { ApplicationContextProvider } from './ApplicationContext';
 
+const BillingPage = React.lazy(() => import('../../pages/Billing/Billing'));
+
 export const WorkspaceRouter = () => {
     const { isLoggedIn } = useAuthContext();
     const [
@@ -25,6 +28,7 @@ export const WorkspaceRouter = () => {
     const { workspace_id } = useParams<{
         workspace_id: string;
     }>();
+    const { setIsLoading } = useAppLoadingContext();
 
     const { data, loading } = useGetWorkspaceDropdownOptionsQuery({
         variables: { workspace_id },
@@ -57,6 +61,12 @@ export const WorkspaceRouter = () => {
         }
     }, [isLoggedIn]);
 
+    useEffect(() => {
+        if (isLoggedIn) {
+            setIsLoading(false);
+        }
+    }, [isLoggedIn, setIsLoading]);
+
     if (loading) {
         return null;
     }
@@ -85,6 +95,11 @@ export const WorkspaceRouter = () => {
                         </Route>
                         <Route path="/w/:workspace_id(\d+)/settings">
                             <WorkspaceSettings />
+                        </Route>
+                        <Route path="/w/:workspace_id(\d+)/billing">
+                            <Suspense fallback={null}>
+                                <BillingPage />
+                            </Suspense>
                         </Route>
                         <Route path="/w/:workspace_id(\d+)">
                             {isLoggedIn ? (

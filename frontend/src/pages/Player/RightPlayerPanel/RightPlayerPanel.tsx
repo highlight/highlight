@@ -69,11 +69,11 @@ const RightPlayerPanel = () => {
                             className={styles.tabs}
                             tabs={[
                                 {
-                                    title: 'Events',
+                                    key: 'Events',
                                     panelContent: <EventStream />,
                                 },
                                 {
-                                    title: 'Comments',
+                                    key: 'Comments',
                                     panelContent: (
                                         <div
                                             className={
@@ -85,7 +85,7 @@ const RightPlayerPanel = () => {
                                     ),
                                 },
                                 {
-                                    title: 'Metadata',
+                                    key: 'Metadata',
                                     panelContent: (
                                         <div
                                             className={

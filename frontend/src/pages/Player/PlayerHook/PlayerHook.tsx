@@ -1,6 +1,5 @@
 import { Replayer } from '@highlight-run/rrweb';
 import { customEvent } from '@highlight-run/rrweb/dist/types';
-import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import { H } from 'highlight.run';
 import { useCallback, useEffect, useState } from 'react';
@@ -57,7 +56,7 @@ export enum SessionViewability {
 }
 
 export const usePlayer = (): ReplayerContextInterface => {
-    const { isLoggedIn, isHighlightAdmin } = useAuthContext();
+    const { isLoggedIn } = useAuthContext();
     const { session_secure_id, project_id } = useParams<{
         session_secure_id: string;
         project_id: string;
@@ -105,11 +104,6 @@ export const usePlayer = (): ReplayerContextInterface => {
         hasSearchParam,
     } = useSetPlayerTimestampFromSearchParam(setTime, replayer);
 
-    const [enableDirectDownload] = useLocalStorage(
-        'highlight-direct-download-session-payload',
-        isHighlightAdmin
-    );
-
     const [
         getSessionPayloadQuery,
         { loading: eventsLoading, data: eventsData },
@@ -143,7 +137,8 @@ export const usePlayer = (): ReplayerContextInterface => {
                 }
 
                 const directDownloadUrl = data.session?.direct_download_url;
-                if (directDownloadUrl && enableDirectDownload) {
+                if (directDownloadUrl) {
+                    setEventsDataLoaded(false);
                     getSessionPayloadQuery({
                         variables: {
                             session_secure_id,
@@ -163,6 +158,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                             );
                         });
                 } else {
+                    setEventsDataLoaded(false);
                     getSessionPayloadQuery({
                         variables: {
                             session_secure_id,
@@ -304,6 +300,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [eventsPayload, setPlayerTimeToPersistance]);
 
+    const [eventsDataLoaded, setEventsDataLoaded] = useState(false);
     useEffect(() => {
         if (eventsData?.errors) {
             setErrors(eventsData.errors as ErrorObject[]);
@@ -311,6 +308,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         if (eventsData?.session_comments) {
             setSessionComments(eventsData.session_comments as SessionComment[]);
         }
+        setEventsDataLoaded(true);
     }, [eventsData]);
 
     useEffect(() => {
@@ -321,7 +319,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     // Loads the remaining events into Replayer.
     useEffect(() => {
-        if (replayer) {
+        if (replayer && eventsDataLoaded) {
             let timerId = 0;
             let eventsIndex = EVENTS_CHUNK_SIZE;
 
@@ -475,7 +473,14 @@ export const usePlayer = (): ReplayerContextInterface => {
             };
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [errors, events, events.length, hasSearchParam, replayer]);
+    }, [
+        errors,
+        events,
+        events.length,
+        hasSearchParam,
+        replayer,
+        eventsDataLoaded,
+    ]);
 
     // "Subscribes" the time with the Replayer when the Player is playing.
     useEffect(() => {

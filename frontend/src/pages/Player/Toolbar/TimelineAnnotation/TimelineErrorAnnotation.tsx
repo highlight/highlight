@@ -1,6 +1,5 @@
-import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
-import ErrorModal from '@pages/Player/Toolbar/DevToolsWindow/ErrorsPage/components/ErrorModal/ErrorModal';
+import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel';
 import { message } from 'antd';
 import React, { ReactElement, useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
@@ -13,6 +12,7 @@ import { PlayerSearchParameters } from '../../PlayerHook/utils';
 import { ParsedErrorObject, useReplayerContext } from '../../ReplayerContext';
 import styles from '../Toolbar.module.scss';
 import TimelineAnnotation from './TimelineAnnotation';
+import timelineAnnotationStyles from './TimelineAnnotation.module.scss';
 
 interface Props {
     error: ParsedErrorObject;
@@ -31,27 +31,21 @@ function TimelineErrorAnnotation({ error }: Props): ReactElement {
         setShowDevTools,
         setSelectedDevToolsTab,
     } = usePlayerConfiguration();
-    const { setDetailedPanel } = usePlayerUIContext();
+    const { setErrorPanel } = useResourceOrErrorDetailPanel();
 
     const [isTooltipOpen, setIsTooltipOpen] = useState(false);
 
     useEffect(() => {
         if (errorId && !requestId) {
-            setDetailedPanel({
-                title: null,
-                content: <ErrorModal error={error} />,
-                options: {
-                    noHeader: true,
-                },
-                id: error.id,
-            });
+            setErrorPanel(error);
         }
-    }, [error, errorId, requestId, setDetailedPanel]);
+    }, [error, errorId, requestId, setErrorPanel]);
 
     return (
         <Popover
             key={error.id}
             defaultVisible={errorId === error.id}
+            popoverClassName={timelineAnnotationStyles.popover}
             content={
                 <div className={styles.popoverContent}>
                     {error.source}
@@ -60,14 +54,7 @@ function TimelineErrorAnnotation({ error }: Props): ReactElement {
                             onClick={() => {
                                 setShowDevTools(true);
                                 setSelectedDevToolsTab('Errors');
-                                setDetailedPanel({
-                                    title: null,
-                                    content: <ErrorModal error={error} />,
-                                    options: {
-                                        noHeader: true,
-                                    },
-                                    id: error.id,
-                                });
+                                setErrorPanel(error);
                             }}
                             label="More info"
                         />

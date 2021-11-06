@@ -148,7 +148,6 @@ export type Project = {
     verbose_id: Scalars['String'];
     name: Scalars['String'];
     billing_email?: Maybe<Scalars['String']>;
-    trial_end_date?: Maybe<Scalars['Timestamp']>;
     secret?: Maybe<Scalars['String']>;
     workspace_id: Scalars['ID'];
 };
@@ -161,6 +160,7 @@ export type Workspace = {
     slack_channels?: Maybe<Scalars['String']>;
     secret?: Maybe<Scalars['String']>;
     projects: Array<Maybe<Project>>;
+    trial_end_date?: Maybe<Scalars['Timestamp']>;
 };
 
 export type Segment = {
@@ -552,6 +552,7 @@ export type Query = {
     averageSessionLength?: Maybe<AverageSessionLength>;
     userFingerprintCount?: Maybe<UserFingerprintCount>;
     sessions: SessionResults;
+    billingDetailsForProject: BillingDetails;
     billingDetails: BillingDetails;
     field_suggestion?: Maybe<Array<Maybe<Field>>>;
     property_suggestion?: Maybe<Array<Maybe<Field>>>;
@@ -712,8 +713,12 @@ export type QuerySessionsArgs = {
     params?: Maybe<SearchParamsInput>;
 };
 
-export type QueryBillingDetailsArgs = {
+export type QueryBillingDetailsForProjectArgs = {
     project_id: Scalars['ID'];
+};
+
+export type QueryBillingDetailsArgs = {
+    workspace_id: Scalars['ID'];
 };
 
 export type QueryField_SuggestionArgs = {
@@ -970,12 +975,12 @@ export type MutationDeleteErrorSegmentArgs = {
 };
 
 export type MutationCreateOrUpdateStripeSubscriptionArgs = {
-    project_id: Scalars['ID'];
+    workspace_id: Scalars['ID'];
     plan_type: PlanType;
 };
 
 export type MutationUpdateBillingDetailsArgs = {
-    project_id: Scalars['ID'];
+    workspace_id: Scalars['ID'];
 };
 
 export type MutationCreateSessionCommentArgs = {

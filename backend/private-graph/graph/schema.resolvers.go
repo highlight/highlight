@@ -199,24 +199,10 @@ func (r *mutationResolver) CreateProject(ctx context.Context, name string, works
 		return nil, e.Wrap(err, "error getting admin")
 	}
 
-	c := &stripe.Customer{}
-	if os.Getenv("REACT_APP_ONPREM") != "true" {
-		params := &stripe.CustomerParams{
-			Name:  &name,
-			Email: admin.Email,
-		}
-		params.AddMetadata("Workspace ID", strconv.Itoa(workspace.ID))
-		c, err = r.StripeClient.Customers.New(params)
-		if err != nil {
-			return nil, e.Wrap(err, "error creating stripe customer")
-		}
-	}
-
 	project := &model.Project{
-		Name:             &name,
-		BillingEmail:     admin.Email,
-		WorkspaceID:      workspace.ID,
-		StripeCustomerID: &c.ID,
+		Name:         &name,
+		BillingEmail: admin.Email,
+		WorkspaceID:  workspace.ID,
 	}
 
 	if err := r.DB.Create(project).Error; err != nil {
@@ -330,6 +316,25 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 
 	if err := r.DB.Create(workspace).Error; err != nil {
 		return nil, e.Wrap(err, "error creating workspace")
+	}
+
+	c := &stripe.Customer{}
+	if os.Getenv("REACT_APP_ONPREM") != "true" {
+		params := &stripe.CustomerParams{
+			Name:  &name,
+			Email: admin.Email,
+		}
+		params.AddMetadata("Workspace ID", strconv.Itoa(workspace.ID))
+		c, err = r.StripeClient.Customers.New(params)
+		if err != nil {
+			return nil, e.Wrap(err, "error creating stripe customer")
+		}
+	}
+
+	if err := r.DB.Model(&workspace).Updates(&model.Workspace{
+		StripeCustomerID: &c.ID,
+	}).Error; err != nil {
+		return nil, e.Wrap(err, "error updating workspace StripeCustomerID")
 	}
 
 	return workspace, nil
@@ -573,7 +578,7 @@ func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (strin
 		ApolloDataShortened: *short,
 	})
 
-	go func() {
+	r.PrivateWorkerPool.SubmitRecover(func() {
 		if contact, err := apolloio.CreateContact(email); err != nil {
 			log.Errorf("error creating apollo contact: %v", err)
 		} else {
@@ -582,7 +587,7 @@ func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (strin
 				log.Errorf("error adding to apollo sequence: %v", err)
 			}
 		}
-	}()
+	})
 
 	return email, nil
 }
@@ -670,31 +675,36 @@ func (r *mutationResolver) DeleteErrorSegment(ctx context.Context, segmentID int
 	return &model.T, nil
 }
 
-func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context, projectID int, planType modelInputs.PlanType) (*string, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int, planType modelInputs.PlanType) (*string, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin is not in project")
+		return nil, e.Wrap(err, "admin is not in workspace")
+	}
+
+	if err := r.validateAdminRole(ctx); err != nil {
+		return nil, e.Wrap(err, "must have ADMIN role to create/update stripe subscription")
 	}
 
 	// For older projects, if there's no customer ID, we create a StripeCustomer obj.
-	if project.StripeCustomerID == nil {
+	if workspace.StripeCustomerID == nil {
 		params := &stripe.CustomerParams{}
 		c, err := r.StripeClient.Customers.New(params)
 		if err != nil {
 			return nil, e.Wrap(err, "error creating stripe customer")
 		}
-		if err := r.DB.Model(project).Updates(&model.Project{
+		if err := r.DB.Model(&workspace).Updates(&model.Workspace{
 			StripeCustomerID: &c.ID,
 		}).Error; err != nil {
 			return nil, e.Wrap(err, "error updating org fields")
 		}
-		project.StripeCustomerID = &c.ID
+		workspace.StripeCustomerID = &c.ID
 	}
 
 	// Check if there's already a subscription on the user. If there is, we do an update and return early.
 	params := &stripe.CustomerParams{}
 	params.AddExpand("subscriptions")
-	c, err := r.StripeClient.Customers.Get(*project.StripeCustomerID, params)
+
+	c, err := r.StripeClient.Customers.Get(*workspace.StripeCustomerID, params)
 	if err != nil {
 		return nil, e.Wrap(err, "couldn't retrieve stripe customer data")
 	}
@@ -722,12 +732,12 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	// If there's no existing subscription, we create a checkout.
 	plan := pricing.ToPriceID(planType)
 	checkoutSessionParams := &stripe.CheckoutSessionParams{
-		SuccessURL: stripe.String(os.Getenv("FRONTEND_URI") + "/" + strconv.Itoa(projectID) + "/billing/success"),
-		CancelURL:  stripe.String(os.Getenv("FRONTEND_URI") + "/" + strconv.Itoa(projectID) + "/billing/checkoutCanceled"),
+		SuccessURL: stripe.String(os.Getenv("FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/billing/success"),
+		CancelURL:  stripe.String(os.Getenv("FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/billing/checkoutCanceled"),
 		PaymentMethodTypes: stripe.StringSlice([]string{
 			"card",
 		}),
-		Customer: project.StripeCustomerID,
+		Customer: workspace.StripeCustomerID,
 		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
 			Items: []*stripe.CheckoutSessionSubscriptionDataItemsParams{
 				{
@@ -747,14 +757,19 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	return &stripeSession.ID, nil
 }
 
-func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, projectID int) (*bool, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
+func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID int) (*bool, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin is not in project")
+		return nil, e.Wrap(err, "admin is not in workspace")
 	}
+
+	if err := r.validateAdminRole(ctx); err != nil {
+		return nil, e.Wrap(err, "must have ADMIN role to update billing details")
+	}
+
 	params := &stripe.CustomerParams{}
 	params.AddExpand("subscriptions")
-	c, err := r.StripeClient.Customers.Get(*project.StripeCustomerID, params)
+	c, err := r.StripeClient.Customers.Get(*workspace.StripeCustomerID, params)
 	if err != nil {
 		return nil, e.Wrap(err, "couldn't retrieve stripe customer data")
 	}
@@ -765,13 +780,16 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, projectID i
 
 	planTypeId := c.Subscriptions.Data[0].Plan.ID
 
-	if err := r.DB.Model(&project).Updates(model.Project{StripePriceID: &planTypeId}).Error; err != nil {
+	if err := r.DB.Model(&workspace).Updates(model.Workspace{StripePriceID: &planTypeId}).Error; err != nil {
 		return nil, e.Wrap(err, "error setting stripe_price_id on project")
 	}
 	// mark sessions as within billing quota on plan upgrade
 	// this code is repeated as the first time, the user already has a billing plan and the function returns early.
 	// here, the user doesn't already have a billing plan, so it's considered an upgrade unless the plan is free
-	go r.UpdateSessionsVisibility(projectID, pricing.FromPriceID(planTypeId), modelInputs.PlanTypeFree)
+
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		r.UpdateSessionsVisibility(workspaceID, pricing.FromPriceID(planTypeId), modelInputs.PlanTypeFree)
+	})
 
 	return &model.T, nil
 }
@@ -836,7 +854,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			adminIds = append(adminIds, admin.ID)
 		}
 
-		go func() {
+		r.PrivateWorkerPool.SubmitRecover(func() {
 			commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
 				tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedAdmins)))
 			defer commentMentionEmailSpan.Finish()
@@ -845,9 +863,9 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in session comment"))
 			}
-		}()
+		})
 
-		go func() {
+		r.PrivateWorkerPool.SubmitRecover(func() {
 			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
 				tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(adminIds)))
 			defer commentMentionSlackSpan.Finish()
@@ -856,11 +874,11 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in session comment"))
 			}
-		}()
+		})
 	}
 
 	if len(taggedSlackUsers) > 0 && !isGuestCreatingSession {
-		go func() {
+		r.PrivateWorkerPool.SubmitRecover(func() {
 			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment",
 				tracer.ResourceName("slackBot.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedSlackUsers)))
 			defer commentMentionSlackSpan.Finish()
@@ -869,8 +887,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in session comment for slack bot"))
 			}
-		}()
-
+		})
 	}
 
 	return sessionComment, nil
@@ -943,7 +960,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 			adminIds = append(adminIds, admin.ID)
 		}
 
-		go func() {
+		r.PrivateWorkerPool.SubmitRecover(func() {
 			commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
 				tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedAdmins)))
 			defer commentMentionEmailSpan.Finish()
@@ -952,9 +969,9 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in error comment"))
 			}
-		}()
+		})
 
-		go func() {
+		r.PrivateWorkerPool.SubmitRecover(func() {
 			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
 				tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(adminIds)))
 			defer commentMentionSlackSpan.Finish()
@@ -963,11 +980,11 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in error comment"))
 			}
-		}()
+		})
 
 	}
 	if len(taggedSlackUsers) > 0 && !isGuest {
-		go func() {
+		r.PrivateWorkerPool.SubmitRecover(func() {
 			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment",
 				tracer.ResourceName("slackBot.sendErrorCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedSlackUsers)))
 			defer commentMentionSlackSpan.Finish()
@@ -976,7 +993,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in error comment for slack bot"))
 			}
-		}()
+		})
 	}
 	return errorComment, nil
 }
@@ -2253,7 +2270,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 			}
 			p, co = pc.Person, pc.Company
 			// Store the data for this email in the DB.
-			go func() {
+			r.PrivateWorkerPool.SubmitRecover(func() {
 				log.Infof("caching response data in the db")
 				modelToSave := &model.EnhancedUserDetails{}
 				modelToSave.Email = &email
@@ -2272,7 +2289,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 				if err := r.DB.Create(modelToSave).Error; err != nil {
 					log.Errorf("error creating clearbit details model")
 				}
-			}()
+			})
 		} else {
 			log.Infof("retrieving db entry for clearbit lookup")
 			if userDetailsModel.PersonJSON != nil && userDetailsModel.CompanyJSON != nil {
@@ -2683,7 +2700,7 @@ func (r *queryResolver) AverageSessionLength(ctx context.Context, projectID int,
 		return nil, e.Wrap(err, "admin not found in project")
 	}
 	var length float64
-	query := fmt.Sprintf("SELECT avg(active_length) FROM sessions WHERE project_id=%d AND processed=true AND active_length IS NOT NULL AND created_at >= NOW() - INTERVAL '%d DAY';", projectID, lookBackPeriod)
+	query := fmt.Sprintf("SELECT COALESCE(avg(active_length), 0) FROM sessions WHERE project_id=%d AND processed=true AND active_length IS NOT NULL AND created_at >= NOW() - INTERVAL '%d DAY';", projectID, lookBackPeriod)
 	if err := r.DB.Raw(query).Scan(&length).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving average length for sessions")
 	}
@@ -2873,13 +2890,22 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 	return sessionList, nil
 }
 
-func (r *queryResolver) BillingDetails(ctx context.Context, projectID int) (*modelInputs.BillingDetails, error) {
-	org, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+func (r *queryResolver) BillingDetailsForProject(ctx context.Context, projectID int) (*modelInputs.BillingDetails, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin not found in project")
+		return nil, e.Wrap(err, "admin not in project")
 	}
 
-	stripePriceID := org.StripePriceID
+	return r.BillingDetails(ctx, project.WorkspaceID)
+}
+
+func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*modelInputs.BillingDetails, error) {
+	workspace, err := r.isAdminInWorkspaceOrDemoWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not in workspace")
+	}
+
+	stripePriceID := workspace.StripePriceID
 	planType := modelInputs.PlanTypeFree
 	if stripePriceID != nil {
 		planType = pricing.FromPriceID(*stripePriceID)
@@ -2890,7 +2916,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, projectID int) (*mod
 	var queriedSessionsOutOfQuota int64
 
 	g.Go(func() error {
-		meter, err = pricing.GetProjectQuota(r.DB, projectID)
+		meter, err = pricing.GetWorkspaceQuota(r.DB, workspaceID)
 		if err != nil {
 			return e.Wrap(err, "error from get quota")
 		}
@@ -2898,7 +2924,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, projectID int) (*mod
 	})
 
 	g.Go(func() error {
-		queriedSessionsOutOfQuota, err = pricing.GetProjectQuotaOverflow(ctx, r.DB, projectID)
+		queriedSessionsOutOfQuota, err = pricing.GetWorkspaceQuotaOverflow(ctx, r.DB, workspaceID)
 		if err != nil {
 			return e.Wrap(err, "error from get quota overflow")
 		}
@@ -2912,8 +2938,8 @@ func (r *queryResolver) BillingDetails(ctx context.Context, projectID int) (*mod
 
 	quota := pricing.TypeToQuota(planType)
 	// use monthly session limit if it exists
-	if org.MonthlySessionLimit != nil {
-		quota = *org.MonthlySessionLimit
+	if workspace.MonthlySessionLimit != nil {
+		quota = *workspace.MonthlySessionLimit
 	}
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{
@@ -3289,7 +3315,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 			return nil, spanError
 		}
 		firebaseSpan.Finish()
-		go func() {
+		r.PrivateWorkerPool.SubmitRecover(func() {
 			if contact, err := apolloio.CreateContact(*newAdmin.Email); err != nil {
 				log.Errorf("error creating apollo contact: %v", err)
 			} else {
@@ -3298,7 +3324,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 					log.Errorf("error adding new contact to sequence: %v", err)
 				}
 			}
-		}()
+		})
 		admin = newAdmin
 	}
 	if admin.PhotoURL == nil || admin.Name == nil {

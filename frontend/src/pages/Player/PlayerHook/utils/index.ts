@@ -9,6 +9,7 @@ import * as H from 'history';
 import { useCallback, useState } from 'react';
 import { useLocation } from 'react-router';
 
+import { MillisToMinutesAndSeconds } from '../../../../util/time';
 import { HighlightEvent } from '../../HighlightEvent';
 import {
     ParsedErrorObject,
@@ -117,7 +118,12 @@ export const useSetPlayerTimestampFromSearchParam = (
     replayer?: Replayer
 ) => {
     const location = useLocation();
-    const [hasSearchParam, setHasSearchParam] = useState(false);
+    const searchParams = new URLSearchParams(location.search);
+    const [hasSearchParam, setHasSearchParam] = useState(
+        !!searchParams.get(PlayerSearchParameters.ts) ||
+            !!searchParams.get(PlayerSearchParameters.tsAbs) ||
+            !!searchParams.get(PlayerSearchParameters.errorId)
+    );
     const {
         selectedTimelineAnnotationTypes,
         setSelectedTimelineAnnotationTypes,
@@ -186,6 +192,11 @@ export const useSetPlayerTimestampFromSearchParam = (
                         if (!requestId) {
                             setTime(sessionTime);
                             replayer?.pause(sessionTime);
+                            message.success(
+                                `Changed player time to where error was thrown at ${MillisToMinutesAndSeconds(
+                                    sessionTime
+                                )}.`
+                            );
                         }
                         setSelectedErrorId(errorId);
 
@@ -201,6 +212,8 @@ export const useSetPlayerTimestampFromSearchParam = (
                     }
                 }
                 setHasSearchParam(true);
+            } else {
+                setHasSearchParam(false);
             }
         },
         [

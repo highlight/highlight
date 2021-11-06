@@ -11,4 +11,8 @@
     :global(.ant-popover-inner-content) {
         padding: 0;
     }
+
+    :global(.ant-popover-arrow) {
+        display: none !important;
+    }
 }

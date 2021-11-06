@@ -6,6 +6,7 @@
     --color-purple-400: #937ccc;
     --color-purple-light: #bb6bd9;
     --color-purple: #5629c6;
+    --color-purple-rgb: 86, 41, 198;
     --color-purple-800: #302c3a;
     --color-blue-100: #deebff;
     --color-blue-200: #b2d4ff;
@@ -56,6 +57,7 @@
     --logo-gradient-start-color: var(--color-purple);
     --logo-gradient-end-color: #321873;
 
+    --size-xxxLarge: 56px;
     --size-xxLarge: 48px;
     --size-xLarge: 32px;
     --size-large: 24px;
@@ -85,7 +87,7 @@
         'Segoe UI Emoji', 'Segoe UI Symbol';
     --monospace-font-family: 'Roboto Mono', monospace;
 
-    --button-border-radius: 5px;
+    --button-border-radius: var(--size-xSmall);
     --border-radius: var(--size-xSmall);
 
     // UI Elements
@@ -199,10 +201,6 @@ a {
     width: 100% !important;
 }
 
-.ant-modal-content {
-    border-radius: 6px !important;
-}
-
 .ant-slider-rail {
     background-color: lightgrey;
 }
@@ -261,10 +259,6 @@ a {
 
 .ant-tooltip-inner {
     border-radius: 6px;
-}
-
-.ant-tooltip-arrow-content {
-    background-color: transparent;
 }
 
 .ant-skeleton-content .ant-skeleton-title {

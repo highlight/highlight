@@ -35,10 +35,12 @@ export type HighlightOptions = {
     backendUrl?: string;
     /**
      * Specifies where the backend of the app lives. If specified, Highlight will attach the
-     * X-Highlight-Request header to outgoing requests whose destination URLs contain a string
-     * from this list, so that backend errors can be linked back to the session.
+     * X-Highlight-Request header to outgoing requests whose destination URLs match a substring
+     * or regexp from this list, so that backend errors can be linked back to the session.
+     * If 'true' is specified, all requests to the current domain will be matched.
+     * @example tracingOrigins: ['localhost', /^\//, 'backend.myapp.com']
      */
-    tracingOrigins?: string[];
+    tracingOrigins?: boolean | (string | RegExp)[];
     /**
      * Specifies if Highlight should not automatically start recording when the app starts.
      * This should be used with `H.start()` and `H.stop()` if you want to control when Highlight records.

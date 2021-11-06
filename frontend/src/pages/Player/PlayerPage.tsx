@@ -2,14 +2,11 @@ import 'rc-slider/assets/index.css';
 
 import { useAuthContext } from '@authentication/AuthContext';
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
-import {
-    DEMO_WORKSPACE_APPLICATION_ID,
-    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
-} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import ElevatedCard from '@components/ElevatedCard/ElevatedCard';
 import { ErrorState } from '@components/ErrorState/ErrorState';
 import FullBleedCard from '@components/FullBleedCard/FullBleedCard';
 import Modal from '@components/Modal/Modal';
+import { Session } from '@graph/schemas';
 import { Replayer } from '@highlight-run/rrweb';
 import NoActiveSessionCard from '@pages/Player/components/NoActiveSessionCard/NoActiveSessionCard';
 import PanelToggleButton from '@pages/Player/components/PanelToggleButton/PanelToggleButton';
@@ -27,6 +24,10 @@ import {
     ReplayerContextProvider,
     ReplayerState,
 } from '@pages/Player/ReplayerContext';
+import {
+    ResourcesContextProvider,
+    useResources,
+} from '@pages/Player/ResourcesContext/ResourcesContext';
 import RightPlayerPanel from '@pages/Player/RightPlayerPanel/RightPlayerPanel';
 import SearchPanel from '@pages/Player/SearchPanel/SearchPanel';
 import SessionLevelBar from '@pages/Player/SessionLevelBar/SessionLevelBar';
@@ -36,13 +37,16 @@ import { Toolbar } from '@pages/Player/Toolbar/Toolbar';
 import { usePlayerFullscreen } from '@pages/Player/utils/PlayerHooks';
 import { getNewCommentFormCoordinates } from '@pages/Player/utils/utils';
 import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard';
+import { getDisplayName } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils';
 import { SessionSearchOption } from '@pages/Sessions/SessionsFeedV2/components/SessionSearch/SessionSearch';
 import useLocalStorage from '@rehooks/local-storage';
+import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import Lottie from 'lottie-react';
 import React, { Suspense, useEffect, useRef, useState } from 'react';
+import { Helmet } from 'react-helmet';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import useResizeAware from 'react-resize-aware';
 import AsyncSelect from 'react-select/async';
@@ -56,20 +60,18 @@ interface Props {
 
 const Player = ({ integrated }: Props) => {
     const { isLoggedIn } = useAuthContext();
-    const { session_secure_id, project_id } = useParams<{
+    const { currentWorkspace } = useApplicationContext();
+    const { session_secure_id } = useParams<{
         session_secure_id: string;
         project_id: string;
     }>();
-    const projectIdRemapped =
-        project_id === DEMO_WORKSPACE_APPLICATION_ID
-            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-            : project_id;
     const [resizeListener, sizes] = useResizeAware();
 
     const [searchBarRef, setSearchBarRef] = useState<
         AsyncSelect<SessionSearchOption, true> | undefined
     >(undefined);
     const player = usePlayer();
+    const resources = useResources();
     const {
         state: replayerState,
         scale: replayerScale,
@@ -181,6 +183,9 @@ const Player = ({ integrated }: Props) => {
                 setSelectedRightPanelTab,
             }}
         >
+            <Helmet>
+                <title>{getTabTitle(session)}</title>
+            </Helmet>
             <ReplayerContextProvider value={player}>
                 {!integrated && <IntegrationCard />}
                 {isPlayerReady && !isLoggedIn && (
@@ -205,20 +210,22 @@ const Player = ({ integrated }: Props) => {
                         })}
                     >
                         <SearchPanel visible={showLeftPanel} />
-                        <PanelToggleButton
-                            className={classNames(
-                                styles.panelToggleButton,
-                                styles.panelToggleButtonLeft,
-                                {
-                                    [styles.panelShown]: showLeftPanelPreference,
-                                }
-                            )}
-                            direction="left"
-                            isOpen={showLeftPanelPreference}
-                            onClick={() => {
-                                setShowLeftPanel(!showLeftPanelPreference);
-                            }}
-                        />
+                        {isLoggedIn && (
+                            <PanelToggleButton
+                                className={classNames(
+                                    styles.panelToggleButton,
+                                    styles.panelToggleButtonLeft,
+                                    {
+                                        [styles.panelShown]: showLeftPanelPreference,
+                                    }
+                                )}
+                                direction="left"
+                                isOpen={showLeftPanelPreference}
+                                onClick={() => {
+                                    setShowLeftPanel(!showLeftPanelPreference);
+                                }}
+                            />
+                        )}
                     </div>
                     {sessionViewability ===
                         SessionViewability.OVER_BILLING_QUOTA && (
@@ -233,7 +240,7 @@ const Player = ({ integrated }: Props) => {
                                 session quota. To view it, upgrade your plan.
                             </p>
                             <ButtonLink
-                                to={`/${projectIdRemapped}/billing`}
+                                to={`/w/${currentWorkspace?.id}/billing`}
                                 trackingId="PlayerPageUpgradePlan"
                                 className={styles.center}
                             >
@@ -242,7 +249,10 @@ const Player = ({ integrated }: Props) => {
                         </FullBleedCard>
                     )}
                     {sessionViewability === SessionViewability.ERROR ? (
-                        <ErrorState message="This session does not exist or has not been made public." />
+                        <ErrorState
+                            shownWithHeader
+                            message="This session does not exist or has not been made public."
+                        />
                     ) : sessionViewability ===
                       SessionViewability.EMPTY_SESSION ? (
                         <ElevatedCard
@@ -394,13 +404,21 @@ const Player = ({ integrated }: Props) => {
                                                 />
                                             )}
                                         </div>
-                                        <Toolbar />
+                                        <ResourcesContextProvider
+                                            value={resources}
+                                        >
+                                            <Toolbar />
+                                        </ResourcesContextProvider>
                                     </div>
 
                                     {!isPlayerFullscreen && (
                                         <>
                                             <RightPlayerPanel />
-                                            <DetailPanel />
+                                            <ResourcesContextProvider
+                                                value={resources}
+                                            >
+                                                <DetailPanel />
+                                            </ResourcesContextProvider>
                                         </>
                                     )}
                                 </div>
@@ -497,3 +515,10 @@ const PlayerSkeleton = ({
 };
 
 export default Player;
+
+const getTabTitle = (session?: Session) => {
+    if (!session) {
+        return 'Sessions';
+    }
+    return `Sessions: ${getDisplayName(session)}`;
+};

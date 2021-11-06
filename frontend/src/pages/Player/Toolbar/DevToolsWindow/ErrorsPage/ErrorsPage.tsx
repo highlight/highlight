@@ -1,5 +1,5 @@
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
-import ErrorModal from '@pages/Player/Toolbar/DevToolsWindow/ErrorsPage/components/ErrorModal/ErrorModal';
+import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router-dom';
@@ -24,8 +24,16 @@ const ErrorsPage = () => {
     );
     const [filterSearchTerm, setFilterSearchTerm] = useState('');
     const history = useHistory<ErrorsPageHistoryState>();
-    const { errors: allErrors, state, time, replayer } = useReplayerContext();
-    const { setDetailedPanel } = usePlayerUIContext();
+    const {
+        errors: allErrors,
+        state,
+        time,
+        replayer,
+        session,
+        setTime,
+    } = useReplayerContext();
+    const { setErrorPanel } = useResourceOrErrorDetailPanel();
+    const { detailedPanel } = usePlayerUIContext();
 
     const loading = state === ReplayerState.Loading;
 
@@ -93,7 +101,11 @@ const ErrorsPage = () => {
                                 setFilterSearchTerm(event.target.value);
                             }}
                             size="small"
-                            disabled={loading || errorsToRender.length === 0}
+                            disabled={
+                                loading ||
+                                (errorsToRender.length === 0 &&
+                                    filterSearchTerm.length === 0)
+                            }
                         />
                     </div>
                 </div>
@@ -106,9 +118,14 @@ const ErrorsPage = () => {
                             style={{ height: 25, marginBottom: 11 }}
                         />
                     </div>
-                ) : !allErrors.length ? (
+                ) : !session || !allErrors.length ? (
                     <div className={devStyles.emptySection}>
                         There are no errors for this session.
+                    </div>
+                ) : errorsToRender.length === 0 &&
+                  filterSearchTerm.length > 0 ? (
+                    <div className={devStyles.emptySection}>
+                        No errors matching '{filterSearchTerm}'
                     </div>
                 ) : (
                     <Virtuoso
@@ -125,6 +142,7 @@ const ErrorsPage = () => {
                             <ErrorCard
                                 searchQuery={filterSearchTerm}
                                 key={error?.id}
+                                replayerContext={{ replayer, setTime }}
                                 error={error}
                                 state={
                                     hasTimestamp
@@ -134,19 +152,9 @@ const ErrorsPage = () => {
                                         : ErrorCardState.Unknown
                                 }
                                 setSelectedError={() => {
-                                    setDetailedPanel({
-                                        title: null,
-                                        content: (
-                                            <>
-                                                <ErrorModal error={error} />
-                                            </>
-                                        ),
-                                        options: {
-                                            noHeader: true,
-                                        },
-                                        id: error.id,
-                                    });
+                                    setErrorPanel(error);
                                 }}
+                                detailedPanel={detailedPanel}
                             />
                         )}
                     />

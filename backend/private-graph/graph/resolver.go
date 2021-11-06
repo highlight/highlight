@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/clearbit/clearbit-go/clearbit"
+	"github.com/highlight-run/workerpool"
 	e "github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -37,11 +38,12 @@ var (
 )
 
 type Resolver struct {
-	DB             *gorm.DB
-	MailClient     *sendgrid.Client
-	StripeClient   *client.API
-	StorageClient  *storage.StorageClient
-	ClearbitClient *clearbit.Client
+	DB                *gorm.DB
+	MailClient        *sendgrid.Client
+	StripeClient      *client.API
+	StorageClient     *storage.StorageClient
+	ClearbitClient    *clearbit.Client
+	PrivateWorkerPool *workerpool.WorkerPool
 }
 
 func (r *Resolver) getCurrentAdmin(ctx context.Context) (*model.Admin, error) {
@@ -57,6 +59,10 @@ func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
 
 func (r *Resolver) isDemoProject(project_id int) bool {
 	return project_id == 0
+}
+
+func (r *Resolver) isDemoWorkspace(workspace_id int) bool {
+	return workspace_id == 0
 }
 
 // These are authentication methods used to make sure that data is secured.
@@ -80,6 +86,24 @@ func (r *Resolver) isAdminInProjectOrDemoProject(ctx context.Context, project_id
 		}
 	}
 	return project, nil
+}
+
+func (r *Resolver) isAdminInWorkspaceOrDemoWorkspace(ctx context.Context, workspace_id int) (*model.Workspace, error) {
+	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("isAdminInWorkspaceOrDemoWorkspace"))
+	defer authSpan.Finish()
+	var workspace *model.Workspace
+	var err error
+	if r.isDemoWorkspace(workspace_id) {
+		if err = r.DB.Model(&model.Project{}).Where("id = ?", 0).First(&workspace).Error; err != nil {
+			return nil, e.Wrap(err, "error querying demo workspace")
+		}
+	} else {
+		workspace, err = r.isAdminInWorkspace(ctx, workspace_id)
+		if err != nil {
+			return nil, e.Wrap(err, "admin is not in workspace or demo workspace")
+		}
+	}
+	return workspace, nil
 }
 
 func (r *Resolver) GetWorkspace(workspaceID int) (*model.Workspace, error) {
@@ -377,7 +401,7 @@ func (r *Resolver) isAdminErrorSegmentOwner(ctx context.Context, error_segment_i
 	return segment, nil
 }
 
-func (r *Resolver) UpdateSessionsVisibility(projectID int, newPlan modelInputs.PlanType, originalPlan modelInputs.PlanType) {
+func (r *Resolver) UpdateSessionsVisibility(workspaceID int, newPlan modelInputs.PlanType, originalPlan modelInputs.PlanType) {
 	isPlanUpgrade := true
 	switch originalPlan {
 	case modelInputs.PlanTypeFree:
@@ -398,7 +422,10 @@ func (r *Resolver) UpdateSessionsVisibility(projectID int, newPlan modelInputs.P
 		}
 	}
 	if isPlanUpgrade {
-		if err := r.DB.Model(&model.Session{}).Where(&model.Session{ProjectID: projectID, WithinBillingQuota: &model.F}).Updates(model.Session{WithinBillingQuota: &model.T}).Error; err != nil {
+		if err := r.DB.Model(&model.Session{}).
+			Where("project_id in (SELECT id FROM projects WHERE workspace_id=?)", workspaceID).
+			Where(&model.Session{WithinBillingQuota: &model.F}).
+			Updates(model.Session{WithinBillingQuota: &model.T}).Error; err != nil {
 			log.Error(e.Wrap(err, "error updating within_billing_quota on sessions upon plan upgrade"))
 		}
 	}
@@ -802,4 +829,17 @@ func (r *Resolver) UnmarshalStackTrace(stackTraceString string) ([]*modelInputs.
 	}
 
 	return ret, nil
+}
+
+func (r *Resolver) validateAdminRole(ctx context.Context) error {
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return e.Wrap(err, "error retrieving admin")
+	}
+
+	if admin.Role == nil || *admin.Role != model.AdminRole.ADMIN {
+		return e.New("admin does not have role=ADMIN")
+	}
+
+	return nil
 }

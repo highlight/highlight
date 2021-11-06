@@ -105,11 +105,11 @@ export type MarkSessionAsStarredMutationOptions = Apollo.BaseMutationOptions<
 >;
 export const CreateOrUpdateStripeSubscriptionDocument = gql`
     mutation CreateOrUpdateStripeSubscription(
-        $project_id: ID!
+        $workspace_id: ID!
         $plan_type: PlanType!
     ) {
         createOrUpdateStripeSubscription(
-            project_id: $project_id
+            workspace_id: $workspace_id
             plan_type: $plan_type
         )
     }
@@ -132,7 +132,7 @@ export type CreateOrUpdateStripeSubscriptionMutationFn = Apollo.MutationFunction
  * @example
  * const [createOrUpdateStripeSubscriptionMutation, { data, loading, error }] = useCreateOrUpdateStripeSubscriptionMutation({
  *   variables: {
- *      project_id: // value for 'project_id'
+ *      workspace_id: // value for 'workspace_id'
  *      plan_type: // value for 'plan_type'
  *   },
  * });
@@ -157,8 +157,8 @@ export type CreateOrUpdateStripeSubscriptionMutationOptions = Apollo.BaseMutatio
     Types.CreateOrUpdateStripeSubscriptionMutationVariables
 >;
 export const UpdateBillingDetailsDocument = gql`
-    mutation UpdateBillingDetails($project_id: ID!) {
-        updateBillingDetails(project_id: $project_id)
+    mutation UpdateBillingDetails($workspace_id: ID!) {
+        updateBillingDetails(workspace_id: $workspace_id)
     }
 `;
 export type UpdateBillingDetailsMutationFn = Apollo.MutationFunction<
@@ -179,7 +179,7 @@ export type UpdateBillingDetailsMutationFn = Apollo.MutationFunction<
  * @example
  * const [updateBillingDetailsMutation, { data, loading, error }] = useUpdateBillingDetailsMutation({
  *   variables: {
- *      project_id: // value for 'project_id'
+ *      workspace_id: // value for 'workspace_id'
  *   },
  * });
  */
@@ -4281,9 +4281,9 @@ export type GetProjectQueryResult = Apollo.QueryResult<
     Types.GetProjectQuery,
     Types.GetProjectQueryVariables
 >;
-export const GetBillingDetailsDocument = gql`
-    query GetBillingDetails($project_id: ID!) {
-        billingDetails(project_id: $project_id) {
+export const GetBillingDetailsForProjectDocument = gql`
+    query GetBillingDetailsForProject($project_id: ID!) {
+        billingDetailsForProject(project_id: $project_id) {
             plan {
                 type
                 quota
@@ -4291,7 +4291,72 @@ export const GetBillingDetailsDocument = gql`
             meter
             sessionsOutOfQuota
         }
-        project(id: $project_id) {
+        workspace_for_project(project_id: $project_id) {
+            id
+            trial_end_date
+        }
+    }
+`;
+
+/**
+ * __useGetBillingDetailsForProjectQuery__
+ *
+ * To run a query within a React component, call `useGetBillingDetailsForProjectQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetBillingDetailsForProjectQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetBillingDetailsForProjectQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetBillingDetailsForProjectQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetBillingDetailsForProjectQuery,
+        Types.GetBillingDetailsForProjectQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetBillingDetailsForProjectQuery,
+        Types.GetBillingDetailsForProjectQueryVariables
+    >(GetBillingDetailsForProjectDocument, baseOptions);
+}
+export function useGetBillingDetailsForProjectLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetBillingDetailsForProjectQuery,
+        Types.GetBillingDetailsForProjectQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetBillingDetailsForProjectQuery,
+        Types.GetBillingDetailsForProjectQueryVariables
+    >(GetBillingDetailsForProjectDocument, baseOptions);
+}
+export type GetBillingDetailsForProjectQueryHookResult = ReturnType<
+    typeof useGetBillingDetailsForProjectQuery
+>;
+export type GetBillingDetailsForProjectLazyQueryHookResult = ReturnType<
+    typeof useGetBillingDetailsForProjectLazyQuery
+>;
+export type GetBillingDetailsForProjectQueryResult = Apollo.QueryResult<
+    Types.GetBillingDetailsForProjectQuery,
+    Types.GetBillingDetailsForProjectQueryVariables
+>;
+export const GetBillingDetailsDocument = gql`
+    query GetBillingDetails($workspace_id: ID!) {
+        billingDetails(workspace_id: $workspace_id) {
+            plan {
+                type
+                quota
+            }
+            meter
+            sessionsOutOfQuota
+        }
+        workspace(id: $workspace_id) {
             id
             trial_end_date
         }
@@ -4310,7 +4375,7 @@ export const GetBillingDetailsDocument = gql`
  * @example
  * const { data, loading, error } = useGetBillingDetailsQuery({
  *   variables: {
- *      project_id: // value for 'project_id'
+ *      workspace_id: // value for 'workspace_id'
  *   },
  * });
  */
