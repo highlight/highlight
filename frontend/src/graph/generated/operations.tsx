@@ -521,6 +521,19 @@ export type DeleteSessionAlertMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
+export type CreateDefaultAlertsMutationVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    alert_types: Array<Types.Scalars['String']> | Types.Scalars['String'];
+    slack_channels:
+        | Array<Types.SanitizedSlackChannelInput>
+        | Types.SanitizedSlackChannelInput;
+}>;
+
+export type CreateDefaultAlertsMutation = { __typename?: 'Mutation' } & Pick<
+    Types.Mutation,
+    'createDefaultAlerts'
+>;
+
 export type CreateSessionFeedbackAlertMutationVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     name: Types.Scalars['String'];
@@ -2549,6 +2562,7 @@ export const namedOperations = {
         UpdateErrorAlert: 'UpdateErrorAlert' as const,
         DeleteErrorAlert: 'DeleteErrorAlert' as const,
         DeleteSessionAlert: 'DeleteSessionAlert' as const,
+        CreateDefaultAlerts: 'CreateDefaultAlerts' as const,
         CreateSessionFeedbackAlert: 'CreateSessionFeedbackAlert' as const,
         UpdateSessionFeedbackAlert: 'UpdateSessionFeedbackAlert' as const,
         CreateNewUserAlert: 'CreateNewUserAlert' as const,
