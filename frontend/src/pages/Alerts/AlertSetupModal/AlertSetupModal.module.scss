@@ -44,6 +44,7 @@
 .cardContainer {
     height: 100%;
     &:hover {
+        cursor: pointer;
         border-color: var(--color-purple-400);
         box-shadow: 0 5px 8px rgba(86, 41, 198, 0.2);
     }
