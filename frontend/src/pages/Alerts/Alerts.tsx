@@ -215,17 +215,15 @@ const AlertsPage = () => {
 
     return (
         <>
-            {(!loading &&
-                !alertsPayload?.is_integrated_with_slack &&
-                (alertsPayload?.error_alerts.length || 0) +
-                    (alertsPayload?.rage_click_alerts.length || 0) +
-                    (alertsPayload?.new_user_alerts?.length || 0) +
-                    (alertsPayload?.user_properties_alerts.length || 0) +
-                    (alertsPayload?.session_feedback_alerts.length || 0) +
-                    (alertsPayload?.track_properties_alerts.length || 0) +
-                    (alertsPayload?.new_session_alerts.length || 0) <
-                    1) ||
-            true ? (
+            {!loading &&
+            (alertsPayload?.error_alerts.length || 0) +
+                (alertsPayload?.rage_click_alerts.length || 0) +
+                (alertsPayload?.new_user_alerts?.length || 0) +
+                (alertsPayload?.user_properties_alerts.length || 0) +
+                (alertsPayload?.session_feedback_alerts.length || 0) +
+                (alertsPayload?.track_properties_alerts.length || 0) +
+                (alertsPayload?.new_session_alerts.length || 0) <
+                1 ? (
                 <AlertSetupWizard />
             ) : (
                 <>
