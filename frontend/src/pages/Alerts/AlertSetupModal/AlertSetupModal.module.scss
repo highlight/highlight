@@ -44,9 +44,9 @@
 .cardContainer {
     height: 100%;
     &:hover {
-        cursor: pointer;
         border-color: var(--color-purple-400);
         box-shadow: 0 5px 8px rgba(86, 41, 198, 0.2);
+        cursor: pointer;
     }
 }
 
@@ -118,8 +118,8 @@
 }
 
 .stepsContent {
-    margin-top: 2vh;
     margin-bottom: 2vh;
+    margin-top: 2vh;
     max-height: 45vh;
     min-height: 45vh;
     overflow: scroll;
