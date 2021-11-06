@@ -20,7 +20,6 @@ const FullBleedCard: React.FC<Props> = ({
 }) => {
     return (
         <div className={styles.fullBleedCard}>
-            <div>{closeIcon}</div>
             <ElevatedCard
                 title={title}
                 animation={animation}
