@@ -7,7 +7,7 @@ import {
 } from 'antd';
 import React from 'react';
 
-type StepsProps = Pick<AntDesignStepsProps, 'current'>;
+type StepsProps = Pick<AntDesignStepsProps, 'className' | 'current'>;
 
 interface StepsType extends React.FC<StepsProps> {
     Step: React.ClassicComponentClass<AntDesignStepProps>;
@@ -16,9 +16,14 @@ interface StepsType extends React.FC<StepsProps> {
 /**
  * A proxy for Ant Design's steps. This component should be used instead of directly using Ant Design's.
  */
-const Steps: StepsType = ({ current, children, ...props }) => {
+const Steps: StepsType = ({ current, className, children, ...props }) => {
     return (
-        <AntDesignSteps progressDot current={current} {...props}>
+        <AntDesignSteps
+            className={className}
+            progressDot
+            current={current}
+            {...props}
+        >
             {children}
         </AntDesignSteps>
     );
