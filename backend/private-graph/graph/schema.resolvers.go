@@ -1191,6 +1191,57 @@ func (r *mutationResolver) AddSlackBotIntegrationToProject(ctx context.Context, 
 	return true, nil
 }
 
+func (r *mutationResolver) CreateDefaultAlerts(ctx context.Context, projectID int, alertTypes []string, slackChannels []*modelInputs.SanitizedSlackChannelInput) (*bool, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
+	workspace, _ := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in project")
+	}
+
+	channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
+	if err != nil {
+		return nil, err
+	}
+
+	var sessionAlerts []*model.SessionAlert
+	for _, alertType := range alertTypes {
+		name := strings.Title(strings.ToLower(strings.Replace(alertType, "_", " ", -1)))
+		alertType := alertType
+		newAlert := model.Alert{
+			ProjectID:         projectID,
+			CountThreshold:    1,
+			ThresholdWindow:   util.MakeIntPointer(30),
+			Type:              &alertType,
+			ChannelsToNotify:  channelsString,
+			Name:              &name,
+			LastAdminToEditID: admin.ID,
+		}
+		if alertType == model.AlertType.ERROR {
+			errorAlert := &model.ErrorAlert{Alert: newAlert}
+			if err := r.DB.Create(errorAlert).Error; err != nil {
+				return nil, e.Wrap(err, "error creating a new error alert")
+			}
+			if err := errorAlert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &errorAlert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+				log.Error(err)
+			}
+		} else {
+			sessionAlerts = append(sessionAlerts, &model.SessionAlert{Alert: newAlert})
+		}
+	}
+
+	if err := r.DB.Debug().Create(sessionAlerts).Error; err != nil {
+		return nil, e.Wrap(err, "error creating new session alerts")
+	}
+	for _, alert := range sessionAlerts {
+		if err := alert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &alert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+			log.Error(err)
+		}
+	}
+
+	return &model.T, nil
+}
+
 func (r *mutationResolver) CreateRageClickAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
