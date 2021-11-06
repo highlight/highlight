@@ -14,7 +14,6 @@ interface Props {
 const FullBleedCard: React.FC<Props> = ({
     animation,
     title,
-    closeIcon,
     className,
     childrenClassName,
     children,
