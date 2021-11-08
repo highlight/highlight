@@ -6,7 +6,7 @@ import { useParams } from '@util/react-router/useParams';
 import { FieldArrayParam } from '@util/url/params';
 import _ from 'lodash';
 import React, { Suspense, useEffect, useState } from 'react';
-import { Redirect, Route, Switch } from 'react-router-dom';
+import { Redirect, Route, Switch, useRouteMatch } from 'react-router-dom';
 import {
     ArrayParam,
     BooleanParam,
@@ -80,6 +80,8 @@ const ApplicationRouter = ({ integrated }: Props) => {
 
     const { isLoggedIn } = useAuthContext();
 
+    const sessionsMatch = useRouteMatch('/:project_id/sessions');
+
     useEffect(() => {
         const areAnySearchParamsSet = !_.isEqual(
             EmptySessionsSearchParams,
@@ -124,15 +126,20 @@ const ApplicationRouter = ({ integrated }: Props) => {
 
     // Session Segment Deep Linking
     useEffect(() => {
+        // Only this effect on the sessions page
+        if (!sessionsMatch) {
+            return;
+        }
+
         if (selectedSegment && selectedSegment.id && selectedSegment.value) {
             if (!_.isEqual(activeSegmentUrlParam, selectedSegment)) {
-                setActiveSegmentUrlParam(selectedSegment);
+                setActiveSegmentUrlParam(selectedSegment, 'replace');
             }
         } else if (activeSegmentUrlParam !== undefined) {
-            setActiveSegmentUrlParam(undefined);
+            setActiveSegmentUrlParam(undefined, 'replace');
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedSegment, setActiveSegmentUrlParam]);
+    }, [selectedSegment, sessionsMatch, setActiveSegmentUrlParam]);
 
     useEffect(() => {
         if (activeSegmentUrlParam) {
