@@ -233,12 +233,9 @@ export const usePlayer = (): ReplayerContextInterface => {
     }, [sessionData?.session]);
 
     useEffect(() => {
-        console.log('Is Live mode is now ', isLiveMode);
         if (isLiveMode) {
-            console.log('Starting polling');
             startPollingEvents && startPollingEvents(1000);
         } else {
-            console.log('Stopping polling');
             stopPollingEvents && stopPollingEvents();
         }
     }, [isLiveMode, startPollingEvents, stopPollingEvents]);
@@ -246,7 +243,6 @@ export const usePlayer = (): ReplayerContextInterface => {
     // Reset all state when loading events.
     useEffect(() => {
         if (eventsLoading) {
-            console.log('Rich resetting player due to events loading');
             resetPlayer(ReplayerState.Loading);
         }
     }, [eventsLoading, resetPlayer, setPlayerTimeToPersistance]);
@@ -641,18 +637,6 @@ export const usePlayer = (): ReplayerContextInterface => {
             newTime = Math.min(
                 Date.now() - 15000 - events[0].timestamp,
                 sessionEndTime - 1
-            );
-            console.log('Current time', time);
-            console.log('Now playing from ', newTime);
-            console.log('sessionEndTime: ', sessionEndTime - 1);
-            console.log('replayerEndTime: ', replayer?.getMetaData().endTime);
-            console.log(
-                'replayerTotalTime: ',
-                replayer?.getMetaData().totalTime
-            );
-            console.log(
-                'targetTime: ',
-                Date.now() - 15000 - events[0].timestamp
             );
         }
         // Don't play the session if the player is already at the end of the session.
