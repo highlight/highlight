@@ -67,7 +67,7 @@ const ResourceOrErrorDetailPanelContent = ({ resource, error }: Props) => {
                 ...(resource
                     ? [
                           {
-                              key: 'Network Resource',
+                              key: 'Request',
                               panelContent: (
                                   <>
                                       <div>

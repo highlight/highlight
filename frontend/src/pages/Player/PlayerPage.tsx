@@ -502,7 +502,7 @@ const PlayerSkeleton = ({
 
     return (
         <SkeletonTheme
-            color={'var(--text-primary-inverted)'}
+            baseColor={'var(--text-primary-inverted)'}
             highlightColor={'#f5f5f5'}
         >
             <Skeleton
