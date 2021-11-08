@@ -1,14 +1,24 @@
 .editor {
     background: var(--color-editor-background);
     color: var(--color-editor-foreground-text);
+    display: flex;
+    flex-wrap: nowrap;
     font-family: var(--monospace-font-family);
 
     .lineNumber {
         color: var(--color-editor-secondary-text);
         display: inline-block;
+        flex-shrink: 0;
         margin-right: var(--size-medium);
         text-align: right;
         width: calc(1ch * var(--longest-character-length));
+    }
+
+    .functionName {
+        direction: rtl;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 }
 
