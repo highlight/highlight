@@ -1003,6 +1003,28 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	querySessionSpan.SetTag("project_id", sessionObj.ProjectID)
 	querySessionSpan.Finish()
 
+	if sessionObj.PayloadUpdatedAt != nil && time.Now().Sub(*sessionObj.PayloadUpdatedAt) > 10*time.Minute {
+		return
+	}
+
+	var update bool
+	if sessionObj.Excluded == true {
+		sessionObj.Excluded = false
+		update = true
+	}
+
+	if sessionObj.Processed != nil && *sessionObj.Processed == true {
+		sessionObj.Processed = &model.F
+		update = true
+	}
+
+	if update {
+		if err := r.DB.Table(model.SESSIONS_TBL).Model(&model.Session{Model: model.Model{ID: sessionObj.ID}}).Updates(sessionObj).Error; err != nil {
+			log.WithFields(log.Fields{"session_id": sessionObj.ID, "project_id": sessionObj.ProjectID, "identifier": sessionObj.Identifier,
+				"session_obj": sessionObj}).Warnf("error excluding session with no events (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v): %v", sessionObj.ID, sessionObj.Identifier, sessionObj.ObjectStorageEnabled, sessionObj.Processed, err)
+		}
+	}
+
 	var g errgroup.Group
 
 	projectID := sessionObj.ProjectID

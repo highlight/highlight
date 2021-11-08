@@ -454,6 +454,9 @@ type Session struct {
 	PayloadSize           *int64  `json:"payload_size"`
 	MigrationState        *string `json:"migration_state"`
 	VerboseID             string  `json:"verbose_id"`
+
+	// Excluded will be true when we would typically have deleted the session
+	Excluded bool `gorm:"default:false"`
 }
 
 // AreModelsWeaklyEqual compares two structs of the same type while ignoring the Model and SecureID field
@@ -561,8 +564,11 @@ type DailySessionCount struct {
 	ProjectID      int `json:"project_id"`
 }
 
-const DAILY_ERROR_COUNTS_TBL = "daily_error_counts"
-const DAILY_ERROR_COUNTS_UNIQ = "date_project_id_error_type_uniq"
+const (
+	SESSIONS_TBL            = "sessions"
+	DAILY_ERROR_COUNTS_TBL  = "daily_error_counts"
+	DAILY_ERROR_COUNTS_UNIQ = "date_project_id_error_type_uniq"
+)
 
 type DailyErrorCount struct {
 	Model
