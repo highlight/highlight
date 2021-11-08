@@ -80,6 +80,9 @@ export const usePlayer = (): ReplayerContextInterface => {
     });
     const [loadedEventsIndex, setLoadedEventsIndex] = useState<number>(0);
     const [isLiveMode, setIsLiveMode] = useState<boolean>(false);
+    const [stopPollingEventsPointer, setStopPollingEventsPointer] = useState<
+        (() => void) | null
+    >(null);
     const [timerId, setTimerId] = useState<number | null>(null);
     const [errors, setErrors] = useState<ErrorObject[]>([]);
     const [, setSelectedErrorId] = useState<string | undefined>(undefined);
@@ -226,10 +229,13 @@ export const usePlayer = (): ReplayerContextInterface => {
     useEffect(() => {
         if (isLiveMode) {
             startPollingEvents && startPollingEvents(1000);
+            stopPollingEvents && setStopPollingEventsPointer(stopPollingEvents);
         } else {
-            stopPollingEvents && stopPollingEvents();
+            stopPollingEventsPointer && stopPollingEventsPointer();
+            setStopPollingEventsPointer(null);
         }
-    }, [isLiveMode, startPollingEvents, stopPollingEvents]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isLiveMode]);
 
     // Reset all state when loading events.
     useEffect(() => {
