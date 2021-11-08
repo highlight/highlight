@@ -129,9 +129,12 @@ const Player = ({ integrated }: Props) => {
         }
         const widthScale = (targetWidth - 80) / width;
         const heightScale = (targetHeight - 80) / height;
-        // Rounding scale to prevent infinite looping when the scale differs at the 10+th decimal
-        const scale =
-            Math.round(Math.min(heightScale, widthScale) * 10000) / 10000;
+        const scale = Math.min(heightScale, widthScale);
+        // If calculated scale is close enough to 1, return to avoid
+        // infinite looping caused by small floating point math differences
+        if (scale >= 0.9999 && scale <= 1.0001) {
+            return true;
+        }
 
         if (scale <= 0) {
             return false;
