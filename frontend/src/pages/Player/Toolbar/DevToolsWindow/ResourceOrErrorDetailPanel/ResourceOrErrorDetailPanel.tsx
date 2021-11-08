@@ -221,7 +221,3 @@ export const useResourceOrErrorDetailPanel = () => {
         setErrorPanel,
     };
 };
-
-const LoadingSkeleton = () => {
-    return <div></div>;
-};
