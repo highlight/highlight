@@ -129,7 +129,8 @@ const Player = ({ integrated }: Props) => {
         }
         const widthScale = (targetWidth - 80) / width;
         const heightScale = (targetHeight - 80) / height;
-        const scale = Math.min(heightScale, widthScale);
+        const scale =
+            Math.round(Math.min(heightScale, widthScale) * 10000) / 10000;
 
         if (scale <= 0) {
             return false;
@@ -159,11 +160,21 @@ const Player = ({ integrated }: Props) => {
         };
     }, [resizePlayer, replayer]);
 
+    const playerBoundingClientRectWidth = replayer?.wrapper?.getBoundingClientRect()
+        .width;
+    const playerBoundingClientRectHeight = replayer?.wrapper?.getBoundingClientRect()
+        .height;
+
     // On any change to replayer, 'sizes', or 'showConsole', refresh the size of the player.
     useEffect(() => {
         replayer && resizePlayer(replayer);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sizes, replayer]);
+    }, [
+        sizes,
+        replayer,
+        playerBoundingClientRectWidth,
+        playerBoundingClientRectHeight,
+    ]);
 
     const showLeftPanel =
         showLeftPanelPreference &&
