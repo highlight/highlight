@@ -101,7 +101,7 @@ export const ErrorFeedV2 = () => {
                 onScroll={onFeedScrollListener}
             >
                 <div ref={infiniteRef as RefObject<HTMLDivElement>}>
-                    {loading || showLoadingSkeleton ? (
+                    {showLoadingSkeleton ? (
                         <Skeleton
                             height={110}
                             count={3}
