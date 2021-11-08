@@ -392,7 +392,6 @@ const ResourceRow = ({
     onClickHandler: () => void;
     hasError?: boolean;
 }) => {
-    const { pause } = useReplayerContext();
     const { detailedPanel } = usePlayerUIContext();
     const leftPaddingPercent = (resource.startTime / networkRange) * 100;
     const actualPercent = Math.max(
