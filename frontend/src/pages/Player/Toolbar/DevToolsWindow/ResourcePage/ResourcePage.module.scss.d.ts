@@ -3,8 +3,6 @@ export const current: string;
 export const currentIndicator: string;
 export const failedResource: string;
 export const filterContainer: string;
-export const goToButton: string;
-export const icon: string;
 export const justifyEnd: string;
 export const nameSection: string;
 export const networkColumn: string;
