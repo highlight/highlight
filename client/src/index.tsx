@@ -259,7 +259,7 @@ export class Highlight {
         this._backendUrl =
             options?.backendUrl ||
             process.env.PUBLIC_GRAPH_URI ||
-            'https://public.highlight.run';
+            'https://pub.highlight.run';
         this.tracingOrigins = options.tracingOrigins || [];
         const client = new GraphQLClient(`${this._backendUrl}`, {
             headers: {},
