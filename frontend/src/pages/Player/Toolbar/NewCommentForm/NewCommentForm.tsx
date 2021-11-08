@@ -45,7 +45,7 @@ export const NewCommentForm = ({
 }: Props) => {
     const { time } = useReplayerContext();
     const [createComment] = useCreateSessionCommentMutation();
-    const { admin, isLoggedIn, isHighlightAdmin } = useAuthContext();
+    const { admin, isLoggedIn } = useAuthContext();
     const { session_secure_id, project_id } = useParams<{
         session_secure_id: string;
         project_id: string;
@@ -85,11 +85,7 @@ export const NewCommentForm = ({
         setIsCreatingComment(true);
         let session_image: undefined | string = undefined;
 
-        if (
-            mentionedAdmins.length > 0 ||
-            mentionedSlackUsers.length > 0 ||
-            isHighlightAdmin
-        ) {
+        if (mentionedAdmins.length > 0 || mentionedSlackUsers.length > 0) {
             const canvas = await html2canvas(
                 (document.querySelector(
                     '.replayer-wrapper iframe'
@@ -106,15 +102,6 @@ export const NewCommentForm = ({
             session_image = canvas
                 .toDataURL()
                 .replace('data:image/png;base64,', '');
-
-            if (
-                mentionedAdmins.length === 0 &&
-                mentionedSlackUsers.length === 0 &&
-                isHighlightAdmin
-            ) {
-                console.log(canvas.toDataURL());
-                session_image = undefined;
-            }
         }
 
         try {
