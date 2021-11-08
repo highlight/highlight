@@ -67,7 +67,7 @@ const ResourceOrErrorDetailPanelContent = ({ resource, error }: Props) => {
                 ...(resource
                     ? [
                           {
-                              key: 'Network Resource',
+                              key: 'Request',
                               panelContent: (
                                   <>
                                       <div>
@@ -220,4 +220,8 @@ export const useResourceOrErrorDetailPanel = () => {
         setResourcePanel,
         setErrorPanel,
     };
+};
+
+const LoadingSkeleton = () => {
+    return <div></div>;
 };
