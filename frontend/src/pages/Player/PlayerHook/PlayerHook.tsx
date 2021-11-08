@@ -55,10 +55,6 @@ export enum SessionViewability {
     ERROR,
 }
 
-interface LoadedPlayerState {
-    sessionSecureId: string;
-}
-
 export const usePlayer = (): ReplayerContextInterface => {
     const { isLoggedIn } = useAuthContext();
     const { session_secure_id, project_id } = useParams<{
@@ -82,10 +78,6 @@ export const usePlayer = (): ReplayerContextInterface => {
         sessions: [],
         totalCount: -1,
     });
-    const [
-        lastLoadedPlayerState,
-        setLastLoadedPlayerState,
-    ] = useState<LoadedPlayerState | null>(null);
     const [loadedEventsIndex, setLoadedEventsIndex] = useState<number>(0);
     const [isLiveMode, setIsLiveMode] = useState<boolean>(false);
     const [timerId, setTimerId] = useState<number | null>(null);
@@ -210,7 +202,6 @@ export const usePlayer = (): ReplayerContextInterface => {
             setSessionEndTime(0);
             setSessionIntervals([]);
             setSessionViewability(SessionViewability.VIEWABLE);
-            setLastLoadedPlayerState(null);
             setLoadedEventsIndex(0);
             setIsLiveMode(false);
         },
@@ -273,19 +264,14 @@ export const usePlayer = (): ReplayerContextInterface => {
     // Handle data in playback mode.
     useEffect(() => {
         if (eventsPayload?.length ?? 0 > 1) {
-            console.log('Events length: ', eventsPayload?.length);
-            console.log('is live mode on new events is ', isLiveMode);
             setSessionViewability(SessionViewability.VIEWABLE);
             // Add an id field to each event so it can be referenced.
             const newEvents: HighlightEvent[] = toHighlightEvents(
                 eventsPayload!
             );
-            console.log('Rich: got events');
-            if (session_secure_id !== lastLoadedPlayerState?.sessionSecureId) {
-                console.log('Setting live mode');
+            if (loadedEventsIndex <= 0) {
                 setIsLiveMode(sessionData?.session?.processed === false);
                 setState(ReplayerState.Loading);
-                console.log('Rich: redoing player');
                 // Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
                 const playerMountingRoot = document.getElementById(
                     'player'
@@ -326,10 +312,6 @@ export const usePlayer = (): ReplayerContextInterface => {
                 setLoadedEventsIndex(
                     Math.min(EVENTS_CHUNK_SIZE, newEvents.length)
                 );
-                console.log(
-                    'Rich loaded up to ',
-                    Math.min(EVENTS_CHUNK_SIZE, newEvents.length)
-                );
                 r.on('event-cast', (e: any) => {
                     const event = e as HighlightEvent;
                     if ((event as customEvent)?.data?.tag === 'Stop') {
@@ -340,9 +322,6 @@ export const usePlayer = (): ReplayerContextInterface => {
                 if (isLiveMode) {
                     r.startLive(newEvents[0].timestamp);
                 }
-                setLastLoadedPlayerState({
-                    sessionSecureId: session_secure_id,
-                });
             }
             setEvents(newEvents);
         } else if (eventsPayload?.length === 0) {
@@ -382,12 +361,6 @@ export const usePlayer = (): ReplayerContextInterface => {
                         replayer.addEvent(event);
                     });
 
-                console.log(
-                    'Rich loaded from ',
-                    eventsIndex,
-                    ' to ',
-                    Math.min(events.length, eventsIndex + EVENTS_CHUNK_SIZE)
-                );
                 eventsIndex = Math.min(
                     events.length,
                     eventsIndex + EVENTS_CHUNK_SIZE
@@ -397,7 +370,6 @@ export const usePlayer = (): ReplayerContextInterface => {
                     setLoadedEventsIndex(eventsIndex);
                     cancelAnimationFrame(timerId);
 
-                    setSessionEndTime(replayer.getMetaData().totalTime);
                     const sessionIntervals = getSessionIntervals(
                         replayer.getMetaData(),
                         replayer.getActivityIntervals()
@@ -429,6 +401,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                             replayer.getMetaData().totalTime
                         )
                     );
+                    setSessionEndTime(replayer.getMetaData().totalTime);
                     if (eventsData?.rage_clicks) {
                         setSessionIntervals((sessionIntervals) => {
                             const allClickEvents: (ParsedHighlightEvent & {
@@ -562,12 +535,6 @@ export const usePlayer = (): ReplayerContextInterface => {
                         replayer.getCurrentTime() >=
                         replayer.getMetaData().totalTime
                     ) {
-                        console.log(
-                            'Rich hit end of total time',
-                            replayer.getMetaData().totalTime,
-                            state,
-                            isLiveMode
-                        );
                         setState(ReplayerState.SessionEnded);
                     }
                 }
@@ -576,12 +543,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
             setTimerId(requestAnimationFrame(frameAction));
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [state, replayer]);
-
-    useEffect(() => {
-        console.log('Rich state: ', ReplayerState[state]);
-    }, [state]);
 
     useEffect(() => {
         if (state !== ReplayerState.Playing && timerId) {
