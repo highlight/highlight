@@ -125,10 +125,13 @@ const ApplicationRouter = ({ integrated }: Props) => {
     // Session Segment Deep Linking
     useEffect(() => {
         if (selectedSegment && selectedSegment.id && selectedSegment.value) {
-            setActiveSegmentUrlParam(selectedSegment);
-        } else {
+            if (!_.isEqual(activeSegmentUrlParam, selectedSegment)) {
+                setActiveSegmentUrlParam(selectedSegment);
+            }
+        } else if (activeSegmentUrlParam !== undefined) {
             setActiveSegmentUrlParam(undefined);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedSegment, setActiveSegmentUrlParam]);
 
     useEffect(() => {
@@ -216,4 +219,6 @@ const InitialSearchParamsForUrl = {
     user_properties: undefined,
     visited_url: undefined,
     show_live_sessions: undefined,
+    environments: undefined,
+    app_versions: undefined,
 };
