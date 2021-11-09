@@ -15,7 +15,7 @@
 }
 
 .urlLink {
-    color: var(--color-gray-500);
+    color: var(--color-gray-500) !important;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

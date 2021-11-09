@@ -59,13 +59,13 @@
 
 .configureButton {
     align-items: center;
-    color: var(--color-gray-500);
+    color: var(--color-gray-500) !important;
     display: flex;
     font-weight: 300;
     justify-content: flex-end;
 
     &:hover {
-        color: var(--color-gray-500);
+        color: var(--color-gray-500) !important;
     }
 
     svg {

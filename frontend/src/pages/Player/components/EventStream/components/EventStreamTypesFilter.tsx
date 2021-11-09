@@ -123,7 +123,6 @@ export const EventStreamTypesFilter = () => {
         >
             <Button
                 trackingId="SessionEventStreamSettings"
-                type="ghost"
                 small
                 className={styles.filtersButton}
             >

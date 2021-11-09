@@ -1,5 +1,9 @@
 .select {
     width: 100%;
+
+    > div {
+        background-color: var(--color-primary-background);
+    }
 }
 
 .searchIcon {
@@ -29,6 +33,7 @@
 }
 
 .nameLabel {
+    color: var(--text-primary) !important;
     flex-grow: 1;
     overflow: hidden;
     text-overflow: ellipsis;
