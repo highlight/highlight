@@ -147,6 +147,7 @@ export const ResourcePage = ({
             !loading &&
             !!session &&
             !!allResources &&
+            allResources.length > 0 &&
             !!errors &&
             errors.length > 0 &&
             isPlayerReady
