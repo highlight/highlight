@@ -12,11 +12,17 @@ export const dateTimeFormats = [
 
 export type SESSION_FEED_DATETIME_FORMAT = typeof dateTimeFormats[number];
 
+export const countFormats = ['Short', 'Full'] as const;
+
+export type SESSION_FEED_COUNT_FORMAT = typeof countFormats[number];
+
 export interface SessionFeedConfigurationContext {
     datetimeFormat: SESSION_FEED_DATETIME_FORMAT;
     setDatetimeFormat: (
         newDatetimeFormat: SESSION_FEED_DATETIME_FORMAT
     ) => void;
+    countFormat: SESSION_FEED_COUNT_FORMAT;
+    setCountFormat: (newCountFormat: SESSION_FEED_COUNT_FORMAT) => void;
 }
 
 export const [
