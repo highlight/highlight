@@ -699,7 +699,7 @@ func (w *Worker) Start() {
 	go reportProcessSessionCount(w.Resolver.DB, payloadLookbackPeriod)
 	for {
 		time.Sleep(1 * time.Second)
-		now := time.Now()
+		now := time.Now().UTC()
 		processSessionLimit := 10000
 		someSecondsAgo := now.Add(time.Duration(-1*payloadLookbackPeriod) * time.Second)
 		sessions := []*model.Session{}
@@ -711,7 +711,7 @@ func (w *Worker) Start() {
 			sessionsSpan.Finish()
 			continue
 		}
-		rand.Seed(time.Now().UnixNano())
+		rand.Seed(time.Now().UTC().UnixNano())
 		rand.Shuffle(len(sessions), func(i, j int) {
 			sessions[i], sessions[j] = sessions[j], sessions[i]
 		})

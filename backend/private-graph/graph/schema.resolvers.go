@@ -2041,7 +2041,7 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 }
 
 func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count int, params *modelInputs.ErrorSearchParamsInput) (*model.ErrorResults, error) {
-	endpointStart := time.Now()
+	endpointStart := time.Now().UTC()
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin not found in project")
 	}
@@ -2100,7 +2100,7 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 	g.Go(func() error {
 		errorGroupSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.errorGroups"), tracer.Tag("project_id", projectID))
-		start := time.Now()
+		start := time.Now().UTC()
 		query := fmt.Sprintf("%s %s ORDER BY updated_at DESC LIMIT %d", selectPreamble, queryString, count)
 		if err := r.DB.Raw(query).Scan(&errorGroups).Error; err != nil {
 			return e.Wrap(err, "error reading from error groups")
@@ -2117,7 +2117,7 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 	g.Go(func() error {
 		errorGroupCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.errorGroupsCount"), tracer.Tag("project_id", projectID))
-		start := time.Now()
+		start := time.Now().UTC()
 		query := fmt.Sprintf("%s %s", countPreamble, queryString)
 		if err := r.DB.Raw(query).Scan(&queriedErrorGroupsCount).Error; err != nil {
 			return e.Wrap(err, "error counting error groups")
@@ -2674,7 +2674,7 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int,
 }
 
 func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, lifecycle modelInputs.SessionLifecycle, starred bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
-	endpointStart := time.Now()
+	endpointStart := time.Now().UTC()
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "admin not found in project")
 	}
@@ -2789,7 +2789,7 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 		whereClause += whereClauseSuffix
 		sessionsSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.sessionsQuery"), tracer.Tag("project_id", projectID))
-		start := time.Now()
+		start := time.Now().UTC()
 		query := fmt.Sprintf("%s %s %s ORDER BY created_at DESC LIMIT %d", sessionsQueryPreamble, joinClause, whereClause, count)
 		if err := r.DB.Raw(query).Scan(&queriedSessions).Error; err != nil {
 			return e.Wrapf(err, "error querying filtered sessions: %s", query)
@@ -2806,7 +2806,7 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 	g.Go(func() error {
 		sessionCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.sessionsCountQuery"), tracer.Tag("project_id", projectID))
-		start := time.Now()
+		start := time.Now().UTC()
 		query := fmt.Sprintf("SELECT count(*) %s %s %s", joinClause, whereClause, whereClauseSuffix)
 		if err := r.DB.Raw(query).Scan(&queriedSessionsCount).Error; err != nil {
 			return e.Wrapf(err, "error querying filtered sessions count: %s", query)

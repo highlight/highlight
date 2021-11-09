@@ -462,7 +462,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 
 	// Get the language from the request header
 	acceptLanguageString := ctx.Value(model.ContextKeys.AcceptLanguage).(string)
-	n := time.Now()
+	n := time.Now().UTC()
 	var fingerprintInt int = 0
 	if val, err := strconv.Atoi(fingerprint); err == nil {
 		fingerprintInt = val
@@ -800,7 +800,7 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 					project_id=?
 					AND error_group_id=?
 					AND created_at > ?
-			`, projectID, group.ID, time.Now().Add(time.Duration(-(*errorAlert.ThresholdWindow))*time.Minute)).Scan(&numErrors).Error; err != nil {
+			`, projectID, group.ID, time.Now().UTC().Add(time.Duration(-(*errorAlert.ThresholdWindow))*time.Minute)).Scan(&numErrors).Error; err != nil {
 				log.Error(e.Wrapf(err, "error counting errors from past %d minutes", *errorAlert.ThresholdWindow))
 				return
 			}
@@ -902,7 +902,7 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 	dailyErrorCountSpan.SetTag("numberOfProjects", len(errorsByProject))
 
 	// For each project, increment daily error count by the current error count
-	n := time.Now()
+	n := time.Now().UTC()
 	currentDate := time.Date(n.UTC().Year(), n.UTC().Month(), n.UTC().Day(), 0, 0, 0, 0, time.UTC)
 
 	dailyErrorCounts := make([]*model.DailyErrorCount, 0)
@@ -979,7 +979,7 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 
 	putErrorsToDBSpan.Finish()
 
-	now := time.Now()
+	now := time.Now().UTC()
 	if err := r.DB.Model(&model.Session{}).Where("secure_id IN ?", sessionSecureIds).Updates(&model.Session{PayloadUpdatedAt: &now}).Error; err != nil {
 		log.Error(e.Wrap(err, "error updating session payload time"))
 		return
@@ -1109,7 +1109,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 
 		// increment daily error table
 		if len(errors) > 0 {
-			n := time.Now()
+			n := time.Now().UTC()
 			currentDate := time.Date(n.UTC().Year(), n.UTC().Month(), n.UTC().Day(), 0, 0, 0, 0, time.UTC)
 			dailyErrorCount := model.DailyErrorCount{
 				ProjectID: projectID,
@@ -1180,7 +1180,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 		return
 	}
 
-	now := time.Now()
+	now := time.Now().UTC()
 	if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{PayloadUpdatedAt: &now}).Error; err != nil {
 		log.Error(e.Wrap(err, "error updating session payload time"))
 		return

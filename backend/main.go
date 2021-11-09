@@ -305,7 +305,7 @@ func main() {
 
 func expireHighlightAfterDate(endDate time.Time) {
 	for {
-		if time.Now().After(endDate) {
+		if time.Now().UTC().After(endDate) {
 			log.Fatalf("your highlight trial has expired")
 		}
 		time.Sleep(time.Hour)

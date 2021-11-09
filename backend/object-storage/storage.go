@@ -272,7 +272,7 @@ func (s *StorageClient) GetDirectDownloadURL(projectId int, sessionId int) (*str
 
 	key := s.bucketKey(sessionId, projectId, SessionContentsCompressed)
 	unsignedURL := fmt.Sprintf("https://%s/%s", CloudfrontDomain, *key)
-	signedURL, err := s.URLSigner.Sign(unsignedURL, time.Now().Add(5*time.Minute))
+	signedURL, err := s.URLSigner.Sign(unsignedURL, time.Now().UTC().Add(5*time.Minute))
 	if err != nil {
 		return nil, errors.Wrap(err, "error signing URL")
 	}

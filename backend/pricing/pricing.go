@@ -15,7 +15,7 @@ import (
 )
 
 func GetWorkspaceQuota(DB *gorm.DB, workspace_id int) (int64, error) {
-	year, month, _ := time.Now().Date()
+	year, month, _ := time.Now().UTC().Date()
 	var meter int64
 	if err := DB.Model(&model.Session{}).Where("project_id in (SELECT id FROM projects WHERE workspace_id=?)", workspace_id).Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Count(&meter).Error; err != nil {
 		return 0, e.Wrap(err, "error querying for session meter")
@@ -24,7 +24,7 @@ func GetWorkspaceQuota(DB *gorm.DB, workspace_id int) (int64, error) {
 }
 
 func GetWorkspaceQuotaOverflow(ctx context.Context, DB *gorm.DB, workspace_id int) (int64, error) {
-	year, month, _ := time.Now().Date()
+	year, month, _ := time.Now().UTC().Date()
 	var queriedSessionsOverQuota int64
 	sessionsOverQuotaCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("db.sessionsOverQuotaCountQuery"), tracer.Tag("workspace_id", workspace_id))

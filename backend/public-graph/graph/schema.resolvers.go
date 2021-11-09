@@ -195,7 +195,7 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 				AND type = ?
 				AND created_at > ?
 		`, session.ProjectID, model.SessionCommentTypes.FEEDBACK,
-			time.Now().Add(-time.Duration(*sessionFeedbackAlert.ThresholdWindow)*time.Minute)).
+			time.Now().UTC().Add(-time.Duration(*sessionFeedbackAlert.ThresholdWindow)*time.Minute)).
 			Scan(&commentsCount).Error; err != nil {
 			log.WithError(err).
 				WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "session_secure_id": session.SecureID, "comment_id": feedbackComment.ID}).

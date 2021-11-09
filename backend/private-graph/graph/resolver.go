@@ -695,7 +695,7 @@ func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model
 
 		// This key will be used as the file name for the file written to disk.
 		// This needs to be unique. The uniqueness is guaranteed by the project ID, the admin who created the comment's ID, and the current time
-		uploadedFileKey = fmt.Sprintf("slack-image-%d-%d-%d.png", workspace.ID, admin.ID, time.Now().UnixNano())
+		uploadedFileKey = fmt.Sprintf("slack-image-%d-%d-%d.png", workspace.ID, admin.ID, time.Now().UTC().UnixNano())
 
 		// We are writing the base64 string to disk as a png. We need to do this because the Slack Go client
 		// doesn't support uploading files as base64.
