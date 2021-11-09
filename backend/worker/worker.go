@@ -693,20 +693,36 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 func (w *Worker) Start() {
 	ctx := context.Background()
 	payloadLookbackPeriod := 60 // a session must be stale for at least this long to be processed
+	lockPeriod := 10            // time in minutes
+
 	if util.IsDevEnv() {
 		payloadLookbackPeriod = 8
 	}
 	go reportProcessSessionCount(w.Resolver.DB, payloadLookbackPeriod)
 	for {
 		time.Sleep(1 * time.Second)
-		now := time.Now()
 		processSessionLimit := 10000
-		someSecondsAgo := now.Add(time.Duration(-1*payloadLookbackPeriod) * time.Second)
 		sessions := []*model.Session{}
 		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName("worker.sessionsQuery"))
 		if err := w.Resolver.DB.
-			Where("(payload_updated_at < ? OR payload_updated_at IS NULL) AND (processed = ?)", someSecondsAgo, false).
-			Limit(processSessionLimit).Find(&sessions).Error; err != nil {
+			Raw(`
+			WITH t AS (
+				UPDATE sessions
+				SET lock=NOW()
+				WHERE id in (
+					SELECT id
+					FROM sessions
+					WHERE (processed = ?)
+						AND (COALESCE(payload_updated_at, to_timestamp(0)) < NOW() - (? * INTERVAL '1 SECOND')) 
+						AND (COALESCE(lock, to_timestamp(0)) < NOW() - (? * INTERVAL '1 MINUTE')) 
+					LIMIT ?
+					FOR UPDATE SKIP LOCKED
+				)
+				RETURNING *
+			)
+			SELECT * FROM t;
+			`, false, payloadLookbackPeriod, lockPeriod, processSessionLimit). // why do we get payload_updated_at IS NULL?
+			Find(&sessions).Error; err != nil {
 			log.Errorf("error querying unparsed, outdated sessions: %v", err)
 			sessionsSpan.Finish()
 			continue

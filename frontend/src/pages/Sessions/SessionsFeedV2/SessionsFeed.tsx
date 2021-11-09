@@ -2,7 +2,10 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
-import SessionFeedConfiguration from '@pages/Sessions/SessionsFeedV2/components/SessionFeedConfiguration/SessionFeedConfiguration';
+import Tooltip from '@components/Tooltip/Tooltip';
+import SessionFeedConfiguration, {
+    formatCount,
+} from '@pages/Sessions/SessionsFeedV2/components/SessionFeedConfiguration/SessionFeedConfiguration';
 import { SessionFeedConfigurationContextProvider } from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext';
 import { useSessionFeedConfiguration } from '@pages/Sessions/SessionsFeedV2/hooks/useSessionFeedConfiguration';
 import { useIntegrated } from '@util/integrated';
@@ -24,7 +27,6 @@ import {
     useUnprocessedSessionsCountQuery,
 } from '../../../graph/generated/hooks';
 import { PlanType, SessionLifecycle } from '../../../graph/generated/schemas';
-import { formatNumber } from '../../../util/numbers';
 import usePlayerConfiguration from '../../Player/PlayerHook/utils/usePlayerConfiguration';
 import { useReplayerContext } from '../../Player/ReplayerContext';
 import { useSearchContext } from '../SearchContext/SearchContext';
@@ -182,13 +184,18 @@ export const SessionFeed = React.memo(() => {
                         sessionResults.totalCount > 0 && (
                             <div className={styles.resultCountValueContainer}>
                                 <span className={styles.countContainer}>
-                                    <TextTransition
-                                        inline
-                                        text={`${formatNumber(
-                                            sessionResults.totalCount
-                                        )}`}
-                                    />{' '}
-                                    {`sessions `}
+                                    <Tooltip
+                                        title={`${sessionResults.totalCount.toLocaleString()} sessions`}
+                                    >
+                                        <TextTransition
+                                            inline
+                                            text={`${formatCount(
+                                                sessionResults.totalCount,
+                                                sessionFeedConfiguration.countFormat
+                                            )}`}
+                                        />{' '}
+                                        {`sessions `}
+                                    </Tooltip>
                                     {unprocessedSessionsCount?.unprocessedSessionsCount >
                                         0 &&
                                         !searchParams.show_live_sessions && (
@@ -207,8 +214,9 @@ export const SessionFeed = React.memo(() => {
                                                 }}
                                             >
                                                 (
-                                                {formatNumber(
-                                                    unprocessedSessionsCount?.unprocessedSessionsCount
+                                                {formatCount(
+                                                    unprocessedSessionsCount?.unprocessedSessionsCount,
+                                                    sessionFeedConfiguration.countFormat
                                                 )}{' '}
                                                 live)
                                             </button>
@@ -231,13 +239,9 @@ export const SessionFeed = React.memo(() => {
                                         }}
                                         trackingId="SessionFeedShowDetails"
                                     />
-                                    {showDetailedSessionView && (
-                                        <SessionFeedConfiguration
-                                            configuration={
-                                                sessionFeedConfiguration
-                                            }
-                                        />
-                                    )}
+                                    <SessionFeedConfiguration
+                                        configuration={sessionFeedConfiguration}
+                                    />
                                 </div>
                             </div>
                         )

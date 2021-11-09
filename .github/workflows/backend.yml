@@ -40,8 +40,6 @@ jobs:
         steps:
             - name: Checkout
               uses: actions/checkout@v2
-            - name: Checkout submodules
-              uses: textbook/git-checkout-submodule-action@master
             - name: Format
               uses: Jerome1337/gofmt-action@v1.0.4
               with:

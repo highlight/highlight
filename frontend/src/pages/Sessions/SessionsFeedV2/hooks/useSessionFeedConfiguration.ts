@@ -1,4 +1,7 @@
-import { SESSION_FEED_DATETIME_FORMAT } from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext';
+import {
+    SESSION_FEED_COUNT_FORMAT,
+    SESSION_FEED_DATETIME_FORMAT,
+} from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext';
 import useLocalStorage from '@rehooks/local-storage';
 
 const LOCAL_STORAGE_KEY_PREFIX = 'highlightSessionFeedConfiguration';
@@ -11,9 +14,18 @@ export const useSessionFeedConfiguration = () => {
         `${LOCAL_STORAGE_KEY_PREFIX}DatetimeFormat`,
         'Date and Time'
     );
+    const [
+        countFormat,
+        setCountFormat,
+    ] = useLocalStorage<SESSION_FEED_COUNT_FORMAT>(
+        `${LOCAL_STORAGE_KEY_PREFIX}CountFormat`,
+        'Short'
+    );
 
     return {
         datetimeFormat,
         setDatetimeFormat,
+        countFormat,
+        setCountFormat,
     };
 };
