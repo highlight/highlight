@@ -178,7 +178,6 @@ const SessionSearchFilters = () => {
                 className={classNames(segmentPickerStyles.segmentButton, {
                     [styles.hasFilters]: filtersSetCount > 0,
                 })}
-                type="ghost"
                 small
                 trackingId="sessionPlayerSearchFilters"
             >
