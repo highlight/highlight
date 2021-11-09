@@ -60,7 +60,7 @@ interface VoidFunctionWrapper {
 }
 
 export const usePlayer = (): ReplayerContextInterface => {
-    const { isLoggedIn } = useAuthContext();
+    const { isLoggedIn, isHighlightAdmin } = useAuthContext();
     const { session_secure_id, project_id } = useParams<{
         session_secure_id: string;
         project_id: string;
@@ -291,7 +291,10 @@ export const usePlayer = (): ReplayerContextInterface => {
                 eventsPayload
             );
             if (loadedEventsIndex <= 0) {
-                setIsLiveMode(sessionData?.session?.processed === false);
+                setIsLiveMode(
+                    isHighlightAdmin &&
+                        sessionData?.session?.processed === false
+                );
                 setState(ReplayerState.Loading);
                 // Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
                 const playerMountingRoot = document.getElementById(

@@ -84,7 +84,7 @@ export const Toolbar = () => {
     } = usePlayerConfiguration();
     const history = useHistory();
     const toolbarItems = useToolbarItems();
-    const { isLoggedIn } = useAuthContext();
+    const { isLoggedIn, isHighlightAdmin } = useAuthContext();
     const { session_secure_id, project_id } = useParams<{
         session_secure_id: string;
         project_id: string;
@@ -429,21 +429,23 @@ export const Toolbar = () => {
                         />
                     </button>
 
-                    {session?.processed === false && !disableControls && (
-                        <button
-                            className={classNames(styles.liveButton)}
-                            onClick={() => {
-                                if (isLiveMode) {
-                                    pause();
-                                } else {
-                                    play();
-                                }
-                                setIsLiveMode(!isLiveMode);
-                            }}
-                        >
-                            {isLiveMode ? 'Stop Live' : 'Go Live'}
-                        </button>
-                    )}
+                    {isHighlightAdmin &&
+                        session?.processed === false &&
+                        !disableControls && (
+                            <button
+                                className={classNames(styles.liveButton)}
+                                onClick={() => {
+                                    if (isLiveMode) {
+                                        pause();
+                                    } else {
+                                        play();
+                                    }
+                                    setIsLiveMode(!isLiveMode);
+                                }}
+                            >
+                                {isLiveMode ? 'Stop Live' : 'Go Live'}
+                            </button>
+                        )}
 
                     {!isLiveMode && (
                         <div className={styles.timeSection}>
