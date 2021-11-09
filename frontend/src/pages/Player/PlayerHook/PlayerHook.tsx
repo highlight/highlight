@@ -55,6 +55,10 @@ export enum SessionViewability {
     ERROR,
 }
 
+interface VoidFunctionWrapper {
+    fn: () => void;
+}
+
 export const usePlayer = (): ReplayerContextInterface => {
     const { isLoggedIn } = useAuthContext();
     const { session_secure_id, project_id } = useParams<{
@@ -80,9 +84,10 @@ export const usePlayer = (): ReplayerContextInterface => {
     });
     const [loadedEventsIndex, setLoadedEventsIndex] = useState<number>(0);
     const [isLiveMode, setIsLiveMode] = useState<boolean>(false);
-    const [stopPollingEventsPointer, setStopPollingEventsPointer] = useState<
-        (() => void) | null
-    >(null);
+    const [
+        stopPollingEventsPointer,
+        setStopPollingEventsPointer,
+    ] = useState<VoidFunctionWrapper | null>(null);
     const [timerId, setTimerId] = useState<number | null>(null);
     const [errors, setErrors] = useState<ErrorObject[]>([]);
     const [, setSelectedErrorId] = useState<string | undefined>(undefined);
@@ -227,15 +232,25 @@ export const usePlayer = (): ReplayerContextInterface => {
     }, [sessionData?.session]);
 
     useEffect(() => {
-        if (isLiveMode) {
+        if (
+            isLiveMode &&
+            state > ReplayerState.Loading &&
+            !stopPollingEventsPointer
+        ) {
             startPollingEvents && startPollingEvents(1000);
-            stopPollingEvents && setStopPollingEventsPointer(stopPollingEvents);
-        } else {
-            stopPollingEventsPointer && stopPollingEventsPointer();
+            stopPollingEvents &&
+                setStopPollingEventsPointer({ fn: stopPollingEvents });
+        } else if (!isLiveMode) {
+            stopPollingEventsPointer && stopPollingEventsPointer.fn();
             setStopPollingEventsPointer(null);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isLiveMode]);
+    }, [
+        isLiveMode,
+        state,
+        startPollingEvents,
+        stopPollingEvents,
+        stopPollingEventsPointer,
+    ]);
 
     // Reset all state when loading events.
     useEffect(() => {
