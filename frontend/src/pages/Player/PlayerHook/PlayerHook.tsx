@@ -55,6 +55,8 @@ export enum SessionViewability {
     ERROR,
 }
 
+// useState() has the following signature: useState<S>(initialState: S | (() => S))
+// A wrapper is needed to avoid misinterpretation when the function itself is state
 interface VoidFunctionWrapper {
     fn: () => void;
 }
