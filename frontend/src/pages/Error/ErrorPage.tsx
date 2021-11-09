@@ -51,6 +51,7 @@ import { ErrorPageUIContextProvider } from './context/ErrorPageUIContext';
 import styles from './ErrorPage.module.scss';
 import useErrorPageConfiguration from './utils/ErrorPageUIConfiguration';
 
+// ErrorPage is the "Errors" tab in dev tools
 const ErrorPage = ({ integrated }: { integrated: boolean }) => {
     const { error_secure_id, project_id } = useParams<{
         error_secure_id: string;
