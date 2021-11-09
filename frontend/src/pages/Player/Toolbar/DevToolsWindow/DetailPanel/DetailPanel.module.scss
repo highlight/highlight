@@ -65,7 +65,7 @@
     transform: translateX(12px);
     transition: opacity 0.2s ease-in;
     width: var(--size-xxSmall);
-    z-index: 99;
+    z-index: 9999999;
 
     &.hidden {
         opacity: 0;
