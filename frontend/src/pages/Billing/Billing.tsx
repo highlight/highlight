@@ -72,7 +72,7 @@ const BillingPage = () => {
     const [updateBillingDetails] = useUpdateBillingDetailsMutation();
 
     useEffect(() => {
-        const response = pathname.split('/')[3] ?? '';
+        const response = pathname.split('/')[4] ?? '';
         if (response === 'success') {
             updateBillingDetails({
                 variables: { workspace_id },

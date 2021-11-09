@@ -24,6 +24,11 @@
         cursor: auto;
     }
 
+    :global(.ant-table) {
+        background: var(--color-primary-background);
+        color: var(--text-primary) !important;
+    }
+
     &.interactable {
         :global(.ant-table-tbody > tr.ant-table-row:hover > td) {
             background: var(--color-gray-100) !important;

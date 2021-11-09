@@ -195,9 +195,14 @@ const ErrorSearch = () => {
                     borderRadius: 'var(--border-radius)',
                     minHeight: 45,
                 }),
+                input: (provided) => ({
+                    ...provided,
+                    color: 'var(--text-primary)',
+                }),
                 multiValue: (provided) => ({
                     ...provided,
                     backgroundColor: 'var(--color-purple-100)',
+                    color: 'var(--text-primary)',
                 }),
                 option: (provided, state) => ({
                     ...provided,

@@ -19,11 +19,9 @@ import React, {
 import Skeleton from 'react-loading-skeleton';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
-import GoToButton from '../../../../../components/Button/GoToButton';
 import TextHighlighter from '../../../../../components/TextHighlighter/TextHighlighter';
 import Tooltip from '../../../../../components/Tooltip/Tooltip';
 import { MillisToMinutesAndSeconds } from '../../../../../util/time';
-import { formatTime } from '../../../../Home/components/KeyPerformanceIndicators/utils/utils';
 import { ReplayerState, useReplayerContext } from '../../../ReplayerContext';
 import devStyles from '../DevToolsWindow.module.scss';
 import { getNetworkResourcesDisplayName, Option } from '../Option/Option';
@@ -279,22 +277,6 @@ export const ResourcePage = ({
                             <div
                                 className={classNames(
                                     styles.networkColumn,
-                                    styles.justifyEnd
-                                )}
-                            >
-                                Time
-                            </div>
-                            <div
-                                className={classNames(
-                                    styles.networkColumn,
-                                    styles.justifyEnd
-                                )}
-                            >
-                                Size
-                            </div>
-                            <div
-                                className={classNames(
-                                    styles.networkColumn,
                                     styles.waterfall
                                 )}
                             >
@@ -410,7 +392,6 @@ const ResourceRow = ({
     onClickHandler: () => void;
     hasError?: boolean;
 }) => {
-    const { pause } = useReplayerContext();
     const { detailedPanel } = usePlayerUIContext();
     const leftPaddingPercent = (resource.startTime / networkRange) * 100;
     const actualPercent = Math.max(
@@ -453,37 +434,6 @@ const ResourceRow = ({
                         textToHighlight={resource.name}
                     />
                 </Tooltip>
-                <div
-                    className={classNames(
-                        styles.typeSection,
-                        styles.rightAlign
-                    )}
-                >
-                    {resource.requestResponsePairs?.response.status === 0
-                        ? `-`
-                        : `${formatTime(
-                              resource.responseEnd - resource.startTime
-                          )}`}
-                </div>
-                <div
-                    className={classNames(
-                        styles.typeSection,
-                        styles.rightAlign
-                    )}
-                >
-                    {resource.requestResponsePairs?.response.size ? (
-                        formatSize(resource.requestResponsePairs.response.size)
-                    ) : resource.requestResponsePairs?.response.status === 0 ? (
-                        '-'
-                    ) : resource.requestResponsePairs?.urlBlocked ||
-                      resource.transferSize == null ? (
-                        '-'
-                    ) : resource.transferSize === 0 ? (
-                        'Cached'
-                    ) : (
-                        <>{formatSize(resource.transferSize)}</>
-                    )}
-                </div>
                 <div className={styles.timingBarWrapper}>
                     <div
                         style={{
@@ -505,21 +455,6 @@ const ResourceRow = ({
                         className={styles.timingBarEmptySection}
                     />
                 </div>
-                <GoToButton
-                    className={styles.goToButton}
-                    onClick={(e) => {
-                        pause(resource.startTime);
-                        e.stopPropagation();
-
-                        message.success(
-                            `Changed player time to when ${getNetworkResourcesDisplayName(
-                                resource.initiatorType
-                            )} request started at ${MillisToMinutesAndSeconds(
-                                resource.startTime
-                            )}.`
-                        );
-                    }}
-                />
             </div>
         </div>
     );

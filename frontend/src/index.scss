@@ -52,6 +52,7 @@
     --color-background-overlay: rgba(0, 0, 0, 0.8);
     --text-primary-inverted: #fff;
     --text-primary: var(--color-black);
+    --color-link: var(--color-purple);
 
     // Logo
     --logo-gradient-start-color: var(--color-purple);
@@ -101,18 +102,60 @@
 }
 
 [data-theme='dark'] {
-    --color-primary-background: var(--color-black);
-    --color-primary-inverted-background: var(--color-white);
-    --color-secondary-background: var(--color-gray-500);
-    --text-primary-inverted: var(--color-black);
-    --text-primary: var(--color-white);
+    --color-purple-100: #bea8f1;
+    --color-purple-200: #301e79;
+    --color-purple-300: #eee7ff;
+    --color-purple-400: #a17ce4;
+    --color-purple-light: #bb6bd9;
+    --color-purple: #7856ff;
+    --color-purple-800: #302c3a;
+    --color-blue-100: #deebff;
+    --color-blue-200: #b2d4ff;
+    --color-blue-300: #56ccf2;
+    --color-blue-400: #2d9cdb;
+    --color-blue-500: #2f80ed;
+    --color-green-100: #beff6c5e;
+    --color-green-300: #6fcf97;
+    --color-green-400: #27ae60;
+    --color-green-500: #219653;
+    --color-green-600: #006400;
+    --color-yellow-200: #ffd82c;
+    --color-yellow: #f2c94c;
+    --color-orange-300: rgba(242, 106, 76, 0.37);
+    --color-orange-400: #ffb038;
+    --color-orange-500: #c67e29;
+    --color-brown: #835e00;
+    --color-red-200: #ffcaca;
+    --color-red-300: #ff7575;
+    --color-red: #eb5757;
+    --color-red-500: #c62929;
+    --color-red-600: #832611;
+    --color-red-800: #151212;
 
-    --color-gray-600: #efefef7d;
-    --color-gray-500: #f2f2f2;
-    --color-gray-400: #eaeaea;
-    --color-gray-300: #bdbdbd;
-    --color-gray-200: #828282;
-    --color-gray-100: #7e7e7e;
+    --color-gray-100: #1a1a1a;
+    --color-gray-200: #333333;
+    --color-gray-300: #333333;
+    --color-gray-400: #595959;
+    --color-gray-500: #8c8c8c;
+    --color-gray-600: #a6a6a6;
+    --color-gray-700: #cccccc;
+    --color-gray-800: #f2f2f2;
+
+    --color-black: #111;
+    --color-white: #fff;
+
+    // Editor Color
+    --color-editor-background: #111;
+    --color-editor-foreground-text: var(--color-gray-700);
+    --color-editor-secondary-text: #4078f2;
+
+    --color-primary-background: #1f2023;
+    --color-primary-inverted-background: #000;
+    --color-secondary-background: var(--color-gray-200);
+    --color-background-overlay: rgba(0, 0, 0, 0.8);
+    --text-primary-inverted: #1f2023;
+    --text-primary: #f6f6f6;
+    --color-link: var(--color-purple);
 }
 
 body {
@@ -135,7 +178,7 @@ h6 {
     font-family: var(--header-font-family) !important;
     line-height: initial !important;
     margin: 0 !important;
-    color: var(--text-primary);
+    color: var(--text-primary) !important;
 }
 
 h2 {
@@ -188,7 +231,7 @@ input {
 }
 
 a {
-    color: var(--color-purple);
+    color: var(--color-link) !important;
 }
 
 .blob {
