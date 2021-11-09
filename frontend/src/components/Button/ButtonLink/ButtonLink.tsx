@@ -1,13 +1,13 @@
 import Button from '@components/Button/Button/Button';
+import { ButtonType } from 'antd/lib/button';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, LinkProps } from 'react-router-dom';
 
 import styles from './ButtonLink.module.scss';
 
-interface Props {
-    to?: string;
+type Props = {
     /** The ID used for identifying that this button was clicked for analytics. */
     trackingId: string;
     className?: string;
@@ -17,7 +17,8 @@ interface Props {
     icon?: React.ReactNode;
     fullWidth?: boolean;
     disabled?: boolean;
-}
+    type?: ButtonType;
+} & Partial<Pick<LinkProps, 'to'>>;
 
 const ButtonLink: React.FC<Props> = ({
     to,
@@ -29,10 +30,12 @@ const ButtonLink: React.FC<Props> = ({
     icon,
     fullWidth,
     disabled,
+    type,
 }) => {
     if (disabled) {
         return (
             <Button
+                type={type}
                 disabled
                 trackingId={trackingId}
                 className={classNames(styles.link, className, {
@@ -78,6 +81,7 @@ const ButtonLink: React.FC<Props> = ({
             className={classNames(styles.link, className, {
                 [styles.withIcon]: icon,
                 [styles.fullWidth]: fullWidth,
+                [styles.defaultButtonStyles]: type === 'default',
             })}
             onClick={() => {
                 H.track(`Link-${trackingId}`);
