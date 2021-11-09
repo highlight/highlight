@@ -56,6 +56,10 @@ const ErrorSessionList = ({ errorGroup }: Props) => {
                         setDatetimeFormat: () => {
                             /** No Operation. */
                         },
+                        countFormat: 'Short',
+                        setCountFormat: () => {
+                            /** No Operation. */
+                        },
                     }}
                 />
             )}
