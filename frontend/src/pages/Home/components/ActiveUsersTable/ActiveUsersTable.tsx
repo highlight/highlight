@@ -2,6 +2,7 @@ import {
     BarChartTablePercentage,
     BarChartTablePill,
     BarChartTableRowGroup,
+    BarChartTableUserAvatar,
 } from '@components/BarChartTable/components/BarChartTableColumns';
 import Card from '@components/Card/Card';
 import {
@@ -58,6 +59,7 @@ const ActiveUsersTable = () => {
                         total_active_time: topUser?.total_active_time,
                         active_time_percentage: topUser?.active_time_percentage,
                         id: topUser?.id,
+                        userProperties: topUser?.user_properties,
                     }));
 
                 setTableData(transformedData);
@@ -162,11 +164,19 @@ const Columns: ColumnsType<any> = [
         title: 'User',
         dataIndex: 'identifier',
         key: 'identifier',
-        render: (user) => (
-            <div className={styles.hostContainer}>
-                <span>{user}</span>
-            </div>
-        ),
+        render: (user, record) => {
+            return (
+                <div className={styles.hostContainer}>
+                    <BarChartTableRowGroup>
+                        <BarChartTableUserAvatar
+                            identifier={user}
+                            userProperties={record.userProperties}
+                        />
+                        <span>{user}</span>
+                    </BarChartTableRowGroup>
+                </div>
+            );
+        },
     },
     {
         title: 'Percentage',
@@ -174,7 +184,7 @@ const Columns: ColumnsType<any> = [
         key: 'active_time_percentage',
         render: (percent, record) => {
             return (
-                <BarChartTableRowGroup>
+                <BarChartTableRowGroup alignment="ending">
                     <BarChartTablePercentage percent={percent} />
                     <Tooltip title="Total active time the user has spent on your app">
                         <BarChartTablePill
