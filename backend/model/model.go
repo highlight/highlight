@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
@@ -454,6 +455,11 @@ type Session struct {
 	PayloadSize           *int64  `json:"payload_size"`
 	MigrationState        *string `json:"migration_state"`
 	VerboseID             string  `json:"verbose_id"`
+
+	// Lock is the timestamp at which a session was locked
+	// - when selecting sessions, ignore Locks that are > 10 minutes old
+	//   ex. SELECT * FROM sessions WHERE (lock IS NULL OR lock < NOW() - 10 * (INTERVAL '1 MINUTE'))
+	Lock sql.NullTime
 }
 
 // AreModelsWeaklyEqual compares two structs of the same type while ignoring the Model and SecureID field
