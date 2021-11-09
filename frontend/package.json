@@ -54,7 +54,7 @@
         "react-json-view": "^1.21.3",
         "react-lines-ellipsis": "^0.14.1",
         "react-linkify": "^1.0.0-alpha",
-        "react-loading-skeleton": "^2.1.1",
+        "react-loading-skeleton": "3.0.1",
         "react-nice-avatar": "^1.2.1",
         "react-resize-aware": "^3.0.1",
         "react-resize-panel-ts": "^0.0.5",

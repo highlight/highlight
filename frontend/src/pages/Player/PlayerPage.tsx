@@ -159,21 +159,11 @@ const Player = ({ integrated }: Props) => {
         };
     }, [resizePlayer, replayer]);
 
-    const playerBoundingClientRectWidth = replayer?.wrapper?.getBoundingClientRect()
-        .width;
-    const playerBoundingClientRectHeight = replayer?.wrapper?.getBoundingClientRect()
-        .height;
-
     // On any change to replayer, 'sizes', or 'showConsole', refresh the size of the player.
     useEffect(() => {
         replayer && resizePlayer(replayer);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [
-        sizes,
-        replayer,
-        playerBoundingClientRectWidth,
-        playerBoundingClientRectHeight,
-    ]);
+    }, [sizes, replayer]);
 
     const showLeftPanel =
         showLeftPanelPreference &&
@@ -512,7 +502,7 @@ const PlayerSkeleton = ({
 
     return (
         <SkeletonTheme
-            color={'var(--text-primary-inverted)'}
+            baseColor={'var(--text-primary-inverted)'}
             highlightColor={'#f5f5f5'}
         >
             <Skeleton
