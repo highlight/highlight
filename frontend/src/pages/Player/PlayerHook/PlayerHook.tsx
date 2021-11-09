@@ -617,10 +617,16 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     const play = (newTime?: number) => {
         if (isLiveMode) {
-            newTime = Math.min(
-                Date.now() - 15000 - events[0].timestamp,
-                sessionEndTime - 1
-            );
+            // Aim to always be playing events from 15s ago, to give time for events to be buffered in advance of playback.
+            const desiredTime = Date.now() - 15000 - events[0].timestamp;
+            // Only jump forwards if the user is more than 5s behind the target, to prevent unnecessary jittering.
+            // If we don't have events from that recently (e.g. user is idle), set it to the time of the last event so that
+            // the last UI the user idled in is displayed.
+            if (desiredTime - time > 5000 || state != ReplayerState.Playing) {
+                newTime = Math.min(desiredTime, sessionEndTime - 1);
+            } else {
+                return;
+            }
         }
         // Don't play the session if the player is already at the end of the session.
         if ((newTime ?? time) >= sessionEndTime) {
