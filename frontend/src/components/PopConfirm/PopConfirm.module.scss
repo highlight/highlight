@@ -1,4 +1,5 @@
 .popConfirmContainer {
+    z-index: 999999999;
     :global(.ant-popover-message-title) {
         max-width: 300px;
         padding-left: 0 !important;
