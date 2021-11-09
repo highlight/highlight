@@ -105,8 +105,6 @@ export enum PlayerSearchParameters {
     errorId = 'errorId',
     /** The comment ID for a comment in the current session. The player's time will be set to the comments's timestamp. */
     commentId = 'commentId',
-    /** The Request Header ID for an error's network resource. */
-    resourceErrorRequestHeader = 'resourceErrorRequestHeader',
 }
 
 /**
@@ -176,9 +174,6 @@ export const useSetPlayerTimestampFromSearchParam = (
                 const errorId = searchParamsObject.get(
                     PlayerSearchParameters.errorId
                 )!;
-                const requestId = searchParamsObject.get(
-                    PlayerSearchParameters.resourceErrorRequestHeader
-                );
                 const error = errors.find((e) => e.id === errorId);
                 if (error && error.timestamp) {
                     const sessionTime =
@@ -189,7 +184,7 @@ export const useSetPlayerTimestampFromSearchParam = (
                         sessionTime <= sessionDurationMilliseconds
                     ) {
                         // If requestId is defined, time will be set based on the network request instead
-                        if (!requestId) {
+                        if (!error.request_id) {
                             setTime(sessionTime);
                             replayer?.pause(sessionTime);
                             message.success(

@@ -36,7 +36,6 @@ import {
     EventsForTimelineKeys,
     findNextSessionInList,
     findPreviousSessionInList,
-    PlayerSearchParameters,
 } from '../PlayerHook/utils';
 import usePlayerConfiguration from '../PlayerHook/utils/usePlayerConfiguration';
 import { PlayerPageProductTourSelectors } from '../PlayerPageProductTour/PlayerPageProductTour';
@@ -92,12 +91,6 @@ export const Toolbar = () => {
     const wrapperWidth =
         sliderWrapperRef.current?.getBoundingClientRect().width ?? 1;
     const [sliderClientX, setSliderClientX] = useState<number>(-1);
-    const resourceErrorRequestHeader = new URLSearchParams(location.search).get(
-        PlayerSearchParameters.resourceErrorRequestHeader
-    );
-    const errorId = new URLSearchParams(location.search).get(
-        PlayerSearchParameters.errorId
-    );
     const disableControls = state === ReplayerState.Loading || !canViewSession;
 
     const [lastCanvasPreview, setLastCanvasPreview] = useState(0);
@@ -143,22 +136,6 @@ export const Toolbar = () => {
         setAutoPlayVideo,
         state,
         time,
-    ]);
-
-    useEffect(() => {
-        if (!disableControls && resourceErrorRequestHeader) {
-            setShowDevTools(true);
-            setSelectedDevToolsTab('Network');
-        } else if (!disableControls && errorId) {
-            setShowDevTools(true);
-            setSelectedDevToolsTab('Errors');
-        }
-    }, [
-        disableControls,
-        errorId,
-        resourceErrorRequestHeader,
-        setSelectedDevToolsTab,
-        setShowDevTools,
     ]);
 
     const endLogger = (e: any) => {
