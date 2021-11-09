@@ -13,6 +13,7 @@ type Props = Pick<
     | 'placement'
     | 'align'
     | 'okButtonProps'
+    | 'visible'
 > & {
     title: string;
     description: string;

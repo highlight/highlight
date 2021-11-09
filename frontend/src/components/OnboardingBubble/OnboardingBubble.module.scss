@@ -29,6 +29,7 @@
 
 .popover {
     padding-bottom: 0 !important;
+    z-index: 999999999;
 }
 
 @keyframes enter-viewport {
