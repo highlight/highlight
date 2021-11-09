@@ -713,8 +713,8 @@ func (w *Worker) Start() {
 					SELECT id
 					FROM sessions
 					WHERE (processed = ?)
-						AND (payload_updated_at IS NULL OR payload_updated_at < NOW() - (? * INTERVAL '1 SECOND')) 
-						AND (lock IS NULL OR lock < NOW() - (? * INTERVAL '1 MINUTE')) 
+						AND (COALESCE(payload_updated_at, to_timestamp(0)) < NOW() - (? * INTERVAL '1 SECOND')) 
+						AND (COALESCE(lock, to_timestamp(0)) < NOW() - (? * INTERVAL '1 MINUTE')) 
 					LIMIT ?
 					FOR UPDATE SKIP LOCKED
 				)
