@@ -56,7 +56,7 @@ export enum SessionViewability {
 }
 
 export const usePlayer = (): ReplayerContextInterface => {
-    const { isLoggedIn } = useAuthContext();
+    const { isLoggedIn, isHighlightAdmin } = useAuthContext();
     const { session_secure_id, project_id } = useParams<{
         session_secure_id: string;
         project_id: string;
@@ -78,6 +78,9 @@ export const usePlayer = (): ReplayerContextInterface => {
         sessions: [],
         totalCount: -1,
     });
+    const [loadedEventsIndex, setLoadedEventsIndex] = useState<number>(0);
+    const [isLiveMode, setIsLiveMode] = useState<boolean>(false);
+    const [isPollingEvents, setIsPollingEvents] = useState<boolean>(false);
     const [timerId, setTimerId] = useState<number | null>(null);
     const [errors, setErrors] = useState<ErrorObject[]>([]);
     const [, setSelectedErrorId] = useState<string | undefined>(undefined);
@@ -106,8 +109,15 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     const [
         getSessionPayloadQuery,
-        { loading: eventsLoading, data: eventsData },
-    ] = useGetSessionPayloadLazyQuery({ fetchPolicy: 'no-cache' });
+        {
+            loading: eventsLoading,
+            data: eventsData,
+            startPolling: startPollingEvents,
+            stopPolling: stopPollingEvents,
+        },
+    ] = useGetSessionPayloadLazyQuery({
+        fetchPolicy: 'no-cache',
+    });
     const [eventsPayload, setEventsPayload] = useState<any[] | undefined>(
         undefined
     );
@@ -193,6 +203,8 @@ export const usePlayer = (): ReplayerContextInterface => {
             setSessionEndTime(0);
             setSessionIntervals([]);
             setSessionViewability(SessionViewability.VIEWABLE);
+            setLoadedEventsIndex(0);
+            setIsLiveMode(false);
         },
         [setPlayerTimeToPersistance]
     );
@@ -211,6 +223,24 @@ export const usePlayer = (): ReplayerContextInterface => {
     useEffect(() => {
         setSession(sessionData?.session as Session | undefined);
     }, [sessionData?.session]);
+
+    useEffect(() => {
+        if (isLiveMode && state > ReplayerState.Loading && !isPollingEvents) {
+            startPollingEvents!(1000);
+            setIsPollingEvents(true);
+            if (state === ReplayerState.Paused) {
+                play();
+            }
+        } else if (!isLiveMode && isPollingEvents) {
+            stopPollingEvents!();
+            setIsPollingEvents(false);
+            if (state === ReplayerState.Playing) {
+                pause();
+            }
+        }
+        // We don't want to re-evaluate this every time the play/pause fn changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isLiveMode, state, isPollingEvents]);
 
     // Reset all state when loading events.
     useEffect(() => {
@@ -246,53 +276,68 @@ export const usePlayer = (): ReplayerContextInterface => {
     useEffect(() => {
         if (eventsPayload?.length) {
             setSessionViewability(SessionViewability.VIEWABLE);
-            setState(ReplayerState.Loading);
             // Add an id field to each event so it can be referenced.
             const newEvents: HighlightEvent[] = toHighlightEvents(
                 eventsPayload
             );
-            // Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
-            const playerMountingRoot = document.getElementById(
-                'player'
-            ) as HTMLElement;
-            // There are existing children on an already initialized player page. We want to unmount the previously mounted player to mount the new one.
-            // Example: User is viewing Session A, they navigate to Session B. The player for Session A needs to be unmounted. If we don't unmount it then there will be 2 players on the page.
-            if (playerMountingRoot?.childNodes?.length > 0) {
-                while (playerMountingRoot.firstChild) {
-                    playerMountingRoot.removeChild(
-                        playerMountingRoot.firstChild
-                    );
+            if (loadedEventsIndex <= 0) {
+                setIsLiveMode(
+                    isHighlightAdmin &&
+                        sessionData?.session?.processed === false
+                );
+                setState(ReplayerState.Loading);
+                // Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
+                const playerMountingRoot = document.getElementById(
+                    'player'
+                ) as HTMLElement;
+                // There are existing children on an already initialized player page. We want to unmount the previously mounted player to mount the new one.
+                // Example: User is viewing Session A, they navigate to Session B. The player for Session A needs to be unmounted. If we don't unmount it then there will be 2 players on the page.
+                if (playerMountingRoot?.childNodes?.length > 0) {
+                    while (playerMountingRoot.firstChild) {
+                        playerMountingRoot.removeChild(
+                            playerMountingRoot.firstChild
+                        );
+                    }
+                }
+                let clientConfig;
+                if (sessionData?.session?.client_config) {
+                    try {
+                        clientConfig = JSON.parse(
+                            sessionData?.session?.client_config
+                        );
+                    } catch (_e) {
+                        const e = _e as Error;
+                        H.consumeError(e, 'Failed to JSON parse client config');
+                    }
+                }
+                const r = new Replayer(newEvents.slice(0, EVENTS_CHUNK_SIZE), {
+                    root: playerMountingRoot,
+                    triggerFocus: false,
+                    mouseTail: showPlayerMouseTail,
+                    // We enable this for Safari users to allow for html2image to access the iframe.
+                    // Without this, the Safari browser will block html2image from access the iframe so it won't have access.
+                    // This access is determined by the iframe's `sandbox="allow-scripts"` property.
+                    UNSAFE_replayCanvas:
+                        isSafari ||
+                        clientConfig?.enableCanvasRecording ||
+                        false,
+                    liveMode: isLiveMode,
+                });
+                setLoadedEventsIndex(
+                    Math.min(EVENTS_CHUNK_SIZE, newEvents.length)
+                );
+                r.on('event-cast', (e: any) => {
+                    const event = e as HighlightEvent;
+                    if ((event as customEvent)?.data?.tag === 'Stop') {
+                        setState(ReplayerState.SessionRecordingStopped);
+                    }
+                });
+                setReplayer(r);
+                if (isLiveMode) {
+                    r.startLive(newEvents[0].timestamp);
                 }
             }
-            let clientConfig;
-            if (sessionData?.session?.client_config) {
-                try {
-                    clientConfig = JSON.parse(
-                        sessionData?.session?.client_config
-                    );
-                } catch (_e) {
-                    const e = _e as Error;
-                    H.consumeError(e, 'Failed to JSON parse client config');
-                }
-            }
-            const r = new Replayer(newEvents.slice(0, EVENTS_CHUNK_SIZE), {
-                root: playerMountingRoot,
-                triggerFocus: false,
-                mouseTail: showPlayerMouseTail,
-                // We enable this for Safari users to allow for html2image to access the iframe.
-                // Without this, the Safari browser will block html2image from access the iframe so it won't have access.
-                // This access is determined by the iframe's `sandbox="allow-scripts"` property.
-                UNSAFE_replayCanvas:
-                    isSafari || clientConfig?.enableCanvasRecording || false,
-            });
-            r.on('event-cast', (e: any) => {
-                const event = e as HighlightEvent;
-                if ((event as customEvent)?.data?.tag === 'Stop') {
-                    setState(ReplayerState.SessionRecordingStopped);
-                }
-            });
             setEvents(newEvents);
-            setReplayer(r);
         } else if (eventsPayload?.length === 0) {
             setSessionViewability(SessionViewability.EMPTY_SESSION);
         }
@@ -321,7 +366,7 @@ export const usePlayer = (): ReplayerContextInterface => {
     useEffect(() => {
         if (replayer && eventsDataLoaded) {
             let timerId = 0;
-            let eventsIndex = EVENTS_CHUNK_SIZE;
+            let eventsIndex = loadedEventsIndex;
 
             const addEventsWorker = () => {
                 events
@@ -329,9 +374,14 @@ export const usePlayer = (): ReplayerContextInterface => {
                     .forEach((event) => {
                         replayer.addEvent(event);
                     });
-                eventsIndex += EVENTS_CHUNK_SIZE;
 
-                if (eventsIndex > events.length) {
+                eventsIndex = Math.min(
+                    events.length,
+                    eventsIndex + EVENTS_CHUNK_SIZE
+                );
+
+                if (eventsIndex >= events.length) {
+                    setLoadedEventsIndex(eventsIndex);
                     cancelAnimationFrame(timerId);
 
                     const sessionIntervals = getSessionIntervals(
@@ -450,17 +500,23 @@ export const usePlayer = (): ReplayerContextInterface => {
                             return sessionIntervals;
                         });
                     }
-                    setState(
-                        hasSearchParam
-                            ? ReplayerState.LoadedWithDeepLink
-                            : ReplayerState.LoadedAndUntouched
-                    );
+                    if (state <= ReplayerState.Loading) {
+                        setState(
+                            hasSearchParam
+                                ? ReplayerState.LoadedWithDeepLink
+                                : ReplayerState.LoadedAndUntouched
+                        );
+                    }
                     setPlayerTimestamp(
                         replayer.getMetaData().totalTime,
                         replayer.getMetaData().startTime,
                         errors,
                         setSelectedErrorId
                     );
+                    if (isLiveMode && state > ReplayerState.Loading) {
+                        // Resynchronize player timestamp after each batch of events
+                        play();
+                    }
                 } else {
                     timerId = requestAnimationFrame(addEventsWorker);
                 }
@@ -553,6 +609,18 @@ export const usePlayer = (): ReplayerContextInterface => {
     ]);
 
     const play = (newTime?: number) => {
+        if (isLiveMode) {
+            // Aim to always be playing events from 15s ago, to give time for events to be buffered in advance of playback.
+            const desiredTime = Date.now() - 15000 - events[0].timestamp;
+            // Only jump forwards if the user is more than 5s behind the target, to prevent unnecessary jittering.
+            // If we don't have events from that recently (e.g. user is idle), set it to the time of the last event so that
+            // the last UI the user idled in is displayed.
+            if (desiredTime - time > 5000 || state != ReplayerState.Playing) {
+                newTime = Math.min(desiredTime, sessionEndTime - 1);
+            } else {
+                return;
+            }
+        }
         // Don't play the session if the player is already at the end of the session.
         if ((newTime ?? time) >= sessionEndTime) {
             return;
@@ -564,6 +632,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     const pause = useCallback(
         (newTime?: number) => {
+            setIsLiveMode(false);
             setState(ReplayerState.Paused);
             if (newTime !== undefined) {
                 setTime(newTime);
@@ -618,6 +687,8 @@ export const usePlayer = (): ReplayerContextInterface => {
             state !== ReplayerState.Empty &&
             scale !== 1 &&
             sessionViewability === SessionViewability.VIEWABLE,
+        isLiveMode,
+        setIsLiveMode,
         session,
         playerProgress: replayer
             ? time / replayer.getMetaData().totalTime

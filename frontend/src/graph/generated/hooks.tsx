@@ -2908,6 +2908,7 @@ export const GetSessionDocument = gql`
             }
             object_storage_enabled
             payload_size
+            processed
             within_billing_quota
             client_version
             client_config
