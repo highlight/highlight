@@ -284,11 +284,11 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     // Handle data in playback mode.
     useEffect(() => {
-        if (eventsPayload?.length ?? 0 > 1) {
+        if (eventsPayload?.length) {
             setSessionViewability(SessionViewability.VIEWABLE);
             // Add an id field to each event so it can be referenced.
             const newEvents: HighlightEvent[] = toHighlightEvents(
-                eventsPayload!
+                eventsPayload
             );
             if (loadedEventsIndex <= 0) {
                 setIsLiveMode(sessionData?.session?.processed === false);
