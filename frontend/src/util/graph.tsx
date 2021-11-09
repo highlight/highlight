@@ -5,9 +5,7 @@ import { setContext } from '@apollo/client/link/context';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import * as firebase from 'firebase/app';
 
-const uri =
-    process.env.REACT_APP_PRIVATE_GRAPH_URI ??
-    window.location.origin + '/private';
+const uri = 'https://highlight-private.graphcdn.app';
 const highlightGraph = createHttpLink({
     uri,
     credentials: 'include',
