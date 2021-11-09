@@ -240,17 +240,18 @@ export const usePlayer = (): ReplayerContextInterface => {
             startPollingEvents && startPollingEvents(1000);
             stopPollingEvents &&
                 setStopPollingEventsPointer({ fn: stopPollingEvents });
-        } else if (!isLiveMode) {
+            if (state === ReplayerState.Paused) {
+                play();
+            }
+        } else if (!isLiveMode && stopPollingEventsPointer) {
             stopPollingEventsPointer && stopPollingEventsPointer.fn();
             setStopPollingEventsPointer(null);
+            if (state === ReplayerState.Playing) {
+                pause();
+            }
         }
-    }, [
-        isLiveMode,
-        state,
-        startPollingEvents,
-        stopPollingEvents,
-        stopPollingEventsPointer,
-    ]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isLiveMode, state, stopPollingEventsPointer]);
 
     // Reset all state when loading events.
     useEffect(() => {

@@ -435,11 +435,6 @@ export const Toolbar = () => {
                             <button
                                 className={classNames(styles.liveButton)}
                                 onClick={() => {
-                                    if (isLiveMode) {
-                                        pause();
-                                    } else {
-                                        play();
-                                    }
                                     setIsLiveMode(!isLiveMode);
                                 }}
                             >
