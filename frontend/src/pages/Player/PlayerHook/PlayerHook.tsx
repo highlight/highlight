@@ -55,12 +55,6 @@ export enum SessionViewability {
     ERROR,
 }
 
-// useState() has the following signature: useState<S>(initialState: S | (() => S))
-// A wrapper is needed to avoid misinterpretation when the function itself is state
-interface VoidFunctionWrapper {
-    fn: () => void;
-}
-
 export const usePlayer = (): ReplayerContextInterface => {
     const { isLoggedIn, isHighlightAdmin } = useAuthContext();
     const { session_secure_id, project_id } = useParams<{
@@ -86,10 +80,7 @@ export const usePlayer = (): ReplayerContextInterface => {
     });
     const [loadedEventsIndex, setLoadedEventsIndex] = useState<number>(0);
     const [isLiveMode, setIsLiveMode] = useState<boolean>(false);
-    const [
-        stopPollingEventsPointer,
-        setStopPollingEventsPointer,
-    ] = useState<VoidFunctionWrapper | null>(null);
+    const [isPollingEvents, setIsPollingEvents] = useState<boolean>(false);
     const [timerId, setTimerId] = useState<number | null>(null);
     const [errors, setErrors] = useState<ErrorObject[]>([]);
     const [, setSelectedErrorId] = useState<string | undefined>(undefined);
@@ -234,26 +225,22 @@ export const usePlayer = (): ReplayerContextInterface => {
     }, [sessionData?.session]);
 
     useEffect(() => {
-        if (
-            isLiveMode &&
-            state > ReplayerState.Loading &&
-            !stopPollingEventsPointer
-        ) {
-            startPollingEvents && startPollingEvents(1000);
-            stopPollingEvents &&
-                setStopPollingEventsPointer({ fn: stopPollingEvents });
+        if (isLiveMode && state > ReplayerState.Loading && !isPollingEvents) {
+            startPollingEvents!(1000);
+            setIsPollingEvents(true);
             if (state === ReplayerState.Paused) {
                 play();
             }
-        } else if (!isLiveMode && stopPollingEventsPointer) {
-            stopPollingEventsPointer && stopPollingEventsPointer.fn();
-            setStopPollingEventsPointer(null);
+        } else if (!isLiveMode && isPollingEvents) {
+            stopPollingEvents!();
+            setIsPollingEvents(false);
             if (state === ReplayerState.Playing) {
                 pause();
             }
         }
+        // We don't want to re-evaluate this every time the play/pause fn changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isLiveMode, state, stopPollingEventsPointer]);
+    }, [isLiveMode, state, isPollingEvents]);
 
     // Reset all state when loading events.
     useEffect(() => {
