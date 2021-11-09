@@ -458,7 +458,7 @@ type Session struct {
 
 	// Lock is the timestamp at which a session was locked
 	// - when selecting sessions, ignore Locks that are > 10 minutes old
-	//   ex. SELECT * FROM sessions WHERE (lock IS NULL) OR (lock < NOW() - 10 * (INTERVAL '1 MINUTE'))
+	//   ex. SELECT * FROM sessions WHERE (lock IS NULL OR lock < NOW() - 10 * (INTERVAL '1 MINUTE'))
 	Lock sql.NullTime
 }
 
