@@ -109,8 +109,8 @@ const App = () => {
             <ApolloProvider client={client}>
                 <QueryParamProvider>
                     <SkeletonTheme
-                        baseColor={'#F5F5F5'}
-                        highlightColor={'#FCFCFC'}
+                        baseColor={'var(--color-gray-200)'}
+                        highlightColor={'var(--color-primary-background)'}
                     >
                         <AppLoadingContext value={{ isLoading, setIsLoading }}>
                             <LoadingPage />

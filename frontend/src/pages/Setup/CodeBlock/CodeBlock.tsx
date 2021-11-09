@@ -27,7 +27,6 @@ export const CodeBlock = ({
     const htmlElement = document.querySelector('html');
 
     useEffect(() => {
-        console.log({ htmlElement });
         if (htmlElement) {
             const currentTheme = htmlElement.dataset.theme;
             if (
