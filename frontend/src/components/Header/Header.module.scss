@@ -39,7 +39,7 @@
 }
 
 .trialLink {
-    color: var(--text-primary-inverted);
+    color: var(--text-primary-inverted) !important;
     text-decoration: underline;
 }
 
@@ -146,7 +146,7 @@
 
 .homeLink {
     align-items: center;
-    color: var(--text-primary);
+    color: var(--text-primary) !important;
     cursor: pointer;
     display: flex;
     justify-content: center;
@@ -181,7 +181,7 @@
 }
 
 .demoLink {
-    color: var(--color-text-primary-inverted);
+    color: var(--color-text-primary-inverted) !important;
     text-decoration: underline;
 }
 
