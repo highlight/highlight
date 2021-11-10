@@ -694,6 +694,13 @@ export class Highlight {
             //             navigator.sendBeacon(`${this._backendUrl}`, blob);
             //         }
             //     });
+
+            // Clear the timer so it doesn't block the next page navigation.
+            window.addEventListener('beforeunload', () => {
+                if (this.pushPayloadTimerId) {
+                    clearTimeout(this.pushPayloadTimerId);
+                }
+            });
             this.ready = true;
             this.state = 'Recording';
         } catch (e) {
