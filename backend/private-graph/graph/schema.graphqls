@@ -469,6 +469,14 @@ type SessionAlert {
     Type: String!
 }
 
+type WorkspaceInviteLink {
+    id: ID!
+    invitee_email: String
+    invitee_role: String!
+    expiration_date: Timestamp!
+    secret: String!
+}
+
 scalar Upload
 
 type Query {
@@ -559,6 +567,7 @@ type Query {
     is_integrated_with_slack(project_id: ID!): Boolean!
     project(id: ID!): Project
     workspace(id: ID!): Workspace
+    workspace_invite_links(workspace_id: ID!): [WorkspaceInviteLink!]!
     workspace_for_project(project_id: ID!): Workspace
     admin: Admin
     segments(project_id: ID!): [Segment]
