@@ -5,6 +5,7 @@ export const emailInput: string;
 export const header: string;
 export const hr: string;
 export const inviteButton: string;
+export const link: string;
 export const memberCard: string;
 export const name: string;
 export const removeTeamMemberButton: string;

@@ -585,7 +585,7 @@ export type Query = {
     is_integrated_with_slack: Scalars['Boolean'];
     project?: Maybe<Project>;
     workspace?: Maybe<Workspace>;
-    workspace_invite_links: Array<WorkspaceInviteLink>;
+    workspace_invite_links: WorkspaceInviteLink;
     workspace_for_project?: Maybe<Workspace>;
     admin?: Maybe<Admin>;
     segments?: Maybe<Array<Maybe<Segment>>>;
@@ -843,7 +843,6 @@ export type Mutation = {
     deleteProject?: Maybe<Scalars['Boolean']>;
     sendAdminProjectInvite?: Maybe<Scalars['String']>;
     sendAdminWorkspaceInvite?: Maybe<Scalars['String']>;
-    addAdminToProject?: Maybe<Scalars['ID']>;
     addAdminToWorkspace?: Maybe<Scalars['ID']>;
     deleteAdminFromProject?: Maybe<Scalars['ID']>;
     deleteAdminFromWorkspace?: Maybe<Scalars['ID']>;
@@ -931,11 +930,6 @@ export type MutationSendAdminWorkspaceInviteArgs = {
     workspace_id: Scalars['ID'];
     email: Scalars['String'];
     base_url: Scalars['String'];
-};
-
-export type MutationAddAdminToProjectArgs = {
-    project_id: Scalars['ID'];
-    invite_id: Scalars['String'];
 };
 
 export type MutationAddAdminToWorkspaceArgs = {
