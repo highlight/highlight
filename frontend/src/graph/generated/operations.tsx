@@ -2147,6 +2147,7 @@ export type GetTopUsersQuery = { __typename?: 'Query' } & {
                 | 'total_active_time'
                 | 'active_time_percentage'
                 | 'id'
+                | 'user_properties'
             >
         >
     >;
@@ -2193,7 +2194,10 @@ export type GetRageClicksForProjectQuery = { __typename?: 'Query' } & {
     rageClicksForProject: Array<
         { __typename?: 'RageClickEventForProject' } & Pick<
             Types.RageClickEventForProject,
-            'identifier' | 'session_secure_id' | 'total_clicks'
+            | 'identifier'
+            | 'session_secure_id'
+            | 'total_clicks'
+            | 'user_properties'
         >
     >;
 };
