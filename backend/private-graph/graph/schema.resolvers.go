@@ -3214,6 +3214,21 @@ func (r *queryResolver) Workspace(ctx context.Context, id int) (*model.Workspace
 	return workspace, nil
 }
 
+func (r *queryResolver) WorkspaceInviteLinks(ctx context.Context, workspaceID int) ([]*model.WorkspaceInviteLink, error) {
+	_, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in workspace")
+	}
+
+	workspaceInviteLinks := []*model.WorkspaceInviteLink{}
+
+	if err := r.DB.Where(&model.WorkspaceInviteLink{WorkspaceID: &workspaceID, InviteeEmail: nil}).Where("invitee_email IS NULL").Find(&workspaceInviteLinks).Error; err != nil {
+		return nil, e.Wrap(err, "error querying workspace invite links")
+	}
+
+	return workspaceInviteLinks, nil
+}
+
 func (r *queryResolver) WorkspaceForProject(ctx context.Context, projectID int) (*model.Workspace, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {

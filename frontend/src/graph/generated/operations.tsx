@@ -1140,6 +1140,16 @@ export type GetWorkspaceAdminsQuery = { __typename?: 'Query' } & {
             'id' | 'name' | 'secret'
         >
     >;
+    workspace_invite_links: Array<
+        { __typename?: 'WorkspaceInviteLink' } & Pick<
+            Types.WorkspaceInviteLink,
+            | 'id'
+            | 'invitee_email'
+            | 'invitee_role'
+            | 'expiration_date'
+            | 'secret'
+        >
+    >;
 };
 
 export type GetSessionCommentsQueryVariables = Types.Exact<{

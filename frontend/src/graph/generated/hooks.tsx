@@ -3038,6 +3038,13 @@ export const GetWorkspaceAdminsDocument = gql`
             name
             secret
         }
+        workspace_invite_links(workspace_id: $workspace_id) {
+            id
+            invitee_email
+            invitee_role
+            expiration_date
+            secret
+        }
     }
 `;
 

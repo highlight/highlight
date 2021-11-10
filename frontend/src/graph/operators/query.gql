@@ -106,6 +106,13 @@ query GetWorkspaceAdmins($workspace_id: ID!) {
         name
         secret
     }
+    workspace_invite_links(workspace_id: $workspace_id) {
+        id
+        invitee_email
+        invitee_role
+        expiration_date
+        secret
+    }
 }
 
 query GetSessionComments($session_secure_id: String!) {
