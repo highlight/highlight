@@ -844,7 +844,8 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 
 	// Query all sessions related to the current batch of error objects
 	sessions := []*model.Session{}
-	if err := r.DB.Model(&model.Session{}).Where("secure_id IN ?", sessionSecureIds).Scan(&sessions).Error; err != nil {
+	if err := r.DB.Model(&model.Session{}).Where("secure_id IN ?", sessionSecureIds).
+		Where("excluded != ?", true).Scan(&sessions).Error; err != nil {
 		retErr := e.Wrapf(err, "error reading from sessionSecureIds")
 		querySessionSpan.Finish(tracer.WithError(retErr))
 		log.Error(retErr)
