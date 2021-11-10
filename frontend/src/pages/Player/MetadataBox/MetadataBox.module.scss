@@ -43,6 +43,7 @@
     display: grid;
     grid-template-columns: fit-content(20px) auto;
     padding: 20px;
+    position: relative;
 }
 
 .enhancedSocial {
@@ -213,4 +214,11 @@
 
 .userIdentifier {
     margin-top: calc(-1 * var(--size-xxSmall));
+}
+
+.tooltip {
+    color: var(--color-gray-500);
+    position: absolute;
+    right: var(--size-medium);
+    top: var(--size-medium);
 }

@@ -211,6 +211,7 @@ query GetEnhancedUserDetails($session_secure_id: String!) {
         name
         bio
         avatar
+        email
         socials {
             type
             link

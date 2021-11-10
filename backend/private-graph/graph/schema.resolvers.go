@@ -2299,6 +2299,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 		details.Avatar = &p.Avatar
 		details.Name = &p.Name.FullName
 		details.Bio = &p.Bio
+		details.Email = &email
 	}
 	return details, nil
 }

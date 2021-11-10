@@ -14,6 +14,7 @@ export const socialIcons: string;
 export const starIconWrapper: string;
 export const starredIcon: string;
 export const tagEllipsis: string;
+export const tooltip: string;
 export const unstarredIcon: string;
 export const userAvatarWrapper: string;
 export const userBox: string;

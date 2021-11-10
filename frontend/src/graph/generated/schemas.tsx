@@ -111,6 +111,7 @@ export type EnhancedUserDetailsResult = {
     avatar?: Maybe<Scalars['String']>;
     bio?: Maybe<Scalars['String']>;
     socials?: Maybe<Array<Maybe<SocialLink>>>;
+    email?: Maybe<Scalars['String']>;
 };
 
 export type SocialLink = {

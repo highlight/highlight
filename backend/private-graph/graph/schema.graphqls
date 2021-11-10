@@ -89,6 +89,7 @@ type EnhancedUserDetailsResult {
     avatar: String
     bio: String
     socials: [SocialLink]
+    email: String
 }
 
 type SocialLink {

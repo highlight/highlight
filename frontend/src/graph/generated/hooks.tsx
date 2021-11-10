@@ -3353,6 +3353,7 @@ export const GetEnhancedUserDetailsDocument = gql`
             name
             bio
             avatar
+            email
             socials {
                 type
                 link

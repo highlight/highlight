@@ -1,3 +1,5 @@
+import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
+import { GetEnhancedUserDetailsQuery } from '@graph/operations';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import React from 'react';
@@ -34,7 +36,6 @@ export const MetadataBox = () => {
     const { isLoggedIn } = useAuthContext();
     const { session_secure_id } = useParams<{ session_secure_id: string }>();
     const { session } = useReplayerContext();
-    const { isHighlightAdmin } = useAuthContext();
     const [markSessionAsStarred] = useMarkSessionAsStarredMutation({
         update(cache) {
             cache.modify({
@@ -154,7 +155,7 @@ export const MetadataBox = () => {
                     )}
                 </div>
             </div>
-            {isHighlightAdmin && <UserDetailsBox />}
+            <UserDetailsBox />
         </div>
     );
 };
@@ -165,18 +166,30 @@ export const UserDetailsBox = () => {
         variables: { session_secure_id },
     });
 
+    if (!loading && !hasEnrichedData(data)) {
+        return null;
+    }
+
     return (
         <div className={styles.userEnhanced}>
+            <div className={styles.tooltip}>
+                <InfoTooltip
+                    title={`This is enriched information for ${data?.enhanced_user_details?.email}. Highlight show information like their social handles, website, title, and company. This feature is currently enabled for everyone but will later only be available starting at the Startup plan.`}
+                    size="medium"
+                    hideArrow
+                    placement="topLeft"
+                />
+            </div>
             {loading ? (
                 <Skeleton circle={true} height={36} width={36} />
             ) : (
-                <Avatar
-                    seed="test"
-                    customImage={
-                        data?.enhanced_user_details?.avatar ?? undefined
-                    }
-                    className={styles.enhancedAvatar}
-                />
+                data?.enhanced_user_details?.avatar && (
+                    <Avatar
+                        seed="test"
+                        customImage={data.enhanced_user_details.avatar}
+                        className={styles.enhancedAvatar}
+                    />
+                )
             )}
             <div className={styles.enhancedTextSection}>
                 <h4 className={styles.enhancedName}>
@@ -216,5 +229,20 @@ const SocialComponent = ({ socialLink }: { socialLink: SocialLink }) => {
             )}
             <p className={styles.enhancedSocialText}>{socialLink.type}</p>
         </a>
+    );
+};
+
+const hasEnrichedData = (enhancedData?: GetEnhancedUserDetailsQuery) => {
+    if (!enhancedData) {
+        return false;
+    }
+
+    const { enhanced_user_details } = enhancedData;
+
+    return (
+        enhanced_user_details?.avatar ||
+        enhanced_user_details?.bio ||
+        enhanced_user_details?.name ||
+        enhanced_user_details?.socials
     );
 };

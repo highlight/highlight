@@ -94,6 +94,7 @@ type ComplexityRoot struct {
 	EnhancedUserDetailsResult struct {
 		Avatar  func(childComplexity int) int
 		Bio     func(childComplexity int) int
+		Email   func(childComplexity int) int
 		ID      func(childComplexity int) int
 		Name    func(childComplexity int) int
 		Socials func(childComplexity int) int
@@ -859,6 +860,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.EnhancedUserDetailsResult.Bio(childComplexity), true
+
+	case "EnhancedUserDetailsResult.email":
+		if e.complexity.EnhancedUserDetailsResult.Email == nil {
+			break
+		}
+
+		return e.complexity.EnhancedUserDetailsResult.Email(childComplexity), true
 
 	case "EnhancedUserDetailsResult.id":
 		if e.complexity.EnhancedUserDetailsResult.ID == nil {
@@ -3851,6 +3859,7 @@ type EnhancedUserDetailsResult {
     avatar: String
     bio: String
     socials: [SocialLink]
+    email: String
 }
 
 type SocialLink {
@@ -8302,6 +8311,38 @@ func (ec *executionContext) _EnhancedUserDetailsResult_socials(ctx context.Conte
 	res := resTmp.([]*model.SocialLink)
 	fc.Result = res
 	return ec.marshalOSocialLink2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSocialLink(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _EnhancedUserDetailsResult_email(ctx context.Context, field graphql.CollectedField, obj *model.EnhancedUserDetailsResult) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "EnhancedUserDetailsResult",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Email, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorAlert_id(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorAlert) (ret graphql.Marshaler) {
@@ -21858,6 +21899,8 @@ func (ec *executionContext) _EnhancedUserDetailsResult(ctx context.Context, sel 
 			out.Values[i] = ec._EnhancedUserDetailsResult_bio(ctx, field, obj)
 		case "socials":
 			out.Values[i] = ec._EnhancedUserDetailsResult_socials(ctx, field, obj)
+		case "email":
+			out.Values[i] = ec._EnhancedUserDetailsResult_email(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
