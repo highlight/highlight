@@ -580,6 +580,7 @@ export type Query = {
     rage_click_alerts: Array<Maybe<SessionAlert>>;
     projectSuggestion?: Maybe<Array<Maybe<Project>>>;
     environment_suggestion?: Maybe<Array<Maybe<Field>>>;
+    identifier_suggestion: Array<Maybe<Scalars['String']>>;
     app_version_suggestion: Array<Maybe<Scalars['String']>>;
     slack_channel_suggestion?: Maybe<Array<Maybe<SanitizedSlackChannel>>>;
     slack_members: Array<Maybe<SanitizedSlackChannel>>;
@@ -785,6 +786,10 @@ export type QueryProjectSuggestionArgs = {
 };
 
 export type QueryEnvironment_SuggestionArgs = {
+    project_id: Scalars['ID'];
+};
+
+export type QueryIdentifier_SuggestionArgs = {
     project_id: Scalars['ID'];
 };
 

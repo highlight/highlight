@@ -42,12 +42,14 @@ interface AlertConfiguration {
     canControlThreshold: boolean;
     type: ALERT_TYPE;
     description?: string;
+    supportsExcludeRules: boolean;
 }
 
 interface Props {
     alert: any;
     configuration: AlertConfiguration;
     environmentOptions: any[];
+    identifierOptions: any[];
     channelSuggestions: any[];
     slackUrl: string;
     onDeleteHandler?: (alertId: string) => void;
@@ -61,12 +63,14 @@ export const AlertConfigurationCard = ({
         canControlThreshold,
         type,
         description,
+        supportsExcludeRules,
     },
     environmentOptions,
     channelSuggestions,
     slackUrl,
     onDeleteHandler,
     isCreatingNewAlert = false,
+    identifierOptions,
 }: Props) => {
     const [loading, setLoading] = useState(false);
     const [formTouched, setFormTouched] = useState(false);
@@ -181,6 +185,9 @@ export const AlertConfigurationCard = ({
     const excludedEnvironmentsFormName = `${
         alert.Name || defaultName
     }-excludedEnvironments`;
+    const excludedIdentifiersFormName = `${
+        alert.Name || defaultName
+    }-excludedIdentifiers`;
 
     useEffect(() => {
         history.replace(history.location.pathname, {
@@ -235,9 +242,10 @@ export const AlertConfigurationCard = ({
                             variables: {
                                 ...requestVariables,
                                 threshold_window: 1,
-                                exclude_rules: form.getFieldValue(
-                                    'exclude_rules'
-                                ),
+                                exclude_rules:
+                                    form.getFieldValue(
+                                        excludedIdentifiersFormName
+                                    ) || [],
                             },
                         });
                         break;
@@ -399,9 +407,10 @@ export const AlertConfigurationCard = ({
                                 ...requestVariables,
                                 session_alert_id: alert.id,
                                 threshold_window: 1,
-                                exclude_rules: form.getFieldValue(
-                                    'exclude_rules'
-                                ),
+                                exclude_rules:
+                                    form.getFieldValue(
+                                        excludedIdentifiersFormName
+                                    ) || [],
                             },
                         });
                         break;
@@ -468,6 +477,12 @@ export const AlertConfigurationCard = ({
             })
         ),
     ];
+
+    const identifiers = identifierOptions.map((identifier) => ({
+        displayValue: identifier,
+        value: identifier,
+        id: identifier,
+    }));
 
     const userPropertiesSuggestions = userSuggestionsLoading
         ? []
@@ -590,6 +605,7 @@ export const AlertConfigurationCard = ({
                                     getPropertiesOption(trackProperty).value
                             ),
                             name: alert.Name || defaultName,
+                            [excludedIdentifiersFormName]: alert.ExcludeRules,
                         }}
                         key={project_id}
                     >
@@ -782,6 +798,27 @@ export const AlertConfigurationCard = ({
                                 />
                             </Form.Item>
                         </section>
+
+                        {supportsExcludeRules && (
+                            <section>
+                                <h3>Excluded Identifiers</h3>
+                                <p>
+                                    Pick identifiers that you don't want to get
+                                    alerts for.
+                                </p>
+                                <Form.Item name={excludedIdentifiersFormName}>
+                                    <Select
+                                        className={styles.channelSelect}
+                                        mode="tags"
+                                        placeholder={`Select a identifier(s) that should not trigger alerts.`}
+                                        onChange={() => {
+                                            setFormTouched(true);
+                                        }}
+                                        options={identifiers}
+                                    />
+                                </Form.Item>
+                            </section>
+                        )}
 
                         {canControlThreshold && (
                             <>

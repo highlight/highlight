@@ -1810,6 +1810,11 @@ func (r *mutationResolver) UpdateNewSessionAlert(ctx context.Context, projectID 
 	}
 	envString := string(envBytes)
 
+	excludeRulesString, err := r.MarshalEnvironments(excludeRules)
+	if err != nil {
+		return nil, err
+	}
+
 	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
 	// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
 	for _, ch := range slackChannels {
@@ -1828,6 +1833,7 @@ func (r *mutationResolver) UpdateNewSessionAlert(ctx context.Context, projectID 
 	alert.LastAdminToEditID = admin.ID
 	alert.Name = &name
 	alert.ThresholdWindow = &thresholdWindow
+	alert.ExcludeRules = excludeRulesString
 	if err := r.DB.Model(&model.SessionAlert{
 		Model: model.Model{
 			ID: sessionAlertID,
@@ -1853,6 +1859,10 @@ func (r *mutationResolver) CreateNewSessionAlert(ctx context.Context, projectID 
 	if err != nil {
 		return nil, err
 	}
+	excludeRulesString, err := r.MarshalEnvironments(excludeRules)
+	if err != nil {
+		return nil, err
+	}
 
 	channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
 	if err != nil {
@@ -1870,6 +1880,7 @@ func (r *mutationResolver) CreateNewSessionAlert(ctx context.Context, projectID 
 			ThresholdWindow:      &thresholdWindow,
 			LastAdminToEditID:    admin.ID,
 		},
+		ExcludeRules: excludeRulesString,
 	}
 
 	if err := r.DB.Create(newAlert).Error; err != nil {
@@ -3131,6 +3142,19 @@ func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, projectID int
 		return nil, e.Wrap(err, "error querying field suggestion")
 	}
 	return fields, nil
+}
+
+func (r *queryResolver) IdentifierSuggestion(ctx context.Context, projectID int) ([]*string, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+	identifiers := []*string{}
+	res := r.DB.Raw("SELECT DISTINCT identifier from sessions where project_id=1 AND identifier <> '' AND identifier IS NOT NULL ORDER BY identifier ASC").
+		Scan(&identifiers)
+	if err := res.Error; err != nil {
+		return nil, e.Wrap(err, "error querying identifier suggestion")
+	}
+	return identifiers, nil
 }
 
 func (r *queryResolver) AppVersionSuggestion(ctx context.Context, projectID int) ([]*string, error) {

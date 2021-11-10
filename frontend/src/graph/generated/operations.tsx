@@ -2246,7 +2246,7 @@ export type GetAlertsPagePayloadQueryVariables = Types.Exact<{
 
 export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
     Types.Query,
-    'is_integrated_with_slack'
+    'is_integrated_with_slack' | 'identifier_suggestion'
 > & {
         slack_channel_suggestion?: Types.Maybe<
             Array<
