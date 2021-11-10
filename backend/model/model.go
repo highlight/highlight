@@ -183,6 +183,7 @@ type Workspace struct {
 	MigratedFromProjectID *int // Column can be removed after migration is done
 	StripeCustomerID      *string
 	StripePriceID         *string
+	PlanTier              string `gorm:"default:Free"`
 	MonthlySessionLimit   *int
 	TrialEndDate          *time.Time `json:"trial_end_date"`
 }

@@ -44,3 +44,16 @@ inner join (
 ) p
 on w.id = p.workspace_id
 where w.id = workspaces.id;
+
+-- set plan_tier using stripe_price_id
+update workspaces
+set plan_tier =
+case 
+	when stripe_price_id = 'price_1I9aY2Gz4ry65q42k8PfKkfx' then 'Basic'
+	when stripe_price_id = 'price_1I9akEGz4ry65q424QHGKTZk' then 'Basic'
+	when stripe_price_id = 'price_1IYa0uGz4ry65q424SmTDoac' then 'Startup'
+	when stripe_price_id = 'price_1IYZgUGz4ry65q42OzEEfjdU' then 'Startup'
+	when stripe_price_id = 'price_1I9aY2Gz4ry65q42yiskO3pJ' then 'Enterprise'
+	when stripe_price_id = 'price_1I9akEGz4ry65q42SaBcP6yE' then 'Enterprise'
+	else 'Free'
+end;
