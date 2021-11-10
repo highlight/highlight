@@ -37,7 +37,7 @@ const EditAlertsPage = () => {
     return (
         <>
             <Helmet>
-                <title>Edit Alert: {alert?.Name}</title>
+                <title>Edit Alert: {alert?.Name || ''}</title>
             </Helmet>
             {loading || !alertsPayload || !alert ? (
                 <>

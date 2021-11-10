@@ -403,54 +403,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	g.Go(func() error {
-		// Sending New User Alert
-		// if is not new user, return
-		if s.FirstTime == nil || !*s.FirstTime {
-			return nil
-		}
-		var sessionAlerts []*model.SessionAlert
-		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Where("type IS NULL OR type=?", model.AlertType.NEW_USER).Find(&sessionAlerts).Error; err != nil {
-			return e.Wrapf(err, "[project_id: %d] error fetching new user alert", projectID)
-		}
-
-		for _, sessionAlert := range sessionAlerts {
-			// check if session was produced from an excluded environment
-			excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
-			if err != nil {
-				return e.Wrapf(err, "[project_id: %d] error getting excluded environments from new user alert", projectID)
-			}
-			isExcludedEnvironment := false
-			for _, env := range excludedEnvironments {
-				if env != nil && *env == s.Environment {
-					isExcludedEnvironment = true
-					break
-				}
-			}
-			if isExcludedEnvironment {
-				return nil
-			}
-
-			// get produced user properties from session
-			userProperties, err := s.GetUserProperties()
-			if err != nil {
-				return e.Wrapf(err, "[project_id: %d] error getting user properties from new user alert", s.ProjectID)
-			}
-
-			workspace, err := w.Resolver.GetWorkspace(project.WorkspaceID)
-			if err != nil {
-				return e.Wrapf(err, "[project_id: %d] error querying workspace", s.ProjectID)
-			}
-
-			// send Slack message
-			err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, UserProperties: userProperties, UserObject: s.UserObject})
-			if err != nil {
-				return e.Wrapf(err, "[project_id: %d] error sending slack message for new user alert", projectID)
-			}
-		}
-		return nil
-	})
-
-	g.Go(func() error {
 		// Sending Track Properties Alert
 		var sessionAlerts []*model.SessionAlert
 		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Where("type=?", model.AlertType.TRACK_PROPERTIES).Find(&sessionAlerts).Error; err != nil {
