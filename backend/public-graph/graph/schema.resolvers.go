@@ -141,7 +141,6 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 				return
 			}
 		}
-		return
 	})
 
 	return &sessionID, nil
