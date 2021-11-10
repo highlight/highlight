@@ -101,7 +101,7 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 			// check if session was produced from an excluded environment
 			excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
 			if err != nil {
-				log.Error(e.Wrapf(err, "[project_id: %d] error getting excluded environments from new user alert", projectID))
+				log.Error(e.Wrapf(err, "[project_id: %d] error getting excluded environments from new user alert", session.ProjectID))
 				return
 			}
 			isExcludedEnvironment := false
@@ -118,7 +118,7 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 			// get produced user properties from session
 			userProperties, err := session.GetUserProperties()
 			if err != nil {
-				log.Error(e.Wrapf(err, "[project_id: %d] error getting user properties from new user alert", s.ProjectID))
+				log.Error(e.Wrapf(err, "[project_id: %d] error getting user properties from new user alert", session.ProjectID))
 				return
 			}
 
