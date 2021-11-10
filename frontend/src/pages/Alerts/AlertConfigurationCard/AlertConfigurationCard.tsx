@@ -137,6 +137,7 @@ export const AlertConfigurationCard = ({
             slack_channels: [],
             name: 'New Session',
             threshold_window: 1,
+            exclude_rules: [],
         },
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
@@ -234,6 +235,9 @@ export const AlertConfigurationCard = ({
                             variables: {
                                 ...requestVariables,
                                 threshold_window: 1,
+                                exclude_rules: form.getFieldValue(
+                                    'exclude_rules'
+                                ),
                             },
                         });
                         break;
@@ -395,6 +399,9 @@ export const AlertConfigurationCard = ({
                                 ...requestVariables,
                                 session_alert_id: alert.id,
                                 threshold_window: 1,
+                                exclude_rules: form.getFieldValue(
+                                    'exclude_rules'
+                                ),
                             },
                         });
                         break;

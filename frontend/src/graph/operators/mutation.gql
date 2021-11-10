@@ -466,6 +466,7 @@ mutation CreateNewSessionAlert(
     $slack_channels: [SanitizedSlackChannelInput]!
     $environments: [String]!
     $threshold_window: Int!
+    $exclude_rules: [String]!
 ) {
     createNewSessionAlert(
         project_id: $project_id
@@ -474,6 +475,7 @@ mutation CreateNewSessionAlert(
         slack_channels: $slack_channels
         environments: $environments
         threshold_window: $threshold_window
+        exclude_rules: $exclude_rules
     ) {
         id
         ChannelsToNotify {
@@ -485,6 +487,7 @@ mutation CreateNewSessionAlert(
         CountThreshold
         ThresholdWindow
         LastAdminToEditID
+        ExcludeRules
     }
 }
 
@@ -496,6 +499,7 @@ mutation UpdateNewSessionAlert(
     $slack_channels: [SanitizedSlackChannelInput]!
     $environments: [String]!
     $threshold_window: Int!
+    $exclude_rules: [String]!
 ) {
     updateNewSessionAlert(
         project_id: $project_id
@@ -505,6 +509,7 @@ mutation UpdateNewSessionAlert(
         slack_channels: $slack_channels
         environments: $environments
         threshold_window: $threshold_window
+        exclude_rules: $exclude_rules
     ) {
         id
         ChannelsToNotify {
@@ -516,6 +521,7 @@ mutation UpdateNewSessionAlert(
         CountThreshold
         ThresholdWindow
         LastAdminToEditID
+        ExcludeRules
     }
 }
 

@@ -862,6 +862,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         Name
         id
         Type
+        ExcludeRules
     }
     rage_click_alerts(project_id: $project_id) {
         id

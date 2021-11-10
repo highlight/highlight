@@ -519,6 +519,7 @@ export type SessionAlert = {
     ThresholdWindow: Scalars['Int'];
     LastAdminToEditID?: Maybe<Scalars['ID']>;
     Type: Scalars['String'];
+    ExcludeRules: Array<Maybe<Scalars['String']>>;
 };
 
 export type WorkspaceInviteLink = {
@@ -1171,6 +1172,7 @@ export type MutationUpdateNewSessionAlertArgs = {
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;
     threshold_window: Scalars['Int'];
+    exclude_rules: Array<Maybe<Scalars['String']>>;
 };
 
 export type MutationCreateNewSessionAlertArgs = {
@@ -1180,6 +1182,7 @@ export type MutationCreateNewSessionAlertArgs = {
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;
     threshold_window: Scalars['Int'];
+    exclude_rules: Array<Maybe<Scalars['String']>>;
 };
 
 export type MutationUpdateSessionIsPublicArgs = {

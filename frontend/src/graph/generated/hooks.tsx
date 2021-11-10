@@ -1990,6 +1990,7 @@ export const CreateNewSessionAlertDocument = gql`
         $slack_channels: [SanitizedSlackChannelInput]!
         $environments: [String]!
         $threshold_window: Int!
+        $exclude_rules: [String]!
     ) {
         createNewSessionAlert(
             project_id: $project_id
@@ -1998,6 +1999,7 @@ export const CreateNewSessionAlertDocument = gql`
             slack_channels: $slack_channels
             environments: $environments
             threshold_window: $threshold_window
+            exclude_rules: $exclude_rules
         ) {
             id
             ChannelsToNotify {
@@ -2009,6 +2011,7 @@ export const CreateNewSessionAlertDocument = gql`
             CountThreshold
             ThresholdWindow
             LastAdminToEditID
+            ExcludeRules
         }
     }
 `;
@@ -2036,6 +2039,7 @@ export type CreateNewSessionAlertMutationFn = Apollo.MutationFunction<
  *      slack_channels: // value for 'slack_channels'
  *      environments: // value for 'environments'
  *      threshold_window: // value for 'threshold_window'
+ *      exclude_rules: // value for 'exclude_rules'
  *   },
  * });
  */
@@ -2067,6 +2071,7 @@ export const UpdateNewSessionAlertDocument = gql`
         $slack_channels: [SanitizedSlackChannelInput]!
         $environments: [String]!
         $threshold_window: Int!
+        $exclude_rules: [String]!
     ) {
         updateNewSessionAlert(
             project_id: $project_id
@@ -2076,6 +2081,7 @@ export const UpdateNewSessionAlertDocument = gql`
             slack_channels: $slack_channels
             environments: $environments
             threshold_window: $threshold_window
+            exclude_rules: $exclude_rules
         ) {
             id
             ChannelsToNotify {
@@ -2087,6 +2093,7 @@ export const UpdateNewSessionAlertDocument = gql`
             CountThreshold
             ThresholdWindow
             LastAdminToEditID
+            ExcludeRules
         }
     }
 `;
@@ -2115,6 +2122,7 @@ export type UpdateNewSessionAlertMutationFn = Apollo.MutationFunction<
  *      slack_channels: // value for 'slack_channels'
  *      environments: // value for 'environments'
  *      threshold_window: // value for 'threshold_window'
+ *      exclude_rules: // value for 'exclude_rules'
  *   },
  * });
  */
@@ -6170,6 +6178,7 @@ export const GetAlertsPagePayloadDocument = gql`
             Name
             id
             Type
+            ExcludeRules
         }
         rage_click_alerts(project_id: $project_id) {
             id
