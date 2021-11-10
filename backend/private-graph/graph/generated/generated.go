@@ -222,7 +222,6 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddAdminToProject                func(childComplexity int, projectID int, inviteID string) int
 		AddAdminToWorkspace              func(childComplexity int, workspaceID int, inviteID string) int
 		AddSlackBotIntegrationToProject  func(childComplexity int, projectID int, code string, redirectPath string) int
 		CreateErrorAlert                 func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
@@ -574,7 +573,6 @@ type MutationResolver interface {
 	DeleteProject(ctx context.Context, id int) (*bool, error)
 	SendAdminProjectInvite(ctx context.Context, projectID int, email string, baseURL string) (*string, error)
 	SendAdminWorkspaceInvite(ctx context.Context, workspaceID int, email string, baseURL string) (*string, error)
-	AddAdminToProject(ctx context.Context, projectID int, inviteID string) (*int, error)
 	AddAdminToWorkspace(ctx context.Context, workspaceID int, inviteID string) (*int, error)
 	DeleteAdminFromProject(ctx context.Context, projectID int, adminID int) (*int, error)
 	DeleteAdminFromWorkspace(ctx context.Context, workspaceID int, adminID int) (*int, error)
@@ -1479,18 +1477,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.LengthRange.Min(childComplexity), true
-
-	case "Mutation.addAdminToProject":
-		if e.complexity.Mutation.AddAdminToProject == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_addAdminToProject_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.AddAdminToProject(childComplexity, args["project_id"].(int), args["invite_id"].(string)), true
 
 	case "Mutation.addAdminToWorkspace":
 		if e.complexity.Mutation.AddAdminToWorkspace == nil {
@@ -4346,7 +4332,6 @@ type Mutation {
         email: String!
         base_url: String!
     ): String
-    addAdminToProject(project_id: ID!, invite_id: String!): ID
     addAdminToWorkspace(workspace_id: ID!, invite_id: String!): ID
     deleteAdminFromProject(project_id: ID!, admin_id: ID!): ID
     deleteAdminFromWorkspace(workspace_id: ID!, admin_id: ID!): ID
@@ -4550,30 +4535,6 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
-
-func (ec *executionContext) field_Mutation_addAdminToProject_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["invite_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("invite_id"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["invite_id"] = arg1
-	return args, nil
-}
 
 func (ec *executionContext) field_Mutation_addAdminToWorkspace_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -11572,45 +11533,6 @@ func (ec *executionContext) _Mutation_sendAdminWorkspaceInvite(ctx context.Conte
 	res := resTmp.(*string)
 	fc.Result = res
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_addAdminToProject(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_addAdminToProject_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddAdminToProject(rctx, args["project_id"].(int), args["invite_id"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*int)
-	fc.Result = res
-	return ec.marshalOID2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addAdminToWorkspace(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -22547,8 +22469,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_sendAdminProjectInvite(ctx, field)
 		case "sendAdminWorkspaceInvite":
 			out.Values[i] = ec._Mutation_sendAdminWorkspaceInvite(ctx, field)
-		case "addAdminToProject":
-			out.Values[i] = ec._Mutation_addAdminToProject(ctx, field)
 		case "addAdminToWorkspace":
 			out.Values[i] = ec._Mutation_addAdminToWorkspace(ctx, field)
 		case "deleteAdminFromProject":

@@ -594,7 +594,6 @@ type Mutation {
         email: String!
         base_url: String!
     ): String
-    addAdminToProject(project_id: ID!, invite_id: String!): ID
     addAdminToWorkspace(workspace_id: ID!, invite_id: String!): ID
     deleteAdminFromProject(project_id: ID!, admin_id: ID!): ID
     deleteAdminFromWorkspace(workspace_id: ID!, admin_id: ID!): ID

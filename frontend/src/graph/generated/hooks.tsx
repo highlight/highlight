@@ -298,53 +298,6 @@ export type SendEmailSignupMutationOptions = Apollo.BaseMutationOptions<
     Types.SendEmailSignupMutation,
     Types.SendEmailSignupMutationVariables
 >;
-export const AddAdminToProjectDocument = gql`
-    mutation AddAdminToProject($project_id: ID!, $invite_id: String!) {
-        addAdminToProject(project_id: $project_id, invite_id: $invite_id)
-    }
-`;
-export type AddAdminToProjectMutationFn = Apollo.MutationFunction<
-    Types.AddAdminToProjectMutation,
-    Types.AddAdminToProjectMutationVariables
->;
-
-/**
- * __useAddAdminToProjectMutation__
- *
- * To run a mutation, you first call `useAddAdminToProjectMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useAddAdminToProjectMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [addAdminToProjectMutation, { data, loading, error }] = useAddAdminToProjectMutation({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      invite_id: // value for 'invite_id'
- *   },
- * });
- */
-export function useAddAdminToProjectMutation(
-    baseOptions?: Apollo.MutationHookOptions<
-        Types.AddAdminToProjectMutation,
-        Types.AddAdminToProjectMutationVariables
-    >
-) {
-    return Apollo.useMutation<
-        Types.AddAdminToProjectMutation,
-        Types.AddAdminToProjectMutationVariables
-    >(AddAdminToProjectDocument, baseOptions);
-}
-export type AddAdminToProjectMutationHookResult = ReturnType<
-    typeof useAddAdminToProjectMutation
->;
-export type AddAdminToProjectMutationResult = Apollo.MutationResult<Types.AddAdminToProjectMutation>;
-export type AddAdminToProjectMutationOptions = Apollo.BaseMutationOptions<
-    Types.AddAdminToProjectMutation,
-    Types.AddAdminToProjectMutationVariables
->;
 export const AddAdminToWorkspaceDocument = gql`
     mutation AddAdminToWorkspace($workspace_id: ID!, $invite_id: String!) {
         addAdminToWorkspace(workspace_id: $workspace_id, invite_id: $invite_id)

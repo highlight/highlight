@@ -1,3 +1,4 @@
+import Alert from '@components/Alert/Alert';
 import Card from '@components/Card/Card';
 import Input from '@components/Input/Input';
 import Modal from '@components/Modal/Modal';
@@ -60,7 +61,7 @@ const WorkspaceTeam = () => {
 
     const [
         sendInviteEmail,
-        { loading: sendLoading },
+        { loading: sendLoading, data: sendInviteEmailData },
     ] = useSendAdminWorkspaceInviteMutation();
 
     const onSubmit = (e: { preventDefault: () => void }) => {
@@ -142,6 +143,14 @@ const WorkspaceTeam = () => {
                             </Button>
                         </div>
                     </form>
+                    {sendInviteEmailData && (
+                        <Alert
+                            shouldAlwaysShow
+                            trackingId="InviteAdminToWorkspaceConfirmation"
+                            message={`An invite email has been sent!`}
+                            description={`You can also share with them this link: ${sendInviteEmailData.sendAdminWorkspaceInvite}`}
+                        />
+                    )}
                     <hr className={styles.hr} />
                     <p className={styles.boxSubTitle}>
                         Or share this link with them.

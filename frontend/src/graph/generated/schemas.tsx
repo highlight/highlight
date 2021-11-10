@@ -843,7 +843,6 @@ export type Mutation = {
     deleteProject?: Maybe<Scalars['Boolean']>;
     sendAdminProjectInvite?: Maybe<Scalars['String']>;
     sendAdminWorkspaceInvite?: Maybe<Scalars['String']>;
-    addAdminToProject?: Maybe<Scalars['ID']>;
     addAdminToWorkspace?: Maybe<Scalars['ID']>;
     deleteAdminFromProject?: Maybe<Scalars['ID']>;
     deleteAdminFromWorkspace?: Maybe<Scalars['ID']>;
@@ -931,11 +930,6 @@ export type MutationSendAdminWorkspaceInviteArgs = {
     workspace_id: Scalars['ID'];
     email: Scalars['String'];
     base_url: Scalars['String'];
-};
-
-export type MutationAddAdminToProjectArgs = {
-    project_id: Scalars['ID'];
-    invite_id: Scalars['String'];
 };
 
 export type MutationAddAdminToWorkspaceArgs = {
