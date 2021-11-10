@@ -30,6 +30,7 @@ type EnhancedUserDetailsResult struct {
 	Avatar  *string       `json:"avatar"`
 	Bio     *string       `json:"bio"`
 	Socials []*SocialLink `json:"socials"`
+	Email   *string       `json:"email"`
 }
 
 type ErrorMetadata struct {

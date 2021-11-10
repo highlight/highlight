@@ -1280,7 +1280,7 @@ export type GetEnhancedUserDetailsQuery = { __typename?: 'Query' } & {
     enhanced_user_details?: Types.Maybe<
         { __typename?: 'EnhancedUserDetailsResult' } & Pick<
             Types.EnhancedUserDetailsResult,
-            'id' | 'name' | 'bio' | 'avatar'
+            'id' | 'name' | 'bio' | 'avatar' | 'email'
         > & {
                 socials?: Types.Maybe<
                     Array<
