@@ -130,6 +130,7 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspace model.HasSe
 		return nil, e.Wrap(err, "error querying for invite Link")
 	}
 
+	// Non-admin specific invites don't have a specific invitee. Only block if the invite is for a specific admin and the emails don't match.
 	if inviteLink.InviteeEmail != nil {
 		if *inviteLink.InviteeEmail != *admin.Email {
 			return nil, e.New("This invite is not valid for the admin.")
@@ -146,8 +147,13 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspace model.HasSe
 	if err := r.DB.Model(workspace).Association("Admins").Append(admin); err != nil {
 		return nil, e.Wrap(err, "error adding admin to association")
 	}
-	if err := r.DB.Delete(inviteLink).Error; err != nil {
-		return nil, e.Wrap(err, "error while trying to delete used invite link")
+
+	// Only delete the invite for specific-admin invites. Specific-admin invites are 1-time use only.
+	// Non-admin specific invites are multi-use and only have an expiration date.
+	if inviteLink.InviteeEmail != nil {
+		if err := r.DB.Delete(inviteLink).Error; err != nil {
+			return nil, e.Wrap(err, "error while trying to delete used invite link")
+		}
 	}
 	return &workspaceId, nil
 }
