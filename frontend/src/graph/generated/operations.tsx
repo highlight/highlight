@@ -631,6 +631,9 @@ export type CreateNewSessionAlertMutationVariables = Types.Exact<{
         | Array<Types.Maybe<Types.Scalars['String']>>
         | Types.Maybe<Types.Scalars['String']>;
     threshold_window: Types.Scalars['Int'];
+    exclude_rules:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
 }>;
 
 export type CreateNewSessionAlertMutation = { __typename?: 'Mutation' } & {
@@ -643,6 +646,7 @@ export type CreateNewSessionAlertMutation = { __typename?: 'Mutation' } & {
             | 'CountThreshold'
             | 'ThresholdWindow'
             | 'LastAdminToEditID'
+            | 'ExcludeRules'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -668,6 +672,9 @@ export type UpdateNewSessionAlertMutationVariables = Types.Exact<{
         | Array<Types.Maybe<Types.Scalars['String']>>
         | Types.Maybe<Types.Scalars['String']>;
     threshold_window: Types.Scalars['Int'];
+    exclude_rules:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
 }>;
 
 export type UpdateNewSessionAlertMutation = { __typename?: 'Mutation' } & {
@@ -680,6 +687,7 @@ export type UpdateNewSessionAlertMutation = { __typename?: 'Mutation' } & {
             | 'CountThreshold'
             | 'ThresholdWindow'
             | 'LastAdminToEditID'
+            | 'ExcludeRules'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -2238,7 +2246,7 @@ export type GetAlertsPagePayloadQueryVariables = Types.Exact<{
 
 export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
     Types.Query,
-    'is_integrated_with_slack'
+    'is_integrated_with_slack' | 'identifier_suggestion'
 > & {
         slack_channel_suggestion?: Types.Maybe<
             Array<
@@ -2328,6 +2336,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     | 'Name'
                     | 'id'
                     | 'Type'
+                    | 'ExcludeRules'
                 > & {
                         ChannelsToNotify: Array<
                             Types.Maybe<

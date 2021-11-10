@@ -467,6 +467,7 @@ type SessionAlert {
     ThresholdWindow: Int!
     LastAdminToEditID: ID
     Type: String!
+    ExcludeRules: [String]!
 }
 
 type WorkspaceInviteLink {
@@ -561,6 +562,7 @@ type Query {
     rage_click_alerts(project_id: ID!): [SessionAlert]!
     projectSuggestion(query: String!): [Project]
     environment_suggestion(project_id: ID!): [Field]
+    identifier_suggestion(project_id: ID!): [String]!
     app_version_suggestion(project_id: ID!): [String]!
     slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
     slack_members(project_id: ID!): [SanitizedSlackChannel]!
@@ -772,6 +774,7 @@ type Mutation {
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
         threshold_window: Int!
+        exclude_rules: [String]!
     ): SessionAlert
     createNewSessionAlert(
         project_id: ID!
@@ -780,6 +783,7 @@ type Mutation {
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
         threshold_window: Int!
+        exclude_rules: [String]!
     ): SessionAlert
     updateSessionIsPublic(
         session_secure_id: String!

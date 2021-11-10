@@ -821,6 +821,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         name
         value
     }
+    identifier_suggestion(project_id: $project_id)
     error_alerts(project_id: $project_id) {
         ChannelsToNotify {
             webhook_channel
@@ -862,6 +863,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         Name
         id
         Type
+        ExcludeRules
     }
     rage_click_alerts(project_id: $project_id) {
         id

@@ -1847,7 +1847,7 @@ func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, projec
 	return alert, nil
 }
 
-func (r *mutationResolver) UpdateNewSessionAlert(ctx context.Context, projectID int, sessionAlertID int, name string, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, thresholdWindow int) (*model.SessionAlert, error) {
+func (r *mutationResolver) UpdateNewSessionAlert(ctx context.Context, projectID int, sessionAlertID int, name string, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, thresholdWindow int, excludeRules []*string) (*model.SessionAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1860,6 +1860,11 @@ func (r *mutationResolver) UpdateNewSessionAlert(ctx context.Context, projectID 
 		return nil, e.Wrap(err, "error parsing environments for new session alert")
 	}
 	envString := string(envBytes)
+
+	excludeRulesString, err := r.MarshalEnvironments(excludeRules)
+	if err != nil {
+		return nil, err
+	}
 
 	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
 	// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
@@ -1879,6 +1884,7 @@ func (r *mutationResolver) UpdateNewSessionAlert(ctx context.Context, projectID 
 	alert.LastAdminToEditID = admin.ID
 	alert.Name = &name
 	alert.ThresholdWindow = &thresholdWindow
+	alert.ExcludeRules = excludeRulesString
 	if err := r.DB.Model(&model.SessionAlert{
 		Model: model.Model{
 			ID: sessionAlertID,
@@ -1892,7 +1898,7 @@ func (r *mutationResolver) UpdateNewSessionAlert(ctx context.Context, projectID 
 	return alert, nil
 }
 
-func (r *mutationResolver) CreateNewSessionAlert(ctx context.Context, projectID int, name string, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, thresholdWindow int) (*model.SessionAlert, error) {
+func (r *mutationResolver) CreateNewSessionAlert(ctx context.Context, projectID int, name string, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, thresholdWindow int, excludeRules []*string) (*model.SessionAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1901,6 +1907,10 @@ func (r *mutationResolver) CreateNewSessionAlert(ctx context.Context, projectID 
 	}
 
 	envString, err := r.MarshalEnvironments(environments)
+	if err != nil {
+		return nil, err
+	}
+	excludeRulesString, err := r.MarshalEnvironments(excludeRules)
 	if err != nil {
 		return nil, err
 	}
@@ -1921,6 +1931,7 @@ func (r *mutationResolver) CreateNewSessionAlert(ctx context.Context, projectID 
 			ThresholdWindow:      &thresholdWindow,
 			LastAdminToEditID:    admin.ID,
 		},
+		ExcludeRules: excludeRulesString,
 	}
 
 	if err := r.DB.Create(newAlert).Error; err != nil {
@@ -3180,6 +3191,19 @@ func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, projectID int
 	return fields, nil
 }
 
+func (r *queryResolver) IdentifierSuggestion(ctx context.Context, projectID int) ([]*string, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+	identifiers := []*string{}
+	res := r.DB.Raw("SELECT DISTINCT identifier from sessions where project_id=1 AND identifier <> '' AND identifier IS NOT NULL ORDER BY identifier ASC").
+		Scan(&identifiers)
+	if err := res.Error; err != nil {
+		return nil, e.Wrap(err, "error querying identifier suggestion")
+	}
+	return identifiers, nil
+}
+
 func (r *queryResolver) AppVersionSuggestion(ctx context.Context, projectID int) ([]*string, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "error querying project")
@@ -3488,6 +3512,10 @@ func (r *sessionAlertResolver) TrackProperties(ctx context.Context, obj *model.S
 
 func (r *sessionAlertResolver) UserProperties(ctx context.Context, obj *model.SessionAlert) ([]*model.UserProperty, error) {
 	return obj.GetUserProperties()
+}
+
+func (r *sessionAlertResolver) ExcludeRules(ctx context.Context, obj *model.SessionAlert) ([]*string, error) {
+	return obj.GetExcludeRules()
 }
 
 func (r *sessionCommentResolver) Author(ctx context.Context, obj *model.SessionComment) (*modelInputs.SanitizedAdmin, error) {

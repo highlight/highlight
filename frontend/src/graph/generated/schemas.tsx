@@ -519,6 +519,7 @@ export type SessionAlert = {
     ThresholdWindow: Scalars['Int'];
     LastAdminToEditID?: Maybe<Scalars['ID']>;
     Type: Scalars['String'];
+    ExcludeRules: Array<Maybe<Scalars['String']>>;
 };
 
 export type WorkspaceInviteLink = {
@@ -579,6 +580,7 @@ export type Query = {
     rage_click_alerts: Array<Maybe<SessionAlert>>;
     projectSuggestion?: Maybe<Array<Maybe<Project>>>;
     environment_suggestion?: Maybe<Array<Maybe<Field>>>;
+    identifier_suggestion: Array<Maybe<Scalars['String']>>;
     app_version_suggestion: Array<Maybe<Scalars['String']>>;
     slack_channel_suggestion?: Maybe<Array<Maybe<SanitizedSlackChannel>>>;
     slack_members: Array<Maybe<SanitizedSlackChannel>>;
@@ -784,6 +786,10 @@ export type QueryProjectSuggestionArgs = {
 };
 
 export type QueryEnvironment_SuggestionArgs = {
+    project_id: Scalars['ID'];
+};
+
+export type QueryIdentifier_SuggestionArgs = {
     project_id: Scalars['ID'];
 };
 
@@ -1171,6 +1177,7 @@ export type MutationUpdateNewSessionAlertArgs = {
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;
     threshold_window: Scalars['Int'];
+    exclude_rules: Array<Maybe<Scalars['String']>>;
 };
 
 export type MutationCreateNewSessionAlertArgs = {
@@ -1180,6 +1187,7 @@ export type MutationCreateNewSessionAlertArgs = {
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;
     threshold_window: Scalars['Int'];
+    exclude_rules: Array<Maybe<Scalars['String']>>;
 };
 
 export type MutationUpdateSessionIsPublicArgs = {

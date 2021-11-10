@@ -63,6 +63,9 @@ const EditAlertsPage = () => {
                     environmentOptions={
                         alertsPayload?.environment_suggestion || []
                     }
+                    identifierOptions={
+                        alertsPayload?.identifier_suggestion || []
+                    }
                     // @ts-expect-error
                     configuration={ALERT_CONFIGURATIONS[alert?.Type]}
                     onDeleteHandler={(alertId) => {
