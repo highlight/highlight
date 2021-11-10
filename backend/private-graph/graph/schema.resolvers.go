@@ -808,39 +808,9 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID
 		return nil, e.Wrap(err, "must have ADMIN role to update billing details")
 	}
 
-	customerParams := &stripe.CustomerParams{}
-	customerParams.AddExpand("subscriptions")
-	c, err := r.StripeClient.Customers.Get(*workspace.StripeCustomerID, customerParams)
-	if err != nil {
-		return nil, e.Wrap(err, "couldn't retrieve stripe customer data")
+	if err := r.updateBillingDetails(*workspace.StripeCustomerID); err != nil {
+		return nil, e.Wrap(err, "error updating billing details")
 	}
-
-	subscriptions := c.Subscriptions.Data
-	pricing.FillProducts(r.StripeClient, subscriptions)
-
-	// Default to free tier
-	tier := modelInputs.PlanTypeFree
-
-	// Loop over each subscription item in each of the customer's subscriptions
-	// and set the workspace's tier if the Stripe product has one
-	for _, subscription := range subscriptions {
-		for _, subscriptionItem := range subscription.Items.Data {
-			if _, productTier := pricing.GetProductMetadata(subscriptionItem.Price); productTier != nil {
-				tier = *productTier
-			}
-		}
-	}
-
-	if err := r.DB.Model(&workspace).Updates(model.Workspace{PlanTier: string(tier)}).Error; err != nil {
-		return nil, e.Wrap(err, "error setting stripe_plan_tier on workspace")
-	}
-
-	// mark sessions as within billing quota on plan upgrade
-	// this code is repeated as the first time, the user already has a billing plan and the function returns early.
-	// here, the user doesn't already have a billing plan, so it's considered an upgrade unless the plan is free
-	r.PrivateWorkerPool.SubmitRecover(func() {
-		r.UpdateSessionsVisibility(workspaceID, tier, modelInputs.PlanTypeFree)
-	})
 
 	return &model.T, nil
 }
