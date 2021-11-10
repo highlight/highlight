@@ -1085,6 +1085,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'field_group'
             | 'object_storage_enabled'
             | 'payload_size'
+            | 'processed'
             | 'within_billing_quota'
             | 'client_version'
             | 'client_config'
@@ -1138,6 +1139,16 @@ export type GetWorkspaceAdminsQuery = { __typename?: 'Query' } & {
         { __typename?: 'Workspace' } & Pick<
             Types.Workspace,
             'id' | 'name' | 'secret'
+        >
+    >;
+    workspace_invite_links: Array<
+        { __typename?: 'WorkspaceInviteLink' } & Pick<
+            Types.WorkspaceInviteLink,
+            | 'id'
+            | 'invitee_email'
+            | 'invitee_role'
+            | 'expiration_date'
+            | 'secret'
         >
     >;
 };
@@ -2146,6 +2157,7 @@ export type GetTopUsersQuery = { __typename?: 'Query' } & {
                 | 'total_active_time'
                 | 'active_time_percentage'
                 | 'id'
+                | 'user_properties'
             >
         >
     >;
@@ -2192,7 +2204,10 @@ export type GetRageClicksForProjectQuery = { __typename?: 'Query' } & {
     rageClicksForProject: Array<
         { __typename?: 'RageClickEventForProject' } & Pick<
             Types.RageClickEventForProject,
-            'identifier' | 'session_secure_id' | 'total_clicks'
+            | 'identifier'
+            | 'session_secure_id'
+            | 'total_clicks'
+            | 'user_properties'
         >
     >;
 };

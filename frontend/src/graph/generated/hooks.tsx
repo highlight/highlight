@@ -2908,6 +2908,7 @@ export const GetSessionDocument = gql`
             }
             object_storage_enabled
             payload_size
+            processed
             within_billing_quota
             client_version
             client_config
@@ -3036,6 +3037,13 @@ export const GetWorkspaceAdminsDocument = gql`
         workspace(id: $workspace_id) {
             id
             name
+            secret
+        }
+        workspace_invite_links(workspace_id: $workspace_id) {
+            id
+            invitee_email
+            invitee_role
+            expiration_date
             secret
         }
     }
@@ -5742,6 +5750,7 @@ export const GetTopUsersDocument = gql`
             total_active_time
             active_time_percentage
             id
+            user_properties
         }
     }
 `;
@@ -5921,6 +5930,7 @@ export const GetRageClicksForProjectDocument = gql`
             identifier
             session_secure_id
             total_clicks
+            user_properties
         }
     }
 `;

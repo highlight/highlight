@@ -129,6 +129,7 @@ var Models = []interface{}{
 	&Project{},
 	&RageClickEvent{},
 	&Workspace{},
+	&WorkspaceInviteLink{},
 	&EnhancedUserDetails{},
 }
 
@@ -186,6 +187,15 @@ type Workspace struct {
 	PlanTier              string `gorm:"default:Free"`
 	MonthlySessionLimit   *int
 	TrialEndDate          *time.Time `json:"trial_end_date"`
+}
+
+type WorkspaceInviteLink struct {
+	Model
+	WorkspaceID    *int
+	InviteeEmail   *string
+	InviteeRole    *string
+	ExpirationDate *time.Time
+	Secret         *string
 }
 
 type Project struct {

@@ -2014,7 +2014,8 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 	if err := r.DB.Raw(`
 	SELECT
 		COALESCE(NULLIF(identifier, ''), CONCAT('#', fingerprint)) as identifier,
-		rageClicks. *
+		rageClicks. *,
+		user_properties
 	FROM
 		(
 			SELECT
@@ -2607,35 +2608,70 @@ func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPer
 	topUsersSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("db.topUsers"), tracer.Tag("project_id", projectID))
 	if err := r.DB.Raw(`
-		SELECT identifier, (
-			SELECT id
-			FROM fields
-			WHERE project_id=?
-				AND type='user'
-				AND name='identifier'
-				AND value=identifier
-			LIMIT 1
-		) AS id, SUM(active_length) as total_active_time, SUM(active_length) / (
-			SELECT SUM(active_length)
-			FROM sessions
-			WHERE active_length IS NOT NULL
-				AND project_id=?
-				AND identifier <> ''
-				AND created_at >= NOW() - (? * INTERVAL '1 DAY')
-				AND processed=true
-		) AS active_time_percentage
-		FROM (
-			SELECT identifier, active_length
-			FROM sessions
-			WHERE active_length IS NOT NULL
-				AND project_id=?
-				AND identifier <> ''
-				AND created_at >= NOW() - (? * INTERVAL '1 DAY')
-				AND processed=true
-		) q1
-		GROUP BY identifier
-		ORDER BY total_active_time DESC
-		LIMIT 50`,
+	SELECT
+    *
+FROM
+    (
+        SELECT
+            DISTINCT ON(topUsers.identifier) topUsers.identifier,
+            topUsers.id,
+            total_active_time,
+            active_time_percentage,
+            s.user_properties
+        FROM
+            (
+                SELECT
+                    identifier,
+                    (
+                        SELECT
+                            id
+                        FROM
+                            fields
+                        WHERE
+                            project_id = ?
+                            AND type = 'user'
+                            AND name = 'identifier'
+                            AND value = identifier
+                        LIMIT
+                            1
+                    ) AS id,
+                    SUM(active_length) as total_active_time,
+                    SUM(active_length) / (
+                        SELECT
+                            SUM(active_length)
+                        FROM
+                            sessions
+                        WHERE
+                            active_length IS NOT NULL
+                            AND project_id = ?
+                            AND identifier <> ''
+                            AND created_at >= NOW() - (? * INTERVAL '1 DAY')
+                            AND processed = true
+                    ) AS active_time_percentage
+                FROM
+                    (
+                        SELECT
+                            identifier,
+                            active_length,
+                            user_properties
+                        FROM
+                            sessions
+                        WHERE
+                            active_length IS NOT NULL
+                            AND project_id = ?
+                            AND identifier <> ''
+                            AND created_at >= NOW() - (? * INTERVAL '1 DAY')
+                            AND processed = true
+                    ) q1
+                GROUP BY
+                    identifier
+                LIMIT
+                    50
+            ) as topUsers
+            INNER JOIN sessions s on topUsers.identifier = s.identifier
+    ) as q2
+ORDER BY
+    total_active_time DESC`,
 		projectID, projectID, lookBackPeriod, projectID, lookBackPeriod).Scan(&topUsersPayload).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving top users")
 	}
@@ -3212,6 +3248,21 @@ func (r *queryResolver) Workspace(ctx context.Context, id int) (*model.Workspace
 
 	workspace.Projects = projects
 	return workspace, nil
+}
+
+func (r *queryResolver) WorkspaceInviteLinks(ctx context.Context, workspaceID int) ([]*model.WorkspaceInviteLink, error) {
+	_, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in workspace")
+	}
+
+	workspaceInviteLinks := []*model.WorkspaceInviteLink{}
+
+	if err := r.DB.Where(&model.WorkspaceInviteLink{WorkspaceID: &workspaceID, InviteeEmail: nil}).Where("invitee_email IS NULL").Find(&workspaceInviteLinks).Error; err != nil {
+		return nil, e.Wrap(err, "error querying workspace invite links")
+	}
+
+	return workspaceInviteLinks, nil
 }
 
 func (r *queryResolver) WorkspaceForProject(ctx context.Context, projectID int) (*model.Workspace, error) {

@@ -60,8 +60,8 @@ export const ResourcePage = ({
     >([]);
 
     const virtuoso = useRef<VirtuosoHandle>(null);
-    const resourceErrorRequestHeader = new URLSearchParams(location.search).get(
-        PlayerSearchParameters.resourceErrorRequestHeader
+    const errorId = new URLSearchParams(location.search).get(
+        PlayerSearchParameters.errorId
     );
     const { setResourcePanel, setErrorPanel } = useResourceOrErrorDetailPanel();
 
@@ -143,37 +143,36 @@ export const ResourcePage = ({
 
     useEffect(() => {
         if (
-            resourceErrorRequestHeader &&
+            errorId &&
             !loading &&
             !!session &&
             !!allResources &&
+            allResources.length > 0 &&
             !!errors &&
             errors.length > 0 &&
             isPlayerReady
         ) {
-            const resource = findResourceWithMatchingHighlightHeader(
-                resourceErrorRequestHeader,
-                allResources
-            );
-            if (resource) {
-                setResourcePanel(resource);
-                setTime(resource.startTime);
-                scrollFunction(allResources.indexOf(resource));
-                message.success(
-                    `Changed player time to when error was thrown at ${MillisToMinutesAndSeconds(
-                        resource.startTime
-                    )}.`
+            const matchingError = errors.find((e) => e.id === errorId);
+            if (matchingError && matchingError.request_id) {
+                const resource = findResourceWithMatchingHighlightHeader(
+                    matchingError.request_id,
+                    allResources
                 );
-            } else {
-                const firstError = errors.find(
-                    (e) => e.request_id === resourceErrorRequestHeader
-                );
-                if (firstError) {
+                if (resource) {
+                    setResourcePanel(resource);
+                    setTime(resource.startTime);
+                    scrollFunction(allResources.indexOf(resource));
+                    message.success(
+                        `Changed player time to when error was thrown at ${MillisToMinutesAndSeconds(
+                            resource.startTime
+                        )}.`
+                    );
+                } else {
                     setSelectedDevToolsTab('Errors');
-                    setErrorPanel(firstError);
+                    setErrorPanel(matchingError);
                     const startTime = replayer?.getMetaData().startTime;
-                    if (startTime && firstError.timestamp) {
-                        const errorDateTime = new Date(firstError.timestamp);
+                    if (startTime && matchingError.timestamp) {
+                        const errorDateTime = new Date(matchingError.timestamp);
                         const deltaMilliseconds =
                             errorDateTime.getTime() - startTime;
                         setTime(deltaMilliseconds);
@@ -183,8 +182,8 @@ export const ResourcePage = ({
                             )}.`
                         );
                     }
+                    H.track('FailedToMatchHighlightResourceHeaderWithResource');
                 }
-                H.track('FailedToMatchHighlightResourceHeaderWithResource');
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -194,7 +193,6 @@ export const ResourcePage = ({
         isPlayerReady,
         loading,
         replayer,
-        resourceErrorRequestHeader,
         scrollFunction,
         session,
         setErrorPanel,

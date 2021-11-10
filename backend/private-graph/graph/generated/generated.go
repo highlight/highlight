@@ -347,6 +347,7 @@ type ComplexityRoot struct {
 		Workspace                 func(childComplexity int, id int) int
 		WorkspaceAdmins           func(childComplexity int, workspaceID int) int
 		WorkspaceForProject       func(childComplexity int, projectID int) int
+		WorkspaceInviteLinks      func(childComplexity int, workspaceID int) int
 		Workspaces                func(childComplexity int) int
 	}
 
@@ -363,6 +364,7 @@ type ComplexityRoot struct {
 		Identifier      func(childComplexity int) int
 		SessionSecureID func(childComplexity int) int
 		TotalClicks     func(childComplexity int) int
+		UserProperties  func(childComplexity int) int
 	}
 
 	ReferrerTablePayload struct {
@@ -493,6 +495,7 @@ type ComplexityRoot struct {
 		ID                   func(childComplexity int) int
 		Identifier           func(childComplexity int) int
 		TotalActiveTime      func(childComplexity int) int
+		UserProperties       func(childComplexity int) int
 	}
 
 	TrackProperty struct {
@@ -523,6 +526,14 @@ type ComplexityRoot struct {
 		SlackChannels       func(childComplexity int) int
 		SlackWebhookChannel func(childComplexity int) int
 		TrialEndDate        func(childComplexity int) int
+	}
+
+	WorkspaceInviteLink struct {
+		ExpirationDate func(childComplexity int) int
+		ID             func(childComplexity int) int
+		InviteeEmail   func(childComplexity int) int
+		InviteeRole    func(childComplexity int) int
+		Secret         func(childComplexity int) int
 	}
 }
 
@@ -655,6 +666,7 @@ type QueryResolver interface {
 	IsIntegratedWithSlack(ctx context.Context, projectID int) (bool, error)
 	Project(ctx context.Context, id int) (*model1.Project, error)
 	Workspace(ctx context.Context, id int) (*model1.Workspace, error)
+	WorkspaceInviteLinks(ctx context.Context, workspaceID int) ([]*model1.WorkspaceInviteLink, error)
 	WorkspaceForProject(ctx context.Context, projectID int) (*model1.Workspace, error)
 	Admin(ctx context.Context) (*model1.Admin, error)
 	Segments(ctx context.Context, projectID int) ([]*model1.Segment, error)
@@ -2759,6 +2771,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.WorkspaceForProject(childComplexity, args["project_id"].(int)), true
 
+	case "Query.workspace_invite_links":
+		if e.complexity.Query.WorkspaceInviteLinks == nil {
+			break
+		}
+
+		args, err := ec.field_Query_workspace_invite_links_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.WorkspaceInviteLinks(childComplexity, args["workspace_id"].(int)), true
+
 	case "Query.workspaces":
 		if e.complexity.Query.Workspaces == nil {
 			break
@@ -2828,6 +2852,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.RageClickEventForProject.TotalClicks(childComplexity), true
+
+	case "RageClickEventForProject.user_properties":
+		if e.complexity.RageClickEventForProject.UserProperties == nil {
+			break
+		}
+
+		return e.complexity.RageClickEventForProject.UserProperties(childComplexity), true
 
 	case "ReferrerTablePayload.count":
 		if e.complexity.ReferrerTablePayload.Count == nil {
@@ -3508,6 +3539,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TopUsersPayload.TotalActiveTime(childComplexity), true
 
+	case "TopUsersPayload.user_properties":
+		if e.complexity.TopUsersPayload.UserProperties == nil {
+			break
+		}
+
+		return e.complexity.TopUsersPayload.UserProperties(childComplexity), true
+
 	case "TrackProperty.id":
 		if e.complexity.TrackProperty.ID == nil {
 			break
@@ -3612,6 +3650,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Workspace.TrialEndDate(childComplexity), true
+
+	case "WorkspaceInviteLink.expiration_date":
+		if e.complexity.WorkspaceInviteLink.ExpirationDate == nil {
+			break
+		}
+
+		return e.complexity.WorkspaceInviteLink.ExpirationDate(childComplexity), true
+
+	case "WorkspaceInviteLink.id":
+		if e.complexity.WorkspaceInviteLink.ID == nil {
+			break
+		}
+
+		return e.complexity.WorkspaceInviteLink.ID(childComplexity), true
+
+	case "WorkspaceInviteLink.invitee_email":
+		if e.complexity.WorkspaceInviteLink.InviteeEmail == nil {
+			break
+		}
+
+		return e.complexity.WorkspaceInviteLink.InviteeEmail(childComplexity), true
+
+	case "WorkspaceInviteLink.invitee_role":
+		if e.complexity.WorkspaceInviteLink.InviteeRole == nil {
+			break
+		}
+
+		return e.complexity.WorkspaceInviteLink.InviteeRole(childComplexity), true
+
+	case "WorkspaceInviteLink.secret":
+		if e.complexity.WorkspaceInviteLink.Secret == nil {
+			break
+		}
+
+		return e.complexity.WorkspaceInviteLink.Secret(childComplexity), true
 
 	}
 	return 0, false
@@ -3741,6 +3814,7 @@ type RageClickEventForProject {
     identifier: String!
     session_secure_id: String!
     total_clicks: Int!
+    user_properties: String!
 }
 
 type BillingDetails {
@@ -3908,6 +3982,7 @@ type TopUsersPayload {
     identifier: String!
     total_active_time: Int!
     active_time_percentage: Float!
+    user_properties: String!
 }
 
 type NewUsersCount {
@@ -4146,6 +4221,14 @@ type SessionAlert {
     Type: String!
 }
 
+type WorkspaceInviteLink {
+    id: ID!
+    invitee_email: String
+    invitee_role: String!
+    expiration_date: Timestamp!
+    secret: String!
+}
+
 scalar Upload
 
 type Query {
@@ -4236,6 +4319,7 @@ type Query {
     is_integrated_with_slack(project_id: ID!): Boolean!
     project(id: ID!): Project
     workspace(id: ID!): Workspace
+    workspace_invite_links(workspace_id: ID!): [WorkspaceInviteLink!]!
     workspace_for_project(project_id: ID!): Workspace
     admin: Admin
     segments(project_id: ID!): [Segment]
@@ -7329,6 +7413,21 @@ func (ec *executionContext) field_Query_workspace_for_project_args(ctx context.C
 		}
 	}
 	args["project_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_workspace_invite_links_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["workspace_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["workspace_id"] = arg0
 	return args, nil
 }
 
@@ -15353,6 +15452,48 @@ func (ec *executionContext) _Query_workspace(ctx context.Context, field graphql.
 	return ec.marshalOWorkspace2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspace(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_workspace_invite_links(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_workspace_invite_links_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().WorkspaceInviteLinks(rctx, args["workspace_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.WorkspaceInviteLink)
+	fc.Result = res
+	return ec.marshalNWorkspaceInviteLink2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspaceInviteLinkᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_workspace_for_project(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -15925,6 +16066,41 @@ func (ec *executionContext) _RageClickEventForProject_total_clicks(ctx context.C
 	res := resTmp.(int)
 	fc.Result = res
 	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RageClickEventForProject_user_properties(ctx context.Context, field graphql.CollectedField, obj *model.RageClickEventForProject) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RageClickEventForProject",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserProperties, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ReferrerTablePayload_host(ctx context.Context, field graphql.CollectedField, obj *model.ReferrerTablePayload) (ret graphql.Marshaler) {
@@ -19163,6 +19339,41 @@ func (ec *executionContext) _TopUsersPayload_active_time_percentage(ctx context.
 	return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _TopUsersPayload_user_properties(ctx context.Context, field graphql.CollectedField, obj *model.TopUsersPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "TopUsersPayload",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserProperties, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _TrackProperty_id(ctx context.Context, field graphql.CollectedField, obj *model1.TrackProperty) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -19674,6 +19885,178 @@ func (ec *executionContext) _Workspace_trial_end_date(ctx context.Context, field
 	res := resTmp.(*time.Time)
 	fc.Result = res
 	return ec.marshalOTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WorkspaceInviteLink_id(ctx context.Context, field graphql.CollectedField, obj *model1.WorkspaceInviteLink) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "WorkspaceInviteLink",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WorkspaceInviteLink_invitee_email(ctx context.Context, field graphql.CollectedField, obj *model1.WorkspaceInviteLink) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "WorkspaceInviteLink",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.InviteeEmail, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WorkspaceInviteLink_invitee_role(ctx context.Context, field graphql.CollectedField, obj *model1.WorkspaceInviteLink) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "WorkspaceInviteLink",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.InviteeRole, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WorkspaceInviteLink_expiration_date(ctx context.Context, field graphql.CollectedField, obj *model1.WorkspaceInviteLink) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "WorkspaceInviteLink",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ExpirationDate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalNTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WorkspaceInviteLink_secret(ctx context.Context, field graphql.CollectedField, obj *model1.WorkspaceInviteLink) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "WorkspaceInviteLink",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Secret, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -23039,6 +23422,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_workspace(ctx, field)
 				return res
 			})
+		case "workspace_invite_links":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_workspace_invite_links(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "workspace_for_project":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -23184,6 +23581,11 @@ func (ec *executionContext) _RageClickEventForProject(ctx context.Context, sel a
 			}
 		case "total_clicks":
 			out.Values[i] = ec._RageClickEventForProject_total_clicks(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "user_properties":
+			out.Values[i] = ec._RageClickEventForProject_user_properties(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -23845,6 +24247,11 @@ func (ec *executionContext) _TopUsersPayload(ctx context.Context, sel ast.Select
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "user_properties":
+			out.Values[i] = ec._TopUsersPayload_user_properties(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -24018,6 +24425,50 @@ func (ec *executionContext) _Workspace(ctx context.Context, sel ast.SelectionSet
 			}
 		case "trial_end_date":
 			out.Values[i] = ec._Workspace_trial_end_date(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var workspaceInviteLinkImplementors = []string{"WorkspaceInviteLink"}
+
+func (ec *executionContext) _WorkspaceInviteLink(ctx context.Context, sel ast.SelectionSet, obj *model1.WorkspaceInviteLink) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, workspaceInviteLinkImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("WorkspaceInviteLink")
+		case "id":
+			out.Values[i] = ec._WorkspaceInviteLink_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "invitee_email":
+			out.Values[i] = ec._WorkspaceInviteLink_invitee_email(ctx, field, obj)
+		case "invitee_role":
+			out.Values[i] = ec._WorkspaceInviteLink_invitee_role(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "expiration_date":
+			out.Values[i] = ec._WorkspaceInviteLink_expiration_date(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "secret":
+			out.Values[i] = ec._WorkspaceInviteLink_secret(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -25460,6 +25911,53 @@ func (ec *executionContext) unmarshalNUserPropertyInput2ᚕᚖgithubᚗcomᚋhig
 		}
 	}
 	return res, nil
+}
+
+func (ec *executionContext) marshalNWorkspaceInviteLink2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspaceInviteLinkᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.WorkspaceInviteLink) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNWorkspaceInviteLink2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspaceInviteLink(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNWorkspaceInviteLink2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspaceInviteLink(ctx context.Context, sel ast.SelectionSet, v *model1.WorkspaceInviteLink) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._WorkspaceInviteLink(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {

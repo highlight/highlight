@@ -81,6 +81,7 @@ export type RageClickEventForProject = {
     identifier: Scalars['String'];
     session_secure_id: Scalars['String'];
     total_clicks: Scalars['Int'];
+    user_properties: Scalars['String'];
 };
 
 export type BillingDetails = {
@@ -263,6 +264,7 @@ export type TopUsersPayload = {
     identifier: Scalars['String'];
     total_active_time: Scalars['Int'];
     active_time_percentage: Scalars['Float'];
+    user_properties: Scalars['String'];
 };
 
 export type NewUsersCount = {
@@ -519,6 +521,15 @@ export type SessionAlert = {
     Type: Scalars['String'];
 };
 
+export type WorkspaceInviteLink = {
+    __typename?: 'WorkspaceInviteLink';
+    id: Scalars['ID'];
+    invitee_email?: Maybe<Scalars['String']>;
+    invitee_role: Scalars['String'];
+    expiration_date: Scalars['Timestamp'];
+    secret: Scalars['String'];
+};
+
 export type Query = {
     __typename?: 'Query';
     session?: Maybe<Session>;
@@ -574,6 +585,7 @@ export type Query = {
     is_integrated_with_slack: Scalars['Boolean'];
     project?: Maybe<Project>;
     workspace?: Maybe<Workspace>;
+    workspace_invite_links: Array<WorkspaceInviteLink>;
     workspace_for_project?: Maybe<Workspace>;
     admin?: Maybe<Admin>;
     segments?: Maybe<Array<Maybe<Segment>>>;
@@ -797,6 +809,10 @@ export type QueryProjectArgs = {
 
 export type QueryWorkspaceArgs = {
     id: Scalars['ID'];
+};
+
+export type QueryWorkspace_Invite_LinksArgs = {
+    workspace_id: Scalars['ID'];
 };
 
 export type QueryWorkspace_For_ProjectArgs = {

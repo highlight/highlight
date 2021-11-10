@@ -1,6 +1,7 @@
 import {
     BarChartTablePill,
     BarChartTableRowGroup,
+    BarChartTableUserAvatar,
 } from '@components/BarChartTable/components/BarChartTableColumns';
 import Card from '@components/Card/Card';
 import {
@@ -32,6 +33,7 @@ const RageClicksForProjectTable = () => {
             identifier: string;
             sessionSecureId: string;
             totalClicks: number;
+            userProperties: string;
         }[]
     >([]);
     const { project_id } = useParams<{
@@ -61,6 +63,7 @@ const RageClicksForProjectTable = () => {
                         identifier: rageClick.identifier,
                         sessionSecureId: rageClick.session_secure_id,
                         totalClicks: rageClick.total_clicks,
+                        userProperties: rageClick.user_properties,
                     })
                 );
 
@@ -146,11 +149,19 @@ const Columns: ColumnsType<any> = [
         title: 'User',
         dataIndex: 'identifier',
         key: 'identifier',
-        render: (user) => (
-            <div className={styles.hostContainer}>
-                <span>{user}</span>
-            </div>
-        ),
+        render: (user, record) => {
+            return (
+                <div className={styles.hostContainer}>
+                    <BarChartTableRowGroup>
+                        <BarChartTableUserAvatar
+                            identifier={user}
+                            userProperties={record.userProperties}
+                        />
+                        <span>{user}</span>
+                    </BarChartTableRowGroup>
+                </div>
+            );
+        },
     },
     {
         title: 'Rage Clicks',
@@ -158,7 +169,7 @@ const Columns: ColumnsType<any> = [
         key: 'totalClicks',
         align: 'right',
         render: (count) => (
-            <BarChartTableRowGroup>
+            <BarChartTableRowGroup alignment="ending">
                 <Tooltip title="The number of rage clicks in the session.">
                     <BarChartTablePill
                         displayValue={`${count} clicks`}

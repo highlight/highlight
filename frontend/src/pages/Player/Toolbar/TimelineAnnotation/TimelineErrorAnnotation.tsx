@@ -23,9 +23,6 @@ function TimelineErrorAnnotation({ error }: Props): ReactElement {
     const errorId = new URLSearchParams(location.search).get(
         PlayerSearchParameters.errorId
     );
-    const requestId = new URLSearchParams(location.search).get(
-        PlayerSearchParameters.resourceErrorRequestHeader
-    );
     const { pause, replayer } = useReplayerContext();
     const {
         setShowDevTools,
@@ -36,10 +33,22 @@ function TimelineErrorAnnotation({ error }: Props): ReactElement {
     const [isTooltipOpen, setIsTooltipOpen] = useState(false);
 
     useEffect(() => {
-        if (errorId && !requestId) {
-            setErrorPanel(error);
+        if (errorId && error.id === errorId) {
+            setShowDevTools(true);
+            if (error.request_id) {
+                setSelectedDevToolsTab('Network');
+            } else {
+                setSelectedDevToolsTab('Errors');
+                setErrorPanel(error);
+            }
         }
-    }, [error, errorId, requestId, setErrorPanel]);
+    }, [
+        error,
+        errorId,
+        setErrorPanel,
+        setSelectedDevToolsTab,
+        setShowDevTools,
+    ]);
 
     return (
         <Popover
