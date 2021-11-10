@@ -144,12 +144,21 @@ const WorkspaceTeam = () => {
                             </Button>
                         </div>
                     </form>
-                    {sendInviteEmailData && (
+                    {sendInviteEmailData?.sendAdminWorkspaceInvite && (
                         <Alert
                             shouldAlwaysShow
                             trackingId="InviteAdminToWorkspaceConfirmation"
                             message={`An invite email has been sent!`}
-                            description={`You can also share with them this link: ${sendInviteEmailData.sendAdminWorkspaceInvite}`}
+                            description={
+                                <>
+                                    You can also share with them this link:{' '}
+                                    <span className={styles.link}>
+                                        {
+                                            sendInviteEmailData.sendAdminWorkspaceInvite
+                                        }
+                                    </span>
+                                </>
+                            }
                         />
                     )}
                     <hr className={styles.hr} />
