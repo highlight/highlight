@@ -1,6 +1,6 @@
 // eslint-disable-next-line no-restricted-imports
 import { Tabs as AntDesignTabs, TabsProps } from 'antd';
-import React from 'react';
+import React, { useEffect } from 'react';
 const { TabPane } = AntDesignTabs;
 import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
@@ -45,6 +45,22 @@ const Tabs = ({
         `tabs-${id || 'unknown'}-active-tab`,
         tabs[0].key || '0'
     );
+
+    /**
+     * In cases where we render tabs conditionally, a tab may no longer be selectable because it's not rendered.
+     * @example We have Tab A, B, C
+     * On one visit, all 3 tabs are visible
+     * On a second visit, only Tab A and C are visible but Tab B was the last active tab.
+     * On the second visit, the tabs will render an empty tab because Tab B is not visible.
+     * In this case, we'll default to the first tab.
+     */
+    useEffect(() => {
+        const activeTabIndex = tabs.findIndex((tab) => tab.key === activeTab);
+
+        if (activeTabIndex === -1) {
+            setActiveTab(tabs[0].key);
+        }
+    }, [activeTab, setActiveTab, tabs]);
 
     return (
         <AntDesignTabs

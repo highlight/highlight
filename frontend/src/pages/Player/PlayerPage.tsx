@@ -130,6 +130,11 @@ const Player = ({ integrated }: Props) => {
         const widthScale = (targetWidth - 80) / width;
         const heightScale = (targetHeight - 80) / height;
         const scale = Math.min(heightScale, widthScale);
+        // If calculated scale is close enough to 1, return to avoid
+        // infinite looping caused by small floating point math differences
+        if (scale >= 0.9999 && scale <= 1.0001) {
+            return true;
+        }
 
         if (scale <= 0) {
             return false;
@@ -512,7 +517,7 @@ const PlayerSkeleton = ({
 
     return (
         <SkeletonTheme
-            color={'var(--text-primary-inverted)'}
+            baseColor={'var(--text-primary-inverted)'}
             highlightColor={'#f5f5f5'}
         >
             <Skeleton

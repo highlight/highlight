@@ -3,6 +3,7 @@ export const detailsSwitch: string;
 export const emptyMessageContainer: string;
 export const eventStreamContainer: string;
 export const header: string;
+export const search: string;
 export const searchContainer: string;
 export const searchIcon: string;
 export const secondRow: string;

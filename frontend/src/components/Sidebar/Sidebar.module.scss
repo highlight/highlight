@@ -1,6 +1,7 @@
+/* stylelint-disable */
 .sideBar {
     align-items: center;
-    background-color: var(--color-primary-inverted-background);
+    background-color: #111;
     box-shadow: var(--box-shadow-3);
     display: flex;
     flex-direction: column;
@@ -22,7 +23,7 @@
 }
 
 .settingsDivider {
-    background-color: var(--color-gray-800);
+    background-color: #2d2f36;
     flex-shrink: 0;
     height: 2px;
     width: 90%;
@@ -38,7 +39,7 @@
 
 .miniRow {
     align-items: center;
-    color: var(--text-primary) !important;
+    color: #111 !important;
     display: flex;
     justify-content: center;
     width: 100%;
@@ -47,17 +48,17 @@
 .miniSidebarIconWrapper {
     align-items: center;
     border-radius: 8px;
-    color: var(--color-gray-700) !important;
+    color: #8a8f98 !important;
     display: flex;
-    fill: var(--color-gray-700) !important;
+    fill: #8a8f98 !important;
     justify-content: center;
     padding: 8px;
     transition: 0.3s;
 }
 
 .miniSidebarIconWrapper:hover {
-    background-color: var(--color-gray-800);
-    color: var(--text-primary-inverted) !important;
+    background-color: #2d2f36;
+    color: #fff !important;
 }
 
 .icon {
@@ -66,11 +67,11 @@
 }
 
 .selected {
-    background-color: var(--color-gray-800) !important;
-    color: var(--text-primary-inverted) !important;
+    background-color: #2d2f36 !important;
+    color: #fff !important;
 
     h3 {
-        color: var(--text-primary) !important;
+        color: #111 !important;
     }
 }
 

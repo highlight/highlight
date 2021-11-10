@@ -39,7 +39,7 @@ yargs(hideBin(process.argv))
         api_key: apiKey,
       };
 
-      const res = await fetch("https://private.highlight.run", {
+      const res = await fetch("https://pri.highlight.run", {
         method: "post",
         headers: {
           "Content-Type": "application/json",

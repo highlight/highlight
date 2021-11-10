@@ -1,7 +1,8 @@
 .link {
     background: var(--color-purple);
+    border: 1px solid transparent !important;
     border-radius: var(--button-border-radius);
-    color: var(--text-primary-inverted);
+    color: var(--color-white) !important;
     display: block;
     font-family: var(--header-font-family);
     padding-bottom: var(--size-xSmall);
@@ -24,6 +25,13 @@
     &.fullWidth {
         justify-content: center;
         width: 100%;
+    }
+
+    &.defaultButtonStyles {
+        background: var(--color-primary-background) !important;
+        border: 1px solid var(--color-gray-400) !important;
+        box-sizing: border-box;
+        color: var(--text-primary) !important;
     }
 
     &:disabled {

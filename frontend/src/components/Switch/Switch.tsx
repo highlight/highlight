@@ -45,6 +45,7 @@ const Switch = ({
             <AntDesignSwitch
                 {...props}
                 size="small"
+                className={styles.switchStyles}
                 onChange={(checked, event) => {
                     if (props.onChange) {
                         H.track(`Switch-${trackingId}`, {

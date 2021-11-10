@@ -108,7 +108,10 @@ const App = () => {
         >
             <ApolloProvider client={client}>
                 <QueryParamProvider>
-                    <SkeletonTheme color={'#F5F5F5'} highlightColor={'#FCFCFC'}>
+                    <SkeletonTheme
+                        baseColor={'var(--color-gray-200)'}
+                        highlightColor={'var(--color-primary-background)'}
+                    >
                         <AppLoadingContext value={{ isLoading, setIsLoading }}>
                             <LoadingPage />
                             <AuthenticationRouter />

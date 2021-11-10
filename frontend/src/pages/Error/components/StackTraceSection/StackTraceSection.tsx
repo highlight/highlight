@@ -1,3 +1,4 @@
+import Tooltip from '@components/Tooltip/Tooltip';
 import JsonOrTextCard from '@pages/Error/components/JsonOrTextCard/JsonOrTextCard';
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
@@ -136,7 +137,9 @@ const StackSection: React.FC<StackSectionProps> = ({
                 >
                     {lineNumber}
                 </span>
-                <span>{functionName}()</span>
+                <Tooltip mouseEnterDelay={0.1} title={functionName}>
+                    <span className={styles.functionName}>{functionName}</span>
+                </Tooltip>
             </div>
         </div>
     );

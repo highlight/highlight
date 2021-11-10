@@ -131,7 +131,7 @@ const TABLE_COLUMNS = [
                 <span className={styles.cellWithTooltip}>
                     <Tag
                         backgroundColor={getAlertTypeColor(type)}
-                        color="var(--text-primary-inverted)"
+                        color="var(--color-white)"
                         infoTooltipText={record.configuration.description}
                     >
                         {type}

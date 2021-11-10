@@ -24,7 +24,7 @@ import (
 	e "github.com/pkg/errors"
 	"github.com/rs/cors"
 	"github.com/sendgrid/sendgrid-go"
-	"github.com/stripe/stripe-go/client"
+	"github.com/stripe/stripe-go/v72/client"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
 	dd "github.com/highlight-run/highlight/backend/datadog"

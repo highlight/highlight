@@ -66,16 +66,6 @@ export type SendEmailSignupMutation = { __typename?: 'Mutation' } & Pick<
     'emailSignup'
 >;
 
-export type AddAdminToProjectMutationVariables = Types.Exact<{
-    project_id: Types.Scalars['ID'];
-    invite_id: Types.Scalars['String'];
-}>;
-
-export type AddAdminToProjectMutation = { __typename?: 'Mutation' } & Pick<
-    Types.Mutation,
-    'addAdminToProject'
->;
-
 export type AddAdminToWorkspaceMutationVariables = Types.Exact<{
     workspace_id: Types.Scalars['ID'];
     invite_id: Types.Scalars['String'];
@@ -1085,6 +1075,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'field_group'
             | 'object_storage_enabled'
             | 'payload_size'
+            | 'processed'
             | 'within_billing_quota'
             | 'client_version'
             | 'client_config'
@@ -1139,6 +1130,10 @@ export type GetWorkspaceAdminsQuery = { __typename?: 'Query' } & {
             Types.Workspace,
             'id' | 'name' | 'secret'
         >
+    >;
+    workspace_invite_links: { __typename?: 'WorkspaceInviteLink' } & Pick<
+        Types.WorkspaceInviteLink,
+        'id' | 'invitee_email' | 'invitee_role' | 'expiration_date' | 'secret'
     >;
 };
 
@@ -2146,6 +2141,7 @@ export type GetTopUsersQuery = { __typename?: 'Query' } & {
                 | 'total_active_time'
                 | 'active_time_percentage'
                 | 'id'
+                | 'user_properties'
             >
         >
     >;
@@ -2192,7 +2188,10 @@ export type GetRageClicksForProjectQuery = { __typename?: 'Query' } & {
     rageClicksForProject: Array<
         { __typename?: 'RageClickEventForProject' } & Pick<
             Types.RageClickEventForProject,
-            'identifier' | 'session_secure_id' | 'total_clicks'
+            | 'identifier'
+            | 'session_secure_id'
+            | 'total_clicks'
+            | 'user_properties'
         >
     >;
 };
@@ -2541,7 +2540,6 @@ export const namedOperations = {
         UpdateBillingDetails: 'UpdateBillingDetails' as const,
         updateErrorGroupState: 'updateErrorGroupState' as const,
         SendEmailSignup: 'SendEmailSignup' as const,
-        AddAdminToProject: 'AddAdminToProject' as const,
         AddAdminToWorkspace: 'AddAdminToWorkspace' as const,
         DeleteAdminFromProject: 'DeleteAdminFromProject' as const,
         DeleteAdminFromWorkspace: 'DeleteAdminFromWorkspace' as const,

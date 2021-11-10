@@ -3,6 +3,7 @@ import { useAppLoadingContext } from '@context/AppLoadingContext';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React, { useEffect, useState } from 'react';
+import { useHistory } from 'react-router';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
 import { useAuthContext } from '../../authentication/AuthContext';
@@ -75,6 +76,7 @@ const LoginForm = () => {
     const [password, setPassword] = useState('');
     const [passwordConfirmation, setPasswordConfirmation] = useState('');
     const [error, setError] = useState<string | null>(null);
+    const history = useHistory<{ previousPathName?: string }>();
 
     const onSubmit = (e: { preventDefault: () => void }) => {
         e.preventDefault();
@@ -88,6 +90,12 @@ const LoginForm = () => {
                     setError(error.toString());
                 }
             );
+
+            // Redirect the user to their initial path instead to creating a new workspace.
+            // We do this because this happens when a new user clicks on a Highlight link that was shared to them and they don't have an account yet.
+            if (history.location.state?.previousPathName) {
+                history.push(history.location.state.previousPathName);
+            }
         }
         setEmail('');
         setPassword('');

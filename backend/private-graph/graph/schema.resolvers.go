@@ -29,9 +29,10 @@ import (
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
-	stripe "github.com/stripe/stripe-go"
+	stripe "github.com/stripe/stripe-go/v72"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"gorm.io/gorm"
 )
 
 func (r *errorAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.ErrorAlert) ([]*modelInputs.SanitizedSlackChannel, error) {
@@ -461,51 +462,40 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 		return nil, e.Wrap(err, "error querying admin")
 	}
 
-	// TODO: Should migrate these nil secrets so we can remove this
-	var secret string
-	if workspace.Secret == nil {
-		uid := xid.New().String()
-		if err := r.DB.Model(workspace).Updates(&model.Workspace{Secret: &uid}).Error; err != nil {
-			return nil, e.Wrap(err, "error updating uid in project secret")
+	existingInviteLink := &model.WorkspaceInviteLink{}
+	if err := r.DB.Where(&model.WorkspaceInviteLink{WorkspaceID: &workspaceID, InviteeEmail: &email}).First(existingInviteLink).Error; err != nil {
+		if e.Is(err, gorm.ErrRecordNotFound) {
+			existingInviteLink = nil
+		} else {
+			return nil, e.Wrap(err, "error querying workspace invite link for admin")
 		}
-		secret = uid
-	} else {
-		secret = *workspace.Secret
 	}
 
-	inviteLink := baseURL + "/w/" + strconv.Itoa(workspaceID) + "/invite/" + secret
+	// If there's an existing and expired invite link for the user then delete it.
+	if existingInviteLink != nil && r.IsInviteLinkExpired(existingInviteLink) {
+		if err := r.DB.Delete(existingInviteLink).Error; err != nil {
+			return nil, e.Wrap(err, "error deleting expired invite link")
+		}
+		existingInviteLink = nil
+	}
+
+	if existingInviteLink == nil {
+		existingInviteLink = r.CreateInviteLink(workspaceID, &email)
+
+		if err := r.DB.Create(existingInviteLink).Error; err != nil {
+			return nil, e.Wrap(err, "error creating new invite link")
+		}
+	}
+
+	inviteLink := baseURL + "/w/" + strconv.Itoa(workspaceID) + "/invite/" + *existingInviteLink.Secret
 	return r.SendAdminInviteImpl(*admin.Name, *workspace.Name, inviteLink, email)
-}
-
-func (r *mutationResolver) AddAdminToProject(ctx context.Context, projectID int, inviteID string) (*int, error) {
-	project := &model.Project{}
-	adminId, err := r.addAdminMembership(ctx, project, projectID, inviteID)
-	if err != nil {
-		log.Error("failed to add admin to workspace")
-	}
-
-	// For this Real Magic, set all new admins to normal role so they don't have access to billing.
-	// This should be removed when we implement RBAC.
-	if projectID == 388 {
-		admin, err := r.getCurrentAdmin(ctx)
-		if err != nil {
-			log.Error("Failed get current admin.")
-		}
-		if err := r.DB.Model(admin).Updates(model.Admin{
-			Role: &model.AdminRole.MEMBER,
-		}); err != nil {
-			log.Error("Failed to update admin when changing role to normal.")
-		}
-	}
-
-	return adminId, nil
 }
 
 func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID int, inviteID string) (*int, error) {
 	workspace := &model.Workspace{}
 	adminId, err := r.addAdminMembership(ctx, workspace, workspaceID, inviteID)
 	if err != nil {
-		log.Error("failed to add admin to workspace")
+		log.Error(err, " failed to add admin to workspace")
 	}
 
 	// For this Real Magic, set all new admins to normal role so they don't have access to billing.
@@ -701,7 +691,6 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 		workspace.StripeCustomerID = &c.ID
 	}
 
-	// Check if there's already a subscription on the user. If there is, we do an update and return early.
 	params := &stripe.CustomerParams{}
 	params.AddExpand("subscriptions")
 
@@ -709,19 +698,58 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	if err != nil {
 		return nil, e.Wrap(err, "couldn't retrieve stripe customer data")
 	}
-	// If there's a single subscription on the user and a single price item on the subscription
-	if len(c.Subscriptions.Data) == 1 && len(c.Subscriptions.Data[0].Items.Data) == 1 {
-		plan := pricing.ToPriceID(planType)
+
+	// If there are multiple subscriptions, it's ambiguous which one should be updated, so throw an error
+	if len(c.Subscriptions.Data) > 1 {
+		return nil, e.New("cannot update stripe subscription - customer has multiple subscriptions")
+	}
+
+	subscriptions := c.Subscriptions.Data
+	pricing.FillProducts(r.StripeClient, subscriptions)
+
+	prices, err := pricing.GetStripePrices(r.StripeClient, planType, pricing.SubscriptionIntervalMonthly)
+	if err != nil {
+		return nil, e.Wrap(err, "failed to get Stripe prices")
+	}
+
+	// If there's a single subscription
+	if len(subscriptions) == 1 {
+		newSubItems := []*stripe.SubscriptionItemsParams{}
+		subscription := subscriptions[0]
+		for _, subscriptionItem := range subscription.Items.Data {
+			productType, _ := pricing.GetProductMetadata(subscriptionItem.Price)
+			if productType == nil {
+				continue
+			}
+
+			price, ok := prices[*productType]
+			if !ok {
+				return nil, e.New("price not found for product type")
+			}
+
+			subItem := stripe.SubscriptionItemsParams{
+				ID:   &subscriptionItem.ID,
+				Plan: &price.ID,
+			}
+			newSubItems = append(newSubItems, &subItem)
+
+			// Remove the current key from map - will be used to add any leftover prices to the subscription
+			delete(prices, *productType)
+		}
+
+		for _, price := range prices {
+			subItem := stripe.SubscriptionItemsParams{
+				Plan: &price.ID,
+			}
+			newSubItems = append(newSubItems, &subItem)
+		}
+
 		subscriptionParams := &stripe.SubscriptionParams{
 			CancelAtPeriodEnd: stripe.Bool(false),
 			ProrationBehavior: stripe.String(string(stripe.SubscriptionProrationBehaviorCreateProrations)),
-			Items: []*stripe.SubscriptionItemsParams{
-				{
-					ID:   stripe.String(c.Subscriptions.Data[0].Items.Data[0].ID),
-					Plan: &plan,
-				},
-			},
+			Items:             newSubItems,
 		}
+
 		_, err := r.StripeClient.Subscriptions.Update(c.Subscriptions.Data[0].ID, subscriptionParams)
 		if err != nil {
 			return nil, e.Wrap(err, "couldn't update subscription")
@@ -731,7 +759,14 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	}
 
 	// If there's no existing subscription, we create a checkout.
-	plan := pricing.ToPriceID(planType)
+	newSubItems := []*stripe.CheckoutSessionSubscriptionDataItemsParams{}
+	for _, price := range prices {
+		subItem := stripe.CheckoutSessionSubscriptionDataItemsParams{
+			Plan: &price.ID,
+		}
+		newSubItems = append(newSubItems, &subItem)
+	}
+
 	checkoutSessionParams := &stripe.CheckoutSessionParams{
 		SuccessURL: stripe.String(os.Getenv("FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/billing/success"),
 		CancelURL:  stripe.String(os.Getenv("FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/billing/checkoutCanceled"),
@@ -740,11 +775,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 		}),
 		Customer: workspace.StripeCustomerID,
 		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
-			Items: []*stripe.CheckoutSessionSubscriptionDataItemsParams{
-				{
-					Plan: stripe.String(plan),
-				},
-			},
+			Items: newSubItems,
 		},
 		Mode: stripe.String(string(stripe.CheckoutSessionModeSubscription)),
 	}
@@ -768,28 +799,38 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID
 		return nil, e.Wrap(err, "must have ADMIN role to update billing details")
 	}
 
-	params := &stripe.CustomerParams{}
-	params.AddExpand("subscriptions")
-	c, err := r.StripeClient.Customers.Get(*workspace.StripeCustomerID, params)
+	customerParams := &stripe.CustomerParams{}
+	customerParams.AddExpand("subscriptions")
+	c, err := r.StripeClient.Customers.Get(*workspace.StripeCustomerID, customerParams)
 	if err != nil {
 		return nil, e.Wrap(err, "couldn't retrieve stripe customer data")
 	}
-	// If there's a single subscription on the user and a single price item on the subscription
-	if len(c.Subscriptions.Data) != 1 || len(c.Subscriptions.Data[0].Items.Data) != 1 {
-		return nil, e.New("no stripe subscription for customer")
+
+	subscriptions := c.Subscriptions.Data
+	pricing.FillProducts(r.StripeClient, subscriptions)
+
+	// Default to free tier
+	tier := modelInputs.PlanTypeFree
+
+	// Loop over each subscription item in each of the customer's subscriptions
+	// and set the workspace's tier if the Stripe product has one
+	for _, subscription := range subscriptions {
+		for _, subscriptionItem := range subscription.Items.Data {
+			if _, productTier := pricing.GetProductMetadata(subscriptionItem.Price); productTier != nil {
+				tier = *productTier
+			}
+		}
 	}
 
-	planTypeId := c.Subscriptions.Data[0].Plan.ID
-
-	if err := r.DB.Model(&workspace).Updates(model.Workspace{StripePriceID: &planTypeId}).Error; err != nil {
-		return nil, e.Wrap(err, "error setting stripe_price_id on project")
+	if err := r.DB.Model(&workspace).Updates(model.Workspace{PlanTier: string(tier)}).Error; err != nil {
+		return nil, e.Wrap(err, "error setting stripe_plan_tier on workspace")
 	}
+
 	// mark sessions as within billing quota on plan upgrade
 	// this code is repeated as the first time, the user already has a billing plan and the function returns early.
 	// here, the user doesn't already have a billing plan, so it's considered an upgrade unless the plan is free
-
 	r.PrivateWorkerPool.SubmitRecover(func() {
-		r.UpdateSessionsVisibility(workspaceID, pricing.FromPriceID(planTypeId), modelInputs.PlanTypeFree)
+		r.UpdateSessionsVisibility(workspaceID, tier, modelInputs.PlanTypeFree)
 	})
 
 	return &model.T, nil
@@ -2015,7 +2056,8 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 	if err := r.DB.Raw(`
 	SELECT
 		COALESCE(NULLIF(identifier, ''), CONCAT('#', fingerprint)) as identifier,
-		rageClicks. *
+		rageClicks. *,
+		user_properties
 	FROM
 		(
 			SELECT
@@ -2612,37 +2654,63 @@ func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPer
 	topUsersSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("db.topUsers"), tracer.Tag("project_id", projectID))
 	if err := r.DB.Raw(`
-		SELECT identifier, (
-			SELECT id
-			FROM fields
-			WHERE project_id=?
-				AND type='user'
-				AND name='identifier'
-				AND value=identifier
-			LIMIT 1
-		) AS id, SUM(active_length) as total_active_time, SUM(active_length) / (
-			SELECT SUM(active_length)
-			FROM sessions
-			WHERE active_length IS NOT NULL
-				AND project_id=?
-				AND identifier <> ''
-				AND created_at >= NOW() - (? * INTERVAL '1 DAY')
-				AND processed=true
-				AND excluded != true
-		) AS active_time_percentage
-		FROM (
-			SELECT identifier, active_length
-			FROM sessions
-			WHERE active_length IS NOT NULL
-				AND project_id=?
-				AND identifier <> ''
-				AND created_at >= NOW() - (? * INTERVAL '1 DAY')
-				AND processed=true
-				AND excluded != true
-		) q1
-		GROUP BY identifier
-		ORDER BY total_active_time DESC
-		LIMIT 50`,
+	SELECT *
+	FROM (
+        SELECT
+            DISTINCT ON(topUsers.identifier) topUsers.identifier,
+            topUsers.id,
+            total_active_time,
+            active_time_percentage,
+            s.user_properties
+        FROM (
+			SELECT
+				identifier, (
+					SELECT
+						id
+					FROM
+						fields
+					WHERE
+						project_id = ?
+						AND type = 'user'
+						AND name = 'identifier'
+						AND value = identifier
+					LIMIT 1
+				) AS id,
+				SUM(active_length) as total_active_time,
+				SUM(active_length) / (
+					SELECT
+						SUM(active_length)
+					FROM
+						sessions
+					WHERE
+						active_length IS NOT NULL
+						AND project_id = ?
+						AND identifier <> ''
+						AND created_at >= NOW() - (? * INTERVAL '1 DAY')
+						AND processed = true
+						AND excluded != true
+				) AS active_time_percentage
+			FROM (
+				SELECT
+					identifier,
+					active_length,
+					user_properties
+				FROM
+					sessions
+				WHERE
+					active_length IS NOT NULL
+					AND project_id = ?
+					AND identifier <> ''
+					AND created_at >= NOW() - (? * INTERVAL '1 DAY')
+					AND processed = true
+					AND excluded != true
+			) q1
+			GROUP BY identifier
+			LIMIT 50
+		) as topUsers
+		INNER JOIN sessions s on topUsers.identifier = s.identifier
+    ) as q2
+	ORDER BY total_active_time DESC`,
 		projectID, projectID, lookBackPeriod, projectID, lookBackPeriod).Scan(&topUsersPayload).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving top users")
 	}
@@ -2880,11 +2948,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 		return nil, e.Wrap(err, "admin not in workspace")
 	}
 
-	stripePriceID := workspace.StripePriceID
-	planType := modelInputs.PlanTypeFree
-	if stripePriceID != nil {
-		planType = pricing.FromPriceID(*stripePriceID)
-	}
+	planType := modelInputs.PlanType(workspace.PlanTier)
 
 	var g errgroup.Group
 	var meter int64
@@ -3238,6 +3302,41 @@ func (r *queryResolver) Workspace(ctx context.Context, id int) (*model.Workspace
 
 	workspace.Projects = projects
 	return workspace, nil
+}
+
+func (r *queryResolver) WorkspaceInviteLinks(ctx context.Context, workspaceID int) (*model.WorkspaceInviteLink, error) {
+	_, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in workspace")
+	}
+
+	var workspaceInviteLink *model.WorkspaceInviteLink
+	shouldCreateNewInviteLink := false
+
+	if err := r.DB.Where(&model.WorkspaceInviteLink{WorkspaceID: &workspaceID, InviteeEmail: nil}).Where("invitee_email IS NULL").First(&workspaceInviteLink).Error; err != nil {
+		if e.Is(err, gorm.ErrRecordNotFound) {
+			shouldCreateNewInviteLink = true
+		} else {
+			return nil, e.Wrap(err, "error querying workspace invite links")
+		}
+	}
+
+	if r.IsInviteLinkExpired(workspaceInviteLink) && !shouldCreateNewInviteLink {
+		shouldCreateNewInviteLink = true
+		if err := r.DB.Delete(workspaceInviteLink).Error; err != nil {
+			return nil, e.Wrap(err, "error while deleting expired invite link for workspace")
+		}
+	}
+
+	if shouldCreateNewInviteLink {
+		workspaceInviteLink = r.CreateInviteLink(workspaceID, nil)
+
+		if err := r.DB.Create(&workspaceInviteLink).Error; err != nil {
+			return nil, e.Wrap(err, "failed to create new invite link to replace expired one.")
+		}
+	}
+
+	return workspaceInviteLink, nil
 }
 
 func (r *queryResolver) WorkspaceForProject(ctx context.Context, projectID int) (*model.Workspace, error) {

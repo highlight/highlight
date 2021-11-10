@@ -12,12 +12,21 @@
     background: var(--color-purple-200);
     border: 0;
     border-radius: 2px;
-    color: var(--color-purple);
     display: flex;
     height: 18px;
     justify-content: center;
     padding: 0;
     width: 18px;
+
+    svg {
+        color: var(--color-purple) !important;
+    }
+
+    &:hover {
+        svg {
+            color: var(--text-primary-inverted) !important;
+        }
+    }
 
     &:focus {
         background: var(--color-purple-200);

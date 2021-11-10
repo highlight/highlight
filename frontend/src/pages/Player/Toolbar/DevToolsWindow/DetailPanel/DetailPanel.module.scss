@@ -9,7 +9,7 @@
     position: absolute;
     right: 0;
     width: 100%;
-    z-index: 99;
+    z-index: 99999;
 
     &.padding {
         padding: var(--size-medium) var(--size-large);
@@ -65,7 +65,7 @@
     transform: translateX(12px);
     transition: opacity 0.2s ease-in;
     width: var(--size-xxSmall);
-    z-index: 99;
+    z-index: 9999999;
 
     &.hidden {
         opacity: 0;

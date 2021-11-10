@@ -28,6 +28,7 @@
 
 .mentions--multiLine .mentions__input {
     border: 1px solid transparent;
+    color: var(--color-gray-500);
     cursor: inherit;
     font-weight: 300;
     outline: 0;

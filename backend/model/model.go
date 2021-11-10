@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
@@ -128,6 +129,7 @@ var Models = []interface{}{
 	&Project{},
 	&RageClickEvent{},
 	&Workspace{},
+	&WorkspaceInviteLink{},
 	&EnhancedUserDetails{},
 }
 
@@ -182,8 +184,18 @@ type Workspace struct {
 	MigratedFromProjectID *int // Column can be removed after migration is done
 	StripeCustomerID      *string
 	StripePriceID         *string
+	PlanTier              string `gorm:"default:Free"`
 	MonthlySessionLimit   *int
 	TrialEndDate          *time.Time `json:"trial_end_date"`
+}
+
+type WorkspaceInviteLink struct {
+	Model
+	WorkspaceID    *int
+	InviteeEmail   *string
+	InviteeRole    *string
+	ExpirationDate *time.Time
+	Secret         *string
 }
 
 type Project struct {
@@ -457,6 +469,11 @@ type Session struct {
 
 	// Excluded will be true when we would typically have deleted the session
 	Excluded bool `gorm:"default:false"`
+
+	// Lock is the timestamp at which a session was locked
+	// - when selecting sessions, ignore Locks that are > 10 minutes old
+	//   ex. SELECT * FROM sessions WHERE (lock IS NULL OR lock < NOW() - 10 * (INTERVAL '1 MINUTE'))
+	Lock sql.NullTime
 }
 
 // AreModelsWeaklyEqual compares two structs of the same type while ignoring the Model and SecureID field

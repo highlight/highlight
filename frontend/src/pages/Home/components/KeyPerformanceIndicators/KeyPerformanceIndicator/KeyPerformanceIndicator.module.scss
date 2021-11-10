@@ -8,6 +8,7 @@
     }
 
     .tooltip {
+        color: var(--text-primary);
         position: absolute;
         right: calc(var(--size-small) * -1);
         top: calc(var(--size-xxSmall) * -1);

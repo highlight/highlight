@@ -1,5 +1,8 @@
 .popover {
+    display: flex;
+    flex-direction: column;
     padding-bottom: var(--size-medium);
+    row-gap: var(--size-medium);
     width: 250px;
 
     .label {
