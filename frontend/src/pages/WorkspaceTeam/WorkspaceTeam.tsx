@@ -1,12 +1,15 @@
 import Alert from '@components/Alert/Alert';
 import Card from '@components/Card/Card';
+import CopyText from '@components/CopyText/CopyText';
 import Input from '@components/Input/Input';
 import Modal from '@components/Modal/Modal';
 import Table from '@components/Table/Table';
 import SvgTrash from '@icons/Trash';
+import { getWorkspaceInvitationLink } from '@pages/WorkspaceTeam/utils';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames/bind';
+import moment from 'moment';
 import React, { useRef, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useToggle } from 'react-use';
@@ -15,7 +18,6 @@ import { useAuthContext } from '../../authentication/AuthContext';
 import commonStyles from '../../Common.module.scss';
 import { AdminAvatar } from '../../components/Avatar/Avatar';
 import Button from '../../components/Button/Button/Button';
-import CopyText from '../../components/CopyText/CopyText';
 import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import { CircularSpinner } from '../../components/Loading/Loading';
@@ -25,7 +27,6 @@ import {
     useGetWorkspaceAdminsQuery,
     useSendAdminWorkspaceInviteMutation,
 } from '../../graph/generated/hooks';
-import { getWorkspaceInvitationLink } from './utils';
 import styles from './WorkspaceTeam.module.scss';
 
 const WorkspaceTeam = () => {
@@ -153,11 +154,15 @@ const WorkspaceTeam = () => {
                     )}
                     <hr className={styles.hr} />
                     <p className={styles.boxSubTitle}>
-                        Or share this link with them.
+                        Or share this link with them (this link expires{' '}
+                        {moment(
+                            data?.workspace_invite_links.expiration_date
+                        ).fromNow()}
+                        ).
                     </p>
                     <CopyText
                         text={getWorkspaceInvitationLink(
-                            data?.workspace?.secret || '',
+                            data?.workspace_invite_links.secret || '',
                             workspace_id
                         )}
                     />

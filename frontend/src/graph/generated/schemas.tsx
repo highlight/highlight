@@ -585,7 +585,7 @@ export type Query = {
     is_integrated_with_slack: Scalars['Boolean'];
     project?: Maybe<Project>;
     workspace?: Maybe<Workspace>;
-    workspace_invite_links: Array<WorkspaceInviteLink>;
+    workspace_invite_links: WorkspaceInviteLink;
     workspace_for_project?: Maybe<Workspace>;
     admin?: Maybe<Admin>;
     segments?: Maybe<Array<Maybe<Segment>>>;

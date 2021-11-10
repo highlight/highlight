@@ -460,8 +460,6 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 	if err != nil {
 		return nil, e.Wrap(err, "error querying admin")
 	}
-	// Unit is days.
-	EXPIRATION_TIME := 7
 
 	existingInviteLink := &model.WorkspaceInviteLink{}
 	if err := r.DB.Where(&model.WorkspaceInviteLink{WorkspaceID: &workspaceID, InviteeEmail: &email}).First(existingInviteLink).Error; err != nil {
@@ -473,7 +471,7 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 	}
 
 	// If there's an existing and expired invite link for the user then delete it.
-	if existingInviteLink != nil && time.Now().UTC().After(*existingInviteLink.ExpirationDate) {
+	if existingInviteLink != nil && r.IsInviteLinkExpired(existingInviteLink) {
 		if err := r.DB.Delete(existingInviteLink).Error; err != nil {
 			return nil, e.Wrap(err, "error deleting expired invite link")
 		}
@@ -481,16 +479,7 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 	}
 
 	if existingInviteLink == nil {
-		// Expires in 7 days.
-		expirationDate := time.Now().UTC().AddDate(0, 0, EXPIRATION_TIME)
-		secret, _ := r.GenerateRandomStringURLSafe(16)
-		existingInviteLink = &model.WorkspaceInviteLink{
-			WorkspaceID:    &workspaceID,
-			InviteeEmail:   &email,
-			InviteeRole:    &model.AdminRole.ADMIN,
-			ExpirationDate: &expirationDate,
-			Secret:         &secret,
-		}
+		existingInviteLink = r.CreateInviteLink(workspaceID, &email)
 
 		if err := r.DB.Create(existingInviteLink).Error; err != nil {
 			return nil, e.Wrap(err, "error creating new invite link")
@@ -3251,19 +3240,39 @@ func (r *queryResolver) Workspace(ctx context.Context, id int) (*model.Workspace
 	return workspace, nil
 }
 
-func (r *queryResolver) WorkspaceInviteLinks(ctx context.Context, workspaceID int) ([]*model.WorkspaceInviteLink, error) {
+func (r *queryResolver) WorkspaceInviteLinks(ctx context.Context, workspaceID int) (*model.WorkspaceInviteLink, error) {
 	_, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in workspace")
 	}
 
-	workspaceInviteLinks := []*model.WorkspaceInviteLink{}
+	var workspaceInviteLink *model.WorkspaceInviteLink
+	shouldCreateNewInviteLink := false
 
-	if err := r.DB.Where(&model.WorkspaceInviteLink{WorkspaceID: &workspaceID, InviteeEmail: nil}).Where("invitee_email IS NULL").Find(&workspaceInviteLinks).Error; err != nil {
-		return nil, e.Wrap(err, "error querying workspace invite links")
+	if err := r.DB.Where(&model.WorkspaceInviteLink{WorkspaceID: &workspaceID, InviteeEmail: nil}).Where("invitee_email IS NULL").First(&workspaceInviteLink).Error; err != nil {
+		if e.Is(err, gorm.ErrRecordNotFound) {
+			shouldCreateNewInviteLink = true
+		} else {
+			return nil, e.Wrap(err, "error querying workspace invite links")
+		}
 	}
 
-	return workspaceInviteLinks, nil
+	if r.IsInviteLinkExpired(workspaceInviteLink) && !shouldCreateNewInviteLink {
+		shouldCreateNewInviteLink = true
+		if err := r.DB.Delete(workspaceInviteLink).Error; err != nil {
+			return nil, e.Wrap(err, "error while deleting expired invite link for workspace")
+		}
+	}
+
+	if shouldCreateNewInviteLink {
+		workspaceInviteLink = r.CreateInviteLink(workspaceID, nil)
+
+		if err := r.DB.Create(&workspaceInviteLink).Error; err != nil {
+			return nil, e.Wrap(err, "failed to create new invite link to replace expired one.")
+		}
+	}
+
+	return workspaceInviteLink, nil
 }
 
 func (r *queryResolver) WorkspaceForProject(ctx context.Context, projectID int) (*model.Workspace, error) {

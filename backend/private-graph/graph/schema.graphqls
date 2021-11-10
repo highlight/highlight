@@ -567,7 +567,7 @@ type Query {
     is_integrated_with_slack(project_id: ID!): Boolean!
     project(id: ID!): Project
     workspace(id: ID!): Workspace
-    workspace_invite_links(workspace_id: ID!): [WorkspaceInviteLink!]!
+    workspace_invite_links(workspace_id: ID!): WorkspaceInviteLink!
     workspace_for_project(project_id: ID!): Workspace
     admin: Admin
     segments(project_id: ID!): [Segment]

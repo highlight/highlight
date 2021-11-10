@@ -136,7 +136,7 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspace model.HasSe
 		}
 	}
 
-	if time.Now().UTC().After(*inviteLink.ExpirationDate) {
+	if r.IsInviteLinkExpired(inviteLink) {
 		if err := r.DB.Delete(inviteLink).Error; err != nil {
 			return nil, e.Wrap(err, "error while trying to delete expired invite link")
 		}
@@ -905,4 +905,28 @@ func GenerateRandomString(n int) (string, error) {
 func (r *Resolver) GenerateRandomStringURLSafe(n int) (string, error) {
 	b, err := GenerateRandomBytes(n)
 	return base64.URLEncoding.EncodeToString(b), err
+}
+
+func (r *Resolver) CreateInviteLink(workspaceID int, email *string) *model.WorkspaceInviteLink {
+	// Unit is days.
+	EXPIRATION_DATE := 7
+	expirationDate := time.Now().UTC().AddDate(0, 0, EXPIRATION_DATE)
+	secret, _ := r.GenerateRandomStringURLSafe(16)
+
+	newInviteLink := &model.WorkspaceInviteLink{
+		WorkspaceID:    &workspaceID,
+		InviteeEmail:   email,
+		InviteeRole:    &model.AdminRole.ADMIN,
+		ExpirationDate: &expirationDate,
+		Secret:         &secret,
+	}
+
+	return newInviteLink
+}
+
+func (r *Resolver) IsInviteLinkExpired(inviteLink *model.WorkspaceInviteLink) bool {
+	if inviteLink == nil || inviteLink.ExpirationDate == nil {
+		return true
+	}
+	return time.Now().UTC().After(*inviteLink.ExpirationDate)
 }
