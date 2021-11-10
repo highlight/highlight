@@ -700,7 +700,6 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 		workspace.StripeCustomerID = &c.ID
 	}
 
-	// Check if there's already a subscription on the user. If there is, we do an update and return early.
 	params := &stripe.CustomerParams{}
 	params.AddExpand("subscriptions")
 
@@ -708,19 +707,58 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	if err != nil {
 		return nil, e.Wrap(err, "couldn't retrieve stripe customer data")
 	}
-	// If there's a single subscription on the user and a single price item on the subscription
-	if len(c.Subscriptions.Data) == 1 && len(c.Subscriptions.Data[0].Items.Data) == 1 {
-		plan := pricing.ToPriceID(planType)
+
+	// If there are multiple subscriptions, it's ambiguous which one should be updated, so throw an error
+	if len(c.Subscriptions.Data) > 1 {
+		return nil, e.New("cannot update stripe subscription - customer has multiple subscriptions")
+	}
+
+	subscriptions := c.Subscriptions.Data
+	pricing.FillProducts(r.StripeClient, subscriptions)
+
+	prices, err := pricing.GetStripePrices(r.StripeClient, planType, pricing.SubscriptionIntervalMonthly)
+	if err != nil {
+		return nil, e.Wrap(err, "failed to get Stripe prices")
+	}
+
+	// If there's a single subscription
+	if len(subscriptions) == 1 {
+		newSubItems := []*stripe.SubscriptionItemsParams{}
+		subscription := subscriptions[0]
+		for _, subscriptionItem := range subscription.Items.Data {
+			productType, _ := pricing.GetProductMetadata(subscriptionItem.Price)
+			if productType == nil {
+				continue
+			}
+
+			price, ok := prices[*productType]
+			if !ok {
+				return nil, e.New("price not found for product type")
+			}
+
+			subItem := stripe.SubscriptionItemsParams{
+				ID:   &subscriptionItem.ID,
+				Plan: &price.ID,
+			}
+			newSubItems = append(newSubItems, &subItem)
+
+			// Remove the current key from map - will be used to add any leftover prices to the subscription
+			delete(prices, *productType)
+		}
+
+		for _, price := range prices {
+			subItem := stripe.SubscriptionItemsParams{
+				Plan: &price.ID,
+			}
+			newSubItems = append(newSubItems, &subItem)
+		}
+
 		subscriptionParams := &stripe.SubscriptionParams{
 			CancelAtPeriodEnd: stripe.Bool(false),
 			ProrationBehavior: stripe.String(string(stripe.SubscriptionProrationBehaviorCreateProrations)),
-			Items: []*stripe.SubscriptionItemsParams{
-				{
-					ID:   stripe.String(c.Subscriptions.Data[0].Items.Data[0].ID),
-					Plan: &plan,
-				},
-			},
+			Items:             newSubItems,
 		}
+
 		_, err := r.StripeClient.Subscriptions.Update(c.Subscriptions.Data[0].ID, subscriptionParams)
 		if err != nil {
 			return nil, e.Wrap(err, "couldn't update subscription")
@@ -730,7 +768,14 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	}
 
 	// If there's no existing subscription, we create a checkout.
-	plan := pricing.ToPriceID(planType)
+	newSubItems := []*stripe.CheckoutSessionSubscriptionDataItemsParams{}
+	for _, price := range prices {
+		subItem := stripe.CheckoutSessionSubscriptionDataItemsParams{
+			Plan: &price.ID,
+		}
+		newSubItems = append(newSubItems, &subItem)
+	}
+
 	checkoutSessionParams := &stripe.CheckoutSessionParams{
 		SuccessURL: stripe.String(os.Getenv("FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/billing/success"),
 		CancelURL:  stripe.String(os.Getenv("FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/billing/checkoutCanceled"),
@@ -739,11 +784,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 		}),
 		Customer: workspace.StripeCustomerID,
 		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
-			Items: []*stripe.CheckoutSessionSubscriptionDataItemsParams{
-				{
-					Plan: stripe.String(plan),
-				},
-			},
+			Items: newSubItems,
 		},
 		Mode: stripe.String(string(stripe.CheckoutSessionModeSubscription)),
 	}
@@ -767,28 +808,38 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID
 		return nil, e.Wrap(err, "must have ADMIN role to update billing details")
 	}
 
-	params := &stripe.CustomerParams{}
-	params.AddExpand("subscriptions")
-	c, err := r.StripeClient.Customers.Get(*workspace.StripeCustomerID, params)
+	customerParams := &stripe.CustomerParams{}
+	customerParams.AddExpand("subscriptions")
+	c, err := r.StripeClient.Customers.Get(*workspace.StripeCustomerID, customerParams)
 	if err != nil {
 		return nil, e.Wrap(err, "couldn't retrieve stripe customer data")
 	}
-	// If there's a single subscription on the user and a single price item on the subscription
-	if len(c.Subscriptions.Data) != 1 || len(c.Subscriptions.Data[0].Items.Data) != 1 {
-		return nil, e.New("no stripe subscription for customer")
+
+	subscriptions := c.Subscriptions.Data
+	pricing.FillProducts(r.StripeClient, subscriptions)
+
+	// Default to free tier
+	tier := modelInputs.PlanTypeFree
+
+	// Loop over each subscription item in each of the customer's subscriptions
+	// and set the workspace's tier if the Stripe product has one
+	for _, subscription := range subscriptions {
+		for _, subscriptionItem := range subscription.Items.Data {
+			if _, productTier := pricing.GetProductMetadata(subscriptionItem.Price); productTier != nil {
+				tier = *productTier
+			}
+		}
 	}
 
-	planTypeId := c.Subscriptions.Data[0].Plan.ID
-
-	if err := r.DB.Model(&workspace).Updates(model.Workspace{StripePriceID: &planTypeId}).Error; err != nil {
-		return nil, e.Wrap(err, "error setting stripe_price_id on project")
+	if err := r.DB.Model(&workspace).Updates(model.Workspace{PlanTier: string(tier)}).Error; err != nil {
+		return nil, e.Wrap(err, "error setting stripe_plan_tier on workspace")
 	}
+
 	// mark sessions as within billing quota on plan upgrade
 	// this code is repeated as the first time, the user already has a billing plan and the function returns early.
 	// here, the user doesn't already have a billing plan, so it's considered an upgrade unless the plan is free
-
 	r.PrivateWorkerPool.SubmitRecover(func() {
-		r.UpdateSessionsVisibility(workspaceID, pricing.FromPriceID(planTypeId), modelInputs.PlanTypeFree)
+		r.UpdateSessionsVisibility(workspaceID, tier, modelInputs.PlanTypeFree)
 	})
 
 	return &model.T, nil
@@ -2890,11 +2941,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 		return nil, e.Wrap(err, "admin not in workspace")
 	}
 
-	stripePriceID := workspace.StripePriceID
-	planType := modelInputs.PlanTypeFree
-	if stripePriceID != nil {
-		planType = pricing.FromPriceID(*stripePriceID)
-	}
+	planType := modelInputs.PlanType(workspace.PlanTier)
 
 	var g errgroup.Group
 	var meter int64
