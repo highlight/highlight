@@ -37,10 +37,6 @@ mutation SendEmailSignup($email: String!) {
     emailSignup(email: $email)
 }
 
-mutation AddAdminToProject($project_id: ID!, $invite_id: String!) {
-    addAdminToProject(project_id: $project_id, invite_id: $invite_id)
-}
-
 mutation AddAdminToWorkspace($workspace_id: ID!, $invite_id: String!) {
     addAdminToWorkspace(workspace_id: $workspace_id, invite_id: $invite_id)
 }

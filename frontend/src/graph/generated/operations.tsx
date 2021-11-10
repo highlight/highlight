@@ -66,16 +66,6 @@ export type SendEmailSignupMutation = { __typename?: 'Mutation' } & Pick<
     'emailSignup'
 >;
 
-export type AddAdminToProjectMutationVariables = Types.Exact<{
-    project_id: Types.Scalars['ID'];
-    invite_id: Types.Scalars['String'];
-}>;
-
-export type AddAdminToProjectMutation = { __typename?: 'Mutation' } & Pick<
-    Types.Mutation,
-    'addAdminToProject'
->;
-
 export type AddAdminToWorkspaceMutationVariables = Types.Exact<{
     workspace_id: Types.Scalars['ID'];
     invite_id: Types.Scalars['String'];
@@ -1141,15 +1131,9 @@ export type GetWorkspaceAdminsQuery = { __typename?: 'Query' } & {
             'id' | 'name' | 'secret'
         >
     >;
-    workspace_invite_links: Array<
-        { __typename?: 'WorkspaceInviteLink' } & Pick<
-            Types.WorkspaceInviteLink,
-            | 'id'
-            | 'invitee_email'
-            | 'invitee_role'
-            | 'expiration_date'
-            | 'secret'
-        >
+    workspace_invite_links: { __typename?: 'WorkspaceInviteLink' } & Pick<
+        Types.WorkspaceInviteLink,
+        'id' | 'invitee_email' | 'invitee_role' | 'expiration_date' | 'secret'
     >;
 };
 
@@ -2556,7 +2540,6 @@ export const namedOperations = {
         UpdateBillingDetails: 'UpdateBillingDetails' as const,
         updateErrorGroupState: 'updateErrorGroupState' as const,
         SendEmailSignup: 'SendEmailSignup' as const,
-        AddAdminToProject: 'AddAdminToProject' as const,
         AddAdminToWorkspace: 'AddAdminToWorkspace' as const,
         DeleteAdminFromProject: 'DeleteAdminFromProject' as const,
         DeleteAdminFromWorkspace: 'DeleteAdminFromWorkspace' as const,

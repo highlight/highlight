@@ -116,22 +116,46 @@ func (r *Resolver) GetWorkspace(workspaceID int) (*model.Workspace, error) {
 	return &workspace, nil
 }
 
-func (r *Resolver) addAdminMembership(ctx context.Context, obj model.HasSecret, objId int, inviteID string) (*int, error) {
-	if err := r.DB.Model(obj).Where("id = ?", objId).First(obj).Error; err != nil {
-		return nil, e.Wrap(err, "error querying project")
-	}
-	if obj.GetSecret() == nil || *obj.GetSecret() != inviteID {
-		return nil, e.New("invalid invite id")
+func (r *Resolver) addAdminMembership(ctx context.Context, workspace model.HasSecret, workspaceId int, inviteID string) (*int, error) {
+	if err := r.DB.Model(workspace).Where("id = ?", workspaceId).First(workspace).Error; err != nil {
+		return nil, e.Wrap(err, "error querying workspace")
 	}
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.New("error querying admin")
 	}
 
-	if err := r.DB.Model(obj).Association("Admins").Append(admin); err != nil {
+	inviteLink := &model.WorkspaceInviteLink{}
+	if err := r.DB.Where(&model.WorkspaceInviteLink{WorkspaceID: &workspaceId, Secret: &inviteID}).First(&inviteLink).Error; err != nil {
+		return nil, e.Wrap(err, "error querying for invite Link")
+	}
+
+	// Non-admin specific invites don't have a specific invitee. Only block if the invite is for a specific admin and the emails don't match.
+	if inviteLink.InviteeEmail != nil {
+		if *inviteLink.InviteeEmail != *admin.Email {
+			return nil, e.New("This invite is not valid for the admin.")
+		}
+	}
+
+	if r.IsInviteLinkExpired(inviteLink) {
+		if err := r.DB.Delete(inviteLink).Error; err != nil {
+			return nil, e.Wrap(err, "error while trying to delete expired invite link")
+		}
+		return nil, e.New("This invite link has expired.")
+	}
+
+	if err := r.DB.Model(workspace).Association("Admins").Append(admin); err != nil {
 		return nil, e.Wrap(err, "error adding admin to association")
 	}
-	return &objId, nil
+
+	// Only delete the invite for specific-admin invites. Specific-admin invites are 1-time use only.
+	// Non-admin specific invites are multi-use and only have an expiration date.
+	if inviteLink.InviteeEmail != nil {
+		if err := r.DB.Delete(inviteLink).Error; err != nil {
+			return nil, e.Wrap(err, "error while trying to delete used invite link")
+		}
+	}
+	return &workspaceId, nil
 }
 
 func (r *Resolver) DeleteAdminAssociation(ctx context.Context, obj interface{}, adminID int) (*int, error) {
@@ -785,7 +809,7 @@ func (r *Resolver) SendAdminInviteImpl(adminName string, projectOrWorkspaceName 
 		}
 		return nil, e.New(estr)
 	}
-	return &email, nil
+	return &inviteLink, nil
 }
 
 func (r *Resolver) MarshalEnvironments(environments []*string) (*string, error) {
@@ -884,7 +908,31 @@ func GenerateRandomString(n int) (string, error) {
 // It will return an error if the system's secure random
 // number generator fails to function correctly, in which
 // case the caller should not continue.
-func GenerateRandomStringURLSafe(n int) (string, error) {
+func (r *Resolver) GenerateRandomStringURLSafe(n int) (string, error) {
 	b, err := GenerateRandomBytes(n)
 	return base64.URLEncoding.EncodeToString(b), err
+}
+
+func (r *Resolver) CreateInviteLink(workspaceID int, email *string) *model.WorkspaceInviteLink {
+	// Unit is days.
+	EXPIRATION_DATE := 7
+	expirationDate := time.Now().UTC().AddDate(0, 0, EXPIRATION_DATE)
+	secret, _ := r.GenerateRandomStringURLSafe(16)
+
+	newInviteLink := &model.WorkspaceInviteLink{
+		WorkspaceID:    &workspaceID,
+		InviteeEmail:   email,
+		InviteeRole:    &model.AdminRole.ADMIN,
+		ExpirationDate: &expirationDate,
+		Secret:         &secret,
+	}
+
+	return newInviteLink
+}
+
+func (r *Resolver) IsInviteLinkExpired(inviteLink *model.WorkspaceInviteLink) bool {
+	if inviteLink == nil || inviteLink.ExpirationDate == nil {
+		return true
+	}
+	return time.Now().UTC().After(*inviteLink.ExpirationDate)
 }
