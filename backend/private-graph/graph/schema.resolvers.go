@@ -14,8 +14,10 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
@@ -30,7 +32,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
 	stripe "github.com/stripe/stripe-go/v72"
-	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 )
@@ -2116,17 +2117,19 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 		queryString += andErrorGroupHasSessionsWhere(strings.Join(sessionFilters, " AND "))
 	}
 
-	var g errgroup.Group
+	var wg sync.WaitGroup
 	var queriedErrorGroupsCount int64
 
 	logTags := []string{fmt.Sprintf("project_id:%d", projectID)}
-	g.Go(func() error {
+	wg.Add(1)
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		defer wg.Done()
 		errorGroupSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.errorGroups"), tracer.Tag("project_id", projectID))
 		start := time.Now()
 		query := fmt.Sprintf("%s %s ORDER BY updated_at DESC LIMIT %d", selectPreamble, queryString, count)
 		if err := r.DB.Raw(query).Scan(&errorGroups).Error; err != nil {
-			return e.Wrap(err, "error reading from error groups")
+			graphql.AddError(ctx, e.Wrap(err, "error reading from error groups"))
 		}
 		duration := time.Since(start)
 		hlog.Timing("db.errorGroupsQuery.duration", duration, logTags, 1)
@@ -2134,16 +2137,17 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 			log.Error(e.New(fmt.Sprintf("errorGroupsQuery took %dms: %s", duration.Milliseconds(), query)))
 		}
 		errorGroupSpan.Finish()
-		return nil
 	})
 
-	g.Go(func() error {
+	wg.Add(1)
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		defer wg.Done()
 		errorGroupCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.errorGroupsCount"), tracer.Tag("project_id", projectID))
 		start := time.Now()
 		query := fmt.Sprintf("%s %s", countPreamble, queryString)
 		if err := r.DB.Raw(query).Scan(&queriedErrorGroupsCount).Error; err != nil {
-			return e.Wrap(err, "error counting error groups")
+			graphql.AddError(ctx, e.Wrap(err, "error counting error groups"))
 		}
 		duration := time.Since(start)
 		hlog.Timing("db.errorGroupsQuery.duration", duration, logTags, 1)
@@ -2151,13 +2155,10 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 			log.Error(e.New(fmt.Sprintf("errorGroupsQuery took %dms: %s", duration.Milliseconds(), query)))
 		}
 		errorGroupCountSpan.Finish()
-		return nil
 	})
 
 	// Waits for both goroutines to finish, then returns the first non-nil error (if any).
-	if err := g.Wait(); err != nil {
-		return nil, e.Wrap(err, "error querying error groups data")
-	}
+	wg.Wait()
 
 	errorResults := &model.ErrorResults{
 		ErrorGroups: errorGroups,
@@ -2832,13 +2833,15 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 	// user shouldn't see sessions that are not within billing quota
 	whereClause += "AND (within_billing_quota IS NULL OR within_billing_quota=true) "
 
-	var g errgroup.Group
+	var wg sync.WaitGroup
 	queriedSessions := []model.Session{}
 	var queriedSessionsCount int64
 	whereClauseSuffix := "AND NOT ((processed = true AND ((active_length IS NOT NULL AND active_length < 1000) OR (active_length IS NULL AND length < 1000)))) "
 	logTags := []string{fmt.Sprintf("project_id:%d", projectID), fmt.Sprintf("filtered:%t", fieldFilters != "")}
 
-	g.Go(func() error {
+	wg.Add(1)
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		defer wg.Done()
 		if params.LengthRange != nil {
 			if params.LengthRange.Min != nil || params.LengthRange.Max != nil {
 				whereClauseSuffix = "AND processed = true "
@@ -2851,7 +2854,7 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 		start := time.Now()
 		query := fmt.Sprintf("%s %s %s ORDER BY created_at DESC LIMIT %d", sessionsQueryPreamble, joinClause, whereClause, count)
 		if err := r.DB.Raw(query).Scan(&queriedSessions).Error; err != nil {
-			return e.Wrapf(err, "error querying filtered sessions: %s", query)
+			graphql.AddError(ctx, e.Wrapf(err, "error querying filtered sessions: %s", query))
 		}
 		duration := time.Since(start)
 		hlog.Timing("db.sessionsQuery.duration", duration, logTags, 1)
@@ -2859,16 +2862,17 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 			log.Error(e.New(fmt.Sprintf("sessionsQuery took %dms: %s", duration.Milliseconds(), query)))
 		}
 		sessionsSpan.Finish()
-		return nil
 	})
 
-	g.Go(func() error {
+	wg.Add(1)
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		defer wg.Done()
 		sessionCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.sessionsCountQuery"), tracer.Tag("project_id", projectID))
 		start := time.Now()
 		query := fmt.Sprintf("SELECT count(*) %s %s %s", joinClause, whereClause, whereClauseSuffix)
 		if err := r.DB.Raw(query).Scan(&queriedSessionsCount).Error; err != nil {
-			return e.Wrapf(err, "error querying filtered sessions count: %s", query)
+			graphql.AddError(ctx, e.Wrapf(err, "error querying filtered sessions count: %s", query))
 		}
 		duration := time.Since(start)
 		hlog.Timing("db.sessionsCountQuery.duration", duration, logTags, 1)
@@ -2876,13 +2880,9 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 			log.Error(e.New(fmt.Sprintf("sessionsCountQuery took %dms: %s", duration.Milliseconds(), query)))
 		}
 		sessionCountSpan.Finish()
-		return nil
 	})
 
-	// Waits for both goroutines to finish, then returns the first non-nil error (if any).
-	if err := g.Wait(); err != nil {
-		return nil, e.Wrap(err, "error querying session data")
-	}
+	wg.Wait()
 
 	sessionList := &model.SessionResults{
 		Sessions:   queriedSessions,
@@ -2915,30 +2915,30 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 
 	planType := modelInputs.PlanType(workspace.PlanTier)
 
-	var g errgroup.Group
+	var wg sync.WaitGroup
 	var meter int64
 	var queriedSessionsOutOfQuota int64
 
-	g.Go(func() error {
+	wg.Add(1)
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		defer wg.Done()
 		meter, err = pricing.GetWorkspaceQuota(r.DB, workspaceID)
 		if err != nil {
-			return e.Wrap(err, "error from get quota")
+			graphql.AddError(ctx, e.Wrap(err, "error from get quota"))
 		}
-		return nil
 	})
 
-	g.Go(func() error {
+	wg.Add(1)
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		defer wg.Done()
 		queriedSessionsOutOfQuota, err = pricing.GetWorkspaceQuotaOverflow(ctx, r.DB, workspaceID)
 		if err != nil {
-			return e.Wrap(err, "error from get quota overflow")
+			graphql.AddError(ctx, e.Wrap(err, "error from get quota overflow"))
 		}
-		return nil
 	})
 
 	// Waits for both goroutines to finish, then returns the first non-nil error (if any).
-	if err := g.Wait(); err != nil {
-		return nil, e.Wrap(err, "error querying session data for billing details")
-	}
+	wg.Wait()
 
 	quota := pricing.TypeToQuota(planType)
 	// use monthly session limit if it exists

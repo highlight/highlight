@@ -50,8 +50,6 @@ linters-settings:
     include-go-root: true
     packages:
       - errors
-      - golang.org/x/sync/errgroup
     packages-with-error-message:
       # specify an error message to output when a blacklisted package is used
       - errors: "error handling is allowed only by github.com/pkg/errors"
-      - golang.org/x/sync/errgroup: "use github.com/highlight-run/workerpool for spawning goroutines with wp.SubmitRecover()"
