@@ -16,6 +16,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/highlight-run/highlight-go"
+
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
@@ -199,6 +201,15 @@ func (r *mutationResolver) CreateProject(ctx context.Context, name string, works
 		return nil, e.Wrap(err, "error getting admin")
 	}
 
+	var projectsCount int64
+
+	if err := r.DB.Model(&model.Project{}).Where(&model.Project{WorkspaceID: workspace.ID}).
+		Count(&projectsCount).Error; err != nil {
+		err := e.Wrap(err, "error getting admin")
+		log.Error(err)
+		highlight.ConsumeError(ctx, err)
+	}
+
 	project := &model.Project{
 		Name:         &name,
 		BillingEmail: admin.Email,
@@ -208,97 +219,99 @@ func (r *mutationResolver) CreateProject(ctx context.Context, name string, works
 	if err := r.DB.Create(project).Error; err != nil {
 		return nil, e.Wrap(err, "error creating project")
 	}
-	if err := r.DB.Create(
-		&model.ErrorAlert{
-			Alert: model.Alert{
-				ProjectID:            project.ID,
-				ExcludedEnvironments: nil,
-				CountThreshold:       1,
-				ChannelsToNotify:     nil,
-				Type:                 &model.AlertType.ERROR,
-				ThresholdWindow:      util.MakeIntPointer(30),
-			},
-		}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating error alert for new project")
-	}
-	if err := r.DB.Create(
-		&model.SessionAlert{
-			Alert: model.Alert{
-				ProjectID:            project.ID,
-				ExcludedEnvironments: nil,
-				CountThreshold:       1,
-				ChannelsToNotify:     nil,
-				Type:                 &model.AlertType.SESSION_FEEDBACK,
-				ThresholdWindow:      util.MakeIntPointer(30),
-			},
-		}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session feedback alert for new project")
-	}
-	if err := r.DB.Create(
-		&model.SessionAlert{
-			Alert: model.Alert{
-				ProjectID:            project.ID,
-				ExcludedEnvironments: nil,
-				CountThreshold:       1,
-				ChannelsToNotify:     nil,
-				Type:                 &model.AlertType.NEW_USER,
-				ThresholdWindow:      util.MakeIntPointer(0),
-			},
-		}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session new user alert for new project")
-	}
-	if err := r.DB.Create(
-		&model.SessionAlert{
-			Alert: model.Alert{
-				ProjectID:            project.ID,
-				ExcludedEnvironments: nil,
-				CountThreshold:       1,
-				ChannelsToNotify:     nil,
-				Type:                 &model.AlertType.TRACK_PROPERTIES,
-				ThresholdWindow:      util.MakeIntPointer(0),
-			},
-		}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session track properties alert for new project")
-	}
-	if err := r.DB.Create(
-		&model.SessionAlert{
-			Alert: model.Alert{
-				ProjectID:            project.ID,
-				ExcludedEnvironments: nil,
-				CountThreshold:       1,
-				ChannelsToNotify:     nil,
-				Type:                 &model.AlertType.USER_PROPERTIES,
-				ThresholdWindow:      util.MakeIntPointer(0),
-			},
-		}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session user properties alert for new project")
-	}
-	if err := r.DB.Create(
-		&model.SessionAlert{
-			Alert: model.Alert{
-				ProjectID:            project.ID,
-				ExcludedEnvironments: nil,
-				CountThreshold:       1,
-				ChannelsToNotify:     nil,
-				Type:                 &model.AlertType.RAGE_CLICK,
-				ThresholdWindow:      util.MakeIntPointer(30),
-			},
-		}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session rage click alert for new project")
-	}
+	if projectsCount > 1 {
+		if err := r.DB.Create(
+			&model.ErrorAlert{
+				Alert: model.Alert{
+					ProjectID:            project.ID,
+					ExcludedEnvironments: nil,
+					CountThreshold:       1,
+					ChannelsToNotify:     nil,
+					Type:                 &model.AlertType.ERROR,
+					ThresholdWindow:      util.MakeIntPointer(30),
+				},
+			}).Error; err != nil {
+			return nil, e.Wrap(err, "error creating error alert for new project")
+		}
+		if err := r.DB.Create(
+			&model.SessionAlert{
+				Alert: model.Alert{
+					ProjectID:            project.ID,
+					ExcludedEnvironments: nil,
+					CountThreshold:       1,
+					ChannelsToNotify:     nil,
+					Type:                 &model.AlertType.SESSION_FEEDBACK,
+					ThresholdWindow:      util.MakeIntPointer(30),
+				},
+			}).Error; err != nil {
+			return nil, e.Wrap(err, "error creating session feedback alert for new project")
+		}
+		if err := r.DB.Create(
+			&model.SessionAlert{
+				Alert: model.Alert{
+					ProjectID:            project.ID,
+					ExcludedEnvironments: nil,
+					CountThreshold:       1,
+					ChannelsToNotify:     nil,
+					Type:                 &model.AlertType.NEW_USER,
+					ThresholdWindow:      util.MakeIntPointer(0),
+				},
+			}).Error; err != nil {
+			return nil, e.Wrap(err, "error creating session new user alert for new project")
+		}
+		if err := r.DB.Create(
+			&model.SessionAlert{
+				Alert: model.Alert{
+					ProjectID:            project.ID,
+					ExcludedEnvironments: nil,
+					CountThreshold:       1,
+					ChannelsToNotify:     nil,
+					Type:                 &model.AlertType.TRACK_PROPERTIES,
+					ThresholdWindow:      util.MakeIntPointer(0),
+				},
+			}).Error; err != nil {
+			return nil, e.Wrap(err, "error creating session track properties alert for new project")
+		}
+		if err := r.DB.Create(
+			&model.SessionAlert{
+				Alert: model.Alert{
+					ProjectID:            project.ID,
+					ExcludedEnvironments: nil,
+					CountThreshold:       1,
+					ChannelsToNotify:     nil,
+					Type:                 &model.AlertType.USER_PROPERTIES,
+					ThresholdWindow:      util.MakeIntPointer(0),
+				},
+			}).Error; err != nil {
+			return nil, e.Wrap(err, "error creating session user properties alert for new project")
+		}
+		if err := r.DB.Create(
+			&model.SessionAlert{
+				Alert: model.Alert{
+					ProjectID:            project.ID,
+					ExcludedEnvironments: nil,
+					CountThreshold:       1,
+					ChannelsToNotify:     nil,
+					Type:                 &model.AlertType.RAGE_CLICK,
+					ThresholdWindow:      util.MakeIntPointer(30),
+				},
+			}).Error; err != nil {
+			return nil, e.Wrap(err, "error creating session rage click alert for new project")
+		}
 
-	if err := r.DB.Create(
-		&model.SessionAlert{
-			Alert: model.Alert{
-				ProjectID:            project.ID,
-				ExcludedEnvironments: nil,
-				CountThreshold:       1,
-				ChannelsToNotify:     nil,
-				Type:                 &model.AlertType.NEW_SESSION,
-				ThresholdWindow:      util.MakeIntPointer(0),
-			},
-		}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session user properties alert for new project")
+		if err := r.DB.Create(
+			&model.SessionAlert{
+				Alert: model.Alert{
+					ProjectID:            project.ID,
+					ExcludedEnvironments: nil,
+					CountThreshold:       1,
+					ChannelsToNotify:     nil,
+					Type:                 &model.AlertType.NEW_SESSION,
+					ThresholdWindow:      util.MakeIntPointer(0),
+				},
+			}).Error; err != nil {
+			return nil, e.Wrap(err, "error creating session user properties alert for new project")
+		}
 	}
 	return project, nil
 }
