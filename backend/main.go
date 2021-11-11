@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gorilla/websocket"
 	H "github.com/highlight-run/highlight-go"
 	highlightChi "github.com/highlight-run/highlight-go/middleware/chi"
 
@@ -27,6 +28,9 @@ import (
 	"github.com/stripe/stripe-go/v72/client"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/extension"
+	"github.com/99designs/gqlgen/graphql/handler/lru"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
 	dd "github.com/highlight-run/highlight/backend/datadog"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	private "github.com/highlight-run/highlight/backend/private-graph/graph"
@@ -190,11 +194,30 @@ func main() {
 		r.Route(privateEndpoint, func(r chi.Router) {
 			r.Use(private.PrivateMiddleware)
 			r.Use(highlightChi.Middleware)
-			privateServer := ghandler.NewDefaultServer(privategen.NewExecutableSchema(
+			privateServer := ghandler.New(privategen.NewExecutableSchema(
 				privategen.Config{
 					Resolvers: privateResolver,
 				}),
 			)
+
+			privateServer.AddTransport(transport.Websocket{
+				KeepAlivePingInterval: 10 * time.Second,
+				Upgrader: websocket.Upgrader{
+					CheckOrigin: func(r *http.Request) bool {
+						return true
+					},
+				},
+			})
+			privateServer.AddTransport(transport.Options{})
+			privateServer.AddTransport(transport.GET{})
+			privateServer.AddTransport(transport.POST{})
+			privateServer.AddTransport(transport.MultipartForm{})
+			privateServer.SetQueryCache(lru.New(1000))
+			privateServer.Use(extension.Introspection{})
+			privateServer.Use(extension.AutomaticPersistedQuery{
+				Cache: lru.New(100),
+			})
+
 			privateServer.Use(util.NewTracer(util.PrivateGraph))
 			privateServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PrivateGraph)))
 			privateServer.SetRecoverFunc(util.GraphQLRecoverFunc())

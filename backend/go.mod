@@ -20,6 +20,7 @@ require (
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/go-test/deep v1.0.4
 	github.com/gorilla/sessions v1.2.1 // indirect
+	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/highlight-run/highlight-go v0.4.0
 	github.com/highlight-run/workerpool v1.3.0
 	github.com/kr/pretty v0.2.0 // indirect
