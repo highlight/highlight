@@ -7,7 +7,7 @@ import styles from './Skeleton.module.scss';
 
 type Props = Pick<
     SkeletonProps,
-    'height' | 'width' | 'count' | 'containerClassName'
+    'height' | 'width' | 'count' | 'containerClassName' | 'circle' | 'style'
 >;
 
 export const Skeleton = (props: Props) => {
