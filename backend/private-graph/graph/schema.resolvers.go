@@ -3203,7 +3203,7 @@ func (r *queryResolver) AppVersionSuggestion(ctx context.Context, projectID int)
 	}
 	appVersions := []*string{}
 
-	if err := r.DB.Raw("SELECT DISTINCT app_version FROM sessions WHERE app_version IS NOT NULL AND excluded <> true AND project_id = ?", projectID).Find(&appVersions).Error; err != nil {
+	if err := r.DB.Raw("SELECT DISTINCT app_version FROM sessions WHERE app_version IS NOT NULL AND project_id = ?", projectID).Find(&appVersions).Error; err != nil {
 		return nil, e.Wrap(err, "error getting app version suggestions")
 	}
 
