@@ -2688,7 +2688,7 @@ func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPer
 					AND identifier <> ''
 					AND created_at >= NOW() - (? * INTERVAL '1 DAY')
 					AND processed = true
-					AND excluded != true
+					AND excluded <> true
 			) AS active_time_percentage
 		FROM (
 			SELECT
@@ -2703,7 +2703,7 @@ func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPer
 				AND identifier <> ''
 				AND created_at >= NOW() - (? * INTERVAL '1 DAY')
 				AND processed = true
-				AND excluded != true
+				AND excluded <> true
 		) q1
 		GROUP BY identifier
 		LIMIT 50
