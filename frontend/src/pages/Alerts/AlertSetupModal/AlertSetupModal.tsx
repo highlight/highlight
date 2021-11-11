@@ -328,8 +328,8 @@ const AlertSetupModal = () => {
                                     project_id: currentProject!.id,
                                     slack_channels: channels
                                         .filter((predicate) => {
-                                            selectedChannels.includes(
-                                                predicate
+                                            return selectedChannels.includes(
+                                                predicate.id
                                             );
                                         })
                                         .map((value) => ({
