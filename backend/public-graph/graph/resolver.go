@@ -1003,6 +1003,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 
 	projectID := sessionObj.ProjectID
 	g.Go(func() error {
+		defer util.Recover()
 		parseEventsSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.parseEvents"), tracer.Tag("project_id", projectID))
 		if evs := events.Events; len(evs) > 0 {
@@ -1044,6 +1045,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 
 	// unmarshal messages
 	g.Go(func() error {
+		defer util.Recover()
 		unmarshalMessagesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.unmarshal.messages"), tracer.Tag("project_id", projectID))
 		messagesParsed := make(map[string][]interface{})
@@ -1062,6 +1064,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 
 	// unmarshal resources
 	g.Go(func() error {
+		defer util.Recover()
 		unmarshalResourcesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.unmarshal.resources"), tracer.Tag("project_id", projectID))
 		resourcesParsed := make(map[string][]interface{})
@@ -1080,6 +1083,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 
 	// process errors
 	g.Go(func() error {
+		defer util.Recover()
 		// filter out empty errors
 		var filteredErrors []*customModels.ErrorObjectInput
 		for _, errorObject := range errors {
