@@ -1032,3 +1032,39 @@ func (r *Resolver) IsInviteLinkExpired(inviteLink *model.WorkspaceInviteLink) bo
 	}
 	return time.Now().UTC().After(*inviteLink.ExpirationDate)
 }
+
+func (r *Resolver) getEvents(ctx context.Context, sessionSecureID string, startIndex int) ([]interface{}, error) {
+	s, err := r.canAdminViewSession(ctx, sessionSecureID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not session owner")
+	}
+	if en := s.ObjectStorageEnabled; en != nil && *en {
+		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
+			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("project_id", s.ProjectID))
+		defer objectStorageSpan.Finish()
+		ret, err := r.StorageClient.ReadSessionsFromS3(s.ID, s.ProjectID)
+		if err != nil {
+			return nil, err
+		}
+		return ret, nil
+	}
+	eventsQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
+		tracer.ResourceName("db.eventsObjectsQuery"), tracer.Tag("project_id", s.ProjectID))
+	eventObjs := []*model.EventsObject{}
+	if err := r.DB.Order("created_at desc").Where(&model.EventsObject{SessionID: s.ID}).Find(&eventObjs).Error; err != nil {
+		return nil, e.Wrap(err, "error reading from events")
+	}
+	eventsQuerySpan.Finish()
+	eventsParseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
+		tracer.ResourceName("parse.eventsObjects"), tracer.Tag("project_id", s.ProjectID))
+	allEvents := make(map[string][]interface{})
+	for _, eventObj := range eventObjs {
+		subEvents := make(map[string][]interface{})
+		if err := json.Unmarshal([]byte(eventObj.Events), &subEvents); err != nil {
+			return nil, e.Wrap(err, "error decoding event data")
+		}
+		allEvents["events"] = append(subEvents["events"], allEvents["events"]...)
+	}
+	eventsParseSpan.Finish()
+	return allEvents["events"], nil
+}
