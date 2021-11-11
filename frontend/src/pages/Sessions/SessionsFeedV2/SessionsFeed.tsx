@@ -101,7 +101,11 @@ export const SessionFeed = React.memo(() => {
     });
 
     useEffect(() => {
-        setShowLoadingSkeleton(true);
+        if (loading) {
+            setShowLoadingSkeleton(true);
+        }
+        // Don't subscribe to loading. We only want to show the loading skeleton if changing the search params causing loading in a new set of sessions.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams]);
 
     useEffect(() => {
@@ -272,7 +276,15 @@ export const SessionFeed = React.memo(() => {
                             {!sessionResults.sessions.length &&
                             called &&
                             !loading ? (
-                                <SearchEmptyState item={'sessions'} newFeed />
+                                showStarredSessions ? (
+                                    <SearchEmptyState
+                                        item={'sessions'}
+                                        customTitle="Your project doesn't have starred sessions."
+                                        customDescription="Starring a session is like bookmarking a website. It gives you a way to tag a session that you want to look at again. You can star a session by clicking the star icon next to the user details in the session's right panel."
+                                    />
+                                ) : (
+                                    <SearchEmptyState item={'sessions'} />
+                                )
                             ) : (
                                 <>
                                     {!isOnPrem && <LimitedSessionCard />}

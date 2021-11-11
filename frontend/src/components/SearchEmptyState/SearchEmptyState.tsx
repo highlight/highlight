@@ -11,18 +11,18 @@ import {
 } from './SearchEmptyState.module.scss';
 import styles from './SearchEmptyState.module.scss';
 
+interface Props {
+    item: string;
+    customTitle?: string;
+    customDescription?: string;
+}
+
 export const SearchEmptyState = ({
     item,
-    newFeed,
-}: {
-    item: string;
-    newFeed?: boolean;
-}) => (
-    <div
-        className={classNames({
-            [styles.newFeedStyles]: newFeed,
-        })}
-    >
+    customDescription,
+    customTitle,
+}: Props) => (
+    <div className={classNames(styles.newFeedStyles)}>
         <div className={emptyStateWrapper}>
             <div style={{ marginRight: 80 }} className={emptyStateSection}>
                 <EmptyState preserveAspectRatio="xMinYMin" />
@@ -34,28 +34,39 @@ export const SearchEmptyState = ({
                 <EmptyState preserveAspectRatio="xMinYMin" />
             </div>
         </div>
-        <h3 className={emptyTitle}>Couldn't find any relevant {item} 😔</h3>
+        <h3 className={emptyTitle}>
+            {customTitle
+                ? customTitle
+                : `Couldn't find any relevant ${item} 😔`}
+        </h3>
         <p className={emptySubTitle}>
-            We couldn't find any {item} for your search.{' '}
-            {!isOnPrem ? (
-                <>
-                    If you think something's wrong, feel free to message us on{' '}
-                    <span
-                        className={styles.intercomButton}
-                        onClick={() =>
-                            window.Intercom('update', {
-                                hide_default_launcher: false,
-                            })
-                        }
-                    >
-                        Intercom
-                    </span>
-                    .
-                </>
+            {customDescription ? (
+                customDescription
             ) : (
                 <>
-                    If you think something's wrong, feel free to reach out to
-                    us!
+                    We couldn't find any {item} for your search.{' '}
+                    {!isOnPrem ? (
+                        <>
+                            If you think something's wrong, feel free to message
+                            us on{' '}
+                            <span
+                                className={styles.intercomButton}
+                                onClick={() =>
+                                    window.Intercom('update', {
+                                        hide_default_launcher: false,
+                                    })
+                                }
+                            >
+                                Intercom
+                            </span>
+                            .
+                        </>
+                    ) : (
+                        <>
+                            If you think something's wrong, feel free to reach
+                            out to us!
+                        </>
+                    )}
                 </>
             )}
         </p>
