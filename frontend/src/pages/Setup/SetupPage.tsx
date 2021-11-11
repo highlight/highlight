@@ -150,6 +150,14 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                                     integrated={integrated}
                                     verbose={true}
                                 />
+                                {integrated && (
+                                    <ButtonLink
+                                        to={`/${project_id}/sessions`}
+                                        trackingId="ViewSessionFromSetupPage"
+                                    >
+                                        View Session
+                                    </ButtonLink>
+                                )}
                             </div>
                         </Section>
                         {platform === PlatformType.React && (
