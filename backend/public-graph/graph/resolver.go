@@ -1000,17 +1000,17 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	querySessionSpan.SetTag("project_id", sessionObj.ProjectID)
 	querySessionSpan.Finish()
 
-	if sessionObj.PayloadUpdatedAt != nil && time.Now().Sub(*sessionObj.PayloadUpdatedAt) > 10*time.Minute {
+	if sessionObj.PayloadUpdatedAt != nil && time.Since(*sessionObj.PayloadUpdatedAt) > 10*time.Minute {
 		return
 	}
 
 	var update bool
-	if sessionObj.Excluded == true {
+	if sessionObj.Excluded {
 		sessionObj.Excluded = false
 		update = true
 	}
 
-	if sessionObj.Processed != nil && *sessionObj.Processed == true {
+	if *sessionObj.Processed {
 		sessionObj.Processed = &model.F
 		update = true
 	}
