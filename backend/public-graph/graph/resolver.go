@@ -1004,24 +1004,6 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 		return
 	}
 
-	var update bool
-	if sessionObj.Excluded {
-		sessionObj.Excluded = false
-		update = true
-	}
-
-	if *sessionObj.Processed {
-		sessionObj.Processed = &model.F
-		update = true
-	}
-
-	if update {
-		if err := r.DB.Table(model.SESSIONS_TBL).Model(&model.Session{Model: model.Model{ID: sessionObj.ID}}).Updates(sessionObj).Error; err != nil {
-			log.WithFields(log.Fields{"session_id": sessionObj.ID, "project_id": sessionObj.ProjectID, "identifier": sessionObj.Identifier,
-				"session_obj": sessionObj}).Warnf("error excluding session with no events (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v): %v", sessionObj.ID, sessionObj.Identifier, sessionObj.ObjectStorageEnabled, sessionObj.Processed, err)
-		}
-	}
-
 	var g errgroup.Group
 
 	projectID := sessionObj.ProjectID
@@ -1200,7 +1182,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	}
 
 	now := time.Now()
-	if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{PayloadUpdatedAt: &now}).Error; err != nil {
+	if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{PayloadUpdatedAt: &now, Excluded: false, Processed: &model.F}).Error; err != nil {
 		log.Error(e.Wrap(err, "error updating session payload time"))
 		return
 	}
