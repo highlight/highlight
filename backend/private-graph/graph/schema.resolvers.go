@@ -16,8 +16,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/clearbit/clearbit-go/clearbit"
-	highlight "github.com/highlight-run/highlight-go"
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
@@ -205,9 +205,7 @@ func (r *mutationResolver) CreateProject(ctx context.Context, name string, works
 
 	if err := r.DB.Model(&model.Project{}).Where(&model.Project{WorkspaceID: workspace.ID}).
 		Count(&projectsCount).Error; err != nil {
-		err := e.Wrap(err, "error getting admin")
-		log.Error(err)
-		highlight.ConsumeError(ctx, err)
+		graphql.AddError(ctx, e.Wrap(err, "error getting project count for workspace"))
 	}
 
 	project := &model.Project{
@@ -1263,7 +1261,7 @@ func (r *mutationResolver) CreateDefaultAlerts(ctx context.Context, projectID in
 				return nil, e.Wrap(err, "error creating a new error alert")
 			}
 			if err := errorAlert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &errorAlert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
-				log.Error(err)
+				graphql.AddError(ctx, e.Wrap(err, "error sending slack welcome message for default error alert"))
 			}
 		} else {
 			sessionAlerts = append(sessionAlerts, &model.SessionAlert{Alert: newAlert})
@@ -1275,7 +1273,7 @@ func (r *mutationResolver) CreateDefaultAlerts(ctx context.Context, projectID in
 	}
 	for _, alert := range sessionAlerts {
 		if err := alert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &alert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
-			log.Error(err)
+			graphql.AddError(ctx, e.Wrap(err, "error sending slack welcome message for default session alert"))
 		}
 	}
 
