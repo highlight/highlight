@@ -3591,6 +3591,10 @@ func (r *sessionCommentResolver) Metadata(ctx context.Context, obj *model.Sessio
 	return obj.Metadata, nil
 }
 
+func (r *subscriptionResolver) OnEventsAdded(ctx context.Context, sessionSecureID string, initialEventsCount int) (<-chan []interface{}, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 // ErrorAlert returns generated.ErrorAlertResolver implementation.
 func (r *Resolver) ErrorAlert() generated.ErrorAlertResolver { return &errorAlertResolver{r} }
 
@@ -3626,6 +3630,9 @@ func (r *Resolver) SessionComment() generated.SessionCommentResolver {
 	return &sessionCommentResolver{r}
 }
 
+// Subscription returns generated.SubscriptionResolver implementation.
+func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subscriptionResolver{r} }
+
 type errorAlertResolver struct{ *Resolver }
 type errorCommentResolver struct{ *Resolver }
 type errorGroupResolver struct{ *Resolver }
@@ -3637,3 +3644,4 @@ type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
 type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
+type subscriptionResolver struct{ *Resolver }

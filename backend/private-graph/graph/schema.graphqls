@@ -796,3 +796,7 @@ type Mutation {
         is_public: Boolean!
     ): ErrorGroup
 }
+
+type Subscription {
+    onEventsAdded(session_secure_id: String!, initial_events_count: Int!): [Any]
+}

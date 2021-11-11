@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"io"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -48,6 +49,7 @@ type ResolverRoot interface {
 	Session() SessionResolver
 	SessionAlert() SessionAlertResolver
 	SessionComment() SessionCommentResolver
+	Subscription() SubscriptionResolver
 }
 
 type DirectiveRoot struct {
@@ -493,6 +495,10 @@ type ComplexityRoot struct {
 		Type func(childComplexity int) int
 	}
 
+	Subscription struct {
+		OnEventsAdded func(childComplexity int, sessionSecureID string, initialEventsCount int) int
+	}
+
 	TopUsersPayload struct {
 		ActiveTimePercentage func(childComplexity int) int
 		ID                   func(childComplexity int) int
@@ -699,6 +705,9 @@ type SessionCommentResolver interface {
 
 	Type(ctx context.Context, obj *model1.SessionComment) (model.SessionCommentType, error)
 	Metadata(ctx context.Context, obj *model1.SessionComment) (interface{}, error)
+}
+type SubscriptionResolver interface {
+	OnEventsAdded(ctx context.Context, sessionSecureID string, initialEventsCount int) (<-chan []interface{}, error)
 }
 
 type executableSchema struct {
@@ -3543,6 +3552,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SocialLink.Type(childComplexity), true
 
+	case "Subscription.onEventsAdded":
+		if e.complexity.Subscription.OnEventsAdded == nil {
+			break
+		}
+
+		args, err := ec.field_Subscription_onEventsAdded_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Subscription.OnEventsAdded(childComplexity, args["session_secure_id"].(string), args["initial_events_count"].(int)), true
+
 	case "TopUsersPayload.active_time_percentage":
 		if e.complexity.TopUsersPayload.ActiveTimePercentage == nil {
 			break
@@ -3750,6 +3771,23 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 			first = false
 			data := ec._Mutation(ctx, rc.Operation.SelectionSet)
 			var buf bytes.Buffer
+			data.MarshalGQL(&buf)
+
+			return &graphql.Response{
+				Data: buf.Bytes(),
+			}
+		}
+	case ast.Subscription:
+		next := ec._Subscription(ctx, rc.Operation.SelectionSet)
+
+		var buf bytes.Buffer
+		return func(ctx context.Context) *graphql.Response {
+			buf.Reset()
+			data := next()
+
+			if data == nil {
+				return nil
+			}
 			data.MarshalGQL(&buf)
 
 			return &graphql.Response{
@@ -4579,6 +4617,10 @@ type Mutation {
         error_group_secure_id: String!
         is_public: Boolean!
     ): ErrorGroup
+}
+
+type Subscription {
+    onEventsAdded(session_secure_id: String!, initial_events_count: Int!): [Any]
 }
 `, BuiltIn: false},
 }
@@ -7489,6 +7531,30 @@ func (ec *executionContext) field_Query_workspace_invite_links_args(ctx context.
 		}
 	}
 	args["workspace_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Subscription_onEventsAdded_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["session_secure_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_secure_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["session_secure_id"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["initial_events_count"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("initial_events_count"))
+		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["initial_events_count"] = arg1
 	return args, nil
 }
 
@@ -19372,6 +19438,55 @@ func (ec *executionContext) _SocialLink_link(ctx context.Context, field graphql.
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Subscription_onEventsAdded(ctx context.Context, field graphql.CollectedField) (ret func() graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = nil
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Subscription",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Subscription_onEventsAdded_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return nil
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Subscription().OnEventsAdded(rctx, args["session_secure_id"].(string), args["initial_events_count"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return nil
+	}
+	if resTmp == nil {
+		return nil
+	}
+	return func() graphql.Marshaler {
+		res, ok := <-resTmp.(<-chan []interface{})
+		if !ok {
+			return nil
+		}
+		return graphql.WriterFunc(func(w io.Writer) {
+			w.Write([]byte{'{'})
+			graphql.MarshalString(field.Alias).MarshalGQL(w)
+			w.Write([]byte{':'})
+			ec.marshalOAny2ᚕinterface(ctx, field.Selections, res).MarshalGQL(w)
+			w.Write([]byte{'}'})
+		})
+	}
+}
+
 func (ec *executionContext) _TopUsersPayload_id(ctx context.Context, field graphql.CollectedField, obj *model.TopUsersPayload) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -24429,6 +24544,26 @@ func (ec *executionContext) _SocialLink(ctx context.Context, sel ast.SelectionSe
 		return graphql.Null
 	}
 	return out
+}
+
+var subscriptionImplementors = []string{"Subscription"}
+
+func (ec *executionContext) _Subscription(ctx context.Context, sel ast.SelectionSet) func() graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, subscriptionImplementors)
+	ctx = graphql.WithFieldContext(ctx, &graphql.FieldContext{
+		Object: "Subscription",
+	})
+	if len(fields) != 1 {
+		ec.Errorf(ctx, "must subscribe to exactly one stream")
+		return nil
+	}
+
+	switch fields[0].Name {
+	case "onEventsAdded":
+		return ec._Subscription_onEventsAdded(ctx, fields[0])
+	default:
+		panic("unknown field " + strconv.Quote(fields[0].Name))
+	}
 }
 
 var topUsersPayloadImplementors = []string{"TopUsersPayload"}
