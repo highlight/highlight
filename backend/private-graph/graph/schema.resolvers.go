@@ -3438,6 +3438,33 @@ func (r *queryResolver) APIKeyToOrgID(ctx context.Context, apiKey string) (*int,
 	return &projectId, nil
 }
 
+func (r *queryResolver) CustomerPortalURL(ctx context.Context, workspaceID int) (string, error) {
+	frontendUri := os.Getenv("FRONTEND_URI")
+
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return "", e.Wrap(err, "admin does not have workspace access")
+	}
+
+	if err := r.validateAdminRole(ctx); err != nil {
+		return "", e.Wrap(err, "must have ADMIN role to access the Sripe customer portal")
+	}
+
+	returnUrl := fmt.Sprintf("%s/w/%d/billing", frontendUri, workspaceID)
+
+	params := &stripe.BillingPortalSessionParams{
+		Customer:  workspace.StripeCustomerID,
+		ReturnURL: &returnUrl,
+	}
+
+	portalSession, err := r.StripeClient.BillingPortalSessions.New(params)
+	if err != nil {
+		return "", e.Wrap(err, "error creating customer portal session")
+	}
+
+	return portalSession.URL, nil
+}
+
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
 	params := &model.SearchParams{}
 	if obj.Params == nil {
