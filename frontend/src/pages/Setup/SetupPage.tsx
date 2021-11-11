@@ -2,6 +2,7 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { IntercomInlineMessage } from '@components/IntercomMessage/IntercomMessage';
 import { useGetProjectQuery } from '@graph/hooks';
 import useLocalStorage from '@rehooks/local-storage';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
@@ -25,7 +26,7 @@ import { IntegrationDetector } from './IntegrationDetector/IntegrationDetector';
 import styles from './SetupPage.module.scss';
 
 enum PlatformType {
-    Html = 'HTML',
+    Html = 'Other',
     React = 'React',
     Vue = 'Vue.js',
     NextJs = 'Next.js',
@@ -65,9 +66,9 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                     labels={[
                         PlatformType.React,
                         PlatformType.Vue,
-                        PlatformType.Html,
                         PlatformType.NextJs,
                         PlatformType.Gatsby,
+                        PlatformType.Html,
                     ]}
                     onSelect={(p: PlatformType) => setPlatform(p)}
                 />
@@ -79,6 +80,30 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                     />
                 ) : (
                     <div className={styles.stepsContainer}>
+                        {platform === PlatformType.Html && (
+                            <Section title="Is This for Me?">
+                                <p>
+                                    These steps apply to other types of apps and
+                                    websites where you have access to a file
+                                    like <code>index.html</code>.
+                                </p>
+                                <p>Some examples are:</p>
+                                <ul>
+                                    <li>WordPress</li>
+                                    <li>Webflow</li>
+                                    <li>Shopify</li>
+                                    <li>Squarespace</li>
+                                </ul>
+                                <p>
+                                    If you're not sure how to integrate or have
+                                    any questions feel free to{' '}
+                                    <IntercomInlineMessage defaultMessage="Hi! I need help integrating Highlight.">
+                                        message us
+                                    </IntercomInlineMessage>
+                                    !
+                                </p>
+                            </Section>
+                        )}
                         {platform === PlatformType.Html ? (
                             <HtmlInstructions
                                 projectVerboseId={data?.project?.verbose_id}
