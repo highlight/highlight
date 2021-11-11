@@ -297,6 +297,7 @@ type ComplexityRoot struct {
 		AverageSessionLength      func(childComplexity int, projectID int, lookBackPeriod int) int
 		BillingDetails            func(childComplexity int, workspaceID int) int
 		BillingDetailsForProject  func(childComplexity int, projectID int) int
+		CustomerPortalURL         func(childComplexity int, workspaceID int) int
 		DailyErrorFrequency       func(childComplexity int, projectID int, errorGroupSecureID string, dateOffset int) int
 		DailyErrorsCount          func(childComplexity int, projectID int, dateRange model.DateRangeInput) int
 		DailySessionsCount        func(childComplexity int, projectID int, dateRange model.DateRangeInput) int
@@ -674,6 +675,7 @@ type QueryResolver interface {
 	Segments(ctx context.Context, projectID int) ([]*model1.Segment, error)
 	ErrorSegments(ctx context.Context, projectID int) ([]*model1.ErrorSegment, error)
 	APIKeyToOrgID(ctx context.Context, apiKey string) (*int, error)
+	CustomerPortalURL(ctx context.Context, workspaceID int) (string, error)
 }
 type SegmentResolver interface {
 	Params(ctx context.Context, obj *model1.Segment) (*model1.SearchParams, error)
@@ -2184,6 +2186,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.BillingDetailsForProject(childComplexity, args["project_id"].(int)), true
+
+	case "Query.customer_portal_url":
+		if e.complexity.Query.CustomerPortalURL == nil {
+			break
+		}
+
+		args, err := ec.field_Query_customer_portal_url_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.CustomerPortalURL(childComplexity, args["workspace_id"].(int)), true
 
 	case "Query.dailyErrorFrequency":
 		if e.complexity.Query.DailyErrorFrequency == nil {
@@ -4346,6 +4360,7 @@ type Query {
     segments(project_id: ID!): [Segment]
     error_segments(project_id: ID!): [ErrorSegment]
     api_key_to_org_id(api_key: String!): ID
+    customer_portal_url(workspace_id: ID!): String!
 }
 
 type Mutation {
@@ -6524,6 +6539,21 @@ func (ec *executionContext) field_Query_billingDetailsForProject_args(ctx contex
 }
 
 func (ec *executionContext) field_Query_billingDetails_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["workspace_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["workspace_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_customer_portal_url_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -15748,6 +15778,48 @@ func (ec *executionContext) _Query_api_key_to_org_id(ctx context.Context, field 
 	return ec.marshalOID2ᚖint(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_customer_portal_url(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_customer_portal_url_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().CustomerPortalURL(rctx, args["workspace_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -23604,6 +23676,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_api_key_to_org_id(ctx, field)
+				return res
+			})
+		case "customer_portal_url":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_customer_portal_url(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			})
 		case "__type":

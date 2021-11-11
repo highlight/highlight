@@ -943,3 +943,7 @@ query GetCommentMentionSuggestions($project_id: ID!) {
         webhook_channel_id
     }
 }
+
+query GetCustomerPortalURL($workspace_id: ID!) {
+    customer_portal_url(workspace_id: $workspace_id)
+}

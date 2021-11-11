@@ -2487,6 +2487,15 @@ export type GetCommentMentionSuggestionsQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetCustomerPortalUrlQueryVariables = Types.Exact<{
+    workspace_id: Types.Scalars['ID'];
+}>;
+
+export type GetCustomerPortalUrlQuery = { __typename?: 'Query' } & Pick<
+    Types.Query,
+    'customer_portal_url'
+>;
+
 export const namedOperations = {
     Query: {
         GetSessionPayload: 'GetSessionPayload' as const,
@@ -2541,6 +2550,7 @@ export const namedOperations = {
         GetWorkspaceIsIntegratedWithSlack: 'GetWorkspaceIsIntegratedWithSlack' as const,
         GetAlertsPagePayload: 'GetAlertsPagePayload' as const,
         GetCommentMentionSuggestions: 'GetCommentMentionSuggestions' as const,
+        GetCustomerPortalURL: 'GetCustomerPortalURL' as const,
     },
     Mutation: {
         MarkSessionAsViewed: 'MarkSessionAsViewed' as const,

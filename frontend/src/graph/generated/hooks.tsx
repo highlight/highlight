@@ -6359,3 +6359,57 @@ export type GetCommentMentionSuggestionsQueryResult = Apollo.QueryResult<
     Types.GetCommentMentionSuggestionsQuery,
     Types.GetCommentMentionSuggestionsQueryVariables
 >;
+export const GetCustomerPortalUrlDocument = gql`
+    query GetCustomerPortalURL($workspace_id: ID!) {
+        customer_portal_url(workspace_id: $workspace_id)
+    }
+`;
+
+/**
+ * __useGetCustomerPortalUrlQuery__
+ *
+ * To run a query within a React component, call `useGetCustomerPortalUrlQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCustomerPortalUrlQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCustomerPortalUrlQuery({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *   },
+ * });
+ */
+export function useGetCustomerPortalUrlQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetCustomerPortalUrlQuery,
+        Types.GetCustomerPortalUrlQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetCustomerPortalUrlQuery,
+        Types.GetCustomerPortalUrlQueryVariables
+    >(GetCustomerPortalUrlDocument, baseOptions);
+}
+export function useGetCustomerPortalUrlLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetCustomerPortalUrlQuery,
+        Types.GetCustomerPortalUrlQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetCustomerPortalUrlQuery,
+        Types.GetCustomerPortalUrlQueryVariables
+    >(GetCustomerPortalUrlDocument, baseOptions);
+}
+export type GetCustomerPortalUrlQueryHookResult = ReturnType<
+    typeof useGetCustomerPortalUrlQuery
+>;
+export type GetCustomerPortalUrlLazyQueryHookResult = ReturnType<
+    typeof useGetCustomerPortalUrlLazyQuery
+>;
+export type GetCustomerPortalUrlQueryResult = Apollo.QueryResult<
+    Types.GetCustomerPortalUrlQuery,
+    Types.GetCustomerPortalUrlQueryVariables
+>;
