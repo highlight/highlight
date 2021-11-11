@@ -62,6 +62,26 @@ const ResourceDetailsModal = ({
             ),
             renderType: 'string',
         },
+        {
+            keyDisplayValue: 'Size',
+            valueDisplayValue: selectedNetworkResource?.requestResponsePairs
+                ?.response.size ? (
+                formatSize(
+                    selectedNetworkResource.requestResponsePairs.response.size
+                )
+            ) : selectedNetworkResource?.requestResponsePairs?.response
+                  .status === 0 ? (
+                '-'
+            ) : selectedNetworkResource?.requestResponsePairs?.urlBlocked ||
+              selectedNetworkResource?.transferSize == null ? (
+                '-'
+            ) : selectedNetworkResource?.transferSize === 0 ? (
+                'Cached'
+            ) : (
+                <>{formatSize(selectedNetworkResource.transferSize)}</>
+            ),
+            renderType: 'string',
+        },
     ];
 
     const requestHeadersData: KeyValueTableRow[] = [];

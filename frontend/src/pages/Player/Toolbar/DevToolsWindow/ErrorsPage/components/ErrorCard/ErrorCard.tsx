@@ -1,4 +1,5 @@
 import JsonViewer from '@components/JsonViewer/JsonViewer';
+import Tag from '@components/Tag/Tag';
 import { DetailedPanel } from '@pages/Player/context/PlayerUIContext';
 import { message } from 'antd';
 import classNames from 'classnames';
@@ -71,7 +72,9 @@ const ErrorCard = React.memo(
                 </div>
                 <div>
                     <div className={styles.header}>
-                        <h4>{error.type}</h4>
+                        <Tag infoTooltipText="This is where the error was thrown.">
+                            {error.type}
+                        </Tag>
                         <p>
                             <TextHighlighter
                                 searchWords={[searchQuery]}

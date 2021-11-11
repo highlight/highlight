@@ -40,7 +40,7 @@ module.exports = {
     devtool: 'source-map',
     plugins: [
         new webpack.EnvironmentPlugin({
-            PUBLIC_GRAPH_URI: 'https://public.highlight.run',
+            PUBLIC_GRAPH_URI: 'https://pub.highlight.run',
         }),
     ],
 };

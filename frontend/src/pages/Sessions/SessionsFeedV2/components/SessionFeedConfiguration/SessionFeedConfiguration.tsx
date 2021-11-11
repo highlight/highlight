@@ -3,10 +3,13 @@ import Popover from '@components/Popover/Popover';
 import Select from '@components/Select/Select';
 import SvgSettingsIcon from '@icons/SettingsIcon';
 import {
+    countFormats,
     dateTimeFormats,
+    SESSION_FEED_COUNT_FORMAT,
     SESSION_FEED_DATETIME_FORMAT,
     SessionFeedConfigurationContext,
 } from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext';
+import { formatNumber } from '@util/numbers';
 import { H } from 'highlight.run';
 import moment from 'moment';
 import React from 'react';
@@ -18,7 +21,12 @@ interface Props {
 }
 
 const SessionFeedConfiguration = ({
-    configuration: { datetimeFormat, setDatetimeFormat },
+    configuration: {
+        datetimeFormat,
+        setDatetimeFormat,
+        countFormat,
+        setCountFormat,
+    },
 }: Props) => {
     return (
         <Popover
@@ -37,6 +45,18 @@ const SessionFeedConfiguration = ({
                             }))}
                             value={datetimeFormat}
                             onChange={setDatetimeFormat}
+                        />
+                    </label>
+                    <label className={styles.label}>
+                        Count Format
+                        <Select
+                            options={countFormats.map((format) => ({
+                                displayValue: `${formatCount(12321, format)}`,
+                                value: format,
+                                id: format,
+                            }))}
+                            value={countFormat}
+                            onChange={setCountFormat}
                         />
                     </label>
                 </div>
@@ -82,5 +102,23 @@ export const formatDatetime = (
             );
             H.consumeError(error);
             return datetime;
+    }
+};
+
+export const formatCount = (
+    count: number,
+    format: SESSION_FEED_COUNT_FORMAT
+) => {
+    switch (format) {
+        case 'Full':
+            return count.toLocaleString();
+        case 'Short':
+            return formatNumber(count);
+        default:
+            const error = new Error(
+                `Unsupported count format used in formateCount: ${format}`
+            );
+            H.consumeError(error);
+            return count;
     }
 };

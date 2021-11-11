@@ -298,53 +298,6 @@ export type SendEmailSignupMutationOptions = Apollo.BaseMutationOptions<
     Types.SendEmailSignupMutation,
     Types.SendEmailSignupMutationVariables
 >;
-export const AddAdminToProjectDocument = gql`
-    mutation AddAdminToProject($project_id: ID!, $invite_id: String!) {
-        addAdminToProject(project_id: $project_id, invite_id: $invite_id)
-    }
-`;
-export type AddAdminToProjectMutationFn = Apollo.MutationFunction<
-    Types.AddAdminToProjectMutation,
-    Types.AddAdminToProjectMutationVariables
->;
-
-/**
- * __useAddAdminToProjectMutation__
- *
- * To run a mutation, you first call `useAddAdminToProjectMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useAddAdminToProjectMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [addAdminToProjectMutation, { data, loading, error }] = useAddAdminToProjectMutation({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      invite_id: // value for 'invite_id'
- *   },
- * });
- */
-export function useAddAdminToProjectMutation(
-    baseOptions?: Apollo.MutationHookOptions<
-        Types.AddAdminToProjectMutation,
-        Types.AddAdminToProjectMutationVariables
-    >
-) {
-    return Apollo.useMutation<
-        Types.AddAdminToProjectMutation,
-        Types.AddAdminToProjectMutationVariables
-    >(AddAdminToProjectDocument, baseOptions);
-}
-export type AddAdminToProjectMutationHookResult = ReturnType<
-    typeof useAddAdminToProjectMutation
->;
-export type AddAdminToProjectMutationResult = Apollo.MutationResult<Types.AddAdminToProjectMutation>;
-export type AddAdminToProjectMutationOptions = Apollo.BaseMutationOptions<
-    Types.AddAdminToProjectMutation,
-    Types.AddAdminToProjectMutationVariables
->;
 export const AddAdminToWorkspaceDocument = gql`
     mutation AddAdminToWorkspace($workspace_id: ID!, $invite_id: String!) {
         addAdminToWorkspace(workspace_id: $workspace_id, invite_id: $invite_id)
@@ -2093,6 +2046,7 @@ export const CreateNewSessionAlertDocument = gql`
         $slack_channels: [SanitizedSlackChannelInput]!
         $environments: [String]!
         $threshold_window: Int!
+        $exclude_rules: [String]!
     ) {
         createNewSessionAlert(
             project_id: $project_id
@@ -2101,6 +2055,7 @@ export const CreateNewSessionAlertDocument = gql`
             slack_channels: $slack_channels
             environments: $environments
             threshold_window: $threshold_window
+            exclude_rules: $exclude_rules
         ) {
             id
             ChannelsToNotify {
@@ -2112,6 +2067,7 @@ export const CreateNewSessionAlertDocument = gql`
             CountThreshold
             ThresholdWindow
             LastAdminToEditID
+            ExcludeRules
         }
     }
 `;
@@ -2139,6 +2095,7 @@ export type CreateNewSessionAlertMutationFn = Apollo.MutationFunction<
  *      slack_channels: // value for 'slack_channels'
  *      environments: // value for 'environments'
  *      threshold_window: // value for 'threshold_window'
+ *      exclude_rules: // value for 'exclude_rules'
  *   },
  * });
  */
@@ -2170,6 +2127,7 @@ export const UpdateNewSessionAlertDocument = gql`
         $slack_channels: [SanitizedSlackChannelInput]!
         $environments: [String]!
         $threshold_window: Int!
+        $exclude_rules: [String]!
     ) {
         updateNewSessionAlert(
             project_id: $project_id
@@ -2179,6 +2137,7 @@ export const UpdateNewSessionAlertDocument = gql`
             slack_channels: $slack_channels
             environments: $environments
             threshold_window: $threshold_window
+            exclude_rules: $exclude_rules
         ) {
             id
             ChannelsToNotify {
@@ -2190,6 +2149,7 @@ export const UpdateNewSessionAlertDocument = gql`
             CountThreshold
             ThresholdWindow
             LastAdminToEditID
+            ExcludeRules
         }
     }
 `;
@@ -2218,6 +2178,7 @@ export type UpdateNewSessionAlertMutationFn = Apollo.MutationFunction<
  *      slack_channels: // value for 'slack_channels'
  *      environments: // value for 'environments'
  *      threshold_window: // value for 'threshold_window'
+ *      exclude_rules: // value for 'exclude_rules'
  *   },
  * });
  */
@@ -2964,6 +2925,7 @@ export const GetSessionDocument = gql`
             }
             object_storage_enabled
             payload_size
+            processed
             within_billing_quota
             client_version
             client_config
@@ -3092,6 +3054,13 @@ export const GetWorkspaceAdminsDocument = gql`
         workspace(id: $workspace_id) {
             id
             name
+            secret
+        }
+        workspace_invite_links(workspace_id: $workspace_id) {
+            id
+            invitee_email
+            invitee_role
+            expiration_date
             secret
         }
     }
@@ -3440,6 +3409,7 @@ export const GetEnhancedUserDetailsDocument = gql`
             name
             bio
             avatar
+            email
             socials {
                 type
                 link
@@ -5798,6 +5768,7 @@ export const GetTopUsersDocument = gql`
             total_active_time
             active_time_percentage
             id
+            user_properties
         }
     }
 `;
@@ -5977,6 +5948,7 @@ export const GetRageClicksForProjectDocument = gql`
             identifier
             session_secure_id
             total_clicks
+            user_properties
         }
     }
 `;
@@ -6222,6 +6194,7 @@ export const GetAlertsPagePayloadDocument = gql`
             name
             value
         }
+        identifier_suggestion(project_id: $project_id)
         error_alerts(project_id: $project_id) {
             ChannelsToNotify {
                 webhook_channel
@@ -6263,6 +6236,7 @@ export const GetAlertsPagePayloadDocument = gql`
             Name
             id
             Type
+            ExcludeRules
         }
         rage_click_alerts(project_id: $project_id) {
             id

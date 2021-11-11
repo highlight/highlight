@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
@@ -128,6 +129,7 @@ var Models = []interface{}{
 	&Project{},
 	&RageClickEvent{},
 	&Workspace{},
+	&WorkspaceInviteLink{},
 	&EnhancedUserDetails{},
 }
 
@@ -182,8 +184,18 @@ type Workspace struct {
 	MigratedFromProjectID *int // Column can be removed after migration is done
 	StripeCustomerID      *string
 	StripePriceID         *string
+	PlanTier              string `gorm:"default:Free"`
 	MonthlySessionLimit   *int
 	TrialEndDate          *time.Time `json:"trial_end_date"`
+}
+
+type WorkspaceInviteLink struct {
+	Model
+	WorkspaceID    *int
+	InviteeEmail   *string
+	InviteeRole    *string
+	ExpirationDate *time.Time
+	Secret         *string
 }
 
 type Project struct {
@@ -236,6 +248,7 @@ type SessionAlert struct {
 	Alert
 	TrackProperties *string
 	UserProperties  *string
+	ExcludeRules    *string
 }
 
 func (obj *Alert) GetExcludedEnvironments() ([]*string, error) {
@@ -296,6 +309,21 @@ func (obj *SessionAlert) GetUserProperties() ([]*UserProperty, error) {
 		return nil, e.Wrap(err, "error unmarshalling sanitized user properties")
 	}
 	return sanitizedProperties, nil
+}
+
+func (obj *SessionAlert) GetExcludeRules() ([]*string, error) {
+	if obj == nil {
+		return nil, e.New("empty session alert object for exclude rules")
+	}
+	excludeRulesString := "[]"
+	if obj.ExcludeRules != nil {
+		excludeRulesString = *obj.ExcludeRules
+	}
+	var sanitizedExcludeRules []*string
+	if err := json.Unmarshal([]byte(excludeRulesString), &sanitizedExcludeRules); err != nil {
+		return nil, e.Wrap(err, "error unmarshalling sanitized exclude rules")
+	}
+	return sanitizedExcludeRules, nil
 }
 
 type SlackChannel struct {
@@ -454,6 +482,11 @@ type Session struct {
 	PayloadSize           *int64  `json:"payload_size"`
 	MigrationState        *string `json:"migration_state"`
 	VerboseID             string  `json:"verbose_id"`
+
+	// Lock is the timestamp at which a session was locked
+	// - when selecting sessions, ignore Locks that are > 10 minutes old
+	//   ex. SELECT * FROM sessions WHERE (lock IS NULL OR lock < NOW() - 10 * (INTERVAL '1 MINUTE'))
+	Lock sql.NullTime
 }
 
 // AreModelsWeaklyEqual compares two structs of the same type while ignoring the Model and SecureID field

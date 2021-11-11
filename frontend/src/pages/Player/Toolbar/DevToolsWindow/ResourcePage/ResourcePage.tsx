@@ -19,11 +19,9 @@ import React, {
 import Skeleton from 'react-loading-skeleton';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
-import GoToButton from '../../../../../components/Button/GoToButton';
 import TextHighlighter from '../../../../../components/TextHighlighter/TextHighlighter';
 import Tooltip from '../../../../../components/Tooltip/Tooltip';
 import { MillisToMinutesAndSeconds } from '../../../../../util/time';
-import { formatTime } from '../../../../Home/components/KeyPerformanceIndicators/utils/utils';
 import { ReplayerState, useReplayerContext } from '../../../ReplayerContext';
 import devStyles from '../DevToolsWindow.module.scss';
 import { getNetworkResourcesDisplayName, Option } from '../Option/Option';
@@ -62,8 +60,8 @@ export const ResourcePage = ({
     >([]);
 
     const virtuoso = useRef<VirtuosoHandle>(null);
-    const resourceErrorRequestHeader = new URLSearchParams(location.search).get(
-        PlayerSearchParameters.resourceErrorRequestHeader
+    const errorId = new URLSearchParams(location.search).get(
+        PlayerSearchParameters.errorId
     );
     const { setResourcePanel, setErrorPanel } = useResourceOrErrorDetailPanel();
 
@@ -145,37 +143,36 @@ export const ResourcePage = ({
 
     useEffect(() => {
         if (
-            resourceErrorRequestHeader &&
+            errorId &&
             !loading &&
             !!session &&
             !!allResources &&
+            allResources.length > 0 &&
             !!errors &&
             errors.length > 0 &&
             isPlayerReady
         ) {
-            const resource = findResourceWithMatchingHighlightHeader(
-                resourceErrorRequestHeader,
-                allResources
-            );
-            if (resource) {
-                setResourcePanel(resource);
-                setTime(resource.startTime);
-                scrollFunction(allResources.indexOf(resource));
-                message.success(
-                    `Changed player time to when error was thrown at ${MillisToMinutesAndSeconds(
-                        resource.startTime
-                    )}.`
+            const matchingError = errors.find((e) => e.id === errorId);
+            if (matchingError && matchingError.request_id) {
+                const resource = findResourceWithMatchingHighlightHeader(
+                    matchingError.request_id,
+                    allResources
                 );
-            } else {
-                const firstError = errors.find(
-                    (e) => e.request_id === resourceErrorRequestHeader
-                );
-                if (firstError) {
+                if (resource) {
+                    setResourcePanel(resource);
+                    setTime(resource.startTime);
+                    scrollFunction(allResources.indexOf(resource));
+                    message.success(
+                        `Changed player time to when error was thrown at ${MillisToMinutesAndSeconds(
+                            resource.startTime
+                        )}.`
+                    );
+                } else {
                     setSelectedDevToolsTab('Errors');
-                    setErrorPanel(firstError);
+                    setErrorPanel(matchingError);
                     const startTime = replayer?.getMetaData().startTime;
-                    if (startTime && firstError.timestamp) {
-                        const errorDateTime = new Date(firstError.timestamp);
+                    if (startTime && matchingError.timestamp) {
+                        const errorDateTime = new Date(matchingError.timestamp);
                         const deltaMilliseconds =
                             errorDateTime.getTime() - startTime;
                         setTime(deltaMilliseconds);
@@ -185,8 +182,8 @@ export const ResourcePage = ({
                             )}.`
                         );
                     }
+                    H.track('FailedToMatchHighlightResourceHeaderWithResource');
                 }
-                H.track('FailedToMatchHighlightResourceHeaderWithResource');
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -196,7 +193,6 @@ export const ResourcePage = ({
         isPlayerReady,
         loading,
         replayer,
-        resourceErrorRequestHeader,
         scrollFunction,
         session,
         setErrorPanel,
@@ -276,22 +272,6 @@ export const ResourcePage = ({
                             <div className={styles.networkColumn}>Status</div>
                             <div className={styles.networkColumn}>Type</div>
                             <div className={styles.networkColumn}>Name</div>
-                            <div
-                                className={classNames(
-                                    styles.networkColumn,
-                                    styles.justifyEnd
-                                )}
-                            >
-                                Time
-                            </div>
-                            <div
-                                className={classNames(
-                                    styles.networkColumn,
-                                    styles.justifyEnd
-                                )}
-                            >
-                                Size
-                            </div>
                             <div
                                 className={classNames(
                                     styles.networkColumn,
@@ -410,7 +390,6 @@ const ResourceRow = ({
     onClickHandler: () => void;
     hasError?: boolean;
 }) => {
-    const { pause } = useReplayerContext();
     const { detailedPanel } = usePlayerUIContext();
     const leftPaddingPercent = (resource.startTime / networkRange) * 100;
     const actualPercent = Math.max(
@@ -453,37 +432,6 @@ const ResourceRow = ({
                         textToHighlight={resource.name}
                     />
                 </Tooltip>
-                <div
-                    className={classNames(
-                        styles.typeSection,
-                        styles.rightAlign
-                    )}
-                >
-                    {resource.requestResponsePairs?.response.status === 0
-                        ? `-`
-                        : `${formatTime(
-                              resource.responseEnd - resource.startTime
-                          )}`}
-                </div>
-                <div
-                    className={classNames(
-                        styles.typeSection,
-                        styles.rightAlign
-                    )}
-                >
-                    {resource.requestResponsePairs?.response.size ? (
-                        formatSize(resource.requestResponsePairs.response.size)
-                    ) : resource.requestResponsePairs?.response.status === 0 ? (
-                        '-'
-                    ) : resource.requestResponsePairs?.urlBlocked ||
-                      resource.transferSize == null ? (
-                        '-'
-                    ) : resource.transferSize === 0 ? (
-                        'Cached'
-                    ) : (
-                        <>{formatSize(resource.transferSize)}</>
-                    )}
-                </div>
                 <div className={styles.timingBarWrapper}>
                     <div
                         style={{
@@ -505,21 +453,6 @@ const ResourceRow = ({
                         className={styles.timingBarEmptySection}
                     />
                 </div>
-                <GoToButton
-                    className={styles.goToButton}
-                    onClick={(e) => {
-                        pause(resource.startTime);
-                        e.stopPropagation();
-
-                        message.success(
-                            `Changed player time to when ${getNetworkResourcesDisplayName(
-                                resource.initiatorType
-                            )} request started at ${MillisToMinutesAndSeconds(
-                                resource.startTime
-                            )}.`
-                        );
-                    }}
-                />
             </div>
         </div>
     );

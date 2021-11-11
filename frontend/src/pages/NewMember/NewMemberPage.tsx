@@ -1,3 +1,4 @@
+import Alert from '@components/Alert/Alert';
 import { useAppLoadingContext } from '@context/AppLoadingContext';
 import { useParams } from '@util/react-router/useParams';
 import React, { useEffect, useState } from 'react';
@@ -7,7 +8,6 @@ import commonStyles from '../../Common.module.scss';
 import Button from '../../components/Button/Button/Button';
 import { CircularSpinner } from '../../components/Loading/Loading';
 import {
-    useAddAdminToProjectMutation,
     useAddAdminToWorkspaceMutation,
     useGetAdminQuery,
 } from '../../graph/generated/hooks';
@@ -16,19 +16,16 @@ import { client } from '../../util/graph';
 import styles from './NewMemberPage.module.scss';
 
 const NewMemberPage = () => {
-    const { invite_id, project_id, workspace_id } = useParams<{
-        project_id: string;
+    const { invite_id, workspace_id } = useParams<{
         workspace_id: string;
         invite_id: string;
     }>();
-    const isProject = !!project_id;
     const [adminAdded, setAdminAdded] = useState(false);
-    const addAdminMutation = isProject
-        ? useAddAdminToProjectMutation
-        : useAddAdminToWorkspaceMutation;
+    const addAdminMutation = useAddAdminToWorkspaceMutation;
     const [addAdmin, { loading: addLoading }] = addAdminMutation();
     const { loading: adminLoading, data: adminData } = useGetAdminQuery();
     const { setIsLoading } = useAppLoadingContext();
+    const [hasError, setHasError] = useState(false);
 
     useEffect(() => {
         if (!adminLoading) {
@@ -36,9 +33,7 @@ const NewMemberPage = () => {
         }
     }, [adminLoading, setIsLoading]);
 
-    if (adminAdded && isProject) {
-        return <Redirect to={`/${project_id}`} />;
-    } else if (adminAdded) {
+    if (adminAdded) {
         return <Redirect to={`/w/${workspace_id}`} />;
     }
 
@@ -54,14 +49,18 @@ const NewMemberPage = () => {
                 type="primary"
                 className={commonStyles.submitButton}
                 onClick={() => {
+                    setHasError(false);
                     addAdmin({
                         variables: {
-                            project_id,
                             workspace_id,
                             invite_id,
                         },
-                    }).then(() => {
-                        setAdminAdded(true);
+                    }).then((result) => {
+                        if (result.data?.addAdminToWorkspace) {
+                            setAdminAdded(true);
+                        } else {
+                            setHasError(true);
+                        }
                     });
                 }}
             >
@@ -87,6 +86,16 @@ const NewMemberPage = () => {
             >
                 Login as different User
             </Button>
+
+            {hasError && (
+                <Alert
+                    shouldAlwaysShow
+                    type="error"
+                    trackingId="NewMemberPageError"
+                    message="A problem occurred while trying to join the project."
+                    description="This is usually an intermittent issue. If this keeps happening to you feel free to reach out to us!"
+                />
+            )}
         </div>
     );
 };

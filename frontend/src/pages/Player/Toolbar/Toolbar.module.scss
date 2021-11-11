@@ -251,6 +251,14 @@
     justify-content: center;
 }
 
+.liveSection {
+    align-items: center;
+    display: flex;
+    font-size: 12px;
+    height: 100%;
+    justify-content: center;
+}
+
 .skipButtonStyle {
     height: 25px;
     width: 30px;
@@ -344,6 +352,19 @@
     &.devToolsActive {
         color: var(--color-purple);
     }
+}
+
+.liveButton {
+    background: var(--color-red-0);
+    border: 0;
+    border-radius: var(--border-radius);
+    color: var(--color-white);
+    cursor: pointer;
+    fill: var(--text-primary);
+    font-weight: 300;
+    height: 40px;
+    outline: none;
+    width: 80px;
 }
 
 .settingsButton {

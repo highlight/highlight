@@ -74,6 +74,7 @@ query GetSession($secure_id: String!) {
         }
         object_storage_enabled
         payload_size
+        processed
         within_billing_quota
         client_version
         client_config
@@ -104,6 +105,13 @@ query GetWorkspaceAdmins($workspace_id: ID!) {
     workspace(id: $workspace_id) {
         id
         name
+        secret
+    }
+    workspace_invite_links(workspace_id: $workspace_id) {
+        id
+        invitee_email
+        invitee_role
+        expiration_date
         secret
     }
 }
@@ -203,6 +211,7 @@ query GetEnhancedUserDetails($session_secure_id: String!) {
         name
         bio
         avatar
+        email
         socials {
             type
             link
@@ -744,6 +753,7 @@ query GetTopUsers($project_id: ID!, $lookBackPeriod: Int!) {
         total_active_time
         active_time_percentage
         id
+        user_properties
     }
 }
 
@@ -769,6 +779,7 @@ query GetRageClicksForProject($project_id: ID!, $lookBackPeriod: Int!) {
         identifier
         session_secure_id
         total_clicks
+        user_properties
     }
 }
 
@@ -811,6 +822,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         name
         value
     }
+    identifier_suggestion(project_id: $project_id)
     error_alerts(project_id: $project_id) {
         ChannelsToNotify {
             webhook_channel
@@ -852,6 +864,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         Name
         id
         Type
+        ExcludeRules
     }
     rage_click_alerts(project_id: $project_id) {
         id

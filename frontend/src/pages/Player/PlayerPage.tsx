@@ -130,6 +130,11 @@ const Player = ({ integrated }: Props) => {
         const widthScale = (targetWidth - 80) / width;
         const heightScale = (targetHeight - 80) / height;
         const scale = Math.min(heightScale, widthScale);
+        // If calculated scale is close enough to 1, return to avoid
+        // infinite looping caused by small floating point math differences
+        if (scale >= 0.9999 && scale <= 1.0001) {
+            return true;
+        }
 
         if (scale <= 0) {
             return false;
@@ -159,11 +164,21 @@ const Player = ({ integrated }: Props) => {
         };
     }, [resizePlayer, replayer]);
 
+    const playerBoundingClientRectWidth = replayer?.wrapper?.getBoundingClientRect()
+        .width;
+    const playerBoundingClientRectHeight = replayer?.wrapper?.getBoundingClientRect()
+        .height;
+
     // On any change to replayer, 'sizes', or 'showConsole', refresh the size of the player.
     useEffect(() => {
         replayer && resizePlayer(replayer);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sizes, replayer]);
+    }, [
+        sizes,
+        replayer,
+        playerBoundingClientRectWidth,
+        playerBoundingClientRectHeight,
+    ]);
 
     const showLeftPanel =
         showLeftPanelPreference &&
@@ -502,7 +517,7 @@ const PlayerSkeleton = ({
 
     return (
         <SkeletonTheme
-            color={'var(--text-primary-inverted)'}
+            baseColor={'var(--text-primary-inverted)'}
             highlightColor={'#f5f5f5'}
         >
             <Skeleton

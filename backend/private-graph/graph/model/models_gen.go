@@ -30,6 +30,7 @@ type EnhancedUserDetailsResult struct {
 	Avatar  *string       `json:"avatar"`
 	Bio     *string       `json:"bio"`
 	Socials []*SocialLink `json:"socials"`
+	Email   *string       `json:"email"`
 }
 
 type ErrorMetadata struct {
@@ -83,6 +84,7 @@ type RageClickEventForProject struct {
 	Identifier      string `json:"identifier"`
 	SessionSecureID string `json:"session_secure_id"`
 	TotalClicks     int    `json:"total_clicks"`
+	UserProperties  string `json:"user_properties"`
 }
 
 type ReferrerTablePayload struct {
@@ -144,6 +146,7 @@ type TopUsersPayload struct {
 	Identifier           string  `json:"identifier"`
 	TotalActiveTime      int     `json:"total_active_time"`
 	ActiveTimePercentage float64 `json:"active_time_percentage"`
+	UserProperties       string  `json:"user_properties"`
 }
 
 type TrackPropertyInput struct {
