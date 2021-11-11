@@ -13,6 +13,7 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
+	"github.com/highlight-run/workerpool"
 )
 
 var DB *gorm.DB
@@ -127,7 +128,7 @@ func TestHideViewedSessions(t *testing.T) {
 			}
 
 			// test logic
-			r := &queryResolver{Resolver: &Resolver{DB: DB}}
+			r := &queryResolver{Resolver: &Resolver{DB: DB, PrivateWorkerPool: workerpool.New(100)}}
 			params := &modelInputs.SearchParamsInput{HideViewed: tc.hideViewed}
 			sessions, err := r.Sessions(context.Background(), 1, 3, modelInputs.SessionLifecycleAll, false, params)
 			if err != nil {
