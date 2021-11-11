@@ -385,7 +385,7 @@ const JsAppInstructions = ({
                     you can in your site's startup process. You can configure
                     how Highlight records with the{' '}
                     <a
-                        href="https://docs.highlight.run/reference#options"
+                        href="https://docs.highlight.run/api#w0-highlightoptions"
                         target="_blank"
                         rel="noreferrer"
                     >
