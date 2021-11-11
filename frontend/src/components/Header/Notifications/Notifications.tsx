@@ -105,11 +105,7 @@ const Notifications = () => {
                                                 <p>
                                                     {allNotifications.length ===
                                                     0
-                                                        ? `Comments made in your
-								project will show up here.
-								Get started by mentioning a
-								team member on an error or a
-								session.`
+                                                        ? `Comments made in your project will show up here. Get started by mentioning a team member on an error or a session.`
                                                         : `You have no unread notifications 🎉`}
                                                 </p>
                                                 <PersonalNotificationButton
