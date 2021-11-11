@@ -272,7 +272,7 @@ export const SessionFeed = React.memo(() => {
                             {!sessionResults.sessions.length &&
                             called &&
                             !loading ? (
-                                <SearchEmptyState item={'sessions'} newFeed />
+                                <SearchEmptyState item={'sessions'} />
                             ) : (
                                 <>
                                     {!isOnPrem && <LimitedSessionCard />}

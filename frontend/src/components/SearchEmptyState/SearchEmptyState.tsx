@@ -11,18 +11,8 @@ import {
 } from './SearchEmptyState.module.scss';
 import styles from './SearchEmptyState.module.scss';
 
-export const SearchEmptyState = ({
-    item,
-    newFeed,
-}: {
-    item: string;
-    newFeed?: boolean;
-}) => (
-    <div
-        className={classNames({
-            [styles.newFeedStyles]: newFeed,
-        })}
-    >
+export const SearchEmptyState = ({ item }: { item: string }) => (
+    <div className={classNames(styles.newFeedStyles)}>
         <div className={emptyStateWrapper}>
             <div style={{ marginRight: 80 }} className={emptyStateSection}>
                 <EmptyState preserveAspectRatio="xMinYMin" />
