@@ -924,7 +924,7 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 	customerParams.AddExpand("subscriptions")
 	c, err := r.StripeClient.Customers.Get(stripeCustomerID, customerParams)
 	if err != nil {
-		return e.Wrap(err, "couldn't retrieve stripe customer data")
+		return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error retrieving Stripe customer data for customer %s", stripeCustomerID)
 	}
 
 	subscriptions := c.Subscriptions.Data
@@ -932,6 +932,8 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 
 	// Default to free tier
 	tier := modelInputs.PlanTypeFree
+	var billingPeriodStart *time.Time
+	var billingPeriodEnd *time.Time
 
 	// Loop over each subscription item in each of the customer's subscriptions
 	// and set the workspace's tier if the Stripe product has one
@@ -939,6 +941,10 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 		for _, subscriptionItem := range subscription.Items.Data {
 			if _, productTier := pricing.GetProductMetadata(subscriptionItem.Price); productTier != nil {
 				tier = *productTier
+				startTimestamp := time.Unix(subscription.CurrentPeriodStart, 0)
+				endTimestamp := time.Unix(subscription.CurrentPeriodEnd, 0)
+				billingPeriodStart = &startTimestamp
+				billingPeriodEnd = &endTimestamp
 			}
 		}
 	}
@@ -947,8 +953,12 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 	if err := r.DB.Model(&workspace).
 		Clauses(clause.Returning{}).
 		Where(model.Workspace{StripeCustomerID: &stripeCustomerID}).
-		Updates(model.Workspace{PlanTier: string(tier)}).Error; err != nil {
-		return e.Wrap(err, "error setting stripe_plan_tier on workspace")
+		Updates(map[string]interface{}{
+			"PlanTier":           string(tier),
+			"BillingPeriodStart": billingPeriodStart,
+			"BillingPeriodEnd":   billingPeriodEnd,
+		}).Error; err != nil {
+		return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error updating workspace fields for customer %s", stripeCustomerID)
 	}
 
 	// mark sessions as within billing quota on plan upgrade

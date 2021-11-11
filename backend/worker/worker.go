@@ -18,6 +18,7 @@ import (
 	"github.com/pkg/errors"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"github.com/stripe/stripe-go/v72/client"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
@@ -26,6 +27,7 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/payload"
+	"github.com/highlight-run/highlight/backend/pricing"
 	mgraph "github.com/highlight-run/highlight/backend/private-graph/graph"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/workerpool"
@@ -401,6 +403,11 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	if err := w.Resolver.DB.Where(&model.Project{Model: model.Model{ID: s.ProjectID}}).First(&project).Error; err != nil {
 		return e.Wrap(err, "error querying project")
 	}
+
+	g.Go(func() error {
+		reportSessionsUsage(w.Resolver.DB, w.Resolver.StripeClient, project.WorkspaceID)
+		return nil
+	})
 
 	g.Go(func() error {
 		// Sending Track Properties Alert
@@ -940,4 +947,13 @@ func reportProcessSessionCount(db *gorm.DB, lookbackPeriod int) {
 		}
 		hlog.Histogram("processSessionsCount", float64(count), nil, 1)
 	}
+}
+
+func reportSessionsUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int) {
+	util.MemoThrottle("report_sessions_"+strconv.Itoa(workspaceID),
+		func() {
+			if err := pricing.ReportUsage(DB, stripeClient, workspaceID, pricing.ProductTypeSessions); err != nil {
+				log.Error(e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error reporting sessions usage for workspace %d", workspaceID))
+			}
+		}, time.Hour)
 }

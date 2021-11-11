@@ -746,16 +746,9 @@ func (r *Resolver) isWorkspaceWithinBillingQuota(workspace *model.Workspace, now
 		quota = pricing.TypeToQuota(stripePlan)
 	}
 
-	var monthToDateSessionCount int64
-	if err := r.DB.
-		Model(&model.DailySessionCount{}).
-		Where("project_id in (SELECT id FROM projects WHERE workspace_id=?)", workspace.ID).
-		Where("date > ?", time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)).
-		Select("SUM(count) as monthToDateSessionCount").
-		Scan(&monthToDateSessionCount).Error; err != nil {
-		// The record doesn't exist for new projects since the record gets created in the worker.
-		monthToDateSessionCount = 0
-		log.Warn(fmt.Sprintf("Couldn't find DailySessionCount for %d", workspace.ID))
+	monthToDateSessionCount, err := pricing.GetWorkspaceMeter(r.DB, workspace.ID)
+	if err != nil {
+		log.Warn(fmt.Sprintf("error getting sessions meter for %d", workspace.ID))
 	}
 	withinBillingQuota = int64(quota) > monthToDateSessionCount
 	return withinBillingQuota
