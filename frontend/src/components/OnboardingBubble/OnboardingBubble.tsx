@@ -103,7 +103,7 @@ const OnboardingBubble = () => {
             STEPS.push({
                 displayName: 'Invite your team',
                 action: () => {
-                    history.push(`/${project_id}/team`);
+                    history.push(`/w/${data.workspace?.id}/team`);
                 },
                 completed: (data.admins?.length || 0) > 1,
             });
