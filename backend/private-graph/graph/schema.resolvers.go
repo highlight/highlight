@@ -16,9 +16,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/highlight-run/highlight-go"
-
 	"github.com/clearbit/clearbit-go/clearbit"
+	highlight "github.com/highlight-run/highlight-go"
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
