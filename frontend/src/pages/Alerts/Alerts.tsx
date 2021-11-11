@@ -252,8 +252,21 @@ const AlertsPage = () => {
                         <>
                             {!alertsPayload?.is_integrated_with_slack ? (
                                 <>
-                                    Highlight needs to be connected with Slack
-                                    in order to send you and your team messages.
+                                    <p>
+                                        Highlight needs to be connected with
+                                        Slack in order to send you and your team
+                                        messages.
+                                    </p>
+                                    <p>
+                                        Once connected, you'll be able to get
+                                        alerts for things like:
+                                    </p>
+                                    <ul>
+                                        <li>Errors thrown</li>
+                                        <li>New users</li>
+                                        <li>A new feature is used</li>
+                                        <li>User submitted feedback</li>
+                                    </ul>
                                     <PersonalNotificationButton
                                         text="Connect Highlight with Slack"
                                         className={styles.integrationButton}
@@ -274,6 +287,7 @@ const AlertsPage = () => {
                             )}
                         </>
                     }
+                    closable={false}
                     className={styles.integrationAlert}
                 />
             ) : (
