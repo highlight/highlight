@@ -21,4 +21,6 @@ export const selectMessage: string;
 export const stepsAction: string;
 export const stepsContainer: string;
 export const stepsContent: string;
+export const stepsTitle: string;
+export const stepsTitleX: string;
 export const title: string;

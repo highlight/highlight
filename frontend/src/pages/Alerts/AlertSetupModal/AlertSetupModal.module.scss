@@ -132,3 +132,13 @@
 .stepsContainer {
     padding-top: var(--size-large);
 }
+
+.stepsTitle {
+    float: left;
+}
+
+.stepsTitleX {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}

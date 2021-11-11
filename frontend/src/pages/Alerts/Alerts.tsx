@@ -224,124 +224,103 @@ const AlertsPage = () => {
 
     return (
         <>
-            {!loading &&
-            (alertsPayload?.error_alerts.length || 0) +
-                (alertsPayload?.rage_click_alerts.length || 0) +
-                (alertsPayload?.new_user_alerts?.length || 0) +
-                (alertsPayload?.user_properties_alerts.length || 0) +
-                (alertsPayload?.session_feedback_alerts.length || 0) +
-                (alertsPayload?.track_properties_alerts.length || 0) +
-                (alertsPayload?.new_session_alerts.length || 0) <
-                1 ? (
-                <AlertSetupModal />
-            ) : (
-                <>
-                    <div className={styles.subTitleContainer}>
-                        <p>Manage your alerts for your project.</p>
-                        <ButtonLink
-                            trackingId="NewAlert"
-                            className={styles.callToAction}
-                            to={`/${project_id}/alerts/new`}
-                        >
-                            New Alert
-                        </ButtonLink>
-                    </div>
-                    {!loading && !alertsPayload?.is_integrated_with_slack ? (
-                        <Alert
-                            trackingId="AlertPageSlackBotIntegration"
-                            message={
-                                !alertsPayload?.is_integrated_with_slack
-                                    ? "Slack isn't connected"
-                                    : "Can't find a Slack channel or person?"
-                            }
-                            type={
-                                !alertsPayload?.is_integrated_with_slack
-                                    ? 'error'
-                                    : 'info'
-                            }
-                            description={
+            <AlertSetupModal />
+            <div className={styles.subTitleContainer}>
+                <p>Manage your alerts for your project.</p>
+                <ButtonLink
+                    trackingId="NewAlert"
+                    className={styles.callToAction}
+                    to={`/${project_id}/alerts/new`}
+                >
+                    New Alert
+                </ButtonLink>
+            </div>
+            {!loading && !alertsPayload?.is_integrated_with_slack ? (
+                <Alert
+                    trackingId="AlertPageSlackBotIntegration"
+                    message={
+                        !alertsPayload?.is_integrated_with_slack
+                            ? "Slack isn't connected"
+                            : "Can't find a Slack channel or person?"
+                    }
+                    type={
+                        !alertsPayload?.is_integrated_with_slack
+                            ? 'error'
+                            : 'info'
+                    }
+                    description={
+                        <>
+                            {!alertsPayload?.is_integrated_with_slack ? (
                                 <>
-                                    {!alertsPayload?.is_integrated_with_slack ? (
-                                        <>
-                                            Highlight needs to be connected with
-                                            Slack in order to send you and your
-                                            team messages.
-                                            <PersonalNotificationButton
-                                                text="Connect Highlight with Slack"
-                                                className={
-                                                    styles.integrationButton
-                                                }
-                                                type="Organization"
-                                            />
-                                        </>
-                                    ) : (
-                                        <>
-                                            Channels created and people joined
-                                            after the last Highlight and Slack
-                                            sync will not show up automatically.
-                                            <PersonalNotificationButton
-                                                text="Sync Highlight with Slack"
-                                                className={
-                                                    styles.integrationButton
-                                                }
-                                                type="Organization"
-                                            />
-                                        </>
-                                    )}
+                                    Highlight needs to be connected with Slack
+                                    in order to send you and your team messages.
+                                    <PersonalNotificationButton
+                                        text="Connect Highlight with Slack"
+                                        className={styles.integrationButton}
+                                        type="Organization"
+                                    />
                                 </>
-                            }
-                            className={styles.integrationAlert}
-                        />
-                    ) : (
-                        <PersonalNotificationButton
-                            text="Connect Highlight with Slack"
-                            className={styles.hiddenSlackIntegrationButton}
-                            type="Organization"
-                        />
-                    )}
+                            ) : (
+                                <>
+                                    Channels created and people joined after the
+                                    last Highlight and Slack sync will not show
+                                    up automatically.
+                                    <PersonalNotificationButton
+                                        text="Sync Highlight with Slack"
+                                        className={styles.integrationButton}
+                                        type="Organization"
+                                    />
+                                </>
+                            )}
+                        </>
+                    }
+                    className={styles.integrationAlert}
+                />
+            ) : (
+                <PersonalNotificationButton
+                    text="Connect Highlight with Slack"
+                    className={styles.hiddenSlackIntegrationButton}
+                    type="Organization"
+                />
+            )}
 
-                    {((alertsPayload &&
-                        alertsPayload?.is_integrated_with_slack) ||
-                        !alertsPayload) && (
-                        <Card noPadding>
-                            <Table
-                                columns={TABLE_COLUMNS}
-                                loading={loading}
-                                dataSource={alertsAsTableRows}
-                                pagination={false}
-                                showHeader={false}
-                                rowHasPadding
-                                renderEmptyComponent={
-                                    <div className={styles.emptyContainer}>
-                                        <h3>
-                                            Your project doesn't have any alerts
-                                            yet.
-                                        </h3>
-                                        <p>
-                                            Alerts help you and your team stay
-                                            on top of things as they happen in
-                                            your application. You can set up
-                                            alerts for things like when certain
-                                            actions happen, errors thrown, and
-                                            when a new user uses your app.
-                                        </p>
-                                        <ButtonLink
-                                            to="alerts/new"
-                                            trackingId="NoAlertsCreateNewAlert"
-                                        >
-                                            Create an Alert
-                                        </ButtonLink>
-                                    </div>
-                                }
-                                onRow={(record) => ({
-                                    onClick: () => {
-                                        history.push(`alerts/${record.id}`);
-                                    },
-                                })}
-                            />
-                        </Card>
-                    )}
-                </>
+            {((alertsPayload && alertsPayload?.is_integrated_with_slack) ||
+                !alertsPayload) && (
+                <Card noPadding>
+                    <Table
+                        columns={TABLE_COLUMNS}
+                        loading={loading}
+                        dataSource={alertsAsTableRows}
+                        pagination={false}
+                        showHeader={false}
+                        rowHasPadding
+                        renderEmptyComponent={
+                            <div className={styles.emptyContainer}>
+                                <h3>
+                                    Your project doesn't have any alerts yet.
+                                </h3>
+                                <p>
+                                    Alerts help you and your team stay on top of
+                                    things as they happen in your application.
+                                    You can set up alerts for things like when
+                                    certain actions happen, errors thrown, and
+                                    when a new user uses your app.
+                                </p>
+                                <ButtonLink
+                                    to="alerts/new"
+                                    trackingId="NoAlertsCreateNewAlert"
+                                >
+                                    Create an Alert
+                                </ButtonLink>
+                            </div>
+                        }
+                        onRow={(record) => ({
+                            onClick: () => {
+                                history.push(`alerts/${record.id}`);
+                            },
+                        })}
+                    />
+                </Card>
             )}
         </>
     );

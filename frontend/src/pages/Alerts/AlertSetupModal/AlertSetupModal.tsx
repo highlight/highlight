@@ -8,9 +8,11 @@ import Select from '@components/Select/Select';
 import Steps from '@components/Steps/Steps';
 import { useCreateDefaultAlertsMutation } from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
+import SvgXIcon from '@icons/XIcon';
 import { ALERT_CONFIGURATIONS, ALERT_NAMES } from '@pages/Alerts/Alerts';
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext';
 import { getAlertTypeColor } from '@pages/Alerts/utils/AlertsUtils';
+import useLocalStorage from '@rehooks/local-storage';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { Divider } from 'antd';
 import classNames from 'classnames';
@@ -108,9 +110,56 @@ const AlertSetupModal = () => {
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
 
+    const [shouldCloseSetup, setShouldCloseSetup] = useSessionStorage<boolean>(
+        `shouldCloseAlertSetup-${currentProject?.id}`,
+        false
+    );
+
+    const [
+        shouldCloseSetupPersisted,
+        setShouldCloseSetupPersisted,
+    ] = useLocalStorage<boolean>(
+        `shouldCloseAlertSetupPersisted-${currentProject?.id}`,
+        false
+    );
+
+    useEffect(() => {
+        if (
+            !loading &&
+            (alertsPayload?.error_alerts.length || 0) +
+                (alertsPayload?.rage_click_alerts.length || 0) +
+                (alertsPayload?.new_user_alerts?.length || 0) +
+                (alertsPayload?.user_properties_alerts.length || 0) +
+                (alertsPayload?.session_feedback_alerts.length || 0) +
+                (alertsPayload?.track_properties_alerts.length || 0) +
+                (alertsPayload?.new_session_alerts.length || 0) >
+                0
+        ) {
+            setShouldCloseSetupPersisted(true);
+        }
+    }, [loading, alertsPayload, setShouldCloseSetupPersisted]);
+
+    if (shouldCloseSetup || shouldCloseSetupPersisted) {
+        return null;
+    }
+
     return (
         <FullBleedCard
-            title={'Default Alert Configuration'}
+            title={
+                <>
+                    <div className={styles.stepsTitle}>
+                        {'Default Alert Configuration'}
+                    </div>
+                    <div
+                        className={styles.stepsTitleX}
+                        onClick={() => {
+                            setShouldCloseSetup(true);
+                        }}
+                    >
+                        <SvgXIcon />
+                    </div>
+                </>
+            }
             className={styles.alertStepsParent}
             childrenClassName={styles.childContent}
         >
