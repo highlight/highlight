@@ -112,7 +112,7 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 			LIMIT 20
 		) AS e
 		ON s.id = e.session_id
-		WHERE s.excluded != true
+		WHERE s.excluded <> true
 		ORDER BY s.updated_at DESC
 		LIMIT 20;
 	`, obj.ID).Scan(&metadataLogs)
@@ -2072,7 +2072,7 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 				session_secure_id
 		) AS rageClicks
 		LEFT JOIN sessions s ON rageClicks.session_secure_id = s.secure_id
-		WHERE s.excluded != true
+		WHERE s.excluded <> true
 			AND session_secure_id IS NOT NULL
 		ORDER BY total_clicks DESC
 		LIMIT 100`,
@@ -2122,7 +2122,7 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 
 	sessionFilters := []string{}
 
-	sessionFilters = append(sessionFilters, "(sessions.excluded != true)")
+	sessionFilters = append(sessionFilters, "(sessions.excluded <> true)")
 
 	if params.Browser != nil {
 		sessionFilters = append(sessionFilters, fmt.Sprintf("(sessions.browser_name = '%s')", *params.Browser))
@@ -2730,7 +2730,7 @@ func (r *queryResolver) AverageSessionLength(ctx context.Context, projectID int,
 		FROM sessions 
 		WHERE project_id=? 
 			AND processed=true 
-			AND excluded != true 
+			AND excluded <> true 
 			AND active_length IS NOT NULL 
 			AND created_at >= NOW() - (? * INTERVAL '1 DAY')
 		`, projectID, lookBackPeriod).Scan(&length).Error; err != nil {
@@ -2753,7 +2753,7 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int,
 			COUNT(DISTINCT fingerprint) 
 		FROM sessions 
 		WHERE identifier='' 
-			AND excluded != true 
+			AND excluded <> true 
 			AND fingerprint IS NOT NULL 
 			AND created_at >= NOW() - (? * INTERVAL '1 DAY') 
 			AND project_id=? 
@@ -2783,7 +2783,7 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 	whereClause := ` `
 
 	whereClause += fmt.Sprintf("WHERE (project_id = %d) ", projectID)
-	whereClause += "AND (excluded != true) "
+	whereClause += "AND (excluded <> true) "
 	if lifecycle == modelInputs.SessionLifecycleCompleted {
 		whereClause += fmt.Sprintf("AND (length > %d) ", 1000)
 	}
@@ -3203,7 +3203,7 @@ func (r *queryResolver) AppVersionSuggestion(ctx context.Context, projectID int)
 	}
 	appVersions := []*string{}
 
-	if err := r.DB.Raw("SELECT DISTINCT app_version FROM sessions WHERE app_version IS NOT NULL AND excluded != true AND project_id = ?", projectID).Find(&appVersions).Error; err != nil {
+	if err := r.DB.Raw("SELECT DISTINCT app_version FROM sessions WHERE app_version IS NOT NULL AND excluded <> true AND project_id = ?", projectID).Find(&appVersions).Error; err != nil {
 		return nil, e.Wrap(err, "error getting app version suggestions")
 	}
 
