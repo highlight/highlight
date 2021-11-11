@@ -220,8 +220,14 @@ const App = () => {
                         >
                             <p>
                                 Get notified of different events happening in
-                                your application.
+                                your application like:
                             </p>
+                            <ul>
+                                <li>Errors thrown</li>
+                                <li>New users</li>
+                                <li>A new feature is used</li>
+                                <li>User submitting feedback</li>
+                            </ul>
                             <div className={styles.integrationContainer}>
                                 <ButtonLink
                                     to={`/${projectIdRemapped}/alerts`}
