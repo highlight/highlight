@@ -36,9 +36,9 @@ const Alert = ({
         <AntDesignAlert
             {...props}
             className={classNames(props.className, styles.alert)}
-            closable={!!closable ? closable : true}
+            closable={closable != null ? closable : true}
             showIcon
-            closeText={<SvgXIcon />}
+            closeText={(closable != null ? closable : true) && <SvgXIcon />}
             icon={<SvgInformationIcon />}
             onClose={(e) => {
                 if (props.onClose) {
