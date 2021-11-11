@@ -12,6 +12,7 @@ interface Props {
     id?: string;
     contentClassName?: string;
     parentClassName?: string;
+    defaultOpen?: boolean;
 }
 
 const Collapsible: React.FC<Props> = ({
@@ -20,11 +21,12 @@ const Collapsible: React.FC<Props> = ({
     contentClassName,
     parentClassName,
     id,
+    defaultOpen = false,
     ...props
 }) => {
     const [expanded, setExpanded] = useLocalStorage(
         `highlight-collapsible-state-${id || title}`,
-        false
+        defaultOpen
     );
 
     return (

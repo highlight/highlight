@@ -81,7 +81,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                 ) : (
                     <div className={styles.stepsContainer}>
                         {platform === PlatformType.Html && (
-                            <Section title="Is This for Me?">
+                            <Section title="Is This for Me?" defaultOpen>
                                 <p>
                                     These steps apply to other types of apps and
                                     websites where you have access to a file
@@ -118,40 +118,8 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                                 platform={platform}
                             />
                         )}
-                        <Section title="Identifying Users">
-                            <p>
-                                To tag sessions with user specific identifiers
-                                (name, email, etc.), you can call the
-                                <code>
-                                    {`${
-                                        platform === PlatformType.Html
-                                            ? 'window.'
-                                            : ''
-                                    }H.identify()`}
-                                </code>{' '}
-                                method in your app. Here's an example:
-                            </p>
-                            <CodeBlock
-                                language="javascript"
-                                onCopy={() => {
-                                    H.track(
-                                        'Copied Code Snippet (Highlight Event)',
-                                        { copied: 'code snippet' }
-                                    );
-                                }}
-                                text={`${
-                                    platform === PlatformType.Html
-                                        ? 'window.'
-                                        : ''
-                                }H.identify('${
-                                    admin?.email || 'eliza@gmail.com'
-                                }', {
-  id: '8909b017-c0d9-4cc2-90ae-fb519c9e028a',
-  phone: '867-5309'
-});`}
-                            />
-                        </Section>
                         <Section
+                            defaultOpen
                             title={
                                 <span className={styles.sectionTitleWithIcon}>
                                     Verify Installation
@@ -184,6 +152,40 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                                     </ButtonLink>
                                 )}
                             </div>
+                        </Section>
+                        <hr />
+                        <Section title="Identifying Users">
+                            <p>
+                                To tag sessions with user specific identifiers
+                                (name, email, etc.), you can call the
+                                <code>
+                                    {`${
+                                        platform === PlatformType.Html
+                                            ? 'window.'
+                                            : ''
+                                    }H.identify()`}
+                                </code>{' '}
+                                method in your app. Here's an example:
+                            </p>
+                            <CodeBlock
+                                language="javascript"
+                                onCopy={() => {
+                                    H.track(
+                                        'Copied Code Snippet (Highlight Event)',
+                                        { copied: 'code snippet' }
+                                    );
+                                }}
+                                text={`${
+                                    platform === PlatformType.Html
+                                        ? 'window.'
+                                        : ''
+                                }H.identify('${
+                                    admin?.email || 'eliza@gmail.com'
+                                }', {
+  id: '8909b017-c0d9-4cc2-90ae-fb519c9e028a',
+  phone: '867-5309'
+});`}
+                            />
                         </Section>
                         {platform === PlatformType.React && (
                             <Section title="React Error Boundary">
@@ -348,7 +350,7 @@ const HtmlInstructions = ({
     projectVerboseId: string;
 }) => {
     return (
-        <Section title="Installing the SDK">
+        <Section title="Installing the SDK" defaultOpen>
             <p>
                 Copy and paste the <code>{'<script>'}</code> below into the
                 <code>{'<head>'}</code> of every page you wish to record.
@@ -382,7 +384,7 @@ const JsAppInstructions = ({
 }) => {
     return (
         <>
-            <Section title="Installing the SDK">
+            <Section title="Installing the SDK" defaultOpen>
                 {platform === PlatformType.React ? (
                     <>
                         <p>
@@ -416,7 +418,7 @@ const JsAppInstructions = ({
                     </>
                 )}
             </Section>
-            <Section title="Initializing Highlight">
+            <Section title="Initializing Highlight" defaultOpen>
                 <p>Initialize the SDK by importing Highlight like so: </p>
                 <CodeBlock
                     text={`import { H } from 'highlight.run';`}
@@ -511,15 +513,17 @@ export default MyApp`}
 type SectionProps = {
     title: string | React.ReactNode;
     id?: string;
+    defaultOpen?: boolean;
 };
 
 export const Section: FunctionComponent<SectionProps> = ({
     children,
     id,
     title,
+    defaultOpen,
 }) => {
     return (
-        <Collapsible title={title} id={id}>
+        <Collapsible title={title} id={id} defaultOpen={defaultOpen}>
             {children}
         </Collapsible>
     );
