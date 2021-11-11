@@ -403,54 +403,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	g.Go(func() error {
-		// Sending New User Alert
-		// if is not new user, return
-		if s.FirstTime == nil || !*s.FirstTime {
-			return nil
-		}
-		var sessionAlerts []*model.SessionAlert
-		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Where("type IS NULL OR type=?", model.AlertType.NEW_USER).Find(&sessionAlerts).Error; err != nil {
-			return e.Wrapf(err, "[project_id: %d] error fetching new user alert", projectID)
-		}
-
-		for _, sessionAlert := range sessionAlerts {
-			// check if session was produced from an excluded environment
-			excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
-			if err != nil {
-				return e.Wrapf(err, "[project_id: %d] error getting excluded environments from new user alert", projectID)
-			}
-			isExcludedEnvironment := false
-			for _, env := range excludedEnvironments {
-				if env != nil && *env == s.Environment {
-					isExcludedEnvironment = true
-					break
-				}
-			}
-			if isExcludedEnvironment {
-				return nil
-			}
-
-			// get produced user properties from session
-			userProperties, err := s.GetUserProperties()
-			if err != nil {
-				return e.Wrapf(err, "[project_id: %d] error getting user properties from new user alert", s.ProjectID)
-			}
-
-			workspace, err := w.Resolver.GetWorkspace(project.WorkspaceID)
-			if err != nil {
-				return e.Wrapf(err, "[project_id: %d] error querying workspace", s.ProjectID)
-			}
-
-			// send Slack message
-			err = sessionAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, UserProperties: userProperties, UserObject: s.UserObject})
-			if err != nil {
-				return e.Wrapf(err, "[project_id: %d] error sending slack message for new user alert", projectID)
-			}
-		}
-		return nil
-	})
-
-	g.Go(func() error {
 		// Sending Track Properties Alert
 		var sessionAlerts []*model.SessionAlert
 		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Where("type=?", model.AlertType.TRACK_PROPERTIES).Find(&sessionAlerts).Error; err != nil {
@@ -594,6 +546,22 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 				return nil
 			}
 
+			// check if session was created by a should-ignore identifier
+			excludedIdentifiers, err := sessionAlert.GetExcludeRules()
+			if err != nil {
+				return e.Wrapf(err, "[project_id: %d] error getting exclude rules from new session alert", projectID)
+			}
+			isSessionByExcludedIdentifier := false
+			for _, identifier := range excludedIdentifiers {
+				if identifier != nil && *identifier == s.Identifier {
+					isSessionByExcludedIdentifier = true
+					break
+				}
+			}
+			if isSessionByExcludedIdentifier {
+				return nil
+			}
+
 			workspace, err := w.Resolver.GetWorkspace(project.WorkspaceID)
 			if err != nil {
 				return e.Wrap(err, "error querying workspace")
@@ -693,20 +661,36 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 func (w *Worker) Start() {
 	ctx := context.Background()
 	payloadLookbackPeriod := 60 // a session must be stale for at least this long to be processed
+	lockPeriod := 10            // time in minutes
+
 	if util.IsDevEnv() {
 		payloadLookbackPeriod = 8
 	}
 	go reportProcessSessionCount(w.Resolver.DB, payloadLookbackPeriod)
 	for {
 		time.Sleep(1 * time.Second)
-		now := time.Now()
 		processSessionLimit := 10000
-		someSecondsAgo := now.Add(time.Duration(-1*payloadLookbackPeriod) * time.Second)
 		sessions := []*model.Session{}
 		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName("worker.sessionsQuery"))
 		if err := w.Resolver.DB.
-			Where("(payload_updated_at < ? OR payload_updated_at IS NULL) AND (processed = ?)", someSecondsAgo, false).
-			Limit(processSessionLimit).Find(&sessions).Error; err != nil {
+			Raw(`
+			WITH t AS (
+				UPDATE sessions
+				SET lock=NOW()
+				WHERE id in (
+					SELECT id
+					FROM sessions
+					WHERE (processed = ?)
+						AND (COALESCE(payload_updated_at, to_timestamp(0)) < NOW() - (? * INTERVAL '1 SECOND'))
+						AND (COALESCE(lock, to_timestamp(0)) < NOW() - (? * INTERVAL '1 MINUTE'))
+					LIMIT ?
+					FOR UPDATE SKIP LOCKED
+				)
+				RETURNING *
+			)
+			SELECT * FROM t;
+			`, false, payloadLookbackPeriod, lockPeriod, processSessionLimit). // why do we get payload_updated_at IS NULL?
+			Find(&sessions).Error; err != nil {
 			log.Errorf("error querying unparsed, outdated sessions: %v", err)
 			sessionsSpan.Finish()
 			continue

@@ -81,6 +81,7 @@ export type RageClickEventForProject = {
     identifier: Scalars['String'];
     session_secure_id: Scalars['String'];
     total_clicks: Scalars['Int'];
+    user_properties: Scalars['String'];
 };
 
 export type BillingDetails = {
@@ -110,6 +111,7 @@ export type EnhancedUserDetailsResult = {
     avatar?: Maybe<Scalars['String']>;
     bio?: Maybe<Scalars['String']>;
     socials?: Maybe<Array<Maybe<SocialLink>>>;
+    email?: Maybe<Scalars['String']>;
 };
 
 export type SocialLink = {
@@ -263,6 +265,7 @@ export type TopUsersPayload = {
     identifier: Scalars['String'];
     total_active_time: Scalars['Int'];
     active_time_percentage: Scalars['Float'];
+    user_properties: Scalars['String'];
 };
 
 export type NewUsersCount = {
@@ -517,6 +520,16 @@ export type SessionAlert = {
     ThresholdWindow: Scalars['Int'];
     LastAdminToEditID?: Maybe<Scalars['ID']>;
     Type: Scalars['String'];
+    ExcludeRules: Array<Maybe<Scalars['String']>>;
+};
+
+export type WorkspaceInviteLink = {
+    __typename?: 'WorkspaceInviteLink';
+    id: Scalars['ID'];
+    invitee_email?: Maybe<Scalars['String']>;
+    invitee_role: Scalars['String'];
+    expiration_date: Scalars['Timestamp'];
+    secret: Scalars['String'];
 };
 
 export type Query = {
@@ -568,17 +581,20 @@ export type Query = {
     rage_click_alerts: Array<Maybe<SessionAlert>>;
     projectSuggestion?: Maybe<Array<Maybe<Project>>>;
     environment_suggestion?: Maybe<Array<Maybe<Field>>>;
+    identifier_suggestion: Array<Maybe<Scalars['String']>>;
     app_version_suggestion: Array<Maybe<Scalars['String']>>;
     slack_channel_suggestion?: Maybe<Array<Maybe<SanitizedSlackChannel>>>;
     slack_members: Array<Maybe<SanitizedSlackChannel>>;
     is_integrated_with_slack: Scalars['Boolean'];
     project?: Maybe<Project>;
     workspace?: Maybe<Workspace>;
+    workspace_invite_links: WorkspaceInviteLink;
     workspace_for_project?: Maybe<Workspace>;
     admin?: Maybe<Admin>;
     segments?: Maybe<Array<Maybe<Segment>>>;
     error_segments?: Maybe<Array<Maybe<ErrorSegment>>>;
     api_key_to_org_id?: Maybe<Scalars['ID']>;
+    customer_portal_url: Scalars['String'];
 };
 
 export type QuerySessionArgs = {
@@ -775,6 +791,10 @@ export type QueryEnvironment_SuggestionArgs = {
     project_id: Scalars['ID'];
 };
 
+export type QueryIdentifier_SuggestionArgs = {
+    project_id: Scalars['ID'];
+};
+
 export type QueryApp_Version_SuggestionArgs = {
     project_id: Scalars['ID'];
 };
@@ -799,6 +819,10 @@ export type QueryWorkspaceArgs = {
     id: Scalars['ID'];
 };
 
+export type QueryWorkspace_Invite_LinksArgs = {
+    workspace_id: Scalars['ID'];
+};
+
 export type QueryWorkspace_For_ProjectArgs = {
     project_id: Scalars['ID'];
 };
@@ -815,6 +839,10 @@ export type QueryApi_Key_To_Org_IdArgs = {
     api_key: Scalars['String'];
 };
 
+export type QueryCustomer_Portal_UrlArgs = {
+    workspace_id: Scalars['ID'];
+};
+
 export type Mutation = {
     __typename?: 'Mutation';
     createProject?: Maybe<Project>;
@@ -827,7 +855,6 @@ export type Mutation = {
     deleteProject?: Maybe<Scalars['Boolean']>;
     sendAdminProjectInvite?: Maybe<Scalars['String']>;
     sendAdminWorkspaceInvite?: Maybe<Scalars['String']>;
-    addAdminToProject?: Maybe<Scalars['ID']>;
     addAdminToWorkspace?: Maybe<Scalars['ID']>;
     deleteAdminFromProject?: Maybe<Scalars['ID']>;
     deleteAdminFromWorkspace?: Maybe<Scalars['ID']>;
@@ -915,11 +942,6 @@ export type MutationSendAdminWorkspaceInviteArgs = {
     workspace_id: Scalars['ID'];
     email: Scalars['String'];
     base_url: Scalars['String'];
-};
-
-export type MutationAddAdminToProjectArgs = {
-    project_id: Scalars['ID'];
-    invite_id: Scalars['String'];
 };
 
 export type MutationAddAdminToWorkspaceArgs = {
@@ -1161,6 +1183,7 @@ export type MutationUpdateNewSessionAlertArgs = {
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;
     threshold_window: Scalars['Int'];
+    exclude_rules: Array<Maybe<Scalars['String']>>;
 };
 
 export type MutationCreateNewSessionAlertArgs = {
@@ -1170,6 +1193,7 @@ export type MutationCreateNewSessionAlertArgs = {
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;
     threshold_window: Scalars['Int'];
+    exclude_rules: Array<Maybe<Scalars['String']>>;
 };
 
 export type MutationUpdateSessionIsPublicArgs = {

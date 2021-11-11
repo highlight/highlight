@@ -48,6 +48,7 @@ export const ALERT_CONFIGURATIONS = {
         type: ALERT_TYPE.Error,
         description: 'Get alerted when an error is thrown in your app.',
         icon: <SvgBugIcon />,
+        supportsExcludeRules: false,
     },
     RAGE_CLICK_ALERT: {
         name: ALERT_NAMES['RAGE_CLICK_ALERT'],
@@ -62,6 +63,7 @@ export const ALERT_CONFIGURATIONS = {
             </>
         ),
         icon: <SvgCursorClickIcon />,
+        supportsExcludeRules: false,
     },
     NEW_USER_ALERT: {
         name: ALERT_NAMES['NEW_USER_ALERT'],
@@ -70,6 +72,7 @@ export const ALERT_CONFIGURATIONS = {
         description:
             'Get alerted when a new user uses your app for the first time.',
         icon: <SvgUserPlusIcon />,
+        supportsExcludeRules: false,
     },
     USER_PROPERTIES_ALERT: {
         name: ALERT_NAMES['USER_PROPERTIES_ALERT'],
@@ -78,6 +81,7 @@ export const ALERT_CONFIGURATIONS = {
         description:
             'Get alerted when users you want to track record a session.',
         icon: <SvgFaceIdIcon />,
+        supportsExcludeRules: false,
     },
     TRACK_PROPERTIES_ALERT: {
         name: ALERT_NAMES['TRACK_PROPERTIES_ALERT'],
@@ -85,6 +89,7 @@ export const ALERT_CONFIGURATIONS = {
         type: ALERT_TYPE.TrackProperties,
         description: 'Get alerted when an action is done in your application.',
         icon: <SvgTargetIcon />,
+        supportsExcludeRules: false,
     },
     SESSION_FEEDBACK_ALERT: {
         name: ALERT_NAMES['SESSION_FEEDBACK_ALERT'],
@@ -92,6 +97,7 @@ export const ALERT_CONFIGURATIONS = {
         type: ALERT_TYPE.SessionFeedbackComment,
         description: 'Get alerted when a user submits a session feedback.',
         icon: <SvgQuoteIcon />,
+        supportsExcludeRules: false,
     },
     NEW_SESSION_ALERT: {
         name: ALERT_NAMES['NEW_SESSION_ALERT'],
@@ -99,6 +105,7 @@ export const ALERT_CONFIGURATIONS = {
         type: ALERT_TYPE.NewSession,
         description: 'Get alerted every time a session is created.',
         icon: <SvgSparkles2Icon />,
+        supportsExcludeRules: true,
     },
 } as const;
 
@@ -218,13 +225,16 @@ const AlertsPage = () => {
         <>
             <div className={styles.subTitleContainer}>
                 <p>Manage your alerts for your project.</p>
-                <ButtonLink
-                    trackingId="NewAlert"
-                    className={styles.callToAction}
-                    to={`/${project_id}/alerts/new`}
-                >
-                    New Alert
-                </ButtonLink>
+                {alertsPayload?.is_integrated_with_slack &&
+                    alertsAsTableRows.length > 0 && (
+                        <ButtonLink
+                            trackingId="NewAlert"
+                            className={styles.callToAction}
+                            to={`/${project_id}/alerts/new`}
+                        >
+                            New Alert
+                        </ButtonLink>
+                    )}
             </div>
             {!loading && !alertsPayload?.is_integrated_with_slack ? (
                 <Alert

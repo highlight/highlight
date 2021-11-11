@@ -107,6 +107,9 @@ const NewAlertPage = () => {
                     environmentOptions={
                         alertsPayload?.environment_suggestion || []
                     }
+                    identifierOptions={
+                        alertsPayload?.identifier_suggestion || []
+                    }
                     // @ts-expect-error
                     configuration={getNewAlert(type)?.configuration}
                     isCreatingNewAlert

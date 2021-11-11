@@ -42,18 +42,15 @@ const ErrorSessionList = ({ errorGroup }: Props) => {
                     key={`${session?.session_secure_id}-${index}`}
                     errorVersion
                     showDetailedViewOverride
-                    urlParams={`?${PlayerSearchParameters.errorId}=${
-                        session?.error_id
-                    }${
-                        // If the error object has a request id, pass it as resourceErrorRequestHeader
-                        session?.request_id
-                            ? `&${PlayerSearchParameters.resourceErrorRequestHeader}=${session?.request_id}`
-                            : ''
-                    }`}
+                    urlParams={`?${PlayerSearchParameters.errorId}=${session?.error_id}`}
                     linkDisabled={!isLoggedIn}
                     configuration={{
                         datetimeFormat: 'Relative',
                         setDatetimeFormat: () => {
+                            /** No Operation. */
+                        },
+                        countFormat: 'Short',
+                        setCountFormat: () => {
                             /** No Operation. */
                         },
                     }}

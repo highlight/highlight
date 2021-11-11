@@ -10,18 +10,19 @@ import styles from './Alert.module.scss';
 
 type Props = {
     trackingId: string;
+    shouldAlwaysShow?: boolean;
 } & Pick<
     AlertProps,
     'description' | 'type' | 'onClose' | 'message' | 'className'
 >;
 
-const Alert = ({ trackingId, ...props }: Props) => {
+const Alert = ({ trackingId, shouldAlwaysShow = false, ...props }: Props) => {
     const [temporarilyHideAlert, setTemporarilyHideAlert] = useSessionStorage(
-        'highlightHideAlert',
+        `highlightHideAlert-${trackingId}`,
         false
     );
 
-    if (temporarilyHideAlert) {
+    if (temporarilyHideAlert && !shouldAlwaysShow) {
         return null;
     }
 

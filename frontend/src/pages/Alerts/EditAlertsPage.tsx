@@ -37,7 +37,7 @@ const EditAlertsPage = () => {
     return (
         <>
             <Helmet>
-                <title>Edit Alert: {alert?.Name}</title>
+                <title>Edit Alert: {alert?.Name || ''}</title>
             </Helmet>
             {loading || !alertsPayload || !alert ? (
                 <>
@@ -62,6 +62,9 @@ const EditAlertsPage = () => {
                     }
                     environmentOptions={
                         alertsPayload?.environment_suggestion || []
+                    }
+                    identifierOptions={
+                        alertsPayload?.identifier_suggestion || []
                     }
                     // @ts-expect-error
                     configuration={ALERT_CONFIGURATIONS[alert?.Type]}

@@ -742,11 +742,7 @@ func (r *Resolver) isWorkspaceWithinBillingQuota(workspace *model.Workspace, now
 	if workspace.MonthlySessionLimit != nil && *workspace.MonthlySessionLimit > 0 {
 		quota = *workspace.MonthlySessionLimit
 	} else {
-		stripePriceID := ""
-		if workspace.StripePriceID != nil {
-			stripePriceID = *workspace.StripePriceID
-		}
-		stripePlan := pricing.FromPriceID(stripePriceID)
+		stripePlan := modelInputs.PlanType(workspace.PlanTier)
 		quota = pricing.TypeToQuota(stripePlan)
 	}
 

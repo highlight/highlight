@@ -62,6 +62,7 @@ type RageClickEventForProject {
     identifier: String!
     session_secure_id: String!
     total_clicks: Int!
+    user_properties: String!
 }
 
 type BillingDetails {
@@ -88,6 +89,7 @@ type EnhancedUserDetailsResult {
     avatar: String
     bio: String
     socials: [SocialLink]
+    email: String
 }
 
 type SocialLink {
@@ -229,6 +231,7 @@ type TopUsersPayload {
     identifier: String!
     total_active_time: Int!
     active_time_percentage: Float!
+    user_properties: String!
 }
 
 type NewUsersCount {
@@ -465,6 +468,15 @@ type SessionAlert {
     ThresholdWindow: Int!
     LastAdminToEditID: ID
     Type: String!
+    ExcludeRules: [String]!
+}
+
+type WorkspaceInviteLink {
+    id: ID!
+    invitee_email: String
+    invitee_role: String!
+    expiration_date: Timestamp!
+    secret: String!
 }
 
 scalar Upload
@@ -551,17 +563,20 @@ type Query {
     rage_click_alerts(project_id: ID!): [SessionAlert]!
     projectSuggestion(query: String!): [Project]
     environment_suggestion(project_id: ID!): [Field]
+    identifier_suggestion(project_id: ID!): [String]!
     app_version_suggestion(project_id: ID!): [String]!
     slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
     slack_members(project_id: ID!): [SanitizedSlackChannel]!
     is_integrated_with_slack(project_id: ID!): Boolean!
     project(id: ID!): Project
     workspace(id: ID!): Workspace
+    workspace_invite_links(workspace_id: ID!): WorkspaceInviteLink!
     workspace_for_project(project_id: ID!): Workspace
     admin: Admin
     segments(project_id: ID!): [Segment]
     error_segments(project_id: ID!): [ErrorSegment]
     api_key_to_org_id(api_key: String!): ID
+    customer_portal_url(workspace_id: ID!): String!
 }
 
 type Mutation {
@@ -583,7 +598,6 @@ type Mutation {
         email: String!
         base_url: String!
     ): String
-    addAdminToProject(project_id: ID!, invite_id: String!): ID
     addAdminToWorkspace(workspace_id: ID!, invite_id: String!): ID
     deleteAdminFromProject(project_id: ID!, admin_id: ID!): ID
     deleteAdminFromWorkspace(workspace_id: ID!, admin_id: ID!): ID
@@ -762,6 +776,7 @@ type Mutation {
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
         threshold_window: Int!
+        exclude_rules: [String]!
     ): SessionAlert
     createNewSessionAlert(
         project_id: ID!
@@ -770,6 +785,7 @@ type Mutation {
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
         threshold_window: Int!
+        exclude_rules: [String]!
     ): SessionAlert
     updateSessionIsPublic(
         session_secure_id: String!

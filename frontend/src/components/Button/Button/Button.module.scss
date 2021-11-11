@@ -50,6 +50,10 @@
     &:global(.ant-btn-ghost) {
         border-color: var(--color-gray-300) !important;
     }
+
+    &:global(.ant-btn-default.ant-btn-dangerous) {
+        color: var(--color-red) !important;
+    }
 }
 
 .small {

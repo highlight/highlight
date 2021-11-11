@@ -3,10 +3,11 @@ import {
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { useGetProjectQuery } from '@graph/hooks';
+import useLocalStorage from '@rehooks/local-storage';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import { H } from 'highlight.run';
-import React, { FunctionComponent, useState } from 'react';
+import React, { FunctionComponent } from 'react';
 import { Helmet } from 'react-helmet';
 import Skeleton from 'react-loading-skeleton';
 
@@ -33,8 +34,11 @@ enum PlatformType {
 
 const SetupPage = ({ integrated }: { integrated: boolean }) => {
     const { admin } = useAuthContext();
-    const [platform, setPlatform] = useState(PlatformType.React);
     const { project_id } = useParams<{ project_id: string }>();
+    const [platform, setPlatform] = useLocalStorage(
+        `selectedSetupPlatform-${project_id}`,
+        PlatformType.React
+    );
     const projectIdRemapped =
         project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
@@ -385,7 +389,7 @@ const JsAppInstructions = ({
                     you can in your site's startup process. You can configure
                     how Highlight records with the{' '}
                     <a
-                        href="https://docs.highlight.run/reference#options"
+                        href="https://docs.highlight.run/api#w0-highlightoptions"
                         target="_blank"
                         rel="noreferrer"
                     >

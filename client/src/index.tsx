@@ -197,6 +197,7 @@ export class Highlight {
     _backendUrl: string;
     _recordingStartTime: number = 0;
     _isOnLocalHost: boolean = false;
+    pushPayloadTimerId: ReturnType<typeof setTimeout> | undefined;
 
     static create(options: HighlightClassOptions): Highlight {
         return new Highlight(options);
@@ -522,7 +523,10 @@ export class Highlight {
                     this.numberOfFailedRequests += 1;
                 }
             }
-            setTimeout(() => {
+            if (this.pushPayloadTimerId) {
+                clearTimeout(this.pushPayloadTimerId);
+            }
+            this.pushPayloadTimerId = setTimeout(() => {
                 this._save();
             }, FIRST_SEND_FREQUENCY);
             const emit = (event: eventWithTime) => {
@@ -690,6 +694,13 @@ export class Highlight {
             //             navigator.sendBeacon(`${this._backendUrl}`, blob);
             //         }
             //     });
+
+            // Clear the timer so it doesn't block the next page navigation.
+            window.addEventListener('beforeunload', () => {
+                if (this.pushPayloadTimerId) {
+                    clearTimeout(this.pushPayloadTimerId);
+                }
+            });
             this.ready = true;
             this.state = 'Recording';
         } catch (e) {
@@ -823,7 +834,10 @@ export class Highlight {
             }
         }
         if (this.state === 'Recording') {
-            setTimeout(() => {
+            if (this.pushPayloadTimerId) {
+                clearTimeout(this.pushPayloadTimerId);
+            }
+            this.pushPayloadTimerId = setTimeout(() => {
                 this._save();
             }, SEND_FREQUENCY);
         }
