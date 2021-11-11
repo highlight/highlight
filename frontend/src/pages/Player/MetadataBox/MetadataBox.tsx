@@ -1,4 +1,5 @@
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
+import { Skeleton } from '@components/Skeleton/Skeleton';
 import { GetEnhancedUserDetailsQuery } from '@graph/operations';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
@@ -10,7 +11,6 @@ import {
     FaLinkedin,
     FaTwitterSquare,
 } from 'react-icons/fa';
-import Skeleton from 'react-loading-skeleton';
 
 import { useAuthContext } from '../../../authentication/AuthContext';
 import { Avatar } from '../../../components/Avatar/Avatar';
@@ -162,7 +162,7 @@ export const MetadataBox = () => {
 
 export const UserDetailsBox = () => {
     const { session_secure_id } = useParams<{ session_secure_id: string }>();
-    const { loading, data } = useGetEnhancedUserDetailsQuery({
+    const { data, loading } = useGetEnhancedUserDetailsQuery({
         variables: { session_secure_id },
     });
 
@@ -172,34 +172,54 @@ export const UserDetailsBox = () => {
 
     return (
         <div className={styles.userEnhanced}>
-            <div className={styles.tooltip}>
-                <InfoTooltip
-                    title={`This is enriched information for ${data?.enhanced_user_details?.email}. Highlight show information like their social handles, website, title, and company. This feature is currently enabled for everyone but will later only be available starting at the Startup plan.`}
-                    size="medium"
-                    hideArrow
-                    placement="topLeft"
-                />
-            </div>
+            {!loading && (
+                <div className={styles.tooltip}>
+                    <InfoTooltip
+                        title={`This is enriched information for ${data?.enhanced_user_details?.email}. Highlight show information like their social handles, website, title, and company. This feature is currently enabled for everyone but will later only be available starting at the Startup plan.`}
+                        size="medium"
+                        hideArrow
+                        placement="topLeft"
+                    />
+                </div>
+            )}
             {loading ? (
                 <Skeleton circle={true} height={36} width={36} />
             ) : (
-                data?.enhanced_user_details?.avatar && (
-                    <Avatar
-                        seed="test"
-                        customImage={data.enhanced_user_details.avatar}
-                        className={styles.enhancedAvatar}
-                    />
-                )
+                <div style={{ width: 36 }}>
+                    {data?.enhanced_user_details?.avatar && (
+                        <Avatar
+                            seed="test"
+                            customImage={data.enhanced_user_details.avatar}
+                            className={styles.enhancedAvatar}
+                        />
+                    )}
+                </div>
             )}
             <div className={styles.enhancedTextSection}>
-                <h4 className={styles.enhancedName}>
-                    {data?.enhanced_user_details?.name}
-                </h4>
-                <p className={styles.enhancedBio}>
-                    {data?.enhanced_user_details?.bio}
-                </p>
-                {data?.enhanced_user_details?.socials?.map(
-                    (e) => e && <SocialComponent socialLink={e} key={e.type} />
+                {loading ? (
+                    <Skeleton height="2rem" />
+                ) : (
+                    <>
+                        {data?.enhanced_user_details?.name && (
+                            <h4 className={styles.enhancedName}>
+                                {data?.enhanced_user_details?.name}
+                            </h4>
+                        )}
+                        {data?.enhanced_user_details?.bio && (
+                            <p className={styles.enhancedBio}>
+                                {data?.enhanced_user_details?.bio}
+                            </p>
+                        )}
+                        {data?.enhanced_user_details?.socials?.map(
+                            (e) =>
+                                e && (
+                                    <SocialComponent
+                                        socialLink={e}
+                                        key={e.type}
+                                    />
+                                )
+                        )}
+                    </>
                 )}
             </div>
         </div>
