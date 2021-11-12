@@ -1009,7 +1009,7 @@ func (r *Resolver) StripeWebhook(endpointSecret string) func(http.ResponseWriter
 	}
 }
 
-func (r *Resolver) CreateInviteLink(workspaceID int, email *string) *model.WorkspaceInviteLink {
+func (r *Resolver) CreateInviteLink(workspaceID int, email *string, role string) *model.WorkspaceInviteLink {
 	// Unit is days.
 	EXPIRATION_DATE := 7
 	expirationDate := time.Now().UTC().AddDate(0, 0, EXPIRATION_DATE)
@@ -1018,7 +1018,7 @@ func (r *Resolver) CreateInviteLink(workspaceID int, email *string) *model.Works
 	newInviteLink := &model.WorkspaceInviteLink{
 		WorkspaceID:    &workspaceID,
 		InviteeEmail:   email,
-		InviteeRole:    &model.AdminRole.ADMIN,
+		InviteeRole:    &role,
 		ExpirationDate: &expirationDate,
 		Secret:         &secret,
 	}

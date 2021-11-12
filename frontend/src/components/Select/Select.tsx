@@ -27,6 +27,7 @@ type Props = Pick<
     | 'children'
     | 'optionLabelProp'
     | 'filterOption'
+    | 'bordered'
 > & {
     options?: {
         value: string;

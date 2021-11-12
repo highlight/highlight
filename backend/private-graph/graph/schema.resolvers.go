@@ -451,7 +451,7 @@ func (r *mutationResolver) SendAdminProjectInvite(ctx context.Context, projectID
 	return r.SendAdminInviteImpl(*admin.Name, *project.Name, inviteLink, email)
 }
 
-func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspaceID int, email string, baseURL string) (*string, error) {
+func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspaceID int, email string, baseURL string, role string) (*string, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying workspace")
@@ -478,8 +478,16 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 		existingInviteLink = nil
 	}
 
+	// Delete the existing invite if the roles are different.
+	if existingInviteLink != nil && existingInviteLink.InviteeRole != nil && *existingInviteLink.InviteeRole != role {
+		if err := r.DB.Delete(existingInviteLink).Error; err != nil {
+			return nil, e.Wrap(err, "error deleting different role invite link")
+		}
+		existingInviteLink = nil
+	}
+
 	if existingInviteLink == nil {
-		existingInviteLink = r.CreateInviteLink(workspaceID, &email)
+		existingInviteLink = r.CreateInviteLink(workspaceID, &email, role)
 
 		if err := r.DB.Create(existingInviteLink).Error; err != nil {
 			return nil, e.Wrap(err, "error creating new invite link")
@@ -3307,7 +3315,7 @@ func (r *queryResolver) WorkspaceInviteLinks(ctx context.Context, workspaceID in
 	}
 
 	if shouldCreateNewInviteLink {
-		workspaceInviteLink = r.CreateInviteLink(workspaceID, nil)
+		workspaceInviteLink = r.CreateInviteLink(workspaceID, nil, model.AdminRole.ADMIN)
 
 		if err := r.DB.Create(&workspaceInviteLink).Error; err != nil {
 			return nil, e.Wrap(err, "failed to create new invite link to replace expired one.")
