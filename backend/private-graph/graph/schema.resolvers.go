@@ -3582,7 +3582,9 @@ func (r *subscriptionResolver) OnEventsAdded(ctx context.Context, sessionSecureI
 				log.Error(e.Wrap(err, "error fetching events incrementally"))
 				return
 			}
-			ch <- events
+			if len(events) != 0 {
+				ch <- events
+			}
 			cursor = *nextCursor
 
 			time.Sleep(1 * time.Second)
