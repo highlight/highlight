@@ -81,7 +81,6 @@ export const formatDatetime = (
     datetime: string,
     format: SESSION_FEED_DATETIME_FORMAT
 ) => {
-    console.log(datetime, format);
     switch (format) {
         case 'Relative':
             return moment(datetime).fromNow();
