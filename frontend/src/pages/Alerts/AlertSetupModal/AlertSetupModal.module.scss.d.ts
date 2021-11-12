@@ -8,7 +8,6 @@ export const cardContainerSelected: string;
 export const cardContent: string;
 export const cardGrid: string;
 export const channelSelect: string;
-export const childContent: string;
 export const description: string;
 export const fullBleedAlertSetupStep: string;
 export const icon: string;

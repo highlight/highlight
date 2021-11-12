@@ -1,5 +1,6 @@
 // eslint-disable-next-line no-restricted-imports
 import { Modal as AntDesignModal, ModalProps } from 'antd';
+import classNames from 'classnames';
 import React from 'react';
 
 import Close from '../../static/Close';
@@ -17,12 +18,20 @@ type Props = Pick<
     | 'centered'
     | 'mask'
     | 'getContainer'
+    | 'className'
 > & {
     title?: string;
     minimal?: boolean;
+    wide?: boolean;
 };
 
-const Modal: React.FC<Props> = ({ children, title, minimal, ...props }) => {
+const Modal: React.FC<Props> = ({
+    children,
+    title,
+    minimal,
+    wide,
+    ...props
+}) => {
     const bodyStyle: React.CSSProperties = minimal
         ? {
               paddingTop: `var(--size-xSmall)`,
@@ -37,7 +46,7 @@ const Modal: React.FC<Props> = ({ children, title, minimal, ...props }) => {
             footer={null}
             {...props}
             closeIcon={!minimal ? <Close height="18px" width="18px" /> : null}
-            className={styles.modal}
+            className={classNames(styles.modal, { [styles.wide]: wide })}
             closable={!minimal}
             bodyStyle={bodyStyle}
             maskClosable

@@ -2,13 +2,12 @@ import Alert from '@components/Alert/Alert';
 import Button from '@components/Button/Button/Button';
 import Card from '@components/Card/Card';
 import { DEMO_WORKSPACE_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
-import FullBleedCard from '@components/FullBleedCard/FullBleedCard';
 import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
+import Modal from '@components/Modal/Modal';
 import Select from '@components/Select/Select';
 import Steps from '@components/Steps/Steps';
 import { useCreateDefaultAlertsMutation } from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
-import SvgXIcon from '@icons/XIcon';
 import { ALERT_CONFIGURATIONS, ALERT_NAMES } from '@pages/Alerts/Alerts';
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext';
 import { getAlertTypeColor } from '@pages/Alerts/utils/AlertsUtils';
@@ -139,29 +138,18 @@ const AlertSetupModal = () => {
         }
     }, [loading, alertsPayload, setShouldCloseSetupPersisted]);
 
-    if (shouldCloseSetup || shouldCloseSetupPersisted) {
-        return null;
-    }
+    const [showModal, setShowModal] = useState(true);
 
     return (
-        <FullBleedCard
-            title={
-                <>
-                    <div className={styles.stepsTitle}>
-                        {'Default Alert Configuration'}
-                    </div>
-                    <div
-                        className={styles.stepsTitleX}
-                        onClick={() => {
-                            setShouldCloseSetup(true);
-                        }}
-                    >
-                        <SvgXIcon />
-                    </div>
-                </>
-            }
+        <Modal
+            title={'Default Alert Configuration'}
             className={styles.alertStepsParent}
-            childrenClassName={styles.childContent}
+            visible={showModal}
+            onCancel={() => {
+                setShowModal(false);
+            }}
+            wide
+            //childrenClassName={styles.childContent}
         >
             <Steps className={styles.stepsContainer} current={current}>
                 {steps.map((item) => (
@@ -416,7 +404,7 @@ const AlertSetupModal = () => {
                     </Button>
                 )}
             </div>
-        </FullBleedCard>
+        </Modal>
     );
 };
 
