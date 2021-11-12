@@ -13,12 +13,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jackc/pgx/v4/stdlib"
+
 	"github.com/go-test/deep"
 	"github.com/mitchellh/mapstructure"
 	"github.com/rs/xid"
 	"github.com/slack-go/slack"
 	"github.com/speps/go-hashids"
+	sqltrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/database/sql"
 
+	gormtrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/gorm.io/gorm.v1"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -780,7 +784,7 @@ var ErrorType = struct {
 	BACKEND:  "Backend",
 }
 
-func SetupDB(dbName string) (*gorm.DB, error) {
+func SetupDB(dbName string, runtimeName string) (*gorm.DB, error) {
 	var (
 		host     = os.Getenv("PSQL_HOST")
 		port     = os.Getenv("PSQL_PORT")
@@ -818,11 +822,18 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 
 	var err error
 
+	// Register augments the provided driver with tracing, enabling it to be loaded by gormtrace.Open.
+	sqltrace.Register("postgres", &stdlib.Driver{}, sqltrace.WithServiceName(runtimeName))
+	//sqlDb, err := sqltrace.Open("postgres", psqlConf)
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+
 	logLevel := logger.Silent
 	if os.Getenv("HIGHLIGHT_DEBUG_MODE") == "blame-GARAGE-spike-typic-neckline-santiago-tore-keep-becalm-preach-fiber-pomade-escheat-crone-tasmania" {
 		logLevel = logger.Info
 	}
-	DB, err = gorm.Open(postgres.Open(psqlConf), &gorm.Config{
+	DB, err = gormtrace.Open(postgres.Open(psqlConf), &gorm.Config{
 		DisableForeignKeyConstraintWhenMigrating: true,
 		Logger:                                   logger.Default.LogMode(logLevel),
 		PrepareStmt:                              true,
