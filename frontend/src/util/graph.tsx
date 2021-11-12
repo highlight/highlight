@@ -66,7 +66,7 @@ export const client = new ApolloClient({
             }
             return false;
         },
-        graphCdnGraph,
+        authLink.concat(graphCdnGraph),
         authLink.concat(highlightGraph)
     ),
     cache: new InMemoryCache({
