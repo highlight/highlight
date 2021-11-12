@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/highlight-run/highlight/backend/model"
 	backend "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -249,10 +250,21 @@ func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, int
 	return priceMap, nil
 }
 
-func ReportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, productType ProductType) error {
+func ReportUsageForProduct(DB *gorm.DB, stripeClient *client.API, workspaceID int, productType ProductType) error {
+	return reportUsage(DB, stripeClient, workspaceID, &productType)
+}
+
+func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, productType *ProductType) error {
 	var workspace model.Workspace
 	if err := DB.Model(workspace).Where("id = ?", workspaceID).First(&workspace).Error; err != nil {
 		return e.Wrap(err, "error querying workspace")
+	}
+
+	if workspace.BillingPeriodStart == nil ||
+		workspace.BillingPeriodEnd == nil ||
+		time.Now().Before(*workspace.BillingPeriodStart) ||
+		!time.Now().Before(*workspace.BillingPeriodEnd) {
+		return e.New("workspace billing period is not valid")
 	}
 
 	customerParams := &stripe.CustomerParams{}
@@ -268,12 +280,13 @@ func ReportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 	for _, subscription := range subscriptions {
 		for _, subscriptionItem := range subscription.Items.Data {
 			product, _ := GetProductMetadata(subscriptionItem.Price)
-			if product == nil || *product != productType {
+			if product == nil ||
+				(productType != nil && *productType != *product) {
 				continue
 			}
 
 			var meter int64
-			switch productType {
+			switch *product {
 			case ProductTypeMembers:
 				meter = GetMembersMeter(DB, workspaceID)
 			case ProductTypeSessions:
@@ -292,7 +305,7 @@ func ReportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 			}
 
 			log.Infof("creating usage record [workspace: %d, type: %s, subscriptionItem: %s, quantity: %d]",
-				workspaceID, productType, subscriptionItem.ID, meter)
+				workspaceID, *product, subscriptionItem.ID, meter)
 			if _, err := stripeClient.UsageRecords.New(&params); err != nil {
 				return e.Wrap(err, "error creating new usage record")
 			}
@@ -300,4 +313,24 @@ func ReportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 	}
 
 	return nil
+}
+
+func ReportAllUsage(DB *gorm.DB, stripeClient *client.API) {
+	// Get all workspace IDs
+	var workspaceIDs []int
+	if err := DB.Raw(`
+		SELECT id
+		FROM workspaces
+		WHERE billing_period_start is not null
+		AND billing_period_end is not null
+	`).Scan(&workspaceIDs).Error; err != nil {
+		log.Error("failed to query workspaces")
+		return
+	}
+
+	for _, workspaceID := range workspaceIDs {
+		if err := reportUsage(DB, stripeClient, workspaceID, nil); err != nil {
+			log.Error(e.Wrapf(err, "error reporting usage for workspace %d", workspaceID))
+		}
+	}
 }

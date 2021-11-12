@@ -511,12 +511,6 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 		}
 	}
 
-	r.PrivateWorkerPool.SubmitRecover(func() {
-		if err := pricing.ReportUsage(r.DB, r.StripeClient, workspaceID, pricing.ProductTypeMembers); err != nil {
-			log.Error(e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error reporting members usage for workspace %d", workspaceID))
-		}
-	})
-
 	return adminId, nil
 }
 
@@ -539,12 +533,6 @@ func (r *mutationResolver) DeleteAdminFromWorkspace(ctx context.Context, workspa
 	if err != nil {
 		return nil, e.Wrap(err, "error deleting admin association")
 	}
-
-	r.PrivateWorkerPool.SubmitRecover(func() {
-		if err := pricing.ReportUsage(r.DB, r.StripeClient, workspaceID, pricing.ProductTypeMembers); err != nil {
-			log.Error(e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error reporting members usage for workspace %d", workspaceID))
-		}
-	})
 
 	return deletedAdminId, nil
 }

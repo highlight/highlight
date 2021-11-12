@@ -961,12 +961,6 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 		return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error updating workspace fields for customer %s", stripeCustomerID)
 	}
 
-	r.PrivateWorkerPool.SubmitRecover(func() {
-		if err := pricing.ReportUsage(r.DB, r.StripeClient, workspace.ID, pricing.ProductTypeMembers); err != nil {
-			log.Error(e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error reporting members usage for workspace %d", workspace.ID))
-		}
-	})
-
 	// mark sessions as within billing quota on plan upgrade
 	// this code is repeated as the first time, the user already has a billing plan and the function returns early.
 	// here, the user doesn't already have a billing plan, so it's considered an upgrade unless the plan is free

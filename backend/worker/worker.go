@@ -18,7 +18,6 @@ import (
 	"github.com/pkg/errors"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"github.com/stripe/stripe-go/v72/client"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
@@ -405,11 +404,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	g.Go(func() error {
-		reportSessionsUsage(w.Resolver.DB, w.Resolver.StripeClient, project.WorkspaceID)
-		return nil
-	})
-
-	g.Go(func() error {
 		// Sending Track Properties Alert
 		var sessionAlerts []*model.SessionAlert
 		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Where("type=?", model.AlertType.TRACK_PROPERTIES).Find(&sessionAlerts).Error; err != nil {
@@ -742,6 +736,20 @@ func (w *Worker) Start() {
 	}
 }
 
+func (w *Worker) ReportStripeUsage() {
+	pricing.ReportAllUsage(w.Resolver.DB, w.Resolver.StripeClient)
+}
+
+func (w *Worker) GetHandler(handlerFlag string) func() {
+	switch handlerFlag {
+	case "report-stripe-usage":
+		return w.ReportStripeUsage
+	default:
+		log.Fatalf("unrecognized worker-handler [%s]", handlerFlag)
+		return nil
+	}
+}
+
 // CalculateSessionLength gets the session length given two sets of ReplayEvents.
 func CalculateSessionLength(first time.Time, last time.Time) (d time.Duration) {
 	if first.IsZero() {
@@ -947,13 +955,4 @@ func reportProcessSessionCount(db *gorm.DB, lookbackPeriod int) {
 		}
 		hlog.Histogram("processSessionsCount", float64(count), nil, 1)
 	}
-}
-
-func reportSessionsUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int) {
-	util.MemoThrottle("report_sessions_"+strconv.Itoa(workspaceID),
-		func() {
-			if err := pricing.ReportUsage(DB, stripeClient, workspaceID, pricing.ProductTypeSessions); err != nil {
-				log.Error(e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error reporting sessions usage for workspace %d", workspaceID))
-			}
-		}, time.Hour)
 }
