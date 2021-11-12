@@ -56,6 +56,10 @@ type Resolver struct {
 	SubscriptionWorkerPool *workerpool.WorkerPool
 }
 
+// For a given session, an EventCursor is the address of an event in the list of events,
+// that can be used for incremental fetching.
+// The EventIndex must always be specified, with the EventObjectIndex optionally
+// specified for optimization purposes.
 type EventsCursor struct {
 	EventIndex       int
 	EventObjectIndex *int
