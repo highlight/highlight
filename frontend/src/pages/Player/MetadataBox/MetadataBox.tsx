@@ -260,9 +260,10 @@ const hasEnrichedData = (enhancedData?: GetEnhancedUserDetailsQuery) => {
     const { enhanced_user_details } = enhancedData;
 
     return (
-        enhanced_user_details?.avatar ||
-        enhanced_user_details?.bio ||
-        enhanced_user_details?.name ||
-        enhanced_user_details?.socials
+        enhanced_user_details?.avatar !== '' ||
+        enhanced_user_details?.bio !== '' ||
+        enhanced_user_details?.name !== '' ||
+        enhanced_user_details?.socials?.length ||
+        0 > 0
     );
 };
