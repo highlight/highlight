@@ -3484,11 +3484,13 @@ export const SendAdminWorkspaceInviteDocument = gql`
         $workspace_id: ID!
         $email: String!
         $base_url: String!
+        $role: String!
     ) {
         sendAdminWorkspaceInvite(
             workspace_id: $workspace_id
             email: $email
             base_url: $base_url
+            role: $role
         )
     }
 `;
@@ -3513,6 +3515,7 @@ export type SendAdminWorkspaceInviteMutationFn = Apollo.MutationFunction<
  *      workspace_id: // value for 'workspace_id'
  *      email: // value for 'email'
  *      base_url: // value for 'base_url'
+ *      role: // value for 'role'
  *   },
  * });
  */

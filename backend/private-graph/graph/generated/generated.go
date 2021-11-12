@@ -257,7 +257,7 @@ type ComplexityRoot struct {
 		MarkSessionAsViewed              func(childComplexity int, secureID string, viewed *bool) int
 		OpenSlackConversation            func(childComplexity int, projectID int, code string, redirectPath string) int
 		SendAdminProjectInvite           func(childComplexity int, projectID int, email string, baseURL string) int
-		SendAdminWorkspaceInvite         func(childComplexity int, workspaceID int, email string, baseURL string) int
+		SendAdminWorkspaceInvite         func(childComplexity int, workspaceID int, email string, baseURL string, role string) int
 		UpdateBillingDetails             func(childComplexity int, workspaceID int) int
 		UpdateErrorAlert                 func(childComplexity int, projectID int, name string, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
 		UpdateErrorGroupIsPublic         func(childComplexity int, errorGroupSecureID string, isPublic bool) int
@@ -576,7 +576,7 @@ type MutationResolver interface {
 	UpdateErrorGroupState(ctx context.Context, secureID string, state string) (*model1.ErrorGroup, error)
 	DeleteProject(ctx context.Context, id int) (*bool, error)
 	SendAdminProjectInvite(ctx context.Context, projectID int, email string, baseURL string) (*string, error)
-	SendAdminWorkspaceInvite(ctx context.Context, workspaceID int, email string, baseURL string) (*string, error)
+	SendAdminWorkspaceInvite(ctx context.Context, workspaceID int, email string, baseURL string, role string) (*string, error)
 	AddAdminToWorkspace(ctx context.Context, workspaceID int, inviteID string) (*int, error)
 	DeleteAdminFromProject(ctx context.Context, projectID int, adminID int) (*int, error)
 	DeleteAdminFromWorkspace(ctx context.Context, workspaceID int, adminID int) (*int, error)
@@ -1911,7 +1911,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SendAdminWorkspaceInvite(childComplexity, args["workspace_id"].(int), args["email"].(string), args["base_url"].(string)), true
+		return e.complexity.Mutation.SendAdminWorkspaceInvite(childComplexity, args["workspace_id"].(int), args["email"].(string), args["base_url"].(string), args["role"].(string)), true
 
 	case "Mutation.updateBillingDetails":
 		if e.complexity.Mutation.UpdateBillingDetails == nil {
@@ -4381,6 +4381,7 @@ type Mutation {
         workspace_id: ID!
         email: String!
         base_url: String!
+        role: String!
     ): String
     addAdminToWorkspace(workspace_id: ID!, invite_id: String!): ID
     deleteAdminFromProject(project_id: ID!, admin_id: ID!): ID
@@ -5857,6 +5858,15 @@ func (ec *executionContext) field_Mutation_sendAdminWorkspaceInvite_args(ctx con
 		}
 	}
 	args["base_url"] = arg2
+	var arg3 string
+	if tmp, ok := rawArgs["role"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("role"))
+		arg3, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["role"] = arg3
 	return args, nil
 }
 
@@ -11653,7 +11663,7 @@ func (ec *executionContext) _Mutation_sendAdminWorkspaceInvite(ctx context.Conte
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SendAdminWorkspaceInvite(rctx, args["workspace_id"].(int), args["email"].(string), args["base_url"].(string))
+		return ec.resolvers.Mutation().SendAdminWorkspaceInvite(rctx, args["workspace_id"].(int), args["email"].(string), args["base_url"].(string), args["role"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

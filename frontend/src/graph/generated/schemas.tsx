@@ -942,6 +942,7 @@ export type MutationSendAdminWorkspaceInviteArgs = {
     workspace_id: Scalars['ID'];
     email: Scalars['String'];
     base_url: Scalars['String'];
+    role: Scalars['String'];
 };
 
 export type MutationAddAdminToWorkspaceArgs = {

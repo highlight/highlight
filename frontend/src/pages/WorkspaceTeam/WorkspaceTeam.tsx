@@ -5,9 +5,11 @@ import Input from '@components/Input/Input';
 import Modal from '@components/Modal/Modal';
 import Select from '@components/Select/Select';
 import Table from '@components/Table/Table';
+import { AdminRole } from '@graph/schemas';
 import SvgTrash from '@icons/Trash';
 import { getWorkspaceInvitationLink } from '@pages/WorkspaceTeam/utils';
 import { useParams } from '@util/react-router/useParams';
+import { titleCaseString } from '@util/string';
 import { message } from 'antd';
 import classNames from 'classnames/bind';
 import moment from 'moment';
@@ -38,6 +40,9 @@ const WorkspaceTeam = () => {
     });
     const [email, setEmail] = useState('');
     const [showModal, toggleShowModal] = useToggle(false);
+    const [newAdminRole, setNewAdminRole] = useState<AdminRole>(
+        AdminRole.Admin
+    );
 
     const { admin } = useAuthContext();
     const [deleteAdminFromWorkspace] = useDeleteAdminFromWorkspaceMutation({
@@ -73,6 +78,7 @@ const WorkspaceTeam = () => {
                 workspace_id,
                 email,
                 base_url: window.location.origin,
+                role: newAdminRole,
             },
         }).then(() => {
             message.success(`Invite email sent to ${email}!`, 5);
@@ -124,19 +130,23 @@ const WorkspaceTeam = () => {
                                 addonAfter={
                                     <Select
                                         bordered={false}
-                                        defaultValue="Admin"
-                                        options={[
-                                            {
-                                                displayValue: 'Admin',
-                                                id: 'admin',
-                                                value: 'Admin',
-                                            },
-                                            {
-                                                displayValue: 'Member',
-                                                id: 'member',
-                                                value: 'Member',
-                                            },
-                                        ]}
+                                        value={newAdminRole}
+                                        options={(Object.keys(
+                                            AdminRole
+                                        ) as (keyof typeof AdminRole)[]).map(
+                                            (key) => {
+                                                const role = AdminRole[key];
+
+                                                return {
+                                                    displayValue: titleCaseString(
+                                                        role
+                                                    ),
+                                                    id: role,
+                                                    value: role,
+                                                };
+                                            }
+                                        )}
+                                        onChange={setNewAdminRole}
                                     />
                                 }
                             />
