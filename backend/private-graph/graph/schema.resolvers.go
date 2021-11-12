@@ -1973,7 +1973,8 @@ func (r *queryResolver) Events(ctx context.Context, sessionSecureID string) ([]i
 		}
 		return data, nil
 	}
-	return r.getEvents(ctx, sessionSecureID, 0)
+	events, err, _ := r.getEvents(ctx, sessionSecureID, EventsCursor{EventIndex: 0, EventObjectIndex: nil})
+	return events, err
 }
 
 func (r *queryResolver) RageClicks(ctx context.Context, sessionSecureID string) ([]*model.RageClickEvent, error) {
