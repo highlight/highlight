@@ -42,7 +42,7 @@ func GetMembersMeter(DB *gorm.DB, workspaceID int) int64 {
 func GetWorkspaceMeter(DB *gorm.DB, workspaceID int) (int64, error) {
 	var meter int64
 	if err := DB.Model(&model.DailySessionCount{}).
-		Where(`project_id in (SELECT id FROM projects WHERE workspace_id=?)
+		Where(`project_id in (SELECT id FROM projects WHERE workspace_id=? AND free_tier = false)
 			AND date >= (
 				SELECT COALESCE(billing_period_start, date_trunc('month', now(), 'UTC'))
 				FROM workspaces
@@ -51,6 +51,25 @@ func GetWorkspaceMeter(DB *gorm.DB, workspaceID int) (int64, error) {
 				SELECT COALESCE(billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
 				FROM workspaces
 				WHERE id=?)`, workspaceID, workspaceID, workspaceID).
+		Select("COALESCE(SUM(count), 0) as currentPeriodSessionCount").
+		Scan(&meter).Error; err != nil {
+		return 0, e.Wrap(err, "error querying for session meter")
+	}
+	return meter, nil
+}
+
+func GetProjectMeter(DB *gorm.DB, project *model.Project) (int64, error) {
+	var meter int64
+	if err := DB.Model(&model.DailySessionCount{}).
+		Where(`project_id = ?
+			AND date >= (
+				SELECT COALESCE(billing_period_start, date_trunc('month', now(), 'UTC'))
+				FROM workspaces
+				WHERE id=?)
+			AND date < (
+				SELECT COALESCE(billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
+				FROM workspaces
+				WHERE id=?)`, project.ID, project.WorkspaceID, project.WorkspaceID).
 		Select("COALESCE(SUM(count), 0) as currentPeriodSessionCount").
 		Scan(&meter).Error; err != nil {
 		return 0, e.Wrap(err, "error querying for session meter")
@@ -278,6 +297,19 @@ func ReportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 				meter = GetMembersMeter(DB, workspaceID)
 			case ProductTypeSessions:
 				meter, err = GetWorkspaceMeter(DB, workspaceID)
+
+				// If meter exceeds the plan limit, and overage is not allowed,
+				// set the meter to the plan limit and report that.
+				if !workspace.AllowMeterOverage {
+					limit := TypeToQuota(backend.PlanType(workspace.PlanTier))
+					if workspace.MonthlySessionLimit != nil {
+						limit = *workspace.MonthlySessionLimit
+					}
+					if meter > int64(limit) {
+						meter = int64(limit)
+					}
+				}
+
 				if err != nil {
 					return e.Wrap(err, "error getting sessions meter")
 				}
