@@ -3,6 +3,7 @@ import Card from '@components/Card/Card';
 import CopyText from '@components/CopyText/CopyText';
 import Input from '@components/Input/Input';
 import Modal from '@components/Modal/Modal';
+import Select from '@components/Select/Select';
 import Table from '@components/Table/Table';
 import SvgTrash from '@icons/Trash';
 import { getWorkspaceInvitationLink } from '@pages/WorkspaceTeam/utils';
@@ -120,6 +121,24 @@ const WorkspaceTeam = () => {
                                 onChange={(e) => {
                                     setEmail(e.target.value);
                                 }}
+                                addonAfter={
+                                    <Select
+                                        bordered={false}
+                                        defaultValue="Admin"
+                                        options={[
+                                            {
+                                                displayValue: 'Admin',
+                                                id: 'admin',
+                                                value: 'Admin',
+                                            },
+                                            {
+                                                displayValue: 'Member',
+                                                id: 'member',
+                                                value: 'Member',
+                                            },
+                                        ]}
+                                    />
+                                }
                             />
                             <Button
                                 trackingId="WorkspaceInviteMember"
