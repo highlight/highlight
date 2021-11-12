@@ -47,12 +47,13 @@ var (
 )
 
 type Resolver struct {
-	DB                *gorm.DB
-	MailClient        *sendgrid.Client
-	StripeClient      *client.API
-	StorageClient     *storage.StorageClient
-	ClearbitClient    *clearbit.Client
-	PrivateWorkerPool *workerpool.WorkerPool
+	DB                     *gorm.DB
+	MailClient             *sendgrid.Client
+	StripeClient           *client.API
+	StorageClient          *storage.StorageClient
+	ClearbitClient         *clearbit.Client
+	PrivateWorkerPool      *workerpool.WorkerPool
+	SubscriptionWorkerPool *workerpool.WorkerPool
 }
 
 type EventsCursor struct {

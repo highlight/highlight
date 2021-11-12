@@ -3561,7 +3561,34 @@ func (r *sessionCommentResolver) Metadata(ctx context.Context, obj *model.Sessio
 }
 
 func (r *subscriptionResolver) OnEventsAdded(ctx context.Context, sessionSecureID string, initialEventsCount int) (<-chan []interface{}, error) {
-	panic(fmt.Errorf("not implemented"))
+	ch := make(chan []interface{})
+	r.SubscriptionWorkerPool.SubmitRecover(func() {
+		defer close(ch)
+		log.Infof("Polling for events on %s starting from index %d, number of waiting tasks %d",
+			sessionSecureID,
+			initialEventsCount,
+			r.SubscriptionWorkerPool.WaitingQueueSize())
+
+		cursor := EventsCursor{EventIndex: initialEventsCount, EventObjectIndex: nil}
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
+
+			events, err, nextCursor := r.getEvents(ctx, sessionSecureID, cursor)
+			if err != nil {
+				log.Error(e.Wrap(err, "error fetching events incrementally"))
+				return
+			}
+			ch <- events
+			cursor = *nextCursor
+
+			time.Sleep(1 * time.Second)
+		}
+	})
+	return ch, nil
 }
 
 // ErrorAlert returns generated.ErrorAlertResolver implementation.
