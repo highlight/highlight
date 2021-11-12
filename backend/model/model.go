@@ -189,7 +189,7 @@ type Workspace struct {
 	BillingPeriodEnd      *time.Time
 	MonthlySessionLimit   *int
 	TrialEndDate          *time.Time `json:"trial_end_date"`
-	AllowMeterOverage     bool       `gorm:"default:true"`
+	AllowMeterOverage     bool       `gorm:"default:false"`
 }
 
 type WorkspaceInviteLink struct {
