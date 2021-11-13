@@ -1,7 +1,14 @@
 import 'firebase/auth';
 
-import { ApolloClient, createHttpLink, InMemoryCache } from '@apollo/client';
+import {
+    ApolloClient,
+    createHttpLink,
+    InMemoryCache,
+    split,
+} from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
+import { WebSocketLink } from '@apollo/client/link/ws';
+import { getMainDefinition } from '@apollo/client/utilities';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import * as firebase from 'firebase/app';
 
@@ -12,6 +19,24 @@ const highlightGraph = createHttpLink({
     uri,
     credentials: 'include',
 });
+const socketUri = uri.replace(/(http|https):\/\//, 'ws://');
+const highlightSocket = new WebSocketLink({
+    uri: socketUri,
+    options: {
+        reconnect: true,
+    },
+});
+const splitLink = split(
+    ({ query }) => {
+        const definition = getMainDefinition(query);
+        return (
+            definition.kind === 'OperationDefinition' &&
+            definition.operation === 'subscription'
+        );
+    },
+    highlightSocket,
+    highlightGraph
+);
 
 if (isOnPrem) {
     console.log('Private Graph URI: ', uri);
@@ -27,7 +52,7 @@ const authLink = setContext((_, { headers }) => {
 });
 
 export const client = new ApolloClient({
-    link: authLink.concat(highlightGraph),
+    link: authLink.concat(splitLink),
     cache: new InMemoryCache({
         typePolicies: {
             Session: {

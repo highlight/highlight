@@ -2496,6 +2496,16 @@ export type GetCustomerPortalUrlQuery = { __typename?: 'Query' } & Pick<
     'customer_portal_url'
 >;
 
+export type OnEventsAddedSubscriptionVariables = Types.Exact<{
+    session_secure_id: Types.Scalars['String'];
+    initial_events_count: Types.Scalars['Int'];
+}>;
+
+export type OnEventsAddedSubscription = { __typename?: 'Subscription' } & Pick<
+    Types.Subscription,
+    'events_added'
+>;
+
 export const namedOperations = {
     Query: {
         GetSessionPayload: 'GetSessionPayload' as const,
@@ -2598,5 +2608,8 @@ export const namedOperations = {
         UpdateSessionIsPublic: 'UpdateSessionIsPublic' as const,
         UpdateErrorGroupIsPublic: 'UpdateErrorGroupIsPublic' as const,
         SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
+    },
+    Subscription: {
+        OnEventsAdded: 'OnEventsAdded' as const,
     },
 };
