@@ -9,7 +9,7 @@ import { AdminRole } from '@graph/schemas';
 import SvgTrash from '@icons/Trash';
 import { getWorkspaceInvitationLink } from '@pages/WorkspaceTeam/utils';
 import { useParams } from '@util/react-router/useParams';
-import { titleCaseString } from '@util/string';
+import { getDisplayNameFromEmail, titleCaseString } from '@util/string';
 import { message } from 'antd';
 import classNames from 'classnames/bind';
 import moment from 'moment';
@@ -246,6 +246,20 @@ const WorkspaceTeam = () => {
                                     new_role,
                                 },
                             });
+
+                            let messageText = '';
+                            const displayName =
+                                member?.name ||
+                                getDisplayNameFromEmail(member?.email || '');
+                            switch (new_role) {
+                                case AdminRole.Admin:
+                                    messageText = `${displayName} has been granted Admin powers 🧙`;
+                                    break;
+                                case AdminRole.Member:
+                                    messageText = `${displayName} will no longer have access to billing`;
+                                    break;
+                            }
+                            message.success(messageText);
                         },
                         currentAdminHasAdminRole:
                             admin?.role === AdminRole.Admin,
@@ -281,9 +295,7 @@ const TABLE_COLUMNS = [
                         <h4>
                             {record?.name
                                 ? record?.name
-                                : titleCaseString(
-                                      record?.email.split('@')[0]
-                                  )}{' '}
+                                : getDisplayNameFromEmail(record.email)}{' '}
                             {record.isSameAdmin && '(You)'}
                         </h4>
                         <div className={styles.email}>{record?.email}</div>
