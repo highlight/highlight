@@ -522,6 +522,32 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 	return adminId, nil
 }
 
+func (r *mutationResolver) ChangeAdminRole(ctx context.Context, workspaceID int, adminID int, newRole string) (bool, error) {
+	_, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return false, e.Wrap(err, "current admin is not in workspace")
+	}
+
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return false, e.Wrap(err, "error retrieving user")
+	}
+
+	if admin.Role != nil && *admin.Role != model.AdminRole.ADMIN {
+		return false, e.New("A non-Admin role Admin tried changing an admin role.")
+	}
+
+	if admin.ID == adminID {
+		return false, e.New("A admin tried changing their own role.")
+	}
+
+	if err := r.DB.Model(&model.Admin{Model: model.Model{ID: adminID}}).Update("Role", newRole).Error; err != nil {
+		return false, e.Wrap(err, "error updating admin role")
+	}
+
+	return true, nil
+}
+
 func (r *mutationResolver) DeleteAdminFromProject(ctx context.Context, projectID int, adminID int) (*int, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {

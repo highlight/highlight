@@ -11,3 +11,10 @@ export const titleCaseString = (string: string) => {
         return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
     });
 };
+
+export const getDisplayNameFromEmail = (email: string) => {
+    if (!email.includes('@')) {
+        return email;
+    }
+    return titleCaseString(email.split('@')[0]);
+};
