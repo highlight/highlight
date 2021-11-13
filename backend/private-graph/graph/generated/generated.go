@@ -3552,12 +3552,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SocialLink.Type(childComplexity), true
 
-	case "Subscription.onEventsAdded":
+	case "Subscription.on_events_added":
 		if e.complexity.Subscription.OnEventsAdded == nil {
 			break
 		}
 
-		args, err := ec.field_Subscription_onEventsAdded_args(context.TODO(), rawArgs)
+		args, err := ec.field_Subscription_on_events_added_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
@@ -4620,7 +4620,10 @@ type Mutation {
 }
 
 type Subscription {
-    onEventsAdded(session_secure_id: String!, initial_events_count: Int!): [Any]
+    on_events_added(
+        session_secure_id: String!
+        initial_events_count: Int!
+    ): [Any]
 }
 `, BuiltIn: false},
 }
@@ -7534,7 +7537,7 @@ func (ec *executionContext) field_Query_workspace_invite_links_args(ctx context.
 	return args, nil
 }
 
-func (ec *executionContext) field_Subscription_onEventsAdded_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Subscription_on_events_added_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -19438,7 +19441,7 @@ func (ec *executionContext) _SocialLink_link(ctx context.Context, field graphql.
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Subscription_onEventsAdded(ctx context.Context, field graphql.CollectedField) (ret func() graphql.Marshaler) {
+func (ec *executionContext) _Subscription_on_events_added(ctx context.Context, field graphql.CollectedField) (ret func() graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -19455,7 +19458,7 @@ func (ec *executionContext) _Subscription_onEventsAdded(ctx context.Context, fie
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Subscription_onEventsAdded_args(ctx, rawArgs)
+	args, err := ec.field_Subscription_on_events_added_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return nil
@@ -24559,8 +24562,8 @@ func (ec *executionContext) _Subscription(ctx context.Context, sel ast.Selection
 	}
 
 	switch fields[0].Name {
-	case "onEventsAdded":
-		return ec._Subscription_onEventsAdded(ctx, fields[0])
+	case "on_events_added":
+		return ec._Subscription_on_events_added(ctx, fields[0])
 	default:
 		panic("unknown field " + strconv.Quote(fields[0].Name))
 	}
