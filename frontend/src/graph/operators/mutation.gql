@@ -41,6 +41,18 @@ mutation AddAdminToWorkspace($workspace_id: ID!, $invite_id: String!) {
     addAdminToWorkspace(workspace_id: $workspace_id, invite_id: $invite_id)
 }
 
+mutation ChangeAdminRole(
+    $workspace_id: ID!
+    $admin_id: ID!
+    $new_role: String!
+) {
+    changeAdminRole(
+        workspace_id: $workspace_id
+        admin_id: $admin_id
+        new_role: $new_role
+    )
+}
+
 mutation DeleteAdminFromProject($project_id: ID!, $admin_id: ID!) {
     deleteAdminFromProject(project_id: $project_id, admin_id: $admin_id)
 }

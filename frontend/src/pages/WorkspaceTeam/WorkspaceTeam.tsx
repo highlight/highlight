@@ -26,6 +26,7 @@ import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import { CircularSpinner } from '../../components/Loading/Loading';
 import PopConfirm from '../../components/PopConfirm/PopConfirm';
 import {
+    useChangeAdminRoleMutation,
     useDeleteAdminFromWorkspaceMutation,
     useGetWorkspaceAdminsQuery,
     useSendAdminWorkspaceInviteMutation,
@@ -65,6 +66,7 @@ const WorkspaceTeam = () => {
             });
         },
     });
+    const [changeAdminRole] = useChangeAdminRoleMutation();
 
     const [
         sendInviteEmail,
@@ -216,7 +218,11 @@ const WorkspaceTeam = () => {
 
             <Card noPadding>
                 <Table
-                    columns={TABLE_COLUMNS}
+                    columns={
+                        admin?.role === AdminRole.Admin
+                            ? TABLE_COLUMNS
+                            : TABLE_COLUMNS.slice(0, 2)
+                    }
                     loading={loading}
                     dataSource={data?.admins?.map((member) => ({
                         name: member?.name,
@@ -232,6 +238,17 @@ const WorkspaceTeam = () => {
                                     workspace_id,
                                 },
                             }),
+                        onUpdateRoleHandler: (new_role: string) => {
+                            changeAdminRole({
+                                variables: {
+                                    admin_id: member!.id,
+                                    workspace_id,
+                                    new_role,
+                                },
+                            });
+                        },
+                        currentAdminHasAdminRole:
+                            admin?.role === AdminRole.Admin,
                     }))}
                     pagination={false}
                     showHeader={false}
@@ -264,7 +281,10 @@ const TABLE_COLUMNS = [
                         <h4>
                             {record?.name
                                 ? record?.name
-                                : record?.email.split('@')[0]}
+                                : titleCaseString(
+                                      record?.email.split('@')[0]
+                                  )}{' '}
+                            {record.isSameAdmin && '(You)'}
                         </h4>
                         <div className={styles.email}>{record?.email}</div>
                     </div>
@@ -272,23 +292,41 @@ const TABLE_COLUMNS = [
             );
         },
     },
-    //     {
-    //         title: 'Role',
-    //         dataIndex: 'role',
-    //         key: 'role',
-    //         render: (role: string) => {
-    //             return <div className={styles.role}>{role}</div>;
-    //         },
-    //     },
+    {
+        title: 'Role',
+        dataIndex: 'role',
+        key: 'role',
+        render: (role: string, record: any) => {
+            if (record.currentAdminHasAdminRole) {
+                return (
+                    <div className={styles.role}>
+                        <Select
+                            disabled={record.isSameAdmin}
+                            onChange={record.onUpdateRoleHandler}
+                            options={(Object.keys(
+                                AdminRole
+                            ) as (keyof typeof AdminRole)[]).map((key) => {
+                                const role = AdminRole[key];
+
+                                return {
+                                    displayValue: titleCaseString(role),
+                                    id: role,
+                                    value: role,
+                                };
+                            })}
+                            defaultValue={record.role}
+                        />
+                    </div>
+                );
+            }
+            return <div className={styles.role}>{titleCaseString(role)}</div>;
+        },
+    },
     {
         title: 'Remove',
         dataIndex: 'remove',
         key: 'remove',
         render: (_: any, record: any) => {
-            if (record.isSameAdmin) {
-                return null;
-            }
-
             return (
                 <PopConfirm
                     title={`Remove ${record?.name || record?.email}?`}

@@ -28,6 +28,7 @@ type Props = Pick<
     | 'optionLabelProp'
     | 'filterOption'
     | 'bordered'
+    | 'disabled'
 > & {
     options?: {
         value: string;
@@ -48,7 +49,7 @@ const Select = ({
     return (
         <AntDesignSelect
             {...props}
-            disabled={props.loading}
+            disabled={props.loading || props.disabled}
             className={classNames(className, styles.select, {
                 [styles.selectHasValue]: hasAccent && !!props.value,
             })}
