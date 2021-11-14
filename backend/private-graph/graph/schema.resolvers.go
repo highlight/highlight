@@ -3560,7 +3560,7 @@ func (r *sessionCommentResolver) Metadata(ctx context.Context, obj *model.Sessio
 	return obj.Metadata, nil
 }
 
-func (r *subscriptionResolver) OnEventsAdded(ctx context.Context, sessionSecureID string, initialEventsCount int) (<-chan []interface{}, error) {
+func (r *subscriptionResolver) EventsAdded(ctx context.Context, sessionSecureID string, initialEventsCount int) (<-chan []interface{}, error) {
 	ch := make(chan []interface{})
 	r.SubscriptionWorkerPool.SubmitRecover(func() {
 		defer close(ch)
@@ -3643,3 +3643,42 @@ type sessionResolver struct{ *Resolver }
 type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *subscriptionResolver) OnEventsAdded(ctx context.Context, sessionSecureID string, initialEventsCount int) (<-chan []interface{}, error) {
+	ch := make(chan []interface{})
+	r.SubscriptionWorkerPool.SubmitRecover(func() {
+		defer close(ch)
+		log.Infof("Polling for events on %s starting from index %d, number of waiting tasks %d",
+			sessionSecureID,
+			initialEventsCount,
+			r.SubscriptionWorkerPool.WaitingQueueSize())
+
+		cursor := EventsCursor{EventIndex: initialEventsCount, EventObjectIndex: nil}
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
+
+			events, err, nextCursor := r.getEvents(ctx, sessionSecureID, cursor)
+			if err != nil {
+				log.Error(e.Wrap(err, "error fetching events incrementally"))
+				return
+			}
+			if len(events) != 0 {
+				ch <- events
+			}
+			cursor = *nextCursor
+
+			time.Sleep(1 * time.Second)
+		}
+	})
+	return ch, nil
+}

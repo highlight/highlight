@@ -798,8 +798,5 @@ type Mutation {
 }
 
 type Subscription {
-    on_events_added(
-        session_secure_id: String!
-        initial_events_count: Int!
-    ): [Any]
+    events_added(session_secure_id: String!, initial_events_count: Int!): [Any]
 }
