@@ -8,12 +8,6 @@
     flex-direction: row;
 }
 
-.alertStepsParent {
-    max-width: 45vw !important;
-    min-width: 500px !important;
-    width: auto !important;
-}
-
 .cardGrid {
     display: grid;
     gap: var(--size-xLarge);
@@ -23,6 +17,7 @@
 
 .cardContent {
     display: block;
+    position: relative;
 
     .icon {
         align-items: center;
@@ -88,8 +83,6 @@
 }
 
 .integrationAlert {
-    margin-bottom: var(--size-xxLarge);
-
     .integrationButton {
         margin-top: var(--size-large);
     }
@@ -109,36 +102,8 @@
     display: flex;
 }
 
-.stepsAction {
-    display: flex;
-}
-
-.stepsContent {
-    margin-bottom: 2vh;
-    margin-top: 2vh;
-    max-height: 45vh;
-    min-height: 45vh;
-}
-
 .alertTypeSelected {
     border-color: var(--color-purple) !important;
-}
-
-.stepsContainer {
-    padding-top: var(--size-large);
-
-    :global(.ant-steps-item-icon) {
-        margin: 0 !important;
-        opacity: 0 !important;
-        padding: 0 !important;
-        width: 0 !important;
-    }
-
-    :global(.ant-steps-item::after) {
-        margin-left: 0 !important;
-        opacity: 0 !important;
-        width: 0 !important;
-    }
 }
 
 .stepsTitle {
@@ -149,4 +114,26 @@
     align-items: center;
     display: flex;
     justify-content: flex-end;
+}
+
+.checkIconContainer {
+    --background-size: var(--size-xLarge);
+    --icon-size: var(--size-medium);
+
+    align-items: center;
+    background: var(--color-purple);
+    border-radius: 50%;
+    color: var(--color-white);
+    display: flex;
+    height: var(--background-size);
+    justify-content: center;
+    position: absolute;
+    right: var(--size-small);
+    top: var(--size-small);
+    width: var(--background-size);
+
+    svg {
+        height: var(--icon-size);
+        width: var(--icon-size);
+    }
 }

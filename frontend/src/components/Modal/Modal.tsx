@@ -22,7 +22,6 @@ type Props = Pick<
 > & {
     title?: string;
     minimal?: boolean;
-    wide?: boolean;
 };
 
 const Modal: React.FC<Props> = ({
