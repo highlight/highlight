@@ -9,9 +9,9 @@
 }
 
 .alertStepsParent {
-    max-width: 60vw;
-    min-height: 62vh;
-    min-width: 60vw;
+    width: auto !important;
+    max-width: 45vw !important;
+    min-width: 500px !important;
 }
 
 .cardGrid {
@@ -150,4 +150,7 @@
     align-items: center;
     display: flex;
     justify-content: flex-end;
+}
+
+.setupModal {
 }

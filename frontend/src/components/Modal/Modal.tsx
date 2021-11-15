@@ -27,9 +27,9 @@ type Props = Pick<
 
 const Modal: React.FC<Props> = ({
     children,
+    className,
     title,
     minimal,
-    wide,
     ...props
 }) => {
     const bodyStyle: React.CSSProperties = minimal
@@ -46,7 +46,7 @@ const Modal: React.FC<Props> = ({
             footer={null}
             {...props}
             closeIcon={!minimal ? <Close height="18px" width="18px" /> : null}
-            className={classNames(styles.modal, { [styles.wide]: wide })}
+            className={classNames(styles.modal, className)}
             closable={!minimal}
             bodyStyle={bodyStyle}
             maskClosable
