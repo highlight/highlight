@@ -36,6 +36,7 @@ import {
 } from './listeners/network-listener/utils/utils';
 import { DEFAULT_URL_BLOCKLIST } from './listeners/network-listener/utils/network-sanitizer';
 import { SESSION_STORAGE_KEYS } from './utils/sessionStorage/sessionStorageKeys';
+import SessionShortcutListener from 'listeners/session-shortcut/session-shortcut-listener';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -86,6 +87,8 @@ export type NetworkRecordingOptions = {
     urlBlocklist?: string[];
 };
 
+export type SessionShortcutOptions = false | string;
+
 export type IntegrationOptions = {
     mixpanel?: MixpanelIntegrationOptions;
     amplitude?: AmplitudeIntegrationOptions;
@@ -113,6 +116,7 @@ export type HighlightClassOptions = {
     firstloadVersion?: string;
     environment?: 'development' | 'production' | 'staging' | string;
     appVersion?: string;
+    sessionShortcut?: SessionShortcutOptions;
 };
 
 /**
@@ -191,6 +195,7 @@ export class Highlight {
     listeners: listenerHandler[];
     firstloadVersion: string;
     environment: string;
+    sessionShortcut: SessionShortcutOptions = false;
     /** The end-user's app version. This isn't Highlight's version. */
     appVersion: string | undefined;
     _optionsInternal: HighlightClassOptionsInternal;
@@ -280,6 +285,7 @@ export class Highlight {
             this.organizationID === '1' || this.organizationID === '1jdkoe52';
         this._isOnLocalHost = window.location.hostname === 'localhost';
         this.firstloadVersion = options.firstloadVersion || 'unknown';
+        this.sessionShortcut = options.sessionShortcut || false;
         this.sessionData = {
             sessionID: 0,
             sessionSecureID: '',
@@ -655,6 +661,15 @@ export class Highlight {
                 })
             );
 
+            if (this.sessionShortcut) {
+                SessionShortcutListener(this.sessionShortcut, () => {
+                    window.open(
+                        this.getCurrentSessionURLWithTimestamp(),
+                        '_blank'
+                    );
+                });
+            }
+
             if (
                 !this.disableNetworkRecording &&
                 this.enableRecordingNetworkContents
@@ -750,6 +765,18 @@ export class Highlight {
 
     getCurrentSessionTimestamp() {
         return this._recordingStartTime;
+    }
+
+    /**
+     * Returns the current timestamp for the current session.
+     */
+    getCurrentSessionURLWithTimestamp() {
+        const now = new Date().getTime();
+        const { projectID, sessionSecureID } = this.sessionData;
+        const relativeTimestamp = (now - this._recordingStartTime) / 1000;
+        const highlightUrl = `https://${HIGHLIGHT_URL}/${projectID}/sessions/${sessionSecureID}?ts=${relativeTimestamp}`;
+
+        return highlightUrl;
     }
 
     getCurrentSessionURL() {
