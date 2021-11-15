@@ -117,7 +117,7 @@ const BillingPage = () => {
                 variables: {
                     workspace_id,
                     plan_type: newPlan,
-                    interval: 'ANNUAL',
+                    interval: 'MONTHLY',
                 },
             }).then((r) => {
                 if (!r.data?.createOrUpdateStripeSubscription) {

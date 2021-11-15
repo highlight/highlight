@@ -47,6 +47,7 @@ var (
 	stripeApiKey        = os.Getenv("STRIPE_API_KEY")
 	stripeWebhookSecret = os.Getenv("STRIPE_WEBHOOK_SECRET")
 	runtimeFlag         = flag.String("runtime", "all", "the runtime of the backend; either 1) dev (all runtimes) 2) worker 3) public-graph 4) private-graph")
+	handlerFlag         = flag.String("worker-handler", "", "applies for runtime=worker; if specified, a handler function will be called instead of Start")
 )
 
 //  we inject this value at build time for on-prem
@@ -293,7 +294,11 @@ func main() {
 	log.Println("process running....")
 	if runtimeParsed == util.Worker {
 		w := &worker.Worker{Resolver: privateResolver, S3Client: storage}
-		w.Start()
+		if handlerFlag != nil && *handlerFlag != "" {
+			w.GetHandler(*handlerFlag)()
+		} else {
+			w.Start()
+		}
 	} else if runtimeParsed == util.All {
 		w := &worker.Worker{Resolver: privateResolver, S3Client: storage}
 		go func() {

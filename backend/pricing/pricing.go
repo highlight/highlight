@@ -9,6 +9,7 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	backend "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	e "github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	stripe "github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/client"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -35,22 +36,64 @@ const (
 	SubscriptionIntervalAnnual  SubscriptionInterval = "ANNUAL"
 )
 
-func GetWorkspaceQuota(DB *gorm.DB, workspace_id int) (int64, error) {
-	year, month, _ := time.Now().Date()
+func GetMembersMeter(DB *gorm.DB, workspaceID int) int64 {
+	return DB.Model(&model.Workspace{Model: model.Model{ID: workspaceID}}).Association("Admins").Count()
+}
+
+func GetWorkspaceMeter(DB *gorm.DB, workspaceID int) (int64, error) {
 	var meter int64
-	if err := DB.Model(&model.Session{}).Where("project_id in (SELECT id FROM projects WHERE workspace_id=?)", workspace_id).Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Count(&meter).Error; err != nil {
+	if err := DB.Model(&model.DailySessionCount{}).
+		Where(`project_id in (SELECT id FROM projects WHERE workspace_id=? AND free_tier = false)
+			AND date >= (
+				SELECT COALESCE(billing_period_start, date_trunc('month', now(), 'UTC'))
+				FROM workspaces
+				WHERE id=?)
+			AND date < (
+				SELECT COALESCE(billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
+				FROM workspaces
+				WHERE id=?)`, workspaceID, workspaceID, workspaceID).
+		Select("COALESCE(SUM(count), 0) as currentPeriodSessionCount").
+		Scan(&meter).Error; err != nil {
 		return 0, e.Wrap(err, "error querying for session meter")
 	}
 	return meter, nil
 }
 
-func GetWorkspaceQuotaOverflow(ctx context.Context, DB *gorm.DB, workspace_id int) (int64, error) {
-	year, month, _ := time.Now().Date()
+func GetProjectMeter(DB *gorm.DB, project *model.Project) (int64, error) {
+	var meter int64
+	if err := DB.Model(&model.DailySessionCount{}).
+		Where(`project_id = ?
+			AND date >= (
+				SELECT COALESCE(billing_period_start, date_trunc('month', now(), 'UTC'))
+				FROM workspaces
+				WHERE id=?)
+			AND date < (
+				SELECT COALESCE(billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
+				FROM workspaces
+				WHERE id=?)`, project.ID, project.WorkspaceID, project.WorkspaceID).
+		Select("COALESCE(SUM(count), 0) as currentPeriodSessionCount").
+		Scan(&meter).Error; err != nil {
+		return 0, e.Wrap(err, "error querying for session meter")
+	}
+	return meter, nil
+}
+
+func GetWorkspaceQuotaOverflow(ctx context.Context, DB *gorm.DB, workspaceID int) (int64, error) {
 	var queriedSessionsOverQuota int64
 	sessionsOverQuotaCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-		tracer.ResourceName("db.sessionsOverQuotaCountQuery"), tracer.Tag("workspace_id", workspace_id))
+		tracer.ResourceName("db.sessionsOverQuotaCountQuery"), tracer.Tag("workspace_id", workspaceID))
 	defer sessionsOverQuotaCountSpan.Finish()
-	if err := DB.Model(&model.Session{}).Where("project_id in (SELECT id FROM projects WHERE workspace_id=?)", workspace_id).Where("within_billing_quota = false").Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Count(&queriedSessionsOverQuota).Error; err != nil {
+	if err := DB.Model(&model.Session{}).
+		Where(`project_id in (SELECT id FROM projects WHERE workspace_id=?)
+			AND created_at >= (
+				SELECT COALESCE(billing_period_start, date_trunc('month', now(), 'UTC'))
+				FROM workspaces
+				WHERE id=?)
+			AND created_at < (
+				SELECT COALESCE(billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
+				FROM workspaces
+				WHERE id=?)`, workspaceID, workspaceID, workspaceID).
+		Count(&queriedSessionsOverQuota).Error; err != nil {
 		return 0, e.Wrap(err, "error querying sessions over quota count")
 	}
 	return queriedSessionsOverQuota, nil
@@ -194,4 +237,102 @@ func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, int
 	}
 
 	return priceMap, nil
+}
+
+func ReportUsageForProduct(DB *gorm.DB, stripeClient *client.API, workspaceID int, productType ProductType) error {
+	return reportUsage(DB, stripeClient, workspaceID, &productType)
+}
+
+func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, productType *ProductType) error {
+	var workspace model.Workspace
+	if err := DB.Model(workspace).Where("id = ?", workspaceID).First(&workspace).Error; err != nil {
+		return e.Wrap(err, "error querying workspace")
+	}
+
+	if workspace.BillingPeriodStart == nil ||
+		workspace.BillingPeriodEnd == nil ||
+		time.Now().Before(*workspace.BillingPeriodStart) ||
+		!time.Now().Before(*workspace.BillingPeriodEnd) {
+		return e.New("workspace billing period is not valid")
+	}
+
+	customerParams := &stripe.CustomerParams{}
+	customerParams.AddExpand("subscriptions")
+	c, err := stripeClient.Customers.Get(*workspace.StripeCustomerID, customerParams)
+	if err != nil {
+		return e.Wrap(err, "couldn't retrieve stripe customer data")
+	}
+
+	subscriptions := c.Subscriptions.Data
+	FillProducts(stripeClient, subscriptions)
+
+	for _, subscription := range subscriptions {
+		for _, subscriptionItem := range subscription.Items.Data {
+			product, _ := GetProductMetadata(subscriptionItem.Price)
+			if product == nil ||
+				(productType != nil && *productType != *product) {
+				continue
+			}
+
+			var meter int64
+			switch *product {
+			case ProductTypeMembers:
+				meter = GetMembersMeter(DB, workspaceID)
+			case ProductTypeSessions:
+				meter, err = GetWorkspaceMeter(DB, workspaceID)
+
+				// If meter exceeds the plan limit, and overage is not allowed,
+				// set the meter to the plan limit and report that.
+				if !workspace.AllowMeterOverage {
+					limit := TypeToQuota(backend.PlanType(workspace.PlanTier))
+					if workspace.MonthlySessionLimit != nil {
+						limit = *workspace.MonthlySessionLimit
+					}
+					if meter > int64(limit) {
+						meter = int64(limit)
+					}
+				}
+
+				if err != nil {
+					return e.Wrap(err, "error getting sessions meter")
+				}
+			default:
+				continue
+			}
+
+			params := stripe.UsageRecordParams{
+				SubscriptionItem: &subscriptionItem.ID,
+				Action:           stripe.String("set"),
+				Quantity:         stripe.Int64(meter),
+			}
+
+			log.Infof("creating usage record [workspace: %d, type: %s, subscriptionItem: %s, quantity: %d]",
+				workspaceID, *product, subscriptionItem.ID, meter)
+			if _, err := stripeClient.UsageRecords.New(&params); err != nil {
+				return e.Wrap(err, "error creating new usage record")
+			}
+		}
+	}
+
+	return nil
+}
+
+func ReportAllUsage(DB *gorm.DB, stripeClient *client.API) {
+	// Get all workspace IDs
+	var workspaceIDs []int
+	if err := DB.Raw(`
+		SELECT id
+		FROM workspaces
+		WHERE billing_period_start is not null
+		AND billing_period_end is not null
+	`).Scan(&workspaceIDs).Error; err != nil {
+		log.Error("failed to query workspaces")
+		return
+	}
+
+	for _, workspaceID := range workspaceIDs {
+		if err := reportUsage(DB, stripeClient, workspaceID, nil); err != nil {
+			log.Error(e.Wrapf(err, "error reporting usage for workspace %d", workspaceID))
+		}
+	}
 }

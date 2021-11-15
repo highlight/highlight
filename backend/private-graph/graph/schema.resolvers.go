@@ -563,7 +563,12 @@ func (r *mutationResolver) DeleteAdminFromWorkspace(ctx context.Context, workspa
 		return nil, e.Wrap(err, "current admin is not in workspace")
 	}
 
-	return r.DeleteAdminAssociation(ctx, workspace, adminID)
+	deletedAdminId, err := r.DeleteAdminAssociation(ctx, workspace, adminID)
+	if err != nil {
+		return nil, e.Wrap(err, "error deleting admin association")
+	}
+
+	return deletedAdminId, nil
 }
 
 func (r *mutationResolver) CreateSegment(ctx context.Context, projectID int, name string, params modelInputs.SearchParamsInput) (*model.Segment, error) {
@@ -865,13 +870,10 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	}
 
 	// If there's no existing subscription, we create a checkout.
-	newSubItems := []*stripe.CheckoutSessionLineItemParams{}
-	for productType, price := range prices {
-		subItem := stripe.CheckoutSessionLineItemParams{
-			Price: &price.ID,
-		}
-		if productType == pricing.ProductTypeBase {
-			subItem.Quantity = stripe.Int64(1)
+	newSubItems := []*stripe.CheckoutSessionSubscriptionDataItemsParams{}
+	for _, price := range prices {
+		subItem := stripe.CheckoutSessionSubscriptionDataItemsParams{
+			Plan: &price.ID,
 		}
 		newSubItems = append(newSubItems, &subItem)
 	}
@@ -882,9 +884,11 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 		PaymentMethodTypes: stripe.StringSlice([]string{
 			"card",
 		}),
-		Customer:  workspace.StripeCustomerID,
-		LineItems: newSubItems,
-		Mode:      stripe.String(string(stripe.CheckoutSessionModeSubscription)),
+		Customer: workspace.StripeCustomerID,
+		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
+			Items: newSubItems,
+		},
+		Mode: stripe.String(string(stripe.CheckoutSessionModeSubscription)),
 	}
 	checkoutSessionParams.AddExtra("allow_promotion_codes", "true")
 
@@ -3028,7 +3032,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	var queriedSessionsOutOfQuota int64
 
 	g.Go(func() error {
-		meter, err = pricing.GetWorkspaceQuota(r.DB, workspaceID)
+		meter, err = pricing.GetWorkspaceMeter(r.DB, workspaceID)
 		if err != nil {
 			return e.Wrap(err, "error from get quota")
 		}
