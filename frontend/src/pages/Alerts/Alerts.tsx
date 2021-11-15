@@ -58,7 +58,11 @@ export const ALERT_CONFIGURATIONS = {
         description: (
             <>
                 {'Get alerted whenever a user'}{' '}
-                <a href="https://docs.highlight.run/rage-clicks">
+                {/* eslint-disable-next-line react/jsx-no-target-blank */}
+                <a
+                    href="https://docs.highlight.run/rage-clicks"
+                    target="_blank"
+                >
                     rage clicks.
                 </a>
             </>
@@ -96,7 +100,19 @@ export const ALERT_CONFIGURATIONS = {
         name: ALERT_NAMES['SESSION_FEEDBACK_ALERT'],
         canControlThreshold: false,
         type: ALERT_TYPE.SessionFeedbackComment,
-        description: 'Get alerted when a user submits a session feedback.',
+        description: (
+            <>
+                Get alerted when a user submits{' '}
+                {/* eslint-disable-next-line react/jsx-no-target-blank */}
+                <a
+                    href="https://docs.highlight.run/user-feedback"
+                    target="_blank"
+                >
+                    a session feedback
+                </a>
+                .
+            </>
+        ),
         icon: <SvgQuoteIcon />,
         supportsExcludeRules: false,
     },
@@ -227,13 +243,16 @@ const AlertsPage = () => {
             <AlertSetupModal />
             <div className={styles.subTitleContainer}>
                 <p>Manage your alerts for your project.</p>
-                <ButtonLink
-                    trackingId="NewAlert"
-                    className={styles.callToAction}
-                    to={`/${project_id}/alerts/new`}
-                >
-                    New Alert
-                </ButtonLink>
+                {alertsPayload?.is_integrated_with_slack &&
+                    alertsAsTableRows.length > 0 && (
+                        <ButtonLink
+                            trackingId="NewAlert"
+                            className={styles.callToAction}
+                            to={`/${project_id}/alerts/new`}
+                        >
+                            New Alert
+                        </ButtonLink>
+                    )}
             </div>
             {!loading && !alertsPayload?.is_integrated_with_slack ? (
                 <Alert

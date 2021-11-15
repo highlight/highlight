@@ -1,5 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext';
 import Alert from '@components/Alert/Alert';
+import Button from '@components/Button/Button/Button';
+import SvgLogInIcon from '@icons/LogInIcon';
 import { loadStripe } from '@stripe/stripe-js';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
@@ -16,6 +18,7 @@ import Progress from '../../components/Progress/Progress';
 import {
     useCreateOrUpdateStripeSubscriptionMutation,
     useGetBillingDetailsQuery,
+    useGetCustomerPortalUrlLazyQuery,
     useGetWorkspaceQuery,
     useUpdateBillingDetailsMutation,
 } from '../../graph/generated/hooks';
@@ -62,7 +65,7 @@ const BillingPage = () => {
             workspace_id,
         },
     });
-    const { admin } = useAuthContext();
+    const { admin, isHighlightAdmin } = useAuthContext();
 
     const [
         createOrUpdateStripeSubscription,
@@ -70,6 +73,17 @@ const BillingPage = () => {
     ] = useCreateOrUpdateStripeSubscriptionMutation();
 
     const [updateBillingDetails] = useUpdateBillingDetailsMutation();
+
+    const [
+        getCustomerPortalUrl,
+        { loading: loadingCustomerPortal },
+    ] = useGetCustomerPortalUrlLazyQuery({
+        onCompleted: (data) => {
+            if (data?.customer_portal_url) {
+                window.open(data?.customer_portal_url, '_self');
+            }
+        },
+    });
 
     useEffect(() => {
         const response = pathname.split('/')[4] ?? '';
@@ -170,10 +184,29 @@ const BillingPage = () => {
             </Helmet>
             <LeadAlignLayout fullWidth>
                 {rainConfetti && <Confetti recycle={false} />}
-                <h2>Billing</h2>
-                <p className={layoutStyles.subTitle}>
-                    Manage your billing information.
-                </p>
+                <div className={styles.titleContainer}>
+                    <div>
+                        <h2>Billing</h2>
+                        <p className={layoutStyles.subTitle}>
+                            Manage your billing information.
+                        </p>
+                    </div>
+                    {isHighlightAdmin && admin?.role === AdminRole.Admin && (
+                        <Button
+                            trackingId="RedirectToCustomerPortal"
+                            type="primary"
+                            onClick={() => {
+                                getCustomerPortalUrl({
+                                    variables: { workspace_id },
+                                });
+                            }}
+                            loading={loadingCustomerPortal}
+                            className={styles.portalButton}
+                        >
+                            <SvgLogInIcon /> Payment Settings
+                        </Button>
+                    )}
+                </div>
                 <div className={styles.detailsCard}>
                     <Collapsible
                         title={

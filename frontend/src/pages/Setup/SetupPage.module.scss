@@ -66,6 +66,8 @@
 }
 
 .integrationContainer {
+    display: flex;
+    justify-content: space-between;
     padding: var(--size-medium) 0;
     padding-bottom: 0;
 }

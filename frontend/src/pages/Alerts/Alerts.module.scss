@@ -40,6 +40,7 @@
 .subTitleContainer {
     align-items: center;
     display: flex;
+    height: 40px;
     margin-bottom: var(--size-medium);
     margin-top: var(--size-small);
 
@@ -80,13 +81,15 @@
     flex-direction: column;
     margin: 0 auto;
     max-width: 400px;
+    padding-bottom: var(--size-xLarge);
     padding-top: var(--size-xLarge);
+    text-align: left;
 
     p {
         color: var(--color-gray-500) !important;
     }
 
     a {
-        margin-top: var(--size-xLarge);
+        margin-top: var(--size-medium);
     }
 }

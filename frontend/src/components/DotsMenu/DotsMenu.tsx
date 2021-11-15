@@ -9,8 +9,8 @@ type Props = {
     /**
      * The menu options.
      * <Menu>
-     * 	<Menu.Item>
-     * 	<Menu.Item>
+     *  <Menu.Item>
+     *  <Menu.Item>
      * </Menu>
      */
     menu: JSX.Element;

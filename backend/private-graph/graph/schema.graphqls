@@ -576,6 +576,7 @@ type Query {
     segments(project_id: ID!): [Segment]
     error_segments(project_id: ID!): [ErrorSegment]
     api_key_to_org_id(api_key: String!): ID
+    customer_portal_url(workspace_id: ID!): String!
 }
 
 type Mutation {
@@ -596,8 +597,14 @@ type Mutation {
         workspace_id: ID!
         email: String!
         base_url: String!
+        role: String!
     ): String
     addAdminToWorkspace(workspace_id: ID!, invite_id: String!): ID
+    changeAdminRole(
+        workspace_id: ID!
+        admin_id: ID!
+        new_role: String!
+    ): Boolean!
     deleteAdminFromProject(project_id: ID!, admin_id: ID!): ID
     deleteAdminFromWorkspace(workspace_id: ID!, admin_id: ID!): ID
     createSegment(

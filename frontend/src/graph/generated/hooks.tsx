@@ -345,6 +345,62 @@ export type AddAdminToWorkspaceMutationOptions = Apollo.BaseMutationOptions<
     Types.AddAdminToWorkspaceMutation,
     Types.AddAdminToWorkspaceMutationVariables
 >;
+export const ChangeAdminRoleDocument = gql`
+    mutation ChangeAdminRole(
+        $workspace_id: ID!
+        $admin_id: ID!
+        $new_role: String!
+    ) {
+        changeAdminRole(
+            workspace_id: $workspace_id
+            admin_id: $admin_id
+            new_role: $new_role
+        )
+    }
+`;
+export type ChangeAdminRoleMutationFn = Apollo.MutationFunction<
+    Types.ChangeAdminRoleMutation,
+    Types.ChangeAdminRoleMutationVariables
+>;
+
+/**
+ * __useChangeAdminRoleMutation__
+ *
+ * To run a mutation, you first call `useChangeAdminRoleMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useChangeAdminRoleMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [changeAdminRoleMutation, { data, loading, error }] = useChangeAdminRoleMutation({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *      admin_id: // value for 'admin_id'
+ *      new_role: // value for 'new_role'
+ *   },
+ * });
+ */
+export function useChangeAdminRoleMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.ChangeAdminRoleMutation,
+        Types.ChangeAdminRoleMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.ChangeAdminRoleMutation,
+        Types.ChangeAdminRoleMutationVariables
+    >(ChangeAdminRoleDocument, baseOptions);
+}
+export type ChangeAdminRoleMutationHookResult = ReturnType<
+    typeof useChangeAdminRoleMutation
+>;
+export type ChangeAdminRoleMutationResult = Apollo.MutationResult<Types.ChangeAdminRoleMutation>;
+export type ChangeAdminRoleMutationOptions = Apollo.BaseMutationOptions<
+    Types.ChangeAdminRoleMutation,
+    Types.ChangeAdminRoleMutationVariables
+>;
 export const DeleteAdminFromProjectDocument = gql`
     mutation DeleteAdminFromProject($project_id: ID!, $admin_id: ID!) {
         deleteAdminFromProject(project_id: $project_id, admin_id: $admin_id)
@@ -3540,11 +3596,13 @@ export const SendAdminWorkspaceInviteDocument = gql`
         $workspace_id: ID!
         $email: String!
         $base_url: String!
+        $role: String!
     ) {
         sendAdminWorkspaceInvite(
             workspace_id: $workspace_id
             email: $email
             base_url: $base_url
+            role: $role
         )
     }
 `;
@@ -3569,6 +3627,7 @@ export type SendAdminWorkspaceInviteMutationFn = Apollo.MutationFunction<
  *      workspace_id: // value for 'workspace_id'
  *      email: // value for 'email'
  *      base_url: // value for 'base_url'
+ *      role: // value for 'role'
  *   },
  * });
  */
@@ -6414,4 +6473,58 @@ export type GetCommentMentionSuggestionsLazyQueryHookResult = ReturnType<
 export type GetCommentMentionSuggestionsQueryResult = Apollo.QueryResult<
     Types.GetCommentMentionSuggestionsQuery,
     Types.GetCommentMentionSuggestionsQueryVariables
+>;
+export const GetCustomerPortalUrlDocument = gql`
+    query GetCustomerPortalURL($workspace_id: ID!) {
+        customer_portal_url(workspace_id: $workspace_id)
+    }
+`;
+
+/**
+ * __useGetCustomerPortalUrlQuery__
+ *
+ * To run a query within a React component, call `useGetCustomerPortalUrlQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCustomerPortalUrlQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCustomerPortalUrlQuery({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *   },
+ * });
+ */
+export function useGetCustomerPortalUrlQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetCustomerPortalUrlQuery,
+        Types.GetCustomerPortalUrlQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetCustomerPortalUrlQuery,
+        Types.GetCustomerPortalUrlQueryVariables
+    >(GetCustomerPortalUrlDocument, baseOptions);
+}
+export function useGetCustomerPortalUrlLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetCustomerPortalUrlQuery,
+        Types.GetCustomerPortalUrlQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetCustomerPortalUrlQuery,
+        Types.GetCustomerPortalUrlQueryVariables
+    >(GetCustomerPortalUrlDocument, baseOptions);
+}
+export type GetCustomerPortalUrlQueryHookResult = ReturnType<
+    typeof useGetCustomerPortalUrlQuery
+>;
+export type GetCustomerPortalUrlLazyQueryHookResult = ReturnType<
+    typeof useGetCustomerPortalUrlLazyQuery
+>;
+export type GetCustomerPortalUrlQueryResult = Apollo.QueryResult<
+    Types.GetCustomerPortalUrlQuery,
+    Types.GetCustomerPortalUrlQueryVariables
 >;

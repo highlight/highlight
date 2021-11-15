@@ -225,6 +225,7 @@ type ComplexityRoot struct {
 	Mutation struct {
 		AddAdminToWorkspace              func(childComplexity int, workspaceID int, inviteID string) int
 		AddSlackBotIntegrationToProject  func(childComplexity int, projectID int, code string, redirectPath string) int
+		ChangeAdminRole                  func(childComplexity int, workspaceID int, adminID int, newRole string) int
 		CreateDefaultAlerts              func(childComplexity int, projectID int, alertTypes []string, slackChannels []*model.SanitizedSlackChannelInput) int
 		CreateErrorAlert                 func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
 		CreateErrorComment               func(childComplexity int, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string) int
@@ -258,7 +259,7 @@ type ComplexityRoot struct {
 		MarkSessionAsViewed              func(childComplexity int, secureID string, viewed *bool) int
 		OpenSlackConversation            func(childComplexity int, projectID int, code string, redirectPath string) int
 		SendAdminProjectInvite           func(childComplexity int, projectID int, email string, baseURL string) int
-		SendAdminWorkspaceInvite         func(childComplexity int, workspaceID int, email string, baseURL string) int
+		SendAdminWorkspaceInvite         func(childComplexity int, workspaceID int, email string, baseURL string, role string) int
 		UpdateBillingDetails             func(childComplexity int, workspaceID int) int
 		UpdateErrorAlert                 func(childComplexity int, projectID int, name string, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
 		UpdateErrorGroupIsPublic         func(childComplexity int, errorGroupSecureID string, isPublic bool) int
@@ -298,6 +299,7 @@ type ComplexityRoot struct {
 		AverageSessionLength      func(childComplexity int, projectID int, lookBackPeriod int) int
 		BillingDetails            func(childComplexity int, workspaceID int) int
 		BillingDetailsForProject  func(childComplexity int, projectID int) int
+		CustomerPortalURL         func(childComplexity int, workspaceID int) int
 		DailyErrorFrequency       func(childComplexity int, projectID int, errorGroupSecureID string, dateOffset int) int
 		DailyErrorsCount          func(childComplexity int, projectID int, dateRange model.DateRangeInput) int
 		DailySessionsCount        func(childComplexity int, projectID int, dateRange model.DateRangeInput) int
@@ -576,8 +578,9 @@ type MutationResolver interface {
 	UpdateErrorGroupState(ctx context.Context, secureID string, state string) (*model1.ErrorGroup, error)
 	DeleteProject(ctx context.Context, id int) (*bool, error)
 	SendAdminProjectInvite(ctx context.Context, projectID int, email string, baseURL string) (*string, error)
-	SendAdminWorkspaceInvite(ctx context.Context, workspaceID int, email string, baseURL string) (*string, error)
+	SendAdminWorkspaceInvite(ctx context.Context, workspaceID int, email string, baseURL string, role string) (*string, error)
 	AddAdminToWorkspace(ctx context.Context, workspaceID int, inviteID string) (*int, error)
+	ChangeAdminRole(ctx context.Context, workspaceID int, adminID int, newRole string) (bool, error)
 	DeleteAdminFromProject(ctx context.Context, projectID int, adminID int) (*int, error)
 	DeleteAdminFromWorkspace(ctx context.Context, workspaceID int, adminID int) (*int, error)
 	CreateSegment(ctx context.Context, projectID int, name string, params model.SearchParamsInput) (*model1.Segment, error)
@@ -676,6 +679,7 @@ type QueryResolver interface {
 	Segments(ctx context.Context, projectID int) ([]*model1.Segment, error)
 	ErrorSegments(ctx context.Context, projectID int) ([]*model1.ErrorSegment, error)
 	APIKeyToOrgID(ctx context.Context, apiKey string) (*int, error)
+	CustomerPortalURL(ctx context.Context, workspaceID int) (string, error)
 }
 type SegmentResolver interface {
 	Params(ctx context.Context, obj *model1.Segment) (*model1.SearchParams, error)
@@ -1517,6 +1521,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddSlackBotIntegrationToProject(childComplexity, args["project_id"].(int), args["code"].(string), args["redirect_path"].(string)), true
 
+	case "Mutation.changeAdminRole":
+		if e.complexity.Mutation.ChangeAdminRole == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_changeAdminRole_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ChangeAdminRole(childComplexity, args["workspace_id"].(int), args["admin_id"].(int), args["new_role"].(string)), true
+
 	case "Mutation.createDefaultAlerts":
 		if e.complexity.Mutation.CreateDefaultAlerts == nil {
 			break
@@ -1923,7 +1939,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SendAdminWorkspaceInvite(childComplexity, args["workspace_id"].(int), args["email"].(string), args["base_url"].(string)), true
+		return e.complexity.Mutation.SendAdminWorkspaceInvite(childComplexity, args["workspace_id"].(int), args["email"].(string), args["base_url"].(string), args["role"].(string)), true
 
 	case "Mutation.updateBillingDetails":
 		if e.complexity.Mutation.UpdateBillingDetails == nil {
@@ -2198,6 +2214,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.BillingDetailsForProject(childComplexity, args["project_id"].(int)), true
+
+	case "Query.customer_portal_url":
+		if e.complexity.Query.CustomerPortalURL == nil {
+			break
+		}
+
+		args, err := ec.field_Query_customer_portal_url_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.CustomerPortalURL(childComplexity, args["workspace_id"].(int)), true
 
 	case "Query.dailyErrorFrequency":
 		if e.complexity.Query.DailyErrorFrequency == nil {
@@ -4360,6 +4388,7 @@ type Query {
     segments(project_id: ID!): [Segment]
     error_segments(project_id: ID!): [ErrorSegment]
     api_key_to_org_id(api_key: String!): ID
+    customer_portal_url(workspace_id: ID!): String!
 }
 
 type Mutation {
@@ -4380,8 +4409,14 @@ type Mutation {
         workspace_id: ID!
         email: String!
         base_url: String!
+        role: String!
     ): String
     addAdminToWorkspace(workspace_id: ID!, invite_id: String!): ID
+    changeAdminRole(
+        workspace_id: ID!
+        admin_id: ID!
+        new_role: String!
+    ): Boolean!
     deleteAdminFromProject(project_id: ID!, admin_id: ID!): ID
     deleteAdminFromWorkspace(workspace_id: ID!, admin_id: ID!): ID
     createSegment(
@@ -4646,6 +4681,39 @@ func (ec *executionContext) field_Mutation_addSlackBotIntegrationToProject_args(
 		}
 	}
 	args["redirect_path"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_changeAdminRole_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["workspace_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["workspace_id"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["admin_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("admin_id"))
+		arg1, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["admin_id"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["new_role"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("new_role"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["new_role"] = arg2
 	return args, nil
 }
 
@@ -5894,6 +5962,15 @@ func (ec *executionContext) field_Mutation_sendAdminWorkspaceInvite_args(ctx con
 		}
 	}
 	args["base_url"] = arg2
+	var arg3 string
+	if tmp, ok := rawArgs["role"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("role"))
+		arg3, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["role"] = arg3
 	return args, nil
 }
 
@@ -6576,6 +6653,21 @@ func (ec *executionContext) field_Query_billingDetailsForProject_args(ctx contex
 }
 
 func (ec *executionContext) field_Query_billingDetails_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["workspace_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["workspace_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_customer_portal_url_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -11675,7 +11767,7 @@ func (ec *executionContext) _Mutation_sendAdminWorkspaceInvite(ctx context.Conte
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SendAdminWorkspaceInvite(rctx, args["workspace_id"].(int), args["email"].(string), args["base_url"].(string))
+		return ec.resolvers.Mutation().SendAdminWorkspaceInvite(rctx, args["workspace_id"].(int), args["email"].(string), args["base_url"].(string), args["role"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11726,6 +11818,48 @@ func (ec *executionContext) _Mutation_addAdminToWorkspace(ctx context.Context, f
 	res := resTmp.(*int)
 	fc.Result = res
 	return ec.marshalOID2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_changeAdminRole(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_changeAdminRole_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ChangeAdminRole(rctx, args["workspace_id"].(int), args["admin_id"].(int), args["new_role"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_deleteAdminFromProject(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -15837,6 +15971,48 @@ func (ec *executionContext) _Query_api_key_to_org_id(ctx context.Context, field 
 	res := resTmp.(*int)
 	fc.Result = res
 	return ec.marshalOID2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_customer_portal_url(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_customer_portal_url_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().CustomerPortalURL(rctx, args["workspace_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -22743,6 +22919,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_sendAdminWorkspaceInvite(ctx, field)
 		case "addAdminToWorkspace":
 			out.Values[i] = ec._Mutation_addAdminToWorkspace(ctx, field)
+		case "changeAdminRole":
+			out.Values[i] = ec._Mutation_changeAdminRole(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "deleteAdminFromProject":
 			out.Values[i] = ec._Mutation_deleteAdminFromProject(ctx, field)
 		case "deleteAdminFromWorkspace":
@@ -23697,6 +23878,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_api_key_to_org_id(ctx, field)
+				return res
+			})
+		case "customer_portal_url":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_customer_portal_url(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			})
 		case "__type":

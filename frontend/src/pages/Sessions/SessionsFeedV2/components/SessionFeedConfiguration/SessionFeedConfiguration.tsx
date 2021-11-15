@@ -37,7 +37,7 @@ const SessionFeedConfiguration = ({
                         <Select
                             options={dateTimeFormats.map((format) => ({
                                 displayValue: `${formatDatetime(
-                                    new Date().toString(),
+                                    new Date().toISOString(),
                                     format
                                 )}`,
                                 value: format,
