@@ -189,6 +189,7 @@ type Workspace struct {
 	BillingPeriodEnd      *time.Time
 	MonthlySessionLimit   *int
 	TrialEndDate          *time.Time `json:"trial_end_date"`
+	AllowMeterOverage     bool       `gorm:"default:false"`
 }
 
 type WorkspaceInviteLink struct {
@@ -212,6 +213,7 @@ type Project struct {
 	// Manual monthly session limit override
 	MonthlySessionLimit *int
 	WorkspaceID         int
+	FreeTier            bool `gorm:"default:false"`
 }
 
 type HasSecret interface {

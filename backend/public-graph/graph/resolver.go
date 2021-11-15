@@ -473,7 +473,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 		return nil, e.Wrap(err, "error retrieving workspace")
 	}
 	// determine if session is within billing quota
-	withinBillingQuota := r.isWorkspaceWithinBillingQuota(workspace, n)
+	withinBillingQuota := r.isWithinBillingQuota(project, workspace, n)
 
 	session := &model.Session{
 		Fingerprint:                    fingerprintInt,
@@ -728,13 +728,27 @@ func (r *Resolver) getWorkspace(workspaceID int) (*model.Workspace, error) {
 	return &workspace, nil
 }
 
-func (r *Resolver) isWorkspaceWithinBillingQuota(workspace *model.Workspace, now time.Time) bool {
+func (r *Resolver) isWithinBillingQuota(project *model.Project, workspace *model.Workspace, now time.Time) bool {
 	if workspace.TrialEndDate != nil && workspace.TrialEndDate.After(now) {
 		return true
 	}
 	if util.IsOnPrem() {
 		return true
 	}
+
+	if project.FreeTier {
+		sessionCount, err := pricing.GetProjectMeter(r.DB, project)
+		if err != nil {
+			log.Warn(fmt.Sprintf("error getting sessions meter for project %d", project.ID))
+		}
+		withinBillingQuota := int64(pricing.TypeToQuota(modelInputs.PlanTypeFree)) > sessionCount
+		return withinBillingQuota
+	}
+
+	if workspace.AllowMeterOverage {
+		return true
+	}
+
 	var (
 		withinBillingQuota bool
 		quota              int
@@ -748,7 +762,7 @@ func (r *Resolver) isWorkspaceWithinBillingQuota(workspace *model.Workspace, now
 
 	monthToDateSessionCount, err := pricing.GetWorkspaceMeter(r.DB, workspace.ID)
 	if err != nil {
-		log.Warn(fmt.Sprintf("error getting sessions meter for %d", workspace.ID))
+		log.Warn(fmt.Sprintf("error getting sessions meter for workspace %d", workspace.ID))
 	}
 	withinBillingQuota = int64(quota) > monthToDateSessionCount
 	return withinBillingQuota
