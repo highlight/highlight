@@ -9,9 +9,9 @@
 }
 
 .alertStepsParent {
-    width: auto !important;
     max-width: 45vw !important;
     min-width: 500px !important;
+    width: auto !important;
 }
 
 .cardGrid {
@@ -129,16 +129,16 @@
     padding-top: var(--size-large);
 
     :global(.ant-steps-item-icon) {
+        margin: 0 !important;
         opacity: 0 !important;
         padding: 0 !important;
-        margin: 0 !important;
         width: 0 !important;
     }
 
     :global(.ant-steps-item::after) {
+        margin-left: 0 !important;
         opacity: 0 !important;
         width: 0 !important;
-        margin-left: 0 !important;
     }
 }
 
@@ -150,7 +150,4 @@
     align-items: center;
     display: flex;
     justify-content: flex-end;
-}
-
-.setupModal {
 }
