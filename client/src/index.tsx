@@ -36,7 +36,7 @@ import {
 } from './listeners/network-listener/utils/utils';
 import { DEFAULT_URL_BLOCKLIST } from './listeners/network-listener/utils/network-sanitizer';
 import { SESSION_STORAGE_KEYS } from './utils/sessionStorage/sessionStorageKeys';
-import SessionShortcutListener from 'listeners/session-shortcut/session-shortcut-listener';
+import SessionShortcutListener from './listeners/session-shortcut/session-shortcut-listener';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
