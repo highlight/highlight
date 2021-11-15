@@ -71,7 +71,7 @@ const Steps: StepsType = ({
             <footer className={styles.footer}>
                 {currentStepIndex >= 1 && (
                     <Button
-                        trackingId="track"
+                        trackingId="StepsPrevious"
                         style={{ margin: '0 8px' }}
                         onClick={() => {
                             if (onPrevious) {
@@ -87,7 +87,7 @@ const Steps: StepsType = ({
                 {currentStepIndex === steps.length - 1 && (
                     <Button
                         type="primary"
-                        trackingId="track"
+                        trackingId="StepsFinish"
                         disabled={disableFinishButton}
                         onClick={onFinish}
                     >
@@ -97,7 +97,7 @@ const Steps: StepsType = ({
                 {currentStepIndex < steps.length - 1 && (
                     <Button
                         type="primary"
-                        trackingId="track"
+                        trackingId="StepsNext"
                         className={styles.nextButton}
                         disabled={currentStep.disableNextButton}
                         onClick={() => {
