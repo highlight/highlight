@@ -4,28 +4,15 @@ import ElevatedCard from '../ElevatedCard/ElevatedCard';
 import styles from './FullBleedCard.module.scss';
 
 interface Props {
-    title: string | React.ReactNode;
+    title: string;
     /** A Lottie component with the animation. */
     animation?: React.ReactNode;
-    className?: string;
-    childrenClassName?: string;
 }
 
-const FullBleedCard: React.FC<Props> = ({
-    animation,
-    title,
-    className,
-    childrenClassName,
-    children,
-}) => {
+const FullBleedCard: React.FC<Props> = ({ animation, title, children }) => {
     return (
         <div className={styles.fullBleedCard}>
-            <ElevatedCard
-                title={title}
-                animation={animation}
-                className={className}
-                childrenClassName={childrenClassName}
-            >
+            <ElevatedCard title={title} animation={animation}>
                 {children}
             </ElevatedCard>
         </div>
