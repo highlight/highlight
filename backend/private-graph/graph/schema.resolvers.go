@@ -563,7 +563,12 @@ func (r *mutationResolver) DeleteAdminFromWorkspace(ctx context.Context, workspa
 		return nil, e.Wrap(err, "current admin is not in workspace")
 	}
 
-	return r.DeleteAdminAssociation(ctx, workspace, adminID)
+	deletedAdminId, err := r.DeleteAdminAssociation(ctx, workspace, adminID)
+	if err != nil {
+		return nil, e.Wrap(err, "error deleting admin association")
+	}
+
+	return deletedAdminId, nil
 }
 
 func (r *mutationResolver) CreateSegment(ctx context.Context, projectID int, name string, params modelInputs.SearchParamsInput) (*model.Segment, error) {
@@ -734,7 +739,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 
 	// If there are multiple subscriptions, it's ambiguous which one should be updated, so throw an error
 	if len(c.Subscriptions.Data) > 1 {
-		return nil, e.New("cannot update stripe subscription - customer has multiple subscriptions")
+		return nil, e.New("STRIPE_INTEGRATION_ERROR cannot update stripe subscription - customer has multiple subscriptions")
 	}
 
 	subscriptions := c.Subscriptions.Data
@@ -2954,7 +2959,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	var queriedSessionsOutOfQuota int64
 
 	g.Go(func() error {
-		meter, err = pricing.GetWorkspaceQuota(r.DB, workspaceID)
+		meter, err = pricing.GetWorkspaceMeter(r.DB, workspaceID)
 		if err != nil {
 			return e.Wrap(err, "error from get quota")
 		}

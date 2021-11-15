@@ -185,6 +185,8 @@ type Workspace struct {
 	StripeCustomerID      *string
 	StripePriceID         *string
 	PlanTier              string `gorm:"default:Free"`
+	BillingPeriodStart    *time.Time
+	BillingPeriodEnd      *time.Time
 	MonthlySessionLimit   *int
 	TrialEndDate          *time.Time `json:"trial_end_date"`
 }
