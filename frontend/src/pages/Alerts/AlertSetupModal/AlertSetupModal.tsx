@@ -151,7 +151,11 @@ const AlertSetupModal = () => {
             wide
             //childrenClassName={styles.childContent}
         >
-            <Steps className={styles.stepsContainer} current={current}>
+            <Steps
+                className={styles.stepsContainer}
+                type="navigation"
+                current={current}
+            >
                 {steps.map((item) => (
                     <Step key={item.title} title={item.title} />
                 ))}

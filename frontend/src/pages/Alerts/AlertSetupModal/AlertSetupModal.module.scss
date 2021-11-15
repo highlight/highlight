@@ -127,6 +127,19 @@
 
 .stepsContainer {
     padding-top: var(--size-large);
+
+    :global(.ant-steps-item-icon) {
+        opacity: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 0 !important;
+    }
+
+    :global(.ant-steps-item::after) {
+        opacity: 0 !important;
+        width: 0 !important;
+        margin-left: 0 !important;
+    }
 }
 
 .stepsTitle {
