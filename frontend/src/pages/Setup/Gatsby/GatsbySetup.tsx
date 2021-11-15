@@ -35,7 +35,7 @@ export const GatsbySetup = ({ projectVerboseId }: Props) => {
     {
       resolve: "@highlight-run/gatsby-plugin-highlight",
       options: {
-	orgID: "${projectVerboseId}",
+        orgID: "${projectVerboseId}",
         enableStrictPrivacy: false,
       }
     },

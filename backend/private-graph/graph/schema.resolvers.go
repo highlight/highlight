@@ -452,7 +452,7 @@ func (r *mutationResolver) SendAdminProjectInvite(ctx context.Context, projectID
 	return r.SendAdminInviteImpl(*admin.Name, *project.Name, inviteLink, email)
 }
 
-func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspaceID int, email string, baseURL string) (*string, error) {
+func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspaceID int, email string, baseURL string, role string) (*string, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying workspace")
@@ -479,8 +479,16 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 		existingInviteLink = nil
 	}
 
+	// Delete the existing invite if the roles are different.
+	if existingInviteLink != nil && existingInviteLink.InviteeRole != nil && *existingInviteLink.InviteeRole != role {
+		if err := r.DB.Delete(existingInviteLink).Error; err != nil {
+			return nil, e.Wrap(err, "error deleting different role invite link")
+		}
+		existingInviteLink = nil
+	}
+
 	if existingInviteLink == nil {
-		existingInviteLink = r.CreateInviteLink(workspaceID, &email)
+		existingInviteLink = r.CreateInviteLink(workspaceID, &email, role)
 
 		if err := r.DB.Create(existingInviteLink).Error; err != nil {
 			return nil, e.Wrap(err, "error creating new invite link")
@@ -513,6 +521,32 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 	}
 
 	return adminId, nil
+}
+
+func (r *mutationResolver) ChangeAdminRole(ctx context.Context, workspaceID int, adminID int, newRole string) (bool, error) {
+	_, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return false, e.Wrap(err, "current admin is not in workspace")
+	}
+
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return false, e.Wrap(err, "error retrieving user")
+	}
+
+	if admin.Role != nil && *admin.Role != model.AdminRole.ADMIN {
+		return false, e.New("A non-Admin role Admin tried changing an admin role.")
+	}
+
+	if admin.ID == adminID {
+		return false, e.New("A admin tried changing their own role.")
+	}
+
+	if err := r.DB.Model(&model.Admin{Model: model.Model{ID: adminID}}).Update("Role", newRole).Error; err != nil {
+		return false, e.Wrap(err, "error updating admin role")
+	}
+
+	return true, nil
 }
 
 func (r *mutationResolver) DeleteAdminFromProject(ctx context.Context, projectID int, adminID int) (*int, error) {
@@ -3307,7 +3341,7 @@ func (r *queryResolver) WorkspaceInviteLinks(ctx context.Context, workspaceID in
 	}
 
 	if shouldCreateNewInviteLink {
-		workspaceInviteLink = r.CreateInviteLink(workspaceID, nil)
+		workspaceInviteLink = r.CreateInviteLink(workspaceID, nil, model.AdminRole.ADMIN)
 
 		if err := r.DB.Create(&workspaceInviteLink).Error; err != nil {
 			return nil, e.Wrap(err, "failed to create new invite link to replace expired one.")

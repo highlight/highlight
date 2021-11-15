@@ -76,6 +76,17 @@ export type AddAdminToWorkspaceMutation = { __typename?: 'Mutation' } & Pick<
     'addAdminToWorkspace'
 >;
 
+export type ChangeAdminRoleMutationVariables = Types.Exact<{
+    workspace_id: Types.Scalars['ID'];
+    admin_id: Types.Scalars['ID'];
+    new_role: Types.Scalars['String'];
+}>;
+
+export type ChangeAdminRoleMutation = { __typename?: 'Mutation' } & Pick<
+    Types.Mutation,
+    'changeAdminRole'
+>;
+
 export type DeleteAdminFromProjectMutationVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     admin_id: Types.Scalars['ID'];
@@ -1326,6 +1337,7 @@ export type SendAdminWorkspaceInviteMutationVariables = Types.Exact<{
     workspace_id: Types.Scalars['ID'];
     email: Types.Scalars['String'];
     base_url: Types.Scalars['String'];
+    role: Types.Scalars['String'];
 }>;
 
 export type SendAdminWorkspaceInviteMutation = {
@@ -2560,6 +2572,7 @@ export const namedOperations = {
         updateErrorGroupState: 'updateErrorGroupState' as const,
         SendEmailSignup: 'SendEmailSignup' as const,
         AddAdminToWorkspace: 'AddAdminToWorkspace' as const,
+        ChangeAdminRole: 'ChangeAdminRole' as const,
         DeleteAdminFromProject: 'DeleteAdminFromProject' as const,
         DeleteAdminFromWorkspace: 'DeleteAdminFromWorkspace' as const,
         OpenSlackConversation: 'OpenSlackConversation' as const,

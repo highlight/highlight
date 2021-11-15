@@ -77,20 +77,35 @@ export const ErrorState = ({
                             <ButtonLink
                                 type="primary"
                                 trackingId="ErrorStateSignIn"
-                                to="/"
+                                {...(isLoggedIn
+                                    ? { to: '/', href: undefined }
+                                    : {
+                                          to: undefined,
+                                          href: '/',
+                                          anchor: true,
+                                      })}
                             >
                                 Sign in
                             </ButtonLink>
                             <ButtonLink
                                 trackingId="ErrorStateSignUp"
                                 type="default"
-                                to={{
-                                    pathname: '/?sign_up=1',
-                                    state: {
-                                        previousPathName:
-                                            window.location.pathname,
-                                    },
-                                }}
+                                {...(isLoggedIn
+                                    ? {
+                                          to: {
+                                              pathname: '/?sign_up=1',
+                                              state: {
+                                                  previousPathName:
+                                                      window.location.pathname,
+                                              },
+                                          },
+                                          href: undefined,
+                                      }
+                                    : {
+                                          to: undefined,
+                                          href: '/?sign_up=1',
+                                          anchor: true,
+                                      })}
                             >
                                 Sign up
                             </ButtonLink>
