@@ -699,7 +699,7 @@ func (r *mutationResolver) DeleteErrorSegment(ctx context.Context, segmentID int
 	return &model.T, nil
 }
 
-func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int, planType modelInputs.PlanType) (*string, error) {
+func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int, planType modelInputs.PlanType, interval string) (*string, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in workspace")
@@ -732,70 +732,146 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 		return nil, e.Wrap(err, "couldn't retrieve stripe customer data")
 	}
 
-	// If there are multiple subscriptions, it's ambiguous which one should be updated, so throw an error
-	if len(c.Subscriptions.Data) > 1 {
-		return nil, e.New("cannot update stripe subscription - customer has multiple subscriptions")
-	}
-
 	subscriptions := c.Subscriptions.Data
 	pricing.FillProducts(r.StripeClient, subscriptions)
 
-	prices, err := pricing.GetStripePrices(r.StripeClient, planType, pricing.SubscriptionIntervalMonthly)
+	priceInterval := pricing.SubscriptionInterval(interval)
+	prices, err := pricing.GetStripePrices(r.StripeClient, planType, priceInterval)
 	if err != nil {
 		return nil, e.Wrap(err, "failed to get Stripe prices")
 	}
 
-	// If there's a single subscription
-	if len(subscriptions) == 1 {
-		newSubItems := []*stripe.SubscriptionItemsParams{}
-		subscription := subscriptions[0]
-		for _, subscriptionItem := range subscription.Items.Data {
-			productType, _ := pricing.GetProductMetadata(subscriptionItem.Price)
-			if productType == nil {
-				continue
+	// If there are subscriptions already, update any that match the product type and interval
+	if len(subscriptions) > 0 {
+		var paymentMethod *stripe.PaymentMethod
+		for _, subscription := range subscriptions {
+			paymentMethod = subscription.DefaultPaymentMethod
+
+			newSubItems := []*stripe.SubscriptionItemsParams{}
+			var interval stripe.PriceRecurringInterval
+
+			for _, subscriptionItem := range subscription.Items.Data {
+				interval = subscriptionItem.Price.Recurring.Interval
+				productType, _ := pricing.GetProductMetadata(subscriptionItem.Price)
+				if productType == nil {
+					continue
+				}
+
+				price, ok := prices[*productType]
+				if !ok {
+					return nil, e.New("price not found for product type")
+				}
+
+				deleted := false
+				// This price is for a different interval, delete
+				if price.Recurring.Interval != subscriptionItem.Price.Recurring.Interval {
+					deleted = true
+				}
+
+				priceId := &price.ID
+				if deleted {
+					priceId = nil
+				}
+
+				subItem := stripe.SubscriptionItemsParams{
+					ID:      &subscriptionItem.ID,
+					Plan:    priceId,
+					Deleted: &deleted,
+				}
+
+				newSubItems = append(newSubItems, &subItem)
+
+				// Remove the current key from map - will be used to add any leftover prices to the subscription
+				if !deleted {
+					delete(prices, *productType)
+				}
 			}
 
-			price, ok := prices[*productType]
-			if !ok {
-				return nil, e.New("price not found for product type")
+			for productType, price := range prices {
+				if price.Recurring.Interval != interval {
+					continue
+				}
+
+				subItem := stripe.SubscriptionItemsParams{
+					Plan: &price.ID,
+				}
+				newSubItems = append(newSubItems, &subItem)
+				delete(prices, productType)
 			}
 
-			subItem := stripe.SubscriptionItemsParams{
-				ID:   &subscriptionItem.ID,
-				Plan: &price.ID,
+			newItemCount := 0
+			for _, newItem := range newSubItems {
+				if newItem.Deleted == nil || !*newItem.Deleted {
+					newItemCount += 1
+				}
 			}
-			newSubItems = append(newSubItems, &subItem)
 
-			// Remove the current key from map - will be used to add any leftover prices to the subscription
-			delete(prices, *productType)
-		}
+			// If the subscription has no new items (e.g. changing from an annual to a monthly plan), delete it
+			if newItemCount == 0 {
+				subscriptionParams := &stripe.SubscriptionCancelParams{
+					Prorate: stripe.Bool(true),
+				}
 
-		for _, price := range prices {
-			subItem := stripe.SubscriptionItemsParams{
-				Plan: &price.ID,
+				fmt.Println("cancelling", subscription.ID)
+
+				_, err := r.StripeClient.Subscriptions.Cancel(subscription.ID, subscriptionParams)
+				if err != nil {
+					return nil, e.Wrap(err, "STRIPE_INTEGRATION_ERROR - error cancelling subscription")
+				}
+			} else {
+				subscriptionParams := &stripe.SubscriptionParams{
+					CancelAtPeriodEnd: stripe.Bool(false),
+					ProrationBehavior: stripe.String(string(stripe.SubscriptionProrationBehaviorCreateProrations)),
+					Items:             newSubItems,
+				}
+
+				fmt.Println("len(newSubItems)", newSubItems)
+				fmt.Println("updating", subscription.ID)
+
+				_, err := r.StripeClient.Subscriptions.Update(subscription.ID, subscriptionParams)
+				if err != nil {
+					return nil, e.Wrap(err, "STRIPE_INTEGRATION_ERROR - error updating subscription")
+				}
 			}
-			newSubItems = append(newSubItems, &subItem)
 		}
 
-		subscriptionParams := &stripe.SubscriptionParams{
-			CancelAtPeriodEnd: stripe.Bool(false),
-			ProrationBehavior: stripe.String(string(stripe.SubscriptionProrationBehaviorCreateProrations)),
-			Items:             newSubItems,
+		// If there are still items to add (e.g. changing from a monthly to an annual plan), create a new subscription
+		if len(prices) != 0 {
+			newSubItems := []*stripe.SubscriptionItemsParams{}
+
+			for _, price := range prices {
+				subItem := stripe.SubscriptionItemsParams{
+					Plan: &price.ID,
+				}
+				newSubItems = append(newSubItems, &subItem)
+			}
+
+			subscriptionParams := &stripe.SubscriptionParams{
+				Customer:             &c.ID,
+				CancelAtPeriodEnd:    stripe.Bool(false),
+				ProrationBehavior:    stripe.String(string(stripe.SubscriptionProrationBehaviorCreateProrations)),
+				Items:                newSubItems,
+				DefaultPaymentMethod: &paymentMethod.ID,
+			}
+
+			_, err := r.StripeClient.Subscriptions.New(subscriptionParams)
+			if err != nil {
+				return nil, e.Wrap(err, "STRIPE_INTEGRATION_ERROR - error creating subscription")
+			}
 		}
 
-		_, err := r.StripeClient.Subscriptions.Update(c.Subscriptions.Data[0].ID, subscriptionParams)
-		if err != nil {
-			return nil, e.Wrap(err, "couldn't update subscription")
-		}
 		ret := ""
 		return &ret, nil
 	}
 
 	// If there's no existing subscription, we create a checkout.
-	newSubItems := []*stripe.CheckoutSessionSubscriptionDataItemsParams{}
-	for _, price := range prices {
-		subItem := stripe.CheckoutSessionSubscriptionDataItemsParams{
-			Plan: &price.ID,
+	newSubItems := []*stripe.CheckoutSessionLineItemParams{}
+	for productType, price := range prices {
+		subItem := stripe.CheckoutSessionLineItemParams{
+			Price: &price.ID,
+		}
+		if productType == pricing.ProductTypeBase {
+			subItem.Quantity = stripe.Int64(1)
 		}
 		newSubItems = append(newSubItems, &subItem)
 	}
@@ -806,11 +882,9 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 		PaymentMethodTypes: stripe.StringSlice([]string{
 			"card",
 		}),
-		Customer: workspace.StripeCustomerID,
-		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
-			Items: newSubItems,
-		},
-		Mode: stripe.String(string(stripe.CheckoutSessionModeSubscription)),
+		Customer:  workspace.StripeCustomerID,
+		LineItems: newSubItems,
+		Mode:      stripe.String(string(stripe.CheckoutSessionModeSubscription)),
 	}
 	checkoutSessionParams.AddExtra("allow_promotion_codes", "true")
 

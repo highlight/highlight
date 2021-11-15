@@ -231,7 +231,7 @@ type ComplexityRoot struct {
 		CreateErrorSegment               func(childComplexity int, projectID int, name string, params model.ErrorSearchParamsInput) int
 		CreateNewSessionAlert            func(childComplexity int, projectID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, thresholdWindow int, excludeRules []*string) int
 		CreateNewUserAlert               func(childComplexity int, projectID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, thresholdWindow int) int
-		CreateOrUpdateStripeSubscription func(childComplexity int, workspaceID int, planType model.PlanType) int
+		CreateOrUpdateStripeSubscription func(childComplexity int, workspaceID int, planType model.PlanType, interval string) int
 		CreateProject                    func(childComplexity int, name string, workspaceID int) int
 		CreateRageClickAlert             func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
 		CreateSegment                    func(childComplexity int, projectID int, name string, params model.SearchParamsInput) int
@@ -589,7 +589,7 @@ type MutationResolver interface {
 	CreateErrorSegment(ctx context.Context, projectID int, name string, params model.ErrorSearchParamsInput) (*model1.ErrorSegment, error)
 	EditErrorSegment(ctx context.Context, id int, projectID int, params model.ErrorSearchParamsInput) (*bool, error)
 	DeleteErrorSegment(ctx context.Context, segmentID int) (*bool, error)
-	CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int, planType model.PlanType) (*string, error)
+	CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int, planType model.PlanType, interval string) (*string, error)
 	UpdateBillingDetails(ctx context.Context, workspaceID int) (*bool, error)
 	CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model1.SessionComment, error)
 	DeleteSessionComment(ctx context.Context, id int) (*bool, error)
@@ -1601,7 +1601,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateOrUpdateStripeSubscription(childComplexity, args["workspace_id"].(int), args["plan_type"].(model.PlanType)), true
+		return e.complexity.Mutation.CreateOrUpdateStripeSubscription(childComplexity, args["workspace_id"].(int), args["plan_type"].(model.PlanType), args["interval"].(string)), true
 
 	case "Mutation.createProject":
 		if e.complexity.Mutation.CreateProject == nil {
@@ -4429,6 +4429,7 @@ type Mutation {
     createOrUpdateStripeSubscription(
         workspace_id: ID!
         plan_type: PlanType!
+        interval: String!
     ): String
     updateBillingDetails(workspace_id: ID!): Boolean
     createSessionComment(
@@ -5019,6 +5020,15 @@ func (ec *executionContext) field_Mutation_createOrUpdateStripeSubscription_args
 		}
 	}
 	args["plan_type"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["interval"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("interval"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["interval"] = arg2
 	return args, nil
 }
 
@@ -12189,7 +12199,7 @@ func (ec *executionContext) _Mutation_createOrUpdateStripeSubscription(ctx conte
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateOrUpdateStripeSubscription(rctx, args["workspace_id"].(int), args["plan_type"].(model.PlanType))
+		return ec.resolvers.Mutation().CreateOrUpdateStripeSubscription(rctx, args["workspace_id"].(int), args["plan_type"].(model.PlanType), args["interval"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

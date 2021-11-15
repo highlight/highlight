@@ -56,36 +56,6 @@ func GetWorkspaceQuotaOverflow(ctx context.Context, DB *gorm.DB, workspace_id in
 	return queriedSessionsOverQuota, nil
 }
 
-func GetProjectPlanString(stripeClient *client.API, customerID string) backend.PlanType {
-	if customerID == "" {
-		return backend.PlanTypeFree
-	}
-	params := &stripe.CustomerParams{}
-	priceID := ""
-	params.AddExpand("subscriptions")
-	c, err := stripeClient.Customers.Get(customerID, params)
-	if !(err != nil || len(c.Subscriptions.Data) == 0 || len(c.Subscriptions.Data[0].Items.Data) == 0) {
-		priceID = c.Subscriptions.Data[0].Items.Data[0].Plan.ID
-	}
-	planType := FromPriceID(priceID)
-	return planType
-}
-
-func GetProjectPlanID(stripeClient *client.API, customerID string) (*string, error) {
-	// gets plan id from stripe, sets plan id column on project
-	priceID := ""
-	if customerID == "" {
-		return &priceID, e.New("project has no stripe subscription")
-	}
-	params := &stripe.CustomerParams{}
-	params.AddExpand("subscriptions")
-	c, err := stripeClient.Customers.Get(customerID, params)
-	if !(err != nil || len(c.Subscriptions.Data) == 0 || len(c.Subscriptions.Data[0].Items.Data) == 0) {
-		priceID = c.Subscriptions.Data[0].Items.Data[0].Plan.ID
-	}
-	return &priceID, nil
-}
-
 func TypeToQuota(planType backend.PlanType) int {
 	switch planType {
 	case backend.PlanTypeFree:
@@ -195,8 +165,8 @@ func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, int
 	baseLookupKey := GetLookupKey(ProductTypeBase, productTier, interval)
 
 	// TODO: sessions/members hardcoded to PlanTypeFree for now
-	sessionsLookupKey := GetLookupKey(ProductTypeSessions, backend.PlanTypeFree, interval)
-	membersLookupKey := GetLookupKey(ProductTypeMembers, backend.PlanTypeFree, interval)
+	sessionsLookupKey := GetLookupKey(ProductTypeSessions, backend.PlanTypeFree, SubscriptionIntervalMonthly)
+	membersLookupKey := GetLookupKey(ProductTypeMembers, backend.PlanTypeFree, SubscriptionIntervalMonthly)
 
 	priceListParams := stripe.PriceListParams{}
 	priceListParams.LookupKeys = []*string{&baseLookupKey, &sessionsLookupKey, &membersLookupKey}

@@ -631,6 +631,7 @@ type Mutation {
     createOrUpdateStripeSubscription(
         workspace_id: ID!
         plan_type: PlanType!
+        interval: String!
     ): String
     updateBillingDetails(workspace_id: ID!): Boolean
     createSessionComment(
