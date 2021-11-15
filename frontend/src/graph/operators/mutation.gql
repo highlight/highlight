@@ -382,6 +382,17 @@ mutation DeleteSessionAlert($project_id: ID!, $session_alert_id: ID!) {
     }
 }
 
+mutation CreateDefaultAlerts(
+    $project_id: ID!
+    $alert_types: [String!]!
+    $slack_channels: [SanitizedSlackChannelInput!]!
+) {
+    createDefaultAlerts(
+        project_id: $project_id
+        alert_types: $alert_types
+        slack_channels: $slack_channels
+    )
+}
 mutation CreateSessionFeedbackAlert(
     $project_id: ID!
     $name: String!

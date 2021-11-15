@@ -670,6 +670,11 @@ type Mutation {
         code: String!
         redirect_path: String!
     ): Boolean!
+    createDefaultAlerts(
+        project_id: ID!
+        alert_types: [String!]!
+        slack_channels: [SanitizedSlackChannelInput!]!
+    ): Boolean
     createRageClickAlert(
         project_id: ID!
         name: String!
