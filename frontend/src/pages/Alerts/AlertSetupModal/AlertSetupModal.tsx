@@ -148,7 +148,6 @@ const AlertSetupModal = () => {
                 setShowModal(false);
             }}
             wide
-            //childrenClassName={styles.childContent}
         >
             <Steps
                 className={styles.stepsContainer}
