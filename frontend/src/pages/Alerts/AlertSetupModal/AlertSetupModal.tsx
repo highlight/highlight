@@ -109,11 +109,6 @@ const AlertSetupModal = () => {
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
 
-    const [shouldCloseSetup, setShouldCloseSetup] = useSessionStorage<boolean>(
-        `shouldCloseAlertSetup-${currentProject?.id}`,
-        false
-    );
-
     const [
         shouldCloseSetupPersisted,
         setShouldCloseSetupPersisted,
@@ -138,7 +133,11 @@ const AlertSetupModal = () => {
         }
     }, [loading, alertsPayload, setShouldCloseSetupPersisted]);
 
-    const [showModal, setShowModal] = useState(true);
+    const [showModal, setShowModal] = useState(!shouldCloseSetupPersisted);
+
+    if (shouldCloseSetupPersisted) {
+        return null;
+    }
 
     return (
         <Modal
@@ -392,6 +391,8 @@ const AlertSetupModal = () => {
                                         })),
                                     alert_types: selectedAlerts,
                                 },
+                            }).then(() => {
+                                setShouldCloseSetupPersisted(true);
                             });
                         }}
                     >
