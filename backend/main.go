@@ -204,12 +204,13 @@ func main() {
 			)
 
 			privateServer.AddTransport(transport.Websocket{
-				KeepAlivePingInterval: 10 * time.Second,
+				InitFunc: private.WebsocketInitializationFunction(),
 				Upgrader: websocket.Upgrader{
 					CheckOrigin: func(r *http.Request) bool {
 						return true
 					},
 				},
+				KeepAlivePingInterval: 10 * time.Second,
 			})
 			privateServer.AddTransport(transport.Options{})
 			privateServer.AddTransport(transport.GET{})

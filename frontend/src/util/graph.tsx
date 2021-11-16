@@ -23,7 +23,14 @@ const socketUri = uri.replace(/(http|https):\/\//, 'ws://');
 const highlightSocket = new WebSocketLink({
     uri: socketUri,
     options: {
+        lazy: true,
         reconnect: true,
+        connectionParams: async () => {
+            const token = await firebase.auth().currentUser?.getIdToken();
+            return {
+                token,
+            };
+        },
     },
 });
 const splitLink = split(
