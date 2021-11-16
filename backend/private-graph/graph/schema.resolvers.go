@@ -655,7 +655,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	subscriptions := c.Subscriptions.Data
 	pricing.FillProducts(r.StripeClient, subscriptions)
 
-	prices, err := pricing.GetStripePrices(r.StripeClient, planType, pricing.SubscriptionIntervalAnnual)
+	prices, err := pricing.GetStripePrices(r.StripeClient, planType, pricing.SubscriptionIntervalMonthly)
 	if err != nil {
 		return nil, e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot update stripe subscription - failed to get Stripe prices")
 	}
