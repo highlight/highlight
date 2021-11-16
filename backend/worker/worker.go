@@ -681,8 +681,7 @@ func (w *Worker) Start() {
 			errs := make(chan error, 1)
 			go func() {
 				defer util.Recover()
-				if err := tx.
-					Raw(`
+				if err := tx.Raw(`
 						WITH t AS (
 							UPDATE sessions
 							SET lock=NOW()
