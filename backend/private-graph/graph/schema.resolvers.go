@@ -3167,9 +3167,15 @@ func (r *queryResolver) IdentifierSuggestion(ctx context.Context, projectID int)
 		return nil, e.Wrap(err, "error querying project")
 	}
 	identifiers := []*string{}
-	res := r.DB.Raw("SELECT DISTINCT identifier from sessions where project_id=1 AND identifier <> '' AND identifier IS NOT NULL ORDER BY identifier ASC").
-		Scan(&identifiers)
-	if err := res.Error; err != nil {
+	if err := r.DB.Raw(`
+		SELECT 
+			DISTINCT identifier 
+		FROM sessions 
+		WHERE project_id=? 
+			AND identifier <> '' 
+			AND identifier IS NOT NULL 
+		ORDER BY identifier ASC
+		`, projectID).Scan(&identifiers).Error; err != nil {
 		return nil, e.Wrap(err, "error querying identifier suggestion")
 	}
 	return identifiers, nil
