@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
@@ -210,98 +211,7 @@ func (r *mutationResolver) CreateProject(ctx context.Context, name string, works
 	if err := r.DB.Create(project).Error; err != nil {
 		return nil, e.Wrap(err, "error creating project")
 	}
-	if err := r.DB.Create(
-		&model.ErrorAlert{
-			Alert: model.Alert{
-				ProjectID:            project.ID,
-				ExcludedEnvironments: nil,
-				CountThreshold:       1,
-				ChannelsToNotify:     nil,
-				Type:                 &model.AlertType.ERROR,
-				ThresholdWindow:      util.MakeIntPointer(30),
-			},
-		}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating error alert for new project")
-	}
-	if err := r.DB.Create(
-		&model.SessionAlert{
-			Alert: model.Alert{
-				ProjectID:            project.ID,
-				ExcludedEnvironments: nil,
-				CountThreshold:       1,
-				ChannelsToNotify:     nil,
-				Type:                 &model.AlertType.SESSION_FEEDBACK,
-				ThresholdWindow:      util.MakeIntPointer(30),
-			},
-		}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session feedback alert for new project")
-	}
-	if err := r.DB.Create(
-		&model.SessionAlert{
-			Alert: model.Alert{
-				ProjectID:            project.ID,
-				ExcludedEnvironments: nil,
-				CountThreshold:       1,
-				ChannelsToNotify:     nil,
-				Type:                 &model.AlertType.NEW_USER,
-				ThresholdWindow:      util.MakeIntPointer(0),
-			},
-		}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session new user alert for new project")
-	}
-	if err := r.DB.Create(
-		&model.SessionAlert{
-			Alert: model.Alert{
-				ProjectID:            project.ID,
-				ExcludedEnvironments: nil,
-				CountThreshold:       1,
-				ChannelsToNotify:     nil,
-				Type:                 &model.AlertType.TRACK_PROPERTIES,
-				ThresholdWindow:      util.MakeIntPointer(0),
-			},
-		}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session track properties alert for new project")
-	}
-	if err := r.DB.Create(
-		&model.SessionAlert{
-			Alert: model.Alert{
-				ProjectID:            project.ID,
-				ExcludedEnvironments: nil,
-				CountThreshold:       1,
-				ChannelsToNotify:     nil,
-				Type:                 &model.AlertType.USER_PROPERTIES,
-				ThresholdWindow:      util.MakeIntPointer(0),
-			},
-		}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session user properties alert for new project")
-	}
-	if err := r.DB.Create(
-		&model.SessionAlert{
-			Alert: model.Alert{
-				ProjectID:            project.ID,
-				ExcludedEnvironments: nil,
-				CountThreshold:       1,
-				ChannelsToNotify:     nil,
-				Type:                 &model.AlertType.RAGE_CLICK,
-				ThresholdWindow:      util.MakeIntPointer(30),
-			},
-		}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session rage click alert for new project")
-	}
 
-	if err := r.DB.Create(
-		&model.SessionAlert{
-			Alert: model.Alert{
-				ProjectID:            project.ID,
-				ExcludedEnvironments: nil,
-				CountThreshold:       1,
-				ChannelsToNotify:     nil,
-				Type:                 &model.AlertType.NEW_SESSION,
-				ThresholdWindow:      util.MakeIntPointer(0),
-			},
-		}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session user properties alert for new project")
-	}
 	return project, nil
 }
 
@@ -452,7 +362,7 @@ func (r *mutationResolver) SendAdminProjectInvite(ctx context.Context, projectID
 	return r.SendAdminInviteImpl(*admin.Name, *project.Name, inviteLink, email)
 }
 
-func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspaceID int, email string, baseURL string) (*string, error) {
+func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspaceID int, email string, baseURL string, role string) (*string, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying workspace")
@@ -479,8 +389,16 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 		existingInviteLink = nil
 	}
 
+	// Delete the existing invite if the roles are different.
+	if existingInviteLink != nil && existingInviteLink.InviteeRole != nil && *existingInviteLink.InviteeRole != role {
+		if err := r.DB.Delete(existingInviteLink).Error; err != nil {
+			return nil, e.Wrap(err, "error deleting different role invite link")
+		}
+		existingInviteLink = nil
+	}
+
 	if existingInviteLink == nil {
-		existingInviteLink = r.CreateInviteLink(workspaceID, &email)
+		existingInviteLink = r.CreateInviteLink(workspaceID, &email, role)
 
 		if err := r.DB.Create(existingInviteLink).Error; err != nil {
 			return nil, e.Wrap(err, "error creating new invite link")
@@ -515,6 +433,32 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 	return adminId, nil
 }
 
+func (r *mutationResolver) ChangeAdminRole(ctx context.Context, workspaceID int, adminID int, newRole string) (bool, error) {
+	_, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return false, e.Wrap(err, "current admin is not in workspace")
+	}
+
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return false, e.Wrap(err, "error retrieving user")
+	}
+
+	if admin.Role != nil && *admin.Role != model.AdminRole.ADMIN {
+		return false, e.New("A non-Admin role Admin tried changing an admin role.")
+	}
+
+	if admin.ID == adminID {
+		return false, e.New("A admin tried changing their own role.")
+	}
+
+	if err := r.DB.Model(&model.Admin{Model: model.Model{ID: adminID}}).Update("Role", newRole).Error; err != nil {
+		return false, e.Wrap(err, "error updating admin role")
+	}
+
+	return true, nil
+}
+
 func (r *mutationResolver) DeleteAdminFromProject(ctx context.Context, projectID int, adminID int) (*int, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
@@ -530,7 +474,12 @@ func (r *mutationResolver) DeleteAdminFromWorkspace(ctx context.Context, workspa
 		return nil, e.Wrap(err, "current admin is not in workspace")
 	}
 
-	return r.DeleteAdminAssociation(ctx, workspace, adminID)
+	deletedAdminId, err := r.DeleteAdminAssociation(ctx, workspace, adminID)
+	if err != nil {
+		return nil, e.Wrap(err, "error deleting admin association")
+	}
+
+	return deletedAdminId, nil
 }
 
 func (r *mutationResolver) CreateSegment(ctx context.Context, projectID int, name string, params modelInputs.SearchParamsInput) (*model.Segment, error) {
@@ -701,7 +650,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 
 	// If there are multiple subscriptions, it's ambiguous which one should be updated, so throw an error
 	if len(c.Subscriptions.Data) > 1 {
-		return nil, e.New("cannot update stripe subscription - customer has multiple subscriptions")
+		return nil, e.New("STRIPE_INTEGRATION_ERROR cannot update stripe subscription - customer has multiple subscriptions")
 	}
 
 	subscriptions := c.Subscriptions.Data
@@ -799,39 +748,9 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID
 		return nil, e.Wrap(err, "must have ADMIN role to update billing details")
 	}
 
-	customerParams := &stripe.CustomerParams{}
-	customerParams.AddExpand("subscriptions")
-	c, err := r.StripeClient.Customers.Get(*workspace.StripeCustomerID, customerParams)
-	if err != nil {
-		return nil, e.Wrap(err, "couldn't retrieve stripe customer data")
+	if err := r.updateBillingDetails(*workspace.StripeCustomerID); err != nil {
+		return nil, e.Wrap(err, "error updating billing details")
 	}
-
-	subscriptions := c.Subscriptions.Data
-	pricing.FillProducts(r.StripeClient, subscriptions)
-
-	// Default to free tier
-	tier := modelInputs.PlanTypeFree
-
-	// Loop over each subscription item in each of the customer's subscriptions
-	// and set the workspace's tier if the Stripe product has one
-	for _, subscription := range subscriptions {
-		for _, subscriptionItem := range subscription.Items.Data {
-			if _, productTier := pricing.GetProductMetadata(subscriptionItem.Price); productTier != nil {
-				tier = *productTier
-			}
-		}
-	}
-
-	if err := r.DB.Model(&workspace).Updates(model.Workspace{PlanTier: string(tier)}).Error; err != nil {
-		return nil, e.Wrap(err, "error setting stripe_plan_tier on workspace")
-	}
-
-	// mark sessions as within billing quota on plan upgrade
-	// this code is repeated as the first time, the user already has a billing plan and the function returns early.
-	// here, the user doesn't already have a billing plan, so it's considered an upgrade unless the plan is free
-	r.PrivateWorkerPool.SubmitRecover(func() {
-		r.UpdateSessionsVisibility(workspaceID, tier, modelInputs.PlanTypeFree)
-	})
 
 	return &model.T, nil
 }
@@ -1248,6 +1167,57 @@ func (r *mutationResolver) AddSlackBotIntegrationToProject(ctx context.Context, 
 	}
 
 	return true, nil
+}
+
+func (r *mutationResolver) CreateDefaultAlerts(ctx context.Context, projectID int, alertTypes []string, slackChannels []*modelInputs.SanitizedSlackChannelInput) (*bool, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
+	workspace, _ := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in project")
+	}
+
+	channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
+	if err != nil {
+		return nil, err
+	}
+
+	var sessionAlerts []*model.SessionAlert
+	for _, alertType := range alertTypes {
+		name := strings.Title(strings.ToLower(strings.Replace(alertType, "_", " ", -1)))
+		alertType := alertType
+		newAlert := model.Alert{
+			ProjectID:         projectID,
+			CountThreshold:    1,
+			ThresholdWindow:   util.MakeIntPointer(30),
+			Type:              &alertType,
+			ChannelsToNotify:  channelsString,
+			Name:              &name,
+			LastAdminToEditID: admin.ID,
+		}
+		if alertType == model.AlertType.ERROR {
+			errorAlert := &model.ErrorAlert{Alert: newAlert}
+			if err := r.DB.Create(errorAlert).Error; err != nil {
+				return nil, e.Wrap(err, "error creating a new error alert")
+			}
+			if err := errorAlert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &errorAlert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+				graphql.AddError(ctx, e.Wrap(err, "error sending slack welcome message for default error alert"))
+			}
+		} else {
+			sessionAlerts = append(sessionAlerts, &model.SessionAlert{Alert: newAlert})
+		}
+	}
+
+	if err := r.DB.Create(sessionAlerts).Error; err != nil {
+		return nil, e.Wrap(err, "error creating new session alerts")
+	}
+	for _, alert := range sessionAlerts {
+		if err := alert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &alert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+			graphql.AddError(ctx, e.Wrap(err, "error sending slack welcome message for default session alert"))
+		}
+	}
+
+	return &model.T, nil
 }
 
 func (r *mutationResolver) CreateRageClickAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
@@ -1848,7 +1818,7 @@ func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, projec
 	return alert, nil
 }
 
-func (r *mutationResolver) UpdateNewSessionAlert(ctx context.Context, projectID int, sessionAlertID int, name string, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, thresholdWindow int) (*model.SessionAlert, error) {
+func (r *mutationResolver) UpdateNewSessionAlert(ctx context.Context, projectID int, sessionAlertID int, name string, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, thresholdWindow int, excludeRules []*string) (*model.SessionAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1861,6 +1831,11 @@ func (r *mutationResolver) UpdateNewSessionAlert(ctx context.Context, projectID 
 		return nil, e.Wrap(err, "error parsing environments for new session alert")
 	}
 	envString := string(envBytes)
+
+	excludeRulesString, err := r.MarshalEnvironments(excludeRules)
+	if err != nil {
+		return nil, err
+	}
 
 	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
 	// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
@@ -1880,6 +1855,7 @@ func (r *mutationResolver) UpdateNewSessionAlert(ctx context.Context, projectID 
 	alert.LastAdminToEditID = admin.ID
 	alert.Name = &name
 	alert.ThresholdWindow = &thresholdWindow
+	alert.ExcludeRules = excludeRulesString
 	if err := r.DB.Model(&model.SessionAlert{
 		Model: model.Model{
 			ID: sessionAlertID,
@@ -1893,7 +1869,7 @@ func (r *mutationResolver) UpdateNewSessionAlert(ctx context.Context, projectID 
 	return alert, nil
 }
 
-func (r *mutationResolver) CreateNewSessionAlert(ctx context.Context, projectID int, name string, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, thresholdWindow int) (*model.SessionAlert, error) {
+func (r *mutationResolver) CreateNewSessionAlert(ctx context.Context, projectID int, name string, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, thresholdWindow int, excludeRules []*string) (*model.SessionAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1902,6 +1878,10 @@ func (r *mutationResolver) CreateNewSessionAlert(ctx context.Context, projectID 
 	}
 
 	envString, err := r.MarshalEnvironments(environments)
+	if err != nil {
+		return nil, err
+	}
+	excludeRulesString, err := r.MarshalEnvironments(excludeRules)
 	if err != nil {
 		return nil, err
 	}
@@ -1922,6 +1902,7 @@ func (r *mutationResolver) CreateNewSessionAlert(ctx context.Context, projectID 
 			ThresholdWindow:      &thresholdWindow,
 			LastAdminToEditID:    admin.ID,
 		},
+		ExcludeRules: excludeRulesString,
 	}
 
 	if err := r.DB.Create(newAlert).Error; err != nil {
@@ -2323,6 +2304,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 		details.Avatar = &p.Avatar
 		details.Name = &p.Name.FullName
 		details.Bio = &p.Bio
+		details.Email = &email
 	}
 	return details, nil
 }
@@ -2955,7 +2937,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	var queriedSessionsOutOfQuota int64
 
 	g.Go(func() error {
-		meter, err = pricing.GetWorkspaceQuota(r.DB, workspaceID)
+		meter, err = pricing.GetWorkspaceMeter(r.DB, workspaceID)
 		if err != nil {
 			return e.Wrap(err, "error from get quota")
 		}
@@ -3197,6 +3179,19 @@ func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, projectID int
 	return fields, nil
 }
 
+func (r *queryResolver) IdentifierSuggestion(ctx context.Context, projectID int) ([]*string, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+	identifiers := []*string{}
+	res := r.DB.Raw("SELECT DISTINCT identifier from sessions where project_id=1 AND identifier <> '' AND identifier IS NOT NULL ORDER BY identifier ASC").
+		Scan(&identifiers)
+	if err := res.Error; err != nil {
+		return nil, e.Wrap(err, "error querying identifier suggestion")
+	}
+	return identifiers, nil
+}
+
 func (r *queryResolver) AppVersionSuggestion(ctx context.Context, projectID int) ([]*string, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "error querying project")
@@ -3329,7 +3324,7 @@ func (r *queryResolver) WorkspaceInviteLinks(ctx context.Context, workspaceID in
 	}
 
 	if shouldCreateNewInviteLink {
-		workspaceInviteLink = r.CreateInviteLink(workspaceID, nil)
+		workspaceInviteLink = r.CreateInviteLink(workspaceID, nil, model.AdminRole.ADMIN)
 
 		if err := r.DB.Create(&workspaceInviteLink).Error; err != nil {
 			return nil, e.Wrap(err, "failed to create new invite link to replace expired one.")
@@ -3460,6 +3455,33 @@ func (r *queryResolver) APIKeyToOrgID(ctx context.Context, apiKey string) (*int,
 	return &projectId, nil
 }
 
+func (r *queryResolver) CustomerPortalURL(ctx context.Context, workspaceID int) (string, error) {
+	frontendUri := os.Getenv("FRONTEND_URI")
+
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return "", e.Wrap(err, "admin does not have workspace access")
+	}
+
+	if err := r.validateAdminRole(ctx); err != nil {
+		return "", e.Wrap(err, "must have ADMIN role to access the Sripe customer portal")
+	}
+
+	returnUrl := fmt.Sprintf("%s/w/%d/billing", frontendUri, workspaceID)
+
+	params := &stripe.BillingPortalSessionParams{
+		Customer:  workspace.StripeCustomerID,
+		ReturnURL: &returnUrl,
+	}
+
+	portalSession, err := r.StripeClient.BillingPortalSessions.New(params)
+	if err != nil {
+		return "", e.Wrap(err, "error creating customer portal session")
+	}
+
+	return portalSession.URL, nil
+}
+
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
 	params := &model.SearchParams{}
 	if obj.Params == nil {
@@ -3505,6 +3527,10 @@ func (r *sessionAlertResolver) TrackProperties(ctx context.Context, obj *model.S
 
 func (r *sessionAlertResolver) UserProperties(ctx context.Context, obj *model.SessionAlert) ([]*model.UserProperty, error) {
 	return obj.GetUserProperties()
+}
+
+func (r *sessionAlertResolver) ExcludeRules(ctx context.Context, obj *model.SessionAlert) ([]*string, error) {
+	return obj.GetExcludeRules()
 }
 
 func (r *sessionCommentResolver) Author(ctx context.Context, obj *model.SessionComment) (*modelInputs.SanitizedAdmin, error) {

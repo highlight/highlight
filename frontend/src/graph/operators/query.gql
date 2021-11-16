@@ -211,6 +211,7 @@ query GetEnhancedUserDetails($session_secure_id: String!) {
         name
         bio
         avatar
+        email
         socials {
             type
             link
@@ -240,11 +241,13 @@ mutation SendAdminWorkspaceInvite(
     $workspace_id: ID!
     $email: String!
     $base_url: String!
+    $role: String!
 ) {
     sendAdminWorkspaceInvite(
         workspace_id: $workspace_id
         email: $email
         base_url: $base_url
+        role: $role
     )
 }
 
@@ -821,6 +824,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         name
         value
     }
+    identifier_suggestion(project_id: $project_id)
     error_alerts(project_id: $project_id) {
         ChannelsToNotify {
             webhook_channel
@@ -862,6 +866,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         Name
         id
         Type
+        ExcludeRules
     }
     rage_click_alerts(project_id: $project_id) {
         id
@@ -939,4 +944,8 @@ query GetCommentMentionSuggestions($project_id: ID!) {
         webhook_channel
         webhook_channel_id
     }
+}
+
+query GetCustomerPortalURL($workspace_id: ID!) {
+    customer_portal_url(workspace_id: $workspace_id)
 }

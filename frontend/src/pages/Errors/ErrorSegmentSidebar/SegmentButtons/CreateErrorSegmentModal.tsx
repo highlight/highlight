@@ -78,7 +78,11 @@ const CreateErrorSegmentModal = ({
             <ModalBody>
                 <form onSubmit={onSubmit}>
                     <p className={styles.modalSubTitle}>
-                        Enter the name of your segment and you'll be good to go!
+                        Creating a segment allows you to save search queries
+                        that target a specific set of errors. If you're
+                        searching for a specific browser, error type or any
+                        other attribute again and again then you should create a
+                        segment.
                     </p>
                     <Input
                         className={commonStyles.input}

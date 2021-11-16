@@ -2,11 +2,13 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { IntercomInlineMessage } from '@components/IntercomMessage/IntercomMessage';
 import { useGetProjectQuery } from '@graph/hooks';
+import useLocalStorage from '@rehooks/local-storage';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import { H } from 'highlight.run';
-import React, { FunctionComponent, useState } from 'react';
+import React, { FunctionComponent } from 'react';
 import { Helmet } from 'react-helmet';
 import Skeleton from 'react-loading-skeleton';
 
@@ -24,7 +26,7 @@ import { IntegrationDetector } from './IntegrationDetector/IntegrationDetector';
 import styles from './SetupPage.module.scss';
 
 enum PlatformType {
-    Html = 'HTML',
+    Html = 'Other',
     React = 'React',
     Vue = 'Vue.js',
     NextJs = 'Next.js',
@@ -33,8 +35,11 @@ enum PlatformType {
 
 const SetupPage = ({ integrated }: { integrated: boolean }) => {
     const { admin } = useAuthContext();
-    const [platform, setPlatform] = useState(PlatformType.React);
     const { project_id } = useParams<{ project_id: string }>();
+    const [platform, setPlatform] = useLocalStorage(
+        `selectedSetupPlatform-${project_id}`,
+        PlatformType.React
+    );
     const projectIdRemapped =
         project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
@@ -61,9 +66,9 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                     labels={[
                         PlatformType.React,
                         PlatformType.Vue,
-                        PlatformType.Html,
                         PlatformType.NextJs,
                         PlatformType.Gatsby,
+                        PlatformType.Html,
                     ]}
                     onSelect={(p: PlatformType) => setPlatform(p)}
                 />
@@ -75,6 +80,30 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                     />
                 ) : (
                     <div className={styles.stepsContainer}>
+                        {platform === PlatformType.Html && (
+                            <Section title="Is This for Me?" defaultOpen>
+                                <p>
+                                    These steps apply to other types of apps and
+                                    websites where you have access to a file
+                                    like <code>index.html</code>.
+                                </p>
+                                <p>Some examples are:</p>
+                                <ul>
+                                    <li>WordPress</li>
+                                    <li>Webflow</li>
+                                    <li>Shopify</li>
+                                    <li>Squarespace</li>
+                                </ul>
+                                <p>
+                                    If you're not sure how to integrate or have
+                                    any questions feel free to{' '}
+                                    <IntercomInlineMessage defaultMessage="Hi! I need help integrating Highlight.">
+                                        message us
+                                    </IntercomInlineMessage>
+                                    !
+                                </p>
+                            </Section>
+                        )}
                         {platform === PlatformType.Html ? (
                             <HtmlInstructions
                                 projectVerboseId={data?.project?.verbose_id}
@@ -89,6 +118,42 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                                 platform={platform}
                             />
                         )}
+                        <Section
+                            defaultOpen
+                            title={
+                                <span className={styles.sectionTitleWithIcon}>
+                                    Verify Installation
+                                    {integrated && (
+                                        <IntegrationDetector
+                                            verbose={false}
+                                            integrated={integrated}
+                                        />
+                                    )}
+                                </span>
+                            }
+                            id="highlightIntegration"
+                        >
+                            <p>
+                                Please follow the setup instructions above to
+                                install Highlight. It should take less than a
+                                minute for us to detect installation.
+                            </p>
+                            <div className={styles.integrationContainer}>
+                                <IntegrationDetector
+                                    integrated={integrated}
+                                    verbose={true}
+                                />
+                                {integrated && (
+                                    <ButtonLink
+                                        to={`/${project_id}/sessions`}
+                                        trackingId="ViewSessionFromSetupPage"
+                                    >
+                                        View Session
+                                    </ButtonLink>
+                                )}
+                            </div>
+                        </Section>
+                        <hr />
                         <Section title="Identifying Users">
                             <p>
                                 To tag sessions with user specific identifiers
@@ -121,32 +186,6 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
   phone: '867-5309'
 });`}
                             />
-                        </Section>
-                        <Section
-                            title={
-                                <span className={styles.sectionTitleWithIcon}>
-                                    Verify Installation
-                                    {integrated && (
-                                        <IntegrationDetector
-                                            verbose={false}
-                                            integrated={integrated}
-                                        />
-                                    )}
-                                </span>
-                            }
-                            id="highlightIntegration"
-                        >
-                            <p>
-                                Please follow the setup instructions above to
-                                install Highlight. It should take less than a
-                                minute for us to detect installation.
-                            </p>
-                            <div className={styles.integrationContainer}>
-                                <IntegrationDetector
-                                    integrated={integrated}
-                                    verbose={true}
-                                />
-                            </div>
                         </Section>
                         {platform === PlatformType.React && (
                             <Section title="React Error Boundary">
@@ -208,8 +247,14 @@ const App = () => {
                         >
                             <p>
                                 Get notified of different events happening in
-                                your application.
+                                your application like:
                             </p>
+                            <ul>
+                                <li>Errors thrown</li>
+                                <li>New users</li>
+                                <li>A new feature is used</li>
+                                <li>User submitting feedback</li>
+                            </ul>
                             <div className={styles.integrationContainer}>
                                 <ButtonLink
                                     to={`/${projectIdRemapped}/alerts`}
@@ -305,7 +350,7 @@ const HtmlInstructions = ({
     projectVerboseId: string;
 }) => {
     return (
-        <Section title="Installing the SDK">
+        <Section title="Installing the SDK" defaultOpen>
             <p>
                 Copy and paste the <code>{'<script>'}</code> below into the
                 <code>{'<head>'}</code> of every page you wish to record.
@@ -339,7 +384,7 @@ const JsAppInstructions = ({
 }) => {
     return (
         <>
-            <Section title="Installing the SDK">
+            <Section title="Installing the SDK" defaultOpen>
                 {platform === PlatformType.React ? (
                     <>
                         <p>
@@ -373,7 +418,7 @@ const JsAppInstructions = ({
                     </>
                 )}
             </Section>
-            <Section title="Initializing Highlight">
+            <Section title="Initializing Highlight" defaultOpen>
                 <p>Initialize the SDK by importing Highlight like so: </p>
                 <CodeBlock
                     text={`import { H } from 'highlight.run';`}
@@ -385,7 +430,7 @@ const JsAppInstructions = ({
                     you can in your site's startup process. You can configure
                     how Highlight records with the{' '}
                     <a
-                        href="https://docs.highlight.run/reference#options"
+                        href="https://docs.highlight.run/api#w0-highlightoptions"
                         target="_blank"
                         rel="noreferrer"
                     >
@@ -468,15 +513,17 @@ export default MyApp`}
 type SectionProps = {
     title: string | React.ReactNode;
     id?: string;
+    defaultOpen?: boolean;
 };
 
 export const Section: FunctionComponent<SectionProps> = ({
     children,
     id,
     title,
+    defaultOpen,
 }) => {
     return (
-        <Collapsible title={title} id={id}>
+        <Collapsible title={title} id={id} defaultOpen={defaultOpen}>
             {children}
         </Collapsible>
     );

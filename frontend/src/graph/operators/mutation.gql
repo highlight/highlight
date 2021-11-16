@@ -41,6 +41,18 @@ mutation AddAdminToWorkspace($workspace_id: ID!, $invite_id: String!) {
     addAdminToWorkspace(workspace_id: $workspace_id, invite_id: $invite_id)
 }
 
+mutation ChangeAdminRole(
+    $workspace_id: ID!
+    $admin_id: ID!
+    $new_role: String!
+) {
+    changeAdminRole(
+        workspace_id: $workspace_id
+        admin_id: $admin_id
+        new_role: $new_role
+    )
+}
+
 mutation DeleteAdminFromProject($project_id: ID!, $admin_id: ID!) {
     deleteAdminFromProject(project_id: $project_id, admin_id: $admin_id)
 }
@@ -370,6 +382,17 @@ mutation DeleteSessionAlert($project_id: ID!, $session_alert_id: ID!) {
     }
 }
 
+mutation CreateDefaultAlerts(
+    $project_id: ID!
+    $alert_types: [String!]!
+    $slack_channels: [SanitizedSlackChannelInput!]!
+) {
+    createDefaultAlerts(
+        project_id: $project_id
+        alert_types: $alert_types
+        slack_channels: $slack_channels
+    )
+}
 mutation CreateSessionFeedbackAlert(
     $project_id: ID!
     $name: String!
@@ -466,6 +489,7 @@ mutation CreateNewSessionAlert(
     $slack_channels: [SanitizedSlackChannelInput]!
     $environments: [String]!
     $threshold_window: Int!
+    $exclude_rules: [String]!
 ) {
     createNewSessionAlert(
         project_id: $project_id
@@ -474,6 +498,7 @@ mutation CreateNewSessionAlert(
         slack_channels: $slack_channels
         environments: $environments
         threshold_window: $threshold_window
+        exclude_rules: $exclude_rules
     ) {
         id
         ChannelsToNotify {
@@ -485,6 +510,7 @@ mutation CreateNewSessionAlert(
         CountThreshold
         ThresholdWindow
         LastAdminToEditID
+        ExcludeRules
     }
 }
 
@@ -496,6 +522,7 @@ mutation UpdateNewSessionAlert(
     $slack_channels: [SanitizedSlackChannelInput]!
     $environments: [String]!
     $threshold_window: Int!
+    $exclude_rules: [String]!
 ) {
     updateNewSessionAlert(
         project_id: $project_id
@@ -505,6 +532,7 @@ mutation UpdateNewSessionAlert(
         slack_channels: $slack_channels
         environments: $environments
         threshold_window: $threshold_window
+        exclude_rules: $exclude_rules
     ) {
         id
         ChannelsToNotify {
@@ -516,6 +544,7 @@ mutation UpdateNewSessionAlert(
         CountThreshold
         ThresholdWindow
         LastAdminToEditID
+        ExcludeRules
     }
 }
 

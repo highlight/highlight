@@ -89,6 +89,7 @@ type EnhancedUserDetailsResult {
     avatar: String
     bio: String
     socials: [SocialLink]
+    email: String
 }
 
 type SocialLink {
@@ -467,6 +468,7 @@ type SessionAlert {
     ThresholdWindow: Int!
     LastAdminToEditID: ID
     Type: String!
+    ExcludeRules: [String]!
 }
 
 type WorkspaceInviteLink {
@@ -561,6 +563,7 @@ type Query {
     rage_click_alerts(project_id: ID!): [SessionAlert]!
     projectSuggestion(query: String!): [Project]
     environment_suggestion(project_id: ID!): [Field]
+    identifier_suggestion(project_id: ID!): [String]!
     app_version_suggestion(project_id: ID!): [String]!
     slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
     slack_members(project_id: ID!): [SanitizedSlackChannel]!
@@ -573,6 +576,7 @@ type Query {
     segments(project_id: ID!): [Segment]
     error_segments(project_id: ID!): [ErrorSegment]
     api_key_to_org_id(api_key: String!): ID
+    customer_portal_url(workspace_id: ID!): String!
 }
 
 type Mutation {
@@ -593,8 +597,14 @@ type Mutation {
         workspace_id: ID!
         email: String!
         base_url: String!
+        role: String!
     ): String
     addAdminToWorkspace(workspace_id: ID!, invite_id: String!): ID
+    changeAdminRole(
+        workspace_id: ID!
+        admin_id: ID!
+        new_role: String!
+    ): Boolean!
     deleteAdminFromProject(project_id: ID!, admin_id: ID!): ID
     deleteAdminFromWorkspace(workspace_id: ID!, admin_id: ID!): ID
     createSegment(
@@ -660,6 +670,11 @@ type Mutation {
         code: String!
         redirect_path: String!
     ): Boolean!
+    createDefaultAlerts(
+        project_id: ID!
+        alert_types: [String!]!
+        slack_channels: [SanitizedSlackChannelInput!]!
+    ): Boolean
     createRageClickAlert(
         project_id: ID!
         name: String!
@@ -772,6 +787,7 @@ type Mutation {
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
         threshold_window: Int!
+        exclude_rules: [String]!
     ): SessionAlert
     createNewSessionAlert(
         project_id: ID!
@@ -780,6 +796,7 @@ type Mutation {
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
         threshold_window: Int!
+        exclude_rules: [String]!
     ): SessionAlert
     updateSessionIsPublic(
         session_secure_id: String!

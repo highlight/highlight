@@ -185,8 +185,11 @@ type Workspace struct {
 	StripeCustomerID      *string
 	StripePriceID         *string
 	PlanTier              string `gorm:"default:Free"`
+	BillingPeriodStart    *time.Time
+	BillingPeriodEnd      *time.Time
 	MonthlySessionLimit   *int
 	TrialEndDate          *time.Time `json:"trial_end_date"`
+	AllowMeterOverage     bool       `gorm:"default:false"`
 }
 
 type WorkspaceInviteLink struct {
@@ -210,6 +213,7 @@ type Project struct {
 	// Manual monthly session limit override
 	MonthlySessionLimit *int
 	WorkspaceID         int
+	FreeTier            bool `gorm:"default:false"`
 }
 
 type HasSecret interface {
@@ -248,6 +252,7 @@ type SessionAlert struct {
 	Alert
 	TrackProperties *string
 	UserProperties  *string
+	ExcludeRules    *string
 }
 
 func (obj *Alert) GetExcludedEnvironments() ([]*string, error) {
@@ -308,6 +313,21 @@ func (obj *SessionAlert) GetUserProperties() ([]*UserProperty, error) {
 		return nil, e.Wrap(err, "error unmarshalling sanitized user properties")
 	}
 	return sanitizedProperties, nil
+}
+
+func (obj *SessionAlert) GetExcludeRules() ([]*string, error) {
+	if obj == nil {
+		return nil, e.New("empty session alert object for exclude rules")
+	}
+	excludeRulesString := "[]"
+	if obj.ExcludeRules != nil {
+		excludeRulesString = *obj.ExcludeRules
+	}
+	var sanitizedExcludeRules []*string
+	if err := json.Unmarshal([]byte(excludeRulesString), &sanitizedExcludeRules); err != nil {
+		return nil, e.Wrap(err, "error unmarshalling sanitized exclude rules")
+	}
+	return sanitizedExcludeRules, nil
 }
 
 type SlackChannel struct {

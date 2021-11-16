@@ -13,6 +13,7 @@ import SvgSparkles2Icon from '@icons/Sparkles2Icon';
 import SvgTargetIcon from '@icons/TargetIcon';
 import SvgUserPlusIcon from '@icons/UserPlusIcon';
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext';
+import AlertSetupModal from '@pages/Alerts/AlertSetupModal/AlertSetupModal';
 import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy';
 import { getAlertTypeColor } from '@pages/Alerts/utils/AlertsUtils';
 import { useParams } from '@util/react-router/useParams';
@@ -48,6 +49,7 @@ export const ALERT_CONFIGURATIONS = {
         type: ALERT_TYPE.Error,
         description: 'Get alerted when an error is thrown in your app.',
         icon: <SvgBugIcon />,
+        supportsExcludeRules: false,
     },
     RAGE_CLICK_ALERT: {
         name: ALERT_NAMES['RAGE_CLICK_ALERT'],
@@ -56,12 +58,17 @@ export const ALERT_CONFIGURATIONS = {
         description: (
             <>
                 {'Get alerted whenever a user'}{' '}
-                <a href="https://docs.highlight.run/rage-clicks">
+                {/* eslint-disable-next-line react/jsx-no-target-blank */}
+                <a
+                    href="https://docs.highlight.run/rage-clicks"
+                    target="_blank"
+                >
                     rage clicks.
                 </a>
             </>
         ),
         icon: <SvgCursorClickIcon />,
+        supportsExcludeRules: false,
     },
     NEW_USER_ALERT: {
         name: ALERT_NAMES['NEW_USER_ALERT'],
@@ -70,6 +77,7 @@ export const ALERT_CONFIGURATIONS = {
         description:
             'Get alerted when a new user uses your app for the first time.',
         icon: <SvgUserPlusIcon />,
+        supportsExcludeRules: false,
     },
     USER_PROPERTIES_ALERT: {
         name: ALERT_NAMES['USER_PROPERTIES_ALERT'],
@@ -78,6 +86,7 @@ export const ALERT_CONFIGURATIONS = {
         description:
             'Get alerted when users you want to track record a session.',
         icon: <SvgFaceIdIcon />,
+        supportsExcludeRules: false,
     },
     TRACK_PROPERTIES_ALERT: {
         name: ALERT_NAMES['TRACK_PROPERTIES_ALERT'],
@@ -85,13 +94,27 @@ export const ALERT_CONFIGURATIONS = {
         type: ALERT_TYPE.TrackProperties,
         description: 'Get alerted when an action is done in your application.',
         icon: <SvgTargetIcon />,
+        supportsExcludeRules: false,
     },
     SESSION_FEEDBACK_ALERT: {
         name: ALERT_NAMES['SESSION_FEEDBACK_ALERT'],
         canControlThreshold: false,
         type: ALERT_TYPE.SessionFeedbackComment,
-        description: 'Get alerted when a user submits a session feedback.',
+        description: (
+            <>
+                Get alerted when a user submits{' '}
+                {/* eslint-disable-next-line react/jsx-no-target-blank */}
+                <a
+                    href="https://docs.highlight.run/user-feedback"
+                    target="_blank"
+                >
+                    a session feedback
+                </a>
+                .
+            </>
+        ),
         icon: <SvgQuoteIcon />,
+        supportsExcludeRules: false,
     },
     NEW_SESSION_ALERT: {
         name: ALERT_NAMES['NEW_SESSION_ALERT'],
@@ -99,6 +122,7 @@ export const ALERT_CONFIGURATIONS = {
         type: ALERT_TYPE.NewSession,
         description: 'Get alerted every time a session is created.',
         icon: <SvgSparkles2Icon />,
+        supportsExcludeRules: true,
     },
 } as const;
 
@@ -216,15 +240,19 @@ const AlertsPage = () => {
 
     return (
         <>
+            <AlertSetupModal />
             <div className={styles.subTitleContainer}>
                 <p>Manage your alerts for your project.</p>
-                <ButtonLink
-                    trackingId="NewAlert"
-                    className={styles.callToAction}
-                    to={`/${project_id}/alerts/new`}
-                >
-                    New Alert
-                </ButtonLink>
+                {alertsPayload?.is_integrated_with_slack &&
+                    alertsAsTableRows.length > 0 && (
+                        <ButtonLink
+                            trackingId="NewAlert"
+                            className={styles.callToAction}
+                            to={`/${project_id}/alerts/new`}
+                        >
+                            New Alert
+                        </ButtonLink>
+                    )}
             </div>
             {!loading && !alertsPayload?.is_integrated_with_slack ? (
                 <Alert
@@ -243,8 +271,21 @@ const AlertsPage = () => {
                         <>
                             {!alertsPayload?.is_integrated_with_slack ? (
                                 <>
-                                    Highlight needs to be connected with Slack
-                                    in order to send you and your team messages.
+                                    <p>
+                                        Highlight needs to be connected with
+                                        Slack in order to send you and your team
+                                        messages.
+                                    </p>
+                                    <p>
+                                        Once connected, you'll be able to get
+                                        alerts for things like:
+                                    </p>
+                                    <ul>
+                                        <li>Errors thrown</li>
+                                        <li>New users</li>
+                                        <li>A new feature is used</li>
+                                        <li>User submitted feedback</li>
+                                    </ul>
                                     <PersonalNotificationButton
                                         text="Connect Highlight with Slack"
                                         className={styles.integrationButton}
@@ -265,6 +306,7 @@ const AlertsPage = () => {
                             )}
                         </>
                     }
+                    closable={false}
                     className={styles.integrationAlert}
                 />
             ) : (
@@ -275,7 +317,7 @@ const AlertsPage = () => {
                 />
             )}
 
-            {((alertsPayload && alertsPayload.is_integrated_with_slack) ||
+            {((alertsPayload && alertsPayload?.is_integrated_with_slack) ||
                 !alertsPayload) && (
                 <Card noPadding>
                     <Table

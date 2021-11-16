@@ -185,11 +185,11 @@ const Columns: ColumnsType<any> = [
         render: (percent, record) => {
             return (
                 <BarChartTableRowGroup alignment="ending">
-                    <BarChartTablePercentage percent={percent} />
+                    <BarChartTablePercentage percent={percent * 100} />
                     <Tooltip title="Total active time the user has spent on your app">
                         <BarChartTablePill
                             displayValue={`${formatShortTime(
-                                record.active_time_percentage * 1000
+                                record.total_active_time / 1000
                             )}`}
                             icon={<SvgClockIcon />}
                         />

@@ -76,6 +76,17 @@ export type AddAdminToWorkspaceMutation = { __typename?: 'Mutation' } & Pick<
     'addAdminToWorkspace'
 >;
 
+export type ChangeAdminRoleMutationVariables = Types.Exact<{
+    workspace_id: Types.Scalars['ID'];
+    admin_id: Types.Scalars['ID'];
+    new_role: Types.Scalars['String'];
+}>;
+
+export type ChangeAdminRoleMutation = { __typename?: 'Mutation' } & Pick<
+    Types.Mutation,
+    'changeAdminRole'
+>;
+
 export type DeleteAdminFromProjectMutationVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     admin_id: Types.Scalars['ID'];
@@ -511,6 +522,19 @@ export type DeleteSessionAlertMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
+export type CreateDefaultAlertsMutationVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    alert_types: Array<Types.Scalars['String']> | Types.Scalars['String'];
+    slack_channels:
+        | Array<Types.SanitizedSlackChannelInput>
+        | Types.SanitizedSlackChannelInput;
+}>;
+
+export type CreateDefaultAlertsMutation = { __typename?: 'Mutation' } & Pick<
+    Types.Mutation,
+    'createDefaultAlerts'
+>;
+
 export type CreateSessionFeedbackAlertMutationVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     name: Types.Scalars['String'];
@@ -631,6 +655,9 @@ export type CreateNewSessionAlertMutationVariables = Types.Exact<{
         | Array<Types.Maybe<Types.Scalars['String']>>
         | Types.Maybe<Types.Scalars['String']>;
     threshold_window: Types.Scalars['Int'];
+    exclude_rules:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
 }>;
 
 export type CreateNewSessionAlertMutation = { __typename?: 'Mutation' } & {
@@ -643,6 +670,7 @@ export type CreateNewSessionAlertMutation = { __typename?: 'Mutation' } & {
             | 'CountThreshold'
             | 'ThresholdWindow'
             | 'LastAdminToEditID'
+            | 'ExcludeRules'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -668,6 +696,9 @@ export type UpdateNewSessionAlertMutationVariables = Types.Exact<{
         | Array<Types.Maybe<Types.Scalars['String']>>
         | Types.Maybe<Types.Scalars['String']>;
     threshold_window: Types.Scalars['Int'];
+    exclude_rules:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
 }>;
 
 export type UpdateNewSessionAlertMutation = { __typename?: 'Mutation' } & {
@@ -680,6 +711,7 @@ export type UpdateNewSessionAlertMutation = { __typename?: 'Mutation' } & {
             | 'CountThreshold'
             | 'ThresholdWindow'
             | 'LastAdminToEditID'
+            | 'ExcludeRules'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -1272,7 +1304,7 @@ export type GetEnhancedUserDetailsQuery = { __typename?: 'Query' } & {
     enhanced_user_details?: Types.Maybe<
         { __typename?: 'EnhancedUserDetailsResult' } & Pick<
             Types.EnhancedUserDetailsResult,
-            'id' | 'name' | 'bio' | 'avatar'
+            'id' | 'name' | 'bio' | 'avatar' | 'email'
         > & {
                 socials?: Types.Maybe<
                     Array<
@@ -1318,6 +1350,7 @@ export type SendAdminWorkspaceInviteMutationVariables = Types.Exact<{
     workspace_id: Types.Scalars['ID'];
     email: Types.Scalars['String'];
     base_url: Types.Scalars['String'];
+    role: Types.Scalars['String'];
 }>;
 
 export type SendAdminWorkspaceInviteMutation = {
@@ -2238,7 +2271,7 @@ export type GetAlertsPagePayloadQueryVariables = Types.Exact<{
 
 export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
     Types.Query,
-    'is_integrated_with_slack'
+    'is_integrated_with_slack' | 'identifier_suggestion'
 > & {
         slack_channel_suggestion?: Types.Maybe<
             Array<
@@ -2328,6 +2361,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
                     | 'Name'
                     | 'id'
                     | 'Type'
+                    | 'ExcludeRules'
                 > & {
                         ChannelsToNotify: Array<
                             Types.Maybe<
@@ -2478,6 +2512,15 @@ export type GetCommentMentionSuggestionsQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetCustomerPortalUrlQueryVariables = Types.Exact<{
+    workspace_id: Types.Scalars['ID'];
+}>;
+
+export type GetCustomerPortalUrlQuery = { __typename?: 'Query' } & Pick<
+    Types.Query,
+    'customer_portal_url'
+>;
+
 export const namedOperations = {
     Query: {
         GetSessionPayload: 'GetSessionPayload' as const,
@@ -2532,6 +2575,7 @@ export const namedOperations = {
         GetWorkspaceIsIntegratedWithSlack: 'GetWorkspaceIsIntegratedWithSlack' as const,
         GetAlertsPagePayload: 'GetAlertsPagePayload' as const,
         GetCommentMentionSuggestions: 'GetCommentMentionSuggestions' as const,
+        GetCustomerPortalURL: 'GetCustomerPortalURL' as const,
     },
     Mutation: {
         MarkSessionAsViewed: 'MarkSessionAsViewed' as const,
@@ -2541,6 +2585,7 @@ export const namedOperations = {
         updateErrorGroupState: 'updateErrorGroupState' as const,
         SendEmailSignup: 'SendEmailSignup' as const,
         AddAdminToWorkspace: 'AddAdminToWorkspace' as const,
+        ChangeAdminRole: 'ChangeAdminRole' as const,
         DeleteAdminFromProject: 'DeleteAdminFromProject' as const,
         DeleteAdminFromWorkspace: 'DeleteAdminFromWorkspace' as const,
         OpenSlackConversation: 'OpenSlackConversation' as const,
@@ -2565,6 +2610,7 @@ export const namedOperations = {
         UpdateErrorAlert: 'UpdateErrorAlert' as const,
         DeleteErrorAlert: 'DeleteErrorAlert' as const,
         DeleteSessionAlert: 'DeleteSessionAlert' as const,
+        CreateDefaultAlerts: 'CreateDefaultAlerts' as const,
         CreateSessionFeedbackAlert: 'CreateSessionFeedbackAlert' as const,
         UpdateSessionFeedbackAlert: 'UpdateSessionFeedbackAlert' as const,
         CreateNewUserAlert: 'CreateNewUserAlert' as const,

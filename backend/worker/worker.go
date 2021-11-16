@@ -25,6 +25,7 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/payload"
+	"github.com/highlight-run/highlight/backend/pricing"
 	mgraph "github.com/highlight-run/highlight/backend/private-graph/graph"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/workerpool"
@@ -542,6 +543,22 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 				return nil
 			}
 
+			// check if session was created by a should-ignore identifier
+			excludedIdentifiers, err := sessionAlert.GetExcludeRules()
+			if err != nil {
+				return e.Wrapf(err, "[project_id: %d] error getting exclude rules from new session alert", projectID)
+			}
+			isSessionByExcludedIdentifier := false
+			for _, identifier := range excludedIdentifiers {
+				if identifier != nil && *identifier == s.Identifier {
+					isSessionByExcludedIdentifier = true
+					break
+				}
+			}
+			if isSessionByExcludedIdentifier {
+				return nil
+			}
+
 			workspace, err := w.Resolver.GetWorkspace(project.WorkspaceID)
 			if err != nil {
 				return e.Wrap(err, "error querying workspace")
@@ -661,8 +678,8 @@ func (w *Worker) Start() {
 					SELECT id
 					FROM sessions
 					WHERE (processed = ?)
-						AND (COALESCE(payload_updated_at, to_timestamp(0)) < NOW() - (? * INTERVAL '1 SECOND')) 
-						AND (COALESCE(lock, to_timestamp(0)) < NOW() - (? * INTERVAL '1 MINUTE')) 
+						AND (COALESCE(payload_updated_at, to_timestamp(0)) < NOW() - (? * INTERVAL '1 SECOND'))
+						AND (COALESCE(lock, to_timestamp(0)) < NOW() - (? * INTERVAL '1 MINUTE'))
 					LIMIT ?
 					FOR UPDATE SKIP LOCKED
 				)
@@ -712,6 +729,20 @@ func (w *Worker) Start() {
 			})
 		}
 		wp.StopWait()
+	}
+}
+
+func (w *Worker) ReportStripeUsage() {
+	pricing.ReportAllUsage(w.Resolver.DB, w.Resolver.StripeClient)
+}
+
+func (w *Worker) GetHandler(handlerFlag string) func() {
+	switch handlerFlag {
+	case "report-stripe-usage":
+		return w.ReportStripeUsage
+	default:
+		log.Fatalf("unrecognized worker-handler [%s]", handlerFlag)
+		return nil
 	}
 }
 

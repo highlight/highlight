@@ -6,7 +6,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"math/big"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -18,12 +20,16 @@ import (
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
+	stripe "github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/client"
+	"github.com/stripe/stripe-go/v72/webhook"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/pricing"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 )
@@ -913,7 +919,107 @@ func (r *Resolver) GenerateRandomStringURLSafe(n int) (string, error) {
 	return base64.URLEncoding.EncodeToString(b), err
 }
 
-func (r *Resolver) CreateInviteLink(workspaceID int, email *string) *model.WorkspaceInviteLink {
+func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
+	customerParams := &stripe.CustomerParams{}
+	customerParams.AddExpand("subscriptions")
+	c, err := r.StripeClient.Customers.Get(stripeCustomerID, customerParams)
+	if err != nil {
+		return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error retrieving Stripe customer data for customer %s", stripeCustomerID)
+	}
+
+	subscriptions := c.Subscriptions.Data
+	pricing.FillProducts(r.StripeClient, subscriptions)
+
+	// Default to free tier
+	tier := modelInputs.PlanTypeFree
+	var billingPeriodStart *time.Time
+	var billingPeriodEnd *time.Time
+
+	// Loop over each subscription item in each of the customer's subscriptions
+	// and set the workspace's tier if the Stripe product has one
+	for _, subscription := range subscriptions {
+		for _, subscriptionItem := range subscription.Items.Data {
+			if _, productTier := pricing.GetProductMetadata(subscriptionItem.Price); productTier != nil {
+				tier = *productTier
+				startTimestamp := time.Unix(subscription.CurrentPeriodStart, 0)
+				endTimestamp := time.Unix(subscription.CurrentPeriodEnd, 0)
+				billingPeriodStart = &startTimestamp
+				billingPeriodEnd = &endTimestamp
+			}
+		}
+	}
+
+	workspace := model.Workspace{}
+	if err := r.DB.Model(&workspace).
+		Clauses(clause.Returning{}).
+		Where(model.Workspace{StripeCustomerID: &stripeCustomerID}).
+		Updates(map[string]interface{}{
+			"PlanTier":           string(tier),
+			"BillingPeriodStart": billingPeriodStart,
+			"BillingPeriodEnd":   billingPeriodEnd,
+		}).Error; err != nil {
+		return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error updating workspace fields for customer %s", stripeCustomerID)
+	}
+
+	// mark sessions as within billing quota on plan upgrade
+	// this code is repeated as the first time, the user already has a billing plan and the function returns early.
+	// here, the user doesn't already have a billing plan, so it's considered an upgrade unless the plan is free
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		r.UpdateSessionsVisibility(workspace.ID, tier, modelInputs.PlanTypeFree)
+	})
+
+	return nil
+}
+
+func (r *Resolver) StripeWebhook(endpointSecret string) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, req *http.Request) {
+		const MaxBodyBytes = int64(65536)
+		req.Body = http.MaxBytesReader(w, req.Body, MaxBodyBytes)
+		payload, err := ioutil.ReadAll(req.Body)
+		if err != nil {
+			log.Error(e.Wrap(err, "error reading request body"))
+			w.WriteHeader(http.StatusServiceUnavailable)
+			return
+		}
+
+		event, err := webhook.ConstructEvent(payload, req.Header.Get("Stripe-Signature"),
+			endpointSecret)
+		if err != nil {
+			log.Error(e.Wrap(err, "error verifying webhook signature"))
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		if err := json.Unmarshal(payload, &event); err != nil {
+			log.Error(e.Wrap(err, "failed to parse webhook body json"))
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		log.Infof("Stripe webhook received event type: %s", event.Type)
+
+		switch event.Type {
+		case "customer.subscription.created", "customer.subscription.updated", "customer.subscription.deleted":
+			var subscription stripe.Subscription
+			err := json.Unmarshal(event.Data.Raw, &subscription)
+			if err != nil {
+				log.Error(e.Wrap(err, "failed to parse webhook body json as Subscription"))
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+
+			if err := r.updateBillingDetails(subscription.Customer.ID); err != nil {
+				log.Error(e.Wrap(err, "failed to update billing details"))
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		}
+
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
+func (r *Resolver) CreateInviteLink(workspaceID int, email *string, role string) *model.WorkspaceInviteLink {
 	// Unit is days.
 	EXPIRATION_DATE := 7
 	expirationDate := time.Now().UTC().AddDate(0, 0, EXPIRATION_DATE)
@@ -922,7 +1028,7 @@ func (r *Resolver) CreateInviteLink(workspaceID int, email *string) *model.Works
 	newInviteLink := &model.WorkspaceInviteLink{
 		WorkspaceID:    &workspaceID,
 		InviteeEmail:   email,
-		InviteeRole:    &model.AdminRole.ADMIN,
+		InviteeRole:    &role,
 		ExpirationDate: &expirationDate,
 		Secret:         &secret,
 	}

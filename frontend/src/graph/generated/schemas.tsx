@@ -111,6 +111,7 @@ export type EnhancedUserDetailsResult = {
     avatar?: Maybe<Scalars['String']>;
     bio?: Maybe<Scalars['String']>;
     socials?: Maybe<Array<Maybe<SocialLink>>>;
+    email?: Maybe<Scalars['String']>;
 };
 
 export type SocialLink = {
@@ -519,6 +520,7 @@ export type SessionAlert = {
     ThresholdWindow: Scalars['Int'];
     LastAdminToEditID?: Maybe<Scalars['ID']>;
     Type: Scalars['String'];
+    ExcludeRules: Array<Maybe<Scalars['String']>>;
 };
 
 export type WorkspaceInviteLink = {
@@ -579,6 +581,7 @@ export type Query = {
     rage_click_alerts: Array<Maybe<SessionAlert>>;
     projectSuggestion?: Maybe<Array<Maybe<Project>>>;
     environment_suggestion?: Maybe<Array<Maybe<Field>>>;
+    identifier_suggestion: Array<Maybe<Scalars['String']>>;
     app_version_suggestion: Array<Maybe<Scalars['String']>>;
     slack_channel_suggestion?: Maybe<Array<Maybe<SanitizedSlackChannel>>>;
     slack_members: Array<Maybe<SanitizedSlackChannel>>;
@@ -591,6 +594,7 @@ export type Query = {
     segments?: Maybe<Array<Maybe<Segment>>>;
     error_segments?: Maybe<Array<Maybe<ErrorSegment>>>;
     api_key_to_org_id?: Maybe<Scalars['ID']>;
+    customer_portal_url: Scalars['String'];
 };
 
 export type QuerySessionArgs = {
@@ -787,6 +791,10 @@ export type QueryEnvironment_SuggestionArgs = {
     project_id: Scalars['ID'];
 };
 
+export type QueryIdentifier_SuggestionArgs = {
+    project_id: Scalars['ID'];
+};
+
 export type QueryApp_Version_SuggestionArgs = {
     project_id: Scalars['ID'];
 };
@@ -831,6 +839,10 @@ export type QueryApi_Key_To_Org_IdArgs = {
     api_key: Scalars['String'];
 };
 
+export type QueryCustomer_Portal_UrlArgs = {
+    workspace_id: Scalars['ID'];
+};
+
 export type Mutation = {
     __typename?: 'Mutation';
     createProject?: Maybe<Project>;
@@ -844,6 +856,7 @@ export type Mutation = {
     sendAdminProjectInvite?: Maybe<Scalars['String']>;
     sendAdminWorkspaceInvite?: Maybe<Scalars['String']>;
     addAdminToWorkspace?: Maybe<Scalars['ID']>;
+    changeAdminRole: Scalars['Boolean'];
     deleteAdminFromProject?: Maybe<Scalars['ID']>;
     deleteAdminFromWorkspace?: Maybe<Scalars['ID']>;
     createSegment?: Maybe<Segment>;
@@ -861,6 +874,7 @@ export type Mutation = {
     deleteErrorComment?: Maybe<Scalars['Boolean']>;
     openSlackConversation?: Maybe<Scalars['Boolean']>;
     addSlackBotIntegrationToProject: Scalars['Boolean'];
+    createDefaultAlerts?: Maybe<Scalars['Boolean']>;
     createRageClickAlert?: Maybe<SessionAlert>;
     createErrorAlert?: Maybe<ErrorAlert>;
     updateErrorAlert?: Maybe<ErrorAlert>;
@@ -930,11 +944,18 @@ export type MutationSendAdminWorkspaceInviteArgs = {
     workspace_id: Scalars['ID'];
     email: Scalars['String'];
     base_url: Scalars['String'];
+    role: Scalars['String'];
 };
 
 export type MutationAddAdminToWorkspaceArgs = {
     workspace_id: Scalars['ID'];
     invite_id: Scalars['String'];
+};
+
+export type MutationChangeAdminRoleArgs = {
+    workspace_id: Scalars['ID'];
+    admin_id: Scalars['ID'];
+    new_role: Scalars['String'];
 };
 
 export type MutationDeleteAdminFromProjectArgs = {
@@ -1037,6 +1058,12 @@ export type MutationAddSlackBotIntegrationToProjectArgs = {
     project_id: Scalars['ID'];
     code: Scalars['String'];
     redirect_path: Scalars['String'];
+};
+
+export type MutationCreateDefaultAlertsArgs = {
+    project_id: Scalars['ID'];
+    alert_types: Array<Scalars['String']>;
+    slack_channels: Array<SanitizedSlackChannelInput>;
 };
 
 export type MutationCreateRageClickAlertArgs = {
@@ -1171,6 +1198,7 @@ export type MutationUpdateNewSessionAlertArgs = {
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;
     threshold_window: Scalars['Int'];
+    exclude_rules: Array<Maybe<Scalars['String']>>;
 };
 
 export type MutationCreateNewSessionAlertArgs = {
@@ -1180,6 +1208,7 @@ export type MutationCreateNewSessionAlertArgs = {
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;
     threshold_window: Scalars['Int'];
+    exclude_rules: Array<Maybe<Scalars['String']>>;
 };
 
 export type MutationUpdateSessionIsPublicArgs = {
