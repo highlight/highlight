@@ -436,7 +436,7 @@ export type SessionComment = {
     y_coordinate?: Maybe<Scalars['Float']>;
     type: SessionCommentType;
     metadata?: Maybe<Scalars['Any']>;
-    tags: Array<SessionCommentTag>;
+    tags: Array<Maybe<Scalars['String']>>;
 };
 
 export type SessionCommentTag = {
