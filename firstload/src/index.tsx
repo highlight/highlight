@@ -4,6 +4,7 @@ import {
     HighlightClassOptions,
     IntegrationOptions,
     NetworkRecordingOptions,
+    SessionShortcutOptions,
 } from '../../client/src/index';
 import packageJson from '../package.json';
 import { listenToChromeExtensionMessage } from './browserExtension/extensionListener';
@@ -89,6 +90,11 @@ export type HighlightOptions = {
      */
     enableCanvasRecording?: boolean;
     integrations?: IntegrationOptions;
+    /**
+     * Specifies the keyboard shortcut to open the current session in Highlight.
+     * @see {@link https://docs.highlight.run/session-shortcut} for more information.
+     */
+    sessionShortcut?: SessionShortcutOptions;
 };
 
 interface SessionFeedbackOptions {
@@ -207,6 +213,7 @@ export const H: HighlightPublicInterface = {
                     firstloadVersion: packageJson['version'],
                     environment: options?.environment || 'production',
                     appVersion: options?.version,
+                    sessionShortcut: options?.sessionShortcut,
                 });
                 if (!options?.manualStart) {
                     highlight_obj.initialize(projectID);

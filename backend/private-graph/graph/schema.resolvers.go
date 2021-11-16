@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
@@ -209,98 +210,7 @@ func (r *mutationResolver) CreateProject(ctx context.Context, name string, works
 	if err := r.DB.Create(project).Error; err != nil {
 		return nil, e.Wrap(err, "error creating project")
 	}
-	if err := r.DB.Create(
-		&model.ErrorAlert{
-			Alert: model.Alert{
-				ProjectID:            project.ID,
-				ExcludedEnvironments: nil,
-				CountThreshold:       1,
-				ChannelsToNotify:     nil,
-				Type:                 &model.AlertType.ERROR,
-				ThresholdWindow:      util.MakeIntPointer(30),
-			},
-		}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating error alert for new project")
-	}
-	if err := r.DB.Create(
-		&model.SessionAlert{
-			Alert: model.Alert{
-				ProjectID:            project.ID,
-				ExcludedEnvironments: nil,
-				CountThreshold:       1,
-				ChannelsToNotify:     nil,
-				Type:                 &model.AlertType.SESSION_FEEDBACK,
-				ThresholdWindow:      util.MakeIntPointer(30),
-			},
-		}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session feedback alert for new project")
-	}
-	if err := r.DB.Create(
-		&model.SessionAlert{
-			Alert: model.Alert{
-				ProjectID:            project.ID,
-				ExcludedEnvironments: nil,
-				CountThreshold:       1,
-				ChannelsToNotify:     nil,
-				Type:                 &model.AlertType.NEW_USER,
-				ThresholdWindow:      util.MakeIntPointer(0),
-			},
-		}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session new user alert for new project")
-	}
-	if err := r.DB.Create(
-		&model.SessionAlert{
-			Alert: model.Alert{
-				ProjectID:            project.ID,
-				ExcludedEnvironments: nil,
-				CountThreshold:       1,
-				ChannelsToNotify:     nil,
-				Type:                 &model.AlertType.TRACK_PROPERTIES,
-				ThresholdWindow:      util.MakeIntPointer(0),
-			},
-		}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session track properties alert for new project")
-	}
-	if err := r.DB.Create(
-		&model.SessionAlert{
-			Alert: model.Alert{
-				ProjectID:            project.ID,
-				ExcludedEnvironments: nil,
-				CountThreshold:       1,
-				ChannelsToNotify:     nil,
-				Type:                 &model.AlertType.USER_PROPERTIES,
-				ThresholdWindow:      util.MakeIntPointer(0),
-			},
-		}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session user properties alert for new project")
-	}
-	if err := r.DB.Create(
-		&model.SessionAlert{
-			Alert: model.Alert{
-				ProjectID:            project.ID,
-				ExcludedEnvironments: nil,
-				CountThreshold:       1,
-				ChannelsToNotify:     nil,
-				Type:                 &model.AlertType.RAGE_CLICK,
-				ThresholdWindow:      util.MakeIntPointer(30),
-			},
-		}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session rage click alert for new project")
-	}
 
-	if err := r.DB.Create(
-		&model.SessionAlert{
-			Alert: model.Alert{
-				ProjectID:            project.ID,
-				ExcludedEnvironments: nil,
-				CountThreshold:       1,
-				ChannelsToNotify:     nil,
-				Type:                 &model.AlertType.NEW_SESSION,
-				ThresholdWindow:      util.MakeIntPointer(0),
-			},
-		}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session user properties alert for new project")
-	}
 	return project, nil
 }
 
@@ -563,7 +473,12 @@ func (r *mutationResolver) DeleteAdminFromWorkspace(ctx context.Context, workspa
 		return nil, e.Wrap(err, "current admin is not in workspace")
 	}
 
-	return r.DeleteAdminAssociation(ctx, workspace, adminID)
+	deletedAdminId, err := r.DeleteAdminAssociation(ctx, workspace, adminID)
+	if err != nil {
+		return nil, e.Wrap(err, "error deleting admin association")
+	}
+
+	return deletedAdminId, nil
 }
 
 func (r *mutationResolver) CreateSegment(ctx context.Context, projectID int, name string, params modelInputs.SearchParamsInput) (*model.Segment, error) {
@@ -734,7 +649,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 
 	// If there are multiple subscriptions, it's ambiguous which one should be updated, so throw an error
 	if len(c.Subscriptions.Data) > 1 {
-		return nil, e.New("cannot update stripe subscription - customer has multiple subscriptions")
+		return nil, e.New("STRIPE_INTEGRATION_ERROR cannot update stripe subscription - customer has multiple subscriptions")
 	}
 
 	subscriptions := c.Subscriptions.Data
@@ -1251,6 +1166,57 @@ func (r *mutationResolver) AddSlackBotIntegrationToProject(ctx context.Context, 
 	}
 
 	return true, nil
+}
+
+func (r *mutationResolver) CreateDefaultAlerts(ctx context.Context, projectID int, alertTypes []string, slackChannels []*modelInputs.SanitizedSlackChannelInput) (*bool, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
+	workspace, _ := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in project")
+	}
+
+	channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
+	if err != nil {
+		return nil, err
+	}
+
+	var sessionAlerts []*model.SessionAlert
+	for _, alertType := range alertTypes {
+		name := strings.Title(strings.ToLower(strings.Replace(alertType, "_", " ", -1)))
+		alertType := alertType
+		newAlert := model.Alert{
+			ProjectID:         projectID,
+			CountThreshold:    1,
+			ThresholdWindow:   util.MakeIntPointer(30),
+			Type:              &alertType,
+			ChannelsToNotify:  channelsString,
+			Name:              &name,
+			LastAdminToEditID: admin.ID,
+		}
+		if alertType == model.AlertType.ERROR {
+			errorAlert := &model.ErrorAlert{Alert: newAlert}
+			if err := r.DB.Create(errorAlert).Error; err != nil {
+				return nil, e.Wrap(err, "error creating a new error alert")
+			}
+			if err := errorAlert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &errorAlert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+				graphql.AddError(ctx, e.Wrap(err, "error sending slack welcome message for default error alert"))
+			}
+		} else {
+			sessionAlerts = append(sessionAlerts, &model.SessionAlert{Alert: newAlert})
+		}
+	}
+
+	if err := r.DB.Create(sessionAlerts).Error; err != nil {
+		return nil, e.Wrap(err, "error creating new session alerts")
+	}
+	for _, alert := range sessionAlerts {
+		if err := alert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &alert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+			graphql.AddError(ctx, e.Wrap(err, "error sending slack welcome message for default session alert"))
+		}
+	}
+
+	return &model.T, nil
 }
 
 func (r *mutationResolver) CreateRageClickAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
@@ -2960,7 +2926,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 
 	g.Go(func() error {
 		defer util.Recover()
-		meter, err = pricing.GetWorkspaceQuota(r.DB, workspaceID)
+		meter, err = pricing.GetWorkspaceMeter(r.DB, workspaceID)
 		if err != nil {
 			return e.Wrap(err, "error from get quota")
 		}

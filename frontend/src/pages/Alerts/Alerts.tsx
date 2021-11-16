@@ -13,6 +13,7 @@ import SvgSparkles2Icon from '@icons/Sparkles2Icon';
 import SvgTargetIcon from '@icons/TargetIcon';
 import SvgUserPlusIcon from '@icons/UserPlusIcon';
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext';
+import AlertSetupModal from '@pages/Alerts/AlertSetupModal/AlertSetupModal';
 import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy';
 import { getAlertTypeColor } from '@pages/Alerts/utils/AlertsUtils';
 import { useParams } from '@util/react-router/useParams';
@@ -239,6 +240,7 @@ const AlertsPage = () => {
 
     return (
         <>
+            <AlertSetupModal />
             <div className={styles.subTitleContainer}>
                 <p>Manage your alerts for your project.</p>
                 {alertsPayload?.is_integrated_with_slack &&
@@ -269,8 +271,21 @@ const AlertsPage = () => {
                         <>
                             {!alertsPayload?.is_integrated_with_slack ? (
                                 <>
-                                    Highlight needs to be connected with Slack
-                                    in order to send you and your team messages.
+                                    <p>
+                                        Highlight needs to be connected with
+                                        Slack in order to send you and your team
+                                        messages.
+                                    </p>
+                                    <p>
+                                        Once connected, you'll be able to get
+                                        alerts for things like:
+                                    </p>
+                                    <ul>
+                                        <li>Errors thrown</li>
+                                        <li>New users</li>
+                                        <li>A new feature is used</li>
+                                        <li>User submitted feedback</li>
+                                    </ul>
                                     <PersonalNotificationButton
                                         text="Connect Highlight with Slack"
                                         className={styles.integrationButton}
@@ -291,6 +306,7 @@ const AlertsPage = () => {
                             )}
                         </>
                     }
+                    closable={false}
                     className={styles.integrationAlert}
                 />
             ) : (
@@ -301,7 +317,7 @@ const AlertsPage = () => {
                 />
             )}
 
-            {((alertsPayload && alertsPayload.is_integrated_with_slack) ||
+            {((alertsPayload && alertsPayload?.is_integrated_with_slack) ||
                 !alertsPayload) && (
                 <Card noPadding>
                     <Table

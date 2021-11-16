@@ -25,6 +25,7 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/payload"
+	"github.com/highlight-run/highlight/backend/pricing"
 	mgraph "github.com/highlight-run/highlight/backend/private-graph/graph"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/workerpool"
@@ -718,6 +719,20 @@ func (w *Worker) Start() {
 			})
 		}
 		wp.StopWait()
+	}
+}
+
+func (w *Worker) ReportStripeUsage() {
+	pricing.ReportAllUsage(w.Resolver.DB, w.Resolver.StripeClient)
+}
+
+func (w *Worker) GetHandler(handlerFlag string) func() {
+	switch handlerFlag {
+	case "report-stripe-usage":
+		return w.ReportStripeUsage
+	default:
+		log.Fatalf("unrecognized worker-handler [%s]", handlerFlag)
+		return nil
 	}
 }
 

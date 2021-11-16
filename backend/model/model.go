@@ -185,8 +185,11 @@ type Workspace struct {
 	StripeCustomerID      *string
 	StripePriceID         *string
 	PlanTier              string `gorm:"default:Free"`
+	BillingPeriodStart    *time.Time
+	BillingPeriodEnd      *time.Time
 	MonthlySessionLimit   *int
 	TrialEndDate          *time.Time `json:"trial_end_date"`
+	AllowMeterOverage     bool       `gorm:"default:false"`
 }
 
 type WorkspaceInviteLink struct {
@@ -210,6 +213,7 @@ type Project struct {
 	// Manual monthly session limit override
 	MonthlySessionLimit *int
 	WorkspaceID         int
+	FreeTier            bool `gorm:"default:false"`
 }
 
 type HasSecret interface {
