@@ -436,6 +436,18 @@ export type SessionComment = {
     y_coordinate?: Maybe<Scalars['Float']>;
     type: SessionCommentType;
     metadata?: Maybe<Scalars['Any']>;
+    tags: Array<SessionCommentTag>;
+};
+
+export type SessionCommentTag = {
+    __typename?: 'SessionCommentTag';
+    id: Scalars['ID'];
+    name: Scalars['String'];
+};
+
+export type SessionCommentTagInput = {
+    id?: Maybe<Scalars['ID']>;
+    name: Scalars['String'];
 };
 
 export type ErrorComment = {
@@ -545,6 +557,7 @@ export type Query = {
     errors?: Maybe<Array<Maybe<ErrorObject>>>;
     resources?: Maybe<Array<Maybe<Scalars['Any']>>>;
     session_comments: Array<Maybe<SessionComment>>;
+    session_comment_tags_for_project: Array<SessionCommentTag>;
     session_comments_for_admin: Array<Maybe<SessionComment>>;
     session_comments_for_project: Array<Maybe<SessionComment>>;
     error_comments: Array<Maybe<ErrorComment>>;
@@ -642,6 +655,10 @@ export type QueryResourcesArgs = {
 
 export type QuerySession_CommentsArgs = {
     session_secure_id: Scalars['String'];
+};
+
+export type QuerySession_Comment_Tags_For_ProjectArgs = {
+    project_id: Scalars['ID'];
 };
 
 export type QuerySession_Comments_For_ProjectArgs = {
@@ -1027,6 +1044,7 @@ export type MutationCreateSessionCommentArgs = {
     time: Scalars['Float'];
     author_name: Scalars['String'];
     session_image?: Maybe<Scalars['String']>;
+    tags: Array<Maybe<SessionCommentTagInput>>;
 };
 
 export type MutationDeleteSessionCommentArgs = {

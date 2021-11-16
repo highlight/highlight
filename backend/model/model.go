@@ -123,6 +123,7 @@ var Models = []interface{}{
 	&EmailSignup{},
 	&ResourcesObject{},
 	&SessionComment{},
+	&SessionCommentTag{},
 	&ErrorComment{},
 	&ErrorAlert{},
 	&SessionAlert{},
@@ -740,6 +741,13 @@ type ErrorField struct {
 	ErrorGroups    []ErrorGroup `gorm:"many2many:error_group_fields;"`
 }
 
+type SessionCommentTag struct {
+	Model
+	SessionComments []SessionComment `json:"session_comments" gorm:"many2many:session_tags;"`
+	ProjectID       int              `json:"project_id"`
+	Name            string
+}
+
 type SessionComment struct {
 	Model
 	Admins          []Admin `gorm:"many2many:session_comment_admins;"`
@@ -752,8 +760,9 @@ type SessionComment struct {
 	Text            string
 	XCoordinate     float64
 	YCoordinate     float64
-	Type            string `json:"type" gorm:"default:ADMIN"`
-	Metadata        JSONB  `json:"metadata" gorm:"type:jsonb"`
+	Type            string               `json:"type" gorm:"default:ADMIN"`
+	Metadata        JSONB                `json:"metadata" gorm:"type:jsonb"`
+	Tags            []*SessionCommentTag `json:"tags" gorm:"many2many:session_tags;"`
 }
 
 type ErrorComment struct {

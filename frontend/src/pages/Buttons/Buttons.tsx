@@ -3,7 +3,10 @@ import { H } from 'highlight.run';
 import React, { useState } from 'react';
 
 import commonStyles from '../../Common.module.scss';
-import { useSendEmailSignupMutation } from '../../graph/generated/hooks';
+import {
+    useGetCommentTagsForProjectQuery,
+    useSendEmailSignupMutation,
+} from '../../graph/generated/hooks';
 import styles from './Buttons.module.scss';
 import { CustomError, DefaultError } from './ButtonsHelper';
 export const Buttons = () => {
@@ -13,6 +16,9 @@ export const Buttons = () => {
         throw new Error('got an error');
     }
     const [showBadComponent, setShowBadComponent] = useState(false);
+    const {} = useGetCommentTagsForProjectQuery({
+        variables: { project_id: '1' },
+    });
 
     return (
         <div className={styles.buttonBody}>

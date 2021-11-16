@@ -136,6 +136,11 @@ type SearchParamsInput struct {
 	ShowLiveSessions        *bool                `json:"show_live_sessions"`
 }
 
+type SessionCommentTagInput struct {
+	ID   *int   `json:"id"`
+	Name string `json:"name"`
+}
+
 type SocialLink struct {
 	Type SocialType `json:"type"`
 	Link *string    `json:"link"`

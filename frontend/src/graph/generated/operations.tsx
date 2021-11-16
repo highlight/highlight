@@ -274,6 +274,9 @@ export type CreateSessionCommentMutationVariables = Types.Exact<{
     time: Types.Scalars['Float'];
     author_name: Types.Scalars['String'];
     session_image?: Types.Maybe<Types.Scalars['String']>;
+    tags:
+        | Array<Types.Maybe<Types.SessionCommentTagInput>>
+        | Types.Maybe<Types.SessionCommentTagInput>;
 }>;
 
 export type CreateSessionCommentMutation = { __typename?: 'Mutation' } & {
@@ -1072,10 +1075,29 @@ export type GetSessionPayloadQuery = {
                                 'id' | 'name' | 'email' | 'photo_url'
                             >
                         >;
+                        tags: Array<
+                            { __typename?: 'SessionCommentTag' } & Pick<
+                                Types.SessionCommentTag,
+                                'id' | 'name'
+                            >
+                        >;
                     }
             >
         >;
     };
+
+export type GetCommentTagsForProjectQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+}>;
+
+export type GetCommentTagsForProjectQuery = { __typename?: 'Query' } & {
+    session_comment_tags_for_project: Array<
+        { __typename?: 'SessionCommentTag' } & Pick<
+            Types.SessionCommentTag,
+            'id' | 'name'
+        >
+    >;
+};
 
 export type GetSessionQueryVariables = Types.Exact<{
     secure_id: Types.Scalars['String'];
@@ -1195,6 +1217,12 @@ export type GetSessionCommentsQuery = { __typename?: 'Query' } & {
                         { __typename?: 'SanitizedAdmin' } & Pick<
                             Types.SanitizedAdmin,
                             'id' | 'name' | 'email' | 'photo_url'
+                        >
+                    >;
+                    tags: Array<
+                        { __typename?: 'SessionCommentTag' } & Pick<
+                            Types.SessionCommentTag,
+                            'id' | 'name'
                         >
                     >;
                 }
@@ -2524,6 +2552,7 @@ export type GetCustomerPortalUrlQuery = { __typename?: 'Query' } & Pick<
 export const namedOperations = {
     Query: {
         GetSessionPayload: 'GetSessionPayload' as const,
+        GetCommentTagsForProject: 'GetCommentTagsForProject' as const,
         GetSession: 'GetSession' as const,
         GetProjectAdmins: 'GetProjectAdmins' as const,
         GetWorkspaceAdmins: 'GetWorkspaceAdmins' as const,
