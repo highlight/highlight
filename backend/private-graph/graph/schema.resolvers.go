@@ -2309,7 +2309,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 			details.Socials = append(details.Socials, &modelInputs.SocialLink{Link: &ghLink, Type: modelInputs.SocialTypeGithub})
 		}
 		if liHandle := p.LinkedIn.Handle; liHandle != "" {
-			fbLink := fmt.Sprintf("https://www.linkedin.com/in/%v", liHandle)
+			fbLink := fmt.Sprintf("https://www.linkedin.com/%v", liHandle)
 			details.Socials = append(details.Socials, &modelInputs.SocialLink{Link: &fbLink, Type: modelInputs.SocialTypeLinkedIn})
 		}
 		if personalSiteLink, companySiteLink := p.Site, co.Domain; personalSiteLink != "" || companySiteLink != "" {
@@ -3205,12 +3205,12 @@ func (r *queryResolver) IdentifierSuggestion(ctx context.Context, projectID int)
 	}
 	identifiers := []*string{}
 	if err := r.DB.Raw(`
-		SELECT 
-			DISTINCT identifier 
-		FROM sessions 
-		WHERE project_id=? 
-			AND identifier <> '' 
-			AND identifier IS NOT NULL 
+		SELECT
+			DISTINCT identifier
+		FROM sessions
+		WHERE project_id=?
+			AND identifier <> ''
+			AND identifier IS NOT NULL
 		ORDER BY identifier ASC
 		`, projectID).Scan(&identifiers).Error; err != nil {
 		return nil, e.Wrap(err, "error querying identifier suggestion")

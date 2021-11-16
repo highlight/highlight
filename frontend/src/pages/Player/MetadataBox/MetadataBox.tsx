@@ -201,7 +201,7 @@ export const UserDetailsBox = () => {
                 ) : (
                     <>
                         {data?.enhanced_user_details?.name && (
-                            <h4 className={styles.enhancedName}>
+                            <h4 id={styles.enhancedName}>
                                 {data?.enhanced_user_details?.name}
                             </h4>
                         )}
