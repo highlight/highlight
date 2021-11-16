@@ -683,22 +683,22 @@ func (w *Worker) Start() {
 				defer util.Recover()
 				if err := tx.
 					Raw(`
-				WITH t AS (
-					UPDATE sessions
-					SET lock=NOW()
-					WHERE id in (
-						SELECT id
-						FROM sessions
-						WHERE (processed = ?)
-							AND (COALESCE(payload_updated_at, to_timestamp(0)) < NOW() - (? * INTERVAL '1 SECOND'))
-							AND (COALESCE(lock, to_timestamp(0)) < NOW() - (? * INTERVAL '1 MINUTE'))
-						LIMIT ?
-						FOR UPDATE SKIP LOCKED
-					)
-					RETURNING *
-				)
-				SELECT * FROM t;
-			`, false, payloadLookbackPeriod, lockPeriod, processSessionLimit). // why do we get payload_updated_at IS NULL?
+						WITH t AS (
+							UPDATE sessions
+							SET lock=NOW()
+							WHERE id in (
+								SELECT id
+								FROM sessions
+								WHERE (processed = ?)
+									AND (COALESCE(payload_updated_at, to_timestamp(0)) < NOW() - (? * INTERVAL '1 SECOND'))
+									AND (COALESCE(lock, to_timestamp(0)) < NOW() - (? * INTERVAL '1 MINUTE'))
+								LIMIT ?
+								FOR UPDATE SKIP LOCKED
+							)
+							RETURNING *
+						)
+						SELECT * FROM t;
+						`, false, payloadLookbackPeriod, lockPeriod, processSessionLimit). // why do we get payload_updated_at IS NULL?
 					Find(&sessions).Error; err != nil {
 					errs <- err
 					return
