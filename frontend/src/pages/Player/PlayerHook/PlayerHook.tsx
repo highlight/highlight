@@ -9,6 +9,7 @@ import { BooleanParam, useQueryParam } from 'use-query-params';
 
 import { useAuthContext } from '../../../authentication/AuthContext';
 import {
+    OnEventsAddedDocument,
     useGetSessionPayloadLazyQuery,
     useGetSessionQuery,
     useMarkSessionAsViewedMutation,
@@ -114,6 +115,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             data: eventsData,
             startPolling: startPollingEvents,
             stopPolling: stopPollingEvents,
+            subscribeToMore: subscribeEvents,
         },
     ] = useGetSessionPayloadLazyQuery({
         fetchPolicy: 'no-cache',
@@ -226,6 +228,33 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     useEffect(() => {
         if (isLiveMode && state > ReplayerState.Loading && !isPollingEvents) {
+            // Problems:
+            // 1. Shape of subscription doesn't match shape of query. Execute subscription independently?
+            // 2. Toggling out of live mode won't have the rest of the data.
+
+            // Options:
+            // 1. Manually append events data via subscription
+            // 2. Append all of the data via subscription
+            // 3. Refetch all of the data when toggling out
+            // 4. Split events query out of the payload query
+            subscribeEvents!({
+                document: OnEventsAddedDocument,
+                variables: {
+                    session_secure_id,
+                    initial_events_count: events.length,
+                },
+                updateQuery: (prev, { subscriptionData }) => {
+                    console.log('Rich: ', subscriptionData.data);
+                    if (!subscriptionData.data) return prev;
+                    // const newFeedItem = subscriptionData.data.eventsAdded;
+                    // return Object.assign({}, prev, {
+                    //     post: {
+                    //         comments: [newFeedItem, ...prev.post.comments],
+                    //     },
+                    // });
+                    return prev;
+                },
+            });
             startPollingEvents!(1000);
             setIsPollingEvents(true);
             if (state === ReplayerState.Paused) {
