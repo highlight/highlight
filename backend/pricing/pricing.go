@@ -92,7 +92,8 @@ func GetWorkspaceQuotaOverflow(ctx context.Context, DB *gorm.DB, workspaceID int
 			AND created_at < (
 				SELECT COALESCE(billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
 				FROM workspaces
-				WHERE id=?)`, workspaceID, workspaceID, workspaceID).
+				WHERE id=?)
+			AND excluded <> ?`, workspaceID, workspaceID, workspaceID, true).
 		Count(&queriedSessionsOverQuota).Error; err != nil {
 		return 0, e.Wrap(err, "error querying sessions over quota count")
 	}

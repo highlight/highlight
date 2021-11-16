@@ -1006,6 +1006,10 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	querySessionSpan.SetTag("project_id", sessionObj.ProjectID)
 	querySessionSpan.Finish()
 
+	if sessionObj.PayloadUpdatedAt != nil && time.Since(*sessionObj.PayloadUpdatedAt) > 10*time.Minute {
+		return
+	}
+
 	var g errgroup.Group
 
 	projectID := sessionObj.ProjectID
@@ -1184,7 +1188,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	}
 
 	now := time.Now()
-	if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{PayloadUpdatedAt: &now}).Error; err != nil {
+	if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{PayloadUpdatedAt: &now, Excluded: &model.F, Processed: &model.F}).Error; err != nil {
 		log.Error(e.Wrap(err, "error updating session payload time"))
 		return
 	}

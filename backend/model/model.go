@@ -488,6 +488,9 @@ type Session struct {
 	MigrationState        *string `json:"migration_state"`
 	VerboseID             string  `json:"verbose_id"`
 
+	// Excluded will be true when we would typically have deleted the session
+	Excluded *bool `gorm:"default:false"`
+
 	// Lock is the timestamp at which a session was locked
 	// - when selecting sessions, ignore Locks that are > 10 minutes old
 	//   ex. SELECT * FROM sessions WHERE (lock IS NULL OR lock < NOW() - 10 * (INTERVAL '1 MINUTE'))
@@ -599,8 +602,11 @@ type DailySessionCount struct {
 	ProjectID      int `json:"project_id"`
 }
 
-const DAILY_ERROR_COUNTS_TBL = "daily_error_counts"
-const DAILY_ERROR_COUNTS_UNIQ = "date_project_id_error_type_uniq"
+const (
+	SESSIONS_TBL            = "sessions"
+	DAILY_ERROR_COUNTS_TBL  = "daily_error_counts"
+	DAILY_ERROR_COUNTS_UNIQ = "date_project_id_error_type_uniq"
+)
 
 type DailyErrorCount struct {
 	Model

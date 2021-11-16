@@ -113,6 +113,7 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 			LIMIT 20
 		) AS e
 		ON s.id = e.session_id
+		WHERE s.excluded <> true
 		ORDER BY s.updated_at DESC
 		LIMIT 20;
 	`, obj.ID).Scan(&metadataLogs)
@@ -2075,7 +2076,8 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 				session_secure_id
 		) AS rageClicks
 		LEFT JOIN sessions s ON rageClicks.session_secure_id = s.secure_id
-		WHERE session_secure_id IS NOT NULL
+		WHERE s.excluded <> true
+			AND session_secure_id IS NOT NULL
 		ORDER BY total_clicks DESC
 		LIMIT 100`,
 		projectID, lookBackPeriod).Scan(&rageClicks).Error; err != nil {
@@ -2123,6 +2125,9 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 	}
 
 	sessionFilters := []string{}
+
+	sessionFilters = append(sessionFilters, "(sessions.excluded <> true)")
+
 	if params.Browser != nil {
 		sessionFilters = append(sessionFilters, fmt.Sprintf("(sessions.browser_name = '%s')", *params.Browser))
 	}
@@ -2668,70 +2673,63 @@ func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPer
 	topUsersSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("db.topUsers"), tracer.Tag("project_id", projectID))
 	if err := r.DB.Raw(`
-	SELECT
-    *
-FROM
-    (
+	SELECT *
+	FROM (
         SELECT
             DISTINCT ON(topUsers.identifier) topUsers.identifier,
             topUsers.id,
             total_active_time,
             active_time_percentage,
             s.user_properties
-        FROM
-            (
-                SELECT
-                    identifier,
-                    (
-                        SELECT
-                            id
-                        FROM
-                            fields
-                        WHERE
-                            project_id = ?
-                            AND type = 'user'
-                            AND name = 'identifier'
-                            AND value = identifier
-                        LIMIT
-                            1
-                    ) AS id,
-                    SUM(active_length) as total_active_time,
-                    SUM(active_length) / (
-                        SELECT
-                            SUM(active_length)
-                        FROM
-                            sessions
-                        WHERE
-                            active_length IS NOT NULL
-                            AND project_id = ?
-                            AND identifier <> ''
-                            AND created_at >= NOW() - (? * INTERVAL '1 DAY')
-                            AND processed = true
-                    ) AS active_time_percentage
-                FROM
-                    (
-                        SELECT
-                            identifier,
-                            active_length,
-                            user_properties
-                        FROM
-                            sessions
-                        WHERE
-                            active_length IS NOT NULL
-                            AND project_id = ?
-                            AND identifier <> ''
-                            AND created_at >= NOW() - (? * INTERVAL '1 DAY')
-                            AND processed = true
-                    ) q1
-                GROUP BY
-                    identifier
-                LIMIT
-                    50
-            ) as topUsers
-            INNER JOIN sessions s on topUsers.identifier = s.identifier
+        FROM (
+		SELECT
+			identifier, (
+				SELECT
+					id
+				FROM
+					fields
+				WHERE
+					project_id = ?
+					AND type = 'user'
+					AND name = 'identifier'
+					AND value = identifier
+				LIMIT 1
+			) AS id,
+			SUM(active_length) as total_active_time,
+			SUM(active_length) / (
+				SELECT
+					SUM(active_length)
+				FROM
+					sessions
+				WHERE
+					active_length IS NOT NULL
+					AND project_id = ?
+					AND identifier <> ''
+					AND created_at >= NOW() - (? * INTERVAL '1 DAY')
+					AND processed = true
+					AND excluded <> true
+			) AS active_time_percentage
+		FROM (
+			SELECT
+				identifier,
+				active_length,
+				user_properties
+			FROM
+				sessions
+			WHERE
+				active_length IS NOT NULL
+				AND project_id = ?
+				AND identifier <> ''
+				AND created_at >= NOW() - (? * INTERVAL '1 DAY')
+				AND processed = true
+				AND excluded <> true
+		) q1
+		GROUP BY identifier
+		LIMIT 50
+	) as topUsers
+	INNER JOIN sessions s on topUsers.identifier = s.identifier
     ) as q2
-ORDER BY
-    total_active_time DESC`,
+	ORDER BY total_active_time DESC`,
 		projectID, projectID, lookBackPeriod, projectID, lookBackPeriod).Scan(&topUsersPayload).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving top users")
 	}
@@ -2745,8 +2743,16 @@ func (r *queryResolver) AverageSessionLength(ctx context.Context, projectID int,
 		return nil, e.Wrap(err, "admin not found in project")
 	}
 	var length float64
-	query := fmt.Sprintf("SELECT COALESCE(avg(active_length), 0) FROM sessions WHERE project_id=%d AND processed=true AND active_length IS NOT NULL AND created_at >= NOW() - INTERVAL '%d DAY';", projectID, lookBackPeriod)
-	if err := r.DB.Raw(query).Scan(&length).Error; err != nil {
+	if err := r.DB.Raw(`
+		SELECT 
+			COALESCE(avg(active_length), 0) 
+		FROM sessions 
+		WHERE project_id=? 
+			AND processed=true 
+			AND excluded <> true 
+			AND active_length IS NOT NULL 
+			AND created_at >= NOW() - (? * INTERVAL '1 DAY')
+		`, projectID, lookBackPeriod).Scan(&length).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving average length for sessions")
 	}
 
@@ -2761,7 +2767,17 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int,
 	var count int64
 	span, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("db.userFingerprintCount"), tracer.Tag("project_id", projectID))
-	if err := r.DB.Raw(fmt.Sprintf("SELECT count(DISTINCT fingerprint) from sessions WHERE identifier='' AND fingerprint IS NOT NULL AND created_at >= NOW() - INTERVAL '%d DAY' AND project_id=%d AND length >= 1000;", lookBackPeriod, projectID)).Scan(&count).Error; err != nil {
+	if err := r.DB.Raw(`
+		SELECT 
+			COUNT(DISTINCT fingerprint) 
+		FROM sessions 
+		WHERE identifier='' 
+			AND excluded <> true 
+			AND fingerprint IS NOT NULL 
+			AND created_at >= NOW() - (? * INTERVAL '1 DAY') 
+			AND project_id=? 
+			AND length >= 1000
+		`, lookBackPeriod, projectID).Scan(&count).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving user fingerprint count")
 	}
 	span.Finish()
@@ -2786,6 +2802,7 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 	whereClause := ` `
 
 	whereClause += fmt.Sprintf("WHERE (project_id = %d) ", projectID)
+	whereClause += "AND (excluded <> true) "
 	if lifecycle == modelInputs.SessionLifecycleCompleted {
 		whereClause += fmt.Sprintf("AND (length > %d) ", 1000)
 	}
