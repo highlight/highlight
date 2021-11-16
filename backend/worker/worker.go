@@ -675,7 +675,8 @@ func (w *Worker) Start() {
 		sessions := []*model.Session{}
 		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName("worker.sessionsQuery"))
 		if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
-			transactionCtx, _ := context.WithTimeout(ctx, 500*time.Millisecond)
+			transactionCtx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
+			defer cancel()
 
 			errs := make(chan error, 1)
 			go func() {
