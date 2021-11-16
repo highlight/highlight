@@ -1,6 +1,22 @@
 .select {
     border-radius: var(--border-radius);
     color: var(--text-primary) !important;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+        :global(.ant-select-selector) {
+            border-color: var(--color-purple) !important;
+        }
+    }
+
+    &:global(.ant-select-open) {
+        box-shadow: 0 0 0 4px rgba(var(--color-purple-rgb), 0.2) !important;
+
+        :global(.ant-select-selector) {
+            border-color: var(--color-purple) !important;
+            box-shadow: none !important;
+        }
+    }
 
     :global(.ant-select-selector) {
         background: var(--color-primary-background) !important;
@@ -9,6 +25,7 @@
         font-family: var(--body-font-family);
         height: fit-content !important;
         padding: var(--size-xSmall) var(--size-medium) !important;
+        transition: all 0.2s ease-in-out;
     }
 
     :global(.ant-select-selection-placeholder) {
