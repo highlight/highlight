@@ -344,14 +344,6 @@ code:not([class]) {
     padding: 1px 3px;
 }
 
-.ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input)
-    .ant-select-selector {
-    border-color: rgba(47, 128, 237, 0.5) !important;
-    border-right-width: 1px !important;
-    box-shadow: 0 0 0 2px rgba(47, 128, 237, 0.5) !important;
-    outline: 0;
-}
-
 .ant-dropdown-menu {
     padding: 0 !important;
     border: 1px solid var(--color-gray-300) !important;
