@@ -4,12 +4,52 @@
     justify-content: flex-end;
 }
 
+.footer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-xSmall);
+    justify-content: space-between;
+    row-gap: var(--size-medium);
+}
+
+.label {
+    display: flex;
+    flex-direction: column;
+    row-gap: var(--size-xxSmall);
+}
+
 .actionButtonsContainer {
     margin-bottom: 0;
 }
 
 .commentInputContainer {
-    padding: 0 var(--size-xSmall);
+    background: var(--color-gray-200);
+    border: 1px solid transparent;
+    border-radius: var(--border-radius);
+    box-shadow: none !important;
+    height: 100px;
+    padding-bottom: var(--size-xSmall) !important;
+    padding-left: var(--size-medium) !important;
+    padding-right: var(--size-medium) !important;
+    padding-top: var(--size-xSmall) !important;
+    transition: all 0.2s ease-in-out;
+
+    div {
+        height: 100%;
+    }
+
+    textarea {
+        color: var(--text-primary) !important;
+        height: 100%;
+    }
+
+    &:hover,
+    &:active,
+    &:focus-within {
+        background: var(--color-primary-background);
+        border-color: var(--color-purple);
+        box-shadow: 0 0 0 4px rgba(var(--color-purple-rgb), 0.2) !important;
+    }
 }
 
 .intercomLink {

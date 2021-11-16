@@ -22,6 +22,7 @@ type Props = Pick<
 > & {
     title?: string;
     minimal?: boolean;
+    minimalPaddingSize?: string;
 };
 
 const Modal: React.FC<Props> = ({
@@ -29,14 +30,15 @@ const Modal: React.FC<Props> = ({
     className,
     title,
     minimal,
+    minimalPaddingSize = 'var(--size-xSmall)',
     ...props
 }) => {
     const bodyStyle: React.CSSProperties = minimal
         ? {
-              paddingTop: `var(--size-xSmall)`,
-              paddingBottom: `var(--size-xSmall)`,
-              paddingLeft: `var(--size-xSmall)`,
-              paddingRight: `var(--size-xSmall)`,
+              paddingTop: minimalPaddingSize,
+              paddingBottom: minimalPaddingSize,
+              paddingLeft: minimalPaddingSize,
+              paddingRight: minimalPaddingSize,
           }
         : {};
 

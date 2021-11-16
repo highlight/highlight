@@ -1049,6 +1049,7 @@ export const CreateSessionCommentDocument = gql`
         $time: Float!
         $author_name: String!
         $session_image: String
+        $tags: [SessionCommentTagInput]!
     ) {
         createSessionComment(
             project_id: $project_id
@@ -1064,6 +1065,7 @@ export const CreateSessionCommentDocument = gql`
             time: $time
             author_name: $author_name
             session_image: $session_image
+            tags: $tags
         ) {
             id
             timestamp
@@ -1111,6 +1113,7 @@ export type CreateSessionCommentMutationFn = Apollo.MutationFunction<
  *      time: // value for 'time'
  *      author_name: // value for 'author_name'
  *      session_image: // value for 'session_image'
+ *      tags: // value for 'tags'
  *   },
  * });
  */
@@ -2898,6 +2901,10 @@ export const GetSessionPayloadDocument = gql`
             y_coordinate
             type
             metadata
+            tags {
+                id
+                name
+            }
         }
     }
 `;
@@ -2950,6 +2957,63 @@ export type GetSessionPayloadLazyQueryHookResult = ReturnType<
 export type GetSessionPayloadQueryResult = Apollo.QueryResult<
     Types.GetSessionPayloadQuery,
     Types.GetSessionPayloadQueryVariables
+>;
+export const GetCommentTagsForProjectDocument = gql`
+    query GetCommentTagsForProject($project_id: ID!) {
+        session_comment_tags_for_project(project_id: $project_id) {
+            id
+            name
+        }
+    }
+`;
+
+/**
+ * __useGetCommentTagsForProjectQuery__
+ *
+ * To run a query within a React component, call `useGetCommentTagsForProjectQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCommentTagsForProjectQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCommentTagsForProjectQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetCommentTagsForProjectQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetCommentTagsForProjectQuery,
+        Types.GetCommentTagsForProjectQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetCommentTagsForProjectQuery,
+        Types.GetCommentTagsForProjectQueryVariables
+    >(GetCommentTagsForProjectDocument, baseOptions);
+}
+export function useGetCommentTagsForProjectLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetCommentTagsForProjectQuery,
+        Types.GetCommentTagsForProjectQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetCommentTagsForProjectQuery,
+        Types.GetCommentTagsForProjectQueryVariables
+    >(GetCommentTagsForProjectDocument, baseOptions);
+}
+export type GetCommentTagsForProjectQueryHookResult = ReturnType<
+    typeof useGetCommentTagsForProjectQuery
+>;
+export type GetCommentTagsForProjectLazyQueryHookResult = ReturnType<
+    typeof useGetCommentTagsForProjectLazyQuery
+>;
+export type GetCommentTagsForProjectQueryResult = Apollo.QueryResult<
+    Types.GetCommentTagsForProjectQuery,
+    Types.GetCommentTagsForProjectQueryVariables
 >;
 export const GetSessionDocument = gql`
     query GetSession($secure_id: String!) {
@@ -3191,6 +3255,10 @@ export const GetSessionCommentsDocument = gql`
             y_coordinate
             type
             metadata
+            tags {
+                id
+                name
+            }
         }
     }
 `;

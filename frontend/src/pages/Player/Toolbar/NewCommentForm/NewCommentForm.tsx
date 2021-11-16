@@ -1,7 +1,15 @@
-import { namedOperations } from '@graph/operations';
+import HighlightGate from '@components/HighlightGate/HighlightGate';
+import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
+import Select from '@components/Select/Select';
+import {
+    GetCommentTagsForProjectQuery,
+    namedOperations,
+} from '@graph/operations';
+import CommentTextBody from '@pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody';
 import { getCommentMentionSuggestions } from '@util/comment/util';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
+import { MillisToMinutesAndSeconds } from '@util/time';
 import { Form, message } from 'antd';
 import { H } from 'highlight.run';
 import html2canvas from 'html2canvas';
@@ -17,17 +25,16 @@ import {
 import {
     useCreateSessionCommentMutation,
     useGetCommentMentionSuggestionsQuery,
+    useGetCommentTagsForProjectQuery,
     useGetProjectAdminsQuery,
 } from '../../../../graph/generated/hooks';
 import {
     SanitizedAdminInput,
     SanitizedSlackChannelInput,
 } from '../../../../graph/generated/schemas';
-import { MillisToMinutesAndSeconds } from '../../../../util/time';
 import { Coordinates2D } from '../../PlayerCommentCanvas/PlayerCommentCanvas';
 import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration';
 import { useReplayerContext } from '../../ReplayerContext';
-import CommentTextBody from './CommentTextBody/CommentTextBody';
 import styles from './NewCommentForm.module.scss';
 
 interface Props {
@@ -50,6 +57,10 @@ export const NewCommentForm = ({
         session_secure_id: string;
         project_id: string;
     }>();
+    const { data: commentTagsData } = useGetCommentTagsForProjectQuery({
+        variables: { project_id },
+        fetchPolicy: 'network-only',
+    });
     const [commentText, setCommentText] = useState('');
     /**
      * commentTextForEmail is the comment text without the formatting.
@@ -58,6 +69,7 @@ export const NewCommentForm = ({
     const [commentTextForEmail, setCommentTextForEmail] = useState('');
     const [isCreatingComment, setIsCreatingComment] = useState(false);
     const [form] = Form.useForm<{ commentText: string }>();
+    const [tags, setTags] = useState([]);
     const {
         selectedTimelineAnnotationTypes,
         setSelectedTimelineAnnotationTypes,
@@ -120,6 +132,7 @@ export const NewCommentForm = ({
                     time: time / 1000,
                     author_name: admin?.name || admin?.email || 'Someone',
                     session_image,
+                    tags: getTags(tags, commentTagsData),
                 },
                 refetchQueries: [namedOperations.Query.GetSessionComments],
             });
@@ -248,18 +261,26 @@ export const NewCommentForm = ({
             onKeyDown={onFormChangeHandler}
         >
             <Form.Item name="commentText" wrapperCol={{ span: 24 }}>
-                <div className={styles.commentInputContainer}>
-                    <CommentTextBody
-                        commentText={commentText}
-                        onChangeHandler={onChangeHandler}
-                        placeholder={`Add a comment at ${MillisToMinutesAndSeconds(
-                            currentTime
-                        )}`}
-                        suggestions={adminSuggestions}
-                        onDisplayTransformHandler={onDisplayTransform}
-                        suggestionsPortalHost={parentRef?.current as Element}
-                    />
-                </div>
+                <label className={styles.label}>
+                    <span>
+                        Comment Text
+                        <InfoTooltip title="You can mention a person or Slack channel by typing @" />
+                    </span>
+                    <div className={styles.commentInputContainer}>
+                        <CommentTextBody
+                            commentText={commentText}
+                            onChangeHandler={onChangeHandler}
+                            placeholder={`Add a comment at ${MillisToMinutesAndSeconds(
+                                currentTime
+                            )}`}
+                            suggestions={adminSuggestions}
+                            onDisplayTransformHandler={onDisplayTransform}
+                            suggestionsPortalHost={
+                                parentRef?.current as Element
+                            }
+                        />
+                    </div>
+                </label>
             </Form.Item>
             <Form.Item
                 shouldUpdate
@@ -268,29 +289,94 @@ export const NewCommentForm = ({
             >
                 {/* This Form.Item by default are optimized to not rerender the children. For this child however, we want to rerender on every form change to change the disabled state of the button. See https://ant.design/components/form/#shouldUpdate */}
                 {() => (
-                    <div className={styles.actionButtons}>
-                        <Button
-                            trackingId="CancelCreatingSessionComment"
-                            htmlType="button"
-                            onClick={() => {
-                                onCloseHandler();
-                                form.resetFields();
-                            }}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            trackingId="CreateNewSessionComment"
-                            type="primary"
-                            htmlType="submit"
-                            disabled={commentText.length === 0}
-                            loading={isCreatingComment}
-                        >
-                            Post
-                        </Button>
+                    <div className={styles.footer}>
+                        <HighlightGate>
+                            <div>
+                                <label className={styles.label}>
+                                    <span>
+                                        Tags
+                                        <InfoTooltip title="Tags allow you to add custom metadata to your comments and to the session the comment was made on." />
+                                    </span>
+                                    <Select
+                                        defaultActiveFirstOption
+                                        placeholder="signups, userflow, bug, error"
+                                        mode="tags"
+                                        options={(
+                                            commentTagsData?.session_comment_tags_for_project ||
+                                            []
+                                        ).map((tag) => ({
+                                            displayValue: tag.name,
+                                            id: tag.id,
+                                            value: tag.name,
+                                        }))}
+                                        onChange={setTags}
+                                        notFoundContent={
+                                            <p>
+                                                Doesn't look like your project
+                                                has any tags yet. You can create
+                                                tags by typing the tag name then
+                                                pressing enter.
+                                            </p>
+                                        }
+                                    />
+                                </label>
+                            </div>
+                        </HighlightGate>
+                        <div className={styles.actionButtons}>
+                            <Button
+                                trackingId="CancelCreatingSessionComment"
+                                htmlType="button"
+                                onClick={() => {
+                                    onCloseHandler();
+                                    form.resetFields();
+                                }}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                trackingId="CreateNewSessionComment"
+                                type="primary"
+                                htmlType="submit"
+                                disabled={commentText.length === 0}
+                                loading={isCreatingComment}
+                            >
+                                Post
+                            </Button>
+                        </div>
                     </div>
                 )}
             </Form.Item>
         </Form>
     );
+};
+
+const getTags = (
+    tags: string[],
+    tagsData: GetCommentTagsForProjectQuery | undefined
+) => {
+    if (!tagsData || tags.length === 0) {
+        return [];
+    }
+
+    const response: { id?: string; name: string }[] = [];
+
+    tags.forEach((tag) => {
+        const matchingTag = tagsData.session_comment_tags_for_project.find(
+            (t) => t.name === tag
+        );
+
+        if (matchingTag) {
+            response.push({
+                name: tag,
+                id: matchingTag.id,
+            });
+        } else {
+            response.push({
+                name: tag,
+                id: undefined,
+            });
+        }
+    });
+
+    return response;
 };

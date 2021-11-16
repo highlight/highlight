@@ -29,6 +29,7 @@ type Props = Pick<
     | 'filterOption'
     | 'bordered'
     | 'disabled'
+    | 'defaultActiveFirstOption'
 > & {
     options?: {
         value: string;
@@ -44,6 +45,7 @@ const Select = ({
     className,
     hasAccent = false,
     children,
+    defaultActiveFirstOption = false,
     ...props
 }: Props) => {
     return (
@@ -54,7 +56,7 @@ const Select = ({
                 [styles.selectHasValue]: hasAccent && !!props.value,
             })}
             menuItemSelectedIcon={null}
-            defaultActiveFirstOption={false}
+            defaultActiveFirstOption={defaultActiveFirstOption}
             dropdownClassName={styles.dropdown}
             suffixIcon={
                 props.loading ? undefined : (

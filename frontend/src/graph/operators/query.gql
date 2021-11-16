@@ -42,6 +42,17 @@ query GetSessionPayload($session_secure_id: String!, $skip_events: Boolean!) {
         y_coordinate
         type
         metadata
+        tags {
+            id
+            name
+        }
+    }
+}
+
+query GetCommentTagsForProject($project_id: ID!) {
+    session_comment_tags_for_project(project_id: $project_id) {
+        id
+        name
     }
 }
 
@@ -136,6 +147,10 @@ query GetSessionComments($session_secure_id: String!) {
         y_coordinate
         type
         metadata
+        tags {
+            id
+            name
+        }
     }
 }
 

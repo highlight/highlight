@@ -12,6 +12,7 @@
     }
 
     :global(.ant-select-selection-placeholder) {
+        color: var(--color-gray-500) !important;
         left: 24px;
     }
 

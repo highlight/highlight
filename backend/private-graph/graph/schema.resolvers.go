@@ -754,7 +754,7 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID
 	return &model.T, nil
 }
 
-func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model.SessionComment, error) {
+func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, tags []*modelInputs.SessionCommentTagInput) (*model.SessionComment, error) {
 	admin, isGuestCreatingSession := r.getCurrentAdminOrGuest(ctx)
 
 	// All viewers can leave a comment, including guests
@@ -801,6 +801,47 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		return nil, e.Wrap(err, "error creating session comment")
 	}
 	createSessionCommentSpan.Finish()
+
+	// Create associations between tags and comments.
+	if len(tags) > 0 {
+		// Create the tag if it's a new tag
+		newTags := []*model.SessionCommentTag{}
+		existingTags := []*model.SessionCommentTag{}
+		sessionComments := []model.SessionComment{*sessionComment}
+
+		for _, tag := range tags {
+			if tag.ID == nil {
+				newSessionCommentTag := model.SessionCommentTag{
+					ProjectID:       projectID,
+					Name:            tag.Name,
+					SessionComments: sessionComments,
+				}
+				newTags = append(newTags, &newSessionCommentTag)
+			} else {
+				newSessionCommentTag := model.SessionCommentTag{
+					ProjectID: projectID,
+					Name:      tag.Name,
+					Model: model.Model{
+						ID: *tag.ID,
+					},
+					SessionComments: sessionComments,
+				}
+				existingTags = append(existingTags, &newSessionCommentTag)
+			}
+		}
+
+		if len(newTags) > 0 {
+			if err := r.DB.Create(&newTags).Error; err != nil {
+				log.Error("Failed to create new session tags", err)
+			}
+		}
+
+		if len(existingTags) > 0 {
+			if err := r.DB.Save(&existingTags).Error; err != nil {
+				log.Error("Failed to update existing session tags", err)
+			}
+		}
+	}
 
 	viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
 
@@ -2368,6 +2409,20 @@ func (r *queryResolver) SessionComments(ctx context.Context, sessionSecureID str
 		return nil, e.Wrap(err, "error querying session comments for session")
 	}
 	return sessionComments, nil
+}
+
+func (r *queryResolver) SessionCommentTagsForProject(ctx context.Context, projectID int) ([]*model.SessionCommentTag, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "admin not found in org for session comment tags")
+	}
+
+	var sessionCommentTags []*model.SessionCommentTag
+
+	if err := r.DB.Where(&model.SessionCommentTag{ProjectID: projectID}).Find(&sessionCommentTags).Error; err != nil {
+		return nil, e.Wrap(err, "error getting session comment tags")
+	}
+
+	return sessionCommentTags, nil
 }
 
 func (r *queryResolver) SessionCommentsForAdmin(ctx context.Context) ([]*model.SessionComment, error) {

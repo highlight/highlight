@@ -236,7 +236,7 @@ type ComplexityRoot struct {
 		CreateProject                    func(childComplexity int, name string, workspaceID int) int
 		CreateRageClickAlert             func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
 		CreateSegment                    func(childComplexity int, projectID int, name string, params model.SearchParamsInput) int
-		CreateSessionComment             func(childComplexity int, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string) int
+		CreateSessionComment             func(childComplexity int, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, tags []*model.SessionCommentTagInput) int
 		CreateSessionFeedbackAlert       func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
 		CreateTrackPropertiesAlert       func(childComplexity int, projectID int, name string, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, trackProperties []*model.TrackPropertyInput, thresholdWindow int) int
 		CreateUserPropertiesAlert        func(childComplexity int, projectID int, name string, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, userProperties []*model.UserPropertyInput, thresholdWindow int) int
@@ -292,67 +292,68 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		APIKeyToOrgID             func(childComplexity int, apiKey string) int
-		Admin                     func(childComplexity int) int
-		AdminHasCreatedComment    func(childComplexity int, adminID int) int
-		AppVersionSuggestion      func(childComplexity int, projectID int) int
-		AverageSessionLength      func(childComplexity int, projectID int, lookBackPeriod int) int
-		BillingDetails            func(childComplexity int, workspaceID int) int
-		BillingDetailsForProject  func(childComplexity int, projectID int) int
-		CustomerPortalURL         func(childComplexity int, workspaceID int) int
-		DailyErrorFrequency       func(childComplexity int, projectID int, errorGroupSecureID string, dateOffset int) int
-		DailyErrorsCount          func(childComplexity int, projectID int, dateRange model.DateRangeInput) int
-		DailySessionsCount        func(childComplexity int, projectID int, dateRange model.DateRangeInput) int
-		EnhancedUserDetails       func(childComplexity int, sessionSecureID string) int
-		EnvironmentSuggestion     func(childComplexity int, projectID int) int
-		ErrorAlerts               func(childComplexity int, projectID int) int
-		ErrorComments             func(childComplexity int, errorGroupSecureID string) int
-		ErrorCommentsForAdmin     func(childComplexity int) int
-		ErrorCommentsForProject   func(childComplexity int, projectID int) int
-		ErrorFieldSuggestion      func(childComplexity int, projectID int, name string, query string) int
-		ErrorGroup                func(childComplexity int, secureID string) int
-		ErrorGroups               func(childComplexity int, projectID int, count int, params *model.ErrorSearchParamsInput) int
-		ErrorSegments             func(childComplexity int, projectID int) int
-		Errors                    func(childComplexity int, sessionSecureID string) int
-		Events                    func(childComplexity int, sessionSecureID string) int
-		FieldSuggestion           func(childComplexity int, projectID int, name string, query string) int
-		IdentifierSuggestion      func(childComplexity int, projectID int) int
-		IsIntegrated              func(childComplexity int, projectID int) int
-		IsIntegratedWithSlack     func(childComplexity int, projectID int) int
-		Messages                  func(childComplexity int, sessionSecureID string) int
-		NewSessionAlerts          func(childComplexity int, projectID int) int
-		NewUserAlerts             func(childComplexity int, projectID int) int
-		NewUsersCount             func(childComplexity int, projectID int, lookBackPeriod int) int
-		Project                   func(childComplexity int, id int) int
-		ProjectAdmins             func(childComplexity int, projectID int) int
-		ProjectHasViewedASession  func(childComplexity int, projectID int) int
-		ProjectSuggestion         func(childComplexity int, query string) int
-		Projects                  func(childComplexity int) int
-		PropertySuggestion        func(childComplexity int, projectID int, query string, typeArg string) int
-		RageClickAlerts           func(childComplexity int, projectID int) int
-		RageClicks                func(childComplexity int, sessionSecureID string) int
-		RageClicksForProject      func(childComplexity int, projectID int, lookBackPeriod int) int
-		Referrers                 func(childComplexity int, projectID int, lookBackPeriod int) int
-		Resources                 func(childComplexity int, sessionSecureID string) int
-		Segments                  func(childComplexity int, projectID int) int
-		Session                   func(childComplexity int, secureID string) int
-		SessionComments           func(childComplexity int, sessionSecureID string) int
-		SessionCommentsForAdmin   func(childComplexity int) int
-		SessionCommentsForProject func(childComplexity int, projectID int) int
-		SessionFeedbackAlerts     func(childComplexity int, projectID int) int
-		Sessions                  func(childComplexity int, projectID int, count int, lifecycle model.SessionLifecycle, starred bool, params *model.SearchParamsInput) int
-		SlackChannelSuggestion    func(childComplexity int, projectID int) int
-		SlackMembers              func(childComplexity int, projectID int) int
-		TopUsers                  func(childComplexity int, projectID int, lookBackPeriod int) int
-		TrackPropertiesAlerts     func(childComplexity int, projectID int) int
-		UnprocessedSessionsCount  func(childComplexity int, projectID int) int
-		UserFingerprintCount      func(childComplexity int, projectID int, lookBackPeriod int) int
-		UserPropertiesAlerts      func(childComplexity int, projectID int) int
-		Workspace                 func(childComplexity int, id int) int
-		WorkspaceAdmins           func(childComplexity int, workspaceID int) int
-		WorkspaceForProject       func(childComplexity int, projectID int) int
-		WorkspaceInviteLinks      func(childComplexity int, workspaceID int) int
-		Workspaces                func(childComplexity int) int
+		APIKeyToOrgID                func(childComplexity int, apiKey string) int
+		Admin                        func(childComplexity int) int
+		AdminHasCreatedComment       func(childComplexity int, adminID int) int
+		AppVersionSuggestion         func(childComplexity int, projectID int) int
+		AverageSessionLength         func(childComplexity int, projectID int, lookBackPeriod int) int
+		BillingDetails               func(childComplexity int, workspaceID int) int
+		BillingDetailsForProject     func(childComplexity int, projectID int) int
+		CustomerPortalURL            func(childComplexity int, workspaceID int) int
+		DailyErrorFrequency          func(childComplexity int, projectID int, errorGroupSecureID string, dateOffset int) int
+		DailyErrorsCount             func(childComplexity int, projectID int, dateRange model.DateRangeInput) int
+		DailySessionsCount           func(childComplexity int, projectID int, dateRange model.DateRangeInput) int
+		EnhancedUserDetails          func(childComplexity int, sessionSecureID string) int
+		EnvironmentSuggestion        func(childComplexity int, projectID int) int
+		ErrorAlerts                  func(childComplexity int, projectID int) int
+		ErrorComments                func(childComplexity int, errorGroupSecureID string) int
+		ErrorCommentsForAdmin        func(childComplexity int) int
+		ErrorCommentsForProject      func(childComplexity int, projectID int) int
+		ErrorFieldSuggestion         func(childComplexity int, projectID int, name string, query string) int
+		ErrorGroup                   func(childComplexity int, secureID string) int
+		ErrorGroups                  func(childComplexity int, projectID int, count int, params *model.ErrorSearchParamsInput) int
+		ErrorSegments                func(childComplexity int, projectID int) int
+		Errors                       func(childComplexity int, sessionSecureID string) int
+		Events                       func(childComplexity int, sessionSecureID string) int
+		FieldSuggestion              func(childComplexity int, projectID int, name string, query string) int
+		IdentifierSuggestion         func(childComplexity int, projectID int) int
+		IsIntegrated                 func(childComplexity int, projectID int) int
+		IsIntegratedWithSlack        func(childComplexity int, projectID int) int
+		Messages                     func(childComplexity int, sessionSecureID string) int
+		NewSessionAlerts             func(childComplexity int, projectID int) int
+		NewUserAlerts                func(childComplexity int, projectID int) int
+		NewUsersCount                func(childComplexity int, projectID int, lookBackPeriod int) int
+		Project                      func(childComplexity int, id int) int
+		ProjectAdmins                func(childComplexity int, projectID int) int
+		ProjectHasViewedASession     func(childComplexity int, projectID int) int
+		ProjectSuggestion            func(childComplexity int, query string) int
+		Projects                     func(childComplexity int) int
+		PropertySuggestion           func(childComplexity int, projectID int, query string, typeArg string) int
+		RageClickAlerts              func(childComplexity int, projectID int) int
+		RageClicks                   func(childComplexity int, sessionSecureID string) int
+		RageClicksForProject         func(childComplexity int, projectID int, lookBackPeriod int) int
+		Referrers                    func(childComplexity int, projectID int, lookBackPeriod int) int
+		Resources                    func(childComplexity int, sessionSecureID string) int
+		Segments                     func(childComplexity int, projectID int) int
+		Session                      func(childComplexity int, secureID string) int
+		SessionCommentTagsForProject func(childComplexity int, projectID int) int
+		SessionComments              func(childComplexity int, sessionSecureID string) int
+		SessionCommentsForAdmin      func(childComplexity int) int
+		SessionCommentsForProject    func(childComplexity int, projectID int) int
+		SessionFeedbackAlerts        func(childComplexity int, projectID int) int
+		Sessions                     func(childComplexity int, projectID int, count int, lifecycle model.SessionLifecycle, starred bool, params *model.SearchParamsInput) int
+		SlackChannelSuggestion       func(childComplexity int, projectID int) int
+		SlackMembers                 func(childComplexity int, projectID int) int
+		TopUsers                     func(childComplexity int, projectID int, lookBackPeriod int) int
+		TrackPropertiesAlerts        func(childComplexity int, projectID int) int
+		UnprocessedSessionsCount     func(childComplexity int, projectID int) int
+		UserFingerprintCount         func(childComplexity int, projectID int, lookBackPeriod int) int
+		UserPropertiesAlerts         func(childComplexity int, projectID int) int
+		Workspace                    func(childComplexity int, id int) int
+		WorkspaceAdmins              func(childComplexity int, workspaceID int) int
+		WorkspaceForProject          func(childComplexity int, projectID int) int
+		WorkspaceInviteLinks         func(childComplexity int, workspaceID int) int
+		Workspaces                   func(childComplexity int) int
 	}
 
 	RageClickEvent struct {
@@ -477,12 +478,18 @@ type ComplexityRoot struct {
 		ProjectID       func(childComplexity int) int
 		SessionId       func(childComplexity int) int
 		SessionSecureId func(childComplexity int) int
+		Tags            func(childComplexity int) int
 		Text            func(childComplexity int) int
 		Timestamp       func(childComplexity int) int
 		Type            func(childComplexity int) int
 		UpdatedAt       func(childComplexity int) int
 		XCoordinate     func(childComplexity int) int
 		YCoordinate     func(childComplexity int) int
+	}
+
+	SessionCommentTag struct {
+		ID   func(childComplexity int) int
+		Name func(childComplexity int) int
 	}
 
 	SessionResults struct {
@@ -592,7 +599,7 @@ type MutationResolver interface {
 	DeleteErrorSegment(ctx context.Context, segmentID int) (*bool, error)
 	CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int, planType model.PlanType) (*string, error)
 	UpdateBillingDetails(ctx context.Context, workspaceID int) (*bool, error)
-	CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model1.SessionComment, error)
+	CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, tags []*model.SessionCommentTagInput) (*model1.SessionComment, error)
 	DeleteSessionComment(ctx context.Context, id int) (*bool, error)
 	CreateErrorComment(ctx context.Context, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string) (*model1.ErrorComment, error)
 	DeleteErrorComment(ctx context.Context, id int) (*bool, error)
@@ -630,6 +637,7 @@ type QueryResolver interface {
 	Errors(ctx context.Context, sessionSecureID string) ([]*model1.ErrorObject, error)
 	Resources(ctx context.Context, sessionSecureID string) ([]interface{}, error)
 	SessionComments(ctx context.Context, sessionSecureID string) ([]*model1.SessionComment, error)
+	SessionCommentTagsForProject(ctx context.Context, projectID int) ([]*model1.SessionCommentTag, error)
 	SessionCommentsForAdmin(ctx context.Context) ([]*model1.SessionComment, error)
 	SessionCommentsForProject(ctx context.Context, projectID int) ([]*model1.SessionComment, error)
 	ErrorComments(ctx context.Context, errorGroupSecureID string) ([]*model1.ErrorComment, error)
@@ -1663,7 +1671,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateSessionComment(childComplexity, args["project_id"].(int), args["session_secure_id"].(string), args["session_timestamp"].(int), args["text"].(string), args["text_for_email"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), args["session_url"].(string), args["time"].(float64), args["author_name"].(string), args["session_image"].(*string)), true
+		return e.complexity.Mutation.CreateSessionComment(childComplexity, args["project_id"].(int), args["session_secure_id"].(string), args["session_timestamp"].(int), args["text"].(string), args["text_for_email"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), args["session_url"].(string), args["time"].(float64), args["author_name"].(string), args["session_image"].(*string), args["tags"].([]*model.SessionCommentTagInput)), true
 
 	case "Mutation.createSessionFeedbackAlert":
 		if e.complexity.Mutation.CreateSessionFeedbackAlert == nil {
@@ -2649,6 +2657,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Session(childComplexity, args["secure_id"].(string)), true
 
+	case "Query.session_comment_tags_for_project":
+		if e.complexity.Query.SessionCommentTagsForProject == nil {
+			break
+		}
+
+		args, err := ec.field_Query_session_comment_tags_for_project_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SessionCommentTagsForProject(childComplexity, args["project_id"].(int)), true
+
 	case "Query.session_comments":
 		if e.complexity.Query.SessionComments == nil {
 			break
@@ -3501,6 +3521,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SessionComment.SessionSecureId(childComplexity), true
 
+	case "SessionComment.tags":
+		if e.complexity.SessionComment.Tags == nil {
+			break
+		}
+
+		return e.complexity.SessionComment.Tags(childComplexity), true
+
 	case "SessionComment.text":
 		if e.complexity.SessionComment.Text == nil {
 			break
@@ -3542,6 +3569,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.SessionComment.YCoordinate(childComplexity), true
+
+	case "SessionCommentTag.id":
+		if e.complexity.SessionCommentTag.ID == nil {
+			break
+		}
+
+		return e.complexity.SessionCommentTag.ID(childComplexity), true
+
+	case "SessionCommentTag.name":
+		if e.complexity.SessionCommentTag.Name == nil {
+			break
+		}
+
+		return e.complexity.SessionCommentTag.Name(childComplexity), true
 
 	case "SessionResults.sessions":
 		if e.complexity.SessionResults.Sessions == nil {
@@ -4203,6 +4244,17 @@ type SessionComment {
     y_coordinate: Float
     type: SessionCommentType!
     metadata: Any
+    tags: [SessionCommentTag!]!
+}
+
+type SessionCommentTag {
+    id: ID!
+    name: String!
+}
+
+input SessionCommentTagInput {
+    id: ID
+    name: String!
 }
 
 type ErrorComment {
@@ -4312,6 +4364,7 @@ type Query {
     errors(session_secure_id: String!): [ErrorObject]
     resources(session_secure_id: String!): [Any]
     session_comments(session_secure_id: String!): [SessionComment]!
+    session_comment_tags_for_project(project_id: ID!): [SessionCommentTag!]!
     session_comments_for_admin: [SessionComment]!
     session_comments_for_project(project_id: ID!): [SessionComment]!
     error_comments(error_group_secure_id: String!): [ErrorComment]!
@@ -4459,6 +4512,7 @@ type Mutation {
         time: Float!
         author_name: String!
         session_image: String
+        tags: [SessionCommentTagInput]!
     ): SessionComment
     deleteSessionComment(id: ID!): Boolean
     createErrorComment(
@@ -5311,6 +5365,15 @@ func (ec *executionContext) field_Mutation_createSessionComment_args(ctx context
 		}
 	}
 	args["session_image"] = arg12
+	var arg13 []*model.SessionCommentTagInput
+	if tmp, ok := rawArgs["tags"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tags"))
+		arg13, err = ec.unmarshalNSessionCommentTagInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSessionCommentTagInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["tags"] = arg13
 	return args, nil
 }
 
@@ -7324,6 +7387,21 @@ func (ec *executionContext) field_Query_session_args(ctx context.Context, rawArg
 		}
 	}
 	args["secure_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_session_comment_tags_for_project_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
 	return args, nil
 }
 
@@ -12319,7 +12397,7 @@ func (ec *executionContext) _Mutation_createSessionComment(ctx context.Context, 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateSessionComment(rctx, args["project_id"].(int), args["session_secure_id"].(string), args["session_timestamp"].(int), args["text"].(string), args["text_for_email"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), args["session_url"].(string), args["time"].(float64), args["author_name"].(string), args["session_image"].(*string))
+		return ec.resolvers.Mutation().CreateSessionComment(rctx, args["project_id"].(int), args["session_secure_id"].(string), args["session_timestamp"].(int), args["text"].(string), args["text_for_email"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), args["session_url"].(string), args["time"].(float64), args["author_name"].(string), args["session_image"].(*string), args["tags"].([]*model.SessionCommentTagInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14017,6 +14095,48 @@ func (ec *executionContext) _Query_session_comments(ctx context.Context, field g
 	res := resTmp.([]*model1.SessionComment)
 	fc.Result = res
 	return ec.marshalNSessionComment2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionComment(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_session_comment_tags_for_project(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_session_comment_tags_for_project_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SessionCommentTagsForProject(rctx, args["project_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.SessionCommentTag)
+	fc.Result = res
+	return ec.marshalNSessionCommentTag2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionCommentTagᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_session_comments_for_admin(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -19430,6 +19550,111 @@ func (ec *executionContext) _SessionComment_metadata(ctx context.Context, field 
 	return ec.marshalOAny2interface(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _SessionComment_tags(ctx context.Context, field graphql.CollectedField, obj *model1.SessionComment) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SessionComment",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Tags, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.SessionCommentTag)
+	fc.Result = res
+	return ec.marshalNSessionCommentTag2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionCommentTagᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SessionCommentTag_id(ctx context.Context, field graphql.CollectedField, obj *model1.SessionCommentTag) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SessionCommentTag",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SessionCommentTag_name(ctx context.Context, field graphql.CollectedField, obj *model1.SessionCommentTag) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SessionCommentTag",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _SessionResults_sessions(ctx context.Context, field graphql.CollectedField, obj *model1.SessionResults) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -21850,6 +22075,34 @@ func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context,
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputSessionCommentTagInput(ctx context.Context, obj interface{}) (model.SessionCommentTagInput, error) {
+	var it model.SessionCommentTagInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalOID2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputTrackPropertyInput(ctx context.Context, obj interface{}) (model.TrackPropertyInput, error) {
 	var it model.TrackPropertyInput
 	var asMap = obj.(map[string]interface{})
@@ -23263,6 +23516,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "session_comment_tags_for_project":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_session_comment_tags_for_project(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "session_comments_for_admin":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -24561,6 +24828,43 @@ func (ec *executionContext) _SessionComment(ctx context.Context, sel ast.Selecti
 				res = ec._SessionComment_metadata(ctx, field, obj)
 				return res
 			})
+		case "tags":
+			out.Values[i] = ec._SessionComment_tags(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var sessionCommentTagImplementors = []string{"SessionCommentTag"}
+
+func (ec *executionContext) _SessionCommentTag(ctx context.Context, sel ast.SelectionSet, obj *model1.SessionCommentTag) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, sessionCommentTagImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SessionCommentTag")
+		case "id":
+			out.Values[i] = ec._SessionCommentTag_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+			out.Values[i] = ec._SessionCommentTag_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -26057,6 +26361,74 @@ func (ec *executionContext) marshalNSessionComment2ᚕᚖgithubᚗcomᚋhighligh
 	return ret
 }
 
+func (ec *executionContext) marshalNSessionCommentTag2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionCommentTagᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.SessionCommentTag) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNSessionCommentTag2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionCommentTag(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNSessionCommentTag2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionCommentTag(ctx context.Context, sel ast.SelectionSet, v *model1.SessionCommentTag) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._SessionCommentTag(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNSessionCommentTagInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSessionCommentTagInput(ctx context.Context, v interface{}) ([]*model.SessionCommentTagInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*model.SessionCommentTagInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOSessionCommentTagInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSessionCommentTagInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
 func (ec *executionContext) unmarshalNSessionCommentType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSessionCommentType(ctx context.Context, v interface{}) (model.SessionCommentType, error) {
 	var res model.SessionCommentType
 	err := res.UnmarshalGQL(v)
@@ -27368,6 +27740,14 @@ func (ec *executionContext) marshalOSessionComment2ᚖgithubᚗcomᚋhighlight�
 		return graphql.Null
 	}
 	return ec._SessionComment(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOSessionCommentTagInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSessionCommentTagInput(ctx context.Context, v interface{}) (*model.SessionCommentTagInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputSessionCommentTagInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOSocialLink2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSocialLink(ctx context.Context, sel ast.SelectionSet, v []*model.SocialLink) graphql.Marshaler {
