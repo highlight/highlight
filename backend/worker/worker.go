@@ -668,30 +668,53 @@ func (w *Worker) Start() {
 		payloadLookbackPeriod = 8
 	}
 	go reportProcessSessionCount(w.Resolver.DB, payloadLookbackPeriod)
+	maxWorkerCount := 40
+	processSessionLimit := 10000
 	for {
 		time.Sleep(1 * time.Second)
-		processSessionLimit := 10000
 		sessions := []*model.Session{}
 		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName("worker.sessionsQuery"))
-		if err := w.Resolver.DB.
-			Raw(`
-			WITH t AS (
-				UPDATE sessions
-				SET lock=NOW()
-				WHERE id in (
-					SELECT id
-					FROM sessions
-					WHERE (processed = ?)
-						AND (COALESCE(payload_updated_at, to_timestamp(0)) < NOW() - (? * INTERVAL '1 SECOND'))
-						AND (COALESCE(lock, to_timestamp(0)) < NOW() - (? * INTERVAL '1 MINUTE'))
-					LIMIT ?
-					FOR UPDATE SKIP LOCKED
-				)
-				RETURNING *
-			)
-			SELECT * FROM t;
-			`, false, payloadLookbackPeriod, lockPeriod, processSessionLimit). // why do we get payload_updated_at IS NULL?
-			Find(&sessions).Error; err != nil {
+		if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
+			transactionCtx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
+			defer cancel()
+
+			errs := make(chan error, 1)
+			go func() {
+				defer util.Recover()
+				if err := tx.Raw(`
+						WITH t AS (
+							UPDATE sessions
+							SET lock=NOW()
+							WHERE id in (
+								SELECT id
+								FROM sessions
+								WHERE (processed = ?)
+									AND (COALESCE(payload_updated_at, to_timestamp(0)) < NOW() - (? * INTERVAL '1 SECOND'))
+									AND (COALESCE(lock, to_timestamp(0)) < NOW() - (? * INTERVAL '1 MINUTE'))
+								LIMIT ?
+								FOR UPDATE SKIP LOCKED
+							)
+							RETURNING *
+						)
+						SELECT * FROM t;
+					`, false, payloadLookbackPeriod, lockPeriod, processSessionLimit). // why do we get payload_updated_at IS NULL?
+					Find(&sessions).Error; err != nil {
+					errs <- err
+					return
+				}
+				errs <- nil
+			}()
+
+			select {
+			case <-transactionCtx.Done():
+				return e.New("transaction timeout occurred")
+			case err := <-errs:
+				if err != nil {
+					return err
+				}
+			}
+			return nil
+		}); err != nil {
 			log.Errorf("error querying unparsed, outdated sessions: %v", err)
 			sessionsSpan.Finish()
 			continue
@@ -715,7 +738,7 @@ func (w *Worker) Start() {
 			log.Infof("sessions that will be processed: %v", sessionIds)
 		}
 
-		wp := workerpool.New(40)
+		wp := workerpool.New(maxWorkerCount)
 		wp.SetPanicHandler(util.Recover)
 		// process 80 sessions at a time.
 		for _, session := range sessions {
