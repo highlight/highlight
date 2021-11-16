@@ -394,14 +394,13 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return e.Wrap(err, "Error incrementing session count in db")
 	}
 
-	alertPool := workerpool.New(4)
 	projectID := s.ProjectID
 	project := &model.Project{}
 	if err := w.Resolver.DB.Where(&model.Project{Model: model.Model{ID: s.ProjectID}}).First(&project).Error; err != nil {
 		return e.Wrap(err, "error querying project")
 	}
 
-	alertPool.SubmitRecover(func() {
+	w.Resolver.PrivateWorkerPool.SubmitRecover(func() {
 		// Sending Track Properties Alert
 		var sessionAlerts []*model.SessionAlert
 		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Where("type=?", model.AlertType.TRACK_PROPERTIES).Find(&sessionAlerts).Error; err != nil {
@@ -458,7 +457,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 	})
 
-	alertPool.SubmitRecover(func() {
+	w.Resolver.PrivateWorkerPool.SubmitRecover(func() {
 		// Sending User Properties Alert
 		var sessionAlerts []*model.SessionAlert
 		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).Where("type=?", model.AlertType.USER_PROPERTIES).Find(&sessionAlerts).Error; err != nil {
@@ -516,7 +515,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 	})
 
-	alertPool.SubmitRecover(func() {
+	w.Resolver.PrivateWorkerPool.SubmitRecover(func() {
 		// Sending session init alert
 		var sessionAlerts []*model.SessionAlert
 		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID}}).
@@ -570,7 +569,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 	})
 
-	alertPool.SubmitRecover(func() {
+	w.Resolver.PrivateWorkerPool.SubmitRecover(func() {
 		if len(rageClickSets) < 1 {
 			return
 		}
@@ -633,9 +632,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			}
 		}
 	})
-
-	// Waits for all goroutines to finish, then returns the first non-nil error (if any).
-	alertPool.StopWait()
 
 	// Upload to s3 and wipe from the db.
 	if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" {
