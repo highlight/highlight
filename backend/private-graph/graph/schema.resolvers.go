@@ -644,7 +644,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 
 	c, err := r.StripeClient.Customers.Get(*workspace.StripeCustomerID, params)
 	if err != nil {
-		return nil, e.Wrap(err, "couldn't retrieve stripe customer data")
+		return nil, e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot update stripe subscription - couldn't retrieve stripe customer data")
 	}
 
 	// If there are multiple subscriptions, it's ambiguous which one should be updated, so throw an error
@@ -655,50 +655,38 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	subscriptions := c.Subscriptions.Data
 	pricing.FillProducts(r.StripeClient, subscriptions)
 
-	prices, err := pricing.GetStripePrices(r.StripeClient, planType, pricing.SubscriptionIntervalMonthly)
+	prices, err := pricing.GetStripePrices(r.StripeClient, planType, pricing.SubscriptionIntervalAnnual)
 	if err != nil {
-		return nil, e.Wrap(err, "failed to get Stripe prices")
+		return nil, e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot update stripe subscription - failed to get Stripe prices")
 	}
 
-	// If there's a single subscription
+	newBasePrice := prices[pricing.ProductTypeBase]
+
+	// If there's an existing subscription, update it
 	if len(subscriptions) == 1 {
-		newSubItems := []*stripe.SubscriptionItemsParams{}
 		subscription := subscriptions[0]
-		for _, subscriptionItem := range subscription.Items.Data {
-			productType, _ := pricing.GetProductMetadata(subscriptionItem.Price)
-			if productType == nil {
-				continue
-			}
-
-			price, ok := prices[*productType]
-			if !ok {
-				return nil, e.New("price not found for product type")
-			}
-
-			subItem := stripe.SubscriptionItemsParams{
-				ID:   &subscriptionItem.ID,
-				Plan: &price.ID,
-			}
-			newSubItems = append(newSubItems, &subItem)
-
-			// Remove the current key from map - will be used to add any leftover prices to the subscription
-			delete(prices, *productType)
+		if len(subscription.Items.Data) != 1 {
+			return nil, e.New("STRIPE_INTEGRATION_ERROR cannot update stripe subscription - subscription has multiple products")
 		}
 
-		for _, price := range prices {
-			subItem := stripe.SubscriptionItemsParams{
-				Plan: &price.ID,
-			}
-			newSubItems = append(newSubItems, &subItem)
+		subscriptionItem := subscription.Items.Data[0]
+		productType, _, _ := pricing.GetProductMetadata(subscriptionItem.Price)
+		if productType == nil || *productType != pricing.ProductTypeBase {
+			return nil, e.New("STRIPE_INTEGRATION_ERROR cannot update stripe subscription - expecting base product")
 		}
 
 		subscriptionParams := &stripe.SubscriptionParams{
 			CancelAtPeriodEnd: stripe.Bool(false),
 			ProrationBehavior: stripe.String(string(stripe.SubscriptionProrationBehaviorCreateProrations)),
-			Items:             newSubItems,
+			Items: []*stripe.SubscriptionItemsParams{
+				{
+					ID:   &subscriptionItem.ID,
+					Plan: &newBasePrice.ID,
+				},
+			},
 		}
 
-		_, err := r.StripeClient.Subscriptions.Update(c.Subscriptions.Data[0].ID, subscriptionParams)
+		_, err := r.StripeClient.Subscriptions.Update(subscription.ID, subscriptionParams)
 		if err != nil {
 			return nil, e.Wrap(err, "couldn't update subscription")
 		}
@@ -707,14 +695,6 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	}
 
 	// If there's no existing subscription, we create a checkout.
-	newSubItems := []*stripe.CheckoutSessionSubscriptionDataItemsParams{}
-	for _, price := range prices {
-		subItem := stripe.CheckoutSessionSubscriptionDataItemsParams{
-			Plan: &price.ID,
-		}
-		newSubItems = append(newSubItems, &subItem)
-	}
-
 	checkoutSessionParams := &stripe.CheckoutSessionParams{
 		SuccessURL: stripe.String(os.Getenv("FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/billing/success"),
 		CancelURL:  stripe.String(os.Getenv("FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/billing/checkoutCanceled"),
@@ -723,7 +703,9 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 		}),
 		Customer: workspace.StripeCustomerID,
 		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
-			Items: newSubItems,
+			Items: []*stripe.CheckoutSessionSubscriptionDataItemsParams{
+				{Plan: &newBasePrice.ID},
+			},
 		},
 		Mode: stripe.String(string(stripe.CheckoutSessionModeSubscription)),
 	}

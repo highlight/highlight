@@ -939,7 +939,7 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 	// and set the workspace's tier if the Stripe product has one
 	for _, subscription := range subscriptions {
 		for _, subscriptionItem := range subscription.Items.Data {
-			if _, productTier := pricing.GetProductMetadata(subscriptionItem.Price); productTier != nil {
+			if _, productTier, _ := pricing.GetProductMetadata(subscriptionItem.Price); productTier != nil {
 				tier = *productTier
 				startTimestamp := time.Unix(subscription.CurrentPeriodStart, 0)
 				endTimestamp := time.Unix(subscription.CurrentPeriodEnd, 0)

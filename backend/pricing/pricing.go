@@ -99,36 +99,6 @@ func GetWorkspaceQuotaOverflow(ctx context.Context, DB *gorm.DB, workspaceID int
 	return queriedSessionsOverQuota, nil
 }
 
-func GetProjectPlanString(stripeClient *client.API, customerID string) backend.PlanType {
-	if customerID == "" {
-		return backend.PlanTypeFree
-	}
-	params := &stripe.CustomerParams{}
-	priceID := ""
-	params.AddExpand("subscriptions")
-	c, err := stripeClient.Customers.Get(customerID, params)
-	if !(err != nil || len(c.Subscriptions.Data) == 0 || len(c.Subscriptions.Data[0].Items.Data) == 0) {
-		priceID = c.Subscriptions.Data[0].Items.Data[0].Plan.ID
-	}
-	planType := FromPriceID(priceID)
-	return planType
-}
-
-func GetProjectPlanID(stripeClient *client.API, customerID string) (*string, error) {
-	// gets plan id from stripe, sets plan id column on project
-	priceID := ""
-	if customerID == "" {
-		return &priceID, e.New("project has no stripe subscription")
-	}
-	params := &stripe.CustomerParams{}
-	params.AddExpand("subscriptions")
-	c, err := stripeClient.Customers.Get(customerID, params)
-	if !(err != nil || len(c.Subscriptions.Data) == 0 || len(c.Subscriptions.Data[0].Items.Data) == 0) {
-		priceID = c.Subscriptions.Data[0].Items.Data[0].Plan.ID
-	}
-	return &priceID, nil
-}
-
 func TypeToQuota(planType backend.PlanType) int {
 	switch planType {
 	case backend.PlanTypeFree:
@@ -177,14 +147,19 @@ func GetLookupKey(productType ProductType, productTier backend.PlanType, interva
 	return fmt.Sprintf("%s|%s|%s", string(productType), string(productTier), string(interval))
 }
 
-// Returns the Highlight ProductType and Tier for the Stripe Price
-func GetProductMetadata(price *stripe.Price) (*ProductType, *backend.PlanType) {
+// Returns the Highlight ProductType, Tier, and Interval for the Stripe Price
+func GetProductMetadata(price *stripe.Price) (*ProductType, *backend.PlanType, SubscriptionInterval) {
+	interval := SubscriptionIntervalMonthly
+	if price.Recurring != nil && price.Recurring.Interval == stripe.PriceRecurringIntervalYear {
+		interval = SubscriptionIntervalAnnual
+	}
+
 	// If the price id corresponds to a tier using the old conversion,
 	// return it for backward compatibility
 	oldTier := FromPriceID(price.ID)
 	if oldTier != backend.PlanTypeFree {
 		base := ProductTypeBase
-		return &base, &oldTier
+		return &base, &oldTier, interval
 	}
 
 	var productTypePtr *ProductType
@@ -200,7 +175,7 @@ func GetProductMetadata(price *stripe.Price) (*ProductType, *backend.PlanType) {
 		tierPtr = &tier
 	}
 
-	return productTypePtr, tierPtr
+	return productTypePtr, tierPtr, interval
 }
 
 // Products are too nested in the Subscription model to be added through the API
@@ -238,8 +213,8 @@ func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, int
 	baseLookupKey := GetLookupKey(ProductTypeBase, productTier, interval)
 
 	// TODO: sessions/members hardcoded to PlanTypeFree for now
-	sessionsLookupKey := GetLookupKey(ProductTypeSessions, backend.PlanTypeFree, interval)
-	membersLookupKey := GetLookupKey(ProductTypeMembers, backend.PlanTypeFree, interval)
+	sessionsLookupKey := GetLookupKey(ProductTypeSessions, backend.PlanTypeFree, SubscriptionIntervalMonthly)
+	membersLookupKey := GetLookupKey(ProductTypeMembers, backend.PlanTypeFree, SubscriptionIntervalMonthly)
 
 	priceListParams := stripe.PriceListParams{}
 	priceListParams.LookupKeys = []*string{&baseLookupKey, &sessionsLookupKey, &membersLookupKey}
@@ -293,53 +268,128 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 		return e.Wrap(err, "couldn't retrieve stripe customer data")
 	}
 
+	if len(c.Subscriptions.Data) > 1 {
+		return e.New("STRIPE_INTEGRATION_ERROR cannot report usage - customer has multiple subscriptions")
+	}
+	if len(c.Subscriptions.Data) == 0 {
+		return e.New("STRIPE_INTEGRATION_ERROR cannot report usage - customer has no subscriptions")
+	}
+
 	subscriptions := c.Subscriptions.Data
 	FillProducts(stripeClient, subscriptions)
 
-	for _, subscription := range subscriptions {
-		for _, subscriptionItem := range subscription.Items.Data {
-			product, _ := GetProductMetadata(subscriptionItem.Price)
-			if product == nil ||
-				(productType != nil && *productType != *product) {
-				continue
+	subscription := subscriptions[0]
+
+	if len(subscription.Items.Data) != 1 {
+		return e.New("STRIPE_INTEGRATION_ERROR cannot report usage - subscription has multiple products")
+	}
+	subscriptionItem := subscription.Items.Data[0]
+	_, productTier, interval := GetProductMetadata(subscriptionItem.Price)
+	if productTier == nil {
+		return e.New("STRIPE_INTEGRATION_ERROR cannot report usage - product has no tier")
+	}
+
+	// Set PendingInvoiceItemInterval to 'month' if not set
+	if subscription.PendingInvoiceItemInterval.Interval != stripe.SubscriptionPendingInvoiceItemIntervalIntervalMonth {
+		if _, err := stripeClient.Subscriptions.Update(subscription.ID, &stripe.SubscriptionParams{
+			PendingInvoiceItemInterval: &stripe.SubscriptionPendingInvoiceItemIntervalParams{
+				Interval: stripe.String(string(stripe.SubscriptionPendingInvoiceItemIntervalIntervalMonth)),
+			},
+		}); err != nil {
+			return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to update PendingInvoiceItemInterval")
+		}
+	}
+
+	prices, err := GetStripePrices(stripeClient, *productTier, interval)
+	if err != nil {
+		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot report usage - failed to get Stripe prices")
+	}
+
+	invoiceParams := &stripe.InvoiceParams{
+		Customer:     &c.ID,
+		Subscription: &subscription.ID,
+	}
+	invoiceParams.AddExpand("lines.data.price.product")
+
+	invoice, err := stripeClient.Invoices.GetNext(invoiceParams)
+	if err != nil {
+		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot report usage - failed to retrieve upcoming invoice")
+	}
+
+	invoiceLines := map[ProductType]*stripe.InvoiceLine{}
+	for _, line := range invoice.Lines.Data {
+		productType, _, _ := GetProductMetadata(line.Price)
+		if productType != nil {
+			invoiceLines[*productType] = line
+		}
+	}
+
+	if productType == nil || *productType == ProductTypeMembers {
+		newPrice := prices[ProductTypeMembers]
+		meter := GetMembersMeter(DB, workspaceID)
+		log.Infof("reporting members usage for workspace %d", workspaceID)
+		if membersLine, ok := invoiceLines[ProductTypeMembers]; ok {
+			max := meter
+			if membersLine.Quantity > max {
+				max = membersLine.Quantity
 			}
-
-			var meter int64
-			switch *product {
-			case ProductTypeMembers:
-				meter = GetMembersMeter(DB, workspaceID)
-			case ProductTypeSessions:
-				meter, err = GetWorkspaceMeter(DB, workspaceID)
-
-				// If meter exceeds the plan limit, and overage is not allowed,
-				// set the meter to the plan limit and report that.
-				if !workspace.AllowMeterOverage {
-					limit := TypeToQuota(backend.PlanType(workspace.PlanTier))
-					if workspace.MonthlySessionLimit != nil {
-						limit = *workspace.MonthlySessionLimit
-					}
-					if meter > int64(limit) {
-						meter = int64(limit)
-					}
-				}
-
-				if err != nil {
-					return e.Wrap(err, "error getting sessions meter")
-				}
-			default:
-				continue
+			if _, err := stripeClient.InvoiceItems.Update(membersLine.InvoiceItem, &stripe.InvoiceItemParams{
+				Price:    &newPrice.ID,
+				Quantity: stripe.Int64(max),
+			}); err != nil {
+				return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to update members invoice item")
 			}
-
-			params := stripe.UsageRecordParams{
-				SubscriptionItem: &subscriptionItem.ID,
-				Action:           stripe.String("set"),
-				Quantity:         stripe.Int64(meter),
+		} else {
+			if _, err := stripeClient.InvoiceItems.New(&stripe.InvoiceItemParams{
+				Customer:     &c.ID,
+				Subscription: &subscription.ID,
+				Price:        &newPrice.ID,
+				Quantity:     stripe.Int64(meter),
+			}); err != nil {
+				return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to add members invoice item")
 			}
+		}
+	}
 
-			log.Infof("creating usage record [workspace: %d, type: %s, subscriptionItem: %s, quantity: %d]",
-				workspaceID, *product, subscriptionItem.ID, meter)
-			if _, err := stripeClient.UsageRecords.New(&params); err != nil {
-				return e.Wrap(err, "error creating new usage record")
+	if productType == nil || *productType == ProductTypeSessions {
+		newPrice := prices[ProductTypeSessions]
+		meter, err := GetWorkspaceMeter(DB, workspaceID)
+		if err != nil {
+			return e.Wrap(err, "error getting sessions meter")
+		}
+
+		// If meter exceeds the plan limit, and overage is not allowed,
+		// set the meter to the plan limit and report that.
+		if !workspace.AllowMeterOverage {
+			limit := TypeToQuota(backend.PlanType(workspace.PlanTier))
+			if workspace.MonthlySessionLimit != nil {
+				limit = *workspace.MonthlySessionLimit
+			}
+			if meter > int64(limit) {
+				meter = int64(limit)
+			}
+		}
+
+		log.Infof("reporting sessions usage for workspace %d", workspaceID)
+		if sessionsLine, ok := invoiceLines[ProductTypeSessions]; ok {
+			max := meter
+			if sessionsLine.Quantity > max {
+				max = sessionsLine.Quantity
+			}
+			if _, err := stripeClient.InvoiceItems.Update(sessionsLine.InvoiceItem, &stripe.InvoiceItemParams{
+				Price:    &newPrice.ID,
+				Quantity: stripe.Int64(max),
+			}); err != nil {
+				return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to update sessions invoice item")
+			}
+		} else {
+			if _, err := stripeClient.InvoiceItems.New(&stripe.InvoiceItemParams{
+				Customer:     &c.ID,
+				Subscription: &subscription.ID,
+				Price:        &newPrice.ID,
+				Quantity:     stripe.Int64(meter),
+			}); err != nil {
+				return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to add sessions invoice item")
 			}
 		}
 	}
