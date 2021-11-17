@@ -6,7 +6,7 @@ import {
     Steps as AntDesignSteps,
     StepsProps as AntDesignStepsProps,
 } from 'antd';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import styles from './Steps.module.scss';
 
@@ -49,6 +49,12 @@ const Steps: StepsType = ({
     const [currentStepIndex, setCurrentStepIndex] = useState(current || 0);
     const currentStep = steps[currentStepIndex];
 
+    useEffect(() => {
+        if (current) {
+            setCurrentStepIndex(current);
+        }
+    }, [current]);
+
     return (
         <>
             <AntDesignSteps
@@ -58,11 +64,22 @@ const Steps: StepsType = ({
                 onChange={setCurrentStepIndex}
                 {...props}
             >
-                {steps.map((step) => (
+                {steps.map((step, index) => (
                     <AntDesignSteps.Step
                         key={step.title}
                         title={step.title}
-                        status="wait"
+                        status={
+                            index > currentStepIndex
+                                ? 'wait'
+                                : index < currentStepIndex
+                                ? 'finish'
+                                : 'process'
+                        }
+                        disabled={
+                            index - 1 > -1
+                                ? steps[index - 1].disableNextButton
+                                : false
+                        }
                     />
                 ))}
             </AntDesignSteps>

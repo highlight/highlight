@@ -17,6 +17,7 @@ export const notFoundMessage: string;
 export const saveButton: string;
 export const selected: string;
 export const selectMessage: string;
+export const stepDescription: string;
 export const stepsTitle: string;
 export const stepsTitleX: string;
 export const title: string;

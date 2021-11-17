@@ -1,3 +1,8 @@
+.stepDescription {
+    color: var(--color-gray-500) !important;
+    margin-bottom: 2em !important;
+}
+
 .fullBleedAlertSetupStep {
     min-width: fit-content;
     padding: 3%;
@@ -123,8 +128,8 @@
     align-items: center;
     background: var(--color-purple);
     border-radius: 50%;
-    color: var(--color-white);
     display: flex;
+    fill: var(--color-white);
     height: var(--background-size);
     justify-content: center;
     position: absolute;
