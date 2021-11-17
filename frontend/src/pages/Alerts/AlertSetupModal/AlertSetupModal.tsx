@@ -7,7 +7,7 @@ import Select from '@components/Select/Select';
 import Steps from '@components/Steps/Steps';
 import { useCreateDefaultAlertsMutation } from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
-import SvgCheckCircleIcon from '@icons/CheckCircleIcon';
+import SvgCheck from '@icons/Check';
 import { ALERT_CONFIGURATIONS, ALERT_NAMES } from '@pages/Alerts/Alerts';
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext';
 import { getAlertTypeColor } from '@pages/Alerts/utils/AlertsUtils';
@@ -229,7 +229,7 @@ const AlertSetupModal = () => {
                                                 animate={{ scale: 1 }}
                                                 exit={{ scale: 0 }}
                                             >
-                                                <SvgCheckCircleIcon />
+                                                <SvgCheck />
                                             </motion.div>
                                         )}
                                     </AnimatePresence>
