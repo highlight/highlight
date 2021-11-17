@@ -173,7 +173,7 @@ const AlertSetupModal = () => {
             content: (
                 <>
                     <h3>Select Alert Types</h3>
-                    <p style={{ color: 'var(--color-gray-500)' }}>
+                    <p>
                         Select the types of alerts you want to be notified about
                         for your project.
                     </p>
@@ -268,7 +268,7 @@ const AlertSetupModal = () => {
             content: (
                 <>
                     <h3>Channels to Notify</h3>
-                    <p style={{ color: 'var(--color-gray-500)' }}>
+                    <p>
                         Pick Slack channels or people to message when an alert
                         is created.
                     </p>
@@ -364,6 +364,7 @@ const AlertSetupModal = () => {
                 setShowModal(false);
             }}
             width={600}
+            className={styles.modal}
         >
             <Steps
                 type="navigation"

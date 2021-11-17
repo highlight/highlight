@@ -13,6 +13,7 @@ export const fullBleedAlertSetupStep: string;
 export const icon: string;
 export const integrationAlert: string;
 export const integrationButton: string;
+export const modal: string;
 export const notFoundMessage: string;
 export const saveButton: string;
 export const selected: string;
