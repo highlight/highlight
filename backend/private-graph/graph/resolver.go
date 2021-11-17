@@ -1066,7 +1066,7 @@ func (r *Resolver) getEvents(ctx context.Context, sessionSecureID string, cursor
 	if cursor.EventObjectIndex != nil {
 		offset = *cursor.EventObjectIndex
 	}
-	if err := r.DB.Order("created_at desc").Where(&model.EventsObject{SessionID: s.ID}).Find(&eventObjs).Offset(offset).Error; err != nil {
+	if err := r.DB.Order("created_at asc").Where(&model.EventsObject{SessionID: s.ID}).Offset(offset).Find(&eventObjs).Error; err != nil {
 		return nil, e.Wrap(err, "error reading from events"), nil
 	}
 	eventsQuerySpan.Finish()
@@ -1078,7 +1078,7 @@ func (r *Resolver) getEvents(ctx context.Context, sessionSecureID string, cursor
 		if err := json.Unmarshal([]byte(eventObj.Events), &subEvents); err != nil {
 			return nil, e.Wrap(err, "error decoding event data"), nil
 		}
-		allEvents["events"] = append(subEvents["events"], allEvents["events"]...)
+		allEvents["events"] = append(allEvents["events"], subEvents["events"]...)
 	}
 	events := allEvents["events"]
 	if cursor.EventObjectIndex == nil {
