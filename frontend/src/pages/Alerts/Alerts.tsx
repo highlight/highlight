@@ -2,6 +2,7 @@ import Alert from '@components/Alert/Alert';
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import Card from '@components/Card/Card';
 import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
+import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState';
 import Table from '@components/Table/Table';
 import Tag from '@components/Tag/Tag';
 import SvgBugIcon from '@icons/BugIcon';
@@ -16,6 +17,7 @@ import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext';
 import AlertSetupModal from '@pages/Alerts/AlertSetupModal/AlertSetupModal';
 import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy';
 import { getAlertTypeColor } from '@pages/Alerts/utils/AlertsUtils';
+import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 import { Link, useHistory } from 'react-router-dom';
@@ -327,24 +329,44 @@ const AlertsPage = () => {
                         showHeader={false}
                         rowHasPadding
                         renderEmptyComponent={
-                            <div className={styles.emptyContainer}>
-                                <h3>
-                                    Your project doesn't have any alerts yet.
-                                </h3>
-                                <p>
-                                    Alerts help you and your team stay on top of
-                                    things as they happen in your application.
-                                    You can set up alerts for things like when
-                                    certain actions happen, errors thrown, and
-                                    when a new user uses your app.
-                                </p>
-                                <ButtonLink
-                                    to="alerts/new"
-                                    trackingId="NoAlertsCreateNewAlert"
-                                >
-                                    Create an Alert
-                                </ButtonLink>
-                            </div>
+                            <SearchEmptyState
+                                className={styles.emptyContainer}
+                                item={'alerts'}
+                                customTitle={`Your project doesn't have any alerts yet 😔`}
+                                customDescription={
+                                    <>
+                                        {`You can create new alerts by clicking
+                                        the New Alert button in the upper right. `}
+                                        {!isOnPrem ? (
+                                            <>
+                                                If you think something's wrong,
+                                                feel free to message us on{' '}
+                                                <span
+                                                    className={
+                                                        styles.intercomButton
+                                                    }
+                                                    onClick={() =>
+                                                        window.Intercom(
+                                                            'update',
+                                                            {
+                                                                hide_default_launcher: false,
+                                                            }
+                                                        )
+                                                    }
+                                                >
+                                                    Intercom
+                                                </span>
+                                                .
+                                            </>
+                                        ) : (
+                                            <>
+                                                If you think something's wrong,
+                                                feel free to reach out to us!
+                                            </>
+                                        )}
+                                    </>
+                                }
+                            />
                         }
                         onRow={(record) => ({
                             onClick: () => {
