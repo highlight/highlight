@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -3649,6 +3650,38 @@ func (r *sessionCommentResolver) Type(ctx context.Context, obj *model.SessionCom
 
 func (r *sessionCommentResolver) Metadata(ctx context.Context, obj *model.SessionComment) (interface{}, error) {
 	return obj.Metadata, nil
+}
+
+func (r *sessionCommentResolver) Tags(ctx context.Context, obj *model.SessionComment) ([]*string, error) {
+	var (
+		tags []sql.NullString
+	)
+	var tagsResponse []*string
+
+	if err := r.DB.Raw(`
+	SELECT
+    array_agg(t.name)
+FROM
+    session_tags st
+    JOIN session_comment_tags t ON t.id = st.session_comment_tag_id
+WHERE
+    st.session_comment_id = ?
+GROUP BY
+    st.session_comment_id`, obj.ID).Scan(&tags).Error; err != nil {
+		log.Error(err, "Failed to query for session comment tags")
+	}
+
+	for i := range tags {
+		temp, _ := tags[i].Value()
+		tagValue, _ := temp.(string)
+		tagValue = strings.Replace(tagValue, "{", "[\"", 1)
+		tagValue = strings.Replace(tagValue, "}", "\"]", 1)
+		tagValue = strings.Replace(tagValue, ",", "\",\"", -1)
+
+		tagsResponse = append(tagsResponse, &tagValue)
+	}
+
+	return tagsResponse, nil
 }
 
 // ErrorAlert returns generated.ErrorAlertResolver implementation.

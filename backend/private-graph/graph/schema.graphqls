@@ -391,7 +391,7 @@ type SessionComment {
     y_coordinate: Float
     type: SessionCommentType!
     metadata: Any
-    tags: [SessionCommentTag!]!
+    tags: [String]!
 }
 
 type SessionCommentTag {

@@ -1068,17 +1068,12 @@ export type GetSessionPayloadQuery = {
                     | 'y_coordinate'
                     | 'type'
                     | 'metadata'
+                    | 'tags'
                 > & {
                         author?: Types.Maybe<
                             { __typename?: 'SanitizedAdmin' } & Pick<
                                 Types.SanitizedAdmin,
                                 'id' | 'name' | 'email' | 'photo_url'
-                            >
-                        >;
-                        tags: Array<
-                            { __typename?: 'SessionCommentTag' } & Pick<
-                                Types.SessionCommentTag,
-                                'id' | 'name'
                             >
                         >;
                     }
@@ -1212,17 +1207,12 @@ export type GetSessionCommentsQuery = { __typename?: 'Query' } & {
                 | 'y_coordinate'
                 | 'type'
                 | 'metadata'
+                | 'tags'
             > & {
                     author?: Types.Maybe<
                         { __typename?: 'SanitizedAdmin' } & Pick<
                             Types.SanitizedAdmin,
                             'id' | 'name' | 'email' | 'photo_url'
-                        >
-                    >;
-                    tags: Array<
-                        { __typename?: 'SessionCommentTag' } & Pick<
-                            Types.SessionCommentTag,
-                            'id' | 'name'
                         >
                     >;
                 }
@@ -1247,6 +1237,7 @@ export type GetNotificationsQuery = { __typename?: 'Query' } & {
                 | 'text'
                 | 'type'
                 | 'metadata'
+                | 'tags'
             > & {
                     author?: Types.Maybe<
                         { __typename?: 'SanitizedAdmin' } & Pick<

@@ -2901,10 +2901,7 @@ export const GetSessionPayloadDocument = gql`
             y_coordinate
             type
             metadata
-            tags {
-                id
-                name
-            }
+            tags
         }
     }
 `;
@@ -3255,10 +3252,7 @@ export const GetSessionCommentsDocument = gql`
             y_coordinate
             type
             metadata
-            tags {
-                id
-                name
-            }
+            tags
         }
     }
 `;
@@ -3328,6 +3322,7 @@ export const GetNotificationsDocument = gql`
             }
             type
             metadata
+            tags
         }
         error_comments_for_project(project_id: $project_id) {
             id

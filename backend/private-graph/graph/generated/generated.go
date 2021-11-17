@@ -711,6 +711,7 @@ type SessionCommentResolver interface {
 
 	Type(ctx context.Context, obj *model1.SessionComment) (model.SessionCommentType, error)
 	Metadata(ctx context.Context, obj *model1.SessionComment) (interface{}, error)
+	Tags(ctx context.Context, obj *model1.SessionComment) ([]*string, error)
 }
 
 type executableSchema struct {
@@ -4244,7 +4245,7 @@ type SessionComment {
     y_coordinate: Float
     type: SessionCommentType!
     metadata: Any
-    tags: [SessionCommentTag!]!
+    tags: [String]!
 }
 
 type SessionCommentTag {
@@ -19561,14 +19562,14 @@ func (ec *executionContext) _SessionComment_tags(ctx context.Context, field grap
 		Object:     "SessionComment",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Tags, nil
+		return ec.resolvers.SessionComment().Tags(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -19580,9 +19581,9 @@ func (ec *executionContext) _SessionComment_tags(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model1.SessionCommentTag)
+	res := resTmp.([]*string)
 	fc.Result = res
-	return ec.marshalNSessionCommentTag2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionCommentTagᚄ(ctx, field.Selections, res)
+	return ec.marshalNString2ᚕᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SessionCommentTag_id(ctx context.Context, field graphql.CollectedField, obj *model1.SessionCommentTag) (ret graphql.Marshaler) {
@@ -24829,10 +24830,19 @@ func (ec *executionContext) _SessionComment(ctx context.Context, sel ast.Selecti
 				return res
 			})
 		case "tags":
-			out.Values[i] = ec._SessionComment_tags(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._SessionComment_tags(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
