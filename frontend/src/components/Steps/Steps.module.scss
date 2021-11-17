@@ -18,7 +18,6 @@
     :global(.ant-steps-item::after) {
         margin-left: 0 !important;
         opacity: 0 !important;
-        width: 0 !important;
     }
 
     :global(.ant-steps-item::before) {
@@ -26,7 +25,7 @@
         bottom: -4px;
         height: var(--size-xxSmall) !important;
         left: 0 !important;
-        width: 100% !important;
+        z-index: 9;
     }
 
     :global(.ant-steps-item) {
@@ -63,7 +62,8 @@
             color: var(--color-green-300) !important;
         }
 
-        &:global(.ant-steps-item-finish::before) {
+        &:global(.ant-steps-item-finish::before),
+        :global(.ant-steps-item-container::before) {
             background-color: var(--color-green-300) !important;
         }
     }
@@ -73,6 +73,18 @@
         :global(.ant-steps-item-title) {
             color: var(--color-purple) !important;
         }
+    }
+    :global(.ant-steps-item-container::before) {
+        background: var(--color-gray-400);
+        border-radius: var(--size-xxLarge);
+        bottom: -4px;
+        content: '';
+        display: inline-block;
+        height: var(--size-xxSmall) !important;
+        left: 0 !important;
+        position: absolute;
+        transition: width 0.3s, left 0.3s;
+        width: 100%;
     }
 }
 
