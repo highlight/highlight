@@ -171,84 +171,96 @@ const AlertSetupModal = () => {
             title: 'Select Alert Types',
             disableNextButton: selectedAlerts.length === 0,
             content: (
-                <div className={styles.cardGrid}>
-                    {Object.keys(ALERT_CONFIGURATIONS).map((_key) => {
-                        const key = _key as keyof typeof ALERT_CONFIGURATIONS;
-                        const configuration = ALERT_CONFIGURATIONS[key];
-                        const alertColor = getAlertTypeColor(
-                            configuration.name
-                        );
+                <>
+                    <h3>Select Alert Types</h3>
+                    <p style={{ color: 'var(--color-gray-500)' }}>
+                        Select the types of alerts you want to be notified about
+                        for your project.
+                    </p>
+                    <div className={styles.cardGrid}>
+                        {Object.keys(ALERT_CONFIGURATIONS).map((_key) => {
+                            const key = _key as keyof typeof ALERT_CONFIGURATIONS;
+                            const configuration = ALERT_CONFIGURATIONS[key];
+                            const alertColor = getAlertTypeColor(
+                                configuration.name
+                            );
 
-                        if (
-                            configuration.name ===
-                                `${ALERT_NAMES.TRACK_PROPERTIES_ALERT}` ||
-                            configuration.name ===
-                                `${ALERT_NAMES.USER_PROPERTIES_ALERT}`
-                        ) {
-                            return null;
-                        }
-                        const cx = classNames.bind(styles);
-                        const isSelected = selectedAlerts.includes(key);
+                            if (
+                                configuration.name ===
+                                    `${ALERT_NAMES.TRACK_PROPERTIES_ALERT}` ||
+                                configuration.name ===
+                                    `${ALERT_NAMES.USER_PROPERTIES_ALERT}`
+                            ) {
+                                return null;
+                            }
+                            const cx = classNames.bind(styles);
+                            const isSelected = selectedAlerts.includes(key);
 
-                        return (
-                            <div
-                                className={styles.cardContent}
-                                key={key}
-                                onClick={() => {
-                                    if (selectedAlerts.includes(key)) {
-                                        setSelectedAlerts(
-                                            selectedAlerts.filter(
-                                                (predicate) => {
-                                                    return predicate !== key;
-                                                }
-                                            )
-                                        );
-                                    } else {
-                                        setSelectedAlerts([
-                                            ...selectedAlerts,
-                                            key,
-                                        ]);
-                                    }
-                                }}
-                            >
-                                <AnimatePresence>
-                                    {isSelected && (
-                                        <motion.div
-                                            className={
-                                                styles.checkIconContainer
-                                            }
-                                            initial={{ scale: 0 }}
-                                            animate={{ scale: 1 }}
-                                            exit={{ scale: 0 }}
-                                        >
-                                            <SvgCheckCircleIcon />
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                                <Card
-                                    className={cx(styles.cardContainer, {
-                                        [styles.alertTypeSelected]: isSelected,
-                                    })}
+                            return (
+                                <div
+                                    className={styles.cardContent}
+                                    key={key}
+                                    onClick={() => {
+                                        if (selectedAlerts.includes(key)) {
+                                            setSelectedAlerts(
+                                                selectedAlerts.filter(
+                                                    (predicate) => {
+                                                        return (
+                                                            predicate !== key
+                                                        );
+                                                    }
+                                                )
+                                            );
+                                        } else {
+                                            setSelectedAlerts([
+                                                ...selectedAlerts,
+                                                key,
+                                            ]);
+                                        }
+                                    }}
                                 >
-                                    <h2 id={styles.title}>
-                                        <span
-                                            className={styles.icon}
-                                            style={{
-                                                backgroundColor: alertColor,
-                                            }}
-                                        >
-                                            {ALERT_CONFIGURATIONS[key].icon}
-                                        </span>
-                                        {ALERT_CONFIGURATIONS[key].name}
-                                    </h2>
-                                    <p className={styles.description}>
-                                        {ALERT_CONFIGURATIONS[key].description}
-                                    </p>
-                                </Card>
-                            </div>
-                        );
-                    })}
-                </div>
+                                    <AnimatePresence>
+                                        {isSelected && (
+                                            <motion.div
+                                                className={
+                                                    styles.checkIconContainer
+                                                }
+                                                initial={{ scale: 0 }}
+                                                animate={{ scale: 1 }}
+                                                exit={{ scale: 0 }}
+                                            >
+                                                <SvgCheckCircleIcon />
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                    <Card
+                                        className={cx(styles.cardContainer, {
+                                            [styles.alertTypeSelected]: isSelected,
+                                        })}
+                                    >
+                                        <h2 id={styles.title}>
+                                            <span
+                                                className={styles.icon}
+                                                style={{
+                                                    backgroundColor: alertColor,
+                                                }}
+                                            >
+                                                {ALERT_CONFIGURATIONS[key].icon}
+                                            </span>
+                                            {ALERT_CONFIGURATIONS[key].name}
+                                        </h2>
+                                        <p className={styles.description}>
+                                            {
+                                                ALERT_CONFIGURATIONS[key]
+                                                    .description
+                                            }
+                                        </p>
+                                    </Card>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </>
             ),
         },
         {
@@ -256,7 +268,7 @@ const AlertSetupModal = () => {
             content: (
                 <>
                     <h3>Channels to Notify</h3>
-                    <p>
+                    <p style={{ color: 'var(--color-gray-500)' }}>
                         Pick Slack channels or people to message when an alert
                         is created.
                     </p>
