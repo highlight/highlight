@@ -133,7 +133,11 @@ const getLink = (notification: any, project_id: string) => {
         case NotificationType.ErrorComment:
             return `${baseUrl}/errors/${notification.error_secure_id}`;
         case NotificationType.SessionComment:
-            return `${baseUrl}/sessions/${notification.session_secure_id}?${PlayerSearchParameters.commentId}=${notification.id}&${PlayerSearchParameters.ts}=${notification.timestamp}`;
+            return `${baseUrl}/sessions/${notification.session_secure_id}?${
+                PlayerSearchParameters.commentId
+            }=${notification.id}&${PlayerSearchParameters.ts}=${
+                notification.timestamp / 1000
+            }`;
         case NotificationType.SessionFeedback:
             return `${baseUrl}/sessions/${notification.session_secure_id}?${PlayerSearchParameters.commentId}=${notification.id}`;
         default:
