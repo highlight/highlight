@@ -347,7 +347,6 @@ const AlertSetupModal = () => {
 
     return (
         <Modal
-            title={'Default Alert Configuration'}
             visible={showModal}
             onCancel={() => {
                 setShowModal(false);
