@@ -98,11 +98,10 @@ export const NewCommentForm = ({
         let session_image: undefined | string = undefined;
 
         if (mentionedAdmins.length > 0 || mentionedSlackUsers.length > 0) {
-            const iframe = document.querySelector(
-                '.replayer-wrapper iframe'
-            ) as HTMLIFrameElement;
             const canvas = await html2canvas(
-                iframe.contentDocument!.documentElement,
+                (document.querySelector(
+                    '.replayer-wrapper iframe'
+                ) as HTMLIFrameElement).contentDocument!.documentElement,
                 {
                     allowTaint: true,
                     logging: false,
@@ -110,12 +109,6 @@ export const NewCommentForm = ({
                     foreignObjectRendering: false,
                     useCORS: false,
                     proxy: 'https://html2imageproxy.highlightrun.workers.dev',
-                    windowHeight: Number(iframe.height),
-                    windowWidth: Number(iframe.width),
-                    height: Number(iframe.height),
-                    width: Number(iframe.width),
-                    scrollY:
-                        iframe.contentDocument?.firstElementChild?.scrollTop,
                 }
             );
             session_image = canvas
