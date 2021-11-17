@@ -1,12 +1,14 @@
 import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
+import Input from '@components/Input/Input';
 import Tabs from '@components/Tabs/Tabs';
+import SvgSearchIcon from '@icons/SearchIcon';
 import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import { Menu } from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import Lottie from 'lottie-react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { useGetNotificationsQuery } from '../../../graph/generated/hooks';
 import NotificationAnimation from '../../../lottie/waiting.json';
@@ -247,22 +249,62 @@ const List = ({
     readNotifications,
     onViewHandler,
 }: ListProps) => {
+    const [searchQuery, setSearchQuery] = useState('');
+    const notificationsToShow = useMemo(() => {
+        if (searchQuery === '') {
+            return notifications;
+        }
+        const normalizedSearchQuery = searchQuery.toLowerCase();
+        return notifications.filter((notification) => {
+            return notification.text
+                .toLowerCase()
+                .includes(normalizedSearchQuery);
+        });
+    }, [notifications, searchQuery]);
+
+    const noSearchResults =
+        searchQuery !== '' && notificationsToShow.length === 0;
+
     return (
-        <PopoverListContent
-            virtual
-            virtualListHeight={600}
-            maxHeight={600}
-            defaultItemHeight={97}
-            listItems={notifications.map((notification, index) => (
-                <NotificationItem
-                    notification={notification}
-                    key={notification?.id || index}
-                    viewed={readNotifications.includes(notification.id)}
-                    onViewHandler={() => {
-                        onViewHandler(notification);
+        <>
+            <div className={styles.searchContainer}>
+                <Input
+                    placeholder="Search notifications"
+                    suffix={<SvgSearchIcon className={styles.searchIcon} />}
+                    className={styles.search}
+                    value={searchQuery}
+                    onChange={(e) => {
+                        setSearchQuery(e.target.value);
                     }}
+                    allowClear
                 />
-            ))}
-        />
+            </div>
+            {!noSearchResults ? (
+                <PopoverListContent
+                    virtual
+                    virtualListHeight={600}
+                    maxHeight={600}
+                    defaultItemHeight={97}
+                    listItems={notificationsToShow.map(
+                        (notification, index) => (
+                            <NotificationItem
+                                notification={notification}
+                                key={notification?.id || index}
+                                viewed={readNotifications.includes(
+                                    notification.id
+                                )}
+                                onViewHandler={() => {
+                                    onViewHandler(notification);
+                                }}
+                            />
+                        )
+                    )}
+                />
+            ) : (
+                <div className={styles.noResultsMessage}>
+                    <p>No notifications matching '{searchQuery}'.</p>
+                </div>
+            )}
+        </>
     );
 };
