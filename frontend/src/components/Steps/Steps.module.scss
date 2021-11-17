@@ -12,6 +12,7 @@
     :global(.ant-steps-item-container) {
         margin-left: 0 !important;
         padding-bottom: 0 !important;
+        width: 100%;
     }
 
     :global(.ant-steps-item::after) {
