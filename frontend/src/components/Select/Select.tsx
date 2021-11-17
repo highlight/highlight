@@ -30,6 +30,7 @@ type Props = Pick<
     | 'bordered'
     | 'disabled'
     | 'defaultActiveFirstOption'
+    | 'aria-label'
 > & {
     options?: {
         value: string;

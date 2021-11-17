@@ -1,4 +1,3 @@
-import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Select from '@components/Select/Select';
 import {
     GetCommentTagsForProjectQuery,
@@ -260,26 +259,18 @@ export const NewCommentForm = ({
             onKeyDown={onFormChangeHandler}
         >
             <Form.Item name="commentText" wrapperCol={{ span: 24 }}>
-                <label className={styles.label}>
-                    <span>
-                        Comment Text
-                        <InfoTooltip title="You can mention a person or Slack channel by typing @" />
-                    </span>
-                    <div className={styles.commentInputContainer}>
-                        <CommentTextBody
-                            commentText={commentText}
-                            onChangeHandler={onChangeHandler}
-                            placeholder={`Add a comment at ${MillisToMinutesAndSeconds(
-                                currentTime
-                            )}`}
-                            suggestions={adminSuggestions}
-                            onDisplayTransformHandler={onDisplayTransform}
-                            suggestionsPortalHost={
-                                parentRef?.current as Element
-                            }
-                        />
-                    </div>
-                </label>
+                <div className={styles.commentInputContainer}>
+                    <CommentTextBody
+                        commentText={commentText}
+                        onChangeHandler={onChangeHandler}
+                        placeholder={`Add a comment at ${MillisToMinutesAndSeconds(
+                            currentTime
+                        )}`}
+                        suggestions={adminSuggestions}
+                        onDisplayTransformHandler={onDisplayTransform}
+                        suggestionsPortalHost={parentRef?.current as Element}
+                    />
+                </div>
             </Form.Item>
             <Form.Item
                 shouldUpdate
@@ -290,34 +281,27 @@ export const NewCommentForm = ({
                 {() => (
                     <div className={styles.footer}>
                         <div>
-                            <label className={styles.label}>
-                                <span>
-                                    Tags
-                                    <InfoTooltip title="Tags allow you to add custom metadata to your comments and to the session the comment was made on." />
-                                </span>
-                                <Select
-                                    defaultActiveFirstOption
-                                    placeholder="signups, userflow, bug, error"
-                                    mode="tags"
-                                    options={(
-                                        commentTagsData?.session_comment_tags_for_project ||
-                                        []
-                                    ).map((tag) => ({
-                                        displayValue: tag.name,
-                                        id: tag.id,
-                                        value: tag.name,
-                                    }))}
-                                    onChange={setTags}
-                                    notFoundContent={
-                                        <p>
-                                            Doesn't look like your project has
-                                            any tags yet. You can create tags by
-                                            typing the tag name then pressing
-                                            enter.
-                                        </p>
-                                    }
-                                />
-                            </label>
+                            <Select
+                                aria-label="Comment tags"
+                                defaultActiveFirstOption
+                                placeholder="Add tags (e.g. signups, userflow, bug, error)"
+                                mode="tags"
+                                options={(
+                                    commentTagsData?.session_comment_tags_for_project ||
+                                    []
+                                ).map((tag) => ({
+                                    displayValue: tag.name,
+                                    id: tag.id,
+                                    value: tag.name,
+                                }))}
+                                onChange={setTags}
+                                notFoundContent={
+                                    <p>
+                                        You can create tags by typing the tag
+                                        name then pressing enter.
+                                    </p>
+                                }
+                            />
                         </div>
                         <div className={styles.actionButtons}>
                             <Button
