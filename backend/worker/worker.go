@@ -662,8 +662,10 @@ func (w *Worker) Start() {
 
 	if util.IsDevEnv() {
 		payloadLookbackPeriod = 8
+		lockPeriod = 1
 	}
-	go reportProcessSessionCount(w.Resolver.DB, payloadLookbackPeriod)
+
+	go reportProcessSessionCount(w.Resolver.DB, payloadLookbackPeriod, lockPeriod)
 	maxWorkerCount := 40
 	processSessionLimit := 10000
 	for {
@@ -955,7 +957,7 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 	return o
 }
 
-func reportProcessSessionCount(db *gorm.DB, lookbackPeriod int) {
+func reportProcessSessionCount(db *gorm.DB, lookbackPeriod, lockPeriod int) {
 	defer util.Recover()
 	for {
 		time.Sleep(5 * time.Second)
@@ -963,13 +965,13 @@ func reportProcessSessionCount(db *gorm.DB, lookbackPeriod int) {
 		if err := db.Raw(`
 			SELECT COUNT(*)
 			FROM sessions
-			WHERE (
-				payload_updated_at < (NOW() - ? * INTERVAL '1 SECOND')
-				OR payload_updated_at IS NULL
-			)
-			AND processed=false;
-		`, lookbackPeriod).Scan(&count).Error; err != nil {
-			log.Error("error getting count of sessions to process")
+			WHERE
+				(COALESCE(payload_updated_at, to_timestamp(0)) < NOW() - (? * INTERVAL '1 SECOND'))
+				AND (COALESCE(lock, to_timestamp(0)) < NOW() - (? * INTERVAL '1 MINUTE'))
+				AND NOT processed
+				AND NOT excluded;
+			`, lookbackPeriod, lockPeriod).Scan(&count).Error; err != nil {
+			log.Error(e.Wrap(err, "error getting count of sessions to process"))
 			continue
 		}
 		hlog.Histogram("processSessionsCount", float64(count), nil, 1)
