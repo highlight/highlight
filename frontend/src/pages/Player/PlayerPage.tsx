@@ -465,10 +465,10 @@ const Player = ({ integrated }: Props) => {
                         destroyOnClose
                         minimal
                         minimalPaddingSize="var(--size-large)"
-                        width="350px"
+                        width="400px"
                         style={{
                             ...getNewCommentFormCoordinates(
-                                350,
+                                400,
                                 commentModalPosition?.x,
                                 commentModalPosition?.y
                             ),

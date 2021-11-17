@@ -24,13 +24,17 @@
         border-radius: var(--border-radius) !important;
         font-family: var(--body-font-family);
         height: fit-content !important;
-        padding: var(--size-xSmall) var(--size-medium) !important;
+        padding: var(--size-xSmall) var(--size-small) !important;
         transition: all 0.2s ease-in-out;
     }
 
     :global(.ant-select-selection-placeholder) {
         color: var(--color-gray-500) !important;
-        left: 24px;
+        left: var(--size-small);
+    }
+
+    :global(.ant-select-selection-search) {
+        margin-left: 0 !important;
     }
 
     :global(.ant-select-arrow) {

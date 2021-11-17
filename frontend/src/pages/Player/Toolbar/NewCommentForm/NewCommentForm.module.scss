@@ -12,12 +12,6 @@
     row-gap: var(--size-medium);
 }
 
-.label {
-    display: flex;
-    flex-direction: column;
-    row-gap: var(--size-xxSmall);
-}
-
 .actionButtonsContainer {
     margin-bottom: 0;
 }
@@ -29,8 +23,8 @@
     box-shadow: none !important;
     height: 100px;
     padding-bottom: var(--size-xSmall) !important;
-    padding-left: var(--size-medium) !important;
-    padding-right: var(--size-medium) !important;
+    padding-left: var(--size-small) !important;
+    padding-right: var(--size-small) !important;
     padding-top: var(--size-xSmall) !important;
     transition: all 0.2s ease-in-out;
 
@@ -55,4 +49,21 @@
 .intercomLink {
     cursor: pointer;
     text-decoration: underline;
+}
+
+.customTag {
+    align-items: center;
+    background: var(--color-gray-300);
+    border-radius: var(--size-large);
+    column-gap: var(--size-xxSmall);
+    display: flex;
+    font-size: 12px;
+    margin-right: var(--size-xSmall);
+    padding: var(--size-xxSmall) var(--size-small);
+}
+
+.tagSelect {
+    :global(.ant-select-selection-overflow) {
+        row-gap: var(--size-xSmall);
+    }
 }

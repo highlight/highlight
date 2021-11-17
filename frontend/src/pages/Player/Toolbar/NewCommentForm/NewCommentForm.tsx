@@ -1,14 +1,14 @@
-import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Select from '@components/Select/Select';
+import { getTagBackgroundColor } from '@components/Tag/Tag';
 import {
     GetCommentTagsForProjectQuery,
     namedOperations,
 } from '@graph/operations';
+import SvgCloseIcon from '@icons/CloseIcon';
 import CommentTextBody from '@pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody';
 import { getCommentMentionSuggestions } from '@util/comment/util';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
-import { MillisToMinutesAndSeconds } from '@util/time';
 import { Form, message } from 'antd';
 import { H } from 'highlight.run';
 import html2canvas from 'html2canvas';
@@ -28,6 +28,7 @@ import {
     useGetProjectAdminsQuery,
 } from '../../../../graph/generated/hooks';
 import {
+    Admin,
     SanitizedAdminInput,
     SanitizedSlackChannelInput,
 } from '../../../../graph/generated/schemas';
@@ -252,6 +253,11 @@ export const NewCommentForm = ({
         }
     };
 
+    const placeholder = useMemo(
+        () => getNewCommentPlaceholderText(adminSuggestions, admin),
+        [admin, adminSuggestions]
+    );
+
     return (
         <Form
             name="newComment"
@@ -260,26 +266,16 @@ export const NewCommentForm = ({
             onKeyDown={onFormChangeHandler}
         >
             <Form.Item name="commentText" wrapperCol={{ span: 24 }}>
-                <label className={styles.label}>
-                    <span>
-                        Comment Text
-                        <InfoTooltip title="You can mention a person or Slack channel by typing @" />
-                    </span>
-                    <div className={styles.commentInputContainer}>
-                        <CommentTextBody
-                            commentText={commentText}
-                            onChangeHandler={onChangeHandler}
-                            placeholder={`Add a comment at ${MillisToMinutesAndSeconds(
-                                currentTime
-                            )}`}
-                            suggestions={adminSuggestions}
-                            onDisplayTransformHandler={onDisplayTransform}
-                            suggestionsPortalHost={
-                                parentRef?.current as Element
-                            }
-                        />
-                    </div>
-                </label>
+                <div className={styles.commentInputContainer}>
+                    <CommentTextBody
+                        commentText={commentText}
+                        onChangeHandler={onChangeHandler}
+                        placeholder={placeholder}
+                        suggestions={adminSuggestions}
+                        onDisplayTransformHandler={onDisplayTransform}
+                        suggestionsPortalHost={parentRef?.current as Element}
+                    />
+                </div>
             </Form.Item>
             <Form.Item
                 shouldUpdate
@@ -290,34 +286,29 @@ export const NewCommentForm = ({
                 {() => (
                     <div className={styles.footer}>
                         <div>
-                            <label className={styles.label}>
-                                <span>
-                                    Tags
-                                    <InfoTooltip title="Tags allow you to add custom metadata to your comments and to the session the comment was made on." />
-                                </span>
-                                <Select
-                                    defaultActiveFirstOption
-                                    placeholder="signups, userflow, bug, error"
-                                    mode="tags"
-                                    options={(
-                                        commentTagsData?.session_comment_tags_for_project ||
-                                        []
-                                    ).map((tag) => ({
-                                        displayValue: tag.name,
-                                        id: tag.id,
-                                        value: tag.name,
-                                    }))}
-                                    onChange={setTags}
-                                    notFoundContent={
-                                        <p>
-                                            Doesn't look like your project has
-                                            any tags yet. You can create tags by
-                                            typing the tag name then pressing
-                                            enter.
-                                        </p>
-                                    }
-                                />
-                            </label>
+                            <Select
+                                className={styles.tagSelect}
+                                aria-label="Comment tags"
+                                defaultActiveFirstOption
+                                placeholder="Add tags (e.g. signups, userflow, bug, error)"
+                                mode="tags"
+                                options={(
+                                    commentTagsData?.session_comment_tags_for_project ||
+                                    []
+                                ).map((tag) => ({
+                                    displayValue: tag.name,
+                                    id: tag.id,
+                                    value: tag.name,
+                                }))}
+                                onChange={setTags}
+                                notFoundContent={
+                                    <p>
+                                        You can create tags by typing the tag
+                                        name then pressing enter.
+                                    </p>
+                                }
+                                tagRender={CustomTag}
+                            />
                         </div>
                         <div className={styles.actionButtons}>
                             <Button
@@ -376,4 +367,69 @@ const getTags = (
     });
 
     return response;
+};
+
+const RANDOM_COMMENT_MESSAGES = [
+    'check this out!',
+    'what do you think of this?',
+    'should we update this?',
+    'looks like the user was having trouble here.',
+] as const;
+
+const getNewCommentPlaceholderText = (
+    adminSuggestions?: AdminSuggestion[],
+    admin?: Admin
+) => {
+    const randomMessage =
+        RANDOM_COMMENT_MESSAGES[
+            Math.floor(Math.random() * RANDOM_COMMENT_MESSAGES.length)
+        ];
+
+    if (!adminSuggestions || !admin) {
+        return randomMessage;
+    }
+    if (adminSuggestions.length === 0) {
+        return `Hey @${admin.name}, ${randomMessage}`;
+    }
+
+    const randomSuggestionIndex = Math.floor(
+        Math.random() * adminSuggestions.length
+    );
+    let displayName = adminSuggestions[randomSuggestionIndex].display || '';
+
+    if (!(displayName[0] === '@') && !(displayName[0] === '#')) {
+        displayName = `@${displayName}`;
+    } else if (displayName.includes('#')) {
+        displayName = `@${displayName.slice(1)}`;
+    }
+
+    return `Hey ${displayName}, ${randomMessage}`;
+};
+
+type CustomTagProps = {
+    label: React.ReactNode;
+    value: any;
+    disabled: boolean;
+    onClose: (event?: React.MouseEvent<HTMLElement, MouseEvent>) => void;
+    closable: boolean;
+};
+
+const CustomTag = ({ onClose, label, value }: CustomTagProps) => {
+    return (
+        <div
+            className={styles.customTag}
+            style={{ backgroundColor: getTagBackgroundColor(value) }}
+        >
+            <span>{label}</span>
+            <Button
+                onClick={onClose}
+                trackingId="NewCommentTagClose"
+                iconButton
+                type="text"
+                size="small"
+            >
+                <SvgCloseIcon />
+            </Button>
+        </div>
+    );
 };

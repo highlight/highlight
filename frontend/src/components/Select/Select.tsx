@@ -30,6 +30,8 @@ type Props = Pick<
     | 'bordered'
     | 'disabled'
     | 'defaultActiveFirstOption'
+    | 'aria-label'
+    | 'tagRender'
 > & {
     options?: {
         value: string;
