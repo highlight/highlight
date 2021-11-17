@@ -375,7 +375,7 @@ const AlertSetupModal = () => {
             onCancel={() => {
                 setShowModal(false);
             }}
-            width="600px"
+            width={600}
         >
             <Steps
                 type="navigation"
