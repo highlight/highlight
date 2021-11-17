@@ -50,8 +50,8 @@ export const BillingPlanCard = ({
                     ? 'billed yearly'
                     : 'billed monthly'}
             </p>
-            {onToggleInterval !== undefined && (
-                <div className={styles.intervalToggleContainer}>
+            <div className={styles.intervalToggleContainer}>
+                {onToggleInterval !== undefined && (
                     <Switch
                         label="Yearly"
                         alternateSideLabel="Monthly"
@@ -62,8 +62,8 @@ export const BillingPlanCard = ({
                         trackingId="ToggleSubscriptionInterval"
                         className={styles.intervalToggle}
                     />
-                </div>
-            )}
+                )}
+            </div>
             <ul className={styles.advertisedFeaturesWrapper}>
                 {billingPlan.advertisedFeatures.map((featureString) => (
                     <li

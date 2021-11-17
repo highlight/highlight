@@ -4,7 +4,7 @@
     @include rounded-border;
     display: flex;
     flex-direction: column;
-    height: 325px;
+    height: 360px;
     padding: 24px;
     width: 275px;
 }
@@ -58,7 +58,10 @@
 }
 
 .intervalToggleContainer {
+    height: 26px;
     margin-bottom: var(--size-xxSmall);
+    padding-bottom: var(--size-xxSmall);
+    padding-top: var(--size-xxSmall);
 }
 
 .intervalToggle {
