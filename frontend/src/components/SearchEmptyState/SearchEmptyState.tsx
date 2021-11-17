@@ -15,14 +15,16 @@ interface Props {
     item: string;
     customTitle?: string;
     customDescription?: string | ReactNode;
+    className?: string;
 }
 
 export const SearchEmptyState = ({
     item,
     customDescription,
     customTitle,
+    className,
 }: Props) => (
-    <div className={classNames(styles.newFeedStyles)}>
+    <div className={classNames(styles.newFeedStyles, className)}>
         <div className={emptyStateWrapper}>
             <div style={{ marginRight: 80 }} className={emptyStateSection}>
                 <EmptyState preserveAspectRatio="xMinYMin" />
