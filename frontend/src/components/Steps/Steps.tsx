@@ -6,7 +6,7 @@ import {
     Steps as AntDesignSteps,
     StepsProps as AntDesignStepsProps,
 } from 'antd';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import styles from './Steps.module.scss';
 
@@ -48,6 +48,12 @@ const Steps: StepsType = ({
 }) => {
     const [currentStepIndex, setCurrentStepIndex] = useState(current || 0);
     const currentStep = steps[currentStepIndex];
+
+    useEffect(() => {
+        if (current) {
+            setCurrentStepIndex(current);
+        }
+    }, [current]);
 
     return (
         <>
