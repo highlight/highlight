@@ -232,7 +232,7 @@ type ComplexityRoot struct {
 		CreateErrorSegment               func(childComplexity int, projectID int, name string, params model.ErrorSearchParamsInput) int
 		CreateNewSessionAlert            func(childComplexity int, projectID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, thresholdWindow int, excludeRules []*string) int
 		CreateNewUserAlert               func(childComplexity int, projectID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, thresholdWindow int) int
-		CreateOrUpdateStripeSubscription func(childComplexity int, workspaceID int, planType model.PlanType) int
+		CreateOrUpdateStripeSubscription func(childComplexity int, workspaceID int, planType model.PlanType, interval model.SubscriptionInterval) int
 		CreateProject                    func(childComplexity int, name string, workspaceID int) int
 		CreateRageClickAlert             func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
 		CreateSegment                    func(childComplexity int, projectID int, name string, params model.SearchParamsInput) int
@@ -260,6 +260,7 @@ type ComplexityRoot struct {
 		OpenSlackConversation            func(childComplexity int, projectID int, code string, redirectPath string) int
 		SendAdminProjectInvite           func(childComplexity int, projectID int, email string, baseURL string) int
 		SendAdminWorkspaceInvite         func(childComplexity int, workspaceID int, email string, baseURL string, role string) int
+		UpdateAllowMeterOverage          func(childComplexity int, workspaceID int, allowMeterOverage bool) int
 		UpdateBillingDetails             func(childComplexity int, workspaceID int) int
 		UpdateErrorAlert                 func(childComplexity int, projectID int, name string, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
 		UpdateErrorGroupIsPublic         func(childComplexity int, errorGroupSecureID string, isPublic bool) int
@@ -278,8 +279,9 @@ type ComplexityRoot struct {
 	}
 
 	Plan struct {
-		Quota func(childComplexity int) int
-		Type  func(childComplexity int) int
+		Interval func(childComplexity int) int
+		Quota    func(childComplexity int) int
+		Type     func(childComplexity int) int
 	}
 
 	Project struct {
@@ -531,6 +533,7 @@ type ComplexityRoot struct {
 	}
 
 	Workspace struct {
+		AllowMeterOverage   func(childComplexity int) int
 		ID                  func(childComplexity int) int
 		Name                func(childComplexity int) int
 		Projects            func(childComplexity int) int
@@ -597,7 +600,7 @@ type MutationResolver interface {
 	CreateErrorSegment(ctx context.Context, projectID int, name string, params model.ErrorSearchParamsInput) (*model1.ErrorSegment, error)
 	EditErrorSegment(ctx context.Context, id int, projectID int, params model.ErrorSearchParamsInput) (*bool, error)
 	DeleteErrorSegment(ctx context.Context, segmentID int) (*bool, error)
-	CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int, planType model.PlanType) (*string, error)
+	CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int, planType model.PlanType, interval model.SubscriptionInterval) (*string, error)
 	UpdateBillingDetails(ctx context.Context, workspaceID int) (*bool, error)
 	CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, tags []*model.SessionCommentTagInput) (*model1.SessionComment, error)
 	DeleteSessionComment(ctx context.Context, id int) (*bool, error)
@@ -624,6 +627,7 @@ type MutationResolver interface {
 	CreateNewSessionAlert(ctx context.Context, projectID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, thresholdWindow int, excludeRules []*string) (*model1.SessionAlert, error)
 	UpdateSessionIsPublic(ctx context.Context, sessionSecureID string, isPublic bool) (*model1.Session, error)
 	UpdateErrorGroupIsPublic(ctx context.Context, errorGroupSecureID string, isPublic bool) (*model1.ErrorGroup, error)
+	UpdateAllowMeterOverage(ctx context.Context, workspaceID int, allowMeterOverage bool) (*model1.Workspace, error)
 }
 type QueryResolver interface {
 	Session(ctx context.Context, secureID string) (*model1.Session, error)
@@ -1624,7 +1628,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateOrUpdateStripeSubscription(childComplexity, args["workspace_id"].(int), args["plan_type"].(model.PlanType)), true
+		return e.complexity.Mutation.CreateOrUpdateStripeSubscription(childComplexity, args["workspace_id"].(int), args["plan_type"].(model.PlanType), args["interval"].(model.SubscriptionInterval)), true
 
 	case "Mutation.createProject":
 		if e.complexity.Mutation.CreateProject == nil {
@@ -1950,6 +1954,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.SendAdminWorkspaceInvite(childComplexity, args["workspace_id"].(int), args["email"].(string), args["base_url"].(string), args["role"].(string)), true
 
+	case "Mutation.updateAllowMeterOverage":
+		if e.complexity.Mutation.UpdateAllowMeterOverage == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateAllowMeterOverage_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateAllowMeterOverage(childComplexity, args["workspace_id"].(int), args["allow_meter_overage"].(bool)), true
+
 	case "Mutation.updateBillingDetails":
 		if e.complexity.Mutation.UpdateBillingDetails == nil {
 			break
@@ -2088,6 +2104,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.NewUsersCount.Count(childComplexity), true
+
+	case "Plan.interval":
+		if e.complexity.Plan.Interval == nil {
+			break
+		}
+
+		return e.complexity.Plan.Interval(childComplexity), true
 
 	case "Plan.quota":
 		if e.complexity.Plan.Quota == nil {
@@ -3704,6 +3727,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserProperty.Value(childComplexity), true
 
+	case "Workspace.allow_meter_overage":
+		if e.complexity.Workspace.AllowMeterOverage == nil {
+			break
+		}
+
+		return e.complexity.Workspace.AllowMeterOverage(childComplexity), true
+
 	case "Workspace.id":
 		if e.complexity.Workspace.ID == nil {
 			break
@@ -3927,6 +3957,7 @@ type BillingDetails {
 
 type Plan {
     type: PlanType!
+    interval: SubscriptionInterval!
     quota: Int!
 }
 
@@ -3935,6 +3966,11 @@ enum PlanType {
     Basic
     Startup
     Enterprise
+}
+
+enum SubscriptionInterval {
+    Monthly
+    Annual
 }
 
 type EnhancedUserDetailsResult {
@@ -3992,6 +4028,7 @@ type Workspace {
     secret: String
     projects: [Project]!
     trial_end_date: Timestamp
+    allow_meter_overage: Boolean!
 }
 
 type Segment {
@@ -4497,6 +4534,7 @@ type Mutation {
     createOrUpdateStripeSubscription(
         workspace_id: ID!
         plan_type: PlanType!
+        interval: SubscriptionInterval!
     ): String
     updateBillingDetails(workspace_id: ID!): Boolean
     createSessionComment(
@@ -4673,6 +4711,10 @@ type Mutation {
         error_group_secure_id: String!
         is_public: Boolean!
     ): ErrorGroup
+    updateAllowMeterOverage(
+        workspace_id: ID!
+        allow_meter_overage: Boolean!
+    ): Workspace
 }
 `, BuiltIn: false},
 }
@@ -5126,6 +5168,15 @@ func (ec *executionContext) field_Mutation_createOrUpdateStripeSubscription_args
 		}
 	}
 	args["plan_type"] = arg1
+	var arg2 model.SubscriptionInterval
+	if tmp, ok := rawArgs["interval"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("interval"))
+		arg2, err = ec.unmarshalNSubscriptionInterval2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSubscriptionInterval(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["interval"] = arg2
 	return args, nil
 }
 
@@ -6035,6 +6086,30 @@ func (ec *executionContext) field_Mutation_sendAdminWorkspaceInvite_args(ctx con
 		}
 	}
 	args["role"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateAllowMeterOverage_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["workspace_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["workspace_id"] = arg0
+	var arg1 bool
+	if tmp, ok := rawArgs["allow_meter_overage"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("allow_meter_overage"))
+		arg1, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["allow_meter_overage"] = arg1
 	return args, nil
 }
 
@@ -12320,7 +12395,7 @@ func (ec *executionContext) _Mutation_createOrUpdateStripeSubscription(ctx conte
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateOrUpdateStripeSubscription(rctx, args["workspace_id"].(int), args["plan_type"].(model.PlanType))
+		return ec.resolvers.Mutation().CreateOrUpdateStripeSubscription(rctx, args["workspace_id"].(int), args["plan_type"].(model.PlanType), args["interval"].(model.SubscriptionInterval))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13351,6 +13426,45 @@ func (ec *executionContext) _Mutation_updateErrorGroupIsPublic(ctx context.Conte
 	return ec.marshalOErrorGroup2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorGroup(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_updateAllowMeterOverage(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateAllowMeterOverage_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateAllowMeterOverage(rctx, args["workspace_id"].(int), args["allow_meter_overage"].(bool))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model1.Workspace)
+	fc.Result = res
+	return ec.marshalOWorkspace2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspace(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _NewUsersCount_count(ctx context.Context, field graphql.CollectedField, obj *model.NewUsersCount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -13419,6 +13533,41 @@ func (ec *executionContext) _Plan_type(ctx context.Context, field graphql.Collec
 	res := resTmp.(model.PlanType)
 	fc.Result = res
 	return ec.marshalNPlanType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐPlanType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Plan_interval(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Plan",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Interval, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.SubscriptionInterval)
+	fc.Result = res
+	return ec.marshalNSubscriptionInterval2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSubscriptionInterval(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Plan_quota(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
@@ -20481,6 +20630,41 @@ func (ec *executionContext) _Workspace_trial_end_date(ctx context.Context, field
 	return ec.marshalOTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Workspace_allow_meter_overage(ctx context.Context, field graphql.CollectedField, obj *model1.Workspace) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Workspace",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AllowMeterOverage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _WorkspaceInviteLink_id(ctx context.Context, field graphql.CollectedField, obj *model1.WorkspaceInviteLink) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -23256,6 +23440,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_updateSessionIsPublic(ctx, field)
 		case "updateErrorGroupIsPublic":
 			out.Values[i] = ec._Mutation_updateErrorGroupIsPublic(ctx, field)
+		case "updateAllowMeterOverage":
+			out.Values[i] = ec._Mutation_updateAllowMeterOverage(ctx, field)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -23307,6 +23493,11 @@ func (ec *executionContext) _Plan(ctx context.Context, sel ast.SelectionSet, obj
 			out.Values[i] = graphql.MarshalString("Plan")
 		case "type":
 			out.Values[i] = ec._Plan_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "interval":
+			out.Values[i] = ec._Plan_interval(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -25156,6 +25347,11 @@ func (ec *executionContext) _Workspace(ctx context.Context, sel ast.SelectionSet
 			}
 		case "trial_end_date":
 			out.Values[i] = ec._Workspace_trial_end_date(ctx, field, obj)
+		case "allow_meter_overage":
+			out.Values[i] = ec._Workspace_allow_meter_overage(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -26577,6 +26773,16 @@ func (ec *executionContext) marshalNString2ᚖstring(ctx context.Context, sel as
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNSubscriptionInterval2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSubscriptionInterval(ctx context.Context, v interface{}) (model.SubscriptionInterval, error) {
+	var res model.SubscriptionInterval
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNSubscriptionInterval2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSubscriptionInterval(ctx context.Context, sel ast.SelectionSet, v model.SubscriptionInterval) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNTimestamp2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {

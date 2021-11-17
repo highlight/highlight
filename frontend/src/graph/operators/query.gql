@@ -432,6 +432,7 @@ query GetBillingDetailsForProject($project_id: ID!) {
         plan {
             type
             quota
+            interval
         }
         meter
         sessionsOutOfQuota
@@ -439,6 +440,7 @@ query GetBillingDetailsForProject($project_id: ID!) {
     workspace_for_project(project_id: $project_id) {
         id
         trial_end_date
+        allow_meter_overage
     }
 }
 
@@ -447,6 +449,7 @@ query GetBillingDetails($workspace_id: ID!) {
         plan {
             type
             quota
+            interval
         }
         meter
         sessionsOutOfQuota
@@ -454,6 +457,7 @@ query GetBillingDetails($workspace_id: ID!) {
     workspace(id: $workspace_id) {
         id
         trial_end_date
+        allow_meter_overage
     }
 }
 

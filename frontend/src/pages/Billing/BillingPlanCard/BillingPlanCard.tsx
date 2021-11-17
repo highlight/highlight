@@ -1,3 +1,4 @@
+import { SubscriptionInterval } from '@graph/schemas';
 import classNames from 'classnames/bind';
 import React from 'react';
 
@@ -12,12 +13,14 @@ export const BillingPlanCard = ({
     onSelect,
     current,
     loading,
+    subscriptionInterval,
     disabled,
 }: {
     current: boolean;
     billingPlan: BillingPlan;
     onSelect: () => void;
     loading: boolean;
+    subscriptionInterval: SubscriptionInterval;
     disabled?: boolean;
 }) => {
     return (
@@ -32,8 +35,17 @@ export const BillingPlanCard = ({
                     commonStyles.title,
                     styles.billingPlanPrice
                 )}
-            >{`$${billingPlan.monthlyPrice}`}</h4>
-            <p className={styles.billingFrequency}>billed monthly</p>
+            >{`$${
+                subscriptionInterval === SubscriptionInterval.Annual
+                    ? billingPlan.annualPrice
+                    : billingPlan.monthlyPrice
+            }`}</h4>
+            <p className={styles.billingFrequency}>
+                billed{' '}
+                {subscriptionInterval === SubscriptionInterval.Annual
+                    ? 'annually'
+                    : 'monthly'}
+            </p>
             <ul className={styles.advertisedFeaturesWrapper}>
                 {billingPlan.advertisedFeatures.map((featureString) => (
                     <li

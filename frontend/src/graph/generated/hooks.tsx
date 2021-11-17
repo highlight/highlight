@@ -107,10 +107,12 @@ export const CreateOrUpdateStripeSubscriptionDocument = gql`
     mutation CreateOrUpdateStripeSubscription(
         $workspace_id: ID!
         $plan_type: PlanType!
+        $interval: SubscriptionInterval!
     ) {
         createOrUpdateStripeSubscription(
             workspace_id: $workspace_id
             plan_type: $plan_type
+            interval: $interval
         )
     }
 `;
@@ -134,6 +136,7 @@ export type CreateOrUpdateStripeSubscriptionMutationFn = Apollo.MutationFunction
  *   variables: {
  *      workspace_id: // value for 'workspace_id'
  *      plan_type: // value for 'plan_type'
+ *      interval: // value for 'interval'
  *   },
  * });
  */
@@ -2853,6 +2856,62 @@ export type UpdateErrorGroupIsPublicMutationOptions = Apollo.BaseMutationOptions
     Types.UpdateErrorGroupIsPublicMutation,
     Types.UpdateErrorGroupIsPublicMutationVariables
 >;
+export const UpdateAllowMeterOverageDocument = gql`
+    mutation UpdateAllowMeterOverage(
+        $workspace_id: ID!
+        $allow_meter_overage: Boolean!
+    ) {
+        updateAllowMeterOverage(
+            workspace_id: $workspace_id
+            allow_meter_overage: $allow_meter_overage
+        ) {
+            id
+            allow_meter_overage
+        }
+    }
+`;
+export type UpdateAllowMeterOverageMutationFn = Apollo.MutationFunction<
+    Types.UpdateAllowMeterOverageMutation,
+    Types.UpdateAllowMeterOverageMutationVariables
+>;
+
+/**
+ * __useUpdateAllowMeterOverageMutation__
+ *
+ * To run a mutation, you first call `useUpdateAllowMeterOverageMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateAllowMeterOverageMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateAllowMeterOverageMutation, { data, loading, error }] = useUpdateAllowMeterOverageMutation({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *      allow_meter_overage: // value for 'allow_meter_overage'
+ *   },
+ * });
+ */
+export function useUpdateAllowMeterOverageMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.UpdateAllowMeterOverageMutation,
+        Types.UpdateAllowMeterOverageMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.UpdateAllowMeterOverageMutation,
+        Types.UpdateAllowMeterOverageMutationVariables
+    >(UpdateAllowMeterOverageDocument, baseOptions);
+}
+export type UpdateAllowMeterOverageMutationHookResult = ReturnType<
+    typeof useUpdateAllowMeterOverageMutation
+>;
+export type UpdateAllowMeterOverageMutationResult = Apollo.MutationResult<Types.UpdateAllowMeterOverageMutation>;
+export type UpdateAllowMeterOverageMutationOptions = Apollo.BaseMutationOptions<
+    Types.UpdateAllowMeterOverageMutation,
+    Types.UpdateAllowMeterOverageMutationVariables
+>;
 export const GetSessionPayloadDocument = gql`
     query GetSessionPayload(
         $session_secure_id: String!
@@ -4379,6 +4438,7 @@ export const GetBillingDetailsForProjectDocument = gql`
             plan {
                 type
                 quota
+                interval
             }
             meter
             sessionsOutOfQuota
@@ -4386,6 +4446,7 @@ export const GetBillingDetailsForProjectDocument = gql`
         workspace_for_project(project_id: $project_id) {
             id
             trial_end_date
+            allow_meter_overage
         }
     }
 `;
@@ -4444,6 +4505,7 @@ export const GetBillingDetailsDocument = gql`
             plan {
                 type
                 quota
+                interval
             }
             meter
             sessionsOutOfQuota
@@ -4451,6 +4513,7 @@ export const GetBillingDetailsDocument = gql`
         workspace(id: $workspace_id) {
             id
             trial_end_date
+            allow_meter_overage
         }
     }
 `;

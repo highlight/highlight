@@ -2,12 +2,15 @@
     font-size: 18px;
 }
 
+.billingSectionWrapper {
+    margin-top: 30px;
+}
+
 .billingPlanCardWrapper {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     gap: var(--size-large);
-    margin-top: 30px;
 }
 
 .detailsCard {
@@ -42,4 +45,18 @@
     display: flex;
     justify-content: space-between;
     max-width: 1172px;
+}
+
+.infoTooltip {
+    height: var(--size-medium);
+    vertical-align: bottom;
+    width: var(--size-medium);
+}
+
+.overageToggle {
+    margin-top: var(--size-small);
+}
+
+.intervalToggle {
+    margin-bottom: var(--size-small);
 }

@@ -616,7 +616,7 @@ func (r *mutationResolver) DeleteErrorSegment(ctx context.Context, segmentID int
 	return &model.T, nil
 }
 
-func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int, planType modelInputs.PlanType) (*string, error) {
+func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int, planType modelInputs.PlanType, interval modelInputs.SubscriptionInterval) (*string, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in workspace")
@@ -657,7 +657,12 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	subscriptions := c.Subscriptions.Data
 	pricing.FillProducts(r.StripeClient, subscriptions)
 
-	prices, err := pricing.GetStripePrices(r.StripeClient, planType, pricing.SubscriptionIntervalMonthly)
+	pricingInterval := pricing.SubscriptionIntervalMonthly
+	if interval == modelInputs.SubscriptionIntervalAnnual {
+		pricingInterval = pricing.SubscriptionIntervalAnnual
+	}
+
+	prices, err := pricing.GetStripePrices(r.StripeClient, planType, pricingInterval)
 	if err != nil {
 		return nil, e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot update stripe subscription - failed to get Stripe prices")
 	}
@@ -1965,6 +1970,26 @@ func (r *mutationResolver) UpdateErrorGroupIsPublic(ctx context.Context, errorGr
 	return errorGroup, nil
 }
 
+func (r *mutationResolver) UpdateAllowMeterOverage(ctx context.Context, workspaceID int, allowMeterOverage bool) (*model.Workspace, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in workspace")
+	}
+
+	err = r.validateAdminRole(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "must have ADMIN role to modify meter overage settings")
+	}
+
+	if err := r.DB.Model(&workspace).Updates(map[string]interface{}{
+		"AllowMeterOverage": allowMeterOverage,
+	}).Error; err != nil {
+		return nil, e.Wrap(err, "error updating AllowMeterOverage")
+	}
+
+	return workspace, nil
+}
+
 func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Session, error) {
 	if util.IsDevEnv() && secureID == "repro" {
 		sessionObj := &model.Session{}
@@ -2970,6 +2995,13 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 
 	planType := modelInputs.PlanType(workspace.PlanTier)
 
+	interval := modelInputs.SubscriptionIntervalMonthly
+	if workspace.BillingPeriodStart != nil &&
+		workspace.BillingPeriodEnd != nil &&
+		workspace.BillingPeriodEnd.Sub(*workspace.BillingPeriodStart) >= time.Hour*24*32 {
+		interval = modelInputs.SubscriptionIntervalAnnual
+	}
+
 	var g errgroup.Group
 	var meter int64
 	var queriedSessionsOutOfQuota int64
@@ -3002,8 +3034,9 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	}
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{
-			Type:  modelInputs.PlanType(planType.String()),
-			Quota: quota,
+			Type:     modelInputs.PlanType(planType.String()),
+			Quota:    quota,
+			Interval: interval,
 		},
 		Meter:              meter,
 		SessionsOutOfQuota: queriedSessionsOutOfQuota,

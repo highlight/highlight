@@ -1,6 +1,8 @@
 import { useAuthContext } from '@authentication/AuthContext';
 import Alert from '@components/Alert/Alert';
 import Button from '@components/Button/Button/Button';
+import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
+import Switch from '@components/Switch/Switch';
 import SvgLogInIcon from '@icons/LogInIcon';
 import { loadStripe } from '@stripe/stripe-js';
 import { useParams } from '@util/react-router/useParams';
@@ -20,9 +22,14 @@ import {
     useGetBillingDetailsQuery,
     useGetCustomerPortalUrlLazyQuery,
     useGetWorkspaceQuery,
+    useUpdateAllowMeterOverageMutation,
     useUpdateBillingDetailsMutation,
 } from '../../graph/generated/hooks';
-import { AdminRole, PlanType } from '../../graph/generated/schemas';
+import {
+    AdminRole,
+    PlanType,
+    SubscriptionInterval,
+} from '../../graph/generated/schemas';
 import SvgShieldWarningIcon from '../../static/ShieldWarningIcon';
 import { formatNumberWithDelimiters } from '../../util/numbers';
 import styles from './Billing.module.scss';
@@ -54,6 +61,11 @@ const BillingPage = () => {
         null
     );
     const [rainConfetti, setRainConfetti] = useState(false);
+    const [subscriptionInterval, setSubscriptionInterval] = useState(
+        SubscriptionInterval.Monthly
+    );
+
+    const [updateAllowMeterOverage] = useUpdateAllowMeterOverageMutation();
 
     const {
         loading: billingLoading,
@@ -64,7 +76,15 @@ const BillingPage = () => {
         variables: {
             workspace_id,
         },
+        onCompleted: () => {
+            if (billingData?.billingDetails?.plan?.interval !== undefined) {
+                setSubscriptionInterval(
+                    billingData.billingDetails.plan.interval
+                );
+            }
+        },
     });
+
     const { admin, isHighlightAdmin } = useAuthContext();
 
     const [
@@ -117,6 +137,7 @@ const BillingPage = () => {
                 variables: {
                     workspace_id,
                     plan_type: newPlan,
+                    interval: subscriptionInterval,
                 },
             }).then((r) => {
                 if (!r.data?.createOrUpdateStripeSubscription) {
@@ -246,41 +267,99 @@ const BillingPage = () => {
                                 billingData?.billingDetails.plan.quota || 1
                             }
                         />
+                        {isHighlightAdmin && admin?.role === AdminRole.Admin && (
+                            <Switch
+                                label={
+                                    <div>
+                                        Allow overages{' '}
+                                        <InfoTooltip
+                                            title={
+                                                'Sessions will be visible over the monthly limit. Overage is charged monthly at $5 per 1,000 sessions.'
+                                            }
+                                            className={styles.infoTooltip}
+                                        />
+                                    </div>
+                                }
+                                checked={
+                                    billingData?.workspace?.allow_meter_overage
+                                }
+                                onChange={(checked) => {
+                                    updateAllowMeterOverage({
+                                        variables: {
+                                            workspace_id,
+                                            allow_meter_overage: checked,
+                                        },
+                                    }).then(() => refetch());
+                                }}
+                                trackingId="ToggleAllowMeterOverage"
+                                className={styles.overageToggle}
+                            />
+                        )}
                     </Collapsible>
                 </div>
-                <div className={styles.billingPlanCardWrapper}>
-                    {admin?.role === AdminRole.Admin ? (
-                        BILLING_PLANS.map((billingPlan) =>
-                            billingLoading ? (
-                                <Skeleton
-                                    style={{ borderRadius: 8 }}
-                                    count={1}
-                                    height={325}
-                                    width={275}
-                                />
-                            ) : (
-                                <BillingPlanCard
-                                    disabled={admin?.role !== AdminRole.Admin}
-                                    key={billingPlan.type}
-                                    current={
-                                        billingData?.billingDetails.plan
-                                            .type === billingPlan.name
-                                    }
-                                    billingPlan={billingPlan}
-                                    onSelect={createOnSelect(billingPlan.type)}
-                                    loading={
-                                        loadingPlanType === billingPlan.type
-                                    }
-                                />
-                            )
-                        )
-                    ) : (
-                        <Alert
-                            trackingId="AdminNoAccessToBilling"
-                            message="You don't have access to billing."
-                            description={`You don't have permission to access the billing details for "${workspaceData?.workspace?.name}". Please contact a workspace admin to make changes.`}
+                <div className={styles.billingSectionWrapper}>
+                    {isHighlightAdmin && admin?.role === AdminRole.Admin && (
+                        <Switch
+                            label="Annual pricing"
+                            checked={
+                                subscriptionInterval ===
+                                SubscriptionInterval.Annual
+                            }
+                            onChange={(checked) => {
+                                setSubscriptionInterval(
+                                    checked
+                                        ? SubscriptionInterval.Annual
+                                        : SubscriptionInterval.Monthly
+                                );
+                            }}
+                            trackingId="ToggleSubscriptionInterval"
+                            className={styles.intervalToggle}
                         />
                     )}
+                    <div className={styles.billingPlanCardWrapper}>
+                        {admin?.role === AdminRole.Admin ? (
+                            BILLING_PLANS.map((billingPlan) =>
+                                billingLoading ? (
+                                    <Skeleton
+                                        style={{ borderRadius: 8 }}
+                                        count={1}
+                                        height={325}
+                                        width={275}
+                                    />
+                                ) : (
+                                    <BillingPlanCard
+                                        disabled={
+                                            admin?.role !== AdminRole.Admin
+                                        }
+                                        key={billingPlan.type}
+                                        current={
+                                            billingData?.billingDetails.plan
+                                                .type === billingPlan.name &&
+                                            billingData?.billingDetails.plan
+                                                .interval ===
+                                                subscriptionInterval
+                                        }
+                                        billingPlan={billingPlan}
+                                        onSelect={createOnSelect(
+                                            billingPlan.type
+                                        )}
+                                        loading={
+                                            loadingPlanType === billingPlan.type
+                                        }
+                                        subscriptionInterval={
+                                            subscriptionInterval
+                                        }
+                                    />
+                                )
+                            )
+                        ) : (
+                            <Alert
+                                trackingId="AdminNoAccessToBilling"
+                                message="You don't have access to billing."
+                                description={`You don't have permission to access the billing details for "${workspaceData?.workspace?.name}". Please contact a workspace admin to make changes.`}
+                            />
+                        )}
+                    </div>
                 </div>
             </LeadAlignLayout>
         </>
