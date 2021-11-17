@@ -159,7 +159,7 @@ const AlertSetupModal = () => {
                     />
                 ) : (
                     <Alert
-                        type="success"
+                        type="info"
                         trackingId="DefaultAlertsSetupModal"
                         message="You've integrated with Slack!"
                         description="Let's move on and create some useful alerts!"
