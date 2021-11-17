@@ -1,4 +1,5 @@
-import { SubscriptionInterval } from '@graph/schemas';
+import Switch from '@components/Switch/Switch';
+import { PlanType, SubscriptionInterval } from '@graph/schemas';
 import classNames from 'classnames/bind';
 import React from 'react';
 
@@ -14,6 +15,7 @@ export const BillingPlanCard = ({
     current,
     loading,
     subscriptionInterval,
+    onToggleInterval,
     disabled,
 }: {
     current: boolean;
@@ -21,6 +23,7 @@ export const BillingPlanCard = ({
     onSelect: () => void;
     loading: boolean;
     subscriptionInterval: SubscriptionInterval;
+    onToggleInterval?: (val: boolean) => void;
     disabled?: boolean;
 }) => {
     return (
@@ -41,11 +44,26 @@ export const BillingPlanCard = ({
                     : billingPlan.monthlyPrice
             }`}</h4>
             <p className={styles.billingFrequency}>
-                billed{' '}
-                {subscriptionInterval === SubscriptionInterval.Annual
-                    ? 'annually'
-                    : 'monthly'}
+                {billingPlan.type === PlanType.Free
+                    ? 'no billing'
+                    : subscriptionInterval === SubscriptionInterval.Annual
+                    ? 'billed yearly'
+                    : 'billed monthly'}
             </p>
+            {onToggleInterval !== undefined && (
+                <div className={styles.intervalToggleContainer}>
+                    <Switch
+                        label="Yearly"
+                        alternateSideLabel="Monthly"
+                        checked={
+                            subscriptionInterval === SubscriptionInterval.Annual
+                        }
+                        onChange={onToggleInterval}
+                        trackingId="ToggleSubscriptionInterval"
+                        className={styles.intervalToggle}
+                    />
+                </div>
+            )}
             <ul className={styles.advertisedFeaturesWrapper}>
                 {billingPlan.advertisedFeatures.map((featureString) => (
                     <li
@@ -57,7 +75,6 @@ export const BillingPlanCard = ({
                     </li>
                 ))}
             </ul>
-
             <Button
                 trackingId="ChangeBillingPlan"
                 disabled={current || disabled}

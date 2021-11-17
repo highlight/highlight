@@ -658,7 +658,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	pricing.FillProducts(r.StripeClient, subscriptions)
 
 	pricingInterval := pricing.SubscriptionIntervalMonthly
-	if interval == modelInputs.SubscriptionIntervalAnnual {
+	if planType != modelInputs.PlanTypeFree && interval == modelInputs.SubscriptionIntervalAnnual {
 		pricingInterval = pricing.SubscriptionIntervalAnnual
 	}
 

@@ -1,8 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext';
 import Alert from '@components/Alert/Alert';
 import Button from '@components/Button/Button/Button';
-import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
-import Switch from '@components/Switch/Switch';
 import SvgLogInIcon from '@icons/LogInIcon';
 import { loadStripe } from '@stripe/stripe-js';
 import { useParams } from '@util/react-router/useParams';
@@ -22,7 +20,6 @@ import {
     useGetBillingDetailsQuery,
     useGetCustomerPortalUrlLazyQuery,
     useGetWorkspaceQuery,
-    useUpdateAllowMeterOverageMutation,
     useUpdateBillingDetailsMutation,
 } from '../../graph/generated/hooks';
 import {
@@ -64,8 +61,6 @@ const BillingPage = () => {
     const [subscriptionInterval, setSubscriptionInterval] = useState(
         SubscriptionInterval.Monthly
     );
-
-    const [updateAllowMeterOverage] = useUpdateAllowMeterOverageMutation();
 
     const {
         loading: billingLoading,
@@ -192,11 +187,24 @@ const BillingPage = () => {
         })();
     }
 
-    /** Show upsell when the current usage is 80% of the workspace's plan. */
-    const upsell =
+    const ratio =
         (billingData?.billingDetails.meter ?? 0) /
-            (billingData?.billingDetails.plan.quota ?? 1) >=
-        0.8;
+        (billingData?.billingDetails.plan.quota ?? 1);
+
+    /** Show upsell when the current usage is 80% of the workspace's plan. */
+    const upsell = ratio >= 0.8;
+
+    const allowOverage = billingData?.workspace?.allow_meter_overage ?? true;
+
+    // If the workspace allows overage, calculate and display sessionsOverQuota
+    let sessionsOverQuota = 0;
+    if (allowOverage) {
+        sessionsOverQuota = Math.max(
+            0,
+            billingData?.billingDetails.meter -
+                (billingData?.billingDetails.plan.quota ?? 0)
+        );
+    }
 
     return (
         <>
@@ -251,13 +259,29 @@ const BillingPage = () => {
                             )}{' '}
                             monthly sessions limit.
                         </p>
-                        {upsell && (
+                        {upsell && sessionsOverQuota === 0 && (
                             <p>
                                 <span>
                                     You are nearing your monthly sessions limit.
                                     Sessions recorded after you've reached your
-                                    limit will not be viewable until you upgrade
-                                    your plan.
+                                    limit will{' '}
+                                    {allowOverage
+                                        ? 'incur an overage fee of $5 per 1,000 sessions.'
+                                        : 'not be viewable until you upgrade your plan.'}
+                                </span>
+                            </p>
+                        )}
+                        {sessionsOverQuota > 0 && (
+                            <p>
+                                <span>
+                                    You have exceeded your monthly sessions
+                                    limit by{' '}
+                                    {formatNumberWithDelimiters(
+                                        sessionsOverQuota
+                                    )}{' '}
+                                    sessions. An overage fee of $5 per 1,000
+                                    sessions will be charged in your next
+                                    invoice.
                                 </span>
                             </p>
                         )}
@@ -267,55 +291,9 @@ const BillingPage = () => {
                                 billingData?.billingDetails.plan.quota || 1
                             }
                         />
-                        {isHighlightAdmin && admin?.role === AdminRole.Admin && (
-                            <Switch
-                                label={
-                                    <div>
-                                        Allow overages{' '}
-                                        <InfoTooltip
-                                            title={
-                                                'Sessions will be visible over the monthly limit. Overage is charged monthly at $5 per 1,000 sessions.'
-                                            }
-                                            className={styles.infoTooltip}
-                                        />
-                                    </div>
-                                }
-                                checked={
-                                    billingData?.workspace?.allow_meter_overage
-                                }
-                                onChange={(checked) => {
-                                    updateAllowMeterOverage({
-                                        variables: {
-                                            workspace_id,
-                                            allow_meter_overage: checked,
-                                        },
-                                    }).then(() => refetch());
-                                }}
-                                trackingId="ToggleAllowMeterOverage"
-                                className={styles.overageToggle}
-                            />
-                        )}
                     </Collapsible>
                 </div>
                 <div className={styles.billingSectionWrapper}>
-                    {isHighlightAdmin && admin?.role === AdminRole.Admin && (
-                        <Switch
-                            label="Annual pricing"
-                            checked={
-                                subscriptionInterval ===
-                                SubscriptionInterval.Annual
-                            }
-                            onChange={(checked) => {
-                                setSubscriptionInterval(
-                                    checked
-                                        ? SubscriptionInterval.Annual
-                                        : SubscriptionInterval.Monthly
-                                );
-                            }}
-                            trackingId="ToggleSubscriptionInterval"
-                            className={styles.intervalToggle}
-                        />
-                    )}
                     <div className={styles.billingPlanCardWrapper}>
                         {admin?.role === AdminRole.Admin ? (
                             BILLING_PLANS.map((billingPlan) =>
@@ -335,14 +313,29 @@ const BillingPage = () => {
                                         current={
                                             billingData?.billingDetails.plan
                                                 .type === billingPlan.name &&
-                                            billingData?.billingDetails.plan
-                                                .interval ===
-                                                subscriptionInterval
+                                            (billingPlan.type ===
+                                                PlanType.Free ||
+                                                billingData?.billingDetails.plan
+                                                    .interval ===
+                                                    subscriptionInterval)
                                         }
                                         billingPlan={billingPlan}
                                         onSelect={createOnSelect(
                                             billingPlan.type
                                         )}
+                                        onToggleInterval={
+                                            !isHighlightAdmin ||
+                                            admin?.role !== AdminRole.Admin ||
+                                            billingPlan.type === PlanType.Free
+                                                ? undefined
+                                                : (isAnnual) => {
+                                                      setSubscriptionInterval(
+                                                          isAnnual
+                                                              ? SubscriptionInterval.Annual
+                                                              : SubscriptionInterval.Monthly
+                                                      );
+                                                  }
+                                        }
                                         loading={
                                             loadingPlanType === billingPlan.type
                                         }

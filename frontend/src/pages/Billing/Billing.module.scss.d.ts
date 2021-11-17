@@ -3,7 +3,6 @@ export const billingSectionWrapper: string;
 export const detailsCard: string;
 export const detailsCardTitle: string;
 export const infoTooltip: string;
-export const intervalToggle: string;
 export const overageToggle: string;
 export const portalButton: string;
 export const subTitle: string;
