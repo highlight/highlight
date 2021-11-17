@@ -243,16 +243,15 @@ const AlertsPage = () => {
             <AlertSetupModal />
             <div className={styles.subTitleContainer}>
                 <p>Manage your alerts for your project.</p>
-                {alertsPayload?.is_integrated_with_slack &&
-                    alertsAsTableRows.length > 0 && (
-                        <ButtonLink
-                            trackingId="NewAlert"
-                            className={styles.callToAction}
-                            to={`/${project_id}/alerts/new`}
-                        >
-                            New Alert
-                        </ButtonLink>
-                    )}
+                {alertsPayload?.is_integrated_with_slack && (
+                    <ButtonLink
+                        trackingId="NewAlert"
+                        className={styles.callToAction}
+                        to={`/${project_id}/alerts/new`}
+                    >
+                        New Alert
+                    </ButtonLink>
+                )}
             </div>
             {!loading && !alertsPayload?.is_integrated_with_slack ? (
                 <Alert
