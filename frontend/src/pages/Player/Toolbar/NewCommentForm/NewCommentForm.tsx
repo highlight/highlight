@@ -7,7 +7,6 @@ import CommentTextBody from '@pages/Player/Toolbar/NewCommentForm/CommentTextBod
 import { getCommentMentionSuggestions } from '@util/comment/util';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
-import { MillisToMinutesAndSeconds } from '@util/time';
 import { Form, message } from 'antd';
 import { H } from 'highlight.run';
 import html2canvas from 'html2canvas';
@@ -27,6 +26,7 @@ import {
     useGetProjectAdminsQuery,
 } from '../../../../graph/generated/hooks';
 import {
+    Admin,
     SanitizedAdminInput,
     SanitizedSlackChannelInput,
 } from '../../../../graph/generated/schemas';
@@ -251,6 +251,11 @@ export const NewCommentForm = ({
         }
     };
 
+    const placeholder = useMemo(
+        () => getNewCommentPlaceholderText(adminSuggestions, admin),
+        [admin, adminSuggestions]
+    );
+
     return (
         <Form
             name="newComment"
@@ -263,9 +268,7 @@ export const NewCommentForm = ({
                     <CommentTextBody
                         commentText={commentText}
                         onChangeHandler={onChangeHandler}
-                        placeholder={`Add a comment at ${MillisToMinutesAndSeconds(
-                            currentTime
-                        )}`}
+                        placeholder={placeholder}
                         suggestions={adminSuggestions}
                         onDisplayTransformHandler={onDisplayTransform}
                         suggestionsPortalHost={parentRef?.current as Element}
@@ -360,4 +363,41 @@ const getTags = (
     });
 
     return response;
+};
+
+const RANDOM_COMMENT_MESSAGES = [
+    'check this out!',
+    'what do you think of this?',
+    'should we update this?',
+    'looks like the user was having trouble here.',
+] as const;
+
+const getNewCommentPlaceholderText = (
+    adminSuggestions?: AdminSuggestion[],
+    admin?: Admin
+) => {
+    const randomMessage =
+        RANDOM_COMMENT_MESSAGES[
+            Math.floor(Math.random() * RANDOM_COMMENT_MESSAGES.length)
+        ];
+
+    if (!adminSuggestions || !admin) {
+        return randomMessage;
+    }
+    if (adminSuggestions.length === 0) {
+        return `Hey @${admin.name}, ${randomMessage}`;
+    }
+
+    const randomSuggestionIndex = Math.floor(
+        Math.random() * adminSuggestions.length
+    );
+    let displayName = adminSuggestions[randomSuggestionIndex].display || '';
+
+    if (!(displayName[0] === '@') && !(displayName[0] === '#')) {
+        displayName = `@${displayName}`;
+    } else if (displayName.includes('#')) {
+        displayName = `@${displayName.slice(1)}`;
+    }
+
+    return `Hey ${displayName}, ${randomMessage}`;
 };
