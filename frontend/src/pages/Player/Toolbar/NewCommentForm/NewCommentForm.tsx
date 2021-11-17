@@ -1,4 +1,3 @@
-import HighlightGate from '@components/HighlightGate/HighlightGate';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Select from '@components/Select/Select';
 import {
@@ -290,38 +289,36 @@ export const NewCommentForm = ({
                 {/* This Form.Item by default are optimized to not rerender the children. For this child however, we want to rerender on every form change to change the disabled state of the button. See https://ant.design/components/form/#shouldUpdate */}
                 {() => (
                     <div className={styles.footer}>
-                        <HighlightGate>
-                            <div>
-                                <label className={styles.label}>
-                                    <span>
-                                        Tags
-                                        <InfoTooltip title="Tags allow you to add custom metadata to your comments and to the session the comment was made on." />
-                                    </span>
-                                    <Select
-                                        defaultActiveFirstOption
-                                        placeholder="signups, userflow, bug, error"
-                                        mode="tags"
-                                        options={(
-                                            commentTagsData?.session_comment_tags_for_project ||
-                                            []
-                                        ).map((tag) => ({
-                                            displayValue: tag.name,
-                                            id: tag.id,
-                                            value: tag.name,
-                                        }))}
-                                        onChange={setTags}
-                                        notFoundContent={
-                                            <p>
-                                                Doesn't look like your project
-                                                has any tags yet. You can create
-                                                tags by typing the tag name then
-                                                pressing enter.
-                                            </p>
-                                        }
-                                    />
-                                </label>
-                            </div>
-                        </HighlightGate>
+                        <div>
+                            <label className={styles.label}>
+                                <span>
+                                    Tags
+                                    <InfoTooltip title="Tags allow you to add custom metadata to your comments and to the session the comment was made on." />
+                                </span>
+                                <Select
+                                    defaultActiveFirstOption
+                                    placeholder="signups, userflow, bug, error"
+                                    mode="tags"
+                                    options={(
+                                        commentTagsData?.session_comment_tags_for_project ||
+                                        []
+                                    ).map((tag) => ({
+                                        displayValue: tag.name,
+                                        id: tag.id,
+                                        value: tag.name,
+                                    }))}
+                                    onChange={setTags}
+                                    notFoundContent={
+                                        <p>
+                                            Doesn't look like your project has
+                                            any tags yet. You can create tags by
+                                            typing the tag name then pressing
+                                            enter.
+                                        </p>
+                                    }
+                                />
+                            </label>
+                        </div>
                         <div className={styles.actionButtons}>
                             <Button
                                 trackingId="CancelCreatingSessionComment"

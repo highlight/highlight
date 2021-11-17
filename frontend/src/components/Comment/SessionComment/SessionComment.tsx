@@ -1,12 +1,14 @@
 import { useAuthContext } from '@authentication/AuthContext';
 import Button from '@components/Button/Button/Button';
 import SplitButton from '@components/SplitButton/SplitButton';
+import Tag from '@components/Tag/Tag';
 import SvgHeartIcon from '@icons/HeartIcon';
 import SvgSpeechBubbleIcon from '@icons/SpeechBubbleIcon';
 import { message } from 'antd';
 import Menu from 'antd/lib/menu';
 import classNames from 'classnames';
-import React from 'react';
+import { H } from 'highlight.run';
+import React, { useEffect, useState } from 'react';
 
 import { ParsedSessionComment } from '../../../pages/Player/ReplayerContext';
 import CommentTextBody from '../../../pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody';
@@ -56,8 +58,42 @@ export const SessionComment = ({ comment, menuItems, footer }: Props) => {
                 menuItems={menuItems}
                 footer={footer}
             >
-                <CommentTextBody commentText={comment.text} />
+                <SessionCommentTextBody comment={comment} />
             </SessionCommentHeader>
+        </>
+    );
+};
+
+type SessionCommentTextBodyProps = Pick<Props, 'comment'>;
+export const SessionCommentTextBody = ({
+    comment,
+}: SessionCommentTextBodyProps) => {
+    const [tags, setTags] = useState<string[]>([]);
+
+    useEffect(() => {
+        if (comment.tags && comment.tags.length > 0) {
+            try {
+                // @ts-expect-error
+                setTags(JSON.parse(comment.tags[0]));
+            } catch (_e) {
+                const e = _e as Error;
+                H.consumeError(e);
+            }
+        }
+    }, [comment.tags]);
+
+    return (
+        <>
+            <CommentTextBody commentText={comment.text} />
+            {tags.length > 0 && (
+                <div className={styles.tagsContainer}>
+                    {tags.map((tag) => (
+                        <Tag key={tag} autoColorsText={tag}>
+                            {tag}
+                        </Tag>
+                    ))}
+                </div>
+            )}
         </>
     );
 };

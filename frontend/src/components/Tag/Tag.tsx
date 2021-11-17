@@ -1,4 +1,5 @@
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
+import ColorHash from 'color-hash';
 import React from 'react';
 
 import styles from './Tag.module.scss';
@@ -7,18 +8,25 @@ interface Props {
     backgroundColor?: string;
     color?: string;
     infoTooltipText?: string;
+    /** Text and Background Colors are determined by the hash value. */
+    autoColorsText?: string;
 }
 
 const Tag: React.FC<Props> = ({
     children,
-    backgroundColor = 'var(--color-orange-300)',
+    backgroundColor,
     color = 'var(--text-primary)',
     infoTooltipText,
+    autoColorsText,
 }) => {
+    const hashBackgroundColor = autoColorsText
+        ? getTagBackgroundColor(autoColorsText)
+        : undefined;
+
     return (
         <div
             style={{
-                backgroundColor,
+                backgroundColor: backgroundColor || hashBackgroundColor,
                 color,
             }}
             className={styles.tag}
@@ -30,3 +38,10 @@ const Tag: React.FC<Props> = ({
 };
 
 export default Tag;
+
+export const getTagBackgroundColor = (message: string) => {
+    const colorHash = new ColorHash({ lightness: 0.9, saturation: 0.9 });
+    const hashBackgroundColor = message ? colorHash.hex(message) : undefined;
+
+    return hashBackgroundColor;
+};

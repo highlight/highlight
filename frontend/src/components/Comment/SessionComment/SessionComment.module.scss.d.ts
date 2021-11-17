@@ -5,3 +5,4 @@ export const deepLinkedComment: string;
 export const footer: string;
 export const hasShadow: string;
 export const iconLabel: string;
+export const tagsContainer: string;
