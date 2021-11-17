@@ -72,7 +72,10 @@ const ErrorCard = React.memo(
                 </div>
                 <div>
                     <div className={styles.header}>
-                        <Tag infoTooltipText="This is where the error was thrown.">
+                        <Tag
+                            infoTooltipText="This is where the error was thrown."
+                            backgroundColor="var(--color-orange-300)"
+                        >
                             {error.type}
                         </Tag>
                         <p>

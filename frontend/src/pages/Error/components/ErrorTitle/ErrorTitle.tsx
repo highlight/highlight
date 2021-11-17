@@ -47,7 +47,10 @@ const ErrorTitle = ({ errorGroup, showShareButton = true }: Props) => {
                 )}
             </div>
             {errorGroup?.type && (
-                <Tag infoTooltipText="This is where the error was thrown.">
+                <Tag
+                    infoTooltipText="This is where the error was thrown."
+                    backgroundColor="var(--color-orange-300)"
+                >
                     {errorGroup.type}
                 </Tag>
             )}
