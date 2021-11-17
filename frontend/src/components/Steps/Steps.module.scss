@@ -25,10 +25,11 @@
         border-radius: var(--size-xxLarge);
         bottom: -4px;
         height: var(--size-xxSmall) !important;
+        left: 0 !important;
+        width: 100% !important;
     }
 
     :global(.ant-steps-item) {
-        border-bottom: 4px solid var(--color-gray-400);
         font-weight: 500 !important;
         padding-left: 0 !important;
 
@@ -45,14 +46,32 @@
         }
     }
 
+    :global(.ant-steps-item-wait) {
+        :global(.ant-steps-icon),
+        :global(.ant-steps-item-title) {
+            color: var(--color-gray-400) !important;
+        }
+
+        &:global(.ant-steps-item-wait::before) {
+            background-color: var(--color-gray-400) !important;
+        }
+    }
+
+    :global(.ant-steps-item-finish) {
+        :global(.ant-steps-icon),
+        :global(.ant-steps-item-title) {
+            color: var(--color-green-300) !important;
+        }
+
+        &:global(.ant-steps-item-finish::before) {
+            background-color: var(--color-green-300) !important;
+        }
+    }
+
     :global(.ant-steps-item-active) {
         :global(.ant-steps-icon),
         :global(.ant-steps-item-title) {
             color: var(--color-purple) !important;
-        }
-
-        :global(.ant-steps-item) {
-            border-bottom-color: transparent;
         }
     }
 }
