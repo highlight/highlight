@@ -69,6 +69,11 @@ const Steps: StepsType = ({
                                 ? 'finish'
                                 : 'process'
                         }
+                        disabled={
+                            index - 1 > -1
+                                ? steps[index - 1].disableNextButton
+                                : false
+                        }
                     />
                 ))}
             </AntDesignSteps>
