@@ -58,11 +58,17 @@ const Steps: StepsType = ({
                 onChange={setCurrentStepIndex}
                 {...props}
             >
-                {steps.map((step) => (
+                {steps.map((step, index) => (
                     <AntDesignSteps.Step
                         key={step.title}
                         title={step.title}
-                        status="wait"
+                        status={
+                            index > currentStepIndex
+                                ? 'wait'
+                                : index < currentStepIndex
+                                ? 'finish'
+                                : 'process'
+                        }
                     />
                 ))}
             </AntDesignSteps>
