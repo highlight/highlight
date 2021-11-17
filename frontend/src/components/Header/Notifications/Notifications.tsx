@@ -256,9 +256,15 @@ const List = ({
         }
         const normalizedSearchQuery = searchQuery.toLowerCase();
         return notifications.filter((notification) => {
-            return notification.text
-                .toLowerCase()
-                .includes(normalizedSearchQuery);
+            const tags = notification.tags || [];
+            const hasMatchingTag = tags.some((tag: string) =>
+                tag.toLowerCase().includes(normalizedSearchQuery)
+            );
+
+            return (
+                hasMatchingTag ||
+                notification.text.toLowerCase().includes(normalizedSearchQuery)
+            );
         });
     }, [notifications, searchQuery]);
 
