@@ -1,8 +1,10 @@
 import Select from '@components/Select/Select';
+import { getTagBackgroundColor } from '@components/Tag/Tag';
 import {
     GetCommentTagsForProjectQuery,
     namedOperations,
 } from '@graph/operations';
+import SvgCloseIcon from '@icons/CloseIcon';
 import CommentTextBody from '@pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody';
 import { getCommentMentionSuggestions } from '@util/comment/util';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
@@ -285,6 +287,7 @@ export const NewCommentForm = ({
                     <div className={styles.footer}>
                         <div>
                             <Select
+                                className={styles.tagSelect}
                                 aria-label="Comment tags"
                                 defaultActiveFirstOption
                                 placeholder="Add tags (e.g. signups, userflow, bug, error)"
@@ -304,6 +307,7 @@ export const NewCommentForm = ({
                                         name then pressing enter.
                                     </p>
                                 }
+                                tagRender={CustomTag}
                             />
                         </div>
                         <div className={styles.actionButtons}>
@@ -400,4 +404,32 @@ const getNewCommentPlaceholderText = (
     }
 
     return `Hey ${displayName}, ${randomMessage}`;
+};
+
+type CustomTagProps = {
+    label: React.ReactNode;
+    value: any;
+    disabled: boolean;
+    onClose: (event?: React.MouseEvent<HTMLElement, MouseEvent>) => void;
+    closable: boolean;
+};
+
+const CustomTag = ({ onClose, label, value }: CustomTagProps) => {
+    return (
+        <div
+            className={styles.customTag}
+            style={{ backgroundColor: getTagBackgroundColor(value) }}
+        >
+            <span>{label}</span>
+            <Button
+                onClick={onClose}
+                trackingId="NewCommentTagClose"
+                iconButton
+                type="text"
+                size="small"
+            >
+                <SvgCloseIcon />
+            </Button>
+        </div>
+    );
 };
