@@ -1,6 +1,6 @@
 .rageClick {
     --background-color: rgba(255, 109, 109, 0.15);
-    --border-color: var(--color-red);
+    --border-color: var(--color-red-400);
 
     background: var(--background-color);
     border: 1px solid var(--border-color);
@@ -28,7 +28,7 @@
         border-bottom-left-radius: 0;
         border-bottom-right-radius: 0;
         box-shadow: var(--box-shadow);
-        color: var(--color-red);
+        color: var(--color-red-400);
         display: flex;
         height: var(--size-medium);
         justify-content: center;
@@ -50,7 +50,7 @@
 
 .iconContainer {
     align-items: center;
-    background: var(--color-red);
+    background: var(--color-red-400);
     border-radius: 50%;
     color: var(--text-primary-inverted);
     display: flex;

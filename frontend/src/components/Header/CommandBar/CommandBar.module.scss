@@ -17,7 +17,7 @@
 
 .input-focused {
     background-color: var(--text-primary);
-    border-color: var(--color-red);
+    border-color: var(--color-red-400);
 }
 
 .suggestion {
@@ -30,7 +30,7 @@
     transition: color 0.2s ease-in-out;
 
     b {
-        color: var(--color-purple-light);
+        color: var(--color-purple-600);
     }
 }
 

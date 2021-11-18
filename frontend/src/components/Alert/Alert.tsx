@@ -21,6 +21,7 @@ const Alert = ({
     trackingId,
     closable,
     shouldAlwaysShow = false,
+    type = 'info',
     ...props
 }: Props) => {
     const [temporarilyHideAlert, setTemporarilyHideAlert] = useSessionStorage(
@@ -35,6 +36,7 @@ const Alert = ({
     return (
         <AntDesignAlert
             {...props}
+            type={type}
             className={classNames(props.className, styles.alert)}
             closable={closable != null ? closable : true}
             showIcon

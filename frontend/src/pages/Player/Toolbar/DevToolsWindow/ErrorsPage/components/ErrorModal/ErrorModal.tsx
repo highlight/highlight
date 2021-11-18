@@ -39,7 +39,7 @@ const ErrorModal = ({ error, showRequestAlert }: Props) => {
                 <>
                     {showRequestAlert && (
                         <Alert
-                            type="error"
+                            type="warning"
                             trackingId="UnmatchedBackendError"
                             message="Request data not found"
                             className={styles.alertContainer}
