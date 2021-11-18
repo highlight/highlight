@@ -17,6 +17,7 @@ var Delimiter = "\n\n\n"
 type PayloadReadWriter struct {
 	File   *os.File
 	Length int64
+	Offset int64
 }
 
 func NewPayloadReadWriter(file *os.File) *PayloadReadWriter {

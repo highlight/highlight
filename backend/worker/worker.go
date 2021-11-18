@@ -121,20 +121,21 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 		}
 	}
 
-	var hasNext = true
-	payload.CompressedJSONArrayWriter{}
-	for hasNext {
-		se, err := manager.Events.Reader().Next()
-		if err != nil {
-			if !errors.Is(err, io.EOF) {
-				return e.Wrap(err, "error reading next line")
-			}
-			hasNext = false
-		}
-		manager.EventsCompressed.WriteEvents()
-
+	eventsProcessingOffset, err := manager.Events.File.Seek(0, io.SeekCurrent)
+	if err != nil {
+		return e.Wrap(err, "error getting current offset in events file")
 	}
-	manager.Events.Reader()
+	manager.Events.Offset = eventsProcessingOffset
+	messagesProcessingOffset, err := manager.Messages.File.Seek(0, io.SeekCurrent)
+	if err != nil {
+		return e.Wrap(err, "error getting current offset in messages file")
+	}
+	manager.Messages.Offset = messagesProcessingOffset
+	resourcesProcessingOffset, err := manager.Resources.File.Seek(0, io.SeekCurrent)
+	if err != nil {
+		return e.Wrap(err, "error getting current offset in resources file")
+	}
+	manager.Resources.Offset = resourcesProcessingOffset
 
 	// Fetch/write events.
 	eventRows, err := w.Resolver.DB.Model(&model.EventsObject{}).Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").Rows()
@@ -282,7 +283,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	hlog.Histogram("worker.processSession.eventsCompressedPayloadSize", float64(eventsCompressedInfo.Size()), nil, 1) //nolint
 
 	//Delete the session if there's no events.
-	if payloadManager.Events.Length == 0 && s.Length <= 0 {
+	if eventInfo.Size() == 0 && s.Length <= 0 {
 		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
 			"session_obj": s}).Warnf("deleting session with no events (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v)", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed)
 		s.Excluded = &model.T
@@ -295,10 +296,10 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	// need to reset file pointer to beginning of file for reading
-	for _, file := range []*os.File{eventsFile, resourcesFile, messagesFile} {
-		_, err = file.Seek(0, io.SeekStart)
+	for _, file := range []*payload.PayloadReadWriter{payloadManager.Events, payloadManager.Resources, payloadManager.Messages} {
+		_, err = file.File.Seek(file.Offset, io.SeekStart)
 		if err != nil {
-			log.WithField("file_name", file.Name()).Errorf("error seeking to beginning of file: %v", err)
+			log.WithField("file_name", file.File.Name()).Errorf("error seeking to offset of file: %v @ %d", err, file.Offset)
 		}
 	}
 	activeDuration := time.Duration(0)
