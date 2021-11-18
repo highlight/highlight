@@ -15,21 +15,21 @@ import (
 var Delimiter = "\n\n\n"
 
 type PayloadReadWriter struct {
-	file   *os.File
+	File   *os.File
 	Length int64
 }
 
 func NewPayloadReadWriter(file *os.File) *PayloadReadWriter {
-	p := &PayloadReadWriter{file: file}
+	p := &PayloadReadWriter{File: file}
 	return p
 }
 
 func (p *PayloadReadWriter) Reader() *ObjectReader {
-	return NewObjectReader(p.file)
+	return NewObjectReader(p.File)
 }
 
 func (p *PayloadReadWriter) Writer() *ObjectWriter {
-	return NewObjectWriter(p.file)
+	return NewObjectWriter(p.File)
 }
 
 type ObjectReader struct {
