@@ -1,12 +1,10 @@
-import { DatePicker } from 'antd';
+import RangePicker from '@components/RangePicker/RangePicker';
 import moment from 'moment';
 import React from 'react';
 
 import SvgCalendarIcon from '../../../static/CalendarIcon';
 import { SearchParams, useSearchContext } from '../SearchContext/SearchContext';
 import inputStyles from './InputStyles.module.scss';
-
-const { RangePicker } = DatePicker;
 
 export const DateInput = () => {
     const { searchParams, setSearchParams } = useSearchContext();

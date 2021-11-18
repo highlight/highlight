@@ -113,6 +113,13 @@
             "message": "Please use InputNumber from /src/components/InputNumber instead."
           },
           {
+            "name": "antd",
+            "importNames": [
+              "DatePicker"
+            ],
+            "message": "Please use RangePicker from /src/components/DatePicker instead."
+          },
+          {
             "name": "react-router-dom",
             "importNames": [
               "useParams"
