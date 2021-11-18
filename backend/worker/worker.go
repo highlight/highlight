@@ -121,6 +121,21 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 		}
 	}
 
+	var hasNext = true
+	payload.CompressedJSONArrayWriter{}
+	for hasNext {
+		se, err := manager.Events.Reader().Next()
+		if err != nil {
+			if !errors.Is(err, io.EOF) {
+				return e.Wrap(err, "error reading next line")
+			}
+			hasNext = false
+		}
+		manager.EventsCompressed.WriteEvents()
+
+	}
+	manager.Events.Reader()
+
 	// Fetch/write events.
 	eventRows, err := w.Resolver.DB.Model(&model.EventsObject{}).Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").Rows()
 	if err != nil {
