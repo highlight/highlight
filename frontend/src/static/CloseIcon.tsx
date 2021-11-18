@@ -14,7 +14,7 @@ function SvgCloseIcon(props: React.SVGProps<SVGSVGElement>) {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={1.5}
-                d="M4.75 12A7.25 7.25 0 0112 4.75v0A7.25 7.25 0 0119.25 12v0A7.25 7.25 0 0112 19.25v0A7.25 7.25 0 014.75 12v0zM9.75 9.75l4.5 4.5M14.25 9.75l-4.5 4.5"
+                d="M17.25 6.75l-10.5 10.5M6.75 6.75l10.5 10.5"
             />
         </svg>
     );
