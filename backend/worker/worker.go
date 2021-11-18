@@ -106,6 +106,21 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 }
 
 func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.PayloadManager, s *model.Session) error {
+	if s.ObjectStorageEnabled != nil && *s.ObjectStorageEnabled {
+		err := w.S3Client.ReadMessagesFromS3ToFile(s.ID, s.ProjectID, manager.Messages.File)
+		if err != nil {
+			return e.Wrap(err, "error reading messages from s3")
+		}
+		err = w.S3Client.ReadResourcesFromS3ToFile(s.ID, s.ProjectID, manager.Messages.File)
+		if err != nil {
+			return e.Wrap(err, "error reading resources from s3")
+		}
+		err = w.S3Client.ReadSessionsFromS3ToFile(s.ID, s.ProjectID, manager.Messages.File)
+		if err != nil {
+			return e.Wrap(err, "error reading events from s3")
+		}
+	}
+
 	// Fetch/write events.
 	eventRows, err := w.Resolver.DB.Model(&model.EventsObject{}).Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").Rows()
 	if err != nil {
