@@ -1,11 +1,9 @@
-import Select from '@components/Select/Select';
-import { getTagBackgroundColor } from '@components/Tag/Tag';
 import {
     GetCommentTagsForProjectQuery,
     namedOperations,
 } from '@graph/operations';
-import SvgCloseIcon from '@icons/CloseIcon';
 import CommentTextBody from '@pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody';
+import SessionCommentTagSelect from '@pages/Player/Toolbar/NewCommentForm/SessionCommentTagSelect/SessionCommentTagSelect';
 import { getCommentMentionSuggestions } from '@util/comment/util';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
@@ -293,28 +291,9 @@ export const NewCommentForm = ({
                 {() => (
                     <div className={styles.footer}>
                         <div>
-                            <Select
-                                className={styles.tagSelect}
-                                aria-label="Comment tags"
-                                defaultActiveFirstOption
-                                placeholder="Add tags (e.g. signups, userflow, bug, error)"
-                                mode="tags"
-                                options={(
-                                    commentTagsData?.session_comment_tags_for_project ||
-                                    []
-                                ).map((tag) => ({
-                                    displayValue: tag.name,
-                                    id: tag.id,
-                                    value: tag.name,
-                                }))}
+                            <SessionCommentTagSelect
                                 onChange={setTags}
-                                notFoundContent={
-                                    <p>
-                                        You can create tags by typing the tag
-                                        name then pressing enter.
-                                    </p>
-                                }
-                                tagRender={CustomTag}
+                                placeholder="Add tags (e.g. signups, userflow, bug, error)"
                             />
                         </div>
                         <div className={styles.actionButtons}>
@@ -411,32 +390,4 @@ const getNewCommentPlaceholderText = (
     }
 
     return `Hey ${displayName}, ${randomMessage}`;
-};
-
-type CustomTagProps = {
-    label: React.ReactNode;
-    value: any;
-    disabled: boolean;
-    onClose: (event?: React.MouseEvent<HTMLElement, MouseEvent>) => void;
-    closable: boolean;
-};
-
-const CustomTag = ({ onClose, label, value }: CustomTagProps) => {
-    return (
-        <div
-            className={styles.customTag}
-            style={{ backgroundColor: getTagBackgroundColor(value) }}
-        >
-            <span>{label}</span>
-            <Button
-                onClick={onClose}
-                trackingId="NewCommentTagClose"
-                iconButton
-                type="text"
-                size="small"
-            >
-                <SvgCloseIcon />
-            </Button>
-        </div>
-    );
 };
