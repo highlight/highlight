@@ -3,6 +3,7 @@ import DemoWorkspaceButton, {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import RangePicker from '@components/RangePicker/RangePicker';
 import RageClicksForProjectTable from '@pages/Home/components/RageClicksForProjectTable/RageClicksForProjectTable';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
@@ -110,6 +111,7 @@ const HomePage = () => {
                                     defaultValue={timeFilter[1]}
                                     onSelect={setDateRangeLength}
                                 />
+                                <RangePicker pre />
                             </div>
                         )}
                     </div>

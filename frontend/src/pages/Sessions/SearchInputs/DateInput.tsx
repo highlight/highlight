@@ -2,7 +2,6 @@ import RangePicker from '@components/RangePicker/RangePicker';
 import moment from 'moment';
 import React from 'react';
 
-import SvgCalendarIcon from '../../../static/CalendarIcon';
 import { SearchParams, useSearchContext } from '../SearchContext/SearchContext';
 import inputStyles from './InputStyles.module.scss';
 
@@ -13,17 +12,6 @@ export const DateInput = () => {
         <div>
             <RangePicker
                 showTime
-                ranges={{
-                    Today: [moment().startOf('day'), moment().endOf('day')],
-                    'This Week': [
-                        moment().startOf('week'),
-                        moment().endOf('week'),
-                    ],
-                    'This Month': [
-                        moment().startOf('month'),
-                        moment().endOf('month'),
-                    ],
-                }}
                 value={
                     searchParams.date_range
                         ? [
@@ -32,7 +20,6 @@ export const DateInput = () => {
                           ]
                         : null
                 }
-                suffixIcon={<SvgCalendarIcon height="16px" width="16px" />}
                 className={inputStyles.datePicker}
                 onChange={(_date: any, dateStrings: [string, string]) => {
                     // Dates in local timezone.

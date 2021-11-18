@@ -1,0 +1,22 @@
+.dropdown {
+    :global(.ant-tag) {
+        border-color: transparent !important;
+    }
+
+    :global(.ant-btn) {
+        align-items: center;
+        border-radius: var(--button-border-radius) !important;
+        display: flex;
+        height: var(--size-large) !important;
+        padding-bottom: var(--size-xSmall) !important;
+        padding-left: var(--size-medium) !important;
+        padding-right: var(--size-medium) !important;
+        padding-top: var(--size-xSmall) !important;
+    }
+
+    :global(.ant-picker-ok) {
+        align-items: center !important;
+        display: flex !important;
+        padding-top: var(--size-xxSmall);
+    }
+}
