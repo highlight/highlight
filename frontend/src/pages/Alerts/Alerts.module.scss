@@ -77,19 +77,18 @@
 }
 
 .emptyContainer {
+    cursor: auto;
     display: flex;
     flex-direction: column;
     margin: 0 auto;
     max-width: 400px;
     padding-bottom: var(--size-xLarge);
     padding-top: var(--size-xLarge);
-    text-align: left;
+}
 
-    p {
-        color: var(--color-gray-500) !important;
-    }
-
-    a {
-        margin-top: var(--size-medium);
-    }
+.intercomButton {
+    color: var(--color-purple);
+    cursor: pointer;
+    display: inline-block;
+    line-height: 1;
 }

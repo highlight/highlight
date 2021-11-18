@@ -1,6 +1,6 @@
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import classNames from 'classnames';
-import React from 'react';
+import React, { ReactNode } from 'react';
 
 import { ReactComponent as EmptyState } from '../../static/empty-state.svg';
 import {
@@ -14,15 +14,17 @@ import styles from './SearchEmptyState.module.scss';
 interface Props {
     item: string;
     customTitle?: string;
-    customDescription?: string;
+    customDescription?: string | ReactNode;
+    className?: string;
 }
 
 export const SearchEmptyState = ({
     item,
     customDescription,
     customTitle,
+    className,
 }: Props) => (
-    <div className={classNames(styles.newFeedStyles)}>
+    <div className={classNames(styles.newFeedStyles, className)}>
         <div className={emptyStateWrapper}>
             <div style={{ marginRight: 80 }} className={emptyStateSection}>
                 <EmptyState preserveAspectRatio="xMinYMin" />
