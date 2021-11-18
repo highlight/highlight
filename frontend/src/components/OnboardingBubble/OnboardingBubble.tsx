@@ -1,6 +1,7 @@
 import { DEMO_WORKSPACE_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { useSlackBot } from '@components/Header/components/PersonalNotificationButton/utils/utils';
 import PopConfirm from '@components/PopConfirm/PopConfirm';
+import SvgCloseIcon from '@icons/CloseIcon';
 import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
@@ -15,7 +16,6 @@ import {
     useGetAdminQuery,
     useGetOnboardingStepsQuery,
 } from '../../graph/generated/hooks';
-import SvgClose from '../../static/Close';
 import { ReactComponent as CheckIcon } from '../../static/verify-check-icon.svg';
 import Button from '../Button/Button/Button';
 import PillButton from '../Button/PillButton/PillButton';
@@ -232,7 +232,7 @@ const OnboardingBubble = () => {
                                     small
                                     className={styles.closeButton}
                                 >
-                                    <SvgClose />
+                                    <SvgCloseIcon />
                                 </Button>
                             </PopConfirm>
                         </div>

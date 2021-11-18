@@ -1,9 +1,9 @@
 // eslint-disable-next-line no-restricted-imports
+import SvgCloseIcon from '@icons/CloseIcon';
 import { Modal as AntDesignModal, ModalProps } from 'antd';
 import classNames from 'classnames';
 import React from 'react';
 
-import Close from '../../static/Close';
 import styles from './Modal.module.scss';
 
 type Props = Pick<
@@ -46,7 +46,9 @@ const Modal: React.FC<Props> = ({
         <AntDesignModal
             footer={null}
             {...props}
-            closeIcon={!minimal ? <Close height="18px" width="18px" /> : null}
+            closeIcon={
+                !minimal ? <SvgCloseIcon height="18px" width="18px" /> : null
+            }
             className={classNames(styles.modal, className)}
             closable={!minimal}
             bodyStyle={bodyStyle}
