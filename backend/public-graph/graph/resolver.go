@@ -1188,7 +1188,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	}
 
 	now := time.Now()
-	if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{PayloadUpdatedAt: &now, Excluded: &model.F, Processed: &model.F}).Error; err != nil {
+	if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{PayloadUpdatedAt: &now}).Error; err != nil {
 		log.Error(e.Wrap(err, "error updating session payload time"))
 		return
 	}
