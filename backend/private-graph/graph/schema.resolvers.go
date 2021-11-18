@@ -2745,13 +2745,13 @@ func (r *queryResolver) AverageSessionLength(ctx context.Context, projectID int,
 	}
 	var length float64
 	if err := r.DB.Raw(`
-		SELECT 
-			COALESCE(avg(active_length), 0) 
-		FROM sessions 
-		WHERE project_id=? 
-			AND processed=true 
-			AND excluded <> true 
-			AND active_length IS NOT NULL 
+		SELECT
+			COALESCE(avg(active_length), 0)
+		FROM sessions
+		WHERE project_id=?
+			AND processed=true
+			AND excluded <> true
+			AND active_length IS NOT NULL
 			AND created_at >= NOW() - (? * INTERVAL '1 DAY')
 		`, projectID, lookBackPeriod).Scan(&length).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving average length for sessions")
@@ -2769,14 +2769,14 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int,
 	span, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("db.userFingerprintCount"), tracer.Tag("project_id", projectID))
 	if err := r.DB.Raw(`
-		SELECT 
-			COUNT(DISTINCT fingerprint) 
-		FROM sessions 
-		WHERE identifier='' 
-			AND excluded <> true 
-			AND fingerprint IS NOT NULL 
-			AND created_at >= NOW() - (? * INTERVAL '1 DAY') 
-			AND project_id=? 
+		SELECT
+			COUNT(DISTINCT fingerprint)
+		FROM sessions
+		WHERE identifier=''
+			AND excluded <> true
+			AND fingerprint IS NOT NULL
+			AND created_at >= NOW() - (? * INTERVAL '1 DAY')
+			AND project_id=?
 			AND length >= 1000
 		`, lookBackPeriod, projectID).Scan(&count).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving user fingerprint count")
@@ -3199,6 +3199,16 @@ func (r *queryResolver) ProjectSuggestion(ctx context.Context, query string) ([]
 		}
 	}
 	return projects, nil
+}
+
+func (r *queryResolver) WorkspaceSuggestion(ctx context.Context, query string) ([]*model.Workspace, error) {
+	workspaces := []*model.Workspace{}
+	if r.isWhitelistedAccount(ctx) {
+		if err := r.DB.Model(&model.Workspace{}).Where("name ILIKE ?", "%"+query+"%").Find(&workspaces).Error; err != nil {
+			return nil, e.Wrap(err, "error getting workspace suggestions")
+		}
+	}
+	return workspaces, nil
 }
 
 func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, projectID int) ([]*model.Field, error) {

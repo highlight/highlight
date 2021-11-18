@@ -592,7 +592,8 @@ export type Query = {
     user_properties_alerts: Array<Maybe<SessionAlert>>;
     new_session_alerts: Array<Maybe<SessionAlert>>;
     rage_click_alerts: Array<Maybe<SessionAlert>>;
-    projectSuggestion?: Maybe<Array<Maybe<Project>>>;
+    projectSuggestion: Array<Maybe<Project>>;
+    workspaceSuggestion: Array<Maybe<Workspace>>;
     environment_suggestion?: Maybe<Array<Maybe<Field>>>;
     identifier_suggestion: Array<Maybe<Scalars['String']>>;
     app_version_suggestion: Array<Maybe<Scalars['String']>>;
@@ -801,6 +802,10 @@ export type QueryRage_Click_AlertsArgs = {
 };
 
 export type QueryProjectSuggestionArgs = {
+    query: Scalars['String'];
+};
+
+export type QueryWorkspaceSuggestionArgs = {
     query: Scalars['String'];
 };
 

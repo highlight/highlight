@@ -573,7 +573,8 @@ type Query {
     user_properties_alerts(project_id: ID!): [SessionAlert]!
     new_session_alerts(project_id: ID!): [SessionAlert]!
     rage_click_alerts(project_id: ID!): [SessionAlert]!
-    projectSuggestion(query: String!): [Project]
+    projectSuggestion(query: String!): [Project]!
+    workspaceSuggestion(query: String!): [Workspace]!
     environment_suggestion(project_id: ID!): [Field]
     identifier_suggestion(project_id: ID!): [String]!
     app_version_suggestion(project_id: ID!): [String]!
