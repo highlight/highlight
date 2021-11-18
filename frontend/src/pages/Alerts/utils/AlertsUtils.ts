@@ -38,7 +38,7 @@ export const getAlertTypeColor = (type: string) => {
         case 'New Sessions':
             return '#f95d6a';
         case 'Rage Clicks':
-            return 'var(--color-red)';
+            return 'var(--color-red-400)';
         default:
             return '#bdbdbd';
     }

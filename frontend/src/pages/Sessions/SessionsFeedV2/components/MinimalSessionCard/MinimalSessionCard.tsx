@@ -275,7 +275,7 @@ const MinimalSessionCard = React.memo(
                                     style={
                                         {
                                             '--primary-color': session?.first_time
-                                                ? 'var(--color-red)'
+                                                ? 'var(--color-red-400)'
                                                 : 'var(--color-gray-300)',
                                         } as React.CSSProperties
                                     }

@@ -581,16 +581,16 @@ const SessionSegment = ({
 export const TimelineAnnotationColors: {
     [key in EventsForTimelineKeys[number]]: string;
 } = {
-    Click: '--color-purple-light',
+    Click: '--color-purple-600',
     Focus: '--color-blue-400',
     Reload: '--color-green-300',
     Navigate: '--color-yellow-400',
-    Errors: '--color-red',
+    Errors: '--color-red-400',
     Segment: '--color-orange-400',
     Track: '--color-blue-300',
     Comments: '--color-green-500',
     Identify: '--color-orange-500',
-    Viewport: '--color-purple-light',
+    Viewport: '--color-purple-600',
 };
 
 export function getAnnotationColor(

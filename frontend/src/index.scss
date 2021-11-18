@@ -1,10 +1,14 @@
 /* stylelint-disable */
 :root {
-    --color-purple-100: #f2eefb;
-    --color-purple-200: #eee7ff;
-    --color-purple-300: #bea8f1;
-    --color-purple-400: #937ccc;
-    --color-purple-light: #bb6bd9;
+    --color-purple-100: #ede9fe;
+    --color-purple-200: #ddd6fe;
+    --color-purple-300: #c4b5fd;
+    --color-purple-400: #a78bfa;
+    --color-purple-500: #8b5cf6;
+    --color-purple-600: #7c3aed;
+    --color-purple-700: #6d28d9;
+    --color-purple-800: #5b21b6;
+    --color-purple-900: #4c1d95;
     --color-purple: #5629c6;
     --color-purple-rgb: 86, 41, 198;
     --color-purple-800: #302c3a;
@@ -17,11 +21,15 @@
     --color-blue-700: #1d4ed8;
     --color-blue-800: #1e40af;
     --color-blue-900: #1e3a8a;
-    --color-green-100: #beff6c5e;
-    --color-green-300: #6fcf97;
-    --color-green-400: #27ae60;
-    --color-green-500: #219653;
-    --color-green-600: #006400;
+    --color-green-100: #d1fae5;
+    --color-green-200: #a7f3d0;
+    --color-green-300: #6ee7b7;
+    --color-green-400: #34d399;
+    --color-green-500: #10b981;
+    --color-green-600: #059669;
+    --color-green-700: #047857;
+    --color-green-800: #065f46;
+    --color-green-900: #064e3b;
     --color-yellow-100: #fef3c7;
     --color-yellow-200: #fde68a;
     --color-yellow-300: #fcd34d;
@@ -35,13 +43,15 @@
     --color-orange-400: #ffb038;
     --color-orange-500: #c67e29;
     --color-brown: #835e00;
-    --color-red-0: #ff0000;
-    --color-red-200: #ffcaca;
-    --color-red-300: #ff7575;
-    --color-red: #eb5757;
-    --color-red-500: #c62929;
-    --color-red-600: #832611;
-    --color-red-800: #151212;
+    --color-red-100: #fee2e2;
+    --color-red-200: #fecaca;
+    --color-red-300: #fca5a5;
+    --color-red-400: #f87171;
+    --color-red-500: #ef4444;
+    --color-red-600: #dc2626;
+    --color-red-700: #b91c1c;
+    --color-red-800: #991b1b;
+    --color-red-900: #7f1d1d;
     --color-gray-100: #efefef7d;
     --color-gray-200: #f2f2f2;
     --color-gray-300: #eaeaea;
@@ -110,7 +120,7 @@
     // Errors
     --color-error-resolved: var(--color-green-400);
     --color-error-ignored: var(--color-gray-500);
-    --color-error-open: var(--color-red);
+    --color-error-open: var(--color-red-400);
 }
 
 [data-theme='dark'] {
@@ -118,7 +128,6 @@
     --color-purple-200: #301e79;
     --color-purple-300: #eee7ff;
     --color-purple-400: #a17ce4;
-    --color-purple-light: #bb6bd9;
     --color-purple: #7856ff;
     --color-purple-800: #302c3a;
     --color-blue-100: #deebff;
@@ -137,12 +146,15 @@
     --color-orange-400: #ffb038;
     --color-orange-500: #c67e29;
     --color-brown: #835e00;
-    --color-red-200: #ffcaca;
-    --color-red-300: #ff7575;
-    --color-red: #eb5757;
-    --color-red-500: #c62929;
-    --color-red-600: #832611;
-    --color-red-800: #151212;
+    --color-red-100: #fee2e2;
+    --color-red-200: #fecaca;
+    --color-red-300: #fca5a5;
+    --color-red-400: #f87171;
+    --color-red-500: #ef4444;
+    --color-red-600: #dc2626;
+    --color-red-700: #b91c1c;
+    --color-red-800: #991b1b;
+    --color-red-900: #7f1d1d;
 
     --color-gray-100: #1a1a1a;
     --color-gray-200: #333333;
