@@ -560,6 +560,10 @@ query GetProjectSuggestion($query: String!) {
         id
         name
     }
+    workspaceSuggestion(query: $query) {
+        id
+        name
+    }
 }
 
 query GetErrorFieldSuggestion(

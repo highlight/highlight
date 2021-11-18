@@ -1841,11 +1841,14 @@ export type GetProjectSuggestionQueryVariables = Types.Exact<{
 }>;
 
 export type GetProjectSuggestionQuery = { __typename?: 'Query' } & {
-    projectSuggestion?: Types.Maybe<
-        Array<
-            Types.Maybe<
-                { __typename?: 'Project' } & Pick<Types.Project, 'id' | 'name'>
-            >
+    projectSuggestion: Array<
+        Types.Maybe<
+            { __typename?: 'Project' } & Pick<Types.Project, 'id' | 'name'>
+        >
+    >;
+    workspaceSuggestion: Array<
+        Types.Maybe<
+            { __typename?: 'Workspace' } & Pick<Types.Workspace, 'id' | 'name'>
         >
     >;
 };
