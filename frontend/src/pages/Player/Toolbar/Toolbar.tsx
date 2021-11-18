@@ -584,7 +584,7 @@ export const TimelineAnnotationColors: {
     Click: '--color-purple-light',
     Focus: '--color-blue-400',
     Reload: '--color-green-300',
-    Navigate: '--color-yellow',
+    Navigate: '--color-yellow-400',
     Errors: '--color-red',
     Segment: '--color-orange-400',
     Track: '--color-blue-300',

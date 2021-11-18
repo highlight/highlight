@@ -180,6 +180,7 @@ const WorkspaceTeam = () => {
                             shouldAlwaysShow
                             trackingId="InviteAdminToWorkspaceConfirmation"
                             message={`An invite email has been sent!`}
+                            type="success"
                             description={
                                 <>
                                     You can also share with them this link:{' '}
