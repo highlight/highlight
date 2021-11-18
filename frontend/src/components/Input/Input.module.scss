@@ -14,6 +14,14 @@
         padding: var(--size-xSmall) var(--size-small) !important;
     }
 
+    :global(.ant-input-sm) {
+        padding: var(--size-xxSmall) var(--size-xxSmall) !important;
+    }
+    :global(.ant-input-sm) ~ :global(.ant-input-suffix svg) {
+        height: var(--size-small) !important;
+        width: var(--size-small) !important;
+    }
+
     &:global(.ant-input-group-wrapper) {
         align-items: center;
         display: flex;
