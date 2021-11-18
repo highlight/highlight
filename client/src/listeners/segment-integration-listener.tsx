@@ -1,6 +1,8 @@
-import { HighlightFetchWindow } from '../listeners/network-listener/utils/fetch-listener';
-
-declare var window: HighlightFetchWindow & Window;
+enum SEGMENT_LOCAL_STORAGE_KEYS {
+    USER_ID = 'ajs_user_id',
+    USER_TRAITS = 'ajs_user_traits',
+    ANONYMOUS_ID = 'ajs_anonymous_id',
+}
 
 export const SegmentIntegrationListener = (callback: (obj: any) => void) => {
     callback(window.location.href);
@@ -20,30 +22,67 @@ export const SegmentIntegrationListener = (callback: (obj: any) => void) => {
         send.call(this, data);
     };
 
-    const fetchProxy = window._fetchProxy;
-    window._fetchProxy = (input, init) => {
-        const url =
-            (typeof input === 'object' && input.url) || (input as string);
-        const isSegmentRequest = url.includes('api.segment.io');
+    const localStorageHandler = (e: StorageEvent) => {
+        if (
+            e.key === SEGMENT_LOCAL_STORAGE_KEYS['USER_ID'] ||
+            e.key === SEGMENT_LOCAL_STORAGE_KEYS['ANONYMOUS_ID'] ||
+            e.key === SEGMENT_LOCAL_STORAGE_KEYS['USER_TRAITS']
+        ) {
+            const { userId, userTraits } = getLocalStorageValues();
 
-        if (isSegmentRequest && init && 'body' in init) {
-            try {
-                const body = init.body?.toString();
-                if (body) {
-                    const object = JSON.parse(body);
-                    if (object.type === 'track' || object.type === 'identify') {
-                        callback(object);
-                    }
+            if (userId) {
+                let parsedUserTraits = {};
+                if (userTraits) {
+                    parsedUserTraits = JSON.parse(userTraits);
                 }
-            } catch (e) {
-                return fetchProxy.call(this, input, init);
+                const payload = {
+                    type: 'identify',
+                    userId: userId.toString(),
+                    traits: parsedUserTraits,
+                };
+
+                callback(payload);
             }
         }
-        return fetchProxy.call(this, input, init);
     };
+
+    const { userId, userTraits } = getLocalStorageValues();
+
+    if (userId) {
+        let parsedUserTraits = {};
+        if (userTraits) {
+            parsedUserTraits = JSON.parse(userTraits);
+        }
+        const payload = {
+            type: 'identify',
+            userId: userId.toString(),
+            traits: parsedUserTraits,
+        };
+
+        callback(payload);
+    }
+
+    window.addEventListener('storage', localStorageHandler);
 
     return () => {
         XMLHttpRequest.prototype.send = send;
-        window.fetch = fetchProxy;
+    };
+};
+
+const getLocalStorageValues = () => {
+    const userId = window.localStorage.getItem(
+        SEGMENT_LOCAL_STORAGE_KEYS['USER_ID']
+    );
+    const userTraits = window.localStorage.getItem(
+        SEGMENT_LOCAL_STORAGE_KEYS['USER_TRAITS']
+    );
+    const anonymousId = window.localStorage.getItem(
+        SEGMENT_LOCAL_STORAGE_KEYS['ANONYMOUS_ID']
+    );
+
+    return {
+        userId,
+        userTraits,
+        anonymousId,
     };
 };
