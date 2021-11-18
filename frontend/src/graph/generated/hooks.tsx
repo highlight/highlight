@@ -4962,6 +4962,7 @@ export const GetProjectSuggestionDocument = gql`
         projectSuggestion(query: $query) {
             id
             name
+            workspace_id
         }
         workspaceSuggestion(query: $query) {
             id
