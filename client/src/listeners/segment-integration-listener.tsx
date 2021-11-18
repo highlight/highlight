@@ -31,10 +31,14 @@ export const SegmentIntegrationListener = (callback: (obj: any) => void) => {
             const { userId, userTraits } = getLocalStorageValues();
 
             if (userId) {
+                let parsedUserTraits = {};
+                if (userTraits) {
+                    parsedUserTraits = JSON.parse(userTraits);
+                }
                 const payload = {
                     type: 'identify',
-                    userId,
-                    traits: userTraits,
+                    userId: userId.toString(),
+                    traits: parsedUserTraits,
                 };
 
                 callback(payload);
