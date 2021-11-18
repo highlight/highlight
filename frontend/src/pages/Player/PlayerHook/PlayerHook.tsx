@@ -127,6 +127,7 @@ export const usePlayer = (): ReplayerContextInterface => {
     // If events are returned by getSessionPayloadQuery, set the events payload
     useEffect(() => {
         if (eventsData?.events) {
+            console.log('Rich: Setting events payload');
             setEventsPayload(eventsData?.events);
         }
     }, [eventsData?.events]);
@@ -237,6 +238,12 @@ export const usePlayer = (): ReplayerContextInterface => {
             // 2. Append all of the data via subscription
             // 3. Refetch all of the data when toggling out
             // 4. Split events query out of the payload query
+            console.log(
+                'Rich: Subscribing to ',
+                session_secure_id,
+                ' from ',
+                events.length
+            );
             subscribeEvents!({
                 document: OnEventsAddedDocument,
                 variables: {
@@ -244,7 +251,11 @@ export const usePlayer = (): ReplayerContextInterface => {
                     initial_events_count: events.length,
                 },
                 updateQuery: (prev, { subscriptionData }) => {
+                    console.log('Rich data for: ', session_secure_id);
                     console.log('Rich: ', subscriptionData.data);
+                    console.log('Rich prev: ', prev);
+                    console.log('Rich eventsData: ', eventsData);
+                    // console.log('Rich next: ', next);
                     if (!subscriptionData.data) return prev;
                     // const newFeedItem = subscriptionData.data.eventsAdded;
                     // return Object.assign({}, prev, {
@@ -255,13 +266,14 @@ export const usePlayer = (): ReplayerContextInterface => {
                     return prev;
                 },
             });
-            startPollingEvents!(1000);
+            console.log('Rich: NO polling');
+            // startPollingEvents!(1000);
             setIsPollingEvents(true);
             if (state === ReplayerState.Paused) {
                 play();
             }
         } else if (!isLiveMode && isPollingEvents) {
-            stopPollingEvents!();
+            // stopPollingEvents!();
             setIsPollingEvents(false);
             if (state === ReplayerState.Playing) {
                 pause();
@@ -366,6 +378,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                     r.startLive(newEvents[0].timestamp);
                 }
             }
+            console.log('Rich: Setting events');
             setEvents(newEvents);
         } else if (eventsPayload?.length === 0) {
             setSessionViewability(SessionViewability.EMPTY_SESSION);
@@ -383,6 +396,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             setSessionComments(eventsData.session_comments as SessionComment[]);
         }
         setEventsDataLoaded(true);
+        console.log('Rich Events data: ', eventsData);
     }, [eventsData]);
 
     useEffect(() => {
@@ -396,6 +410,12 @@ export const usePlayer = (): ReplayerContextInterface => {
         if (replayer && eventsDataLoaded) {
             let timerId = 0;
             let eventsIndex = loadedEventsIndex;
+            console.log(
+                'Rich: Loading events from ',
+                loadedEventsIndex,
+                ' to ',
+                events.length
+            );
 
             const addEventsWorker = () => {
                 events
@@ -412,6 +432,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                 if (eventsIndex >= events.length) {
                     setLoadedEventsIndex(eventsIndex);
                     cancelAnimationFrame(timerId);
+                    console.log('Rich: Finished loading up to ', eventsIndex);
 
                     const sessionIntervals = getSessionIntervals(
                         replayer.getMetaData(),
