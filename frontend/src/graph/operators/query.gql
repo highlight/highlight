@@ -1,3 +1,50 @@
+fragment SessionPayloadFragment on SessionPayload {
+    events
+    errors {
+        id
+        error_group_secure_id
+        event
+        type
+        url
+        source
+        stack_trace
+        structured_stack_trace {
+            fileName
+            lineNumber
+            functionName
+            columnNumber
+        }
+        timestamp
+        payload
+        request_id
+    }
+    rage_clicks {
+        start_timestamp
+        end_timestamp
+        total_clicks
+    }
+    session_comments {
+        id
+        timestamp
+        session_id
+        session_secure_id
+        created_at
+        updated_at
+        project_id
+        text
+        author {
+            id
+            name
+            email
+            photo_url
+        }
+        x_coordinate
+        y_coordinate
+        type
+        metadata
+    }
+}
+
 query GetSessionPayload($session_secure_id: String!, $skip_events: Boolean!) {
     events(session_secure_id: $session_secure_id) @skip(if: $skip_events)
     errors(session_secure_id: $session_secure_id) {
@@ -956,4 +1003,16 @@ subscription OnEventsAdded(
         session_secure_id: $session_secure_id
         initial_events_count: $initial_events_count
     )
+}
+
+subscription OnSessionPayloadAppended(
+    $session_secure_id: String!
+    $initial_events_count: Int!
+) {
+    session_payload_appended(
+        session_secure_id: $session_secure_id
+        initial_events_count: $initial_events_count
+    ) {
+        ...SessionPayloadFragment
+    }
 }

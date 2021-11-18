@@ -3593,6 +3593,44 @@ func (r *subscriptionResolver) EventsAdded(ctx context.Context, sessionSecureID 
 	return ch, nil
 }
 
+func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessionSecureID string, initialEventsCount int) (<-chan *model.SessionPayload, error) {
+	ch := make(chan *model.SessionPayload)
+	r.SubscriptionWorkerPool.SubmitRecover(func() {
+		defer close(ch)
+		log.Infof("Polling for events on %s starting from index %d, number of waiting tasks %d",
+			sessionSecureID,
+			initialEventsCount,
+			r.SubscriptionWorkerPool.WaitingQueueSize())
+
+		cursor := EventsCursor{EventIndex: initialEventsCount, EventObjectIndex: nil}
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
+
+			events, err, nextCursor := r.getEvents(ctx, sessionSecureID, cursor)
+			if err != nil {
+				log.Error(e.Wrap(err, "error fetching events incrementally"))
+				return
+			}
+			if len(events) != 0 {
+				ch <- &model.SessionPayload{
+					Events:          events,
+					Errors:          []model.ErrorObject{},
+					RageClicks:      []model.RageClickEvent{},
+					SessionComments: []model.SessionComment{},
+				}
+			}
+			cursor = *nextCursor
+
+			time.Sleep(1 * time.Second)
+		}
+	})
+	return ch, nil
+}
+
 // ErrorAlert returns generated.ErrorAlertResolver implementation.
 func (r *Resolver) ErrorAlert() generated.ErrorAlertResolver { return &errorAlertResolver{r} }
 

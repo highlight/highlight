@@ -2,7 +2,54 @@ import * as Types from './operations';
 
 import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
-
+export const SessionPayloadFragmentFragmentDoc = gql`
+    fragment SessionPayloadFragment on SessionPayload {
+        events
+        errors {
+            id
+            error_group_secure_id
+            event
+            type
+            url
+            source
+            stack_trace
+            structured_stack_trace {
+                fileName
+                lineNumber
+                functionName
+                columnNumber
+            }
+            timestamp
+            payload
+            request_id
+        }
+        rage_clicks {
+            start_timestamp
+            end_timestamp
+            total_clicks
+        }
+        session_comments {
+            id
+            timestamp
+            session_id
+            session_secure_id
+            created_at
+            updated_at
+            project_id
+            text
+            author {
+                id
+                name
+                email
+                photo_url
+            }
+            x_coordinate
+            y_coordinate
+            type
+            metadata
+        }
+    }
+`;
 export const MarkSessionAsViewedDocument = gql`
     mutation MarkSessionAsViewed($secure_id: String!, $viewed: Boolean!) {
         markSessionAsViewed(secure_id: $secure_id, viewed: $viewed) {
@@ -6457,3 +6504,50 @@ export type OnEventsAddedSubscriptionHookResult = ReturnType<
     typeof useOnEventsAddedSubscription
 >;
 export type OnEventsAddedSubscriptionResult = Apollo.SubscriptionResult<Types.OnEventsAddedSubscription>;
+export const OnSessionPayloadAppendedDocument = gql`
+    subscription OnSessionPayloadAppended(
+        $session_secure_id: String!
+        $initial_events_count: Int!
+    ) {
+        session_payload_appended(
+            session_secure_id: $session_secure_id
+            initial_events_count: $initial_events_count
+        ) {
+            ...SessionPayloadFragment
+        }
+    }
+    ${SessionPayloadFragmentFragmentDoc}
+`;
+
+/**
+ * __useOnSessionPayloadAppendedSubscription__
+ *
+ * To run a query within a React component, call `useOnSessionPayloadAppendedSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useOnSessionPayloadAppendedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useOnSessionPayloadAppendedSubscription({
+ *   variables: {
+ *      session_secure_id: // value for 'session_secure_id'
+ *      initial_events_count: // value for 'initial_events_count'
+ *   },
+ * });
+ */
+export function useOnSessionPayloadAppendedSubscription(
+    baseOptions: Apollo.SubscriptionHookOptions<
+        Types.OnSessionPayloadAppendedSubscription,
+        Types.OnSessionPayloadAppendedSubscriptionVariables
+    >
+) {
+    return Apollo.useSubscription<
+        Types.OnSessionPayloadAppendedSubscription,
+        Types.OnSessionPayloadAppendedSubscriptionVariables
+    >(OnSessionPayloadAppendedDocument, baseOptions);
+}
+export type OnSessionPayloadAppendedSubscriptionHookResult = ReturnType<
+    typeof useOnSessionPayloadAppendedSubscription
+>;
+export type OnSessionPayloadAppendedSubscriptionResult = Apollo.SubscriptionResult<Types.OnSessionPayloadAppendedSubscription>;

@@ -980,6 +980,74 @@ export type UpdateErrorGroupIsPublicMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
+export type SessionPayloadFragmentFragment = {
+    __typename?: 'SessionPayload';
+} & Pick<Types.SessionPayload, 'events'> & {
+        errors?: Types.Maybe<
+            Array<
+                Types.Maybe<
+                    { __typename?: 'ErrorObject' } & Pick<
+                        Types.ErrorObject,
+                        | 'id'
+                        | 'error_group_secure_id'
+                        | 'event'
+                        | 'type'
+                        | 'url'
+                        | 'source'
+                        | 'stack_trace'
+                        | 'timestamp'
+                        | 'payload'
+                        | 'request_id'
+                    > & {
+                            structured_stack_trace: Array<
+                                Types.Maybe<
+                                    { __typename?: 'ErrorTrace' } & Pick<
+                                        Types.ErrorTrace,
+                                        | 'fileName'
+                                        | 'lineNumber'
+                                        | 'functionName'
+                                        | 'columnNumber'
+                                    >
+                                >
+                            >;
+                        }
+                >
+            >
+        >;
+        rage_clicks: Array<
+            { __typename?: 'RageClickEvent' } & Pick<
+                Types.RageClickEvent,
+                'start_timestamp' | 'end_timestamp' | 'total_clicks'
+            >
+        >;
+        session_comments: Array<
+            Types.Maybe<
+                { __typename?: 'SessionComment' } & Pick<
+                    Types.SessionComment,
+                    | 'id'
+                    | 'timestamp'
+                    | 'session_id'
+                    | 'session_secure_id'
+                    | 'created_at'
+                    | 'updated_at'
+                    | 'project_id'
+                    | 'text'
+                    | 'x_coordinate'
+                    | 'y_coordinate'
+                    | 'type'
+                    | 'metadata'
+                > & {
+                        author?: Types.Maybe<
+                            { __typename?: 'SanitizedAdmin' } & Pick<
+                                Types.SanitizedAdmin,
+                                'id' | 'name' | 'email' | 'photo_url'
+                            >
+                        >;
+                    }
+            >
+        >;
+    };
+
 export type GetSessionPayloadQueryVariables = Types.Exact<{
     session_secure_id: Types.Scalars['String'];
     skip_events: Types.Scalars['Boolean'];
@@ -2506,6 +2574,19 @@ export type OnEventsAddedSubscription = { __typename?: 'Subscription' } & Pick<
     'events_added'
 >;
 
+export type OnSessionPayloadAppendedSubscriptionVariables = Types.Exact<{
+    session_secure_id: Types.Scalars['String'];
+    initial_events_count: Types.Scalars['Int'];
+}>;
+
+export type OnSessionPayloadAppendedSubscription = {
+    __typename?: 'Subscription';
+} & {
+    session_payload_appended?: Types.Maybe<
+        { __typename?: 'SessionPayload' } & SessionPayloadFragmentFragment
+    >;
+};
+
 export const namedOperations = {
     Query: {
         GetSessionPayload: 'GetSessionPayload' as const,
@@ -2611,5 +2692,9 @@ export const namedOperations = {
     },
     Subscription: {
         OnEventsAdded: 'OnEventsAdded' as const,
+        OnSessionPayloadAppended: 'OnSessionPayloadAppended' as const,
+    },
+    Fragment: {
+        SessionPayloadFragment: 'SessionPayloadFragment' as const,
     },
 };

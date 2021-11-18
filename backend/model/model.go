@@ -772,6 +772,13 @@ type RageClickEvent struct {
 	EndTimestamp    time.Time `deep:"-"`
 }
 
+type SessionPayload struct {
+	Events          []interface{}    `json:"events"`
+	Errors          []ErrorObject    `json:"errors"`
+	RageClicks      []RageClickEvent `json:"rage_clicks"`
+	SessionComments []SessionComment `json:"session_comments"`
+}
+
 var ErrorType = struct {
 	FRONTEND string
 	BACKEND  string
