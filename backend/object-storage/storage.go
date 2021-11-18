@@ -120,6 +120,19 @@ func (s *StorageClient) PushFileToS3(ctx context.Context, sessionId, projectId i
 	return s.pushFileToS3WithOptions(ctx, sessionId, projectId, file, bucket, payloadType, s3.PutObjectInput{})
 }
 
+func (s *StorageClient) ReadSessionsFromS3ToFile(sessionId, projectId int, file *os.File) error {
+	output, err := s.S3Client.GetObject(context.Background(), &s3.GetObjectInput{Bucket: aws.String(S3SessionsPayloadBucketName),
+		Key: s.bucketKey(sessionId, projectId, SessionContents)})
+	if err != nil {
+		return errors.Wrap(err, "[ReadSessionsFromS3ToFile] error getting resources from s3")
+	}
+	_, err = io.Copy(file, output.Body)
+	if err != nil {
+		return errors.Wrap(err, "[ReadSessionsFromS3ToFile] error copying s3 buffer contents to file")
+	}
+	return nil
+}
+
 func (s *StorageClient) ReadSessionsFromS3(sessionId int, projectId int) ([]interface{}, error) {
 	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: aws.String(S3SessionsPayloadBucketName),
 		Key: s.bucketKey(sessionId, projectId, SessionContents)})
@@ -149,6 +162,19 @@ func (s *StorageClient) ReadSessionsFromS3(sessionId int, projectId int) ([]inte
 	return retEvents, nil
 }
 
+func (s *StorageClient) ReadResourcesFromS3ToFile(sessionId, projectId int, file *os.File) error {
+	output, err := s.S3Client.GetObject(context.Background(), &s3.GetObjectInput{Bucket: aws.String(S3SessionsPayloadBucketName),
+		Key: s.bucketKey(sessionId, projectId, NetworkResources)})
+	if err != nil {
+		return errors.Wrap(err, "[ReadResourcesFromS3ToFile] error getting resources from s3")
+	}
+	_, err = io.Copy(file, output.Body)
+	if err != nil {
+		return errors.Wrap(err, "[ReadResourcesFromS3ToFile] error copying s3 buffer contents to file")
+	}
+	return nil
+}
+
 func (s *StorageClient) ReadResourcesFromS3(sessionId int, projectId int) ([]interface{}, error) {
 	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: aws.String(S3SessionsPayloadBucketName),
 		Key: s.bucketKey(sessionId, projectId, NetworkResources)})
@@ -176,6 +202,19 @@ func (s *StorageClient) ReadResourcesFromS3(sessionId int, projectId int) ([]int
 		retResources = append(retResources, tempResources.Resources...)
 	}
 	return retResources, nil
+}
+
+func (s *StorageClient) ReadMessagesFromS3ToFile(sessionId, projectId int, file *os.File) error {
+	output, err := s.S3Client.GetObject(context.Background(), &s3.GetObjectInput{Bucket: aws.String(S3SessionsPayloadBucketName),
+		Key: s.bucketKey(sessionId, projectId, ConsoleMessages)})
+	if err != nil {
+		return errors.Wrap(err, "[ReadMessagesFromS3ToFile] error getting messages from s3")
+	}
+	_, err = io.Copy(file, output.Body)
+	if err != nil {
+		return errors.Wrap(err, "[ReadMessagesFromS3ToFile] error copying s3 buffer contents to file")
+	}
+	return nil
 }
 
 func (s *StorageClient) ReadMessagesFromS3(sessionId int, projectId int) ([]interface{}, error) {
