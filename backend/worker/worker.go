@@ -150,8 +150,10 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 			}
 			hasNext = false
 		}
-		if err := manager.EventsCompressed.WriteEvents(&model.EventsObject{Events: *se}); err != nil {
-			return errors.Wrap(err, "error writing compressed event row")
+		if se != nil && len(*se) > 0 {
+			if err := manager.EventsCompressed.WriteEvents(&model.EventsObject{Events: *se}); err != nil {
+				return errors.Wrap(err, "error writing compressed event row")
+			}
 		}
 	}
 
