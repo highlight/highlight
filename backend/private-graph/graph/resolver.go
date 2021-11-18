@@ -934,6 +934,7 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 	tier := modelInputs.PlanTypeFree
 	var billingPeriodStart *time.Time
 	var billingPeriodEnd *time.Time
+	var nextInvoiceDate *time.Time
 
 	// Loop over each subscription item in each of the customer's subscriptions
 	// and set the workspace's tier if the Stripe product has one
@@ -943,22 +944,34 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 				tier = *productTier
 				startTimestamp := time.Unix(subscription.CurrentPeriodStart, 0)
 				endTimestamp := time.Unix(subscription.CurrentPeriodEnd, 0)
+				nextInvoiceTimestamp := time.Unix(subscription.NextPendingInvoiceItemInvoice, 0)
+
 				billingPeriodStart = &startTimestamp
 				billingPeriodEnd = &endTimestamp
+				if subscription.NextPendingInvoiceItemInvoice != 0 {
+					nextInvoiceDate = &nextInvoiceTimestamp
+				}
 			}
 		}
 	}
 
 	workspace := model.Workspace{}
+
 	if err := r.DB.Model(&workspace).
-		Clauses(clause.Returning{}).
 		Where(model.Workspace{StripeCustomerID: &stripeCustomerID}).
+		Clauses(clause.Returning{}).
 		Updates(map[string]interface{}{
 			"PlanTier":           string(tier),
 			"BillingPeriodStart": billingPeriodStart,
 			"BillingPeriodEnd":   billingPeriodEnd,
+			"NextInvoiceDate":    nextInvoiceDate,
 		}).Error; err != nil {
 		return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error updating workspace fields for customer %s", stripeCustomerID)
+	}
+
+	// Plan has been updated, report the latest usage data to Stripe
+	if err := pricing.ReportUsageForWorkspace(r.DB, r.StripeClient, workspace.ID); err != nil {
+		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR error reporting usage after updating details")
 	}
 
 	// mark sessions as within billing quota on plan upgrade

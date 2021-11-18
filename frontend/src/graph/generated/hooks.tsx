@@ -4439,13 +4439,17 @@ export const GetBillingDetailsForProjectDocument = gql`
                 type
                 quota
                 interval
+                membersLimit
             }
             meter
+            membersMeter
             sessionsOutOfQuota
         }
         workspace_for_project(project_id: $project_id) {
             id
             trial_end_date
+            billing_period_end
+            next_invoice_date
             allow_meter_overage
         }
     }
@@ -4506,13 +4510,17 @@ export const GetBillingDetailsDocument = gql`
                 type
                 quota
                 interval
+                membersLimit
             }
             meter
+            membersMeter
             sessionsOutOfQuota
         }
         workspace(id: $workspace_id) {
             id
             trial_end_date
+            billing_period_end
+            next_invoice_date
             allow_meter_overage
         }
     }

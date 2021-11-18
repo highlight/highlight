@@ -100,6 +100,21 @@ func GetWorkspaceQuotaOverflow(ctx context.Context, DB *gorm.DB, workspaceID int
 	return queriedSessionsOverQuota, nil
 }
 
+func TypeToMemberLimit(planType backend.PlanType) int {
+	switch planType {
+	case backend.PlanTypeFree:
+		return 2
+	case backend.PlanTypeBasic:
+		return 2
+	case backend.PlanTypeStartup:
+		return 8
+	case backend.PlanTypeEnterprise:
+		return 15
+	default:
+		return 2
+	}
+}
+
 func TypeToQuota(planType backend.PlanType) int {
 	switch planType {
 	case backend.PlanTypeFree:
@@ -213,9 +228,8 @@ func FillProducts(stripeClient *client.API, subscriptions []*stripe.Subscription
 func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, interval SubscriptionInterval) (map[ProductType]*stripe.Price, error) {
 	baseLookupKey := GetLookupKey(ProductTypeBase, productTier, interval)
 
-	// TODO: sessions/members hardcoded to PlanTypeFree for now
-	sessionsLookupKey := GetLookupKey(ProductTypeSessions, backend.PlanTypeFree, SubscriptionIntervalMonthly)
-	membersLookupKey := GetLookupKey(ProductTypeMembers, backend.PlanTypeFree, SubscriptionIntervalMonthly)
+	sessionsLookupKey := string(ProductTypeSessions)
+	membersLookupKey := string(ProductTypeMembers)
 
 	priceListParams := stripe.PriceListParams{}
 	priceListParams.LookupKeys = []*string{&baseLookupKey, &sessionsLookupKey, &membersLookupKey}
@@ -249,10 +263,19 @@ func ReportUsageForProduct(DB *gorm.DB, stripeClient *client.API, workspaceID in
 	return reportUsage(DB, stripeClient, workspaceID, &productType)
 }
 
+func ReportUsageForWorkspace(DB *gorm.DB, stripeClient *client.API, workspaceID int) error {
+	return reportUsage(DB, stripeClient, workspaceID, nil)
+}
+
 func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, productType *ProductType) error {
 	var workspace model.Workspace
-	if err := DB.Model(workspace).Where("id = ?", workspaceID).First(&workspace).Error; err != nil {
+	if err := DB.Model(&workspace).Where("id = ?", workspaceID).First(&workspace).Error; err != nil {
 		return e.Wrap(err, "error querying workspace")
+	}
+
+	// Don't report usage for free plans
+	if backend.PlanType(workspace.PlanTier) == backend.PlanTypeFree {
+		return nil
 	}
 
 	if workspace.BillingPeriodStart == nil ||
@@ -292,12 +315,23 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 
 	// Set PendingInvoiceItemInterval to 'month' if not set
 	if subscription.PendingInvoiceItemInterval.Interval != stripe.SubscriptionPendingInvoiceItemIntervalIntervalMonth {
-		if _, err := stripeClient.Subscriptions.Update(subscription.ID, &stripe.SubscriptionParams{
+		updated, err := stripeClient.Subscriptions.Update(subscription.ID, &stripe.SubscriptionParams{
 			PendingInvoiceItemInterval: &stripe.SubscriptionPendingInvoiceItemIntervalParams{
 				Interval: stripe.String(string(stripe.SubscriptionPendingInvoiceItemIntervalIntervalMonth)),
 			},
-		}); err != nil {
+		})
+		if err != nil {
 			return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to update PendingInvoiceItemInterval")
+		}
+
+		if updated.NextPendingInvoiceItemInvoice != 0 {
+			timestamp := time.Unix(updated.NextPendingInvoiceItemInvoice, 0)
+			if err := DB.Model(&workspace).Where("id = ?", workspaceID).
+				Updates(&model.Workspace{
+					NextInvoiceDate: &timestamp,
+				}).Error; err != nil {
+				return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error updating workspace NextInvoiceDate")
+			}
 		}
 	}
 

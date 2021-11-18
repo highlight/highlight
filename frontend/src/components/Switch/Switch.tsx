@@ -18,7 +18,6 @@ type Props = Pick<
     noMarginAroundSwitch?: boolean;
     setMarginForAnimation?: boolean;
     trackingId: string;
-    alternateSideLabel?: string | React.ReactNode;
 };
 
 const Switch = ({
@@ -29,20 +28,9 @@ const Switch = ({
     setMarginForAnimation,
     className,
     trackingId,
-    alternateSideLabel,
     ...props
 }: Props) => {
     const labelToRender = <span>{label}</span>;
-    const altLabelToRender = (
-        <span
-            className={classNames(styles.alternateLabel, {
-                [styles.checked]: props.checked,
-            })}
-        >
-            {alternateSideLabel}
-        </span>
-    );
-
     return (
         <label
             className={classNames(styles.label, className, {
@@ -53,7 +41,6 @@ const Switch = ({
             })}
         >
             {labelFirst && labelToRender}
-            {!labelFirst && altLabelToRender}
             <AntDesignSwitch
                 {...props}
                 size="small"
@@ -68,7 +55,6 @@ const Switch = ({
                 }}
             />
             {!labelFirst && labelToRender}
-            {labelFirst && altLabelToRender}
         </label>
     );
 };

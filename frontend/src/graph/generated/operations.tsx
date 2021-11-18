@@ -1652,17 +1652,21 @@ export type GetBillingDetailsForProjectQueryVariables = Types.Exact<{
 export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
     billingDetailsForProject: { __typename?: 'BillingDetails' } & Pick<
         Types.BillingDetails,
-        'meter' | 'sessionsOutOfQuota'
+        'meter' | 'membersMeter' | 'sessionsOutOfQuota'
     > & {
             plan: { __typename?: 'Plan' } & Pick<
                 Types.Plan,
-                'type' | 'quota' | 'interval'
+                'type' | 'quota' | 'interval' | 'membersLimit'
             >;
         };
     workspace_for_project?: Types.Maybe<
         { __typename?: 'Workspace' } & Pick<
             Types.Workspace,
-            'id' | 'trial_end_date' | 'allow_meter_overage'
+            | 'id'
+            | 'trial_end_date'
+            | 'billing_period_end'
+            | 'next_invoice_date'
+            | 'allow_meter_overage'
         >
     >;
 };
@@ -1674,17 +1678,21 @@ export type GetBillingDetailsQueryVariables = Types.Exact<{
 export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
     billingDetails: { __typename?: 'BillingDetails' } & Pick<
         Types.BillingDetails,
-        'meter' | 'sessionsOutOfQuota'
+        'meter' | 'membersMeter' | 'sessionsOutOfQuota'
     > & {
             plan: { __typename?: 'Plan' } & Pick<
                 Types.Plan,
-                'type' | 'quota' | 'interval'
+                'type' | 'quota' | 'interval' | 'membersLimit'
             >;
         };
     workspace?: Types.Maybe<
         { __typename?: 'Workspace' } & Pick<
             Types.Workspace,
-            'id' | 'trial_end_date' | 'allow_meter_overage'
+            | 'id'
+            | 'trial_end_date'
+            | 'billing_period_end'
+            | 'next_invoice_date'
+            | 'allow_meter_overage'
         >
     >;
 };

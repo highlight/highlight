@@ -16,6 +16,7 @@ type AverageSessionLength struct {
 type BillingDetails struct {
 	Plan               *Plan `json:"plan"`
 	Meter              int64 `json:"meter"`
+	MembersMeter       int64 `json:"membersMeter"`
 	SessionsOutOfQuota int64 `json:"sessionsOutOfQuota"`
 }
 
@@ -76,9 +77,10 @@ type NewUsersCount struct {
 }
 
 type Plan struct {
-	Type     PlanType             `json:"type"`
-	Interval SubscriptionInterval `json:"interval"`
-	Quota    int                  `json:"quota"`
+	Type         PlanType             `json:"type"`
+	Interval     SubscriptionInterval `json:"interval"`
+	Quota        int                  `json:"quota"`
+	MembersLimit int                  `json:"membersLimit"`
 }
 
 type RageClickEventForProject struct {

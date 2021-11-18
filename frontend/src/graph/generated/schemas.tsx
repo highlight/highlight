@@ -88,6 +88,7 @@ export type BillingDetails = {
     __typename?: 'BillingDetails';
     plan: Plan;
     meter: Scalars['Int64'];
+    membersMeter: Scalars['Int64'];
     sessionsOutOfQuota: Scalars['Int64'];
 };
 
@@ -96,6 +97,7 @@ export type Plan = {
     type: PlanType;
     interval: SubscriptionInterval;
     quota: Scalars['Int'];
+    membersLimit: Scalars['Int'];
 };
 
 export enum PlanType {
@@ -169,6 +171,8 @@ export type Workspace = {
     secret?: Maybe<Scalars['String']>;
     projects: Array<Maybe<Project>>;
     trial_end_date?: Maybe<Scalars['Timestamp']>;
+    billing_period_end?: Maybe<Scalars['Timestamp']>;
+    next_invoice_date?: Maybe<Scalars['Timestamp']>;
     allow_meter_overage: Scalars['Boolean'];
 };
 

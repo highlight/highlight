@@ -69,6 +69,7 @@ type ComplexityRoot struct {
 	}
 
 	BillingDetails struct {
+		MembersMeter       func(childComplexity int) int
 		Meter              func(childComplexity int) int
 		Plan               func(childComplexity int) int
 		SessionsOutOfQuota func(childComplexity int) int
@@ -279,9 +280,10 @@ type ComplexityRoot struct {
 	}
 
 	Plan struct {
-		Interval func(childComplexity int) int
-		Quota    func(childComplexity int) int
-		Type     func(childComplexity int) int
+		Interval     func(childComplexity int) int
+		MembersLimit func(childComplexity int) int
+		Quota        func(childComplexity int) int
+		Type         func(childComplexity int) int
 	}
 
 	Project struct {
@@ -534,8 +536,10 @@ type ComplexityRoot struct {
 
 	Workspace struct {
 		AllowMeterOverage   func(childComplexity int) int
+		BillingPeriodEnd    func(childComplexity int) int
 		ID                  func(childComplexity int) int
 		Name                func(childComplexity int) int
+		NextInvoiceDate     func(childComplexity int) int
 		Projects            func(childComplexity int) int
 		Secret              func(childComplexity int) int
 		SlackChannels       func(childComplexity int) int
@@ -788,6 +792,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AverageSessionLength.Length(childComplexity), true
+
+	case "BillingDetails.membersMeter":
+		if e.complexity.BillingDetails.MembersMeter == nil {
+			break
+		}
+
+		return e.complexity.BillingDetails.MembersMeter(childComplexity), true
 
 	case "BillingDetails.meter":
 		if e.complexity.BillingDetails.Meter == nil {
@@ -2111,6 +2122,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Plan.Interval(childComplexity), true
+
+	case "Plan.membersLimit":
+		if e.complexity.Plan.MembersLimit == nil {
+			break
+		}
+
+		return e.complexity.Plan.MembersLimit(childComplexity), true
 
 	case "Plan.quota":
 		if e.complexity.Plan.Quota == nil {
@@ -3734,6 +3752,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Workspace.AllowMeterOverage(childComplexity), true
 
+	case "Workspace.billing_period_end":
+		if e.complexity.Workspace.BillingPeriodEnd == nil {
+			break
+		}
+
+		return e.complexity.Workspace.BillingPeriodEnd(childComplexity), true
+
 	case "Workspace.id":
 		if e.complexity.Workspace.ID == nil {
 			break
@@ -3747,6 +3772,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Workspace.Name(childComplexity), true
+
+	case "Workspace.next_invoice_date":
+		if e.complexity.Workspace.NextInvoiceDate == nil {
+			break
+		}
+
+		return e.complexity.Workspace.NextInvoiceDate(childComplexity), true
 
 	case "Workspace.projects":
 		if e.complexity.Workspace.Projects == nil {
@@ -3952,6 +3984,7 @@ type RageClickEventForProject {
 type BillingDetails {
     plan: Plan!
     meter: Int64!
+    membersMeter: Int64!
     sessionsOutOfQuota: Int64!
 }
 
@@ -3959,6 +3992,7 @@ type Plan {
     type: PlanType!
     interval: SubscriptionInterval!
     quota: Int!
+    membersLimit: Int!
 }
 
 enum PlanType {
@@ -4028,6 +4062,8 @@ type Workspace {
     secret: String
     projects: [Project]!
     trial_end_date: Timestamp
+    billing_period_end: Timestamp
+    next_invoice_date: Timestamp
     allow_meter_overage: Boolean!
 }
 
@@ -8126,6 +8162,41 @@ func (ec *executionContext) _BillingDetails_meter(ctx context.Context, field gra
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Meter, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int64)
+	fc.Result = res
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _BillingDetails_membersMeter(ctx context.Context, field graphql.CollectedField, obj *model.BillingDetails) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "BillingDetails",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MembersMeter, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13589,6 +13660,41 @@ func (ec *executionContext) _Plan_quota(ctx context.Context, field graphql.Colle
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Quota, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Plan_membersLimit(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Plan",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MembersLimit, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -20630,6 +20736,70 @@ func (ec *executionContext) _Workspace_trial_end_date(ctx context.Context, field
 	return ec.marshalOTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Workspace_billing_period_end(ctx context.Context, field graphql.CollectedField, obj *model1.Workspace) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Workspace",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BillingPeriodEnd, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Workspace_next_invoice_date(ctx context.Context, field graphql.CollectedField, obj *model1.Workspace) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Workspace",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NextInvoiceDate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Workspace_allow_meter_overage(ctx context.Context, field graphql.CollectedField, obj *model1.Workspace) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -22467,6 +22637,11 @@ func (ec *executionContext) _BillingDetails(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "membersMeter":
+			out.Values[i] = ec._BillingDetails_membersMeter(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "sessionsOutOfQuota":
 			out.Values[i] = ec._BillingDetails_sessionsOutOfQuota(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -23503,6 +23678,11 @@ func (ec *executionContext) _Plan(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "quota":
 			out.Values[i] = ec._Plan_quota(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "membersLimit":
+			out.Values[i] = ec._Plan_membersLimit(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -25347,6 +25527,10 @@ func (ec *executionContext) _Workspace(ctx context.Context, sel ast.SelectionSet
 			}
 		case "trial_end_date":
 			out.Values[i] = ec._Workspace_trial_end_date(ctx, field, obj)
+		case "billing_period_end":
+			out.Values[i] = ec._Workspace_billing_period_end(ctx, field, obj)
+		case "next_invoice_date":
+			out.Values[i] = ec._Workspace_next_invoice_date(ctx, field, obj)
 		case "allow_meter_overage":
 			out.Values[i] = ec._Workspace_allow_meter_overage(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

@@ -3005,6 +3005,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	var g errgroup.Group
 	var meter int64
 	var queriedSessionsOutOfQuota int64
+	var membersMeter int64
 
 	g.Go(func() error {
 		meter, err = pricing.GetWorkspaceMeter(r.DB, workspaceID)
@@ -3022,25 +3023,39 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 		return nil
 	})
 
+	g.Go(func() error {
+		membersMeter = pricing.GetMembersMeter(r.DB, workspaceID)
+		if err != nil {
+			return e.Wrap(err, "error querying members meter")
+		}
+		return nil
+	})
+
 	// Waits for both goroutines to finish, then returns the first non-nil error (if any).
 	if err := g.Wait(); err != nil {
 		return nil, e.Wrap(err, "error querying session data for billing details")
 	}
 
-	quota := pricing.TypeToQuota(planType)
+	sessionLimit := pricing.TypeToQuota(planType)
 	// use monthly session limit if it exists
 	if workspace.MonthlySessionLimit != nil {
-		quota = *workspace.MonthlySessionLimit
+		sessionLimit = *workspace.MonthlySessionLimit
 	}
+
+	membersLimit := pricing.TypeToMemberLimit(planType)
+
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{
-			Type:     modelInputs.PlanType(planType.String()),
-			Quota:    quota,
-			Interval: interval,
+			Type:         modelInputs.PlanType(planType.String()),
+			Quota:        sessionLimit,
+			Interval:     interval,
+			MembersLimit: membersLimit,
 		},
 		Meter:              meter,
+		MembersMeter:       membersMeter,
 		SessionsOutOfQuota: queriedSessionsOutOfQuota,
 	}
+
 	return details, nil
 }
 

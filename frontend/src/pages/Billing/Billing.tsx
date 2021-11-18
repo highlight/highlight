@@ -1,7 +1,10 @@
 import { useAuthContext } from '@authentication/AuthContext';
 import Alert from '@components/Alert/Alert';
 import Button from '@components/Button/Button/Button';
+import Switch from '@components/Switch/Switch';
 import SvgLogInIcon from '@icons/LogInIcon';
+import { BillingStatusCard } from '@pages/Billing/BillingStatusCard/BillingStatusCard';
+import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { loadStripe } from '@stripe/stripe-js';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
@@ -11,15 +14,12 @@ import { Helmet } from 'react-helmet';
 import Skeleton from 'react-loading-skeleton';
 import { useLocation } from 'react-router-dom';
 
-import Collapsible from '../../components/Collapsible/Collapsible';
 import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
-import Progress from '../../components/Progress/Progress';
 import {
     useCreateOrUpdateStripeSubscriptionMutation,
     useGetBillingDetailsQuery,
     useGetCustomerPortalUrlLazyQuery,
-    useGetWorkspaceQuery,
     useUpdateBillingDetailsMutation,
 } from '../../graph/generated/hooks';
 import {
@@ -27,8 +27,6 @@ import {
     PlanType,
     SubscriptionInterval,
 } from '../../graph/generated/schemas';
-import SvgShieldWarningIcon from '../../static/ShieldWarningIcon';
-import { formatNumberWithDelimiters } from '../../util/numbers';
 import styles from './Billing.module.scss';
 import { BILLING_PLANS } from './BillingPlanCard/BillingConfig';
 import { BillingPlanCard } from './BillingPlanCard/BillingPlanCard';
@@ -47,9 +45,7 @@ const stripePromiseOrNull = getStripePromiseOrNull();
 const BillingPage = () => {
     const { workspace_id } = useParams<{ workspace_id: string }>();
     const { pathname } = useLocation();
-    const { data: workspaceData } = useGetWorkspaceQuery({
-        variables: { id: workspace_id },
-    });
+    const { currentWorkspace } = useApplicationContext();
     const [
         checkoutRedirectFailedMessage,
         setCheckoutRedirectFailedMessage,
@@ -187,24 +183,7 @@ const BillingPage = () => {
         })();
     }
 
-    const ratio =
-        (billingData?.billingDetails.meter ?? 0) /
-        (billingData?.billingDetails.plan.quota ?? 1);
-
-    /** Show upsell when the current usage is 80% of the workspace's plan. */
-    const upsell = ratio >= 0.8;
-
     const allowOverage = billingData?.workspace?.allow_meter_overage ?? true;
-
-    // If the workspace allows overage, calculate and display sessionsOverQuota
-    let sessionsOverQuota = 0;
-    if (allowOverage) {
-        sessionsOverQuota = Math.max(
-            0,
-            billingData?.billingDetails.meter -
-                (billingData?.billingDetails.plan.quota ?? 0)
-        );
-    }
 
     return (
         <>
@@ -236,62 +215,54 @@ const BillingPage = () => {
                         </Button>
                     )}
                 </div>
-                <div className={styles.detailsCard}>
-                    <Collapsible
-                        title={
-                            <span className={styles.detailsCardTitle}>
-                                <span>Plan Details</span>{' '}
-                                {upsell && <SvgShieldWarningIcon />}
+                <BillingStatusCard
+                    planType={
+                        billingData?.billingDetails.plan.type ?? PlanType.Free
+                    }
+                    sessionCount={billingData?.billingDetails.meter ?? 0}
+                    sessionLimit={billingData?.billingDetails.plan.quota ?? 0}
+                    memberCount={billingData?.billingDetails.membersMeter ?? 0}
+                    memberLimit={
+                        billingData?.billingDetails.plan.membersLimit ?? 0
+                    }
+                    subscriptionInterval={
+                        billingData?.billingDetails.plan.interval ??
+                        SubscriptionInterval.Monthly
+                    }
+                    billingPeriodEnd={
+                        billingData?.workspace?.billing_period_end
+                    }
+                    nextInvoiceDate={billingData?.workspace?.next_invoice_date}
+                    allowOverage={allowOverage}
+                    loading={billingLoading}
+                    workspaceName={currentWorkspace?.name ?? ''}
+                />
+                <div className={styles.annualToggleBox}>
+                    <Switch
+                        loading={billingLoading}
+                        label={
+                            <span className={styles.annualToggleText}>
+                                Annual Plan{' '}
+                                <span className={styles.annualToggleAltText}>
+                                    (20% off)
+                                </span>
                             </span>
                         }
-                        id="planDetails"
-                    >
-                        <p>
-                            This workspace is on the{' '}
-                            <b>{billingData?.billingDetails.plan.type} Plan</b>{' '}
-                            which has used{' '}
-                            {formatNumberWithDelimiters(
-                                billingData?.billingDetails.meter
-                            )}{' '}
-                            of its{' '}
-                            {formatNumberWithDelimiters(
-                                billingData?.billingDetails.plan.quota
-                            )}{' '}
-                            monthly sessions limit.
-                        </p>
-                        {upsell && sessionsOverQuota === 0 && (
-                            <p>
-                                <span>
-                                    You are nearing your monthly sessions limit.
-                                    Sessions recorded after you've reached your
-                                    limit will{' '}
-                                    {allowOverage
-                                        ? 'incur an overage fee of $5 per 1,000 sessions.'
-                                        : 'not be viewable until you upgrade your plan.'}
-                                </span>
-                            </p>
-                        )}
-                        {sessionsOverQuota > 0 && (
-                            <p>
-                                <span>
-                                    You have exceeded your monthly sessions
-                                    limit by{' '}
-                                    {formatNumberWithDelimiters(
-                                        sessionsOverQuota
-                                    )}{' '}
-                                    sessions. An overage fee of $5 per 1,000
-                                    sessions will be charged in your next
-                                    invoice.
-                                </span>
-                            </p>
-                        )}
-                        <Progress
-                            numerator={billingData?.billingDetails.meter}
-                            denominator={
-                                billingData?.billingDetails.plan.quota || 1
-                            }
-                        />
-                    </Collapsible>
+                        labelFirst
+                        justifySpaceBetween
+                        noMarginAroundSwitch
+                        checked={
+                            subscriptionInterval === SubscriptionInterval.Annual
+                        }
+                        onChange={(isAnnual) => {
+                            setSubscriptionInterval(
+                                isAnnual
+                                    ? SubscriptionInterval.Annual
+                                    : SubscriptionInterval.Monthly
+                            );
+                        }}
+                        trackingId="DOMInteractions"
+                    />
                 </div>
                 <div className={styles.billingSectionWrapper}>
                     <div className={styles.billingPlanCardWrapper}>
@@ -323,19 +294,6 @@ const BillingPage = () => {
                                         onSelect={createOnSelect(
                                             billingPlan.type
                                         )}
-                                        onToggleInterval={
-                                            !isHighlightAdmin ||
-                                            admin?.role !== AdminRole.Admin ||
-                                            billingPlan.type === PlanType.Free
-                                                ? undefined
-                                                : (isAnnual) => {
-                                                      setSubscriptionInterval(
-                                                          isAnnual
-                                                              ? SubscriptionInterval.Annual
-                                                              : SubscriptionInterval.Monthly
-                                                      );
-                                                  }
-                                        }
                                         loading={
                                             loadingPlanType === billingPlan.type
                                         }
@@ -349,7 +307,7 @@ const BillingPage = () => {
                             <Alert
                                 trackingId="AdminNoAccessToBilling"
                                 message="You don't have access to billing."
-                                description={`You don't have permission to access the billing details for "${workspaceData?.workspace?.name}". Please contact a workspace admin to make changes.`}
+                                description={`You don't have permission to access the billing details for "${currentWorkspace?.name}". Please contact a workspace admin to make changes.`}
                             />
                         )}
                     </div>

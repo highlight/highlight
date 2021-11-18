@@ -68,6 +68,7 @@ type RageClickEventForProject {
 type BillingDetails {
     plan: Plan!
     meter: Int64!
+    membersMeter: Int64!
     sessionsOutOfQuota: Int64!
 }
 
@@ -75,6 +76,7 @@ type Plan {
     type: PlanType!
     interval: SubscriptionInterval!
     quota: Int!
+    membersLimit: Int!
 }
 
 enum PlanType {
@@ -144,6 +146,8 @@ type Workspace {
     secret: String
     projects: [Project]!
     trial_end_date: Timestamp
+    billing_period_end: Timestamp
+    next_invoice_date: Timestamp
     allow_meter_overage: Boolean!
 }
 

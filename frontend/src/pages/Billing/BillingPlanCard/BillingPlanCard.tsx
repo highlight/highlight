@@ -1,5 +1,5 @@
-import Switch from '@components/Switch/Switch';
 import { PlanType, SubscriptionInterval } from '@graph/schemas';
+import { formatNumberWithDelimiters } from '@util/numbers';
 import classNames from 'classnames/bind';
 import React from 'react';
 
@@ -15,7 +15,6 @@ export const BillingPlanCard = ({
     current,
     loading,
     subscriptionInterval,
-    onToggleInterval,
     disabled,
 }: {
     current: boolean;
@@ -23,7 +22,6 @@ export const BillingPlanCard = ({
     onSelect: () => void;
     loading: boolean;
     subscriptionInterval: SubscriptionInterval;
-    onToggleInterval?: (val: boolean) => void;
     disabled?: boolean;
 }) => {
     return (
@@ -38,11 +36,11 @@ export const BillingPlanCard = ({
                     commonStyles.title,
                     styles.billingPlanPrice
                 )}
-            >{`$${
+            >{`$${formatNumberWithDelimiters(
                 subscriptionInterval === SubscriptionInterval.Annual
                     ? billingPlan.annualPrice
                     : billingPlan.monthlyPrice
-            }`}</h4>
+            )}${billingPlan.type === PlanType.Enterprise ? '+' : ''}`}</h4>
             <p className={styles.billingFrequency}>
                 {billingPlan.type === PlanType.Free
                     ? 'no billing'
@@ -50,20 +48,6 @@ export const BillingPlanCard = ({
                     ? 'billed yearly'
                     : 'billed monthly'}
             </p>
-            <div className={styles.intervalToggleContainer}>
-                {onToggleInterval !== undefined && (
-                    <Switch
-                        label="Yearly"
-                        alternateSideLabel="Monthly"
-                        checked={
-                            subscriptionInterval === SubscriptionInterval.Annual
-                        }
-                        onChange={onToggleInterval}
-                        trackingId="ToggleSubscriptionInterval"
-                        className={styles.intervalToggle}
-                    />
-                )}
-            </div>
             <ul className={styles.advertisedFeaturesWrapper}>
                 {billingPlan.advertisedFeatures.map((featureString) => (
                     <li

@@ -1,0 +1,63 @@
+.intervalToggleContainer {
+    height: 26px;
+    margin-bottom: var(--size-xxSmall);
+    padding-bottom: var(--size-xxSmall);
+    padding-top: var(--size-xxSmall);
+}
+
+.intervalToggle {
+    width: 100%;
+}
+
+.fieldsBox {
+    border: 1px solid var(--color-gray-300);
+    border-radius: 8px;
+    max-width: 700px;
+    padding: 30px;
+}
+
+.sectionContents {
+    width: 85%;
+}
+
+.cardTitle {
+    font-size: 18px;
+    margin-bottom: var(--size-large) !important;
+}
+
+.cardSubtitleContainer {
+    display: inline-flex;
+    font-size: 16px;
+    font-weight: 500;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.subtotal {
+    color: var(--color-purple-light);
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.cardTotalContainer {
+    display: inline-flex;
+    font-size: 16px;
+    font-weight: 500;
+    gap: 40px;
+    justify-content: flex-end;
+    width: 100%;
+}
+
+.subText {
+    color: var(--color-gray-500);
+    font-size: 14px;
+}
+
+.planText {
+    color: var(--color-purple);
+    font-weight: 500;
+}
+
+.progressContainer {
+    margin-top: var(--size-small);
+}

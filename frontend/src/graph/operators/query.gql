@@ -433,13 +433,17 @@ query GetBillingDetailsForProject($project_id: ID!) {
             type
             quota
             interval
+            membersLimit
         }
         meter
+        membersMeter
         sessionsOutOfQuota
     }
     workspace_for_project(project_id: $project_id) {
         id
         trial_end_date
+        billing_period_end
+        next_invoice_date
         allow_meter_overage
     }
 }
@@ -450,13 +454,17 @@ query GetBillingDetails($workspace_id: ID!) {
             type
             quota
             interval
+            membersLimit
         }
         meter
+        membersMeter
         sessionsOutOfQuota
     }
     workspace(id: $workspace_id) {
         id
         trial_end_date
+        billing_period_end
+        next_invoice_date
         allow_meter_overage
     }
 }
