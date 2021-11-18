@@ -17,7 +17,6 @@ import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext';
 import AlertSetupModal from '@pages/Alerts/AlertSetupModal/AlertSetupModal';
 import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy';
 import { getAlertTypeColor } from '@pages/Alerts/utils/AlertsUtils';
-import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import React from 'react';
 import { Link, useHistory } from 'react-router-dom';
@@ -245,15 +244,16 @@ const AlertsPage = () => {
             <AlertSetupModal />
             <div className={styles.subTitleContainer}>
                 <p>Manage your alerts for your project.</p>
-                {alertsPayload?.is_integrated_with_slack && (
-                    <ButtonLink
-                        trackingId="NewAlert"
-                        className={styles.callToAction}
-                        to={`/${project_id}/alerts/new`}
-                    >
-                        New Alert
-                    </ButtonLink>
-                )}
+                {alertsPayload?.is_integrated_with_slack &&
+                    alertsAsTableRows.length > 0 && (
+                        <ButtonLink
+                            trackingId="NewAlert"
+                            className={styles.callToAction}
+                            to={`/${project_id}/alerts/new`}
+                        >
+                            New Alert
+                        </ButtonLink>
+                    )}
             </div>
             {!loading && !alertsPayload?.is_integrated_with_slack ? (
                 <Alert
@@ -335,35 +335,13 @@ const AlertsPage = () => {
                                 customTitle={`Your project doesn't have any alerts yet 😔`}
                                 customDescription={
                                     <>
-                                        {`You can create new alerts by clicking
-                                        the New Alert button in the upper right. `}
-                                        {!isOnPrem ? (
-                                            <>
-                                                If you think something's wrong,
-                                                feel free to message us on{' '}
-                                                <span
-                                                    className={
-                                                        styles.intercomButton
-                                                    }
-                                                    onClick={() =>
-                                                        window.Intercom(
-                                                            'update',
-                                                            {
-                                                                hide_default_launcher: false,
-                                                            }
-                                                        )
-                                                    }
-                                                >
-                                                    Intercom
-                                                </span>
-                                                .
-                                            </>
-                                        ) : (
-                                            <>
-                                                If you think something's wrong,
-                                                feel free to reach out to us!
-                                            </>
-                                        )}
+                                        <ButtonLink
+                                            trackingId="NewAlert"
+                                            className={styles.callToAction}
+                                            to={`/${project_id}/alerts/new`}
+                                        >
+                                            New Alert
+                                        </ButtonLink>
                                     </>
                                 }
                             />
