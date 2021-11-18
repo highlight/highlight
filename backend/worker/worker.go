@@ -137,6 +137,24 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	}
 	manager.Resources.Offset = resourcesProcessingOffset
 
+	_, err = manager.Events.File.Seek(0, io.SeekStart)
+	if err != nil {
+		return e.Wrap(err, "error seeking to start of events file")
+	}
+	hasNext := true
+	for hasNext {
+		se, err := manager.Events.Reader().Next()
+		if err != nil {
+			if !errors.Is(err, io.EOF) {
+				return e.Wrap(err, "error reading next line")
+			}
+			hasNext = false
+		}
+		if err := manager.EventsCompressed.WriteEvents(&model.EventsObject{Events: *se}); err != nil {
+			return errors.Wrap(err, "error writing compressed event row")
+		}
+	}
+
 	// Fetch/write events.
 	eventRows, err := w.Resolver.DB.Model(&model.EventsObject{}).Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").Rows()
 	if err != nil {
