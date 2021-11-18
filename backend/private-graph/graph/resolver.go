@@ -25,7 +25,6 @@ import (
 	"github.com/stripe/stripe-go/v72/webhook"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
@@ -956,10 +955,14 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 	}
 
 	workspace := model.Workspace{}
-
-	if err := r.DB.Model(&workspace).
+	if err := r.DB.Model(&model.Workspace{}).
 		Where(model.Workspace{StripeCustomerID: &stripeCustomerID}).
-		Clauses(clause.Returning{}).
+		Find(&workspace).Error; err != nil {
+		return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error retrieving workspace for customer %s", stripeCustomerID)
+	}
+
+	if err := r.DB.Model(&model.Workspace{}).
+		Where(model.Workspace{Model: model.Model{ID: workspace.ID}}).
 		Updates(map[string]interface{}{
 			"PlanTier":           string(tier),
 			"BillingPeriodStart": billingPeriodStart,

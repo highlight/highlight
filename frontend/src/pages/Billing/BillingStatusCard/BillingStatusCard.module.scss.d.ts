@@ -2,8 +2,6 @@ export const cardSubtitleContainer: string;
 export const cardTitle: string;
 export const cardTotalContainer: string;
 export const fieldsBox: string;
-export const intervalToggle: string;
-export const intervalToggleContainer: string;
 export const planText: string;
 export const progressContainer: string;
 export const sectionContents: string;

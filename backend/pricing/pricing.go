@@ -362,15 +362,22 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 	if productType == nil || *productType == ProductTypeMembers {
 		newPrice := prices[ProductTypeMembers]
 		meter := GetMembersMeter(DB, workspaceID)
+
+		limit := TypeToMemberLimit(backend.PlanType(workspace.PlanTier))
+		if workspace.MonthlyMembersLimit != nil {
+			limit = *workspace.MonthlyMembersLimit
+		}
+
+		overage := int64(0)
+		if meter > int64(limit) {
+			overage = meter - int64(limit)
+		}
+
 		log.Infof("reporting members usage for workspace %d", workspaceID)
 		if membersLine, ok := invoiceLines[ProductTypeMembers]; ok {
-			max := meter
-			if membersLine.Quantity > max {
-				max = membersLine.Quantity
-			}
 			if _, err := stripeClient.InvoiceItems.Update(membersLine.InvoiceItem, &stripe.InvoiceItemParams{
 				Price:    &newPrice.ID,
-				Quantity: stripe.Int64(max),
+				Quantity: stripe.Int64(overage),
 			}); err != nil {
 				return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to update members invoice item")
 			}
@@ -393,27 +400,21 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 			return e.Wrap(err, "error getting sessions meter")
 		}
 
-		// If meter exceeds the plan limit, and overage is not allowed,
-		// set the meter to the plan limit and report that.
-		if !workspace.AllowMeterOverage {
-			limit := TypeToQuota(backend.PlanType(workspace.PlanTier))
-			if workspace.MonthlySessionLimit != nil {
-				limit = *workspace.MonthlySessionLimit
-			}
-			if meter > int64(limit) {
-				meter = int64(limit)
-			}
+		limit := TypeToQuota(backend.PlanType(workspace.PlanTier))
+		if workspace.MonthlySessionLimit != nil {
+			limit = *workspace.MonthlySessionLimit
+		}
+
+		sessionOverage := int64(0)
+		if workspace.AllowMeterOverage && meter > int64(limit) {
+			sessionOverage = meter - int64(limit)
 		}
 
 		log.Infof("reporting sessions usage for workspace %d", workspaceID)
 		if sessionsLine, ok := invoiceLines[ProductTypeSessions]; ok {
-			max := meter
-			if sessionsLine.Quantity > max {
-				max = sessionsLine.Quantity
-			}
 			if _, err := stripeClient.InvoiceItems.Update(sessionsLine.InvoiceItem, &stripe.InvoiceItemParams{
 				Price:    &newPrice.ID,
-				Quantity: stripe.Int64(max),
+				Quantity: stripe.Int64(sessionOverage),
 			}); err != nil {
 				return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to update sessions invoice item")
 			}

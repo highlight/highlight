@@ -141,7 +141,7 @@ export const BillingStatusCard = ({
                                 <strong>
                                     {formatNumberWithDelimiters(memberLimit)}
                                 </strong>{' '}
-                                are included for free with your plan).
+                                are included with your plan).
                             </span>
                         )}
                     </div>

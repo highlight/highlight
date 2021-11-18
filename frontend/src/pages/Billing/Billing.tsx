@@ -264,53 +264,44 @@ const BillingPage = () => {
                         trackingId="DOMInteractions"
                     />
                 </div>
-                <div className={styles.billingSectionWrapper}>
-                    <div className={styles.billingPlanCardWrapper}>
-                        {admin?.role === AdminRole.Admin ? (
-                            BILLING_PLANS.map((billingPlan) =>
-                                billingLoading ? (
-                                    <Skeleton
-                                        style={{ borderRadius: 8 }}
-                                        count={1}
-                                        height={325}
-                                        width={275}
-                                    />
-                                ) : (
-                                    <BillingPlanCard
-                                        disabled={
-                                            admin?.role !== AdminRole.Admin
-                                        }
-                                        key={billingPlan.type}
-                                        current={
+                <div className={styles.billingPlanCardWrapper}>
+                    {admin?.role === AdminRole.Admin ? (
+                        BILLING_PLANS.map((billingPlan) =>
+                            billingLoading ? (
+                                <Skeleton
+                                    style={{ borderRadius: 8 }}
+                                    count={1}
+                                    height={325}
+                                    width={275}
+                                />
+                            ) : (
+                                <BillingPlanCard
+                                    disabled={admin?.role !== AdminRole.Admin}
+                                    key={billingPlan.type}
+                                    current={
+                                        billingData?.billingDetails.plan
+                                            .type === billingPlan.name &&
+                                        (billingPlan.type === PlanType.Free ||
                                             billingData?.billingDetails.plan
-                                                .type === billingPlan.name &&
-                                            (billingPlan.type ===
-                                                PlanType.Free ||
-                                                billingData?.billingDetails.plan
-                                                    .interval ===
-                                                    subscriptionInterval)
-                                        }
-                                        billingPlan={billingPlan}
-                                        onSelect={createOnSelect(
-                                            billingPlan.type
-                                        )}
-                                        loading={
-                                            loadingPlanType === billingPlan.type
-                                        }
-                                        subscriptionInterval={
-                                            subscriptionInterval
-                                        }
-                                    />
-                                )
+                                                .interval ===
+                                                subscriptionInterval)
+                                    }
+                                    billingPlan={billingPlan}
+                                    onSelect={createOnSelect(billingPlan.type)}
+                                    loading={
+                                        loadingPlanType === billingPlan.type
+                                    }
+                                    subscriptionInterval={subscriptionInterval}
+                                />
                             )
-                        ) : (
-                            <Alert
-                                trackingId="AdminNoAccessToBilling"
-                                message="You don't have access to billing."
-                                description={`You don't have permission to access the billing details for "${currentWorkspace?.name}". Please contact a workspace admin to make changes.`}
-                            />
-                        )}
-                    </div>
+                        )
+                    ) : (
+                        <Alert
+                            trackingId="AdminNoAccessToBilling"
+                            message="You don't have access to billing."
+                            description={`You don't have permission to access the billing details for "${currentWorkspace?.name}". Please contact a workspace admin to make changes.`}
+                        />
+                    )}
                 </div>
             </LeadAlignLayout>
         </>

@@ -2,7 +2,6 @@ export const annualToggleAltText: string;
 export const annualToggleBox: string;
 export const annualToggleText: string;
 export const billingPlanCardWrapper: string;
-export const billingSectionWrapper: string;
 export const detailsCard: string;
 export const detailsCardTitle: string;
 export const infoTooltip: string;
