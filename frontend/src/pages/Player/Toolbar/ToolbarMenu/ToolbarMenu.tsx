@@ -19,7 +19,7 @@ interface Props {
     loading: boolean;
 }
 
-const ToolbarMenu = ({ loading }: Props) => {
+const ToolbarMenu = React.memo(({ loading }: Props) => {
     return (
         <Popover
             placement="topLeft"
@@ -74,6 +74,6 @@ const ToolbarMenu = ({ loading }: Props) => {
             </Button>
         </Popover>
     );
-};
+});
 
 export default ToolbarMenu;

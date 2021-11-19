@@ -300,9 +300,12 @@ export const SessionFeed = React.memo(() => {
                                             showDetailedSessionView={
                                                 showDetailedSessionView
                                             }
-                                            configuration={
-                                                sessionFeedConfiguration
-                                            }
+                                            configuration={{
+                                                countFormat:
+                                                    sessionFeedConfiguration.countFormat,
+                                                datetimeFormat:
+                                                    sessionFeedConfiguration.datetimeFormat,
+                                            }}
                                         />
                                     ))}
                                 </>

@@ -61,43 +61,7 @@ const RightPlayerPanel = React.memo(() => {
                 {showRightPanel && (
                     <div className={styles.playerRightPanelCollapsible}>
                         <MetadataBox />
-                        <Tabs
-                            centered
-                            tabsHtmlId={`${PlayerPageProductTourSelectors.PlayerRightPanel}`}
-                            id="PlayerRightPanel"
-                            noPadding
-                            className={styles.tabs}
-                            tabs={[
-                                {
-                                    key: 'Events',
-                                    panelContent: <EventStream />,
-                                },
-                                {
-                                    key: 'Comments',
-                                    panelContent: (
-                                        <div
-                                            className={
-                                                styles.tabContentContainer
-                                            }
-                                        >
-                                            <SessionFullCommentList />
-                                        </div>
-                                    ),
-                                },
-                                {
-                                    key: 'Metadata',
-                                    panelContent: (
-                                        <div
-                                            className={
-                                                styles.tabContentContainer
-                                            }
-                                        >
-                                            <MetadataPanel />
-                                        </div>
-                                    ),
-                                },
-                            ]}
-                        />
+                        <RightPlayerPanelTabs />
                     </div>
                 )}
             </div>
@@ -106,3 +70,37 @@ const RightPlayerPanel = React.memo(() => {
 });
 
 export default RightPlayerPanel;
+
+const RightPlayerPanelTabs = React.memo(() => {
+    return (
+        <Tabs
+            centered
+            tabsHtmlId={`${PlayerPageProductTourSelectors.PlayerRightPanel}`}
+            id="PlayerRightPanel"
+            noPadding
+            className={styles.tabs}
+            tabs={[
+                {
+                    key: 'Events',
+                    panelContent: <EventStream />,
+                },
+                {
+                    key: 'Comments',
+                    panelContent: (
+                        <div className={styles.tabContentContainer}>
+                            <SessionFullCommentList />
+                        </div>
+                    ),
+                },
+                {
+                    key: 'Metadata',
+                    panelContent: (
+                        <div className={styles.tabContentContainer}>
+                            <MetadataPanel />
+                        </div>
+                    ),
+                },
+            ]}
+        />
+    );
+});

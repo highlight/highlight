@@ -20,60 +20,65 @@ interface Props {
     configuration: SessionFeedConfigurationContext;
 }
 
-const SessionFeedConfiguration = ({
-    configuration: {
-        datetimeFormat,
-        setDatetimeFormat,
-        countFormat,
-        setCountFormat,
-    },
-}: Props) => {
-    return (
-        <Popover
-            content={
-                <div className={styles.popover}>
-                    <label className={styles.label}>
-                        Datetime Format
-                        <Select
-                            options={dateTimeFormats.map((format) => ({
-                                displayValue: `${formatDatetime(
-                                    new Date().toISOString(),
-                                    format
-                                )}`,
-                                value: format,
-                                id: format,
-                            }))}
-                            value={datetimeFormat}
-                            onChange={setDatetimeFormat}
-                        />
-                    </label>
-                    <label className={styles.label}>
-                        Count Format
-                        <Select
-                            options={countFormats.map((format) => ({
-                                displayValue: `${formatCount(12321, format)}`,
-                                value: format,
-                                id: format,
-                            }))}
-                            value={countFormat}
-                            onChange={setCountFormat}
-                        />
-                    </label>
-                </div>
-            }
-            placement="right"
-            trigger={['click']}
-        >
-            <Button
-                trackingId="SessionFeedConfiguration"
-                size="small"
-                type="ghost"
+const SessionFeedConfiguration = React.memo(
+    ({
+        configuration: {
+            datetimeFormat,
+            setDatetimeFormat,
+            countFormat,
+            setCountFormat,
+        },
+    }: Props) => {
+        return (
+            <Popover
+                content={
+                    <div className={styles.popover}>
+                        <label className={styles.label}>
+                            Datetime Format
+                            <Select
+                                options={dateTimeFormats.map((format) => ({
+                                    displayValue: `${formatDatetime(
+                                        new Date().toISOString(),
+                                        format
+                                    )}`,
+                                    value: format,
+                                    id: format,
+                                }))}
+                                value={datetimeFormat}
+                                onChange={setDatetimeFormat}
+                            />
+                        </label>
+                        <label className={styles.label}>
+                            Count Format
+                            <Select
+                                options={countFormats.map((format) => ({
+                                    displayValue: `${formatCount(
+                                        12321,
+                                        format
+                                    )}`,
+                                    value: format,
+                                    id: format,
+                                }))}
+                                value={countFormat}
+                                onChange={setCountFormat}
+                            />
+                        </label>
+                    </div>
+                }
+                placement="right"
+                trigger={['click']}
             >
-                <SvgSettingsIcon />
-            </Button>
-        </Popover>
-    );
-};
+                <Button
+                    trackingId="SessionFeedConfiguration"
+                    size="small"
+                    type="ghost"
+                >
+                    <SvgSettingsIcon />
+                </Button>
+            </Popover>
+        );
+    }
+);
 
 export default SessionFeedConfiguration;
 

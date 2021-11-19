@@ -16,7 +16,7 @@ interface ErrorsPageHistoryState {
     errorCardIndex: number;
 }
 
-const ErrorsPage = () => {
+const ErrorsPage = React.memo(() => {
     const [lastActiveErrorIndex, setLastActiveErrorIndex] = useState(-1);
     const virtuoso = useRef<VirtuosoHandle>(null);
     const [isInteractingWithErrors, setIsInteractingWithErrors] = useState(
@@ -162,6 +162,6 @@ const ErrorsPage = () => {
             </div>
         </div>
     );
-};
+});
 
 export default ErrorsPage;

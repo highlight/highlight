@@ -106,7 +106,7 @@ const TimelineIndicatorsMemoized = React.memo(
     }
 );
 
-const TimelineIndicators = () => {
+const TimelineIndicators = React.memo(() => {
     const {
         state,
         replayer,
@@ -176,6 +176,6 @@ const TimelineIndicators = () => {
             />
         </>
     );
-};
+});
 
 export default TimelineIndicators;
