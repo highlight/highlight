@@ -139,6 +139,7 @@ export type SessionData = {
     sessionSecureID: string;
     projectID: number;
     sessionStartTime?: number;
+    lastPushTime?: number;
     userIdentifier?: string;
     userObject?: Object;
 };
@@ -152,6 +153,11 @@ const FIRST_SEND_FREQUENCY = 1000 * 1;
  * In milliseconds.
  */
 const SEND_FREQUENCY = 1000 * 2;
+/**
+ * The amount of time allowed after the last push before creating a new session.
+ * In milliseconds.
+ */
+const SESSION_PUSH_THRESHOLD = 1000 * 55;
 
 /**
  * Maximum length of a session
@@ -470,7 +476,13 @@ export class Highlight {
 
             // To handle the 'Duplicate Tab' function, remove id from storage until page unload
             window.sessionStorage.removeItem('sessionData');
-            if (storedSessionData && storedSessionData.sessionID) {
+            if (
+                storedSessionData &&
+                storedSessionData.sessionID &&
+                storedSessionData.lastPushTime &&
+                Date.now() - storedSessionData.lastPushTime <
+                    SESSION_PUSH_THRESHOLD
+            ) {
                 this.sessionData = storedSessionData;
                 reloaded = true;
             } else {
@@ -833,6 +845,7 @@ export class Highlight {
                 const payload = this._getPayload();
                 await this.graphqlSDK.PushPayload(payload);
                 this.numberOfFailedRequests = 0;
+                this.sessionData.lastPushTime = Date.now();
                 // Listeners are cleared when the user calls stop() manually.
                 if (this.listeners.length === 0) {
                     return;
