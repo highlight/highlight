@@ -184,10 +184,15 @@ export const BillingStatusCard = ({
                             </>
                         ) : (
                             <>
-                                <span>
-                                    Due{' '}
-                                    {moment(nextBillingDate).format('M/D/YY')}:
-                                </span>
+                                {nextBillingDate && (
+                                    <span>
+                                        Due{' '}
+                                        {moment(nextBillingDate).format(
+                                            'M/D/YY'
+                                        )}
+                                        :
+                                    </span>
+                                )}
                                 <span className={styles.subtotal}>
                                     ${formatNumberWithDelimiters(total)}{' '}
                                 </span>
