@@ -1,5 +1,12 @@
 import { Replayer } from '@highlight-run/rrweb';
-import { customEvent } from '@highlight-run/rrweb/dist/types';
+import {
+    customEvent,
+    viewportResizeDimension,
+} from '@highlight-run/rrweb/dist/types';
+import {
+    findLatestUrl,
+    getAllUrlEvents,
+} from '@pages/Player/SessionLevelBar/utils/utils';
 import { useParams } from '@util/react-router/useParams';
 import { H } from 'highlight.run';
 import { useCallback, useEffect, useState } from 'react';
@@ -90,6 +97,11 @@ export const usePlayer = (): ReplayerContextInterface => {
         SessionViewability.VIEWABLE
     );
     const [time, setTime] = useState<number>(0);
+    const [viewport, setViewport] = useState<
+        viewportResizeDimension | undefined
+    >(undefined);
+    const [currentUrl, setCurrentUrl] = useState<string | undefined>(undefined);
+
     const [session, setSession] = useState<undefined | Session>(undefined);
     /** localStorageTime acts like a message broker to share the current player time for components that are outside of the context tree. */
     const {
@@ -326,11 +338,44 @@ export const usePlayer = (): ReplayerContextInterface => {
                 setLoadedEventsIndex(
                     Math.min(EVENTS_CHUNK_SIZE, newEvents.length)
                 );
+
                 r.on('event-cast', (e: any) => {
                     const event = e as HighlightEvent;
                     if ((event as customEvent)?.data?.tag === 'Stop') {
                         setState(ReplayerState.SessionRecordingStopped);
                     }
+                    if (event.type === 5) {
+                        switch (event.data.tag) {
+                            case 'Navigate':
+                            case 'Reload':
+                                setCurrentUrl(event.data.payload as string);
+                                return;
+                            default:
+                                return;
+                        }
+                    }
+                });
+                const onlyUrlEvents = getAllUrlEvents(newEvents);
+                setCurrentUrl(onlyUrlEvents[0].data.payload);
+                r.on('resize', (_e) => {
+                    const e = _e as viewportResizeDimension;
+                    setViewport(e);
+                });
+                r.on('pause', () => {
+                    setCurrentUrl(
+                        findLatestUrl(
+                            onlyUrlEvents,
+                            r.getCurrentTime() + r.getMetaData().startTime
+                        )
+                    );
+                });
+                r.on('start', () => {
+                    setCurrentUrl(
+                        findLatestUrl(
+                            onlyUrlEvents,
+                            r.getCurrentTime() + r.getMetaData().startTime
+                        )
+                    );
                 });
                 setReplayer(r);
                 if (isLiveMode) {
@@ -693,6 +738,8 @@ export const usePlayer = (): ReplayerContextInterface => {
         playerProgress: replayer
             ? time / replayer.getMetaData().totalTime
             : null,
+        viewport,
+        currentUrl,
     };
 };
 

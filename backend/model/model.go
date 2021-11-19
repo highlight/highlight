@@ -188,7 +188,9 @@ type Workspace struct {
 	PlanTier              string `gorm:"default:Free"`
 	BillingPeriodStart    *time.Time
 	BillingPeriodEnd      *time.Time
+	NextInvoiceDate       *time.Time
 	MonthlySessionLimit   *int
+	MonthlyMembersLimit   *int
 	TrialEndDate          *time.Time `json:"trial_end_date"`
 	AllowMeterOverage     bool       `gorm:"default:false"`
 }

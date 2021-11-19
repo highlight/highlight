@@ -28,6 +28,7 @@ export type MarkSessionAsStarredMutation = { __typename?: 'Mutation' } & {
 export type CreateOrUpdateStripeSubscriptionMutationVariables = Types.Exact<{
     workspace_id: Types.Scalars['ID'];
     plan_type: Types.PlanType;
+    interval: Types.SubscriptionInterval;
 }>;
 
 export type CreateOrUpdateStripeSubscriptionMutation = {
@@ -1007,6 +1008,20 @@ export type UpdateErrorGroupIsPublicMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
+export type UpdateAllowMeterOverageMutationVariables = Types.Exact<{
+    workspace_id: Types.Scalars['ID'];
+    allow_meter_overage: Types.Scalars['Boolean'];
+}>;
+
+export type UpdateAllowMeterOverageMutation = { __typename?: 'Mutation' } & {
+    updateAllowMeterOverage?: Types.Maybe<
+        { __typename?: 'Workspace' } & Pick<
+            Types.Workspace,
+            'id' | 'allow_meter_overage'
+        >
+    >;
+};
+
 export type GetSessionPayloadQueryVariables = Types.Exact<{
     session_secure_id: Types.Scalars['String'];
     skip_events: Types.Scalars['Boolean'];
@@ -1637,12 +1652,21 @@ export type GetBillingDetailsForProjectQueryVariables = Types.Exact<{
 export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
     billingDetailsForProject: { __typename?: 'BillingDetails' } & Pick<
         Types.BillingDetails,
-        'meter' | 'sessionsOutOfQuota'
-    > & { plan: { __typename?: 'Plan' } & Pick<Types.Plan, 'type' | 'quota'> };
+        'meter' | 'membersMeter' | 'sessionsOutOfQuota'
+    > & {
+            plan: { __typename?: 'Plan' } & Pick<
+                Types.Plan,
+                'type' | 'quota' | 'interval' | 'membersLimit'
+            >;
+        };
     workspace_for_project?: Types.Maybe<
         { __typename?: 'Workspace' } & Pick<
             Types.Workspace,
-            'id' | 'trial_end_date'
+            | 'id'
+            | 'trial_end_date'
+            | 'billing_period_end'
+            | 'next_invoice_date'
+            | 'allow_meter_overage'
         >
     >;
 };
@@ -1654,12 +1678,21 @@ export type GetBillingDetailsQueryVariables = Types.Exact<{
 export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
     billingDetails: { __typename?: 'BillingDetails' } & Pick<
         Types.BillingDetails,
-        'meter' | 'sessionsOutOfQuota'
-    > & { plan: { __typename?: 'Plan' } & Pick<Types.Plan, 'type' | 'quota'> };
+        'meter' | 'membersMeter' | 'sessionsOutOfQuota'
+    > & {
+            plan: { __typename?: 'Plan' } & Pick<
+                Types.Plan,
+                'type' | 'quota' | 'interval' | 'membersLimit'
+            >;
+        };
     workspace?: Types.Maybe<
         { __typename?: 'Workspace' } & Pick<
             Types.Workspace,
-            'id' | 'trial_end_date'
+            | 'id'
+            | 'trial_end_date'
+            | 'billing_period_end'
+            | 'next_invoice_date'
+            | 'allow_meter_overage'
         >
     >;
 };
@@ -2650,6 +2683,7 @@ export const namedOperations = {
         UpdateUserPropertiesAlert: 'UpdateUserPropertiesAlert' as const,
         UpdateSessionIsPublic: 'UpdateSessionIsPublic' as const,
         UpdateErrorGroupIsPublic: 'UpdateErrorGroupIsPublic' as const,
+        UpdateAllowMeterOverage: 'UpdateAllowMeterOverage' as const,
         SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
     },
 };
