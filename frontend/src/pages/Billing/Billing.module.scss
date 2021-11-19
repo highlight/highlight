@@ -7,7 +7,6 @@
     flex-direction: row;
     flex-wrap: wrap;
     gap: var(--size-large);
-    margin-top: 30px;
 }
 
 .detailsCard {
@@ -42,4 +41,32 @@
     display: flex;
     justify-content: space-between;
     max-width: 1172px;
+}
+
+.infoTooltip {
+    height: var(--size-medium);
+    vertical-align: bottom;
+    width: var(--size-medium);
+}
+
+.overageToggle {
+    margin-top: var(--size-small);
+}
+
+.annualToggleBox {
+    border: 1px solid var(--color-gray-300);
+    border-radius: 8px;
+    margin-bottom: 30px;
+    max-width: 350px;
+    padding: 30px;
+}
+
+.annualToggleText {
+    color: var(--text-primary);
+    font-size: 18px;
+    font-weight: 500;
+}
+
+.annualToggleAltText {
+    color: var(--color-gray-500);
 }

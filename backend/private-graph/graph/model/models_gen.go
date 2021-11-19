@@ -16,6 +16,7 @@ type AverageSessionLength struct {
 type BillingDetails struct {
 	Plan               *Plan `json:"plan"`
 	Meter              int64 `json:"meter"`
+	MembersMeter       int64 `json:"membersMeter"`
 	SessionsOutOfQuota int64 `json:"sessionsOutOfQuota"`
 }
 
@@ -76,8 +77,10 @@ type NewUsersCount struct {
 }
 
 type Plan struct {
-	Type  PlanType `json:"type"`
-	Quota int      `json:"quota"`
+	Type         PlanType             `json:"type"`
+	Interval     SubscriptionInterval `json:"interval"`
+	Quota        int                  `json:"quota"`
+	MembersLimit int                  `json:"membersLimit"`
 }
 
 type RageClickEventForProject struct {
@@ -390,5 +393,46 @@ func (e *SocialType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SocialType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type SubscriptionInterval string
+
+const (
+	SubscriptionIntervalMonthly SubscriptionInterval = "Monthly"
+	SubscriptionIntervalAnnual  SubscriptionInterval = "Annual"
+)
+
+var AllSubscriptionInterval = []SubscriptionInterval{
+	SubscriptionIntervalMonthly,
+	SubscriptionIntervalAnnual,
+}
+
+func (e SubscriptionInterval) IsValid() bool {
+	switch e {
+	case SubscriptionIntervalMonthly, SubscriptionIntervalAnnual:
+		return true
+	}
+	return false
+}
+
+func (e SubscriptionInterval) String() string {
+	return string(e)
+}
+
+func (e *SubscriptionInterval) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SubscriptionInterval(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SubscriptionInterval", str)
+	}
+	return nil
+}
+
+func (e SubscriptionInterval) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

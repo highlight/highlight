@@ -25,7 +25,6 @@ import (
 	"github.com/stripe/stripe-go/v72/webhook"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
@@ -934,6 +933,7 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 	tier := modelInputs.PlanTypeFree
 	var billingPeriodStart *time.Time
 	var billingPeriodEnd *time.Time
+	var nextInvoiceDate *time.Time
 
 	// Loop over each subscription item in each of the customer's subscriptions
 	// and set the workspace's tier if the Stripe product has one
@@ -943,22 +943,38 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 				tier = *productTier
 				startTimestamp := time.Unix(subscription.CurrentPeriodStart, 0)
 				endTimestamp := time.Unix(subscription.CurrentPeriodEnd, 0)
+				nextInvoiceTimestamp := time.Unix(subscription.NextPendingInvoiceItemInvoice, 0)
+
 				billingPeriodStart = &startTimestamp
 				billingPeriodEnd = &endTimestamp
+				if subscription.NextPendingInvoiceItemInvoice != 0 {
+					nextInvoiceDate = &nextInvoiceTimestamp
+				}
 			}
 		}
 	}
 
 	workspace := model.Workspace{}
-	if err := r.DB.Model(&workspace).
-		Clauses(clause.Returning{}).
+	if err := r.DB.Model(&model.Workspace{}).
 		Where(model.Workspace{StripeCustomerID: &stripeCustomerID}).
+		Find(&workspace).Error; err != nil {
+		return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error retrieving workspace for customer %s", stripeCustomerID)
+	}
+
+	if err := r.DB.Model(&model.Workspace{}).
+		Where(model.Workspace{Model: model.Model{ID: workspace.ID}}).
 		Updates(map[string]interface{}{
 			"PlanTier":           string(tier),
 			"BillingPeriodStart": billingPeriodStart,
 			"BillingPeriodEnd":   billingPeriodEnd,
+			"NextInvoiceDate":    nextInvoiceDate,
 		}).Error; err != nil {
 		return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error updating workspace fields for customer %s", stripeCustomerID)
+	}
+
+	// Plan has been updated, report the latest usage data to Stripe
+	if err := pricing.ReportUsageForWorkspace(r.DB, r.StripeClient, workspace.ID); err != nil {
+		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR error reporting usage after updating details")
 	}
 
 	// mark sessions as within billing quota on plan upgrade
