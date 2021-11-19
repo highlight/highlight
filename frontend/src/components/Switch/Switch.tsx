@@ -1,6 +1,5 @@
 // eslint-disable-next-line no-restricted-imports
 import { Switch as AntDesignSwitch, SwitchProps } from 'antd';
-import { SwitchSize } from 'antd/lib/switch';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React from 'react';
@@ -9,7 +8,7 @@ import styles from './Switch.module.scss';
 
 type Props = Pick<
     SwitchProps,
-    'checked' | 'onChange' | 'loading' | 'className'
+    'checked' | 'onChange' | 'loading' | 'className' | 'size'
 > & {
     label: string | React.ReactNode;
     /** Renders the label before the switch. */
@@ -19,7 +18,6 @@ type Props = Pick<
     noMarginAroundSwitch?: boolean;
     setMarginForAnimation?: boolean;
     trackingId: string;
-    size?: SwitchSize;
 };
 
 const Switch = ({
@@ -30,7 +28,7 @@ const Switch = ({
     setMarginForAnimation,
     className,
     trackingId,
-    size,
+    size = 'small',
     ...props
 }: Props) => {
     const labelToRender = <span>{label}</span>;
@@ -46,7 +44,7 @@ const Switch = ({
             {labelFirst && labelToRender}
             <AntDesignSwitch
                 {...props}
-                size={size ?? 'small'}
+                size={size}
                 className={styles.switchStyles}
                 onChange={(checked, event) => {
                     if (props.onChange) {

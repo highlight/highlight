@@ -1,6 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext';
 import Alert from '@components/Alert/Alert';
 import Button from '@components/Button/Button/Button';
+import HighlightGate from '@components/HighlightGate/HighlightGate';
 import Switch from '@components/Switch/Switch';
 import SvgLogInIcon from '@icons/LogInIcon';
 import { BillingStatusCard } from '@pages/Billing/BillingStatusCard/BillingStatusCard';
@@ -76,7 +77,7 @@ const BillingPage = () => {
         },
     });
 
-    const { admin, isHighlightAdmin } = useAuthContext();
+    const { admin } = useAuthContext();
 
     const [
         createOrUpdateStripeSubscription,
@@ -199,21 +200,23 @@ const BillingPage = () => {
                             Manage your billing information.
                         </p>
                     </div>
-                    {isHighlightAdmin && admin?.role === AdminRole.Admin && (
-                        <Button
-                            trackingId="RedirectToCustomerPortal"
-                            type="primary"
-                            onClick={() => {
-                                getCustomerPortalUrl({
-                                    variables: { workspace_id },
-                                });
-                            }}
-                            loading={loadingCustomerPortal}
-                            className={styles.portalButton}
-                        >
-                            <SvgLogInIcon /> Payment Settings
-                        </Button>
-                    )}
+                    <HighlightGate>
+                        {admin?.role === AdminRole.Admin && (
+                            <Button
+                                trackingId="RedirectToCustomerPortal"
+                                type="primary"
+                                onClick={() => {
+                                    getCustomerPortalUrl({
+                                        variables: { workspace_id },
+                                    });
+                                }}
+                                loading={loadingCustomerPortal}
+                                className={styles.portalButton}
+                            >
+                                <SvgLogInIcon /> Payment Settings
+                            </Button>
+                        )}
+                    </HighlightGate>
                 </div>
                 <BillingStatusCard
                     planType={
@@ -236,39 +239,43 @@ const BillingPage = () => {
                     allowOverage={allowOverage}
                     loading={billingLoading}
                 />
-                {isHighlightAdmin && admin?.role === AdminRole.Admin && (
-                    <div className={styles.annualToggleBox}>
-                        <Switch
-                            loading={billingLoading}
-                            label={
-                                <span className={styles.annualToggleText}>
-                                    Annual Plan{' '}
-                                    <span
-                                        className={styles.annualToggleAltText}
-                                    >
-                                        (20% off)
+                <HighlightGate>
+                    {admin?.role === AdminRole.Admin && (
+                        <div className={styles.annualToggleBox}>
+                            <Switch
+                                loading={billingLoading}
+                                label={
+                                    <span className={styles.annualToggleText}>
+                                        Annual Plan{' '}
+                                        <span
+                                            className={
+                                                styles.annualToggleAltText
+                                            }
+                                        >
+                                            (20% off)
+                                        </span>
                                     </span>
-                                </span>
-                            }
-                            size="default"
-                            labelFirst
-                            justifySpaceBetween
-                            noMarginAroundSwitch
-                            checked={
-                                subscriptionInterval ===
-                                SubscriptionInterval.Annual
-                            }
-                            onChange={(isAnnual) => {
-                                setSubscriptionInterval(
-                                    isAnnual
-                                        ? SubscriptionInterval.Annual
-                                        : SubscriptionInterval.Monthly
-                                );
-                            }}
-                            trackingId="DOMInteractions"
-                        />
-                    </div>
-                )}
+                                }
+                                size="default"
+                                labelFirst
+                                justifySpaceBetween
+                                noMarginAroundSwitch
+                                checked={
+                                    subscriptionInterval ===
+                                    SubscriptionInterval.Annual
+                                }
+                                onChange={(isAnnual) => {
+                                    setSubscriptionInterval(
+                                        isAnnual
+                                            ? SubscriptionInterval.Annual
+                                            : SubscriptionInterval.Monthly
+                                    );
+                                }}
+                                trackingId="BillingInterval"
+                            />
+                        </div>
+                    )}
+                </HighlightGate>
                 <div className={styles.billingPlanCardWrapper}>
                     {admin?.role === AdminRole.Admin ? (
                         BILLING_PLANS.map((billingPlan) =>
