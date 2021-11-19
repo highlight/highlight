@@ -6,9 +6,10 @@ import { SessionSearchOption } from '../../Sessions/SessionsFeedV2/components/Se
 
 interface DetailedPanelOptions {
     noHeader?: boolean;
+    noPadding?: boolean;
 }
 
-interface DetailedPanel {
+export interface DetailedPanel {
     title: string | React.ReactNode;
     content: React.ReactNode;
     options?: DetailedPanelOptions;

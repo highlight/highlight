@@ -11,58 +11,73 @@ import styles from './DevToolsWindow.module.scss';
 import ErrorsPage from './ErrorsPage/ErrorsPage';
 import { ResourcePage } from './ResourcePage/ResourcePage';
 
-export const DevToolsWindow = ({
-    time,
-    startTime,
-}: {
-    time: number;
-    startTime: number;
-}) => {
-    const { openDevTools, setOpenDevTools } = useDevToolsContext();
-    const { isPlayerFullscreen } = usePlayerUIContext();
+export const DevToolsWindow = React.memo(
+    ({ time, startTime }: { time: number; startTime: number }) => {
+        const { openDevTools, setOpenDevTools } = useDevToolsContext();
+        const { isPlayerFullscreen } = usePlayerUIContext();
 
-    const TABS: TabItem[] = [
-        {
-            title: 'Errors',
-            panelContent: <ErrorsPage />,
-        },
-        {
-            title: 'Console',
-            panelContent: <ConsolePage time={time} />,
-        },
-        {
-            title: 'Network',
-            panelContent: <ResourcePage startTime={startTime} time={time} />,
-        },
-    ];
+        if (!openDevTools || isPlayerFullscreen) {
+            return null;
+        }
 
-    if (!openDevTools || isPlayerFullscreen) {
-        return null;
+        const TABS: TabItem[] = [
+            {
+                key: 'Errors',
+                panelContent: <ErrorsPage />,
+            },
+            {
+                key: 'Console',
+                panelContent: <ConsolePage time={time} />,
+            },
+            {
+                key: 'Network',
+                panelContent: (
+                    <ResourcePage startTime={startTime} time={time} />
+                ),
+            },
+        ];
+
+        return (
+            <ResizePanel
+                direction="n"
+                containerClass={styles.resizeContainer}
+                handleClass={styles.resizeHandle}
+                borderClass={styles.resizeBorder}
+            >
+                <div className={styles.devToolsWrapper}>
+                    <DevToolsTabs
+                        closeDevToolsHandler={() => {
+                            setOpenDevTools(false);
+                        }}
+                        tabs={TABS}
+                    />
+                </div>
+            </ResizePanel>
+        );
     }
+);
 
+interface Props {
+    closeDevToolsHandler: () => void;
+    tabs: TabItem[];
+}
+
+const DevToolsTabs = React.memo(({ closeDevToolsHandler, tabs }: Props) => {
     return (
-        <ResizePanel
-            direction="n"
-            containerClass={styles.resizeContainer}
-            handleClass={styles.resizeHandle}
-            borderClass={styles.resizeBorder}
-        >
-            <div className={styles.devToolsWrapper}>
-                <Tabs
-                    tabs={TABS}
-                    id="DevTools"
-                    noPadding
-                    tabBarExtraContent={
-                        <>
-                            <DOMInteractionsToggle />
-                            <SvgXIcon
-                                className={styles.closeStyle}
-                                onClick={() => setOpenDevTools(false)}
-                            />
-                        </>
-                    }
-                />
-            </div>
-        </ResizePanel>
+        <Tabs
+            tabs={tabs}
+            id="DevTools"
+            noPadding
+            className={styles.tabs}
+            tabBarExtraContent={
+                <>
+                    <DOMInteractionsToggle />
+                    <SvgXIcon
+                        className={styles.closeStyle}
+                        onClick={closeDevToolsHandler}
+                    />
+                </>
+            }
+        />
     );
-};
+});

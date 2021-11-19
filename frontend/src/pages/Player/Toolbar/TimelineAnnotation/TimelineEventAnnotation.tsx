@@ -4,11 +4,7 @@ import React, { useState } from 'react';
 import Popover from '../../../../components/Popover/Popover';
 import { MillisToMinutesAndSeconds } from '../../../../util/time';
 import { EventsForTimeline } from '../../PlayerHook/utils';
-import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration';
-import {
-    ParsedHighlightEvent,
-    useReplayerContext,
-} from '../../ReplayerContext';
+import { ParsedHighlightEvent } from '../../ReplayerContext';
 import {
     getEventRenderDetails,
     getPlayerEventIcon,
@@ -21,13 +17,19 @@ import timelineAnnotationStyles from './TimelineAnnotation.module.scss';
 
 interface Props {
     event: ParsedHighlightEvent;
+    startTime: number | undefined;
+    selectedTimelineAnnotationTypes: string[];
+    pause: (time?: number | undefined) => void;
 }
 
-const TimelineEventAnnotation = ({ event }: Props) => {
-    const { pause, replayer } = useReplayerContext();
+const TimelineEventAnnotation = ({
+    event,
+    startTime,
+    selectedTimelineAnnotationTypes,
+    pause,
+}: Props) => {
     const details = getEventRenderDetails(event);
     const [isTooltipOpen, setIsTooltipOpen] = useState(false);
-    const { selectedTimelineAnnotationTypes } = usePlayerConfiguration();
 
     if (
         !selectedTimelineAnnotationTypes.includes(details.title || ('' as any))
@@ -39,6 +41,7 @@ const TimelineEventAnnotation = ({ event }: Props) => {
     return (
         <Popover
             key={event.identifier}
+            popoverClassName={timelineAnnotationStyles.popover}
             content={
                 <div className={styles.popoverContent}>
                     <StreamElementPayload
@@ -78,9 +81,8 @@ const TimelineEventAnnotation = ({ event }: Props) => {
                         '') as typeof EventsForTimeline[number]
                 }
                 onClickHandler={() => {
-                    if (replayer) {
-                        const newTime =
-                            event.timestamp - replayer.getMetaData().startTime;
+                    if (startTime) {
+                        const newTime = event.timestamp - startTime;
 
                         pause(newTime);
                         message.success(

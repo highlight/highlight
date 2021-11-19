@@ -30,7 +30,7 @@ interface ParsedMessage extends ConsoleMessage {
     id: number;
 }
 
-export const ConsolePage = ({ time }: { time: number }) => {
+export const ConsolePage = React.memo(({ time }: { time: number }) => {
     const [currentMessage, setCurrentMessage] = useState(-1);
     const [filterSearchTerm, setFilterSearchTerm] = useState('');
     const [options, setOptions] = useState<Array<string>>([]);
@@ -173,7 +173,11 @@ export const ConsolePage = ({ time }: { time: number }) => {
                                 setFilterSearchTerm(event.target.value);
                             }}
                             size="small"
-                            disabled={loading || messagesToRender.length === 0}
+                            disabled={
+                                loading ||
+                                (messagesToRender.length === 0 &&
+                                    filterSearchTerm.length === 0)
+                            }
                         />
                     </div>
                 </div>
@@ -261,7 +265,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
             </div>
         </div>
     );
-};
+});
 
 const ConsoleRender = ({
     m,

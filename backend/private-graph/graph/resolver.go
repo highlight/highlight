@@ -2,26 +2,33 @@ package graph
 
 import (
 	"context"
+	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
+	"io/ioutil"
+	"math/big"
+	"net/http"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/clearbit/clearbit-go/clearbit"
+	"github.com/highlight-run/workerpool"
 	e "github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
-	"github.com/stripe/stripe-go/client"
+	stripe "github.com/stripe/stripe-go/v72"
+	"github.com/stripe/stripe-go/v72/client"
+	"github.com/stripe/stripe-go/v72/webhook"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/pricing"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 )
@@ -38,11 +45,12 @@ var (
 )
 
 type Resolver struct {
-	DB             *gorm.DB
-	MailClient     *sendgrid.Client
-	StripeClient   *client.API
-	StorageClient  *storage.StorageClient
-	ClearbitClient *clearbit.Client
+	DB                *gorm.DB
+	MailClient        *sendgrid.Client
+	StripeClient      *client.API
+	StorageClient     *storage.StorageClient
+	ClearbitClient    *clearbit.Client
+	PrivateWorkerPool *workerpool.WorkerPool
 }
 
 func (r *Resolver) getCurrentAdmin(ctx context.Context) (*model.Admin, error) {
@@ -58,6 +66,10 @@ func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
 
 func (r *Resolver) isDemoProject(project_id int) bool {
 	return project_id == 0
+}
+
+func (r *Resolver) isDemoWorkspace(workspace_id int) bool {
+	return workspace_id == 0
 }
 
 // These are authentication methods used to make sure that data is secured.
@@ -83,6 +95,24 @@ func (r *Resolver) isAdminInProjectOrDemoProject(ctx context.Context, project_id
 	return project, nil
 }
 
+func (r *Resolver) isAdminInWorkspaceOrDemoWorkspace(ctx context.Context, workspace_id int) (*model.Workspace, error) {
+	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("isAdminInWorkspaceOrDemoWorkspace"))
+	defer authSpan.Finish()
+	var workspace *model.Workspace
+	var err error
+	if r.isDemoWorkspace(workspace_id) {
+		if err = r.DB.Model(&model.Workspace{}).Where("id = ?", 0).First(&workspace).Error; err != nil {
+			return nil, e.Wrap(err, "error querying demo workspace")
+		}
+	} else {
+		workspace, err = r.isAdminInWorkspace(ctx, workspace_id)
+		if err != nil {
+			return nil, e.Wrap(err, "admin is not in workspace or demo workspace")
+		}
+	}
+	return workspace, nil
+}
+
 func (r *Resolver) GetWorkspace(workspaceID int) (*model.Workspace, error) {
 	var workspace model.Workspace
 	if err := r.DB.Where(&model.Workspace{Model: model.Model{ID: workspaceID}}).First(&workspace).Error; err != nil {
@@ -91,22 +121,46 @@ func (r *Resolver) GetWorkspace(workspaceID int) (*model.Workspace, error) {
 	return &workspace, nil
 }
 
-func (r *Resolver) addAdminMembership(ctx context.Context, obj model.HasSecret, objId int, inviteID string) (*int, error) {
-	if err := r.DB.Model(obj).Where("id = ?", objId).First(obj).Error; err != nil {
-		return nil, e.Wrap(err, "error querying project")
-	}
-	if obj.GetSecret() == nil || *obj.GetSecret() != inviteID {
-		return nil, e.New("invalid invite id")
+func (r *Resolver) addAdminMembership(ctx context.Context, workspace model.HasSecret, workspaceId int, inviteID string) (*int, error) {
+	if err := r.DB.Model(workspace).Where("id = ?", workspaceId).First(workspace).Error; err != nil {
+		return nil, e.Wrap(err, "error querying workspace")
 	}
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.New("error querying admin")
 	}
 
-	if err := r.DB.Model(obj).Association("Admins").Append(admin); err != nil {
+	inviteLink := &model.WorkspaceInviteLink{}
+	if err := r.DB.Where(&model.WorkspaceInviteLink{WorkspaceID: &workspaceId, Secret: &inviteID}).First(&inviteLink).Error; err != nil {
+		return nil, e.Wrap(err, "error querying for invite Link")
+	}
+
+	// Non-admin specific invites don't have a specific invitee. Only block if the invite is for a specific admin and the emails don't match.
+	if inviteLink.InviteeEmail != nil {
+		if *inviteLink.InviteeEmail != *admin.Email {
+			return nil, e.New("This invite is not valid for the admin.")
+		}
+	}
+
+	if r.IsInviteLinkExpired(inviteLink) {
+		if err := r.DB.Delete(inviteLink).Error; err != nil {
+			return nil, e.Wrap(err, "error while trying to delete expired invite link")
+		}
+		return nil, e.New("This invite link has expired.")
+	}
+
+	if err := r.DB.Model(workspace).Association("Admins").Append(admin); err != nil {
 		return nil, e.Wrap(err, "error adding admin to association")
 	}
-	return &objId, nil
+
+	// Only delete the invite for specific-admin invites. Specific-admin invites are 1-time use only.
+	// Non-admin specific invites are multi-use and only have an expiration date.
+	if inviteLink.InviteeEmail != nil {
+		if err := r.DB.Delete(inviteLink).Error; err != nil {
+			return nil, e.Wrap(err, "error while trying to delete used invite link")
+		}
+	}
+	return &workspaceId, nil
 }
 
 func (r *Resolver) DeleteAdminAssociation(ctx context.Context, obj interface{}, adminID int) (*int, error) {
@@ -279,19 +333,10 @@ func ErrorInputToParams(params *modelInputs.ErrorSearchParamsInput) *model.Error
 	return modelParams
 }
 
-func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupID *int, errorGroupSecureID *string) (eg *model.ErrorGroup, isOwner bool, err error) {
+func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureID string) (eg *model.ErrorGroup, isOwner bool, err error) {
 	errorGroup := &model.ErrorGroup{}
-	if errorGroupID == nil && errorGroupSecureID == nil {
-		return nil, false, errors.New("No ID was specified for the error group")
-	}
-	if errorGroupSecureID != nil {
-		if err := r.DB.Where(&model.ErrorGroup{SecureID: *errorGroupSecureID}).First(&errorGroup).Error; err != nil {
-			return nil, false, e.Wrap(err, "error querying error group by secureID: "+*errorGroupSecureID)
-		}
-	} else {
-		if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: *errorGroupID}}).First(&errorGroup).Error; err != nil {
-			return nil, false, e.Wrap(err, fmt.Sprintf("error querying error group by ID: %d", *errorGroupID))
-		}
+	if err := r.DB.Where(&model.ErrorGroup{SecureID: errorGroupSecureID}).First(&errorGroup).Error; err != nil {
+		return nil, false, e.Wrap(err, "error querying error group by secureID: "+errorGroupSecureID)
 	}
 	_, err = r.isAdminInProjectOrDemoProject(ctx, errorGroup.ProjectID)
 	if err != nil {
@@ -300,10 +345,10 @@ func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupID *int
 	return errorGroup, true, nil
 }
 
-func (r *Resolver) canAdminViewErrorGroup(ctx context.Context, errorGroupID *int, errorGroupSecureID *string) (*model.ErrorGroup, error) {
+func (r *Resolver) canAdminViewErrorGroup(ctx context.Context, errorGroupSecureID string) (*model.ErrorGroup, error) {
 	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminViewErrorGroup"))
 	defer authSpan.Finish()
-	errorGroup, isOwner, err := r.doesAdminOwnErrorGroup(ctx, errorGroupID, errorGroupSecureID)
+	errorGroup, isOwner, err := r.doesAdminOwnErrorGroup(ctx, errorGroupSecureID)
 	if err == nil && isOwner {
 		return errorGroup, nil
 	}
@@ -313,29 +358,20 @@ func (r *Resolver) canAdminViewErrorGroup(ctx context.Context, errorGroupID *int
 	return nil, err
 }
 
-func (r *Resolver) canAdminModifyErrorGroup(ctx context.Context, errorGroupID *int, errorGroupSecureID *string) (*model.ErrorGroup, error) {
+func (r *Resolver) canAdminModifyErrorGroup(ctx context.Context, errorGroupSecureID string) (*model.ErrorGroup, error) {
 	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminModifyErrorGroup"))
 	defer authSpan.Finish()
-	errorGroup, isOwner, err := r.doesAdminOwnErrorGroup(ctx, errorGroupID, errorGroupSecureID)
+	errorGroup, isOwner, err := r.doesAdminOwnErrorGroup(ctx, errorGroupSecureID)
 	if err == nil && isOwner {
 		return errorGroup, nil
 	}
 	return nil, err
 }
 
-func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_id *int, session_secure_id *string) (session *model.Session, ownsSession bool, err error) {
+func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_secure_id string) (session *model.Session, ownsSession bool, err error) {
 	session = &model.Session{}
-	if session_id == nil && session_secure_id == nil {
-		return nil, false, errors.New("No ID was specified for the session")
-	}
-	if session_secure_id != nil {
-		if err = r.DB.Where(&model.Session{SecureID: *session_secure_id}).First(&session).Error; err != nil {
-			return nil, false, e.Wrap(err, "error querying session by secure_id: "+*session_secure_id)
-		}
-	} else {
-		if err = r.DB.Where(&model.Session{Model: model.Model{ID: *session_id}}).First(&session).Error; err != nil {
-			return nil, false, e.Wrap(err, fmt.Sprintf("error querying session by id: %d", *session_id))
-		}
+	if err = r.DB.Where(&model.Session{SecureID: session_secure_id}).First(&session).Error; err != nil {
+		return nil, false, e.Wrap(err, "error querying session by secure_id: "+session_secure_id)
 	}
 
 	_, err = r.isAdminInProjectOrDemoProject(ctx, session.ProjectID)
@@ -345,10 +381,10 @@ func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_id *int, se
 	return session, true, nil
 }
 
-func (r *Resolver) canAdminViewSession(ctx context.Context, session_id *int, session_secure_id *string) (*model.Session, error) {
+func (r *Resolver) canAdminViewSession(ctx context.Context, session_secure_id string) (*model.Session, error) {
 	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminViewSession"))
 	defer authSpan.Finish()
-	session, isOwner, err := r._doesAdminOwnSession(ctx, session_id, session_secure_id)
+	session, isOwner, err := r._doesAdminOwnSession(ctx, session_secure_id)
 	if err == nil && isOwner {
 		return session, nil
 	}
@@ -358,10 +394,10 @@ func (r *Resolver) canAdminViewSession(ctx context.Context, session_id *int, ses
 	return nil, err
 }
 
-func (r *Resolver) canAdminModifySession(ctx context.Context, session_id *int, session_secure_id *string) (*model.Session, error) {
+func (r *Resolver) canAdminModifySession(ctx context.Context, session_secure_id string) (*model.Session, error) {
 	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminModifySession"))
 	defer authSpan.Finish()
-	session, isOwner, err := r._doesAdminOwnSession(ctx, session_id, session_secure_id)
+	session, isOwner, err := r._doesAdminOwnSession(ctx, session_secure_id)
 	if err == nil && isOwner {
 		return session, nil
 	}
@@ -396,7 +432,7 @@ func (r *Resolver) isAdminErrorSegmentOwner(ctx context.Context, error_segment_i
 	return segment, nil
 }
 
-func (r *Resolver) UpdateSessionsVisibility(projectID int, newPlan modelInputs.PlanType, originalPlan modelInputs.PlanType) {
+func (r *Resolver) UpdateSessionsVisibility(workspaceID int, newPlan modelInputs.PlanType, originalPlan modelInputs.PlanType) {
 	isPlanUpgrade := true
 	switch originalPlan {
 	case modelInputs.PlanTypeFree:
@@ -417,7 +453,10 @@ func (r *Resolver) UpdateSessionsVisibility(projectID int, newPlan modelInputs.P
 		}
 	}
 	if isPlanUpgrade {
-		if err := r.DB.Model(&model.Session{}).Where(&model.Session{ProjectID: projectID, WithinBillingQuota: &model.F}).Updates(model.Session{WithinBillingQuota: &model.T}).Error; err != nil {
+		if err := r.DB.Model(&model.Session{}).
+			Where("project_id in (SELECT id FROM projects WHERE workspace_id=?)", workspaceID).
+			Where(&model.Session{WithinBillingQuota: &model.F}).
+			Updates(model.Session{WithinBillingQuota: &model.T}).Error; err != nil {
 			log.Error(e.Wrap(err, "error updating within_billing_quota on sessions upon plan upgrade"))
 		}
 	}
@@ -665,7 +704,9 @@ func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model
 			if err != nil {
 				log.Error(e.Wrap(err, "failed to join slack channel"))
 			}
-			_, _, err = slackClient.PostMessage(*slackUser.WebhookChannelID, slack.MsgOptionBlocks(blockSet.BlockSet...))
+			_, _, err = slackClient.PostMessage(*slackUser.WebhookChannelID, slack.MsgOptionBlocks(blockSet.BlockSet...),
+				slack.MsgOptionDisableLinkUnfurl(), /** Disables showing a preview of any links that are in the Slack message.*/
+				slack.MsgOptionDisableMediaUnfurl() /** Disables showing a preview of any links that are in the Slack message.*/)
 			if err != nil {
 				return e.Wrap(err, "error posting slack message via slack bot")
 			}
@@ -773,7 +814,7 @@ func (r *Resolver) SendAdminInviteImpl(adminName string, projectOrWorkspaceName 
 		}
 		return nil, e.New(estr)
 	}
-	return &email, nil
+	return &inviteLink, nil
 }
 
 func (r *Resolver) MarshalEnvironments(environments []*string) (*string, error) {
@@ -819,4 +860,201 @@ func (r *Resolver) UnmarshalStackTrace(stackTraceString string) ([]*modelInputs.
 	}
 
 	return ret, nil
+}
+
+func (r *Resolver) validateAdminRole(ctx context.Context) error {
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return e.Wrap(err, "error retrieving admin")
+	}
+
+	if admin.Role == nil || *admin.Role != model.AdminRole.ADMIN {
+		return e.New("admin does not have role=ADMIN")
+	}
+
+	return nil
+}
+
+// GenerateRandomBytes returns securely generated random bytes.
+// It will return an error if the system's secure random
+// number generator fails to function correctly, in which
+// case the caller should not continue.
+func GenerateRandomBytes(n int) ([]byte, error) {
+	b := make([]byte, n)
+	_, err := rand.Read(b)
+	// Note that err == nil only if we read len(b) bytes.
+	if err != nil {
+		return nil, err
+	}
+
+	return b, nil
+}
+
+// GenerateRandomString returns a securely generated random string.
+// It will return an error if the system's secure random
+// number generator fails to function correctly, in which
+// case the caller should not continue.
+func GenerateRandomString(n int) (string, error) {
+	const letters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-"
+	ret := make([]byte, n)
+	for i := 0; i < n; i++ {
+		num, err := rand.Int(rand.Reader, big.NewInt(int64(len(letters))))
+		if err != nil {
+			return "", err
+		}
+		ret[i] = letters[num.Int64()]
+	}
+
+	return string(ret), nil
+}
+
+// GenerateRandomStringURLSafe returns a URL-safe, base64 encoded
+// securely generated random string.
+// It will return an error if the system's secure random
+// number generator fails to function correctly, in which
+// case the caller should not continue.
+func (r *Resolver) GenerateRandomStringURLSafe(n int) (string, error) {
+	b, err := GenerateRandomBytes(n)
+	return base64.URLEncoding.EncodeToString(b), err
+}
+
+func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
+	customerParams := &stripe.CustomerParams{}
+	customerParams.AddExpand("subscriptions")
+	c, err := r.StripeClient.Customers.Get(stripeCustomerID, customerParams)
+	if err != nil {
+		return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error retrieving Stripe customer data for customer %s", stripeCustomerID)
+	}
+
+	subscriptions := c.Subscriptions.Data
+	pricing.FillProducts(r.StripeClient, subscriptions)
+
+	// Default to free tier
+	tier := modelInputs.PlanTypeFree
+	var billingPeriodStart *time.Time
+	var billingPeriodEnd *time.Time
+	var nextInvoiceDate *time.Time
+
+	// Loop over each subscription item in each of the customer's subscriptions
+	// and set the workspace's tier if the Stripe product has one
+	for _, subscription := range subscriptions {
+		for _, subscriptionItem := range subscription.Items.Data {
+			if _, productTier, _ := pricing.GetProductMetadata(subscriptionItem.Price); productTier != nil {
+				tier = *productTier
+				startTimestamp := time.Unix(subscription.CurrentPeriodStart, 0)
+				endTimestamp := time.Unix(subscription.CurrentPeriodEnd, 0)
+				nextInvoiceTimestamp := time.Unix(subscription.NextPendingInvoiceItemInvoice, 0)
+
+				billingPeriodStart = &startTimestamp
+				billingPeriodEnd = &endTimestamp
+				if subscription.NextPendingInvoiceItemInvoice != 0 {
+					nextInvoiceDate = &nextInvoiceTimestamp
+				}
+			}
+		}
+	}
+
+	workspace := model.Workspace{}
+	if err := r.DB.Model(&model.Workspace{}).
+		Where(model.Workspace{StripeCustomerID: &stripeCustomerID}).
+		Find(&workspace).Error; err != nil {
+		return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error retrieving workspace for customer %s", stripeCustomerID)
+	}
+
+	if err := r.DB.Model(&model.Workspace{}).
+		Where(model.Workspace{Model: model.Model{ID: workspace.ID}}).
+		Updates(map[string]interface{}{
+			"PlanTier":           string(tier),
+			"BillingPeriodStart": billingPeriodStart,
+			"BillingPeriodEnd":   billingPeriodEnd,
+			"NextInvoiceDate":    nextInvoiceDate,
+		}).Error; err != nil {
+		return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error updating workspace fields for customer %s", stripeCustomerID)
+	}
+
+	// Plan has been updated, report the latest usage data to Stripe
+	if err := pricing.ReportUsageForWorkspace(r.DB, r.StripeClient, workspace.ID); err != nil {
+		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR error reporting usage after updating details")
+	}
+
+	// mark sessions as within billing quota on plan upgrade
+	// this code is repeated as the first time, the user already has a billing plan and the function returns early.
+	// here, the user doesn't already have a billing plan, so it's considered an upgrade unless the plan is free
+	r.PrivateWorkerPool.SubmitRecover(func() {
+		r.UpdateSessionsVisibility(workspace.ID, tier, modelInputs.PlanTypeFree)
+	})
+
+	return nil
+}
+
+func (r *Resolver) StripeWebhook(endpointSecret string) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, req *http.Request) {
+		const MaxBodyBytes = int64(65536)
+		req.Body = http.MaxBytesReader(w, req.Body, MaxBodyBytes)
+		payload, err := ioutil.ReadAll(req.Body)
+		if err != nil {
+			log.Error(e.Wrap(err, "error reading request body"))
+			w.WriteHeader(http.StatusServiceUnavailable)
+			return
+		}
+
+		event, err := webhook.ConstructEvent(payload, req.Header.Get("Stripe-Signature"),
+			endpointSecret)
+		if err != nil {
+			log.Error(e.Wrap(err, "error verifying webhook signature"))
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		if err := json.Unmarshal(payload, &event); err != nil {
+			log.Error(e.Wrap(err, "failed to parse webhook body json"))
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		log.Infof("Stripe webhook received event type: %s", event.Type)
+
+		switch event.Type {
+		case "customer.subscription.created", "customer.subscription.updated", "customer.subscription.deleted":
+			var subscription stripe.Subscription
+			err := json.Unmarshal(event.Data.Raw, &subscription)
+			if err != nil {
+				log.Error(e.Wrap(err, "failed to parse webhook body json as Subscription"))
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+
+			if err := r.updateBillingDetails(subscription.Customer.ID); err != nil {
+				log.Error(e.Wrap(err, "failed to update billing details"))
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		}
+
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
+func (r *Resolver) CreateInviteLink(workspaceID int, email *string, role string) *model.WorkspaceInviteLink {
+	// Unit is days.
+	EXPIRATION_DATE := 7
+	expirationDate := time.Now().UTC().AddDate(0, 0, EXPIRATION_DATE)
+	secret, _ := r.GenerateRandomStringURLSafe(16)
+
+	newInviteLink := &model.WorkspaceInviteLink{
+		WorkspaceID:    &workspaceID,
+		InviteeEmail:   email,
+		InviteeRole:    &role,
+		ExpirationDate: &expirationDate,
+		Secret:         &secret,
+	}
+
+	return newInviteLink
+}
+
+func (r *Resolver) IsInviteLinkExpired(inviteLink *model.WorkspaceInviteLink) bool {
+	if inviteLink == nil || inviteLink.ExpirationDate == nil {
+		return true
+	}
+	return time.Now().UTC().After(*inviteLink.ExpirationDate)
 }

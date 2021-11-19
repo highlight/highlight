@@ -9,6 +9,7 @@ import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import React from 'react';
+import { Helmet } from 'react-helmet';
 import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router';
 
@@ -35,6 +36,9 @@ const EditAlertsPage = () => {
 
     return (
         <>
+            <Helmet>
+                <title>Edit Alert: {alert?.Name || ''}</title>
+            </Helmet>
             {loading || !alertsPayload || !alert ? (
                 <>
                     <Skeleton
@@ -58,6 +62,9 @@ const EditAlertsPage = () => {
                     }
                     environmentOptions={
                         alertsPayload?.environment_suggestion || []
+                    }
+                    identifierOptions={
+                        alertsPayload?.identifier_suggestion || []
                     }
                     // @ts-expect-error
                     configuration={ALERT_CONFIGURATIONS[alert?.Type]}
@@ -103,6 +110,7 @@ const findAlert = (id: string, alertsPayload?: GetAlertsPagePayloadQuery) => {
         ...alertsPayload.session_feedback_alerts,
         ...alertsPayload.track_properties_alerts,
         ...alertsPayload.user_properties_alerts,
+        ...alertsPayload.rage_click_alerts,
     ];
 
     return allAlerts.find((alert) => alert?.id === id);

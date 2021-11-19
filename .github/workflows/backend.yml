@@ -33,6 +33,7 @@ jobs:
               uses: actions/checkout@v2
             - name: Setup Go
               uses: actions/setup-go@v2
+
     code-quality-check:
         needs: code-setup
         runs-on: ubuntu-latest

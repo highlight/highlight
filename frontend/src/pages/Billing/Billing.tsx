@@ -1,26 +1,33 @@
 import { useAuthContext } from '@authentication/AuthContext';
 import Alert from '@components/Alert/Alert';
+import Button from '@components/Button/Button/Button';
+import HighlightGate from '@components/HighlightGate/HighlightGate';
+import Switch from '@components/Switch/Switch';
+import SvgLogInIcon from '@icons/LogInIcon';
+import { BillingStatusCard } from '@pages/Billing/BillingStatusCard/BillingStatusCard';
+import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { loadStripe } from '@stripe/stripe-js';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import Confetti from 'react-confetti';
+import { Helmet } from 'react-helmet';
 import Skeleton from 'react-loading-skeleton';
 import { useLocation } from 'react-router-dom';
 
-import Collapsible from '../../components/Collapsible/Collapsible';
 import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
-import Progress from '../../components/Progress/Progress';
 import {
     useCreateOrUpdateStripeSubscriptionMutation,
     useGetBillingDetailsQuery,
-    useGetProjectQuery,
+    useGetCustomerPortalUrlLazyQuery,
     useUpdateBillingDetailsMutation,
 } from '../../graph/generated/hooks';
-import { AdminRole, PlanType } from '../../graph/generated/schemas';
-import SvgShieldWarningIcon from '../../static/ShieldWarningIcon';
-import { formatNumberWithDelimiters } from '../../util/numbers';
+import {
+    AdminRole,
+    PlanType,
+    SubscriptionInterval,
+} from '../../graph/generated/schemas';
 import styles from './Billing.module.scss';
 import { BILLING_PLANS } from './BillingPlanCard/BillingConfig';
 import { BillingPlanCard } from './BillingPlanCard/BillingPlanCard';
@@ -37,11 +44,9 @@ const getStripePromiseOrNull = () => {
 const stripePromiseOrNull = getStripePromiseOrNull();
 
 const BillingPage = () => {
-    const { project_id } = useParams<{ project_id: string }>();
+    const { workspace_id } = useParams<{ workspace_id: string }>();
     const { pathname } = useLocation();
-    const { data: projectData } = useGetProjectQuery({
-        variables: { id: project_id },
-    });
+    const { currentWorkspace } = useApplicationContext();
     const [
         checkoutRedirectFailedMessage,
         setCheckoutRedirectFailedMessage,
@@ -50,6 +55,9 @@ const BillingPage = () => {
         null
     );
     const [rainConfetti, setRainConfetti] = useState(false);
+    const [subscriptionInterval, setSubscriptionInterval] = useState(
+        SubscriptionInterval.Monthly
+    );
 
     const {
         loading: billingLoading,
@@ -58,9 +66,17 @@ const BillingPage = () => {
         refetch,
     } = useGetBillingDetailsQuery({
         variables: {
-            project_id,
+            workspace_id,
+        },
+        onCompleted: () => {
+            if (billingData?.billingDetails?.plan?.interval !== undefined) {
+                setSubscriptionInterval(
+                    billingData.billingDetails.plan.interval
+                );
+            }
         },
     });
+
     const { admin } = useAuthContext();
 
     const [
@@ -70,11 +86,22 @@ const BillingPage = () => {
 
     const [updateBillingDetails] = useUpdateBillingDetailsMutation();
 
+    const [
+        getCustomerPortalUrl,
+        { loading: loadingCustomerPortal },
+    ] = useGetCustomerPortalUrlLazyQuery({
+        onCompleted: (data) => {
+            if (data?.customer_portal_url) {
+                window.open(data?.customer_portal_url, '_self');
+            }
+        },
+    });
+
     useEffect(() => {
-        const response = pathname.split('/')[3] ?? '';
+        const response = pathname.split('/')[4] ?? '';
         if (response === 'success') {
             updateBillingDetails({
-                variables: { project_id },
+                variables: { workspace_id },
             }).then(() => {
                 message.success('Billing change applied!', 5);
                 refetch();
@@ -91,7 +118,7 @@ const BillingPage = () => {
         checkoutRedirectFailedMessage,
         billingError,
         updateBillingDetails,
-        project_id,
+        workspace_id,
         refetch,
     ]);
 
@@ -100,13 +127,14 @@ const BillingPage = () => {
             setLoadingPlanType(newPlan);
             createOrUpdateStripeSubscription({
                 variables: {
-                    project_id,
+                    workspace_id,
                     plan_type: newPlan,
+                    interval: subscriptionInterval,
                 },
             }).then((r) => {
                 if (!r.data?.createOrUpdateStripeSubscription) {
                     updateBillingDetails({
-                        variables: { project_id },
+                        variables: { workspace_id },
                     }).then(() => {
                         const previousPlan = billingData!.billingDetails!.plan
                             .type;
@@ -118,7 +146,7 @@ const BillingPage = () => {
                         if (upgradedPlan) {
                             setRainConfetti(true);
                             message.success(
-                                "Thanks for upgrading your plan! As a token of our appreciation, we've made all your sessions viewable even if there's more than your new quota.",
+                                'Thanks for upgrading your plan!',
                                 10
                             );
                         } else {
@@ -156,93 +184,140 @@ const BillingPage = () => {
         })();
     }
 
-    /** Show upsell when the current usage is 80% of the project's plan. */
-    const upsell =
-        (billingData?.billingDetails.meter ?? 0) /
-            (billingData?.billingDetails.plan.quota ?? 1) >=
-        0.8;
+    const allowOverage = billingData?.workspace?.allow_meter_overage ?? true;
 
     return (
-        <LeadAlignLayout fullWidth>
-            {rainConfetti && <Confetti recycle={false} />}
-            <h2>Billing</h2>
-            <p className={layoutStyles.subTitle}>
-                Manage your billing information.
-            </p>
-            <div className={styles.detailsCard}>
-                <Collapsible
-                    title={
-                        <span className={styles.detailsCardTitle}>
-                            <span>Plan Details</span>{' '}
-                            {upsell && <SvgShieldWarningIcon />}
-                        </span>
-                    }
-                    id="planDetails"
-                >
-                    <p>
-                        This project is on the{' '}
-                        <b>{billingData?.billingDetails.plan.type} Plan</b>{' '}
-                        which has used{' '}
-                        {formatNumberWithDelimiters(
-                            billingData?.billingDetails.meter
-                        )}{' '}
-                        of its{' '}
-                        {formatNumberWithDelimiters(
-                            billingData?.billingDetails.plan.quota
-                        )}{' '}
-                        monthly sessions limit.
-                    </p>
-                    {upsell && (
-                        <p>
-                            <span>
-                                You are nearing your monthly sessions limit.
-                                Sessions recorded after you've reached your
-                                limit will not be viewable until you upgrade
-                                your plan.
-                            </span>
+        <>
+            <Helmet>
+                <title>Workspace Billing</title>
+            </Helmet>
+            <LeadAlignLayout fullWidth>
+                {rainConfetti && <Confetti recycle={false} />}
+                <div className={styles.titleContainer}>
+                    <div>
+                        <h2>Billing</h2>
+                        <p className={layoutStyles.subTitle}>
+                            Manage your billing information.
                         </p>
-                    )}
-                    <Progress
-                        numerator={billingData?.billingDetails.meter}
-                        denominator={
-                            billingData?.billingDetails.plan.quota || 1
-                        }
-                    />
-                </Collapsible>
-            </div>
-            <div className={styles.billingPlanCardWrapper}>
-                {admin?.role === AdminRole.Admin ? (
-                    BILLING_PLANS.map((billingPlan) =>
-                        billingLoading ? (
-                            <Skeleton
-                                style={{ borderRadius: 8 }}
-                                count={1}
-                                height={325}
-                                width={275}
-                            />
-                        ) : (
-                            <BillingPlanCard
-                                disabled={admin?.role !== AdminRole.Admin}
-                                key={billingPlan.type}
-                                current={
-                                    billingData?.billingDetails.plan.type ===
-                                    billingPlan.name
+                    </div>
+                    <HighlightGate>
+                        {admin?.role === AdminRole.Admin && (
+                            <Button
+                                trackingId="RedirectToCustomerPortal"
+                                type="primary"
+                                onClick={() => {
+                                    getCustomerPortalUrl({
+                                        variables: { workspace_id },
+                                    });
+                                }}
+                                loading={loadingCustomerPortal}
+                                className={styles.portalButton}
+                            >
+                                <SvgLogInIcon /> Payment Settings
+                            </Button>
+                        )}
+                    </HighlightGate>
+                </div>
+                <BillingStatusCard
+                    planType={
+                        billingData?.billingDetails.plan.type ?? PlanType.Free
+                    }
+                    sessionCount={billingData?.billingDetails.meter ?? 0}
+                    sessionLimit={billingData?.billingDetails.plan.quota ?? 0}
+                    memberCount={billingData?.billingDetails.membersMeter ?? 0}
+                    memberLimit={
+                        billingData?.billingDetails.plan.membersLimit ?? 0
+                    }
+                    subscriptionInterval={
+                        billingData?.billingDetails.plan.interval ??
+                        SubscriptionInterval.Monthly
+                    }
+                    billingPeriodEnd={
+                        billingData?.workspace?.billing_period_end
+                    }
+                    nextInvoiceDate={billingData?.workspace?.next_invoice_date}
+                    allowOverage={allowOverage}
+                    loading={billingLoading}
+                />
+                <HighlightGate>
+                    {admin?.role === AdminRole.Admin && (
+                        <div className={styles.annualToggleBox}>
+                            <Switch
+                                loading={billingLoading}
+                                label={
+                                    <span className={styles.annualToggleText}>
+                                        Annual Plan{' '}
+                                        <span
+                                            className={
+                                                styles.annualToggleAltText
+                                            }
+                                        >
+                                            (20% off)
+                                        </span>
+                                    </span>
                                 }
-                                billingPlan={billingPlan}
-                                onSelect={createOnSelect(billingPlan.type)}
-                                loading={loadingPlanType === billingPlan.type}
+                                size="default"
+                                labelFirst
+                                justifySpaceBetween
+                                noMarginAroundSwitch
+                                checked={
+                                    subscriptionInterval ===
+                                    SubscriptionInterval.Annual
+                                }
+                                onChange={(isAnnual) => {
+                                    setSubscriptionInterval(
+                                        isAnnual
+                                            ? SubscriptionInterval.Annual
+                                            : SubscriptionInterval.Monthly
+                                    );
+                                }}
+                                trackingId="BillingInterval"
                             />
+                        </div>
+                    )}
+                </HighlightGate>
+                <div className={styles.billingPlanCardWrapper}>
+                    {admin?.role === AdminRole.Admin ? (
+                        BILLING_PLANS.map((billingPlan) =>
+                            billingLoading ? (
+                                <Skeleton
+                                    style={{ borderRadius: 8 }}
+                                    count={1}
+                                    height={325}
+                                    width={275}
+                                />
+                            ) : (
+                                <BillingPlanCard
+                                    disabled={admin?.role !== AdminRole.Admin}
+                                    key={billingPlan.type}
+                                    current={
+                                        billingData?.billingDetails.plan
+                                            .type === billingPlan.name &&
+                                        (billingPlan.type === PlanType.Free ||
+                                            billingData?.billingDetails.plan
+                                                .interval ===
+                                                subscriptionInterval)
+                                    }
+                                    billingPlan={billingPlan}
+                                    onSelect={createOnSelect(billingPlan.type)}
+                                    loading={
+                                        loadingPlanType === billingPlan.type
+                                    }
+                                    subscriptionInterval={subscriptionInterval}
+                                />
+                            )
                         )
-                    )
-                ) : (
-                    <Alert
-                        trackingId="AdminNoAccessToBilling"
-                        message="You don't have access to billing."
-                        description={`You don't have permission to access the billing details for "${projectData?.project?.name}". Please contact ${projectData?.project?.billing_email} to make changes.`}
-                    />
-                )}
-            </div>
-        </LeadAlignLayout>
+                    ) : (
+                        <Alert
+                            trackingId="AdminNoAccessToBilling"
+                            type="info"
+                            message="You don't have access to billing."
+                            description={`You don't have permission to access the billing details for "${currentWorkspace?.name}". Please contact a workspace admin to make changes.`}
+                        />
+                    )}
+                </div>
+            </LeadAlignLayout>
+        </>
     );
 };
 

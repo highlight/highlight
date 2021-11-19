@@ -1,6 +1,4 @@
-@import 'src/components/Button/GoToButton/index.module.scss';
-
-$columns: 50px 50px 50% 50px 70px 1fr $go-to-button-width;
+$columns: 50px 50px 50% 1fr;
 $right-padding: 12px;
 
 .networkRow {
@@ -9,10 +7,11 @@ $right-padding: 12px;
     display: grid;
     font-size: 13px;
     grid-template-columns: $columns;
-    padding-bottom: var(--size-xxSmall);
+    padding-bottom: var(--size-xSmall);
     padding-left: 25px;
     padding-right: $right-padding;
-    padding-top: var(--size-xxSmall);
+    padding-top: var(--size-xSmall);
+    position: relative;
     width: 100%;
 
     &.current {
@@ -24,20 +23,27 @@ $right-padding: 12px;
         }
     }
 
+    .currentIndicator {
+        background-color: var(--color-blue-500);
+        border-radius: 50%;
+        height: 6px;
+        left: 10px;
+        position: absolute;
+        top: 47%;
+        transform: translate(0, -50%);
+        width: 6px;
+    }
+
     &.failedResource {
         p,
         div,
         span {
-            color: var(--color-red) !important;
+            color: var(--color-red-400) !important;
         }
     }
 
     &.showingDetails {
         background: var(--color-gray-300);
-    }
-
-    &:hover .goToButton {
-        visibility: visible;
     }
 
     &:hover {
@@ -65,15 +71,13 @@ $right-padding: 12px;
     position: relative;
 }
 
-// calc(total width - padding left - padding right - TYPE - NAME - TIMING - SIZE - GoToButton)
-$canvas-width: calc(
-    100% - 5px - 25px - 50px - 50px - 50% - 50px - 70px - #{$go-to-button-width}
-);
+// calc(total width - padding left - padding right - TYPE - NAME )
+$canvas-width: calc(100% - 5px - 50px - 50px - 50%);
 
 .canvasNetworkWrapper {
     background-attachment: fixed;
     height: 100%;
-    margin-left: calc(5px + 50px + 50% + 90px + 90px);
+    margin-left: calc(5px + 50px + 50% + 50px);
     position: absolute;
     width: $canvas-width;
     z-index: 99;
@@ -115,7 +119,7 @@ $canvas-width: calc(
     }
 
     &.waterfall {
-        padding-left: var(--size-small);
+        padding-left: 0;
     }
 }
 
@@ -164,11 +168,6 @@ $canvas-width: calc(
     .networkTimestampGrid {
         display: none;
     }
-}
-
-.goToButton {
-    color: var(--text-primary);
-    visibility: hidden;
 }
 
 .resourcePageWrapper {
@@ -223,13 +222,6 @@ $canvas-width: calc(
         position: absolute;
         width: calc(100% - 250px);
     }
-}
-
-.detailPanelTitle {
-    align-items: center !important;
-    column-gap: var(--size-medium);
-    display: flex;
-    justify-content: space-between;
 }
 
 .virtuoso {

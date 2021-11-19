@@ -6,7 +6,7 @@ import { useParams } from '@util/react-router/useParams';
 import { FieldArrayParam } from '@util/url/params';
 import _ from 'lodash';
 import React, { Suspense, useEffect, useState } from 'react';
-import { Redirect, Route, Switch } from 'react-router-dom';
+import { Redirect, Route, Switch, useRouteMatch } from 'react-router-dom';
 import {
     ArrayParam,
     BooleanParam,
@@ -15,8 +15,6 @@ import {
     useQueryParam,
     useQueryParams,
 } from 'use-query-params';
-
-const BillingPage = React.lazy(() => import('../../pages/Billing/Billing'));
 
 const Buttons = React.lazy(() => import('../../pages/Buttons/Buttons'));
 import ErrorPage from '../../pages/Error/ErrorPage';
@@ -82,6 +80,8 @@ const ApplicationRouter = ({ integrated }: Props) => {
 
     const { isLoggedIn } = useAuthContext();
 
+    const sessionsMatch = useRouteMatch('/:project_id/sessions');
+
     useEffect(() => {
         const areAnySearchParamsSet = !_.isEqual(
             EmptySessionsSearchParams,
@@ -126,12 +126,20 @@ const ApplicationRouter = ({ integrated }: Props) => {
 
     // Session Segment Deep Linking
     useEffect(() => {
-        if (selectedSegment && selectedSegment.id && selectedSegment.value) {
-            setActiveSegmentUrlParam(selectedSegment);
-        } else {
-            setActiveSegmentUrlParam(undefined);
+        // Only this effect on the sessions page
+        if (!sessionsMatch) {
+            return;
         }
-    }, [selectedSegment, setActiveSegmentUrlParam]);
+
+        if (selectedSegment && selectedSegment.id && selectedSegment.value) {
+            if (!_.isEqual(activeSegmentUrlParam, selectedSegment)) {
+                setActiveSegmentUrlParam(selectedSegment, 'replace');
+            }
+        } else if (activeSegmentUrlParam !== undefined) {
+            setActiveSegmentUrlParam(undefined, 'replace');
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedSegment, sessionsMatch, setActiveSegmentUrlParam]);
 
     useEffect(() => {
         if (activeSegmentUrlParam) {
@@ -177,11 +185,6 @@ const ApplicationRouter = ({ integrated }: Props) => {
                 <Route path="/:project_id/alerts">
                     <AlertsRouter />
                 </Route>
-                <Route path="/:project_id/billing">
-                    <Suspense fallback={null}>
-                        <BillingPage />
-                    </Suspense>
-                </Route>
                 <Route path="/:project_id/setup">
                     <SetupPage integrated={integrated} />
                 </Route>
@@ -223,4 +226,6 @@ const InitialSearchParamsForUrl = {
     user_properties: undefined,
     visited_url: undefined,
     show_live_sessions: undefined,
+    environments: undefined,
+    app_versions: undefined,
 };

@@ -36,6 +36,7 @@ export const StreamElement = ({
     onGoToHandler,
     searchQuery,
     showDetails,
+    isFirstCard,
 }: {
     e: HighlightEvent;
     start: number;
@@ -43,6 +44,7 @@ export const StreamElement = ({
     onGoToHandler: (event: string) => void;
     searchQuery: string;
     showDetails: boolean;
+    isFirstCard: boolean;
 }) => {
     const [debug] = useQueryParam('debug', BooleanParam);
     const [selected, setSelected] = useState(false);
@@ -51,113 +53,120 @@ export const StreamElement = ({
     const timeSinceStart = e?.timestamp - start;
 
     const showExpandedView = searchQuery.length > 0 || showDetails || selected;
-
     return (
-        <RightPanelCard
-            key={e.identifier}
-            className={classNames({ [styles.card]: !showDetails })}
-            selected={isCurrent}
-            onClick={() => {
-                if (!showDetails) {
-                    setSelected(!selected);
-                }
-            }}
-            primaryColor={getAnnotationColor(details.title as any)}
+        <div
+            className={classNames(styles.cardContainer, {
+                [styles.firstCard]: isFirstCard,
+            })}
         >
-            <div
-                className={classNames(styles.streamElement)}
+            <RightPanelCard
                 key={e.identifier}
-                id={e.identifier}
-            >
-                <div className={styles.headerRow}>
-                    <div className={styles.iconWrapper}>
-                        {getPlayerEventIcon(details.title || '')}
-                    </div>
-                </div>
-                <div
-                    className={
-                        showExpandedView
-                            ? styles.eventContentVerbose
-                            : styles.eventContent
+                className={classNames({ [styles.card]: !showDetails })}
+                selected={isCurrent}
+                onClick={() => {
+                    if (!showDetails) {
+                        setSelected(!selected);
                     }
+                }}
+                primaryColor={getAnnotationColor(details.title as any)}
+            >
+                <div
+                    className={classNames(styles.streamElement)}
+                    key={e.identifier}
+                    id={e.identifier}
                 >
-                    <p
-                        className={classNames(styles.eventText, {
-                            [styles.eventTextSelected]: showExpandedView,
-                        })}
-                    >
-                        {/* Removes the starting and ending quotes */}
-                        {JSON.stringify(details.displayValue)?.replaceAll(
-                            /^\"|\"$/g,
-                            ''
-                        )}
-                    </p>
-                </div>
-                <div className={classNames(styles.eventTime)}>
-                    {MillisToMinutesAndSeconds(timeSinceStart)}
-                </div>
-                {showExpandedView && (
-                    <>
-                        {debug ? (
-                            <div
-                                onClick={(event) => {
-                                    event.stopPropagation();
-                                }}
-                            >
-                                <JsonViewer
-                                    name={null}
-                                    collapsed
-                                    src={e.data}
-                                />
-                            </div>
-                        ) : (
-                            <div className={styles.payloadContainer}>
-                                <h2 className={styles.payloadTitle}>
-                                    {details.title}{' '}
-                                    <InfoTooltip
-                                        title={
-                                            // @ts-ignore
-                                            EventTypeDescriptions[
-                                                (details.title as unknown) as string
-                                            ]
-                                        }
-                                    />
-                                </h2>
-                                <StreamElementPayload
-                                    payload={
-                                        typeof details.payload === 'object'
-                                            ? JSON.stringify(details.payload)
-                                            : details.payload
-                                    }
-                                    searchQuery={searchQuery}
-                                />
-                            </div>
-                        )}
-                        <div className={styles.timestamp}>
-                            {moment(e.timestamp).format('h:mm:ss A')}
+                    <div className={styles.headerRow}>
+                        <div className={styles.iconWrapper}>
+                            {getPlayerEventIcon(details.title || '')}
                         </div>
-                        <GoToButton
-                            className={styles.goToButton}
-                            onClick={(e) => {
-                                // Stopping the event from propagating up to the parent button. This is to allow the element to stay opened when the user clicks on the GoToButton. Without this the element would close.
-                                e.stopPropagation();
-                                // Sets the current event as null. It will be reset as the player continues.
-                                onGoToHandler('');
-                                pause(timeSinceStart);
+                    </div>
+                    <div
+                        className={
+                            showExpandedView
+                                ? styles.eventContentVerbose
+                                : styles.eventContent
+                        }
+                    >
+                        <p
+                            className={classNames(styles.eventText, {
+                                [styles.eventTextSelected]: showExpandedView,
+                            })}
+                        >
+                            {/* Removes the starting and ending quotes */}
+                            {JSON.stringify(details.displayValue)?.replaceAll(
+                                /^\"|\"$/g,
+                                ''
+                            )}
+                        </p>
+                    </div>
+                    <div className={classNames(styles.eventTime)}>
+                        {MillisToMinutesAndSeconds(timeSinceStart)}
+                    </div>
+                    {showExpandedView && (
+                        <>
+                            {debug ? (
+                                <div
+                                    onClick={(event) => {
+                                        event.stopPropagation();
+                                    }}
+                                >
+                                    <JsonViewer
+                                        name={null}
+                                        collapsed
+                                        src={e.data}
+                                    />
+                                </div>
+                            ) : (
+                                <div className={styles.payloadContainer}>
+                                    <h2 className={styles.payloadTitle}>
+                                        {details.title}{' '}
+                                        <InfoTooltip
+                                            title={
+                                                // @ts-ignore
+                                                EventTypeDescriptions[
+                                                    (details.title as unknown) as string
+                                                ]
+                                            }
+                                        />
+                                    </h2>
+                                    <StreamElementPayload
+                                        payload={
+                                            typeof details.payload === 'object'
+                                                ? JSON.stringify(
+                                                      details.payload
+                                                  )
+                                                : details.payload
+                                        }
+                                        searchQuery={searchQuery}
+                                    />
+                                </div>
+                            )}
+                            <div className={styles.timestamp}>
+                                {moment(e.timestamp).format('h:mm:ss A')}
+                            </div>
+                            <GoToButton
+                                className={styles.goToButton}
+                                onClick={(e) => {
+                                    // Stopping the event from propagating up to the parent button. This is to allow the element to stay opened when the user clicks on the GoToButton. Without this the element would close.
+                                    e.stopPropagation();
+                                    // Sets the current event as null. It will be reset as the player continues.
+                                    onGoToHandler('');
+                                    pause(timeSinceStart);
 
-                                message.success(
-                                    `Changed player time showing you ${
-                                        details.title
-                                    } at ${MillisToMinutesAndSeconds(
-                                        timeSinceStart
-                                    )}`
-                                );
-                            }}
-                        />
-                    </>
-                )}
-            </div>
-        </RightPanelCard>
+                                    message.success(
+                                        `Changed player time showing you ${
+                                            details.title
+                                        } at ${MillisToMinutesAndSeconds(
+                                            timeSinceStart
+                                        )}`
+                                    );
+                                }}
+                            />
+                        </>
+                    )}
+                </div>
+            </RightPanelCard>
+        </div>
     );
 };
 

@@ -12,7 +12,7 @@
         --bubble-height: 27px;
         align-items: center;
         background: var(--color-red-300);
-        border: 1px solid var(--color-red);
+        border: 1px solid var(--color-red-400);
         border-radius: 50%;
         display: flex;
         font-size: 18px;
@@ -29,6 +29,7 @@
 
 .popover {
     padding-bottom: 0 !important;
+    z-index: 999999999;
 }
 
 @keyframes enter-viewport {
@@ -130,7 +131,7 @@
     width: 20px;
 
     &.checkWrapperCompleted {
-        background-color: var(--color-green);
+        background-color: var(--color-green-400);
     }
 }
 

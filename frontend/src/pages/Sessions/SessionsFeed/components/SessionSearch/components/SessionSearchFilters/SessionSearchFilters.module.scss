@@ -7,6 +7,10 @@
     display: flex;
     flex-direction: column;
     row-gap: var(--size-xSmall);
+
+    :global(.ant-checkbox-wrapper) {
+        color: var(--text-primary) !important;
+    }
 }
 
 .icon {

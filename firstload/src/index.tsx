@@ -4,6 +4,7 @@ import {
     HighlightClassOptions,
     IntegrationOptions,
     NetworkRecordingOptions,
+    SessionShortcutOptions,
 } from '../../client/src/index';
 import packageJson from '../package.json';
 import { listenToChromeExtensionMessage } from './browserExtension/extensionListener';
@@ -12,7 +13,10 @@ import {
     setupAmplitudeIntegration,
 } from './integrations/amplitude';
 import { MixpanelAPI, setupMixpanelIntegration } from './integrations/mixpanel';
+import { initializeFetchListener } from './listeners/fetch';
 import { SessionDetails } from './types/types';
+
+initializeFetchListener();
 
 export type HighlightOptions = {
     /**
@@ -30,6 +34,14 @@ export type HighlightOptions = {
      * You should not have to set this unless you are running an on-premise instance.
      */
     backendUrl?: string;
+    /**
+     * Specifies where the backend of the app lives. If specified, Highlight will attach the
+     * X-Highlight-Request header to outgoing requests whose destination URLs match a substring
+     * or regexp from this list, so that backend errors can be linked back to the session.
+     * If 'true' is specified, all requests to the current domain will be matched.
+     * @example tracingOrigins: ['localhost', /^\//, 'backend.myapp.com']
+     */
+    tracingOrigins?: boolean | (string | RegExp)[];
     /**
      * Specifies if Highlight should not automatically start recording when the app starts.
      * This should be used with `H.start()` and `H.stop()` if you want to control when Highlight records.
@@ -78,6 +90,11 @@ export type HighlightOptions = {
      */
     enableCanvasRecording?: boolean;
     integrations?: IntegrationOptions;
+    /**
+     * Specifies the keyboard shortcut to open the current session in Highlight.
+     * @see {@link https://docs.highlight.run/session-shortcut} for more information.
+     */
+    sessionShortcut?: SessionShortcutOptions;
 };
 
 interface SessionFeedbackOptions {
@@ -186,6 +203,7 @@ export const H: HighlightPublicInterface = {
                     organizationID: projectID,
                     debug: options?.debug,
                     backendUrl: options?.backendUrl,
+                    tracingOrigins: options?.tracingOrigins,
                     disableNetworkRecording: options?.disableNetworkRecording,
                     networkRecording: options?.networkRecording,
                     disableConsoleRecording: options?.disableConsoleRecording,
@@ -195,6 +213,7 @@ export const H: HighlightPublicInterface = {
                     firstloadVersion: packageJson['version'],
                     environment: options?.environment || 'production',
                     appVersion: options?.version,
+                    sessionShortcut: options?.sessionShortcut,
                 });
                 if (!options?.manualStart) {
                     highlight_obj.initialize(projectID);

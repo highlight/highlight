@@ -1,7 +1,6 @@
 .speedText {
     color: var(--color-gray-500);
     font-size: 12px;
-    padding: 0 var(--size-xSmall);
 
     &:active {
         color: var(--color-gray-500);
@@ -13,12 +12,21 @@
     background: var(--color-purple-200);
     border: 0;
     border-radius: 2px;
-    color: var(--color-purple);
     display: flex;
     height: 18px;
     justify-content: center;
     padding: 0;
     width: 18px;
+
+    svg {
+        color: var(--color-purple) !important;
+    }
+
+    &:hover {
+        svg {
+            color: var(--text-primary-inverted) !important;
+        }
+    }
 
     &:focus {
         background: var(--color-purple-200);
@@ -32,5 +40,16 @@
 
 .speedControlContainer {
     align-items: center;
+    column-gap: var(--size-xxSmall);
     display: flex !important;
+}
+
+.shortcutButton {
+    border: 1px solid var(--color-gray-300);
+    height: var(--size-large);
+}
+
+.icon {
+    height: var(--size-medium);
+    width: var(--size-medium);
 }

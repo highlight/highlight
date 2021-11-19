@@ -3,6 +3,7 @@ import { ColumnsType } from 'antd/lib/table';
 import React from 'react';
 
 import EmptyCardPlaceholder from '../../pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder';
+import styles from './BarChartTable.module.scss';
 
 interface Props {
     columns: ColumnsType<any>;
@@ -32,8 +33,9 @@ const BarChartTable = ({
             )}
         >
             <Table
+                className={styles.table}
                 loading={loading}
-                scroll={{ y: 250 }}
+                scroll={{ y: 287 }}
                 showHeader={false}
                 columns={columns}
                 dataSource={data}

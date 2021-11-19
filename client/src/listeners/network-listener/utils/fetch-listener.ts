@@ -1,21 +1,68 @@
+import { SessionData } from '../../../index';
 import { NetworkListenerCallback } from '../network-listener';
 import {
     RequestResponsePair,
     Request as HighlightRequest,
     Response as HighlightResponse,
 } from './models';
-import { isHighlightNetworkResourceFilter } from './utils';
+import {
+    createNetworkRequestId,
+    getHighlightRequestHeader,
+    HIGHLIGHT_REQUEST_HEADER,
+    shouldNetworkRequestBeRecorded,
+    shouldNetworkRequestBeTraced,
+} from './utils';
+
+export interface HighlightFetchWindow {
+    _originalFetch: (
+        input: RequestInfo,
+        init?: RequestInit | undefined
+    ) => Promise<Response>;
+    _highlightFetchPatch: (
+        input: RequestInfo,
+        init?: RequestInit | undefined
+    ) => Promise<Response>;
+    /** The implementation for the fetch patch. The implementation can be hot swapped at any time. */
+    _fetchProxy: (
+        input: RequestInfo,
+        init?: RequestInit | undefined
+    ) => Promise<Response>;
+}
+
+declare var window: HighlightFetchWindow & Window;
 
 export const FetchListener = (
     callback: NetworkListenerCallback,
     backendUrl: string,
-    urlBlocklist: string[]
+    tracingOrigins: boolean | (string | RegExp)[],
+    urlBlocklist: string[],
+    sessionData: SessionData
 ) => {
-    const originalFetch = window.fetch;
+    const originalFetch = window._originalFetch || window.fetch;
 
-    window.fetch = function (input, init) {
-        const { method, url } = getRequestProperties(input, init);
+    window._fetchProxy = function (input, init) {
+        const { method, url } = getFetchRequestProperties(input, init);
+        if (!shouldNetworkRequestBeRecorded(url, backendUrl, tracingOrigins)) {
+            return originalFetch.call(this, input, init);
+        }
+
+        const requestId = createNetworkRequestId();
+        if (shouldNetworkRequestBeTraced(url, tracingOrigins)) {
+            init = init || {};
+            // Pre-existing headers could be one of three different formats; this reads all of them.
+            let headers = new Headers(init.headers);
+            headers.set(
+                HIGHLIGHT_REQUEST_HEADER,
+                getHighlightRequestHeader(
+                    sessionData.sessionSecureID,
+                    requestId
+                )
+            );
+            init.headers = Object.fromEntries(headers.entries());
+        }
+
         const request: HighlightRequest = {
+            id: requestId,
             headers: {},
             body: undefined,
             url,
@@ -24,25 +71,20 @@ export const FetchListener = (
         const shouldRecordHeaderAndBody = !urlBlocklist.some((blockedUrl) =>
             url.toLowerCase().includes(blockedUrl)
         );
-
         if (shouldRecordHeaderAndBody) {
-            request.headers = init?.headers as any;
+            request.headers = Object.fromEntries(
+                new Headers(init?.headers).entries()
+            );
             request.body = init?.body;
         }
 
-        let responsePromise: Promise<Response>;
-
-        responsePromise = originalFetch.call(this, input, init);
-
-        if (!isHighlightNetworkResourceFilter(url, backendUrl)) {
-            logRequest(
-                responsePromise,
-                request,
-                callback,
-                shouldRecordHeaderAndBody
-            );
-        }
-
+        let responsePromise = originalFetch.call(this, input, init);
+        logRequest(
+            responsePromise,
+            request,
+            callback,
+            shouldRecordHeaderAndBody
+        );
         return responsePromise;
     };
 
@@ -51,7 +93,10 @@ export const FetchListener = (
     };
 };
 
-const getRequestProperties = (input: RequestInfo, init?: RequestInit) => {
+export const getFetchRequestProperties = (
+    input: RequestInfo,
+    init?: RequestInit
+) => {
     const method =
         (init && init.method) ||
         (typeof input === 'object' && input.method) ||

@@ -1,8 +1,10 @@
 import Button from '@components/Button/Button/Button';
+import CheckboxList from '@components/CheckboxList/CheckboxList';
 import Popover from '@components/Popover/Popover';
 import SvgFilterIcon from '@icons/FilterIcon';
 import { useEventTypeFilters } from '@pages/Player/components/EventStream/hooks/useEventTypeFilters';
-import { Checkbox } from 'antd';
+import { EventsForTimeline } from '@pages/Player/PlayerHook/utils';
+import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar';
 import React from 'react';
 
 import styles from './EventStreamTypesFilter.module.scss';
@@ -13,7 +15,6 @@ export const EventStreamTypesFilter = () => {
         setShowFocus,
         setShowIdentify,
         setShowNavigate,
-        setShowReferrer,
         setShowReload,
         setShowSegment,
         setShowTrack,
@@ -47,87 +48,81 @@ export const EventStreamTypesFilter = () => {
             trigger={['click']}
             content={
                 <section className={styles.popover}>
-                    <div className={styles.optionsContainer}>
-                        <Checkbox
-                            checked={showIdentify}
-                            onChange={(e) => {
-                                setShowIdentify(e.target.checked);
-                            }}
-                        >
-                            Identify
-                        </Checkbox>
-                        <Checkbox
-                            checked={showTrack}
-                            onChange={(e) => {
-                                setShowTrack(e.target.checked);
-                            }}
-                        >
-                            Track
-                        </Checkbox>
-                        <Checkbox
-                            checked={showViewport}
-                            onChange={(e) => {
-                                setShowViewport(e.target.checked);
-                            }}
-                        >
-                            Viewport
-                        </Checkbox>
-                        <Checkbox
-                            checked={showSegment}
-                            onChange={(e) => {
-                                setShowSegment(e.target.checked);
-                            }}
-                        >
-                            Segment
-                        </Checkbox>
-                        <Checkbox
-                            checked={showFocus}
-                            onChange={(e) => {
-                                setShowFocus(e.target.checked);
-                            }}
-                        >
-                            Focus
-                        </Checkbox>
-                        <Checkbox
-                            checked={showNavigate}
-                            onChange={(e) => {
-                                setShowNavigate(e.target.checked);
-                            }}
-                        >
-                            Navigate
-                        </Checkbox>
-                        <Checkbox
-                            checked={showReferrer}
-                            onChange={(e) => {
-                                setShowReferrer(e.target.checked);
-                            }}
-                        >
-                            Referrer
-                        </Checkbox>
-                        <Checkbox
-                            checked={showClick}
-                            onChange={(e) => {
-                                setShowClick(e.target.checked);
-                            }}
-                        >
-                            Click
-                        </Checkbox>
-                        <Checkbox
-                            checked={showReload}
-                            onChange={(e) => {
-                                setShowReload(e.target.checked);
-                            }}
-                        >
-                            Reload
-                        </Checkbox>
-                    </div>
+                    <CheckboxList
+                        checkboxOptions={[
+                            {
+                                checked: showIdentify,
+                                onChange: (e) => {
+                                    setShowIdentify(e.target.checked);
+                                },
+                                label: <Label label="Identify" />,
+                                key: 'Identify',
+                            },
+                            {
+                                checked: showTrack,
+                                onChange: (e) => {
+                                    setShowTrack(e.target.checked);
+                                },
+                                label: <Label label="Track" />,
+                                key: 'Track',
+                            },
+                            {
+                                checked: showViewport,
+                                onChange: (e) => {
+                                    setShowViewport(e.target.checked);
+                                },
+                                label: <Label label="Viewport" />,
+                                key: 'Viewport',
+                            },
+                            {
+                                checked: showSegment,
+                                onChange: (e) => {
+                                    setShowSegment(e.target.checked);
+                                },
+                                label: <Label label="Segment" />,
+                                key: 'Segment',
+                            },
+                            {
+                                checked: showFocus,
+                                onChange: (e) => {
+                                    setShowFocus(e.target.checked);
+                                },
+                                label: <Label label="Focus" />,
+                                key: 'Focus',
+                            },
+                            {
+                                checked: showNavigate,
+                                onChange: (e) => {
+                                    setShowNavigate(e.target.checked);
+                                },
+                                label: <Label label="Navigate" />,
+                                key: 'Navigate',
+                            },
+                            {
+                                checked: showClick,
+                                onChange: (e) => {
+                                    setShowClick(e.target.checked);
+                                },
+                                label: <Label label="Click" />,
+                                key: 'Click',
+                            },
+                            {
+                                checked: showReload,
+                                onChange: (e) => {
+                                    setShowReload(e.target.checked);
+                                },
+                                label: <Label label="Reload" />,
+                                key: 'Reload',
+                            },
+                        ]}
+                        containerClassName={styles.optionsContainer}
+                    />
                 </section>
             }
             placement="topLeft"
         >
             <Button
                 trackingId="SessionEventStreamSettings"
-                type="ghost"
                 small
                 className={styles.filtersButton}
             >
@@ -135,5 +130,20 @@ export const EventStreamTypesFilter = () => {
                 Filters ({activeFiltersCount})
             </Button>
         </Popover>
+    );
+};
+
+interface LabelProps {
+    label: typeof EventsForTimeline[number];
+}
+const Label = ({ label }: LabelProps) => {
+    return (
+        <div className={styles.label}>
+            <div
+                style={{ background: `var(${getAnnotationColor(label)}` }}
+                className={styles.checkboxLabelIndicator}
+            />
+            {label}
+        </div>
     );
 };

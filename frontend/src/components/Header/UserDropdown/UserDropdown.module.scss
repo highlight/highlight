@@ -34,7 +34,7 @@
     background-color: var(--color-primary-background);
     border: 1px solid var(--color-gray-300);
     border-radius: 8px;
-    box-shadow: 2px 2px 8px var(--color-gray-300);
+    box-shadow: var(--box-shadow);
     color: var(--text-primary);
     margin-right: 30px;
     margin-top: -10px;
@@ -43,7 +43,7 @@
 
 .dropdownLogout {
     align-items: center;
-    color: var(--color-red);
+    color: var(--color-red-400);
     cursor: pointer;
     display: flex;
     padding: 14px;

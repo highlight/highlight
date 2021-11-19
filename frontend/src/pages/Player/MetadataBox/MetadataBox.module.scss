@@ -13,8 +13,9 @@
     width: 36px;
 }
 
-.enhancedName {
+#enhancedName {
     font-weight: 400 !important;
+    margin-bottom: var(--size-xSmall) !important;
 }
 
 .enhancedBio {
@@ -43,17 +44,18 @@
     display: grid;
     grid-template-columns: fit-content(20px) auto;
     padding: 20px;
+    position: relative;
 }
 
 .enhancedSocial {
     align-items: center;
-    color: var(--color-gray-500);
+    color: var(--color-gray-500) !important;
     column-gap: 6px;
     display: flex;
 }
 
 .enhancedSocialText {
-    color: var(--color-gray-500);
+    color: var(--text-primary) !important;
     font-size: 12px;
     margin: 0 !important;
 }
@@ -213,4 +215,11 @@
 
 .userIdentifier {
     margin-top: calc(-1 * var(--size-xxSmall));
+}
+
+.tooltip {
+    color: var(--color-gray-500);
+    position: absolute;
+    right: var(--size-medium);
+    top: var(--size-medium);
 }

@@ -1,9 +1,8 @@
-import { Checkbox, CheckboxOptionType } from 'antd';
+import CheckboxList from '@components/CheckboxList/CheckboxList';
 import React from 'react';
 
 import Button from '../../../../components/Button/Button/Button';
 import Popover from '../../../../components/Popover/Popover';
-import Tooltip from '../../../../components/Tooltip/Tooltip';
 import {
     EventsForTimeline,
     EventsForTimelineKeys,
@@ -50,42 +49,11 @@ interface Props {
     disabled: boolean;
 }
 
-const TimelineAnnotationsSettings = ({ disabled }: Props) => {
+const TimelineAnnotationsSettings = React.memo(({ disabled }: Props) => {
     const {
         selectedTimelineAnnotationTypes,
         setSelectedTimelineAnnotationTypes,
     } = usePlayerConfiguration();
-
-    const onSelectChangeHandler = (value: any) => {
-        setSelectedTimelineAnnotationTypes(value);
-    };
-
-    const checkboxOptions: CheckboxOptionType[] = EventsForTimeline.map(
-        (eventType, index) => ({
-            label: (
-                <Tooltip
-                    title={EventTypeDescriptions[eventType]}
-                    // We place the tooltip on the same side of the checkbox's column so the tooltip does not cover the other options.
-                    placement={index % 2 ? 'right' : 'left'}
-                    // We offset the X positioning for the checkboxes on the left column because the tooltip is calculating the width of the label without the checkbox.
-                    align={{ offset: [index % 2 ? 0 : -25, 0] }}
-                >
-                    <span className={styles.checkBoxLabel}>
-                        {eventType}
-                        <div
-                            className={styles.circle}
-                            style={{
-                                backgroundColor: `var(${getAnnotationColor(
-                                    eventType
-                                )})`,
-                            }}
-                        />
-                    </span>
-                </Tooltip>
-            ),
-            value: eventType,
-        })
-    );
 
     return (
         <Popover
@@ -97,19 +65,50 @@ const TimelineAnnotationsSettings = ({ disabled }: Props) => {
                         You can configure what types of events are drawn as
                         annotations.
                     </p>
-                    <Checkbox.Group
-                        defaultValue={selectedTimelineAnnotationTypes}
-                        onChange={onSelectChangeHandler}
-                        className={styles.checkboxGroup}
-                    >
-                        <div className={styles.checkboxesContainer}>
-                            {checkboxOptions.map(({ label, value }) => (
-                                <div key={value.toString()}>
-                                    <Checkbox value={value}>{label}</Checkbox>
+                    <CheckboxList
+                        checkboxOptions={EventsForTimeline.map((eventType) => ({
+                            checked: selectedTimelineAnnotationTypes.includes(
+                                eventType
+                            ),
+                            label: (
+                                <div className={styles.checkBoxLabel}>
+                                    <div
+                                        className={styles.circle}
+                                        style={{
+                                            backgroundColor: `var(${getAnnotationColor(
+                                                eventType
+                                            )})`,
+                                        }}
+                                    />
+                                    {eventType}
                                 </div>
-                            ))}
-                        </div>
-                    </Checkbox.Group>
+                            ),
+                            key: eventType,
+                            onChange: (e) => {
+                                if (!e.target.checked) {
+                                    setSelectedTimelineAnnotationTypes(
+                                        selectedTimelineAnnotationTypes.filter(
+                                            (type) => type !== eventType
+                                        )
+                                    );
+                                } else {
+                                    setSelectedTimelineAnnotationTypes([
+                                        ...selectedTimelineAnnotationTypes,
+                                        eventType,
+                                    ]);
+                                }
+                            },
+                        }))}
+                        containerClassName={styles.checkboxesContainer}
+                        onSelectAll={() => {
+                            setSelectedTimelineAnnotationTypes(
+                                EventsForTimeline.map((type) => type)
+                            );
+                        }}
+                        onSelectOne={(key) => {
+                            setSelectedTimelineAnnotationTypes([key as any]);
+                        }}
+                    />
                 </div>
             }
         >
@@ -141,6 +140,6 @@ const TimelineAnnotationsSettings = ({ disabled }: Props) => {
             </Button>
         </Popover>
     );
-};
+});
 
 export default TimelineAnnotationsSettings;

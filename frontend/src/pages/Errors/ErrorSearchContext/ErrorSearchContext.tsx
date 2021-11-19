@@ -10,6 +10,7 @@ export type ErrorSearchParams = {
     visited_url?: string;
     state?: ErrorState;
     event?: string;
+    type?: string;
 };
 
 type ErrorSearchContext = {

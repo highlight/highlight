@@ -13,17 +13,19 @@ mutation MarkSessionAsStarred($secure_id: String!, $starred: Boolean!) {
 }
 
 mutation CreateOrUpdateStripeSubscription(
-    $project_id: ID!
+    $workspace_id: ID!
     $plan_type: PlanType!
+    $interval: SubscriptionInterval!
 ) {
     createOrUpdateStripeSubscription(
-        project_id: $project_id
+        workspace_id: $workspace_id
         plan_type: $plan_type
+        interval: $interval
     )
 }
 
-mutation UpdateBillingDetails($project_id: ID!) {
-    updateBillingDetails(project_id: $project_id)
+mutation UpdateBillingDetails($workspace_id: ID!) {
+    updateBillingDetails(workspace_id: $workspace_id)
 }
 
 mutation updateErrorGroupState($secure_id: String!, $state: String!) {
@@ -37,12 +39,20 @@ mutation SendEmailSignup($email: String!) {
     emailSignup(email: $email)
 }
 
-mutation AddAdminToProject($project_id: ID!, $invite_id: String!) {
-    addAdminToProject(project_id: $project_id, invite_id: $invite_id)
-}
-
 mutation AddAdminToWorkspace($workspace_id: ID!, $invite_id: String!) {
     addAdminToWorkspace(workspace_id: $workspace_id, invite_id: $invite_id)
+}
+
+mutation ChangeAdminRole(
+    $workspace_id: ID!
+    $admin_id: ID!
+    $new_role: String!
+) {
+    changeAdminRole(
+        workspace_id: $workspace_id
+        admin_id: $admin_id
+        new_role: $new_role
+    )
 }
 
 mutation DeleteAdminFromProject($project_id: ID!, $admin_id: ID!) {
@@ -167,6 +177,7 @@ mutation CreateSessionComment(
     $time: Float!
     $author_name: String!
     $session_image: String
+    $tags: [SessionCommentTagInput]!
 ) {
     createSessionComment(
         project_id: $project_id
@@ -182,6 +193,7 @@ mutation CreateSessionComment(
         time: $time
         author_name: $author_name
         session_image: $session_image
+        tags: $tags
     ) {
         id
         timestamp
@@ -300,6 +312,35 @@ mutation CreateErrorAlert(
     }
 }
 
+mutation CreateRageClickAlert(
+    $project_id: ID!
+    $name: String!
+    $count_threshold: Int!
+    $threshold_window: Int!
+    $slack_channels: [SanitizedSlackChannelInput]!
+    $environments: [String]!
+) {
+    createRageClickAlert(
+        project_id: $project_id
+        count_threshold: $count_threshold
+        name: $name
+        slack_channels: $slack_channels
+        environments: $environments
+        threshold_window: $threshold_window
+    ) {
+        id
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        Name
+        ExcludedEnvironments
+        CountThreshold
+        ThresholdWindow
+        LastAdminToEditID
+    }
+}
+
 mutation UpdateErrorAlert(
     $project_id: ID!
     $name: String!
@@ -345,6 +386,17 @@ mutation DeleteSessionAlert($project_id: ID!, $session_alert_id: ID!) {
     }
 }
 
+mutation CreateDefaultAlerts(
+    $project_id: ID!
+    $alert_types: [String!]!
+    $slack_channels: [SanitizedSlackChannelInput!]!
+) {
+    createDefaultAlerts(
+        project_id: $project_id
+        alert_types: $alert_types
+        slack_channels: $slack_channels
+    )
+}
 mutation CreateSessionFeedbackAlert(
     $project_id: ID!
     $name: String!
@@ -441,6 +493,7 @@ mutation CreateNewSessionAlert(
     $slack_channels: [SanitizedSlackChannelInput]!
     $environments: [String]!
     $threshold_window: Int!
+    $exclude_rules: [String]!
 ) {
     createNewSessionAlert(
         project_id: $project_id
@@ -449,6 +502,7 @@ mutation CreateNewSessionAlert(
         slack_channels: $slack_channels
         environments: $environments
         threshold_window: $threshold_window
+        exclude_rules: $exclude_rules
     ) {
         id
         ChannelsToNotify {
@@ -460,6 +514,7 @@ mutation CreateNewSessionAlert(
         CountThreshold
         ThresholdWindow
         LastAdminToEditID
+        ExcludeRules
     }
 }
 
@@ -471,6 +526,7 @@ mutation UpdateNewSessionAlert(
     $slack_channels: [SanitizedSlackChannelInput]!
     $environments: [String]!
     $threshold_window: Int!
+    $exclude_rules: [String]!
 ) {
     updateNewSessionAlert(
         project_id: $project_id
@@ -480,6 +536,7 @@ mutation UpdateNewSessionAlert(
         slack_channels: $slack_channels
         environments: $environments
         threshold_window: $threshold_window
+        exclude_rules: $exclude_rules
     ) {
         id
         ChannelsToNotify {
@@ -491,6 +548,35 @@ mutation UpdateNewSessionAlert(
         CountThreshold
         ThresholdWindow
         LastAdminToEditID
+        ExcludeRules
+    }
+}
+
+mutation UpdateRageClickAlert(
+    $project_id: ID!
+    $rage_click_alert_id: ID!
+    $name: String!
+    $count_threshold: Int!
+    $threshold_window: Int!
+    $slack_channels: [SanitizedSlackChannelInput]!
+    $environments: [String]!
+) {
+    updateRageClickAlert(
+        project_id: $project_id
+        rage_click_alert_id: $rage_click_alert_id
+        name: $name
+        count_threshold: $count_threshold
+        slack_channels: $slack_channels
+        environments: $environments
+        threshold_window: $threshold_window
+    ) {
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        ExcludedEnvironments
+        CountThreshold
+        ThresholdWindow
     }
 }
 
@@ -683,5 +769,18 @@ mutation UpdateErrorGroupIsPublic(
     ) {
         secure_id
         is_public
+    }
+}
+
+mutation UpdateAllowMeterOverage(
+    $workspace_id: ID!
+    $allow_meter_overage: Boolean!
+) {
+    updateAllowMeterOverage(
+        workspace_id: $workspace_id
+        allow_meter_overage: $allow_meter_overage
+    ) {
+        id
+        allow_meter_overage
     }
 }

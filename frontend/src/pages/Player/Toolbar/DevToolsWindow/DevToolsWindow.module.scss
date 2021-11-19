@@ -148,5 +148,18 @@
     color: var(--color-gray-500);
     cursor: pointer;
     height: 14px;
+    transform: translateY(-16px);
     width: 14px;
+}
+
+.tabs {
+    :global(.ant-tabs-nav) {
+        align-items: flex-end;
+        height: var(--size-xxxLarge);
+    }
+
+    :global(.ant-tabs-nav-wrap) {
+        align-self: flex-end !important;
+        height: 46px;
+    }
 }

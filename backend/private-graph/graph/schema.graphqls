@@ -45,6 +45,8 @@ type Session {
     payload_size: Int64
     within_billing_quota: Boolean
     is_public: Boolean
+    event_counts: String
+    direct_download_url: String
 }
 
 type RageClickEvent {
@@ -56,15 +58,25 @@ type RageClickEvent {
     total_clicks: Int!
 }
 
+type RageClickEventForProject {
+    identifier: String!
+    session_secure_id: String!
+    total_clicks: Int!
+    user_properties: String!
+}
+
 type BillingDetails {
     plan: Plan!
     meter: Int64!
+    membersMeter: Int64!
     sessionsOutOfQuota: Int64!
 }
 
 type Plan {
     type: PlanType!
+    interval: SubscriptionInterval!
     quota: Int!
+    membersLimit: Int!
 }
 
 enum PlanType {
@@ -74,11 +86,18 @@ enum PlanType {
     Enterprise
 }
 
+enum SubscriptionInterval {
+    Monthly
+    Annual
+}
+
 type EnhancedUserDetailsResult {
+    id: ID
     name: String
     avatar: String
     bio: String
     socials: [SocialLink]
+    email: String
 }
 
 type SocialLink {
@@ -115,7 +134,6 @@ type Project {
     verbose_id: String!
     name: String!
     billing_email: String
-    trial_end_date: Timestamp
     secret: String
     workspace_id: ID!
 }
@@ -127,6 +145,10 @@ type Workspace {
     slack_channels: String
     secret: String
     projects: [Project]!
+    trial_end_date: Timestamp
+    billing_period_end: Timestamp
+    next_invoice_date: Timestamp
+    allow_meter_overage: Boolean!
 }
 
 type Segment {
@@ -220,6 +242,7 @@ type TopUsersPayload {
     identifier: String!
     total_active_time: Int!
     active_time_percentage: Float!
+    user_properties: String!
 }
 
 type NewUsersCount {
@@ -283,6 +306,7 @@ input ErrorSearchParamsInput {
     visited_url: String
     state: ErrorState
     event: String
+    type: String
 }
 
 type ErrorSearchParams {
@@ -333,6 +357,7 @@ type User {
 type Admin {
     id: ID!
     name: String!
+    uid: String!
     email: String!
     photo_url: String
     role: String!
@@ -377,6 +402,17 @@ type SessionComment {
     y_coordinate: Float
     type: SessionCommentType!
     metadata: Any
+    tags: [String]!
+}
+
+type SessionCommentTag {
+    id: ID!
+    name: String!
+}
+
+input SessionCommentTagInput {
+    id: ID
+    name: String!
 }
 
 type ErrorComment {
@@ -454,37 +490,42 @@ type SessionAlert {
     ThresholdWindow: Int!
     LastAdminToEditID: ID
     Type: String!
+    ExcludeRules: [String]!
+}
+
+type WorkspaceInviteLink {
+    id: ID!
+    invitee_email: String
+    invitee_role: String!
+    expiration_date: Timestamp!
+    secret: String!
 }
 
 scalar Upload
 
 type Query {
-    session(id: ID, secure_id: String): Session
-    events(session_id: ID, session_secure_id: String): [Any]
-    rage_clicks(session_secure_id: String): [RageClickEvent!]!
+    session(secure_id: String!): Session
+    events(session_secure_id: String!): [Any]
+    rage_clicks(session_secure_id: String!): [RageClickEvent!]!
+    rageClicksForProject(
+        project_id: ID!
+        lookBackPeriod: Int!
+    ): [RageClickEventForProject!]!
     error_groups(
         project_id: ID!
         count: Int!
         params: ErrorSearchParamsInput
     ): ErrorResults
-    error_group(id: ID, secure_id: String): ErrorGroup
-    messages(session_id: ID, session_secure_id: String): [Any]
-    enhanced_user_details(
-        session_id: ID
-        session_secure_id: String
-    ): EnhancedUserDetailsResult
-    errors(session_id: ID, session_secure_id: String): [ErrorObject]
-    resources(session_id: ID, session_secure_id: String): [Any]
-    session_comments(
-        session_id: ID
-        session_secure_id: String
-    ): [SessionComment]!
+    error_group(secure_id: String!): ErrorGroup
+    messages(session_secure_id: String!): [Any]
+    enhanced_user_details(session_secure_id: String!): EnhancedUserDetailsResult
+    errors(session_secure_id: String!): [ErrorObject]
+    resources(session_secure_id: String!): [Any]
+    session_comments(session_secure_id: String!): [SessionComment]!
+    session_comment_tags_for_project(project_id: ID!): [SessionCommentTag!]!
     session_comments_for_admin: [SessionComment]!
     session_comments_for_project(project_id: ID!): [SessionComment]!
-    error_comments(
-        error_group_id: ID
-        error_group_secure_id: String
-    ): [ErrorComment]!
+    error_comments(error_group_secure_id: String!): [ErrorComment]!
     error_comments_for_admin: [ErrorComment]!
     error_comments_for_project(project_id: ID!): [ErrorComment]!
     project_admins(project_id: ID!): [Admin]!
@@ -503,8 +544,7 @@ type Query {
     ): [DailyErrorCount]!
     dailyErrorFrequency(
         project_id: ID!
-        error_group_id: ID
-        error_group_secure_id: String
+        error_group_secure_id: String!
         date_offset: Int!
     ): [Int64]!
     referrers(project_id: ID!, lookBackPeriod: Int!): [ReferrerTablePayload]!
@@ -525,7 +565,8 @@ type Query {
         starred: Boolean!
         params: SearchParamsInput
     ): SessionResults!
-    billingDetails(project_id: ID!): BillingDetails!
+    billingDetailsForProject(project_id: ID!): BillingDetails!
+    billingDetails(workspace_id: ID!): BillingDetails!
     # gets all the projects of a user
     field_suggestion(project_id: ID!, name: String!, query: String!): [Field]
     property_suggestion(project_id: ID!, query: String!, type: String!): [Field]
@@ -542,19 +583,24 @@ type Query {
     track_properties_alerts(project_id: ID!): [SessionAlert]!
     user_properties_alerts(project_id: ID!): [SessionAlert]!
     new_session_alerts(project_id: ID!): [SessionAlert]!
-    projectSuggestion(query: String!): [Project]
+    rage_click_alerts(project_id: ID!): [SessionAlert]!
+    projectSuggestion(query: String!): [Project]!
+    workspaceSuggestion(query: String!): [Workspace]!
     environment_suggestion(project_id: ID!): [Field]
+    identifier_suggestion(project_id: ID!): [String]!
     app_version_suggestion(project_id: ID!): [String]!
     slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
     slack_members(project_id: ID!): [SanitizedSlackChannel]!
     is_integrated_with_slack(project_id: ID!): Boolean!
     project(id: ID!): Project
     workspace(id: ID!): Workspace
+    workspace_invite_links(workspace_id: ID!): WorkspaceInviteLink!
     workspace_for_project(project_id: ID!): Workspace
     admin: Admin
     segments(project_id: ID!): [Segment]
     error_segments(project_id: ID!): [ErrorSegment]
     api_key_to_org_id(api_key: String!): ID
+    customer_portal_url(workspace_id: ID!): String!
 }
 
 type Mutation {
@@ -562,9 +608,9 @@ type Mutation {
     createWorkspace(name: String!): Workspace
     editProject(id: ID!, name: String, billing_email: String): Project
     editWorkspace(id: ID!, name: String): Workspace
-    markSessionAsViewed(id: ID, secure_id: String, viewed: Boolean): Session
-    markSessionAsStarred(id: ID, secure_id: String, starred: Boolean): Session
-    updateErrorGroupState(id: ID, secure_id: String, state: String!): ErrorGroup
+    markSessionAsViewed(secure_id: String!, viewed: Boolean): Session
+    markSessionAsStarred(secure_id: String!, starred: Boolean): Session
+    updateErrorGroupState(secure_id: String!, state: String!): ErrorGroup
     deleteProject(id: ID!): Boolean
     sendAdminProjectInvite(
         project_id: ID!
@@ -575,9 +621,14 @@ type Mutation {
         workspace_id: ID!
         email: String!
         base_url: String!
+        role: String!
     ): String
-    addAdminToProject(project_id: ID!, invite_id: String!): ID
     addAdminToWorkspace(workspace_id: ID!, invite_id: String!): ID
+    changeAdminRole(
+        workspace_id: ID!
+        admin_id: ID!
+        new_role: String!
+    ): Boolean!
     deleteAdminFromProject(project_id: ID!, admin_id: ID!): ID
     deleteAdminFromWorkspace(workspace_id: ID!, admin_id: ID!): ID
     createSegment(
@@ -602,14 +653,14 @@ type Mutation {
     # If this endpoint returns a checkout_id, we initiate a stripe checkout.
     # Otherwise, we simply update the subscription.
     createOrUpdateStripeSubscription(
-        project_id: ID!
+        workspace_id: ID!
         plan_type: PlanType!
+        interval: SubscriptionInterval!
     ): String
-    updateBillingDetails(project_id: ID!): Boolean
+    updateBillingDetails(workspace_id: ID!): Boolean
     createSessionComment(
         project_id: ID!
-        session_id: ID
-        session_secure_id: String
+        session_secure_id: String!
         session_timestamp: Int!
         text: String!
         text_for_email: String!
@@ -621,12 +672,12 @@ type Mutation {
         time: Float!
         author_name: String!
         session_image: String
+        tags: [SessionCommentTagInput]!
     ): SessionComment
     deleteSessionComment(id: ID!): Boolean
     createErrorComment(
         project_id: ID!
-        error_group_id: ID
-        error_group_secure_id: String
+        error_group_secure_id: String!
         text: String!
         text_for_email: String!
         tagged_admins: [SanitizedAdminInput]!
@@ -645,6 +696,19 @@ type Mutation {
         code: String!
         redirect_path: String!
     ): Boolean!
+    createDefaultAlerts(
+        project_id: ID!
+        alert_types: [String!]!
+        slack_channels: [SanitizedSlackChannelInput!]!
+    ): Boolean
+    createRageClickAlert(
+        project_id: ID!
+        name: String!
+        count_threshold: Int!
+        threshold_window: Int!
+        slack_channels: [SanitizedSlackChannelInput]!
+        environments: [String]!
+    ): SessionAlert
     createErrorAlert(
         project_id: ID!
         name: String!
@@ -674,6 +738,15 @@ type Mutation {
     ): SessionAlert
     createSessionFeedbackAlert(
         project_id: ID!
+        name: String!
+        count_threshold: Int!
+        threshold_window: Int!
+        slack_channels: [SanitizedSlackChannelInput]!
+        environments: [String]!
+    ): SessionAlert
+    updateRageClickAlert(
+        project_id: ID!
+        rage_click_alert_id: ID!
         name: String!
         count_threshold: Int!
         threshold_window: Int!
@@ -740,6 +813,7 @@ type Mutation {
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
         threshold_window: Int!
+        exclude_rules: [String]!
     ): SessionAlert
     createNewSessionAlert(
         project_id: ID!
@@ -748,15 +822,18 @@ type Mutation {
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
         threshold_window: Int!
+        exclude_rules: [String]!
     ): SessionAlert
     updateSessionIsPublic(
-        session_id: ID
-        session_secure_id: String
+        session_secure_id: String!
         is_public: Boolean!
     ): Session
     updateErrorGroupIsPublic(
-        error_group_id: ID
-        error_group_secure_id: String
+        error_group_secure_id: String!
         is_public: Boolean!
     ): ErrorGroup
+    updateAllowMeterOverage(
+        workspace_id: ID!
+        allow_meter_overage: Boolean!
+    ): Workspace
 }

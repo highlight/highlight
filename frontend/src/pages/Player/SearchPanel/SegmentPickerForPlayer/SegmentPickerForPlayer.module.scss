@@ -14,8 +14,8 @@
 }
 
 .segmentButton {
-    border-color: var(--color-gray-300);
-    color: var(--color-gray-500);
+    border-color: var(--color-gray-300) !important;
+    color: var(--color-gray-500) !important;
     column-gap: var(--size-xSmall);
     display: flex;
     font-size: 12px;

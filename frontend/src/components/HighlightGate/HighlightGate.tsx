@@ -2,10 +2,14 @@ import { useAuthContext } from '@authentication/AuthContext';
 import classNames from 'classnames';
 import React from 'react';
 
-const HighlightGate: React.FC = ({ children }) => {
+interface Props {
+    featureIsOn?: boolean;
+}
+
+const HighlightGate: React.FC<Props> = ({ children, featureIsOn = true }) => {
     const { isHighlightAdmin } = useAuthContext();
 
-    if (!isHighlightAdmin) {
+    if (!isHighlightAdmin || !featureIsOn) {
         return null;
     }
 

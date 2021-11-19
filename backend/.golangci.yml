@@ -4,6 +4,7 @@ run:
   skip-dirs:
     - private-graph/graph/generated
     - public-graph/graph/generated
+    - highlight-go
 
 # output configuration options
 output:
@@ -23,6 +24,7 @@ linters:
     - typecheck
     - unused
     - varcheck
+    - depguard
 
 # all available settings of specific linters
 linters-settings:
@@ -33,7 +35,7 @@ linters-settings:
   staticcheck:
     # Select the Go version to target. The default is '1.13'.
     go: "1.14"
-    checks: [ "all" ]
+    checks: ["all"]
 
   stylecheck:
     # Select the Go version to target. The default is '1.13'.
@@ -42,3 +44,12 @@ linters-settings:
   unused:
     # Select the Go version to target. The default is '1.13'.
     go: "1.14"
+
+  depguard:
+    list-type: blacklist
+    include-go-root: true
+    packages:
+      - errors
+    packages-with-error-message:
+      # specify an error message to output when a blacklisted package is used
+      - errors: "error handling is allowed only by github.com/pkg/errors"

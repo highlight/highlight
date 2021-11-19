@@ -9,6 +9,7 @@ import * as H from 'history';
 import { useCallback, useState } from 'react';
 import { useLocation } from 'react-router';
 
+import { MillisToMinutesAndSeconds } from '../../../../util/time';
 import { HighlightEvent } from '../../HighlightEvent';
 import {
     ParsedErrorObject,
@@ -98,12 +99,12 @@ const getIntervalWithPercentages = (
 export enum PlayerSearchParameters {
     /** The time in the player in seconds. */
     ts = 'ts',
+    /** The absolute time in milliseconds. */
+    tsAbs = 'tsAbs',
     /** The error ID for an error in the current session. The player's time will be set to the lookback period before the error's timestamp. */
     errorId = 'errorId',
     /** The comment ID for a comment in the current session. The player's time will be set to the comments's timestamp. */
     commentId = 'commentId',
-    /** The Request Header ID for an error's network resource. */
-    resourceErrorRequestHeader = 'resourceErrorRequestHeader',
 }
 
 /**
@@ -115,7 +116,12 @@ export const useSetPlayerTimestampFromSearchParam = (
     replayer?: Replayer
 ) => {
     const location = useLocation();
-    const [hasSearchParam, setHasSearchParam] = useState(false);
+    const searchParams = new URLSearchParams(location.search);
+    const [hasSearchParam, setHasSearchParam] = useState(
+        !!searchParams.get(PlayerSearchParameters.ts) ||
+            !!searchParams.get(PlayerSearchParameters.tsAbs) ||
+            !!searchParams.get(PlayerSearchParameters.errorId)
+    );
     const {
         selectedTimelineAnnotationTypes,
         setSelectedTimelineAnnotationTypes,
@@ -146,6 +152,24 @@ export const useSetPlayerTimestampFromSearchParam = (
                     replayer?.pause(timestampMilliseconds);
                 }
                 setHasSearchParam(true);
+            } else if (searchParamsObject.get(PlayerSearchParameters.tsAbs)) {
+                const absoluteTimestampMilliseconds = parseFloat(
+                    searchParamsObject.get(
+                        PlayerSearchParameters.tsAbs
+                    ) as string
+                );
+                const relativeTimestampMilliseconds =
+                    absoluteTimestampMilliseconds -
+                    sessionStartTimeMilliseconds;
+
+                if (
+                    relativeTimestampMilliseconds > 0 ||
+                    relativeTimestampMilliseconds <= sessionDurationMilliseconds
+                ) {
+                    setTime(relativeTimestampMilliseconds);
+                    replayer?.pause(relativeTimestampMilliseconds);
+                }
+                setHasSearchParam(true);
             } else if (searchParamsObject.get(PlayerSearchParameters.errorId)) {
                 const errorId = searchParamsObject.get(
                     PlayerSearchParameters.errorId
@@ -159,8 +183,16 @@ export const useSetPlayerTimestampFromSearchParam = (
                         sessionTime >= 0 ||
                         sessionTime <= sessionDurationMilliseconds
                     ) {
-                        setTime(sessionTime);
-                        replayer?.pause(sessionTime);
+                        // If requestId is defined, time will be set based on the network request instead
+                        if (!error.request_id) {
+                            setTime(sessionTime);
+                            replayer?.pause(sessionTime);
+                            message.success(
+                                `Changed player time to where error was thrown at ${MillisToMinutesAndSeconds(
+                                    sessionTime
+                                )}.`
+                            );
+                        }
                         setSelectedErrorId(errorId);
 
                         // Show errors on the timeline indicators if deep linked.
@@ -175,6 +207,8 @@ export const useSetPlayerTimestampFromSearchParam = (
                     }
                 }
                 setHasSearchParam(true);
+            } else {
+                setHasSearchParam(false);
             }
         },
         [

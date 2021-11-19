@@ -1,17 +1,23 @@
 import {
+    BarChartTablePercentage,
+    BarChartTablePill,
+    BarChartTableRowGroup,
+    BarChartTableUserAvatar,
+} from '@components/BarChartTable/components/BarChartTableColumns';
+import Card from '@components/Card/Card';
+import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import SvgClockIcon from '@icons/ClockIcon';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
-import classNames from 'classnames';
 import React, { useMemo, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router-dom';
 
 import BarChartTable from '../../../../components/BarChartTable/BarChartTable';
-import { getPercentageDisplayValue } from '../../../../components/BarChartTable/utils/utils';
 import Input from '../../../../components/Input/Input';
 import Tooltip from '../../../../components/Tooltip/Tooltip';
 import { useGetTopUsersQuery } from '../../../../graph/generated/hooks';
@@ -53,6 +59,7 @@ const ActiveUsersTable = () => {
                         total_active_time: topUser?.total_active_time,
                         active_time_percentage: topUser?.active_time_percentage,
                         id: topUser?.id,
+                        userProperties: topUser?.user_properties,
                     }));
 
                 setTableData(transformedData);
@@ -75,26 +82,24 @@ const ActiveUsersTable = () => {
     }
 
     return (
-        <div
-            className={classNames(
-                homePageStyles.section,
-                homePageStyles.graphSection,
-                styles.tableContainer
-            )}
+        <Card
+            title={
+                <div className={homePageStyles.chartHeaderWrapper}>
+                    <h3 id={homePageStyles.h3}>Top Users</h3>
+                    <Input
+                        allowClear
+                        placeholder="Search for user"
+                        value={filterSearchTerm}
+                        onChange={(event) => {
+                            setFilterSearchTerm(event.target.value);
+                        }}
+                        size="small"
+                        disabled={loading}
+                    />
+                </div>
+            }
+            noTitleBottomMargin
         >
-            <div className={homePageStyles.chartHeaderWrapper}>
-                <h3>Top Users</h3>
-                <Input
-                    allowClear
-                    placeholder="Filter"
-                    value={filterSearchTerm}
-                    onChange={(event) => {
-                        setFilterSearchTerm(event.target.value);
-                    }}
-                    size="small"
-                    disabled={loading}
-                />
-            </div>
             <BarChartTable
                 loading={loading}
                 columns={Columns}
@@ -148,7 +153,7 @@ const ActiveUsersTable = () => {
                         : 'No user data yet 😔'
                 }
             />
-        </div>
+        </Card>
     );
 };
 
@@ -159,43 +164,38 @@ const Columns: ColumnsType<any> = [
         title: 'User',
         dataIndex: 'identifier',
         key: 'identifier',
-        // width: 250,
-        render: (user) => (
-            <div className={styles.hostContainer}>
-                <span>{user}</span>
-            </div>
-        ),
-    },
-    {
-        title: 'Active Time',
-        dataIndex: 'total_active_time',
-        key: 'total_active_time',
-        width: 75,
-        align: 'right',
-        render: (count) => (
-            <Tooltip title="Total active time the user has spent on your app">
-                <div className={styles.countContainer}>
-                    {formatShortTime(count / 1000)}
+        render: (user, record) => {
+            return (
+                <div className={styles.hostContainer}>
+                    <BarChartTableRowGroup>
+                        <BarChartTableUserAvatar
+                            identifier={user}
+                            userProperties={record.userProperties}
+                        />
+                        <span>{user}</span>
+                    </BarChartTableRowGroup>
                 </div>
-            </Tooltip>
-        ),
+            );
+        },
     },
     {
         title: 'Percentage',
         dataIndex: 'active_time_percentage',
         key: 'active_time_percentage',
-        width: 150,
-        render: (percent) => (
-            <div
-                className={styles.percentContainer}
-                style={
-                    {
-                        '--percentage': `${percent * 100}%`,
-                    } as React.CSSProperties
-                }
-            >
-                <span>{getPercentageDisplayValue(percent)}</span>
-            </div>
-        ),
+        render: (percent, record) => {
+            return (
+                <BarChartTableRowGroup alignment="ending">
+                    <BarChartTablePercentage percent={percent * 100} />
+                    <Tooltip title="Total active time the user has spent on your app">
+                        <BarChartTablePill
+                            displayValue={`${formatShortTime(
+                                record.total_active_time / 1000
+                            )}`}
+                            icon={<SvgClockIcon />}
+                        />
+                    </Tooltip>
+                </BarChartTableRowGroup>
+            );
+        },
     },
 ];

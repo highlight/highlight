@@ -22,16 +22,26 @@
 
 .mentions--multiLine .mentions__highlighter {
     border: 1px solid transparent;
-    font-weight: 300;
+    font-weight: 400;
     padding: 0;
 }
 
 .mentions--multiLine .mentions__input {
     border: 1px solid transparent;
+    color: var(--color-gray-500);
     cursor: inherit;
-    font-weight: 300;
+    font-weight: 400;
     outline: 0;
     padding: 0;
+}
+
+/* We're doing this janky stuff because of https://github.com/signavio/react-mentions/issues/459 */
+.mentions--multiLine .mentions__input[aria-readonly='true'] {
+    caret-color: transparent;
+}
+
+.mentions__input::placeholder {
+    color: var(--color-gray-500) !important;
 }
 
 .mentions__suggestions__list {
@@ -61,7 +71,7 @@
 
 .mentions__mention {
     color: var(--color-purple-400);
-    font-weight: 400 !important;
+    font-weight: 300 !important;
     pointer-events: none;
     position: relative;
     z-index: 1;

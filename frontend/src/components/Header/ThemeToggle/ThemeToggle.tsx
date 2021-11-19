@@ -35,6 +35,7 @@ const ThemeToggle = () => {
         <Button
             type="text"
             trackingId="ToggleTheme"
+            iconButton
             onClick={() => {
                 const newTheme =
                     theme === THEMES.Dark ? THEMES.Light : THEMES.Dark;

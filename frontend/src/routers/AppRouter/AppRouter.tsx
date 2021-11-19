@@ -23,11 +23,6 @@ export const AppRouter = () => {
         <div className={styles.appBody}>
             <Router>
                 <Switch>
-                    <Route path="/:project_id(\d+)/invite/:invite_id">
-                        <Landing>
-                            <NewMemberPage />
-                        </Landing>
-                    </Route>
                     <Route path="/w/:workspace_id(\d+)/invite/:invite_id">
                         <Landing>
                             <NewMemberPage />

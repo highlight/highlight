@@ -23,16 +23,16 @@
 }
 
 .emptySubTitle {
-    align-items: center;
     color: var(--color-gray-500);
-    display: flex;
-    justify-content: center;
+    font-size: var(--size-small) !important;
     margin: 0 auto !important;
-    max-width: 450px;
+    max-width: 350px;
     text-align: center;
 }
 
 .emptyTitle {
+    font-size: 14px;
+    font-weight: 400 !important;
     margin-top: 30px !important;
     text-align: center;
 }

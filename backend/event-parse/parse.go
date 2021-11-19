@@ -2,7 +2,6 @@ package parse
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -123,7 +122,7 @@ func EventsFromString(eventsString string) (*ReplayEvents, error) {
 	events := &ReplayEvents{}
 	err := json.Unmarshal([]byte(eventsString), &events)
 	if err != nil {
-		return nil, fmt.Errorf("error parsing events into ReplayEvents for string '%v': %w", eventsString, err)
+		return nil, errors.Wrapf(err, "error parsing events into ReplayEvents for string '%v'", eventsString)
 	}
 	return events, nil
 }
@@ -137,21 +136,21 @@ func InjectStylesheets(inputData json.RawMessage) (json.RawMessage, error) {
 	}
 	n, ok := s.(map[string]interface{})
 	if !ok {
-		return nil, fmt.Errorf("error converting to obj")
+		return nil, errors.New("error converting to obj")
 	}
 	node, ok := n["node"].(map[string]interface{})
 	if !ok {
-		return nil, fmt.Errorf("error converting to node")
+		return nil, errors.New("error converting to node")
 	}
 	childNodes, ok := node["childNodes"].([]interface{})
 	if !ok {
-		return nil, fmt.Errorf("error converting to childNodes")
+		return nil, errors.New("error converting to childNodes")
 	}
 	var htmlNode map[string]interface{}
 	for _, c := range childNodes {
 		subNode, ok := c.(map[string]interface{})
 		if !ok {
-			return nil, fmt.Errorf("error converting to childNodes")
+			return nil, errors.New("error converting to childNodes")
 		}
 		tagName, ok := subNode["tagName"].(string)
 		if !ok || tagName != "html" {
@@ -162,13 +161,13 @@ func InjectStylesheets(inputData json.RawMessage) (json.RawMessage, error) {
 	}
 	htmlChildNodes, ok := htmlNode["childNodes"].([]interface{})
 	if !ok {
-		return nil, fmt.Errorf("error converting to childNodes")
+		return nil, errors.New("error converting to childNodes")
 	}
 	var headNode map[string]interface{}
 	for _, c := range htmlChildNodes {
 		subNode, ok := c.(map[string]interface{})
 		if !ok {
-			return nil, fmt.Errorf("error converting to childNodes")
+			return nil, errors.New("error converting to childNodes")
 		}
 		tagName, ok := subNode["tagName"].(string)
 		if !ok || tagName != "head" {
@@ -179,7 +178,7 @@ func InjectStylesheets(inputData json.RawMessage) (json.RawMessage, error) {
 	}
 	headChildNodes, ok := headNode["childNodes"].([]interface{})
 	if !ok {
-		return nil, fmt.Errorf("error converting to childNodes")
+		return nil, errors.New("error converting to childNodes")
 	}
 	for _, c := range headChildNodes {
 		subNode, ok := c.(map[string]interface{})

@@ -17,3 +17,6 @@ yalc.lock
 **/build
 **/coverage.out
 **/output.txt
+
+backend/backend
+

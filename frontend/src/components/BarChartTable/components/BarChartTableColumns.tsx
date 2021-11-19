@@ -1,0 +1,92 @@
+import { Avatar } from '@components/Avatar/Avatar';
+import { getPercentageDisplayValue } from '@components/BarChartTable/utils/utils';
+import { Session } from '@graph/schemas';
+import { getIdentifiedUserProfileImage } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils';
+import classNames from 'classnames';
+import React from 'react';
+
+import styles from './BarChartTableColumns.module.scss';
+
+interface BarChartTablePercentageProps {
+    percent: number;
+}
+
+export const BarChartTablePercentage = ({
+    percent,
+}: BarChartTablePercentageProps) => {
+    return (
+        <div className={styles.percentContainer}>
+            <div
+                className={styles.barGraph}
+                style={
+                    {
+                        '--percentage': `${percent}%`,
+                    } as React.CSSProperties
+                }
+            ></div>
+            <span>{getPercentageDisplayValue(percent / 100)}</span>
+        </div>
+    );
+};
+
+interface BarChartTableRowGroupProps {
+    alignment?: 'leading' | 'ending';
+}
+
+export const BarChartTableRowGroup: React.FC<BarChartTableRowGroupProps> = ({
+    alignment = 'leading',
+    children,
+}) => {
+    return (
+        <div
+            className={classNames(styles.rowGroup, {
+                [styles.endingAlignment]: alignment === 'ending',
+            })}
+        >
+            {children}
+        </div>
+    );
+};
+
+interface BarChartTablePillProps {
+    icon?: React.ReactNode;
+    displayValue: string;
+}
+
+export const BarChartTablePill = ({
+    displayValue,
+    icon,
+}: BarChartTablePillProps) => {
+    return (
+        <div className={styles.pill}>
+            {icon && icon}
+            {displayValue}
+        </div>
+    );
+};
+
+interface BarChartTableUserAvatarProps {
+    userProperties: string;
+    identifier: string;
+}
+
+export const BarChartTableUserAvatar = ({
+    identifier,
+    userProperties,
+}: BarChartTableUserAvatarProps) => {
+    return (
+        <Avatar
+            seed={identifier}
+            style={{
+                height: 'var(--size-large)',
+                width: 'var(--size-large)',
+                borderRadius: 'var(--size-xSmall)',
+                border: '1px solid var(--text-primary-inverted)',
+                flexShrink: 0,
+            }}
+            customImage={getIdentifiedUserProfileImage({
+                user_properties: userProperties,
+            } as Session)}
+        />
+    );
+};

@@ -1,8 +1,9 @@
 // eslint-disable-next-line no-restricted-imports
+import SvgCloseIcon from '@icons/CloseIcon';
 import { Modal as AntDesignModal, ModalProps } from 'antd';
+import classNames from 'classnames';
 import React from 'react';
 
-import Close from '../../static/Close';
 import styles from './Modal.module.scss';
 
 type Props = Pick<
@@ -17,18 +18,27 @@ type Props = Pick<
     | 'centered'
     | 'mask'
     | 'getContainer'
+    | 'className'
 > & {
     title?: string;
     minimal?: boolean;
+    minimalPaddingSize?: string;
 };
 
-const Modal: React.FC<Props> = ({ children, title, minimal, ...props }) => {
+const Modal: React.FC<Props> = ({
+    children,
+    className,
+    title,
+    minimal,
+    minimalPaddingSize = 'var(--size-xSmall)',
+    ...props
+}) => {
     const bodyStyle: React.CSSProperties = minimal
         ? {
-              paddingTop: `var(--size-xSmall)`,
-              paddingBottom: `var(--size-xSmall)`,
-              paddingLeft: `var(--size-xSmall)`,
-              paddingRight: `var(--size-xSmall)`,
+              paddingTop: minimalPaddingSize,
+              paddingBottom: minimalPaddingSize,
+              paddingLeft: minimalPaddingSize,
+              paddingRight: minimalPaddingSize,
           }
         : {};
 
@@ -36,8 +46,10 @@ const Modal: React.FC<Props> = ({ children, title, minimal, ...props }) => {
         <AntDesignModal
             footer={null}
             {...props}
-            closeIcon={!minimal ? <Close height="18px" width="18px" /> : null}
-            className={styles.modal}
+            closeIcon={
+                !minimal ? <SvgCloseIcon height="18px" width="18px" /> : null
+            }
+            className={classNames(styles.modal, className)}
             closable={!minimal}
             bodyStyle={bodyStyle}
             maskClosable

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Area, ComposedChart, Line, ResponsiveContainer } from 'recharts';
+import { Area, ComposedChart, ResponsiveContainer } from 'recharts';
 
 interface Props {
     data: any[];
@@ -21,7 +21,7 @@ const ActivityGraph = ({ data }: Props) => {
                     bottom: 2,
                 }}
                 style={{
-                    opacity: 0.5,
+                    opacity: 0.3,
                 }}
             >
                 <defs>
@@ -34,26 +34,16 @@ const ActivityGraph = ({ data }: Props) => {
                         <stop
                             offset="95%"
                             stopColor="var(--color-primary-background)"
-                            stopOpacity={1}
+                            stopOpacity={0.2}
                         />
                     </linearGradient>
                 </defs>
-                <Line
-                    dataKey="value"
-                    stroke={lineColor}
-                    strokeWidth={2}
-                    type="monotone"
-                    dot={false}
-                    activeDot={{
-                        fill: lineColor,
-                        fillOpacity: 1,
-                    }}
-                ></Line>
                 <Area
-                    type="monotone"
+                    type="natural"
                     dataKey="value"
-                    strokeWidth={0}
+                    strokeWidth={2}
                     fillOpacity={1}
+                    stroke={lineColor}
                     fill={`url(#${gradientId})`}
                     activeDot={false}
                 />

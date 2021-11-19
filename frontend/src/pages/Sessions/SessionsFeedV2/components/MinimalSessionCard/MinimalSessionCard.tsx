@@ -2,17 +2,18 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
-import HighlightGate from '@components/HighlightGate/HighlightGate';
 import { ALERT_CONFIGURATIONS } from '@pages/Alerts/Alerts';
 import { formatShortTime } from '@pages/Home/components/KeyPerformanceIndicators/utils/utils';
 import ActivityGraph from '@pages/Sessions/SessionsFeedV2/components/ActivityGraph/ActivityGraph';
+import { formatDatetime } from '@pages/Sessions/SessionsFeedV2/components/SessionFeedConfiguration/SessionFeedConfiguration';
+import { SessionFeedConfigurationContext } from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import TextTransition from 'react-text-transition';
 
 import { Avatar } from '../../../../../components/Avatar/Avatar';
-import Tooltip from '../../../../../components/Tooltip/Tooltip';
 import { Maybe, Session } from '../../../../../graph/generated/schemas';
 import SvgEyeOffIcon from '../../../../../static/EyeOffIcon';
 import SvgFastForwardIcon from '../../../../../static/FastForwardIcon';
@@ -32,6 +33,10 @@ interface Props {
     linkDisabled?: boolean;
     showDetailedSessionView?: boolean;
     autoPlaySessions?: boolean;
+    configuration?: Pick<
+        SessionFeedConfigurationContext,
+        'countFormat' | 'datetimeFormat'
+    >;
 }
 
 const MinimalSessionCard = React.memo(
@@ -44,6 +49,7 @@ const MinimalSessionCard = React.memo(
         linkDisabled,
         autoPlaySessions = false,
         showDetailedSessionView: showDetailedSessionViewPlayerConfiguration = false,
+        configuration,
     }: Props) => {
         const ref = useRef<HTMLDivElement | null>(null);
         const { project_id, segment_id, session_secure_id } = useParams<{
@@ -66,6 +72,20 @@ const MinimalSessionCard = React.memo(
                 setViewed(true);
             }
         }, [session?.secure_id, session_secure_id]);
+
+        const [eventCounts, setEventCounts] = useState(undefined);
+
+        useEffect(() => {
+            if (!!session?.event_counts) {
+                setEventCounts(
+                    JSON.parse(session.event_counts).map(
+                        (v: number, k: number) => {
+                            return { ts: k, value: v };
+                        }
+                    )
+                );
+            }
+        }, [session?.event_counts, setEventCounts]);
 
         useEffect(() => {
             if (
@@ -92,6 +112,7 @@ const MinimalSessionCard = React.memo(
                 <div
                     className={classNames(styles.sessionCardContentWrapper, {
                         [styles.detailed]: showDetailedSessionView,
+                        [styles.errorVersion]: errorVersion,
                     })}
                 >
                     <div className={styles.avatarWrapper}>
@@ -114,23 +135,20 @@ const MinimalSessionCard = React.memo(
                                 [styles.errorVersion]: errorVersion,
                             })}
                         >
-                            <Tooltip
-                                title={getDisplayName(session)}
-                                mouseEnterDelay={0}
+                            <div
+                                className={classNames(
+                                    styles.middleText,
+                                    'highlight-block'
+                                )}
                             >
-                                <div
-                                    className={classNames(
-                                        styles.middleText,
-                                        'highlight-block'
-                                    )}
-                                >
-                                    {getDisplayName(session)}
-                                </div>
-                            </Tooltip>
+                                {getDisplayName(session)}
+                            </div>
                         </div>
                         <div
                             className={classNames(styles.sessionTextSection, {
                                 [styles.detailedSection]: showDetailedSessionView,
+                                [styles.withLongDatetimeFormat]:
+                                    configuration?.datetimeFormat === 'ISO',
                             })}
                         >
                             {showDetailedSessionView ? (
@@ -167,103 +185,66 @@ const MinimalSessionCard = React.memo(
                                         </div>
                                     )}
                                     {errorVersion ? (
-                                        <Tooltip title={`${session?.os_name}`}>
-                                            <div className={styles.topText}>
-                                                {session?.os_name}
-                                            </div>
-                                        </Tooltip>
+                                        <div className={styles.topText}>
+                                            {session?.os_name}
+                                        </div>
                                     ) : (
-                                        <Tooltip
-                                            title={`${session?.city}, ${session?.state}`}
-                                        >
-                                            <div className={styles.topText}>
-                                                {`${
-                                                    session?.city &&
-                                                    session?.state
-                                                        ? `${session?.city}, ${session?.state}`
-                                                        : ''
-                                                }`}
-                                            </div>
-                                        </Tooltip>
+                                        <div className={styles.topText}>
+                                            {`${
+                                                session?.city && session?.state
+                                                    ? `${session?.city}, ${session?.state}`
+                                                    : ''
+                                            }`}
+                                        </div>
                                     )}
-                                    <Tooltip
-                                        title={`${new Date(
-                                            session?.created_at
-                                        )}`}
-                                    >
-                                        <div className={styles.topText}>
-                                            {`${new Date(
-                                                session?.created_at
-                                            ).toLocaleString('en-us', {
-                                                day: 'numeric',
-                                                month: 'long',
-                                                year: 'numeric',
-                                            })}`}
-                                        </div>
-                                    </Tooltip>
-                                    <Tooltip title={`${session?.browser_name}`}>
-                                        <div className={styles.topText}>
-                                            {`${session?.browser_name}`}
-                                        </div>
-                                    </Tooltip>
+                                    <div className={styles.topText}>
+                                        <TextTransition
+                                            text={
+                                                configuration?.datetimeFormat
+                                                    ? formatDatetime(
+                                                          session?.created_at,
+                                                          configuration.datetimeFormat
+                                                      )
+                                                    : `${new Date(
+                                                          session?.created_at
+                                                      ).toLocaleString(
+                                                          'en-us',
+                                                          {
+                                                              day: 'numeric',
+                                                              month: 'long',
+                                                              year: 'numeric',
+                                                          }
+                                                      )}`
+                                            }
+                                            inline
+                                        />
+                                    </div>
+                                    <div className={styles.topText}>
+                                        {`${session?.browser_name}`}
+                                    </div>
                                     {errorVersion && (
-                                        <Tooltip
-                                            title={`${session?.environment}`}
-                                        >
-                                            <div className={styles.topText}>
-                                                {`${session?.environment}`}
-                                            </div>
-                                        </Tooltip>
+                                        <div className={styles.topText}>
+                                            {`${session?.environment}`}
+                                        </div>
                                     )}
                                 </>
                             ) : (
-                                <Tooltip
-                                    mouseEnterDelay={0.2}
-                                    title={
-                                        session?.processed ? (
-                                            <table>
-                                                <tbody>
-                                                    <tr>
-                                                        <td>Active:</td>
-                                                        <td>
-                                                            {MillisToMinutesAndSecondsVerbose(
-                                                                session.active_length ||
-                                                                    0
-                                                            )}
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>Total:</td>
-                                                        <td>
-                                                            {MillisToMinutesAndSecondsVerbose(
-                                                                session.length ||
-                                                                    0
-                                                            )}
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        ) : null
-                                    }
-                                    align={{ offset: [-40, 0] }}
-                                >
-                                    <div className={styles.topText}>
-                                        {session?.processed &&
-                                        segment_id !== LIVE_SEGMENT_ID
-                                            ? MillisToMinutesAndSecondsVerbose(
-                                                  session.active_length || 0
-                                              )
-                                            : !errorVersion
-                                            ? 'Live'
-                                            : new Date(
-                                                  session?.created_at
-                                              ).toLocaleString('en-us', {
-                                                  day: 'numeric',
-                                                  month: 'long',
-                                                  year: 'numeric',
-                                              })}
-                                    </div>
-                                </Tooltip>
+                                <div className={styles.topText}>
+                                    {session?.processed &&
+                                    segment_id !== LIVE_SEGMENT_ID
+                                        ? MillisToMinutesAndSecondsVerbose(
+                                              session.active_length || 0
+                                          )
+                                        : !errorVersion
+                                        ? 'Live'
+                                        : new Date(
+                                              session?.created_at
+                                          ).toLocaleString('en-us', {
+                                              day: 'numeric',
+                                              month: 'long',
+                                              year: 'numeric',
+                                          })}
+                                </div>
                             )}
                         </div>
                     </div>
@@ -278,119 +259,76 @@ const MinimalSessionCard = React.memo(
                             )}
                         >
                             <div>
-                                <Tooltip
-                                    title={
-                                        !viewed
-                                            ? `This session hasn't been viewed.`
-                                            : 'This session has been viewed.'
-                                    }
-                                >
-                                    <span
-                                        className={styles.cardAnnotation}
-                                        style={
-                                            {
-                                                '--primary-color': !viewed
-                                                    ? 'var(--color-blue-400)'
-                                                    : 'var(--color-gray-300)',
-                                            } as React.CSSProperties
-                                        }
-                                    >
-                                        <SvgEyeOffIcon />
-                                    </span>
-                                </Tooltip>
-                            </div>
-                            <div>
-                                <Tooltip
-                                    title={
-                                        session?.first_time
-                                            ? 'This session is the first time this user has used your app.'
-                                            : 'This session is for a user that has used your app before.'
-                                    }
-                                >
-                                    <span
-                                        className={styles.cardAnnotation}
-                                        style={
-                                            {
-                                                '--primary-color': session?.first_time
-                                                    ? 'var(--color-red)'
-                                                    : 'var(--color-gray-300)',
-                                            } as React.CSSProperties
-                                        }
-                                    >
+                                <span
+                                    className={styles.cardAnnotation}
+                                    style={
                                         {
-                                            ALERT_CONFIGURATIONS[
-                                                'NEW_USER_ALERT'
-                                            ].icon
-                                        }
-                                    </span>
-                                </Tooltip>
-                            </div>
-                            <div>
-                                <Tooltip title="This session is for a known user.">
-                                    <span
-                                        className={styles.cardAnnotation}
-                                        style={
-                                            {
-                                                '--primary-color': session?.identifier
-                                                    ? 'var(--color-orange-400)'
-                                                    : 'var(--color-gray-300)',
-                                            } as React.CSSProperties
-                                        }
-                                    >
-                                        {
-                                            ALERT_CONFIGURATIONS[
-                                                'USER_PROPERTIES_ALERT'
-                                            ].icon
-                                        }
-                                    </span>
-                                </Tooltip>
-                            </div>
-                            <div>
-                                <Tooltip
-                                    title={
-                                        !session?.processed
-                                            ? 'This is a live, in-progress session.'
-                                            : 'This is not a live, in-progress session.'
+                                            '--primary-color': !viewed
+                                                ? 'var(--color-blue-400)'
+                                                : 'var(--color-gray-300)',
+                                        } as React.CSSProperties
                                     }
                                 >
-                                    <span
-                                        className={styles.cardAnnotation}
-                                        style={
-                                            {
-                                                '--primary-color': !session?.processed
-                                                    ? 'var(--color-purple-400)'
-                                                    : 'var(--color-gray-300)',
-                                            } as React.CSSProperties
-                                        }
-                                    >
-                                        <SvgFastForwardIcon />
-                                    </span>
-                                </Tooltip>
+                                    <SvgEyeOffIcon />
+                                </span>
+                            </div>
+                            <div>
+                                <span
+                                    className={styles.cardAnnotation}
+                                    style={
+                                        {
+                                            '--primary-color': session?.first_time
+                                                ? 'var(--color-red-400)'
+                                                : 'var(--color-gray-300)',
+                                        } as React.CSSProperties
+                                    }
+                                >
+                                    {
+                                        ALERT_CONFIGURATIONS['NEW_USER_ALERT']
+                                            .icon
+                                    }
+                                </span>
+                            </div>
+                            <div>
+                                <span
+                                    className={styles.cardAnnotation}
+                                    style={
+                                        {
+                                            '--primary-color': session?.identifier
+                                                ? 'var(--color-orange-400)'
+                                                : 'var(--color-gray-300)',
+                                        } as React.CSSProperties
+                                    }
+                                >
+                                    {
+                                        ALERT_CONFIGURATIONS[
+                                            'USER_PROPERTIES_ALERT'
+                                        ].icon
+                                    }
+                                </span>
+                            </div>
+                            <div>
+                                <span
+                                    className={styles.cardAnnotation}
+                                    style={
+                                        {
+                                            '--primary-color': !session?.processed
+                                                ? 'var(--color-purple-400)'
+                                                : 'var(--color-gray-300)',
+                                        } as React.CSSProperties
+                                    }
+                                >
+                                    <SvgFastForwardIcon />
+                                </span>
                             </div>
                         </div>
                     )}
                 </div>
 
-                {!errorVersion && showDetailedSessionView && (
-                    <HighlightGate>
-                        <div className={styles.activityGraphContainer}>
-                            <ActivityGraph
-                                data={[
-                                    { ts: 0, value: Math.random() * 100 },
-                                    { ts: 1, value: Math.random() * 200 },
-                                    { ts: 2, value: Math.random() * 1000 },
-                                    { ts: 3, value: Math.random() * 1000 },
-                                    { ts: 4, value: Math.random() * 1000 },
-                                    { ts: 5, value: Math.random() * 1000 },
-                                    { ts: 6, value: Math.random() * 1000 },
-                                    { ts: 7, value: Math.random() * 100 },
-                                    { ts: 8, value: Math.random() * 1000 },
-                                    { ts: 9, value: Math.random() * 100 },
-                                    { ts: 10, value: Math.random() * 1000 },
-                                ]}
-                            />
-                        </div>
-                    </HighlightGate>
+                {!errorVersion && showDetailedSessionView && eventCounts && (
+                    <div className={styles.activityGraphContainer}>
+                        <ActivityGraph data={eventCounts} />
+                    </div>
                 )}
             </div>
         );
@@ -413,6 +351,17 @@ const MinimalSessionCard = React.memo(
                     </Link>
                 )}
             </div>
+        );
+    },
+    (previousProps, nextProps) => {
+        return (
+            previousProps.configuration?.countFormat ===
+                nextProps.configuration?.countFormat &&
+            previousProps.configuration?.datetimeFormat ===
+                nextProps.configuration?.datetimeFormat &&
+            previousProps.selected === nextProps.selected &&
+            previousProps.showDetailedSessionView ===
+                nextProps.showDetailedSessionView
         );
     }
 );

@@ -23,6 +23,7 @@ declare module 'react-command-palette' {
         resetCommandsOnOpen?: boolean;
         resetInputOnOpen?: boolean;
         maxDisplayed?: number;
+        placeholder?: string;
     }
 
     class ReactCommandPalette extends React.Component<ReactCommandPaletteProps> {

@@ -1,6 +1,13 @@
+import { SessionData } from '../../../index';
 import { NetworkListenerCallback } from '../network-listener';
 import { Headers, Request, RequestResponsePair, Response } from './models';
-import { isHighlightNetworkResourceFilter } from './utils';
+import {
+    createNetworkRequestId,
+    getHighlightRequestHeader,
+    HIGHLIGHT_REQUEST_HEADER,
+    shouldNetworkRequestBeRecorded,
+    shouldNetworkRequestBeTraced,
+} from './utils';
 
 interface BrowserXHR extends XMLHttpRequest {
     _method: string;
@@ -16,7 +23,9 @@ interface BrowserXHR extends XMLHttpRequest {
 export const XHRListener = (
     callback: NetworkListenerCallback,
     backendUrl: string,
-    urlBlocklist: string[]
+    tracingOrigins: boolean | (string | RegExp)[],
+    urlBlocklist: string[],
+    sessionData: SessionData
 ) => {
     const XHR = XMLHttpRequest.prototype;
 
@@ -51,8 +60,31 @@ export const XHRListener = (
     };
 
     XHR.send = function (this: BrowserXHR, postData: any) {
+        if (
+            !shouldNetworkRequestBeRecorded(
+                this._url,
+                backendUrl,
+                tracingOrigins
+            )
+        ) {
+            // @ts-expect-error
+            return originalSend.apply(this, arguments);
+        }
+
+        const requestId = createNetworkRequestId();
+        if (shouldNetworkRequestBeTraced(this._url, tracingOrigins)) {
+            this.setRequestHeader(
+                HIGHLIGHT_REQUEST_HEADER,
+                getHighlightRequestHeader(
+                    sessionData.sessionSecureID,
+                    requestId
+                )
+            );
+        }
+
         const shouldRecordHeaderAndBody = this._shouldRecordHeaderAndBody;
         const requestModel: Request = {
+            id: requestId,
             url: this._url,
             verb: this._method,
             headers: shouldRecordHeaderAndBody ? this._requestHeaders : {},
@@ -61,12 +93,6 @@ export const XHRListener = (
 
         // The load event for XMLHttpRequest is fired when a request completes successfully.
         this.addEventListener('load', async function () {
-            if (
-                isHighlightNetworkResourceFilter(requestModel.url, backendUrl)
-            ) {
-                return;
-            }
-
             const responseModel: Response = {
                 status: this.status,
                 headers: {},
@@ -76,7 +102,15 @@ export const XHRListener = (
             if (shouldRecordHeaderAndBody) {
                 if (postData) {
                     if (typeof postData === 'string') {
-                        requestModel['body'] = postData;
+                        // TODO: This should be removed when we move recording logic from client to firstload.
+                        // This is only for development purposes. We don't want to send the body of pushPayload requests because it'll end up being recursive.
+                        if (
+                            (requestModel.url.includes('localhost') ||
+                                requestModel.url.includes('highlight.run')) &&
+                            !postData.includes('pushPayload')
+                        ) {
+                            requestModel['body'] = postData;
+                        }
                     } else if (
                         typeof postData === 'object' ||
                         typeof postData === 'number' ||

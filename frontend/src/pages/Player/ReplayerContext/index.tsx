@@ -1,5 +1,8 @@
 import { Replayer } from '@highlight-run/rrweb';
-import { SessionInterval } from '@highlight-run/rrweb/dist/types';
+import {
+    SessionInterval,
+    viewportResizeDimension,
+} from '@highlight-run/rrweb/dist/types';
 import { SessionViewability } from '@pages/Player/PlayerHook/PlayerHook';
 
 import {
@@ -84,6 +87,8 @@ export interface ReplayerContextInterface {
     session: Session | undefined;
     setSessionResults: React.Dispatch<React.SetStateAction<SessionResults>>;
     isPlayerReady: boolean;
+    isLiveMode: boolean;
+    setIsLiveMode: React.Dispatch<React.SetStateAction<boolean>>;
     /**
      * The percentage value of the current player time relative to the total duration.
      * `playerProgress` is `null` if there is no active session.
@@ -92,6 +97,8 @@ export interface ReplayerContextInterface {
      */
     playerProgress: number | null;
     rageClicks: RageClick[];
+    viewport: viewportResizeDimension | undefined;
+    currentUrl: string | undefined;
 }
 
 export const [

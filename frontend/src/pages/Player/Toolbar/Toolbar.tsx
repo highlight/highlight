@@ -36,7 +36,6 @@ import {
     EventsForTimelineKeys,
     findNextSessionInList,
     findPreviousSessionInList,
-    PlayerSearchParameters,
 } from '../PlayerHook/utils';
 import usePlayerConfiguration from '../PlayerHook/utils/usePlayerConfiguration';
 import { PlayerPageProductTourSelectors } from '../PlayerPageProductTour/PlayerPageProductTour';
@@ -52,7 +51,7 @@ import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
 import TimelineIndicators from './TimelineIndicators/TimelineIndicators';
 import styles from './Toolbar.module.scss';
 
-export const Toolbar = () => {
+export const Toolbar = React.memo(() => {
     const {
         replayer,
         setTime,
@@ -63,7 +62,10 @@ export const Toolbar = () => {
         sessionIntervals,
         canViewSession,
         isPlayerReady,
+        isLiveMode,
+        setIsLiveMode,
         sessionResults,
+        session,
     } = useReplayerContext();
     usePlayerKeyboardShortcuts();
     const {
@@ -81,7 +83,7 @@ export const Toolbar = () => {
     } = usePlayerConfiguration();
     const history = useHistory();
     const toolbarItems = useToolbarItems();
-    const { isLoggedIn } = useAuthContext();
+    const { isLoggedIn, isHighlightAdmin } = useAuthContext();
     const { session_secure_id, project_id } = useParams<{
         session_secure_id: string;
         project_id: string;
@@ -92,9 +94,6 @@ export const Toolbar = () => {
     const wrapperWidth =
         sliderWrapperRef.current?.getBoundingClientRect().width ?? 1;
     const [sliderClientX, setSliderClientX] = useState<number>(-1);
-    const resourceErrorRequestHeader = new URLSearchParams(location.search).get(
-        PlayerSearchParameters.resourceErrorRequestHeader
-    );
     const disableControls = state === ReplayerState.Loading || !canViewSession;
 
     const [lastCanvasPreview, setLastCanvasPreview] = useState(0);
@@ -111,14 +110,18 @@ export const Toolbar = () => {
     }, [enableInspectElement, replayer]);
 
     useEffect(() => {
-        replayer?.setConfig({ skipInactive, speed: playerSpeed });
-    }, [replayer, skipInactive, playerSpeed]);
+        if (!isLiveMode) {
+            replayer?.setConfig({ skipInactive, speed: playerSpeed });
+        } else {
+            replayer?.setConfig({ skipInactive: false, speed: 1 });
+        }
+    }, [replayer, skipInactive, playerSpeed, isLiveMode]);
 
     // Automatically start the player if the user has set the preference.
     useEffect(() => {
         if (isLoggedIn) {
             if (
-                (autoPlayVideo || autoPlaySessions) &&
+                (autoPlayVideo || autoPlaySessions || isLiveMode) &&
                 replayer &&
                 isPlayerReady
             ) {
@@ -140,18 +143,7 @@ export const Toolbar = () => {
         setAutoPlayVideo,
         state,
         time,
-    ]);
-
-    useEffect(() => {
-        if (!disableControls && resourceErrorRequestHeader) {
-            setShowDevTools(true);
-            setSelectedDevToolsTab('Network');
-        }
-    }, [
-        disableControls,
-        resourceErrorRequestHeader,
-        setSelectedDevToolsTab,
-        setShowDevTools,
+        isLiveMode,
     ]);
 
     const endLogger = (e: any) => {
@@ -226,91 +218,106 @@ export const Toolbar = () => {
     };
 
     // The play button should be disabled if the player has reached the end.
-    const disablePlayButton = time >= (replayer?.getMetaData().totalTime ?? 0);
-    const leftSidebarWidth = showLeftPanel ? 475 : 0;
+    const disablePlayButton =
+        time >= (replayer?.getMetaData().totalTime ?? 0) && !isLiveMode;
+    const leftSidebarWidth = isPlayerFullscreen ? 0 : showLeftPanel ? 475 : 0;
     /** 64 (sidebar width) + 12 (left padding for the toolbar)  */
-    const staticSidebarWidth = isLoggedIn ? 64 + 12 : 12;
+    const staticSidebarWidth = isPlayerFullscreen
+        ? 16
+        : isLoggedIn
+        ? 64 + 12
+        : 12;
 
     return (
         <ToolbarItemsContextProvider value={toolbarItems}>
-            <DevToolsContextProvider
-                value={{
-                    openDevTools: showDevTools,
-                    setOpenDevTools: setShowDevTools,
-                    devToolsTab: selectedDevToolsTab,
-                    setDevToolsTab: setSelectedDevToolsTab,
-                }}
-            >
-                {!isPlayerFullscreen && <TimelineIndicators />}
-                <div id={PlayerPageProductTourSelectors.DevToolsPanel}>
-                    <DevToolsWindow
-                        time={(replayer?.getMetaData().startTime ?? 0) + time}
-                        startTime={replayer?.getMetaData().startTime ?? 0}
-                    />
-                </div>
-            </DevToolsContextProvider>
-            <div className={styles.playerRail}>
-                <div
-                    className={styles.sliderRail}
-                    style={{
-                        position: 'absolute',
-                        display: 'flex',
-                        background:
-                            sessionIntervals.length > 0 ? 'none' : '#e4e8eb',
+            {!isLiveMode && (
+                <DevToolsContextProvider
+                    value={{
+                        openDevTools: showDevTools,
+                        setOpenDevTools: setShowDevTools,
+                        devToolsTab: selectedDevToolsTab,
+                        setDevToolsTab: setSelectedDevToolsTab,
                     }}
                 >
-                    {sessionIntervals.map((e, ind) => (
-                        <SessionSegment
-                            key={ind}
-                            interval={e}
-                            sliderClientX={sliderClientX}
-                            wrapperWidth={wrapperWidth}
-                            getSliderTime={getSliderTime}
+                    {!isPlayerFullscreen && <TimelineIndicators />}
+                    <div id={PlayerPageProductTourSelectors.DevToolsPanel}>
+                        <DevToolsWindow
+                            time={
+                                (replayer?.getMetaData().startTime ?? 0) + time
+                            }
+                            startTime={replayer?.getMetaData().startTime ?? 0}
                         />
-                    ))}
-                </div>
-                <button
-                    disabled={disableControls}
-                    className={styles.sliderWrapper}
-                    ref={sliderWrapperRef}
-                    onMouseMove={(e: React.MouseEvent<HTMLButtonElement>) =>
-                        setSliderClientX(
-                            e.clientX - staticSidebarWidth - leftSidebarWidth
-                        )
-                    }
-                    onMouseLeave={() => setSliderClientX(-1)}
-                    onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-                        const ratio =
-                            (e.clientX -
-                                staticSidebarWidth -
-                                leftSidebarWidth) /
-                            wrapperWidth;
-                        setTime(getSliderTime(ratio));
-                    }}
-                >
-                    <div className={styles.sliderRail}></div>
-
-                    <Draggable
-                        axis="x"
-                        bounds="parent"
-                        onStop={endLogger}
-                        onDrag={onDraggable}
-                        onStart={startDraggable}
-                        disabled={disableControls}
-                        position={{
-                            x: Math.max(
-                                getSliderPercent(time) * wrapperWidth - 10,
-                                0
-                            ),
-                            y: 0,
+                    </div>
+                </DevToolsContextProvider>
+            )}
+            {!isLiveMode && (
+                <div className={styles.playerRail}>
+                    <div
+                        className={styles.sliderRail}
+                        style={{
+                            position: 'absolute',
+                            display: 'flex',
+                            background:
+                                sessionIntervals.length > 0
+                                    ? 'none'
+                                    : '#e4e8eb',
                         }}
                     >
-                        <div className={styles.indicatorParent}>
-                            <div className={styles.indicator} />
-                        </div>
-                    </Draggable>
-                </button>
-            </div>
+                        {sessionIntervals.map((e, ind) => (
+                            <SessionSegment
+                                key={ind}
+                                interval={e}
+                                sliderClientX={sliderClientX}
+                                wrapperWidth={wrapperWidth}
+                                getSliderTime={getSliderTime}
+                            />
+                        ))}
+                    </div>
+                    <button
+                        disabled={disableControls}
+                        className={styles.sliderWrapper}
+                        ref={sliderWrapperRef}
+                        onMouseMove={(e: React.MouseEvent<HTMLButtonElement>) =>
+                            setSliderClientX(
+                                e.clientX -
+                                    staticSidebarWidth -
+                                    leftSidebarWidth
+                            )
+                        }
+                        onMouseLeave={() => setSliderClientX(-1)}
+                        onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                            const ratio =
+                                (e.clientX -
+                                    staticSidebarWidth -
+                                    leftSidebarWidth) /
+                                wrapperWidth;
+                            setTime(getSliderTime(ratio));
+                        }}
+                    >
+                        <div className={styles.sliderRail}></div>
+
+                        <Draggable
+                            axis="x"
+                            bounds="parent"
+                            onStop={endLogger}
+                            onDrag={onDraggable}
+                            onStart={startDraggable}
+                            disabled={disableControls}
+                            position={{
+                                x: Math.max(
+                                    getSliderPercent(time) * wrapperWidth - 10,
+                                    0
+                                ),
+                                y: 0,
+                            }}
+                        >
+                            <div className={styles.indicatorParent}>
+                                <div className={styles.indicator} />
+                            </div>
+                        </Draggable>
+                    </button>
+                </div>
+            )}
             <div className={styles.toolbarSection}>
                 <div className={styles.toolbarLeftSection}>
                     <button
@@ -356,7 +363,7 @@ export const Toolbar = () => {
                             }
                         }}
                     >
-                        {isPaused ? (
+                        {isPaused && !isLiveMode ? (
                             <SvgPlayIcon
                                 fill="inherit"
                                 className={classNames(
@@ -399,23 +406,40 @@ export const Toolbar = () => {
                         />
                     </button>
 
-                    <div className={styles.timeSection}>
-                        {disableControls ? (
-                            <Skeleton count={1} width="60.13px" />
-                        ) : (
-                            <>
-                                {MillisToMinutesAndSeconds(
-                                    //     Sometimes the replayer will report a higher time when the player has ended.
-                                    time >= max ? max : time
-                                )}
-                                &nbsp;/&nbsp;
-                                {MillisToMinutesAndSeconds(max)}
-                            </>
+                    {isHighlightAdmin &&
+                        session?.processed === false &&
+                        !disableControls && (
+                            <button
+                                className={classNames(styles.liveButton)}
+                                onClick={() => {
+                                    setIsLiveMode(!isLiveMode);
+                                }}
+                            >
+                                {isLiveMode ? 'Stop Live' : 'Go Live'}
+                            </button>
                         )}
-                    </div>
+
+                    {!isLiveMode && (
+                        <div className={styles.timeSection}>
+                            {disableControls ? (
+                                <Skeleton count={1} width="60.13px" />
+                            ) : (
+                                <>
+                                    {MillisToMinutesAndSeconds(
+                                        //     Sometimes the replayer will report a higher time when the player has ended.
+                                        Math.min(Math.max(time, 0), max)
+                                    )}
+                                    <>
+                                        &nbsp;/&nbsp;
+                                        {MillisToMinutesAndSeconds(max)}
+                                    </>
+                                </>
+                            )}
+                        </div>
+                    )}
                 </div>
                 <div className={styles.toolbarPinnedSettings}>
-                    {!isPlayerFullscreen && (
+                    {!isPlayerFullscreen && !isLiveMode && (
                         <>
                             <ToolbarMenu loading={disableControls} />
                             <DevToolsToolbarItem
@@ -467,7 +491,7 @@ export const Toolbar = () => {
             </div>
         </ToolbarItemsContextProvider>
     );
-};
+});
 
 const SessionSegment = ({
     interval,
@@ -557,16 +581,16 @@ const SessionSegment = ({
 export const TimelineAnnotationColors: {
     [key in EventsForTimelineKeys[number]]: string;
 } = {
-    Click: '--color-purple-light',
+    Click: '--color-purple-600',
     Focus: '--color-blue-400',
-    Reload: '--color-green-light',
-    Navigate: '--color-yellow',
-    Errors: '--color-red',
+    Reload: '--color-green-300',
+    Navigate: '--color-yellow-400',
+    Errors: '--color-red-400',
     Segment: '--color-orange-400',
     Track: '--color-blue-300',
-    Comments: '--color-green-dark',
+    Comments: '--color-green-500',
     Identify: '--color-orange-500',
-    Viewport: '--color-purple-light',
+    Viewport: '--color-purple-600',
 };
 
 export function getAnnotationColor(

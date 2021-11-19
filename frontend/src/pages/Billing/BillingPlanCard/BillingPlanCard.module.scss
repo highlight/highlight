@@ -10,7 +10,7 @@
 }
 
 .billingPlanTitle {
-    color: var(--color-purple);
+    color: var(--color-purple) !important;
 }
 
 .billingFrequency {
@@ -39,7 +39,7 @@
     margin: 0;
 
     svg {
-        color: var(--color-green);
+        color: var(--color-green-400);
     }
 }
 

@@ -82,6 +82,8 @@ const ErrorSearch = () => {
         []
     );
 
+    const defaultOptions = getSuggestions(data, query, 3);
+
     return (
         <AsyncSelect
             ref={(ref) => {
@@ -101,7 +103,9 @@ const ErrorSearch = () => {
             value={selectedProperties}
             placeholder="Search for an error message..."
             noOptionsMessage={({ inputValue }) =>
-                `No results for ${inputValue}`
+                defaultOptions.length > 0
+                    ? `No results for ${inputValue}`
+                    : "Looks like there's no error yet. Has your app thrown any errors?"
             }
             onInputChange={(newValue, actionMeta) => {
                 // We need access to the search value outside of the AsyncSelect component so we reflect the value to state.
@@ -195,9 +199,14 @@ const ErrorSearch = () => {
                     borderRadius: 'var(--border-radius)',
                     minHeight: 45,
                 }),
+                input: (provided) => ({
+                    ...provided,
+                    color: 'var(--text-primary)',
+                }),
                 multiValue: (provided) => ({
                     ...provided,
                     backgroundColor: 'var(--color-purple-100)',
+                    color: 'var(--text-primary)',
                 }),
                 option: (provided, state) => ({
                     ...provided,
@@ -248,7 +257,7 @@ const ErrorSearch = () => {
                 }),
             }}
             isSearchable
-            defaultOptions={getSuggestions(data, query, 3)}
+            defaultOptions={defaultOptions}
             maxMenuHeight={400}
         />
     );

@@ -3,34 +3,49 @@ package storage
 import (
 	"bytes"
 	"context"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"io"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
 	S3SessionsPayloadBucketName = os.Getenv("AWS_S3_BUCKET_NAME")
 	S3SourceMapBucketName       = os.Getenv("AWS_S3_SOURCE_MAP_BUCKET_NAME")
+	CloudfrontDomain            = os.Getenv("AWS_CLOUDFRONT_DOMAIN")
+	CloudfrontPublicKeyID       = os.Getenv("AWS_CLOUDFRONT_PUBLIC_KEY_ID")
+	CloudfrontPrivateKey        = os.Getenv("AWS_CLOUDFRONT_PRIVATE_KEY")
+)
+
+const (
+	MIME_TYPE_JSON          = "application/json"
+	CONTENT_ENCODING_BROTLI = "br"
 )
 
 type PayloadType string
 
 const (
-	SessionContents  PayloadType = "session-contents"
-	NetworkResources PayloadType = "network-resources"
-	ConsoleMessages  PayloadType = "console-messages"
+	SessionContents           PayloadType = "session-contents"
+	NetworkResources          PayloadType = "network-resources"
+	ConsoleMessages           PayloadType = "console-messages"
+	SessionContentsCompressed PayloadType = "session-contents-compressed"
 )
 
 type StorageClient struct {
-	S3Client *s3.Client
+	S3Client  *s3.Client
+	URLSigner *sign.URLSigner
 }
 
 func NewStorageClient() (*StorageClient, error) {
@@ -44,21 +59,43 @@ func NewStorageClient() (*StorageClient, error) {
 	})
 
 	return &StorageClient{
-		S3Client: client,
+		S3Client:  client,
+		URLSigner: getURLSigner(),
 	}, nil
 }
 
-func (s *StorageClient) PushFileToS3(ctx context.Context, sessionId, projectId int, file *os.File, bucket string, payloadType PayloadType) (*int64, error) {
+func getURLSigner() *sign.URLSigner {
+	if CloudfrontDomain == "" || CloudfrontPrivateKey == "" || CloudfrontPublicKeyID == "" {
+		log.Warn("Missing one or more Cloudfront configs, disabling direct download.")
+		return nil
+	}
+
+	block, _ := pem.Decode([]byte(CloudfrontPrivateKey))
+	privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		log.Warn("Error parsing private key, disabling direct download.")
+		return nil
+	}
+
+	return sign.NewURLSigner(CloudfrontPublicKeyID, privateKey)
+}
+
+func (s *StorageClient) pushFileToS3WithOptions(ctx context.Context, sessionId, projectId int, file *os.File, bucket string, payloadType PayloadType, options s3.PutObjectInput) (*int64, error) {
 	_, err := file.Seek(0, io.SeekStart)
 	if err != nil {
 		return nil, errors.Wrap(err, "error seeking to beginning of file")
 	}
+
 	key := s.bucketKey(sessionId, projectId, payloadType)
-	_, err = s.S3Client.PutObject(ctx, &s3.PutObjectInput{Bucket: &bucket,
-		Key: key, Body: file})
+
+	options.Bucket = &bucket
+	options.Key = key
+	options.Body = file
+	_, err = s.S3Client.PutObject(ctx, &options)
 	if err != nil {
 		return nil, err
 	}
+
 	headObj := s3.HeadObjectInput{
 		Bucket: aws.String(S3SessionsPayloadBucketName),
 		Key:    key,
@@ -68,6 +105,19 @@ func (s *StorageClient) PushFileToS3(ctx context.Context, sessionId, projectId i
 		return nil, errors.New("error retrieving head object")
 	}
 	return &result.ContentLength, nil
+}
+
+// Push a compressed file to S3, adding the relevant metadata
+func (s *StorageClient) PushCompressedFileToS3(ctx context.Context, sessionId, projectId int, file *os.File, bucket string, payloadType PayloadType) (*int64, error) {
+	options := s3.PutObjectInput{
+		ContentType:     util.MakeStringPointer(MIME_TYPE_JSON),
+		ContentEncoding: util.MakeStringPointer(CONTENT_ENCODING_BROTLI),
+	}
+	return s.pushFileToS3WithOptions(ctx, sessionId, projectId, file, bucket, payloadType, options)
+}
+
+func (s *StorageClient) PushFileToS3(ctx context.Context, sessionId, projectId int, file *os.File, bucket string, payloadType PayloadType) (*int64, error) {
+	return s.pushFileToS3WithOptions(ctx, sessionId, projectId, file, bucket, payloadType, s3.PutObjectInput{})
 }
 
 func (s *StorageClient) ReadSessionsFromS3(sessionId int, projectId int) ([]interface{}, error) {
@@ -92,7 +142,7 @@ func (s *StorageClient) ReadSessionsFromS3(sessionId int, projectId int) ([]inte
 		}
 		var tempEvents events
 		if err := json.Unmarshal([]byte(e), &tempEvents); err != nil {
-			return nil, fmt.Errorf("error decoding event data: %v", err)
+			return nil, errors.Wrap(err, "error decoding event data")
 		}
 		retEvents = append(retEvents, tempEvents.Events...)
 	}
@@ -121,7 +171,7 @@ func (s *StorageClient) ReadResourcesFromS3(sessionId int, projectId int) ([]int
 		}
 		var tempResources resources
 		if err := json.Unmarshal([]byte(e), &tempResources); err != nil {
-			return nil, fmt.Errorf("error decoding resource data: %v", err)
+			return nil, errors.Wrap(err, "error decoding resource data")
 		}
 		retResources = append(retResources, tempResources.Resources...)
 	}
@@ -150,7 +200,7 @@ func (s *StorageClient) ReadMessagesFromS3(sessionId int, projectId int) ([]inte
 		}
 		var tempResources messages
 		if err := json.Unmarshal([]byte(e), &tempResources); err != nil {
-			return nil, fmt.Errorf("error decoding message data: %v", err)
+			return nil, errors.Wrap(err, "error decoding message data")
 		}
 		retMessages = append(retMessages, tempResources.Messages...)
 	}
@@ -213,4 +263,19 @@ func (s *StorageClient) ReadSourceMapFileFromS3(projectId int, version *string, 
 		return nil, errors.Wrap(err, "error reading from s3 buffer")
 	}
 	return buf.Bytes(), nil
+}
+
+func (s *StorageClient) GetDirectDownloadURL(projectId int, sessionId int) (*string, error) {
+	if s.URLSigner == nil {
+		return nil, nil
+	}
+
+	key := s.bucketKey(sessionId, projectId, SessionContentsCompressed)
+	unsignedURL := fmt.Sprintf("https://%s/%s", CloudfrontDomain, *key)
+	signedURL, err := s.URLSigner.Sign(unsignedURL, time.Now().Add(5*time.Minute))
+	if err != nil {
+		return nil, errors.Wrap(err, "error signing URL")
+	}
+
+	return &signedURL, nil
 }

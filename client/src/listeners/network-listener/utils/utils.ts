@@ -1,62 +1,88 @@
 import { RequestResponsePair } from './models';
 
-const KEY_MAPPINGS = {
-    xmlhttprequest: 'xhr',
-    fetch: 'fetch',
-};
+export const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'
+
+const normalizeUrl = (url: string) => {
+    // Remove trailing forward slashes
+    return url.replace(/\/+$/, "");
+}
 
 export const matchPerformanceTimingsWithRequestResponsePair = (
     performanceTimings: any[],
     requestResponsePairs: RequestResponsePair[],
     type: 'xmlhttprequest' | 'fetch'
 ) => {
-    const groupedPerformanceTimings = performanceTimings.reduce(
+    // Request response pairs are sorted by end time; sort performance timings the same way
+    performanceTimings.sort((a, b) => a.responseEnd - b.responseEnd);
+
+    const groupedPerformanceTimings: {[type: string]: {[url: string]: any[]}} = performanceTimings.reduce(
         (previous, performanceTiming) => {
+            const url = normalizeUrl(performanceTiming.name);
             if (performanceTiming.initiatorType === type) {
-                return {
-                    ...previous,
-                    [KEY_MAPPINGS[type]]: [
-                        ...previous[KEY_MAPPINGS[type]],
-                        performanceTiming,
-                    ],
-                };
+                previous[type][url] = [
+                    ...(previous[type][url] || []),
+                    performanceTiming
+                ];
             } else {
-                return {
-                    ...previous,
-                    others: [...previous.others, performanceTiming],
-                };
+                previous.others[url] = [
+                    ...(previous.others[url] || []),
+                    performanceTiming
+                ];
             }
+            return previous;
         },
-        { xhr: [], others: [], fetch: [] }
+        { xmlhttprequest: {}, others: {}, fetch: {} }
     );
 
-    /**
-     * We offset the starting because performanceTimings starts recording
-     * immediately and requestResponsePairs only start recording when Highlight
-     * is loaded. Because of this requestResponsePairs will not always have the
-     * first few requests made when a page loads.
-     */
-    const startingIndex =
-        groupedPerformanceTimings[KEY_MAPPINGS[type]].length -
-        requestResponsePairs.length;
-    for (
-        let i = startingIndex;
-        i < groupedPerformanceTimings[KEY_MAPPINGS[type]].length;
-        i++
-    ) {
-        // TODO: Fix this matching.
-        if (groupedPerformanceTimings[KEY_MAPPINGS[type]][i]) {
-            groupedPerformanceTimings[KEY_MAPPINGS[type]][
-                i
-            ].requestResponsePair = requestResponsePairs[i];
+    let groupedRequestResponsePairs: { [url: string]: RequestResponsePair[] } = {};
+    groupedRequestResponsePairs = requestResponsePairs.reduce(
+        (previous, requestResponsePair) => {
+            const url = normalizeUrl(requestResponsePair.request.url);
+            previous[url] = [
+                ...(previous[url] || []),
+                requestResponsePair
+            ];
+            return previous;
+        },
+        groupedRequestResponsePairs,
+    );
+
+    for (let url in groupedPerformanceTimings[type]) {
+        const performanceTimingsForUrl = groupedPerformanceTimings[type][url];
+        const requestResponsePairsForUrl = groupedRequestResponsePairs[url];
+        if (!requestResponsePairsForUrl) {
+            continue;
+        }
+        /**
+         * We offset the starting because performanceTimings starts recording
+         * immediately and requestResponsePairs only start recording when Highlight
+         * is loaded. Because of this requestResponsePairs will not always have the
+         * first few requests made when a page loads.
+         */
+        const offset =
+            Math.max(performanceTimingsForUrl.length -
+            requestResponsePairsForUrl.length, 0);
+        for (
+            let i = offset;
+            i < performanceTimingsForUrl.length;
+            i++
+        ) {
+            if (performanceTimingsForUrl[i]) {
+                performanceTimingsForUrl[
+                    i
+                ].requestResponsePair = requestResponsePairsForUrl[i - offset];
+            }
         }
     }
 
-    return [
-        ...groupedPerformanceTimings.xhr,
-        ...groupedPerformanceTimings.others,
-        ...groupedPerformanceTimings.fetch,
-    ]
+    performanceTimings = [];
+    for (let type in groupedPerformanceTimings) {
+        for (let url in groupedPerformanceTimings[type]) {
+            performanceTimings = performanceTimings.concat(groupedPerformanceTimings[type][url]);
+        }
+    }
+
+    return performanceTimings
         .sort((a, b) => a.fetchStart - b.fetchStart)
         .map((performanceTiming) => {
             performanceTiming.toJSON = function () {
@@ -78,7 +104,7 @@ export const matchPerformanceTimingsWithRequestResponsePair = (
  * Returns true if the name is a Highlight network resource.
  * This is used to filter out Highlight requests/responses from showing up on end application's network resources.
  */
-export const isHighlightNetworkResourceFilter = (
+const isHighlightNetworkResourceFilter = (
     name: string,
     backendUrl: string
 ) =>
@@ -87,3 +113,51 @@ export const isHighlightNetworkResourceFilter = (
         .includes(process.env.PUBLIC_GRAPH_URI ?? 'highlight.run') ||
     name.toLocaleLowerCase().includes('highlight.run') ||
     name.toLocaleLowerCase().includes(backendUrl);
+
+export const shouldNetworkRequestBeRecorded = (url: string, highlightBackendUrl: string, tracingOrigins?: boolean | (string | RegExp)[]) => {
+    return !isHighlightNetworkResourceFilter(url, highlightBackendUrl)
+        || shouldNetworkRequestBeTraced(url, tracingOrigins);
+}
+
+export const shouldNetworkRequestBeTraced = (
+    url: string,
+    tracingOrigins?: boolean | (string | RegExp)[],
+) => {
+    let patterns: (string | RegExp)[] = [];
+    if (tracingOrigins === true) {
+        patterns = ['localhost', /^\//];
+        if (window?.location?.host) {
+            patterns.push(window.location.host);
+        }
+    } else if (tracingOrigins instanceof Array) {
+        patterns = tracingOrigins;
+    }
+
+    let result = false;
+    patterns.forEach((pattern) => {
+        if (url.match(pattern)) {
+            result = true;
+        }
+    });
+    return result;
+}
+
+function makeId(length: number) {
+    var result           = '';
+    var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for ( var i = 0; i < length; i++ ) {
+      result += characters.charAt(Math.floor(Math.random() * 
+ charactersLength));
+   }
+   return result;
+} 
+
+export const createNetworkRequestId = () => {
+    // Long enough to avoid collisions, not long enough to be unguessable
+    return makeId(10);
+}
+
+export const getHighlightRequestHeader = (sessionSecureID: string, requestId: string) => {
+    return sessionSecureID + "/" + requestId
+}

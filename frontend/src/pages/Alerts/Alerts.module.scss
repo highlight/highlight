@@ -29,6 +29,7 @@
     align-items: flex-start;
     display: flex;
     flex-direction: column;
+    height: auto;
 
     .primary {
         font-size: 16px;
@@ -39,6 +40,7 @@
 .subTitleContainer {
     align-items: center;
     display: flex;
+    height: 40px;
     margin-bottom: var(--size-medium);
     margin-top: var(--size-small);
 
@@ -52,19 +54,19 @@
 
     .callToAction {
         margin-left: auto;
-        transform: translateY(-25%);
+        transform: translateY(-49px);
     }
 }
 
 .configureButton {
     align-items: center;
-    color: var(--color-gray-500);
+    color: var(--color-gray-500) !important;
     display: flex;
     font-weight: 300;
     justify-content: flex-end;
 
     &:hover {
-        color: var(--color-gray-500);
+        color: var(--color-gray-500) !important;
     }
 
     svg {
@@ -75,17 +77,18 @@
 }
 
 .emptyContainer {
+    cursor: auto;
     display: flex;
     flex-direction: column;
     margin: 0 auto;
     max-width: 400px;
+    padding-bottom: var(--size-xLarge);
     padding-top: var(--size-xLarge);
+}
 
-    p {
-        color: var(--color-gray-500) !important;
-    }
-
-    a {
-        margin-top: var(--size-xLarge);
-    }
+.intercomButton {
+    color: var(--color-purple);
+    cursor: pointer;
+    display: inline-block;
+    line-height: 1;
 }

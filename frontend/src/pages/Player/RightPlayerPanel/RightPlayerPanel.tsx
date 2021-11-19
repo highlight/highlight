@@ -15,7 +15,7 @@ import { useReplayerContext } from '../ReplayerContext';
 import SessionFullCommentList from '../SessionFullCommentList/SessionFullCommentList';
 import styles from './RightPlayerPanel.module.scss';
 
-const RightPlayerPanel = () => {
+const RightPlayerPanel = React.memo(() => {
     const {
         showRightPanel: showRightPanelPreference,
         setShowRightPanel,
@@ -58,51 +58,49 @@ const RightPlayerPanel = () => {
                         setShowRightPanel(!showRightPanel);
                     }}
                 />
-                <div className={styles.playerRightPanelCollapsible}>
-                    <MetadataBox />
-                    {showRightPanel && (
-                        <Tabs
-                            centered
-                            tabsHtmlId={`${PlayerPageProductTourSelectors.PlayerRightPanel}`}
-                            id="PlayerRightPanel"
-                            noPadding
-                            className={styles.tabs}
-                            tabs={[
-                                {
-                                    title: 'Events',
-                                    panelContent: <EventStream />,
-                                },
-                                {
-                                    title: 'Comments',
-                                    panelContent: (
-                                        <div
-                                            className={
-                                                styles.tabContentContainer
-                                            }
-                                        >
-                                            <SessionFullCommentList />
-                                        </div>
-                                    ),
-                                },
-                                {
-                                    title: 'Metadata',
-                                    panelContent: (
-                                        <div
-                                            className={
-                                                styles.tabContentContainer
-                                            }
-                                        >
-                                            <MetadataPanel />
-                                        </div>
-                                    ),
-                                },
-                            ]}
-                        />
-                    )}
-                </div>
+                {showRightPanel && (
+                    <div className={styles.playerRightPanelCollapsible}>
+                        <MetadataBox />
+                        <RightPlayerPanelTabs />
+                    </div>
+                )}
             </div>
         </>
     );
-};
+});
 
 export default RightPlayerPanel;
+
+const RightPlayerPanelTabs = React.memo(() => {
+    return (
+        <Tabs
+            centered
+            tabsHtmlId={`${PlayerPageProductTourSelectors.PlayerRightPanel}`}
+            id="PlayerRightPanel"
+            noPadding
+            className={styles.tabs}
+            tabs={[
+                {
+                    key: 'Events',
+                    panelContent: <EventStream />,
+                },
+                {
+                    key: 'Comments',
+                    panelContent: (
+                        <div className={styles.tabContentContainer}>
+                            <SessionFullCommentList />
+                        </div>
+                    ),
+                },
+                {
+                    key: 'Metadata',
+                    panelContent: (
+                        <div className={styles.tabContentContainer}>
+                            <MetadataPanel />
+                        </div>
+                    ),
+                },
+            ]}
+        />
+    );
+});

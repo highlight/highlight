@@ -67,3 +67,10 @@
     padding-right: var(--size-medium);
     padding-top: var(--size-xxSmall);
 }
+
+.tagsContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-xSmall);
+    padding-top: var(--size-small);
+}

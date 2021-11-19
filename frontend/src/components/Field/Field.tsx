@@ -4,7 +4,7 @@ import styles from './Field.module.scss';
 
 const fieldColorMap = {
     normal: '#F2EEFB',
-    warning: '#FFDDDD',
+    warning: 'var(--color-orange-300)',
     default: '#eee7ff',
 };
 

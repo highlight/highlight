@@ -31,10 +31,12 @@ import 'clientjs';
 import { NetworkListener } from './listeners/network-listener/network-listener';
 import { RequestResponsePair } from './listeners/network-listener/utils/models';
 import {
-    isHighlightNetworkResourceFilter,
     matchPerformanceTimingsWithRequestResponsePair,
+    shouldNetworkRequestBeRecorded,
 } from './listeners/network-listener/utils/utils';
 import { DEFAULT_URL_BLOCKLIST } from './listeners/network-listener/utils/network-sanitizer';
+import { SESSION_STORAGE_KEYS } from './utils/sessionStorage/sessionStorageKeys';
+import SessionShortcutListener from './listeners/session-shortcut/session-shortcut-listener';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -46,7 +48,7 @@ class Logger {
     }
     log(...data: any[]) {
         if (this.debug) {
-            console.log.apply(console, data);
+            console.log.apply(console, [`[${Date.now()}]`, ...data]);
         }
     }
 }
@@ -85,6 +87,8 @@ export type NetworkRecordingOptions = {
     urlBlocklist?: string[];
 };
 
+export type SessionShortcutOptions = false | string;
+
 export type IntegrationOptions = {
     mixpanel?: MixpanelIntegrationOptions;
     amplitude?: AmplitudeIntegrationOptions;
@@ -102,6 +106,7 @@ export type HighlightClassOptions = {
     organizationID: number | string;
     debug?: boolean | DebugOptions;
     backendUrl?: string;
+    tracingOrigins?: boolean | (string | RegExp)[];
     disableNetworkRecording?: boolean;
     networkRecording?: boolean | NetworkRecordingOptions;
     disableConsoleRecording?: boolean;
@@ -111,6 +116,7 @@ export type HighlightClassOptions = {
     firstloadVersion?: string;
     environment?: 'development' | 'production' | 'staging' | string;
     appVersion?: string;
+    sessionShortcut?: SessionShortcutOptions;
 };
 
 /**
@@ -128,11 +134,12 @@ type PropertyType = {
 
 type Source = 'segment' | undefined;
 
-type SessionData = {
+export type SessionData = {
     sessionID: number;
     sessionSecureID: string;
     projectID: number;
     sessionStartTime?: number;
+    lastPushTime?: number;
     userIdentifier?: string;
     userObject?: Object;
 };
@@ -145,7 +152,12 @@ const FIRST_SEND_FREQUENCY = 1000 * 1;
  * The amount of time between sending the client-side payload to Highlight backend client.
  * In milliseconds.
  */
-const SEND_FREQUENCY = 1000 * 5;
+const SEND_FREQUENCY = 1000 * 2;
+/**
+ * The amount of time allowed after the last push before creating a new session.
+ * In milliseconds.
+ */
+const SESSION_PUSH_THRESHOLD = 1000 * 55;
 
 /**
  * Maximum length of a session
@@ -167,6 +179,7 @@ export class Highlight {
     messages: ConsoleMessage[];
     xhrNetworkContents: RequestResponsePair[] = [];
     fetchNetworkContents: RequestResponsePair[] = [];
+    tracingOrigins: boolean | (string | RegExp)[] = [];
     networkHeadersToRedact: string[] = [];
     urlBlocklist: string[] = [];
     sessionData: SessionData;
@@ -188,12 +201,14 @@ export class Highlight {
     listeners: listenerHandler[];
     firstloadVersion: string;
     environment: string;
+    sessionShortcut: SessionShortcutOptions = false;
     /** The end-user's app version. This isn't Highlight's version. */
     appVersion: string | undefined;
     _optionsInternal: HighlightClassOptionsInternal;
     _backendUrl: string;
     _recordingStartTime: number = 0;
     _isOnLocalHost: boolean = false;
+    pushPayloadTimerId: ReturnType<typeof setTimeout> | undefined;
 
     static create(options: HighlightClassOptions): Highlight {
         return new Highlight(options);
@@ -256,7 +271,8 @@ export class Highlight {
         this._backendUrl =
             options?.backendUrl ||
             process.env.PUBLIC_GRAPH_URI ||
-            'https://public.highlight.run';
+            'https://pub.highlight.run';
+        this.tracingOrigins = options.tracingOrigins || [];
         const client = new GraphQLClient(`${this._backendUrl}`, {
             headers: {},
         });
@@ -275,6 +291,7 @@ export class Highlight {
             this.organizationID === '1' || this.organizationID === '1jdkoe52';
         this._isOnLocalHost = window.location.hostname === 'localhost';
         this.firstloadVersion = options.firstloadVersion || 'unknown';
+        this.sessionShortcut = options.sessionShortcut || false;
         this.sessionData = {
             sessionID: 0,
             sessionSecureID: '',
@@ -459,7 +476,13 @@ export class Highlight {
 
             // To handle the 'Duplicate Tab' function, remove id from storage until page unload
             window.sessionStorage.removeItem('sessionData');
-            if (storedSessionData && storedSessionData.sessionID) {
+            if (
+                storedSessionData &&
+                storedSessionData.sessionID &&
+                storedSessionData.lastPushTime &&
+                Date.now() - storedSessionData.lastPushTime <
+                    SESSION_PUSH_THRESHOLD
+            ) {
                 this.sessionData = storedSessionData;
                 reloaded = true;
             } else {
@@ -487,6 +510,10 @@ export class Highlight {
                     );
                     this.sessionData.sessionSecureID =
                         gr?.initializeSession?.secure_id || '';
+                    window.sessionStorage.setItem(
+                        SESSION_STORAGE_KEYS.SESSION_SECURE_ID,
+                        this.sessionData.sessionSecureID
+                    );
                     this.sessionData.projectID = parseInt(
                         gr?.initializeSession?.project_id || '0'
                     );
@@ -514,7 +541,10 @@ export class Highlight {
                     this.numberOfFailedRequests += 1;
                 }
             }
-            setTimeout(() => {
+            if (this.pushPayloadTimerId) {
+                clearTimeout(this.pushPayloadTimerId);
+            }
+            this.pushPayloadTimerId = setTimeout(() => {
                 this._save();
             }, FIRST_SEND_FREQUENCY);
             const emit = (event: eventWithTime) => {
@@ -560,11 +590,23 @@ export class Highlight {
             }
 
             if (document.referrer) {
-                addCustomEvent<string>('Referrer', document.referrer);
-                highlightThis.addProperties(
-                    { referrer: document.referrer },
-                    { type: 'session' }
-                );
+                // Don't record the referrer if it's the same origin.
+                // Non-single page apps might have the referrer set to the same origin.
+                // If we record this then the referrer data will not be useful.
+                // Most users will want to see referrers outside of their website/app.
+                // This will be a configuration set in `H.init()` later.
+                if (
+                    !(
+                        window &&
+                        document.referrer.includes(window.location.origin)
+                    )
+                ) {
+                    addCustomEvent<string>('Referrer', document.referrer);
+                    highlightThis.addProperties(
+                        { referrer: document.referrer },
+                        { type: 'session' }
+                    );
+                }
             }
             this.listeners.push(
                 PathListener((url: string) => {
@@ -631,6 +673,15 @@ export class Highlight {
                 })
             );
 
+            if (this.sessionShortcut) {
+                SessionShortcutListener(this.sessionShortcut, () => {
+                    window.open(
+                        this.getCurrentSessionURLWithTimestamp(),
+                        '_blank'
+                    );
+                });
+            }
+
             if (
                 !this.disableNetworkRecording &&
                 this.enableRecordingNetworkContents
@@ -645,26 +696,36 @@ export class Highlight {
                         },
                         headersToRedact: this.networkHeadersToRedact,
                         backendUrl: this._backendUrl,
+                        tracingOrigins: this.tracingOrigins,
                         urlBlocklist: this.urlBlocklist,
+                        sessionData: this.sessionData,
                     })
                 );
             }
             // Send the payload as the page closes. navigator.sendBeacon guarantees that a request will be made.
+            // Disable beforeunload to see if it improves performance for safegraph
+            //     window.addEventListener('beforeunload', () => {
+            //         if ('sendBeacon' in navigator) {
+            //             const payload = this._getPayload();
+            //             let blob = new Blob(
+            //                 [
+            //                     JSON.stringify({
+            //                         query: print(PushPayloadDocument),
+            //                         variables: payload,
+            //                     }),
+            //                 ],
+            //                 {
+            //                     type: 'application/json',
+            //                 }
+            //             );
+            //             navigator.sendBeacon(`${this._backendUrl}`, blob);
+            //         }
+            //     });
+
+            // Clear the timer so it doesn't block the next page navigation.
             window.addEventListener('beforeunload', () => {
-                if ('sendBeacon' in navigator) {
-                    const payload = this._getPayload();
-                    let blob = new Blob(
-                        [
-                            JSON.stringify({
-                                query: print(PushPayloadDocument),
-                                variables: payload,
-                            }),
-                        ],
-                        {
-                            type: 'application/json',
-                        }
-                    );
-                    navigator.sendBeacon(`${this._backendUrl}`, blob);
+                if (this.pushPayloadTimerId) {
+                    clearTimeout(this.pushPayloadTimerId);
                 }
             });
             this.ready = true;
@@ -682,6 +743,20 @@ export class Highlight {
                 JSON.stringify(this.sessionData)
             );
         });
+
+        // beforeunload is not supported on iOS on Safari. Apple docs recommend using `pagehide` instead.
+        const isOnIOS =
+            navigator.userAgent.match(/iPad/i) ||
+            navigator.userAgent.match(/iPhone/i);
+        if (isOnIOS) {
+            window.addEventListener('pagehide', () => {
+                addCustomEvent('Page Unload', '');
+                window.sessionStorage.setItem(
+                    'sessionData',
+                    JSON.stringify(this.sessionData)
+                );
+            });
+        }
     }
 
     /**
@@ -702,6 +777,18 @@ export class Highlight {
 
     getCurrentSessionTimestamp() {
         return this._recordingStartTime;
+    }
+
+    /**
+     * Returns the current timestamp for the current session.
+     */
+    getCurrentSessionURLWithTimestamp() {
+        const now = new Date().getTime();
+        const { projectID, sessionSecureID } = this.sessionData;
+        const relativeTimestamp = (now - this._recordingStartTime) / 1000;
+        const highlightUrl = `https://${HIGHLIGHT_URL}/${projectID}/sessions/${sessionSecureID}?ts=${relativeTimestamp}`;
+
+        return highlightUrl;
     }
 
     getCurrentSessionURL() {
@@ -758,6 +845,7 @@ export class Highlight {
                 const payload = this._getPayload();
                 await this.graphqlSDK.PushPayload(payload);
                 this.numberOfFailedRequests = 0;
+                this.sessionData.lastPushTime = Date.now();
                 // Listeners are cleared when the user calls stop() manually.
                 if (this.listeners.length === 0) {
                     return;
@@ -786,7 +874,10 @@ export class Highlight {
             }
         }
         if (this.state === 'Recording') {
-            setTimeout(() => {
+            if (this.pushPayloadTimerId) {
+                clearTimeout(this.pushPayloadTimerId);
+            }
+            this.pushPayloadTimerId = setTimeout(() => {
                 this._save();
             }, SEND_FREQUENCY);
         }
@@ -805,9 +896,12 @@ export class Highlight {
             // get all resources that don't include 'api.highlight.run'
             resources = performance.getEntriesByType('resource');
 
-            resources = resources.filter(
-                (r) =>
-                    !isHighlightNetworkResourceFilter(r.name, this._backendUrl)
+            resources = resources.filter((r) =>
+                shouldNetworkRequestBeRecorded(
+                    r.name,
+                    this._backendUrl,
+                    this.tracingOrigins
+                )
             );
 
             if (this.enableRecordingNetworkContents) {

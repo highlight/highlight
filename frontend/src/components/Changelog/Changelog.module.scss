@@ -1,3 +1,4 @@
+/* stylelint-disable */
 .container {
     margin-top: auto;
 
@@ -17,15 +18,15 @@
     width: 40px;
 
     &:hover .indicatorIcon {
-        color: var(--text-primary-inverted);
+        color: #fff;
     }
 
     &:active .indicatorIcon {
-        color: var(--text-primary-inverted);
+        color: #fff;
     }
 
     .indicatorIcon {
-        color: var(--color-gray-700);
+        color: #8a8f98;
 
         height: 18px;
         transition: color 0.2s ease-in-out;

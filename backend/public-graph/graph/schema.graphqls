@@ -35,7 +35,7 @@ input ErrorObjectInput {
 }
 
 input BackendErrorObjectInput {
-    session_id: String!
+    session_secure_id: String!
     request_id: String!
     event: String!
     type: String!

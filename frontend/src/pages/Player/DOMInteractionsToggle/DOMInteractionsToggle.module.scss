@@ -6,4 +6,5 @@
     font-size: 12px;
     height: 36px;
     padding: 10px var(--size-small);
+    transform: translateY(calc(-1 * var(--size-xxSmall)));
 }

@@ -1,5 +1,5 @@
 import { useParams } from '@util/react-router/useParams';
-import { ButtonProps, message } from 'antd';
+import { ButtonProps } from 'antd';
 import { H } from 'highlight.run';
 import React, { useState } from 'react';
 
@@ -17,23 +17,9 @@ import { onGetLink, onGetLinkWithTimestamp } from './utils/utils';
 
 const SessionShareButton = (props: ButtonProps) => {
     const { time } = useReplayerContext();
-    const { isHighlightAdmin, isLoggedIn } = useAuthContext();
+    const { isLoggedIn } = useAuthContext();
     const [showModal, setShowModal] = useState(false);
     const [shareTimestamp, setShareTimestamp] = useState(false);
-
-    if (!isHighlightAdmin) {
-        return (
-            <ShareButton
-                {...props}
-                trackingId="sessionShareButton"
-                onClick={() => {
-                    const url = onGetLinkWithTimestamp(time);
-                    message.success('Copied link!');
-                    navigator.clipboard.writeText(url.href);
-                }}
-            />
-        );
-    }
 
     return (
         <>

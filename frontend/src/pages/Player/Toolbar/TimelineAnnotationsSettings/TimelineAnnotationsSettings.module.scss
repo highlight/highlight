@@ -51,7 +51,6 @@
 
 .checkboxesContainer {
     display: grid;
-    gap: var(--size-xSmall);
     grid-template-columns: 1fr 1fr;
 }
 
@@ -66,12 +65,10 @@
     align-items: center;
     display: inline-flex;
     gap: var(--size-xSmall);
-    justify-content: space-between;
-    width: 95px;
 }
 
 .contentWrapper {
-    max-width: 325px;
+    max-width: 355px;
     padding-bottom: var(--size-small);
 
     p {

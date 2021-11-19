@@ -7,7 +7,7 @@ import {
 } from '@highlight-run/react-mentions';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { AdminAvatar } from '../../../../../components/Avatar/Avatar';
@@ -37,15 +37,19 @@ const CommentTextBody = ({
         project_id: string;
     }>();
     const slackUrl = getSlackUrl('Organization', project_id, 'alerts');
+    const [shouldAutoFocus, setShouldAutoFocus] = useState(!!onChangeHandler);
 
     useEffect(() => {
-        const textarea = document.querySelector(
-            `.${newCommentFormStyles.commentInputContainer} textarea`
-        ) as HTMLTextAreaElement | null;
-        if (textarea) {
-            textarea.focus();
+        if (shouldAutoFocus) {
+            const textarea = document.querySelector(
+                `.${newCommentFormStyles.commentInputContainer} textarea`
+            ) as HTMLTextAreaElement | null;
+            if (textarea) {
+                textarea.focus();
+            }
+            setShouldAutoFocus(false);
         }
-    });
+    }, [shouldAutoFocus]);
 
     const isSlackIntegrated = suggestions.some(
         (suggestion) =>
@@ -60,8 +64,8 @@ const CommentTextBody = ({
             classNames={commentTextBodyClassNames}
             onChange={onChangeHandler}
             placeholder={placeholder}
-            autoFocus
-            disabled={!onChangeHandler}
+            autoFocus={shouldAutoFocus}
+            aria-readonly={!onChangeHandler}
             suggestionsPortalHost={suggestionsPortalHost}
             allowSuggestionsAboveCursor
             listHeader={

@@ -3,7 +3,6 @@ package graph
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -124,7 +123,7 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 		field := &model.Field{}
 		res := r.DB.Where(f).First(&field)
 		// If the field doesn't exist, we create it.
-		if err := res.Error; err != nil || errors.Is(err, gorm.ErrRecordNotFound) {
+		if err := res.Error; err != nil || e.Is(err, gorm.ErrRecordNotFound) {
 			if err := r.DB.Create(f).Error; err != nil {
 				return e.Wrap(err, "error creating field")
 			}
@@ -155,7 +154,7 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 	}
 	fieldString := string(fieldBytes)
 
-	if err := r.DB.Model(session).Updates(&model.Session{FieldGroup: &fieldString}).Error; errors.Is(err, gorm.ErrRecordNotFound) || err != nil {
+	if err := r.DB.Model(session).Updates(&model.Session{FieldGroup: &fieldString}).Error; e.Is(err, gorm.ErrRecordNotFound) || err != nil {
 		return e.Wrap(err, "Error updating session field group")
 	}
 	// We append to this session in the join table regardless.
@@ -205,31 +204,70 @@ func (r *Resolver) getMappedStackTraceString(stackTrace []*model2.StackFrameInpu
 	return newMappedStackTraceString, nil
 }
 
-// TODO: NOP for now - implement by trying to parse individual stack frames
-// and stringifying the result
 func (r *Resolver) normalizeStackTraceString(stackTraceString string) string {
-	return stackTraceString
+	var stackTraceSlice []string
+	if err := json.Unmarshal([]byte(stackTraceString), &stackTraceSlice); err != nil {
+		return ""
+	}
+
+	// TODO: maintain a list of potential error types so we can handle different stack trace formats
+	var normalizedStackFrameInput []*model2.StackFrameInput
+	for _, frame := range stackTraceSlice {
+		frameExtracted := regexp.MustCompile(`(?m)(.*) (.*):(.*)`).FindAllStringSubmatch(frame, -1)
+		if len(frameExtracted) != 1 {
+			return ""
+		}
+		if len(frameExtracted[0]) != 4 {
+			return ""
+		}
+
+		lineNumber, err := strconv.Atoi(frameExtracted[0][3])
+		if err != nil {
+			return ""
+		}
+		normalizedStackFrameInput = append(normalizedStackFrameInput, &model2.StackFrameInput{
+			FunctionName: &frameExtracted[0][1],
+			FileName:     &frameExtracted[0][2],
+			LineNumber:   &lineNumber,
+		})
+	}
+
+	stackTraceBytes, err := json.Marshal(&normalizedStackFrameInput)
+	if err != nil {
+		return ""
+	}
+	return string(stackTraceBytes)
 }
 
 // Matches the ErrorObject with an existing ErrorGroup, or creates a new one if the group does not exist
 // The input can include the stack trace as a string or []*StackFrameInput
 // If stackTrace is non-nil, it will be marshalled into a string and saved with the ErrorObject
 func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceString string, stackTrace []*model2.StackFrameInput, fields []*model.ErrorField, projectID int) (*model.ErrorGroup, error) {
+	if errorObj == nil {
+		return nil, e.New("error object was nil")
+	}
+	if errorObj.Event == "" || errorObj.Event == "<nil>" {
+		return nil, e.New("error object event was nil or empty")
+	}
+
 	// If there was no stackTraceString passed in, marshal it as a JSON string from stackTrace
-	if stackTraceString == "" {
-		frames := stackTrace
-		if len(frames) > 0 && frames[0] != nil && frames[0].Source != nil && strings.Contains(*frames[0].Source, "https://static.highlight.run/index.js") {
+	if len(stackTrace) > 0 {
+		if stackTrace[0] != nil && stackTrace[0].Source != nil && strings.Contains(*stackTrace[0].Source, "https://static.highlight.run/index.js") {
 			errorObj.ProjectID = 1
 		}
-		firstFrameBytes, err := json.Marshal(frames)
+		firstFrameBytes, err := json.Marshal(stackTrace)
 		if err != nil {
 			return nil, e.Wrap(err, "Error marshalling first frame")
 		}
 
 		stackTraceString = string(firstFrameBytes)
-	} else {
+	} else if stackTraceString != "<nil>" {
 		// If stackTraceString was passed in, try to normalize it
-		stackTraceString = r.normalizeStackTraceString(stackTraceString)
+		if t := r.normalizeStackTraceString(stackTraceString); t != "" {
+			stackTraceString = t
+		}
+	} else if stackTraceString == "<nil>" {
+		return nil, e.New(`stackTrace slice was empty and stack trace string was equal to "<nil>"`)
 	}
 
 	errorGroup := &model.ErrorGroup{}
@@ -296,7 +334,7 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 		field := &model.ErrorField{}
 		res := r.DB.Where(f).First(&field)
 		// If the field doesn't exist, we create it.
-		if err := res.Error; err != nil || errors.Is(err, gorm.ErrRecordNotFound) {
+		if err := res.Error; err != nil || e.Is(err, gorm.ErrRecordNotFound) {
 			if err := r.DB.Create(f).Error; err != nil {
 				return e.Wrap(err, "error creating error field")
 			}
@@ -389,7 +427,10 @@ func GetDeviceDetails(userAgentString string) (deviceDetails DeviceDetails) {
 }
 
 func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, projectVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string) (*model.Session, error) {
-	projectID := model.FromVerboseID(projectVerboseID)
+	projectID, err := model.FromVerboseID(projectVerboseID)
+	if err != nil {
+		log.Errorf("An unsupported verboseID was used: %s", projectVerboseID)
+	}
 	project := &model.Project{}
 	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
 		return nil, e.Wrap(err, "project doesn't exist")
@@ -427,8 +468,12 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 		fingerprintInt = val
 	}
 
+	workspace, err := r.getWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieving workspace")
+	}
 	// determine if session is within billing quota
-	withinBillingQuota := r.isProjectWithinBillingQuota(project, n)
+	withinBillingQuota := r.isWithinBillingQuota(project, workspace, n)
 
 	session := &model.Session{
 		Fingerprint:                    fingerprintInt,
@@ -454,6 +499,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 		ClientConfig:                   &clientConfig,
 		Environment:                    environment,
 		AppVersion:                     appVersion,
+		VerboseID:                      projectVerboseID,
 	}
 
 	if err := r.DB.Create(session).Error; err != nil {
@@ -582,7 +628,7 @@ func (r *Resolver) processStackFrame(projectId, sessionId int, stackTrace model2
 	// get path from url
 	u, err := url.Parse(stackTraceFileURL)
 	if err != nil {
-		err := e.Wrapf(err, "error parsing url: %v", stackTraceFileURL)
+		err := e.Wrapf(err, "error parsing stack trace file url: %v", stackTraceFileURL)
 		return nil, err
 	}
 	stackTraceFilePath := u.Path
@@ -593,7 +639,7 @@ func (r *Resolver) processStackFrame(projectId, sessionId int, stackTrace model2
 	// get version from session
 	var version *string
 	if err := r.DB.Model(&model.Session{}).Where(&model.Session{Model: model.Model{ID: sessionId}}).Select("app_version").Scan(&version).Error; err != nil {
-		if !errors.Is(err, gorm.ErrRecordNotFound) {
+		if !e.Is(err, gorm.ErrRecordNotFound) {
 			return nil, e.Wrap(err, "error getting app version from session")
 		}
 	}
@@ -630,7 +676,7 @@ func (r *Resolver) processStackFrame(projectId, sessionId int, stackTrace model2
 	// get path from url
 	u2, err := url.Parse(sourceMapURL)
 	if err != nil {
-		err := e.Wrapf(err, "error parsing url: %v", sourceMapURL)
+		err := e.Wrap(err, "error parsing source map url")
 		return nil, err
 	}
 	sourceMapFilePath := u2.Path
@@ -682,45 +728,48 @@ func (r *Resolver) getWorkspace(workspaceID int) (*model.Workspace, error) {
 	return &workspace, nil
 }
 
-func (r *Resolver) isProjectWithinBillingQuota(project *model.Project, now time.Time) bool {
-	if project.TrialEndDate != nil && project.TrialEndDate.After(now) {
+func (r *Resolver) isWithinBillingQuota(project *model.Project, workspace *model.Workspace, now time.Time) bool {
+	if workspace.TrialEndDate != nil && workspace.TrialEndDate.After(now) {
 		return true
 	}
 	if util.IsOnPrem() {
 		return true
 	}
+
+	if project.FreeTier {
+		sessionCount, err := pricing.GetProjectMeter(r.DB, project)
+		if err != nil {
+			log.Warn(fmt.Sprintf("error getting sessions meter for project %d", project.ID))
+		}
+		withinBillingQuota := int64(pricing.TypeToQuota(modelInputs.PlanTypeFree)) > sessionCount
+		return withinBillingQuota
+	}
+
+	if workspace.AllowMeterOverage {
+		return true
+	}
+
 	var (
 		withinBillingQuota bool
 		quota              int
 	)
-	if project.MonthlySessionLimit != nil && *project.MonthlySessionLimit > 0 {
-		quota = *project.MonthlySessionLimit
+	if workspace.MonthlySessionLimit != nil && *workspace.MonthlySessionLimit > 0 {
+		quota = *workspace.MonthlySessionLimit
 	} else {
-		stripePriceID := ""
-		if project.StripePriceID != nil {
-			stripePriceID = *project.StripePriceID
-		}
-		stripePlan := pricing.FromPriceID(stripePriceID)
+		stripePlan := modelInputs.PlanType(workspace.PlanTier)
 		quota = pricing.TypeToQuota(stripePlan)
 	}
 
-	var monthToDateSessionCount int64
-	if err := r.DB.
-		Model(&model.DailySessionCount{}).
-		Where(&model.DailySessionCount{ProjectID: project.ID}).
-		Where("date > ?", time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)).
-		Select("SUM(count) as monthToDateSessionCount").
-		Scan(&monthToDateSessionCount).Error; err != nil {
-		// The record doesn't exist for new projects since the record gets created in the worker.
-		monthToDateSessionCount = 0
-		log.Warn(fmt.Sprintf("Couldn't find DailySessionCount for %d", project.ID))
+	monthToDateSessionCount, err := pricing.GetWorkspaceMeter(r.DB, workspace.ID)
+	if err != nil {
+		log.Warn(fmt.Sprintf("error getting sessions meter for workspace %d", workspace.ID))
 	}
 	withinBillingQuota = int64(quota) > monthToDateSessionCount
 	return withinBillingQuota
 }
 
 func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, group *model.ErrorGroup, errorToInsert *model.ErrorObject) {
-	r.AlertWorkerPool.Submit(func() {
+	r.AlertWorkerPool.SubmitRecover(func() {
 		var errorAlerts []*model.ErrorAlert
 		if err := r.DB.Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{Alert: model.Alert{ProjectID: projectID}}).Find(&errorAlerts).Error; err != nil {
 			log.Error(e.Wrap(err, "error fetching ErrorAlerts object"))
@@ -746,7 +795,15 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 				t := 30
 				errorAlert.ThresholdWindow = &t
 			}
-			if err := r.DB.Model(&model.ErrorObject{}).Where(&model.ErrorObject{ProjectID: projectID, ErrorGroupID: group.ID}).Find("created_at > ?", time.Now().Add(time.Duration(-(*errorAlert.ThresholdWindow))*time.Minute)).Count(&numErrors).Error; err != nil {
+
+			if err := r.DB.Raw(`
+				SELECT COUNT(*)
+				FROM error_objects
+				WHERE
+					project_id=?
+					AND error_group_id=?
+					AND created_at > ?
+			`, projectID, group.ID, time.Now().Add(time.Duration(-(*errorAlert.ThresholdWindow))*time.Minute)).Scan(&numErrors).Error; err != nil {
 				log.Error(e.Wrapf(err, "error counting errors from past %d minutes", *errorAlert.ThresholdWindow))
 				return
 			}
@@ -764,7 +821,7 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 				log.Error(err)
 			}
 
-			err = errorAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &errorToInsert.URL, ErrorsCount: &numErrors})
+			err = errorAlert.SendSlackAlert(&model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &errorToInsert.URL, ErrorsCount: &numErrors, UserObject: sessionObj.UserObject})
 			if err != nil {
 				log.Error(e.Wrap(err, "error sending slack error message"))
 				return
@@ -775,23 +832,23 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 
 func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customModels.BackendErrorObjectInput) {
 	// Get a list of unique session ids to query
-	sessionIdSet := make(map[string]bool)
+	sessionSecureIdSet := make(map[string]bool)
 	for _, errInput := range errors {
-		sessionIdSet[errInput.SessionID] = true
+		sessionSecureIdSet[errInput.SessionSecureID] = true
 	}
-	sessionIds := make([]string, 0, len(sessionIdSet))
-	for sId := range sessionIdSet {
-		sessionIds = append(sessionIds, sId)
+	sessionSecureIds := make([]string, 0, len(sessionSecureIdSet))
+	for sId := range sessionSecureIdSet {
+		sessionSecureIds = append(sessionSecureIds, sId)
 	}
 
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload", tracer.ResourceName("db.querySessions"))
 	querySessionSpan.SetTag("numberOfErrors", len(errors))
-	querySessionSpan.SetTag("numberOfSessions", len(sessionIds))
+	querySessionSpan.SetTag("numberOfSessions", len(sessionSecureIds))
 
 	// Query all sessions related to the current batch of error objects
 	sessions := []*model.Session{}
-	if err := r.DB.Model(&model.Session{}).Where("id IN ?", sessionIds).Scan(&sessions).Error; err != nil {
-		retErr := e.Wrapf(err, "error reading from sessionIds")
+	if err := r.DB.Model(&model.Session{}).Where("secure_id IN ?", sessionSecureIds).Scan(&sessions).Error; err != nil {
+		retErr := e.Wrapf(err, "error reading from sessionSecureIds")
 		querySessionSpan.Finish(tracer.WithError(retErr))
 		log.Error(retErr)
 		return
@@ -799,10 +856,10 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 
 	querySessionSpan.Finish()
 
-	// Index sessions by id
+	// Index sessions by secure_id
 	sessionLookup := make(map[string]*model.Session)
 	for _, session := range sessions {
-		sessionLookup[strconv.Itoa(session.ID)] = session
+		sessionLookup[session.SecureID] = session
 	}
 
 	// Filter out empty errors
@@ -818,9 +875,9 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 				objString = string(objBytes)
 			}
 			log.WithFields(log.Fields{
-				"project_id":   sessionLookup[errorObject.SessionID],
-				"session_id":   errorObject.SessionID,
-				"error_object": objString,
+				"project_id":        sessionLookup[errorObject.SessionSecureID],
+				"session_secure_id": errorObject.SessionSecureID,
+				"error_object":      objString,
 			}).Warn("caught empty error, continuing...")
 		} else {
 			filteredErrors = append(filteredErrors, errorObject)
@@ -835,7 +892,11 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 	// Count the number of errors for each project
 	errorsByProject := make(map[int]int64)
 	for _, err := range errors {
-		projectID := sessionLookup[err.SessionID].ProjectID
+		session := sessionLookup[err.SessionSecureID]
+		if session == nil {
+			continue
+		}
+		projectID := session.ProjectID
 		errorsByProject[projectID] += 1
 	}
 
@@ -882,7 +943,10 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 		}
 		traceString := string(traceBytes)
 
-		sessionObj := sessionLookup[v.SessionID]
+		sessionObj := sessionLookup[v.SessionSecureID]
+		if sessionObj == nil {
+			continue
+		}
 		projectID := sessionObj.ProjectID
 
 		errorToInsert := &model.ErrorObject{
@@ -890,7 +954,7 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 			SessionID:   sessionObj.ID,
 			Environment: sessionObj.Environment,
 			Event:       v.Event,
-			Type:        v.Type,
+			Type:        model.ErrorType.BACKEND,
 			URL:         v.URL,
 			Source:      v.Source,
 			OS:          sessionObj.OSName,
@@ -899,7 +963,6 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 			Timestamp:   v.Timestamp,
 			Payload:     v.Payload,
 			RequestID:   &v.RequestID,
-			ErrorType:   model.ErrorType.BACKEND,
 		}
 
 		//create error fields array
@@ -920,7 +983,7 @@ func (r *Resolver) processBackendPayload(ctx context.Context, errors []*customMo
 	putErrorsToDBSpan.Finish()
 
 	now := time.Now()
-	if err := r.DB.Model(&model.Session{}).Where("id IN ?", sessionIds).Updates(&model.Session{PayloadUpdatedAt: &now}).Error; err != nil {
+	if err := r.DB.Model(&model.Session{}).Where("secure_id IN ?", sessionSecureIds).Updates(&model.Session{PayloadUpdatedAt: &now}).Error; err != nil {
 		log.Error(e.Wrap(err, "error updating session payload time"))
 		return
 	}
@@ -942,6 +1005,10 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 	}
 	querySessionSpan.SetTag("project_id", sessionObj.ProjectID)
 	querySessionSpan.Finish()
+
+	if sessionObj.PayloadUpdatedAt != nil && time.Since(*sessionObj.PayloadUpdatedAt) > 10*time.Minute {
+		return
+	}
 
 	var g errgroup.Group
 
@@ -992,7 +1059,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 			tracer.ResourceName("go.unmarshal.messages"), tracer.Tag("project_id", projectID))
 		messagesParsed := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(messages), &messagesParsed); err != nil {
-			return fmt.Errorf("error decoding message data: %w", err)
+			return e.Wrap(err, "error decoding message data")
 		}
 		if len(messagesParsed["messages"]) > 0 {
 			obj := &model.MessagesObject{SessionID: sessionID, Messages: messages}
@@ -1010,7 +1077,7 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 			tracer.ResourceName("go.unmarshal.resources"), tracer.Tag("project_id", projectID))
 		resourcesParsed := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
-			return fmt.Errorf("error decoding resource data: %w", err)
+			return e.Wrap(err, "error decoding resource data")
 		}
 		if len(resourcesParsed["resources"]) > 0 {
 			obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources}
@@ -1094,7 +1161,6 @@ func (r *Resolver) processPayload(ctx context.Context, sessionID int, events cus
 				Timestamp:    v.Timestamp,
 				Payload:      v.Payload,
 				RequestID:    nil,
-				ErrorType:    model.ErrorType.FRONTEND,
 			}
 
 			//create error fields array

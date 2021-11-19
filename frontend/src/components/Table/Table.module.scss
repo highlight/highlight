@@ -20,12 +20,35 @@
     }
 
     :global(.ant-table-tbody > tr.ant-table-row:hover > td) {
-        background: var(--color-gray-100) !important;
+        background: none !important;
+        cursor: auto;
+    }
+
+    :global(.ant-table) {
+        background: var(--color-primary-background);
+        color: var(--text-primary) !important;
+    }
+
+    &.interactable {
+        :global(.ant-table-tbody > tr.ant-table-row:hover > td) {
+            background: var(--color-gray-100) !important;
+            cursor: pointer;
+        }
     }
 
     :global(.ant-table-placeholder) {
         :global(.ant-table-cell) {
             border-bottom: 0 !important;
+        }
+    }
+
+    &.rowHasPadding {
+        :global(tr > .ant-table-cell:first-of-type) {
+            padding-left: var(--size-large) !important;
+        }
+
+        :global(tr > .ant-table-cell:last-of-type) {
+            padding-right: var(--size-large) !important;
         }
     }
 }

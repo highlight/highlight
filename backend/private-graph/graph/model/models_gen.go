@@ -16,6 +16,7 @@ type AverageSessionLength struct {
 type BillingDetails struct {
 	Plan               *Plan `json:"plan"`
 	Meter              int64 `json:"meter"`
+	MembersMeter       int64 `json:"membersMeter"`
 	SessionsOutOfQuota int64 `json:"sessionsOutOfQuota"`
 }
 
@@ -25,10 +26,12 @@ type DateRangeInput struct {
 }
 
 type EnhancedUserDetailsResult struct {
+	ID      *int          `json:"id"`
 	Name    *string       `json:"name"`
 	Avatar  *string       `json:"avatar"`
 	Bio     *string       `json:"bio"`
 	Socials []*SocialLink `json:"socials"`
+	Email   *string       `json:"email"`
 }
 
 type ErrorMetadata struct {
@@ -53,6 +56,7 @@ type ErrorSearchParamsInput struct {
 	VisitedURL *string         `json:"visited_url"`
 	State      *ErrorState     `json:"state"`
 	Event      *string         `json:"event"`
+	Type       *string         `json:"type"`
 }
 
 type ErrorTrace struct {
@@ -73,8 +77,17 @@ type NewUsersCount struct {
 }
 
 type Plan struct {
-	Type  PlanType `json:"type"`
-	Quota int      `json:"quota"`
+	Type         PlanType             `json:"type"`
+	Interval     SubscriptionInterval `json:"interval"`
+	Quota        int                  `json:"quota"`
+	MembersLimit int                  `json:"membersLimit"`
+}
+
+type RageClickEventForProject struct {
+	Identifier      string `json:"identifier"`
+	SessionSecureID string `json:"session_secure_id"`
+	TotalClicks     int    `json:"total_clicks"`
+	UserProperties  string `json:"user_properties"`
 }
 
 type ReferrerTablePayload struct {
@@ -126,6 +139,11 @@ type SearchParamsInput struct {
 	ShowLiveSessions        *bool                `json:"show_live_sessions"`
 }
 
+type SessionCommentTagInput struct {
+	ID   *int   `json:"id"`
+	Name string `json:"name"`
+}
+
 type SocialLink struct {
 	Type SocialType `json:"type"`
 	Link *string    `json:"link"`
@@ -136,6 +154,7 @@ type TopUsersPayload struct {
 	Identifier           string  `json:"identifier"`
 	TotalActiveTime      int     `json:"total_active_time"`
 	ActiveTimePercentage float64 `json:"active_time_percentage"`
+	UserProperties       string  `json:"user_properties"`
 }
 
 type TrackPropertyInput struct {
@@ -374,5 +393,46 @@ func (e *SocialType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SocialType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type SubscriptionInterval string
+
+const (
+	SubscriptionIntervalMonthly SubscriptionInterval = "Monthly"
+	SubscriptionIntervalAnnual  SubscriptionInterval = "Annual"
+)
+
+var AllSubscriptionInterval = []SubscriptionInterval{
+	SubscriptionIntervalMonthly,
+	SubscriptionIntervalAnnual,
+}
+
+func (e SubscriptionInterval) IsValid() bool {
+	switch e {
+	case SubscriptionIntervalMonthly, SubscriptionIntervalAnnual:
+		return true
+	}
+	return false
+}
+
+func (e SubscriptionInterval) String() string {
+	return string(e)
+}
+
+func (e *SubscriptionInterval) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SubscriptionInterval(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SubscriptionInterval", str)
+	}
+	return nil
+}
+
+func (e SubscriptionInterval) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

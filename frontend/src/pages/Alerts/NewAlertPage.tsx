@@ -10,18 +10,37 @@ import { getAlertTypeColor } from '@pages/Alerts/utils/AlertsUtils';
 import { useParams } from '@util/react-router/useParams';
 import { snakeCaseString } from '@util/string';
 import React from 'react';
-import { Link, useRouteMatch } from 'react-router-dom';
+import { Helmet } from 'react-helmet';
+import { Link, useHistory, useRouteMatch } from 'react-router-dom';
 
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import styles from './NewAlertPage.module.scss';
 
 const NewAlertPage = () => {
     const { url } = useRouteMatch();
-    const { type } = useParams<{ type?: ALERT_NAMES }>();
+    const { type, project_id } = useParams<{
+        type?: ALERT_NAMES;
+        project_id: string;
+    }>();
     const { alertsPayload, slackUrl } = useAlertsContext();
+    const history = useHistory();
+
+    // Redirect the user if the alert type is not valid.
+    if (
+        type &&
+        !Object.values(ALERT_NAMES)
+            .map((alert) => snakeCaseString(alert.toString()))
+            .includes(type)
+    ) {
+        history.replace(`/${project_id}/alerts/new`);
+        return null;
+    }
 
     return (
         <div>
+            <Helmet>
+                <title>Create New Alert</title>
+            </Helmet>
             {!type ? (
                 <>
                     <p className={layoutStyles.subTitle}>
@@ -87,6 +106,9 @@ const NewAlertPage = () => {
                     }
                     environmentOptions={
                         alertsPayload?.environment_suggestion || []
+                    }
+                    identifierOptions={
+                        alertsPayload?.identifier_suggestion || []
                     }
                     // @ts-expect-error
                     configuration={getNewAlert(type)?.configuration}
@@ -166,6 +188,17 @@ const getNewAlert = (type: ALERT_NAMES) => {
                     UserProperties: [],
                 },
                 configuration: ALERT_CONFIGURATIONS['USER_PROPERTIES_ALERT'],
+            };
+        case snakeCaseString(ALERT_NAMES.RAGE_CLICK_ALERT):
+            return {
+                alert: {
+                    Name: ALERT_NAMES.RAGE_CLICK_ALERT,
+                    ExcludedEnvironments: [],
+                    CountThreshold: 1,
+                    Type: ALERT_TYPE.RageClick,
+                    ThresholdWindow: 30,
+                },
+                configuration: ALERT_CONFIGURATIONS['RAGE_CLICK_ALERT'],
             };
     }
 };

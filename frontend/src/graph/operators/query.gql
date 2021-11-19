@@ -1,5 +1,5 @@
-query GetSessionPayload($session_secure_id: String!) {
-    events(session_secure_id: $session_secure_id)
+query GetSessionPayload($session_secure_id: String!, $skip_events: Boolean!) {
+    events(session_secure_id: $session_secure_id) @skip(if: $skip_events)
     errors(session_secure_id: $session_secure_id) {
         id
         error_group_secure_id
@@ -42,6 +42,14 @@ query GetSessionPayload($session_secure_id: String!) {
         y_coordinate
         type
         metadata
+        tags
+    }
+}
+
+query GetCommentTagsForProject($project_id: ID!) {
+    session_comment_tags_for_project(project_id: $project_id) {
+        id
+        name
     }
 }
 
@@ -74,10 +82,13 @@ query GetSession($secure_id: String!) {
         }
         object_storage_enabled
         payload_size
+        processed
         within_billing_quota
         client_version
         client_config
         is_public
+        event_counts
+        direct_download_url
     }
 }
 
@@ -104,6 +115,13 @@ query GetWorkspaceAdmins($workspace_id: ID!) {
         name
         secret
     }
+    workspace_invite_links(workspace_id: $workspace_id) {
+        id
+        invitee_email
+        invitee_role
+        expiration_date
+        secret
+    }
 }
 
 query GetSessionComments($session_secure_id: String!) {
@@ -126,6 +144,7 @@ query GetSessionComments($session_secure_id: String!) {
         y_coordinate
         type
         metadata
+        tags
     }
 }
 
@@ -145,6 +164,7 @@ query GetNotifications($project_id: ID!) {
         }
         type
         metadata
+        tags
     }
     error_comments_for_project(project_id: $project_id) {
         id
@@ -201,6 +221,7 @@ query GetEnhancedUserDetails($session_secure_id: String!) {
         name
         bio
         avatar
+        email
         socials {
             type
             link
@@ -230,11 +251,13 @@ mutation SendAdminWorkspaceInvite(
     $workspace_id: ID!
     $email: String!
     $base_url: String!
+    $role: String!
 ) {
     sendAdminWorkspaceInvite(
         workspace_id: $workspace_id
         email: $email
         base_url: $base_url
+        role: $role
     )
 }
 
@@ -281,6 +304,7 @@ query GetSessions(
             }
             first_time
             user_properties
+            event_counts
         }
         totalCount
     }
@@ -381,6 +405,7 @@ query GetWorkspaceDropdownOptions($workspace_id: ID!) {
 query GetAdmin {
     admin {
         id
+        uid
         name
         email
         photo_url
@@ -402,18 +427,45 @@ query GetProject($id: ID!) {
     }
 }
 
-query GetBillingDetails($project_id: ID!) {
-    billingDetails(project_id: $project_id) {
+query GetBillingDetailsForProject($project_id: ID!) {
+    billingDetailsForProject(project_id: $project_id) {
         plan {
             type
             quota
+            interval
+            membersLimit
         }
         meter
+        membersMeter
         sessionsOutOfQuota
     }
-    project(id: $project_id) {
+    workspace_for_project(project_id: $project_id) {
         id
         trial_end_date
+        billing_period_end
+        next_invoice_date
+        allow_meter_overage
+    }
+}
+
+query GetBillingDetails($workspace_id: ID!) {
+    billingDetails(workspace_id: $workspace_id) {
+        plan {
+            type
+            quota
+            interval
+            membersLimit
+        }
+        meter
+        membersMeter
+        sessionsOutOfQuota
+    }
+    workspace(id: $workspace_id) {
+        id
+        trial_end_date
+        billing_period_end
+        next_invoice_date
+        allow_meter_overage
     }
 }
 
@@ -517,6 +569,11 @@ query GetAppVersions($project_id: ID!) {
 
 query GetProjectSuggestion($query: String!) {
     projectSuggestion(query: $query) {
+        id
+        name
+        workspace_id
+    }
+    workspaceSuggestion(query: $query) {
         id
         name
     }
@@ -725,6 +782,7 @@ query GetTopUsers($project_id: ID!, $lookBackPeriod: Int!) {
         total_active_time
         active_time_percentage
         id
+        user_properties
     }
 }
 
@@ -739,6 +797,18 @@ query GetDailyErrorsCount($project_id: ID!, $date_range: DateRangeInput!) {
     dailyErrorsCount(project_id: $project_id, date_range: $date_range) {
         date
         count
+    }
+}
+
+query GetRageClicksForProject($project_id: ID!, $lookBackPeriod: Int!) {
+    rageClicksForProject(
+        project_id: $project_id
+        lookBackPeriod: $lookBackPeriod
+    ) {
+        identifier
+        session_secure_id
+        total_clicks
+        user_properties
     }
 }
 
@@ -761,6 +831,10 @@ query GetSlackChannelSuggestion($project_id: ID!) {
     }
 }
 
+query GetWorkspaceIsIntegratedWithSlack($project_id: ID!) {
+    is_integrated_with_slack(project_id: $project_id)
+}
+
 query GetAlertsPagePayload($project_id: ID!) {
     is_integrated_with_slack(project_id: $project_id)
     slack_channel_suggestion(project_id: $project_id) {
@@ -777,6 +851,7 @@ query GetAlertsPagePayload($project_id: ID!) {
         name
         value
     }
+    identifier_suggestion(project_id: $project_id)
     error_alerts(project_id: $project_id) {
         ChannelsToNotify {
             webhook_channel
@@ -817,6 +892,21 @@ query GetAlertsPagePayload($project_id: ID!) {
         LastAdminToEditID
         Name
         id
+        Type
+        ExcludeRules
+    }
+    rage_click_alerts(project_id: $project_id) {
+        id
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        ExcludedEnvironments
+        CountThreshold
+        ThresholdWindow
+        updated_at
+        LastAdminToEditID
+        Name
         Type
     }
     new_user_alerts(project_id: $project_id) {
@@ -881,4 +971,8 @@ query GetCommentMentionSuggestions($project_id: ID!) {
         webhook_channel
         webhook_channel_id
     }
+}
+
+query GetCustomerPortalURL($workspace_id: ID!) {
+    customer_portal_url(workspace_id: $workspace_id)
 }

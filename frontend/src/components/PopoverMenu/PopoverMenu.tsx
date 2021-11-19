@@ -1,3 +1,4 @@
+import classNames from 'classnames';
 import React from 'react';
 
 import Button from '../Button/Button/Button';
@@ -14,6 +15,7 @@ interface Props {
     /** The child of the button that opens the popover. */
     buttonIcon?: React.ReactNode;
     buttonContentsOverride?: React.ReactNode;
+    header?: React.ReactNode;
 }
 
 const PopoverMenu = ({
@@ -22,6 +24,7 @@ const PopoverMenu = ({
     buttonTrackingId,
     buttonIcon: buttonContents,
     buttonContentsOverride,
+    header,
 }: Props) => {
     if (!content && !menuItems) {
         throw new Error('content or menuItems need to be defined.');
@@ -52,6 +55,7 @@ const PopoverMenu = ({
                     </>
                 )
             }
+            title={header && <div className={styles.header}>{header}</div>}
         >
             {buttonContentsOverride || (
                 <Button type="text" trackingId={buttonTrackingId} iconButton>
@@ -65,10 +69,12 @@ const PopoverMenu = ({
 export default PopoverMenu;
 
 export interface PopoverMenuItem {
-    icon: React.ReactNode;
+    icon?: React.ReactNode;
+    iconPosition?: 'leading' | 'ending';
     displayName: string;
     link?: string;
     action?: () => void;
+    active?: boolean;
 }
 
 export const PopoverMenuItem = ({
@@ -76,6 +82,8 @@ export const PopoverMenuItem = ({
     displayName,
     action,
     link,
+    iconPosition = 'leading',
+    active,
 }: PopoverMenuItem) => {
     if (action && link) {
         throw new Error(
@@ -88,10 +96,16 @@ export const PopoverMenuItem = ({
             <Button
                 onClick={action}
                 trackingId={`HelpMenu-${displayName}`}
-                type="text"
+                type={active ? 'primary' : 'text'}
+                className={classNames(styles.button, {
+                    [styles.active]: active,
+                })}
             >
-                {icon}
+                {iconPosition === 'leading' && icon}
                 {displayName}
+                {iconPosition === 'ending' && (
+                    <div className={styles.endingIcon}>{icon}</div>
+                )}
             </Button>
         );
     }

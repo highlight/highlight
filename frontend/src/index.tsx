@@ -4,11 +4,17 @@ import '@highlight-run/rrweb/dist/index.css';
 
 import { ApolloProvider } from '@apollo/client';
 import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { LoadingPage } from '@components/Loading/Loading';
+import {
+    AppLoadingContext,
+    useAppLoadingContext,
+} from '@context/AppLoadingContext';
 import { ErrorBoundary } from '@highlight-run/react';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { H, HighlightOptions } from 'highlight.run';
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
+import { Helmet } from 'react-helmet';
 import { SkeletonTheme } from 'react-loading-skeleton';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import { QueryParamProvider } from 'use-query-params';
@@ -39,11 +45,13 @@ const options: HighlightOptions = {
         enabled: true,
         recordHeadersAndBody: true,
     },
+    tracingOrigins: ['highlight.run', 'localhost'],
     integrations: {
         mixpanel: {
             projectToken: 'e70039b6a5b93e7c86b8afb02b6d2300',
         },
     },
+    sessionShortcut: 'alt+1,command+`,alt+esc',
 };
 const favicon = document.querySelector("link[rel~='icon']") as any;
 if (dev) {
@@ -89,12 +97,26 @@ if (!isOnPrem) {
 showHiringMessage();
 
 const App = () => {
+    const [isLoading, setIsLoading] = useState(true);
+
     return (
-        <ErrorBoundary showDialog>
+        <ErrorBoundary
+            showDialog
+            onAfterReportDialogCancelHandler={() => {
+                const { origin } = window.location;
+                window.location.href = origin;
+            }}
+        >
             <ApolloProvider client={client}>
                 <QueryParamProvider>
-                    <SkeletonTheme color={'#F5F5F5'} highlightColor={'#FCFCFC'}>
-                        <AuthenticationRouter />
+                    <SkeletonTheme
+                        baseColor={'var(--color-gray-200)'}
+                        highlightColor={'var(--color-primary-background)'}
+                    >
+                        <AppLoadingContext value={{ isLoading, setIsLoading }}>
+                            <LoadingPage />
+                            <AuthenticationRouter />
+                        </AppLoadingContext>
                     </SkeletonTheme>
                 </QueryParamProvider>
             </ApolloProvider>
@@ -107,6 +129,7 @@ const AuthenticationRouter = () => {
         getAdminQuery,
         { error: adminError, data: adminData, called, refetch },
     ] = useGetAdminLazyQuery();
+    const { setIsLoading } = useAppLoadingContext();
 
     const [authRole, setAuthRole] = useState<AuthRole>(AuthRole.LOADING);
 
@@ -145,7 +168,13 @@ const AuthenticationRouter = () => {
         } else if (adminError) {
             setAuthRole(AuthRole.UNAUTHENTICATED);
         }
-    }, [adminError, adminData]);
+    }, [adminError, adminData, setIsLoading]);
+
+    useEffect(() => {
+        if (authRole === AuthRole.UNAUTHENTICATED) {
+            setIsLoading(isAuthLoading(authRole));
+        }
+    }, [authRole, setIsLoading]);
 
     return (
         <AuthContextProvider
@@ -159,6 +188,9 @@ const AuthenticationRouter = () => {
                 isHighlightAdmin: isHighlightAdmin(authRole),
             }}
         >
+            <Helmet>
+                <title>Highlight App</title>
+            </Helmet>
             {adminError ? (
                 <ErrorState
                     message={`

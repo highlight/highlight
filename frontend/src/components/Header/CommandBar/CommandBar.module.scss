@@ -3,9 +3,8 @@
 }
 
 .input {
-    background-color: var(--color-secondary-background);
-    border: 2px solid var(--color-gray-300);
-    border-radius: 4px;
+    background: var(--color-primary-background);
+    border: 0;
     box-sizing: border-box;
     caret-color: var(--color-purple);
     color: var(--text-primary);
@@ -18,19 +17,20 @@
 
 .input-focused {
     background-color: var(--text-primary);
-    border-color: var(--color-red);
+    border-color: var(--color-red-400);
 }
 
 .suggestion {
-    background-color: var(--color-secondary-background);
-    border-left: 3px solid transparent;
+    background: var(--color-primary-background);
+    border-left: 5px solid transparent;
 
-    color: var(--text-primary);
+    color: var(--color-gray-700);
     cursor: pointer;
     padding: 14px 12px;
+    transition: color 0.2s ease-in-out;
 
     b {
-        color: var(--color-purple-light);
+        color: var(--color-purple-600);
     }
 }
 
@@ -47,14 +47,14 @@
 
 .suggestionHighlighted {
     background: var(--color-gray-300);
-    border-left: 3px solid var(--color-purple);
+    border-left: 5px solid var(--color-purple);
     color: var(--text-primary);
 }
 
 .modal {
-    background: var(--color-secondary-background);
+    background: var(--color-primary-background);
     border: 0;
-    border-radius: 4px;
+    border-radius: var(--border-radius);
     bottom: auto;
     box-shadow: var(--box-shadow-2);
     left: 50%;

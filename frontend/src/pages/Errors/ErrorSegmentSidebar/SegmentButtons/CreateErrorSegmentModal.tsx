@@ -1,8 +1,8 @@
+import Input from '@components/Input/Input';
 import { namedOperations } from '@graph/operations';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
-import React from 'react';
-import { useForm } from 'react-hook-form';
+import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
 import commonStyles from '../../../../Common.module.scss';
@@ -21,10 +21,6 @@ interface Props {
     afterCreateHandler?: (segmentId: string, segmentValue: string) => void;
 }
 
-type Inputs = {
-    name: string;
-};
-
 const CreateErrorSegmentModal = ({
     showModal,
     onHideModal,
@@ -33,7 +29,7 @@ const CreateErrorSegmentModal = ({
     const [createSegment, { loading }] = useCreateErrorSegmentMutation({
         refetchQueries: [namedOperations.Query.GetErrorSegments],
     });
-    const { register, handleSubmit, errors, reset } = useForm<Inputs>();
+    const [newSegmentName, setNewSegmentName] = useState('');
     const { project_id } = useParams<{
         project_id: string;
         segment_id: string;
@@ -41,11 +37,12 @@ const CreateErrorSegmentModal = ({
     const { searchParams, setExistingParams } = useErrorSearchContext();
     const history = useHistory();
 
-    const onSubmit = (inputs: Inputs) => {
+    const onSubmit = (e: { preventDefault: () => void }) => {
+        e.preventDefault();
         createSegment({
             variables: {
                 project_id,
-                name: inputs.name,
+                name: newSegmentName,
                 params: searchParams,
             },
         }).then((r) => {
@@ -61,7 +58,7 @@ const CreateErrorSegmentModal = ({
                 );
             }
             onHideModal();
-            reset();
+            setNewSegmentName('');
             message.success(
                 `Created '${r.data?.createErrorSegment?.name}' segment`,
                 5
@@ -76,23 +73,27 @@ const CreateErrorSegmentModal = ({
             onCancel={onHideModal}
             style={{ display: 'flex' }}
             width={500}
+            destroyOnClose
         >
             <ModalBody>
-                <form onSubmit={handleSubmit(onSubmit)}>
+                <form onSubmit={onSubmit}>
                     <p className={styles.modalSubTitle}>
-                        Enter the name of your segment and you'll be good to go!
+                        Creating a segment allows you to save search queries
+                        that target a specific set of errors. If you're
+                        searching for a specific browser, error type or any
+                        other attribute again and again then you should create a
+                        segment.
                     </p>
-                    <input
+                    <Input
                         className={commonStyles.input}
                         name="name"
-                        ref={register({ required: true })}
+                        value={newSegmentName}
+                        onChange={(e) => {
+                            setNewSegmentName(e.target.value);
+                        }}
                         placeholder={'Segment Name'}
                         autoFocus
                     />
-                    <div className={commonStyles.errorMessage}>
-                        {errors.name &&
-                            'Error with segment name ' + errors.name.message}
-                    </div>
                     <Button
                         trackingId="SaveErrorSegmentFromExistingSegment"
                         style={{

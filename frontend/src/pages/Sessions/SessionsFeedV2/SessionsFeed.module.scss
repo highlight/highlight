@@ -158,13 +158,22 @@
 }
 
 .feedContent {
+    border-top: 1px solid transparent;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
     height: 200px;
+    margin-left: calc(-1 * var(--size-xLarge));
+    margin-right: calc(-1 * var(--size-xLarge));
     overflow-x: hidden;
     overflow-y: auto;
-    width: 100%;
+    padding-left: var(--size-xLarge);
+    padding-right: var(--size-xLarge);
+    transition: border 0.2s ease-in-out;
+
+    &.hasScrolled {
+        border-top-color: var(--color-gray-300);
+    }
 
     &::-webkit-scrollbar {
         display: none;
@@ -174,7 +183,7 @@
 .fixedContent {
     align-items: center;
     display: flex;
-    padding-bottom: var(--size-small);
+    padding-bottom: var(--size-xSmall);
     position: relative;
 }
 
@@ -187,7 +196,7 @@
 }
 
 .resultCountValueContainer {
-    align-items: flex-end;
+    align-items: center;
     display: flex;
     justify-content: space-between;
 }
@@ -338,4 +347,20 @@
 .sessionFeedActions {
     column-gap: var(--size-small);
     display: flex;
+    height: 30px;
+}
+
+.liveSessionsCountButton {
+    background: transparent;
+    border: 0;
+    border-radius: var(--size-small);
+    color: var(--color-purple);
+    cursor: pointer;
+    display: contents;
+    outline: none;
+    white-space: nowrap;
+}
+
+.countContainer {
+    position: relative;
 }

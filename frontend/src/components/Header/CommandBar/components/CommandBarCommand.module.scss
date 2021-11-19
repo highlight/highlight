@@ -1,7 +1,6 @@
 .suggestion {
     align-items: center;
     background: var(--header-font-family);
-    color: var(--text-primary);
     column-gap: var(--size-small);
     display: flex;
     font-size: 14px;
@@ -12,7 +11,6 @@
     display: flex;
 
     > svg {
-        color: var(--text-primary);
         height: 12px;
         width: 12px;
     }

@@ -10,6 +10,12 @@
 
 .container {
     height: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.alertContainer {
+    margin-bottom: var(--size-large);
 }
 
 .titleContainer {
@@ -21,4 +27,10 @@
     display: flex;
     flex-direction: column;
     height: 100%;
+}
+
+.stackTraceLoadingWrapper {
+    > span {
+        margin-bottom: 20px;
+    }
 }

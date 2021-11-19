@@ -11,6 +11,9 @@ import (
 	"strings"
 	"time"
 
+	H "github.com/highlight-run/highlight-go"
+	highlightChi "github.com/highlight-run/highlight-go/middleware/chi"
+
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -21,7 +24,7 @@ import (
 	e "github.com/pkg/errors"
 	"github.com/rs/cors"
 	"github.com/sendgrid/sendgrid-go"
-	"github.com/stripe/stripe-go/client"
+	"github.com/stripe/stripe-go/v72/client"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
 	dd "github.com/highlight-run/highlight/backend/datadog"
@@ -37,12 +40,14 @@ import (
 )
 
 var (
-	frontendURL        = os.Getenv("FRONTEND_URI")
-	staticFrontendPath = os.Getenv("ONPREM_STATIC_FRONTEND_PATH")
-	landingStagingURL  = os.Getenv("LANDING_PAGE_STAGING_URI")
-	sendgridKey        = os.Getenv("SENDGRID_API_KEY")
-	stripeApiKey       = os.Getenv("STRIPE_API_KEY")
-	runtime            = flag.String("runtime", "all", "the runtime of the backend; either 1) dev (all runtimes) 2) worker 3) public-graph 4) private-graph")
+	frontendURL         = os.Getenv("FRONTEND_URI")
+	staticFrontendPath  = os.Getenv("ONPREM_STATIC_FRONTEND_PATH")
+	landingStagingURL   = os.Getenv("LANDING_PAGE_STAGING_URI")
+	sendgridKey         = os.Getenv("SENDGRID_API_KEY")
+	stripeApiKey        = os.Getenv("STRIPE_API_KEY")
+	stripeWebhookSecret = os.Getenv("STRIPE_WEBHOOK_SECRET")
+	runtimeFlag         = flag.String("runtime", "all", "the runtime of the backend; either 1) dev (all runtimes) 2) worker 3) public-graph 4) private-graph")
+	handlerFlag         = flag.String("worker-handler", "", "applies for runtime=worker; if specified, a handler function will be called instead of Start")
 )
 
 //  we inject this value at build time for on-prem
@@ -52,17 +57,17 @@ var runtimeParsed util.Runtime
 
 func init() {
 	flag.Parse()
-	if runtime == nil {
+	if runtimeFlag == nil {
 		log.Fatal("runtime is nil, provide a value")
-	} else if !util.Runtime(*runtime).IsValid() {
-		log.Fatalf("invalid runtime: %v", *runtime)
+	} else if !util.Runtime(*runtimeFlag).IsValid() {
+		log.Fatalf("invalid runtime: %v", *runtimeFlag)
 	}
-	runtimeParsed = util.Runtime(*runtime)
+	runtimeParsed = util.Runtime(*runtimeFlag)
 }
 
-func healthRouter(runtime util.Runtime) http.HandlerFunc {
+func healthRouter(runtimeFlag util.Runtime) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		_, err := w.Write([]byte(fmt.Sprintf("%v is healthy", runtime)))
+		_, err := w.Write([]byte(fmt.Sprintf("%v is healthy", runtimeFlag)))
 		if err != nil {
 			log.Error(e.Wrap(err, "error writing health response"))
 		}
@@ -145,12 +150,15 @@ func main() {
 	}
 
 	private.SetupAuthClient()
+	privateWorkerpool := workerpool.New(10000)
+	privateWorkerpool.SetPanicHandler(util.Recover)
 	privateResolver := &private.Resolver{
-		ClearbitClient: clearbit.NewClient(clearbit.WithAPIKey(os.Getenv("CLEARBIT_API_KEY"))),
-		DB:             db,
-		MailClient:     sendgrid.NewSendClient(sendgridKey),
-		StripeClient:   stripeClient,
-		StorageClient:  storage,
+		ClearbitClient:    clearbit.NewClient(clearbit.WithAPIKey(os.Getenv("CLEARBIT_API_KEY"))),
+		DB:                db,
+		MailClient:        sendgrid.NewSendClient(sendgridKey),
+		StripeClient:      stripeClient,
+		StorageClient:     storage,
+		PrivateWorkerPool: privateWorkerpool,
 	}
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.
@@ -179,8 +187,10 @@ func main() {
 		if runtimeParsed == util.PrivateGraph {
 			privateEndpoint = "/"
 		}
+		r.HandleFunc("/stripe-webhook", privateResolver.StripeWebhook(stripeWebhookSecret))
 		r.Route(privateEndpoint, func(r chi.Router) {
 			r.Use(private.PrivateMiddleware)
+			r.Use(highlightChi.Middleware)
 			privateServer := ghandler.NewDefaultServer(privategen.NewExecutableSchema(
 				privategen.Config{
 					Resolvers: privateResolver,
@@ -201,13 +211,19 @@ func main() {
 		}
 		r.Route(publicEndpoint, func(r chi.Router) {
 			r.Use(public.PublicMiddleware)
+			r.Use(highlightChi.Middleware)
+			pushPayloadWorkerPool := workerpool.New(80)
+			pushPayloadWorkerPool.SetPanicHandler(util.Recover)
+			alertWorkerpool := workerpool.New(40)
+			alertWorkerpool.SetPanicHandler(util.Recover)
+
 			publicServer := ghandler.NewDefaultServer(publicgen.NewExecutableSchema(
 				publicgen.Config{
 					Resolvers: &public.Resolver{
 						DB:                    db,
 						StorageClient:         storage,
-						PushPayloadWorkerPool: workerpool.New(80),
-						AlertWorkerPool:       workerpool.New(40),
+						PushPayloadWorkerPool: pushPayloadWorkerPool,
+						AlertWorkerPool:       alertWorkerpool,
 					},
 				}))
 			publicServer.Use(util.NewTracer(util.PublicGraph))
@@ -218,6 +234,14 @@ func main() {
 			)
 		})
 	}
+
+	if util.IsDevOrTestEnv() {
+		log.Info("overwriting highlight-go graphql client address...")
+		H.SetGraphqlClientAddress("http://localhost:8082/public")
+	}
+	H.Start()
+	defer H.Stop()
+	H.SetDebugMode(log.StandardLogger())
 
 	/*
 		Run a simple server that runs the frontend if 'staticFrontedPath' and 'all' is set.
@@ -270,7 +294,11 @@ func main() {
 	log.Println("process running....")
 	if runtimeParsed == util.Worker {
 		w := &worker.Worker{Resolver: privateResolver, S3Client: storage}
-		w.Start()
+		if handlerFlag != nil && *handlerFlag != "" {
+			w.GetHandler(*handlerFlag)()
+		} else {
+			w.Start()
+		}
 	} else if runtimeParsed == util.All {
 		w := &worker.Worker{Resolver: privateResolver, S3Client: storage}
 		go func() {

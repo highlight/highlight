@@ -29,7 +29,9 @@ const DetailPanel = () => {
                 >
                     <motion.div
                         key="detailPanel"
-                        className={styles.detailPanel}
+                        className={classNames(styles.detailPanel, {
+                            [styles.padding]: !detailedPanel.options?.noPadding,
+                        })}
                         initial={{ transform: 'translateX(110%)' }}
                         animate={{ transform: 'translateX(0%)' }}
                         exit={{ transform: 'translateX(110%)' }}

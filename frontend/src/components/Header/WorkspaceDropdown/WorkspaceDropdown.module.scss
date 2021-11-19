@@ -31,7 +31,7 @@
 .workspaceIcon {
     align-items: center;
     border-radius: 5px;
-    color: var(--color-primary-background);
+    color: var(--color-white);
     display: flex;
     font-family: var(--header-font-family);
     font-size: 14px;
@@ -86,7 +86,7 @@
 .dropdownLogout {
     align-items: center;
     border-top: 1px solid var(--color-gray-300);
-    color: var(--color-red);
+    color: var(--color-red-400);
     cursor: pointer;
     display: flex;
     padding-top: 10px;

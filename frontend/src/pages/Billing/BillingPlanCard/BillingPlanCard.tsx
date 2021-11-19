@@ -1,3 +1,5 @@
+import { PlanType, SubscriptionInterval } from '@graph/schemas';
+import { formatNumberWithDelimiters } from '@util/numbers';
 import classNames from 'classnames/bind';
 import React from 'react';
 
@@ -12,12 +14,14 @@ export const BillingPlanCard = ({
     onSelect,
     current,
     loading,
+    subscriptionInterval,
     disabled,
 }: {
     current: boolean;
     billingPlan: BillingPlan;
     onSelect: () => void;
     loading: boolean;
+    subscriptionInterval: SubscriptionInterval;
     disabled?: boolean;
 }) => {
     return (
@@ -27,13 +31,32 @@ export const BillingPlanCard = ({
             })}
         >
             <h3 className={styles.billingPlanTitle}>{billingPlan.name}</h3>
-            <h4
-                className={classNames(
-                    commonStyles.title,
-                    styles.billingPlanPrice
-                )}
-            >{`$${billingPlan.monthlyPrice}`}</h4>
-            <p className={styles.billingFrequency}>billed monthly</p>
+            <div>
+                <span
+                    className={classNames(
+                        commonStyles.title,
+                        styles.billingPlanPrice
+                    )}
+                >
+                    {`$${formatNumberWithDelimiters(
+                        subscriptionInterval === SubscriptionInterval.Annual
+                            ? billingPlan.annualPrice
+                            : billingPlan.monthlyPrice
+                    )}${billingPlan.type === PlanType.Enterprise ? '+' : ''}`}
+                </span>
+                {billingPlan.type !== PlanType.Free && <span>/mo</span>}
+            </div>
+            <p className={styles.billingFrequency}>
+                {billingPlan.type === PlanType.Free
+                    ? 'no billing'
+                    : subscriptionInterval === SubscriptionInterval.Annual
+                    ? `$${formatNumberWithDelimiters(
+                          billingPlan.annualPrice * 12
+                      )}${
+                          billingPlan.type === PlanType.Enterprise ? '+' : ''
+                      } billed annually`
+                    : 'billed monthly'}
+            </p>
             <ul className={styles.advertisedFeaturesWrapper}>
                 {billingPlan.advertisedFeatures.map((featureString) => (
                     <li
@@ -45,7 +68,6 @@ export const BillingPlanCard = ({
                     </li>
                 ))}
             </ul>
-
             <Button
                 trackingId="ChangeBillingPlan"
                 disabled={current || disabled}

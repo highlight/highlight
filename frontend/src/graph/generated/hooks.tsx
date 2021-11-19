@@ -105,12 +105,14 @@ export type MarkSessionAsStarredMutationOptions = Apollo.BaseMutationOptions<
 >;
 export const CreateOrUpdateStripeSubscriptionDocument = gql`
     mutation CreateOrUpdateStripeSubscription(
-        $project_id: ID!
+        $workspace_id: ID!
         $plan_type: PlanType!
+        $interval: SubscriptionInterval!
     ) {
         createOrUpdateStripeSubscription(
-            project_id: $project_id
+            workspace_id: $workspace_id
             plan_type: $plan_type
+            interval: $interval
         )
     }
 `;
@@ -132,8 +134,9 @@ export type CreateOrUpdateStripeSubscriptionMutationFn = Apollo.MutationFunction
  * @example
  * const [createOrUpdateStripeSubscriptionMutation, { data, loading, error }] = useCreateOrUpdateStripeSubscriptionMutation({
  *   variables: {
- *      project_id: // value for 'project_id'
+ *      workspace_id: // value for 'workspace_id'
  *      plan_type: // value for 'plan_type'
+ *      interval: // value for 'interval'
  *   },
  * });
  */
@@ -157,8 +160,8 @@ export type CreateOrUpdateStripeSubscriptionMutationOptions = Apollo.BaseMutatio
     Types.CreateOrUpdateStripeSubscriptionMutationVariables
 >;
 export const UpdateBillingDetailsDocument = gql`
-    mutation UpdateBillingDetails($project_id: ID!) {
-        updateBillingDetails(project_id: $project_id)
+    mutation UpdateBillingDetails($workspace_id: ID!) {
+        updateBillingDetails(workspace_id: $workspace_id)
     }
 `;
 export type UpdateBillingDetailsMutationFn = Apollo.MutationFunction<
@@ -179,7 +182,7 @@ export type UpdateBillingDetailsMutationFn = Apollo.MutationFunction<
  * @example
  * const [updateBillingDetailsMutation, { data, loading, error }] = useUpdateBillingDetailsMutation({
  *   variables: {
- *      project_id: // value for 'project_id'
+ *      workspace_id: // value for 'workspace_id'
  *   },
  * });
  */
@@ -298,53 +301,6 @@ export type SendEmailSignupMutationOptions = Apollo.BaseMutationOptions<
     Types.SendEmailSignupMutation,
     Types.SendEmailSignupMutationVariables
 >;
-export const AddAdminToProjectDocument = gql`
-    mutation AddAdminToProject($project_id: ID!, $invite_id: String!) {
-        addAdminToProject(project_id: $project_id, invite_id: $invite_id)
-    }
-`;
-export type AddAdminToProjectMutationFn = Apollo.MutationFunction<
-    Types.AddAdminToProjectMutation,
-    Types.AddAdminToProjectMutationVariables
->;
-
-/**
- * __useAddAdminToProjectMutation__
- *
- * To run a mutation, you first call `useAddAdminToProjectMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useAddAdminToProjectMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [addAdminToProjectMutation, { data, loading, error }] = useAddAdminToProjectMutation({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      invite_id: // value for 'invite_id'
- *   },
- * });
- */
-export function useAddAdminToProjectMutation(
-    baseOptions?: Apollo.MutationHookOptions<
-        Types.AddAdminToProjectMutation,
-        Types.AddAdminToProjectMutationVariables
-    >
-) {
-    return Apollo.useMutation<
-        Types.AddAdminToProjectMutation,
-        Types.AddAdminToProjectMutationVariables
-    >(AddAdminToProjectDocument, baseOptions);
-}
-export type AddAdminToProjectMutationHookResult = ReturnType<
-    typeof useAddAdminToProjectMutation
->;
-export type AddAdminToProjectMutationResult = Apollo.MutationResult<Types.AddAdminToProjectMutation>;
-export type AddAdminToProjectMutationOptions = Apollo.BaseMutationOptions<
-    Types.AddAdminToProjectMutation,
-    Types.AddAdminToProjectMutationVariables
->;
 export const AddAdminToWorkspaceDocument = gql`
     mutation AddAdminToWorkspace($workspace_id: ID!, $invite_id: String!) {
         addAdminToWorkspace(workspace_id: $workspace_id, invite_id: $invite_id)
@@ -391,6 +347,62 @@ export type AddAdminToWorkspaceMutationResult = Apollo.MutationResult<Types.AddA
 export type AddAdminToWorkspaceMutationOptions = Apollo.BaseMutationOptions<
     Types.AddAdminToWorkspaceMutation,
     Types.AddAdminToWorkspaceMutationVariables
+>;
+export const ChangeAdminRoleDocument = gql`
+    mutation ChangeAdminRole(
+        $workspace_id: ID!
+        $admin_id: ID!
+        $new_role: String!
+    ) {
+        changeAdminRole(
+            workspace_id: $workspace_id
+            admin_id: $admin_id
+            new_role: $new_role
+        )
+    }
+`;
+export type ChangeAdminRoleMutationFn = Apollo.MutationFunction<
+    Types.ChangeAdminRoleMutation,
+    Types.ChangeAdminRoleMutationVariables
+>;
+
+/**
+ * __useChangeAdminRoleMutation__
+ *
+ * To run a mutation, you first call `useChangeAdminRoleMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useChangeAdminRoleMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [changeAdminRoleMutation, { data, loading, error }] = useChangeAdminRoleMutation({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *      admin_id: // value for 'admin_id'
+ *      new_role: // value for 'new_role'
+ *   },
+ * });
+ */
+export function useChangeAdminRoleMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.ChangeAdminRoleMutation,
+        Types.ChangeAdminRoleMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.ChangeAdminRoleMutation,
+        Types.ChangeAdminRoleMutationVariables
+    >(ChangeAdminRoleDocument, baseOptions);
+}
+export type ChangeAdminRoleMutationHookResult = ReturnType<
+    typeof useChangeAdminRoleMutation
+>;
+export type ChangeAdminRoleMutationResult = Apollo.MutationResult<Types.ChangeAdminRoleMutation>;
+export type ChangeAdminRoleMutationOptions = Apollo.BaseMutationOptions<
+    Types.ChangeAdminRoleMutation,
+    Types.ChangeAdminRoleMutationVariables
 >;
 export const DeleteAdminFromProjectDocument = gql`
     mutation DeleteAdminFromProject($project_id: ID!, $admin_id: ID!) {
@@ -1040,6 +1052,7 @@ export const CreateSessionCommentDocument = gql`
         $time: Float!
         $author_name: String!
         $session_image: String
+        $tags: [SessionCommentTagInput]!
     ) {
         createSessionComment(
             project_id: $project_id
@@ -1055,6 +1068,7 @@ export const CreateSessionCommentDocument = gql`
             time: $time
             author_name: $author_name
             session_image: $session_image
+            tags: $tags
         ) {
             id
             timestamp
@@ -1102,6 +1116,7 @@ export type CreateSessionCommentMutationFn = Apollo.MutationFunction<
  *      time: // value for 'time'
  *      author_name: // value for 'author_name'
  *      session_image: // value for 'session_image'
+ *      tags: // value for 'tags'
  *   },
  * });
  */
@@ -1540,6 +1555,82 @@ export type CreateErrorAlertMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateErrorAlertMutation,
     Types.CreateErrorAlertMutationVariables
 >;
+export const CreateRageClickAlertDocument = gql`
+    mutation CreateRageClickAlert(
+        $project_id: ID!
+        $name: String!
+        $count_threshold: Int!
+        $threshold_window: Int!
+        $slack_channels: [SanitizedSlackChannelInput]!
+        $environments: [String]!
+    ) {
+        createRageClickAlert(
+            project_id: $project_id
+            count_threshold: $count_threshold
+            name: $name
+            slack_channels: $slack_channels
+            environments: $environments
+            threshold_window: $threshold_window
+        ) {
+            id
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            Name
+            ExcludedEnvironments
+            CountThreshold
+            ThresholdWindow
+            LastAdminToEditID
+        }
+    }
+`;
+export type CreateRageClickAlertMutationFn = Apollo.MutationFunction<
+    Types.CreateRageClickAlertMutation,
+    Types.CreateRageClickAlertMutationVariables
+>;
+
+/**
+ * __useCreateRageClickAlertMutation__
+ *
+ * To run a mutation, you first call `useCreateRageClickAlertMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateRageClickAlertMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createRageClickAlertMutation, { data, loading, error }] = useCreateRageClickAlertMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      name: // value for 'name'
+ *      count_threshold: // value for 'count_threshold'
+ *      threshold_window: // value for 'threshold_window'
+ *      slack_channels: // value for 'slack_channels'
+ *      environments: // value for 'environments'
+ *   },
+ * });
+ */
+export function useCreateRageClickAlertMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.CreateRageClickAlertMutation,
+        Types.CreateRageClickAlertMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.CreateRageClickAlertMutation,
+        Types.CreateRageClickAlertMutationVariables
+    >(CreateRageClickAlertDocument, baseOptions);
+}
+export type CreateRageClickAlertMutationHookResult = ReturnType<
+    typeof useCreateRageClickAlertMutation
+>;
+export type CreateRageClickAlertMutationResult = Apollo.MutationResult<Types.CreateRageClickAlertMutation>;
+export type CreateRageClickAlertMutationOptions = Apollo.BaseMutationOptions<
+    Types.CreateRageClickAlertMutation,
+    Types.CreateRageClickAlertMutationVariables
+>;
 export const UpdateErrorAlertDocument = gql`
     mutation UpdateErrorAlert(
         $project_id: ID!
@@ -1721,6 +1812,62 @@ export type DeleteSessionAlertMutationResult = Apollo.MutationResult<Types.Delet
 export type DeleteSessionAlertMutationOptions = Apollo.BaseMutationOptions<
     Types.DeleteSessionAlertMutation,
     Types.DeleteSessionAlertMutationVariables
+>;
+export const CreateDefaultAlertsDocument = gql`
+    mutation CreateDefaultAlerts(
+        $project_id: ID!
+        $alert_types: [String!]!
+        $slack_channels: [SanitizedSlackChannelInput!]!
+    ) {
+        createDefaultAlerts(
+            project_id: $project_id
+            alert_types: $alert_types
+            slack_channels: $slack_channels
+        )
+    }
+`;
+export type CreateDefaultAlertsMutationFn = Apollo.MutationFunction<
+    Types.CreateDefaultAlertsMutation,
+    Types.CreateDefaultAlertsMutationVariables
+>;
+
+/**
+ * __useCreateDefaultAlertsMutation__
+ *
+ * To run a mutation, you first call `useCreateDefaultAlertsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateDefaultAlertsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createDefaultAlertsMutation, { data, loading, error }] = useCreateDefaultAlertsMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      alert_types: // value for 'alert_types'
+ *      slack_channels: // value for 'slack_channels'
+ *   },
+ * });
+ */
+export function useCreateDefaultAlertsMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.CreateDefaultAlertsMutation,
+        Types.CreateDefaultAlertsMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.CreateDefaultAlertsMutation,
+        Types.CreateDefaultAlertsMutationVariables
+    >(CreateDefaultAlertsDocument, baseOptions);
+}
+export type CreateDefaultAlertsMutationHookResult = ReturnType<
+    typeof useCreateDefaultAlertsMutation
+>;
+export type CreateDefaultAlertsMutationResult = Apollo.MutationResult<Types.CreateDefaultAlertsMutation>;
+export type CreateDefaultAlertsMutationOptions = Apollo.BaseMutationOptions<
+    Types.CreateDefaultAlertsMutation,
+    Types.CreateDefaultAlertsMutationVariables
 >;
 export const CreateSessionFeedbackAlertDocument = gql`
     mutation CreateSessionFeedbackAlert(
@@ -1961,6 +2108,7 @@ export const CreateNewSessionAlertDocument = gql`
         $slack_channels: [SanitizedSlackChannelInput]!
         $environments: [String]!
         $threshold_window: Int!
+        $exclude_rules: [String]!
     ) {
         createNewSessionAlert(
             project_id: $project_id
@@ -1969,6 +2117,7 @@ export const CreateNewSessionAlertDocument = gql`
             slack_channels: $slack_channels
             environments: $environments
             threshold_window: $threshold_window
+            exclude_rules: $exclude_rules
         ) {
             id
             ChannelsToNotify {
@@ -1980,6 +2129,7 @@ export const CreateNewSessionAlertDocument = gql`
             CountThreshold
             ThresholdWindow
             LastAdminToEditID
+            ExcludeRules
         }
     }
 `;
@@ -2007,6 +2157,7 @@ export type CreateNewSessionAlertMutationFn = Apollo.MutationFunction<
  *      slack_channels: // value for 'slack_channels'
  *      environments: // value for 'environments'
  *      threshold_window: // value for 'threshold_window'
+ *      exclude_rules: // value for 'exclude_rules'
  *   },
  * });
  */
@@ -2038,6 +2189,7 @@ export const UpdateNewSessionAlertDocument = gql`
         $slack_channels: [SanitizedSlackChannelInput]!
         $environments: [String]!
         $threshold_window: Int!
+        $exclude_rules: [String]!
     ) {
         updateNewSessionAlert(
             project_id: $project_id
@@ -2047,6 +2199,7 @@ export const UpdateNewSessionAlertDocument = gql`
             slack_channels: $slack_channels
             environments: $environments
             threshold_window: $threshold_window
+            exclude_rules: $exclude_rules
         ) {
             id
             ChannelsToNotify {
@@ -2058,6 +2211,7 @@ export const UpdateNewSessionAlertDocument = gql`
             CountThreshold
             ThresholdWindow
             LastAdminToEditID
+            ExcludeRules
         }
     }
 `;
@@ -2086,6 +2240,7 @@ export type UpdateNewSessionAlertMutationFn = Apollo.MutationFunction<
  *      slack_channels: // value for 'slack_channels'
  *      environments: // value for 'environments'
  *      threshold_window: // value for 'threshold_window'
+ *      exclude_rules: // value for 'exclude_rules'
  *   },
  * });
  */
@@ -2107,6 +2262,82 @@ export type UpdateNewSessionAlertMutationResult = Apollo.MutationResult<Types.Up
 export type UpdateNewSessionAlertMutationOptions = Apollo.BaseMutationOptions<
     Types.UpdateNewSessionAlertMutation,
     Types.UpdateNewSessionAlertMutationVariables
+>;
+export const UpdateRageClickAlertDocument = gql`
+    mutation UpdateRageClickAlert(
+        $project_id: ID!
+        $rage_click_alert_id: ID!
+        $name: String!
+        $count_threshold: Int!
+        $threshold_window: Int!
+        $slack_channels: [SanitizedSlackChannelInput]!
+        $environments: [String]!
+    ) {
+        updateRageClickAlert(
+            project_id: $project_id
+            rage_click_alert_id: $rage_click_alert_id
+            name: $name
+            count_threshold: $count_threshold
+            slack_channels: $slack_channels
+            environments: $environments
+            threshold_window: $threshold_window
+        ) {
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            ExcludedEnvironments
+            CountThreshold
+            ThresholdWindow
+        }
+    }
+`;
+export type UpdateRageClickAlertMutationFn = Apollo.MutationFunction<
+    Types.UpdateRageClickAlertMutation,
+    Types.UpdateRageClickAlertMutationVariables
+>;
+
+/**
+ * __useUpdateRageClickAlertMutation__
+ *
+ * To run a mutation, you first call `useUpdateRageClickAlertMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateRageClickAlertMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateRageClickAlertMutation, { data, loading, error }] = useUpdateRageClickAlertMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      rage_click_alert_id: // value for 'rage_click_alert_id'
+ *      name: // value for 'name'
+ *      count_threshold: // value for 'count_threshold'
+ *      threshold_window: // value for 'threshold_window'
+ *      slack_channels: // value for 'slack_channels'
+ *      environments: // value for 'environments'
+ *   },
+ * });
+ */
+export function useUpdateRageClickAlertMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.UpdateRageClickAlertMutation,
+        Types.UpdateRageClickAlertMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.UpdateRageClickAlertMutation,
+        Types.UpdateRageClickAlertMutationVariables
+    >(UpdateRageClickAlertDocument, baseOptions);
+}
+export type UpdateRageClickAlertMutationHookResult = ReturnType<
+    typeof useUpdateRageClickAlertMutation
+>;
+export type UpdateRageClickAlertMutationResult = Apollo.MutationResult<Types.UpdateRageClickAlertMutation>;
+export type UpdateRageClickAlertMutationOptions = Apollo.BaseMutationOptions<
+    Types.UpdateRageClickAlertMutation,
+    Types.UpdateRageClickAlertMutationVariables
 >;
 export const UpdateNewUserAlertDocument = gql`
     mutation UpdateNewUserAlert(
@@ -2625,9 +2856,68 @@ export type UpdateErrorGroupIsPublicMutationOptions = Apollo.BaseMutationOptions
     Types.UpdateErrorGroupIsPublicMutation,
     Types.UpdateErrorGroupIsPublicMutationVariables
 >;
+export const UpdateAllowMeterOverageDocument = gql`
+    mutation UpdateAllowMeterOverage(
+        $workspace_id: ID!
+        $allow_meter_overage: Boolean!
+    ) {
+        updateAllowMeterOverage(
+            workspace_id: $workspace_id
+            allow_meter_overage: $allow_meter_overage
+        ) {
+            id
+            allow_meter_overage
+        }
+    }
+`;
+export type UpdateAllowMeterOverageMutationFn = Apollo.MutationFunction<
+    Types.UpdateAllowMeterOverageMutation,
+    Types.UpdateAllowMeterOverageMutationVariables
+>;
+
+/**
+ * __useUpdateAllowMeterOverageMutation__
+ *
+ * To run a mutation, you first call `useUpdateAllowMeterOverageMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateAllowMeterOverageMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateAllowMeterOverageMutation, { data, loading, error }] = useUpdateAllowMeterOverageMutation({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *      allow_meter_overage: // value for 'allow_meter_overage'
+ *   },
+ * });
+ */
+export function useUpdateAllowMeterOverageMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.UpdateAllowMeterOverageMutation,
+        Types.UpdateAllowMeterOverageMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.UpdateAllowMeterOverageMutation,
+        Types.UpdateAllowMeterOverageMutationVariables
+    >(UpdateAllowMeterOverageDocument, baseOptions);
+}
+export type UpdateAllowMeterOverageMutationHookResult = ReturnType<
+    typeof useUpdateAllowMeterOverageMutation
+>;
+export type UpdateAllowMeterOverageMutationResult = Apollo.MutationResult<Types.UpdateAllowMeterOverageMutation>;
+export type UpdateAllowMeterOverageMutationOptions = Apollo.BaseMutationOptions<
+    Types.UpdateAllowMeterOverageMutation,
+    Types.UpdateAllowMeterOverageMutationVariables
+>;
 export const GetSessionPayloadDocument = gql`
-    query GetSessionPayload($session_secure_id: String!) {
-        events(session_secure_id: $session_secure_id)
+    query GetSessionPayload(
+        $session_secure_id: String!
+        $skip_events: Boolean!
+    ) {
+        events(session_secure_id: $session_secure_id) @skip(if: $skip_events)
         errors(session_secure_id: $session_secure_id) {
             id
             error_group_secure_id
@@ -2670,6 +2960,7 @@ export const GetSessionPayloadDocument = gql`
             y_coordinate
             type
             metadata
+            tags
         }
     }
 `;
@@ -2687,6 +2978,7 @@ export const GetSessionPayloadDocument = gql`
  * const { data, loading, error } = useGetSessionPayloadQuery({
  *   variables: {
  *      session_secure_id: // value for 'session_secure_id'
+ *      skip_events: // value for 'skip_events'
  *   },
  * });
  */
@@ -2722,6 +3014,63 @@ export type GetSessionPayloadQueryResult = Apollo.QueryResult<
     Types.GetSessionPayloadQuery,
     Types.GetSessionPayloadQueryVariables
 >;
+export const GetCommentTagsForProjectDocument = gql`
+    query GetCommentTagsForProject($project_id: ID!) {
+        session_comment_tags_for_project(project_id: $project_id) {
+            id
+            name
+        }
+    }
+`;
+
+/**
+ * __useGetCommentTagsForProjectQuery__
+ *
+ * To run a query within a React component, call `useGetCommentTagsForProjectQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCommentTagsForProjectQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCommentTagsForProjectQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetCommentTagsForProjectQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetCommentTagsForProjectQuery,
+        Types.GetCommentTagsForProjectQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetCommentTagsForProjectQuery,
+        Types.GetCommentTagsForProjectQueryVariables
+    >(GetCommentTagsForProjectDocument, baseOptions);
+}
+export function useGetCommentTagsForProjectLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetCommentTagsForProjectQuery,
+        Types.GetCommentTagsForProjectQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetCommentTagsForProjectQuery,
+        Types.GetCommentTagsForProjectQueryVariables
+    >(GetCommentTagsForProjectDocument, baseOptions);
+}
+export type GetCommentTagsForProjectQueryHookResult = ReturnType<
+    typeof useGetCommentTagsForProjectQuery
+>;
+export type GetCommentTagsForProjectLazyQueryHookResult = ReturnType<
+    typeof useGetCommentTagsForProjectLazyQuery
+>;
+export type GetCommentTagsForProjectQueryResult = Apollo.QueryResult<
+    Types.GetCommentTagsForProjectQuery,
+    Types.GetCommentTagsForProjectQueryVariables
+>;
 export const GetSessionDocument = gql`
     query GetSession($secure_id: String!) {
         session(secure_id: $secure_id) {
@@ -2752,10 +3101,13 @@ export const GetSessionDocument = gql`
             }
             object_storage_enabled
             payload_size
+            processed
             within_billing_quota
             client_version
             client_config
             is_public
+            event_counts
+            direct_download_url
         }
     }
 `;
@@ -2880,6 +3232,13 @@ export const GetWorkspaceAdminsDocument = gql`
             name
             secret
         }
+        workspace_invite_links(workspace_id: $workspace_id) {
+            id
+            invitee_email
+            invitee_role
+            expiration_date
+            secret
+        }
     }
 `;
 
@@ -2952,6 +3311,7 @@ export const GetSessionCommentsDocument = gql`
             y_coordinate
             type
             metadata
+            tags
         }
     }
 `;
@@ -3021,6 +3381,7 @@ export const GetNotificationsDocument = gql`
             }
             type
             metadata
+            tags
         }
         error_comments_for_project(project_id: $project_id) {
             id
@@ -3222,9 +3583,11 @@ export type GetErrorCommentsQueryResult = Apollo.QueryResult<
 export const GetEnhancedUserDetailsDocument = gql`
     query GetEnhancedUserDetails($session_secure_id: String!) {
         enhanced_user_details(session_secure_id: $session_secure_id) {
+            id
             name
             bio
             avatar
+            email
             socials {
                 type
                 link
@@ -3355,11 +3718,13 @@ export const SendAdminWorkspaceInviteDocument = gql`
         $workspace_id: ID!
         $email: String!
         $base_url: String!
+        $role: String!
     ) {
         sendAdminWorkspaceInvite(
             workspace_id: $workspace_id
             email: $email
             base_url: $base_url
+            role: $role
         )
     }
 `;
@@ -3384,6 +3749,7 @@ export type SendAdminWorkspaceInviteMutationFn = Apollo.MutationFunction<
  *      workspace_id: // value for 'workspace_id'
  *      email: // value for 'email'
  *      base_url: // value for 'base_url'
+ *      role: // value for 'role'
  *   },
  * });
  */
@@ -3450,6 +3816,7 @@ export const GetSessionsDocument = gql`
                 }
                 first_time
                 user_properties
+                event_counts
             }
             totalCount
         }
@@ -3949,6 +4316,7 @@ export const GetAdminDocument = gql`
     query GetAdmin {
         admin {
             id
+            uid
             name
             email
             photo_url
@@ -4064,19 +4432,96 @@ export type GetProjectQueryResult = Apollo.QueryResult<
     Types.GetProjectQuery,
     Types.GetProjectQueryVariables
 >;
-export const GetBillingDetailsDocument = gql`
-    query GetBillingDetails($project_id: ID!) {
-        billingDetails(project_id: $project_id) {
+export const GetBillingDetailsForProjectDocument = gql`
+    query GetBillingDetailsForProject($project_id: ID!) {
+        billingDetailsForProject(project_id: $project_id) {
             plan {
                 type
                 quota
+                interval
+                membersLimit
             }
             meter
+            membersMeter
             sessionsOutOfQuota
         }
-        project(id: $project_id) {
+        workspace_for_project(project_id: $project_id) {
             id
             trial_end_date
+            billing_period_end
+            next_invoice_date
+            allow_meter_overage
+        }
+    }
+`;
+
+/**
+ * __useGetBillingDetailsForProjectQuery__
+ *
+ * To run a query within a React component, call `useGetBillingDetailsForProjectQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetBillingDetailsForProjectQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetBillingDetailsForProjectQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetBillingDetailsForProjectQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetBillingDetailsForProjectQuery,
+        Types.GetBillingDetailsForProjectQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetBillingDetailsForProjectQuery,
+        Types.GetBillingDetailsForProjectQueryVariables
+    >(GetBillingDetailsForProjectDocument, baseOptions);
+}
+export function useGetBillingDetailsForProjectLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetBillingDetailsForProjectQuery,
+        Types.GetBillingDetailsForProjectQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetBillingDetailsForProjectQuery,
+        Types.GetBillingDetailsForProjectQueryVariables
+    >(GetBillingDetailsForProjectDocument, baseOptions);
+}
+export type GetBillingDetailsForProjectQueryHookResult = ReturnType<
+    typeof useGetBillingDetailsForProjectQuery
+>;
+export type GetBillingDetailsForProjectLazyQueryHookResult = ReturnType<
+    typeof useGetBillingDetailsForProjectLazyQuery
+>;
+export type GetBillingDetailsForProjectQueryResult = Apollo.QueryResult<
+    Types.GetBillingDetailsForProjectQuery,
+    Types.GetBillingDetailsForProjectQueryVariables
+>;
+export const GetBillingDetailsDocument = gql`
+    query GetBillingDetails($workspace_id: ID!) {
+        billingDetails(workspace_id: $workspace_id) {
+            plan {
+                type
+                quota
+                interval
+                membersLimit
+            }
+            meter
+            membersMeter
+            sessionsOutOfQuota
+        }
+        workspace(id: $workspace_id) {
+            id
+            trial_end_date
+            billing_period_end
+            next_invoice_date
+            allow_meter_overage
         }
     }
 `;
@@ -4093,7 +4538,7 @@ export const GetBillingDetailsDocument = gql`
  * @example
  * const { data, loading, error } = useGetBillingDetailsQuery({
  *   variables: {
- *      project_id: // value for 'project_id'
+ *      workspace_id: // value for 'workspace_id'
  *   },
  * });
  */
@@ -4586,6 +5031,11 @@ export type GetAppVersionsQueryResult = Apollo.QueryResult<
 export const GetProjectSuggestionDocument = gql`
     query GetProjectSuggestion($query: String!) {
         projectSuggestion(query: $query) {
+            id
+            name
+            workspace_id
+        }
+        workspaceSuggestion(query: $query) {
             id
             name
         }
@@ -5516,6 +5966,7 @@ export const GetTopUsersDocument = gql`
             total_active_time
             active_time_percentage
             id
+            user_properties
         }
     }
 `;
@@ -5686,6 +6137,69 @@ export type GetDailyErrorsCountQueryResult = Apollo.QueryResult<
     Types.GetDailyErrorsCountQuery,
     Types.GetDailyErrorsCountQueryVariables
 >;
+export const GetRageClicksForProjectDocument = gql`
+    query GetRageClicksForProject($project_id: ID!, $lookBackPeriod: Int!) {
+        rageClicksForProject(
+            project_id: $project_id
+            lookBackPeriod: $lookBackPeriod
+        ) {
+            identifier
+            session_secure_id
+            total_clicks
+            user_properties
+        }
+    }
+`;
+
+/**
+ * __useGetRageClicksForProjectQuery__
+ *
+ * To run a query within a React component, call `useGetRageClicksForProjectQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetRageClicksForProjectQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetRageClicksForProjectQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      lookBackPeriod: // value for 'lookBackPeriod'
+ *   },
+ * });
+ */
+export function useGetRageClicksForProjectQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetRageClicksForProjectQuery,
+        Types.GetRageClicksForProjectQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetRageClicksForProjectQuery,
+        Types.GetRageClicksForProjectQueryVariables
+    >(GetRageClicksForProjectDocument, baseOptions);
+}
+export function useGetRageClicksForProjectLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetRageClicksForProjectQuery,
+        Types.GetRageClicksForProjectQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetRageClicksForProjectQuery,
+        Types.GetRageClicksForProjectQueryVariables
+    >(GetRageClicksForProjectDocument, baseOptions);
+}
+export type GetRageClicksForProjectQueryHookResult = ReturnType<
+    typeof useGetRageClicksForProjectQuery
+>;
+export type GetRageClicksForProjectLazyQueryHookResult = ReturnType<
+    typeof useGetRageClicksForProjectLazyQuery
+>;
+export type GetRageClicksForProjectQueryResult = Apollo.QueryResult<
+    Types.GetRageClicksForProjectQuery,
+    Types.GetRageClicksForProjectQueryVariables
+>;
 export const GetDailyErrorFrequencyDocument = gql`
     query GetDailyErrorFrequency(
         $project_id: ID!
@@ -5807,6 +6321,60 @@ export type GetSlackChannelSuggestionQueryResult = Apollo.QueryResult<
     Types.GetSlackChannelSuggestionQuery,
     Types.GetSlackChannelSuggestionQueryVariables
 >;
+export const GetWorkspaceIsIntegratedWithSlackDocument = gql`
+    query GetWorkspaceIsIntegratedWithSlack($project_id: ID!) {
+        is_integrated_with_slack(project_id: $project_id)
+    }
+`;
+
+/**
+ * __useGetWorkspaceIsIntegratedWithSlackQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspaceIsIntegratedWithSlackQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspaceIsIntegratedWithSlackQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspaceIsIntegratedWithSlackQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetWorkspaceIsIntegratedWithSlackQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetWorkspaceIsIntegratedWithSlackQuery,
+        Types.GetWorkspaceIsIntegratedWithSlackQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetWorkspaceIsIntegratedWithSlackQuery,
+        Types.GetWorkspaceIsIntegratedWithSlackQueryVariables
+    >(GetWorkspaceIsIntegratedWithSlackDocument, baseOptions);
+}
+export function useGetWorkspaceIsIntegratedWithSlackLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetWorkspaceIsIntegratedWithSlackQuery,
+        Types.GetWorkspaceIsIntegratedWithSlackQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetWorkspaceIsIntegratedWithSlackQuery,
+        Types.GetWorkspaceIsIntegratedWithSlackQueryVariables
+    >(GetWorkspaceIsIntegratedWithSlackDocument, baseOptions);
+}
+export type GetWorkspaceIsIntegratedWithSlackQueryHookResult = ReturnType<
+    typeof useGetWorkspaceIsIntegratedWithSlackQuery
+>;
+export type GetWorkspaceIsIntegratedWithSlackLazyQueryHookResult = ReturnType<
+    typeof useGetWorkspaceIsIntegratedWithSlackLazyQuery
+>;
+export type GetWorkspaceIsIntegratedWithSlackQueryResult = Apollo.QueryResult<
+    Types.GetWorkspaceIsIntegratedWithSlackQuery,
+    Types.GetWorkspaceIsIntegratedWithSlackQueryVariables
+>;
 export const GetAlertsPagePayloadDocument = gql`
     query GetAlertsPagePayload($project_id: ID!) {
         is_integrated_with_slack(project_id: $project_id)
@@ -5824,6 +6392,7 @@ export const GetAlertsPagePayloadDocument = gql`
             name
             value
         }
+        identifier_suggestion(project_id: $project_id)
         error_alerts(project_id: $project_id) {
             ChannelsToNotify {
                 webhook_channel
@@ -5864,6 +6433,21 @@ export const GetAlertsPagePayloadDocument = gql`
             LastAdminToEditID
             Name
             id
+            Type
+            ExcludeRules
+        }
+        rage_click_alerts(project_id: $project_id) {
+            id
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            ExcludedEnvironments
+            CountThreshold
+            ThresholdWindow
+            updated_at
+            LastAdminToEditID
+            Name
             Type
         }
         new_user_alerts(project_id: $project_id) {
@@ -6028,4 +6612,58 @@ export type GetCommentMentionSuggestionsLazyQueryHookResult = ReturnType<
 export type GetCommentMentionSuggestionsQueryResult = Apollo.QueryResult<
     Types.GetCommentMentionSuggestionsQuery,
     Types.GetCommentMentionSuggestionsQueryVariables
+>;
+export const GetCustomerPortalUrlDocument = gql`
+    query GetCustomerPortalURL($workspace_id: ID!) {
+        customer_portal_url(workspace_id: $workspace_id)
+    }
+`;
+
+/**
+ * __useGetCustomerPortalUrlQuery__
+ *
+ * To run a query within a React component, call `useGetCustomerPortalUrlQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCustomerPortalUrlQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCustomerPortalUrlQuery({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *   },
+ * });
+ */
+export function useGetCustomerPortalUrlQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetCustomerPortalUrlQuery,
+        Types.GetCustomerPortalUrlQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetCustomerPortalUrlQuery,
+        Types.GetCustomerPortalUrlQueryVariables
+    >(GetCustomerPortalUrlDocument, baseOptions);
+}
+export function useGetCustomerPortalUrlLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetCustomerPortalUrlQuery,
+        Types.GetCustomerPortalUrlQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetCustomerPortalUrlQuery,
+        Types.GetCustomerPortalUrlQueryVariables
+    >(GetCustomerPortalUrlDocument, baseOptions);
+}
+export type GetCustomerPortalUrlQueryHookResult = ReturnType<
+    typeof useGetCustomerPortalUrlQuery
+>;
+export type GetCustomerPortalUrlLazyQueryHookResult = ReturnType<
+    typeof useGetCustomerPortalUrlLazyQuery
+>;
+export type GetCustomerPortalUrlQueryResult = Apollo.QueryResult<
+    Types.GetCustomerPortalUrlQuery,
+    Types.GetCustomerPortalUrlQueryVariables
 >;

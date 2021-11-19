@@ -1,13 +1,15 @@
-import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext';
+import JsonViewer from '@components/JsonViewer/JsonViewer';
+import Tag from '@components/Tag/Tag';
+import { DetailedPanel } from '@pages/Player/context/PlayerUIContext';
 import { message } from 'antd';
 import classNames from 'classnames';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import GoToButton from '../../../../../../../components/Button/GoToButton';
 import TextHighlighter from '../../../../../../../components/TextHighlighter/TextHighlighter';
 import { ErrorObject } from '../../../../../../../graph/generated/schemas';
 import { MillisToMinutesAndSeconds } from '../../../../../../../util/time';
-import { useReplayerContext } from '../../../../../ReplayerContext';
+import { ReplayerContextInterface } from '../../../../../ReplayerContext';
 import styles from './ErrorCard.module.scss';
 
 export enum ErrorCardState {
@@ -20,84 +22,129 @@ interface Props {
     state: ErrorCardState;
     setSelectedError: () => void;
     searchQuery: string;
+    detailedPanel?: DetailedPanel;
+    replayerContext: Pick<ReplayerContextInterface, 'replayer' | 'setTime'>;
 }
 
-const ErrorCard = ({ error, setSelectedError, searchQuery, state }: Props) => {
-    const { replayer, setTime } = useReplayerContext();
-    const { detailedPanel } = usePlayerUIContext();
+const ErrorCard = React.memo(
+    ({
+        error,
+        setSelectedError,
+        searchQuery,
+        state,
+        detailedPanel,
+        replayerContext: { replayer, setTime },
+    }: Props) => {
+        const [textAsJson, setTextAsJson] = useState<null | any>(null);
 
-    return (
-        <button
-            key={error.id}
-            className={classNames(styles.errorCard, {
-                [styles.active]: detailedPanel?.id === error.id,
-            })}
-            onClick={setSelectedError}
-        >
-            <div
-                className={styles.currentIndicatorWrapper}
-                style={{
-                    visibility:
-                        state === ErrorCardState.Active ? 'visible' : 'hidden',
-                }}
+        useEffect(() => {
+            if (error.event) {
+                const parsedTitle = getErrorDescription(error);
+                try {
+                    const json = JSON.parse(parsedTitle);
+                    if (typeof json === 'object') {
+                        setTextAsJson(json);
+                    }
+                } catch {
+                    setTextAsJson(null);
+                }
+            }
+        }, [error]);
+
+        return (
+            <button
+                key={error.id}
+                className={classNames(styles.errorCard, {
+                    [styles.active]: detailedPanel?.id === error.id,
+                })}
+                onClick={setSelectedError}
             >
-                <div className={styles.currentIndicator} />
-            </div>
-            <div>
-                <div className={styles.header}>
-                    <h4>{error.type}</h4>
-                    <p>
-                        <TextHighlighter
-                            searchWords={[searchQuery]}
-                            textToHighlight={error.source || ''}
-                        />
-                        {error.structured_stack_trace[0] &&
-                            ` at line ${error.structured_stack_trace[0].lineNumber}:${error.structured_stack_trace[0].columnNumber}`}
-                    </p>
+                <div
+                    className={styles.currentIndicatorWrapper}
+                    style={{
+                        visibility:
+                            state === ErrorCardState.Active
+                                ? 'visible'
+                                : 'hidden',
+                    }}
+                >
+                    <div className={styles.currentIndicator} />
                 </div>
                 <div>
-                    <p className={styles.description}>
-                        <TextHighlighter
-                            searchWords={[searchQuery]}
-                            textToHighlight={getErrorDescription(error)}
-                        />
-                    </p>
+                    <div className={styles.header}>
+                        <Tag
+                            infoTooltipText="This is where the error was thrown."
+                            backgroundColor="var(--color-orange-300)"
+                        >
+                            {error.type}
+                        </Tag>
+                        <p>
+                            <TextHighlighter
+                                searchWords={[searchQuery]}
+                                textToHighlight={error.source || ''}
+                            />
+                            {error.structured_stack_trace[0] &&
+                                ` at line ${error.structured_stack_trace[0].lineNumber}:${error.structured_stack_trace[0].columnNumber}`}
+                        </p>
+                    </div>
+                    <div>
+                        <p className={styles.description}>
+                            {textAsJson ? (
+                                <div
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                    }}
+                                >
+                                    <JsonViewer
+                                        src={textAsJson}
+                                        collapsed={1}
+                                    />
+                                </div>
+                            ) : (
+                                <TextHighlighter
+                                    searchWords={[searchQuery]}
+                                    textToHighlight={getErrorDescription(error)}
+                                />
+                            )}
+                        </p>
+                    </div>
                 </div>
-            </div>
-            <div className={styles.actions}>
-                {error.timestamp && (
-                    <GoToButton
-                        className={styles.goToButton}
-                        onClick={(e) => {
-                            e.stopPropagation();
+                <div className={styles.actions}>
+                    {error.timestamp && (
+                        <GoToButton
+                            className={styles.goToButton}
+                            onClick={(e) => {
+                                e.stopPropagation();
 
-                            const dateTimeErrorCreated = new Date(
-                                error.timestamp
-                            );
-                            const startTime = replayer?.getMetaData().startTime;
-                            if (startTime) {
-                                const dateTimeSessionStart = new Date(
-                                    startTime
+                                const dateTimeErrorCreated = new Date(
+                                    error.timestamp
                                 );
-                                const deltaMilliseconds =
-                                    dateTimeErrorCreated.getTime() -
-                                    dateTimeSessionStart.getTime();
-                                setTime(deltaMilliseconds);
+                                const startTime = replayer?.getMetaData()
+                                    .startTime;
+                                if (startTime) {
+                                    const dateTimeSessionStart = new Date(
+                                        startTime
+                                    );
+                                    const deltaMilliseconds =
+                                        dateTimeErrorCreated.getTime() -
+                                        dateTimeSessionStart.getTime();
+                                    setTime(deltaMilliseconds);
 
-                                message.success(
-                                    `Changed player time to when error was thrown at ${MillisToMinutesAndSeconds(
-                                        deltaMilliseconds
-                                    )}.`
-                                );
-                            }
-                        }}
-                        label="Goto"
-                    />
-                )}
-            </div>
-        </button>
-    );
-};
+                                    message.success(
+                                        `Changed player time to when error was thrown at ${MillisToMinutesAndSeconds(
+                                            deltaMilliseconds
+                                        )}.`
+                                    );
+                                }
+                            }}
+                            label="Goto"
+                        />
+                    )}
+                </div>
+            </button>
+        );
+    }
+);
 
 export default ErrorCard;
 

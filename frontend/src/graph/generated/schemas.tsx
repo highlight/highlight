@@ -62,6 +62,8 @@ export type Session = {
     payload_size?: Maybe<Scalars['Int64']>;
     within_billing_quota?: Maybe<Scalars['Boolean']>;
     is_public?: Maybe<Scalars['Boolean']>;
+    event_counts?: Maybe<Scalars['String']>;
+    direct_download_url?: Maybe<Scalars['String']>;
 };
 
 export type RageClickEvent = {
@@ -74,17 +76,28 @@ export type RageClickEvent = {
     total_clicks: Scalars['Int'];
 };
 
+export type RageClickEventForProject = {
+    __typename?: 'RageClickEventForProject';
+    identifier: Scalars['String'];
+    session_secure_id: Scalars['String'];
+    total_clicks: Scalars['Int'];
+    user_properties: Scalars['String'];
+};
+
 export type BillingDetails = {
     __typename?: 'BillingDetails';
     plan: Plan;
     meter: Scalars['Int64'];
+    membersMeter: Scalars['Int64'];
     sessionsOutOfQuota: Scalars['Int64'];
 };
 
 export type Plan = {
     __typename?: 'Plan';
     type: PlanType;
+    interval: SubscriptionInterval;
     quota: Scalars['Int'];
+    membersLimit: Scalars['Int'];
 };
 
 export enum PlanType {
@@ -94,12 +107,19 @@ export enum PlanType {
     Enterprise = 'Enterprise',
 }
 
+export enum SubscriptionInterval {
+    Monthly = 'Monthly',
+    Annual = 'Annual',
+}
+
 export type EnhancedUserDetailsResult = {
     __typename?: 'EnhancedUserDetailsResult';
+    id?: Maybe<Scalars['ID']>;
     name?: Maybe<Scalars['String']>;
     avatar?: Maybe<Scalars['String']>;
     bio?: Maybe<Scalars['String']>;
     socials?: Maybe<Array<Maybe<SocialLink>>>;
+    email?: Maybe<Scalars['String']>;
 };
 
 export type SocialLink = {
@@ -138,7 +158,6 @@ export type Project = {
     verbose_id: Scalars['String'];
     name: Scalars['String'];
     billing_email?: Maybe<Scalars['String']>;
-    trial_end_date?: Maybe<Scalars['Timestamp']>;
     secret?: Maybe<Scalars['String']>;
     workspace_id: Scalars['ID'];
 };
@@ -151,6 +170,10 @@ export type Workspace = {
     slack_channels?: Maybe<Scalars['String']>;
     secret?: Maybe<Scalars['String']>;
     projects: Array<Maybe<Project>>;
+    trial_end_date?: Maybe<Scalars['Timestamp']>;
+    billing_period_end?: Maybe<Scalars['Timestamp']>;
+    next_invoice_date?: Maybe<Scalars['Timestamp']>;
+    allow_meter_overage: Scalars['Boolean'];
 };
 
 export type Segment = {
@@ -253,6 +276,7 @@ export type TopUsersPayload = {
     identifier: Scalars['String'];
     total_active_time: Scalars['Int'];
     active_time_percentage: Scalars['Float'];
+    user_properties: Scalars['String'];
 };
 
 export type NewUsersCount = {
@@ -318,6 +342,7 @@ export type ErrorSearchParamsInput = {
     visited_url?: Maybe<Scalars['String']>;
     state?: Maybe<ErrorState>;
     event?: Maybe<Scalars['String']>;
+    type?: Maybe<Scalars['String']>;
 };
 
 export type ErrorSearchParams = {
@@ -374,6 +399,7 @@ export type Admin = {
     __typename?: 'Admin';
     id: Scalars['ID'];
     name: Scalars['String'];
+    uid: Scalars['String'];
     email: Scalars['String'];
     photo_url?: Maybe<Scalars['String']>;
     role: Scalars['String'];
@@ -421,6 +447,18 @@ export type SessionComment = {
     y_coordinate?: Maybe<Scalars['Float']>;
     type: SessionCommentType;
     metadata?: Maybe<Scalars['Any']>;
+    tags: Array<Maybe<Scalars['String']>>;
+};
+
+export type SessionCommentTag = {
+    __typename?: 'SessionCommentTag';
+    id: Scalars['ID'];
+    name: Scalars['String'];
+};
+
+export type SessionCommentTagInput = {
+    id?: Maybe<Scalars['ID']>;
+    name: Scalars['String'];
 };
 
 export type ErrorComment = {
@@ -505,6 +543,16 @@ export type SessionAlert = {
     ThresholdWindow: Scalars['Int'];
     LastAdminToEditID?: Maybe<Scalars['ID']>;
     Type: Scalars['String'];
+    ExcludeRules: Array<Maybe<Scalars['String']>>;
+};
+
+export type WorkspaceInviteLink = {
+    __typename?: 'WorkspaceInviteLink';
+    id: Scalars['ID'];
+    invitee_email?: Maybe<Scalars['String']>;
+    invitee_role: Scalars['String'];
+    expiration_date: Scalars['Timestamp'];
+    secret: Scalars['String'];
 };
 
 export type Query = {
@@ -512,6 +560,7 @@ export type Query = {
     session?: Maybe<Session>;
     events?: Maybe<Array<Maybe<Scalars['Any']>>>;
     rage_clicks: Array<RageClickEvent>;
+    rageClicksForProject: Array<RageClickEventForProject>;
     error_groups?: Maybe<ErrorResults>;
     error_group?: Maybe<ErrorGroup>;
     messages?: Maybe<Array<Maybe<Scalars['Any']>>>;
@@ -519,6 +568,7 @@ export type Query = {
     errors?: Maybe<Array<Maybe<ErrorObject>>>;
     resources?: Maybe<Array<Maybe<Scalars['Any']>>>;
     session_comments: Array<Maybe<SessionComment>>;
+    session_comment_tags_for_project: Array<SessionCommentTag>;
     session_comments_for_admin: Array<Maybe<SessionComment>>;
     session_comments_for_project: Array<Maybe<SessionComment>>;
     error_comments: Array<Maybe<ErrorComment>>;
@@ -539,6 +589,7 @@ export type Query = {
     averageSessionLength?: Maybe<AverageSessionLength>;
     userFingerprintCount?: Maybe<UserFingerprintCount>;
     sessions: SessionResults;
+    billingDetailsForProject: BillingDetails;
     billingDetails: BillingDetails;
     field_suggestion?: Maybe<Array<Maybe<Field>>>;
     property_suggestion?: Maybe<Array<Maybe<Field>>>;
@@ -551,33 +602,41 @@ export type Query = {
     track_properties_alerts: Array<Maybe<SessionAlert>>;
     user_properties_alerts: Array<Maybe<SessionAlert>>;
     new_session_alerts: Array<Maybe<SessionAlert>>;
-    projectSuggestion?: Maybe<Array<Maybe<Project>>>;
+    rage_click_alerts: Array<Maybe<SessionAlert>>;
+    projectSuggestion: Array<Maybe<Project>>;
+    workspaceSuggestion: Array<Maybe<Workspace>>;
     environment_suggestion?: Maybe<Array<Maybe<Field>>>;
+    identifier_suggestion: Array<Maybe<Scalars['String']>>;
     app_version_suggestion: Array<Maybe<Scalars['String']>>;
     slack_channel_suggestion?: Maybe<Array<Maybe<SanitizedSlackChannel>>>;
     slack_members: Array<Maybe<SanitizedSlackChannel>>;
     is_integrated_with_slack: Scalars['Boolean'];
     project?: Maybe<Project>;
     workspace?: Maybe<Workspace>;
+    workspace_invite_links: WorkspaceInviteLink;
     workspace_for_project?: Maybe<Workspace>;
     admin?: Maybe<Admin>;
     segments?: Maybe<Array<Maybe<Segment>>>;
     error_segments?: Maybe<Array<Maybe<ErrorSegment>>>;
     api_key_to_org_id?: Maybe<Scalars['ID']>;
+    customer_portal_url: Scalars['String'];
 };
 
 export type QuerySessionArgs = {
-    id?: Maybe<Scalars['ID']>;
-    secure_id?: Maybe<Scalars['String']>;
+    secure_id: Scalars['String'];
 };
 
 export type QueryEventsArgs = {
-    session_id?: Maybe<Scalars['ID']>;
-    session_secure_id?: Maybe<Scalars['String']>;
+    session_secure_id: Scalars['String'];
 };
 
 export type QueryRage_ClicksArgs = {
-    session_secure_id?: Maybe<Scalars['String']>;
+    session_secure_id: Scalars['String'];
+};
+
+export type QueryRageClicksForProjectArgs = {
+    project_id: Scalars['ID'];
+    lookBackPeriod: Scalars['Int'];
 };
 
 export type QueryError_GroupsArgs = {
@@ -587,33 +646,31 @@ export type QueryError_GroupsArgs = {
 };
 
 export type QueryError_GroupArgs = {
-    id?: Maybe<Scalars['ID']>;
-    secure_id?: Maybe<Scalars['String']>;
+    secure_id: Scalars['String'];
 };
 
 export type QueryMessagesArgs = {
-    session_id?: Maybe<Scalars['ID']>;
-    session_secure_id?: Maybe<Scalars['String']>;
+    session_secure_id: Scalars['String'];
 };
 
 export type QueryEnhanced_User_DetailsArgs = {
-    session_id?: Maybe<Scalars['ID']>;
-    session_secure_id?: Maybe<Scalars['String']>;
+    session_secure_id: Scalars['String'];
 };
 
 export type QueryErrorsArgs = {
-    session_id?: Maybe<Scalars['ID']>;
-    session_secure_id?: Maybe<Scalars['String']>;
+    session_secure_id: Scalars['String'];
 };
 
 export type QueryResourcesArgs = {
-    session_id?: Maybe<Scalars['ID']>;
-    session_secure_id?: Maybe<Scalars['String']>;
+    session_secure_id: Scalars['String'];
 };
 
 export type QuerySession_CommentsArgs = {
-    session_id?: Maybe<Scalars['ID']>;
-    session_secure_id?: Maybe<Scalars['String']>;
+    session_secure_id: Scalars['String'];
+};
+
+export type QuerySession_Comment_Tags_For_ProjectArgs = {
+    project_id: Scalars['ID'];
 };
 
 export type QuerySession_Comments_For_ProjectArgs = {
@@ -621,8 +678,7 @@ export type QuerySession_Comments_For_ProjectArgs = {
 };
 
 export type QueryError_CommentsArgs = {
-    error_group_id?: Maybe<Scalars['ID']>;
-    error_group_secure_id?: Maybe<Scalars['String']>;
+    error_group_secure_id: Scalars['String'];
 };
 
 export type QueryError_Comments_For_ProjectArgs = {
@@ -665,8 +721,7 @@ export type QueryDailyErrorsCountArgs = {
 
 export type QueryDailyErrorFrequencyArgs = {
     project_id: Scalars['ID'];
-    error_group_id?: Maybe<Scalars['ID']>;
-    error_group_secure_id?: Maybe<Scalars['String']>;
+    error_group_secure_id: Scalars['String'];
     date_offset: Scalars['Int'];
 };
 
@@ -703,8 +758,12 @@ export type QuerySessionsArgs = {
     params?: Maybe<SearchParamsInput>;
 };
 
-export type QueryBillingDetailsArgs = {
+export type QueryBillingDetailsForProjectArgs = {
     project_id: Scalars['ID'];
+};
+
+export type QueryBillingDetailsArgs = {
+    workspace_id: Scalars['ID'];
 };
 
 export type QueryField_SuggestionArgs = {
@@ -749,11 +808,23 @@ export type QueryNew_Session_AlertsArgs = {
     project_id: Scalars['ID'];
 };
 
+export type QueryRage_Click_AlertsArgs = {
+    project_id: Scalars['ID'];
+};
+
 export type QueryProjectSuggestionArgs = {
     query: Scalars['String'];
 };
 
+export type QueryWorkspaceSuggestionArgs = {
+    query: Scalars['String'];
+};
+
 export type QueryEnvironment_SuggestionArgs = {
+    project_id: Scalars['ID'];
+};
+
+export type QueryIdentifier_SuggestionArgs = {
     project_id: Scalars['ID'];
 };
 
@@ -781,6 +852,10 @@ export type QueryWorkspaceArgs = {
     id: Scalars['ID'];
 };
 
+export type QueryWorkspace_Invite_LinksArgs = {
+    workspace_id: Scalars['ID'];
+};
+
 export type QueryWorkspace_For_ProjectArgs = {
     project_id: Scalars['ID'];
 };
@@ -797,6 +872,10 @@ export type QueryApi_Key_To_Org_IdArgs = {
     api_key: Scalars['String'];
 };
 
+export type QueryCustomer_Portal_UrlArgs = {
+    workspace_id: Scalars['ID'];
+};
+
 export type Mutation = {
     __typename?: 'Mutation';
     createProject?: Maybe<Project>;
@@ -809,8 +888,8 @@ export type Mutation = {
     deleteProject?: Maybe<Scalars['Boolean']>;
     sendAdminProjectInvite?: Maybe<Scalars['String']>;
     sendAdminWorkspaceInvite?: Maybe<Scalars['String']>;
-    addAdminToProject?: Maybe<Scalars['ID']>;
     addAdminToWorkspace?: Maybe<Scalars['ID']>;
+    changeAdminRole: Scalars['Boolean'];
     deleteAdminFromProject?: Maybe<Scalars['ID']>;
     deleteAdminFromWorkspace?: Maybe<Scalars['ID']>;
     createSegment?: Maybe<Segment>;
@@ -828,11 +907,14 @@ export type Mutation = {
     deleteErrorComment?: Maybe<Scalars['Boolean']>;
     openSlackConversation?: Maybe<Scalars['Boolean']>;
     addSlackBotIntegrationToProject: Scalars['Boolean'];
+    createDefaultAlerts?: Maybe<Scalars['Boolean']>;
+    createRageClickAlert?: Maybe<SessionAlert>;
     createErrorAlert?: Maybe<ErrorAlert>;
     updateErrorAlert?: Maybe<ErrorAlert>;
     deleteErrorAlert?: Maybe<ErrorAlert>;
     updateSessionFeedbackAlert?: Maybe<SessionAlert>;
     createSessionFeedbackAlert?: Maybe<SessionAlert>;
+    updateRageClickAlert?: Maybe<SessionAlert>;
     updateNewUserAlert?: Maybe<SessionAlert>;
     createNewUserAlert?: Maybe<SessionAlert>;
     updateTrackPropertiesAlert?: Maybe<SessionAlert>;
@@ -844,6 +926,7 @@ export type Mutation = {
     createNewSessionAlert?: Maybe<SessionAlert>;
     updateSessionIsPublic?: Maybe<Session>;
     updateErrorGroupIsPublic?: Maybe<ErrorGroup>;
+    updateAllowMeterOverage?: Maybe<Workspace>;
 };
 
 export type MutationCreateProjectArgs = {
@@ -867,20 +950,17 @@ export type MutationEditWorkspaceArgs = {
 };
 
 export type MutationMarkSessionAsViewedArgs = {
-    id?: Maybe<Scalars['ID']>;
-    secure_id?: Maybe<Scalars['String']>;
+    secure_id: Scalars['String'];
     viewed?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationMarkSessionAsStarredArgs = {
-    id?: Maybe<Scalars['ID']>;
-    secure_id?: Maybe<Scalars['String']>;
+    secure_id: Scalars['String'];
     starred?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationUpdateErrorGroupStateArgs = {
-    id?: Maybe<Scalars['ID']>;
-    secure_id?: Maybe<Scalars['String']>;
+    secure_id: Scalars['String'];
     state: Scalars['String'];
 };
 
@@ -898,16 +978,18 @@ export type MutationSendAdminWorkspaceInviteArgs = {
     workspace_id: Scalars['ID'];
     email: Scalars['String'];
     base_url: Scalars['String'];
-};
-
-export type MutationAddAdminToProjectArgs = {
-    project_id: Scalars['ID'];
-    invite_id: Scalars['String'];
+    role: Scalars['String'];
 };
 
 export type MutationAddAdminToWorkspaceArgs = {
     workspace_id: Scalars['ID'];
     invite_id: Scalars['String'];
+};
+
+export type MutationChangeAdminRoleArgs = {
+    workspace_id: Scalars['ID'];
+    admin_id: Scalars['ID'];
+    new_role: Scalars['String'];
 };
 
 export type MutationDeleteAdminFromProjectArgs = {
@@ -957,18 +1039,18 @@ export type MutationDeleteErrorSegmentArgs = {
 };
 
 export type MutationCreateOrUpdateStripeSubscriptionArgs = {
-    project_id: Scalars['ID'];
+    workspace_id: Scalars['ID'];
     plan_type: PlanType;
+    interval: SubscriptionInterval;
 };
 
 export type MutationUpdateBillingDetailsArgs = {
-    project_id: Scalars['ID'];
+    workspace_id: Scalars['ID'];
 };
 
 export type MutationCreateSessionCommentArgs = {
     project_id: Scalars['ID'];
-    session_id?: Maybe<Scalars['ID']>;
-    session_secure_id?: Maybe<Scalars['String']>;
+    session_secure_id: Scalars['String'];
     session_timestamp: Scalars['Int'];
     text: Scalars['String'];
     text_for_email: Scalars['String'];
@@ -980,6 +1062,7 @@ export type MutationCreateSessionCommentArgs = {
     time: Scalars['Float'];
     author_name: Scalars['String'];
     session_image?: Maybe<Scalars['String']>;
+    tags: Array<Maybe<SessionCommentTagInput>>;
 };
 
 export type MutationDeleteSessionCommentArgs = {
@@ -988,8 +1071,7 @@ export type MutationDeleteSessionCommentArgs = {
 
 export type MutationCreateErrorCommentArgs = {
     project_id: Scalars['ID'];
-    error_group_id?: Maybe<Scalars['ID']>;
-    error_group_secure_id?: Maybe<Scalars['String']>;
+    error_group_secure_id: Scalars['String'];
     text: Scalars['String'];
     text_for_email: Scalars['String'];
     tagged_admins: Array<Maybe<SanitizedAdminInput>>;
@@ -1012,6 +1094,21 @@ export type MutationAddSlackBotIntegrationToProjectArgs = {
     project_id: Scalars['ID'];
     code: Scalars['String'];
     redirect_path: Scalars['String'];
+};
+
+export type MutationCreateDefaultAlertsArgs = {
+    project_id: Scalars['ID'];
+    alert_types: Array<Scalars['String']>;
+    slack_channels: Array<SanitizedSlackChannelInput>;
+};
+
+export type MutationCreateRageClickAlertArgs = {
+    project_id: Scalars['ID'];
+    name: Scalars['String'];
+    count_threshold: Scalars['Int'];
+    threshold_window: Scalars['Int'];
+    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+    environments: Array<Maybe<Scalars['String']>>;
 };
 
 export type MutationCreateErrorAlertArgs = {
@@ -1050,6 +1147,16 @@ export type MutationUpdateSessionFeedbackAlertArgs = {
 
 export type MutationCreateSessionFeedbackAlertArgs = {
     project_id: Scalars['ID'];
+    name: Scalars['String'];
+    count_threshold: Scalars['Int'];
+    threshold_window: Scalars['Int'];
+    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+    environments: Array<Maybe<Scalars['String']>>;
+};
+
+export type MutationUpdateRageClickAlertArgs = {
+    project_id: Scalars['ID'];
+    rage_click_alert_id: Scalars['ID'];
     name: Scalars['String'];
     count_threshold: Scalars['Int'];
     threshold_window: Scalars['Int'];
@@ -1127,6 +1234,7 @@ export type MutationUpdateNewSessionAlertArgs = {
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;
     threshold_window: Scalars['Int'];
+    exclude_rules: Array<Maybe<Scalars['String']>>;
 };
 
 export type MutationCreateNewSessionAlertArgs = {
@@ -1136,16 +1244,20 @@ export type MutationCreateNewSessionAlertArgs = {
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;
     threshold_window: Scalars['Int'];
+    exclude_rules: Array<Maybe<Scalars['String']>>;
 };
 
 export type MutationUpdateSessionIsPublicArgs = {
-    session_id?: Maybe<Scalars['ID']>;
-    session_secure_id?: Maybe<Scalars['String']>;
+    session_secure_id: Scalars['String'];
     is_public: Scalars['Boolean'];
 };
 
 export type MutationUpdateErrorGroupIsPublicArgs = {
-    error_group_id?: Maybe<Scalars['ID']>;
-    error_group_secure_id?: Maybe<Scalars['String']>;
+    error_group_secure_id: Scalars['String'];
     is_public: Scalars['Boolean'];
+};
+
+export type MutationUpdateAllowMeterOverageArgs = {
+    workspace_id: Scalars['ID'];
+    allow_meter_overage: Scalars['Boolean'];
 };

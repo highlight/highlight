@@ -14,9 +14,9 @@ const BACKGROUND_COLORS = [
     '--color-blue-400',
     '--color-blue-300',
     '--color-purple-400',
-    '--color-green',
-    '--color-green-dark',
-    '--color-yellow',
+    '--color-green-400',
+    '--color-green-500',
+    '--color-yellow-400',
     '--color-orange-400',
     '--color-red-300',
 ] as const;

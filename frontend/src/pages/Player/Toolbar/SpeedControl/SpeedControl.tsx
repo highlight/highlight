@@ -1,11 +1,10 @@
-import { H } from 'highlight.run';
-import React, { useEffect } from 'react';
+import PopoverMenu from '@components/PopoverMenu/PopoverMenu';
+import SvgCheckCircleIcon from '@icons/CheckCircleIcon';
+import React from 'react';
 import { BiMinus } from 'react-icons/bi';
 import { BsPlus } from 'react-icons/bs';
 
 import Button from '../../../../components/Button/Button/Button';
-import Tooltip from '../../../../components/Tooltip/Tooltip';
-import { useGetAdminQuery } from '../../../../graph/generated/hooks';
 import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration';
 import styles from './SpeedControl.module.scss';
 
@@ -18,7 +17,6 @@ interface Props {
 }
 
 const SpeedControl = ({ disabled }: Props) => {
-    const { data: admin_data } = useGetAdminQuery({ skip: false });
     const { playerSpeed, setPlayerSpeed } = usePlayerConfiguration();
 
     const onHandleSpeedChange = (type: 'DECREMENT' | 'INCREMENT') => {
@@ -39,13 +37,6 @@ const SpeedControl = ({ disabled }: Props) => {
         setPlayerSpeed(newSpeed);
     };
 
-    useEffect(() => {
-        if (admin_data?.admin?.email === 'lorilyn@impira.com') {
-            H.track('PlayerSpeedOverride', { admin: 'lorilyn@impira.com' });
-            setPlayerSpeed(1.0);
-        }
-    }, [admin_data?.admin?.email, setPlayerSpeed]);
-
     return (
         <div className={styles.speedControlContainer}>
             <Button
@@ -59,14 +50,46 @@ const SpeedControl = ({ disabled }: Props) => {
             >
                 <BiMinus />
             </Button>
-            <Tooltip
-                title="Control the playback speed of the session player."
-                arrowPointAtCenter
-            >
-                <span className={styles.speedText}>
-                    {playerSpeed.toFixed(1)}x
-                </span>
-            </Tooltip>
+            <PopoverMenu
+                // This is a range() function that generates a list from `PLAYBACK_MIN_SPEED` to `PLAYBACK_MAX_SPEED` in increments of `1`.
+                menuItems={[
+                    0.5,
+                    ...Array.from(
+                        new Array(
+                            Math.floor(
+                                PLAYBACK_MAX_SPEED - PLAYBACK_MIN_SPEED
+                            ) + 1
+                        ),
+                        (_, i) => i + 1
+                    ),
+                ].map((speed) => ({
+                    displayName: `${speed.toFixed(1)}x`,
+                    action: () => {
+                        setPlayerSpeed(speed);
+                    },
+                    icon:
+                        playerSpeed === speed ? (
+                            <SvgCheckCircleIcon className={styles.icon} />
+                        ) : (
+                            <div className={styles.icon} />
+                        ),
+                    iconPosition: 'ending',
+                    active: speed === playerSpeed,
+                }))}
+                buttonTrackingId="SpeedControlMenu"
+                buttonContentsOverride={
+                    <Button
+                        trackingId="SpeedControlMenu"
+                        size="small"
+                        className={styles.shortcutButton}
+                    >
+                        <span className={styles.speedText}>
+                            {playerSpeed.toFixed(1)}x
+                        </span>
+                    </Button>
+                }
+                header={<h3>Playback Speed</h3>}
+            />
             <Button
                 trackingId="IncreasePlayerSpeed"
                 className={styles.speedButton}

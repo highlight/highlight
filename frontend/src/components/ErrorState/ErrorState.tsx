@@ -1,4 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext';
+import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
+import Space from '@components/Space/Space';
+import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React, { useState } from 'react';
 
@@ -11,14 +14,21 @@ import styles from './ErrorState.module.scss';
 export const ErrorState = ({
     message,
     errorString,
+    shownWithHeader = false,
 }: {
     message: string;
     errorString?: string;
+    shownWithHeader?: boolean;
 }) => {
     const { isLoggedIn } = useAuthContext();
     const [showError, setShowError] = useState(false);
+
     return (
-        <div className={styles.errorWrapper}>
+        <div
+            className={classNames(styles.errorWrapper, {
+                [styles.shownWithHeader]: shownWithHeader,
+            })}
+        >
             <ElevatedCard title="Woops, something's wrong!">
                 <p className={styles.errorBody}>
                     {message}
@@ -63,24 +73,43 @@ export const ErrorState = ({
                             </Button>
                         </>
                     ) : (
-                        <>
-                            <a href="/">
-                                <Button
-                                    type="primary"
-                                    trackingId="ErrorStateSignIn"
-                                >
-                                    Sign in
-                                </Button>
-                            </a>
-                            <a href="/?sign_up=1">
-                                <Button
-                                    trackingId="ErrorStateSignUp"
-                                    style={{ marginLeft: 10 }}
-                                >
-                                    Sign up
-                                </Button>
-                            </a>
-                        </>
+                        <Space size="small">
+                            <ButtonLink
+                                type="primary"
+                                trackingId="ErrorStateSignIn"
+                                {...(isLoggedIn
+                                    ? { to: '/', href: undefined }
+                                    : {
+                                          to: undefined,
+                                          href: '/',
+                                          anchor: true,
+                                      })}
+                            >
+                                Sign in
+                            </ButtonLink>
+                            <ButtonLink
+                                trackingId="ErrorStateSignUp"
+                                type="default"
+                                {...(isLoggedIn
+                                    ? {
+                                          to: {
+                                              pathname: '/?sign_up=1',
+                                              state: {
+                                                  previousPathName:
+                                                      window.location.pathname,
+                                              },
+                                          },
+                                          href: undefined,
+                                      }
+                                    : {
+                                          to: undefined,
+                                          href: '/?sign_up=1',
+                                          anchor: true,
+                                      })}
+                            >
+                                Sign up
+                            </ButtonLink>
+                        </Space>
                     )}
                 </div>
             </ElevatedCard>

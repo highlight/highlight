@@ -29,6 +29,7 @@
         }
 
         > svg {
+            color: var(--text-primary);
             height: var(--size-icon);
             transition: transform 0.2s ease-in-out;
             width: var(--size-icon);

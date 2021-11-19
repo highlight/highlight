@@ -1,3 +1,4 @@
+import { SessionCommentTextBody } from '@components/Comment/SessionComment/SessionComment';
 import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
@@ -53,7 +54,11 @@ const CommentNotification = ({
                 <p className={notificationStyles.timestamp}>
                     <RelativeTime datetime={notification?.updated_at} />
                 </p>
-                <CommentTextBody commentText={notification?.text || ''} />
+                {notification.type === NotificationType.SessionComment ? (
+                    <SessionCommentTextBody comment={notification} />
+                ) : (
+                    <CommentTextBody commentText={notification?.text || ''} />
+                )}
             </div>
             <div className={notificationStyles.dotContainer}>
                 {!viewed && <Dot />}
@@ -133,7 +138,11 @@ const getLink = (notification: any, project_id: string) => {
         case NotificationType.ErrorComment:
             return `${baseUrl}/errors/${notification.error_secure_id}`;
         case NotificationType.SessionComment:
-            return `${baseUrl}/sessions/${notification.session_secure_id}?${PlayerSearchParameters.commentId}=${notification.id}&${PlayerSearchParameters.ts}=${notification.timestamp}`;
+            return `${baseUrl}/sessions/${notification.session_secure_id}?${
+                PlayerSearchParameters.commentId
+            }=${notification.id}&${PlayerSearchParameters.ts}=${
+                notification.timestamp / 1000
+            }`;
         case NotificationType.SessionFeedback:
             return `${baseUrl}/sessions/${notification.session_secure_id}?${PlayerSearchParameters.commentId}=${notification.id}`;
         default:

@@ -1,3 +1,4 @@
+import ErrorTypeInput from '@pages/Errors/ErrorSearchInputs/ErrorTypeInput';
 import classNames from 'classnames';
 import React from 'react';
 import { useEffect } from 'react';
@@ -30,6 +31,7 @@ const ErrorSearchFilters = () => {
             searchParams?.state !== ErrorState.Open,
             !!searchParams.os,
             !!searchParams.visited_url,
+            !!searchParams?.type,
         ];
 
         setFiltersSetCount(
@@ -43,6 +45,7 @@ const ErrorSearchFilters = () => {
         searchParams.state,
         searchParams.os,
         searchParams.visited_url,
+        searchParams.type,
     ]);
 
     return (
@@ -59,6 +62,10 @@ const ErrorSearchFilters = () => {
                         <label>
                             <span>Error State</span>
                             <ErrorStateInput />
+                        </label>
+                        <label>
+                            <span>Error Type</span>
+                            <ErrorTypeInput />
                         </label>
                         <label>
                             <span>Browser</span>
@@ -83,7 +90,6 @@ const ErrorSearchFilters = () => {
                 className={classNames(segmentPickerStyles.segmentButton, {
                     [styles.hasFilters]: filtersSetCount > 0,
                 })}
-                type="ghost"
                 small
                 trackingId="sessionPlayerSearchFilters"
             >

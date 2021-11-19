@@ -1,9 +1,18 @@
 .buttonBase {
     align-items: center;
+    color: var(--text-primary) !important;
     display: flex;
     height: auto;
     padding-bottom: 8px;
     padding-top: 8px;
+
+    &:global(.ant-btn-primary) {
+        color: var(--color-white) !important;
+    }
+
+    &[disabled] {
+        color: var(--text-primary-inverted) !important;
+    }
 
     &.iconButton {
         align-items: center;
@@ -14,6 +23,11 @@
         justify-content: center;
         padding: 0;
         width: var(--size-xLarge);
+
+        &:global(.ant-btn-sm) {
+            height: var(--size-small);
+            width: var(--size-small);
+        }
 
         &:global(.ant-btn[disabled]) {
             background: var(--color-gray-300) !important;
@@ -36,6 +50,14 @@
             height: var(--size-small);
             width: var(--size-small);
         }
+    }
+
+    &:global(.ant-btn-ghost) {
+        border-color: var(--color-gray-300) !important;
+    }
+
+    &:global(.ant-btn-default.ant-btn-dangerous) {
+        color: var(--color-red-400) !important;
     }
 }
 
