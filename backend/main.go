@@ -208,6 +208,15 @@ func main() {
 				InitFunc: private.WebsocketInitializationFunction(),
 				Upgrader: websocket.Upgrader{
 					CheckOrigin: func(r *http.Request) bool {
+						if r == nil || r.Header["Origin"] == nil || len(r.Header["Origin"]) == 0 {
+							log.Error("Couldn't validate websocket: no origin")
+							return false
+						}
+						if !validateOrigin(r, r.Header["Origin"][0]) {
+							log.Errorf("Couldn't validate websocket at origin: %s", r.Header["Origin"][0])
+							return false
+						}
+						log.Info("Validation successful")
 						return true
 					},
 				},
