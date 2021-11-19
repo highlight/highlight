@@ -43,6 +43,10 @@ const SessionLevelBar = () => {
                         return;
                 }
             });
+            replayer.on(ReplayerEvents.Resize, (_e) => {
+                const e = _e as { width: number; height: number };
+                setViewport({ height: e.height, width: e.width });
+            });
         }
     }, [replayer]);
 
@@ -90,7 +94,7 @@ const SessionLevelBar = () => {
                             icon={<SvgDimensionsIcon />}
                             tooltipTitle="The user's current viewport size in pixels."
                         >
-                            {viewport?.height} x {viewport?.width}
+                            {viewport?.width} x {viewport?.height}
                         </SessionToken>
                     </>
                 )}
