@@ -118,8 +118,8 @@
 
 .suggestionButton {
     align-items: center;
-    background: var(--color-gray-300);
-    color: var(--text-primary);
+    background: var(--color-gray-300) !important;
+    color: var(--text-primary) !important;
     column-gap: var(--size-small);
     display: flex;
     font-size: 12px;

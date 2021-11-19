@@ -436,6 +436,18 @@ export type SessionComment = {
     y_coordinate?: Maybe<Scalars['Float']>;
     type: SessionCommentType;
     metadata?: Maybe<Scalars['Any']>;
+    tags: Array<Maybe<Scalars['String']>>;
+};
+
+export type SessionCommentTag = {
+    __typename?: 'SessionCommentTag';
+    id: Scalars['ID'];
+    name: Scalars['String'];
+};
+
+export type SessionCommentTagInput = {
+    id?: Maybe<Scalars['ID']>;
+    name: Scalars['String'];
 };
 
 export type ErrorComment = {
@@ -553,6 +565,7 @@ export type Query = {
     errors?: Maybe<Array<Maybe<ErrorObject>>>;
     resources?: Maybe<Array<Maybe<Scalars['Any']>>>;
     session_comments: Array<Maybe<SessionComment>>;
+    session_comment_tags_for_project: Array<SessionCommentTag>;
     session_comments_for_admin: Array<Maybe<SessionComment>>;
     session_comments_for_project: Array<Maybe<SessionComment>>;
     error_comments: Array<Maybe<ErrorComment>>;
@@ -587,7 +600,8 @@ export type Query = {
     user_properties_alerts: Array<Maybe<SessionAlert>>;
     new_session_alerts: Array<Maybe<SessionAlert>>;
     rage_click_alerts: Array<Maybe<SessionAlert>>;
-    projectSuggestion?: Maybe<Array<Maybe<Project>>>;
+    projectSuggestion: Array<Maybe<Project>>;
+    workspaceSuggestion: Array<Maybe<Workspace>>;
     environment_suggestion?: Maybe<Array<Maybe<Field>>>;
     identifier_suggestion: Array<Maybe<Scalars['String']>>;
     app_version_suggestion: Array<Maybe<Scalars['String']>>;
@@ -650,6 +664,10 @@ export type QueryResourcesArgs = {
 
 export type QuerySession_CommentsArgs = {
     session_secure_id: Scalars['String'];
+};
+
+export type QuerySession_Comment_Tags_For_ProjectArgs = {
+    project_id: Scalars['ID'];
 };
 
 export type QuerySession_Comments_For_ProjectArgs = {
@@ -795,6 +813,10 @@ export type QueryProjectSuggestionArgs = {
     query: Scalars['String'];
 };
 
+export type QueryWorkspaceSuggestionArgs = {
+    query: Scalars['String'];
+};
+
 export type QueryEnvironment_SuggestionArgs = {
     project_id: Scalars['ID'];
 };
@@ -864,6 +886,7 @@ export type Mutation = {
     sendAdminProjectInvite?: Maybe<Scalars['String']>;
     sendAdminWorkspaceInvite?: Maybe<Scalars['String']>;
     addAdminToWorkspace?: Maybe<Scalars['ID']>;
+    changeAdminRole: Scalars['Boolean'];
     deleteAdminFromProject?: Maybe<Scalars['ID']>;
     deleteAdminFromWorkspace?: Maybe<Scalars['ID']>;
     createSegment?: Maybe<Segment>;
@@ -881,6 +904,7 @@ export type Mutation = {
     deleteErrorComment?: Maybe<Scalars['Boolean']>;
     openSlackConversation?: Maybe<Scalars['Boolean']>;
     addSlackBotIntegrationToProject: Scalars['Boolean'];
+    createDefaultAlerts?: Maybe<Scalars['Boolean']>;
     createRageClickAlert?: Maybe<SessionAlert>;
     createErrorAlert?: Maybe<ErrorAlert>;
     updateErrorAlert?: Maybe<ErrorAlert>;
@@ -950,11 +974,18 @@ export type MutationSendAdminWorkspaceInviteArgs = {
     workspace_id: Scalars['ID'];
     email: Scalars['String'];
     base_url: Scalars['String'];
+    role: Scalars['String'];
 };
 
 export type MutationAddAdminToWorkspaceArgs = {
     workspace_id: Scalars['ID'];
     invite_id: Scalars['String'];
+};
+
+export type MutationChangeAdminRoleArgs = {
+    workspace_id: Scalars['ID'];
+    admin_id: Scalars['ID'];
+    new_role: Scalars['String'];
 };
 
 export type MutationDeleteAdminFromProjectArgs = {
@@ -1026,6 +1057,7 @@ export type MutationCreateSessionCommentArgs = {
     time: Scalars['Float'];
     author_name: Scalars['String'];
     session_image?: Maybe<Scalars['String']>;
+    tags: Array<Maybe<SessionCommentTagInput>>;
 };
 
 export type MutationDeleteSessionCommentArgs = {
@@ -1057,6 +1089,12 @@ export type MutationAddSlackBotIntegrationToProjectArgs = {
     project_id: Scalars['ID'];
     code: Scalars['String'];
     redirect_path: Scalars['String'];
+};
+
+export type MutationCreateDefaultAlertsArgs = {
+    project_id: Scalars['ID'];
+    alert_types: Array<Scalars['String']>;
+    slack_channels: Array<SanitizedSlackChannelInput>;
 };
 
 export type MutationCreateRageClickAlertArgs = {

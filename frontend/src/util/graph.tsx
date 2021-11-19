@@ -2,13 +2,16 @@ import 'firebase/auth';
 
 import {
     ApolloClient,
+    ApolloLink,
     createHttpLink,
+    HttpLink,
     InMemoryCache,
     split,
 } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import { WebSocketLink } from '@apollo/client/link/ws';
 import { getMainDefinition } from '@apollo/client/utilities';
+import { namedOperations } from '@graph/operations';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import * as firebase from 'firebase/app';
 
@@ -45,6 +48,9 @@ const splitLink = split(
     highlightGraph
 );
 
+const graphCdnGraph = new HttpLink({
+    uri: 'https://graphcdn.highlight.run',
+});
 if (isOnPrem) {
     console.log('Private Graph URI: ', uri);
 }
@@ -58,8 +64,39 @@ const authLink = setContext((_, { headers }) => {
     });
 });
 
+const { Query } = namedOperations;
+/**
+ * These are the queries that should be routed to GraphCDN instead of private graph.
+ * We use GraphCDN for expensive queries.
+ * */
+const GraphCDNOperations = [
+    Query.GetKeyPerformanceIndicators,
+    Query.GetDailyErrorFrequency,
+    Query.GetDailySessionsCount,
+    Query.GetReferrersCount,
+    Query.GetTopUsers,
+    Query.GetRageClicksForProject,
+] as const;
+
 export const client = new ApolloClient({
-    link: authLink.concat(splitLink),
+    link: ApolloLink.split(
+        (operation) => {
+            // Don't query GraphCDN for localhost.
+            // GraphCDN only caches production data.
+            if (process.env.NODE_ENV === 'development') {
+                return false;
+            }
+
+            // Check to see if the operation is one that we should send to GraphCDN instead of private graph.
+            // @ts-expect-error
+            if (GraphCDNOperations.includes(operation.operationName)) {
+                return true;
+            }
+            return false;
+        },
+        authLink.concat(graphCdnGraph),
+        authLink.concat(splitLink)
+    ),
     cache: new InMemoryCache({
         typePolicies: {
             Session: {

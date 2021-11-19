@@ -123,6 +123,7 @@ var Models = []interface{}{
 	&EmailSignup{},
 	&ResourcesObject{},
 	&SessionComment{},
+	&SessionCommentTag{},
 	&ErrorComment{},
 	&ErrorAlert{},
 	&SessionAlert{},
@@ -185,8 +186,11 @@ type Workspace struct {
 	StripeCustomerID      *string
 	StripePriceID         *string
 	PlanTier              string `gorm:"default:Free"`
+	BillingPeriodStart    *time.Time
+	BillingPeriodEnd      *time.Time
 	MonthlySessionLimit   *int
 	TrialEndDate          *time.Time `json:"trial_end_date"`
+	AllowMeterOverage     bool       `gorm:"default:false"`
 }
 
 type WorkspaceInviteLink struct {
@@ -210,6 +214,7 @@ type Project struct {
 	// Manual monthly session limit override
 	MonthlySessionLimit *int
 	WorkspaceID         int
+	FreeTier            bool `gorm:"default:false"`
 }
 
 type HasSecret interface {
@@ -483,6 +488,9 @@ type Session struct {
 	MigrationState        *string `json:"migration_state"`
 	VerboseID             string  `json:"verbose_id"`
 
+	// Excluded will be true when we would typically have deleted the session
+	Excluded *bool `gorm:"default:false"`
+
 	// Lock is the timestamp at which a session was locked
 	// - when selecting sessions, ignore Locks that are > 10 minutes old
 	//   ex. SELECT * FROM sessions WHERE (lock IS NULL OR lock < NOW() - 10 * (INTERVAL '1 MINUTE'))
@@ -594,8 +602,11 @@ type DailySessionCount struct {
 	ProjectID      int `json:"project_id"`
 }
 
-const DAILY_ERROR_COUNTS_TBL = "daily_error_counts"
-const DAILY_ERROR_COUNTS_UNIQ = "date_project_id_error_type_uniq"
+const (
+	SESSIONS_TBL            = "sessions"
+	DAILY_ERROR_COUNTS_TBL  = "daily_error_counts"
+	DAILY_ERROR_COUNTS_UNIQ = "date_project_id_error_type_uniq"
+)
 
 type DailyErrorCount struct {
 	Model
@@ -736,6 +747,13 @@ type ErrorField struct {
 	ErrorGroups    []ErrorGroup `gorm:"many2many:error_group_fields;"`
 }
 
+type SessionCommentTag struct {
+	Model
+	SessionComments []SessionComment `json:"session_comments" gorm:"many2many:session_tags;"`
+	ProjectID       int              `json:"project_id"`
+	Name            string
+}
+
 type SessionComment struct {
 	Model
 	Admins          []Admin `gorm:"many2many:session_comment_admins;"`
@@ -748,8 +766,9 @@ type SessionComment struct {
 	Text            string
 	XCoordinate     float64
 	YCoordinate     float64
-	Type            string `json:"type" gorm:"default:ADMIN"`
-	Metadata        JSONB  `json:"metadata" gorm:"type:jsonb"`
+	Type            string               `json:"type" gorm:"default:ADMIN"`
+	Metadata        JSONB                `json:"metadata" gorm:"type:jsonb"`
+	Tags            []*SessionCommentTag `json:"tags" gorm:"many2many:session_tags;"`
 }
 
 type ErrorComment struct {

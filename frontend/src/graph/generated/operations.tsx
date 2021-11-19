@@ -76,6 +76,17 @@ export type AddAdminToWorkspaceMutation = { __typename?: 'Mutation' } & Pick<
     'addAdminToWorkspace'
 >;
 
+export type ChangeAdminRoleMutationVariables = Types.Exact<{
+    workspace_id: Types.Scalars['ID'];
+    admin_id: Types.Scalars['ID'];
+    new_role: Types.Scalars['String'];
+}>;
+
+export type ChangeAdminRoleMutation = { __typename?: 'Mutation' } & Pick<
+    Types.Mutation,
+    'changeAdminRole'
+>;
+
 export type DeleteAdminFromProjectMutationVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
     admin_id: Types.Scalars['ID'];
@@ -263,6 +274,9 @@ export type CreateSessionCommentMutationVariables = Types.Exact<{
     time: Types.Scalars['Float'];
     author_name: Types.Scalars['String'];
     session_image?: Types.Maybe<Types.Scalars['String']>;
+    tags:
+        | Array<Types.Maybe<Types.SessionCommentTagInput>>
+        | Types.Maybe<Types.SessionCommentTagInput>;
 }>;
 
 export type CreateSessionCommentMutation = { __typename?: 'Mutation' } & {
@@ -510,6 +524,19 @@ export type DeleteSessionAlertMutation = { __typename?: 'Mutation' } & {
         { __typename?: 'SessionAlert' } & Pick<Types.SessionAlert, 'id'>
     >;
 };
+
+export type CreateDefaultAlertsMutationVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    alert_types: Array<Types.Scalars['String']> | Types.Scalars['String'];
+    slack_channels:
+        | Array<Types.SanitizedSlackChannelInput>
+        | Types.SanitizedSlackChannelInput;
+}>;
+
+export type CreateDefaultAlertsMutation = { __typename?: 'Mutation' } & Pick<
+    Types.Mutation,
+    'createDefaultAlerts'
+>;
 
 export type CreateSessionFeedbackAlertMutationVariables = Types.Exact<{
     project_id: Types.Scalars['ID'];
@@ -1107,6 +1134,7 @@ export type GetSessionPayloadQuery = {
                     | 'y_coordinate'
                     | 'type'
                     | 'metadata'
+                    | 'tags'
                 > & {
                         author?: Types.Maybe<
                             { __typename?: 'SanitizedAdmin' } & Pick<
@@ -1118,6 +1146,19 @@ export type GetSessionPayloadQuery = {
             >
         >;
     };
+
+export type GetCommentTagsForProjectQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+}>;
+
+export type GetCommentTagsForProjectQuery = { __typename?: 'Query' } & {
+    session_comment_tags_for_project: Array<
+        { __typename?: 'SessionCommentTag' } & Pick<
+            Types.SessionCommentTag,
+            'id' | 'name'
+        >
+    >;
+};
 
 export type GetSessionQueryVariables = Types.Exact<{
     secure_id: Types.Scalars['String'];
@@ -1232,6 +1273,7 @@ export type GetSessionCommentsQuery = { __typename?: 'Query' } & {
                 | 'y_coordinate'
                 | 'type'
                 | 'metadata'
+                | 'tags'
             > & {
                     author?: Types.Maybe<
                         { __typename?: 'SanitizedAdmin' } & Pick<
@@ -1261,6 +1303,7 @@ export type GetNotificationsQuery = { __typename?: 'Query' } & {
                 | 'text'
                 | 'type'
                 | 'metadata'
+                | 'tags'
             > & {
                     author?: Types.Maybe<
                         { __typename?: 'SanitizedAdmin' } & Pick<
@@ -1392,6 +1435,7 @@ export type SendAdminWorkspaceInviteMutationVariables = Types.Exact<{
     workspace_id: Types.Scalars['ID'];
     email: Types.Scalars['String'];
     base_url: Types.Scalars['String'];
+    role: Types.Scalars['String'];
 }>;
 
 export type SendAdminWorkspaceInviteMutation = {
@@ -1863,11 +1907,17 @@ export type GetProjectSuggestionQueryVariables = Types.Exact<{
 }>;
 
 export type GetProjectSuggestionQuery = { __typename?: 'Query' } & {
-    projectSuggestion?: Types.Maybe<
-        Array<
-            Types.Maybe<
-                { __typename?: 'Project' } & Pick<Types.Project, 'id' | 'name'>
+    projectSuggestion: Array<
+        Types.Maybe<
+            { __typename?: 'Project' } & Pick<
+                Types.Project,
+                'id' | 'name' | 'workspace_id'
             >
+        >
+    >;
+    workspaceSuggestion: Array<
+        Types.Maybe<
+            { __typename?: 'Workspace' } & Pick<Types.Workspace, 'id' | 'name'>
         >
     >;
 };
@@ -2588,6 +2638,7 @@ export type OnSessionPayloadAppendedSubscription = {
 export const namedOperations = {
     Query: {
         GetSessionPayload: 'GetSessionPayload' as const,
+        GetCommentTagsForProject: 'GetCommentTagsForProject' as const,
         GetSession: 'GetSession' as const,
         GetProjectAdmins: 'GetProjectAdmins' as const,
         GetWorkspaceAdmins: 'GetWorkspaceAdmins' as const,
@@ -2649,6 +2700,7 @@ export const namedOperations = {
         updateErrorGroupState: 'updateErrorGroupState' as const,
         SendEmailSignup: 'SendEmailSignup' as const,
         AddAdminToWorkspace: 'AddAdminToWorkspace' as const,
+        ChangeAdminRole: 'ChangeAdminRole' as const,
         DeleteAdminFromProject: 'DeleteAdminFromProject' as const,
         DeleteAdminFromWorkspace: 'DeleteAdminFromWorkspace' as const,
         OpenSlackConversation: 'OpenSlackConversation' as const,
@@ -2673,6 +2725,7 @@ export const namedOperations = {
         UpdateErrorAlert: 'UpdateErrorAlert' as const,
         DeleteErrorAlert: 'DeleteErrorAlert' as const,
         DeleteSessionAlert: 'DeleteSessionAlert' as const,
+        CreateDefaultAlerts: 'CreateDefaultAlerts' as const,
         CreateSessionFeedbackAlert: 'CreateSessionFeedbackAlert' as const,
         UpdateSessionFeedbackAlert: 'UpdateSessionFeedbackAlert' as const,
         CreateNewUserAlert: 'CreateNewUserAlert' as const,

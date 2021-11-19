@@ -27,6 +27,11 @@ type Props = Pick<
     | 'children'
     | 'optionLabelProp'
     | 'filterOption'
+    | 'bordered'
+    | 'disabled'
+    | 'defaultActiveFirstOption'
+    | 'aria-label'
+    | 'tagRender'
 > & {
     options?: {
         value: string;
@@ -42,17 +47,18 @@ const Select = ({
     className,
     hasAccent = false,
     children,
+    defaultActiveFirstOption = false,
     ...props
 }: Props) => {
     return (
         <AntDesignSelect
             {...props}
-            disabled={props.loading}
+            disabled={props.loading || props.disabled}
             className={classNames(className, styles.select, {
                 [styles.selectHasValue]: hasAccent && !!props.value,
             })}
             menuItemSelectedIcon={null}
-            defaultActiveFirstOption={false}
+            defaultActiveFirstOption={defaultActiveFirstOption}
             dropdownClassName={styles.dropdown}
             suffixIcon={
                 props.loading ? undefined : (

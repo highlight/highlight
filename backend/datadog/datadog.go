@@ -17,14 +17,18 @@ func Start(rt util.Runtime) error {
 	statsdHost := os.Getenv("DD_STATSD_HOST")
 	apmHost := os.Getenv("DD_APM_HOST")
 	serviceTagKey, serviceTagValue := "service", string(rt)+"-service"
+	serviceVersionTagKey, serviceVersionTagValue := "version", util.GenerateRandomString(8)
+
 	tracer.Start(
 		tracer.WithAgentAddr(apmHost),
 		tracer.WithGlobalTag(serviceTagKey, serviceTagValue),
+		tracer.WithGlobalTag(serviceVersionTagKey, serviceVersionTagValue),
 	)
 	var err error
 	StatsD, err = statsd.New(statsdHost, statsd.WithTags(
 		[]string{
 			serviceTagKey + ":" + serviceTagValue,
+			serviceVersionTagKey + ":" + serviceVersionTagValue,
 		},
 	))
 	if err != nil {

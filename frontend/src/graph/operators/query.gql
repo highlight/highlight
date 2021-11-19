@@ -89,6 +89,14 @@ query GetSessionPayload($session_secure_id: String!, $skip_events: Boolean!) {
         y_coordinate
         type
         metadata
+        tags
+    }
+}
+
+query GetCommentTagsForProject($project_id: ID!) {
+    session_comment_tags_for_project(project_id: $project_id) {
+        id
+        name
     }
 }
 
@@ -183,6 +191,7 @@ query GetSessionComments($session_secure_id: String!) {
         y_coordinate
         type
         metadata
+        tags
     }
 }
 
@@ -202,6 +211,7 @@ query GetNotifications($project_id: ID!) {
         }
         type
         metadata
+        tags
     }
     error_comments_for_project(project_id: $project_id) {
         id
@@ -288,11 +298,13 @@ mutation SendAdminWorkspaceInvite(
     $workspace_id: ID!
     $email: String!
     $base_url: String!
+    $role: String!
 ) {
     sendAdminWorkspaceInvite(
         workspace_id: $workspace_id
         email: $email
         base_url: $base_url
+        role: $role
     )
 }
 
@@ -592,6 +604,11 @@ query GetAppVersions($project_id: ID!) {
 
 query GetProjectSuggestion($query: String!) {
     projectSuggestion(query: $query) {
+        id
+        name
+        workspace_id
+    }
+    workspaceSuggestion(query: $query) {
         id
         name
     }

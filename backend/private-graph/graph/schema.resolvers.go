@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -16,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
@@ -112,6 +114,7 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 			LIMIT 20
 		) AS e
 		ON s.id = e.session_id
+		WHERE s.excluded <> true
 		ORDER BY s.updated_at DESC
 		LIMIT 20;
 	`, obj.ID).Scan(&metadataLogs)
@@ -209,98 +212,7 @@ func (r *mutationResolver) CreateProject(ctx context.Context, name string, works
 	if err := r.DB.Create(project).Error; err != nil {
 		return nil, e.Wrap(err, "error creating project")
 	}
-	if err := r.DB.Create(
-		&model.ErrorAlert{
-			Alert: model.Alert{
-				ProjectID:            project.ID,
-				ExcludedEnvironments: nil,
-				CountThreshold:       1,
-				ChannelsToNotify:     nil,
-				Type:                 &model.AlertType.ERROR,
-				ThresholdWindow:      util.MakeIntPointer(30),
-			},
-		}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating error alert for new project")
-	}
-	if err := r.DB.Create(
-		&model.SessionAlert{
-			Alert: model.Alert{
-				ProjectID:            project.ID,
-				ExcludedEnvironments: nil,
-				CountThreshold:       1,
-				ChannelsToNotify:     nil,
-				Type:                 &model.AlertType.SESSION_FEEDBACK,
-				ThresholdWindow:      util.MakeIntPointer(30),
-			},
-		}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session feedback alert for new project")
-	}
-	if err := r.DB.Create(
-		&model.SessionAlert{
-			Alert: model.Alert{
-				ProjectID:            project.ID,
-				ExcludedEnvironments: nil,
-				CountThreshold:       1,
-				ChannelsToNotify:     nil,
-				Type:                 &model.AlertType.NEW_USER,
-				ThresholdWindow:      util.MakeIntPointer(0),
-			},
-		}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session new user alert for new project")
-	}
-	if err := r.DB.Create(
-		&model.SessionAlert{
-			Alert: model.Alert{
-				ProjectID:            project.ID,
-				ExcludedEnvironments: nil,
-				CountThreshold:       1,
-				ChannelsToNotify:     nil,
-				Type:                 &model.AlertType.TRACK_PROPERTIES,
-				ThresholdWindow:      util.MakeIntPointer(0),
-			},
-		}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session track properties alert for new project")
-	}
-	if err := r.DB.Create(
-		&model.SessionAlert{
-			Alert: model.Alert{
-				ProjectID:            project.ID,
-				ExcludedEnvironments: nil,
-				CountThreshold:       1,
-				ChannelsToNotify:     nil,
-				Type:                 &model.AlertType.USER_PROPERTIES,
-				ThresholdWindow:      util.MakeIntPointer(0),
-			},
-		}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session user properties alert for new project")
-	}
-	if err := r.DB.Create(
-		&model.SessionAlert{
-			Alert: model.Alert{
-				ProjectID:            project.ID,
-				ExcludedEnvironments: nil,
-				CountThreshold:       1,
-				ChannelsToNotify:     nil,
-				Type:                 &model.AlertType.RAGE_CLICK,
-				ThresholdWindow:      util.MakeIntPointer(30),
-			},
-		}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session rage click alert for new project")
-	}
 
-	if err := r.DB.Create(
-		&model.SessionAlert{
-			Alert: model.Alert{
-				ProjectID:            project.ID,
-				ExcludedEnvironments: nil,
-				CountThreshold:       1,
-				ChannelsToNotify:     nil,
-				Type:                 &model.AlertType.NEW_SESSION,
-				ThresholdWindow:      util.MakeIntPointer(0),
-			},
-		}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session user properties alert for new project")
-	}
 	return project, nil
 }
 
@@ -451,7 +363,7 @@ func (r *mutationResolver) SendAdminProjectInvite(ctx context.Context, projectID
 	return r.SendAdminInviteImpl(*admin.Name, *project.Name, inviteLink, email)
 }
 
-func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspaceID int, email string, baseURL string) (*string, error) {
+func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspaceID int, email string, baseURL string, role string) (*string, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying workspace")
@@ -478,8 +390,16 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 		existingInviteLink = nil
 	}
 
+	// Delete the existing invite if the roles are different.
+	if existingInviteLink != nil && existingInviteLink.InviteeRole != nil && *existingInviteLink.InviteeRole != role {
+		if err := r.DB.Delete(existingInviteLink).Error; err != nil {
+			return nil, e.Wrap(err, "error deleting different role invite link")
+		}
+		existingInviteLink = nil
+	}
+
 	if existingInviteLink == nil {
-		existingInviteLink = r.CreateInviteLink(workspaceID, &email)
+		existingInviteLink = r.CreateInviteLink(workspaceID, &email, role)
 
 		if err := r.DB.Create(existingInviteLink).Error; err != nil {
 			return nil, e.Wrap(err, "error creating new invite link")
@@ -514,6 +434,32 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 	return adminId, nil
 }
 
+func (r *mutationResolver) ChangeAdminRole(ctx context.Context, workspaceID int, adminID int, newRole string) (bool, error) {
+	_, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return false, e.Wrap(err, "current admin is not in workspace")
+	}
+
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return false, e.Wrap(err, "error retrieving user")
+	}
+
+	if admin.Role != nil && *admin.Role != model.AdminRole.ADMIN {
+		return false, e.New("A non-Admin role Admin tried changing an admin role.")
+	}
+
+	if admin.ID == adminID {
+		return false, e.New("A admin tried changing their own role.")
+	}
+
+	if err := r.DB.Model(&model.Admin{Model: model.Model{ID: adminID}}).Update("Role", newRole).Error; err != nil {
+		return false, e.Wrap(err, "error updating admin role")
+	}
+
+	return true, nil
+}
+
 func (r *mutationResolver) DeleteAdminFromProject(ctx context.Context, projectID int, adminID int) (*int, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
@@ -529,7 +475,12 @@ func (r *mutationResolver) DeleteAdminFromWorkspace(ctx context.Context, workspa
 		return nil, e.Wrap(err, "current admin is not in workspace")
 	}
 
-	return r.DeleteAdminAssociation(ctx, workspace, adminID)
+	deletedAdminId, err := r.DeleteAdminAssociation(ctx, workspace, adminID)
+	if err != nil {
+		return nil, e.Wrap(err, "error deleting admin association")
+	}
+
+	return deletedAdminId, nil
 }
 
 func (r *mutationResolver) CreateSegment(ctx context.Context, projectID int, name string, params modelInputs.SearchParamsInput) (*model.Segment, error) {
@@ -695,12 +646,12 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 
 	c, err := r.StripeClient.Customers.Get(*workspace.StripeCustomerID, params)
 	if err != nil {
-		return nil, e.Wrap(err, "couldn't retrieve stripe customer data")
+		return nil, e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot update stripe subscription - couldn't retrieve stripe customer data")
 	}
 
 	// If there are multiple subscriptions, it's ambiguous which one should be updated, so throw an error
 	if len(c.Subscriptions.Data) > 1 {
-		return nil, e.New("cannot update stripe subscription - customer has multiple subscriptions")
+		return nil, e.New("STRIPE_INTEGRATION_ERROR cannot update stripe subscription - customer has multiple subscriptions")
 	}
 
 	subscriptions := c.Subscriptions.Data
@@ -708,48 +659,36 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 
 	prices, err := pricing.GetStripePrices(r.StripeClient, planType, pricing.SubscriptionIntervalMonthly)
 	if err != nil {
-		return nil, e.Wrap(err, "failed to get Stripe prices")
+		return nil, e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot update stripe subscription - failed to get Stripe prices")
 	}
 
-	// If there's a single subscription
+	newBasePrice := prices[pricing.ProductTypeBase]
+
+	// If there's an existing subscription, update it
 	if len(subscriptions) == 1 {
-		newSubItems := []*stripe.SubscriptionItemsParams{}
 		subscription := subscriptions[0]
-		for _, subscriptionItem := range subscription.Items.Data {
-			productType, _ := pricing.GetProductMetadata(subscriptionItem.Price)
-			if productType == nil {
-				continue
-			}
-
-			price, ok := prices[*productType]
-			if !ok {
-				return nil, e.New("price not found for product type")
-			}
-
-			subItem := stripe.SubscriptionItemsParams{
-				ID:   &subscriptionItem.ID,
-				Plan: &price.ID,
-			}
-			newSubItems = append(newSubItems, &subItem)
-
-			// Remove the current key from map - will be used to add any leftover prices to the subscription
-			delete(prices, *productType)
+		if len(subscription.Items.Data) != 1 {
+			return nil, e.New("STRIPE_INTEGRATION_ERROR cannot update stripe subscription - subscription has multiple products")
 		}
 
-		for _, price := range prices {
-			subItem := stripe.SubscriptionItemsParams{
-				Plan: &price.ID,
-			}
-			newSubItems = append(newSubItems, &subItem)
+		subscriptionItem := subscription.Items.Data[0]
+		productType, _, _ := pricing.GetProductMetadata(subscriptionItem.Price)
+		if productType == nil || *productType != pricing.ProductTypeBase {
+			return nil, e.New("STRIPE_INTEGRATION_ERROR cannot update stripe subscription - expecting base product")
 		}
 
 		subscriptionParams := &stripe.SubscriptionParams{
 			CancelAtPeriodEnd: stripe.Bool(false),
 			ProrationBehavior: stripe.String(string(stripe.SubscriptionProrationBehaviorCreateProrations)),
-			Items:             newSubItems,
+			Items: []*stripe.SubscriptionItemsParams{
+				{
+					ID:   &subscriptionItem.ID,
+					Plan: &newBasePrice.ID,
+				},
+			},
 		}
 
-		_, err := r.StripeClient.Subscriptions.Update(c.Subscriptions.Data[0].ID, subscriptionParams)
+		_, err := r.StripeClient.Subscriptions.Update(subscription.ID, subscriptionParams)
 		if err != nil {
 			return nil, e.Wrap(err, "couldn't update subscription")
 		}
@@ -758,14 +697,6 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	}
 
 	// If there's no existing subscription, we create a checkout.
-	newSubItems := []*stripe.CheckoutSessionSubscriptionDataItemsParams{}
-	for _, price := range prices {
-		subItem := stripe.CheckoutSessionSubscriptionDataItemsParams{
-			Plan: &price.ID,
-		}
-		newSubItems = append(newSubItems, &subItem)
-	}
-
 	checkoutSessionParams := &stripe.CheckoutSessionParams{
 		SuccessURL: stripe.String(os.Getenv("FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/billing/success"),
 		CancelURL:  stripe.String(os.Getenv("FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/billing/checkoutCanceled"),
@@ -774,7 +705,9 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 		}),
 		Customer: workspace.StripeCustomerID,
 		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
-			Items: newSubItems,
+			Items: []*stripe.CheckoutSessionSubscriptionDataItemsParams{
+				{Plan: &newBasePrice.ID},
+			},
 		},
 		Mode: stripe.String(string(stripe.CheckoutSessionModeSubscription)),
 	}
@@ -805,7 +738,7 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID
 	return &model.T, nil
 }
 
-func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model.SessionComment, error) {
+func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, tags []*modelInputs.SessionCommentTagInput) (*model.SessionComment, error) {
 	admin, isGuestCreatingSession := r.getCurrentAdminOrGuest(ctx)
 
 	// All viewers can leave a comment, including guests
@@ -852,6 +785,47 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		return nil, e.Wrap(err, "error creating session comment")
 	}
 	createSessionCommentSpan.Finish()
+
+	// Create associations between tags and comments.
+	if len(tags) > 0 {
+		// Create the tag if it's a new tag
+		newTags := []*model.SessionCommentTag{}
+		existingTags := []*model.SessionCommentTag{}
+		sessionComments := []model.SessionComment{*sessionComment}
+
+		for _, tag := range tags {
+			if tag.ID == nil {
+				newSessionCommentTag := model.SessionCommentTag{
+					ProjectID:       projectID,
+					Name:            tag.Name,
+					SessionComments: sessionComments,
+				}
+				newTags = append(newTags, &newSessionCommentTag)
+			} else {
+				newSessionCommentTag := model.SessionCommentTag{
+					ProjectID: projectID,
+					Name:      tag.Name,
+					Model: model.Model{
+						ID: *tag.ID,
+					},
+					SessionComments: sessionComments,
+				}
+				existingTags = append(existingTags, &newSessionCommentTag)
+			}
+		}
+
+		if len(newTags) > 0 {
+			if err := r.DB.Create(&newTags).Error; err != nil {
+				log.Error("Failed to create new session tags", err)
+			}
+		}
+
+		if len(existingTags) > 0 {
+			if err := r.DB.Save(&existingTags).Error; err != nil {
+				log.Error("Failed to update existing session tags", err)
+			}
+		}
+	}
 
 	viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
 
@@ -1217,6 +1191,57 @@ func (r *mutationResolver) AddSlackBotIntegrationToProject(ctx context.Context, 
 	}
 
 	return true, nil
+}
+
+func (r *mutationResolver) CreateDefaultAlerts(ctx context.Context, projectID int, alertTypes []string, slackChannels []*modelInputs.SanitizedSlackChannelInput) (*bool, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	admin, _ := r.getCurrentAdmin(ctx)
+	workspace, _ := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in project")
+	}
+
+	channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
+	if err != nil {
+		return nil, err
+	}
+
+	var sessionAlerts []*model.SessionAlert
+	for _, alertType := range alertTypes {
+		name := strings.Title(strings.ToLower(strings.Replace(alertType, "_", " ", -1)))
+		alertType := alertType
+		newAlert := model.Alert{
+			ProjectID:         projectID,
+			CountThreshold:    1,
+			ThresholdWindow:   util.MakeIntPointer(30),
+			Type:              &alertType,
+			ChannelsToNotify:  channelsString,
+			Name:              &name,
+			LastAdminToEditID: admin.ID,
+		}
+		if alertType == model.AlertType.ERROR {
+			errorAlert := &model.ErrorAlert{Alert: newAlert}
+			if err := r.DB.Create(errorAlert).Error; err != nil {
+				return nil, e.Wrap(err, "error creating a new error alert")
+			}
+			if err := errorAlert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &errorAlert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+				graphql.AddError(ctx, e.Wrap(err, "error sending slack welcome message for default error alert"))
+			}
+		} else {
+			sessionAlerts = append(sessionAlerts, &model.SessionAlert{Alert: newAlert})
+		}
+	}
+
+	if err := r.DB.Create(sessionAlerts).Error; err != nil {
+		return nil, e.Wrap(err, "error creating new session alerts")
+	}
+	for _, alert := range sessionAlerts {
+		if err := alert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &alert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+			graphql.AddError(ctx, e.Wrap(err, "error sending slack welcome message for default session alert"))
+		}
+	}
+
+	return &model.T, nil
 }
 
 func (r *mutationResolver) CreateRageClickAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
@@ -2021,7 +2046,8 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 				session_secure_id
 		) AS rageClicks
 		LEFT JOIN sessions s ON rageClicks.session_secure_id = s.secure_id
-		WHERE session_secure_id IS NOT NULL
+		WHERE s.excluded <> true
+			AND session_secure_id IS NOT NULL
 		ORDER BY total_clicks DESC
 		LIMIT 100`,
 		projectID, lookBackPeriod).Scan(&rageClicks).Error; err != nil {
@@ -2069,6 +2095,9 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 	}
 
 	sessionFilters := []string{}
+
+	sessionFilters = append(sessionFilters, "(sessions.excluded <> true)")
+
 	if params.Browser != nil {
 		sessionFilters = append(sessionFilters, fmt.Sprintf("(sessions.browser_name = '%s')", *params.Browser))
 	}
@@ -2255,7 +2284,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 			details.Socials = append(details.Socials, &modelInputs.SocialLink{Link: &ghLink, Type: modelInputs.SocialTypeGithub})
 		}
 		if liHandle := p.LinkedIn.Handle; liHandle != "" {
-			fbLink := fmt.Sprintf("https://www.linkedin.com/in/%v", liHandle)
+			fbLink := fmt.Sprintf("https://www.linkedin.com/%v", liHandle)
 			details.Socials = append(details.Socials, &modelInputs.SocialLink{Link: &fbLink, Type: modelInputs.SocialTypeLinkedIn})
 		}
 		if personalSiteLink, companySiteLink := p.Site, co.Domain; personalSiteLink != "" || companySiteLink != "" {
@@ -2337,6 +2366,20 @@ func (r *queryResolver) SessionComments(ctx context.Context, sessionSecureID str
 		return nil, e.Wrap(err, "error querying session comments for session")
 	}
 	return sessionComments, nil
+}
+
+func (r *queryResolver) SessionCommentTagsForProject(ctx context.Context, projectID int) ([]*model.SessionCommentTag, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "admin not found in org for session comment tags")
+	}
+
+	var sessionCommentTags []*model.SessionCommentTag
+
+	if err := r.DB.Where(&model.SessionCommentTag{ProjectID: projectID}).Find(&sessionCommentTags).Error; err != nil {
+		return nil, e.Wrap(err, "error getting session comment tags")
+	}
+
+	return sessionCommentTags, nil
 }
 
 func (r *queryResolver) SessionCommentsForAdmin(ctx context.Context) ([]*model.SessionComment, error) {
@@ -2600,70 +2643,63 @@ func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPer
 	topUsersSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("db.topUsers"), tracer.Tag("project_id", projectID))
 	if err := r.DB.Raw(`
-	SELECT
-    *
-FROM
-    (
+	SELECT *
+	FROM (
         SELECT
             DISTINCT ON(topUsers.identifier) topUsers.identifier,
             topUsers.id,
             total_active_time,
             active_time_percentage,
             s.user_properties
-        FROM
-            (
-                SELECT
-                    identifier,
-                    (
-                        SELECT
-                            id
-                        FROM
-                            fields
-                        WHERE
-                            project_id = ?
-                            AND type = 'user'
-                            AND name = 'identifier'
-                            AND value = identifier
-                        LIMIT
-                            1
-                    ) AS id,
-                    SUM(active_length) as total_active_time,
-                    SUM(active_length) / (
-                        SELECT
-                            SUM(active_length)
-                        FROM
-                            sessions
-                        WHERE
-                            active_length IS NOT NULL
-                            AND project_id = ?
-                            AND identifier <> ''
-                            AND created_at >= NOW() - (? * INTERVAL '1 DAY')
-                            AND processed = true
-                    ) AS active_time_percentage
-                FROM
-                    (
-                        SELECT
-                            identifier,
-                            active_length,
-                            user_properties
-                        FROM
-                            sessions
-                        WHERE
-                            active_length IS NOT NULL
-                            AND project_id = ?
-                            AND identifier <> ''
-                            AND created_at >= NOW() - (? * INTERVAL '1 DAY')
-                            AND processed = true
-                    ) q1
-                GROUP BY
-                    identifier
-                LIMIT
-                    50
-            ) as topUsers
-            INNER JOIN sessions s on topUsers.identifier = s.identifier
+        FROM (
+		SELECT
+			identifier, (
+				SELECT
+					id
+				FROM
+					fields
+				WHERE
+					project_id = ?
+					AND type = 'user'
+					AND name = 'identifier'
+					AND value = identifier
+				LIMIT 1
+			) AS id,
+			SUM(active_length) as total_active_time,
+			SUM(active_length) / (
+				SELECT
+					SUM(active_length)
+				FROM
+					sessions
+				WHERE
+					active_length IS NOT NULL
+					AND project_id = ?
+					AND identifier <> ''
+					AND created_at >= NOW() - (? * INTERVAL '1 DAY')
+					AND processed = true
+					AND excluded <> true
+			) AS active_time_percentage
+		FROM (
+			SELECT
+				identifier,
+				active_length,
+				user_properties
+			FROM
+				sessions
+			WHERE
+				active_length IS NOT NULL
+				AND project_id = ?
+				AND identifier <> ''
+				AND created_at >= NOW() - (? * INTERVAL '1 DAY')
+				AND processed = true
+				AND excluded <> true
+		) q1
+		GROUP BY identifier
+		LIMIT 50
+	) as topUsers
+	INNER JOIN sessions s on topUsers.identifier = s.identifier
     ) as q2
-ORDER BY
-    total_active_time DESC`,
+	ORDER BY total_active_time DESC`,
 		projectID, projectID, lookBackPeriod, projectID, lookBackPeriod).Scan(&topUsersPayload).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving top users")
 	}
@@ -2677,8 +2713,16 @@ func (r *queryResolver) AverageSessionLength(ctx context.Context, projectID int,
 		return nil, e.Wrap(err, "admin not found in project")
 	}
 	var length float64
-	query := fmt.Sprintf("SELECT COALESCE(avg(active_length), 0) FROM sessions WHERE project_id=%d AND processed=true AND active_length IS NOT NULL AND created_at >= NOW() - INTERVAL '%d DAY';", projectID, lookBackPeriod)
-	if err := r.DB.Raw(query).Scan(&length).Error; err != nil {
+	if err := r.DB.Raw(`
+		SELECT
+			COALESCE(avg(active_length), 0)
+		FROM sessions
+		WHERE project_id=?
+			AND processed=true
+			AND excluded <> true
+			AND active_length IS NOT NULL
+			AND created_at >= NOW() - (? * INTERVAL '1 DAY')
+		`, projectID, lookBackPeriod).Scan(&length).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving average length for sessions")
 	}
 
@@ -2693,7 +2737,17 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int,
 	var count int64
 	span, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("db.userFingerprintCount"), tracer.Tag("project_id", projectID))
-	if err := r.DB.Raw(fmt.Sprintf("SELECT count(DISTINCT fingerprint) from sessions WHERE identifier='' AND fingerprint IS NOT NULL AND created_at >= NOW() - INTERVAL '%d DAY' AND project_id=%d AND length >= 1000;", lookBackPeriod, projectID)).Scan(&count).Error; err != nil {
+	if err := r.DB.Raw(`
+		SELECT
+			COUNT(DISTINCT fingerprint)
+		FROM sessions
+		WHERE identifier=''
+			AND excluded <> true
+			AND fingerprint IS NOT NULL
+			AND created_at >= NOW() - (? * INTERVAL '1 DAY')
+			AND project_id=?
+			AND length >= 1000
+		`, lookBackPeriod, projectID).Scan(&count).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving user fingerprint count")
 	}
 	span.Finish()
@@ -2718,6 +2772,7 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 	whereClause := ` `
 
 	whereClause += fmt.Sprintf("WHERE (project_id = %d) ", projectID)
+	whereClause += "AND (excluded <> true) "
 	if lifecycle == modelInputs.SessionLifecycleCompleted {
 		whereClause += fmt.Sprintf("AND (length > %d) ", 1000)
 	}
@@ -2889,7 +2944,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	var queriedSessionsOutOfQuota int64
 
 	g.Go(func() error {
-		meter, err = pricing.GetWorkspaceQuota(r.DB, workspaceID)
+		meter, err = pricing.GetWorkspaceMeter(r.DB, workspaceID)
 		if err != nil {
 			return e.Wrap(err, "error from get quota")
 		}
@@ -3115,6 +3170,16 @@ func (r *queryResolver) ProjectSuggestion(ctx context.Context, query string) ([]
 	return projects, nil
 }
 
+func (r *queryResolver) WorkspaceSuggestion(ctx context.Context, query string) ([]*model.Workspace, error) {
+	workspaces := []*model.Workspace{}
+	if r.isWhitelistedAccount(ctx) {
+		if err := r.DB.Model(&model.Workspace{}).Where("name ILIKE ?", "%"+query+"%").Find(&workspaces).Error; err != nil {
+			return nil, e.Wrap(err, "error getting workspace suggestions")
+		}
+	}
+	return workspaces, nil
+}
+
 func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, projectID int) ([]*model.Field, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, e.Wrap(err, "error querying project")
@@ -3136,9 +3201,15 @@ func (r *queryResolver) IdentifierSuggestion(ctx context.Context, projectID int)
 		return nil, e.Wrap(err, "error querying project")
 	}
 	identifiers := []*string{}
-	res := r.DB.Raw("SELECT DISTINCT identifier from sessions where project_id=1 AND identifier <> '' AND identifier IS NOT NULL ORDER BY identifier ASC").
-		Scan(&identifiers)
-	if err := res.Error; err != nil {
+	if err := r.DB.Raw(`
+		SELECT
+			DISTINCT identifier
+		FROM sessions
+		WHERE project_id=?
+			AND identifier <> ''
+			AND identifier IS NOT NULL
+		ORDER BY identifier ASC
+		`, projectID).Scan(&identifiers).Error; err != nil {
 		return nil, e.Wrap(err, "error querying identifier suggestion")
 	}
 	return identifiers, nil
@@ -3276,7 +3347,7 @@ func (r *queryResolver) WorkspaceInviteLinks(ctx context.Context, workspaceID in
 	}
 
 	if shouldCreateNewInviteLink {
-		workspaceInviteLink = r.CreateInviteLink(workspaceID, nil)
+		workspaceInviteLink = r.CreateInviteLink(workspaceID, nil, model.AdminRole.ADMIN)
 
 		if err := r.DB.Create(&workspaceInviteLink).Error; err != nil {
 			return nil, e.Wrap(err, "failed to create new invite link to replace expired one.")
@@ -3558,6 +3629,38 @@ func (r *sessionCommentResolver) Type(ctx context.Context, obj *model.SessionCom
 
 func (r *sessionCommentResolver) Metadata(ctx context.Context, obj *model.SessionComment) (interface{}, error) {
 	return obj.Metadata, nil
+}
+
+func (r *sessionCommentResolver) Tags(ctx context.Context, obj *model.SessionComment) ([]*string, error) {
+	var (
+		tags []sql.NullString
+	)
+	var tagsResponse []*string
+
+	if err := r.DB.Raw(`
+	SELECT
+    array_agg(t.name)
+FROM
+    session_tags st
+    JOIN session_comment_tags t ON t.id = st.session_comment_tag_id
+WHERE
+    st.session_comment_id = ?
+GROUP BY
+    st.session_comment_id`, obj.ID).Scan(&tags).Error; err != nil {
+		log.Error(err, "Failed to query for session comment tags")
+	}
+
+	for i := range tags {
+		temp, _ := tags[i].Value()
+		tagValue, _ := temp.(string)
+		tagValue = strings.Replace(tagValue, "{", "[\"", 1)
+		tagValue = strings.Replace(tagValue, "}", "\"]", 1)
+		tagValue = strings.Replace(tagValue, ",", "\",\"", -1)
+
+		tagsResponse = append(tagsResponse, &tagValue)
+	}
+
+	return tagsResponse, nil
 }
 
 func (r *subscriptionResolver) EventsAdded(ctx context.Context, sessionSecureID string, initialEventsCount int) (<-chan []interface{}, error) {

@@ -392,6 +392,62 @@ export type AddAdminToWorkspaceMutationOptions = Apollo.BaseMutationOptions<
     Types.AddAdminToWorkspaceMutation,
     Types.AddAdminToWorkspaceMutationVariables
 >;
+export const ChangeAdminRoleDocument = gql`
+    mutation ChangeAdminRole(
+        $workspace_id: ID!
+        $admin_id: ID!
+        $new_role: String!
+    ) {
+        changeAdminRole(
+            workspace_id: $workspace_id
+            admin_id: $admin_id
+            new_role: $new_role
+        )
+    }
+`;
+export type ChangeAdminRoleMutationFn = Apollo.MutationFunction<
+    Types.ChangeAdminRoleMutation,
+    Types.ChangeAdminRoleMutationVariables
+>;
+
+/**
+ * __useChangeAdminRoleMutation__
+ *
+ * To run a mutation, you first call `useChangeAdminRoleMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useChangeAdminRoleMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [changeAdminRoleMutation, { data, loading, error }] = useChangeAdminRoleMutation({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *      admin_id: // value for 'admin_id'
+ *      new_role: // value for 'new_role'
+ *   },
+ * });
+ */
+export function useChangeAdminRoleMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.ChangeAdminRoleMutation,
+        Types.ChangeAdminRoleMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.ChangeAdminRoleMutation,
+        Types.ChangeAdminRoleMutationVariables
+    >(ChangeAdminRoleDocument, baseOptions);
+}
+export type ChangeAdminRoleMutationHookResult = ReturnType<
+    typeof useChangeAdminRoleMutation
+>;
+export type ChangeAdminRoleMutationResult = Apollo.MutationResult<Types.ChangeAdminRoleMutation>;
+export type ChangeAdminRoleMutationOptions = Apollo.BaseMutationOptions<
+    Types.ChangeAdminRoleMutation,
+    Types.ChangeAdminRoleMutationVariables
+>;
 export const DeleteAdminFromProjectDocument = gql`
     mutation DeleteAdminFromProject($project_id: ID!, $admin_id: ID!) {
         deleteAdminFromProject(project_id: $project_id, admin_id: $admin_id)
@@ -1040,6 +1096,7 @@ export const CreateSessionCommentDocument = gql`
         $time: Float!
         $author_name: String!
         $session_image: String
+        $tags: [SessionCommentTagInput]!
     ) {
         createSessionComment(
             project_id: $project_id
@@ -1055,6 +1112,7 @@ export const CreateSessionCommentDocument = gql`
             time: $time
             author_name: $author_name
             session_image: $session_image
+            tags: $tags
         ) {
             id
             timestamp
@@ -1102,6 +1160,7 @@ export type CreateSessionCommentMutationFn = Apollo.MutationFunction<
  *      time: // value for 'time'
  *      author_name: // value for 'author_name'
  *      session_image: // value for 'session_image'
+ *      tags: // value for 'tags'
  *   },
  * });
  */
@@ -1797,6 +1856,62 @@ export type DeleteSessionAlertMutationResult = Apollo.MutationResult<Types.Delet
 export type DeleteSessionAlertMutationOptions = Apollo.BaseMutationOptions<
     Types.DeleteSessionAlertMutation,
     Types.DeleteSessionAlertMutationVariables
+>;
+export const CreateDefaultAlertsDocument = gql`
+    mutation CreateDefaultAlerts(
+        $project_id: ID!
+        $alert_types: [String!]!
+        $slack_channels: [SanitizedSlackChannelInput!]!
+    ) {
+        createDefaultAlerts(
+            project_id: $project_id
+            alert_types: $alert_types
+            slack_channels: $slack_channels
+        )
+    }
+`;
+export type CreateDefaultAlertsMutationFn = Apollo.MutationFunction<
+    Types.CreateDefaultAlertsMutation,
+    Types.CreateDefaultAlertsMutationVariables
+>;
+
+/**
+ * __useCreateDefaultAlertsMutation__
+ *
+ * To run a mutation, you first call `useCreateDefaultAlertsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateDefaultAlertsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createDefaultAlertsMutation, { data, loading, error }] = useCreateDefaultAlertsMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      alert_types: // value for 'alert_types'
+ *      slack_channels: // value for 'slack_channels'
+ *   },
+ * });
+ */
+export function useCreateDefaultAlertsMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.CreateDefaultAlertsMutation,
+        Types.CreateDefaultAlertsMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.CreateDefaultAlertsMutation,
+        Types.CreateDefaultAlertsMutationVariables
+    >(CreateDefaultAlertsDocument, baseOptions);
+}
+export type CreateDefaultAlertsMutationHookResult = ReturnType<
+    typeof useCreateDefaultAlertsMutation
+>;
+export type CreateDefaultAlertsMutationResult = Apollo.MutationResult<Types.CreateDefaultAlertsMutation>;
+export type CreateDefaultAlertsMutationOptions = Apollo.BaseMutationOptions<
+    Types.CreateDefaultAlertsMutation,
+    Types.CreateDefaultAlertsMutationVariables
 >;
 export const CreateSessionFeedbackAlertDocument = gql`
     mutation CreateSessionFeedbackAlert(
@@ -2833,6 +2948,7 @@ export const GetSessionPayloadDocument = gql`
             y_coordinate
             type
             metadata
+            tags
         }
     }
 `;
@@ -2885,6 +3001,63 @@ export type GetSessionPayloadLazyQueryHookResult = ReturnType<
 export type GetSessionPayloadQueryResult = Apollo.QueryResult<
     Types.GetSessionPayloadQuery,
     Types.GetSessionPayloadQueryVariables
+>;
+export const GetCommentTagsForProjectDocument = gql`
+    query GetCommentTagsForProject($project_id: ID!) {
+        session_comment_tags_for_project(project_id: $project_id) {
+            id
+            name
+        }
+    }
+`;
+
+/**
+ * __useGetCommentTagsForProjectQuery__
+ *
+ * To run a query within a React component, call `useGetCommentTagsForProjectQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCommentTagsForProjectQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCommentTagsForProjectQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetCommentTagsForProjectQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetCommentTagsForProjectQuery,
+        Types.GetCommentTagsForProjectQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetCommentTagsForProjectQuery,
+        Types.GetCommentTagsForProjectQueryVariables
+    >(GetCommentTagsForProjectDocument, baseOptions);
+}
+export function useGetCommentTagsForProjectLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetCommentTagsForProjectQuery,
+        Types.GetCommentTagsForProjectQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetCommentTagsForProjectQuery,
+        Types.GetCommentTagsForProjectQueryVariables
+    >(GetCommentTagsForProjectDocument, baseOptions);
+}
+export type GetCommentTagsForProjectQueryHookResult = ReturnType<
+    typeof useGetCommentTagsForProjectQuery
+>;
+export type GetCommentTagsForProjectLazyQueryHookResult = ReturnType<
+    typeof useGetCommentTagsForProjectLazyQuery
+>;
+export type GetCommentTagsForProjectQueryResult = Apollo.QueryResult<
+    Types.GetCommentTagsForProjectQuery,
+    Types.GetCommentTagsForProjectQueryVariables
 >;
 export const GetSessionDocument = gql`
     query GetSession($secure_id: String!) {
@@ -3126,6 +3299,7 @@ export const GetSessionCommentsDocument = gql`
             y_coordinate
             type
             metadata
+            tags
         }
     }
 `;
@@ -3195,6 +3369,7 @@ export const GetNotificationsDocument = gql`
             }
             type
             metadata
+            tags
         }
         error_comments_for_project(project_id: $project_id) {
             id
@@ -3531,11 +3706,13 @@ export const SendAdminWorkspaceInviteDocument = gql`
         $workspace_id: ID!
         $email: String!
         $base_url: String!
+        $role: String!
     ) {
         sendAdminWorkspaceInvite(
             workspace_id: $workspace_id
             email: $email
             base_url: $base_url
+            role: $role
         )
     }
 `;
@@ -3560,6 +3737,7 @@ export type SendAdminWorkspaceInviteMutationFn = Apollo.MutationFunction<
  *      workspace_id: // value for 'workspace_id'
  *      email: // value for 'email'
  *      base_url: // value for 'base_url'
+ *      role: // value for 'role'
  *   },
  * });
  */
@@ -4829,6 +5007,11 @@ export type GetAppVersionsQueryResult = Apollo.QueryResult<
 export const GetProjectSuggestionDocument = gql`
     query GetProjectSuggestion($query: String!) {
         projectSuggestion(query: $query) {
+            id
+            name
+            workspace_id
+        }
+        workspaceSuggestion(query: $query) {
             id
             name
         }

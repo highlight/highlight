@@ -82,6 +82,7 @@ export const BarChartTableUserAvatar = ({
                 width: 'var(--size-large)',
                 borderRadius: 'var(--size-xSmall)',
                 border: '1px solid var(--text-primary-inverted)',
+                flexShrink: 0,
             }}
             customImage={getIdentifiedUserProfileImage({
                 user_properties: userProperties,

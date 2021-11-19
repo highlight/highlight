@@ -2,6 +2,7 @@ import Alert from '@components/Alert/Alert';
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import Card from '@components/Card/Card';
 import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton';
+import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState';
 import Table from '@components/Table/Table';
 import Tag from '@components/Tag/Tag';
 import SvgBugIcon from '@icons/BugIcon';
@@ -13,6 +14,7 @@ import SvgSparkles2Icon from '@icons/Sparkles2Icon';
 import SvgTargetIcon from '@icons/TargetIcon';
 import SvgUserPlusIcon from '@icons/UserPlusIcon';
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext';
+import AlertSetupModal from '@pages/Alerts/AlertSetupModal/AlertSetupModal';
 import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy';
 import { getAlertTypeColor } from '@pages/Alerts/utils/AlertsUtils';
 import { useParams } from '@util/react-router/useParams';
@@ -57,7 +59,11 @@ export const ALERT_CONFIGURATIONS = {
         description: (
             <>
                 {'Get alerted whenever a user'}{' '}
-                <a href="https://docs.highlight.run/rage-clicks">
+                {/* eslint-disable-next-line react/jsx-no-target-blank */}
+                <a
+                    href="https://docs.highlight.run/rage-clicks"
+                    target="_blank"
+                >
                     rage clicks.
                 </a>
             </>
@@ -95,7 +101,19 @@ export const ALERT_CONFIGURATIONS = {
         name: ALERT_NAMES['SESSION_FEEDBACK_ALERT'],
         canControlThreshold: false,
         type: ALERT_TYPE.SessionFeedbackComment,
-        description: 'Get alerted when a user submits a session feedback.',
+        description: (
+            <>
+                Get alerted when a user submits{' '}
+                {/* eslint-disable-next-line react/jsx-no-target-blank */}
+                <a
+                    href="https://docs.highlight.run/user-feedback"
+                    target="_blank"
+                >
+                    a session feedback
+                </a>
+                .
+            </>
+        ),
         icon: <SvgQuoteIcon />,
         supportsExcludeRules: false,
     },
@@ -223,6 +241,7 @@ const AlertsPage = () => {
 
     return (
         <>
+            <AlertSetupModal />
             <div className={styles.subTitleContainer}>
                 <p>Manage your alerts for your project.</p>
                 {alertsPayload?.is_integrated_with_slack &&
@@ -253,8 +272,21 @@ const AlertsPage = () => {
                         <>
                             {!alertsPayload?.is_integrated_with_slack ? (
                                 <>
-                                    Highlight needs to be connected with Slack
-                                    in order to send you and your team messages.
+                                    <p>
+                                        Highlight needs to be connected with
+                                        Slack in order to send you and your team
+                                        messages.
+                                    </p>
+                                    <p>
+                                        Once connected, you'll be able to get
+                                        alerts for things like:
+                                    </p>
+                                    <ul>
+                                        <li>Errors thrown</li>
+                                        <li>New users</li>
+                                        <li>A new feature is used</li>
+                                        <li>User submitted feedback</li>
+                                    </ul>
                                     <PersonalNotificationButton
                                         text="Connect Highlight with Slack"
                                         className={styles.integrationButton}
@@ -275,6 +307,7 @@ const AlertsPage = () => {
                             )}
                         </>
                     }
+                    closable={false}
                     className={styles.integrationAlert}
                 />
             ) : (
@@ -285,7 +318,7 @@ const AlertsPage = () => {
                 />
             )}
 
-            {((alertsPayload && alertsPayload.is_integrated_with_slack) ||
+            {((alertsPayload && alertsPayload?.is_integrated_with_slack) ||
                 !alertsPayload) && (
                 <Card noPadding>
                     <Table
@@ -296,24 +329,22 @@ const AlertsPage = () => {
                         showHeader={false}
                         rowHasPadding
                         renderEmptyComponent={
-                            <div className={styles.emptyContainer}>
-                                <h3>
-                                    Your project doesn't have any alerts yet.
-                                </h3>
-                                <p>
-                                    Alerts help you and your team stay on top of
-                                    things as they happen in your application.
-                                    You can set up alerts for things like when
-                                    certain actions happen, errors thrown, and
-                                    when a new user uses your app.
-                                </p>
-                                <ButtonLink
-                                    to="alerts/new"
-                                    trackingId="NoAlertsCreateNewAlert"
-                                >
-                                    Create an Alert
-                                </ButtonLink>
-                            </div>
+                            <SearchEmptyState
+                                className={styles.emptyContainer}
+                                item={'alerts'}
+                                customTitle={`Your project doesn't have any alerts yet 😔`}
+                                customDescription={
+                                    <>
+                                        <ButtonLink
+                                            trackingId="NewAlert"
+                                            className={styles.callToAction}
+                                            to={`/${project_id}/alerts/new`}
+                                        >
+                                            New Alert
+                                        </ButtonLink>
+                                    </>
+                                }
+                            />
                         }
                         onRow={(record) => ({
                             onClick: () => {

@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 
 	"github.com/pkg/errors"
 	e "github.com/pkg/errors"
@@ -26,6 +25,7 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/payload"
+	"github.com/highlight-run/highlight/backend/pricing"
 	mgraph "github.com/highlight-run/highlight/backend/private-graph/graph"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/workerpool"
@@ -255,11 +255,11 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	if payloadManager.Events.Length == 0 && s.Length <= 0 {
 		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
 			"session_obj": s}).Warnf("deleting session with no events (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v)", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed)
-		if err := w.Resolver.DB.Select(clause.Associations).Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
-			return errors.Wrap(err, "error trying to delete associations for session with no events")
-		}
-		if err := w.Resolver.DB.Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
-			return errors.Wrap(err, "error trying to delete session with no events")
+		s.Excluded = &model.T
+		s.Processed = &model.T
+		if err := w.Resolver.DB.Table(model.SESSIONS_TBL).Model(&model.Session{Model: model.Model{ID: s.ID}}).Updates(s).Error; err != nil {
+			log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
+				"session_obj": s}).Warnf("error excluding session with no events (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v): %v", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed, err)
 		}
 		return nil
 	}
@@ -352,14 +352,11 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	if activeDuration == 0 {
 		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
 			"session_obj": s}).Warnf("deleting session with 0ms length active duration (session_id=%d, identifier=%s)", s.ID, s.Identifier)
-		if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Delete(&model.EventsObject{}).Error; err != nil {
-			return errors.Wrap(err, "error trying to delete events_object for session of length 0ms")
-		}
-		if err := w.Resolver.DB.Select(clause.Associations).Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
-			return errors.Wrap(err, "error trying to delete associations for session with length 0")
-		}
-		if err := w.Resolver.DB.Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
-			return errors.Wrap(err, "error trying to delete session of length 0ms")
+		s.Excluded = &model.T
+		s.Processed = &model.T
+		if err := w.Resolver.DB.Table(model.SESSIONS_TBL).Model(&model.Session{Model: model.Model{ID: s.ID}}).Updates(s).Error; err != nil {
+			log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
+				"session_obj": s}).Warnf("error excluding session with 0ms length active duration (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v): %v", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed, err)
 		}
 		return nil
 	}
@@ -665,32 +662,57 @@ func (w *Worker) Start() {
 
 	if util.IsDevEnv() {
 		payloadLookbackPeriod = 8
+		lockPeriod = 1
 	}
-	go reportProcessSessionCount(w.Resolver.DB, payloadLookbackPeriod)
+
+	go reportProcessSessionCount(w.Resolver.DB, payloadLookbackPeriod, lockPeriod)
+	maxWorkerCount := 40
+	processSessionLimit := 10000
 	for {
 		time.Sleep(1 * time.Second)
-		processSessionLimit := 10000
 		sessions := []*model.Session{}
 		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName("worker.sessionsQuery"))
-		if err := w.Resolver.DB.
-			Raw(`
-			WITH t AS (
-				UPDATE sessions
-				SET lock=NOW()
-				WHERE id in (
-					SELECT id
-					FROM sessions
-					WHERE (processed = ?)
-						AND (COALESCE(payload_updated_at, to_timestamp(0)) < NOW() - (? * INTERVAL '1 SECOND'))
-						AND (COALESCE(lock, to_timestamp(0)) < NOW() - (? * INTERVAL '1 MINUTE'))
-					LIMIT ?
-					FOR UPDATE SKIP LOCKED
-				)
-				RETURNING *
-			)
-			SELECT * FROM t;
-			`, false, payloadLookbackPeriod, lockPeriod, processSessionLimit). // why do we get payload_updated_at IS NULL?
-			Find(&sessions).Error; err != nil {
+		if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
+			transactionCtx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
+			defer cancel()
+
+			errs := make(chan error, 1)
+			go func() {
+				defer util.Recover()
+				if err := tx.Raw(`
+						WITH t AS (
+							UPDATE sessions
+							SET lock=NOW()
+							WHERE id in (
+								SELECT id
+								FROM sessions
+								WHERE (processed = ?)
+									AND (COALESCE(payload_updated_at, to_timestamp(0)) < NOW() - (? * INTERVAL '1 SECOND'))
+									AND (COALESCE(lock, to_timestamp(0)) < NOW() - (? * INTERVAL '1 MINUTE'))
+								LIMIT ?
+								FOR UPDATE SKIP LOCKED
+							)
+							RETURNING *
+						)
+						SELECT * FROM t;
+					`, false, payloadLookbackPeriod, lockPeriod, processSessionLimit). // why do we get payload_updated_at IS NULL?
+					Find(&sessions).Error; err != nil {
+					errs <- err
+					return
+				}
+				errs <- nil
+			}()
+
+			select {
+			case <-transactionCtx.Done():
+				return e.New("transaction timeout occurred")
+			case err := <-errs:
+				if err != nil {
+					return err
+				}
+			}
+			return nil
+		}); err != nil {
 			log.Errorf("error querying unparsed, outdated sessions: %v", err)
 			sessionsSpan.Finish()
 			continue
@@ -714,7 +736,7 @@ func (w *Worker) Start() {
 			log.Infof("sessions that will be processed: %v", sessionIds)
 		}
 
-		wp := workerpool.New(40)
+		wp := workerpool.New(maxWorkerCount)
 		wp.SetPanicHandler(util.Recover)
 		// process 80 sessions at a time.
 		for _, session := range sessions {
@@ -732,6 +754,20 @@ func (w *Worker) Start() {
 			})
 		}
 		wp.StopWait()
+	}
+}
+
+func (w *Worker) ReportStripeUsage() {
+	pricing.ReportAllUsage(w.Resolver.DB, w.Resolver.StripeClient)
+}
+
+func (w *Worker) GetHandler(handlerFlag string) func() {
+	switch handlerFlag {
+	case "report-stripe-usage":
+		return w.ReportStripeUsage
+	default:
+		log.Fatalf("unrecognized worker-handler [%s]", handlerFlag)
+		return nil
 	}
 }
 
@@ -921,7 +957,7 @@ func processEventChunk(input *processEventChunkInput) (o processEventChunkOutput
 	return o
 }
 
-func reportProcessSessionCount(db *gorm.DB, lookbackPeriod int) {
+func reportProcessSessionCount(db *gorm.DB, lookbackPeriod, lockPeriod int) {
 	defer util.Recover()
 	for {
 		time.Sleep(5 * time.Second)
@@ -929,13 +965,13 @@ func reportProcessSessionCount(db *gorm.DB, lookbackPeriod int) {
 		if err := db.Raw(`
 			SELECT COUNT(*)
 			FROM sessions
-			WHERE (
-				payload_updated_at < (NOW() - ? * INTERVAL '1 SECOND')
-				OR payload_updated_at IS NULL
-			)
-			AND processed=false;
-		`, lookbackPeriod).Scan(&count).Error; err != nil {
-			log.Error("error getting count of sessions to process")
+			WHERE
+				(COALESCE(payload_updated_at, to_timestamp(0)) < NOW() - (? * INTERVAL '1 SECOND'))
+				AND (COALESCE(lock, to_timestamp(0)) < NOW() - (? * INTERVAL '1 MINUTE'))
+				AND NOT processed
+				AND NOT excluded;
+			`, lookbackPeriod, lockPeriod).Scan(&count).Error; err != nil {
+			log.Error(e.Wrap(err, "error getting count of sessions to process"))
 			continue
 		}
 		hlog.Histogram("processSessionsCount", float64(count), nil, 1)

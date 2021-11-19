@@ -1,4 +1,4 @@
-const MAX_TITLE_CHARACTER_LENGTH = 20;
+const MAX_TITLE_CHARACTER_LENGTH = 50;
 
 export const getErrorTitle = (str: string): string | null => {
     if (str.length === 0) {

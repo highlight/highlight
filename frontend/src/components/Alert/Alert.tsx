@@ -10,13 +10,20 @@ import styles from './Alert.module.scss';
 
 type Props = {
     trackingId: string;
+    closable?: boolean;
     shouldAlwaysShow?: boolean;
 } & Pick<
     AlertProps,
     'description' | 'type' | 'onClose' | 'message' | 'className'
 >;
 
-const Alert = ({ trackingId, shouldAlwaysShow = false, ...props }: Props) => {
+const Alert = ({
+    trackingId,
+    closable,
+    shouldAlwaysShow = false,
+    type = 'info',
+    ...props
+}: Props) => {
     const [temporarilyHideAlert, setTemporarilyHideAlert] = useSessionStorage(
         `highlightHideAlert-${trackingId}`,
         false
@@ -29,10 +36,11 @@ const Alert = ({ trackingId, shouldAlwaysShow = false, ...props }: Props) => {
     return (
         <AntDesignAlert
             {...props}
+            type={type}
             className={classNames(props.className, styles.alert)}
-            closable
+            closable={closable != null ? closable : true}
             showIcon
-            closeText={<SvgXIcon />}
+            closeText={(closable != null ? closable : true) && <SvgXIcon />}
             icon={<SvgInformationIcon />}
             onClose={(e) => {
                 if (props.onClose) {

@@ -1,6 +1,6 @@
 import { useGetProjectSuggestionLazyQuery } from '@graph/hooks';
 import { useParams } from '@util/react-router/useParams';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import CommandPalette, { Command } from 'react-command-palette';
 import { RouteComponentProps } from 'react-router';
 import { withRouter } from 'react-router-dom';
@@ -36,7 +36,26 @@ const THEME = {
 const CommandPaletteComponent: React.FC<RouteComponentProps> = ({
     history,
 }) => {
-    const [getProjects, { data }] = useGetProjectSuggestionLazyQuery();
+    const [normalizedWorkspaces, setNormalizedWorkspaces] = useState({});
+    const [getProjects, { data }] = useGetProjectSuggestionLazyQuery({
+        onCompleted: (data) => {
+            if (data.workspaceSuggestion.length > 0) {
+                setNormalizedWorkspaces(
+                    data.workspaceSuggestion.reduce((acc, cur) => {
+                        if (cur) {
+                            return {
+                                ...acc,
+                                [cur.id]: cur?.name,
+                            };
+                        }
+                        return {
+                            ...acc,
+                        };
+                    }, {})
+                );
+            }
+        },
+    });
     const { isHighlightAdmin } = useAuthContext();
     const { project_id } = useParams<{
         project_id: string;
@@ -56,7 +75,12 @@ const CommandPaletteComponent: React.FC<RouteComponentProps> = ({
             return {
                 category: 'Projects',
                 id: project?.id ?? index,
-                name: `${project?.name ?? index.toString()}`,
+                name: `${project?.name ?? index.toString()} - ${
+                    // @ts-expect-error
+                    normalizedWorkspaces[
+                        project?.workspace_id.toString() as string
+                    ]
+                }`,
                 command() {
                     history.push(`/${project?.id}/sessions`);
                 },

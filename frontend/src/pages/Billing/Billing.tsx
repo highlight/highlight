@@ -277,6 +277,7 @@ const BillingPage = () => {
                     ) : (
                         <Alert
                             trackingId="AdminNoAccessToBilling"
+                            type="info"
                             message="You don't have access to billing."
                             description={`You don't have permission to access the billing details for "${workspaceData?.workspace?.name}". Please contact a workspace admin to make changes.`}
                         />

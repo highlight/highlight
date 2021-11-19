@@ -201,7 +201,7 @@ export const UserDetailsBox = () => {
                 ) : (
                     <>
                         {data?.enhanced_user_details?.name && (
-                            <h4 className={styles.enhancedName}>
+                            <h4 id={styles.enhancedName}>
                                 {data?.enhanced_user_details?.name}
                             </h4>
                         )}
@@ -260,9 +260,11 @@ const hasEnrichedData = (enhancedData?: GetEnhancedUserDetailsQuery) => {
     const { enhanced_user_details } = enhancedData;
 
     return (
-        enhanced_user_details?.avatar ||
-        enhanced_user_details?.bio ||
-        enhanced_user_details?.name ||
-        enhanced_user_details?.socials
+        (!!enhanced_user_details?.avatar &&
+            enhanced_user_details?.avatar !== '') ||
+        (!!enhanced_user_details?.bio && enhanced_user_details?.bio !== '') ||
+        (!!enhanced_user_details?.name && enhanced_user_details?.name !== '') ||
+        enhanced_user_details?.socials?.length ||
+        0 > 0
     );
 };

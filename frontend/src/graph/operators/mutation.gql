@@ -41,6 +41,18 @@ mutation AddAdminToWorkspace($workspace_id: ID!, $invite_id: String!) {
     addAdminToWorkspace(workspace_id: $workspace_id, invite_id: $invite_id)
 }
 
+mutation ChangeAdminRole(
+    $workspace_id: ID!
+    $admin_id: ID!
+    $new_role: String!
+) {
+    changeAdminRole(
+        workspace_id: $workspace_id
+        admin_id: $admin_id
+        new_role: $new_role
+    )
+}
+
 mutation DeleteAdminFromProject($project_id: ID!, $admin_id: ID!) {
     deleteAdminFromProject(project_id: $project_id, admin_id: $admin_id)
 }
@@ -163,6 +175,7 @@ mutation CreateSessionComment(
     $time: Float!
     $author_name: String!
     $session_image: String
+    $tags: [SessionCommentTagInput]!
 ) {
     createSessionComment(
         project_id: $project_id
@@ -178,6 +191,7 @@ mutation CreateSessionComment(
         time: $time
         author_name: $author_name
         session_image: $session_image
+        tags: $tags
     ) {
         id
         timestamp
@@ -370,6 +384,17 @@ mutation DeleteSessionAlert($project_id: ID!, $session_alert_id: ID!) {
     }
 }
 
+mutation CreateDefaultAlerts(
+    $project_id: ID!
+    $alert_types: [String!]!
+    $slack_channels: [SanitizedSlackChannelInput!]!
+) {
+    createDefaultAlerts(
+        project_id: $project_id
+        alert_types: $alert_types
+        slack_channels: $slack_channels
+    )
+}
 mutation CreateSessionFeedbackAlert(
     $project_id: ID!
     $name: String!

@@ -1,4 +1,9 @@
-import { namedOperations } from '@graph/operations';
+import {
+    GetCommentTagsForProjectQuery,
+    namedOperations,
+} from '@graph/operations';
+import CommentTextBody from '@pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody';
+import SessionCommentTagSelect from '@pages/Player/Toolbar/NewCommentForm/SessionCommentTagSelect/SessionCommentTagSelect';
 import { getCommentMentionSuggestions } from '@util/comment/util';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
@@ -17,17 +22,17 @@ import {
 import {
     useCreateSessionCommentMutation,
     useGetCommentMentionSuggestionsQuery,
+    useGetCommentTagsForProjectQuery,
     useGetProjectAdminsQuery,
 } from '../../../../graph/generated/hooks';
 import {
+    Admin,
     SanitizedAdminInput,
     SanitizedSlackChannelInput,
 } from '../../../../graph/generated/schemas';
-import { MillisToMinutesAndSeconds } from '../../../../util/time';
 import { Coordinates2D } from '../../PlayerCommentCanvas/PlayerCommentCanvas';
 import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration';
 import { useReplayerContext } from '../../ReplayerContext';
-import CommentTextBody from './CommentTextBody/CommentTextBody';
 import styles from './NewCommentForm.module.scss';
 
 interface Props {
@@ -50,6 +55,10 @@ export const NewCommentForm = ({
         session_secure_id: string;
         project_id: string;
     }>();
+    const { data: commentTagsData } = useGetCommentTagsForProjectQuery({
+        variables: { project_id },
+        fetchPolicy: 'network-only',
+    });
     const [commentText, setCommentText] = useState('');
     /**
      * commentTextForEmail is the comment text without the formatting.
@@ -58,6 +67,7 @@ export const NewCommentForm = ({
     const [commentTextForEmail, setCommentTextForEmail] = useState('');
     const [isCreatingComment, setIsCreatingComment] = useState(false);
     const [form] = Form.useForm<{ commentText: string }>();
+    const [tags, setTags] = useState([]);
     const {
         selectedTimelineAnnotationTypes,
         setSelectedTimelineAnnotationTypes,
@@ -86,10 +96,11 @@ export const NewCommentForm = ({
         let session_image: undefined | string = undefined;
 
         if (mentionedAdmins.length > 0 || mentionedSlackUsers.length > 0) {
+            const iframe = document.querySelector(
+                '.replayer-wrapper iframe'
+            ) as HTMLIFrameElement;
             const canvas = await html2canvas(
-                (document.querySelector(
-                    '.replayer-wrapper iframe'
-                ) as HTMLIFrameElement).contentDocument!.documentElement,
+                iframe.contentDocument!.documentElement,
                 {
                     allowTaint: true,
                     logging: false,
@@ -97,6 +108,12 @@ export const NewCommentForm = ({
                     foreignObjectRendering: false,
                     useCORS: false,
                     proxy: 'https://html2imageproxy.highlightrun.workers.dev',
+                    windowHeight: Number(iframe.height),
+                    windowWidth: Number(iframe.width),
+                    height: Number(iframe.height),
+                    width: Number(iframe.width),
+                    scrollY:
+                        iframe.contentDocument?.firstElementChild?.scrollTop,
                 }
             );
             session_image = canvas
@@ -120,6 +137,7 @@ export const NewCommentForm = ({
                     time: time / 1000,
                     author_name: admin?.name || admin?.email || 'Someone',
                     session_image,
+                    tags: getTags(tags, commentTagsData),
                 },
                 refetchQueries: [namedOperations.Query.GetSessionComments],
             });
@@ -240,6 +258,11 @@ export const NewCommentForm = ({
         }
     };
 
+    const placeholder = useMemo(
+        () => getNewCommentPlaceholderText(adminSuggestions, admin),
+        [admin, adminSuggestions]
+    );
+
     return (
         <Form
             name="newComment"
@@ -252,9 +275,7 @@ export const NewCommentForm = ({
                     <CommentTextBody
                         commentText={commentText}
                         onChangeHandler={onChangeHandler}
-                        placeholder={`Add a comment at ${MillisToMinutesAndSeconds(
-                            currentTime
-                        )}`}
+                        placeholder={placeholder}
                         suggestions={adminSuggestions}
                         onDisplayTransformHandler={onDisplayTransform}
                         suggestionsPortalHost={parentRef?.current as Element}
@@ -268,29 +289,105 @@ export const NewCommentForm = ({
             >
                 {/* This Form.Item by default are optimized to not rerender the children. For this child however, we want to rerender on every form change to change the disabled state of the button. See https://ant.design/components/form/#shouldUpdate */}
                 {() => (
-                    <div className={styles.actionButtons}>
-                        <Button
-                            trackingId="CancelCreatingSessionComment"
-                            htmlType="button"
-                            onClick={() => {
-                                onCloseHandler();
-                                form.resetFields();
-                            }}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            trackingId="CreateNewSessionComment"
-                            type="primary"
-                            htmlType="submit"
-                            disabled={commentText.length === 0}
-                            loading={isCreatingComment}
-                        >
-                            Post
-                        </Button>
+                    <div className={styles.footer}>
+                        <div>
+                            <SessionCommentTagSelect
+                                onChange={setTags}
+                                placeholder="Add tags (e.g. signups, userflow, bug, error)"
+                            />
+                        </div>
+                        <div className={styles.actionButtons}>
+                            <Button
+                                trackingId="CancelCreatingSessionComment"
+                                htmlType="button"
+                                onClick={() => {
+                                    onCloseHandler();
+                                    form.resetFields();
+                                }}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                trackingId="CreateNewSessionComment"
+                                type="primary"
+                                htmlType="submit"
+                                disabled={commentText.length === 0}
+                                loading={isCreatingComment}
+                            >
+                                Post
+                            </Button>
+                        </div>
                     </div>
                 )}
             </Form.Item>
         </Form>
     );
+};
+
+const getTags = (
+    tags: string[],
+    tagsData: GetCommentTagsForProjectQuery | undefined
+) => {
+    if (!tagsData || tags.length === 0) {
+        return [];
+    }
+
+    const response: { id?: string; name: string }[] = [];
+
+    tags.forEach((tag) => {
+        const matchingTag = tagsData.session_comment_tags_for_project.find(
+            (t) => t.name === tag
+        );
+
+        if (matchingTag) {
+            response.push({
+                name: tag,
+                id: matchingTag.id,
+            });
+        } else {
+            response.push({
+                name: tag,
+                id: undefined,
+            });
+        }
+    });
+
+    return response;
+};
+
+const RANDOM_COMMENT_MESSAGES = [
+    'check this out!',
+    'what do you think of this?',
+    'should we update this?',
+    'looks like the user was having trouble here.',
+] as const;
+
+const getNewCommentPlaceholderText = (
+    adminSuggestions?: AdminSuggestion[],
+    admin?: Admin
+) => {
+    const randomMessage =
+        RANDOM_COMMENT_MESSAGES[
+            Math.floor(Math.random() * RANDOM_COMMENT_MESSAGES.length)
+        ];
+
+    if (!adminSuggestions || !admin) {
+        return randomMessage;
+    }
+    if (adminSuggestions.length === 0) {
+        return `Hey @${admin.name}, ${randomMessage}`;
+    }
+
+    const randomSuggestionIndex = Math.floor(
+        Math.random() * adminSuggestions.length
+    );
+    let displayName = adminSuggestions[randomSuggestionIndex].display || '';
+
+    if (!(displayName[0] === '@') && !(displayName[0] === '#')) {
+        displayName = `@${displayName}`;
+    } else if (displayName.includes('#')) {
+        displayName = `@${displayName.slice(1)}`;
+    }
+
+    return `Hey ${displayName}, ${randomMessage}`;
 };

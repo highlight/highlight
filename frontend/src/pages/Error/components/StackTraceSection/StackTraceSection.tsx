@@ -54,6 +54,7 @@ const StackTraceSection = ({ errorGroup, loading }: Props) => {
                         trackingId="PrivacySourceMapEducation"
                         className={styles.alert}
                         message="These stack frames don't look that useful 😢"
+                        type="info"
                         description={
                             <>
                                 We're guessing you don't ship sourcemaps with

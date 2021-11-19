@@ -3,10 +3,13 @@ import Card from '@components/Card/Card';
 import CopyText from '@components/CopyText/CopyText';
 import Input from '@components/Input/Input';
 import Modal from '@components/Modal/Modal';
+import Select from '@components/Select/Select';
 import Table from '@components/Table/Table';
+import { AdminRole } from '@graph/schemas';
 import SvgTrash from '@icons/Trash';
 import { getWorkspaceInvitationLink } from '@pages/WorkspaceTeam/utils';
 import { useParams } from '@util/react-router/useParams';
+import { getDisplayNameFromEmail, titleCaseString } from '@util/string';
 import { message } from 'antd';
 import classNames from 'classnames/bind';
 import moment from 'moment';
@@ -23,6 +26,7 @@ import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import { CircularSpinner } from '../../components/Loading/Loading';
 import PopConfirm from '../../components/PopConfirm/PopConfirm';
 import {
+    useChangeAdminRoleMutation,
     useDeleteAdminFromWorkspaceMutation,
     useGetWorkspaceAdminsQuery,
     useSendAdminWorkspaceInviteMutation,
@@ -37,6 +41,9 @@ const WorkspaceTeam = () => {
     });
     const [email, setEmail] = useState('');
     const [showModal, toggleShowModal] = useToggle(false);
+    const [newAdminRole, setNewAdminRole] = useState<AdminRole>(
+        AdminRole.Admin
+    );
 
     const { admin } = useAuthContext();
     const [deleteAdminFromWorkspace] = useDeleteAdminFromWorkspaceMutation({
@@ -59,6 +66,7 @@ const WorkspaceTeam = () => {
             });
         },
     });
+    const [changeAdminRole] = useChangeAdminRoleMutation();
 
     const [
         sendInviteEmail,
@@ -72,6 +80,7 @@ const WorkspaceTeam = () => {
                 workspace_id,
                 email,
                 base_url: window.location.origin,
+                role: newAdminRole,
             },
         }).then(() => {
             message.success(`Invite email sent to ${email}!`, 5);
@@ -120,6 +129,28 @@ const WorkspaceTeam = () => {
                                 onChange={(e) => {
                                     setEmail(e.target.value);
                                 }}
+                                addonAfter={
+                                    <Select
+                                        bordered={false}
+                                        value={newAdminRole}
+                                        options={(Object.keys(
+                                            AdminRole
+                                        ) as (keyof typeof AdminRole)[]).map(
+                                            (key) => {
+                                                const role = AdminRole[key];
+
+                                                return {
+                                                    displayValue: titleCaseString(
+                                                        role
+                                                    ),
+                                                    id: role,
+                                                    value: role,
+                                                };
+                                            }
+                                        )}
+                                        onChange={setNewAdminRole}
+                                    />
+                                }
                             />
                             <Button
                                 trackingId="WorkspaceInviteMember"
@@ -149,6 +180,7 @@ const WorkspaceTeam = () => {
                             shouldAlwaysShow
                             trackingId="InviteAdminToWorkspaceConfirmation"
                             message={`An invite email has been sent!`}
+                            type="success"
                             description={
                                 <>
                                     You can also share with them this link:{' '}
@@ -187,7 +219,11 @@ const WorkspaceTeam = () => {
 
             <Card noPadding>
                 <Table
-                    columns={TABLE_COLUMNS}
+                    columns={
+                        admin?.role === AdminRole.Admin
+                            ? TABLE_COLUMNS
+                            : TABLE_COLUMNS.slice(0, 2)
+                    }
                     loading={loading}
                     dataSource={data?.admins?.map((member) => ({
                         name: member?.name,
@@ -203,6 +239,31 @@ const WorkspaceTeam = () => {
                                     workspace_id,
                                 },
                             }),
+                        onUpdateRoleHandler: (new_role: string) => {
+                            changeAdminRole({
+                                variables: {
+                                    admin_id: member!.id,
+                                    workspace_id,
+                                    new_role,
+                                },
+                            });
+
+                            let messageText = '';
+                            const displayName =
+                                member?.name ||
+                                getDisplayNameFromEmail(member?.email || '');
+                            switch (new_role) {
+                                case AdminRole.Admin:
+                                    messageText = `${displayName} has been granted Admin powers 🧙`;
+                                    break;
+                                case AdminRole.Member:
+                                    messageText = `${displayName} will no longer have access to billing`;
+                                    break;
+                            }
+                            message.success(messageText);
+                        },
+                        currentAdminHasAdminRole:
+                            admin?.role === AdminRole.Admin,
                     }))}
                     pagination={false}
                     showHeader={false}
@@ -235,7 +296,8 @@ const TABLE_COLUMNS = [
                         <h4>
                             {record?.name
                                 ? record?.name
-                                : record?.email.split('@')[0]}
+                                : getDisplayNameFromEmail(record.email)}{' '}
+                            {record.isSameAdmin && '(You)'}
                         </h4>
                         <div className={styles.email}>{record?.email}</div>
                     </div>
@@ -243,23 +305,41 @@ const TABLE_COLUMNS = [
             );
         },
     },
-    //     {
-    //         title: 'Role',
-    //         dataIndex: 'role',
-    //         key: 'role',
-    //         render: (role: string) => {
-    //             return <div className={styles.role}>{role}</div>;
-    //         },
-    //     },
+    {
+        title: 'Role',
+        dataIndex: 'role',
+        key: 'role',
+        render: (role: string, record: any) => {
+            if (record.currentAdminHasAdminRole) {
+                return (
+                    <div className={styles.role}>
+                        <Select
+                            disabled={record.isSameAdmin}
+                            onChange={record.onUpdateRoleHandler}
+                            options={(Object.keys(
+                                AdminRole
+                            ) as (keyof typeof AdminRole)[]).map((key) => {
+                                const role = AdminRole[key];
+
+                                return {
+                                    displayValue: titleCaseString(role),
+                                    id: role,
+                                    value: role,
+                                };
+                            })}
+                            defaultValue={record.role}
+                        />
+                    </div>
+                );
+            }
+            return <div className={styles.role}>{titleCaseString(role)}</div>;
+        },
+    },
     {
         title: 'Remove',
         dataIndex: 'remove',
         key: 'remove',
         render: (_: any, record: any) => {
-            if (record.isSameAdmin) {
-                return null;
-            }
-
             return (
                 <PopConfirm
                     title={`Remove ${record?.name || record?.email}?`}

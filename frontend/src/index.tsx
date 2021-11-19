@@ -51,6 +51,7 @@ const options: HighlightOptions = {
             projectToken: 'e70039b6a5b93e7c86b8afb02b6d2300',
         },
     },
+    sessionShortcut: 'alt+1,command+`,alt+esc',
 };
 const favicon = document.querySelector("link[rel~='icon']") as any;
 if (dev) {

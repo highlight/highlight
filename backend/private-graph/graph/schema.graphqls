@@ -391,6 +391,17 @@ type SessionComment {
     y_coordinate: Float
     type: SessionCommentType!
     metadata: Any
+    tags: [String]!
+}
+
+type SessionCommentTag {
+    id: ID!
+    name: String!
+}
+
+input SessionCommentTagInput {
+    id: ID
+    name: String!
 }
 
 type ErrorComment {
@@ -507,6 +518,7 @@ type Query {
     errors(session_secure_id: String!): [ErrorObject]
     resources(session_secure_id: String!): [Any]
     session_comments(session_secure_id: String!): [SessionComment]!
+    session_comment_tags_for_project(project_id: ID!): [SessionCommentTag!]!
     session_comments_for_admin: [SessionComment]!
     session_comments_for_project(project_id: ID!): [SessionComment]!
     error_comments(error_group_secure_id: String!): [ErrorComment]!
@@ -568,7 +580,8 @@ type Query {
     user_properties_alerts(project_id: ID!): [SessionAlert]!
     new_session_alerts(project_id: ID!): [SessionAlert]!
     rage_click_alerts(project_id: ID!): [SessionAlert]!
-    projectSuggestion(query: String!): [Project]
+    projectSuggestion(query: String!): [Project]!
+    workspaceSuggestion(query: String!): [Workspace]!
     environment_suggestion(project_id: ID!): [Field]
     identifier_suggestion(project_id: ID!): [String]!
     app_version_suggestion(project_id: ID!): [String]!
@@ -604,8 +617,14 @@ type Mutation {
         workspace_id: ID!
         email: String!
         base_url: String!
+        role: String!
     ): String
     addAdminToWorkspace(workspace_id: ID!, invite_id: String!): ID
+    changeAdminRole(
+        workspace_id: ID!
+        admin_id: ID!
+        new_role: String!
+    ): Boolean!
     deleteAdminFromProject(project_id: ID!, admin_id: ID!): ID
     deleteAdminFromWorkspace(workspace_id: ID!, admin_id: ID!): ID
     createSegment(
@@ -648,6 +667,7 @@ type Mutation {
         time: Float!
         author_name: String!
         session_image: String
+        tags: [SessionCommentTagInput]!
     ): SessionComment
     deleteSessionComment(id: ID!): Boolean
     createErrorComment(
@@ -671,6 +691,11 @@ type Mutation {
         code: String!
         redirect_path: String!
     ): Boolean!
+    createDefaultAlerts(
+        project_id: ID!
+        alert_types: [String!]!
+        slack_channels: [SanitizedSlackChannelInput!]!
+    ): Boolean
     createRageClickAlert(
         project_id: ID!
         name: String!
