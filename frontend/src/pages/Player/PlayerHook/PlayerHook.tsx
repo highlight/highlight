@@ -67,7 +67,6 @@ export const usePlayer = (): ReplayerContextInterface => {
     const [download] = useQueryParam('download', BooleanParam);
     const [scale, setScale] = useState(1);
     const [events, setEvents] = useState<Array<HighlightEvent>>([]);
-    const [newEvents, setNewEvents] = useState<Array<HighlightEvent>>([]);
     const [sessionComments, setSessionComments] = useState<SessionComment[]>(
         []
     );
@@ -82,7 +81,13 @@ export const usePlayer = (): ReplayerContextInterface => {
     });
     const [loadedEventsIndex, setLoadedEventsIndex] = useState<number>(0);
     const [isLiveMode, setIsLiveMode] = useState<boolean>(false);
-    const [isPollingEvents, setIsPollingEvents] = useState<boolean>(false);
+    const [
+        unsubscribeSessionPayloadFn,
+        setUnsubscribeSessionPayloadFn,
+    ] = useState<(() => void) | null>(null);
+    const [subscriptionEventsPayload, setSubscriptionEventsPayload] = useState<
+        Array<HighlightEvent>
+    >([]);
     const [timerId, setTimerId] = useState<number | null>(null);
     const [errors, setErrors] = useState<ErrorObject[]>([]);
     const [, setSelectedErrorId] = useState<string | undefined>(undefined);
@@ -132,13 +137,13 @@ export const usePlayer = (): ReplayerContextInterface => {
     }, [eventsData?.events]);
 
     useEffect(() => {
-        if (newEvents.length && eventsPayload?.length) {
+        if (subscriptionEventsPayload?.length && eventsPayload?.length) {
             console.log('Existing events payload: ', eventsPayload);
-            console.log('New events: ', newEvents);
-            setEventsPayload([...eventsPayload, ...newEvents]);
-            setNewEvents([]);
+            console.log('New events: ', subscriptionEventsPayload);
+            setEventsPayload([...eventsPayload, ...subscriptionEventsPayload]);
+            setSubscriptionEventsPayload([]);
         }
-    }, [eventsPayload, newEvents]);
+    }, [eventsPayload, subscriptionEventsPayload]);
 
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
 
@@ -236,14 +241,18 @@ export const usePlayer = (): ReplayerContextInterface => {
     }, [sessionData?.session]);
 
     useEffect(() => {
-        if (isLiveMode && state > ReplayerState.Loading && !isPollingEvents) {
+        if (
+            isLiveMode &&
+            state > ReplayerState.Loading &&
+            !unsubscribeSessionPayloadFn
+        ) {
             console.log(
                 'Rich: Subscribing to ',
                 session_secure_id,
                 ' from ',
                 events.length
             );
-            subscribeToSessionPayload!({
+            const unsubscribe = subscribeToSessionPayload!({
                 document: OnSessionPayloadAppendedDocument,
                 variables: {
                     session_secure_id,
@@ -253,7 +262,7 @@ export const usePlayer = (): ReplayerContextInterface => {
                     console.log('Rich data for: ', session_secure_id);
                     console.log('Rich new data: ', subscriptionData.data);
                     if (subscriptionData.data) {
-                        setNewEvents(
+                        setSubscriptionEventsPayload(
                             // @ts-ignore The typedef for subscriptionData is incorrect
                             subscriptionData.data!.session_payload_appended
                                 .events!
@@ -263,19 +272,20 @@ export const usePlayer = (): ReplayerContextInterface => {
                     return prev;
                 },
             });
-            setIsPollingEvents(true);
+            setUnsubscribeSessionPayloadFn(() => unsubscribe);
             if (state === ReplayerState.Paused) {
                 play();
             }
-        } else if (!isLiveMode && isPollingEvents) {
-            setIsPollingEvents(false);
+        } else if (!isLiveMode && unsubscribeSessionPayloadFn) {
+            unsubscribeSessionPayloadFn!();
+            setUnsubscribeSessionPayloadFn(() => null);
             if (state === ReplayerState.Playing) {
                 pause();
             }
         }
         // We don't want to re-evaluate this every time the play/pause fn changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isLiveMode, state, isPollingEvents]);
+    }, [isLiveMode, state, unsubscribeSessionPayloadFn]);
 
     // Reset all state when loading events.
     useEffect(() => {
