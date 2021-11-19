@@ -19,11 +19,13 @@ require (
 	github.com/go-test/deep v1.0.4
 	github.com/gorilla/sessions v1.2.1 // indirect
 	github.com/highlight-run/workerpool v1.2.0
+	github.com/k0kubun/pp v3.0.1+incompatible // indirect
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/kylelemons/godebug v1.1.0
 	github.com/lib/pq v1.6.0 // indirect
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/mssola/user_agent v0.5.3
+	github.com/opensearch-project/opensearch-go v1.0.0 // indirect
 	github.com/opentracing/opentracing-go v1.1.0 // indirect
 	github.com/philhofer/fwd v1.1.1 // indirect
 	github.com/pkg/errors v0.9.1
@@ -34,7 +36,6 @@ require (
 	github.com/sirupsen/logrus v1.6.0
 	github.com/slack-go/slack v0.9.1
 	github.com/speps/go-hashids v2.0.0+incompatible
-	github.com/stretchr/testify v1.6.1 // indirect
 	github.com/stripe/stripe-go v70.15.0+incompatible
 	github.com/vektah/gqlparser/v2 v2.1.0
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a // indirect
