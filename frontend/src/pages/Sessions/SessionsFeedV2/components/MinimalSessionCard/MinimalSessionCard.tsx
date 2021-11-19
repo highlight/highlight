@@ -33,7 +33,10 @@ interface Props {
     linkDisabled?: boolean;
     showDetailedSessionView?: boolean;
     autoPlaySessions?: boolean;
-    configuration?: SessionFeedConfigurationContext;
+    configuration?: Pick<
+        SessionFeedConfigurationContext,
+        'countFormat' | 'datetimeFormat'
+    >;
 }
 
 const MinimalSessionCard = React.memo(
@@ -348,6 +351,17 @@ const MinimalSessionCard = React.memo(
                     </Link>
                 )}
             </div>
+        );
+    },
+    (previousProps, nextProps) => {
+        return (
+            previousProps.configuration?.countFormat ===
+                nextProps.configuration?.countFormat &&
+            previousProps.configuration?.datetimeFormat ===
+                nextProps.configuration?.datetimeFormat &&
+            previousProps.selected === nextProps.selected &&
+            previousProps.showDetailedSessionView ===
+                nextProps.showDetailedSessionView
         );
     }
 );

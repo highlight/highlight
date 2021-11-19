@@ -27,336 +27,358 @@ import devStyles from '../DevToolsWindow.module.scss';
 import { getNetworkResourcesDisplayName, Option } from '../Option/Option';
 import styles from './ResourcePage.module.scss';
 
-export const ResourcePage = ({
-    time,
-    startTime,
-}: {
-    time: number;
-    startTime: number;
-}) => {
-    const {
-        state,
-        session,
-        isPlayerReady,
-        errors,
-        replayer,
-        setTime,
-    } = useReplayerContext();
-    const {
-        setShowDevTools,
-        setSelectedDevToolsTab,
-    } = usePlayerConfiguration();
-    const [options, setOptions] = useState<Array<string>>([]);
-    const [currentOption, setCurrentOption] = useState('All');
-    const [filterSearchTerm, setFilterSearchTerm] = useState('');
-    const [currentResource, setCurrentResource] = useState(0);
-    const [networkRange, setNetworkRange] = useState(0);
-    const [
-        isInteractingWithResources,
-        setIsInteractingWithResources,
-    ] = useState(false);
-    const [allResources, setAllResources] = useState<
-        Array<NetworkResource> | undefined
-    >([]);
+export const ResourcePage = React.memo(
+    ({ time, startTime }: { time: number; startTime: number }) => {
+        const {
+            state,
+            session,
+            isPlayerReady,
+            errors,
+            replayer,
+            setTime,
+        } = useReplayerContext();
+        const {
+            setShowDevTools,
+            setSelectedDevToolsTab,
+        } = usePlayerConfiguration();
+        const [options, setOptions] = useState<Array<string>>([]);
+        const [currentOption, setCurrentOption] = useState('All');
+        const [filterSearchTerm, setFilterSearchTerm] = useState('');
+        const [currentResource, setCurrentResource] = useState(0);
+        const [networkRange, setNetworkRange] = useState(0);
+        const [
+            isInteractingWithResources,
+            setIsInteractingWithResources,
+        ] = useState(false);
+        const [allResources, setAllResources] = useState<
+            Array<NetworkResource> | undefined
+        >([]);
 
-    const virtuoso = useRef<VirtuosoHandle>(null);
-    const errorId = new URLSearchParams(location.search).get(
-        PlayerSearchParameters.errorId
-    );
-    const { setResourcePanel, setErrorPanel } = useResourceOrErrorDetailPanel();
+        const virtuoso = useRef<VirtuosoHandle>(null);
+        const errorId = new URLSearchParams(location.search).get(
+            PlayerSearchParameters.errorId
+        );
+        const {
+            setResourcePanel,
+            setErrorPanel,
+        } = useResourceOrErrorDetailPanel();
 
-    const {
-        resources: parsedResources,
-        loadResources,
-        resourcesLoading: loading,
-    } = useResourcesContext();
-    loadResources();
+        const {
+            resources: parsedResources,
+            loadResources,
+            resourcesLoading: loading,
+        } = useResourcesContext();
+        loadResources();
 
-    useEffect(() => {
-        const optionSet = new Set<string>();
-        parsedResources?.forEach((r) => {
-            if (!optionSet.has(r.initiatorType)) {
-                optionSet.add(r.initiatorType);
-            }
-        });
-        setOptions(['All', ...Array.from(optionSet)]);
-    }, [parsedResources]);
+        useEffect(() => {
+            const optionSet = new Set<string>();
+            parsedResources?.forEach((r) => {
+                if (!optionSet.has(r.initiatorType)) {
+                    optionSet.add(r.initiatorType);
+                }
+            });
+            setOptions(['All', ...Array.from(optionSet)]);
+        }, [parsedResources]);
 
-    useEffect(() => {
-        if (parsedResources) {
-            setAllResources(
-                parsedResources?.filter((r) => {
-                    if (currentOption === 'All') {
-                        return true;
-                    } else if (currentOption === r.initiatorType) {
-                        return true;
-                    }
-                    return false;
-                }) ?? []
-            );
-        }
-    }, [parsedResources, currentOption, options]);
-
-    useEffect(() => {
-        if (parsedResources.length > 0) {
-            const start = parsedResources[0].startTime;
-            const end = parsedResources[parsedResources.length - 1].responseEnd;
-            setNetworkRange(end - start);
-        }
-    }, [parsedResources]);
-
-    useEffect(() => {
-        if (allResources?.length) {
-            let msgIndex = 0;
-            const relativeTime = time - startTime;
-            let msgDiff: number = Math.abs(
-                relativeTime - allResources[0].startTime
-            );
-            for (let i = 0; i < allResources.length; i++) {
-                const currentDiff: number = Math.abs(
-                    relativeTime - allResources[i].startTime
+        useEffect(() => {
+            if (parsedResources) {
+                setAllResources(
+                    parsedResources?.filter((r) => {
+                        if (currentOption === 'All') {
+                            return true;
+                        } else if (currentOption === r.initiatorType) {
+                            return true;
+                        }
+                        return false;
+                    }) ?? []
                 );
-                if (currentDiff < msgDiff) {
-                    msgIndex = i;
-                    msgDiff = currentDiff;
+            }
+        }, [parsedResources, currentOption, options]);
+
+        useEffect(() => {
+            if (parsedResources.length > 0) {
+                const start = parsedResources[0].startTime;
+                const end =
+                    parsedResources[parsedResources.length - 1].responseEnd;
+                setNetworkRange(end - start);
+            }
+        }, [parsedResources]);
+
+        useEffect(() => {
+            if (allResources?.length) {
+                let msgIndex = 0;
+                const relativeTime = time - startTime;
+                let msgDiff: number = Math.abs(
+                    relativeTime - allResources[0].startTime
+                );
+                for (let i = 0; i < allResources.length; i++) {
+                    const currentDiff: number = Math.abs(
+                        relativeTime - allResources[i].startTime
+                    );
+                    if (currentDiff < msgDiff) {
+                        msgIndex = i;
+                        msgDiff = currentDiff;
+                    }
+                }
+                if (currentResource !== msgIndex) {
+                    setCurrentResource(msgIndex);
                 }
             }
-            if (currentResource !== msgIndex) {
-                setCurrentResource(msgIndex);
-            }
-        }
-    }, [allResources, startTime, time, currentResource]);
+        }, [allResources, startTime, time, currentResource]);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const scrollFunction = useCallback(
-        _.debounce((index: number) => {
-            if (virtuoso.current) {
-                virtuoso.current.scrollToIndex({
-                    index,
-                    align: 'center',
-                    behavior: 'smooth',
-                });
-            }
-        }, 1000 / 60),
-        []
-    );
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        const scrollFunction = useCallback(
+            _.debounce((index: number) => {
+                if (virtuoso.current) {
+                    virtuoso.current.scrollToIndex({
+                        index,
+                        align: 'center',
+                        behavior: 'smooth',
+                    });
+                }
+            }, 1000 / 60),
+            []
+        );
 
-    useEffect(() => {
-        if (
-            errorId &&
-            !loading &&
-            !!session &&
-            !!allResources &&
-            allResources.length > 0 &&
-            !!errors &&
-            errors.length > 0 &&
-            isPlayerReady
-        ) {
-            const matchingError = errors.find((e) => e.id === errorId);
-            if (matchingError && matchingError.request_id) {
-                const resource = findResourceWithMatchingHighlightHeader(
-                    matchingError.request_id,
-                    allResources
-                );
-                if (resource) {
-                    setResourcePanel(resource);
-                    setTime(resource.startTime);
-                    scrollFunction(allResources.indexOf(resource));
-                    message.success(
-                        `Changed player time to when error was thrown at ${MillisToMinutesAndSeconds(
-                            resource.startTime
-                        )}.`
+        useEffect(() => {
+            if (
+                errorId &&
+                !loading &&
+                !!session &&
+                !!allResources &&
+                allResources.length > 0 &&
+                !!errors &&
+                errors.length > 0 &&
+                isPlayerReady
+            ) {
+                const matchingError = errors.find((e) => e.id === errorId);
+                if (matchingError && matchingError.request_id) {
+                    const resource = findResourceWithMatchingHighlightHeader(
+                        matchingError.request_id,
+                        allResources
                     );
-                } else {
-                    setSelectedDevToolsTab('Errors');
-                    setErrorPanel(matchingError);
-                    const startTime = replayer?.getMetaData().startTime;
-                    if (startTime && matchingError.timestamp) {
-                        const errorDateTime = new Date(matchingError.timestamp);
-                        const deltaMilliseconds =
-                            errorDateTime.getTime() - startTime;
-                        setTime(deltaMilliseconds);
+                    if (resource) {
+                        setResourcePanel(resource);
+                        setTime(resource.startTime);
+                        scrollFunction(allResources.indexOf(resource));
                         message.success(
                             `Changed player time to when error was thrown at ${MillisToMinutesAndSeconds(
-                                deltaMilliseconds
+                                resource.startTime
                             )}.`
                         );
+                    } else {
+                        setSelectedDevToolsTab('Errors');
+                        setErrorPanel(matchingError);
+                        const startTime = replayer?.getMetaData().startTime;
+                        if (startTime && matchingError.timestamp) {
+                            const errorDateTime = new Date(
+                                matchingError.timestamp
+                            );
+                            const deltaMilliseconds =
+                                errorDateTime.getTime() - startTime;
+                            setTime(deltaMilliseconds);
+                            message.success(
+                                `Changed player time to when error was thrown at ${MillisToMinutesAndSeconds(
+                                    deltaMilliseconds
+                                )}.`
+                            );
+                        }
+                        H.track(
+                            'FailedToMatchHighlightResourceHeaderWithResource'
+                        );
                     }
-                    H.track('FailedToMatchHighlightResourceHeaderWithResource');
                 }
             }
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [
-        allResources,
-        errors,
-        isPlayerReady,
-        loading,
-        replayer,
-        scrollFunction,
-        session,
-        setErrorPanel,
-        setResourcePanel,
-        setSelectedDevToolsTab,
-        setShowDevTools,
-    ]);
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [
+            allResources,
+            errors,
+            isPlayerReady,
+            loading,
+            replayer,
+            scrollFunction,
+            session,
+            setErrorPanel,
+            setResourcePanel,
+            setSelectedDevToolsTab,
+            setShowDevTools,
+        ]);
 
-    useEffect(() => {
-        if (!isInteractingWithResources && state === ReplayerState.Playing) {
-            scrollFunction(currentResource);
-        }
-    }, [currentResource, scrollFunction, isInteractingWithResources, state]);
+        useEffect(() => {
+            if (
+                !isInteractingWithResources &&
+                state === ReplayerState.Playing
+            ) {
+                scrollFunction(currentResource);
+            }
+        }, [
+            currentResource,
+            scrollFunction,
+            isInteractingWithResources,
+            state,
+        ]);
 
-    const resourcesToRender = useMemo(() => {
-        if (!allResources) {
-            return [];
-        }
+        const resourcesToRender = useMemo(() => {
+            if (!allResources) {
+                return [];
+            }
 
-        if (filterSearchTerm !== '') {
-            return allResources.filter((resource) => {
-                if (!resource.name) {
-                    return false;
-                }
+            if (filterSearchTerm !== '') {
+                return allResources.filter((resource) => {
+                    if (!resource.name) {
+                        return false;
+                    }
 
-                return resource.name
-                    .toLocaleLowerCase()
-                    .includes(filterSearchTerm.toLocaleLowerCase());
-            });
-        }
+                    return resource.name
+                        .toLocaleLowerCase()
+                        .includes(filterSearchTerm.toLocaleLowerCase());
+                });
+            }
 
-        return allResources;
-    }, [allResources, filterSearchTerm]);
+            return allResources;
+        }, [allResources, filterSearchTerm]);
 
-    return (
-        <div className={styles.resourcePageWrapper}>
-            <div className={devStyles.topBar}>
-                <div className={styles.optionsWrapper}>
-                    <div className={styles.optionsContainer}>
-                        {options.map((o: string, i: number) => {
-                            return (
-                                <Option
-                                    key={i.toString()}
-                                    onSelect={() => setCurrentOption(o)}
-                                    selected={o === currentOption}
-                                    optionValue={o}
-                                />
-                            );
-                        })}
-                    </div>
-                    <div className={styles.filterContainer}>
-                        <Input
-                            allowClear
-                            placeholder="Filter"
-                            value={filterSearchTerm}
-                            onChange={(event) => {
-                                setFilterSearchTerm(event.target.value);
-                            }}
-                            size="small"
-                            disabled={loading}
-                        />
+        return (
+            <div className={styles.resourcePageWrapper}>
+                <div className={devStyles.topBar}>
+                    <div className={styles.optionsWrapper}>
+                        <div className={styles.optionsContainer}>
+                            {options.map((o: string, i: number) => {
+                                return (
+                                    <Option
+                                        key={i.toString()}
+                                        onSelect={() => setCurrentOption(o)}
+                                        selected={o === currentOption}
+                                        optionValue={o}
+                                    />
+                                );
+                            })}
+                        </div>
+                        <div className={styles.filterContainer}>
+                            <Input
+                                allowClear
+                                placeholder="Filter"
+                                value={filterSearchTerm}
+                                onChange={(event) => {
+                                    setFilterSearchTerm(event.target.value);
+                                }}
+                                size="small"
+                                disabled={loading}
+                            />
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div className={styles.networkTableWrapper}>
-                {loading ? (
-                    <div className={devStyles.skeletonWrapper}>
-                        <Skeleton
-                            count={2}
-                            style={{ height: 25, marginBottom: 11 }}
-                        />
-                    </div>
-                ) : (
-                    <>
-                        <TimingCanvas />
-                        <div className={styles.networkTopBar}>
-                            <div className={styles.networkColumn}>Status</div>
-                            <div className={styles.networkColumn}>Type</div>
-                            <div className={styles.networkColumn}>Name</div>
-                            <div
-                                className={classNames(
-                                    styles.networkColumn,
-                                    styles.waterfall
-                                )}
-                            >
-                                Waterfall
+                <div className={styles.networkTableWrapper}>
+                    {loading ? (
+                        <div className={devStyles.skeletonWrapper}>
+                            <Skeleton
+                                count={2}
+                                style={{ height: 25, marginBottom: 11 }}
+                            />
+                        </div>
+                    ) : (
+                        <>
+                            <TimingCanvas />
+                            <div className={styles.networkTopBar}>
+                                <div className={styles.networkColumn}>
+                                    Status
+                                </div>
+                                <div className={styles.networkColumn}>Type</div>
+                                <div className={styles.networkColumn}>Name</div>
+                                <div
+                                    className={classNames(
+                                        styles.networkColumn,
+                                        styles.waterfall
+                                    )}
+                                >
+                                    Waterfall
+                                </div>
                             </div>
-                        </div>
-                        <div
-                            id="networkStreamWrapper"
-                            className={styles.networkStreamWrapper}
-                        >
-                            {resourcesToRender.length > 0 && session ? (
-                                <Virtuoso
-                                    onMouseEnter={() => {
-                                        setIsInteractingWithResources(true);
-                                    }}
-                                    onMouseLeave={() => {
-                                        setIsInteractingWithResources(false);
-                                    }}
-                                    ref={virtuoso}
-                                    overscan={500}
-                                    data={resourcesToRender}
-                                    className={styles.virtuoso}
-                                    itemContent={(index, resource) => {
-                                        const requestId = getHighlightRequestId(
-                                            resource
-                                        );
-                                        const error = errors.find(
-                                            (e) => e.request_id === requestId
-                                        );
-                                        return (
-                                            <ResourceRow
-                                                key={index.toString()}
-                                                resource={resource}
-                                                networkRange={networkRange}
-                                                currentResource={
-                                                    currentResource
-                                                }
-                                                searchTerm={filterSearchTerm}
-                                                onClickHandler={() => {
-                                                    setResourcePanel(resource);
-                                                }}
-                                                hasError={!!error}
-                                            />
-                                        );
-                                    }}
-                                />
-                            ) : resourcesToRender.length === 0 &&
-                              filterSearchTerm !== '' ? (
-                                <div className={styles.noDataContainer}>
-                                    <p>
-                                        No network resources matching '
-                                        {filterSearchTerm}'
-                                    </p>
-                                </div>
-                            ) : (
-                                <div className={styles.noDataContainer}>
-                                    <h3>
-                                        There are no network recordings for this
-                                        session.
-                                    </h3>
-                                    <p>
-                                        If you expected to see data here, please
-                                        make sure <code>networkRecording</code>{' '}
-                                        is set to <code>true</code>. You can{' '}
-                                        <a
-                                            href="https://docs.highlight.run/api#w0-highlightoptions"
-                                            target="_blank"
-                                            rel="noreferrer"
-                                        >
-                                            learn more here
-                                        </a>
-                                        .
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-                    </>
-                )}
+                            <div
+                                id="networkStreamWrapper"
+                                className={styles.networkStreamWrapper}
+                            >
+                                {resourcesToRender.length > 0 && session ? (
+                                    <Virtuoso
+                                        onMouseEnter={() => {
+                                            setIsInteractingWithResources(true);
+                                        }}
+                                        onMouseLeave={() => {
+                                            setIsInteractingWithResources(
+                                                false
+                                            );
+                                        }}
+                                        ref={virtuoso}
+                                        overscan={500}
+                                        data={resourcesToRender}
+                                        className={styles.virtuoso}
+                                        itemContent={(index, resource) => {
+                                            const requestId = getHighlightRequestId(
+                                                resource
+                                            );
+                                            const error = errors.find(
+                                                (e) =>
+                                                    e.request_id === requestId
+                                            );
+                                            return (
+                                                <ResourceRow
+                                                    key={index.toString()}
+                                                    resource={resource}
+                                                    networkRange={networkRange}
+                                                    currentResource={
+                                                        currentResource
+                                                    }
+                                                    searchTerm={
+                                                        filterSearchTerm
+                                                    }
+                                                    onClickHandler={() => {
+                                                        setResourcePanel(
+                                                            resource
+                                                        );
+                                                    }}
+                                                    hasError={!!error}
+                                                />
+                                            );
+                                        }}
+                                    />
+                                ) : resourcesToRender.length === 0 &&
+                                  filterSearchTerm !== '' ? (
+                                    <div className={styles.noDataContainer}>
+                                        <p>
+                                            No network resources matching '
+                                            {filterSearchTerm}'
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className={styles.noDataContainer}>
+                                        <h3>
+                                            There are no network recordings for
+                                            this session.
+                                        </h3>
+                                        <p>
+                                            If you expected to see data here,
+                                            please make sure{' '}
+                                            <code>networkRecording</code> is set
+                                            to <code>true</code>. You can{' '}
+                                            <a
+                                                href="https://docs.highlight.run/api#w0-highlightoptions"
+                                                target="_blank"
+                                                rel="noreferrer"
+                                            >
+                                                learn more here
+                                            </a>
+                                            .
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </>
+                    )}
+                </div>
             </div>
-        </div>
-    );
-};
+        );
+    }
+);
 
 const TimingCanvas = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
