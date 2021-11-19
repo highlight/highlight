@@ -48,7 +48,7 @@ class Logger {
     }
     log(...data: any[]) {
         if (this.debug) {
-            console.log.apply(console, data);
+            console.log.apply(console, [`[${Date.now()}]`, ...data]);
         }
     }
 }
