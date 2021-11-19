@@ -31,21 +31,30 @@ export const BillingPlanCard = ({
             })}
         >
             <h3 className={styles.billingPlanTitle}>{billingPlan.name}</h3>
-            <h4
-                className={classNames(
-                    commonStyles.title,
-                    styles.billingPlanPrice
-                )}
-            >{`$${formatNumberWithDelimiters(
-                subscriptionInterval === SubscriptionInterval.Annual
-                    ? billingPlan.annualPrice
-                    : billingPlan.monthlyPrice
-            )}${billingPlan.type === PlanType.Enterprise ? '+' : ''}`}</h4>
+            <div>
+                <span
+                    className={classNames(
+                        commonStyles.title,
+                        styles.billingPlanPrice
+                    )}
+                >
+                    {`$${formatNumberWithDelimiters(
+                        subscriptionInterval === SubscriptionInterval.Annual
+                            ? billingPlan.annualPrice
+                            : billingPlan.monthlyPrice
+                    )}${billingPlan.type === PlanType.Enterprise ? '+' : ''}`}
+                </span>
+                {billingPlan.type !== PlanType.Free && <span>/mo</span>}
+            </div>
             <p className={styles.billingFrequency}>
                 {billingPlan.type === PlanType.Free
                     ? 'no billing'
                     : subscriptionInterval === SubscriptionInterval.Annual
-                    ? 'billed yearly'
+                    ? `$${formatNumberWithDelimiters(
+                          billingPlan.annualPrice * 12
+                      )}${
+                          billingPlan.type === PlanType.Enterprise ? '+' : ''
+                      } billed annually`
                     : 'billed monthly'}
             </p>
             <ul className={styles.advertisedFeaturesWrapper}>

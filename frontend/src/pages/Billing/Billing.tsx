@@ -248,6 +248,7 @@ const BillingPage = () => {
                                 </span>
                             </span>
                         }
+                        size="default"
                         labelFirst
                         justifySpaceBetween
                         noMarginAroundSwitch

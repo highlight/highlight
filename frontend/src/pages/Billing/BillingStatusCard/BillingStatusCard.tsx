@@ -21,7 +21,6 @@ export const BillingStatusCard = ({
     subscriptionInterval,
     allowOverage,
     loading,
-    workspaceName,
     billingPeriodEnd,
     nextInvoiceDate,
 }: {
@@ -33,7 +32,6 @@ export const BillingStatusCard = ({
     subscriptionInterval: SubscriptionInterval;
     allowOverage: boolean;
     loading: boolean;
-    workspaceName: string;
     billingPeriodEnd: Date;
     nextInvoiceDate: Date;
 }) => {
@@ -99,7 +97,7 @@ export const BillingStatusCard = ({
                             (billed{' '}
                             {subscriptionInterval ===
                             SubscriptionInterval.Annual
-                                ? 'yearly'
+                                ? 'annually'
                                 : 'monthly'}
                             ).
                         </span>

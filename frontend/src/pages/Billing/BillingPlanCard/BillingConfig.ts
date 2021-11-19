@@ -20,7 +20,7 @@ const basicPlan: BillingPlan = {
     name: 'Basic',
     type: PlanType.Basic,
     monthlyPrice: 100,
-    annualPrice: 960,
+    annualPrice: 80,
     advertisedFeatures: [
         '10,000 sessions /month',
         'Unlimited dev tools access',
@@ -32,7 +32,7 @@ const startupPlan: BillingPlan = {
     name: 'Startup',
     type: PlanType.Startup,
     monthlyPrice: 250,
-    annualPrice: 2400,
+    annualPrice: 200,
     advertisedFeatures: [
         '80,000 sessions /month',
         'Unlimited dev tools access',
@@ -44,7 +44,7 @@ const enterprisePlan: BillingPlan = {
     name: 'Enterprise',
     type: PlanType.Enterprise,
     monthlyPrice: 1000,
-    annualPrice: 9600,
+    annualPrice: 800,
     advertisedFeatures: [
         'Everything in Basic/Startup',
         'User RBAC/Permissioning',
