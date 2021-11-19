@@ -85,6 +85,7 @@ func GetWorkspaceQuotaOverflow(ctx context.Context, DB *gorm.DB, workspaceID int
 	defer sessionsOverQuotaCountSpan.Finish()
 	if err := DB.Model(&model.Session{}).
 		Where(`project_id in (SELECT id FROM projects WHERE workspace_id=?)
+			AND within_billing_quota = false
 			AND created_at >= (
 				SELECT COALESCE(billing_period_start, date_trunc('month', now(), 'UTC'))
 				FROM workspaces
