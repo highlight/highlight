@@ -1,5 +1,8 @@
 import { Replayer } from '@highlight-run/rrweb';
-import { SessionInterval } from '@highlight-run/rrweb/dist/types';
+import {
+    SessionInterval,
+    viewportResizeDimension,
+} from '@highlight-run/rrweb/dist/types';
 import { SessionViewability } from '@pages/Player/PlayerHook/PlayerHook';
 
 import {
@@ -94,6 +97,8 @@ export interface ReplayerContextInterface {
      */
     playerProgress: number | null;
     rageClicks: RageClick[];
+    viewport: viewportResizeDimension | undefined;
+    currentUrl: string | undefined;
 }
 
 export const [

@@ -19,3 +19,38 @@ export const findFirstEventOfType = (
         }
     });
 };
+
+export const findLatestUrl = (
+    urlEvents: customEvent<string>[],
+    currentTime: number
+) => {
+    let latestUrl = urlEvents[0].data.payload;
+    let i = 0;
+
+    while (i < urlEvents.length) {
+        const urlEvent = urlEvents[i];
+        // timestamp always exists
+        // @ts-expect-error
+        if (urlEvent.timestamp > currentTime) {
+            break;
+        }
+        latestUrl = urlEvent.data.payload;
+        i++;
+    }
+
+    return latestUrl;
+};
+
+export const getAllUrlEvents = (events: HighlightEvent[]) => {
+    const urlEvents = events.filter((event) => {
+        if (event.type !== 5) {
+            return false;
+        }
+
+        if (event.data.tag === 'Navigate' || event.data.tag === 'Reload') {
+            return true;
+        }
+    });
+
+    return urlEvents as customEvent<string>[];
+};
