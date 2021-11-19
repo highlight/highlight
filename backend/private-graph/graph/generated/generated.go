@@ -4351,8 +4351,8 @@ type WorkspaceInviteLink {
 }
 
 type SessionPayload {
-    events: [Any]
-    errors: [ErrorObject]
+    events: [Any]!
+    errors: [ErrorObject]!
     rage_clicks: [RageClickEvent!]!
     session_comments: [SessionComment]!
 }
@@ -19410,11 +19410,14 @@ func (ec *executionContext) _SessionPayload_events(ctx context.Context, field gr
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.([]interface{})
 	fc.Result = res
-	return ec.marshalOAny2ᚕinterface(ctx, field.Selections, res)
+	return ec.marshalNAny2ᚕinterface(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SessionPayload_errors(ctx context.Context, field graphql.CollectedField, obj *model1.SessionPayload) (ret graphql.Marshaler) {
@@ -19442,11 +19445,14 @@ func (ec *executionContext) _SessionPayload_errors(ctx context.Context, field gr
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.([]model1.ErrorObject)
 	fc.Result = res
-	return ec.marshalOErrorObject2ᚕgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorObject(ctx, field.Selections, res)
+	return ec.marshalNErrorObject2ᚕgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorObject(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SessionPayload_rage_clicks(ctx context.Context, field graphql.CollectedField, obj *model1.SessionPayload) (ret graphql.Marshaler) {
@@ -24765,8 +24771,14 @@ func (ec *executionContext) _SessionPayload(ctx context.Context, sel ast.Selecti
 			out.Values[i] = graphql.MarshalString("SessionPayload")
 		case "events":
 			out.Values[i] = ec._SessionPayload_events(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "errors":
 			out.Values[i] = ec._SessionPayload_errors(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "rage_clicks":
 			out.Values[i] = ec._SessionPayload_rage_clicks(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -25417,6 +25429,36 @@ func (ec *executionContext) marshalNAdmin2ᚕᚖgithubᚗcomᚋhighlightᚑrun�
 	return ret
 }
 
+func (ec *executionContext) unmarshalNAny2ᚕinterface(ctx context.Context, v interface{}) ([]interface{}, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]interface{}, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOAny2interface(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNAny2ᚕinterface(ctx context.Context, sel ast.SelectionSet, v []interface{}) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalOAny2interface(ctx, sel, v[i])
+	}
+
+	return ret
+}
+
 func (ec *executionContext) marshalNBillingDetails2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐBillingDetails(ctx context.Context, sel ast.SelectionSet, v model.BillingDetails) graphql.Marshaler {
 	return ec._BillingDetails(ctx, sel, &v)
 }
@@ -25665,6 +25707,43 @@ func (ec *executionContext) marshalNErrorMetadata2ᚕᚖgithubᚗcomᚋhighlight
 				defer wg.Done()
 			}
 			ret[i] = ec.marshalOErrorMetadata2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorMetadata(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNErrorObject2ᚕgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorObject(ctx context.Context, sel ast.SelectionSet, v []model1.ErrorObject) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOErrorObject2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorObject(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -27091,46 +27170,6 @@ func (ec *executionContext) marshalOErrorMetadata2ᚖgithubᚗcomᚋhighlightᚑ
 
 func (ec *executionContext) marshalOErrorObject2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorObject(ctx context.Context, sel ast.SelectionSet, v model1.ErrorObject) graphql.Marshaler {
 	return ec._ErrorObject(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOErrorObject2ᚕgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorObject(ctx context.Context, sel ast.SelectionSet, v []model1.ErrorObject) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOErrorObject2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorObject(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
 }
 
 func (ec *executionContext) marshalOErrorObject2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorObject(ctx context.Context, sel ast.SelectionSet, v []*model1.ErrorObject) graphql.Marshaler {

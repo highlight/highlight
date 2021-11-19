@@ -534,8 +534,8 @@ export type WorkspaceInviteLink = {
 
 export type SessionPayload = {
     __typename?: 'SessionPayload';
-    events?: Maybe<Array<Maybe<Scalars['Any']>>>;
-    errors?: Maybe<Array<Maybe<ErrorObject>>>;
+    events: Array<Maybe<Scalars['Any']>>;
+    errors: Array<Maybe<ErrorObject>>;
     rage_clicks: Array<RageClickEvent>;
     session_comments: Array<Maybe<SessionComment>>;
 };

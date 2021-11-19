@@ -480,8 +480,8 @@ type WorkspaceInviteLink {
 }
 
 type SessionPayload {
-    events: [Any]
-    errors: [ErrorObject]
+    events: [Any]!
+    errors: [ErrorObject]!
     rage_clicks: [RageClickEvent!]!
     session_comments: [SessionComment]!
 }

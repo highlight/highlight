@@ -9,7 +9,7 @@ import { BooleanParam, useQueryParam } from 'use-query-params';
 
 import { useAuthContext } from '../../../authentication/AuthContext';
 import {
-    OnEventsAddedDocument,
+    OnSessionPayloadAppendedDocument,
     useGetSessionPayloadLazyQuery,
     useGetSessionQuery,
     useMarkSessionAsViewedMutation,
@@ -67,6 +67,7 @@ export const usePlayer = (): ReplayerContextInterface => {
     const [download] = useQueryParam('download', BooleanParam);
     const [scale, setScale] = useState(1);
     const [events, setEvents] = useState<Array<HighlightEvent>>([]);
+    const [newEvents, setNewEvents] = useState<Array<HighlightEvent>>([]);
     const [sessionComments, setSessionComments] = useState<SessionComment[]>(
         []
     );
@@ -115,7 +116,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             data: eventsData,
             startPolling: startPollingEvents,
             stopPolling: stopPollingEvents,
-            subscribeToMore: subscribeEvents,
+            subscribeToMore: subscribeToSessionPayload,
         },
     ] = useGetSessionPayloadLazyQuery({
         fetchPolicy: 'no-cache',
@@ -131,6 +132,15 @@ export const usePlayer = (): ReplayerContextInterface => {
             setEventsPayload(eventsData?.events);
         }
     }, [eventsData?.events]);
+
+    useEffect(() => {
+        if (newEvents.length && eventsPayload?.length) {
+            console.log('Existing events payload: ', eventsPayload);
+            console.log('New events: ', newEvents);
+            setEventsPayload([...eventsPayload, ...newEvents]);
+            setNewEvents([]);
+        }
+    }, [eventsPayload, newEvents]);
 
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
 
@@ -244,25 +254,23 @@ export const usePlayer = (): ReplayerContextInterface => {
                 ' from ',
                 events.length
             );
-            subscribeEvents!({
-                document: OnEventsAddedDocument,
+            subscribeToSessionPayload!({
+                document: OnSessionPayloadAppendedDocument,
                 variables: {
                     session_secure_id,
                     initial_events_count: events.length,
                 },
                 updateQuery: (prev, { subscriptionData }) => {
+                    // Prev is the cached value - it is empty and don't bother updating it
                     console.log('Rich data for: ', session_secure_id);
-                    console.log('Rich: ', subscriptionData.data);
-                    console.log('Rich prev: ', prev);
-                    console.log('Rich eventsData: ', eventsData);
-                    // console.log('Rich next: ', next);
-                    if (!subscriptionData.data) return prev;
-                    // const newFeedItem = subscriptionData.data.eventsAdded;
-                    // return Object.assign({}, prev, {
-                    //     post: {
-                    //         comments: [newFeedItem, ...prev.post.comments],
-                    //     },
-                    // });
+                    console.log('Rich new data: ', subscriptionData.data);
+                    if (subscriptionData.data) {
+                        setNewEvents(
+                            // @ts-ignore
+                            subscriptionData.data!.session_payload_appended
+                                .events!
+                        );
+                    }
                     return prev;
                 },
             });

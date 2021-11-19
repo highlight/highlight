@@ -983,35 +983,33 @@ export type UpdateErrorGroupIsPublicMutation = { __typename?: 'Mutation' } & {
 export type SessionPayloadFragmentFragment = {
     __typename?: 'SessionPayload';
 } & Pick<Types.SessionPayload, 'events'> & {
-        errors?: Types.Maybe<
-            Array<
-                Types.Maybe<
-                    { __typename?: 'ErrorObject' } & Pick<
-                        Types.ErrorObject,
-                        | 'id'
-                        | 'error_group_secure_id'
-                        | 'event'
-                        | 'type'
-                        | 'url'
-                        | 'source'
-                        | 'stack_trace'
-                        | 'timestamp'
-                        | 'payload'
-                        | 'request_id'
-                    > & {
-                            structured_stack_trace: Array<
-                                Types.Maybe<
-                                    { __typename?: 'ErrorTrace' } & Pick<
-                                        Types.ErrorTrace,
-                                        | 'fileName'
-                                        | 'lineNumber'
-                                        | 'functionName'
-                                        | 'columnNumber'
-                                    >
+        errors: Array<
+            Types.Maybe<
+                { __typename?: 'ErrorObject' } & Pick<
+                    Types.ErrorObject,
+                    | 'id'
+                    | 'error_group_secure_id'
+                    | 'event'
+                    | 'type'
+                    | 'url'
+                    | 'source'
+                    | 'stack_trace'
+                    | 'timestamp'
+                    | 'payload'
+                    | 'request_id'
+                > & {
+                        structured_stack_trace: Array<
+                            Types.Maybe<
+                                { __typename?: 'ErrorTrace' } & Pick<
+                                    Types.ErrorTrace,
+                                    | 'fileName'
+                                    | 'lineNumber'
+                                    | 'functionName'
+                                    | 'columnNumber'
                                 >
-                            >;
-                        }
-                >
+                            >
+                        >;
+                    }
             >
         >;
         rage_clicks: Array<
