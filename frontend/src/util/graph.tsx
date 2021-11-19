@@ -27,7 +27,6 @@ try {
     const socketUri = uri
         .replace('http://', 'ws://')
         .replace('https://', 'wss://');
-    console.log('Rich socketUri: ', socketUri);
     const highlightSocket = new WebSocketLink({
         uri: socketUri,
         options: {
