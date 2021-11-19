@@ -1254,13 +1254,7 @@ export type MutationUpdateErrorGroupIsPublicArgs = {
 
 export type Subscription = {
     __typename?: 'Subscription';
-    events_added?: Maybe<Array<Maybe<Scalars['Any']>>>;
     session_payload_appended?: Maybe<SessionPayload>;
-};
-
-export type SubscriptionEvents_AddedArgs = {
-    session_secure_id: Scalars['String'];
-    initial_events_count: Scalars['Int'];
 };
 
 export type SubscriptionSession_Payload_AppendedArgs = {

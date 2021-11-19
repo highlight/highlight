@@ -1012,16 +1012,6 @@ query GetCustomerPortalURL($workspace_id: ID!) {
     customer_portal_url(workspace_id: $workspace_id)
 }
 
-subscription OnEventsAdded(
-    $session_secure_id: String!
-    $initial_events_count: Int!
-) {
-    events_added(
-        session_secure_id: $session_secure_id
-        initial_events_count: $initial_events_count
-    )
-}
-
 subscription OnSessionPayloadAppended(
     $session_secure_id: String!
     $initial_events_count: Int!

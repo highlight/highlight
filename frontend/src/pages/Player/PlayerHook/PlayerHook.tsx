@@ -114,8 +114,6 @@ export const usePlayer = (): ReplayerContextInterface => {
         {
             loading: eventsLoading,
             data: eventsData,
-            startPolling: startPollingEvents,
-            stopPolling: stopPollingEvents,
             subscribeToMore: subscribeToSessionPayload,
         },
     ] = useGetSessionPayloadLazyQuery({
@@ -239,15 +237,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     useEffect(() => {
         if (isLiveMode && state > ReplayerState.Loading && !isPollingEvents) {
-            // Problems:
-            // 1. Shape of subscription doesn't match shape of query. Execute subscription independently?
-            // 2. Toggling out of live mode won't have the rest of the data.
-
-            // Options:
-            // 1. Manually append events data via subscription
-            // 2. Append all of the data via subscription
-            // 3. Refetch all of the data when toggling out
-            // 4. Split events query out of the payload query
             console.log(
                 'Rich: Subscribing to ',
                 session_secure_id,
@@ -261,27 +250,24 @@ export const usePlayer = (): ReplayerContextInterface => {
                     initial_events_count: events.length,
                 },
                 updateQuery: (prev, { subscriptionData }) => {
-                    // Prev is the cached value - it is empty and don't bother updating it
                     console.log('Rich data for: ', session_secure_id);
                     console.log('Rich new data: ', subscriptionData.data);
                     if (subscriptionData.data) {
                         setNewEvents(
-                            // @ts-ignore
+                            // @ts-ignore The typedef for subscriptionData is incorrect
                             subscriptionData.data!.session_payload_appended
                                 .events!
                         );
                     }
+                    // Prev is the value in Apollo cache - it is empty, don't bother updating it
                     return prev;
                 },
             });
-            console.log('Rich: NO polling');
-            // startPollingEvents!(1000);
             setIsPollingEvents(true);
             if (state === ReplayerState.Paused) {
                 play();
             }
         } else if (!isLiveMode && isPollingEvents) {
-            // stopPollingEvents!();
             setIsPollingEvents(false);
             if (state === ReplayerState.Playing) {
                 pause();

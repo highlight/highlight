@@ -513,7 +513,6 @@ type ComplexityRoot struct {
 	}
 
 	Subscription struct {
-		EventsAdded            func(childComplexity int, sessionSecureID string, initialEventsCount int) int
 		SessionPayloadAppended func(childComplexity int, sessionSecureID string, initialEventsCount int) int
 	}
 
@@ -730,7 +729,6 @@ type SessionCommentResolver interface {
 	Tags(ctx context.Context, obj *model1.SessionComment) ([]*string, error)
 }
 type SubscriptionResolver interface {
-	EventsAdded(ctx context.Context, sessionSecureID string, initialEventsCount int) (<-chan []interface{}, error)
 	SessionPayloadAppended(ctx context.Context, sessionSecureID string, initialEventsCount int) (<-chan *model1.SessionPayload, error)
 }
 
@@ -3673,18 +3671,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SocialLink.Type(childComplexity), true
 
-	case "Subscription.events_added":
-		if e.complexity.Subscription.EventsAdded == nil {
-			break
-		}
-
-		args, err := ec.field_Subscription_events_added_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Subscription.EventsAdded(childComplexity, args["session_secure_id"].(string), args["initial_events_count"].(int)), true
-
 	case "Subscription.session_payload_appended":
 		if e.complexity.Subscription.SessionPayloadAppended == nil {
 			break
@@ -4785,7 +4771,6 @@ type Mutation {
 }
 
 type Subscription {
-    events_added(session_secure_id: String!, initial_events_count: Int!): [Any]
     session_payload_appended(
         session_secure_id: String!
         initial_events_count: Int!
@@ -7814,30 +7799,6 @@ func (ec *executionContext) field_Query_workspace_invite_links_args(ctx context.
 		}
 	}
 	args["workspace_id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Subscription_events_added_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["session_secure_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_secure_id"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["session_secure_id"] = arg0
-	var arg1 int
-	if tmp, ok := rawArgs["initial_events_count"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("initial_events_count"))
-		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["initial_events_count"] = arg1
 	return args, nil
 }
 
@@ -20158,55 +20119,6 @@ func (ec *executionContext) _SocialLink_link(ctx context.Context, field graphql.
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Subscription_events_added(ctx context.Context, field graphql.CollectedField) (ret func() graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = nil
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Subscription",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Subscription_events_added_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return nil
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Subscription().EventsAdded(rctx, args["session_secure_id"].(string), args["initial_events_count"].(int))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return nil
-	}
-	if resTmp == nil {
-		return nil
-	}
-	return func() graphql.Marshaler {
-		res, ok := <-resTmp.(<-chan []interface{})
-		if !ok {
-			return nil
-		}
-		return graphql.WriterFunc(func(w io.Writer) {
-			w.Write([]byte{'{'})
-			graphql.MarshalString(field.Alias).MarshalGQL(w)
-			w.Write([]byte{':'})
-			ec.marshalOAny2ᚕinterface(ctx, field.Selections, res).MarshalGQL(w)
-			w.Write([]byte{'}'})
-		})
-	}
-}
-
 func (ec *executionContext) _Subscription_session_payload_appended(ctx context.Context, field graphql.CollectedField) (ret func() graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -25482,8 +25394,6 @@ func (ec *executionContext) _Subscription(ctx context.Context, sel ast.Selection
 	}
 
 	switch fields[0].Name {
-	case "events_added":
-		return ec._Subscription_events_added(ctx, fields[0])
 	case "session_payload_appended":
 		return ec._Subscription_session_payload_appended(ctx, fields[0])
 	default:

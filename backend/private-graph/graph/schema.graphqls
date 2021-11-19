@@ -830,7 +830,6 @@ type Mutation {
 }
 
 type Subscription {
-    events_added(session_secure_id: String!, initial_events_count: Int!): [Any]
     session_payload_appended(
         session_secure_id: String!
         initial_events_count: Int!
