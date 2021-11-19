@@ -175,7 +175,7 @@ export const UserDetailsBox = React.memo(() => {
             {!loading && (
                 <div className={styles.tooltip}>
                     <InfoTooltip
-                        title={`This is enriched information for ${data?.enhanced_user_details?.email}. Highlight show information like their social handles, website, title, and company. This feature is currently enabled for everyone but will later only be available starting at the Startup plan.`}
+                        title={`This is enriched information for ${data?.enhanced_user_details?.email}. Highlight shows additional information like social handles, website, title, and company. This feature is currently enabled for everyone but will later only be available starting at the Startup plan.`}
                         size="medium"
                         hideArrow
                         placement="topLeft"
