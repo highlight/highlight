@@ -145,7 +145,7 @@ const BillingPage = () => {
                         if (upgradedPlan) {
                             setRainConfetti(true);
                             message.success(
-                                "Thanks for upgrading your plan! As a token of our appreciation, we've made all your sessions viewable even if there's more than your new quota.",
+                                'Thanks for upgrading your plan!',
                                 10
                             );
                         } else {

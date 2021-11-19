@@ -67,9 +67,7 @@ export const BillingStatusCard = ({
 
     return (
         <div className={styles.fieldsBox}>
-            <h3 className={styles.cardTitle}>
-                {workspaceName}'s Current Billing Status
-            </h3>
+            <h3 className={styles.cardTitle}>Current Billing Status</h3>
             <div className={styles.cardSubtitleContainer}>
                 <span>Current Base Plan</span>
                 {loading ? (

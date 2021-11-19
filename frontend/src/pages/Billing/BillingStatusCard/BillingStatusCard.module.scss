@@ -50,4 +50,12 @@
 
 .progressContainer {
     margin-top: var(--size-small);
+
+    :global(.ant-progress-inner) {
+        height: var(--size-medium);
+    }
+
+    :global(.ant-progress-bg) {
+        height: var(--size-medium) !important;
+    }
 }
