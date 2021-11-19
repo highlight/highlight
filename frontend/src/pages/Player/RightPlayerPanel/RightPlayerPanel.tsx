@@ -15,7 +15,7 @@ import { useReplayerContext } from '../ReplayerContext';
 import SessionFullCommentList from '../SessionFullCommentList/SessionFullCommentList';
 import styles from './RightPlayerPanel.module.scss';
 
-const RightPlayerPanel = () => {
+const RightPlayerPanel = React.memo(() => {
     const {
         showRightPanel: showRightPanelPreference,
         setShowRightPanel,
@@ -58,9 +58,9 @@ const RightPlayerPanel = () => {
                         setShowRightPanel(!showRightPanel);
                     }}
                 />
-                <div className={styles.playerRightPanelCollapsible}>
-                    <MetadataBox />
-                    {showRightPanel && (
+                {showRightPanel && (
+                    <div className={styles.playerRightPanelCollapsible}>
+                        <MetadataBox />
                         <Tabs
                             centered
                             tabsHtmlId={`${PlayerPageProductTourSelectors.PlayerRightPanel}`}
@@ -98,11 +98,11 @@ const RightPlayerPanel = () => {
                                 },
                             ]}
                         />
-                    )}
-                </div>
+                    </div>
+                )}
             </div>
         </>
     );
-};
+});
 
 export default RightPlayerPanel;
