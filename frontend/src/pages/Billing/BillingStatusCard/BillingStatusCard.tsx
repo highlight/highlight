@@ -1,3 +1,4 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import Progress from '@components/Progress/Progress';
 import { Skeleton } from '@components/Skeleton/Skeleton';
 import { PlanType, SubscriptionInterval } from '@graph/schemas';
@@ -35,6 +36,8 @@ export const BillingStatusCard = ({
     billingPeriodEnd: Date;
     nextInvoiceDate: Date;
 }) => {
+    const { isHighlightAdmin } = useAuthContext();
+
     let sessionsOverage = sessionCount - sessionLimit;
     if (!allowOverage || sessionsOverage < 0) {
         sessionsOverage = 0;
@@ -49,7 +52,7 @@ export const BillingStatusCard = ({
 
     const baseSubtotal =
         subscriptionInterval === SubscriptionInterval.Annual
-            ? matchedPlan?.annualPrice ?? 0
+            ? (matchedPlan?.annualPrice ?? 0) * 12
             : matchedPlan?.monthlyPrice ?? 0;
     const membersSubtotal = membersOverage * MEMBERS_PRICE;
     const overageSubtotal =
@@ -111,7 +114,7 @@ export const BillingStatusCard = ({
                     </>
                 )}
             </div>
-            {(loading || planType !== PlanType.Free) && (
+            {(loading || planType !== PlanType.Free) && isHighlightAdmin && (
                 <>
                     <Divider />
                     <div className={styles.cardSubtitleContainer}>

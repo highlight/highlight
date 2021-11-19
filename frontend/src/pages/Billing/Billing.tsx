@@ -235,36 +235,40 @@ const BillingPage = () => {
                     nextInvoiceDate={billingData?.workspace?.next_invoice_date}
                     allowOverage={allowOverage}
                     loading={billingLoading}
-                    workspaceName={currentWorkspace?.name ?? ''}
                 />
-                <div className={styles.annualToggleBox}>
-                    <Switch
-                        loading={billingLoading}
-                        label={
-                            <span className={styles.annualToggleText}>
-                                Annual Plan{' '}
-                                <span className={styles.annualToggleAltText}>
-                                    (20% off)
+                {isHighlightAdmin && admin?.role === AdminRole.Admin && (
+                    <div className={styles.annualToggleBox}>
+                        <Switch
+                            loading={billingLoading}
+                            label={
+                                <span className={styles.annualToggleText}>
+                                    Annual Plan{' '}
+                                    <span
+                                        className={styles.annualToggleAltText}
+                                    >
+                                        (20% off)
+                                    </span>
                                 </span>
-                            </span>
-                        }
-                        size="default"
-                        labelFirst
-                        justifySpaceBetween
-                        noMarginAroundSwitch
-                        checked={
-                            subscriptionInterval === SubscriptionInterval.Annual
-                        }
-                        onChange={(isAnnual) => {
-                            setSubscriptionInterval(
-                                isAnnual
-                                    ? SubscriptionInterval.Annual
-                                    : SubscriptionInterval.Monthly
-                            );
-                        }}
-                        trackingId="DOMInteractions"
-                    />
-                </div>
+                            }
+                            size="default"
+                            labelFirst
+                            justifySpaceBetween
+                            noMarginAroundSwitch
+                            checked={
+                                subscriptionInterval ===
+                                SubscriptionInterval.Annual
+                            }
+                            onChange={(isAnnual) => {
+                                setSubscriptionInterval(
+                                    isAnnual
+                                        ? SubscriptionInterval.Annual
+                                        : SubscriptionInterval.Monthly
+                                );
+                            }}
+                            trackingId="DOMInteractions"
+                        />
+                    </div>
+                )}
                 <div className={styles.billingPlanCardWrapper}>
                     {admin?.role === AdminRole.Admin ? (
                         BILLING_PLANS.map((billingPlan) =>

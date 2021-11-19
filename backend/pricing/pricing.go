@@ -386,7 +386,7 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 				Customer:     &c.ID,
 				Subscription: &subscription.ID,
 				Price:        &newPrice.ID,
-				Quantity:     stripe.Int64(meter),
+				Quantity:     stripe.Int64(overage),
 			}); err != nil {
 				return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to add members invoice item")
 			}
@@ -405,16 +405,16 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 			limit = *workspace.MonthlySessionLimit
 		}
 
-		sessionOverage := int64(0)
+		overage := int64(0)
 		if workspace.AllowMeterOverage && meter > int64(limit) {
-			sessionOverage = meter - int64(limit)
+			overage = meter - int64(limit)
 		}
 
 		log.Infof("reporting sessions usage for workspace %d", workspaceID)
 		if sessionsLine, ok := invoiceLines[ProductTypeSessions]; ok {
 			if _, err := stripeClient.InvoiceItems.Update(sessionsLine.InvoiceItem, &stripe.InvoiceItemParams{
 				Price:    &newPrice.ID,
-				Quantity: stripe.Int64(sessionOverage),
+				Quantity: stripe.Int64(overage),
 			}); err != nil {
 				return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to update sessions invoice item")
 			}
@@ -423,7 +423,7 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 				Customer:     &c.ID,
 				Subscription: &subscription.ID,
 				Price:        &newPrice.ID,
-				Quantity:     stripe.Int64(meter),
+				Quantity:     stripe.Int64(overage),
 			}); err != nil {
 				return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to add sessions invoice item")
 			}
