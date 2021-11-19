@@ -22,31 +22,39 @@ const highlightGraph = createHttpLink({
     uri,
     credentials: 'include',
 });
-const socketUri = uri.replace(/(http|https):\/\//, 'ws://');
-const highlightSocket = new WebSocketLink({
-    uri: socketUri,
-    options: {
-        lazy: true,
-        reconnect: true,
-        connectionParams: async () => {
-            const token = await firebase.auth().currentUser?.getIdToken();
-            return {
-                token,
-            };
+let splitLink = null;
+try {
+    const socketUri = uri
+        .replace('http://', 'ws://')
+        .replace('https://', 'wss://');
+    console.log('Rich socketUri: ', socketUri);
+    const highlightSocket = new WebSocketLink({
+        uri: socketUri,
+        options: {
+            lazy: true,
+            reconnect: true,
+            connectionParams: async () => {
+                const token = await firebase.auth().currentUser?.getIdToken();
+                return {
+                    token,
+                };
+            },
         },
-    },
-});
-const splitLink = split(
-    ({ query }) => {
-        const definition = getMainDefinition(query);
-        return (
-            definition.kind === 'OperationDefinition' &&
-            definition.operation === 'subscription'
-        );
-    },
-    highlightSocket,
-    highlightGraph
-);
+    });
+    splitLink = split(
+        ({ query }) => {
+            const definition = getMainDefinition(query);
+            return (
+                definition.kind === 'OperationDefinition' &&
+                definition.operation === 'subscription'
+            );
+        },
+        highlightSocket,
+        highlightGraph
+    );
+} catch (error) {
+    console.log('Error setting up websocket: ', error);
+}
 
 const graphCdnGraph = new HttpLink({
     uri: 'https://graphcdn.highlight.run',
@@ -95,7 +103,7 @@ export const client = new ApolloClient({
             return false;
         },
         authLink.concat(graphCdnGraph),
-        authLink.concat(splitLink)
+        authLink.concat(splitLink || highlightGraph)
     ),
     cache: new InMemoryCache({
         typePolicies: {
