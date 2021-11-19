@@ -16,6 +16,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/highlight-run/highlight/backend/payload"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -37,10 +38,12 @@ const (
 type PayloadType string
 
 const (
-	SessionContents           PayloadType = "session-contents"
-	NetworkResources          PayloadType = "network-resources"
-	ConsoleMessages           PayloadType = "console-messages"
-	SessionContentsCompressed PayloadType = "session-contents-compressed"
+	SessionContents            PayloadType = "session-contents"
+	NetworkResources           PayloadType = "network-resources"
+	ConsoleMessages            PayloadType = "console-messages"
+	SessionContentsCompressed  PayloadType = "session-contents-compressed"
+	NetworkResourcesCompressed PayloadType = "network-resources-compressed"
+	ConsoleMessagesCompressed  PayloadType = "console-messages-compressed"
 )
 
 type StorageClient struct {
@@ -118,6 +121,40 @@ func (s *StorageClient) PushCompressedFileToS3(ctx context.Context, sessionId, p
 
 func (s *StorageClient) PushFileToS3(ctx context.Context, sessionId, projectId int, file *os.File, bucket string, payloadType PayloadType) (*int64, error) {
 	return s.pushFileToS3WithOptions(ctx, sessionId, projectId, file, bucket, payloadType, s3.PutObjectInput{})
+}
+
+func (s *StorageClient) PushFilesToS3(ctx context.Context, sessionId, projectId int, bucket string, payloadManager *payload.PayloadManager) (int64, error) {
+	payloadTypes := map[payload.FileType]PayloadType{
+		payload.Events:              SessionContents,
+		payload.Resources:           NetworkResources,
+		payload.Messages:            ConsoleMessages,
+		payload.EventsCompressed:    SessionContentsCompressed,
+		payload.ResourcesCompressed: NetworkResourcesCompressed,
+		payload.MessagesCompressed:  ConsoleMessagesCompressed,
+	}
+
+	var totalSize int64
+	for fileType, payloadType := range payloadTypes {
+		var size *int64
+		var err error
+		if payloadType == SessionContentsCompressed ||
+			payloadType == NetworkResourcesCompressed ||
+			payloadType == ConsoleMessagesCompressed {
+			size, err = s.PushCompressedFileToS3(ctx, sessionId, projectId, payloadManager.GetFile(fileType), bucket, payloadType)
+		} else {
+			size, err = s.PushFileToS3(ctx, sessionId, projectId, payloadManager.GetFile(fileType), bucket, payloadType)
+		}
+
+		if err != nil {
+			return 0, errors.Wrapf(err, "error pushing %s payload to s3", string(payloadType))
+		}
+
+		if size != nil {
+			totalSize += *size
+		}
+	}
+
+	return totalSize, nil
 }
 
 func (s *StorageClient) ReadSessionsFromS3(sessionId int, projectId int) ([]interface{}, error) {
