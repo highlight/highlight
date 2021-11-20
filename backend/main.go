@@ -212,12 +212,7 @@ func main() {
 							log.Error("Couldn't validate websocket: no origin")
 							return false
 						}
-						if !validateOrigin(r, r.Header["Origin"][0]) {
-							log.Errorf("Couldn't validate websocket at origin: %s", r.Header["Origin"][0])
-							return false
-						}
-						log.Info("Validation successful")
-						return true
+						return validateOrigin(r, r.Header["Origin"][0])
 					},
 				},
 				KeepAlivePingInterval: 10 * time.Second,
