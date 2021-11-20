@@ -137,8 +137,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 
     useEffect(() => {
         if (subscriptionEventsPayload?.length && eventsPayload?.length) {
-            console.log('Existing events payload: ', eventsPayload);
-            console.log('New events: ', subscriptionEventsPayload);
             setEventsPayload([...eventsPayload, ...subscriptionEventsPayload]);
             setSubscriptionEventsPayload([]);
         }
