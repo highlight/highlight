@@ -8,6 +8,7 @@ import Table from '@components/Table/Table';
 import { AdminRole } from '@graph/schemas';
 import SvgTrash from '@icons/Trash';
 import { getWorkspaceInvitationLink } from '@pages/WorkspaceTeam/utils';
+import { useAuthorization } from '@util/authorization/authorization';
 import { useParams } from '@util/react-router/useParams';
 import { getDisplayNameFromEmail, titleCaseString } from '@util/string';
 import { message } from 'antd';
@@ -39,6 +40,7 @@ const WorkspaceTeam = () => {
     const { data, error, loading } = useGetWorkspaceAdminsQuery({
         variables: { workspace_id },
     });
+    const { checkPolicyAccess } = useAuthorization();
     const [email, setEmail] = useState('');
     const [showModal, toggleShowModal] = useToggle(false);
     const [newAdminRole, setNewAdminRole] = useState<AdminRole>(
@@ -220,7 +222,7 @@ const WorkspaceTeam = () => {
             <Card noPadding>
                 <Table
                     columns={
-                        admin?.role === AdminRole.Admin
+                        checkPolicyAccess({ policyName: 'roles:update' })
                             ? TABLE_COLUMNS
                             : TABLE_COLUMNS.slice(0, 2)
                     }
@@ -262,8 +264,9 @@ const WorkspaceTeam = () => {
                             }
                             message.success(messageText);
                         },
-                        currentAdminHasAdminRole:
-                            admin?.role === AdminRole.Admin,
+                        canUpdateAdminRole: checkPolicyAccess({
+                            policyName: 'roles:update',
+                        }),
                     }))}
                     pagination={false}
                     showHeader={false}
@@ -310,7 +313,7 @@ const TABLE_COLUMNS = [
         dataIndex: 'role',
         key: 'role',
         render: (role: string, record: any) => {
-            if (record.currentAdminHasAdminRole) {
+            if (record.canUpdateAdminRole) {
                 return (
                     <div className={styles.role}>
                         <Select
