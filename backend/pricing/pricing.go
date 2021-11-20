@@ -85,6 +85,7 @@ func GetWorkspaceQuotaOverflow(ctx context.Context, DB *gorm.DB, workspaceID int
 	defer sessionsOverQuotaCountSpan.Finish()
 	if err := DB.Model(&model.Session{}).
 		Where(`project_id in (SELECT id FROM projects WHERE workspace_id=?)
+			AND within_billing_quota = false
 			AND created_at >= (
 				SELECT COALESCE(billing_period_start, date_trunc('month', now(), 'UTC'))
 				FROM workspaces
@@ -98,6 +99,21 @@ func GetWorkspaceQuotaOverflow(ctx context.Context, DB *gorm.DB, workspaceID int
 		return 0, e.Wrap(err, "error querying sessions over quota count")
 	}
 	return queriedSessionsOverQuota, nil
+}
+
+func TypeToMemberLimit(planType backend.PlanType) int {
+	switch planType {
+	case backend.PlanTypeFree:
+		return 2
+	case backend.PlanTypeBasic:
+		return 2
+	case backend.PlanTypeStartup:
+		return 8
+	case backend.PlanTypeEnterprise:
+		return 15
+	default:
+		return 2
+	}
 }
 
 func TypeToQuota(planType backend.PlanType) int {
@@ -213,9 +229,8 @@ func FillProducts(stripeClient *client.API, subscriptions []*stripe.Subscription
 func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, interval SubscriptionInterval) (map[ProductType]*stripe.Price, error) {
 	baseLookupKey := GetLookupKey(ProductTypeBase, productTier, interval)
 
-	// TODO: sessions/members hardcoded to PlanTypeFree for now
-	sessionsLookupKey := GetLookupKey(ProductTypeSessions, backend.PlanTypeFree, SubscriptionIntervalMonthly)
-	membersLookupKey := GetLookupKey(ProductTypeMembers, backend.PlanTypeFree, SubscriptionIntervalMonthly)
+	sessionsLookupKey := string(ProductTypeSessions)
+	membersLookupKey := string(ProductTypeMembers)
 
 	priceListParams := stripe.PriceListParams{}
 	priceListParams.LookupKeys = []*string{&baseLookupKey, &sessionsLookupKey, &membersLookupKey}
@@ -249,10 +264,19 @@ func ReportUsageForProduct(DB *gorm.DB, stripeClient *client.API, workspaceID in
 	return reportUsage(DB, stripeClient, workspaceID, &productType)
 }
 
+func ReportUsageForWorkspace(DB *gorm.DB, stripeClient *client.API, workspaceID int) error {
+	return reportUsage(DB, stripeClient, workspaceID, nil)
+}
+
 func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, productType *ProductType) error {
 	var workspace model.Workspace
-	if err := DB.Model(workspace).Where("id = ?", workspaceID).First(&workspace).Error; err != nil {
+	if err := DB.Model(&workspace).Where("id = ?", workspaceID).First(&workspace).Error; err != nil {
 		return e.Wrap(err, "error querying workspace")
+	}
+
+	// Don't report usage for free plans
+	if backend.PlanType(workspace.PlanTier) == backend.PlanTypeFree {
+		return nil
 	}
 
 	if workspace.BillingPeriodStart == nil ||
@@ -292,12 +316,23 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 
 	// Set PendingInvoiceItemInterval to 'month' if not set
 	if subscription.PendingInvoiceItemInterval.Interval != stripe.SubscriptionPendingInvoiceItemIntervalIntervalMonth {
-		if _, err := stripeClient.Subscriptions.Update(subscription.ID, &stripe.SubscriptionParams{
+		updated, err := stripeClient.Subscriptions.Update(subscription.ID, &stripe.SubscriptionParams{
 			PendingInvoiceItemInterval: &stripe.SubscriptionPendingInvoiceItemIntervalParams{
 				Interval: stripe.String(string(stripe.SubscriptionPendingInvoiceItemIntervalIntervalMonth)),
 			},
-		}); err != nil {
+		})
+		if err != nil {
 			return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to update PendingInvoiceItemInterval")
+		}
+
+		if updated.NextPendingInvoiceItemInvoice != 0 {
+			timestamp := time.Unix(updated.NextPendingInvoiceItemInvoice, 0)
+			if err := DB.Model(&workspace).Where("id = ?", workspaceID).
+				Updates(&model.Workspace{
+					NextInvoiceDate: &timestamp,
+				}).Error; err != nil {
+				return e.Wrapf(err, "STRIPE_INTEGRATION_ERROR error updating workspace NextInvoiceDate")
+			}
 		}
 	}
 
@@ -328,15 +363,22 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 	if productType == nil || *productType == ProductTypeMembers {
 		newPrice := prices[ProductTypeMembers]
 		meter := GetMembersMeter(DB, workspaceID)
+
+		limit := TypeToMemberLimit(backend.PlanType(workspace.PlanTier))
+		if workspace.MonthlyMembersLimit != nil {
+			limit = *workspace.MonthlyMembersLimit
+		}
+
+		overage := int64(0)
+		if meter > int64(limit) {
+			overage = meter - int64(limit)
+		}
+
 		log.Infof("reporting members usage for workspace %d", workspaceID)
 		if membersLine, ok := invoiceLines[ProductTypeMembers]; ok {
-			max := meter
-			if membersLine.Quantity > max {
-				max = membersLine.Quantity
-			}
 			if _, err := stripeClient.InvoiceItems.Update(membersLine.InvoiceItem, &stripe.InvoiceItemParams{
 				Price:    &newPrice.ID,
-				Quantity: stripe.Int64(max),
+				Quantity: stripe.Int64(overage),
 			}); err != nil {
 				return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to update members invoice item")
 			}
@@ -345,7 +387,7 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 				Customer:     &c.ID,
 				Subscription: &subscription.ID,
 				Price:        &newPrice.ID,
-				Quantity:     stripe.Int64(meter),
+				Quantity:     stripe.Int64(overage),
 			}); err != nil {
 				return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to add members invoice item")
 			}
@@ -359,27 +401,21 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 			return e.Wrap(err, "error getting sessions meter")
 		}
 
-		// If meter exceeds the plan limit, and overage is not allowed,
-		// set the meter to the plan limit and report that.
-		if !workspace.AllowMeterOverage {
-			limit := TypeToQuota(backend.PlanType(workspace.PlanTier))
-			if workspace.MonthlySessionLimit != nil {
-				limit = *workspace.MonthlySessionLimit
-			}
-			if meter > int64(limit) {
-				meter = int64(limit)
-			}
+		limit := TypeToQuota(backend.PlanType(workspace.PlanTier))
+		if workspace.MonthlySessionLimit != nil {
+			limit = *workspace.MonthlySessionLimit
+		}
+
+		overage := int64(0)
+		if workspace.AllowMeterOverage && meter > int64(limit) {
+			overage = meter - int64(limit)
 		}
 
 		log.Infof("reporting sessions usage for workspace %d", workspaceID)
 		if sessionsLine, ok := invoiceLines[ProductTypeSessions]; ok {
-			max := meter
-			if sessionsLine.Quantity > max {
-				max = sessionsLine.Quantity
-			}
 			if _, err := stripeClient.InvoiceItems.Update(sessionsLine.InvoiceItem, &stripe.InvoiceItemParams{
 				Price:    &newPrice.ID,
-				Quantity: stripe.Int64(max),
+				Quantity: stripe.Int64(overage),
 			}); err != nil {
 				return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to update sessions invoice item")
 			}
@@ -388,7 +424,7 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 				Customer:     &c.ID,
 				Subscription: &subscription.ID,
 				Price:        &newPrice.ID,
-				Quantity:     stripe.Int64(meter),
+				Quantity:     stripe.Int64(overage),
 			}); err != nil {
 				return e.Wrap(err, "STRIPE_INTEGRATION_ERROR failed to add sessions invoice item")
 			}

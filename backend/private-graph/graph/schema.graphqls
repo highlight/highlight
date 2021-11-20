@@ -68,12 +68,15 @@ type RageClickEventForProject {
 type BillingDetails {
     plan: Plan!
     meter: Int64!
+    membersMeter: Int64!
     sessionsOutOfQuota: Int64!
 }
 
 type Plan {
     type: PlanType!
+    interval: SubscriptionInterval!
     quota: Int!
+    membersLimit: Int!
 }
 
 enum PlanType {
@@ -81,6 +84,11 @@ enum PlanType {
     Basic
     Startup
     Enterprise
+}
+
+enum SubscriptionInterval {
+    Monthly
+    Annual
 }
 
 type EnhancedUserDetailsResult {
@@ -138,6 +146,9 @@ type Workspace {
     secret: String
     projects: [Project]!
     trial_end_date: Timestamp
+    billing_period_end: Timestamp
+    next_invoice_date: Timestamp
+    allow_meter_overage: Boolean!
 }
 
 type Segment {
@@ -651,6 +662,7 @@ type Mutation {
     createOrUpdateStripeSubscription(
         workspace_id: ID!
         plan_type: PlanType!
+        interval: SubscriptionInterval!
     ): String
     updateBillingDetails(workspace_id: ID!): Boolean
     createSessionComment(
@@ -827,6 +839,10 @@ type Mutation {
         error_group_secure_id: String!
         is_public: Boolean!
     ): ErrorGroup
+    updateAllowMeterOverage(
+        workspace_id: ID!
+        allow_meter_overage: Boolean!
+    ): Workspace
 }
 
 type Subscription {

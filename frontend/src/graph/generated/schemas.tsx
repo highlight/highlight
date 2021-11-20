@@ -88,13 +88,16 @@ export type BillingDetails = {
     __typename?: 'BillingDetails';
     plan: Plan;
     meter: Scalars['Int64'];
+    membersMeter: Scalars['Int64'];
     sessionsOutOfQuota: Scalars['Int64'];
 };
 
 export type Plan = {
     __typename?: 'Plan';
     type: PlanType;
+    interval: SubscriptionInterval;
     quota: Scalars['Int'];
+    membersLimit: Scalars['Int'];
 };
 
 export enum PlanType {
@@ -102,6 +105,11 @@ export enum PlanType {
     Basic = 'Basic',
     Startup = 'Startup',
     Enterprise = 'Enterprise',
+}
+
+export enum SubscriptionInterval {
+    Monthly = 'Monthly',
+    Annual = 'Annual',
 }
 
 export type EnhancedUserDetailsResult = {
@@ -163,6 +171,9 @@ export type Workspace = {
     secret?: Maybe<Scalars['String']>;
     projects: Array<Maybe<Project>>;
     trial_end_date?: Maybe<Scalars['Timestamp']>;
+    billing_period_end?: Maybe<Scalars['Timestamp']>;
+    next_invoice_date?: Maybe<Scalars['Timestamp']>;
+    allow_meter_overage: Scalars['Boolean'];
 };
 
 export type Segment = {
@@ -923,6 +934,7 @@ export type Mutation = {
     createNewSessionAlert?: Maybe<SessionAlert>;
     updateSessionIsPublic?: Maybe<Session>;
     updateErrorGroupIsPublic?: Maybe<ErrorGroup>;
+    updateAllowMeterOverage?: Maybe<Workspace>;
 };
 
 export type MutationCreateProjectArgs = {
@@ -1037,6 +1049,7 @@ export type MutationDeleteErrorSegmentArgs = {
 export type MutationCreateOrUpdateStripeSubscriptionArgs = {
     workspace_id: Scalars['ID'];
     plan_type: PlanType;
+    interval: SubscriptionInterval;
 };
 
 export type MutationUpdateBillingDetailsArgs = {
@@ -1250,6 +1263,11 @@ export type MutationUpdateSessionIsPublicArgs = {
 export type MutationUpdateErrorGroupIsPublicArgs = {
     error_group_secure_id: Scalars['String'];
     is_public: Scalars['Boolean'];
+};
+
+export type MutationUpdateAllowMeterOverageArgs = {
+    workspace_id: Scalars['ID'];
+    allow_meter_overage: Scalars['Boolean'];
 };
 
 export type Subscription = {

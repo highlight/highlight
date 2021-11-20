@@ -32,7 +32,7 @@ import { useReplayerContext } from '../ReplayerContext';
 import styles from './MetadataBox.module.scss';
 import { getAbsoluteUrl, getMajorVersion } from './utils/utils';
 
-export const MetadataBox = () => {
+export const MetadataBox = React.memo(() => {
     const { isLoggedIn } = useAuthContext();
     const { session_secure_id } = useParams<{ session_secure_id: string }>();
     const { session } = useReplayerContext();
@@ -158,9 +158,9 @@ export const MetadataBox = () => {
             <UserDetailsBox />
         </div>
     );
-};
+});
 
-export const UserDetailsBox = () => {
+export const UserDetailsBox = React.memo(() => {
     const { session_secure_id } = useParams<{ session_secure_id: string }>();
     const { data, loading } = useGetEnhancedUserDetailsQuery({
         variables: { session_secure_id },
@@ -175,7 +175,7 @@ export const UserDetailsBox = () => {
             {!loading && (
                 <div className={styles.tooltip}>
                     <InfoTooltip
-                        title={`This is enriched information for ${data?.enhanced_user_details?.email}. Highlight show information like their social handles, website, title, and company. This feature is currently enabled for everyone but will later only be available starting at the Startup plan.`}
+                        title={`This is enriched information for ${data?.enhanced_user_details?.email}. Highlight shows additional information like social handles, website, title, and company. This feature is currently enabled for everyone but will later only be available starting at the Startup plan.`}
                         size="medium"
                         hideArrow
                         placement="topLeft"
@@ -224,7 +224,7 @@ export const UserDetailsBox = () => {
             </div>
         </div>
     );
-};
+});
 
 const SocialComponent = ({ socialLink }: { socialLink: SocialLink }) => {
     return (

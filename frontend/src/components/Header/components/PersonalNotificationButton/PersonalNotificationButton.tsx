@@ -2,7 +2,7 @@ import { useGetWorkspaceIsIntegratedWithSlackQuery } from '@graph/hooks';
 import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import Button, {
     GenericHighlightButtonProps,
@@ -25,6 +25,10 @@ const PersonalNotificationButton = ({
 }: Props) => {
     const { project_id } = useParams<{ project_id: string }>();
     const { admin, isLoggedIn } = useAuthContext();
+    const [isIntegratedWithSlack, setIsIntegratedWithSlack] = useLocalStorage(
+        `${project_id}-${type}-personalNotifications`,
+        false
+    );
     const { data } = useGetWorkspaceIsIntegratedWithSlackQuery({
         variables: {
             project_id,
@@ -37,15 +41,27 @@ const PersonalNotificationButton = ({
 
     const { slackUrl: slackBotUrl } = useSlackBot({ type, watch: true });
 
-    if (!isLoggedIn) return null;
+    useEffect(() => {
+        // personal notifications are already setup
+        if (admin && type === 'Personal') {
+            if (!!admin.slack_im_channel_id) {
+                setIsIntegratedWithSlack(true);
+            } else {
+                setIsIntegratedWithSlack(false);
+            }
+        }
 
-    // personal notifications are already setup
-    if (type === 'Personal' && !!admin?.slack_im_channel_id) return null;
+        if (data && type === 'Organization') {
+            // slack workspace has already been integrated
+            if (data.is_integrated_with_slack) {
+                setIsIntegratedWithSlack(true);
+            } else {
+                setIsIntegratedWithSlack(false);
+            }
+        }
+    }, [admin, data, setIsIntegratedWithSlack, type]);
 
-    // slack workspace has already been integrated
-    if (type === 'Organization' && data?.is_integrated_with_slack) {
-        return null;
-    }
+    if (!isLoggedIn || isIntegratedWithSlack) return null;
 
     return (
         <Button
