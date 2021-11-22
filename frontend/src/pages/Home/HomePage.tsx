@@ -1,4 +1,5 @@
 import Card from '@components/Card/Card';
+import DateRangePicker from '@components/DateRangePicker/DateRangePicker';
 import DemoWorkspaceButton, {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
@@ -110,6 +111,7 @@ const HomePage = () => {
                                     defaultValue={timeFilter[1]}
                                     onSelect={setDateRangeLength}
                                 />
+                                <DateRangePicker />
                             </div>
                         )}
                     </div>
