@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
 
@@ -24,7 +25,12 @@ const SessionLevelBar = React.memo(() => {
         !session;
 
     return (
-        <div className={styles.container}>
+        <motion.div
+            className={styles.container}
+            initial={{ translateY: '-100%' }}
+            animate={{ translateY: '0%' }}
+            exit={{ translateY: '-100%' }}
+        >
             <div className={styles.sessionLevelBarContainer}>
                 {isLoading ? (
                     <div className={styles.skeletonContainer}>
@@ -43,7 +49,7 @@ const SessionLevelBar = React.memo(() => {
                 )}
             </div>
             <SessionShareButton className={styles.shareButton} />
-        </div>
+        </motion.div>
     );
 });
 

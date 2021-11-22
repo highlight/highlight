@@ -33,8 +33,12 @@
     }
 
     &:disabled {
-        background: var(--color-purple);
-        color: var(--color-purple-200);
+        background: var(--color-gray-400);
+        color: var(--color-gray-300) !important;
+
+        svg {
+            color: var(--color-gray-300) !important;
+        }
     }
 }
 
