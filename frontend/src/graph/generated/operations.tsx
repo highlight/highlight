@@ -1146,6 +1146,8 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'is_public'
             | 'event_counts'
             | 'direct_download_url'
+            | 'resources_url'
+            | 'messages_url'
         > & {
                 fields?: Types.Maybe<
                     Array<

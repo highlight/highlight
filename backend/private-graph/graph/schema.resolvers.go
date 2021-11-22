@@ -22,6 +22,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -3600,16 +3601,42 @@ func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (i
 }
 
 func (r *sessionResolver) DirectDownloadURL(ctx context.Context, obj *model.Session) (*string, error) {
-	acceptEncodingString := ctx.Value(model.ContextKeys.AcceptEncoding).(string)
-
 	// Direct download only supported for clients that accept Brotli content encoding
-	if !obj.DirectDownloadEnabled || !strings.Contains(acceptEncodingString, "br") {
+	if !obj.DirectDownloadEnabled || !r.isBrotliAccepted(ctx) {
 		return nil, nil
 	}
 
-	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID)
+	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID, storage.SessionContentsCompressed)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting direct download URL")
+	}
+
+	return str, err
+}
+
+func (r *sessionResolver) ResourcesURL(ctx context.Context, obj *model.Session) (*string, error) {
+	// Direct download only supported for clients that accept Brotli content encoding
+	if !obj.AllObjectsCompressed || !r.isBrotliAccepted(ctx) {
+		return nil, nil
+	}
+
+	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID, storage.NetworkResourcesCompressed)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting resources URL")
+	}
+
+	return str, err
+}
+
+func (r *sessionResolver) MessagesURL(ctx context.Context, obj *model.Session) (*string, error) {
+	// Direct download only supported for clients that accept Brotli content encoding
+	if !obj.AllObjectsCompressed || !r.isBrotliAccepted(ctx) {
+		return nil, nil
+	}
+
+	str, err := r.StorageClient.GetDirectDownloadURL(obj.ProjectID, obj.ID, storage.ConsoleMessagesCompressed)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting messages URL")
 	}
 
 	return str, err

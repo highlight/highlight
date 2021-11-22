@@ -64,6 +64,8 @@ export type Session = {
     is_public?: Maybe<Scalars['Boolean']>;
     event_counts?: Maybe<Scalars['String']>;
     direct_download_url?: Maybe<Scalars['String']>;
+    resources_url?: Maybe<Scalars['String']>;
+    messages_url?: Maybe<Scalars['String']>;
 };
 
 export type RageClickEvent = {

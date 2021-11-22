@@ -1058,3 +1058,8 @@ func (r *Resolver) IsInviteLinkExpired(inviteLink *model.WorkspaceInviteLink) bo
 	}
 	return time.Now().UTC().After(*inviteLink.ExpirationDate)
 }
+
+func (r *Resolver) isBrotliAccepted(ctx context.Context) bool {
+	acceptEncodingString := ctx.Value(model.ContextKeys.AcceptEncoding).(string)
+	return strings.Contains(acceptEncodingString, "br")
+}

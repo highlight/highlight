@@ -1,8 +1,10 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import JsonViewer from '@components/JsonViewer/JsonViewer';
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
 import Tooltip from '@components/Tooltip/Tooltip';
 import { useParams } from '@util/react-router/useParams';
 import { message as AntDesignMessage } from 'antd';
+import { H } from 'highlight.run';
 import _ from 'lodash';
 import React, {
     useCallback,
@@ -34,7 +36,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
     const [currentMessage, setCurrentMessage] = useState(-1);
     const [filterSearchTerm, setFilterSearchTerm] = useState('');
     const [options, setOptions] = useState<Array<string>>([]);
-    const { pause, replayer, state } = useReplayerContext();
+    const { pause, replayer, state, session } = useReplayerContext();
     const [parsedMessages, setParsedMessages] = useState<
         undefined | Array<ParsedMessage>
     >([]);
@@ -43,12 +45,42 @@ export const ConsolePage = ({ time }: { time: number }) => {
         false
     );
     const { session_secure_id } = useParams<{ session_secure_id: string }>();
+    const { isHighlightAdmin } = useAuthContext();
     const { data, loading } = useGetMessagesQuery({
         variables: {
             session_secure_id,
         },
         fetchPolicy: 'no-cache',
+        skip:
+            session === undefined ||
+            (!!session.messages_url && isHighlightAdmin), // Skip if there is a URL to fetch messages
     });
+
+    // If sessionSecureId is set and equals the current session's (ensures effect is run once)
+    // and resources url is defined, fetch using resources url
+    useEffect(() => {
+        if (!!session?.messages_url && isHighlightAdmin) {
+            fetch(session?.messages_url)
+                .then((response) => response.json())
+                .then((data) => {
+                    setParsedMessages(
+                        (data as any[] | undefined)?.map(
+                            (m: ConsoleMessage, i) => {
+                                return {
+                                    ...m,
+                                    id: i,
+                                };
+                            }
+                        ) ?? []
+                    );
+                })
+                .catch((e) => {
+                    setParsedMessages([]);
+                    H.consumeError(e, 'Error direct downloading resources');
+                });
+        }
+    }, [session?.messages_url, isHighlightAdmin]);
+
     const virtuoso = useRef<VirtuosoHandle>(null);
 
     useEffect(() => {
