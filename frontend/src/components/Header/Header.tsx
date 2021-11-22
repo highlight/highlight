@@ -1,3 +1,4 @@
+import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
@@ -62,7 +63,21 @@ export const Header = () => {
 
                     <div className={styles.rightHeader}>
                         <HeaderActions />
-                        <FeedbackButton />
+                        {!isLoggedIn && project_id === '0' ? (
+                            <ButtonLink
+                                className={styles.upsellButton}
+                                trackingId="DemoProjectSignUp"
+                                {...{
+                                    to: undefined,
+                                    href: '/?sign_up=1',
+                                    anchor: true,
+                                }}
+                            >
+                                Get 4 months of Highlight free!
+                            </ButtonLink>
+                        ) : (
+                            <FeedbackButton />
+                        )}
                         {isLoggedIn && <UserDropdown />}
                     </div>
                 </div>
