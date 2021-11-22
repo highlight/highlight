@@ -10,12 +10,12 @@ import { DateRangePicker as ReactDateRange, Range } from 'react-date-range';
 
 import styles from './DateRangePicker.module.scss';
 
-interface Props {
-    any?: any;
-}
+type Props = {
+    onChange: (startDate?: Date, endDate?: Date) => void;
+};
 
 const TIME_RANGES = [
-    { label: 'Last 24 hours', value: 1 },
+    { label: 'Last 24 hours', value: 2 },
     { label: 'Last 7 days', value: 7 },
     { label: 'Last month', value: 30 },
     { label: 'Last 3 months', value: 30 * 3 },
@@ -23,7 +23,7 @@ const TIME_RANGES = [
     { label: 'This year', value: 30 * 12 },
 ] as const;
 
-const DateRangePicker = (props: Props) => {
+const DateRangePicker = ({ onChange }: Props) => {
     const [state, setState] = useState<Range[]>([
         {
             startDate: new Date(),
@@ -47,7 +47,12 @@ const DateRangePicker = (props: Props) => {
                             '#fed14c',
                         ]}
                         onChange={(item) => {
-                            console.log(item);
+                            if (onChange) {
+                                onChange(
+                                    item.selection.startDate,
+                                    item.selection.endDate
+                                );
+                            }
                             setState([item.selection]);
                             setButtonLabel(
                                 getButtonLabel(
