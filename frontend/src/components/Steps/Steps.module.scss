@@ -59,12 +59,12 @@
     :global(.ant-steps-item-finish) {
         :global(.ant-steps-icon),
         :global(.ant-steps-item-title) {
-            color: var(--color-green-300) !important;
+            color: var(--color-green-500) !important;
         }
 
         &:global(.ant-steps-item-finish::before),
         :global(.ant-steps-item-container::before) {
-            background-color: var(--color-green-300) !important;
+            background-color: var(--color-green-500) !important;
         }
     }
 
