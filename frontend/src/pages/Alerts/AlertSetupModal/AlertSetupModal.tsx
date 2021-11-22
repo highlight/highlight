@@ -111,6 +111,7 @@ const AlertSetupModal = () => {
                 0
         ) {
             setShouldCloseSetupPersisted(true);
+            setShowModal(false);
         }
     }, [loading, alertsPayload, setShouldCloseSetupPersisted]);
 
