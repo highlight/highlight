@@ -1,0 +1,1 @@
+export {withHighlight} from './src/withHighlight';
