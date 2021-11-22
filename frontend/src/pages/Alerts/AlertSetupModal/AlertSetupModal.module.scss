@@ -142,3 +142,10 @@
         width: var(--icon-size);
     }
 }
+
+.steps {
+    main {
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+}

@@ -367,6 +367,7 @@ const AlertSetupModal = () => {
         >
             <Steps
                 type="navigation"
+                className={styles.steps}
                 current={current}
                 steps={steps}
                 finishButtonLabel="Create Alerts"
