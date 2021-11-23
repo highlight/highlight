@@ -18,6 +18,8 @@
     gap: var(--size-xLarge);
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1fr;
+    max-height: 55vh;
+    overflow-y: auto;
 }
 
 .cardContent {
@@ -140,12 +142,5 @@
     svg {
         height: var(--icon-size);
         width: var(--icon-size);
-    }
-}
-
-.steps {
-    main {
-        max-height: 60vh;
-        overflow-y: auto;
     }
 }
