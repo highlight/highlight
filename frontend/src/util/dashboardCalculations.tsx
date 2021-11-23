@@ -24,7 +24,7 @@ export function dailyCountData(
 ): Array<number> {
     if (!dailyItemsCount) return [];
     const today = moment();
-    const dateRangeData = Array(n > 0 ? n : 0).fill(0);
+    const dateRangeData = Array(n > 0 ? n : 1).fill(0);
     for (const item of dailyItemsCount ?? []) {
         const itemDate = moment(item?.date);
         const insertIndex =

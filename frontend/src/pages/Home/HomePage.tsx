@@ -103,26 +103,24 @@ const HomePage = () => {
                                 </p>
                             )}
                         </div>
-                        {hasData && (
-                            <div className={styles.filtersContainer}>
-                                <DateRangePicker
-                                    onChange={(_startDate, _endDate) => {
-                                        if (!_startDate || !_endDate) {
-                                            return;
-                                        }
+                        <div className={styles.filtersContainer}>
+                            <DateRangePicker
+                                onChange={(_startDate, _endDate) => {
+                                    if (!_startDate || !_endDate) {
+                                        return;
+                                    }
 
-                                        const startDate = moment(_startDate);
-                                        const endDate = moment(_endDate);
-                                        const daysDifference = startDate.diff(
-                                            endDate,
-                                            'days'
-                                        );
+                                    const startDate = moment(_startDate);
+                                    const endDate = moment(_endDate);
+                                    const daysDifference = startDate.diff(
+                                        endDate,
+                                        'days'
+                                    );
 
-                                        setDateRangeLength(daysDifference);
-                                    }}
-                                />
-                            </div>
-                        )}
+                                    setDateRangeLength(daysDifference);
+                                }}
+                            />
+                        </div>
                     </div>
                     <KeyPerformanceIndicators />
                     <div className={styles.dashboardBody}>
@@ -132,7 +130,7 @@ const HomePage = () => {
                         <ActiveUsersTable />
                         <RageClicksForProjectTable />
                     </div>
-                    {!hasData && (
+                    {!hasData && !integrated && (
                         <div className={styles.noDataContainer}>
                             <ElevatedCard
                                 title={
