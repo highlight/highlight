@@ -1,5 +1,6 @@
 import Input from '@components/Input/Input';
 import { useAppLoadingContext } from '@context/AppLoadingContext';
+import VerifyEmailCard from '@pages/Login/components/VerifyEmailCard/VerifyEmailCard';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React, { useEffect, useState } from 'react';
@@ -65,11 +66,19 @@ export const AuthAdminRouter = () => {
     return <AppRouter />;
 };
 
+enum LoginFormState {
+    SignIn,
+    SignUp,
+    /** The user signed up with email/password. We need to block the user from doing anything until they verify their email. */
+    VerifyEmail,
+}
+
 const LoginForm = () => {
     const [signUpParam] = useQueryParam('sign_up', BooleanParam);
-    // Show sign in state if the sign_up param is false or undefined
-    const [signIn, setSignIn] = useState<boolean>(!signUpParam);
-    const { isAuthLoading, isLoggedIn } = useAuthContext();
+    const [formState, setFormState] = useState<LoginFormState>(
+        signUpParam ? LoginFormState.SignUp : LoginFormState.SignIn
+    );
+    const { isAuthLoading, isLoggedIn, admin } = useAuthContext();
     const [firebaseError, setFirebaseError] = useState('');
     const { setIsLoading } = useAppLoadingContext();
     const [email, setEmail] = useState('');
@@ -80,7 +89,7 @@ const LoginForm = () => {
 
     const onSubmit = (e: { preventDefault: () => void }) => {
         e.preventDefault();
-        if (signIn) {
+        if (formState === LoginFormState.SignIn) {
             auth.signInWithEmailAndPassword(email, password).catch((error) => {
                 setError(error.toString());
             });
@@ -104,8 +113,8 @@ const LoginForm = () => {
         setPasswordConfirmation('');
     };
 
-    const changeState = () => {
-        setSignIn(!signIn);
+    const changeState = (nextState: LoginFormState) => {
+        setFormState(nextState);
         setError(null);
     };
 
@@ -115,12 +124,34 @@ const LoginForm = () => {
         }
     }, [isAuthLoading, setIsLoading]);
 
+    useEffect(() => {
+        if (isLoggedIn && admin) {
+            if (admin.email_verified === false) {
+                setFormState(LoginFormState.VerifyEmail);
+            } else {
+                if (formState !== LoginFormState.VerifyEmail) {
+                    setFormState(LoginFormState.SignIn);
+                }
+            }
+        }
+    }, [admin, admin?.email_verified, formState, isLoggedIn]);
+
     if (isAuthLoading) {
         return null;
     }
 
-    if (isLoggedIn) {
+    if (isLoggedIn && formState !== LoginFormState.VerifyEmail) {
         return <AuthAdminRouter />;
+    }
+
+    if (formState === LoginFormState.VerifyEmail) {
+        return (
+            <VerifyEmailCard
+                onStartHandler={() => {
+                    setFormState(LoginFormState.SignIn);
+                }}
+            />
+        );
     }
 
     return (
@@ -130,14 +161,20 @@ const LoginForm = () => {
                     <form onSubmit={onSubmit} className={styles.loginForm}>
                         <div className={styles.loginTitleWrapper}>
                             <h2 className={styles.loginTitle}>
-                                Welcome {signIn && 'back'} to Highlight.
+                                Welcome{' '}
+                                {formState === LoginFormState.SignIn && 'back'}{' '}
+                                to Highlight.
                             </h2>
                             <p className={styles.loginSubTitle}>
-                                {signIn ? (
+                                {formState === LoginFormState.SignIn ? (
                                     <>
                                         New here?{' '}
                                         <span
-                                            onClick={changeState}
+                                            onClick={() => {
+                                                changeState(
+                                                    LoginFormState.SignUp
+                                                );
+                                            }}
                                             className={
                                                 styles.loginStateSwitcher
                                             }
@@ -149,7 +186,11 @@ const LoginForm = () => {
                                     <>
                                         Already have an account?{' '}
                                         <span
-                                            onClick={changeState}
+                                            onClick={() => {
+                                                changeState(
+                                                    LoginFormState.SignIn
+                                                );
+                                            }}
                                             className={
                                                 styles.loginStateSwitcher
                                             }
@@ -181,7 +222,7 @@ const LoginForm = () => {
                                 }}
                                 required
                             />
-                            {!signIn && (
+                            {formState === LoginFormState.SignUp && (
                                 <>
                                     <Input
                                         placeholder={'Confirm Password'}
@@ -209,11 +250,14 @@ const LoginForm = () => {
                             type="primary"
                             htmlType="submit"
                         >
-                            {signIn ? 'Sign In' : 'Sign Up'}
+                            {formState === LoginFormState.SignIn
+                                ? 'Sign In'
+                                : 'Sign Up'}
                         </Button>
                     </form>
                     <p className={styles.otherSigninText}>
-                        or sign {signIn ? 'in' : 'up'} with
+                        or sign{' '}
+                        {formState === LoginFormState.SignIn ? 'in' : 'up'} with
                     </p>
                     <Button
                         trackingId="LoginWithGoogle"
@@ -229,7 +273,8 @@ const LoginForm = () => {
                     >
                         <GoogleLogo className={styles.googleLogoStyle} />
                         <span className={styles.googleText}>
-                            Google Sign {signIn ? 'In' : 'Up'}
+                            Google Sign{' '}
+                            {formState === LoginFormState.SignIn ? 'In' : 'Up'}
                         </span>
                     </Button>
                     <div className={commonStyles.errorMessage}>

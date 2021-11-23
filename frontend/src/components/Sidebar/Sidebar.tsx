@@ -1,3 +1,4 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
@@ -35,26 +36,44 @@ interface NavigationItem {
 export const Sidebar = () => {
     const { currentProject } = useApplicationContext();
     const { checkPolicyAccess } = useAuthorization();
+    const { isLoggedIn } = useAuthContext();
     const isWorkspace = !currentProject;
+    const { project_id } = useParams<{ project_id: string }>();
+    const projectIdRemapped =
+        project_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : project_id;
 
     const LEAD_NAVIGATION_ITEMS: NavigationItem[] = [
         {
             Icon: SvgHomeIcon,
             displayName: 'Home',
             route: 'home',
-            hidden: isWorkspace,
+            hidden:
+                !(
+                    projectIdRemapped === DEMO_WORKSPACE_PROXY_APPLICATION_ID &&
+                    !isLoggedIn
+                ) && isWorkspace,
         },
         {
             Icon: SvgSessionsIcon,
             displayName: 'Sessions',
             route: 'sessions',
-            hidden: isWorkspace,
+            hidden:
+                !(
+                    projectIdRemapped === DEMO_WORKSPACE_PROXY_APPLICATION_ID &&
+                    !isLoggedIn
+                ) && isWorkspace,
         },
         {
             Icon: SvgBugIcon,
             displayName: 'Errors',
             route: 'errors',
-            hidden: isWorkspace,
+            hidden:
+                !(
+                    projectIdRemapped === DEMO_WORKSPACE_PROXY_APPLICATION_ID &&
+                    !isLoggedIn
+                ) && isWorkspace,
         },
     ];
 
@@ -119,7 +138,7 @@ export const Sidebar = () => {
                         </MiniSidebarItem>
                     )
                 )}
-                {currentProject?.id !== DEMO_WORKSPACE_APPLICATION_ID && (
+                {projectIdRemapped !== DEMO_WORKSPACE_PROXY_APPLICATION_ID && (
                     <>
                         {!isWorkspace && (
                             <div className={styles.settingsDivider} />
