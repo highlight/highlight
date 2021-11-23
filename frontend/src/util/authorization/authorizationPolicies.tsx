@@ -3,12 +3,16 @@ import { onlyAllowAdminRole } from '@util/authorization/authorizationUtils';
 /**
  * Policies for the frontend.
  * You can think of these as operations/actions a user can do.
- * The format of the key is `(entity|feature):operation`.
  */
+export enum POLICY_NAMES {
+    BillingUpdate,
+    BillingView,
+    RolesUpdate,
+}
 const AUTHORIZATION_POLICIES = {
-    'billing:update': onlyAllowAdminRole,
-    'billing:view': onlyAllowAdminRole,
-    'roles:update': onlyAllowAdminRole,
+    [POLICY_NAMES.BillingUpdate]: onlyAllowAdminRole,
+    [POLICY_NAMES.BillingView]: onlyAllowAdminRole,
+    [POLICY_NAMES.RolesUpdate]: onlyAllowAdminRole,
 } as const;
 
 export default AUTHORIZATION_POLICIES;

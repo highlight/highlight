@@ -9,6 +9,7 @@ import { AdminRole } from '@graph/schemas';
 import SvgTrash from '@icons/Trash';
 import { getWorkspaceInvitationLink } from '@pages/WorkspaceTeam/utils';
 import { useAuthorization } from '@util/authorization/authorization';
+import { POLICY_NAMES } from '@util/authorization/authorizationPolicies';
 import { useParams } from '@util/react-router/useParams';
 import { getDisplayNameFromEmail, titleCaseString } from '@util/string';
 import { message } from 'antd';
@@ -222,7 +223,9 @@ const WorkspaceTeam = () => {
             <Card noPadding>
                 <Table
                     columns={
-                        checkPolicyAccess({ policyName: 'roles:update' })
+                        checkPolicyAccess({
+                            policyName: POLICY_NAMES.RolesUpdate,
+                        })
                             ? TABLE_COLUMNS
                             : TABLE_COLUMNS.slice(0, 2)
                     }
@@ -265,7 +268,7 @@ const WorkspaceTeam = () => {
                             message.success(messageText);
                         },
                         canUpdateAdminRole: checkPolicyAccess({
-                            policyName: 'roles:update',
+                            policyName: POLICY_NAMES.RolesUpdate,
                         }),
                     }))}
                     pagination={false}

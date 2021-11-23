@@ -6,6 +6,7 @@ import { MiniWorkspaceIcon } from '@components/Header/WorkspaceDropdown/Workspac
 import SvgUsersIcon from '@icons/UsersIcon';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { useAuthorization } from '@util/authorization/authorization';
+import { POLICY_NAMES } from '@util/authorization/authorizationPolicies';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames/bind';
@@ -82,7 +83,7 @@ export const Sidebar = () => {
             hidden:
                 !isWorkspace ||
                 isOnPrem ||
-                !checkPolicyAccess({ policyName: 'billing:view' }),
+                !checkPolicyAccess({ policyName: POLICY_NAMES.BillingView }),
         },
         {
             Icon: SvgAnnouncementIcon,

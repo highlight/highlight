@@ -10,6 +10,7 @@ import {
     Authorization,
     useAuthorization,
 } from '@util/authorization/authorization';
+import { POLICY_NAMES } from '@util/authorization/authorizationPolicies';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import React, { useEffect, useState } from 'react';
@@ -301,7 +302,7 @@ const BillingPage = () => {
                             ) : (
                                 <BillingPlanCard
                                     disabled={checkPolicyAccess({
-                                        policyName: 'billing:update',
+                                        policyName: POLICY_NAMES.BillingUpdate,
                                     })}
                                     key={billingPlan.type}
                                     current={
