@@ -85,11 +85,13 @@ const LoginForm = () => {
                 setError(error.toString());
             });
         } else {
-            auth.createUserWithEmailAndPassword(email, password).catch(
-                (error) => {
+            auth.createUserWithEmailAndPassword(email, password)
+                .then(() => {
+                    auth.currentUser?.sendEmailVerification();
+                })
+                .catch((error) => {
                     setError(error.toString());
-                }
-            );
+                });
 
             // Redirect the user to their initial path instead to creating a new workspace.
             // We do this because this happens when a new user clicks on a Highlight link that was shared to them and they don't have an account yet.
