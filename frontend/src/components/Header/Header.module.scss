@@ -192,11 +192,4 @@
 .upsellButton {
     padding-bottom: var(--size-xxSmall);
     padding-top: var(--size-xxSmall);
-
-    &:hover,
-    &:active,
-    &:focus {
-        background: var(--color-purple-600);
-        border-color: var(--color-purple-600);
-    }
 }

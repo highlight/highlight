@@ -82,6 +82,7 @@ const ButtonLink: React.FC<Props> = ({
             className={classNames(styles.link, className, {
                 [styles.withIcon]: icon,
                 [styles.fullWidth]: fullWidth,
+                [styles.to]: type !== 'default',
                 [styles.defaultButtonStyles]: type === 'default',
             })}
             onClick={() => {
