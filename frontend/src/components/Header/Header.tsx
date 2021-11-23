@@ -72,11 +72,7 @@ export const Header = () => {
                             <ButtonLink
                                 className={styles.upsellButton}
                                 trackingId="DemoProjectSignUp"
-                                {...{
-                                    to: undefined,
-                                    href: '/?sign_up=1',
-                                    anchor: true,
-                                }}
+                                href="/?sign_up=1"
                             >
                                 Get 4 months of Highlight free!
                             </ButtonLink>
