@@ -18,6 +18,8 @@
     gap: var(--size-xLarge);
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1fr;
+    max-height: 55vh;
+    overflow-y: auto;
 }
 
 .cardContent {
@@ -122,8 +124,8 @@
 }
 
 .checkIconContainer {
-    --background-size: var(--size-xLarge);
-    --icon-size: var(--size-medium);
+    --background-size: var(--size-medium);
+    --icon-size: var(--size-xSmall);
 
     align-items: center;
     background: var(--color-purple);

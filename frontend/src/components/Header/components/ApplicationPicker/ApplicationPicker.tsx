@@ -1,3 +1,8 @@
+import { useAuthContext } from '@authentication/AuthContext';
+import {
+    DEMO_WORKSPACE_APPLICATION_ID,
+    DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { MiniWorkspaceIcon } from '@components/Header/WorkspaceDropdown/WorkspaceDropdown';
 import SvgArrowRightIcon from '@icons/ArrowRightIcon';
 import { useParams } from '@util/react-router/useParams';
@@ -18,9 +23,15 @@ const ApplicationPicker = () => {
         currentWorkspace,
         workspaces,
     } = useApplicationContext();
-    const { workspace_id } = useParams<{
+    const { workspace_id, project_id } = useParams<{
         workspace_id: string;
+        project_id: string;
     }>();
+    const projectIdRemapped =
+        project_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : project_id;
+    const { isLoggedIn } = useAuthContext();
     const isWorkspaceLevel = workspace_id !== undefined;
     const history = useHistory();
     const { pathname } = useLocation();
@@ -69,9 +80,21 @@ const ApplicationPicker = () => {
                   displayValue: (
                       <span className={styles.existingProjectOption}>
                           <MiniWorkspaceIcon
-                              projectName={project?.name || ''}
+                              projectName={
+                                  !isLoggedIn &&
+                                  projectIdRemapped ===
+                                      DEMO_WORKSPACE_PROXY_APPLICATION_ID
+                                      ? 'demo'
+                                      : project?.name || ''
+                              }
                           />
-                          <span>{project?.name || ''}</span>
+                          <span>
+                              {!isLoggedIn &&
+                              projectIdRemapped ===
+                                  DEMO_WORKSPACE_PROXY_APPLICATION_ID
+                                  ? 'demo'
+                                  : project?.name || ''}
+                          </span>
                       </span>
                   ),
                   id: project?.id || '',
@@ -93,6 +116,10 @@ const ApplicationPicker = () => {
                 displayValue={
                     isWorkspaceLevel
                         ? 'Workspace Settings'
+                        : !isLoggedIn &&
+                          projectIdRemapped ===
+                              DEMO_WORKSPACE_PROXY_APPLICATION_ID
+                        ? 'demo'
                         : currentProject?.name
                 }
                 options={applicationOptions}
@@ -115,7 +142,12 @@ const ApplicationPicker = () => {
                     }
                 }}
             />
-            <span className={styles.subTitle}>{currentWorkspace?.name}</span>
+            <span className={styles.subTitle}>
+                {!isLoggedIn &&
+                projectIdRemapped === DEMO_WORKSPACE_PROXY_APPLICATION_ID
+                    ? 'demo'
+                    : currentWorkspace?.name}
+            </span>
         </div>
     );
 };

@@ -408,6 +408,7 @@ type Admin struct {
 	Model
 	Name             *string
 	Email            *string
+	EmailVerified    *bool            `gorm:"default:false"`
 	PhotoURL         *string          `json:"photo_url"`
 	UID              *string          `gorm:"unique_index"`
 	Organizations    []Organization   `gorm:"many2many:organization_admins;"`
@@ -486,6 +487,7 @@ type Session struct {
 
 	ObjectStorageEnabled  *bool   `json:"object_storage_enabled"`
 	DirectDownloadEnabled bool    `json:"direct_download_enabled" gorm:"default:false"`
+	AllObjectsCompressed  bool    `json:"all_resources_compressed" gorm:"default:false"`
 	PayloadSize           *int64  `json:"payload_size"`
 	MigrationState        *string `json:"migration_state"`
 	VerboseID             string  `json:"verbose_id"`
