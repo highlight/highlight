@@ -3,13 +3,16 @@ package payload
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 	"strings"
 
 	"github.com/andybalholm/brotli"
+	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 var Delimiter = "\n\n\n"
@@ -101,21 +104,45 @@ func NewCompressedJSONArrayWriter(brFile *os.File) *CompressedJSONArrayWriter {
 	}
 }
 
-// Merges the inner contents of the input events objects into a large JSON array
-func (w *CompressedJSONArrayWriter) WriteEvents(events *model.EventsObject) error {
-	var eventsObj struct {
-		Events []interface{}
-	}
+type Unmarshalled interface {
+	getArray() []interface{}
+}
 
+type EventsUnmarshalled struct {
+	Events []interface{}
+}
+
+func (e *EventsUnmarshalled) getArray() []interface{} {
+	return e.Events
+}
+
+type ResourcesUnmarshalled struct {
+	Resources []interface{}
+}
+
+func (r *ResourcesUnmarshalled) getArray() []interface{} {
+	return r.Resources
+}
+
+type MessagesUnmarshalled struct {
+	Messages []interface{}
+}
+
+func (m *MessagesUnmarshalled) getArray() []interface{} {
+	return m.Messages
+}
+
+// Merges the inner contents of the input events objects into a large JSON array
+func (w *CompressedJSONArrayWriter) WriteObject(events model.Object, unmarshalled Unmarshalled) error {
 	// EventsObject.Events is a string with the format "{events:[{...},{...},...]}"
 	// Unmarshal this string, then marshal the inner array
-	if err := json.Unmarshal([]byte(events.Events), &eventsObj); err != nil {
+	if err := json.Unmarshal([]byte(events.Contents()), unmarshalled); err != nil {
 		return errors.Wrap(err, "error unmarshalling events")
 	}
-	if len(eventsObj.Events) == 0 {
+	if len(unmarshalled.getArray()) == 0 {
 		return nil
 	}
-	remarshalled, err := json.Marshal(eventsObj.Events)
+	remarshalled, err := json.Marshal(unmarshalled.getArray())
 	if err != nil {
 		return errors.Wrap(err, "error marshalling events array")
 	}
@@ -155,17 +182,141 @@ func (w *CompressedJSONArrayWriter) Close() error {
 }
 
 type PayloadManager struct {
-	Events           *PayloadReadWriter
-	Resources        *PayloadReadWriter
-	Messages         *PayloadReadWriter
-	EventsCompressed *CompressedJSONArrayWriter
+	Events              *PayloadReadWriter
+	Resources           *PayloadReadWriter
+	Messages            *PayloadReadWriter
+	EventsCompressed    *CompressedJSONArrayWriter
+	ResourcesCompressed *CompressedJSONArrayWriter
+	MessagesCompressed  *CompressedJSONArrayWriter
+	files               map[FileType]*FileInfo
 }
 
-func NewPayloadManager(eventsFile *os.File, resourcesFile *os.File, messagesFile *os.File, eventsCompressedFile *os.File) *PayloadManager {
-	reader := &PayloadManager{}
-	reader.Events = NewPayloadReadWriter(eventsFile)
-	reader.Resources = NewPayloadReadWriter(resourcesFile)
-	reader.Messages = NewPayloadReadWriter(messagesFile)
-	reader.EventsCompressed = NewCompressedJSONArrayWriter(eventsCompressedFile)
-	return reader
+type FileType string
+
+const (
+	Events              FileType = "Events"
+	Resources           FileType = "Resources"
+	Messages            FileType = "Messages"
+	EventsCompressed    FileType = "EventsCompressed"
+	ResourcesCompressed FileType = "ResourcesCompressed"
+	MessagesCompressed  FileType = "MessagesCompressed"
+)
+
+type FileInfo struct {
+	close  func()
+	file   *os.File
+	suffix string
+	ddTag  string
+}
+
+func createFile(name string) (func(), *os.File, error) {
+	file, err := os.Create(name)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "error creating file")
+	}
+	return func() {
+		err := file.Close()
+		if err != nil {
+			log.Error(errors.Wrap(err, "failed to close file"))
+			return
+		}
+		err = os.Remove(file.Name())
+		if err != nil {
+			log.Error(errors.Wrap(err, "failed to remove file"))
+			return
+		}
+	}, file, nil
+}
+
+func NewPayloadManager(filenamePrefix string) (*PayloadManager, error) {
+	files := map[FileType]*FileInfo{
+		Events: {
+			suffix: ".events.txt",
+			ddTag:  "eventPayloadSize",
+		},
+		Resources: {
+			suffix: ".resources.txt",
+			ddTag:  "resourcePayloadSize",
+		},
+		Messages: {
+			suffix: ".messages.txt",
+			ddTag:  "messagePayloadSize",
+		},
+		EventsCompressed: {
+			suffix: ".events.json.br",
+			ddTag:  "eventsCompressedPayloadSize",
+		},
+		ResourcesCompressed: {
+			suffix: ".resources.json.br",
+			ddTag:  "resourcesCompressedPayloadSize",
+		},
+		MessagesCompressed: {
+			suffix: ".messages.json.br",
+			ddTag:  "messagesCompressedPayloadSize",
+		},
+	}
+
+	manager := &PayloadManager{
+		files: files,
+	}
+
+	for fileType, fileInfo := range files {
+		close, file, err := createFile(filenamePrefix + fileInfo.suffix)
+		if err != nil {
+			manager.Close()
+			return nil, errors.Wrapf(err, "error creating %s file", string(fileType))
+		}
+		fileInfo.file = file
+		fileInfo.close = close
+
+		switch fileType {
+		case Events:
+			manager.Events = NewPayloadReadWriter(fileInfo.file)
+		case Resources:
+			manager.Resources = NewPayloadReadWriter(fileInfo.file)
+		case Messages:
+			manager.Messages = NewPayloadReadWriter(fileInfo.file)
+		case EventsCompressed:
+			manager.EventsCompressed = NewCompressedJSONArrayWriter(fileInfo.file)
+		case ResourcesCompressed:
+			manager.ResourcesCompressed = NewCompressedJSONArrayWriter(fileInfo.file)
+		case MessagesCompressed:
+			manager.MessagesCompressed = NewCompressedJSONArrayWriter(fileInfo.file)
+		}
+	}
+
+	return manager, nil
+}
+
+func (pm *PayloadManager) Close() {
+	for _, fileInfo := range pm.files {
+		if fileInfo.close != nil {
+			defer fileInfo.close()
+		}
+	}
+}
+
+func (pm *PayloadManager) ReportPayloadSizes() error {
+	for _, fileInfo := range pm.files {
+		eventInfo, err := fileInfo.file.Stat()
+		if err != nil {
+			return errors.Wrap(err, "error getting file info")
+		}
+		hlog.Histogram(fmt.Sprintf("worker.processSession.%s", fileInfo.ddTag), float64(eventInfo.Size()), nil, 1) //nolint
+	}
+	return nil
+}
+
+func (pm *PayloadManager) GetFile(fileType FileType) *os.File {
+	return pm.files[fileType].file
+}
+
+// Reset file pointers to beginning of file for reading
+func (pm *PayloadManager) SeekStart() {
+	for _, fileInfo := range pm.files {
+		file := fileInfo.file
+		if _, err := file.Seek(0, io.SeekStart); err != nil {
+			log.WithField("file_name", file.Name()).Errorf("error seeking to beginning of file: %v", err)
+		}
+	}
 }

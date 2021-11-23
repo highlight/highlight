@@ -1688,6 +1688,7 @@ export type GetAdminQuery = { __typename?: 'Query' } & {
             | 'photo_url'
             | 'slack_im_channel_id'
             | 'role'
+            | 'email_verified'
         >
     >;
 };

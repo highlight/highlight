@@ -111,6 +111,7 @@ const AlertSetupModal = () => {
                 0
         ) {
             setShouldCloseSetupPersisted(true);
+            setShowModal(false);
         }
     }, [loading, alertsPayload, setShouldCloseSetupPersisted]);
 
@@ -159,7 +160,7 @@ const AlertSetupModal = () => {
                     />
                 ) : (
                     <Alert
-                        type="info"
+                        type="success"
                         trackingId="DefaultAlertsSetupModal"
                         message="You've integrated with Slack!"
                         description="Let's move on and create some useful alerts!"

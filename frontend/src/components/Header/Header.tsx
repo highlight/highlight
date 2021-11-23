@@ -1,3 +1,4 @@
+import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
@@ -39,13 +40,18 @@ export const Header = () => {
             <CommandBar />
             <div
                 className={classNames(styles.header, {
-                    [styles.guest]: !isLoggedIn,
+                    [styles.guest]:
+                        !isLoggedIn &&
+                        projectIdRemapped !==
+                            DEMO_WORKSPACE_PROXY_APPLICATION_ID,
                 })}
             >
                 {!!project_id && getBanner(project_id)}
 
                 <div className={styles.headerContent}>
-                    {isLoggedIn ? (
+                    {isLoggedIn ||
+                    projectIdRemapped ===
+                        DEMO_WORKSPACE_PROXY_APPLICATION_ID ? (
                         <div className={styles.applicationPickerContainer}>
                             <ApplicationPicker />
                         </div>
@@ -62,7 +68,17 @@ export const Header = () => {
 
                     <div className={styles.rightHeader}>
                         <HeaderActions />
-                        <FeedbackButton />
+                        {!isLoggedIn ? (
+                            <ButtonLink
+                                className={styles.upsellButton}
+                                trackingId="DemoProjectSignUp"
+                                to="/?sign_up=1"
+                            >
+                                Get 4 months of Highlight free!
+                            </ButtonLink>
+                        ) : (
+                            <FeedbackButton />
+                        )}
                         {isLoggedIn && <UserDropdown />}
                     </div>
                 </div>

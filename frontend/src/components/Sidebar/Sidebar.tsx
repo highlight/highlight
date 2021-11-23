@@ -4,9 +4,10 @@ import {
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { MiniWorkspaceIcon } from '@components/Header/WorkspaceDropdown/WorkspaceDropdown';
-import { AdminRole } from '@graph/schemas';
 import SvgUsersIcon from '@icons/UsersIcon';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
+import { useAuthorization } from '@util/authorization/authorization';
+import { POLICY_NAMES } from '@util/authorization/authorizationPolicies';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames/bind';
@@ -34,27 +35,45 @@ interface NavigationItem {
 
 export const Sidebar = () => {
     const { currentProject } = useApplicationContext();
-    const { admin } = useAuthContext();
+    const { checkPolicyAccess } = useAuthorization();
+    const { isLoggedIn } = useAuthContext();
     const isWorkspace = !currentProject;
+    const { project_id } = useParams<{ project_id: string }>();
+    const projectIdRemapped =
+        project_id === DEMO_WORKSPACE_APPLICATION_ID
+            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+            : project_id;
 
     const LEAD_NAVIGATION_ITEMS: NavigationItem[] = [
         {
             Icon: SvgHomeIcon,
             displayName: 'Home',
             route: 'home',
-            hidden: isWorkspace,
+            hidden:
+                !(
+                    projectIdRemapped === DEMO_WORKSPACE_PROXY_APPLICATION_ID &&
+                    !isLoggedIn
+                ) && isWorkspace,
         },
         {
             Icon: SvgSessionsIcon,
             displayName: 'Sessions',
             route: 'sessions',
-            hidden: isWorkspace,
+            hidden:
+                !(
+                    projectIdRemapped === DEMO_WORKSPACE_PROXY_APPLICATION_ID &&
+                    !isLoggedIn
+                ) && isWorkspace,
         },
         {
             Icon: SvgBugIcon,
             displayName: 'Errors',
             route: 'errors',
-            hidden: isWorkspace,
+            hidden:
+                !(
+                    projectIdRemapped === DEMO_WORKSPACE_PROXY_APPLICATION_ID &&
+                    !isLoggedIn
+                ) && isWorkspace,
         },
     ];
 
@@ -80,7 +99,10 @@ export const Sidebar = () => {
             Icon: SvgCreditCardIcon,
             displayName: 'Billing',
             route: 'billing',
-            hidden: !isWorkspace || isOnPrem || admin?.role !== AdminRole.Admin,
+            hidden:
+                !isWorkspace ||
+                isOnPrem ||
+                !checkPolicyAccess({ policyName: POLICY_NAMES.BillingView }),
         },
         {
             Icon: SvgAnnouncementIcon,
@@ -116,7 +138,7 @@ export const Sidebar = () => {
                         </MiniSidebarItem>
                     )
                 )}
-                {currentProject?.id !== DEMO_WORKSPACE_APPLICATION_ID && (
+                {projectIdRemapped !== DEMO_WORKSPACE_PROXY_APPLICATION_ID && (
                     <>
                         {!isWorkspace && (
                             <div className={styles.settingsDivider} />

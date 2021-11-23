@@ -3,13 +3,13 @@ package graph
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"strings"
 
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 
@@ -86,7 +86,7 @@ func WebsocketInitializationFunction() transport.WebsocketInitFunc {
 		}
 		ctx, err := updateContextWithAuthenticatedUser(socketContext, token)
 		if err != nil {
-			log.Printf("Unable to authenticate/initialize websocket: %s", err.Error())
+			log.Errorf("Unable to authenticate/initialize websocket: %s", err.Error())
 		}
 		return ctx, err
 	})
