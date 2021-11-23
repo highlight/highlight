@@ -40,7 +40,10 @@ export const Header = () => {
             <CommandBar />
             <div
                 className={classNames(styles.header, {
-                    [styles.guest]: !isLoggedIn,
+                    [styles.guest]:
+                        !isLoggedIn &&
+                        projectIdRemapped !==
+                            DEMO_WORKSPACE_PROXY_APPLICATION_ID,
                 })}
             >
                 {!!project_id && getBanner(project_id)}
