@@ -404,6 +404,7 @@ export type Admin = {
     photo_url?: Maybe<Scalars['String']>;
     role: Scalars['String'];
     slack_im_channel_id?: Maybe<Scalars['String']>;
+    email_verified?: Maybe<Scalars['Boolean']>;
 };
 
 export type SanitizedAdmin = {

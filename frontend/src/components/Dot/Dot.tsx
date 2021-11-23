@@ -5,11 +5,16 @@ import styles from './Dot.module.scss';
 
 interface Props {
     pulse?: boolean;
+    className?: string;
 }
 
-const Dot = ({ pulse }: Props) => {
+const Dot = ({ pulse, className }: Props) => {
     return (
-        <div className={classNames(styles.dot, { [styles.pulse]: pulse })} />
+        <div
+            className={classNames(styles.dot, className, {
+                [styles.pulse]: pulse,
+            })}
+        />
     );
 };
 

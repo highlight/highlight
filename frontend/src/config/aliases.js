@@ -8,6 +8,7 @@ const aliases = (prefix = `src`) => ({
     '@graph': `${prefix}/graph/generated`,
     '@authentication': `${prefix}/authentication`,
     '@context': `${prefix}/context`,
+    '@lottie': `${prefix}/lottie`,
 });
 
 module.exports = aliases;
