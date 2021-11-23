@@ -502,6 +502,13 @@ type WorkspaceInviteLink {
     secret: String!
 }
 
+type SessionPayload {
+    events: [Any]!
+    errors: [ErrorObject]!
+    rage_clicks: [RageClickEvent!]!
+    session_comments: [SessionComment]!
+}
+
 scalar Upload
 
 type Query {
@@ -837,4 +844,11 @@ type Mutation {
         workspace_id: ID!
         allow_meter_overage: Boolean!
     ): Workspace
+}
+
+type Subscription {
+    session_payload_appended(
+        session_secure_id: String!
+        initial_events_count: Int!
+    ): SessionPayload
 }

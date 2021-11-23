@@ -2023,39 +2023,8 @@ func (r *queryResolver) Events(ctx context.Context, sessionSecureID string) ([]i
 		}
 		return data, nil
 	}
-	s, err := r.canAdminViewSession(ctx, sessionSecureID)
-	if err != nil {
-		return nil, e.Wrap(err, "admin not session owner")
-	}
-	if en := s.ObjectStorageEnabled; en != nil && *en {
-		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("project_id", s.ProjectID))
-		defer objectStorageSpan.Finish()
-		ret, err := r.StorageClient.ReadSessionsFromS3(s.ID, s.ProjectID)
-		if err != nil {
-			return nil, err
-		}
-		return ret, nil
-	}
-	eventsQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-		tracer.ResourceName("db.eventsObjectsQuery"), tracer.Tag("project_id", s.ProjectID))
-	eventObjs := []*model.EventsObject{}
-	if err := r.DB.Order("created_at desc").Where(&model.EventsObject{SessionID: s.ID}).Find(&eventObjs).Error; err != nil {
-		return nil, e.Wrap(err, "error reading from events")
-	}
-	eventsQuerySpan.Finish()
-	eventsParseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-		tracer.ResourceName("parse.eventsObjects"), tracer.Tag("project_id", s.ProjectID))
-	allEvents := make(map[string][]interface{})
-	for _, eventObj := range eventObjs {
-		subEvents := make(map[string][]interface{})
-		if err := json.Unmarshal([]byte(eventObj.Events), &subEvents); err != nil {
-			return nil, e.Wrap(err, "error decoding event data")
-		}
-		allEvents["events"] = append(subEvents["events"], allEvents["events"]...)
-	}
-	eventsParseSpan.Finish()
-	return allEvents["events"], nil
+	events, err, _ := r.getEvents(ctx, sessionSecureID, EventsCursor{EventIndex: 0, EventObjectIndex: nil})
+	return events, err
 }
 
 func (r *queryResolver) RageClicks(ctx context.Context, sessionSecureID string) ([]*model.RageClickEvent, error) {
@@ -3767,6 +3736,45 @@ GROUP BY
 	return tagsResponse, nil
 }
 
+func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessionSecureID string, initialEventsCount int) (<-chan *model.SessionPayload, error) {
+	ch := make(chan *model.SessionPayload)
+	r.SubscriptionWorkerPool.SubmitRecover(func() {
+		defer close(ch)
+		log.Infof("Polling for events on %s starting from index %d, number of waiting tasks %d",
+			sessionSecureID,
+			initialEventsCount,
+			r.SubscriptionWorkerPool.WaitingQueueSize())
+
+		cursor := EventsCursor{EventIndex: initialEventsCount, EventObjectIndex: nil}
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
+
+			events, err, nextCursor := r.getEvents(ctx, sessionSecureID, cursor)
+			if err != nil {
+				log.Error(e.Wrap(err, "error fetching events incrementally"))
+				return
+			}
+			if len(events) != 0 {
+				// TODO live updating for other event types
+				ch <- &model.SessionPayload{
+					Events:          events,
+					Errors:          []model.ErrorObject{},
+					RageClicks:      []model.RageClickEvent{},
+					SessionComments: []model.SessionComment{},
+				}
+			}
+			cursor = *nextCursor
+
+			time.Sleep(1 * time.Second)
+		}
+	})
+	return ch, nil
+}
+
 // ErrorAlert returns generated.ErrorAlertResolver implementation.
 func (r *Resolver) ErrorAlert() generated.ErrorAlertResolver { return &errorAlertResolver{r} }
 
@@ -3802,6 +3810,9 @@ func (r *Resolver) SessionComment() generated.SessionCommentResolver {
 	return &sessionCommentResolver{r}
 }
 
+// Subscription returns generated.SubscriptionResolver implementation.
+func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subscriptionResolver{r} }
+
 type errorAlertResolver struct{ *Resolver }
 type errorCommentResolver struct{ *Resolver }
 type errorGroupResolver struct{ *Resolver }
@@ -3813,3 +3824,4 @@ type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
 type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
+type subscriptionResolver struct{ *Resolver }

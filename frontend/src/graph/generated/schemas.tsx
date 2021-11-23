@@ -556,6 +556,14 @@ export type WorkspaceInviteLink = {
     secret: Scalars['String'];
 };
 
+export type SessionPayload = {
+    __typename?: 'SessionPayload';
+    events: Array<Maybe<Scalars['Any']>>;
+    errors: Array<Maybe<ErrorObject>>;
+    rage_clicks: Array<RageClickEvent>;
+    session_comments: Array<Maybe<SessionComment>>;
+};
+
 export type Query = {
     __typename?: 'Query';
     session?: Maybe<Session>;
@@ -1261,4 +1269,14 @@ export type MutationUpdateErrorGroupIsPublicArgs = {
 export type MutationUpdateAllowMeterOverageArgs = {
     workspace_id: Scalars['ID'];
     allow_meter_overage: Scalars['Boolean'];
+};
+
+export type Subscription = {
+    __typename?: 'Subscription';
+    session_payload_appended?: Maybe<SessionPayload>;
+};
+
+export type SubscriptionSession_Payload_AppendedArgs = {
+    session_secure_id: Scalars['String'];
+    initial_events_count: Scalars['Int'];
 };
