@@ -1,3 +1,4 @@
+import Switch from '@components/Switch/Switch';
 import {
     AutoPlayToolbarItem,
     DevToolsToolbarItem,
@@ -409,14 +410,14 @@ export const Toolbar = React.memo(() => {
                     {isHighlightAdmin &&
                         session?.processed === false &&
                         !disableControls && (
-                            <button
-                                className={classNames(styles.liveButton)}
-                                onClick={() => {
-                                    setIsLiveMode(!isLiveMode);
+                            <Switch
+                                checked={isLiveMode}
+                                onChange={(checked: boolean) => {
+                                    setIsLiveMode(checked);
                                 }}
-                            >
-                                {isLiveMode ? 'Stop Live' : 'Go Live'}
-                            </button>
+                                label="Live Mode"
+                                trackingId="ToggleLiveMode"
+                            />
                         )}
 
                     {!isLiveMode && (
