@@ -410,14 +410,19 @@ export const Toolbar = React.memo(() => {
                     {isHighlightAdmin &&
                         session?.processed === false &&
                         !disableControls && (
-                            <Switch
-                                checked={isLiveMode}
-                                onChange={(checked: boolean) => {
-                                    setIsLiveMode(checked);
-                                }}
-                                label="Live Mode"
-                                trackingId="ToggleLiveMode"
-                            />
+                            <Button
+                                trackingId="LiveModeButton"
+                                className={styles.liveButton}
+                            >
+                                <Switch
+                                    checked={isLiveMode}
+                                    onChange={(checked: boolean) => {
+                                        setIsLiveMode(checked);
+                                    }}
+                                    label="Live Mode"
+                                    trackingId="LiveModeSwitch"
+                                />
+                            </Button>
                         )}
 
                     {!isLiveMode && (

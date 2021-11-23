@@ -195,6 +195,13 @@
     width: 30px;
 }
 
+.liveButton {
+    border-color: var(--color-gray-300);
+    cursor: pointer;
+    margin: 8px 0 6px;
+    padding: 7px;
+}
+
 .verticalDivider {
     background-color: var(--color-gray-300);
     height: 80%;
@@ -352,19 +359,6 @@
     &.devToolsActive {
         color: var(--color-purple);
     }
-}
-
-.liveButton {
-    background: var(--color-red-600);
-    border: 0;
-    border-radius: var(--border-radius);
-    color: var(--color-white);
-    cursor: pointer;
-    fill: var(--text-primary);
-    font-weight: 300;
-    height: 40px;
-    outline: none;
-    width: 80px;
 }
 
 .settingsButton {
