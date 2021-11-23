@@ -3475,10 +3475,11 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 			return nil, spanError
 		}
 		newAdmin := &model.Admin{
-			UID:      &uid,
-			Name:     &firebaseUser.DisplayName,
-			Email:    &firebaseUser.Email,
-			PhotoURL: &firebaseUser.PhotoURL,
+			UID:           &uid,
+			Name:          &firebaseUser.DisplayName,
+			Email:         &firebaseUser.Email,
+			PhotoURL:      &firebaseUser.PhotoURL,
+			EmailVerified: &firebaseUser.EmailVerified,
 		}
 		if err := r.DB.Create(newAdmin).Error; err != nil {
 			spanError := e.Wrap(err, "error creating new admin")
@@ -3520,6 +3521,30 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		admin.PhotoURL = &firebaseUser.PhotoURL
 		admin.Name = &firebaseUser.DisplayName
 		firebaseSpan.Finish()
+	}
+
+	// Check email verification status
+	if admin.EmailVerified != nil && !*admin.EmailVerified {
+		firebaseSpan := tracer.StartSpan("resolver.getAdmin", tracer.ResourceName("db.updateAdminFromFirebaseForEmailVerification"),
+			tracer.Tag("admin_uid", uid))
+		firebaseUser, err := AuthClient.GetUser(context.Background(), uid)
+		if err != nil {
+			spanError := e.Wrap(err, "error retrieving user from firebase api for email verification")
+			adminSpan.Finish(tracer.WithError(spanError))
+			firebaseSpan.Finish(tracer.WithError(spanError))
+			return nil, spanError
+		}
+		if err := r.DB.Model(admin).Updates(&model.Admin{
+			EmailVerified: &firebaseUser.EmailVerified,
+		}).Error; err != nil {
+			spanError := e.Wrap(err, "error updating admin fields")
+			adminSpan.Finish(tracer.WithError(spanError))
+			firebaseSpan.Finish(tracer.WithError(spanError))
+			return nil, spanError
+		}
+		admin.EmailVerified = &firebaseUser.EmailVerified
+		firebaseSpan.Finish()
+
 	}
 	adminSpan.Finish()
 	return admin, nil
