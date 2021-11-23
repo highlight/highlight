@@ -487,6 +487,7 @@ type Session struct {
 
 	ObjectStorageEnabled  *bool   `json:"object_storage_enabled"`
 	DirectDownloadEnabled bool    `json:"direct_download_enabled" gorm:"default:false"`
+	AllObjectsCompressed  bool    `json:"all_resources_compressed" gorm:"default:false"`
 	PayloadSize           *int64  `json:"payload_size"`
 	MigrationState        *string `json:"migration_state"`
 	VerboseID             string  `json:"verbose_id"`
