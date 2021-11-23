@@ -196,10 +196,26 @@
 }
 
 .liveButton {
+    animation: pulse 2s infinite;
     border-color: var(--color-gray-300);
+    box-shadow: 0 0 0 0 rgba(255, 0, 0, 1);
     cursor: pointer;
     margin: 8px 0 6px;
     padding: 7px;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(255, 0, 0, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
+    }
 }
 
 .verticalDivider {

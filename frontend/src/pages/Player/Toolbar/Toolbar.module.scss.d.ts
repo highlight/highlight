@@ -21,6 +21,7 @@ export const playerRail: string;
 export const playSection: string;
 export const popoverContent: string;
 export const popoverHeader: string;
+export const pulse: string;
 export const redoSection: string;
 export const segmentHover: string;
 export const settingsButton: string;
