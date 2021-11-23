@@ -72,7 +72,7 @@ export const Header = () => {
                             <ButtonLink
                                 className={styles.upsellButton}
                                 trackingId="DemoProjectSignUp"
-                                href="/?sign_up=1"
+                                to="/?sign_up=1"
                             >
                                 Get 4 months of Highlight free!
                             </ButtonLink>
