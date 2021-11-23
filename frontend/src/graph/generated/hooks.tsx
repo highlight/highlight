@@ -4322,6 +4322,7 @@ export const GetAdminDocument = gql`
             photo_url
             slack_im_channel_id
             role
+            email_verified
         }
     }
 `;

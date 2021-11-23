@@ -56,6 +56,7 @@ type DirectiveRoot struct {
 type ComplexityRoot struct {
 	Admin struct {
 		Email            func(childComplexity int) int
+		EmailVerified    func(childComplexity int) int
 		ID               func(childComplexity int) int
 		Name             func(childComplexity int) int
 		PhotoURL         func(childComplexity int) int
@@ -745,6 +746,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Admin.Email(childComplexity), true
+
+	case "Admin.email_verified":
+		if e.complexity.Admin.EmailVerified == nil {
+			break
+		}
+
+		return e.complexity.Admin.EmailVerified(childComplexity), true
 
 	case "Admin.id":
 		if e.complexity.Admin.ID == nil {
@@ -4292,6 +4300,7 @@ type Admin {
     photo_url: String
     role: String!
     slack_im_channel_id: String
+    email_verified: Boolean
 }
 
 # A subset of Admin. This type will contain fields that are allowed to be exposed to other users.
@@ -8101,6 +8110,38 @@ func (ec *executionContext) _Admin_slack_im_channel_id(ctx context.Context, fiel
 	res := resTmp.(*string)
 	fc.Result = res
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Admin_email_verified(ctx context.Context, field graphql.CollectedField, obj *model1.Admin) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Admin",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EmailVerified, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _AverageSessionLength_length(ctx context.Context, field graphql.CollectedField, obj *model.AverageSessionLength) (ret graphql.Marshaler) {
@@ -22653,6 +22694,8 @@ func (ec *executionContext) _Admin(ctx context.Context, sel ast.SelectionSet, ob
 			}
 		case "slack_im_channel_id":
 			out.Values[i] = ec._Admin_slack_im_channel_id(ctx, field, obj)
+		case "email_verified":
+			out.Values[i] = ec._Admin_email_verified(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
