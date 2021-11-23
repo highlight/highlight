@@ -1,5 +1,6 @@
 import Input from '@components/Input/Input';
 import { useAppLoadingContext } from '@context/AppLoadingContext';
+import VerifyEmailCard from '@pages/Login/components/VerifyEmailCard/VerifyEmailCard';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React, { useEffect, useState } from 'react';
@@ -77,7 +78,7 @@ const LoginForm = () => {
     const [formState, setFormState] = useState<LoginFormState>(
         signUpParam ? LoginFormState.SignUp : LoginFormState.SignIn
     );
-    const { isAuthLoading, isLoggedIn } = useAuthContext();
+    const { isAuthLoading, isLoggedIn, admin } = useAuthContext();
     const [firebaseError, setFirebaseError] = useState('');
     const { setIsLoading } = useAppLoadingContext();
     const [email, setEmail] = useState('');
@@ -123,12 +124,34 @@ const LoginForm = () => {
         }
     }, [isAuthLoading, setIsLoading]);
 
+    useEffect(() => {
+        if (isLoggedIn && admin) {
+            if (admin.email_verified === false) {
+                setFormState(LoginFormState.VerifyEmail);
+            } else {
+                if (formState !== LoginFormState.VerifyEmail) {
+                    setFormState(LoginFormState.SignIn);
+                }
+            }
+        }
+    }, [admin, admin?.email_verified, formState, isLoggedIn]);
+
     if (isAuthLoading) {
         return null;
     }
 
-    if (isLoggedIn) {
+    if (isLoggedIn && formState !== LoginFormState.VerifyEmail) {
         return <AuthAdminRouter />;
+    }
+
+    if (formState === LoginFormState.VerifyEmail) {
+        return (
+            <VerifyEmailCard
+                onStartHandler={() => {
+                    setFormState(LoginFormState.SignIn);
+                }}
+            />
+        );
     }
 
     return (
