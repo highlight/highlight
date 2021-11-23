@@ -6,11 +6,8 @@ import {
     createHttpLink,
     HttpLink,
     InMemoryCache,
-    split,
 } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
-import { WebSocketLink } from '@apollo/client/link/ws';
-import { getMainDefinition } from '@apollo/client/utilities';
 import { namedOperations } from '@graph/operations';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import * as firebase from 'firebase/app';
@@ -22,38 +19,6 @@ const highlightGraph = createHttpLink({
     uri,
     credentials: 'include',
 });
-let splitLink = null;
-try {
-    const socketUri = uri
-        .replace('http://', 'ws://')
-        .replace('https://', 'wss://');
-    const highlightSocket = new WebSocketLink({
-        uri: socketUri,
-        options: {
-            lazy: true,
-            reconnect: true,
-            connectionParams: async () => {
-                const token = await firebase.auth().currentUser?.getIdToken();
-                return {
-                    token,
-                };
-            },
-        },
-    });
-    splitLink = split(
-        ({ query }) => {
-            const definition = getMainDefinition(query);
-            return (
-                definition.kind === 'OperationDefinition' &&
-                definition.operation === 'subscription'
-            );
-        },
-        highlightSocket,
-        highlightGraph
-    );
-} catch (error) {
-    console.log('Error setting up websocket: ', error);
-}
 
 const graphCdnGraph = new HttpLink({
     uri: 'https://graphcdn.highlight.run',
@@ -102,7 +67,7 @@ export const client = new ApolloClient({
             return false;
         },
         authLink.concat(graphCdnGraph),
-        authLink.concat(splitLink || highlightGraph)
+        authLink.concat(highlightGraph)
     ),
     cache: new InMemoryCache({
         typePolicies: {
