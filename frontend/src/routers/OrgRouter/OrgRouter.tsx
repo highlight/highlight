@@ -75,7 +75,7 @@ export const ProjectRouter = () => {
         } else {
             document.documentElement.style.setProperty('--sidebar-width', '0');
         }
-    }, [isLoggedIn]);
+    }, [isLoggedIn, projectIdRemapped]);
 
     useEffect(() => {
         if (!error) {
