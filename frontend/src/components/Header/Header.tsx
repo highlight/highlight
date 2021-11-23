@@ -68,7 +68,7 @@ export const Header = () => {
 
                     <div className={styles.rightHeader}>
                         <HeaderActions />
-                        {!isLoggedIn && project_id === '0' ? (
+                        {!isLoggedIn ? (
                             <ButtonLink
                                 className={styles.upsellButton}
                                 trackingId="DemoProjectSignUp"
