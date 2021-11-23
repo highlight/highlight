@@ -4,9 +4,10 @@ import {
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { MiniWorkspaceIcon } from '@components/Header/WorkspaceDropdown/WorkspaceDropdown';
-import { AdminRole } from '@graph/schemas';
 import SvgUsersIcon from '@icons/UsersIcon';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
+import { useAuthorization } from '@util/authorization/authorization';
+import { POLICY_NAMES } from '@util/authorization/authorizationPolicies';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames/bind';
@@ -34,7 +35,8 @@ interface NavigationItem {
 
 export const Sidebar = () => {
     const { currentProject } = useApplicationContext();
-    const { admin, isLoggedIn } = useAuthContext();
+    const { checkPolicyAccess } = useAuthorization();
+    const { isLoggedIn } = useAuthContext();
     const isWorkspace = !currentProject;
     const { project_id } = useParams<{ project_id: string }>();
     const projectIdRemapped =
@@ -97,7 +99,10 @@ export const Sidebar = () => {
             Icon: SvgCreditCardIcon,
             displayName: 'Billing',
             route: 'billing',
-            hidden: !isWorkspace || isOnPrem || admin?.role !== AdminRole.Admin,
+            hidden:
+                !isWorkspace ||
+                isOnPrem ||
+                !checkPolicyAccess({ policyName: POLICY_NAMES.BillingView }),
         },
         {
             Icon: SvgAnnouncementIcon,
