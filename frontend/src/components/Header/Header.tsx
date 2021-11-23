@@ -49,7 +49,9 @@ export const Header = () => {
                 {!!project_id && getBanner(project_id)}
 
                 <div className={styles.headerContent}>
-                    {isLoggedIn ? (
+                    {isLoggedIn ||
+                    projectIdRemapped ===
+                        DEMO_WORKSPACE_PROXY_APPLICATION_ID ? (
                         <div className={styles.applicationPickerContainer}>
                             <ApplicationPicker />
                         </div>
