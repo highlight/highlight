@@ -301,9 +301,12 @@ const BillingPage = () => {
                                 />
                             ) : (
                                 <BillingPlanCard
-                                    disabled={checkPolicyAccess({
-                                        policyName: POLICY_NAMES.BillingUpdate,
-                                    })}
+                                    disabled={
+                                        !checkPolicyAccess({
+                                            policyName:
+                                                POLICY_NAMES.BillingUpdate,
+                                        })
+                                    }
                                     key={billingPlan.type}
                                     current={
                                         billingData?.billingDetails.plan
