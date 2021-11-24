@@ -49,7 +49,7 @@ interface Props {
     disabled: boolean;
 }
 
-const TimelineAnnotationsSettings = ({ disabled }: Props) => {
+const TimelineAnnotationsSettings = React.memo(({ disabled }: Props) => {
     const {
         selectedTimelineAnnotationTypes,
         setSelectedTimelineAnnotationTypes,
@@ -140,6 +140,6 @@ const TimelineAnnotationsSettings = ({ disabled }: Props) => {
             </Button>
         </Popover>
     );
-};
+});
 
 export default TimelineAnnotationsSettings;

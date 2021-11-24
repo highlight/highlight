@@ -51,7 +51,7 @@ import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
 import TimelineIndicators from './TimelineIndicators/TimelineIndicators';
 import styles from './Toolbar.module.scss';
 
-export const Toolbar = () => {
+export const Toolbar = React.memo(() => {
     const {
         replayer,
         setTime,
@@ -491,7 +491,7 @@ export const Toolbar = () => {
             </div>
         </ToolbarItemsContextProvider>
     );
-};
+});
 
 const SessionSegment = ({
     interval,

@@ -1,4 +1,5 @@
 import Card from '@components/Card/Card';
+import DateRangePicker from '@components/DateRangePicker/DateRangePicker';
 import DemoWorkspaceButton, {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
@@ -23,7 +24,6 @@ import {
     YAxis,
 } from 'recharts';
 
-import { StandardDropdown } from '../../components/Dropdown/StandardDropdown/StandardDropdown';
 import ElevatedCard from '../../components/ElevatedCard/ElevatedCard';
 import { RechartTooltip } from '../../components/recharts/RechartTooltip/RechartTooltip';
 import {
@@ -103,15 +103,24 @@ const HomePage = () => {
                                 </p>
                             )}
                         </div>
-                        {hasData && (
-                            <div className={styles.filtersContainer}>
-                                <StandardDropdown
-                                    data={timeFilter}
-                                    defaultValue={timeFilter[1]}
-                                    onSelect={setDateRangeLength}
-                                />
-                            </div>
-                        )}
+                        <div className={styles.filtersContainer}>
+                            <DateRangePicker
+                                onChange={(_startDate, _endDate) => {
+                                    if (!_startDate || !_endDate) {
+                                        return;
+                                    }
+
+                                    const startDate = moment(_startDate);
+                                    const endDate = moment(_endDate);
+                                    const daysDifference = startDate.diff(
+                                        endDate,
+                                        'days'
+                                    );
+
+                                    setDateRangeLength(daysDifference);
+                                }}
+                            />
+                        </div>
                     </div>
                     <KeyPerformanceIndicators />
                     <div className={styles.dashboardBody}>
@@ -121,7 +130,7 @@ const HomePage = () => {
                         <ActiveUsersTable />
                         <RageClicksForProjectTable />
                     </div>
-                    {!hasData && (
+                    {!hasData && !integrated && (
                         <div className={styles.noDataContainer}>
                             <ElevatedCard
                                 title={

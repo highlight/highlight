@@ -176,6 +176,7 @@ export type Workspace = {
     billing_period_end?: Maybe<Scalars['Timestamp']>;
     next_invoice_date?: Maybe<Scalars['Timestamp']>;
     allow_meter_overage: Scalars['Boolean'];
+    allowed_auto_join_email_origins?: Maybe<Scalars['String']>;
 };
 
 export type Segment = {
@@ -406,6 +407,7 @@ export type Admin = {
     photo_url?: Maybe<Scalars['String']>;
     role: Scalars['String'];
     slack_im_channel_id?: Maybe<Scalars['String']>;
+    email_verified?: Maybe<Scalars['Boolean']>;
 };
 
 export type SanitizedAdmin = {
@@ -555,6 +557,14 @@ export type WorkspaceInviteLink = {
     invitee_role: Scalars['String'];
     expiration_date: Scalars['Timestamp'];
     secret: Scalars['String'];
+};
+
+export type SessionPayload = {
+    __typename?: 'SessionPayload';
+    events: Array<Maybe<Scalars['Any']>>;
+    errors: Array<Maybe<ErrorObject>>;
+    rage_clicks: Array<RageClickEvent>;
+    session_comments: Array<Maybe<SessionComment>>;
 };
 
 export type Query = {
@@ -1262,4 +1272,14 @@ export type MutationUpdateErrorGroupIsPublicArgs = {
 export type MutationUpdateAllowMeterOverageArgs = {
     workspace_id: Scalars['ID'];
     allow_meter_overage: Scalars['Boolean'];
+};
+
+export type Subscription = {
+    __typename?: 'Subscription';
+    session_payload_appended?: Maybe<SessionPayload>;
+};
+
+export type SubscriptionSession_Payload_AppendedArgs = {
+    session_secure_id: Scalars['String'];
+    initial_events_count: Scalars['Int'];
 };

@@ -1,13 +1,17 @@
 import Alert from '@components/Alert/Alert';
 import Card from '@components/Card/Card';
 import CopyText from '@components/CopyText/CopyText';
+import HighlightGate from '@components/HighlightGate/HighlightGate';
 import Input from '@components/Input/Input';
 import Modal from '@components/Modal/Modal';
 import Select from '@components/Select/Select';
 import Table from '@components/Table/Table';
 import { AdminRole } from '@graph/schemas';
 import SvgTrash from '@icons/Trash';
+import AutoJoinForm from '@pages/WorkspaceTeam/components/AutoJoinForm';
 import { getWorkspaceInvitationLink } from '@pages/WorkspaceTeam/utils';
+import { useAuthorization } from '@util/authorization/authorization';
+import { POLICY_NAMES } from '@util/authorization/authorizationPolicies';
 import { useParams } from '@util/react-router/useParams';
 import { getDisplayNameFromEmail, titleCaseString } from '@util/string';
 import { message } from 'antd';
@@ -39,6 +43,7 @@ const WorkspaceTeam = () => {
     const { data, error, loading } = useGetWorkspaceAdminsQuery({
         variables: { workspace_id },
     });
+    const { checkPolicyAccess } = useAuthorization();
     const [email, setEmail] = useState('');
     const [showModal, toggleShowModal] = useToggle(false);
     const [newAdminRole, setNewAdminRole] = useState<AdminRole>(
@@ -207,6 +212,14 @@ const WorkspaceTeam = () => {
                             workspace_id
                         )}
                     />
+                    <HighlightGate>
+                        <hr className={styles.hr} />
+                        <p className={styles.boxSubTitle}>
+                            Or you can enable auto join to allow anyone with an
+                            approved email origin join.
+                        </p>
+                        <AutoJoinForm />
+                    </HighlightGate>
                 </Modal>
                 <Button
                     trackingId="WorkspaceTeamInviteMember"
@@ -220,7 +233,9 @@ const WorkspaceTeam = () => {
             <Card noPadding>
                 <Table
                     columns={
-                        admin?.role === AdminRole.Admin
+                        checkPolicyAccess({
+                            policyName: POLICY_NAMES.RolesUpdate,
+                        })
                             ? TABLE_COLUMNS
                             : TABLE_COLUMNS.slice(0, 2)
                     }
@@ -262,8 +277,9 @@ const WorkspaceTeam = () => {
                             }
                             message.success(messageText);
                         },
-                        currentAdminHasAdminRole:
-                            admin?.role === AdminRole.Admin,
+                        canUpdateAdminRole: checkPolicyAccess({
+                            policyName: POLICY_NAMES.RolesUpdate,
+                        }),
                     }))}
                     pagination={false}
                     showHeader={false}
@@ -310,7 +326,7 @@ const TABLE_COLUMNS = [
         dataIndex: 'role',
         key: 'role',
         render: (role: string, record: any) => {
-            if (record.currentAdminHasAdminRole) {
+            if (record.canUpdateAdminRole) {
                 return (
                     <div className={styles.role}>
                         <Select

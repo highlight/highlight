@@ -16,6 +16,7 @@ import { BooleanParam, useQueryParam } from 'use-query-params';
 
 import { useAuthContext } from '../../../authentication/AuthContext';
 import {
+    OnSessionPayloadAppendedDocument,
     useGetSessionPayloadLazyQuery,
     useGetSessionQuery,
     useMarkSessionAsViewedMutation,
@@ -87,7 +88,13 @@ export const usePlayer = (): ReplayerContextInterface => {
     });
     const [loadedEventsIndex, setLoadedEventsIndex] = useState<number>(0);
     const [isLiveMode, setIsLiveMode] = useState<boolean>(false);
-    const [isPollingEvents, setIsPollingEvents] = useState<boolean>(false);
+    const [
+        unsubscribeSessionPayloadFn,
+        setUnsubscribeSessionPayloadFn,
+    ] = useState<(() => void) | null>(null);
+    const [subscriptionEventsPayload, setSubscriptionEventsPayload] = useState<
+        Array<HighlightEvent>
+    >([]);
     const [timerId, setTimerId] = useState<number | null>(null);
     const [errors, setErrors] = useState<ErrorObject[]>([]);
     const [, setSelectedErrorId] = useState<string | undefined>(undefined);
@@ -124,8 +131,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         {
             loading: eventsLoading,
             data: eventsData,
-            startPolling: startPollingEvents,
-            stopPolling: stopPollingEvents,
+            subscribeToMore: subscribeToSessionPayload,
         },
     ] = useGetSessionPayloadLazyQuery({
         fetchPolicy: 'no-cache',
@@ -140,6 +146,13 @@ export const usePlayer = (): ReplayerContextInterface => {
             setEventsPayload(eventsData?.events);
         }
     }, [eventsData?.events]);
+
+    useEffect(() => {
+        if (subscriptionEventsPayload?.length && eventsPayload?.length) {
+            setEventsPayload([...eventsPayload, ...subscriptionEventsPayload]);
+            setSubscriptionEventsPayload([]);
+        }
+    }, [eventsPayload, subscriptionEventsPayload]);
 
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
 
@@ -237,22 +250,43 @@ export const usePlayer = (): ReplayerContextInterface => {
     }, [sessionData?.session]);
 
     useEffect(() => {
-        if (isLiveMode && state > ReplayerState.Loading && !isPollingEvents) {
-            startPollingEvents!(1000);
-            setIsPollingEvents(true);
+        if (
+            isLiveMode &&
+            state > ReplayerState.Loading &&
+            !unsubscribeSessionPayloadFn
+        ) {
+            const unsubscribe = subscribeToSessionPayload!({
+                document: OnSessionPayloadAppendedDocument,
+                variables: {
+                    session_secure_id,
+                    initial_events_count: events.length,
+                },
+                updateQuery: (prev, { subscriptionData }) => {
+                    if (subscriptionData.data) {
+                        setSubscriptionEventsPayload(
+                            // @ts-ignore The typedef for subscriptionData is incorrect
+                            subscriptionData.data!.session_payload_appended
+                                .events!
+                        );
+                    }
+                    // Prev is the value in Apollo cache - it is empty, don't bother updating it
+                    return prev;
+                },
+            });
+            setUnsubscribeSessionPayloadFn(() => unsubscribe);
             if (state === ReplayerState.Paused) {
                 play();
             }
-        } else if (!isLiveMode && isPollingEvents) {
-            stopPollingEvents!();
-            setIsPollingEvents(false);
+        } else if (!isLiveMode && unsubscribeSessionPayloadFn) {
+            unsubscribeSessionPayloadFn!();
+            setUnsubscribeSessionPayloadFn(() => null);
             if (state === ReplayerState.Playing) {
                 pause();
             }
         }
         // We don't want to re-evaluate this every time the play/pause fn changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isLiveMode, state, isPollingEvents]);
+    }, [isLiveMode, state, unsubscribeSessionPayloadFn]);
 
     // Reset all state when loading events.
     useEffect(() => {

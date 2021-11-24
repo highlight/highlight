@@ -28,6 +28,9 @@
 			],
 			"@context/*": [
 				"./context/*"
+			],
+			"@lottie/*": [
+				"./lottie/*"
 			]
 		},
 	}

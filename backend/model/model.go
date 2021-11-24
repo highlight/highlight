@@ -173,26 +173,27 @@ type Organization struct {
 
 type Workspace struct {
 	Model
-	Name                  *string
-	Secret                *string // Needed for workspace-level team
-	Admins                []Admin `gorm:"many2many:workspace_admins;"`
-	SlackAccessToken      *string
-	SlackWebhookURL       *string
-	SlackWebhookChannel   *string
-	SlackWebhookChannelID *string
-	SlackChannels         *string
-	Projects              []Project
-	MigratedFromProjectID *int // Column can be removed after migration is done
-	StripeCustomerID      *string
-	StripePriceID         *string
-	PlanTier              string `gorm:"default:Free"`
-	BillingPeriodStart    *time.Time
-	BillingPeriodEnd      *time.Time
-	NextInvoiceDate       *time.Time
-	MonthlySessionLimit   *int
-	MonthlyMembersLimit   *int
-	TrialEndDate          *time.Time `json:"trial_end_date"`
-	AllowMeterOverage     bool       `gorm:"default:false"`
+	Name                        *string
+	Secret                      *string // Needed for workspace-level team
+	Admins                      []Admin `gorm:"many2many:workspace_admins;"`
+	SlackAccessToken            *string
+	SlackWebhookURL             *string
+	SlackWebhookChannel         *string
+	SlackWebhookChannelID       *string
+	SlackChannels               *string
+	Projects                    []Project
+	MigratedFromProjectID       *int // Column can be removed after migration is done
+	StripeCustomerID            *string
+	StripePriceID               *string
+	PlanTier                    string `gorm:"default:Free"`
+	BillingPeriodStart          *time.Time
+	BillingPeriodEnd            *time.Time
+	NextInvoiceDate             *time.Time
+	MonthlySessionLimit         *int
+	MonthlyMembersLimit         *int
+	TrialEndDate                *time.Time `json:"trial_end_date"`
+	AllowMeterOverage           bool       `gorm:"default:false"`
+	AllowedAutoJoinEmailOrigins *string    `json:"allowed_auto_join_email_origins"`
 }
 
 type WorkspaceInviteLink struct {
@@ -408,6 +409,7 @@ type Admin struct {
 	Model
 	Name             *string
 	Email            *string
+	EmailVerified    *bool            `gorm:"default:false"`
 	PhotoURL         *string          `json:"photo_url"`
 	UID              *string          `gorm:"unique_index"`
 	Organizations    []Organization   `gorm:"many2many:organization_admins;"`
@@ -792,6 +794,13 @@ type RageClickEvent struct {
 	TotalClicks     int
 	StartTimestamp  time.Time `deep:"-"`
 	EndTimestamp    time.Time `deep:"-"`
+}
+
+type SessionPayload struct {
+	Events          []interface{}    `json:"events"`
+	Errors          []ErrorObject    `json:"errors"`
+	RageClicks      []RageClickEvent `json:"rage_clicks"`
+	SessionComments []SessionComment `json:"session_comments"`
 }
 
 var ErrorType = struct {
