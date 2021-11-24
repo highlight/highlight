@@ -1,0 +1,16 @@
+.container {
+    align-items: center;
+    column-gap: var(--size-large);
+    display: flex;
+    flex-direction: row;
+    height: var(--size-xxLarge);
+    justify-content: space-between;
+}
+
+.switchClass {
+    flex-shrink: 0;
+}
+
+.select {
+    width: 100%;
+}
