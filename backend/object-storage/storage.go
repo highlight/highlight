@@ -302,12 +302,12 @@ func (s *StorageClient) ReadSourceMapFileFromS3(projectId int, version *string, 
 	return buf.Bytes(), nil
 }
 
-func (s *StorageClient) GetDirectDownloadURL(projectId int, sessionId int) (*string, error) {
+func (s *StorageClient) GetDirectDownloadURL(projectId int, sessionId int, payloadType PayloadType) (*string, error) {
 	if s.URLSigner == nil {
 		return nil, nil
 	}
 
-	key := s.bucketKey(sessionId, projectId, SessionContentsCompressed)
+	key := s.bucketKey(sessionId, projectId, payloadType)
 	unsignedURL := fmt.Sprintf("https://%s/%s", CloudfrontDomain, *key)
 	signedURL, err := s.URLSigner.Sign(unsignedURL, time.Now().Add(5*time.Minute))
 	if err != nil {

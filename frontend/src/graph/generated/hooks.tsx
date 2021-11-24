@@ -3155,6 +3155,8 @@ export const GetSessionDocument = gql`
             is_public
             event_counts
             direct_download_url
+            resources_url
+            messages_url
         }
     }
 `;

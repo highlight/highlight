@@ -47,6 +47,8 @@ type Session {
     is_public: Boolean
     event_counts: String
     direct_download_url: String
+    resources_url: String
+    messages_url: String
 }
 
 type RageClickEvent {

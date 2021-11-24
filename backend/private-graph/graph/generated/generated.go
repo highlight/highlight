@@ -448,12 +448,14 @@ type ComplexityRoot struct {
 		IsPublic                       func(childComplexity int) int
 		Language                       func(childComplexity int) int
 		Length                         func(childComplexity int) int
+		MessagesURL                    func(childComplexity int) int
 		OSName                         func(childComplexity int) int
 		OSVersion                      func(childComplexity int) int
 		ObjectStorageEnabled           func(childComplexity int) int
 		PayloadSize                    func(childComplexity int) int
 		Postal                         func(childComplexity int) int
 		Processed                      func(childComplexity int) int
+		ResourcesURL                   func(childComplexity int) int
 		SecureID                       func(childComplexity int) int
 		Starred                        func(childComplexity int) int
 		State                          func(childComplexity int) int
@@ -721,6 +723,8 @@ type SessionResolver interface {
 	UserObject(ctx context.Context, obj *model1.Session) (interface{}, error)
 
 	DirectDownloadURL(ctx context.Context, obj *model1.Session) (*string, error)
+	ResourcesURL(ctx context.Context, obj *model1.Session) (*string, error)
+	MessagesURL(ctx context.Context, obj *model1.Session) (*string, error)
 }
 type SessionAlertResolver interface {
 	ChannelsToNotify(ctx context.Context, obj *model1.SessionAlert) ([]*model.SanitizedSlackChannel, error)
@@ -3378,6 +3382,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.Length(childComplexity), true
 
+	case "Session.messages_url":
+		if e.complexity.Session.MessagesURL == nil {
+			break
+		}
+
+		return e.complexity.Session.MessagesURL(childComplexity), true
+
 	case "Session.os_name":
 		if e.complexity.Session.OSName == nil {
 			break
@@ -3419,6 +3430,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Session.Processed(childComplexity), true
+
+	case "Session.resources_url":
+		if e.complexity.Session.ResourcesURL == nil {
+			break
+		}
+
+		return e.complexity.Session.ResourcesURL(childComplexity), true
 
 	case "Session.secure_id":
 		if e.complexity.Session.SecureID == nil {
@@ -4066,6 +4084,8 @@ type Session {
     is_public: Boolean
     event_counts: String
     direct_download_url: String
+    resources_url: String
+    messages_url: String
 }
 
 type RageClickEvent {
@@ -19188,6 +19208,70 @@ func (ec *executionContext) _Session_direct_download_url(ctx context.Context, fi
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Session_resources_url(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Session().ResourcesURL(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Session_messages_url(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Session().MessagesURL(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _SessionAlert_id(ctx context.Context, field graphql.CollectedField, obj *model1.SessionAlert) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -25454,6 +25538,28 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 					}
 				}()
 				res = ec._Session_direct_download_url(ctx, field, obj)
+				return res
+			})
+		case "resources_url":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Session_resources_url(ctx, field, obj)
+				return res
+			})
+		case "messages_url":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Session_messages_url(ctx, field, obj)
 				return res
 			})
 		default:

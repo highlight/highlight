@@ -136,6 +136,8 @@ query GetSession($secure_id: String!) {
         is_public
         event_counts
         direct_download_url
+        resources_url
+        messages_url
     }
 }
 
