@@ -24,6 +24,7 @@ import (
 	stripe "github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/client"
 	"github.com/stripe/stripe-go/v72/webhook"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 
@@ -998,13 +999,22 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 	return nil
 }
 
+func LogErrorToDatadog(resourceName string, err error) {
+	log.Error(err)
+	span, _ := tracer.StartSpanFromContext(context.Background(), "resolver.internal", tracer.ResourceName(resourceName))
+	span.SetTag("backend", util.PrivateGraph)
+	var errs []ddtrace.FinishOption
+	errs = append(errs, tracer.WithError(err))
+	span.Finish(errs...)
+}
+
 func (r *Resolver) StripeWebhook(endpointSecret string) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
 		const MaxBodyBytes = int64(65536)
 		req.Body = http.MaxBytesReader(w, req.Body, MaxBodyBytes)
 		payload, err := ioutil.ReadAll(req.Body)
 		if err != nil {
-			log.Error(e.Wrap(err, "error reading request body"))
+			LogErrorToDatadog("StripeWebhook", e.Wrap(err, "error reading request body"))
 			w.WriteHeader(http.StatusServiceUnavailable)
 			return
 		}
@@ -1012,13 +1022,13 @@ func (r *Resolver) StripeWebhook(endpointSecret string) func(http.ResponseWriter
 		event, err := webhook.ConstructEvent(payload, req.Header.Get("Stripe-Signature"),
 			endpointSecret)
 		if err != nil {
-			log.Error(e.Wrap(err, "error verifying webhook signature"))
+			LogErrorToDatadog("StripeWebhook", e.Wrap(err, "error verifying webhook signature"))
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
 		if err := json.Unmarshal(payload, &event); err != nil {
-			log.Error(e.Wrap(err, "failed to parse webhook body json"))
+			LogErrorToDatadog("StripeWebhook", e.Wrap(err, "failed to parse webhook body json"))
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -1030,13 +1040,13 @@ func (r *Resolver) StripeWebhook(endpointSecret string) func(http.ResponseWriter
 			var subscription stripe.Subscription
 			err := json.Unmarshal(event.Data.Raw, &subscription)
 			if err != nil {
-				log.Error(e.Wrap(err, "failed to parse webhook body json as Subscription"))
+				LogErrorToDatadog("StripeWebhook", e.Wrap(err, "failed to parse webhook body json as Subscription"))
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
 
 			if err := r.updateBillingDetails(subscription.Customer.ID); err != nil {
-				log.Error(e.Wrap(err, "failed to update billing details"))
+				LogErrorToDatadog("StripeWebhook", e.Wrap(err, "failed to update billing details"))
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
