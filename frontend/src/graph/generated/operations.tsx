@@ -1258,7 +1258,7 @@ export type GetWorkspaceAdminsQuery = { __typename?: 'Query' } & {
     workspace?: Types.Maybe<
         { __typename?: 'Workspace' } & Pick<
             Types.Workspace,
-            'id' | 'name' | 'secret'
+            'id' | 'name' | 'secret' | 'allowed_auto_join_email_origins'
         >
     >;
     workspace_invite_links: { __typename?: 'WorkspaceInviteLink' } & Pick<

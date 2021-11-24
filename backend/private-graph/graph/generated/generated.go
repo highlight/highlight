@@ -550,16 +550,17 @@ type ComplexityRoot struct {
 	}
 
 	Workspace struct {
-		AllowMeterOverage   func(childComplexity int) int
-		BillingPeriodEnd    func(childComplexity int) int
-		ID                  func(childComplexity int) int
-		Name                func(childComplexity int) int
-		NextInvoiceDate     func(childComplexity int) int
-		Projects            func(childComplexity int) int
-		Secret              func(childComplexity int) int
-		SlackChannels       func(childComplexity int) int
-		SlackWebhookChannel func(childComplexity int) int
-		TrialEndDate        func(childComplexity int) int
+		AllowMeterOverage           func(childComplexity int) int
+		AllowedAutoJoinEmailOrigins func(childComplexity int) int
+		BillingPeriodEnd            func(childComplexity int) int
+		ID                          func(childComplexity int) int
+		Name                        func(childComplexity int) int
+		NextInvoiceDate             func(childComplexity int) int
+		Projects                    func(childComplexity int) int
+		Secret                      func(childComplexity int) int
+		SlackChannels               func(childComplexity int) int
+		SlackWebhookChannel         func(childComplexity int) int
+		TrialEndDate                func(childComplexity int) int
 	}
 
 	WorkspaceInviteLink struct {
@@ -3830,6 +3831,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Workspace.AllowMeterOverage(childComplexity), true
 
+	case "Workspace.allowed_auto_join_email_origins":
+		if e.complexity.Workspace.AllowedAutoJoinEmailOrigins == nil {
+			break
+		}
+
+		return e.complexity.Workspace.AllowedAutoJoinEmailOrigins(childComplexity), true
+
 	case "Workspace.billing_period_end":
 		if e.complexity.Workspace.BillingPeriodEnd == nil {
 			break
@@ -4160,6 +4168,7 @@ type Workspace {
     billing_period_end: Timestamp
     next_invoice_date: Timestamp
     allow_meter_overage: Boolean!
+    allowed_auto_join_email_origins: String
 }
 
 type Segment {
@@ -21251,6 +21260,38 @@ func (ec *executionContext) _Workspace_allow_meter_overage(ctx context.Context, 
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Workspace_allowed_auto_join_email_origins(ctx context.Context, field graphql.CollectedField, obj *model1.Workspace) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Workspace",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AllowedAutoJoinEmailOrigins, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _WorkspaceInviteLink_id(ctx context.Context, field graphql.CollectedField, obj *model1.WorkspaceInviteLink) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -26033,6 +26074,8 @@ func (ec *executionContext) _Workspace(ctx context.Context, sel ast.SelectionSet
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "allowed_auto_join_email_origins":
+			out.Values[i] = ec._Workspace_allowed_auto_join_email_origins(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
