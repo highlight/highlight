@@ -28,12 +28,11 @@ interface AuthorizationInterface {
 export const useAuthorization = (): AuthorizationInterface => {
     const { admin } = useAuthContext();
 
-    if (!admin) {
-        throw Error('Admin does not exist.');
-    }
-
     const checkRoleAccess = React.useCallback(
         ({ allowedRoles }: { allowedRoles: AdminRole[] }) => {
+            if (!admin) {
+                return false;
+            }
             if (allowedRoles && allowedRoles.length > 0) {
                 // @ts-expect-error
                 return allowedRoles?.includes(admin.role);
@@ -41,11 +40,15 @@ export const useAuthorization = (): AuthorizationInterface => {
 
             return false;
         },
-        [admin.role]
+        [admin]
     );
 
     const checkPolicyAccess = React.useCallback(
         ({ policyName }: { policyName: PolicyName }) => {
+            if (!admin) {
+                return false;
+            }
+
             return AUTHORIZATION_POLICIES[policyName](admin);
         },
         [admin]
