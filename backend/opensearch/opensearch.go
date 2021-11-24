@@ -110,16 +110,21 @@ func (c *Client) Update(index Index, id int, obj map[string]interface{}) error {
 	return nil
 }
 
-func (c *Client) AppendSessionFields(sessionID int, fields []*model.Field) error {
+func (c *Client) AppendToField(index Index, sessionID int, fieldName string, fields []*model.Field) error {
+	// Nothing to append, skip the OpenSearch request
+	if len(fields) == 0 {
+		return nil
+	}
+
 	documentId := strconv.Itoa(sessionID)
 
 	b, err := json.Marshal(fields)
 	if err != nil {
 		return e.Wrap(err, "error marshalling fields")
 	}
-	body := strings.NewReader(fmt.Sprintf(`{"script" : {"source": "ctx._source.fields.addAll(params.fields)","params" : {"fields" : %s}}}`, string(b)))
+	body := strings.NewReader(fmt.Sprintf(`{"script" : {"source": "ctx._source.%s.addAll(params.toAppend)","params" : {"toAppend" : %s}}}`, fieldName, string(b)))
 
-	indexStr := GetIndex(IndexSessions)
+	indexStr := GetIndex(index)
 
 	item := opensearchutil.BulkIndexerItem{
 		Index:      indexStr,

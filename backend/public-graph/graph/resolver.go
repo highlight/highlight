@@ -139,7 +139,7 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 		}
 	}
 
-	if err := r.OpenSearch.AppendSessionFields(session.ID, newFields); err != nil {
+	if err := r.OpenSearch.AppendToField(opensearch.IndexSessions, session.ID, "fields", newFields); err != nil {
 		return e.Wrap(err, "error appending session fields")
 	}
 
@@ -486,6 +486,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 		Environment:                    environment,
 		AppVersion:                     appVersion,
 		VerboseID:                      projectVerboseID,
+		Fields:                         []*model.Field{},
 	}
 
 	if err := r.DB.Create(session).Error; err != nil {
