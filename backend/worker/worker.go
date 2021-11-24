@@ -24,6 +24,7 @@ import (
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/payload"
 	"github.com/highlight-run/highlight/backend/pricing"
 	mgraph "github.com/highlight-run/highlight/backend/private-graph/graph"
@@ -47,6 +48,11 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
 	}
+
+	if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{"migration_state": migrationState}); err != nil {
+		return e.Wrap(err, "error updating session in opensearch")
+	}
+
 	sessionPayloadSize, err := w.S3Client.PushFileToS3(ctx, s.ID, s.ProjectID, eventsFile, storage.S3SessionsPayloadBucketName, storage.SessionContents)
 	// If this is unsucessful, return early (we treat this session as if it is stored in psql).
 	if err != nil {
@@ -89,6 +95,14 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 		&model.Session{ObjectStorageEnabled: &model.T, PayloadSize: &totalPayloadSize, DirectDownloadEnabled: true},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to storage enabled")
+	}
+
+	if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
+		"object_storage_enabled":  true,
+		"payload_size":            totalPayloadSize,
+		"direct_download_enabled": true,
+	}); err != nil {
+		return e.Wrap(err, "error updating session in opensearch")
 	}
 
 	// Delete all the events_objects in the DB.
@@ -261,6 +275,14 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
 				"session_obj": s}).Warnf("error excluding session with no events (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v): %v", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed, err)
 		}
+
+		if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
+			"Excluded":  true,
+			"processed": true,
+		}); err != nil {
+			return e.Wrap(err, "error updating session in opensearch")
+		}
+
 		return nil
 	}
 
@@ -358,6 +380,14 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
 				"session_obj": s}).Warnf("error excluding session with 0ms length active duration (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v): %v", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed, err)
 		}
+
+		if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
+			"Excluded":  true,
+			"processed": true,
+		}); err != nil {
+			return e.Wrap(err, "error updating session in opensearch")
+		}
+
 		return nil
 	}
 
@@ -372,6 +402,15 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
+	}
+
+	if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
+		"processed":     true,
+		"length":        sessionTotalLengthInMilliseconds,
+		"active_length": activeDuration.Milliseconds(),
+		"EventCounts":   eventCountsString,
+	}); err != nil {
+		return e.Wrap(err, "error updating session in opensearch")
 	}
 
 	// Update session count on dailydb

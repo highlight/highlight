@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/highlight-run/highlight/backend/model"
+	osutil "github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/opensearch-project/opensearch-go"
 	"github.com/opensearch-project/opensearch-go/opensearchutil"
 
@@ -28,9 +29,9 @@ func main() {
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // For testing only. Use certificate for validation.
 		},
-		Addresses: []string{"https://search-highlight-search-4enovx2hc5z7gzvk5fwyqdz7pm.us-east-2.es.amazonaws.com"},
-		Username:  "highlight", // For testing only. Don't store credentials in code.
-		Password:  "",
+		Addresses: []string{osutil.OpensearchDomain},
+		Username:  osutil.OpensearchUsername, // For testing only. Don't store credentials in code.
+		Password:  osutil.OpensearchPassword,
 	})
 	if err != nil {
 		log.Fatalf("cannot initialize: %v", err)
@@ -38,10 +39,10 @@ func main() {
 
 	// Create the indexer
 	indexer, err := opensearchutil.NewBulkIndexer(opensearchutil.BulkIndexerConfig{
-		Client:     client,   // The OpenSearch client
-		Index:      "fields", // The default index name
-		NumWorkers: 4,        // The number of worker goroutines (default: number of CPUs)
-		FlushBytes: 5e+6,     // The flush threshold in bytes (default: 5M)
+		Client:     client,                    // The OpenSearch client
+		Index:      osutil.GetIndex("fields"), // The default index name
+		NumWorkers: 4,                         // The number of worker goroutines (default: number of CPUs)
+		FlushBytes: 5e+6,                      // The flush threshold in bytes (default: 5M)
 	})
 	if err != nil {
 		log.Fatalf("Error creating the indexer: %s", err)
@@ -101,6 +102,9 @@ func main() {
 				},
 			},
 		)
+		if err != nil {
+			log.Fatalf("error adding item to indexer %+v", err)
+		}
 	}
 
 	// Close the indexer channel and flush remaining items
