@@ -1,3 +1,4 @@
+import Dot, { CustomDotColor } from '@components/Dot/Dot';
 import { motion } from 'framer-motion';
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
@@ -16,6 +17,7 @@ const SessionLevelBar = React.memo(() => {
         session,
         viewport,
         currentUrl,
+        isLiveMode,
     } = useReplayerContext();
 
     const isLoading =
@@ -45,6 +47,22 @@ const SessionLevelBar = React.memo(() => {
                         >
                             {viewport?.width} x {viewport?.height}
                         </SessionToken>
+                        {isLiveMode ? (
+                            <SessionToken
+                                icon={
+                                    <Dot
+                                        pulse={true}
+                                        color={CustomDotColor.RED}
+                                    />
+                                }
+                                tooltipTitle="This session is currently live."
+                                className={styles.liveIndicator}
+                            >
+                                <div className={styles.liveIndicator}>Live</div>
+                            </SessionToken>
+                        ) : (
+                            ''
+                        )}
                     </>
                 )}
             </div>
