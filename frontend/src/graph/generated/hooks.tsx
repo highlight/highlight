@@ -3278,6 +3278,7 @@ export const GetWorkspaceAdminsDocument = gql`
             id
             name
             secret
+            allowed_auto_join_email_origins
         }
         workspace_invite_links(workspace_id: $workspace_id) {
             id

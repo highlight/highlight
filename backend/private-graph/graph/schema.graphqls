@@ -149,6 +149,7 @@ type Workspace {
     billing_period_end: Timestamp
     next_invoice_date: Timestamp
     allow_meter_overage: Boolean!
+    allowed_auto_join_email_origins: String
 }
 
 type Segment {
