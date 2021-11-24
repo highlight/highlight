@@ -422,6 +422,7 @@ export const Toolbar = React.memo(() => {
                                     }}
                                     label="Live Mode"
                                     trackingId="LiveModeSwitch"
+                                    red={true}
                                 />
                             </Button>
                         )}

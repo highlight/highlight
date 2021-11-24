@@ -8,6 +8,9 @@
 
     &.checked {
         color: var(--text-primary);
+        &.red {
+            color: var(--color-red);
+        }
     }
 
     &.spaceBetween {
@@ -29,5 +32,8 @@
 
     &:global(.ant-switch-checked) {
         background: var(--color-purple);
+        &.red {
+            background: var(--color-red);
+        }
     }
 }
