@@ -22,7 +22,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -3013,6 +3013,9 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	}
 
 	membersLimit := pricing.TypeToMemberLimit(planType)
+	if workspace.MonthlyMembersLimit != nil {
+		membersLimit = *workspace.MonthlyMembersLimit
+	}
 
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{

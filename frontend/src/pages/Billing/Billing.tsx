@@ -1,6 +1,5 @@
 import Alert from '@components/Alert/Alert';
 import Button from '@components/Button/Button/Button';
-import HighlightGate from '@components/HighlightGate/HighlightGate';
 import Switch from '@components/Switch/Switch';
 import SvgLogInIcon from '@icons/LogInIcon';
 import { BillingStatusCard } from '@pages/Billing/BillingStatusCard/BillingStatusCard';
@@ -203,23 +202,21 @@ const BillingPage = () => {
                             Manage your billing information.
                         </p>
                     </div>
-                    <HighlightGate>
-                        <Authorization allowedRoles={[AdminRole.Admin]}>
-                            <Button
-                                trackingId="RedirectToCustomerPortal"
-                                type="primary"
-                                onClick={() => {
-                                    getCustomerPortalUrl({
-                                        variables: { workspace_id },
-                                    });
-                                }}
-                                loading={loadingCustomerPortal}
-                                className={styles.portalButton}
-                            >
-                                <SvgLogInIcon /> Payment Settings
-                            </Button>
-                        </Authorization>
-                    </HighlightGate>
+                    <Authorization allowedRoles={[AdminRole.Admin]}>
+                        <Button
+                            trackingId="RedirectToCustomerPortal"
+                            type="primary"
+                            onClick={() => {
+                                getCustomerPortalUrl({
+                                    variables: { workspace_id },
+                                });
+                            }}
+                            loading={loadingCustomerPortal}
+                            className={styles.portalButton}
+                        >
+                            <SvgLogInIcon /> Payment Settings
+                        </Button>
+                    </Authorization>
                 </div>
                 <BillingStatusCard
                     planType={
@@ -242,43 +239,39 @@ const BillingPage = () => {
                     allowOverage={allowOverage}
                     loading={billingLoading}
                 />
-                <HighlightGate>
-                    <Authorization allowedRoles={[AdminRole.Admin]}>
-                        <div className={styles.annualToggleBox}>
-                            <Switch
-                                loading={billingLoading}
-                                label={
-                                    <span className={styles.annualToggleText}>
-                                        Annual Plan{' '}
-                                        <span
-                                            className={
-                                                styles.annualToggleAltText
-                                            }
-                                        >
-                                            (20% off)
-                                        </span>
+                <Authorization allowedRoles={[AdminRole.Admin]}>
+                    <div className={styles.annualToggleBox}>
+                        <Switch
+                            loading={billingLoading}
+                            label={
+                                <span className={styles.annualToggleText}>
+                                    Annual Plan{' '}
+                                    <span
+                                        className={styles.annualToggleAltText}
+                                    >
+                                        (20% off)
                                     </span>
-                                }
-                                size="default"
-                                labelFirst
-                                justifySpaceBetween
-                                noMarginAroundSwitch
-                                checked={
-                                    subscriptionInterval ===
-                                    SubscriptionInterval.Annual
-                                }
-                                onChange={(isAnnual) => {
-                                    setSubscriptionInterval(
-                                        isAnnual
-                                            ? SubscriptionInterval.Annual
-                                            : SubscriptionInterval.Monthly
-                                    );
-                                }}
-                                trackingId="BillingInterval"
-                            />
-                        </div>
-                    </Authorization>
-                </HighlightGate>
+                                </span>
+                            }
+                            size="default"
+                            labelFirst
+                            justifySpaceBetween
+                            noMarginAroundSwitch
+                            checked={
+                                subscriptionInterval ===
+                                SubscriptionInterval.Annual
+                            }
+                            onChange={(isAnnual) => {
+                                setSubscriptionInterval(
+                                    isAnnual
+                                        ? SubscriptionInterval.Annual
+                                        : SubscriptionInterval.Monthly
+                                );
+                            }}
+                            trackingId="BillingInterval"
+                        />
+                    </div>
+                </Authorization>
                 <div className={styles.billingPlanCardWrapper}>
                     <Authorization
                         allowedRoles={[AdminRole.Admin]}
