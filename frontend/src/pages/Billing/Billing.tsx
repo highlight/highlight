@@ -1,3 +1,4 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import Alert from '@components/Alert/Alert';
 import Button from '@components/Button/Button/Button';
 import HighlightGate from '@components/HighlightGate/HighlightGate';
@@ -6,11 +7,6 @@ import SvgLogInIcon from '@icons/LogInIcon';
 import { BillingStatusCard } from '@pages/Billing/BillingStatusCard/BillingStatusCard';
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { loadStripe } from '@stripe/stripe-js';
-import {
-    Authorization,
-    useAuthorization,
-} from '@util/authorization/authorization';
-import { POLICY_NAMES } from '@util/authorization/authorizationPolicies';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import React, { useEffect, useState } from 'react';
@@ -51,7 +47,6 @@ const BillingPage = () => {
     const { workspace_id } = useParams<{ workspace_id: string }>();
     const { pathname } = useLocation();
     const { currentWorkspace } = useApplicationContext();
-    const { checkPolicyAccess } = useAuthorization();
     const [
         checkoutRedirectFailedMessage,
         setCheckoutRedirectFailedMessage,
@@ -81,6 +76,8 @@ const BillingPage = () => {
             }
         },
     });
+
+    const { admin } = useAuthContext();
 
     const [
         createOrUpdateStripeSubscription,
@@ -204,7 +201,7 @@ const BillingPage = () => {
                         </p>
                     </div>
                     <HighlightGate>
-                        <Authorization allowedRoles={[AdminRole.Admin]}>
+                        {admin?.role === AdminRole.Admin && (
                             <Button
                                 trackingId="RedirectToCustomerPortal"
                                 type="primary"
@@ -218,7 +215,7 @@ const BillingPage = () => {
                             >
                                 <SvgLogInIcon /> Payment Settings
                             </Button>
-                        </Authorization>
+                        )}
                     </HighlightGate>
                 </div>
                 <BillingStatusCard
@@ -243,7 +240,7 @@ const BillingPage = () => {
                     loading={billingLoading}
                 />
                 <HighlightGate>
-                    <Authorization allowedRoles={[AdminRole.Admin]}>
+                    {admin?.role === AdminRole.Admin && (
                         <div className={styles.annualToggleBox}>
                             <Switch
                                 loading={billingLoading}
@@ -277,21 +274,11 @@ const BillingPage = () => {
                                 trackingId="BillingInterval"
                             />
                         </div>
-                    </Authorization>
+                    )}
                 </HighlightGate>
                 <div className={styles.billingPlanCardWrapper}>
-                    <Authorization
-                        allowedRoles={[AdminRole.Admin]}
-                        forbiddenFallback={
-                            <Alert
-                                trackingId="AdminNoAccessToBilling"
-                                type="info"
-                                message="You don't have access to billing."
-                                description={`You don't have permission to access the billing details for "${currentWorkspace?.name}". Please contact a workspace admin to make changes.`}
-                            />
-                        }
-                    >
-                        {BILLING_PLANS.map((billingPlan) =>
+                    {admin?.role === AdminRole.Admin ? (
+                        BILLING_PLANS.map((billingPlan) =>
                             billingLoading ? (
                                 <Skeleton
                                     style={{ borderRadius: 8 }}
@@ -301,9 +288,7 @@ const BillingPage = () => {
                                 />
                             ) : (
                                 <BillingPlanCard
-                                    disabled={checkPolicyAccess({
-                                        policyName: POLICY_NAMES.BillingUpdate,
-                                    })}
+                                    disabled={admin?.role !== AdminRole.Admin}
                                     key={billingPlan.type}
                                     current={
                                         billingData?.billingDetails.plan
@@ -321,8 +306,15 @@ const BillingPage = () => {
                                     subscriptionInterval={subscriptionInterval}
                                 />
                             )
-                        )}
-                    </Authorization>
+                        )
+                    ) : (
+                        <Alert
+                            trackingId="AdminNoAccessToBilling"
+                            type="info"
+                            message="You don't have access to billing."
+                            description={`You don't have permission to access the billing details for "${currentWorkspace?.name}". Please contact a workspace admin to make changes.`}
+                        />
+                    )}
                 </div>
             </LeadAlignLayout>
         </>

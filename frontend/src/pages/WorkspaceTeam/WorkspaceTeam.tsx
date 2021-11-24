@@ -10,8 +10,6 @@ import { AdminRole } from '@graph/schemas';
 import SvgTrash from '@icons/Trash';
 import AutoJoinForm from '@pages/WorkspaceTeam/components/AutoJoinForm';
 import { getWorkspaceInvitationLink } from '@pages/WorkspaceTeam/utils';
-import { useAuthorization } from '@util/authorization/authorization';
-import { POLICY_NAMES } from '@util/authorization/authorizationPolicies';
 import { useParams } from '@util/react-router/useParams';
 import { getDisplayNameFromEmail, titleCaseString } from '@util/string';
 import { message } from 'antd';
@@ -43,7 +41,6 @@ const WorkspaceTeam = () => {
     const { data, error, loading } = useGetWorkspaceAdminsQuery({
         variables: { workspace_id },
     });
-    const { checkPolicyAccess } = useAuthorization();
     const [email, setEmail] = useState('');
     const [showModal, toggleShowModal] = useToggle(false);
     const [newAdminRole, setNewAdminRole] = useState<AdminRole>(
@@ -233,9 +230,7 @@ const WorkspaceTeam = () => {
             <Card noPadding>
                 <Table
                     columns={
-                        checkPolicyAccess({
-                            policyName: POLICY_NAMES.RolesUpdate,
-                        })
+                        admin?.role === AdminRole.Admin
                             ? TABLE_COLUMNS
                             : TABLE_COLUMNS.slice(0, 2)
                     }
@@ -277,9 +272,8 @@ const WorkspaceTeam = () => {
                             }
                             message.success(messageText);
                         },
-                        canUpdateAdminRole: checkPolicyAccess({
-                            policyName: POLICY_NAMES.RolesUpdate,
-                        }),
+                        currentAdminHasAdminRole:
+                            admin?.role === AdminRole.Admin,
                     }))}
                     pagination={false}
                     showHeader={false}
@@ -326,7 +320,7 @@ const TABLE_COLUMNS = [
         dataIndex: 'role',
         key: 'role',
         render: (role: string, record: any) => {
-            if (record.canUpdateAdminRole) {
+            if (record.currentAdminHasAdminRole) {
                 return (
                     <div className={styles.role}>
                         <Select
