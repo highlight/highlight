@@ -314,8 +314,9 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 		return e.New("STRIPE_INTEGRATION_ERROR cannot report usage - product has no tier")
 	}
 
-	// Set PendingInvoiceItemInterval to 'month' if not set
-	if subscription.PendingInvoiceItemInterval.Interval != stripe.SubscriptionPendingInvoiceItemIntervalIntervalMonth {
+	// For annual subscriptions, set PendingInvoiceItemInterval to 'month' if not set
+	if interval == SubscriptionIntervalAnnual &&
+		subscription.PendingInvoiceItemInterval.Interval != stripe.SubscriptionPendingInvoiceItemIntervalIntervalMonth {
 		updated, err := stripeClient.Subscriptions.Update(subscription.ID, &stripe.SubscriptionParams{
 			PendingInvoiceItemInterval: &stripe.SubscriptionPendingInvoiceItemIntervalParams{
 				Interval: stripe.String(string(stripe.SubscriptionPendingInvoiceItemIntervalIntervalMonth)),
