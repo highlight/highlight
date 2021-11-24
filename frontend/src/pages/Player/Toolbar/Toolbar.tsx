@@ -413,6 +413,7 @@ export const Toolbar = React.memo(() => {
                             <Button
                                 trackingId="LiveModeButton"
                                 className={styles.liveButton}
+                                pulse={isLiveMode}
                             >
                                 <Switch
                                     checked={isLiveMode}

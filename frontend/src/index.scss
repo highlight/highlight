@@ -391,3 +391,24 @@ code:not([class]) {
 strong {
     font-weight: 500 !important;
 }
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(var(--pulse-color), 0.7);
+        transform: scale(0.95);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(var(--pulse-color), 0);
+        transform: scale(1);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(var(--pulse-color), 0);
+        transform: scale(0.95);
+    }
+}
