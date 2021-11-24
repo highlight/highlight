@@ -427,6 +427,12 @@ export const Toolbar = React.memo(() => {
                             </Button>
                         )}
 
+                    {isLiveMode && (
+                        <div className={styles.liveUserStatus}>
+                            User is inactive
+                        </div>
+                    )}
+
                     {!isLiveMode && (
                         <div className={styles.timeSection}>
                             {disableControls ? (

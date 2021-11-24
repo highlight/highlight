@@ -203,6 +203,13 @@
     padding: 7px;
 }
 
+.liveUserStatus {
+    align-items: center;
+    display: flex;
+    height: 100%;
+    justify-content: center;
+}
+
 .verticalDivider {
     background-color: var(--color-gray-300);
     height: 80%;
@@ -253,14 +260,6 @@
 .timeSection {
     align-items: center;
     color: var(--color-gray-500);
-    display: flex;
-    font-size: 12px;
-    height: 100%;
-    justify-content: center;
-}
-
-.liveSection {
-    align-items: center;
     display: flex;
     font-size: 12px;
     height: 100%;

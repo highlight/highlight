@@ -15,7 +15,7 @@ export const inactiveText: string;
 export const indicator: string;
 export const indicatorParent: string;
 export const liveButton: string;
-export const liveSection: string;
+export const liveUserStatus: string;
 export const playButtonStyle: string;
 export const playerRail: string;
 export const playSection: string;
