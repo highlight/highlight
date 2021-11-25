@@ -322,14 +322,7 @@ export const Toolbar = React.memo(() => {
                 </div>
             ) : (
                 <div className={styles.playerRail}>
-                    <div
-                        className={styles.sliderRail}
-                        style={{
-                            position: 'absolute',
-                            display: 'flex',
-                            background: '#ff0000',
-                        }}
-                    />
+                    <div className={styles.livePlayerRail} />
                 </div>
             )}
             <div className={styles.toolbarSection}>

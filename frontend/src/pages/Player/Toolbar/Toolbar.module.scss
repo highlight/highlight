@@ -42,6 +42,30 @@
     width: 100%;
 }
 
+.livePlayerRail {
+    animation-duration: 2s;
+    animation-fill-mode: forwards;
+    animation-iteration-count: infinite;
+    animation-name: liveShimmer;
+    animation-timing-function: linear;
+    background: linear-gradient(to right, #f99 8%, #f00 38%, #f99 68%);
+    background-size: 800px 5px;
+    display: flex;
+    height: 5px;
+    position: absolute;
+    transition: all 0.2s ease-in-out;
+    width: 100%;
+}
+
+@keyframes liveShimmer {
+    0% {
+        background-position: -800px 0;
+    }
+    100% {
+        background-position: 800px 0;
+    }
+}
+
 .sliderPopover {
     // text-shadow: 0 0 4px rgba(0, 0, 0, 0.75);
     background: var(--text-primary);
