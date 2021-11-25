@@ -253,7 +253,7 @@ export const Toolbar = React.memo(() => {
                     </div>
                 </DevToolsContextProvider>
             )}
-            {!isLiveMode && (
+            {!isLiveMode ? (
                 <div className={styles.playerRail}>
                     <div
                         className={styles.sliderRail}
@@ -319,6 +319,17 @@ export const Toolbar = React.memo(() => {
                             </div>
                         </Draggable>
                     </button>
+                </div>
+            ) : (
+                <div className={styles.playerRail}>
+                    <div
+                        className={styles.sliderRail}
+                        style={{
+                            position: 'absolute',
+                            display: 'flex',
+                            background: '#ff0000',
+                        }}
+                    />
                 </div>
             )}
             <div className={styles.toolbarSection}>

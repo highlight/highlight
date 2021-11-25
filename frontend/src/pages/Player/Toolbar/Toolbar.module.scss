@@ -199,8 +199,9 @@
     --pulse-color: 255, 0, 0;
     border-color: var(--color-gray-300);
     cursor: pointer;
-    margin: 8px 0 6px;
-    padding: 7px;
+    height: 32px;
+    margin-top: 10px;
+    padding: 8px;
 }
 
 .liveUserStatus {
@@ -209,8 +210,9 @@
     border-radius: 8px;
     cursor: default;
     display: flex;
-    margin: 8px 0 6px;
-    padding: 7px;
+    height: 32px;
+    margin-top: 10px;
+    padding: 8px;
 }
 
 .liveUserStatus * {
