@@ -589,12 +589,13 @@ func (w *Worker) Start() {
 	go reportProcessSessionCount(w.Resolver.DB, payloadLookbackPeriod, lockPeriod)
 	maxWorkerCount := 40
 	processSessionLimit := 10000
+	txStart := time.Now()
 	for {
 		time.Sleep(1 * time.Second)
 		sessions := []*model.Session{}
 		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName("worker.sessionsQuery"))
 		if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
-			transactionCtx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
+			transactionCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 			defer cancel()
 
 			errs := make(chan error, 1)
@@ -617,7 +618,7 @@ func (w *Worker) Start() {
 						)
 						SELECT * FROM t;
 					`, false, payloadLookbackPeriod, lockPeriod, processSessionLimit). // why do we get payload_updated_at IS NULL?
-					Find(&sessions).Error; err != nil {
+					Find(&sessions).Debug().Error; err != nil {
 					errs <- err
 					return
 				}
@@ -634,7 +635,7 @@ func (w *Worker) Start() {
 			}
 			return nil
 		}); err != nil {
-			log.Errorf("error querying unparsed, outdated sessions: %v", err)
+			log.Errorf("error querying unparsed, outdated sessions, took [%v]: %v", time.Since(txStart), err)
 			sessionsSpan.Finish()
 			continue
 		}
