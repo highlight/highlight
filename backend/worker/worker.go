@@ -593,8 +593,9 @@ func (w *Worker) Start() {
 		time.Sleep(1 * time.Second)
 		sessions := []*model.Session{}
 		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName("worker.sessionsQuery"))
+		txStart := time.Now()
 		if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
-			transactionCtx, cancel := context.WithTimeout(ctx, 5000*time.Millisecond)
+			transactionCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 			defer cancel()
 
 			errs := make(chan error, 1)
@@ -634,9 +635,11 @@ func (w *Worker) Start() {
 			}
 			return nil
 		}); err != nil {
-			log.Errorf("error querying unparsed, outdated sessions: %v", err)
+			log.Errorf("error querying unparsed, outdated sessions, took [%v] ms: %v", time.Since(txStart), err)
 			sessionsSpan.Finish()
 			continue
+		} else {
+			log.Infof("succesful transaction, took [%v] ms", time.Since(txStart))
 		}
 		rand.Seed(time.Now().UnixNano())
 		rand.Shuffle(len(sessions), func(i, j int) {
