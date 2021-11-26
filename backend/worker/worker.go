@@ -589,7 +589,7 @@ func (w *Worker) Start() {
 	go reportProcessSessionCount(w.Resolver.DB, payloadLookbackPeriod, lockPeriod)
 	maxWorkerCount := 40
 	processSessionLimit := 10000
-	txStart := now()
+	txStart := time.Now()
 	for {
 		time.Sleep(1 * time.Second)
 		sessions := []*model.Session{}
