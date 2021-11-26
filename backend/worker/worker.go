@@ -594,7 +594,7 @@ func (w *Worker) Start() {
 		sessions := []*model.Session{}
 		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName("worker.sessionsQuery"))
 		if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
-			transactionCtx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
+			transactionCtx, cancel := context.WithTimeout(ctx, 5000*time.Millisecond)
 			defer cancel()
 
 			errs := make(chan error, 1)
@@ -617,7 +617,7 @@ func (w *Worker) Start() {
 						)
 						SELECT * FROM t;
 					`, false, payloadLookbackPeriod, lockPeriod, processSessionLimit). // why do we get payload_updated_at IS NULL?
-					Find(&sessions).Error; err != nil {
+					Find(&sessions).Debug().Error; err != nil {
 					errs <- err
 					return
 				}
