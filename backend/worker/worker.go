@@ -589,6 +589,7 @@ func (w *Worker) Start() {
 	go reportProcessSessionCount(w.Resolver.DB, payloadLookbackPeriod, lockPeriod)
 	maxWorkerCount := 40
 	processSessionLimit := 10000
+	txStart := now()
 	for {
 		time.Sleep(1 * time.Second)
 		sessions := []*model.Session{}
@@ -634,7 +635,7 @@ func (w *Worker) Start() {
 			}
 			return nil
 		}); err != nil {
-			log.Errorf("error querying unparsed, outdated sessions: %v", err)
+			log.Errorf("error querying unparsed, outdated sessions, took [%v]: %v", time.Since(txStart), err)
 			sessionsSpan.Finish()
 			continue
 		}
