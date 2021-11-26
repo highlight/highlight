@@ -639,7 +639,7 @@ func (w *Worker) Start() {
 			sessionsSpan.Finish()
 			continue
 		} else {
-			log.Infof("succesful transaction, took [%v] ms", time.Since(txStart))
+			log.Infof("successful transaction, took [%v] ms", time.Since(txStart))
 		}
 		rand.Seed(time.Now().UnixNano())
 		rand.Shuffle(len(sessions), func(i, j int) {
