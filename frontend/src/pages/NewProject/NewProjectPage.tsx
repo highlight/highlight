@@ -126,6 +126,7 @@ const NewProjectPage = () => {
                             styles.button
                         )}
                         htmlType="submit"
+                        disabled={name.length === 0}
                     >
                         {projectLoading || workspaceLoading ? (
                             <CircularSpinner
