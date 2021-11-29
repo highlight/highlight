@@ -97,9 +97,9 @@ const NewProjectPage = () => {
                     >{`Create a ${pageTypeCaps}`}</h2>
                     <p className={styles.subTitle}>
                         {isWorkspace &&
-                            `Let's create a workspace! This is usually your company name and can contain multiple projects (e.g. web front end, landing page, etc).`}
+                            `This is usually your company name (e.g. Pied Piper, Hooli, Google, etc.) and can contain multiple projects.`}
                         {!isWorkspace &&
-                            `Let's create a project! This is usually a single application (e.g. web front end, landing page, etc).`}
+                            `Let's create a project! This is usually a single application (e.g. web front end, landing page, etc.).`}
                     </p>
                     {error && (
                         <div className={commonStyles.errorMessage}>
