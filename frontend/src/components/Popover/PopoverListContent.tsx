@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import React, { useRef } from 'react';
-import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
+import { LogLevel, Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 import styles from './PopoverListContent.module.scss';
 
@@ -51,10 +51,11 @@ const PopoverListContent = ({
                 <>
                     <Virtuoso
                         ref={virtuoso}
-                        overscan={500}
+                        overscan={1000}
                         data={listItems}
                         totalCount={listItems.length}
                         defaultItemHeight={defaultItemHeight}
+                        logLevel={LogLevel.ERROR}
                         itemContent={(index, item: any) => (
                             <li
                                 key={`${index}-${item.id}`}
