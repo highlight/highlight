@@ -269,6 +269,7 @@ export const NewCommentForm = ({
             onFinish={onFinish}
             form={form}
             onKeyDown={onFormChangeHandler}
+            className={styles.form}
         >
             <Form.Item name="commentText" wrapperCol={{ span: 24 }}>
                 <div className={styles.commentInputContainer}>
