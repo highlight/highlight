@@ -4,11 +4,9 @@ import Card from '@components/Card/Card';
 import Dot from '@components/Dot/Dot';
 import { useAppLoadingContext } from '@context/AppLoadingContext';
 import { useGetAdminQuery } from '@graph/hooks';
-import EmailAnimation from '@lottie/email.json';
 import { Landing } from '@pages/Landing/Landing';
 import { auth } from '@util/auth';
 import { message } from 'antd';
-import Lottie from 'lottie-react';
 import React, { useEffect, useState } from 'react';
 
 import styles from './VerifyEmailCard.module.scss';
@@ -43,10 +41,6 @@ const VerifyEmailCard = ({ onStartHandler }: Props) => {
     return (
         <Landing>
             <Card className={styles.card}>
-                <Lottie
-                    animationData={EmailAnimation}
-                    className={styles.animation}
-                />
                 <h2>{!isEmailVerified ? 'Verify Email' : 'Email Verified!'}</h2>
 
                 {isEmailVerified && (
