@@ -39,7 +39,7 @@ const NewMemberPage = () => {
 
     return (
         <div className={styles.box}>
-            <h2>Accept project invite?</h2>
+            <h2 className={styles.title}>Accept Project Invite?</h2>
             <p className={styles.subTitle}>
                 Would you like to enter this project as '
                 {adminData?.admin?.email}' ?
