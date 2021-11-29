@@ -9,7 +9,6 @@ import { message } from 'antd';
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
-import commonStyles from '../../../../Common.module.scss';
 import Button from '../../../../components/Button/Button/Button';
 import { CircularSpinner } from '../../../../components/Loading/Loading';
 import Modal from '../../../../components/Modal/Modal';
@@ -92,7 +91,6 @@ const CreateSegmentModal = ({
                         create a segment.
                     </p>
                     <Input
-                        className={commonStyles.input}
                         name="name"
                         value={name}
                         onChange={(e) => {
