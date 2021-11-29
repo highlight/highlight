@@ -124,6 +124,10 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 			if err := r.DB.Create(f).Error; err != nil {
 				return e.Wrap(err, "error creating field")
 			}
+			if err := r.OpenSearch.Index(opensearch.IndexFields, f.ID, f); err != nil {
+				return e.Wrap(err, "error indexing new field")
+			}
+
 			fieldsToAppend = append(fieldsToAppend, f)
 		} else {
 			exists = false
@@ -493,7 +497,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, p
 		return nil, e.Wrap(err, "error creating session")
 	}
 
-	if err := r.OpenSearch.Index(opensearch.IndexSessions, session.ID, session); err != nil {
+	if err := r.OpenSearch.IndexSynchronous(opensearch.IndexSessions, session.ID, session); err != nil {
 		return nil, e.Wrap(err, "error indexing session in opensearch")
 	}
 

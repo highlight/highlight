@@ -16,6 +16,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/opensearch-project/opensearch-go"
+	"github.com/opensearch-project/opensearch-go/opensearchapi"
 	"github.com/opensearch-project/opensearch-go/opensearchutil"
 )
 
@@ -110,6 +111,41 @@ func (c *Client) Update(index Index, id int, obj map[string]interface{}) error {
 	return nil
 }
 
+func (c *Client) Index(index Index, id int, obj interface{}) error {
+	documentId := strconv.Itoa(id)
+
+	b, err := json.Marshal(obj)
+	if err != nil {
+		return e.Wrap(err, "error marshalling map for index")
+	}
+	body := strings.NewReader(string(b))
+
+	indexStr := GetIndex(index)
+
+	item := opensearchutil.BulkIndexerItem{
+		Index:      indexStr,
+		Action:     "index",
+		DocumentID: documentId,
+		Body:       body,
+		OnSuccess: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem) {
+			log.Infof("OPENSEARCH SUCCESS (%s : %s) [%d] %s", indexStr, item.DocumentID, res.Status, res.Result)
+		},
+		OnFailure: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem, err error) {
+			if err != nil {
+				log.Errorf("OPENSEARCH ERROR (%s : %s) %s", indexStr, item.DocumentID, err)
+			} else {
+				log.Errorf("OPENSEARCH ERROR (%s : %s) %s %s", indexStr, item.DocumentID, res.Error.Type, res.Error.Reason)
+			}
+		},
+	}
+
+	if err := c.BulkIndexer.Add(context.Background(), item); err != nil {
+		return e.Wrap(err, "error adding bulk indexer item for index")
+	}
+
+	return nil
+}
+
 func (c *Client) AppendToField(index Index, sessionID int, fieldName string, fields []*model.Field) error {
 	// Nothing to append, skip the OpenSearch request
 	if len(fields) == 0 {
@@ -151,7 +187,7 @@ func (c *Client) AppendToField(index Index, sessionID int, fieldName string, fie
 
 }
 
-func (c *Client) Index(index Index, id int, obj interface{}) error {
+func (c *Client) IndexSynchronous(index Index, id int, obj interface{}) error {
 	documentId := strconv.Itoa(id)
 
 	b, err := json.Marshal(obj)
@@ -162,25 +198,13 @@ func (c *Client) Index(index Index, id int, obj interface{}) error {
 
 	indexStr := GetIndex(index)
 
-	item := opensearchutil.BulkIndexerItem{
+	req := opensearchapi.IndexRequest{
 		Index:      indexStr,
-		Action:     "index",
 		DocumentID: documentId,
 		Body:       body,
-		OnSuccess: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem) {
-			log.Infof("OPENSEARCH SUCCESS (%s : %s) [%d] %s", indexStr, item.DocumentID, res.Status, res.Result)
-		},
-		OnFailure: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem, err error) {
-			if err != nil {
-				log.Errorf("OPENSEARCH ERROR (%s : %s) %s", indexStr, item.DocumentID, err)
-			} else {
-				log.Errorf("OPENSEARCH ERROR (%s : %s) %s %s", indexStr, item.DocumentID, res.Error.Type, res.Error.Reason)
-			}
-		},
 	}
-
-	if err := c.BulkIndexer.Add(context.Background(), item); err != nil {
-		return e.Wrap(err, "error adding bulk indexer item for index")
+	if _, err := req.Do(context.Background(), c.Client); err != nil {
+		return e.Wrap(err, "error indexing document")
 	}
 
 	return nil
