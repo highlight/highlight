@@ -121,10 +121,8 @@ const NewProjectPage = () => {
                     <Button
                         trackingId={`Create${pageTypeCaps}`}
                         type="primary"
-                        className={classNames(
-                            commonStyles.submitButton,
-                            styles.button
-                        )}
+                        className={classNames(styles.button)}
+                        block
                         htmlType="submit"
                         disabled={name.length === 0}
                     >
